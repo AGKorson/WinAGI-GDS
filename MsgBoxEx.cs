@@ -6,12 +6,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WinAGI.Editor {
-    // custom c# messagebox message; includes a checkbox that the calling function can check
-    // after the dialog box closes
-
     /// <summary>
     /// A custom message box class that includes a checkbox that the calling function can
-    /// check after the dialog box closes.
+    /// inspect after the dialog box closes.
     /// </summary>
     public static class MsgBoxEx {
 

@@ -811,7 +811,7 @@
     <value>The message box won't draw correctly if ROW &gt; 22</value>
   </data>
   <data name="5068" xml:space="preserve">
-    <value>The message box won't draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39</value>
+    <value>The message box may not draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39</value>
   </data>
   <data name="5069" xml:space="preserve">
     <value>Invalid cursor position for clear.text.rect command; must be in upper-left/lower-right format</value>
@@ -1600,6 +1600,18 @@
     <value>Cel width less than 3 will not draw control box correctly</value>
   </data>
   <data name="5116" xml:space="preserve">
-    <value>Commands after a quit() command are always ignored by AGI</value>
+    <value>Commands after a forced quit() command are always ignored by AGI</value>
+  </data>
+  <data name="5117" xml:space="preserve">
+    <value>Duplicate include file (%1)</value>
+  </data>
+  <data name="4166" xml:space="preserve">
+    <value>Include file cannot be this logic's source code file</value>
+  </data>
+  <data name="648" xml:space="preserve">
+    <value>Unexpected error when importing game from DIR</value>
+  </data>
+  <data name="650" xml:space="preserve">
+    <value>Unexpected error when opening game from WAG file</value>
   </data>
 </root>

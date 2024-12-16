@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,8 +15,8 @@ namespace WinAGI.Common {
         static int lngInPos, lngOutPos;
         static ushort intClearCode, intEndCode;
 
-        public static byte[] GifLZW(ref byte[] bytCelData) {
-            //used by picture and view export functions for creating GIFs
+        public static byte[] GifLZW(byte[] bytCelData) {
+            // used by picture and view export functions for creating GIFs
             int lngLen;
             string wSTRING, wCHAR;
             short curCode, oldCode;
@@ -23,7 +24,7 @@ namespace WinAGI.Common {
             ushort i, intCodeSize;
             // for sixteen colors, initial code size should be 5
             intCodeSize = 5;
-            //make output byte array same size; after compression, shrink it down to min size
+            // make output byte array same size; after compression, shrink it down to min size
             bytCompData = new byte[bytCelData.Length];
             //reset everything
             lngInPos = 0;
@@ -40,7 +41,7 @@ namespace WinAGI.Common {
             //set pointer to next available code to end code +1
             intNextCode = (ushort)(intEndCode + 1);
             //reset code table
-            strCodeValues = new string[(1 << intCurCodeSize) - 1]; //2 ^ intCurCodeSize - 1
+            strCodeValues = new string[(1 << intCurCodeSize)]; //ubound = 2 ^ intCurCodeSize - 1
 
             //prepopulate with regular characters
             for (i = 0; i < intClearCode; i++) {
@@ -180,7 +181,7 @@ namespace WinAGI.Common {
                 lngOutPos++;
                 //shift buffer right by 8 positions
                 lngBitBuffer >>= 8; // SHR(lngBitBuffer, 8)
-                                    //decrement bit Count
+                //decrement bit Count
                 intBitCount -= 8;
             }
         }

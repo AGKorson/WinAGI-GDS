@@ -8,160 +8,135 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Sound;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
+using System.IO;
 
 namespace WinAGI.Editor {
     public partial class frmSoundEdit : Form {
         public int SoundNumber;
         public Sound EditSound;
         internal bool InGame;
+        internal bool IsChanged;
+        private bool closing = false;
 
         public frmSoundEdit() {
             InitializeComponent();
+            MdiParent = MDIMain;
         }
 
-        private void frmSoundEdit_Load(object sender, EventArgs e) {
-            // if  a game is loaded, list all sounds by id
-            if (EditGame is not null) {
-                //foreach (AGILogic tmpLog in agLogs.Col.Values)
-                //{
-                //  listBox1.Items.Add(tmpLog.ToString());
-                //}
-                //foreach (AGIPicture tmpPic in agPics.Col.Values)
-                //{
-                //  listBox1.Items.Add(tmpPic.ToString());
-                //}
-                foreach (Sound tmpSound in EditGame.Sounds.Col.Values) {
-                    listBox1.Items.Add(tmpSound);
+        #region Form Event Handlers
+        private void frmSoundEdit_FormClosing(object sender, FormClosingEventArgs e) {
+            if (e.CloseReason == CloseReason.MdiFormClosing) {
+                return;
+            }
+            closing = AskClose();
+            e.Cancel = !closing;
+        }
+
+        private void frmSoundEdit_FormClosed(object sender, FormClosedEventArgs e) {
+            // dereference Sound
+            EditSound?.Unload();
+            EditSound = null;
+            // remove from SoundEditor collection
+            foreach (frmSoundEdit frm in SoundEditors) {
+                if (frm == this) {
+                    SoundEditors.Remove(frm);
+                    break;
                 }
-                //foreach (AGIView tmpView in agViews.Col.Values)
-                //{
-                //  listBox1.Items.Add(tmpView.ToString());
-                //}
+            }
+
+            //// destroy undocol
+            //if (UndoCol.Count > 0) {
+            //    for (int i = UndoCol.Count - 1; i >= 0; i--) {
+            //        UndoCol.Remove(i);
+            //    }
+            //}
+            //UndoCol = null;
+        }
+
+        #endregion
+
+        #region Menu Event Handlers
+        internal void SetResourceMenu() {
+
+            mnuRSave.Enabled = IsChanged;
+            MDIMain.mnuRSep3.Visible = true;
+            if (EditGame is null) {
+                // no game is open
+                MDIMain.mnuRImport.Enabled = false;
+                mnuRExport.Text = "Save As ...";
+                mnuRInGame.Enabled = false;
+                mnuRInGame.Text = "Add Sound to Game";
+                mnuRRenumber.Enabled = false;
+                // mnuRProperties no change
+                mnuRShowTrack.Text = WinAGISettings.OneTrack.Value ? "Show All Visible Tracks" : "Show Only Selected Track";
+            }
+            else {
+                // if a game is loaded, base import is also always available
+                MDIMain.mnuRImport.Enabled = true;
+                mnuRExport.Text = "Export Sound";
+                mnuRInGame.Enabled = true;
+                mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
+                mnuRRenumber.Enabled = InGame;
+                // mnuRProperties no change
+                mnuRShowTrack.Text = WinAGISettings.OneTrack.Value ? "Show All Visible Tracks" : "Show Only Selected Track";
             }
         }
 
-        private void listBox1_DoubleClick(object sender, EventArgs e) {
-            // let's load it
-
-            Sound tmpSnd = (Sound)listBox1.SelectedItem;
-            tmpSnd.Load();
-            tmpSnd.SoundComplete += This_SoundComplete;
-            tmpSnd.PlaySound(tmpSnd.SndFormat);
+        public void mnuRSave_Click(object sender, EventArgs e) {
+            SaveSound();
         }
+
+        public void mnuRExport_Click(object sender, EventArgs e) {
+            ExportSound();
+        }
+
+        public void mnuRInGame_Click(object sender, EventArgs e) {
+            ToggleInGame();
+        }
+
+        private void mnuRRenumber_Click(object sender, EventArgs e) {
+            RenumberSound();
+        }
+
+        private void mnuRProperties_Click(object sender, EventArgs e) {
+            EditSoundProperties(1);
+        }
+
+        private void mnuRShowTrack_Click(object sender, EventArgs e) {
+            MessageBox.Show("TODO: show track");
+        }
+        #endregion
+
+        #region temp code
         private void This_SoundComplete(object sender, SoundCompleteEventArgs e) {
             MessageBox.Show("all done!");
+            EditSound.SoundComplete -= This_SoundComplete;
+        }
+        private void button1_Click(object sender, EventArgs e) {
+            EditSound.Load();
+            EditSound.SoundComplete += This_SoundComplete;
+            EditSound.PlaySound(btnMIDI.Checked ? SoundPlaybackMode.MIDI : SoundPlaybackMode.WAV);
+            btnStop.Enabled = true;
         }
 
-        private void listBox1_SelectedIndexChanged(object sender, EventArgs e) {
 
+        private void button2_Click(object sender, EventArgs e) {
+            EditSound.Clear();
+            EditSound.Tracks[0].Notes.Add(250, 45, 3);
+            MarkAsChanged();
+            label1.Text = $"Track 0 has {EditSound[0].Notes.Count} notes.";
+            label2.Text = $"Track 1 has {EditSound[1].Notes.Count} notes.";
+            label3.Text = $"Track 2 has {EditSound[2].Notes.Count} notes.";
+            label4.Text = $"Track 3 has {EditSound[3].Notes.Count} notes.";
         }
 
-        public bool LoadSound(Sound ThisSound) {
-            return true;
-            /*
-        Dim i As Long
-
-        On Error GoTo ErrHandler
-
-        'set ingame flag based on sound passed
-        InGame = ThisSound.Resource.InGame
-
-        'set number if this sound is in a game
-        If InGame Then
-          SoundNumber = ThisSound.Number
-        Else
-          'use a number that can never match
-          'when searches for open sounds are made
-          SoundNumber = 256
-        End If
-
-        'create new Sound object for the editor
-        Set SoundEdit = New AGISound
-
-        'copy the passed sound to the editor sound
-        SoundEdit.SetSound ThisSound
-
-        blnDontDraw = True
-
-        'set caption and dirty flag
-        If Not InGame And SoundEdit.ID = "NewSound" Then
-          SoundCount = SoundCount + 1
-          SoundEdit.ID = "NewSound" & CStr(SoundCount)
-          IsDirty = True
-        Else
-          IsDirty = SoundEdit.IsDirty
-        End If
-        Caption = sSNDED & ResourceName(SoundEdit, InGame, True)
-        If IsDirty Then
-          MarkAsDirty
-        Else
-          frmMDIMain.mnuRSave.Enabled = False
-          frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-        End If
-
-        'load tree with actual sound data
-        If Not BuildSoundTree() Then
-          'error
-          ErrMsgBox "This sound has corrupt or invalid data. Unable to open it for editing:", "", "Sound Resource Data Error"
-          SoundEdit.Unload
-          Set SoundEdit = Nothing
-          Exit Function
-        End If
-
-        For i = 0 To 3
-          picStaff(i).Visible = SoundEdit.Track(i).Visible
-          picStaffVis(i) = SoundEdit.Track(i).Visible
-        Next i
-
-        SetKeyWidth
-
-        blnDontDraw = False
-        If OneTrack Then
-          DrawStaff -2
-        Else
-          DrawStaff -1
-        End If
-
-        'return true
-        EditSound = True
-      Exit Function
-
-      ErrHandler:
-        'unload and show error
-        ErrMsgBox "Error while opening sound: ", "Unable to edit this sound", "Edit Sound Error"
-        SoundEdit.Unload
-        Set SoundEdit = Nothing
-      */
-        }
-
-        public void MenuClickDescription(int FirstProp) {
-            /*
-                    'change description and ID
-                    Dim strID As String, strDescription As String
-
-                    On Error GoTo ErrHandler
-
-                    If FirstProp<> 1 And FirstProp <> 2 Then
-                      FirstProp = 1
-                    End If
-
-                    strID = SoundEdit.ID
-                    strDescription = SoundEdit.Description
-
-                    If GetNewResID(AGIResType.Sound, SoundNumber, strID, strDescription, InGame, FirstProp) Then
-                      'save changes
-                      UpdateID strID, strDescription
-                    End If
-                  Exit Sub
-
-                  ErrHandler:
-                    '*'Debug.Assert False
-                    Resume Next
-            */
+        private void button3_Click(object sender, EventArgs e) {
+            StopSound();
         }
 
         void tmpsoundform() {
@@ -175,13 +150,12 @@ namespace WinAGI.Editor {
         Public WithEvents SoundEdit As AGISound
         Public SoundNumber As Long
         Public InGame As Boolean
-        Public IsDirty As Boolean
+        Public IsChanged As Boolean
         Public PrevSEWndProc As Long
 
         'variables for selected components
         Private SelectedProp As Long
         Private PropRows As Long
-        Private PropRowCount As Long
         Private EditPropDropdown As Boolean
         Private ListItemHeight As Long
         Private PropGotFocus As Long, PropDblClick As Boolean
@@ -1827,33 +1801,6 @@ namespace WinAGI.Editor {
         Resume Next
       End Sub
 
-      Public Sub KillMIDI()
-
-        On Error GoTo ErrHandler
-
-        If hMIDI <> 0 Then
-          'ensure midi is closed
-          midiOutClose hMIDI
-        End If
-        hMIDI = 0
-
-        'if playing a sound,
-        'If frmMDIMain.mnuECustom1.Caption = "Stop Sound" & vbTab & "Ctrl+Enter" Then
-        If cmdStop.Enabled Then
-          SoundEdit.StopSound
-        End If
-
-        'set play buttons and menu to play status
-        cmdStop.Enabled = False
-        cmdPlay.Enabled = Not Settings.NoMIDI
-        frmMDIMain.mnuECustom1.Enabled = Not Settings.NoMIDI
-        frmMDIMain.mnuECustom1.Caption = "Play Sound" & vbTab & "Ctrl+Enter"
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
       Public Sub MenuClickCustom1()
 
         Dim i As Long
@@ -1970,6 +1917,7 @@ namespace WinAGI.Editor {
               End If
 
               'calculate correct note value
+            // ^ operator not available in c#, have to use Math.Pow()
               Note = CByte((Log10(CInt(2330.4296875 / 2 ^ (Note And 3))) / LOG10_1_12) - 64)
             End If
 
@@ -2118,6 +2066,7 @@ namespace WinAGI.Editor {
             End If
 
             'calculate correct note value
+            // ^ operator not available in c#, have to use Math.Pow()
             Note = CByte((Log10(CInt(2330.4296875 / 2 ^ (Note And 3))) / LOG10_1_12) - 64)
           Else
             'change instrument
@@ -2974,7 +2923,7 @@ namespace WinAGI.Editor {
           'change the SoundEdit object's ID and caption
           SoundEdit.ID = NewID
 
-          'if soundedit is dirty
+          'if soundedit is changed
           If Asc(Caption) = 42 Then
             Caption = sDM & sSNDED & ResourceName(SoundEdit, InGame, True)
           Else
@@ -3025,7 +2974,7 @@ namespace WinAGI.Editor {
         End If
 
         If MainStatusBar.Tag <> CStr(AGIResType.Sound) Then
-          AdjustMenus AGIResType.Sound, InGame, True, IsDirty
+          AdjustMenus AGIResType.Sound, InGame, True, IsChanged
         End If
         'update statusbar
         MainStatusBar.Panels("Scale").Text = "Scale: " & CStr(StaffScale)
@@ -4741,8 +4690,8 @@ namespace WinAGI.Editor {
 
       Private Sub AddUndo(NextUndo As SoundUndo)
 
-        If Not IsDirty Then
-          MarkAsDirty
+        If Not IsChanged Then
+          MarkAsChanged
         End If
 
         'remove old undo items until there is room for this one
@@ -4837,92 +4786,6 @@ namespace WinAGI.Editor {
 */
         }
 
-        public void MenuClickSave() {
-            /*
-            'save this resource
-
-        Dim rtn As VbMsgBoxResult
-        Dim i As Long
-        Dim blnLoaded As Boolean
-
-        On Error GoTo ErrHandler
-
-        'if in a game,
-        If InGame Then
-          'show wait cursor
-          WaitCursor
-
-          blnLoaded = Sounds(SoundNumber).Loaded
-          If Not blnLoaded Then
-            Sounds(SoundNumber).Load
-          End If
-
-          'copy Sound back to game resource
-          Sounds(SoundNumber).SetSound SoundEdit
-
-          'save the sound
-          Sounds(SoundNumber).Save
-
-          'copy back to edit sound
-          SoundEdit.SetSound Sounds(SoundNumber)
-          'setsound copies loaded status to ingame sound resource; need to unload it
-          Sounds(SoundNumber).Unload
-
-          If Not blnLoaded Then
-            Sounds(SoundNumber).Unload
-          End If
-
-          'update preview and properties
-          UpdateSelection AGIResType.Sound, SoundNumber, umPreview Or umProperty
-
-          'if autoexporting,
-          If Settings.AutoExport Then
-            'export using default name
-            SoundEdit.Export ResDir & SoundEdit.ID & ".ags"
-            'reset ID
-            SoundEdit.ID = Sounds(SoundEdit.Number).ID
-          End If
-
-          'restore cursor
-          Screen.MousePointer = vbDefault
-        Else
-          'if no name yet,
-          If LenB(SoundEdit.Resource.ResFile) = 0 Then
-            'use export to get a name
-            MenuClickExport
-            Exit Sub
-          Else
-            'show wait cursor
-            WaitCursor
-
-            'save the Soundedit Sound
-            SoundEdit.Export SoundEdit.Resource.ResFile
-
-            'restore cursor
-            Screen.MousePointer = vbDefault
-          End If
-        End If
-
-        'if not midi
-        If LCase$(Right$(SoundEdit.Resource.ResFile, 4)) <> ".mid" Then
-          'reset dirty flag
-          IsDirty = False
-          'reset caption
-          Caption = sSNDED & ResourceName(SoundEdit, InGame, True)
-          'disable the save menu
-          frmMDIMain.mnuRSave.Enabled = False
-          frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-        End If
-
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-            */
-        }
-
         void sndfrmcode() {
             /*
       Public Sub MenuClickExport()
@@ -4933,8 +4796,8 @@ namespace WinAGI.Editor {
           If Not InGame Then
             'if not midi
             If LCase$(Right$(SoundEdit.ID, 4)) <> ".mid" Then
-              'reset dirty flag
-              IsDirty = False
+              'reset changed flag
+              IsChanged = False
               'reset caption
               Caption = sSNDED & ResourceName(SoundEdit, InGame, True)
             Else
@@ -5024,8 +4887,8 @@ namespace WinAGI.Editor {
           SetEditMenu
         End If
 
-        'mark as dirty
-        MarkAsDirty
+        'mark as changed
+        MarkAsChanged
       Exit Sub
 
       ErrHandler:
@@ -5140,8 +5003,8 @@ namespace WinAGI.Editor {
 
               'set ingame flag
               InGame = True
-              'reset dirty flag
-              IsDirty = False
+              'reset changed flag
+              IsChanged = False
 
               'change menu caption
               frmMDIMain.mnuRInGame.Caption = "Remove from Game"
@@ -5179,7 +5042,7 @@ namespace WinAGI.Editor {
 
           'update caption
           Caption = sSNDED & ResourceName(SoundEdit, InGame)
-          If SoundEdit.IsDirty Then
+          If SoundEdit.IsChanged Then
             Caption = sDM & Caption
           End If
 
@@ -5438,7 +5301,7 @@ namespace WinAGI.Editor {
 
         'if the Sound needs to be saved,
         '(number is set to -1 if closing is forced)
-        If IsDirty And SoundNumber <> -1 Then
+        If IsChanged And SoundNumber <> -1 Then
           rtn = MsgBox("Do you want to save changes to " & SoundEdit.ID & " ?", vbYesNoCancel, "Sound Editor")
 
           Select Case rtn
@@ -5554,10 +5417,10 @@ namespace WinAGI.Editor {
       End Sub
 
 
-      Private Sub MarkAsDirty()
+      Private Sub MarkAsChanged()
 
-        If Not IsDirty Then
-          IsDirty = True
+        If Not IsChanged Then
+          IsChanged = True
         End If
 
         'enable menu and toolbar button
@@ -5593,7 +5456,7 @@ namespace WinAGI.Editor {
           Form_Resize
         End If
 
-        AdjustMenus AGIResType.Sound, InGame, True, IsDirty
+        AdjustMenus AGIResType.Sound, InGame, True, IsChanged
         SetEditMenu
 
         'if findform is visible,
@@ -6240,7 +6103,7 @@ namespace WinAGI.Editor {
         End If
 
         If MainStatusBar.Tag <> CStr(AGIResType.Sound) Then
-          AdjustMenus AGIResType.Sound, InGame, True, IsDirty
+          AdjustMenus AGIResType.Sound, InGame, True, IsChanged
         End If
         MainStatusBar.Panels("Time").Text = "Pos: " & format$(sngTime, "0.00") & " sec"
       End Sub
@@ -6746,6 +6609,375 @@ namespace WinAGI.Editor {
 
 
             */
+        }
+
+        #endregion
+
+        public bool LoadSound(Sound loadsound) {
+            InGame = loadsound.InGame;
+            if (InGame) {
+                SoundNumber = loadsound.Number;
+            }
+            else {
+                // use a number that can never match
+                // when searches for open sounds are made
+                SoundNumber = 256;
+            }
+            // create new Sound object for the editor
+            try {
+                loadsound.Load();
+            }
+            catch {
+                return false;
+            }
+            if (loadsound.ErrLevel < 0) {
+                return false;
+            }
+            EditSound = loadsound.Clone();
+            // set caption and changed flag
+            if (!InGame && EditSound.ID == "NewSound") {
+                SoundCount++;
+                EditSound.ID = "NewSound" + SoundCount;
+                IsChanged = true;
+            }
+            else {
+                IsChanged = (EditSound.IsChanged || EditSound.ErrLevel != 0);
+            }
+            Text = sSNDED + ResourceName(EditSound, InGame, true);
+            if (IsChanged) {
+                Text = sDM + Text;
+            }
+            mnuRSave.Enabled = !IsChanged;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+
+            // TODO: setup form for editing
+            //if (!BuildSoundTree()) {
+            //    // error
+            //    // ErrMsgBox("This sound has corrupt or invalid data. Unable to open it for editing:", "", "Sound Resource Data Error");
+            //    EditSound.Unload();
+            //    EditSound = null;
+            //    return false;
+            //}
+            //for (int i = 0; i <= 3; i++) {
+            //    picStaff[i].Visible = EditSound.Track(i).Visible;
+            //    picStaffVis[i] = EditSound.Track(i).Visible;
+            //}
+            //SetKeyWidth();
+            //allow resize event (when form is shown) to update staff/properties
+            //DontDraw = false;
+
+            label1.Text = $"Track 0 has {EditSound[0].Notes.Count} notes.";
+            label2.Text = $"Track 1 has {EditSound[1].Notes.Count} notes.";
+            label3.Text = $"Track 2 has {EditSound[2].Notes.Count} notes.";
+            label4.Text = $"Track 3 has {EditSound[3].Notes.Count} notes.";
+            return true;
+        }
+
+        public void ImportSound(string importfile) {
+            MDIMain.UseWaitCursor = true;
+            Sound tmpSound = new();
+            // determine if sound is a script or an AGI sound resource
+            string filedata = "";
+            bool isAGI = true;
+            try {
+                using FileStream fsSnd = new(importfile, FileMode.Open);
+                using StreamReader srSnd = new(fsSnd);
+                filedata = srSnd.ReadToEnd();
+                fsSnd.Dispose();
+                srSnd.Dispose();
+            }
+            catch (Exception e) {
+                // something wrong
+                ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
+                MDIMain.UseWaitCursor = false;
+                return;
+            }
+            if (filedata.Contains("tone") && filedata.Contains("noise")) {
+                isAGI = false;
+            }
+            // import the sound and (and check for error)
+            try {
+                if (isAGI) {
+                    tmpSound.Import(importfile);
+                }
+                else {
+                    tmpSound.ImportScript(importfile);
+                }
+            }
+            catch (Exception e) {
+                // something wrong
+                ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
+                MDIMain.UseWaitCursor = false;
+                return;
+            }
+            tmpSound.Load();
+            if (tmpSound.ErrLevel < 0) {
+                MDIMain.UseWaitCursor = false;
+                ErrMsgBox(tmpSound.ErrLevel, "Error reading sound data:", "This is not a valid sound resource.", "Invalid Sound Resource");
+                return;
+            }
+            if (tmpSound.SndFormat != SoundFormat.AGI) {
+                MessageBox.Show(MDIMain,
+                    "This is an Apple IIgs formatted sound. Only PC/PCjr sounds can be edited in WinAGI.",
+                    "Unsupported Sound Format",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+            // copy resource data and basic sound parameters
+            EditSound.ReplaceData(tmpSound.Data);
+            EditSound.TPQN = tmpSound.TPQN;
+            EditSound.Key = tmpSound.Key;
+            EditSound.ResetSound();
+            MarkAsChanged();
+            // TODO: reset display
+            label1.Text = $"Track 0 has {EditSound[0].Notes.Count} notes.";
+            label2.Text = $"Track 1 has {EditSound[1].Notes.Count} notes.";
+            label3.Text = $"Track 2 has {EditSound[2].Notes.Count} notes.";
+            label4.Text = $"Track 3 has {EditSound[3].Notes.Count} notes.";
+            MDIMain.UseWaitCursor = false;
+        }
+
+        public void SaveSound() {
+            if (InGame) {
+                MDIMain.UseWaitCursor = true;
+                bool blnLoaded = EditGame.Sounds[SoundNumber].Loaded;
+                if (!blnLoaded) {
+                    EditGame.Sounds[SoundNumber].Load();
+                }
+                EditGame.Sounds[SoundNumber].CloneFrom(EditSound);
+                EditGame.Sounds[SoundNumber].Save();
+                EditSound.CloneFrom(EditGame.Sounds[SoundNumber]);
+                if (!blnLoaded) {
+                    EditGame.Sounds[SoundNumber].Unload();
+                }
+                RefreshTree(AGIResType.Sound, SoundNumber);
+                if (WinAGISettings.AutoExport.Value) {
+                    EditSound.Export(EditGame.ResDir + EditSound.ID + ".ags");
+                    // reset ID (non-game id gets changed by export...)
+                    EditSound.ID = EditGame.Sounds[SoundNumber].ID;
+                }
+                MarkAsSaved();
+                MDIMain.UseWaitCursor = false;
+            }
+            else {
+                if (EditSound.ResFile.Length == 0) {
+                    ExportSound();
+                    return;
+                }
+                else {
+                    MDIMain.UseWaitCursor = true;
+                    EditSound.Save();
+                    MarkAsSaved();
+                    MDIMain.UseWaitCursor = false;
+                }
+            }
+        }
+
+        private void ExportSound() {
+            int retval = Base.ExportSound(EditSound, InGame);
+            if (InGame) {
+                // because EditSound is not the actual ingame sound its
+                // ID needs to be reset back to the ingame value
+                EditSound.ID = EditGame.Sounds[SoundNumber].ID;
+            }
+            else {
+                if (retval == 1) {
+                    MarkAsSaved();
+                }
+            }
+        }
+
+        public void ToggleInGame() {
+            DialogResult rtn;
+            string strExportName;
+            bool blnDontAsk = false;
+
+            if (InGame) {
+                if (WinAGISettings.AskExport.Value) {
+                    rtn = MsgBoxEx.Show(MDIMain,
+                        "Do you want to export '" + EditSound.ID + "' before removing it from your game?",
+                        "Don't ask this question again",
+                        MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Question,
+                        "Export Sound Before Removal", ref blnDontAsk);
+                    WinAGISettings.AskExport.Value = !blnDontAsk;
+                    if (!WinAGISettings.AskExport.Value) {
+                        WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                    }
+                }
+                else {
+                    // dont ask; assume no
+                    rtn = DialogResult.No;
+                }
+                switch (rtn) {
+                case DialogResult.Cancel:
+                    return;
+                case DialogResult.Yes:
+                    // get a filename for the export
+                    strExportName = NewResourceName(EditSound, InGame);
+                    if (strExportName.Length > 0) {
+                        EditSound.Export(strExportName);
+                        //UpdateStatusBar();
+                    }
+                    break;
+                case DialogResult.No:
+                    // nothing to do
+                    break;
+                }
+                // confirm removal
+                if (WinAGISettings.AskRemove.Value) {
+                    rtn = MsgBoxEx.Show(MDIMain,
+                        "Removing '" + EditSound.ID + "' from your game.\n\nSelect OK to proceed, or Cancel to keep it in game.",
+                        "Remove Sound From Game",
+                        MessageBoxButtons.OKCancel,
+                        MessageBoxIcon.Question,
+                        "Don't ask this question again", ref blnDontAsk);
+                    WinAGISettings.AskRemove.Value = !blnDontAsk;
+                    if (!WinAGISettings.AskRemove.Value) {
+                        WinAGISettings.AskRemove.WriteSetting(WinAGISettingsFile);
+                    }
+                }
+                else {
+                    rtn = DialogResult.OK;
+                }
+                if (rtn == DialogResult.Cancel) {
+                    return;
+                }
+                // remove the sound (force-closes this editor)
+                RemoveSound((byte)SoundNumber);
+            }
+            else {
+                // add to game 
+                if (EditGame is null) {
+                    return;
+                }
+                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Sound, 0);
+                if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    SoundNumber = frmGetNum.NewResNum;
+                    // change id before adding to game
+                    EditSound.ID = frmGetNum.txtID.Text;
+                    AddNewSound((byte)SoundNumber, EditSound);
+                    EditGame.Sounds[SoundNumber].Load();
+                    // copy the sound back (to ensure internal variables are copied)
+                    EditSound.CloneFrom(EditGame.Sounds[SoundNumber]);
+                    // now we can unload the newly added sound;
+                    EditGame.Sounds[SoundNumber].Unload();
+                    MarkAsSaved();
+                    InGame = true;
+                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
+                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove Sound";
+                }
+            }
+        }
+
+        public void RenumberSound() {
+            if (!InGame) {
+                return;
+            }
+            string oldid = EditSound.ID;
+            int oldnum = SoundNumber;
+            byte NewResNum = GetNewNumber(AGIResType.Sound, (byte)SoundNumber);
+            if (NewResNum != SoundNumber) {
+                // update ID (it may have changed if using default ID)
+                EditSound.ID = EditGame.Sounds[NewResNum].ID;
+                SoundNumber = NewResNum;
+                Text = sPICED + ResourceName(EditSound, InGame, true);
+                if (IsChanged) {
+                    Text = sDM + Text;
+                }
+                if (EditSound.ID != oldid) {
+                    if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
+                        SafeFileMove(EditGame.ResDir + oldid + ".agp", EditGame.ResDir + EditGame.Sounds[NewResNum].ID + ".agp", true);
+                    }
+                }
+            }
+        }
+
+        public void EditSoundProperties(int FirstProp) {
+            string id = EditSound.ID;
+            string description = EditSound.Description;
+            if (GetNewResID(AGIResType.Sound, SoundNumber, ref id, ref description, InGame, FirstProp)) {
+                if (EditSound.Description != description) {
+                    EditSound.Description = description;
+                }
+                if (EditSound.ID != id) {
+                    EditSound.ID = id;
+                    Text = sSNDED + ResourceName(EditSound, InGame, true);
+                    if (IsChanged) {
+                        Text = sDM + Text;
+                    }
+                }
+            }
+        }
+
+        public void StopSound() {
+            EditSound.SoundComplete -= This_SoundComplete;
+            EditSound.StopSound();
+            btnStop.Enabled = false;
+            btnPlay.Enabled = true;
+
+            //mnuEPlaySound.Text = "Play Sound";
+        }
+
+        private bool AskClose() {
+            if (EditSound.ErrLevel < 0) {
+                // if exiting due to error on form load
+                return true;
+            }
+            if (SoundNumber == -1) {
+                // force shutdown
+                return true;
+            }
+            if (IsChanged) {
+                DialogResult rtn = MessageBox.Show(MDIMain,
+                    "Do you want to save changes to this sound resource?",
+                    "Save Sound Resource",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+                switch (rtn) {
+                case DialogResult.Yes:
+                    SaveSound();
+                    if (IsChanged) {
+                        rtn = MessageBox.Show(MDIMain,
+                            "Resource not saved. Continue closing anyway?",
+                            "Save Sound Resource",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+                        return rtn == DialogResult.Yes;
+                    }
+                    break;
+                case DialogResult.Cancel:
+                    return false;
+                case DialogResult.No:
+                    break;
+                }
+            }
+            return true;
+        }
+
+        private void MarkAsChanged() {
+            // ignore when loading (not visible yet)
+            if (!Visible) {
+                return;
+            }
+            if (!IsChanged) {
+                IsChanged = true;
+                mnuRSave.Enabled = true;
+                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                Text = sDM + Text;
+            }
+        }
+
+        private void MarkAsSaved() {
+            IsChanged = false;
+            Text = sSNDED + ResourceName(EditSound, InGame, true);
+            mnuRSave.Enabled = false;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+        }
+
+        internal void DrawStaff(int v) {
+            throw new NotImplementedException();
         }
     }
 }

@@ -3,6 +3,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <!--<PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>-->
     <RootNamespace>WinAGI.Editor</RootNamespace>
     <UseWindowsForms>true</UseWindowsForms>
     <StartupObject>WinAGI.Editor.Program</StartupObject>
@@ -12,8 +14,8 @@
     <Copyright>2024</Copyright>
     <PackageIcon>winagi.jpg</PackageIcon>
     <PackageId>WinAGI_GDS</PackageId>
-    <VersionPrefix>1.0.1</VersionPrefix>
-    <VersionSuffix>alpha</VersionSuffix>
+    <VersionPrefix>3.0.1</VersionPrefix>
+    <VersionSuffix>alpha7.0</VersionSuffix>
     <ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
@@ -23,6 +25,10 @@
     <Compile Remove="WinAGI\**" />
     <EmbeddedResource Remove="WinAGI\**" />
     <None Remove="WinAGI\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="fPicture.ico" />
+    <None Remove="fWinAGI32.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +50,11 @@
 
   <ItemGroup>
     <ProjectReference Include="WinAGI\WinAGI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="fPicture.ico" />
+    <Resource Include="fWinAGI32.ico" />
   </ItemGroup>
 
   <ItemGroup>

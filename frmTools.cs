@@ -18,24 +18,26 @@ namespace WinAGI.Editor {
 
         public frmTools() {
             InitializeComponent();
+            fgTools.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
+            fgTools.Columns[0].Width = fgTools.Font.Height * 2;
         }
 
+        #region Event Handlers
         private void frmTools_Load(object sender, EventArgs e) {
-            int i;
-            // set font
-            fgTools.Font = new Font(WinAGISettings.EFontName, WinAGISettings.EFontSize);
-
-            //set form height so all rows are visible
-            //this.Height = ?;
-
-            for (i = 1; i <= 6; i++) {
+            int pad = Height - ClientRectangle.Height;
+            for (int i = 1; i <= 6; i++) {
                 fgTools.Rows.Add(
                     i.ToString() + ".",
-                    WinAGISettingsList.GetSetting(sTOOLS, "Caption" + i, ""),
-                    WinAGISettingsList.GetSetting(sTOOLS, "Source" + i, "")
+                    WinAGISettingsFile.GetSetting(sTOOLS, "Caption" + i, ""),
+                    WinAGISettingsFile.GetSetting(sTOOLS, "Source" + i, "")
                 );
             }
-            // select column 1
+            fgTools.Height = fgTools.Rows.GetRowsHeight(DataGridViewElementStates.None); //  6 * fgTools.Rows[0].Height;
+            fgTools.Height += fgTools.ColumnHeadersHeight;
+            Height = fgTools.Height + pad + 10 + btnOK.Height;
+            btnOK.Top = btnCancel.Top = fgTools.Height + 5;
+
+            // select row 1
             fgTools.CurrentCell = fgTools[1, 0];
             fgTools.Select();
             //set browse button so it fits inside a row
@@ -76,8 +78,8 @@ namespace WinAGI.Editor {
                 target = ((string)fgTools[2, i - 1].Value).Trim();
                 if (caption.Length > 0 && target.Length > 0) {
                     // add this item
-                    WinAGISettingsList.WriteSetting(sTOOLS, "Caption" + lngRow, caption);
-                    WinAGISettingsList.WriteSetting(sTOOLS, "Source" + lngRow, target);
+                    WinAGISettingsFile.WriteSetting(sTOOLS, "Caption" + lngRow, caption);
+                    WinAGISettingsFile.WriteSetting(sTOOLS, "Source" + lngRow, target);
                     // update tools menu
                     MDIMain.mnuTools.DropDownItems["mnuTCustom" +lngRow].Visible = true;
                     MDIMain.mnuTools.DropDownItems["mnuTCustom" + lngRow].Text = caption;
@@ -89,8 +91,8 @@ namespace WinAGI.Editor {
 
             // erase any remaining rows
             for (int i = lngRow; i <= 6; i++) {
-                WinAGISettingsList.WriteSetting(sTOOLS, "Caption" + i, "");
-                WinAGISettingsList.WriteSetting(sTOOLS, "Source" + i, "");
+                WinAGISettingsFile.WriteSetting(sTOOLS, "Caption" + i, "");
+                WinAGISettingsFile.WriteSetting(sTOOLS, "Source" + i, "");
                 // hide this tool menu
                 MDIMain.mnuTools.DropDownItems["mnuTCustom" + i].Visible = false;
                 MDIMain.mnuTools.DropDownItems["mnuTCustom" + i].Text = "";
@@ -99,59 +101,73 @@ namespace WinAGI.Editor {
 
             // if no tools, hide separator
             MDIMain.mnuTSep2.Visible = blnTools;
-            Close();
+            Hide();
         }
 
         private void btnCancel_Click(object sender, EventArgs e) {
-            Close();
+            Hide();
         }
 
         private void btnBrowse_MouseDown(object sender, MouseEventArgs e) {
             // get target command
+            bool isfile;
+            string filename = (string)fgTools.CurrentCell.Value;
+
             dlgTool.ShowPinnedPlaces = true;
             dlgTool.ShowReadOnly = false;
-            dlgTool.FileName = Path.GetFileName((string)fgTools.CurrentCell.Value);
             dlgTool.Filter = "Programs (*.exe)|*.exe|URLs (*.url)|*.url|All Files (*.*)|*.*";
-            bool isfile;
-            // check for urls vs file
-            try {
-                isfile = new Uri(Path.GetFullPath((string)fgTools.CurrentCell.Value)).IsFile;
+            dlgTool.CheckFileExists = true;
+            dlgTool.CheckPathExists = true;
+            dlgTool.Multiselect = false;
+            dlgTool.OkRequiresInteraction = true;
+            dlgTool.ValidateNames = true;
+            if (filename.Length == 0) {
+                dlgTool.FileName = "";
+                dlgTool.InitialDirectory = ProgramDir;
+                dlgTool.FilterIndex = 2;
             }
-            catch {
-                isfile = false;
-            }
-            if (isfile) {
-                // file
-                switch (Path.GetExtension((string)fgTools.CurrentCell.Value).ToLower()) {
-                case ".exe":
-                    dlgTool.FilterIndex = 1;
-                    break;
-                case ".url":
-                    dlgTool.FilterIndex = 2;
-                    break;
-                default:
-                    dlgTool.FilterIndex = 3;
-                    break;
+            else {
+                dlgTool.FileName = Path.GetFileName(filename);
+                // check for urls vs file
+                try {
+                    isfile = new Uri(Path.GetFullPath((string)fgTools.CurrentCell.Value)).IsFile;
                 }
-                string dir = Path.GetDirectoryName((string)fgTools.CurrentCell.Value);
-                if (Path.Exists(dir)) {
-                    try {
-                        dlgTool.InitialDirectory = dir;
+                catch {
+                    isfile = false;
+                }
+                if (isfile) {
+                    // file
+                    switch (Path.GetExtension((string)fgTools.CurrentCell.Value).ToLower()) {
+                    case ".exe":
+                        dlgTool.FilterIndex = 1;
+                        break;
+                    case ".url":
+                        dlgTool.FilterIndex = 2;
+                        break;
+                    default:
+                        dlgTool.FilterIndex = 3;
+                        break;
                     }
-                    catch {
+                    string dir = Path.GetDirectoryName((string)fgTools.CurrentCell.Value);
+                    if (Path.Exists(dir)) {
+                        try {
+                            dlgTool.InitialDirectory = dir;
+                        }
+                        catch {
+                            dlgTool.InitialDirectory = ProgramDir;
+                        }
+                    }
+                    else {
                         dlgTool.InitialDirectory = ProgramDir;
                     }
                 }
                 else {
+                    // url (or some other file mash)
                     dlgTool.InitialDirectory = ProgramDir;
+                    dlgTool.FilterIndex = 2;
                 }
-            }
-            else {
-                // url (or some other file mash)
-                dlgTool.InitialDirectory = ProgramDir;
-                dlgTool.FilterIndex = 2;
-            }
-            if (dlgTool.ShowDialog() == DialogResult.OK) {
+
+            }            if (dlgTool.ShowDialog() == DialogResult.OK) {
                 fgTools.CurrentCell.Value = dlgTool.FileName;
             }
         }
@@ -160,7 +176,7 @@ namespace WinAGI.Editor {
             if (fgTools.CurrentCell.ColumnIndex == 2) {
                 btnBrowse.Visible = true;
                 btnBrowse.Left = fgTools.Left + fgTools.Width - btnBrowse.Width - 1;
-                btnBrowse.Top = fgTools.Top + (fgTools.CurrentCell.RowIndex + 1) * fgTools.Rows[0].Height - 5;
+                btnBrowse.Top = fgTools.Top + fgTools.CurrentCell.RowIndex * fgTools.Rows[0].Height + fgTools.ColumnHeadersHeight;
             }
             else {
                 btnBrowse.Visible = false;
@@ -234,4 +250,5 @@ namespace WinAGI.Editor {
             }
         }
     }
+    #endregion
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Policy;
@@ -44,19 +45,21 @@ namespace WinAGI.Engine {
         internal string agGameAbout = "";
         internal string agGameVersion = "";
         internal string agGameFile = "";
-        internal int agMaxVol0 = 0;
-        internal int agMaxVolSize = 0;
+        internal int agMaxVol0 = MAX_VOLSIZE;
+        internal int agMaxVolSize = MAX_VOLSIZE; // currently this cannot be changed 
         internal string agCompileDir = "";
-        internal PlatformTypeEnum agPlatformType = PlatformTypeEnum.None;
+        internal PlatformType agPlatformType = PlatformType.None;
         internal string agPlatformFile = "";
         internal string agPlatformOpts = "";
         internal string agDOSExec = "";
         internal bool agUseLE = false;
+        internal bool agUseResVar = true;
         internal Encoding agCodePage = Encoding.GetEncoding(437);
         internal bool agPowerPack = false;
         internal string agSrcFileExt = "";
         internal TDefine[] agResGameDef = new TDefine[4];
-        internal SettingsList agGameProps;
+        internal SettingsFile agGameProps;
+        internal WinAGIFileWatcher agFileWatcher;
         #endregion
 
         #region Constructors
@@ -68,12 +71,7 @@ namespace WinAGI.Engine {
         /// <param name="gameSource"></param>
         public AGIGame(OpenGameMode mode, string gameSource) {
             InitGame();
-            TWinAGIEventInfo retval = new() {
-                Type = EventType.etInfo,
-                ID = "",
-                Module = "",
-                Text = ""
-            };
+            TWinAGIEventInfo retval = new();
             switch (mode) {
             case OpenGameMode.File:
                 retval = OpenGameWAG(gameSource);
@@ -82,13 +80,14 @@ namespace WinAGI.Engine {
                 retval = OpenGameDIR(gameSource);
                 break;
             }
-            if (retval.Type == EventType.etError) {
+            if (retval.Type == EventType.GameLoadError) {
                 // release compGame
                 compGame = null;
                 WinAGIException wex = new(retval.Text) {
                     HResult = WINAGI_ERR + int.Parse(retval.ID),
                 };
                 wex.Data["retval"] = retval;
+
                 throw wex;
             }
         }
@@ -168,7 +167,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Gets the AGI color palette that is used for displaying pictures and views.
         /// </summary>
-        public EGAColors AGIColors { get => agEGAcolors; }
+        public EGAColors Palette { get => agEGAcolors; }
 
         /// <summary>
         /// Gets or sets the Game ID for this game. For V3 games, this also
@@ -183,12 +182,12 @@ namespace WinAGI.Engine {
                 string NewID = value;
                 if (agIsVersion3) {
                     if (value.Length > 5) {
-                        NewID = Left(NewID, 5);
+                        NewID = NewID.Left(5);
                     }
                 }
                 else {
                     if (NewID.Length > 6) {
-                        NewID = Left(NewID, 6);
+                        NewID = NewID.Left(6);
                     }
                 }
                 if (agGameID == NewID) {
@@ -284,7 +283,7 @@ namespace WinAGI.Engine {
             get => agGameAbout;
             set {
                 if (value.Length > 4096) {
-                    agGameAbout = Left(value, 4096);
+                    agGameAbout = value.Left(4096);
                 }
                 else {
                     agGameAbout = value;
@@ -300,7 +299,7 @@ namespace WinAGI.Engine {
             get => agAuthor;
             set {
                 if (value.Length > 256) {
-                    agAuthor = Left(value, 256);
+                    agAuthor = value.Left(256);
                 }
                 else {
                     agAuthor = value;
@@ -316,7 +315,7 @@ namespace WinAGI.Engine {
             get => agDescription;
             set {
                 if (value.Length > 4096) {
-                    agDescription = Left(value, 4096);
+                    agDescription = value.Left(4096);
                 }
                 else {
                     agDescription = value;
@@ -336,7 +335,7 @@ namespace WinAGI.Engine {
             }
             set {
                 if (!IntVersions.Contains(value)) {
-                    if (!IsNumeric(value)) {
+                    if (!value.IsNumeric()) {
                         WinAGIException wex = new(LoadResString(597)) {
                             HResult = WINAGI_ERR + 597
                         };
@@ -365,12 +364,12 @@ namespace WinAGI.Engine {
                     if (!agIsVersion3) {
                         if (GameID.Length > 5) {
                             // truncate the ID
-                            GameID = Left(GameID, 5);
+                            GameID = GameID[..5];
                         }
                     }
                     // use compiler to rebuild new vol and dir files
-                    // (it is up to calling program to deal with dirty and invalid resources)
-                    if (CompileGame(true) != CompStatus.OK) {
+                    // (it is up to calling program to deal with changed or invalid resources)
+                    if (Compile(true) != CompileStatus.OK) {
                         // failed - don't make the change
                         return;
                     }
@@ -453,8 +452,19 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the reserved defines that are game-specific(GameVersion, GameAbout,
-        /// GameID, InvItem Count).
+        /// Gets or sets a value that determines if reserved variables and flags are 
+        /// considered automatically defined, or if they must be manually defined.
+        /// </summary>
+        public bool UseReservedNames {
+            get => agUseResVar;
+            set {
+                agUseResVar = value;
+                WriteGameSetting("General", "UseLE", agUseResVar.ToString());
+            }
+        }
+        /// <summary>
+        /// Gets the reserved defines that are game-specific(GameID, GameVersion, GameAbout,
+        /// InvItem Count).
         /// </summary>
         public TDefine[] ReservedGameDefines {
             get {
@@ -476,8 +486,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets or sets the source extension that this game will use when decompiling logics
-        /// or creating new source code files.
+        /// Gets or sets the default source extension that this game will use when 
+        /// decompiling logics or creating new source code files.
         /// </summary>
         public string SourceExt {
             get {
@@ -488,13 +498,7 @@ namespace WinAGI.Engine {
                 if (value.Length == 0) {
                     return;
                 }
-                // must start with a period
-                if (value[0] != '.') {
-                    agSrcFileExt = "." + value;
-                }
-                else {
-                    agSrcFileExt = value;
-                }
+                agSrcFileExt = value.ToLower();
                 WriteGameSetting("General", "SourceFileExt", agSrcFileExt);
             }
         }
@@ -531,11 +535,11 @@ namespace WinAGI.Engine {
         /// Gets or sets the platform to use when testing this game from the 
         /// game editor.
         /// </summary>
-        public PlatformTypeEnum PlatformType {
+        public PlatformType PlatformType {
             get => agPlatformType;
             set {
                 // only 0 - 4 are valid
-                if (value < 0 || value > (PlatformTypeEnum)4) {
+                if (value < 0 || value > (PlatformType)4) {
                     agPlatformType = 0;
                 }
                 else {
@@ -608,7 +612,7 @@ namespace WinAGI.Engine {
                 switch (value.CodePage) {
                 case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
                      861 or 862 or 863 or 865 or 866 or 869 or 858:
-                    agCodePage = value;
+                    agCodePage = Encoding.GetEncoding(value.CodePage);
                     WriteGameSetting("General", "CodePage", agCodePage.CodePage);
                     break;
                 default:
@@ -649,7 +653,7 @@ namespace WinAGI.Engine {
             set {
                 // limit to 256 bytes
                 if (value.Length > 256) {
-                    agGameVersion = Left(value, 256);
+                    agGameVersion = value[..256];
                 }
                 else {
                     agGameVersion = value;
@@ -668,24 +672,20 @@ namespace WinAGI.Engine {
         private void InitGame() {
             // set up volume manager
             volManager = new(this);
-            // get default max vol sizes
-            agMaxVolSize = 1023 * 1024;
-            // set max vol0 size
-            agMaxVol0 = agMaxVolSize;
 
             // reserved game defines
             agResGameDef[0].Name = "gameID";
             agResGameDef[0].Default = "gameID";
-            agResGameDef[0].Type = ArgTypeEnum.atDefStr;
-            agResGameDef[1].Name = "gameVersion";
-            agResGameDef[1].Default = "gameVersion";
-            agResGameDef[1].Type = ArgTypeEnum.atDefStr;
-            agResGameDef[2].Name = "gameAbout";
-            agResGameDef[2].Default = "gameAbout";
-            agResGameDef[2].Type = ArgTypeEnum.atDefStr;
+            agResGameDef[0].Type = ArgType.DefStr;
+            agResGameDef[1].Name = "gameVersionMsg";
+            agResGameDef[1].Default = "gameVersionMsg";
+            agResGameDef[1].Type = ArgType.DefStr;
+            agResGameDef[2].Name = "gameAboutMsg";
+            agResGameDef[2].Default = "gameAboutMsg";
+            agResGameDef[2].Type = ArgType.DefStr;
             agResGameDef[3].Name = "numberOfItems";
             agResGameDef[3].Default = "numberOfItems";
-            agResGameDef[3].Type = ArgTypeEnum.atNum;
+            agResGameDef[3].Type = ArgType.Num;
 
             // initialize all game variables
             ClearGameState();
@@ -703,15 +703,16 @@ namespace WinAGI.Engine {
             agInvObj.Unload();
             agVocabWords.Unload();
             //restore default AGI colors
-            DefaultColors = new();
+            DefaultPalette = new();
             //write date of last edit
             WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
             //now save it
             agGameProps.Save();
             // clear all game properties
             ClearGameState();
-            // release compiler access
-            compGame = null;
+            // TODO: shutdown filewatcher
+            //agFileWatcher.Dispose();
+            //agFileWatcher = null;
         }
 
         /// <summary>
@@ -720,7 +721,7 @@ namespace WinAGI.Engine {
         /// before being added. Resources with errors will pause until the
         /// calling program provides instructions to  skip them, or add them
         /// with the errors. WORDS.TOK and OBJECT files are only recompiled if
-        /// currently dirty. If RebuildOnly is true, the VOL files are rebuilt
+        /// currently changed. If RebuildOnly is true, the VOL files are rebuilt
         /// without recompiling all logics and WORDS.TOK and OBJECT are not
         /// recompiled.<br />
         /// If NewGameDir is same as current directory this WILL overwrite
@@ -730,16 +731,11 @@ namespace WinAGI.Engine {
         /// <param name="NewGameDir"></param>
         /// <returns>OK if compile completed successfully, otherwise either
         /// Canceled or Error, depending on reason for failure.</returns>
-        public CompStatus CompileGame(bool RebuildOnly, string NewGameDir = "") {
+        public CompileStatus Compile(bool RebuildOnly, string NewGameDir = "") {
             bool blnReplace, NewIsV3;
             string strID;
             int tmpMax = 0, i, j;
-            TWinAGIEventInfo compInfo = new() {
-                Type = EventType.etInfo,
-                ID = "",
-                Module = "",
-                Text = ""
-            };
+            TWinAGIEventInfo compInfo = new();
 
             Compiling = true;
             CancelComp = false;
@@ -751,16 +747,14 @@ namespace WinAGI.Engine {
             if (!Directory.Exists(NewGameDir)) {
                 // raise error event
                 TWinAGIEventInfo tmpError = new() {
-                    Type = EventType.etError,
-                    ID = "",
-                    Module = "",
+                    Type = EventType.GameCompileError,
                     ResType = AGIResType.Game,
                     Text = LoadResString(561).Replace(ARG1, NewGameDir),
                     Data = 561
                 };
-                OnCompileGameStatus(ECStatus.csFatalError, tmpError);
+                OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                 CompleteCancel(true);
-                return CompStatus.Error;
+                return CompileStatus.Error;
             }
             blnReplace = NewGameDir.Equals(agGameDir, StringComparison.OrdinalIgnoreCase);
             // save compile dir now so rebuild method can access it
@@ -785,52 +779,54 @@ namespace WinAGI.Engine {
             // version2 IDs limited to 6 characters,  v3 IDs limited to 5 characters
             if (agGameID.Length > 6 || (NewIsV3 && agGameID.Length > 5)) {
                 // invalid ID; calling function should know better!
-                // raise error event
-                TWinAGIEventInfo tmpError = new() {
-                    Type = EventType.etError,
-                    ID = "",
-                    Module = "",
+                // warn user and truncate it
+                TWinAGIEventInfo warning = new() {
+                    Type = EventType.ResourceWarning,
                     ResType = AGIResType.Game,
+                    ID = "RE27",
                     Text = LoadResString(694),
-                    Data = 694
+                    ResNum = 0,
+                    Line = "--",
+                    Module = "--"
                 };
-                OnCompileGameStatus(ECStatus.csFatalError, tmpError);
-                CompleteCancel(true);
-                return CompStatus.Error;
+                OnCompileGameStatus(GameCompileStatus.Warning, warning, ref CancelComp);
+                if (CancelComp) {
+                    CompleteCancel();
+                    return CompileStatus.Canceled;
+                }
+                agGameID = agGameID[..(NewIsV3 ? 5 : 6)];
             }
             if (!RebuildOnly) {
                 // full compile - save/copy words.tok and object files first
                 compInfo.Text = "";
                 compInfo.ResType = AGIResType.Words;
-                compInfo.InfoType = EInfoType.itResources;
-                OnCompileGameStatus(ECStatus.csCompWords, compInfo, ref CancelComp);
+                compInfo.InfoType = InfoType.Resources;
+                OnCompileGameStatus(GameCompileStatus.CompileWords, compInfo, ref CancelComp);
                 if (CancelComp) {
                     CompleteCancel();
-                    return CompStatus.Canceled;
+                    return CompileStatus.Canceled;
                 }
-                if (agVocabWords.IsDirty) {
+                if (agVocabWords.IsChanged) {
                     try {
                         agVocabWords.Save();
                     }
                     catch (Exception ex) {
                         TWinAGIEventInfo tmpError = new() {
-                            Type = EventType.etError,
-                            ID = "",
-                            Module = "",
+                            Type = EventType.GameCompileError,
                             ResType = AGIResType.Words,
                             Text = "Error during compilation of WORDS.TOK (" + ex.Message + ")"
                         };
-                        OnCompileGameStatus(ECStatus.csResError, tmpError);
+                        OnCompileGameStatus(GameCompileStatus.ResError, tmpError);
                         CompleteCancel(true);
-                        return CompStatus.Error;
+                        return CompileStatus.Error;
                     }
                 }
                 // check it for errors
-                compInfo.InfoType = EInfoType.itClearWarnings;
-                OnCompileGameStatus(ECStatus.csCompWords, compInfo, ref CancelComp);
+                compInfo.InfoType = InfoType.ClearWarnings;
+                OnCompileGameStatus(GameCompileStatus.CompileWords, compInfo, ref CancelComp);
                 if (CancelComp) {
                     CompleteCancel();
-                    return CompStatus.Canceled;
+                    return CompileStatus.Canceled;
                 }
                 if (agVocabWords.ErrLevel != 0) {
                     AddCompileWarning(AGIResType.Words, 0, agVocabWords.ErrLevel, []);
@@ -843,51 +839,47 @@ namespace WinAGI.Engine {
                     }
                     catch (Exception ex) {
                         TWinAGIEventInfo tmpError = new() {
-                            Type = EventType.etError,
-                            ID = "",
-                            Module = "",
+                            Type = EventType.GameCompileError,
                             ResType = AGIResType.Words,
                             Text = "Error while creating WORDS.TOK file (" + ex.Message + ")"
                         };
-                        OnCompileGameStatus(ECStatus.csResError, tmpError);
+                        OnCompileGameStatus(GameCompileStatus.ResError, tmpError);
                         CompleteCancel(true);
-                        return CompStatus.Error;
+                        return CompileStatus.Error;
                     }
                 }
                 // OBJECT file is next
                 compInfo.Text = "";
                 compInfo.ResType = AGIResType.Objects;
-                OnCompileGameStatus(ECStatus.csCompObjects, compInfo, ref CancelComp);
+                OnCompileGameStatus(GameCompileStatus.CompileObjects, compInfo, ref CancelComp);
                 if (CancelComp) {
                     CompleteCancel();
-                    return CompStatus.Canceled;
+                    return CompileStatus.Canceled;
                 }
-                if (agInvObj.IsDirty) {
+                if (agInvObj.IsChanged) {
                     try {
                         agInvObj.Save();
                     }
                     catch (Exception ex) {
                         TWinAGIEventInfo tmpError = new() {
-                            Type = EventType.etError,
-                            ID = "",
-                            Module = "",
+                            Type = EventType.GameCompileError,
                             ResType = AGIResType.Objects,
                             Text = "Error during compilation of OBJECT (" + ex.Message + ")"
                         };
-                        OnCompileGameStatus(ECStatus.csResError, tmpError);
+                        OnCompileGameStatus(GameCompileStatus.ResError, tmpError);
                         CompleteCancel(true);
-                        return CompStatus.Error;
+                        return CompileStatus.Error;
                     }
                 }
                 // check it for errors
-                compInfo.InfoType = EInfoType.itClearWarnings;
-                OnCompileGameStatus(ECStatus.csCompObjects, compInfo, ref CancelComp);
+                compInfo.InfoType = InfoType.ClearWarnings;
+                OnCompileGameStatus(GameCompileStatus.CompileObjects, compInfo, ref CancelComp);
                 if (agInvObj.ErrLevel != 0) {
                     AddCompileWarning(AGIResType.Objects, 0, agInvObj.ErrLevel, []);
                 }
                 if (CancelComp) {
                     CompleteCancel();
-                    return CompStatus.Canceled;
+                    return CompileStatus.Canceled;
                 }
                 if (!blnReplace) {
                     // copy OBJECT to new folder
@@ -896,15 +888,13 @@ namespace WinAGI.Engine {
                     }
                     catch (Exception ex) {
                         TWinAGIEventInfo tmpError = new() {
-                            Type = EventType.etError,
-                            ID = "",
-                            Module = "",
+                            Type = EventType.GameCompileError,
                             ResType = AGIResType.Objects,
                             Text = "Error while creating OBJECT file (" + ex.Message + ")"
                         };
-                        OnCompileGameStatus(ECStatus.csResError, tmpError);
+                        OnCompileGameStatus(GameCompileStatus.ResError, tmpError);
                         CompleteCancel(true);
-                        return CompStatus.Error;
+                        return CompileStatus.Error;
                     }
                 }
             }
@@ -922,21 +912,20 @@ namespace WinAGI.Engine {
             catch (Exception e) {
                 // raise error event
                 TWinAGIEventInfo tmpError = new() {
-                    Type = EventType.etError,
-                    ID = "",
+                    Type = EventType.GameCompileError,
                     Module = e.Message,
                     ResType = AGIResType.Game,
                     Text = LoadResString(503).Replace(ARG1, NewGameDir + "NEW_VOL.0"),
                     Data = 503
                 };
-                OnCompileGameStatus(ECStatus.csFatalError, tmpError);
+                OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                 CompleteCancel(true);
-                return CompStatus.Error;
+                return CompileStatus.Error;
             }
             // add all logic resources
             try {
-                CompStatus result = VOLManager.CompileResCol(this, agLogs, AGIResType.Logic, RebuildOnly, NewIsV3);
-                if (result != CompStatus.OK) {
+                CompileStatus result = VOLManager.CompileResCol(this, agLogs, AGIResType.Logic, RebuildOnly, NewIsV3);
+                if (result != CompileStatus.OK) {
                     // resource error (or user canceled)
                     return result;
                 }
@@ -944,21 +933,19 @@ namespace WinAGI.Engine {
             catch (Exception e) {
                 // raise error event
                 TWinAGIEventInfo tmpError = new() {
-                    Type = EventType.etError,
-                    ID = "",
-                    Module = "",
+                    Type = EventType.GameCompileError,
                     ResType = AGIResType.Game,
                     Text = e.Message,
                     Data = e.HResult - WINAGI_ERR
                 };
-                OnCompileGameStatus(ECStatus.csFatalError, tmpError);
+                OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                 CompleteCancel(true);
-                return CompStatus.Error;
+                return CompileStatus.Error;
             }
             // add all picture resources
             try {
-                CompStatus result = VOLManager.CompileResCol(this, agPics, AGIResType.Picture, RebuildOnly, NewIsV3);
-                if (result != CompStatus.OK) {
+                CompileStatus result = VOLManager.CompileResCol(this, agPics, AGIResType.Picture, RebuildOnly, NewIsV3);
+                if (result != CompileStatus.OK) {
                     // resource error (or user canceled)
                     return result;
                 }
@@ -966,21 +953,19 @@ namespace WinAGI.Engine {
             catch (Exception e) {
                 // raise error event
                 TWinAGIEventInfo tmpError = new() {
-                    Type = EventType.etError,
-                    ID = "",
-                    Module = "",
+                    Type = EventType.GameCompileError,
                     ResType = AGIResType.Game,
                     Text = e.Message,
                     Data = e.HResult - WINAGI_ERR
                 };
-                OnCompileGameStatus(ECStatus.csFatalError, tmpError);
+                OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                 CompleteCancel(true);
-                return CompStatus.Error;
+                return CompileStatus.Error;
             }
             // add all view resources
             try {
-                CompStatus result = VOLManager.CompileResCol(this, agViews, AGIResType.View, RebuildOnly, NewIsV3);
-                if (result != CompStatus.OK) {
+                CompileStatus result = VOLManager.CompileResCol(this, agViews, AGIResType.View, RebuildOnly, NewIsV3);
+                if (result != CompileStatus.OK) {
                     // resource error (or user canceled)
                     return result;
                 }
@@ -988,21 +973,19 @@ namespace WinAGI.Engine {
             catch (Exception e) {
                 // raise error event
                 TWinAGIEventInfo tmpError = new() {
-                    Type = EventType.etError,
-                    ID = "",
-                    Module = "",
+                    Type = EventType.GameCompileError,
                     ResType = AGIResType.Game,
                     Text = e.Message,
                     Data = e.HResult - WINAGI_ERR
                 };
-                OnCompileGameStatus(ECStatus.csFatalError, tmpError);
+                OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                 CompleteCancel(true);
-                return CompStatus.Error;
+                return CompileStatus.Error;
             }
             // add all sound resources
             try {
-                CompStatus result = VOLManager.CompileResCol(this, agSnds, AGIResType.Sound, RebuildOnly, NewIsV3);
-                if (result != CompStatus.OK) {
+                CompileStatus result = VOLManager.CompileResCol(this, agSnds, AGIResType.Sound, RebuildOnly, NewIsV3);
+                if (result != CompileStatus.OK) {
                     // resource error (or user canceled)
                     return result;
                 }
@@ -1010,16 +993,14 @@ namespace WinAGI.Engine {
             catch (Exception e) {
                 // raise error event
                 TWinAGIEventInfo tmpError = new() {
-                    Type = EventType.etError,
-                    ID = "",
-                    Module = "",
+                    Type = EventType.GameCompileError,
                     ResType = AGIResType.Game,
                     Text = e.Message,
                     Data = e.HResult - WINAGI_ERR
                 };
-                OnCompileGameStatus(ECStatus.csFatalError, tmpError);
+                OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                 CompleteCancel(true);
-                return CompStatus.Error;
+                return CompileStatus.Error;
             }
             // release handle on vol file
             volManager.VOLFile.Dispose();
@@ -1152,10 +1133,10 @@ namespace WinAGI.Engine {
             // update status to indicate complete
             compInfo.Text = "";
             compInfo.ResType = AGIResType.Game;
-            OnCompileGameStatus(ECStatus.csCompileComplete, compInfo, ref CancelComp);
+            OnCompileGameStatus(GameCompileStatus.CompileComplete, compInfo, ref CancelComp);
             if (CancelComp) {
                 CompleteCancel();
-                return CompStatus.Canceled;
+                return CompileStatus.Canceled;
             }
             if (blnReplace) {
                 // need to update the vol/loc info for all ingame resources;
@@ -1185,7 +1166,7 @@ namespace WinAGI.Engine {
             Compiling = false;
             // clear the volManager
             volManager.Clear();
-            return CompStatus.OK;
+            return CompileStatus.OK;
         }
 
         /// <summary>
@@ -1210,21 +1191,13 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         private void NewGame(string NewID, string NewVersion, string NewGameDir, string NewResDir, string NewExt, string TemplateDir = "") {
             string oldExt;
-            SettingsList stlGlobals;
-            TWinAGIEventInfo eventInfo = new() {
-                Type = EventType.etInfo,
-                ResType = AGIResType.Game,
-                ResNum = 0,
-                ID = "",
-                Module = "",
-                Text = "",
-                Line = "--"
-            };
+            SettingsFile stlGlobals;
+            TWinAGIEventInfo eventInfo = new();
 
             // reset game variables
             ClearGameState();
             // set up event status object
-            eventInfo.InfoType = EInfoType.itInitialize; 
+            eventInfo.InfoType = InfoType.Initialize; 
             eventInfo.Text = "validating parameters";
             OnNewGameStatus(eventInfo);
             if (!Directory.Exists(NewGameDir)) {
@@ -1255,14 +1228,15 @@ namespace WinAGI.Engine {
             if (NewExt.Length == 0) {
                 NewExt = agDefSrcExt;
             }
+            NewExt = NewExt.ToLower();
             if (TemplateDir.Length == 0) {
                 // if blank game (no template),
                 // just create the new files and set game parameters
-                eventInfo.InfoType = EInfoType.itResources;
+                eventInfo.InfoType = InfoType.Resources;
                 eventInfo.Text = "creating new game components";
                 OnNewGameStatus(eventInfo);
                 if (!IntVersions.Contains(NewVersion)) {
-                    if (Val(NewVersion) < 2 || Val(NewVersion) > 3) {
+                    if (NewVersion.Val() < 2 || NewVersion.Val() > 3) {
                         // not a version 2 or 3 game
                         WinAGIException wex = new(LoadResString(597)) {
                             HResult = WINAGI_ERR + 597
@@ -1281,14 +1255,14 @@ namespace WinAGI.Engine {
                 agIsVersion3 = agIntVersion[0] == '3';
                 // set game id (limit to 6 characters for v2, and 5 characters for v3
                 if (agIsVersion3) {
-                    agGameID = Left(NewID, 5);
+                    agGameID = NewID.Left(5);
                 }
                 else {
-                    agGameID = Left(NewID, 6);
+                    agGameID = NewID.Left(6);
                 }
                 // create empty property file
                 agGameFile = agGameDir + agGameID + ".wag";
-                agGameProps = new SettingsList(agGameFile, FileMode.Create);
+                agGameProps = new SettingsFile(agGameFile, FileMode.Create);
                 agGameProps.Lines.Add("# WinAGI Game Property File for " + agGameID);
                 agGameProps.Lines.Add("#");
                 agGameProps.Lines.Add("");
@@ -1299,11 +1273,11 @@ namespace WinAGI.Engine {
                 agGameProps.Lines.Add("   GameID = " + agGameID);
                 agGameProps.Lines.Add("   Interpreter = " + agIntVersion);
                 agGameProps.Lines.Add("   ResDir = " + NewResDir);
-                agGameProps.Lines.Add("   SourceFileExt = " + NewExt.ToLower());
+                agGameProps.Lines.Add("   SourceFileExt = " + NewExt);
                 agGameProps.Lines.Add("[Palette]");
                 // save palette colors
                 for (int i = 0; i < 16; i++) {
-                    agGameProps.Lines.Add("   Color" + i + " = " + EGAColors.ColorText(AGIColors[i]));
+                    agGameProps.Lines.Add("   Color" + i + " = " + EGAColors.ColorText(Palette[i]));
                 }
                 agGameProps.Lines.Add("");
                 agGameProps.Lines.Add("[WORDS.TOK]");
@@ -1327,7 +1301,7 @@ namespace WinAGI.Engine {
                 agResDirName = NewResDir;
                 agResDir = agGameDir + agResDirName + @"\";
                 // assign source file extension
-                agSrcFileExt = "." + NewExt;
+                agSrcFileExt = NewExt;
                 // create default resource DIR files
                 // (default DIR files shold only have ONE 'FFFFFF' entry)
                 byte[] bytDirData = [0xff, 0xff, 0xff];
@@ -1389,7 +1363,7 @@ namespace WinAGI.Engine {
                 agLogs[0].Unload();
             }
             else {
-                eventInfo.InfoType = EInfoType.itInitialize;
+                eventInfo.InfoType = InfoType.Initialize;
                 eventInfo.Text = "copying template files to new location";
                 OnNewGameStatus(eventInfo);
                 // if from a template:
@@ -1429,7 +1403,7 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
                 // 2. adjust game parameters:
-                eventInfo.InfoType = EInfoType.itInitialize;
+                eventInfo.InfoType = InfoType.Initialize;
                 eventInfo.Text = "updating game components";
                 OnNewGameStatus(eventInfo);
                 agGameID = NewID;
@@ -1463,10 +1437,10 @@ namespace WinAGI.Engine {
                 }
                 // check version
                 string strValue = agGameProps.GetSetting("General", "WinAGIVersion", "");
-                if (Left(strValue, 4) == "1.2." || (Left(strValue, 2) == "2.")) {
+                if (strValue.Left(4) == "1.2." || (strValue.Left(2) == "2.")) {
                     // any v1.2.x or 2.x is ok, but need to update
                     agGameProps.WriteSetting("General", "WinAGIVersion", WINAGI_VERSION);
-                    eventInfo.InfoType = EInfoType.itPropertyFile;
+                    eventInfo.InfoType = InfoType.PropertyFile;
                     eventInfo.Text = "";
                     OnNewGameStatus(eventInfo);
                 }
@@ -1475,14 +1449,14 @@ namespace WinAGI.Engine {
                 // resdir
                 agGameProps.WriteSetting("General", "ResDir", NewResDir);
                 // src ext
-                agSrcFileExt = "." + NewExt;
+                agSrcFileExt = NewExt;
                 oldExt = agGameProps.GetSetting("Decompiler", "SourceFileExt", DefaultSrcExt);
                 if (!oldExt.Equals(agSrcFileExt, StringComparison.OrdinalIgnoreCase)) {
-                    agGameProps.WriteSetting("Decompiler", "SourceFileExt", NewExt);
+                    agGameProps.WriteSetting("Decompiler", "SourceFileExt", agSrcFileExt);
                     try {
                         // rename all existing logic source file
                         foreach (string file in Directory.GetFiles(agResDir)) {
-                            File.Move(file, agResDir + Path.GetFileNameWithoutExtension(file) + "." + NewExt);
+                            File.Move(file, agResDir + Path.GetFileNameWithoutExtension(file) + "." + agSrcFileExt);
                         }
                     }
                     catch {
@@ -1506,9 +1480,9 @@ namespace WinAGI.Engine {
                 // update global file header
                 if (File.Exists(agGameDir + "globals.txt")) {
                     try {
-                        stlGlobals = new SettingsList(agGameDir + "globals.txt", FileMode.OpenOrCreate);
+                        stlGlobals = new SettingsFile(agGameDir + "globals.txt", FileMode.OpenOrCreate);
                         if (stlGlobals.Lines.Count > 3) {
-                            if (Left(stlGlobals.Lines[1].Trim(), 1) == "[") {
+                            if (stlGlobals.Lines[1].Trim().Left(1) == "[") {
                                 stlGlobals.Lines[1] = "[ global defines file for " + NewID;
                             }
                             // save it
@@ -1521,7 +1495,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 // 3. open the newly created game
-                eventInfo.InfoType = EInfoType.itFinalizing;
+                eventInfo.InfoType = InfoType.Finalizing;
                 eventInfo.Text = "opening the new game";
                 OnNewGameStatus(eventInfo);
                 try {
@@ -1541,6 +1515,10 @@ namespace WinAGI.Engine {
             blnSetIDs = false;
             // give access to compiler
             compGame = this;
+            // enable file watcher
+            agFileWatcher = new(agGameDir);
+            agFileWatcher.Enabled = true;
+
             // done
             return;
         }
@@ -1553,24 +1531,14 @@ namespace WinAGI.Engine {
         /// <param name="NewGameDir"></param>
         /// <returns></returns>
         private TWinAGIEventInfo OpenGameDIR(string NewGameDir) {
-            // assume OK result
-            TWinAGIEventInfo retval = new() {
-                Type = EventType.etInfo,
-                ID = "",
-                Module = "",
-                Text = ""
-            };
             // periodically report status of the load back to calling function
             TWinAGIEventInfo warnInfo = new() {
-                Type = EventType.etResWarning,
-                ID = "",
-                Module = "",
-                Text = ""
+                Type = EventType.ResourceWarning,
             };
             // set game directory
             agGameDir = FullDir(NewGameDir);
-            warnInfo.Type = EventType.etInfo;
-            warnInfo.InfoType = EInfoType.itValidating;
+            warnInfo.Type = EventType.Info;
+            warnInfo.InfoType = InfoType.Validating;
             warnInfo.Text = "";
             OnLoadGameStatus(warnInfo);
             // check for valid DIR/VOL files
@@ -1592,7 +1560,7 @@ namespace WinAGI.Engine {
             }
             // create new wag file
             try {
-                agGameProps = new SettingsList(agGameFile, FileMode.Create);
+                agGameProps = new SettingsFile(agGameFile, FileMode.Create);
             }
             catch (Exception e) {
                 ClearGameState();
@@ -1618,9 +1586,15 @@ namespace WinAGI.Engine {
             try {
                 return FinishGameLoad(OpenGameMode.Directory);
             }
-            catch (Exception) {
-                // pass it along
-                throw;
+            catch (Exception ex) {
+                // return an error
+                TWinAGIEventInfo retval = new() {
+                    Type = EventType.GameLoadError,
+                    ID = "648",
+                    Module = ex.StackTrace,
+                    Text = ex.Message
+                };
+                return retval;
             }
         }
 
@@ -1632,12 +1606,6 @@ namespace WinAGI.Engine {
         /// <param name="GameWAG"></param>
         /// <returns></returns>
         private TWinAGIEventInfo OpenGameWAG(string GameWAG) {
-            TWinAGIEventInfo retval = new() {
-                Type = EventType.etInfo,
-                ID = "",
-                Module = "",
-                Text = ""
-            };
             string strVer;
 
             if (!File.Exists(GameWAG)) {
@@ -1676,7 +1644,7 @@ namespace WinAGI.Engine {
             }
             try {
                 // open the WAG
-                agGameProps = new SettingsList(agGameFile, FileMode.Open);
+                agGameProps = new SettingsFile(agGameFile, FileMode.Open);
             }
             catch (Exception e) {
                 // reset game variables
@@ -1691,16 +1659,13 @@ namespace WinAGI.Engine {
             // check to see if it's valid
             strVer = agGameProps.GetSetting("General", "WinAGIVersion", "");
             if (strVer != WINAGI_VERSION) {
-                if (Left(strVer, 4) == "1.2." || (Left(strVer, 2) == "2.")) {
+                if (strVer.Left(4) == "1.2." || (strVer.Left(2) == "2.")) {
                     // any v1.2.x or 2.x is ok, but user will need to update
-
                     // let calling function know an upgrade is occurring
                     TWinAGIEventInfo loadInfo = new() {
-                        Type = EventType.etInfo,
-                        ID = "",
-                        Module = "",
+                        Type = EventType.Info,
                         Text = strVer,
-                        InfoType = EInfoType.itValidating
+                        InfoType = InfoType.Validating
                     };
                     OnLoadGameStatus(loadInfo);
                     // update the WinAGI version
@@ -1722,6 +1687,11 @@ namespace WinAGI.Engine {
             agGameID = agGameProps.GetSetting("General", "GameID", "");
             // if an id is found, keep going
             if (agGameID.Length > 0) {
+                // trim it to 6 characters (older versions of WinAGI allowed longer v2 IDs
+                if (agGameID.Length > 6) {
+                    agGameID = agGameID[..6];
+                    agGameProps.WriteSetting("General", "GameID", agGameID);
+                }
                 // got ID; now get interpreter version from propfile
                 agIntVersion = agGameProps.GetSetting("General", "Interpreter", "");
                 // validate it
@@ -1758,9 +1728,15 @@ namespace WinAGI.Engine {
                 // finish the game load
                 return FinishGameLoad(OpenGameMode.File);
             }
-            catch {
-                // pass exceptions
-                throw;
+            catch (Exception ex) {
+                // return an error
+                TWinAGIEventInfo retval = new() {
+                    Type = EventType.GameLoadError,
+                    ID = "650",
+                    Module = ex.StackTrace,
+                    Text = ex.Message
+                };
+                return retval;
             }
         }
 
@@ -1773,25 +1749,17 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         public TWinAGIEventInfo FinishGameLoad(OpenGameMode mode) {
             TWinAGIEventInfo retval = new() {
-                Type = EventType.etInfo,
-                InfoType = EInfoType.itDone,
-                ID = "",
-                Text = "",
-                Module = ""
+                Type = EventType.Info,
+                InfoType = InfoType.Done,
             };
             // provide feedback to calling function
             bool blnWarnings = false;
-            TWinAGIEventInfo loadInfo = new() {
-                Type = EventType.etInfo,
-                ID = "",
-                Module = "",
-                Text = ""
-            };
+            TWinAGIEventInfo loadInfo = new();
 
             agIsVersion3 = agIntVersion[0] == '3';
             switch (mode) {
             case OpenGameMode.File:
-                loadInfo.InfoType = EInfoType.itPropertyFile;
+                loadInfo.InfoType = InfoType.PropertyFile;
                 OnLoadGameStatus(loadInfo);
                 // get resdir before loading resources
                 agResDirName = agGameProps.GetSetting("General", "ResDir", "");
@@ -1828,7 +1796,7 @@ namespace WinAGI.Engine {
                     // if can't create the resources directory
                     // note the problem as a warning
                     loadInfo.ResType = AGIResType.Game;
-                    loadInfo.Type = EventType.etResWarning;
+                    loadInfo.Type = EventType.ResourceWarning;
                     loadInfo.ID = "OW01";
                     loadInfo.Text = "Can't create " + agResDir;
                     LoadEventStatus(mode, loadInfo);
@@ -1852,7 +1820,7 @@ namespace WinAGI.Engine {
             catch (Exception e) {
                 // note the problem as a warning
                 loadInfo.ResType = AGIResType.Game;
-                loadInfo.Type = EventType.etResWarning;
+                loadInfo.Type = EventType.ResourceWarning;
                 loadInfo.ID = "OW02";
                 loadInfo.Text = $"Error while loading WAG file; some properties not loaded. (Error {e.HResult}: {e.Message})";
                 LoadEventStatus(mode, loadInfo);
@@ -1860,8 +1828,8 @@ namespace WinAGI.Engine {
                 blnWarnings = true;
             }
             // load vocabulary word list
-            loadInfo.Type = EventType.etInfo;
-            loadInfo.InfoType = EInfoType.itResources;
+            loadInfo.Type = EventType.Info;
+            loadInfo.InfoType = InfoType.Resources;
             loadInfo.ResType = AGIResType.Words;
             LoadEventStatus(mode, loadInfo);
             try {
@@ -1872,7 +1840,7 @@ namespace WinAGI.Engine {
                 // if there was an error,
                 // note the problem as a warning
                 loadInfo.ResType = AGIResType.Words;
-                loadInfo.Type = EventType.etResWarning;
+                loadInfo.Type = EventType.ResourceWarning;
                 loadInfo.ID = "RE19";
                 loadInfo.Text = $"An error occurred while loading WORDS.TOK (Error {e.HResult}: {e.Message}";
                 loadInfo.Module = "WORDS.TOK";
@@ -1888,8 +1856,8 @@ namespace WinAGI.Engine {
             // get description, if there is one
             agVocabWords.Description = agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
             // load inventory objects list
-            loadInfo.Type = EventType.etInfo;
-            loadInfo.InfoType = EInfoType.itResources;
+            loadInfo.Type = EventType.Info;
+            loadInfo.InfoType = InfoType.Resources;
             loadInfo.ResType = AGIResType.Objects;
             LoadEventStatus(mode, loadInfo);
             try {
@@ -1900,7 +1868,7 @@ namespace WinAGI.Engine {
                 // if there was an error,
                 // note the problem as a warning
                 loadInfo.ResType = AGIResType.Objects;
-                loadInfo.Type = EventType.etResWarning;
+                loadInfo.Type = EventType.ResourceWarning;
                 loadInfo.ID = "RE21";
                 loadInfo.Text = $"An error occurred while loading OBJECT:(Error {e.HResult}: {e.Message}";
                 loadInfo.Module = "OBJECT";
@@ -1925,11 +1893,12 @@ namespace WinAGI.Engine {
                 // the CRC/source check depends on mode
                 switch (mode) {
                 case OpenGameMode.File:
+                case OpenGameMode.New:
                     // opening existing wag file - check CRC
                     loadInfo.ResType = AGIResType.Logic;
                     loadInfo.ResNum = tmpLog.Number;
-                    loadInfo.Type = EventType.etInfo;
-                    loadInfo.InfoType = EInfoType.itCheckCRC;
+                    loadInfo.Type = EventType.Info;
+                    loadInfo.InfoType = InfoType.CheckCRC;
                     LoadEventStatus(mode, loadInfo);
                     // cache error level 
                     int tmpErr = tmpLog.ErrLevel;
@@ -1939,17 +1908,12 @@ namespace WinAGI.Engine {
                         tmpLog.LoadSource();
                         // check it for TODO items
                         List<TWinAGIEventInfo> TODOs = ExtractTODO(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
-                        if (TODOs.Count > 0) {
-                            foreach (TWinAGIEventInfo tmpInfo in TODOs) {
-                                LoadEventStatus(mode, loadInfo);
-                            }
+                        foreach (TWinAGIEventInfo tmpInfo in TODOs) {
+                            LoadEventStatus(mode, tmpInfo);
                         }
-                        // check for Decompile warnings
                         List<TWinAGIEventInfo> DecompWarnings = ExtractDecompWarn(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
-                        if (DecompWarnings.Count > 0) {
-                            foreach (TWinAGIEventInfo tmpInfo in DecompWarnings) {
-                                LoadEventStatus(mode, loadInfo);
-                            }
+                        foreach (TWinAGIEventInfo tmpInfo in DecompWarnings) {
+                            LoadEventStatus(mode, tmpInfo);
                         }
                         // then unload it
                         tmpLog.Unload();
@@ -1978,8 +1942,8 @@ namespace WinAGI.Engine {
                     // decompiling
                     loadInfo.ResType = AGIResType.Logic;
                     loadInfo.ResNum = tmpLog.Number;
-                    loadInfo.Type = EventType.etInfo;
-                    loadInfo.InfoType = EInfoType.itDecompiling;
+                    loadInfo.Type = EventType.Info;
+                    loadInfo.InfoType = InfoType.Decompiling;
                     LoadEventStatus(mode, loadInfo);
                     // force decompile
                     tmpLog.LoadSource(true);
@@ -2002,8 +1966,8 @@ namespace WinAGI.Engine {
                 }
             }
             // everything loaded OK; tidy things up before exiting
-            loadInfo.Type = EventType.etInfo;
-            loadInfo.InfoType = EInfoType.itFinalizing;
+            loadInfo.Type = EventType.Info;
+            loadInfo.InfoType = InfoType.Finalizing;
             LoadEventStatus(mode, loadInfo);
             // force id reset
             blnSetIDs = false;
@@ -2016,10 +1980,13 @@ namespace WinAGI.Engine {
             if (blnWarnings) {
                 // TODO: warning info not used by calling function
                 // so maybe get rid of it?
+                retval.Type = EventType.ResourceWarning;
                 retval.ID = 636.ToString();
-                retval.Type = EventType.etResWarning;
                 retval.Text = "WARNINGS";
             }
+            // TODO: enable file watcher
+            //agFileWatcher = new(agGameDir);
+            //agFileWatcher.Enabled = true;
             return retval;
         }
 
@@ -2050,7 +2017,7 @@ namespace WinAGI.Engine {
             agGameID = "";
             agIntVersion = "2.917";
             agIsVersion3 = false;
-            agGameProps = new SettingsList();
+            agGameProps = new SettingsFile();
             agLastEdit = new DateTime();
             agSierraSyntax = false;
             agPowerPack = false;
@@ -2066,14 +2033,12 @@ namespace WinAGI.Engine {
             agGameVersion = "";
             agGameAbout = "";
             agResDirName = "";
-            agPlatformType = PlatformTypeEnum.None;
+            agPlatformType = PlatformType.None;
             agPlatformFile = "";
             agPlatformOpts = "";
             agDOSExec = "";
             // colors
-            for (int i = 0; i < 16; i++) {
-                agEGAcolors[i] = DefaultColors[i];
-            }
+            agEGAcolors = DefaultPalette;
             // other properties
             DecodeGameID = "";
             IndentSize = 4;
@@ -2144,7 +2109,7 @@ namespace WinAGI.Engine {
                                         strFile = Path.GetFileName(strLoader);
                                         if (strLoader != "SIERRA.COM") {
                                             // use this filename as ID
-                                            agGameID = Left(strFile, strFile.Length - 4).ToUpper();
+                                            agGameID = strFile.Left(strFile.Length - 4).ToUpper();
                                             break;
                                         }
                                     }
@@ -2153,7 +2118,7 @@ namespace WinAGI.Engine {
                             catch (Exception ex) {
                                 // ignore if file is readonly
                                 // (or any other access error)
-                                System.Diagnostics.Debug.Print(ex.Message);
+                                Debug.Print(ex.Message);
                             }
                         }
                         // if no loader file found (looped through all files, no luck)
@@ -2166,7 +2131,7 @@ namespace WinAGI.Engine {
                 else if (dirCount == 1) {
                     // if only one, it's probably v3 game
                     strFile = Path.GetFileName(Directory.GetFiles(strDir, "*DIR")[0].ToUpper());
-                    agGameID = Left(strFile, strFile.IndexOf("DIR"));
+                    agGameID = strFile.Left(strFile.IndexOf("DIR"));
                     // check for matching VOL file;
                     if (File.Exists(strDir + agGameID + "VOL.0")) {
                         // set version3 flag
@@ -2275,9 +2240,9 @@ namespace WinAGI.Engine {
             //         logic sourcefile extension
 
             // Palette: (make sure AGI defaults set first)
-            DefaultColors = new();
+            DefaultPalette = new();
             for (int i = 0; i < 16; i++) {
-                AGIColors[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultColors[i]);
+                Palette[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultPalette[i]);
             }
             agCodePage = Encoding.GetEncoding(agGameProps.GetSetting("General", "CodePage", 437));
             agDescription = agGameProps.GetSetting("General", "Description", "");
@@ -2288,14 +2253,17 @@ namespace WinAGI.Engine {
                 // default to now
                 agLastEdit = DateTime.Now;
             }
-            agPlatformType = (PlatformTypeEnum)agGameProps.GetSetting("General", "PlatformType", 0, typeof(PlatformTypeEnum));
+            agPlatformType = (PlatformType)agGameProps.GetSetting("General", "PlatformType", 0, typeof(PlatformType));
             agPlatformFile = agGameProps.GetSetting("General", "Platform", "");
             agDOSExec = agGameProps.GetSetting("General", "DOSExec", "");
             agPlatformOpts = agGameProps.GetSetting("General", "PlatformOpts", "");
-            UseReservedNames = agGameProps.GetSetting("General", "UseResNames", UseReservedNames);
+            UseReservedNames = agGameProps.GetSetting("General", "UseResNames", true);
             agUseLE = agGameProps.GetSetting("General", "UseLE", false);
             agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", false);
             agSrcFileExt = agGameProps.GetSetting("Decompiler", "SourceFileExt", agDefSrcExt).ToLower().Trim();
+            if (agSrcFileExt[0] == '.') {
+                agSrcFileExt = agSrcFileExt[1..];
+            }
         }
 
         /// <summary>
@@ -2305,27 +2273,19 @@ namespace WinAGI.Engine {
         internal void CompleteCancel(bool NoEvent = false) {
             if (!NoEvent) {
                 TWinAGIEventInfo tmpWarn = new() {
-                    Type = EventType.etResWarning,
+                    Type = EventType.ResourceWarning,
                     ResType = AGIResType.Game,
-                    ID = "",
-                    Module = "",
-                    Text = ""
                 };
-                OnCompileGameStatus(ECStatus.csCanceled, tmpWarn);
+                OnCompileGameStatus(GameCompileStatus.Canceled, tmpWarn);
             }
             Compiling = false;
             CancelComp = false;
             volManager.Clear();
         }
 
-        public CompStatus CompileDirtyLogics() {
+        public CompileStatus CompileChangedLogics() {
             bool blnUnloadRes;
-            TWinAGIEventInfo compInfo = new() {
-                Type = EventType.etInfo,
-                ID = "",
-                Module = "",
-                Text = ""
-            };
+            TWinAGIEventInfo compInfo = new();
 
             Compiling = true;
             CancelComp = false;
@@ -2333,26 +2293,24 @@ namespace WinAGI.Engine {
             foreach (Logic logres in Logics) {
                 // update status
                 TWinAGIEventInfo tmpWarn = new() {
-                    Type = EventType.etInfo,
-                    InfoType = EInfoType.itClearWarnings,
+                    Type = EventType.Info,
+                    InfoType = InfoType.ClearWarnings,
                     ResType = AGIResType.Logic,
                     ResNum = logres.Number,
                     ID = logres.ID,
-                    Module = "",
-                    Text = ""
                 };
                 // clear existing warnings/errors
-                AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn, ref CancelComp);
+                AGIGame.OnCompileGameStatus(GameCompileStatus.AddResource, tmpWarn, ref CancelComp);
                 if (CancelComp) {
                     CompleteCancel();
-                    return CompStatus.Canceled;
+                    return CompileStatus.Canceled;
                 }
                 // update status and check for cancellation
-                tmpWarn.InfoType = EInfoType.itCheckLogic;
-                AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn, ref CancelComp);
+                tmpWarn.InfoType = InfoType.CheckLogic;
+                AGIGame.OnCompileGameStatus(GameCompileStatus.AddResource, tmpWarn, ref CancelComp);
                 if (CancelComp) {
                     CompleteCancel();
-                    return CompStatus.Canceled;
+                    return CompileStatus.Canceled;
                 }
                 // set flag to force unload, if resource not currently loaded
                 blnUnloadRes = !logres.Loaded;
@@ -2370,20 +2328,20 @@ namespace WinAGI.Engine {
                     // -3  logic source: file access error
                     tmpWarn.Text = $"Unable to load source code for {logres.ID}";
                     tmpWarn.Line = logres.ErrLevel.ToString();
-                    AGIGame.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                    AGIGame.OnCompileGameStatus(GameCompileStatus.ResError, tmpWarn);
                     // make sure unloaded
                     logres.Unload();
                     // and stop compiling
                     CompleteCancel(true);
-                    return CompStatus.Error;
+                    return CompileStatus.Error;
                 }
                 if (!logres.Compiled) {
                     // update status and check for cancellation
-                    tmpWarn.InfoType = EInfoType.itCompiling;
-                    AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn, ref CancelComp);
+                    tmpWarn.InfoType = InfoType.Compiling;
+                    AGIGame.OnCompileGameStatus(GameCompileStatus.AddResource, tmpWarn, ref CancelComp);
                     if (CancelComp) {
                         CompleteCancel();
-                        return CompStatus.Canceled;
+                        return CompileStatus.Canceled;
                     }
                     if (!CompileLogic(logres)) {
                         // logic compile critical error - always cancel
@@ -2391,7 +2349,7 @@ namespace WinAGI.Engine {
                         if (blnUnloadRes && logres is not null) logres.Unload();
                         // then stop compiling
                         CompleteCancel(true);
-                        return CompStatus.Error;
+                        return CompileStatus.Error;
                     }
                     // save the updated resource data (updates VOL/DIR files)
                     try {
@@ -2401,19 +2359,19 @@ namespace WinAGI.Engine {
                         // report any errors
                         tmpWarn.Text = $"Unable to save {logres.ID} to game files.";
                         tmpWarn.Line = e.Message;
-                        AGIGame.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                        AGIGame.OnCompileGameStatus(GameCompileStatus.ResError, tmpWarn);
                         // make sure unloaded
                         logres.Unload();
                         // and stop compiling
                         CompleteCancel(true);
-                        return CompStatus.Error;
+                        return CompileStatus.Error;
                     }
                     // update status and check for cancellation
-                    tmpWarn.InfoType = EInfoType.itCompiled;
-                    AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn, ref CancelComp);
+                    tmpWarn.InfoType = InfoType.Compiled;
+                    AGIGame.OnCompileGameStatus(GameCompileStatus.AddResource, tmpWarn, ref CancelComp);
                 }
             }
-            return CompStatus.OK;
+            return CompileStatus.OK;
         }
         #endregion
     }

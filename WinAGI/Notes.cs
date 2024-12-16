@@ -70,7 +70,7 @@ namespace WinAGI.Engine {
             mCol = [];
             if (mParent is not null) {
                 mParent.NoteChanged();
-                mTParent.SetLengthDirty();
+                mTParent.SetLengthChanged();
             }
         }
 
@@ -108,7 +108,7 @@ namespace WinAGI.Engine {
             }
             if (mParent is not null) {
                 mParent.NoteChanged();
-                mTParent.SetLengthDirty();
+                mTParent.SetLengthChanged();
             }
             return agNewNote;
         }
@@ -125,7 +125,7 @@ namespace WinAGI.Engine {
             mCol.RemoveAt(Index);
             if (mParent is not null) {
                 mParent.NoteChanged();
-                mTParent.SetLengthDirty();
+                mTParent.SetLengthChanged();
             }
         }
 
@@ -137,10 +137,20 @@ namespace WinAGI.Engine {
         internal Notes Clone(Track cloneTparent) {
             Notes CopyNotes = new(mParent, cloneTparent);
             foreach (Note tmpNote in mCol) {
-                CopyNotes.mCol.Add(new Note(tmpNote.mFreqDiv, tmpNote.mDuration, tmpNote.mAttenuation, mParent, mTParent) {
-                });
+                CopyNotes.mCol.Add(new Note(tmpNote.mFreqDiv, tmpNote.mDuration, tmpNote.mAttenuation, mParent, mTParent));
             }
             return CopyNotes;
+        }
+
+        /// <summary>
+        /// Copies all notes from SourceNotes into this notes collection.
+        /// </summary>
+        /// <param name="SourceNotes"></param>
+        internal void CloneFrom(Notes SourceNotes) {
+            mCol = [];
+            foreach (Note tmpNote in SourceNotes.mCol) {
+                mCol.Add(new Note(tmpNote.mFreqDiv, tmpNote.mDuration, tmpNote.mAttenuation, mParent, mTParent));
+            }
         }
         #endregion
 

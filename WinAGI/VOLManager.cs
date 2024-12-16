@@ -140,7 +140,7 @@ namespace WinAGI.Engine {
 
         /// <summary>
         /// Adds a resource to the next available location in the current VOL file.
-        /// Used by CompileGame only.
+        /// Used by EditGame.Compile only.
         /// </summary>
         /// <param name="AddRes"></param>
         /// <param name="replace"></param>
@@ -148,7 +148,7 @@ namespace WinAGI.Engine {
             byte[] ResHeader;
 
             // the DIR file is not updated; that is done by the
-            // CompileGame method AFTER all VOL files are built
+            // EditGame.Compile method AFTER all VOL files are built
             // using the data stored in a temporary array
             DIRData[(int)AddRes.ResType, AddRes.Number, 0] = (byte)((Index << 4) + (Loc >> 16));
             DIRData[(int)AddRes.ResType, AddRes.Number, 1] = (byte)((Loc % 0x10000) >> 8);
@@ -191,8 +191,7 @@ namespace WinAGI.Engine {
         /// <param name="resource"></param>
         internal void ValidateVolAndLoc(AGIResource resource, bool IsV3) {
             // check if resource is too long
-            if (Loc + resource.Size > 350000 || (Index == 0 && (Loc + resource.Size > resource.parent.agMaxVol0))) {
-//            if (Loc + resource.Size > MAX_VOLSIZE || (Index == 0 && (Loc + resource.Size > resource.parent.agMaxVol0))) {
+            if (Loc + resource.Size > parent.agMaxVolSize || (Index == 0 && (Loc + resource.Size > resource.parent.agMaxVol0))) {
                 //set maxvol count to 4 or 15, depending on version
                 int lngMaxVol = IsV3 ? 15 : 4;
 
@@ -218,7 +217,7 @@ namespace WinAGI.Engine {
                         throw wex;
                     }
                     // is there room at the end of this file?
-                    if ((i > 0 && (VOLFile.Length + resource.Size <= MAX_VOLSIZE)) || (VOLFile.Length + resource.Size <= resource.parent.agMaxVol0)) {
+                    if ((i > 0 && (VOLFile.Length + resource.Size <= resource.parent.agMaxVolSize)) || (VOLFile.Length + resource.Size <= resource.parent.agMaxVol0)) {
                         // if so, set pointer to end of the file, and exit
                         Index = (sbyte)i;
                         Loc = (int)VOLFile.Length;
@@ -252,7 +251,7 @@ namespace WinAGI.Engine {
         /// <param name="RebuildOnly"></param>
         /// <param name="IsV3"></param>
         /// <returns>true, if no resource errors encountered, otherwise false.</returns>
-        internal static CompStatus CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool IsV3) {
+        internal static CompileStatus CompileResCol(AGIGame game, dynamic tmpResCol, AGIResType ResType, bool RebuildOnly, bool IsV3) {
             byte CurResNum;
             bool blnUnloadRes;
 
@@ -260,29 +259,26 @@ namespace WinAGI.Engine {
                 CurResNum = tmpGameRes.Number;
                 // update status
                 TWinAGIEventInfo tmpWarn = new() {
-                    Type = EventType.etInfo,
-                    InfoType = EInfoType.itClearWarnings,
+                    Type = EventType.Info,
+                    InfoType = InfoType.ClearWarnings,
                     ResType = ResType,
                     ResNum = CurResNum,
                     ID = tmpGameRes.ID,
-                    Module = "",
-                    Text = ""
                 };
                 // clear existing warnings/errors
-                AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn, ref game.CancelComp);
+                AGIGame.OnCompileGameStatus(GameCompileStatus.AddResource, tmpWarn, ref game.CancelComp);
                 if (game.CancelComp) {
                     
                     game.CompleteCancel();
-                    return CompStatus.Canceled;
+                    return CompileStatus.Canceled;
                 }
                 // set info type for next action
-                tmpWarn.InfoType = EInfoType.itResources;
-
+                tmpWarn.InfoType = InfoType.Resources;
                 // check for cancellation
-                AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn, ref game.CancelComp);
+                AGIGame.OnCompileGameStatus(GameCompileStatus.AddResource, tmpWarn, ref game.CancelComp);
                 if (game.CancelComp) {
                     game.CompleteCancel();
-                    return CompStatus.Canceled;
+                    return CompileStatus.Canceled;
                 }
                 // set flag to force unload, if resource not currently loaded
                 blnUnloadRes = !tmpGameRes.Loaded;
@@ -293,7 +289,7 @@ namespace WinAGI.Engine {
                 }
                 if (tmpGameRes.ErrLevel != 0 || ((tmpGameRes.ResType == AGIResType.Logic) && ((Logic)tmpGameRes).SrcErrLevel != 0)) {
                     // add events
-                    AddCompileWarning(tmpGameRes.ResType, tmpGameRes.Number, tmpGameRes.ErrLevel, []);
+                    AddCompileWarning(tmpGameRes.ResType, tmpGameRes.Number, tmpGameRes.ErrLevel, tmpGameRes.ErrData);
                     // check for major error (compile automatically fails)
                     if (tmpGameRes.ErrLevel < 0) {
                         // error level is less than zero - major error
@@ -305,12 +301,12 @@ namespace WinAGI.Engine {
                         // -6  resource: failure to expand v3 compressed resource
                         tmpWarn.Text = $"Unable to load {tmpGameRes.ID}";
                         tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                        AGIGame.OnCompileGameStatus(ECStatus.csFatalError, tmpWarn);
+                        AGIGame.OnCompileGameStatus(GameCompileStatus.FatalError, tmpWarn);
                         // make sure unloaded
                         tmpGameRes.Unload();
                         // and stop compiling
                         game.CompleteCancel(true);
-                        return CompStatus.Error;
+                        return CompileStatus.Error;
                     }
                     // check for minor error (compile fails if user cancels)
                     if (tmpGameRes.ErrLevel > 0) {
@@ -342,14 +338,14 @@ namespace WinAGI.Engine {
                         // 64 = invalid description offset
                         tmpWarn.Text = $"Errors and/or anomalies detected in {tmpGameRes.ID}";
                         tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                        AGIGame.OnCompileGameStatus(ECStatus.csWarning, tmpWarn, ref game.CancelComp);
+                        AGIGame.OnCompileGameStatus(GameCompileStatus.Warning, tmpWarn, ref game.CancelComp);
                         // check for cancellation
                         if (game.CancelComp) {
                             // unload if needed
                             if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                             // then stop compiling
                             game.CompleteCancel();
-                            return CompStatus.Canceled;
+                            return CompileStatus.Canceled;
                         }
                     }
                     // for logics, check for source errors (compile automatically fails)
@@ -359,12 +355,12 @@ namespace WinAGI.Engine {
                         // -3  logic source: file access error
                         tmpWarn.Text = $"Unable to load source code for {tmpGameRes.ID}";
                         tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                        AGIGame.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                        AGIGame.OnCompileGameStatus(GameCompileStatus.ResError, tmpWarn);
                         // make sure unloaded
                         tmpGameRes.Unload();
                         // and stop compiling
                         game.CompleteCancel(true);
-                        return CompStatus.Error;
+                        return CompileStatus.Error;
                     }
                 }
                 // if full compile (not rebuild only)
@@ -372,11 +368,11 @@ namespace WinAGI.Engine {
                     // for logics, compile the sourcetext
                     if (tmpGameRes.GetType().Name == "Logic") {
                         // update status and check for cancellation
-                        tmpWarn.InfoType = EInfoType.itCompiling;
-                        AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn, ref game.CancelComp);
+                        tmpWarn.InfoType = InfoType.Compiling;
+                        AGIGame.OnCompileGameStatus(GameCompileStatus.AddResource, tmpWarn, ref game.CancelComp);
                         if (game.CancelComp) {
                             game.CompleteCancel();
-                            return CompStatus.Canceled;
+                            return CompileStatus.Canceled;
                         }
                         if (!LogicCompiler.CompileLogic((Logic)tmpGameRes)) {
                             // logic compile critical error - always cancel
@@ -384,14 +380,14 @@ namespace WinAGI.Engine {
                             if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                             // then stop compiling
                             game.CompleteCancel(true);
-                            return CompStatus.Error;
+                            return CompileStatus.Error;
                         }
                         // update status and check for cancellation
-                        tmpWarn.InfoType = EInfoType.itCompiled;
-                        AGIGame.OnCompileGameStatus(ECStatus.csAddResource, tmpWarn, ref game.CancelComp);
+                        tmpWarn.InfoType = InfoType.Compiled;
+                        AGIGame.OnCompileGameStatus(GameCompileStatus.AddResource, tmpWarn, ref game.CancelComp);
                         if (game.CancelComp) {
                             game.CompleteCancel();
-                            return CompStatus.Canceled;
+                            return CompileStatus.Canceled;
                         }
                     }
                 }
@@ -401,21 +397,21 @@ namespace WinAGI.Engine {
                     game.volManager.AddNextRes(tmpGameRes, IsV3);
                 }
                 catch (Exception e) {
-                    tmpWarn.Type = EventType.etError;
+                    tmpWarn.Type = EventType.GameCompileError;
                     tmpWarn.Text = "Unable to add resource to VOL file (" + e.Message + ")";
-                    AGIGame.OnCompileGameStatus(ECStatus.csResError, tmpWarn);
+                    AGIGame.OnCompileGameStatus(GameCompileStatus.ResError, tmpWarn);
                     // unload resource, if applicable
                     if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
                     // then stop compiling
                     game.CompleteCancel(true);
-                    return CompStatus.Error;
+                    return CompileStatus.Error;
                 }
                 // done with resource; unload if applicable
                 if (blnUnloadRes && tmpGameRes is not null) {
                     tmpGameRes.Unload();
                 }
             }
-            return CompStatus.OK;
+            return CompileStatus.OK;
         }
 
         /// <summary>
@@ -455,21 +451,21 @@ namespace WinAGI.Engine {
                 }
             }
             foreach (Picture tmpRes in resource.parent.agPics.Col.Values) {
-                if (tmpRes.Loc >= 0) {
+                if (tmpRes.Loc >= 0 && tmpRes != resource) {
                     addInfo.Loc = tmpRes.Loc;
                     addInfo.Size = tmpRes.SizeInVOL + lngHeader;
                     resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
                 }
             }
             foreach (Sound tmpRes in resource.parent.agSnds.Col.Values) {
-                if (tmpRes.Loc >= 0) {
+                if (tmpRes.Loc >= 0 && tmpRes != resource) {
                     addInfo.Loc = tmpRes.Loc;
                     addInfo.Size = tmpRes.SizeInVOL + lngHeader;
                     resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
                 }
             }
             foreach (View tmpRes in resource.parent.agViews.Col.Values) {
-                if (tmpRes.Loc >= 0) {
+                if (tmpRes.Loc >= 0 && tmpRes != resource) {
                     addInfo.Loc = tmpRes.Loc;
                     addInfo.Size = tmpRes.SizeInVOL + lngHeader;
                     resInfo[tmpRes.Volume].Add(tmpRes.Loc, addInfo);
@@ -486,7 +482,7 @@ namespace WinAGI.Engine {
                         nextstart = resInfo[i].Values[j].Loc;
                     }
                     else {
-                        nextstart = i == 0 ? resource.parent.agMaxVol0 : MAX_VOLSIZE;
+                        nextstart = i == 0 ? resource.parent.agMaxVol0 : resource.parent.agMaxVolSize;
                     }
                     // calculate space between end of one resource and start of next
                     freespace = nextstart - previousend;
@@ -496,9 +492,11 @@ namespace WinAGI.Engine {
                         resource.Loc = previousend;
                         return;
                     }
-                    // not enough room;
-                    // adjust start to end of current resource
-                    previousend = resInfo[i].Values[j].Loc + resInfo[i].Values[j].Size;
+                    // not enough room
+                    if (j < resInfo[i].Count) {
+                        // adjust start to end of current resource
+                        previousend = resInfo[i].Values[j].Loc + resInfo[i].Values[j].Size;
+                    }
                 }
             }
             // if no room in any VOL file, raise an error
@@ -849,7 +847,7 @@ namespace WinAGI.Engine {
                         }
                     }
                 }
-                // now write the array back to the filee
+                // now write the array back to the file
                 try {
                     using (fsDIR = new FileStream(strDirFile, FileMode.Open)) {
                         fsDIR.Write(bytDIR, 0, bytDIR.Length);

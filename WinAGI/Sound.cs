@@ -11,14 +11,16 @@ namespace WinAGI.Engine {
     public class Sound : AGIResource {
         #region Members
         internal Track[] mTrack = new Track[4];
-        bool mTracksSet;
+        // sound change status is dependent on track and note data
+        // not on the underlying resource data
+        bool mSoundChanged = false;
         double mLength;
         int mKey;
         int mTPQN;
         SoundFormat mFormat;
         byte[] midiData = [];
         byte[] wavData = [];
-        bool mOutputSet;
+        bool mOutputSet = false; // true if wav and midi data match resource data 
         #endregion
 
         #region Events
@@ -82,7 +84,8 @@ namespace WinAGI.Engine {
 
         #region Properties
         /// <summary>
-        /// Gets the specified track for this sound.
+        /// Gets the track object corresponding to index. If tracks are not set,
+        /// they are rebuilt first.
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -91,10 +94,28 @@ namespace WinAGI.Engine {
                 if (index < 0 || index > 3) {
                     throw new IndexOutOfRangeException("invalid track number");
                 }
-                return Track(index);
+                return Tracks[index];
             }
         }
 
+        /// <summary>
+        /// Gets the track collection for this sound. If tracks are not set,
+        /// they are rebuilt first.
+        /// </summary>
+        public Track[] Tracks {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mTrack;
+            }
+        }
+        /// <summary>
+        /// Returns true if the track/note data do not match the AGI Resource data.
+        /// </summary>
+        public override bool IsChanged {
+            get {
+                return mSoundChanged; 
+            } 
+        }
         /// <summary>
         /// Gets or sets the key signature to use when displaying notes for this sound.
         /// </summary>
@@ -106,7 +127,7 @@ namespace WinAGI.Engine {
                 }
                 if (mKey != value) {
                     mKey = value;
-                    PropsDirty = true;
+                    PropsChanged = true;
                 }
             }
         }
@@ -124,7 +145,7 @@ namespace WinAGI.Engine {
                     return mFormat;
                 }
                 else {
-                    return SoundFormat.sfUndefined;
+                    return SoundFormat.Undefined;
                 }
             }
         }
@@ -158,7 +179,7 @@ namespace WinAGI.Engine {
                 }
                 if (mTPQN != value) {
                     mTPQN = value;
-                    PropsDirty = true;
+                    PropsChanged = true;
                 }
             }
         }
@@ -170,7 +191,7 @@ namespace WinAGI.Engine {
         public byte[] WAVData {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
+                if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.WAV) {
                     WinAGIException wex = new(LoadResString(705)) {
                         HResult = WINAGI_ERR + 705,
                     };
@@ -196,7 +217,7 @@ namespace WinAGI.Engine {
         public byte[] MIDIData {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
+                if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.MIDI) {
                     WinAGIException wex = new(LoadResString(705)) {
                         HResult = WINAGI_ERR + 705,
                     };
@@ -231,7 +252,7 @@ namespace WinAGI.Engine {
                                     0xff, 0xff];
                 // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
                 // byte 8/9 are end of track markers
-                mFormat = SoundFormat.sfAGI;
+                mFormat = SoundFormat.AGI;
                 for (int i = 0; i < 4; i++) {
                     mTrack[i] = new Track(this);
                 }
@@ -249,7 +270,7 @@ namespace WinAGI.Engine {
                 // copy sound properties
                 mKey = NewSound.mKey;
                 mTPQN = NewSound.mTPQN;
-                mTracksSet = NewSound.mTracksSet;
+                mSoundChanged = NewSound.mSoundChanged;
                 mLength = NewSound.mLength;
                 mFormat = NewSound.mFormat;
                 // never copy output build status; cloned sound will have to rebuild it
@@ -266,13 +287,16 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <returns>The Sound resource this method creates.</returns>
         public Sound Clone() {
+            // only loaded sounds can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+
             Sound clonesound = new();
             // copy base properties
             base.CloneTo(clonesound);
             // copy sound properties
             clonesound.mKey = mKey;
             clonesound.mTPQN = mTPQN;
-            clonesound.mTracksSet = mTracksSet;
+            clonesound.mSoundChanged = mSoundChanged;
             clonesound.mLength = mLength;
             clonesound.mFormat = mFormat;
             // never copy output build status; cloned sound will have to rebuild it
@@ -280,30 +304,53 @@ namespace WinAGI.Engine {
             // clone the tracks
             // TODO: cloning tracks needs to be checked- it looks wrong right now
             for (int i = 0; i < 4; i++) {
-                clonesound.mTrack[i] = mTrack[i].Clone(this);
+                clonesound.mTrack[i] = mTrack[i].Clone(clonesound);
             }
             return clonesound;
         }
 
+        public void CloneFrom(Sound SourceSound) {
+            // only loaded sounds can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+            WinAGIException.ThrowIfNotLoaded(SourceSound);
+
+            // copy base properties
+            base.CloneFrom(SourceSound);
+            // copy sound properties
+            mKey = SourceSound.mKey;
+            mTPQN = SourceSound.mTPQN;
+            mSoundChanged = SourceSound.mSoundChanged;
+            mLength = SourceSound.mLength;
+            mFormat = SourceSound.mFormat;
+            // never copy output build status; cloned sound will have to rebuild it
+            mOutputSet = false;
+
+            // clone the tracks
+            // TODO: cloning tracks needs to be checked
+            for (int i = 0; i < 4; i++) {
+                mTrack[i].CloneFrom(SourceSound.mTrack[i]);
+            }
+        }
+        
         /// <summary>
         /// This method creates midi and wav output data stream for a sound resource.
         /// </summary>
         void BuildSoundOutput() {
             try {
                 switch (mFormat) {
-                case SoundFormat.sfAGI:
+                case SoundFormat.AGI:
                     // standard pc/pcjr is playable as both WAV and MIDI
                     midiData = BuildMIDI(this);
                     mLength = GetSoundLength();
                     wavData = wavPlayer.BuildPCjrWAV(this);
                     break;
-                case SoundFormat.sfWAV:
+                case SoundFormat.WAV:
                     // IIgs pcm sound
                     wavData = BuildIIgsPCM(this);
                     mLength = GetSoundLength();
 
                     break;
-                case SoundFormat.sfMIDI:
+                case SoundFormat.MIDI:
                     // IIgs MIDI sound
                     midiData = BuildIIgsMIDI(this, ref mLength);
                     break;
@@ -324,13 +371,13 @@ namespace WinAGI.Engine {
         /// Calculates the length of a sound resource in seconds.
         /// </summary>
         /// <returns></returns>
-        double GetSoundLength() {
+        private double GetSoundLength() {
             // this function assumes a sound has been loaded properly
             int i;
             double retval = 0;
 
             switch (mFormat) {
-            case SoundFormat.sfAGI:
+            case SoundFormat.AGI:
                 // standard pc/pcjr resource
                 for (i = 0; i <= 3; i++) {
                     if (retval < mTrack[i].Length && !mTrack[i].Muted) {
@@ -338,12 +385,12 @@ namespace WinAGI.Engine {
                     }
                 }
                 break;
-            case SoundFormat.sfWAV:
+            case SoundFormat.WAV:
                 // IIgs pcm sampling
                 // since sampling is at 8000Hz, length is just data length/8000
                 retval = ((double)mSize - 54) / 8000;
                 break;
-            case SoundFormat.sfMIDI:
+            case SoundFormat.MIDI:
                 // IIgs midi
                 // length has to be calculated during midi build
                 BuildSoundOutput();
@@ -439,9 +486,7 @@ namespace WinAGI.Engine {
             // calculate length in seconds (original playsound DOS app used sound
             // timing of 1/64 sec per tick but correct value is 1/60 sec)
             mLength = (double)lngLength / 60;
-            // done
-            mTracksSet = true;
-            mIsDirty = false;
+            mSoundChanged = false;
             return retval;
         }
 
@@ -449,12 +494,13 @@ namespace WinAGI.Engine {
         /// Compiles this sound by converting track notes into correctly formatted AGI
         /// resource data stream.
         /// </summary>
-        void CompileSound() {
+        private void CompileSound() {
             int i = 0, j;
             Sound tmpRes;
             tmpRes = new Sound();
 
             // placeholder for header
+            tmpRes.Data = [];
             tmpRes.WriteWord(8, 0);
             for (j = 0; j <= 2; j++) {
                 i += (mTrack[j].Notes.Count * 5) + 2;
@@ -487,8 +533,7 @@ namespace WinAGI.Engine {
                     tmpRes.WriteByte((byte)(mTrack[3].Notes[i].Attenuation + 240));
                 }
                 // end of track
-                tmpRes.WriteByte(0xFF);
-                tmpRes.WriteByte(0xFF);
+                tmpRes.WriteWord(0xFFFF);
             }
             catch (Exception e) {
                 WinAGIException wex = new(LoadResString(566).Replace(ARG1, e.Message)) {
@@ -499,16 +544,16 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             mData = tmpRes.mData;
-            mTracksSet = true;
+            mSoundChanged = false;
             ErrLevel = 0;
         }
 
         /// <summary>
-        /// This mehod is called by child notes so build and dirty statuses can be updated.
+        /// This mehod is called by child notes so build and changed statuses can be updated.
         /// </summary>
         internal void NoteChanged() {
             mOutputSet = false;
-            mIsDirty = true;
+            mIsChanged = true;
             mLength = -1;
         }
 
@@ -531,71 +576,61 @@ namespace WinAGI.Engine {
                 mTrack[0].Muted = false;
                 mTrack[0].Visible = true;
             }
+            mSoundChanged = true;
             mOutputSet = false;
             mLength = 0;
         }
         
         /// <summary>
-        /// Plays this sound asynchronsously. The output is determined by mode:<br />
-        /// 0 = emulated PCjr soundchip<br />
-        /// 1 = MIDI (converted from PCjr sound, or native Apple IIgs MIDI)<br />
-        /// 2 = wav (from a native Apple IIgs PCM wav file)
+        /// Plays this sound asynchronsously. IIgs sounds played only as PCM wav or MIDI.
+        /// PC/PCJr sounds can be played as emulated PCM wav (default) or as a MIDI if
+        /// playmode is non-zero.
         /// </summary>
         /// <param name="mode"></param>
-        public void PlaySound(SoundFormat mode) {
+        public void PlaySound(SoundPlaybackMode playmode = SoundPlaybackMode.PCSpeaker) {
+            // TODO: need to add PC single channel mode playback option
             WinAGIException.ThrowIfNotLoaded(this);
-            switch (mode) {
-            case SoundFormat.sfAGI:
-            case SoundFormat.sfWAV:
-                // default for PCjr is WAV
-                // IIgs PCM can only be played as WAV
-                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    throw wex;
-                }
-                if (!mOutputSet) {
-                    try {
-                        BuildSoundOutput();
-                    }
-                    catch (Exception) {
-                        // pass along exception
-                        throw;
-                    }
-                }
+            switch (mFormat) {
+            case SoundFormat.AGI:
+                // use passed mode
+
+                break;
+            case SoundFormat.WAV:
+                // IIgs wav file - wav output only
+                playmode =  SoundPlaybackMode.WAV;
+                break;
+            case SoundFormat.MIDI:
+                // IIgs midi file - midi output only
+                playmode = SoundPlaybackMode.MIDI;
+                break;
+            }
+            // play a wav file
+            if (!mOutputSet) {
                 try {
-                    // play the sound
-                    wavPlayer.PlayWAVSound(this);
+                    BuildSoundOutput();
                 }
                 catch (Exception) {
                     // pass along exception
                     throw;
                 }
-                break;
-            case SoundFormat.sfMIDI:
-                // midi (format 1 or 3 converted from agi, or native IIg midi)
-                if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    throw wex;
-                }
-                if (!mOutputSet) {
-                    try {
-                        BuildSoundOutput();
-                    }
-                    catch (Exception) {
-                        // pass along exception
-                        throw;
-                    }
-                }
+            }
+            switch (playmode) {
+            case SoundPlaybackMode.PCSpeaker:
+                throw (new NotImplementedException());
+                //break;
+            case SoundPlaybackMode.WAV:
                 try {
-                    //play the sound
+                    wavPlayer.PlayWAVSound(this);
+                }
+                catch (Exception) {
+                    throw;
+                }
+                break;
+            case SoundPlaybackMode.MIDI:
+                try {
                     midiPlayer.PlayMIDISound(this);
                 }
                 catch (Exception) {
-                    // pass along exception
                     throw;
                 }
                 break;
@@ -603,16 +638,49 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Exports this resource to a standalone file.
+        /// Exports this resource to a standalone file in the specified format.
         /// </summary>
-        /// <param name="ExportFile"></param>
-        public new void Export(string ExportFile) {
+        /// <param name="exportfile"></param>
+        /// <param name="format"></param>
+        public void Export(string exportfile, SoundFormat format) {
             WinAGIException.ThrowIfNotLoaded(this);
+            switch (format) {
+            case SoundFormat.AGI:
+                ExportAGISound(exportfile);
+                break;
+            case SoundFormat.MIDI:
+                ExportAsMIDI(exportfile);
+                break;
+            case SoundFormat.WAV:
+                ExportAsWAV(exportfile);
+                break;
+            case SoundFormat.Script:
+                ExportAsScript(exportfile);
+                break;
+            case SoundFormat.Undefined:
+                // error? or use default?
+                break;
+            }
+        }
+
+        /// <summary>
+        /// Exports this resource to a standalone file as an AGI sound resource.
+        /// </summary>
+        /// <param name="exportfile"></param>
+        public new void Export(string exportfile) {
+            Export(exportfile, SoundFormat.AGI);
+        }
+        
+        /// <summary>
+        /// Exports the sound as a native AGI sound resource.
+        /// </summary>
+        /// <param name="filename"></param>
+        private void ExportAGISound(string filename) {
             try {
-                if (!mTracksSet) {
+                if (mSoundChanged) {
                     CompileSound();
                 }
-                base.Export(ExportFile);
+                base.Export(filename);
             }
             catch (Exception) {
                 throw;
@@ -624,17 +692,15 @@ namespace WinAGI.Engine {
         /// sound resources or Apple IIgs MIDI resources.
         /// </summary>
         /// <param name="MIDIFile"></param>
-        public void ExportAsMIDI(string MIDIFile) {
-            WinAGIException.ThrowIfNotLoaded(this);
-
+        private void ExportAsMIDI(string MIDIFile) {
             // only pcjr and IIgs midi can be exported as midi
-            if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfMIDI) {
+            if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.MIDI) {
                 WinAGIException wex = new(LoadResString(705)) {
                     HResult = WINAGI_ERR + 705,
                 };
                 throw wex;
             }
-            if (!mTracksSet) {
+            if (mSoundChanged) {
                 try {
                     CompileSound();
                 }
@@ -647,8 +713,8 @@ namespace WinAGI.Engine {
                     BuildSoundOutput();
                 }
                 SafeFileDelete(MIDIFile);
-                FileStream fsSnd = new(MIDIFile, FileMode.Open);
-                fsSnd.Write(midiPlayer.mMIDIData);
+                FileStream fsSnd = new(MIDIFile, FileMode.OpenOrCreate);
+                fsSnd.Write(midiData);
                 fsSnd.Dispose();
             }
             catch (Exception) {
@@ -662,18 +728,17 @@ namespace WinAGI.Engine {
         /// sounds and Apple IIgs PCM sounds.
         /// </summary>
         /// <param name="WAVFile"></param>
-        public void ExportAsWAV(string WAVFile) {
+        private void ExportAsWAV(string WAVFile) {
+            // only pcjr and IIgs pcm can be exported as wav file
             int lngSize;
 
-            WinAGIException.ThrowIfNotLoaded(this);
-            // only pcjr and IIgs pcm can be exported as wav file
-            if (mFormat != SoundFormat.sfAGI && mFormat != SoundFormat.sfWAV) {
+            if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.WAV) {
                 WinAGIException wex = new(LoadResString(705)) {
                     HResult = WINAGI_ERR + 705,
                 };
                 throw wex;
             }
-            if (!mTracksSet) {
+            if (mSoundChanged) {
                 try {
                     CompileSound();
                 }
@@ -686,7 +751,7 @@ namespace WinAGI.Engine {
                     BuildSoundOutput();
                 }
                 SafeFileDelete(WAVFile);
-                if (mFormat == SoundFormat.sfAGI) {
+                if (mFormat == SoundFormat.AGI) {
                     // get size from the wav stream
                     lngSize = wavData.Length;
                 }
@@ -696,6 +761,9 @@ namespace WinAGI.Engine {
                 }
                 byte[] bOutput = new byte[lngSize];
                 bOutput = new byte[44 + lngSize];
+                // WAV generated from PCjr sounds are 44100 sample rate, 16bit, two channel.
+                // IIgs WAV sounds are 8000 sample rate, 8bit, one channel.
+
                 // required format for WAV data file:
                 // Position       Value           Description
                 //   0 - 3        "RIFF"          Marks the file as a riff (WAV) file.
@@ -704,11 +772,11 @@ namespace WinAGI.Engine {
                 //   12-15        "fmt "          Format chunk marker. Includes trailing space
                 //   16-19        16              Length of format header data as listed above
                 //   20-21        1               Type of format (1 is PCM)
-                //   22-23        1               Number of Channels
-                //   24-27        8000            Sample Rate
-                //   28-31        8000            (Sample Rate * BitsPerSample * Channels) / 8
-                //   32-33        1               (BitsPerSample * Channels) / 8 (1 - 8 bit mono)
-                //   34-35        8               Bits per sample
+                //   22-23        1    or 2       Number of Channels
+                //   24-27        8000 or 44100   Sample Rate
+                //   28-31        8000 or 176400  (Sample Rate * BitsPerSample * Channels) / 8
+                //   32-33        1    or 4       (BitsPerSample * Channels) / 8 (1 - 8 bit mono)
+                //   34-35        8    or 16      Bits per sample
                 //   36-39        "data"          "data" chunk header. Marks the beginning of the data section.
                 //   40-43        <varies>        Size of the data section.
                 //   44+          data
@@ -734,20 +802,38 @@ namespace WinAGI.Engine {
                 bOutput[19] = 0;
                 bOutput[20] = 1;
                 bOutput[21] = 0;
-                bOutput[22] = 1;
-                bOutput[23] = 0;
-                bOutput[24] = 64;
-                bOutput[25] = 31;
-                bOutput[26] = 0;
-                bOutput[27] = 0;
-                bOutput[28] = 64;
-                bOutput[29] = 31;
-                bOutput[30] = 0;
-                bOutput[31] = 0;
-                bOutput[32] = 1;
-                bOutput[33] = 0;
-                bOutput[34] = 8;
-                bOutput[35] = 0;
+                if (mFormat == SoundFormat.AGI) {
+                    bOutput[22] = 2; // 00 02
+                    bOutput[23] = 0;
+                    bOutput[24] = 0x44; // 44100 = 00 00 AC 44
+                    bOutput[25] = 0xAC;
+                    bOutput[26] = 0;
+                    bOutput[27] = 0;
+                    bOutput[28] = 0x10; // 176400 = 00 02 B1 10
+                    bOutput[29] = 0xB1;
+                    bOutput[30] = 2;
+                    bOutput[31] = 0;
+                    bOutput[32] = 4; // 00 04
+                    bOutput[33] = 0;
+                    bOutput[34] = 0x10; // 00 10
+                    bOutput[35] = 0;
+                }
+                else {
+                    bOutput[22] = 1;
+                    bOutput[23] = 0;
+                    bOutput[24] = 64;
+                    bOutput[25] = 31;
+                    bOutput[26] = 0;
+                    bOutput[27] = 0;
+                    bOutput[28] = 64;
+                    bOutput[29] = 31;
+                    bOutput[30] = 0;
+                    bOutput[31] = 0;
+                    bOutput[32] = 1;
+                    bOutput[33] = 0;
+                    bOutput[34] = 8;
+                    bOutput[35] = 0;
+                }
                 bOutput[36] = 100;
                 bOutput[37] = 97;
                 bOutput[38] = 116;
@@ -759,7 +845,7 @@ namespace WinAGI.Engine {
                 bOutput[43] = (byte)((lngSize - 2) >> 24);
                 // add data
                 int pos = 44;
-                if (mFormat == SoundFormat.sfAGI) {
+                if (mFormat == SoundFormat.AGI) {
                     // copy data from wav stream
                     for (int i = 0; i < wavData.Length; i++) {
                         bOutput[pos++] = wavData[i];
@@ -771,8 +857,8 @@ namespace WinAGI.Engine {
                         bOutput[pos++] = mData[i];
                     }
                 }
-                FileStream fsSnd = new(WAVFile, FileMode.Open);
-                fsSnd.Write(wavData);
+                FileStream fsSnd = new(WAVFile, FileMode.OpenOrCreate);
+                fsSnd.Write(bOutput);
                 fsSnd.Dispose();
             }
             catch (Exception) {
@@ -786,20 +872,13 @@ namespace WinAGI.Engine {
         /// Only applicable for PC/PCjr sounds.
         /// </summary>
         /// <param name="ExportFile"></param>
-        public void ExportAsScript(string ExportFile) {
+        private void ExportAsScript(string ExportFile) {
             int i, j;
 
-            WinAGIException.ThrowIfNotLoaded(this);
-            if (!mTracksSet) {
-                try {
-                    CompileSound();
-                }
-                catch (Exception) {
-                    throw;
-                }
-            }
+            // scripts don't need a compiled sound resource
+
             // only agi format can be exported as script
-            if (mFormat != SoundFormat.sfAGI) {
+            if (mFormat != SoundFormat.AGI) {
                 WinAGIException wex = new(LoadResString(705)) {
                     HResult = WINAGI_ERR + 705,
                 };
@@ -808,7 +887,7 @@ namespace WinAGI.Engine {
             try {
                 SafeFileDelete(ExportFile);
                 // creat script file
-                FileStream fsSnd = new(ExportFile, FileMode.Open);
+                FileStream fsSnd = new(ExportFile, FileMode.OpenOrCreate);
                 StreamWriter swSnd = new(fsSnd);
                 // add comment header
                 swSnd.WriteLine("# agi script file");
@@ -848,8 +927,8 @@ namespace WinAGI.Engine {
                 // add visible and muted properties
                 swSnd.WriteLine("##visible3=" + mTrack[3].Visible);
                 swSnd.WriteLine("##muted3=" + mTrack[3].Muted);
-                fsSnd.Dispose();
                 swSnd.Dispose();
+                fsSnd.Dispose();
             }
             catch (Exception) {
                 // pass along any errors
@@ -895,10 +974,15 @@ namespace WinAGI.Engine {
             string strLine;
             string[] strLines, strTag;
             int i, lngTrack, lngDur;
-            int lngNoteType = 0;
+            int lngNoteType = -1;
+            //         -1 => undefined
+            //   tone:  0 => agi freq index
+            //          1 => raw freq
+            //   noise: 0 => periodic tone
+            //          4 => white noise
             bool blnError = false;
             short intFreq;
-            byte bytVol;
+            byte bytVol, temp;
             bool bVal;
 
             if (scriptfile is null || scriptfile.Length == 0) {
@@ -930,228 +1014,220 @@ namespace WinAGI.Engine {
                 throw;
             }
             // standardize end of line markers
-            strLine = strLine.Replace("\n\r", "\r");
+            strLine = strLine.Replace("\r\n", "\r");
             strLine = strLine.Replace("\n", "\r");
             strLines = strLine.Split("\r");
             for (i = 0; i < strLines.Length; i++) {
                 strLine = strLines[i].Trim();
-                // check for winagi tags
-                if (Left(strLine, 2) == "##") {
-                    // split the line into tag and Value
-                    strTag = strLine.Split("=");
-                    if (strTag.Length == 2) {
-                        // tag
-                        switch (strTag[0].Trim().ToLower()) {
-                        case "##description":
-                            mDescription = strTag[1];
-                            break;
-                        case "##instrument0":
-                            mTrack[0].Instrument = (byte)Val(strTag[1]);
-                            break;
-                        case "##instrument1":
-                            mTrack[1].Instrument = (byte)Val(strTag[1]);
-                            break;
-                        case "##instrument2":
-                            mTrack[2].Instrument = (byte)Val(strTag[1]);
-                            break;
-                        case "##visible0":
-                            if (bool.TryParse(strTag[1], out bVal)) {
-                                mTrack[0].Visible = bVal;
+                if (strLine.Length == 0) {
+                    continue;
+                }
+                if (strLine[0] == '#') {
+                    // check for winagi tags
+                    if (strLine.Left(2) == "##") {
+                        // split the line into tag and Value
+                        strTag = strLine.Split("=");
+                        if (strTag.Length == 2) {
+                            // tag
+                            switch (strTag[0].Trim().ToLower()) {
+                            case "##description":
+                                mDescription = strTag[1];
+                                break;
+                            case "##instrument0":
+                                if (byte.TryParse(strTag[1], out temp)) {
+                                    mTrack[0].Instrument = temp;
+                                }
+                                break;
+                            case "##instrument1":
+                                if (byte.TryParse(strTag[1], out temp)) {
+                                    mTrack[1].Instrument = temp;
+                                }
+                                break;
+                            case "##instrument2":
+                                if (byte.TryParse(strTag[1], out temp)) {
+                                    mTrack[2].Instrument = temp;
+                                }
+                                break;
+                            case "##visible0":
+                                if (bool.TryParse(strTag[1], out bVal)) {
+                                    mTrack[0].Visible = bVal;
+                                }
+                                break;
+                            case "##visible1":
+                                if (bool.TryParse(strTag[1], out bVal)) {
+                                    mTrack[1].Visible = bVal;
+                                }
+                                break;
+                            case "##visible2":
+                                if (bool.TryParse(strTag[1], out bVal)) {
+                                    mTrack[2].Visible = bVal;
+                                }
+                                break;
+                            case "##visible3":
+                                if (bool.TryParse(strTag[1], out bVal)) {
+                                    mTrack[3].Visible = bVal;
+                                }
+                                break;
+                            case "##muted0":
+                                if (bool.TryParse(strTag[1], out bVal)) {
+                                    mTrack[0].Muted = bVal;
+                                }
+                                break;
+                            case "##muted1":
+                                if (bool.TryParse(strTag[1], out bVal)) {
+                                    mTrack[1].Muted = bVal;
+                                }
+                                break;
+                            case "##muted2":
+                                if (bool.TryParse(strTag[1], out bVal)) {
+                                    mTrack[2].Muted = bVal;
+                                }
+                                break;
+                            case "##muted3":
+                                if (bool.TryParse(strTag[1], out bVal)) {
+                                    mTrack[3].Muted = bVal;
+                                }
+                                break;
+                            case "##tpqn":
+                                mTPQN = (int)strTag[1].Val() / 4 * 4;
+                                if (mTPQN < 4) {
+                                    mTPQN = 4;
+                                }
+                                else if (mTPQN > 64) {
+                                    mTPQN = 64;
+                                }
+                                break;
+                            case "##key":
+                                mKey = (int)strTag[1].Val();
+                                if (mKey < -7) {
+                                    mKey = -7;
+                                }
+                                else if (mKey > 7) {
+                                    mKey = 7;
+                                }
+                                break;
                             }
-                            else {
-                                mTrack[0].Visible = false;
-                            }
-                            break;
-                        case "##visible1":
-                            if (bool.TryParse(strTag[1], out bVal)) {
-                                mTrack[1].Visible = bVal;
-                            }
-                            else {
-                                mTrack[1].Visible = false;
-                            }
-                            break;
-                        case "##visible2":
-                            if (bool.TryParse(strTag[1], out bVal)) {
-                                mTrack[2].Visible = bVal;
-                            }
-                            else {
-                                mTrack[2].Visible = false;
-                            }
-                            break;
-                        case "##visible3":
-                            if (bool.TryParse(strTag[1], out bVal)) {
-                                mTrack[3].Visible = bVal;
-                            }
-                            else {
-                                mTrack[3].Visible = false;
-                            }
-                            break;
-                        case "##muted0":
-                            if (bool.TryParse(strTag[1], out bVal)) {
-                                mTrack[0].Muted = bVal;
-                            }
-                            else {
-                                mTrack[0].Muted = false;
-                            }
-                            break;
-                        case "##muted1":
-                            if (bool.TryParse(strTag[1], out bVal)) {
-                                mTrack[1].Muted = bVal;
-                            }
-                            else {
-                                mTrack[1].Muted = false;
-                            }
-                            break;
-                        case "##muted2":
-                            if (bool.TryParse(strTag[1], out bVal)) {
-                                mTrack[2].Muted = bVal;
-                            }
-                            else {
-                                mTrack[2].Muted = false;
-                            }
-                            break;
-                        case "##muted3":
-                            if (bool.TryParse(strTag[1], out bVal)) {
-                                mTrack[3].Muted = bVal;
-                            }
-                            else {
-                                mTrack[3].Muted = false;
-                            }
-                            break;
-                        case "##tpqn":
-                            mTPQN = ((int)Val(strTag[1]) / 4) * 4;
-                            if (mTPQN < 4) {
-                                mTPQN = 4;
-                            }
-                            else if (mTPQN > 64) {
-                                mTPQN = 64;
-                            }
-                            break;
-                        case "##key":
-                            mKey = (int)Val(strTag[1]);
-                            if (mKey < -7) {
-                                mKey = -7;
-                            }
-                            else if (mKey > 7) {
-                                mKey = 7;
-                            }
-                            break;
                         }
+                    }
+                    else {
+                        // any other use of '#' is a comment to be ignored
+                        continue;
                     }
                 }
+                else if (strLine.Equals("tone", StringComparison.OrdinalIgnoreCase)) {
+                    lngTrack++;
+                    // reset default note type
+                    lngNoteType = -1;
+                }
+                else if (strLine.Equals("noise", StringComparison.OrdinalIgnoreCase) && lngTrack != 3) {
+                    lngTrack = 3;
+                    // reset default note type
+                    lngNoteType = -1;
+                }
                 else {
-                    do {
-                        if (strLine.Length == 0) {
-                            break;
-                        }
-                        if (strLine[0] == '#') {
-                            break;
-                        }
-                        // check for new track
-                        if (strLine.Equals("tone", StringComparison.OrdinalIgnoreCase)) {
-                            lngTrack++;
-                            // default note type is agi (0)
-                            lngNoteType = 0;
-                            // default to show track (property change should happend
-                            // AFTER track data)
-                            mTrack[lngTrack].Visible = true;
-                        }
-                        else if (strLine.Equals("noise", StringComparison.OrdinalIgnoreCase) && lngTrack != 3) {
-                            lngTrack = 3;
-                            // no default note type for track 3
-                            lngNoteType = -1;
-                            mTrack[3].Visible = true;
-                        }
-                        else {
-                            if (lngTrack < 0 || lngTrack > 3) {
-                                blnError = true;
-                                break;
+                    if (lngTrack < 0 || lngTrack > 3) {
+                        blnError = true;
+                        break;
+                    }
+                    strTag = strLine.Split(",");
+                    // should only be three or four elements
+                    if (strTag.Length >= 4) {
+                        // check first element for new note type, depending on track
+                        if (lngTrack == 3) {
+                            // 'p' or 'w' only
+                            if (strTag[0].Equals("p", StringComparison.OrdinalIgnoreCase)) {
+                                lngNoteType = 0;
                             }
-                            strTag = strLine.Split(",");
-                            // should only be three or four elements
-                            if (strTag.Length >= 4) {
-                                // check first element for new note type, depending on track
-                                if (lngTrack == 3) {
-                                    // 'p' or 'w/' only
-                                    if (strTag[0].Equals("p", StringComparison.OrdinalIgnoreCase)) {
-                                        lngNoteType = 0;
-                                    }
-                                    else if (strTag[0].Equals("w", StringComparison.OrdinalIgnoreCase)) {
-                                        lngNoteType = 4;
-                                    }
-                                    else {
-                                        blnError = true;
-                                        break;
-                                    }
-                                    intFreq = (short)((uint)Val(strTag[1]) | (uint)lngNoteType);
-                                }
-                                else {
-                                    // for music tracks, 'a' or 'f' only
-                                    if (strTag[0] == "a") {
-                                        // agi freq index is the Value passed
-                                        intFreq = (short)Val(strTag[1]);
-                                    }
-                                    else if (strTag[0] == "f") {
-                                        // a real freq Value was passed
-                                        intFreq = (short)Val(strTag[1]);
-                                        // can't be zero
-                                        if (intFreq == 0) {
-                                            blnError = true;
-                                            break;
-                                        }
-                                        intFreq = (short)((double)intFreq / 111860);
-                                    }
-                                    else {
-                                        blnError = true;
-                                        break;
-                                    }
-                                }
-                                // get volume and duration
-                                bytVol = (byte)Val(strTag[2]);
-                                lngDur = (int)Val(strTag[3]);
-                            }
-                            else if (strTag.Length == 3) {
-                                if (lngTrack != 3) {
-                                    // track 0, 1, 2: assume note type 'a'
-                                    intFreq = (short)Val(strTag[0]);
-                                }
-                                else {
-                                 // track 3: use previous note type
-                                    if (lngNoteType == -1) {
-                                        blnError = true;
-                                        break;
-                                    }
-                                    intFreq = (short)((uint)Val(strTag[0]) | (uint)lngNoteType);
-                                }
-                                // get volume and duration
-                                bytVol = (byte)Val(strTag[1]);
-                                lngDur = (int)Val(strTag[2]);
+                            else if (strTag[0].Equals("w", StringComparison.OrdinalIgnoreCase)) {
+                                lngNoteType = 4;
                             }
                             else {
                                 blnError = true;
                                 break;
                             }
-                            // validate input
-                            if (intFreq < 0 || intFreq >= 1024 || bytVol < 0 || bytVol >= 16 || lngDur < 0 || lngDur > 65535) {
+                            intFreq = (short)((uint)strTag[1].Val() | (uint)lngNoteType);
+                        }
+                        else {
+                            // for music tracks, 'a' or 'f' only
+                            if (strTag[0] == "a") {
+                                lngNoteType = 0;
+                                // agi freq index is the Value passed
+                                intFreq = (short)strTag[1].Val();
+                            }
+                            else if (strTag[0] == "f") {
+                                lngNoteType = 1;
+                                // a real freq Value was passed
+                                intFreq = (short)strTag[1].Val();
+                                // can't be zero
+                                if (intFreq == 0) {
+                                    blnError = true;
+                                    break;
+                                }
+                                intFreq = (short)((double)intFreq / 111860);
+                            }
+                            else {
                                 blnError = true;
                                 break;
                             }
-                            // duration of zero is not an error, but it is ignored
-                            if (lngDur != 0) {
-                                // add the note to current track
-                                mTrack[lngTrack].Notes.Add(intFreq, lngDur, bytVol);
+                        }
+                        // get volume and duration
+                        bytVol = (byte)strTag[2].Val();
+                        lngDur = (int)strTag[3].Val();
+                    }
+                    else if (strTag.Length == 3) {
+                        // note type must be set
+                        if (lngNoteType == -1) {
+                            blnError = true;
+                            break;
+                        }
+                        if (lngTrack != 3) {
+                            if (lngNoteType == 0) {
+                                intFreq = (short)strTag[0].Val();
+                            }
+                            else {
+                                intFreq = (short)strTag[0].Val();
+                                // can't be zero
+                                if (intFreq == 0) {
+                                    blnError = true;
+                                    break;
+                                }
+                                intFreq = (short)((double)intFreq / 111860);
                             }
                         }
-                    } while (false);
-                    if (blnError) {
-                        Clear();
-                        mResID = "";
-                        mDescription = "";
-                        WinAGIException wex = new(LoadResString(681)) {
-                            HResult = WINAGI_ERR + 681
-                        };
-                        throw wex;
+                        else {
+
+                            // track 3: use previous note type
+                            intFreq = (short)((uint)strTag[0].Val() | (uint)lngNoteType);
+                        }
+                        // get volume and duration
+                        bytVol = (byte)strTag[1].Val();
+                        lngDur = (int)strTag[2].Val();
                     }
+                    else {
+                        blnError = true;
+                        break;
+                    }
+                    // validate input
+                    if (intFreq < 0 || intFreq >= 1024 || bytVol < 0 || bytVol >= 16 || lngDur < 0 || lngDur > 65535) {
+                        blnError = true;
+                        break;
+                    }
+                    // duration of zero is not an error, but it is ignored
+                    if (lngDur != 0) {
+                        // add the note to current track
+                        mTrack[lngTrack].Notes.Add(intFreq, lngDur, bytVol);
+                    }
+                }
+
+
+                if (blnError) {
+                    Clear();
+                    mResID = "";
+                    mDescription = "";
+                    WinAGIException wex = new(LoadResString(681)) {
+                        HResult = WINAGI_ERR + 681
+                    };
+                    throw wex;
                 }
             }
             // compile the sound so the resource matches the tracks
@@ -1178,30 +1254,28 @@ namespace WinAGI.Engine {
                 }
             }
             mResID = tmpID;
-            // reset dirty flags
-            mIsDirty = false;
-            PropsDirty = false;
-            // set tracks and wav/midi data
-            FinishLoad();
-        }
+            mFormat = SoundFormat.AGI;
+            ErrLevel = 0;
 
-        /// <summary>
-        /// Gets the track object corresponding to index. If tracks are not set,
-        /// they are rebuilt first.
-        /// </summary>
-        /// <param name="Index"></param>
-        /// <returns></returns>
-        /// <exception cref="IndexOutOfRangeException"></exception>
-        public Track Track(int Index) {
-            WinAGIException.ThrowIfNotLoaded(this);
-            if (Index < 0 || Index > 3) {
-                throw new IndexOutOfRangeException("Index out of bounds");
+            // reset changed flags
+            mIsChanged = false;
+            PropsChanged = false;
+            // set tracks and wav/midi data
+            try {
+                // standard pc/pcjr is playable as both WAV and MIDI
+                midiData = BuildMIDI(this);
+                mLength = GetSoundLength();
+                wavData = wavPlayer.BuildPCjrWAV(this);
+                mOutputSet = true;
             }
-            // if sound was edited, tracks may not be set
-            if (!mTracksSet) {
-                ErrLevel = LoadTracks();
+            catch (Exception e) {
+                WinAGIException wex = new(LoadResString(596)) {
+                    HResult = WINAGI_ERR + 596
+                };
+                wex.Data["exception"] = e;
+                wex.Data["ID"] = mResID;
+                throw wex;
             }
-            return mTrack[Index];
         }
 
         /// <summary>
@@ -1209,15 +1283,15 @@ namespace WinAGI.Engine {
         /// flag allows some track changes to occur that don't affect the MIDI
         /// data (such as Visible) but still set the writeprops flag.
         /// </summary>
-        /// <param name="ResetMIDI"></param>
-        internal void TrackChanged(bool ResetMIDI = true) {
+        /// <param name="ResetOutput"></param>
+        internal void TrackChanged(bool ResetOutput = true) {
             // when track status changes, need to recalculate length
             mLength = -1;
-            if (ResetMIDI) {
+            if (ResetOutput) {
                 // output needs update
                 mOutputSet = false;
             }
-            PropsDirty = true;
+            PropsChanged = true;
         }
 
         /// <summary>
@@ -1290,15 +1364,15 @@ namespace WinAGI.Engine {
             //    0x08 = PC/PCjr 
             switch (ReadWord(0)) {
             case 1:
-                mFormat = SoundFormat.sfWAV;
-                mTracksSet = true;
+                mFormat = SoundFormat.WAV;
+                mSoundChanged = false;
                 break;
             case 2:
-                mFormat = SoundFormat.sfMIDI;
-                mTracksSet = true;
+                mFormat = SoundFormat.MIDI;
+                mSoundChanged = false;
                 break;
             case 8:
-                mFormat = SoundFormat.sfAGI;
+                mFormat = SoundFormat.AGI;
                 ErrLevel = LoadTracks();
                 break;
             default:
@@ -1337,7 +1411,7 @@ namespace WinAGI.Engine {
                 parent.WriteGameSetting(strSection, "Visible1", mTrack[1].Visible);
                 parent.WriteGameSetting(strSection, "Visible2", mTrack[2].Visible);
                 parent.WriteGameSetting(strSection, "Visible3", mTrack[3].Visible);
-                PropsDirty = false;
+                PropsChanged = false;
             }
         }
 
@@ -1347,21 +1421,34 @@ namespace WinAGI.Engine {
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
-            if (PropsDirty && mInGame) {
+            if (PropsChanged && mInGame) {
                 SaveProps();
             }
-            if (mIsDirty) {
+            if (mSoundChanged) {
                 try {
-                    if (!mTracksSet) {
-                        CompileSound();
-                    }
-                    base.Save();
+                    CompileSound();
                 }
                 catch (Exception) {
-                    // pass along any errors
                     throw;
                 }
             }
+            if (mIsChanged) {
+                try {
+                    base.Save();
+                }
+                catch (Exception) {
+                    throw;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Forces sound tracks to rebuild and output to reload. Use when the calling
+        /// program needs the sound to be refreshed.
+        /// </summary>
+        public void ResetSound() {
+            mOutputSet = false;
+            FinishLoad();
         }
 
         /// <summary>
@@ -1386,7 +1473,7 @@ namespace WinAGI.Engine {
                 return;
             }
             base.Unload();
-            mIsDirty = false;
+            mIsChanged = false;
             // clear midi and wav data
             midiData = [];
             wavData = [];
@@ -1397,7 +1484,7 @@ namespace WinAGI.Engine {
             for (int i = 0; i < 4; i++) { 
                 mTrack[i] = new Track(this);
             }
-            mTracksSet = false;
+            mSoundChanged = false;
         }
         #endregion
     }

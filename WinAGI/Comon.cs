@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Engine.Base;
 
@@ -26,6 +28,11 @@ namespace WinAGI.Common {
 
         [DllImport("Winmm.dll", SetLastError = true)]
         public static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
+
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
+        public const int WM_SETREDRAW = 11;
+
     }
 
     /// <summary>
@@ -91,6 +98,17 @@ namespace WinAGI.Common {
         public static readonly char[] INVALID_DEFNAME_CHARS;
         #endregion
 
+        public enum EResListType {
+            None,
+            TreeList,
+            ComboList
+        }
+        public enum AskOption {
+            Ask,
+            No,
+            Yes
+        }
+
         #region Constructors
         /// <summary>
         /// Constructor for the WinAGI.Common Base class.
@@ -120,155 +138,6 @@ namespace WinAGI.Common {
         #endregion
 
         #region Methods
-        /// <summary>
-        /// Error-safe method that provides an easy way to accss string resources by
-        /// number instead of a string key.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public static string LoadResString(int index) {
-            try {
-                return EngineResources.ResourceManager.GetString(index.ToString());
-            }
-            catch (Exception) {
-                // return nothing if string doesn't exist
-                return "";
-            }
-        }
-
-        /// <summary>
-        /// Converts a unicode string the specified code page.
-        /// </summary>
-        /// <param name="strIn"></param>
-        /// <param name="enc"></param>
-        /// <returns></returns>
-        public static string UnicodeToCP(string strIn, Encoding enc) {
-            return enc.GetString(Encoding.Unicode.GetBytes(strIn));
-        }
-
-        /// <summary>
-        /// Converts a string from the specified codepage into Unicode.
-        /// </summary>
-        /// <param name="strIn"></param>
-        /// <param name="oldCP"></param>
-        /// <returns></returns>
-        public static string CPToUnicode(string strIn, Encoding oldCP) {
-            return Encoding.Unicode.GetString(oldCP.GetBytes(strIn));
-        }
-
-        /// <summary>
-        /// Converts only ascii characters in a string to lower case. Extended
-        /// characters are not adjusted.
-        /// </summary>
-        /// <param name="strIn"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static string LowerAGI(string strIn) {
-            StringBuilder sb = new(strIn);
-            for (int i = 0; i < sb.Length; i++) {
-                if (sb[i] >= 65 && sb[i] <= 90) {
-                    sb[i] = (char)(sb[i] + 32);
-                }
-            }
-            return sb.ToString();  
-        }
-
-        /// <summary>
-        /// Converts only ascii characters in a string to upper case. Extended
-        /// characters are not adjusted.
-        /// </summary>
-        /// <param name="strIn"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static string UpperAGI(string strIn) {
-            StringBuilder sb = new(strIn);
-            for (int i = 0; i < sb.Length; i++) {
-                if (sb[i] >= 97 && sb[i] <= 122) {
-                    sb[i] = (char)(sb[i] - 32);
-                }
-            }
-            return sb.ToString();
-        }
-
-        /// <summary>
-        /// A safe version of SubString(string.Length-length, string.Length) that avoids
-        /// exception if length > string.Length.
-        /// </summary>
-        /// <param name="strIn"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static string Right(string strIn, int length) {
-            if (length >= strIn.Length)
-                return strIn;
-            else
-                return strIn[^length..];
-        }
-
-        /// <summary>
-        /// A safe version of SubString(0, len) that avoids exception if len > string.Length.
-        /// </summary>
-        /// <param name="strIn"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static string Left(string strIn, int length) {
-            if (length >= strIn.Length)
-                return strIn;
-            else
-                return strIn[..length];
-        }
-
-        /// <summary>
-        /// A safe version of SubString that avoids exception if pos+length > string.Length
-        /// </summary>
-        /// <param name="strIn"></param>
-        /// <param name="pos"></param>
-        /// <param name="length"></param>
-        /// <returns></returns>
-        public static string Mid(string strIn, int pos, int length) {
-            if (pos > strIn.Length || length <= 0) {
-                return "";
-            }
-            if (pos + length > strIn.Length)
-                return strIn[pos..];
-            return strIn.Substring(pos, length);
-        }
-
-        /// <summary>
-        /// This method concatenates the specified string multiple times into a single string.
-        /// </summary>
-        /// <param name="strIn"></param>
-        /// <param name="NumCopies"></param>
-        /// <returns></returns>
-        public static string MultStr(string strIn, int NumCopies) {
-            return new StringBuilder(strIn.Length * NumCopies).Insert(0, strIn, NumCopies).ToString();
-        }
-
-        /// <summary>
-        /// Extension method that works out if a string is numeric or not.
-        /// </summary>
-        /// <param name="str">string that may be a number</param>
-        /// <returns>true if numeric, false if not</returns>
-        public static bool IsNumeric(string str) {
-            if (double.TryParse(str, out _)) {
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Extension method that uses TryParse to get value of a string, returning 0
-        /// if the string is null, empty or non-numeric.
-        /// </summary>
-        /// <param name="strIn">The string that will be converted to a number</param>
-        /// <returns>Returns a double value of strIn; if strIn can't be converted
-        /// to a double, it returns 0.</returns>
-        public static double Val(string strIn) {
-            if (double.TryParse(strIn, out double dResult)) {
-                return dResult;
-            }
-            // not a valid number; return 0
-            return 0;
-        }
 
         /// <summary>
         /// Confirms that a directory has a terminating backslash, adding one if necessary.
@@ -335,7 +204,7 @@ namespace WinAGI.Common {
         /// <returns></returns>
         public static uint CRC32(byte[] DataIn) {
             // system returns the hash as four-byte array
-            byte[]  hashval = System.IO.Hashing.Crc32.Hash(DataIn);
+            byte[] hashval = System.IO.Hashing.Crc32.Hash(DataIn);
             // convert to 32 bit unsigned int
             return hashval[0] + ((uint)hashval[1] << 8) + ((uint)hashval[2] << 16) + ((uint)hashval[3] << 24);
         }
@@ -373,10 +242,10 @@ namespace WinAGI.Common {
                 }
             }
             catch (Exception) {
-                throw new  Exception("directory copy error");
+                throw new Exception("directory copy error");
             }
         }
-        
+
         /// <summary>
         /// Compacts a full filename by eliminating directories and replacing
         /// them with ellipse(...)
@@ -392,7 +261,7 @@ namespace WinAGI.Common {
             }
             if (!LongPath.Contains('\\')) {
                 // return truncated path
-                return Left(LongPath, MaxLength - 3) + "...";
+                return LongPath.Left(MaxLength - 3) + "...";
             }
             int lngPos = LongPath.LastIndexOf('\\');
             // split into two strings
@@ -400,44 +269,90 @@ namespace WinAGI.Common {
             strFile = LongPath[(lngPos + 1)..];
             if (strFile.Length > MaxLength - 4) {
                 // return truncated filename
-                return Left(strFile, MaxLength - 3) + "...";
+                return strFile.Left(MaxLength - 3) + "...";
             }
             // truncate directory, pad with ... and return combined dir/filename
-            return Left(strDir, MaxLength - 4) + "...\\" + strFile;
+            return strDir.Left(MaxLength - 4) + "...\\" + strFile;
         }
 
         /// <summary>
-        /// An overload version of List string> that detects multiple lines in the 
-        /// Add method.
+        /// Strips off any comments on the line. If trimline is true, the string
+        /// is also stripped of any leading or trailing blank space. If there is a
+        /// comment, it is passed back in the comment argument.
         /// </summary>
-        public class StringList : List<string> {
-            public new void Add(string item) {
-                // check for multiple lines in item
-                if (item.Contains('\n') || item.Contains('\r')) {
-                    item = item.Replace("\r\n", "\n");
-                    item = item.Replace('\r', '\n');
-                    // split it
-                    string[] items = item.Split('\n');
-                    foreach (string subitem in items) {
-                        base.Add(subitem);
+        /// <param name="strLine"></param>
+        /// <param name="strComment"></param>
+        /// <param name="NoTrim"></param>
+        /// <returns>The passed string with any comment stripped off.</returns>
+        public static string StripComments(string line, ref string comment, bool trimline = true) {
+            int lngPos = -1;
+            bool blnInQuotes = false;
+            bool blnSlash = false;
+            bool blnDblSlash = false;
+            int intROLIgnore = -1;
+
+            if (line.Length == 0) {
+                return "";
+            }
+
+            // assume no comment
+            string strOut = line;
+            comment = "";
+            while (lngPos < line.Length - 1) {
+                lngPos++;
+                if (!blnInQuotes) {
+                    // check for comment characters at this position
+                    if (line.Mid(lngPos, 2) == "//") {
+                        intROLIgnore = lngPos + 1;
+                        blnDblSlash = true;
+                        break;
                     }
+                    else if (line.Substring(lngPos, 1) == "[") {
+                        intROLIgnore = lngPos;
+                        break;
+                    }
+                    // slash codes never occur outside quotes
+                    blnSlash = false;
+                    // if this character is a quote mark, it starts a string
+                    blnInQuotes = line.ElementAt(lngPos) == '"';
                 }
                 else {
-                    base.Add(item);
+                    // if last character was a slash, ignore this character
+                    // because it's part of a slash code
+                    if (blnSlash) {
+                        // always reset  the slash
+                        blnSlash = false;
+                    }
+                    else {
+                        // check for slash or quote mark
+                        switch (line[lngPos]) {
+                        case '"':
+                            // a quote marks end of string
+                            blnInQuotes = false;
+                            break;
+                        case '\\':
+                            blnSlash = true;
+                            break;
+                        }
+                    }
                 }
             }
-        }
-
-
-
-        /// <summary>
-        /// Splits a string into an List of lines using all forms of line separators
-        /// (CR, CRLF, LF).
-        /// </summary>
-        /// <param name="strText"></param>
-        /// <returns></returns>
-        internal static List<string> SplitLines(string strText) {
-            return strText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Cast<string>().ToList();
+            if (intROLIgnore >= 0) {
+                // save the comment
+                comment = line[intROLIgnore..].Trim();
+                // strip off the comment
+                if (blnDblSlash) {
+                    strOut = line[..(intROLIgnore - 1)];
+                }
+                else {
+                    strOut = line[..intROLIgnore];
+                }
+            }
+            if (trimline) {
+                // return the line, trimmed
+                strOut = strOut.Trim();
+            }
+            return strOut;
         }
 
         /// <summary>
@@ -457,6 +372,11 @@ namespace WinAGI.Common {
             }
         }
 
+        /// <summary>
+        /// Deletes the specified file. Ignores all errors including file missing,
+        /// file access errors, permissions, etc.
+        /// </summary>
+        /// <param name="path"></param>
         public static void SafeFileDelete(string path) {
             try {
                 File.Delete(path);
@@ -466,6 +386,12 @@ namespace WinAGI.Common {
             }
         }
 
+        /// <summary>
+        /// Moves the specified file to a new location/name. Ignores all errors.
+        /// </summary>
+        /// <param name="oldpath"></param>
+        /// <param name="newpath"></param>
+        /// <param name="overwrite"></param>
         public static void SafeFileMove(string oldpath, string newpath, bool overwrite) {
             // caller should confirm oldpath exists, but check again just in case
             if (!File.Exists(oldpath)) {
@@ -477,6 +403,44 @@ namespace WinAGI.Common {
             catch {
                 // ignore errors
             }
+        }
+
+        public static bool IsFontInstalled(string fontName) {
+            bool installed = IsFontInstalled(fontName, FontStyle.Regular);
+            if (!installed) { installed = IsFontInstalled(fontName, FontStyle.Bold); }
+            if (!installed) { installed = IsFontInstalled(fontName, FontStyle.Italic); }
+            return installed;
+        }
+
+        public static bool IsFontInstalled(string fontName, FontStyle style) {
+            bool installed = false;
+            const float emSize = 8.0f;
+            try {
+                using (var testFont = new Font(fontName, emSize, style)) {
+                    installed = (0 == string.Compare(fontName, testFont.Name, StringComparison.InvariantCultureIgnoreCase));
+                }
+            }
+            catch {
+            }
+            return installed;
+        }
+
+        public static bool FontIsMonospace(FontFamily testfontfamily) {
+            Font testfont = new Font(testfontfamily, 9.75f);
+            return FontIsMonospace(testfont);
+        }
+
+        public static bool FontIsMonospace(Font testfont) {
+            //check monospace font
+            SizeF sizeM = GetCharSize(testfont, 'M');
+            SizeF sizeDot = GetCharSize(testfont, '.');
+            return sizeM == sizeDot;
+        }
+
+        public static SizeF GetCharSize(Font font, char c) {
+            Size sz2 = TextRenderer.MeasureText("<" + c.ToString() + ">", font);
+            Size sz3 = TextRenderer.MeasureText("<>", font);
+            return new SizeF(sz2.Width - sz3.Width + 1, font.Height);
         }
 
         /// <summary>
@@ -507,14 +471,14 @@ namespace WinAGI.Common {
             if (!SourceText.Contains("TODO:")) {
                 return retval;
             }
-            stlText = SplitLines(SourceText);
+            stlText = SourceText.SplitLines();
             for (lngLine = 0; lngLine < stlText.Count; lngLine++) {
                 Tpos = stlText[lngLine].IndexOf("TODO:");
                 if (Tpos >= 0) {
                     Cpos = stlText[lngLine].LastIndexOf('[', Tpos);
                     if (Cpos >= 0) {
                         // get text between the comment and the TODO
-                        strTODO = Mid(stlText[lngLine], Cpos + 1, Tpos - Cpos - 1);
+                        strTODO = stlText[lngLine].Mid(Cpos + 1, Tpos - Cpos - 1);
                         // only valid if empty spaces
                         if (strTODO.Trim().Length == 0) {
                             // get comment portion of text
@@ -523,13 +487,13 @@ namespace WinAGI.Common {
                                 // add this TODO (adjust line by 1)
                                 TWinAGIEventInfo tmpInfo = new() {
                                     ID = "TODO",
-                                    //InfoType = EInfoType.itInitialize,
-                                    Line = (lngLine + 1).ToString(),
+                                    Line = lngLine.ToString(),
                                     Module = Module,
+                                    Filename = "",
                                     ResNum = LogicNum,
                                     ResType = AGIResType.Logic,
                                     Text = strTODO,
-                                    Type = EventType.etTODO
+                                    Type = EventType.TODO
                                 };
                                 retval.Add(tmpInfo);
                             }
@@ -559,7 +523,7 @@ namespace WinAGI.Common {
             if (!SourceText.Contains("[ WARNING DC")) {
                 return retval;
             }
-            stlText = SplitLines(SourceText);
+            stlText = SourceText.SplitLines();
             for (lngLine = 0; lngLine < stlText.Count; lngLine++) {
                 Tpos = stlText[lngLine].IndexOf("WARNING DC", StringComparison.OrdinalIgnoreCase);
                 if (Tpos >= 0) {
@@ -570,12 +534,13 @@ namespace WinAGI.Common {
                             // add this warning (adjust line by 1)
                             TWinAGIEventInfo tmpInfo = new() {
                                 ID = strDCWarn[..4],
-                                Line = (lngLine + 1).ToString(),
+                                Line = lngLine.ToString(),
                                 Module = Module,
+                                Filename = "",
                                 ResNum = LogicNum,
                                 ResType = AGIResType.Logic,
                                 Text = strDCWarn[6..],
-                                Type = EventType.etDecompWarning
+                                Type = EventType.DecompWarning
                             };
                             retval.Add(tmpInfo);
                         }
@@ -585,5 +550,201 @@ namespace WinAGI.Common {
             return retval;
         }
         #endregion
+
     }
+
+    public static class ExtensionMethods {
+        /// <summary>
+        /// Copies the source palette to an identical new palette.
+        /// </summary>
+        /// <param name="palette"></param>
+        /// <returns></returns>
+        public static EGAColors CopyPalette(this EGAColors palette) {
+            EGAColors retval = new();
+            for (int i = 0; i < 16; i++) {
+                retval[i] = palette[i];
+            }
+            return retval;
+        }
+
+        /// <summary>
+        /// Converts only ascii characters in a string to lower case. Extended
+        /// characters are not adjusted.
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static string LowerAGI(this string strIn) {
+            StringBuilder sb = new(strIn);
+            for (int i = 0; i < sb.Length; i++) {
+                if (sb[i] >= 65 && sb[i] <= 90) {
+                    sb[i] = (char)(sb[i] + 32);
+                }
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Converts only ascii characters in a string to upper case. Extended
+        /// characters are not adjusted.
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static string UpperAGI(this string strIn) {
+            StringBuilder sb = new(strIn);
+            for (int i = 0; i < sb.Length; i++) {
+                if (sb[i] >= 97 && sb[i] <= 122) {
+                    sb[i] = (char)(sb[i] - 32);
+                }
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// A safe version of SubString(0, len) that avoids exception if len > string.Length.
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static string Left(this string strIn, int length) {
+            if (length >= strIn.Length)
+                return strIn;
+            else
+                return strIn[..length];
+        }
+
+        /// <summary>
+        /// A safe version of SubString(string.Length-length, string.Length) that avoids
+        /// exception if length > string.Length.
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static string Right(this string strIn, int length) {
+            if (length >= strIn.Length)
+                return strIn;
+            else
+                return strIn[^length..];
+        }
+
+        /// <summary>
+        /// A safe version of SubString that avoids exception if pos+length > string.Length
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="pos"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public static string Mid(this string strIn, int pos, int length) {
+            if (pos > strIn.Length || length <= 0) {
+                return "";
+            }
+            if (pos + length > strIn.Length)
+                return strIn[pos..];
+            return strIn.Substring(pos, length);
+        }
+
+        /// <summary>
+        /// Replaces the fist intance of a search string in the target string.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="search"></param>
+        /// <param name="replace"></param>
+        /// <returns></returns>
+        public static string ReplaceFirst(this string text, string search, string replace) {
+            int pos = text.IndexOf(search);
+            if (pos < 0) {
+                return text;
+            }
+            return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
+        }
+
+        /// <summary>
+        /// Replaces the first instance of a search string in the target string
+        /// beginning at the specified position.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="search"></param>
+        /// <param name="replace"></param>
+        /// <param name="startpos"></param>
+        /// <returns></returns>
+        public static string ReplaceFirst(this string text, string search, string replace, int startpos) {
+            int pos = text.IndexOf(search, startpos);
+            if (pos < 0) {
+                return text;
+            }
+            return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
+        }
+
+        /// <summary>
+        /// This method concatenates the specified string multiple times into a single string.
+        /// </summary>
+        /// <param name="strIn"></param>
+        /// <param name="NumCopies"></param>
+        /// <returns></returns>
+        public static string MultStr(this string strIn, int NumCopies) {
+            return new StringBuilder(strIn.Length * NumCopies).Insert(0, strIn, NumCopies).ToString();
+        }
+
+        /// <summary>
+        /// Determines if a string is numeric or not.
+        /// </summary>
+        /// <param name="str">string that may be a number</param>
+        /// <returns>true if numeric, false if not</returns>
+        public static bool IsNumeric(this string str) {
+            if (double.TryParse(str, out _)) {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Returns numeric value of a string. If non-numeric,null, or empty
+        /// it returns 0.
+        /// </summary>
+        /// <param name="strIn">The string that will be converted to a number</param>
+        /// <returns>Returns a double value of strIn; if strIn can't be converted
+        /// to a double, it returns 0.</returns>
+        public static double Val(this string strIn) {
+            if (double.TryParse(strIn, out double dResult)) {
+                return dResult;
+            }
+            // not a valid number; return 0
+            return 0;
+        }
+
+        /// <summary>
+        /// Splits a string into an List of lines using all forms of line separators
+        /// (CR, CRLF, LF).
+        /// </summary>
+        /// <param name="strText"></param>
+        /// <returns></returns>
+        internal static List<string> SplitLines(this string strText) {
+            return strText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Cast<string>().ToList();
+        }
+
+    }
+
+    /// <summary>
+    /// An overload version of List<string> that detects multiple lines in the 
+    /// Add method.
+    /// </summary>
+    public class StringList : List<string> {
+        public new void Add(string item) {
+            // check for multiple lines in item
+            if (item.Contains('\n') || item.Contains('\r')) {
+                item = item.Replace("\r\n", "\n");
+                item = item.Replace('\r', '\n');
+                // split it
+                string[] items = item.Split('\n');
+                foreach (string subitem in items) {
+                    base.Add(subitem);
+                }
+            }
+            else {
+                base.Add(item);
+            }
+        }
+    }
+
 }

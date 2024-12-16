@@ -10,8 +10,8 @@ namespace WinAGI.Engine {
     /// </summary>
     public class InventoryItem {
         #region Local Members
-        private string mItemName = "";
-        private byte mRoom;
+        internal string mItemName = "";
+        internal byte mRoom;
         private InventoryList mParent;
         #endregion
 
@@ -54,7 +54,7 @@ namespace WinAGI.Engine {
             set {
                 mRoom = value;
                 if (mParent is not null) {
-                    mParent.IsDirty = true;
+                    mParent.IsChanged = true;
                 }
             }
         }
@@ -110,7 +110,7 @@ namespace WinAGI.Engine {
                 // assign name (blanks become "?")
                 mItemName = value.Length == 0 ? "?" : value;
                 if (mParent is not null) {
-                    mParent.IsDirty = true;
+                    mParent.IsChanged = true;
                     if (mItemName != "?") {
                         // check for duplicates
                         for (i = 0; i < mParent.Count; i++) {

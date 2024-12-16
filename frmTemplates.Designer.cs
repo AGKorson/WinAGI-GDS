@@ -100,9 +100,11 @@
             // 
             // txtDescription
             // 
+            txtDescription.BackColor = System.Drawing.SystemColors.Window;
             txtDescription.Location = new System.Drawing.Point(154, 65);
             txtDescription.Multiline = true;
             txtDescription.Name = "txtDescription";
+            txtDescription.ReadOnly = true;
             txtDescription.Size = new System.Drawing.Size(150, 57);
             txtDescription.TabIndex = 5;
             // 

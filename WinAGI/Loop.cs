@@ -141,6 +141,7 @@ namespace WinAGI.Engine {
             }
         }
 
+        public View Parent => mParent;
         #endregion
 
         #region Methods
@@ -165,7 +166,7 @@ namespace WinAGI.Engine {
             // copy source loop cels
             this.mCelCol = SourceLoop.Cels.Clone(mParent);
             if (mParent is not null) {
-                mParent.IsDirty = true;
+                mParent.IsChanged = true;
             }
         }
 
@@ -200,7 +201,7 @@ namespace WinAGI.Engine {
             mParent.mLoopCol[MirrorLoop].MirrorPair = 0;
             mMirrorPair = 0;
             if (mParent is not null) {
-                mParent.IsDirty = true;
+                mParent.IsChanged = true;
             }
         }
         
@@ -217,6 +218,17 @@ namespace WinAGI.Engine {
             };
             return CopyLoop;
         }
+
+        /// <summary>
+        /// Copies properties from SourceLoop into this loop.
+        /// </summary>
+        /// <param name="SourceLoop"></param>
+        internal void CloneFrom(Loop SourceLoop) {
+            mMirrorPair = SourceLoop.mMirrorPair;
+            mIndex = SourceLoop.mIndex;
+            mCelCol.CloneFrom(SourceLoop.mCelCol);
+        }
+            
         #endregion
     }
 }

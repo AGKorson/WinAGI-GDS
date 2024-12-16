@@ -134,6 +134,7 @@ namespace WinAGI.Editor {
             ShowIcon = false;
             ShowInTaskbar = false;
             SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "Rebuilding VOL files";
             TopMost = true;
             UseWaitCursor = true;

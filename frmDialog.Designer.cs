@@ -122,6 +122,7 @@
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "frmDialog";
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "frmDialog";
             KeyDown += frmDialog_KeyDown;
             ((System.ComponentModel.ISupportInitialize)Image1).EndInit();

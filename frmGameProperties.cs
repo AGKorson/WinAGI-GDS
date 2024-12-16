@@ -16,13 +16,11 @@ using System.Diagnostics;
 namespace WinAGI.Editor {
     public partial class frmGameProperties : Form {
         public string NewPlatformFile = "";
-        public Encoding NewCodePage;
+        public int NewCodePage;
         public string DisplayDir;
         public bool UseSierraSyntax;
-        public string StartTab = "";
-        public string StartProp = "";
 
-        public frmGameProperties(GameSettingFunction mode) {
+        public frmGameProperties(GameSettingFunction mode, string starttab = "", string startprop = "") {
             InitializeComponent();
 
             // load code pages
@@ -67,216 +65,32 @@ namespace WinAGI.Editor {
             this.Font = txtGameDir.Font;
 
             SetForm(mode);
-        }
-
-        private void SetForm(GameSettingFunction mode) {
-            switch (mode) {
-            case GameSettingFunction.gsEdit:
-                // get values from open game
-                txtGameAuthor.Text = EditGame.GameAuthor;
-                txtGameVersion.Text = EditGame.GameVersion;
-                txtGameAbout.Text = EditGame.GameAbout;
-                txtGameDescription.Text = EditGame.GameDescription;
-
-                // version
-                for (int i = 0; i < cmbVersion.Items.Count; i++) {
-                    if ((string)cmbVersion.Items[i] == EditGame.InterpreterVersion) {
-                        cmbVersion.SelectedIndex = i;
-                        break;
-                    }
+            if (starttab.Length > 0) {
+                try {
+                    tabControl1.SelectedTab = tabControl1.TabPages[starttab];
                 }
-                // assign gameid
-                txtGameID.Text = EditGame.GameID;
-
-                DisplayDir = EditGame.GameDir;
-                txtGameDir.Text = DisplayDir;
-
-                // game dir is read only when editing
-                txtGameDir.Enabled = false;
-                btnGameDir.Enabled = false;
-
-                // resdir is just the directory by itself, not entire path
-                txtResDir.Text = EditGame.ResDirName;
-
-                // don't show leading '.' characters in extension
-                txtSrcExt.Text = EditGame.Logics.SourceFileExt[1..];
-
-                // select the button for platform
-                switch (EditGame.PlatformType) {
-                case Engine.PlatformTypeEnum.None:
-                    // None - do nothing; form is already correct
-                    break;
-                case Engine.PlatformTypeEnum.DosBox:
-                    optDosBox.Checked = true;
-                    lblExec.Enabled = true;
-                    btnPlatformFile.Enabled = true;
-                    txtPlatformFile.Enabled = true;
-                    lblOptions.Enabled = true;
-                    txtOptions.Enabled = true;
-                    lblExec.Enabled = true;
-                    txtExec.Enabled = true;
-                    break;
-                case Engine.PlatformTypeEnum.ScummVM:
-                    optScummVM.Checked = true;
-                    lblExec.Enabled = true;
-                    btnPlatformFile.Enabled = true;
-                    txtPlatformFile.Enabled = true;
-                    lblOptions.Enabled = true;
-                    txtOptions.Enabled = true;
-                    break;
-                case Engine.PlatformTypeEnum.NAGI:
-                    optNAGI.Checked = true;
-                    // no options for NAGI
-                    // and platform file is always "n.exe" in game dir
-                    break;
-                case Engine.PlatformTypeEnum.Other:
-                    optOther.Checked = true;
-                    lblExec.Enabled = true;
-                    btnPlatformFile.Enabled = true;
-                    txtPlatformFile.Enabled = true;
-                    lblOptions.Enabled = true;
-                    txtOptions.Enabled = true;
-                    break;
+                catch {
+                    // ignore errors
+                    Debug.Assert(false);
                 }
-
-                // if platform is nothing, skip directory
-                if (txtPlatformFile.Enabled) {
-                    NewPlatformFile = EditGame.Platform;
-                    txtPlatformFile.Text = NewPlatformFile;
-                }
-                else {
-                    NewPlatformFile = "";
-                }
-
-                if (txtOptions.Enabled) {
-                    txtOptions.Text = EditGame.PlatformOpts;
-                }
-                if (txtExec.Enabled) {
-                    txtExec.Text = EditGame.DOSExec;
-                }
-                // resdefines
-                chkUseReserved.Checked = LogicCompiler.UseReservedNames;
-
-                // layout editor
-                chkUseLE.Checked = EditGame.UseLE;
-
-                // code page
-                for (int i = 0; i < cmbCodePage.Items.Count; i++) {
-                    if (((string)cmbCodePage.Items[i])[..3] == EditGame.CodePage.CodePage.ToString()) {
-                        cmbCodePage.SelectedIndex = i;
-                        break;
-                    }
-                }
-                NewCodePage = EditGame.CodePage;
-
-                // sierra syntax option
-                if (EditGame.SierraSyntax) {
-                    chkSierraSyntax.Checked = true;
-                }
-
-                // set caption
-                Text = "Edit Game Properties";
-                break;
-            case GameSettingFunction.gsNew:
-                // default values
-                txtGameAuthor.Text = "";
-                txtGameVersion.Text = "AGI Game version 0.0";
-                txtGameAbout.Text = "AGI Game by <author>";
-                txtGameDescription.Text = "new agi game";
-                cmbVersion.SelectedItem = "2.917";
-                txtGameID.Text = "AGI";
-                // game dir is editable when creating new
-                txtGameDir.Enabled = true;
-                btnGameDir.Enabled = true;
-                DisplayDir = "";
-                txtGameDir.Text = "";
-                txtResDir.Text = WinAGI.Engine.Base.DefResDir;
-                // don't show leading '.' characters in extension
-                txtSrcExt.Text = LogicDecoder.DefaultSrcExt[1..];
-
-                // resdefines
-                chkUseReserved.Checked = WinAGISettings.DefUseResDef;
-                // layout editor
-                chkUseLE.Checked = WinAGISettings.DefUseLE;
-                // platform- check for autofill platform property
-                if (WinAGISettings.AutoFill) {
-                    switch (WinAGISettings.PlatformType) {
-                    case 1:
-                        // DOSBox
-                        optDosBox.Checked = true;
-                        txtExec.Text = WinAGISettings.DOSExec;
-                        break;
-                    case 2:
-                        // ScummVM
-                        optScummVM.Checked = true;
-                        break;
-                    case 3:
-                        // NAGI
-                        optNAGI.Checked = true;
-                        break;
-                    case 4:
-                        // Other
-                        optOther.Checked = true;
-                        break;
-                    }
-                    txtPlatformFile.Text = WinAGISettings.PlatformFile;
-                    txtOptions.Text = WinAGISettings.PlatformOpts;
-                }
-                //else {
-                //    //defaults are ok
-                //    NewPlatformFile = "";
-                //}
-                // code page starts at default
-                for (int i = 0; i < cmbCodePage.Items.Count; i++) {
-                    if (int.Parse(((string)cmbCodePage.Items[i])[..3]) == WinAGISettings.DefCP) {
-                        cmbCodePage.SelectedIndex = i;
-                        break;
-                    }
-                }
-                // sierra syntax is off by default
-                chkSierraSyntax.Checked = false;
-
-                // set caption
-                Text = "New Game Properties";
-                break;
             }
-            // disable OK until a change is made
-            btnOK.Enabled = false;
-        }
-
-        private void frmGameProperties_Load(object sender, EventArgs e) {
-        }
-
-        private void chkSierraSyntax_Click(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void chkUseLE_CheckedChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void chkUseReserved_CheckedChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void cmbCodePage_SelectionChangeCommitted(object sender, EventArgs e) {
-            // change codepage
-            try {
-                NewCodePage = Encoding.GetEncoding(int.Parse(((string)cmbCodePage.SelectedItem)[..3]));
+            if (startprop.Length > 0) {
+                try {
+                    tabControl1.SelectedTab.Controls[startprop].Select();
+                }
+                catch {
+                    // ignore errors
+                    Debug.Assert(false);
+                }
             }
-            catch {
-                MessageBox.Show("NOPE");
-            }
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
         }
 
-        private void cmbVersion_SelectionChangeCommitted(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        #region Event Handlers
+        #region Form and Button Event Handlers
+        private void frmGameProperties_HelpRequested(object sender, HelpEventArgs hlpevent) {
+            string strTopic = @"htm\winagi\Properties.htm" + (string)((Control)sender).Tag;
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            hlpevent.Handled = true;
         }
 
         private void btnOK_Click(object sender, EventArgs e) {
@@ -291,6 +105,228 @@ namespace WinAGI.Editor {
             this.Hide();
         }
 
+        #endregion
+
+        #region General Tab Event Handlers
+        private void txtGameID_TextChanged(object sender, EventArgs e) {
+            // during setup, form is not visible, so don't need to validate the ID
+            if (!this.Visible) {
+                return;
+            }
+            ValidateIDText();
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtGameID_KeyPress(object sender, KeyPressEventArgs e) {
+            // allow alpha numeric only, lower case allowed, limit of five characters
+            
+            switch ((int)e.KeyChar) {
+            case 8:
+                // backspace is OK
+                return;
+            case 13:
+                // enter is same as tabbing to next control
+                e.Handled = true;
+                cmbVersion.Select();
+                return;
+            case >= 97 and <= 122:
+                e.KeyChar = (char)((int)e.KeyChar - 32);
+                return;
+            case <= 7:
+            case >= 9 and <= 47:
+            case >= 91 and <= 96:
+            case >= 123:
+                // not allowed
+                e.Handled = true;
+                return;
+            }
+            if (txtGameID.Text.Length >= 5) {
+                e.Handled = true;
+            }
+        }
+
+        private void txtGameID_Validating(object sender, CancelEventArgs e) {
+            // enforce character limits- 5 char max, only basic ascii,
+            // no file/folder prohibited characters
+            ValidateIDText();
+        }
+
+        private void cmbVersion_SelectionChangeCommitted(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtGameDir_DoubleClick(object sender, EventArgs e) {
+            // same as clicking button
+            ChangeDisplayGameDir();
+        }
+
+        private void btnGameDir_Click(object sender, EventArgs e) {
+            // change/create directory that is displayed (doesn't change actual game directory)
+            ChangeDisplayGameDir();
+        }
+
+        private void txtResDir_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtResDir_Validating(object sender, CancelEventArgs e) {
+            // no file/folder prohibited characters, only standard ascii
+            string dirtext = "";
+            foreach (char c in txtResDir.Text) {
+                if (c > 32 && c < 127) {
+                    //no invalid path chars
+                    if (!(Path.GetInvalidFileNameChars()).Contains(c)) {
+                        dirtext += c;
+                    }
+                }
+            }
+            txtResDir.Text = dirtext;
+        }
+
+        private void txtResDir_KeyPress(object sender, KeyPressEventArgs e) {
+            // validate- can't have  "\/:*?<>|
+            switch ((int)e.KeyChar) {
+            case 13:
+                // enter is same as tabbing to next control
+                e.Handled = true;
+                txtSrcExt.Select();
+                break;
+            case <= 7:
+            case >= 9 and <= 32:
+            case 34 or 42 or 47 or 58 or 60 or 62 or 63 or 92 or 124:
+            case > 126:
+                // not allowed
+                e.Handled = true;
+                break;
+            }
+        }
+
+        private void txtSrcExt_TextChanged(object sender, EventArgs e) {
+            // only 4 characters
+            // TODO: add validation checks to all text fields
+            if (txtSrcExt.TextLength > 4) {
+                txtSrcExt.Text = txtSrcExt.Text[..4];
+            }
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtSrcExt_KeyPress(object sender, KeyPressEventArgs e) {
+            // validate- can't have  "\/:*?<>|
+            switch ((int)e.KeyChar) {
+            case 13:
+                // enter is same as tabbing to next control
+                e.Handled = true;
+                chkUseReserved.Select();
+                break;
+            case <= 7:
+            case >= 9 and <= 32:
+            case 34 or 42 or 47 or 58 or 60 or 62 or 63 or 92 or 124:
+            case > 126:
+                // not allowed
+                e.Handled = true;
+                break;
+            }
+        }
+
+        private void txtSrcExt_Leave(object sender, EventArgs e) {
+            if (txtSrcExt.Text == "") {
+                txtSrcExt.Text = "lgc";
+            }
+        }
+
+        private void txtSrcExt_Validating(object sender, CancelEventArgs e) {
+            // all versions limit to five characters
+            if (txtSrcExt.TextLength > 5) {
+                txtSrcExt.Text = txtSrcExt.Text[..5];
+            }
+            // no file/folder prohibited characters, only standard ascii
+            string exttext = "";
+            foreach (char c in txtSrcExt.Text) {
+                if (c > 32 && c < 127) {
+                    //no invalid path chars
+                    if (!(Path.GetInvalidFileNameChars()).Contains(c)) {
+                        exttext += c;
+                    }
+                }
+            }
+            if (txtSrcExt.Text == "") {
+                txtSrcExt.Text = "lgc";
+            }
+            txtSrcExt.Text = exttext;
+        }
+
+        private void chkUseLE_CheckedChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void chkUseReserved_CheckedChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        #endregion
+
+        #region Version Tab Event Handlers
+        private void txtGameAuthor_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtGameAuthor_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.Handled = true;
+                txtGameDescription.Select();
+            }
+        }
+
+        private void txtGameDescription_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtGameDescription_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.Handled = true;
+                txtGameAbout.Select();
+            }
+        }
+
+        private void txtGameAbout_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtGameAbout_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.Handled = true;
+                txtGameVersion.Select();
+            }
+        }
+
+        private void txtGameVersion_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtGameVersion_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.Handled = true;
+                btnOK.Select();
+            }
+        }
+
+        #endregion
+
+        #region Platform Tab Event Handlers
         private void optNone_CheckedChanged(object sender, EventArgs e) {
             if (optNone.Checked) {
                 // clear all platform properties
@@ -391,26 +427,262 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void btnGameDir_Click(object sender, EventArgs e) {
-            // change/create directory that is displayed (doesn't change actual game directory)
-            ChangeDisplayGameDir();
-        }
-
         private void btnPlatformFile_Click(object sender, EventArgs e) {
             ChangePlatformApp();
+        }
+
+        private void txtExec_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtExec_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.Handled = true;
+                txtPlatformFile.Select();
+            }
+        }
+
+        private void txtOptions_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtOptions_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.Handled = true;
+                btnOK.Select();
+            }
+        }
+
+        private void txtPlatformFile_DoubleClick(object sender, EventArgs e) {
+            ChangePlatformApp();
+        }
+
+        private void txtPlatformFile_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.Handled = true;
+                txtOptions.Select();
+            }
+        }
+
+        private void txtPlatformFile_TextChanged(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void txtPlatformFile_Validating(object sender, CancelEventArgs e) {
+            NewPlatformFile = txtPlatformFile.Text;
+        }
+
+        #endregion
+
+        #region Advanced Tab Event Handlers
+        private void chkSierraSyntax_Click(object sender, EventArgs e) {
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void cmbCodePage_SelectionChangeCommitted(object sender, EventArgs e) {
+            // change codepage
+            try {
+                NewCodePage = int.Parse(((string)cmbCodePage.SelectedItem)[..3]);
+            }
+            catch {
+                MessageBox.Show("NOPE");
+            }
+            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        #endregion
+        #endregion
+
+        private void SetForm(GameSettingFunction mode) {
+            switch (mode) {
+            case GameSettingFunction.Edit:
+                // get values from open game
+                txtGameAuthor.Text = EditGame.GameAuthor;
+                txtGameVersion.Text = EditGame.GameVersion;
+                txtGameAbout.Text = EditGame.GameAbout;
+                txtGameDescription.Text = EditGame.GameDescription;
+
+                // version
+                for (int i = 0; i < cmbVersion.Items.Count; i++) {
+                    if ((string)cmbVersion.Items[i] == EditGame.InterpreterVersion) {
+                        cmbVersion.SelectedIndex = i;
+                        break;
+                    }
+                }
+                // assign gameid
+                txtGameID.Text = EditGame.GameID;
+
+                DisplayDir = EditGame.GameDir;
+                txtGameDir.Text = DisplayDir;
+
+                // game dir is read only when editing
+                txtGameDir.Enabled = false;
+                btnGameDir.Enabled = false;
+
+                // resdir is just the directory by itself, not entire path
+                txtResDir.Text = EditGame.ResDirName;
+
+                txtSrcExt.Text = EditGame.SourceExt;
+
+                // select the button for platform
+                switch (EditGame.PlatformType) {
+                case Engine.PlatformType.None:
+                    // None - do nothing; form is already correct
+                    break;
+                case Engine.PlatformType.DosBox:
+                    optDosBox.Checked = true;
+                    lblExec.Enabled = true;
+                    btnPlatformFile.Enabled = true;
+                    txtPlatformFile.Enabled = true;
+                    lblOptions.Enabled = true;
+                    txtOptions.Enabled = true;
+                    lblExec.Enabled = true;
+                    txtExec.Enabled = true;
+                    break;
+                case Engine.PlatformType.ScummVM:
+                    optScummVM.Checked = true;
+                    lblExec.Enabled = true;
+                    btnPlatformFile.Enabled = true;
+                    txtPlatformFile.Enabled = true;
+                    lblOptions.Enabled = true;
+                    txtOptions.Enabled = true;
+                    break;
+                case Engine.PlatformType.NAGI:
+                    optNAGI.Checked = true;
+                    // no options for NAGI
+                    // and platform file is always "n.exe" in game dir
+                    break;
+                case Engine.PlatformType.Other:
+                    optOther.Checked = true;
+                    lblExec.Enabled = true;
+                    btnPlatformFile.Enabled = true;
+                    txtPlatformFile.Enabled = true;
+                    lblOptions.Enabled = true;
+                    txtOptions.Enabled = true;
+                    break;
+                }
+
+                // if platform is nothing, skip directory
+                if (txtPlatformFile.Enabled) {
+                    NewPlatformFile = EditGame.Platform;
+                    txtPlatformFile.Text = NewPlatformFile;
+                }
+                else {
+                    NewPlatformFile = "";
+                }
+
+                if (txtOptions.Enabled) {
+                    txtOptions.Text = EditGame.PlatformOpts;
+                }
+                if (txtExec.Enabled) {
+                    txtExec.Text = EditGame.DOSExec;
+                }
+                // resdefines 
+                chkUseReserved.Checked = EditGame.UseReservedNames;
+
+                // layout editor
+                chkUseLE.Checked = EditGame.UseLE;
+
+                // code page
+                for (int i = 0; i < cmbCodePage.Items.Count; i++) {
+                    if (((string)cmbCodePage.Items[i])[..3] == EditGame.CodePage.CodePage.ToString()) {
+                        cmbCodePage.SelectedIndex = i;
+                        break;
+                    }
+                }
+                NewCodePage = EditGame.CodePage.CodePage;
+
+                // sierra syntax option
+                if (EditGame.SierraSyntax) {
+                    chkSierraSyntax.Checked = true;
+                }
+
+                // set caption
+                Text = "Edit Game Properties";
+                break;
+            case GameSettingFunction.New:
+                // default values
+                txtGameAuthor.Text = "";
+                txtGameVersion.Text = "AGI Game version 0.0";
+                txtGameAbout.Text = "AGI Game by <author>";
+                txtGameDescription.Text = "new agi game";
+                cmbVersion.SelectedItem = "2.917";
+                txtGameID.Text = "AGI";
+                // game dir is editable when creating new
+                txtGameDir.Enabled = true;
+                btnGameDir.Enabled = true;
+                DisplayDir = "";
+                txtGameDir.Text = "";
+                txtResDir.Text = WinAGI.Engine.Base.DefResDir;
+                txtSrcExt.Text = LogicDecoder.DefaultSrcExt;
+
+                // resdefines
+                chkUseReserved.Checked = WinAGISettings.DefUseResDef.Value;
+                // layout editor
+                chkUseLE.Checked = WinAGISettings.DefUseLE.Value;
+                // platform- check for autofill platform property
+                if (WinAGISettings.AutoFill.Value) {
+                    switch (WinAGISettings.PlatformType.Value) {
+                    case 1:
+                        // DOSBox
+                        optDosBox.Checked = true;
+                        txtExec.Text = WinAGISettings.DOSExec.Value;
+                        break;
+                    case 2:
+                        // ScummVM
+                        optScummVM.Checked = true;
+                        break;
+                    case 3:
+                        // NAGI
+                        optNAGI.Checked = true;
+                        break;
+                    case 4:
+                        // Other
+                        optOther.Checked = true;
+                        break;
+                    }
+                    txtPlatformFile.Text = WinAGISettings.PlatformFile.Value;
+                    txtOptions.Text = WinAGISettings.PlatformOpts.Value;
+                }
+                // code page starts at default
+                for (int i = 0; i < cmbCodePage.Items.Count; i++) {
+                    if (int.Parse(((string)cmbCodePage.Items[i])[..3]) == Engine.Base.CodePage.CodePage) {
+                        cmbCodePage.SelectedIndex = i;
+                        break;
+                    }
+                }
+                NewCodePage = Engine.Base.CodePage.CodePage;
+                // sierra syntax is off by default
+                chkSierraSyntax.Checked = false;
+
+                // set caption
+                Text = "New Game Properties";
+                break;
+            }
+            // disable OK until a change is made
+            btnOK.Enabled = false;
         }
 
         private void ChangePlatformApp() {
             // get a platform executable that will run a game
             if (NewPlatformFile.Length == 0) {
                 MDIMain.OpenDlg.FileName = "";
+                MDIMain.OpenDlg.InitialDirectory = EditGame.GameDir;
             }
             else {
-                MDIMain.OpenDlg.FileName = NewPlatformFile;
+                MDIMain.OpenDlg.FileName = Path.GetFileName(NewPlatformFile);
+                MDIMain.OpenDlg.InitialDirectory = Path.GetDirectoryName(EditGame.GameDir);
             }
             MDIMain.OpenDlg.Title = "Choose Platform Application";
             MDIMain.OpenDlg.ShowReadOnly = false;
-            MDIMain.OpenDlg.InitialDirectory = EditGame.GameDir;
             MDIMain.OpenDlg.RestoreDirectory = true;
             MDIMain.OpenDlg.Filter = "Executables (*.exe; *.com)|*.exe;*.com|All files (*.*)|*.*";
             MDIMain.OpenDlg.FilterIndex = 1;
@@ -423,87 +695,11 @@ namespace WinAGI.Editor {
             btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
         }
 
-        private void txtExec_TextChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtExec_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == 13) {
-                e.Handled = true;
-                txtPlatformFile.Focus();
-            }
-        }
-
-        private void txtGameAuthor_TextChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtGameAuthor_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == 13) {
-                e.Handled = true;
-                txtGameDescription.Focus();
-            }
-        }
-
-        private void txtGameDescription_TextChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtGameDescription_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == 13) {
-                e.Handled = true;
-                txtGameAbout.Focus();
-            }
-        }
-
-        private void txtGameAbout_TextChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtGameAbout_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == 13) {
-                e.Handled = true;
-                txtGameVersion.Focus();
-            }
-        }
-
-        private void txtGameVersion_TextChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtGameVersion_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == 13) {
-                e.Handled = true;
-                btnOK.Focus();
-            }
-        }
-
-        private void txtGameDir_DoubleClick(object sender, EventArgs e) {
-            // same as clicking button
-            ChangeDisplayGameDir();
-        }
-
-        private void txtGameID_TextChanged(object sender, EventArgs e) {
-            // during setup, form is not visible, and we don't need to validate the ID
-            if (!this.Visible) {
-                return;
-            }
-            ValidateIDText();
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
         private void ValidateIDText() {
+            int selpos = txtGameID.SelectionStart;
+            if (selpos > 5) {
+                selpos = 5;
+            }
             // all versions limit to five characters
             if (txtGameID.TextLength > 5) {
                 txtGameID.Text = txtGameID.Text[..5];
@@ -519,115 +715,13 @@ namespace WinAGI.Editor {
                 }
             }
             txtGameID.Text = idtext;
-        }
-
-        private void txtGameID_KeyPress(object sender, KeyPressEventArgs e) {
-            // allow alpha numeric only, lower case allowed
-            switch ((int)e.KeyChar) {
-            case 13:
-                // enter is same as tabbing to next control
-                e.Handled = true;
-                cmbVersion.Focus();
-                break;
-            case <= 7:
-            case >= 9 and <= 47:
-            case >= 91 and <= 96:
-            case >= 123:
-                // not allowed
-                e.Handled = true;
-                break;
+            if (selpos >= txtGameID.Text.Length) {
+                selpos = txtGameID.Text.Length;
             }
-        }
-
-        private void txtOptions_TextChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtOptions_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == 13) {
-                e.Handled = true;
-                btnOK.Focus();
-            }
-        }
-
-        private void txtPlatformFile_DoubleClick(object sender, EventArgs e) {
-            ChangePlatformApp();
-        }
-
-        private void txtPlatformFile_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == 13) {
-                e.Handled = true;
-                txtOptions.Focus();
-            }
-        }
-
-        private void txtResDir_TextChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtResDir_KeyPress(object sender, KeyPressEventArgs e) {
-            // validate- can't have  "\/:*?<>|
-            switch ((int)e.KeyChar) {
-            case 13:
-                // enter is same as tabbing to next control
-                e.Handled = true;
-                txtSrcExt.Focus();
-                break;
-            case <= 7:
-            case >= 9 and <= 32:
-            case 34 or 42 or 47 or 58 or 60 or 62 or 63 or 92 or 124:
-            case > 126:
-                // not allowed
-                e.Handled = true;
-                break;
-            }
-        }
-
-        private void txtSrcExt_TextChanged(object sender, EventArgs e) {
-            // only 4 characters
-            // TODO: add validation checks to all text fields
-            if (txtSrcExt.TextLength > 4) {
-                txtSrcExt.Text = txtSrcExt.Text[..4];
-            }
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtSrcExt_KeyPress(object sender, KeyPressEventArgs e) {
-            // validate- can't have  "\/:*?<>|
-            switch ((int)e.KeyChar) {
-            case 13:
-                // enter is same as tabbing to next control
-                e.Handled = true;
-                chkUseReserved.Focus();
-                break;
-            case <= 7:
-            case >= 9 and <= 32:
-            case 34 or 42 or 47 or 58 or 60 or 62 or 63 or 92 or 124:
-            case > 126:
-                // not allowed
-                e.Handled = true;
-                break;
-            }
-        }
-
-        private void txtSrcExt_Leave(object sender, EventArgs e) {
-            // if blank, use default
-            if (txtSrcExt.Text == "") {
-                txtSrcExt.Text = "lgc";
-            }
+            txtGameID.SelectionStart = selpos;
         }
 
         private void ChangeDisplayGameDir() {
-
-            string NewDisplayDir;
-            int lngDirLen;
-
-            // is there already a directory here?
             if (DisplayDir.Length > 0) {
                 BrowserStartDir = DisplayDir;
             }
@@ -635,94 +729,16 @@ namespace WinAGI.Editor {
             MDIMain.FolderDlg.Description = "Select a directory for this new game:";
             MDIMain.FolderDlg.AddToRecent = false;
             MDIMain.FolderDlg.InitialDirectory = BrowserStartDir;
-            MDIMain.FolderDlg.OkRequiresInteraction = true;
+            MDIMain.FolderDlg.SelectedPath = "";
+            //MDIMain.FolderDlg.OkRequiresInteraction = true;
             MDIMain.FolderDlg.ShowNewFolderButton = true;
 
             if (MDIMain.FolderDlg.ShowDialog() == DialogResult.OK) {
-                // ensure trailing backslash
                 DisplayDir = FullDir(MDIMain.FolderDlg.SelectedPath);
                 txtGameDir.Text = DisplayDir;
-                // set browser dir
                 BrowserStartDir = DisplayDir;
             }
-            // enable ok if an ID and directory have been chosen
             btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtGameID_Validating(object sender, CancelEventArgs e) {
-            // enforce character limits- 5 char max, only basic ascii,
-            // no file/folder prohibited characters
-            ValidateIDText();
-        }
-
-        private void txtResDir_Validating(object sender, CancelEventArgs e) {
-            // no file/folder prohibited characters, only standard ascii
-            string dirtext = "";
-            foreach (char c in txtResDir.Text) {
-                if (c > 32 && c < 127) {
-                    //no invalid path chars
-                    if (!(Path.GetInvalidFileNameChars()).Contains(c)) {
-                        dirtext += c;
-                    }
-                }
-            }
-            txtResDir.Text = dirtext;
-        }
-
-        private void txtSrcExt_Validating(object sender, CancelEventArgs e) {
-            // all versions limit to five characters
-            if (txtSrcExt.TextLength > 5) {
-                txtSrcExt.Text = txtSrcExt.Text[..5];
-            }
-            // no file/folder prohibited characters, only standard ascii
-            string exttext = "";
-            foreach (char c in txtSrcExt.Text) {
-                if (c > 32 && c < 127) {
-                    //no invalid path chars
-                    if (!(Path.GetInvalidFileNameChars()).Contains(c)) {
-                        exttext += c;
-                    }
-                }
-            }
-            txtSrcExt.Text = exttext;
-        }
-
-        private void frmGameProperties_VisibleChanged(object sender, EventArgs e) {
-            if (Visible) {
-                if (StartTab.Length > 0) {
-                    try {
-                        tabControl1.SelectedTab = tabControl1.TabPages[StartTab];
-                    }
-                    catch {
-                        // ignore errors
-                        Debug.Assert(false);
-                    }
-                }
-                if (StartProp.Length > 0) {
-                    try {
-                        tabControl1.SelectedTab.Controls[StartProp].Select();
-                    }
-                    catch {
-                        // ignore errors
-                        Debug.Assert(false);
-                    }
-                }
-            }
-        }
-
-        private void frmGameProperties_HelpRequested(object sender, HelpEventArgs hlpevent) {
-            string strTopic = @"htm\winagi\Properties.htm" + (string)((Control)sender).Tag;
-            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
-            hlpevent.Handled = true;
-        }
-
-        private void txtPlatformFile_TextChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
-        }
-
-        private void txtPlatformFile_Validating(object sender, CancelEventArgs e) {
-            NewPlatformFile = txtPlatformFile.Text;
         }
 
         /*

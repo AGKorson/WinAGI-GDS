@@ -76,7 +76,7 @@ namespace WinAGI.Engine {
         /// <param name="height"></param>
         /// <param name="transcolor"></param>
         /// <returns>The cel that was added.</returns>
-        public Cel Add(int pos, byte width = 1, byte height = 1, AGIColorIndex transcolor = AGIColorIndex.agBlack) {
+        public Cel Add(int pos, byte width = 1, byte height = 1, AGIColorIndex transcolor = AGIColorIndex.Black) {
             Cel agNewCel;
 
             if (mCelCol.Count == MAX_CELS || pos < 0) {
@@ -109,7 +109,7 @@ namespace WinAGI.Engine {
                 mCelCol.Insert(pos, agNewCel);
             }
             if (mParent is not null) {
-                mParent.IsDirty = true;
+                mParent.IsChanged = true;
             }
             return agNewCel;
         }
@@ -139,7 +139,7 @@ namespace WinAGI.Engine {
                 }
             }
             if (mParent is not null) {
-                mParent.IsDirty = true;
+                mParent.IsChanged = true;
             }
         }
 
@@ -167,6 +167,13 @@ namespace WinAGI.Engine {
             }
             clonecels.mSetMirror = mSetMirror;
             return clonecels;
+        }
+
+        public void CloneFrom(Cels SourceCels) {
+            for (int i = 0; i < SourceCels.Count; i++) {
+                mCelCol.Add(new Cel(mParent));
+                mCelCol[i].CloneFrom(SourceCels[i]);
+            }
         }
         #endregion
 

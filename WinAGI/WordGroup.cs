@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using WinAGI.Common;
 using static WinAGI.Common.Base;
 
 namespace WinAGI.Engine {
@@ -9,7 +10,7 @@ namespace WinAGI.Engine {
     /// in the group are synonyms that share the same number used by the AGI
     /// 'said' test command.
     /// </summary>
-    public class WordGroup : IEnumerable<AGIWord> {
+    public class WordGroup : IEnumerable<string> {
         #region Members
         internal List<string> mWords;
         internal int mGroupNum;
@@ -31,8 +32,11 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public string this[byte index] {
+        public string this[int index] {
             get {
+                if (index < 0 || index >= mWords.Count) {
+                    throw new ArgumentOutOfRangeException("index");
+                }
                 return mWords[index];
             }
         }
@@ -86,7 +90,7 @@ namespace WinAGI.Engine {
             if (mWords.Contains(aWord)) {
                 return;
             }
-            aWord = LowerAGI(aWord);
+            aWord = aWord.LowerAGI();
             int i;
             if (mWords.Count == 0) {
                 mWords.Add(aWord);
@@ -146,8 +150,8 @@ namespace WinAGI.Engine {
         IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<AGIWord> IEnumerable<AGIWord>.GetEnumerator() {
-            return (IEnumerator<AGIWord>)GetEnumerator();
+        IEnumerator<string> IEnumerable<string>.GetEnumerator() {
+            return (IEnumerator<string>)GetEnumerator();
         }
         /// <summary>
         /// Implements enumeration for the WordGroup class.

@@ -6,1433 +6,2373 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using WinAGI.Engine;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Editor.Base;
+using System.IO;
+using System.Linq;
+using FastColoredTextBoxNS;
+using System.Text.RegularExpressions;
+using System.Net.Http.Headers;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using EnvDTE;
+using System.Runtime.Serialization;
+using System.Collections.ObjectModel;
+using WinAGI.Common;
 
 namespace WinAGI.Editor {
     public partial class frmLogicEdit : Form {
         public int LogicNumber;
         public Logic EditLogic = new() { };
-        internal ELogicFormMode FormMode;
-        internal bool InGame;
-        public bool ListDirty = false;
+        public bool Compiled = false;
+        internal readonly LogicFormMode FormMode;
+        public bool ListChanged = false;
+        internal bool InGame = false; // dynamic
+        public bool IsChanged = false; // dynamic
+        public string TextFilename = "";
+        private bool closing = false;
+        // editor syntax styles
+        public TextStyle CommentStyle;
+        public TextStyle StringStyle;
+        public TextStyle KeyWordStyle;
+        public TextStyle TestCmdStyle;
+        public TextStyle ActionCmdStyle;
+        public TextStyle InvalidCmdStyle;
+        public TextStyle NumberStyle;
+        public TextStyle ArgIdentifierStyle;
+        public TextStyle DefIdentifierStyle;
+        public WinAGIFCTB fctb;
+        TDefine[] LDefLookup = [];
+        private bool loading;
+        bool DefDirty = true;
+        // DefDirty means text has changed, so the lookup list needs
+        // to be rebuilt;
+        public bool ListDirty = true;
+        // ListDirty means the ShowDefinesList needs to be rebuilt
+        ArgListType ListType;
+        // tracks what is currently being included in the list
 
-        public frmLogicEdit() {
+        // to manage the defines list feature
+        //int DefEndPos, DefTopLine;
+        Place DefStartPos;
+        Place DefEndPos;
+        string PrevText;
+        string DefText;
+        //string DefTip;
+        //int LastPos;
+
+        // tool tip variables
+        AGIToken TipCmdToken;
+        int TipCurArg = 0;
+        int SnipIndent = 0;
+
+        public frmLogicEdit(LogicFormMode mode) {
             InitializeComponent();
+            FormMode = mode;
+            rtfLogic1.Select();
+            fctb = rtfLogic1;
+            splitLogic.Panel1.TabIndex = 1;
+            splitLogic.Panel2.TabIndex = 0;
+            rtfLogic1.Controls.Add(picTip);
+            rtfLogic1.Controls.Add(lstDefines);
+            splitLogic.SplitterDistance = 0;
+            MdiParent = MDIMain;
+            rtfLogic1.LeftBracket = '(';
+            rtfLogic1.RightBracket = ')';
+            rtfLogic1.LeftBracket2 = '{';
+            rtfLogic1.RightBracket2 = '}';
+            rtfLogic2.LeftBracket = '(';
+            rtfLogic2.RightBracket = ')';
+            rtfLogic2.LeftBracket2 = '{';
+            rtfLogic2.RightBracket2 = '}';
+            CommentStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[1].Color.Value), null, WinAGISettings.SyntaxStyle[1].FontStyle.Value);
+            StringStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[2].Color.Value), null, WinAGISettings.SyntaxStyle[2].FontStyle.Value);
+            KeyWordStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[3].Color.Value), null, WinAGISettings.SyntaxStyle[3].FontStyle.Value);
+            TestCmdStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[4].Color.Value), null, WinAGISettings.SyntaxStyle[4].FontStyle.Value);
+            ActionCmdStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[5].Color.Value), null, WinAGISettings.SyntaxStyle[5].FontStyle.Value);
+            InvalidCmdStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[6].Color.Value), null, WinAGISettings.SyntaxStyle[6].FontStyle.Value);
+            NumberStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[7].Color.Value), null, WinAGISettings.SyntaxStyle[7].FontStyle.Value);
+            ArgIdentifierStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[8].Color.Value), null, WinAGISettings.SyntaxStyle[8].FontStyle.Value);
+            DefIdentifierStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[9].Color.Value), null, WinAGISettings.SyntaxStyle[9].FontStyle.Value);
+            InitFonts();
+            splitContainer1.SplitterDistance = splitContainer1.Width - 80;
+            if (!WinAGISettings.ShowDocMap.Value) {
+                splitContainer1.Panel2Collapsed = true;
+            }
+            rtfLogic1.ShowLineNumbers = WinAGISettings.ShowLineNumbers.Value;
+            rtfLogic2.ShowLineNumbers = WinAGISettings.ShowLineNumbers.Value;
+            loading = true;
+            switch (mode) {
+            case LogicFormMode.Logic:
+                break;
+            case LogicFormMode.Text:
+                // no compiling or msg cleanup
+                btnCompile.Enabled = false;
+                btnMsgClean.Enabled = false;
+                break;
+            }
         }
-        public bool InitLogicEditor(Logic ThisLogic) {
+
+        #region Form Event Handlers
+        private void frmLogicEdit_FormClosing(object sender, FormClosingEventArgs e) {
+            if (e.CloseReason == CloseReason.MdiFormClosing) {
+                return;
+            }
+            closing = AskClose();
+            e.Cancel = !closing;
+        }
+
+        private void frmLogicEdit_FormClosed(object sender, FormClosedEventArgs e) {
+            // dereference object
+            EditLogic?.Unload();
+            EditLogic = null;
+            if (InGame) {
+                if (EditGame.Logics[LogicNumber].Loaded) {
+                    EditGame.Logics[LogicNumber].Unload();
+                }
+            }
+            // remove from logic editor collection
+            foreach (frmLogicEdit frm in LogicEditors) {
+                if (frm == this) {
+                    LogicEditors.Remove(frm);
+                    FindingForm.ResetSearch();
+                    break;
+                }
+            }
+        }
+        #endregion
+
+        #region Resource Menu Item Event Handlers
+        /// <summary>
+        /// Dynamic function to set up the resource menu.
+        /// </summary>
+        internal void SetResourceMenu() {
+
+            mnuRSave.Enabled = fctb.IsChanged;
+            if (EditGame is null) {
+                // no game is open
+                MDIMain.mnuRImport.Enabled = false;
+                mnuRSave.Text = FormMode == LogicFormMode.Logic ? "Save Logic" : "Save Text File";
+                mnuRExport.Text = "Save As ...";
+                if (FormMode == LogicFormMode.Logic) {
+                    mnuRInGame.Visible = true;
+                    mnuRInGame.Enabled = false;
+                    mnuRInGame.Text = "Add Logic to Game";
+                    mnuRRenumber.Visible = true;
+                    mnuRRenumber.Enabled = false;
+                    mnuRRenumber.Text = "Renumber Logic";
+                    mnuRProperties.Visible = true;
+                    MDIMain.mnuRSep2.Visible = true;
+                    MDIMain.mnuRSep3.Visible = true;
+                    mnuRCompile.Visible = true;
+                    mnuRCompile.Enabled = false;
+                    mnuRCompile.Text = "Compile This Logic";
+                    mnuRMsgCleanup.Visible = true;
+                    mnuRIsRoom.Visible = true;
+                    mnuRIsRoom.Enabled = false;
+                    mnuRIsRoom.Checked = false;
+                }
+                else {
+                    mnuRInGame.Visible = false;
+                    mnuRRenumber.Visible = false;
+                    mnuRProperties.Visible = false;
+                    MDIMain.mnuRSep2.Visible = false;
+                    MDIMain.mnuRSep3.Visible = false;
+                    mnuRCompile.Visible = false;
+                    mnuRMsgCleanup.Visible = false;
+                    mnuRIsRoom.Visible = false;
+                }
+            }
+            else {
+                // if a game is loaded, base import is also always available
+                MDIMain.mnuRImport.Enabled = true;
+                mnuRSave.Text = FormMode == LogicFormMode.Logic ? "Save Logic" : "Save Text File";
+                if (FormMode == LogicFormMode.Logic && InGame) {
+                    mnuRExport.Text = "Export Logic";
+                }
+                else {
+                    mnuRExport.Text = "Save As ...";
+                }
+                if (FormMode == LogicFormMode.Logic) {
+                    mnuRInGame.Visible = true;
+                    mnuRInGame.Enabled = true;
+                    mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
+                    mnuRRenumber.Visible = true;
+                    mnuRRenumber.Enabled = InGame;
+                    mnuRRenumber.Text = "Renumber Logic";
+                    mnuRProperties.Visible = true;
+                    MDIMain.mnuRSep2.Visible = true;
+                    MDIMain.mnuRSep3.Visible = true;
+                    mnuRCompile.Visible = true;
+                    mnuRCompile.Enabled = InGame && !EditLogic.Compiled;
+                    mnuRCompile.Text = "Compile This Logic";
+                    mnuRMsgCleanup.Visible = true;
+                    mnuRIsRoom.Visible = true;
+                    mnuRIsRoom.Enabled = LogicNumber != 0 && InGame;
+                    mnuRIsRoom.Checked = EditLogic.IsRoom;
+                }
+                else {
+                    mnuRInGame.Visible = false;
+                    mnuRRenumber.Visible = false;
+                    mnuRProperties.Visible = false;
+                    MDIMain.mnuRSep2.Visible = false;
+                    MDIMain.mnuRSep3.Visible = false;
+                    mnuRCompile.Visible = false;
+                    mnuRMsgCleanup.Visible = false;
+                    mnuRIsRoom.Visible = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Dynamic function to handle the menu-save click event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void mnuRSave_Click(object sender, EventArgs e) {
+            if (FormMode == LogicFormMode.Logic) {
+                SaveLogicSource();
+            }
+            else {
+                SaveTextFile(TextFilename);
+            }
+        }
+
+        /// <summary>
+        /// Dynamic function to handle the menu-export click event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void mnuRExport_Click(object sender, EventArgs e) {
+            if (FormMode == LogicFormMode.Logic) {
+                ExportLogic();
+            }
+            else {
+                SaveTextFileAs();
+            }
+        }
+
+        /// <summary>
+        /// Dynamic function to handle the menu-ingame click event
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void mnuRInGame_Click(object sender, EventArgs e) {
+            ToggleInGame();
+        }
+
+        private void mnuRRenumber_Click(object sender, EventArgs e) {
+            RenumberLogic();
+        }
+
+        private void mnuRProperties_Click(object sender, EventArgs e) {
+            EditLogicProperties(1);
+        }
+
+        private void mnuRCompile_Click(object sender, EventArgs e) {
+            // TODO: non-game logics can't be compiled (yet...?)
+            if (!InGame) {
+                return;
+            }
+            Compiled = CompileLogic(this, (byte)LogicNumber);
+        }
+
+        private void mnuRMsgCleanup_Click(object sender, EventArgs e) {
+            MessageCleanup();
+        }
+
+        private void mnuRIsRoom_Click(object sender, EventArgs e) {
+            if (!InGame || LogicNumber == 0) {
+                return;
+            }
+            EditLogic.IsRoom = !EditLogic.IsRoom;
+            MarkAsChanged();
+            MessageBox.Show("TODO: update Layout");
+        }
+        #endregion
+
+        #region Edit Menu Event Handlers
+        private void RefreshEditMenu() {
+            // Undo (Ctrl+Z) V; E:if able (is type available?)
+            // Redo (Ctrl+Y) V; E:if able (is type available?)
+            // ----------- V
+            // Cut (Ctrl+X) V; E
+            // Copy (Ctrl+C) V; E
+            // Paste (Ctrl+V) V; E
+            // Delete (Del) V; E
+            // Select All (Ctrl+A) V; E
+            // ----------- V
+            // Find (Ctrl+F)-> V; E
+            // Find Next (F3) V; E:search in progress
+            // Replace (Ctrl+H) V; E
+            // ----------- V
+            // Insert Snippet (Ctrl+Shift+T) V:UseSnippets && sellength==0; E
+            // Create Snippet (Ctrl+Shift+T) V:UseSnippets && sellength>0; E
+            // List Defines (Ctrl+J) V; E
+            // Block Comment (Alt+B) V; E
+            // Unblock Comment (Alt+U) V; E
+            // Open xx for Editing (Shift+Ctrl+E) V:on resource token; E
+            // View Synonyms for xxx () V:on vocab word; E
+            // Toggle Document Map (Ctrl+Shift+M) V; E
+            // Character Map (Ctrl+Ins) V; E;
+            mnuEUndo.Enabled = fctb.UndoEnabled;
+            mnuERedo.Enabled = fctb.RedoEnabled;
+            mnuESnippet.Visible = WinAGISettings.UseSnippets.Value;
+            mnuESnippet.Text = fctb.Selection.Length > 0 ? "Create Code Snippet..." : "Insert Code Snippet";
+            mnuEFindAgain.Enabled = fctb.findForm?.tbFind.Text.Length > 0;
+            // default to not visible
+            mnuEOpenRes.Visible = false;
+            mnuEViewSynonym.Visible = false;
+            AGIToken seltoken = fctb.TokenFromPos();
+            switch (seltoken.Type) {
+            case AGITokenType.Identifier:
+                // look for id or define
+                for (int restype = 0; restype < 4; restype++) {
+                    for (int num = 0; num < 256; num++) {
+                        if (IDefLookup[restype, num].Type != ArgType.None) {
+                            if (seltoken.Text == IDefLookup[restype, num].Name) {
+                                mnuEOpenRes.Text = "Open " + seltoken.Text + " for Editing";
+                                Point taginfo = new() {
+                                    X = restype,
+                                    Y = num
+                                };
+                                mnuEOpenRes.Tag = taginfo;
+                                mnuEOpenRes.Visible = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
+            case AGITokenType.String:
+                if (fctb.PreviousToken(seltoken).Text == "#include") {
+                    mnuEOpenRes.Text = "Open " + seltoken.Text + " for Editing";
+                    //mnuEOpenRes.Tag = seltoken.Text;
+                    Point taginfo = new() {
+                        X = 4,
+                        Y = 0
+                    };
+                    mnuEOpenRes.Tag = taginfo;
+                    mnuEOpenRes.Visible = true;
+                    break;
+                }
+                // not an include, check for 'said' word
+                if (EditGame != null) {
+                    int ac = 0;
+                    AGIToken cmdtoken = FindPrevCmd(fctb, seltoken, ref ac);
+                    if (cmdtoken.Type == AGITokenType.Identifier && cmdtoken.Text == "said") {
+                        string wordtext = seltoken.Text[1..^1];
+                        if (EditGame.WordList.WordExists(wordtext)) {
+                            mnuEViewSynonym.Visible = true;
+                            mnuEViewSynonym.Text = "View Synonyms for " + seltoken.Text;
+                            int group = EditGame.WordList[wordtext].Group;
+                            mnuEViewSynonym.Tag = group;
+                            mnuEViewSynonym.Enabled = EditGame.WordList.GroupN(group).WordCount > 1;
+                        }
+                    }
+                }
+                break;
+            }
+            mnuEDocumentMap.Text = (splitContainer1.Panel2Collapsed ? "Show" : "Hide") + " Document Map";
+            mnuELineNumbers.Text = (rtfLogic1.ShowLineNumbers ? "Hide" : "Show") + " Line Numbers";
+        }
+
+        private void mnuEdit_DropDownOpening(object sender, EventArgs e) {
+            // move menu items to edit menu
+            mnuEUndo.Owner = mnuEdit.DropDown;
+            mnuERedo.Owner = mnuEdit.DropDown;
+            mnuESep0.Owner = mnuEdit.DropDown;
+            mnuECut.Owner = mnuEdit.DropDown;
+            mnuEDelete.Owner = mnuEdit.DropDown;
+            mnuECopy.Owner = mnuEdit.DropDown;
+            mnuEPaste.Owner = mnuEdit.DropDown;
+            mnuESelectAll.Owner = mnuEdit.DropDown;
+            mnuESep1.Owner = mnuEdit.DropDown;
+            mnuEFind.Owner = mnuEdit.DropDown;
+            mnuEFindAgain.Owner = mnuEdit.DropDown;
+            mnuEReplace.Owner = mnuEdit.DropDown;
+            mnuESep2.Owner = mnuEdit.DropDown;
+            mnuESnippet.Owner = mnuEdit.DropDown;
+            mnuEListDefines.Owner = mnuEdit.DropDown;
+            mnuEViewSynonym.Owner = mnuEdit.DropDown;
+            mnuEBlockCmt.Owner = mnuEdit.DropDown;
+            mnuEUnblockCmt.Owner = mnuEdit.DropDown;
+            mnuEOpenRes.Owner = mnuEdit.DropDown;
+            mnuESep3.Owner = mnuEdit.DropDown;
+            mnuEDocumentMap.Owner = mnuEdit.DropDown;
+            mnuELineNumbers.Owner = mnuEdit.DropDown;
+            mnuECharMap.Owner = mnuEdit.DropDown;
+            RefreshEditMenu();
+        }
+
+        private void mnuEdit_DropDownClosed(object sender, EventArgs e) {
+            // return menu items to context menu
+            mnuEUndo.Owner = contextMenuStrip1;
+            mnuERedo.Owner = contextMenuStrip1;
+            mnuESep0.Owner = contextMenuStrip1;
+            mnuECut.Owner = contextMenuStrip1;
+            mnuEDelete.Owner = contextMenuStrip1;
+            mnuECopy.Owner = contextMenuStrip1;
+            mnuEPaste.Owner = contextMenuStrip1;
+            mnuESelectAll.Owner = contextMenuStrip1;
+            mnuESep1.Owner = contextMenuStrip1;
+            mnuEFind.Owner = contextMenuStrip1;
+            mnuEFindAgain.Owner = contextMenuStrip1;
+            mnuEReplace.Owner = contextMenuStrip1;
+            mnuESep2.Owner = contextMenuStrip1;
+            mnuESnippet.Owner = contextMenuStrip1;
+            mnuEListDefines.Owner = contextMenuStrip1;
+            mnuEViewSynonym.Owner = contextMenuStrip1;
+            mnuEBlockCmt.Owner = contextMenuStrip1;
+            mnuEUnblockCmt.Owner = contextMenuStrip1;
+            mnuEOpenRes.Owner = contextMenuStrip1;
+            mnuESep3.Owner = contextMenuStrip1;
+            mnuEDocumentMap.Owner = contextMenuStrip1;
+            mnuELineNumbers.Owner = contextMenuStrip1;
+            mnuECharMap.Owner = contextMenuStrip1;
+        }
+
+        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
+            RefreshEditMenu();
+        }
+
+        private void mnuEUndo_Click(object sender, EventArgs e) {
+            fctb.Undo();
+            MarkAsChanged();
+        }
+
+        private void mnuERedo_Click(object sender, EventArgs e) {
+            fctb.Redo();
+            MarkAsChanged();
+        }
+
+        private void mnuECut_Click(object sender, EventArgs e) {
+            fctb.Cut();
+            MarkAsChanged();
+        }
+
+        private void mnuEDelete_Click(object sender, EventArgs e) {
+            if (fctb.Selection.Length == 0) {
+                // select next char
+                fctb.Selection.GoRight(true);
+            }
+            if (fctb.Selection.Length > 0) {
+                fctb.ClearSelected();
+                MarkAsChanged();
+            }
+        }
+
+        private void mnuECopy_Click(object sender, EventArgs e) {
+            fctb.Copy();
+        }
+
+        private void mnuEPaste_Click(object sender, EventArgs e) {
+            fctb.Paste();
+            MarkAsChanged();
+        }
+
+        private void mnuESelectAll_Click(object sender, EventArgs e) {
+            fctb.SelectAll();
+        }
+
+        private void mnuEFind_Click(object sender, EventArgs e) {
+            FindingForm.SetForm(FormMode == LogicFormMode.Logic ? FindFormFunction.FindLogic : FindFormFunction.FindText, InGame);
+            if (fctb.SelectionLength > 0) {
+                FindingForm.cmbFind.Text = fctb.SelectedText;
+            }
+            if (!FindingForm.Visible) {
+                FindingForm.Show(MDIMain);
+            }
+            FindingForm.Select();
+            FindingForm.cmbFind.Select();
+        }
+
+        private void mnuEFindAgain_Click(object sender, EventArgs e) {
+            fctb.findForm.FindNext(fctb.findForm.tbFind.Text);
+        }
+
+        private void mnuEReplace_Click(object sender, EventArgs e) {
+            FindingForm.SetForm(FormMode == LogicFormMode.Logic ? FindFormFunction.ReplaceLogic : FindFormFunction.ReplaceText, InGame);
+            FindingForm.Show(MDIMain);
+        }
+
+        private void mnuESnippet_Click(object sender, EventArgs e) {
+            if (mnuESnippet.Text[0] == 'I') {
+                ShowSnippetList();
+            }
+            else {
+                MessageBox.Show("TODO: create new snippet");
+            }
+        }
+
+        private void mnuEListDefines_Click(object sender, EventArgs e) {
+            ShowDefineList();
+        }
+
+        private void mnuEBlockCmt_Click(object sender, EventArgs e) {
+            fctb.InsertLinePrefix(fctb.CommentPrefix);
+        }
+
+        private void mnuEUnblockCmt_Click(object sender, EventArgs e) {
+            fctb.RemoveLinePrefix(fctb.CommentPrefix);
+        }
+
+        private void mnuEOpenRes_Click(object sender, EventArgs e) {
+            Point taginfo = (Point)mnuEOpenRes.Tag;
+            switch (taginfo.X) {
+            case 0:
+                OpenGameLogic((byte)taginfo.Y);
+                break;
+            case 1:
+                OpenGamePicture((byte)taginfo.Y);
+                break;
+            case 2:
+                OpenGameSound((byte)taginfo.Y);
+                break;
+            case 3:
+                OpenGameView((byte)taginfo.Y);
+                break;
+            default:
+                //"Open " + seltoken.Text + " for Editing"
+                string filename = mnuEOpenRes.Text[6..(^13)];
+                if (InGame) {
+                    // relatve to the source dir
+                    filename = Path.GetFullPath(EditGame.ResDir + filename);
+                }
+                else {
+                    // relative to current dir of this logic
+                    if (FormMode == LogicFormMode.Logic) {
+                        if (EditLogic.SourceFile.Length > 0) {
+                            filename = Path.GetFullPath(Path.GetDirectoryName(EditLogic.SourceFile) + "\\" + filename);
+                        }
+                        else {
+                            // try current dir
+                            filename = Path.GetFullPath(Directory.GetCurrentDirectory() + "\\" + filename);
+                        }
+                    }
+                    else {
+                        if (TextFilename.Length > 0) {
+                            filename = Path.GetFullPath(Path.GetDirectoryName(TextFilename) + "\\" + filename);
+                        }
+                        else {
+                            // try current dir
+                            filename = Path.GetFullPath(Directory.GetCurrentDirectory() + "\\" + filename);
+                        }
+                    }
+                }
+                if (!File.Exists(filename)) {
+                    MessageBox.Show(MDIMain,
+                        "Unable to find '" + mnuEOpenRes.Text[6..(^13)] + "' relative to the current directory.",
+                        "File Not Found",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        @"htm\commands\syntax.htm#include",
+                        WinAGIHelp);
+                    return;
+                }
+                OpenTextFile(filename);
+                break;
+            }
+        }
+
+        private void mnuEViewSynonym_Click(object sender, EventArgs e) {
+            AGIToken token = fctb.TokenFromPos();
+            Place place = new(token.Start, token.Line);
+            fctb.Selection.Start = place;
+            place.iChar = token.End;
+            fctb.Selection.End = place;
+            ShowSynonymList(token.Text);
+        }
+
+        private void mnuEDocumentMap_Click(object sender, EventArgs e) {
+            splitContainer1.Panel2Collapsed = !splitContainer1.Panel2Collapsed;
+        }
+
+        private void mnuELineNumbers_Click(object sender, EventArgs e) {
+            rtfLogic1.ShowLineNumbers = !rtfLogic1.ShowLineNumbers;
+            rtfLogic2.ShowLineNumbers = !rtfLogic2.ShowLineNumbers;
+        }
+
+        private void mnuECharMap_Click(object sender, EventArgs e) {
+            MessageBox.Show("TODO: charmap");
+        }
+        #endregion
+
+        #region Control Event Handlers
+        private void fctb_Enter(object sender, EventArgs e) {
+            fctb = (sender as WinAGIFCTB);
+            // !!! when form gets focus, it always sets focus to the control in
+            // the Panel with TabIndex 0; to keep the current WinAGIFCTB in 
+            // focus, the panel TabIndex values must be reset each time the 
+            // focused control changes
+            if (fctb == rtfLogic1) {
+                splitLogic.Panel1.TabIndex = 1;
+                splitLogic.Panel2.TabIndex = 0;
+            }
+            else {
+                splitLogic.Panel1.TabIndex = 0;
+                splitLogic.Panel2.TabIndex = 1;
+            }
+            documentMap1.Target = fctb;
+            picTip.Visible = false;
+            lstDefines.Visible = false;
+            fctb.Controls.Add(picTip);
+            picTip.BringToFront();
+            fctb.Controls.Add(lstDefines);
+            lstDefines.BringToFront();
+        }
+
+        private void fctb_KeyDown(object sender, KeyEventArgs e) {
+
+        }
+
+        private void fctb_KeyPressed(object sender, KeyPressEventArgs e) {
+            string strLine;
+            /*
+            // ALWAYS reset search flags
+            FindForm.ResetSearch();
+            */
+
+            switch ((int)e.KeyChar) {
+            case 9:
+                // TAB
+                // tabs need to be ignored; they are converted to spaces automatically
+                // by the control
+                e.KeyChar = (char)0;
+                e.Handled = true;
+                break;
+            case 10 or 13:
+                // ENTER
+                break;
+            case 8:
+                // BACKSPACE
+                if (picTip.Visible) {
+                    Place thispos = new Place(TipCmdToken.End + 1, TipCmdToken.Line);
+                    if (fctb.Selection.Start <= thispos) {
+                        // cursor has backed over start of command needing the tip - hide it
+                        picTip.Visible = false;
+                    }
+                    else {
+                        UpdateTip(fctb.Selection.Start);
+                    }
+                }
+                break;
+            case 40:
+                // open parenthesis
+                if (WinAGISettings.AutoQuickInfo.Value) {
+                    if (!picTip.Visible) {
+                        if (NeedCommandTip(fctb, fctb.Selection.Start)) {
+                            RepositionTip(TipCmdToken);
+                        }
+                    }
+                }
+                break;
+            case 32 or 44:
+                // space, comma
+                if (WinAGISettings.AutoQuickInfo.Value) {
+                    if (!picTip.Visible) {
+                        if (NeedCommandTip(fctb, fctb.Selection.Start)) {
+                            if (e.KeyChar == ',') {
+                                TipCurArg++;
+                            }
+                            RepositionTip(TipCmdToken);
+                        }
+                    }
+                    else {
+                        AGITokenType cursortype = fctb.TokenFromPos().Type;
+                        if (cursortype != AGITokenType.Comment && cursortype != AGITokenType.String) {
+                            if (e.KeyChar == ',') {
+                                TipCurArg++;
+                            }
+                            RepositionTip(TipCmdToken);
+                            picTip.Refresh();
+                        }
+                    }
+                }
+                break;
+            case 41:
+                // close parenthesis
+                if (picTip.Visible) {
+                    // if this range of text is not in a quote or comment
+                    AGITokenType cursortype = fctb.TokenFromPos().Type;
+                    if (cursortype != AGITokenType.Comment && cursortype != AGITokenType.String) {
+                        picTip.Visible = false;
+                    }
+                }
+                break;
+            case 35:
+                // #
+                if (WinAGISettings.UseSnippets.Value) {
+                    Place check = fctb.Selection.Start;
+                    check.iChar--;
+                    strLine = fctb.Lines[check.iLine];
+                    AGIToken snippetname = fctb.TokenFromPos(check);
+                    if (snippetname.Text == "#") {
+                        AGIToken starttoken = WinAGIFCTB.PreviousToken(strLine, snippetname);
+                        if (starttoken.Text == ")") {
+                            // snippet has args - backup to find the full snippet text
+                            do {
+                                starttoken = WinAGIFCTB.PreviousToken(strLine, starttoken);
+                                if (starttoken.Text == "(") {
+                                    break;
+                                }
+                            } while (starttoken.Type != AGITokenType.None);
+                            if (starttoken.Type != AGITokenType.None) {
+                                starttoken = WinAGIFCTB.PreviousToken(strLine, starttoken);
+                                if (starttoken.Text[0] == '#') {
+                                    // adjust snippetname
+                                    snippetname.Start = starttoken.Start;
+                                    snippetname.Text = strLine[snippetname.Start..snippetname.End];
+                                }
+                            }
+                        }
+                    }
+                    if (snippetname.Type != AGITokenType.Identifier || snippetname.Text.Length <= 2 || snippetname.Text[0] != '#') {
+                        return;
+                    }
+                    // check for indentation; if leading hashtag is preceded ONLY by
+                    // white space, save the indent value in case the replaced text
+                    // is multi-line
+                    if (snippetname.Start > 0 && strLine[..snippetname.Start].Trim().Length == 0) {
+                        SnipIndent = snippetname.Start;
+                    }
+                    TDefine snippetvalue = new TDefine();
+                    snippetvalue = CheckSnippet(snippetname.Text[1..^1], SnipIndent);
+                    if (snippetvalue.Type == ArgType.None) {
+                        return;
+                    }
+                    snippetvalue.Value = snippetvalue.Value.Replace("\r\n", "\r\n" + "".PadRight(SnipIndent));
+                    Place start = new(snippetname.Start, snippetname.Line);
+                    Place end = fctb.Selection.Start;
+                    fctb.Selection.Start = start;
+                    fctb.Selection.End = end;
+                    fctb.InsertText(snippetvalue.Value, true);
+                    e.KeyChar = (char)0;
+                    e.Handled = true;
+                }
+                break;
+            }
+        }
+
+        private void fctb_KeyUp(object sender, KeyEventArgs e) {
+            switch (e.KeyCode) {
+            case Keys.Up or Keys.Down:
+                if (picTip.Visible) {
+                    picTip.Visible = false;
+                }
+                break;
+            case Keys.Left or Keys.Right:
+                if (picTip.Visible) {
+                    if (NeedCommandTip(fctb, fctb.Selection.Start, true)) {
+                        UpdateTip(fctb.Selection.Start);
+                    }
+                    else {
+                        picTip.Visible = false;
+                    }
+                }
+                break;
+            }
+        }
+
+        private void fctb_MouseDown(object sender, MouseEventArgs e) {
+            if (lstDefines.Visible) {
+                lstDefines.Visible = false;
+            }
+            if (e.Button == MouseButtons.Right) {
+                // move cursor if not on selection
+                if (fctb.Selection.Length == 0) {
+                    fctb.Selection.Start = fctb.PointToPlace(e.Location);
+                    fctb.SelectionLength = 0;
+                }
+                else {
+                    int spos = fctb.PlaceToPosition(fctb.Selection.Start);
+                    int epos = fctb.PlaceToPosition(fctb.Selection.End);
+                    int pos = fctb.PointToPosition(e.Location);
+                    if (fctb.Selection.Start > fctb.Selection.End) {
+                        int swap = spos;
+                        spos = epos;
+                        epos = swap;
+                    }
+                    if (pos < spos || pos > epos) {
+                        fctb.Selection.Start = fctb.PointToPlace(e.Location);
+                        fctb.SelectionLength = 0;
+                    }
+                }
+            }
+        }
+
+        private void fctb_MouseMove(object sender, MouseEventArgs e) {
+
+        }
+
+        private void fctb_MouseUp(object sender, MouseEventArgs e) {
+            if (picTip.Visible) {
+                if (fctb.Selection.Start.iLine != TipCmdToken.Line) {
+                    picTip.Visible = false;
+                }
+                else {
+                    AGIToken seltoken = fctb.TokenFromPos();
+                    int argcount = 0;
+                    AGIToken cmdtoken = FindPrevCmd(fctb, seltoken, ref argcount);
+                    if (cmdtoken.Start == TipCmdToken.Start && cmdtoken.End == TipCmdToken.End) {
+                        if (argcount != TipCurArg) {
+                            TipCurArg = argcount;
+                            picTip.Refresh();
+                        }
+                    }
+                    else {
+                        picTip.Visible = false;
+                    }
+                }
+            }
+        }
+
+        private void fctb_SelectionChanged(object sender, EventArgs e) {
+            if (fctb == null) {
+                return;
+            }
+            MainStatusBar.Items["spStatus"].Text = "";
+            //MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
+            //MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
+        }
+
+        private void fctb_TextChanged(object sender, TextChangedEventArgs e) {
+            AGISyntaxHighlight(e.ChangedRange);
+            if (loading || !Visible) {
+                return;
+            }
+            DefDirty = true;
+            MarkAsChanged();
+            //MainStatusBar.Items["spStatus"].Text = "";
+            //MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
+            //MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
+        }
+
+        private void fctb_TextChangedDelayed(object sender, FastColoredTextBoxNS.TextChangedEventArgs e) {
+
+        }
+
+        private void fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e) {
+            if (!WinAGISettings.ShowDefTips.Value || picTip.Visible) {
+                return;
+            }
+            AGIToken seltoken = fctb.TokenFromPos(e.Place);
+            if (seltoken.Type != AGITokenType.Identifier) {
+                return;
+            }
+            string strDefine = seltoken.Text;
+            if (strDefine.Length == 0) {
+                return;
+            }
+            // check locals first
+            if (DefDirty) {
+                BuildLDefLookup();
+            }
+            for (int i = 0; i < LDefLookup.Length; i++) {
+                if (strDefine.Equals(LDefLookup[i].Name)) {
+                    strDefine += " = " + LDefLookup[i].Value;
+                    e.ToolTipText = strDefine;
+                    return;
+                }
+            }
+            if (EditGame != null) {
+                // next check globals
+                for (int i = 0; i < GDefLookup.Length; i++) {
+                    if (strDefine.Equals(GDefLookup[i].Name)) {
+                        strDefine += " = " + GDefLookup[i].Value;
+                        e.ToolTipText = strDefine;
+                        return;
+                    }
+                }
+                // then ids; we will test logics, then views, then sounds, then pics
+                // as that's the order that defines are most likely to be used
+                for (int i = 0; i <= EditGame.Logics.Max; i++) {
+                    if (IDefLookup[(int)AGIResType.Logic, i].Type != ArgType.None) {
+                        if (strDefine.Equals(IDefLookup[(int)AGIResType.Logic, i].Name)) {
+                            strDefine += " = " + IDefLookup[(int)AGIResType.Logic, i].Value;
+                            e.ToolTipText = strDefine;
+                            return;
+                        }
+                    }
+                }
+                for (int i = 0; i <= EditGame.Views.Max; i++) {
+                    if (IDefLookup[(int)AGIResType.View, i].Type != ArgType.None) {
+                        if (strDefine.Equals(IDefLookup[(int)AGIResType.View, i].Name)) {
+                            strDefine += " = " + IDefLookup[(int)AGIResType.View, i].Value;
+                            e.ToolTipText = strDefine;
+                            return;
+                        }
+                    }
+                }
+                for (int i = 0; i <= EditGame.Sounds.Max; i++) {
+                    if (IDefLookup[(int)AGIResType.Sound, i].Type != ArgType.None) {
+                        if (strDefine.Equals(IDefLookup[(int)AGIResType.Sound, i].Name)) {
+                            strDefine += " = " + IDefLookup[(int)AGIResType.Sound, i].Value;
+                            e.ToolTipText = strDefine;
+                            return;
+                        }
+                    }
+                }
+                for (int i = 0; i <= EditGame.Pictures.Max; i++) {
+                    if (IDefLookup[(int)AGIResType.Picture, i].Type != ArgType.None) {
+                        if (strDefine.Equals(IDefLookup[(int)AGIResType.Picture, i].Name)) {
+                            strDefine += " = " + IDefLookup[(int)AGIResType.Picture, i].Value;
+                            e.ToolTipText = strDefine;
+                            return;
+                        }
+                    }
+                }
+            }
+            // still no match, check reserved defines
+            for (int i = 0; i <= 94; i++) {
+                if (strDefine.Equals(RDefLookup[i].Name)) {
+                    strDefine += " = " + RDefLookup[i].Value;
+                    e.ToolTipText = strDefine;
+                    return;
+                }
+            }
+        }
+
+        private void picTip_Paint(object sender, PaintEventArgs e) {
+            RedrawTipWindow(e.Graphics);
+        }
+
+        private void lstDefines_MouseDoubleClick(object sender, MouseEventArgs e) {
+            SelectWord();
+        }
+
+        private void lstDefines_KeyPress(object sender, KeyPressEventArgs e) {
+
+            switch (e.KeyChar) {
+            case '\r' or '\n':
+                // ENTER selects the highlighted word
+                SelectWord();
+                lstDefines.Visible = false;
+                break;
+            case (char)27:
+                // ESCAPE cancels, and restores selection
+                fctb.Selection.Start = DefStartPos;
+                fctb.Selection.End = DefEndPos;
+                fctb.SelectedText = DefText;
+                fctb.Selection.Start = fctb.Selection.End;
+                lstDefines.Visible = false;
+                break;
+            default:
+                if ((string)lstDefines.Tag != "defines") {
+                    break;
+                }
+                if (e.KeyChar == (char)8) {
+                    // BACKSPACE deletes character preceding cursor
+                    if (PrevText.Length > 0) {
+                        PrevText = PrevText[..^1];
+                        DefEndPos.iChar--;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                else {
+                    // add newly typed character
+                    PrevText += e.KeyChar;
+                    DefEndPos.iChar++;
+                }
+                fctb.SelectedText = PrevText;
+                fctb.Selection.Start = DefStartPos;
+                fctb.Selection.End = DefEndPos;
+                // find closest match, if there's something typed
+                // (ignore case)
+                if (PrevText.Length > 0) {
+                    foreach (ListViewItem item in lstDefines.Items) {
+                        if (item.Text.Left(PrevText.Length).Equals(PrevText, StringComparison.OrdinalIgnoreCase)) {
+                            if (lstDefines.SelectedItems.Count > 0) {
+                                lstDefines.SelectedItems[0].Selected = false;
+                            }
+                            item.Selected = true;
+                            item.EnsureVisible();
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+            e.KeyChar = '\0';
+            e.Handled = true;
+        }
+
+        private void lstDefines_VisibleChanged(object sender, EventArgs e) {
+            fctb.NoMouse = lstDefines.Visible;
+        }
+        #endregion
+
+        private bool ReadMsgs(ref MessageData[] Messages) {
+            // all valid message declarations in strText are
+            // put into the Messages() array; the MsgUsed array
+            // is used to mark each declared message added
+            //
+            // if an error in the logic is detected that would
+            // make it impossible to accurately update the message
+            // section, the function returns false, and Messages(0)
+            // is populated with the error code, Messages(1)
+            // is populated with the line where the error was found,
+            // and subsequent elements are populated with any
+            // additional information regarding the error
+            // error codes:
+            //     1 = invalid msg number
+            //     2 = duplicate msg number
+            //     3 = not a string
+            //     4 = stuff not allowed after msg declaration
+            int intMsgNum;
+
+            // get first message marker position
+            AGIToken token = fctb.TokenFromPos(new Place(0, 0));
+            while (token.Type != AGITokenType.None) {
+                if (token.Type == AGITokenType.Identifier && token.Text == "#message") {
+                    // next cmd should be msg number
+                    token = fctb.NextToken(token);
+                    if (token.Type != AGITokenType.Number || (intMsgNum = int.Parse(token.Text)) < 1 || intMsgNum > 255) {
+                        // invalid msg number
+                        Messages[0].Line = 1;
+                        Messages[1].Line = token.Start;
+                        // displayed lines are '1' based
+                        Messages[2].Line = token.Line + 1;
+                        return false;
+                    }
+                    if (Messages[intMsgNum].Declared) {
+                        // user needs to fix message section first;
+                        // return false, and use the Message structure to indicate
+                        // what the problem is, and on which line it occurred
+                        Messages[0].Line = 2;
+                        Messages[1].Line = token.Start;
+                        Messages[2].Line = token.Line + 1;
+                        Messages[3].Line = intMsgNum;
+                        return false;
+                    }
+                    // next cmd should be a string
+                    token = fctb.NextToken(token);
+                    switch (token.Type) {
+                    case AGITokenType.String:
+                        // valid string is >1 char, ends with '"' and doesn't end with '\"'
+                        if (token.Text.Length == 1 || token.Text[^1] != '\"' || token.Text[^2] == '\\') {
+                            Messages[0].Line = 5;
+                            Messages[1].Line = token.Start;
+                            Messages[2].Line = token.Line + 1;
+                            Messages[3].Line = intMsgNum;
+                            return false;
+                        }
+                        Messages[intMsgNum].Text = token.Text;
+                        Messages[intMsgNum].Line = token.Line;
+                        Messages[intMsgNum].Type = 0;
+                        // check fo concatenation
+                        AGIToken concattoken;
+                        do {
+                            // check for end of line
+                            Place concatstart = new(token.Start, token.Line);
+                            token = fctb.NextToken(token, false);
+                            if (token.Type != AGITokenType.None && token.Type != AGITokenType.Comment) {
+                                // stuff not allowed on line after msg declaration
+                                Messages[0].Line = 4;
+                                Messages[1].Line = concatstart.iChar;
+                                Messages[2].Line = concatstart.iLine + 1;
+                                Messages[3].Line = intMsgNum;
+                                return false;
+                            }
+                            concattoken = fctb.NextToken(token, true);
+                            while (concattoken.Type == AGITokenType.String) {
+                                if (concattoken.Text[^1] == '\"') {
+                                    // valid string is >1 char, ends with '"' and doesn't end with '\"'
+                                    if (concattoken.Text.Length == 1 || concattoken.Text[^1] != '\"' || concattoken.Text[^2] == '\\') {
+                                        Messages[0].Line = 5;
+                                        Messages[1].Line = concattoken.Start;
+                                        Messages[2].Line = concattoken.Line + 1;
+                                        Messages[3].Line = intMsgNum;
+                                        return false;
+                                    }
+                                }
+                                // add it to current 
+                                Messages[intMsgNum].Text = Messages[intMsgNum].Text[..^1] + concattoken.Text[1..];
+                                Messages[intMsgNum].Concat++;
+                                token = concattoken;
+                            }
+                        } while (concattoken.Type == AGITokenType.String);
+                        // set flag to show message is declared
+                        Messages[intMsgNum].Declared = true;
+                        break;
+                    case AGITokenType.Identifier:
+                        //try replacing with define (locals, then globals, then reserved
+                        bool blnDefFound = false;
+                        for (int i = 0; i < LDefLookup.Length; i++) {
+                            if (LDefLookup[i].Type == ArgType.DefStr) {
+                                if (LDefLookup[i].Name == token.Text) {
+                                    token.Text = LDefLookup[i].Value;
+                                    blnDefFound = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!blnDefFound) {
+                            for (int i = 0; i < GDefLookup.Length; i++) {
+                                if (GDefLookup[i].Type == ArgType.DefStr) {
+                                    if (GDefLookup[i].Name == token.Text) {
+                                        blnDefFound = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (!blnDefFound) {
+                            for (int i = 0; i < LogicCompiler.ReservedDefines(ArgType.DefStr).Length; i++) {
+                                if (LogicCompiler.ReservedDefines(ArgType.DefStr)[i].Name == token.Text) {
+                                    blnDefFound = true;
+                                    break;
+                                }
+                            }
+                        }
+                        // if it was replaced, we accept whatever was used as
+                        // the define name; if not replaced, it's error
+                        if (blnDefFound) {
+                            Messages[intMsgNum].Text = token.Text;
+                            Messages[intMsgNum].Line = token.Line;
+                            Messages[intMsgNum].Type = 2;
+                            Messages[intMsgNum].Declared = true;
+                            return true;
+                        }
+                        else {
+                            // not a string or defined string
+                            Messages[0].Line = 3;
+                            Messages[1].Line = token.Start;
+                            Messages[2].Line = token.Line + 1;
+                            Messages[3].Line = intMsgNum;
+                            return false;
+                        }
+                    default:
+                        // not a string or identifer
+                        Messages[0].Line = 3;
+                        Messages[1].Line = token.Start;
+                        Messages[2].Line = token.Line + 1;
+                        Messages[3].Line = intMsgNum;
+                        return false;
+                    }
+                }
+                token = fctb.NextToken(token, true);
+            }
             return true;
-            /*
-              'set ingame flag based on logic passed
-              InGame = ThisLogic.Resource.InGame
-
-              'set number if this logic is in a game
-              If InGame Then
-                LogicNumber = ThisLogic.Number
-              Else
-                'use a number that can never match
-                'when searches for open logics are made
-                LogicNumber = 256
-              End If
-
-              'create new logic object for the editor
-              Set EditLogic = New AGILogic
-
-              '*'Debug.Assert EditLogic.Loaded
-              'copy the passed logic to the editor logic
-              EditLogic.SetLogic ThisLogic
-
-              'assign source code to editor
-              If FileExists(EditLogic.SourceFile) Then
-                rtfLogic.LoadFile EditLogic.SourceFile, reOpenSaveText, 437
-              Else
-                rtfLogic.Text = EditLogic.SourceText
-              End If
-                'if not using syntax highlighting
-                If Not Settings.HighlightLogic Then
-                  'force refresh
-                  rtfLogic.RefreshHighlight
-                End If
-
-              'clear undo buffer
-              rtfLogic.EmptyUndo
-
-              'set caption
-              If Not InGame And EditLogic.ID = "NewLogic" Then
-                LogCount = LogCount + 1
-                EditLogic.ID = "NewLogic" & CStr(LogCount)
-                rtfLogic.Dirty = True
-              Else
-                rtfLogic.Dirty = EditLogic.IsDirty
-              End If
-              Caption = sLOGED & ResourceName(EditLogic, InGame, True)
-
-              'set dirty status
-              If rtfLogic.Dirty Then
-                MarkAsDirty
-              Else
-                frmMDIMain.mnuRSave.Enabled = False
-                frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-              End If
-
-              'empty undo buffer
-              rtfLogic.EmptyUndo
-
-              'maximize, if that's the current setting
-              If Settings.MaximizeLogics Then
-                WindowState = vbMaximized
-              End If
-
-              'return true
-              EditLogic = True
-            Exit Function
-
-            ErrHandler:
-              'opening existing?
-              'opening new?
-              'opening import?
-              ErrMsgBox "Error while opening logic:", "Unable to open logic for editing", "Logic Editor Error"
-              EditLogic.Unload
-              Set EditLogic = Nothing
-            */
-        }
-        public void MenuClickDescription(int FirstProp) {
-            /*
-        Dim strID As String, strDescription As String
-
-        On Error GoTo ErrHandler
-
-        If FirstProp<> 1 And FirstProp <> 2 Then
-          FirstProp = 1
-        End If
-
-        strID = EditLogic.ID
-        strDescription = EditLogic.Description
-
-        'use the id/description change method
-        If GetNewResID(AGIResType.Logic, LogicNumber, strID, strDescription, InGame, FirstProp) Then
-          'save changes to logicedit
-          UpdateID strID, strDescription
-        End If
-
-        'if layout editor is in use, update it too
-
-        'force menu update
-        AdjustMenus AGIResType.Logic, InGame, True, rtfLogic.Dirty
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-            */
         }
 
-
-        void tmpLogEd() {
-            /*
-       Option Explicit
-
-        Private FixingGlitch As Boolean
-        Private mLoading As Boolean
-        Private MouseDown As Boolean
-        Private blnDblClick As Boolean
-
-        ' tool tip variables
-        Private TipCmdPos As Long, TipCurArg As Long
-        Private TipCmdNum As Long
-
-        'to manage the defines list feature
-        Private DefEndPos As Long, DefTopLine As Long
-        Private DefStartPos As Long
-        Private PrevText As String
-        Private DefText As String
-        Private DefTip As String
-        Private LastPos As Long
-
-        Private SnipIndent As Long
-
-        Private OldMouseX As Long, OldMouseY As Long
-        Private pPos As POINTAPI
-        Private LDefLookup() As TDefine
-        Private DefDirty As Boolean
-        'DefDirty means text has changed, so the lookup list needs
-        'to be rebuilt;
-        Public ListDirty As Boolean
-        'ListDirty means the ShowDefinesList needs to be rebuilt
-        Private ListType As EArgListType
-        'tracks what is currently being included in the list
-        '(public so we can get notified of global changes)
-
-        Public FormMode As ELogicFormMode
-        Public FileName As String
-
-        Private CalcWidth As Long, CalcHeight As Long
-        Private Const MIN_HEIGHT = 150
-        Private Const MIN_WIDTH = 150
-
-        ' need way to ignore control keys (with
-        ' keycodes less than 31; the riched control
-        ' works properly in test app, but for some
-        ' reason it doesn't work when the control
-        ' is compiled)
-        Private NoChange As Boolean
-
-        ' logic specific properties
-        Public EditLogic As AGILogic
-        Public LogicNumber As Long
-        Public InGame As Boolean
-
-
-
-      Private Function AddArgs(ByVal TextIn As String) As String
-
-        Dim i As Long, strArg As String
-
-        On Error GoTo ErrHandler
-
-        'if there are arguments, get replacement values
-
-        AddArgs = TextIn
-
-        i = 1
-        Do
-          'if this arg value is present,
-          If InStr(1, AddArgs, "%" & CStr(i)) > 0 Then
-            strArg = InputBox("Enter text for argument #" & CStr(i) & ":", "Input Snippet Argument")
-            AddArgs = Replace(AddArgs, "%" & CStr(i), strArg)
-          Else
-            'done;
-            Exit Function
-          End If
-        Loop While True
-
-      Exit Function
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Function
-
-      Private Sub AddIfUnique(ByVal strName, ByVal lngIcon, ByVal strValue)
-
-        On Error Resume Next
-
-        Dim i As Long
-
-        'check for existing item
-        i = lstDefines.ListItems(strName).Index
-
-        'if no error, means it's not unique
-        If Err.Number = 0 Then
-          Err.Clear
-          Exit Sub
-        End If
-        Err.Clear
-
-        'OK to add it
-        lstDefines.ListItems.Add(, , strName, , lngIcon).Key = strName
-        lstDefines.ListItems(strName).Tag = strValue
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-       Private Sub BuildDefineList(Optional ByVal ArgType As EArgListType = alAll)
-
-        'adds defines to the listview, which is then presented to user
-        'the list defaults to all defines; but when a specific argument
-        'type is needed, it will adjust to show only the defines
-        'of that particular type
-
-        Dim tmpDefines() As TDefine, Max As Long, Min As Long
-        Dim i As Long, j As Long, blnAdd As Boolean
-        Dim strLine As String
-        Dim tmpLines As StringList, tdNewDefine As TDefine
-        Const DEFINE As String = "#define "
-        Const SPACE_CHAR As String = " "
-
-        Dim tmpLog As AGILogic
-        Dim tmpPic As AGIPicture
-        Dim tmpSnd As AGISound
-        Dim tmpView As AGIView
-
-        'if we don't need to rebuild, then don't!
-        If Not ListDirty And Not DefDirty And (ArgType = ListType) Then
-          'since the list is good, and the local defines list
-          'is good, and the type matches, nothing to do here
-          Exit Sub
-        End If
-
-        'this might take awhile
-        WaitCursor
-
-        'ignore all errors; just keep going
-        On Error GoTo ErrHandler
-
-        lstDefines.ListItems.Clear
-        lstDefines.Tag = "defines"
-
-        'locals not needed if looking for only a ResID
-        If ArgType < alLogic Then
-          'if locals need updating, rebuild the list
-          If DefDirty Then
-            BuildLDefLookup
-          End If
-
-          'add local defines (if duplicate defines, only first one will be used)
-          Max = UBound(LDefLookup())
-          'if only one element we need to verify it's a real define and not blank
-          If Max = 0 Then
-            If LDefLookup(0).Name = "" Then
-              Max = -1
-            End If
-          End If
-          For i = 0 To Max
-            'add these local defines IF
-            '   types match OR
-            '   argtype is ALL OR
-            '   argtype is (msg OR invobj) AND deftype is defined string OR
-            '   argtype matches a special type
-            blnAdd = False
-            If LDefLookup(i).Type = ArgType Then
-              blnAdd = True
-            Else
-              Select Case ArgType
-              Case alAll
-                blnAdd = True
-              Case alIfArg   'variables and flags
-                blnAdd = (LDefLookup(i).Type = atVar Or LDefLookup(i).Type = atFlag)
-              Case alOthArg  'variables and strings
-                blnAdd = (LDefLookup(i).Type = atVar Or LDefLookup(i).Type = atStr)
-              Case alValues  'variables and numbers
-                blnAdd = (LDefLookup(i).Type = atVar Or LDefLookup(i).Type = atNum)
-              Case alMsg, alIObj
-                blnAdd = LDefLookup(i).Type = atDefStr
-              End Select
-            End If
-
-            If blnAdd Then
-              'don't add if already defined
-              AddIfUnique LDefLookup(i).Name, 1 + LDefLookup(i).Type, LDefLookup(i).Value
-            End If
-          Next i
-        End If
-
-        'global defines next (but only if not looking for just a ResID)
-        If GameLoaded And ArgType < alLogic Then
-          Max = UBound(GDefLookup())
-          'if only one element we need to verify it's a real define and not blank
-          If Max = 0 Then
-            If GDefLookup(0).Name = "" Then
-              Max = -1
-            End If
-          End If
-          'add em
-          For i = 0 To Max
-            'add these global defines IF
-            '   types match OR
-            '   argtype is ALL OR
-            '   argtype is (msg OR invobj) AND deftype is defined string
-            '   argtype matches a special type
-            blnAdd = False
-            If GDefLookup(i).Type = ArgType Then
-              blnAdd = True
-            Else
-              Select Case ArgType
-              Case alAll
-                blnAdd = True
-              Case alIfArg   'variables and flags
-                blnAdd = (GDefLookup(i).Type = atVar Or GDefLookup(i).Type = atFlag)
-              Case alOthArg  'variables and strings
-                blnAdd = (GDefLookup(i).Type = atVar Or GDefLookup(i).Type = atStr)
-              Case alValues  'variables and numbers
-                blnAdd = (GDefLookup(i).Type = atVar Or GDefLookup(i).Type = atNum)
-              Case alMsg, alIObj
-                blnAdd = GDefLookup(i).Type = atDefStr
-              End Select
-            End If
-
-            If blnAdd Then
-              'don't add if already defined
-              AddIfUnique GDefLookup(i).Name, 12 + GDefLookup(i).Type, GDefLookup(i).Value
-            End If
-          Next i
-        End If
-
-        'check for logics, views, sounds, iobjs, voc words AND pics
-        Select Case ArgType
-        Case alAll, alByte, alValues, alLogic, alPicture, alSound, alView
-          Select Case ArgType
-          Case alAll, alByte, alValues
-            Min = 0
-            Max = 1023
-          Case alLogic
-            Min = 0
-            Max = 255
-          Case alPicture
-            Min = 768
-            Max = 1023
-          Case alSound
-            Min = 512
-            Max = 767
-          Case alView
-            Min = 256
-            Max = 511
-          End Select
-
-          For i = Min To Max
-            'if this resource is ingame, Type=0
-            'if NOT in game, Type=11
-            If IDefLookup(i).Type = atNum Then
-              'don't add if already defined
-              AddIfUnique IDefLookup(i).Name, 23 + Int(i / 256), IDefLookup(i).Value
-            End If
-          Next i
-
-        Case alIObj
-          'add inv items (ok if matches an existing define)
-          With InventoryObjects
-            If Not .Loaded Then
-              .Load
-            End If
-
-            'skip first obj, and any others that are just a question mark
-            For i = 1 To .Count - 1
-              strLine = .Item(i).ItemName
-              If strLine <> "?" Then
-                If InStr(strLine, QUOTECHAR) <> 0 Then
-                  strLine = Replace(strLine, QUOTECHAR, "\" & QUOTECHAR)
-                End If
-                  lstDefines.ListItems.Add(, , Chr$(34) & strLine & Chr$(34), , 17).Tag = "i" & CStr(i)
-              End If
-            Next i
-          End With
-
-        Case alVocWrd
-          'add vocab words items (ok if matches an existing define)
-          With VocabularyWords
-            If Not .Loaded Then
-              .Load
-            End If
-
-            'skip group 0
-            For i = 1 To .GroupCount - 1
-              lstDefines.ListItems.Add(, , Chr$(34) & .Group(i).GroupName & Chr$(34), , 22).Tag = .Group(i).GroupNum
-            Next i
-          End With
-        End Select
-
-        'lastly, check for reserved defines option (if not looking for a resourceID)
-        If LogicCompiler.UseReservedNames And ArgType < alLogic Then
-          Max = 94
-          If Max > 0 Then
-            'add em
-            For i = 0 To Max
-              'add these global defines IF
-              '   types match OR
-              '   argtype is ALL OR
-              '   argtype is (msg OR invobj) AND deftype is defined string
-              '   argtype matches a special type
-              blnAdd = False
-              If RDefLookup(i).Type = ArgType Then
-                blnAdd = True
-              Else
-                Select Case ArgType
-                Case alAll
-                  blnAdd = True
-                Case alIfArg   'variables and flags
-                  blnAdd = (RDefLookup(i).Type = atVar Or RDefLookup(i).Type = atFlag)
-                Case alOthArg  'variables and strings
-                  blnAdd = (RDefLookup(i).Type = atVar Or RDefLookup(i).Type = atStr)
-                Case alValues  'variables and numbers
-                  blnAdd = (RDefLookup(i).Type = atVar Or RDefLookup(i).Type = atNum)
-                Case alMsg, alIObj
-                  blnAdd = RDefLookup(i).Type = atDefStr
-                End Select
-              End If
-
-              If blnAdd Then
-                'don't add if already defined
-                AddIfUnique RDefLookup(i).Name, 27 + RDefLookup(i).Type, RDefLookup(i).Value
-              End If
-            Next i
-          End If
-        End If
-
-        'list is clean
-        ListDirty = False
-        ListType = ArgType
-
-        'restore cursor
-        Screen.MousePointer = vbDefault
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-      Private Sub BuildLDefLookup()
-
-        'builds the local list of defines for use by
-        'the tooltip and showlist functions
-
-        Dim tmpLines As StringList, Max As Long
-        Dim i As Long, NumDefs As Long
-        Dim strLine As String, tmpDefine As TDefine
-        Dim blnSub As Boolean
-
-        Const SPACE_CHAR = " "
-        Const DEFINE = "#define "
-
-        'should only be called if needed (DefDirty=True)
-        '*'Debug.Assert DefDirty
-
-        'if cursor is already the wait cursor, we need to
-        'NOT restore it after completion; calling function
-        'will do that
-        blnSub = (Screen.MousePointer = vbHourglass)
-
-        'this might take awhile
-        WaitCursor
-
-        'ignore all errors; just keep going
-        On Error GoTo ErrHandler
-
-
-        'add local defines (if duplicate defines, only first one will be used)
-        Set tmpLines = New StringList
-        'OK to use raw text; don't need to worry about extended characters here
-        tmpLines.Assign rtfLogic.Text
-
-        'reset the lookup array
-        ReDim LDefLookup(0)
-        NumDefs = -1
-
-        'step through all lines and find define values
-        Max = tmpLines.Count
-        For i = 0 To Max - 1
-          'remove comments and trim the line
-          strLine = StripComments(tmpLines(i), "")
-          If LenB(strLine) > 0 Then
-            Do
-              'check for define statement
-              If Left$(LCase$(strLine), 8) = DEFINE Then
-                'strip off define keyword
-                strLine = Trim$(Right$(strLine, Len(strLine) - 8))
-              Else
-                Exit Do
-              End If
-
-              'there has to be at least one space
-              If InStr(1, strLine, SPACE_CHAR) <> 0 Then
-                'split it by position of first space
-                tmpDefine.Name = Trim$(Left$(strLine, InStr(1, strLine, SPACE_CHAR) - 1))
-                tmpDefine.Value = Trim$(Right$(strLine, Len(strLine) - InStr(1, strLine, SPACE_CHAR)))
-              Else
-                'no good; get next line
-                Exit Do
-              End If
-
-              'don't bother validating; just use it as long as the Type can be determined
-              If LenB(tmpDefine.Value) = 0 Or LenB(tmpDefine.Name) = 0 Then
-                Exit Do
-              End If
-              tmpDefine.Type = DefTypeFromValue(tmpDefine.Value)
-              'increment counter
-              NumDefs = NumDefs + 1
-              ReDim Preserve LDefLookup(NumDefs)
-              LDefLookup(NumDefs) = tmpDefine
-            Loop Until True
-          End If
-          'get next line
-        Next i
-
-        Set tmpLines = Nothing
-        DefDirty = False
-
-        If Not blnSub Then
-          'restore cursor unless called from ShowDefineList
-          Screen.MousePointer = vbDefault
-        End If
-
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-      Public Sub MenuClickECustom3()
-
-        ' open an ingame resource for editing, or
-        ' list synonyms for a 'said' word
-
-        Dim i As Long, strID As String
-
-        On Error GoTo ErrHandler
-
-        'if cursor token is an editable game resource
-        If Asc(frmMDIMain.mnuECustom3.Caption) = 79 Then
-          ' get the token (resourceID or word)
-          strID = TokenFromCursor(rtfLogic)
-
-          ' open it for editing
-
-          ' find the name in the list and open it
-          For i = 0 To 1023
-            If strID = IDefLookup(i).Name Then
-              Select Case i \ 256
-              Case 0 'logic
-                OpenLogic i Mod 256
-              Case 1 'view
-                OpenView i Mod 256
-              Case 2 'sound
-                OpenSound i Mod 256
-              Case 3 'picture
-                OpenPicture i Mod 256
-              End Select
-              Exit Sub
-            End If
-          Next i
-        End If
-
-        'if cursor token is over a 'said' word
-        If Asc(frmMDIMain.mnuECustom3.Caption) = 86 Then
-          ' get the token (resourceID or word)
-          strID = TokenFromCursor(rtfLogic, True, True)
-
-          'strip off quotes
-          strID = Mid(strID, 2, Len(strID) - 2)
-
-          'show the list
-          ShowSynonymList strID
-        End If
-
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-      Private Sub ConvertPos(ByRef posX As Long, ByRef posY As Long)
-
-        'converts screen coordinates from the GetPoint function into
-        'relative values based on the on the rtfLogic window
-
-        'need to account for borders, toolbars, etc
-
-        Dim lngLogLeftBorder As Long, lngLogTopBorder As Long
-
-        On Error GoTo ErrHandler
-
-        'left border is easy; difference between width and scalewidth
-        lngLogLeftBorder = (Me.Width / ScreenTWIPSX - Me.ScaleWidth) / 2
-        'top is a bit trickier- need to account for toolbar, and rtf window appears to have a 3 pixel offset
-        lngLogTopBorder = Me.Height / ScreenTWIPSY - Me.ScaleHeight - Toolbar1.Height - lngLogLeftBorder + 3
-
-        posX = posX - (Me.Left + frmMDIMain.Left + frmMDIMain.picResources.Width) / ScreenTWIPSX - (rtfLogic.Width - rtfLogic.ScaleWidth / ScreenTWIPSX) - lngLogLeftBorder
-        posY = posY - (Me.Top + frmMDIMain.Top) / ScreenTWIPSY - lngMainTopBorder - lngLogTopBorder
-
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-      Private Function GetCursorToken(ByRef lngPos As Long) As String
-
-        'using current cursor pos, return the token under cursor
-        'expanding both forwards and backwards
-
-        'lngPos is also updated to start position of the token
-
-        On Error GoTo ErrHandler
-
-        Dim lngLineStart As Long
-        Dim i As Long, j As Long
-        Dim rtn As Long, strLine As String
-
-        'separators are any character EXCEPT:
-        ' #, $, %, ., 0-9, @, A-Z, _, a-z
-        '(codes 35 To 37, 46, 48 To 57, 64 To 90, 95, 97 To 122)
-
-        'only need to search on current line, so
-        'extract it to simplify the text searching
-
-        'if starting character is vbCr, then exit; cursor is at or past end of a line
-        If Asc(rtfLogic.Range(lngPos, lngPos + 1).Text) = 13 Then
-          Exit Function
-        End If
-
-        rtn = SendMessage(rtfLogic.hWnd, EM_LINEFROMCHAR, lngPos, 0)
-        'get the startpos of this line
-        lngLineStart = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, rtn, 0)
-        'get current row
-        strLine = StripComments(rtfLogic.Range(lngLineStart, lngLineStart).Expand(reLine).Text, "", True)
-
-        If Len(strLine) = 0 Then
-          Exit Function
-        End If
-
-        'move backward until separator found
-        'i is relative position of starting point in current line;
-        'start with i pointing to previous char, then enter do loop
-        i = lngPos - lngLineStart + 1
-        If i > Len(strLine) Then
-          Exit Function
-        End If
-        Do While i >= 1
-          Select Case Asc(Mid$(strLine, i))
-          Case 35 To 37, 46, 48 To 57, 64 To 90, 95, 97 To 122
-            'ok
-          Case Else
-            'no good
-            Exit Do
-          End Select
-          i = i - 1
-        Loop
-
-        'move endpos forward until separator found
-        j = lngPos - lngLineStart + 1
-        Do While j <= Len(strLine)
-          Select Case Asc(Mid$(strLine, j))
-          Case 35 To 37, 46, 48 To 57, 64 To 90, 95, 97 To 122
-            'ok
-          Case Else
-            Exit Do
-          End Select
-          j = j + 1
-        Loop
-
-        If i = j Then Exit Function
-        'return the token
-        GetCursorToken = Mid(strLine, i + 1, j - i - 1)
-        lngPos = lngLineStart + i
-
-      Exit Function
-
-      ErrHandler:
-        '*'Debug.Assert False
-        lngPos = -1
-      End Function
-
-      Private Function GetArgType(ByVal blnInQuote As Boolean) As EArgListType
-
-        On Error GoTo ErrHandler
-
-        'check if within a command
-        Dim strCmd As String, strText As String
-        Dim lngPos As Long
-
-        'check for a command infront of this spot
-        'OK to use raw text; don't need to worry about extended characters here
-        lngPos = rtfLogic.Selection.Range.StartPos
-        strText = rtfLogic.Text
-
-        'get previous command from current pos
-        strCmd = FindPrevCmd(strText, lngPos, TipCurArg, blnInQuote)
-
-        'adjust cmdpos
-        TipCmdPos = lngPos
-
-        'is this a valid command?
-        If strCmd = "(" Then
-          'skip past them
-          Do
-            strCmd = FindPrevToken(strText, lngPos, blnInQuote)
-          Loop Until strCmd <> "("
-        End If
-
-        'if still nothing,
-        If Len(strCmd) = 0 Then
-          'we asssume this is a variable or string assignment;
-          '*'Debug.Print "unknown arg type"
-          GetArgType = alOthArg
-          Exit Function
-        End If
-
-        'check for non command text
-        Select Case strCmd
-        Case vbCr, vbCrLf, vbLf
-          GetArgType = alOthArg
-          Exit Function
-
-        Case "==", "!=", ">", ">", "<=", ">=", "=<", "=>", "||", "&&"
-          'var or number
-          GetArgType = alValues
-          Exit Function
-        Case "++", "--"
-          GetArgType = alVar
-          Exit Function
-        Case "="
-          'var, number, string
-          GetArgType = alValues
-          Exit Function
-        Case "if"
-          'var, flag
-          GetArgType = alIfArg
-          Exit Function
-        End Select
-
-        'now check this command against list
-        TipCmdNum = LogicCmd(strCmd)
-
-        If TipCmdNum = -1 Then
-          GetArgType = alAll
-          Exit Function
-        End If
-
-        'check for 'said' command
-        If TipCmdNum = 116 Then
-          GetArgType = alVocWrd
-        Else
-
-          'use ascii Value of argument syntax to determine
-          'the argtype
-          Dim strArgs() As String
-          strArgs = Split(LoadResString(5000 + TipCmdNum), ", ")
-          If TipCurArg <= UBound(strArgs) Then
-            Select Case Asc(strArgs(TipCurArg))
-            Case 98 'byte or number
-              GetArgType = alByte
-
-              'check for special cases where resourceIDs are also valid
-              Select Case TipCmdNum
-              Case 0  'add.to.pic(view, byt, byt, byt, byt, byt, byt)
-                If TipCurArg = 0 Then
-                  GetArgType = alView
-                End If
-              Case 9  'call(logic)
-                GetArgType = alLogic
-              Case 24 'discard.sound(sound)
-                GetArgType = alSound
-              Case 25 'discard.view(view)
-                GetArgType = alView
-              Case 66 'load.logics(logic)
-                GetArgType = alLogic
-              Case 69 'load.sound(sound)
-                GetArgType = alSound
-              Case 70 'load.view(view)
-                GetArgType = alView
-              Case 78 'new.room(logic)
-                GetArgType = alLogic
-              Case 138 'set.view(obj,view)
-                GetArgType = alView
-              Case 141 'show.obj(view)
-                GetArgType = alView
-              Case 143 'sound(sound,flg)
-                GetArgType = alSound
-              Case 156 'trace.info(logic,byt,byt)
-                If TipCurArg = 0 Then
-                  GetArgType = alLogic
-                End If
-              End Select
-
-            Case 118 'var
-              GetArgType = alVar
-            Case 102 'flag
-              GetArgType = alFlag
-            Case 109 'msg
-              GetArgType = alMsg
-            Case 111 'screen obj
-              GetArgType = alSObj
-            Case 105 'inv obj
-              GetArgType = alIObj
-            Case 115 'string
-              GetArgType = alStr
-            Case 119 'word
-              GetArgType = alWord
-            Case 99 'controller
-              GetArgType = alCtl
-            Case Else
-              'should never get here
-              '*'Debug.Assert False
-              GetArgType = alAll
-            End Select
-          Else
-            GetArgType = alAll
-          End If
-        End If
-
-      Exit Function
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Function
-      Public Sub MenuClickClear()
-        '
-        'display code snippet creation form
-        ' using selected text as starting point
-
-        'if inserting a snippet
-        If Asc(frmMDIMain.mnuEClear.Caption) = 73 Then
-          ShowSnippetList
-        Else
-          'create a snippet with selected text
-          SnipMode = 0
-          frmSnippets.Show vbModal, frmMDIMain
-          'force focus back to editor
-          rtfLogic.SetFocus
-        End If
-      End Sub
-
-      Public Sub MenuClickCustom3()
-
-        'change IsRoom status
-
-        On Error GoTo ErrHandler
-
-        '*'Debug.Assert InGame = True
-
-        ' toggle the property for this room
-        EditLogic.IsRoom = Not EditLogic.IsRoom
-        frmMDIMain.mnuRCustom3.Checked = EditLogic.IsRoom
-
-        ' toggle property for the ingame logic
-        Logics(LogicNumber).IsRoom = EditLogic.IsRoom
-
-        If UseLE Then
-          If UseLE And Logics(LogicNumber).IsRoom Then
-            'update layout editor and layout data file to show this room is in the game
-            UpdateExitInfo euShowRoom, LogicNumber, Logics(LogicNumber)
-          Else
-            'update layout editor and layout data file to show this room is now gone
-            UpdateExitInfo euRemoveRoom, LogicNumber, Nothing
-          End If
-        End If
-
-        ' if this logic is selected
-        If SelResNum = LogicNumber And SelResType = AGIResType.Logic Then
-          ' update treelist property window
-          frmMDIMain.PaintPropertyWindow
-        End If
-
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-      Public Sub MenuClickHelp()
-
-        Dim blnCmdHelp As Boolean, strHelp As String
-        Dim lngLine As Long, lngLineStart As Long
-        Dim i As Long, lngPos As Long
-        Dim tmpRange As RichEditAGI.Range
-
-        On Error GoTo ErrHandler
-
-        'if a tip is currently visible,
-        If picTip.Visible Then
-          'show the help for the current cmd
-          blnCmdHelp = True
-          strHelp = "htm\commands\cmd_" & Replace(LoadResString(ALPHACMDTEXT + TipCmdNum), ".", vbNullString) & ".htm"
-        End If
-
-        'always hide defines window
-        picDefine.Visible = False
-
-        'if not helping a cmd with tip showing
-        If Not blnCmdHelp Then
-
-
-          'if there is a selection:
-          If rtfLogic.Selection.Range.Length <> 0 Then
-            'check if selection extends across lines,
-            'if not, assume selected text is help string
-            rtfLogic.GetCharPos rtfLogic.Selection.Range.StartPos, lngPos
-            rtfLogic.GetCharPos rtfLogic.Selection.Range.EndPos, i
-
-            If i = lngPos Then
-              'use the selection
-              strHelp = Trim$(rtfLogic.Selection.Range.Text)
-            End If
-          Else
-
-          strHelp = TokenFromCursor(rtfLogic)
-          End If
-
-          'validate if on a cmd
-          For i = 1 To 18
-            If StrComp(TestCommands(i).Name, strHelp, vbTextCompare) = 0 Then
-              'found it
-              blnCmdHelp = True
-              Exit For
-            End If
-          Next i
-          'if not found
-          If Not blnCmdHelp Then
-            lngPos = Commands.Count
-            For i = 0 To lngPos
-              If StrComp(Commands(i).Name, strHelp, vbTextCompare) = 0 Then
-                'found it
-                blnCmdHelp = True
-                Exit For
-              End If
-            Next i
-          End If
-
-          'if found,
-          If blnCmdHelp Then
-            'build topic string
-            strHelp = "htm\commands\cmd_" & Replace(LCase$(strHelp), ".", vbNullString) & ".htm"
-          Else
-            'if on 'if'
-            If strHelp = "if" Then
-              strHelp = "htm\commands\syntax.htm#ifelse"
-            Else
-              'if not, set strHelp to logic editor
-              strHelp = "htm\winagi\Logic_Editor.htm"
-            End If
-          End If
-        End If
-
-        'show help file
-        HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strHelp
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-      Public Sub Activate()
-        'bridge method to call the form's Activate event method
-        Form_Activate
-      End Sub
-
-      Public Sub BeginFind()
-
-        'each form has slightly different search parameters
-        'and procedure; so each form will get what it needs
-        'from the form, and update the global search parameters
-        'as needed
-        '
-        'that's why each search form checks for changes, and
-        'sets the global values, instead of doing it once inside
-        'the FindForm code
-        On Error GoTo ErrHandler
-
-        'always reset the synonym search
-        GFindSynonym = False
-
-        'ensure this form is the search form
-        '*'Debug.Assert SearchForm Is Me
-
-        Select Case FindForm.FormAction
-        Case faFind
-          FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
-
-        Case faReplace
-          FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc, True, GReplaceText
-
-        Case faReplaceAll
-          ReplaceAll GFindText, GReplaceText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
-        End Select
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-      Public Sub InitFonts()
-
-        On Error GoTo ErrHandler
-
-        With rtfLogic
-          'set syntax highlighting property first
-          .HighlightSyntax = Settings.HighlightLogic
-
-          'then set all highlight properties
-          Me.Font.Name = Settings.EFontName
-          Me.Font.Size = Settings.EFontSize
-          .Font.Name = Settings.EFontName
-          .Font.Size = Settings.EFontSize
-          .ForeColor = Settings.HColor(0)
-
-          .HNormColor = Settings.HColor(0)
-          .HKeyColor = Settings.HColor(1)
-          .HIdentColor = Settings.HColor(2)
-          .HStrColor = Settings.HColor(3)
-          .HCmtColor = Settings.HColor(4)
-          .HNormBold = Settings.HBold(0)
-          .HKeyBold = Settings.HBold(1)
-          .HIdentBold = Settings.HBold(2)
-          .HStrBold = Settings.HBold(3)
-          .HCmtBold = Settings.HBold(4)
-          .HNormItalic = Settings.HItalic(0)
-          .HKeyItalic = Settings.HItalic(1)
-          .HIdentItalic = Settings.HItalic(2)
-          .HStrItalic = Settings.HItalic(3)
-          .HCmtItalic = Settings.HItalic(4)
-
-          'then set background
-          .BackColor = Settings.HColor(5)
-
-          'adjust undo level
-          If Settings.LogicUndo = -1 Then
-            .UndoLimit = 999999
-          Else
-            .UndoLimit = Settings.LogicUndo
-          End If
-
-          'and tab spacing
-          .TabWidth = Settings.LogicTabWidth
-        End With
-
-        'set up defines listbox
-        lstDefines.Font.Name = Settings.EFontName
-        lstDefines.Font.Size = Settings.EFontSize
-        lstDefines.Height = 6 * Me.TextHeight("Ay")
-
-        'refresh
-        rtfLogic.RefreshHighlight
-
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-      Public Sub MenuClickDelete()
-
-        'send delete key
-        'Delete Key 'down'
-        SendMessage Me.rtfLogic.hWnd, WM_KEYDOWN, &H2E, &H1
-        'Delete Key 'up'
-        SendMessage Me.rtfLogic.hWnd, WM_KEYUP, &H2E, &H1
-      End Sub
-
-      Public Sub MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindLogic)
-
-        Dim strToken As String
-
-        On Error GoTo ErrHandler
-
-        'always hide tip and define windows
-        If picTip.Visible Then
-          picTip.Visible = False
-        End If
-        If picDefine.Visible Then
-          picDefine.Visible = False
-        End If
-
-        ' if find form is not showing, need to populate
-        ' it with current search parameters
-        With FindForm
-          ' find text is the exception; it doesn't use the
-          ' current global parameter unless there is nothing
-          ' selected in the current logic (or nothing under
-          ' the cursor)
-
-          'if something selected
-          If Len(rtfLogic.Selection.Range.Text) > 0 Then
-            'use it
-            GFindText = rtfLogic.Selection.Range.Text
-          Else
-            'if nothing selected, check for token under cursor
-            strToken = TokenFromCursor(rtfLogic, False)
-            If Len(strToken) > 0 Then
-              GFindText = strToken
-            End If
-          End If
-
-          'set find dialog to find textinlogic mode
-          .SetForm ffValue, InGame
-
-          'show the form
-          .Show , frmMDIMain
-
-          Select Case ffValue
-          Case ffReplaceWord, ffReplaceObject, ffReplaceLogic, ffReplaceText
-            'highlight the replacement text
-            .txtReplace.SelStart = 0
-            .txtReplace.SelLength = Len(.txtReplace.Text)
-            .txtReplace.SetFocus
-          Case Else
-            'always highlight search text
-            .txtFindText.SelStart = 0
-            .txtFindText.SelLength = Len(.txtFindText.Text)
-            .txtFindText.SetFocus
-          End Select
-
-          'ensure this form is the search form
-          Set SearchForm = Me
-        End With
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-      Public Sub MenuClickFindAgain()
-
-        On Error GoTo ErrHandler
-
-        'always reset findsynonym
-        GFindSynonym = False
-
-        'if a previous find text exists
-        If LenB(GFindText) <> 0 Then
-          'ensure this form is the search form
-          Set SearchForm = Me
-          FindInLogic GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc
-        Else
-          'nothing to find yet? show find form
-          MenuClickFind
-        End If
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-
-      Public Sub MenuClickECustom1()
-
-        'add block comment marks
-
-        On Error GoTo ErrHandler
-
-        rtfLogic.Selection.Range.Comment
-      Exit Sub
-
-      ErrHandler:
-        Err.Clear
-      End Sub
-
-      Public Sub MenuClickInsert()
-
-        WaitCursor
-        ShowDefineList
-
-        'restore cursor
-        Screen.MousePointer = vbDefault
-
-      End Sub
-
-
-      Public Sub MenuClickImport()
-
-        Dim tmpLogic As AGILogic
-        Dim i As Long
-
-        On Error GoTo ErrHandler
-
-        'this method is only called by the Main form's Import function
-        'the MainDialog object will contain the name of the file
-        'being imported.
-
-        'steps to import are:
-        'import the Logic to tmp object
-        'clear the existing logicedit,
-        'copy tmp object to this item
-        'and reset it
-
-        Set tmpLogic = New AGILogic
-        On Error Resume Next
-
-        'assume text file
-        tmpLogic.Import MainDialog.FileName, True
-        'if error
-        If Err.Number <> 0 Then
-          'try again, assuming a logic resource file
-          tmpLogic.Import MainDialog.FileName, False
-          'if STILL an error,
-          If Err.Number <> 0 Then
-            ErrMsgBox "An error occurred while importing this Logic:", "", "Import Logic Error"
-            Exit Sub
-          End If
-        End If
-
-        'clear the Edit Logic
-        EditLogic.Clear
-
-        'assign source code to editor
-        rtfLogic.Text = tmpLogic.SourceText
-
-        'discard the temp logic
-        tmpLogic.Unload
-        Set tmpLogic = Nothing
-
-        'clear the undo buffer
-        rtfLogic.EmptyUndo
-
-        'mark as dirty
-        MarkAsDirty
-
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-
-      Public Sub MenuClickRedo()
-
-        'always hide tip and define windows
-        If picTip.Visible Then
-          picTip.Visible = False
-        End If
-        If picDefine.Visible Then
-          picDefine.Visible = False
-        End If
-
-        rtfLogic.Redo
-
-        UpdateStatusBar
-      End Sub
-
-      Public Sub MenuClickReplace()
-
-        'replace text
-        'use menuclickfind in replace mode
-        MenuClickFind ffReplaceLogic
-      End Sub
-            */
-        }
-        public void MenuClickSave() {
-            /*
-    'saves source code;
-    'use compile (MenuClickCustom1) to save logic resource
-
-    On Error GoTo ErrHandler
-
-    Dim i As Integer
-    Dim tmpExits As AGIExits
-    Dim lngLine As Long, lngPos As Long
-    Dim lngFirst As Long
-
-    'always hide tip and define windows
-    If picTip.Visible Then
-      picTip.Visible = False
-    End If
-    If picDefine.Visible Then
-      picDefine.Visible = False
-    End If
-
-    'show wait cursor since it might take awhile
-    WaitCursor
-
-    'if in a game
-    If InGame Then
-      '   - copy editor text to GAME LOGIC source
-      '   if a room and using layout editor
-      '      - update source
-      '      - copy updated source back to editor
-      '   -save source
-
-      'unlike other resources, the ingame logic is referenced directly
-      'when being edited; so, it's possible that the logic might get closed
-      'such as when changing which logic is being previewed;
-      'SO, we need to make sure the logic is loaded BEFORE saving
-      If Not Logics(LogicNumber).Loaded Then
-        'reload it!
-        Logics(LogicNumber).Load
-      End If
-
-      'now, assign the updated source text
-      Logics(LogicNumber).SourceText = rtfLogic.Text
-
-      'if using layout editor AND is a room,
-      If UseLE And EditLogic.IsRoom Then
-        'need to update the editor and the data file with new exit info
-
-        'save current cursor position
-        lngPos = rtfLogic.Selection.Range.StartPos
-        'cache the current first visible line
-        lngFirst = SendMessage(rtfLogic.hWnd, EM_GETFIRSTVISIBLELINE, 0, 0)
-        'this returns zero sometimes when it shouldn't
-
-        'UGH! does UpdateExitInfo change the SOURCE, or the RTF????
-        '  VERIFIED: it updates the SOURCE, which we know is current now
-        UpdateExitInfo euUpdateRoom, LogicNumber, Logics(LogicNumber)
-
-        'if preview window got updated due to a change?
-        '*'Debug.Assert Logics(LogicNumber).Loaded
-
-        'copy update back to RTF
-        rtfLogic.Text = Logics(LogicNumber).SourceText
-
-        'reset cursor first; it will scroll the screen if
-        ' cursor is currently offscreen
-        rtfLogic.Selection.Range.StartPos = lngPos
-        rtfLogic.Selection.Range.EndPos = lngPos
-
-        ' make sure scrolling is the same
-        lngLine = SendMessage(rtfLogic.hWnd, EM_GETFIRSTVISIBLELINE, 0, 0)
-        If lngLine <> lngFirst Then
-          SendMessage rtfLogic.hWnd, EM_LINESCROLL, 0, lngFirst - lngLine
-        End If
-      End If
-
-      'save the SOURCE
-      Logics(LogicNumber).SaveSource
-
-      'copy it back
-      EditLogic.SetLogic Logics(LogicNumber)
-
-      'and unload the game logic
-      Logics(LogicNumber).Unload
-
-      'update selection preview
-      If Not Compiling Then
-        UpdateSelection AGIResType.Logic, LogicNumber, umPreview Or umProperty
-      End If
-
-    'if not in a game, but has a sourcefile
-    ElseIf LenB(EditLogic.SourceFile) <> 0 Then
-      rtfLogic.SaveFile EditLogic.SourceFile, reOpenSaveText + reOpenSaveCreateAlways, 437
-    Else
-      'restore cursor while getting a name
-      Screen.MousePointer = vbDefault
-
-      'use ExportLogicSource
-      EditLogic.SourceFile = NewSourceName(EditLogic, InGame)
-      If Len(EditLogic.SourceFile) > 0 Then
-        ' go back to wait cursor
-        WaitCursor
-        rtfLogic.SaveFile EditLogic.SourceFile, reOpenSaveText + reOpenSaveCreateAlways, 437
-      Else
-        'user canceled save
-        Exit Sub
-      End If
-    End If
-
-    UpdateStatusBar
-
-    'reset flag
-    rtfLogic.Dirty = False
-    'reset caption
-    Caption = sLOGED & ResourceName(EditLogic, InGame, True)
-
-    'disable menu and toolbar button
-    frmMDIMain.mnuRSave.Enabled = False
-    frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-
-    'restore cursor
-    Screen.MousePointer = vbDefault
-  Exit Sub
-
-  ErrHandler:
-    ErrMsgBox "Error during save: ", "", "Logic Save Error"
-    Resume Next
-  End Sub
-*/
+        private AGIToken NextMsg(AGIToken token, string[] StrDefs) {
+            // starting at position lngPos, step through cmds until a match is found for
+            // a cmd that has a msg argument:
+            //     log(m#)
+            //     print(m#)
+            //     display(#,#,m#)
+            //     get.num(m#, v#)
+            //     print.at(m#, #, #, #)
+            //     set.menu(m#)
+            //     set.string(s#, m#)
+            //     get.string(s#, m#, #, #, #)
+            //     set.game.id(m#)
+            //     set.menu.item(m#, c#)
+            //     set.cursor.char(m#)
+            // also need to check for s#=m#; do this by building custom array
+            // of matching elements; all s## tokens, plus any defines that
+            // are stringtype
+            //
+            // return values
+            //    - if OK, token pointing to the message value (type = String)
+            //      or to the message marker (type = Identifier)
+            //      
+            //    - if error token number set to error value:
+            //         -1 = missing '(' after a command
+            //         -2 = missing end quote
+            //         -3 = not a string, define or message marker(m##)
+            int lngArg;
+
+            AGIToken msgtoken = fctb.NextToken(token, true);
+            while (msgtoken.Type != AGITokenType.None) {
+                if (msgtoken.Type == AGITokenType.Identifier) {
+                    lngArg = -1;
+                    // check against list of cmds with msg arguments:
+                    switch (msgtoken.Text.Length) {
+                    case 3:
+                        if (msgtoken.Text == "log") {
+                            lngArg = 0;
+                        }
+                        break;
+                    case 5:
+                        if (msgtoken.Text == "print") {
+                            lngArg = 0;
+                        }
+                        break;
+                    case 7:
+                        if (msgtoken.Text == "display") {
+                            lngArg = 2;
+                        }
+                        else if (msgtoken.Text == "get.num") {
+                            lngArg = 0;
+                        }
+                        break;
+                    case 8:
+                        if (msgtoken.Text == "print.at" || msgtoken.Text == "set.menu") {
+                            lngArg = 0;
+                        }
+                        break;
+                    case 10:
+                        if (msgtoken.Text == "set.string" || msgtoken.Text == "get.string") {
+                            lngArg = 1;
+                        }
+                        break;
+                    case 11:
+                        if (msgtoken.Text == "set.game.id") {
+                            lngArg = 0;
+                        }
+                        break;
+                    case 13:
+                        if (msgtoken.Text == "set.menu.item") {
+                            lngArg = 0;
+                        }
+                        break;
+                    case 15:
+                        if (msgtoken.Text == "set.cursor.char") {
+                            lngArg = 0;
+                        }
+                        break;
+                    }
+                    if (lngArg >= 0) {
+                        msgtoken = fctb.NextToken(msgtoken);
+                        if (msgtoken.Text != "(") {
+                            // not a valid cmd; return error
+                            msgtoken.Number = -1;
+                            return msgtoken;
+                        }
+                        // arg0
+                        msgtoken = fctb.NextToken(msgtoken);
+                        if (msgtoken.Type == AGITokenType.None) {
+                            // end of input, arg missing; return error
+                            msgtoken.Number = -5;
+                            return msgtoken;
+                        }
+                        if (lngArg != 0) {
+                            do {
+                                // next cmd is a comma
+                                msgtoken = fctb.NextToken(msgtoken);
+                                if (msgtoken.Text != ",") {
+                                    // missing comma; return error
+                                    msgtoken.Number = -6;
+                                    return msgtoken;
+                                }
+                                // now get next arg
+                                msgtoken = fctb.NextToken(msgtoken);
+                                lngArg--;
+                            } while (lngArg != 0);
+                        }
+                        // TODO: need to validate the token before returning, right?
+                        //msgtoken.Number = 0;
+                        //return msgtoken;
+                    }
+                    else {
+                        // check for string assignment
+                        // s##="text"; or strdefine="text";
+                        for (int i = 0; i < StrDefs.Length; i++) {
+                            if (msgtoken.Text == StrDefs[i]) {
+                                // possible string assignment
+                                lngArg = 0;
+                                break;
+                            }
+                        }
+                        // if not found as a define, check for a string marker(s##)
+                        if (lngArg == -1 && msgtoken.Text.Length > 0 && msgtoken.Text[0] == 's') {
+                            // strip off the 's'
+                            string strCmd = msgtoken.Text[1..];
+                            int num;
+                            if (int.TryParse(strCmd, out num)) {
+                                // possible string assignment
+                                // do we care what number? yes- must be 0-23
+                                // in the off chance the user is working with
+                                // a version that has a limit of 12 strings
+                                // we will let the compiler worry about it
+                                if (num >= 0 && num <= 23) {
+                                    lngArg = 0;
+                                }
+                                else {
+                                    // invalid string marker; error
+                                    msgtoken.Number = -7;
+                                    return msgtoken;
+                                }
+                            }
+                        }
+                        if (lngArg == 0) {
+                            // next cmd should be an equal sign
+                            msgtoken = fctb.NextToken(msgtoken, true);
+                            if (msgtoken.Text == "=") {
+                                // ok, now we know the very next thing is the assigned string!
+                                msgtoken = fctb.NextToken(msgtoken);
+                                if (msgtoken.Type == AGITokenType.None) {
+                                    // end of input; arg missing; error
+                                    msgtoken.Number = -5;
+                                    return msgtoken;
+                                }
+                            }
+                            else {
+                                // not an assignment- probably a string (s#)
+                                // argument (e.g in word.to.string
+                                lngArg = -1;
+                            }
+                        }
+                    }
+                    // if a message token was found (lngArg >=0)
+                    if (lngArg >= 0) {
+                        // it might be a message marker ('m##') or it might be
+                        // a string; or it might be a local, global or reserved
+                        // define
+                        switch (msgtoken.Type) {
+                        case AGITokenType.String:
+                            if (msgtoken.Text.Length == 1 || msgtoken.Text[^1] != '\"' || msgtoken.Text[^2] == '\\') {
+                                msgtoken.Number = -2;
+                                return msgtoken;
+                            }
+                            // check for concatenation
+                            AGIToken concattoken = fctb.NextToken(msgtoken, true);
+                            while (concattoken.Type == AGITokenType.String) {
+                                if (concattoken.Text[^1] == '\"') {
+                                    // valid string is >1 char, ends with '"' and doesn't end with '\"'
+                                    if (concattoken.Text.Length == 1 || concattoken.Text[^1] != '\"' || concattoken.Text[^2] == '\\') {
+                                        msgtoken.Number = -2;
+                                        return msgtoken;
+                                    }
+                                }
+
+                                //what if something NOT a string found?
+
+                                // add it to current 
+                                msgtoken.Text = msgtoken.Text[..^1] + concattoken.Text[1..];
+                                msgtoken.End = concattoken.End;
+                                msgtoken.Line = concattoken.Line;
+                                concattoken = fctb.NextToken(concattoken, true);
+                            }
+                            msgtoken.Number = 0;
+                            return msgtoken;
+                        case AGITokenType.Identifier:
+                            // check for message marker first
+                            if (msgtoken.Text[0] == 'm') {
+                                int num;
+                                if (int.TryParse(msgtoken.Text[1..], out num)) {
+                                    if (num > 0 && num < 256) {
+                                        msgtoken.Number = 0;
+                                        return msgtoken;
+                                    }
+                                    else {
+                                        msgtoken.Number = -8;
+                                        return msgtoken;
+                                    }
+                                }
+                            }
+                            //not a msg marker; try replacing with define -
+                            // check local defines first
+                            for (int i = 0; i < LDefLookup.Length; i++) {
+                                if (msgtoken.Text == LDefLookup[i].Name) {
+                                    switch (LDefLookup[i].Type) {
+                                    case ArgType.Msg:
+
+                                        // TODO: verify if BuildLocalDef validates markers ('m1' etc) and strings
+                                        msgtoken.Text = LDefLookup[i].Value;
+                                        msgtoken.Number = 0;
+                                        return msgtoken;
+
+                                    case ArgType.DefStr:
+                                        msgtoken.Text = LDefLookup[i].Value;
+                                        msgtoken.Number = 0;
+                                        return msgtoken;
+                                    default:
+                                        // invalid argtype
+                                        msgtoken.Number = -3;
+                                        return msgtoken;
+                                    }
+                                }
+                            }
+                            // try globals next
+                            for (int i = 0; i < GDefLookup.Length; i++) {
+                                if (msgtoken.Text == GDefLookup[i].Name) {
+                                    switch (GDefLookup[i].Type) {
+                                    case ArgType.Msg:
+                                        //msgtoken.Text = GDefLookup[i].Value;
+                                        msgtoken.Number = 0;
+                                        return msgtoken;
+                                    case ArgType.DefStr:
+                                        //msgtoken.Text = GDefLookup[i].Value;
+                                        msgtoken.Number = 0;
+                                        return msgtoken;
+                                    default:
+                                        // invalid argtype
+                                        msgtoken.Number = -3;
+                                        return msgtoken;
+                                    }
+                                }
+                            }
+                            // lastly check reserved defines
+                            for (int i = 91; i <= 93; i++) {
+                                if (msgtoken.Text == RDefLookup[i].Name) {
+                                    //msgtoken.Text = RDefLookup[i].Value;
+                                    msgtoken.Number = 0;
+                                    return msgtoken;
+                                }
+                            }
+                            // no define found; token is invalid
+                            msgtoken.Number = -3;
+                            return msgtoken;
+                        default:
+                            // anything else is an error
+                            msgtoken.Number = -3;
+                            return msgtoken;
+                        }
+                    }
+                }
+                msgtoken = fctb.NextToken(msgtoken, true);
+            }
+            // end of input
+            msgtoken.Number = 0;
+            return msgtoken;
         }
 
-        public void MenuClickInGame() {
+        struct MessageData {
+            public string Text;
+            public bool Declared;
+            public bool ByNumber;
+            public bool ByRef;
+            public int Type; // 0=string, 1=marker, 2=define
+            public int Line;
+            public int Concat;
+        }
+
+        public void MessageCleanup() {
+
+            //int[] MsgUsed = new int[256];
+            MessageData[] Messages = new MessageData[256];
+            string[] NewMsgs = [];
+            bool blnKeepUnused, repeatAction = false;
+            string[] strStrings = [];
+            int intMsgCount = 0;
+            string strMsg;
+            Place start;
+            Place end;
+
+            // MsgsUsed() array is a bitfield flag used to track message usage
+            //   bit0 = message is declared
+            //   bit1 = message is in use by number in the logic
+            //   bit2 = message is in use by string reference
+
+            // strStrings() array used to hold copy of all string defines in order
+            // to search for 's##="msg text";' syntax
+
+            if (WinAGISettings.WarnMsgs.Value == 0) {
+                repeatAction = false;
+                DialogResult rtn = MsgBoxEx.Show(MDIMain,
+                    "If messages in the message section are not not used anywhere " +
+                   "in the logic text, do you still want to keep them?",
+                    "Message Cleanup Tool",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question,
+                    "Always take this action when updating messages.", ref repeatAction,
+                   WinAGIHelp, "htm\\winagi\\Logic_Editor.htm#msgcleanup");
+
+                // if canceled
+                if (rtn == DialogResult.Cancel) {
+                    return;
+                }
+                blnKeepUnused = (rtn == DialogResult.Yes);
+            }
+            else {
+                blnKeepUnused = (WinAGISettings.WarnMsgs.Value == 1);
+            }
+            if (repeatAction) {
+                if (blnKeepUnused) {
+                    WinAGISettings.WarnMsgs.Value = 1;
+                }
+                else {
+                    WinAGISettings.WarnMsgs.Value = 2;
+                }
+                WinAGISettings.WarnMsgs.WriteSetting(WinAGISettingsFile);
+            }
+            if (DefDirty) {
+                BuildLDefLookup();
+            }
+            // check locals, globals, and reserved for string defines
+            int lngCount = 0;
+            for (int i = 0; i < LDefLookup.Length; i++) {
+                if (LDefLookup[i].Type == ArgType.Str) {
+                    Array.Resize(ref strStrings, ++lngCount);
+                    strStrings[^1] = LDefLookup[i].Name;
+                }
+            }
+            for (int i = 0; i < GDefLookup.Length; i++) {
+                if (GDefLookup[i].Type == ArgType.Str) {
+                    Array.Resize(ref strStrings, ++lngCount);
+                    strStrings[^1] = GDefLookup[i].Name;
+                }
+            }
+            // add the only resdef that's a string
+            Array.Resize(ref strStrings, ++lngCount);
+            strStrings[^1] = RDefLookup[90].Name;
+
+            // next, get all messages that are predefined
+            if (!ReadMsgs(ref Messages)) {
+                // a problem was found that needs to be fixed before
+                // messages can be cleaned up
+                Place errorlocation = new(Messages[1].Line, Messages[2].Line);
+                strMsg = "Syntax error in line " + Messages[2] + " must be corrected\n" +
+                         "before message cleanup can continue:\n\n";
+                switch (Messages[0].Line) {
+                case 1:
+                    // invalid msg number
+                    MessageBox.Show(MDIMain,
+                        strMsg + "Invalid message index number.",
+                        "Syntax Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    break;
+                case 2:
+                    // duplicate msg number
+                    MessageBox.Show(MDIMain,
+                        strMsg + "Message index " + Messages[3] + " is already in use.",
+                        "Syntax Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    break;
+                case 3:
+                    // msg val should be a string
+                    MessageBox.Show(MDIMain,
+                    strMsg + "Expected string value",
+                        "Syntax Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    break;
+                case 4:
+                    // stuff not allowed on line after msg declaration
+                    MessageBox.Show(MDIMain,
+                    strMsg + "Expected end of line",
+                        "Syntax Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    break;
+                case 5:
+                    // missing end quote
+                    MessageBox.Show(MDIMain,
+                        strMsg + "String is missing end quote mark",
+                        "Syntax Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    break;
+                }
+                fctb.Selection.Start = errorlocation;
+                fctb.Selection.End = new(fctb.GetLineLength(errorlocation.iLine), errorlocation.iLine);
+                return;
+            }
+            if (blnKeepUnused) {
+                for (int i = 1; i < 256; i++) {
+                    if (Messages[i].Declared) {
+                        intMsgCount++;
+                    }
+                }
+            }
+            AGIToken token = new();
+            token = NextMsg(token, strStrings);
+            while (token.Type != AGITokenType.None || token.Number < 0) {
+                // check for error
+                if (token.Number < 0) {
+                    fctb.SelectLine(token.Line);
+                    string msg = "Syntax error in line " + (token.Line + 1).ToString() + " must be corrected " +
+                            "before message cleanup can continue:\n\n";
+
+                    switch (token.Number) {
+                    case -1:
+                        // missing '(' after command
+                        MessageBox.Show(MDIMain,
+                            msg + "Expected '(' after command text.",
+                            "Syntax Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        break;
+                    case -2:
+                        // missing end quote
+                        MessageBox.Show(MDIMain,
+                            msg + "Missing quote mark (\") at end of string.",
+                            "Syntax Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        break;
+                    case -3:
+                        // arg not a string
+                        MessageBox.Show(MDIMain,
+                            msg + "Argument is not a string or msg marker ('m##').",
+                            "Syntax Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        break;
+                    case -4:
+                        // stuff not allowed after message string
+                        MessageBox.Show(MDIMain,
+                            msg + "Line break expected after message declaration.",
+                            "Syntax Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        break;
+                    case -5:
+                        // missing arg value
+                        MessageBox.Show(MDIMain,
+                            msg + "Argument value is missing",
+                            "Syntax Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        break;
+                    case -6:
+                        // missing comma after arg
+                        MessageBox.Show(MDIMain,
+                            msg + "Expected ',' after command arguments.",
+                            "Syntax Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        break;
+                    case -7:
+                        // invalid string marker
+                        MessageBox.Show(MDIMain,
+                            msg + "Invalid string marker (must be s0 - s23).",
+                            "Syntax Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        break;
+                    case -8:
+                        // invalid message marker
+                        MessageBox.Show(MDIMain,
+                            msg + "Invalid message marker (must be m1 - m255).",
+                            "Syntax Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        break;
+                    }
+                    return;
+                }
+                else {
+                    // return values are string("text"), marker (m1) or define (astring)
+                    int j = 0;
+                    if (token.Text[0] == 'm') {
+                        // it might be a msg marker
+                        if (int.TryParse(token.Text[1..], out j)) {
+                            if (j == 0 || j > 255) {
+                                // error! invalid message marker
+                                fctb.SelectLine(token.Line);
+                                strMsg = "Syntax error in line " + token.Line + " must be corrected " +
+                                         "before message cleanup can continue:\n\n";
+                                MessageBox.Show(MDIMain,
+                                    strMsg + "Invalid message marker value (must be 'm1' - 'm255')",
+                                    "Syntax Error",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information, 0, 0,
+                                    WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                                return;
+                            }
+                            if (Messages[j].Declared) {
+                                Messages[j].ByNumber = true;
+                            }
+                            else {
+                                // error! this msg isn't defined
+                                fctb.SelectLine(token.Line);
+                                strMsg = "Syntax error in line " + token.Line + " must be corrected " +
+                                         "before message cleanup can continue:\n\n";
+                                MessageBox.Show(MDIMain,
+                                    strMsg + "'" + token.Text + "' is not a declared message.",
+                                    "Syntax Error",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information, 0, 0,
+                                    WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                                return;
+                            }
+                        }
+                    }
+                    if (j == 0) {
+                        // check this string/define against list of declared messages
+                        for (j = 1; j < 256; j++) {
+                            if (Messages[j].Declared) {
+                                if (Messages[j].Text == token.Text) {
+                                    // if not yet marked as inuse by ref
+                                    if (!Messages[j].ByRef) {
+                                        // mark as used by reference
+                                        Messages[j].ByRef = true;
+                                        // if not keeping all declared, need to increment the count
+                                        if (!blnKeepUnused) {
+                                            // increment msgcount
+                                            intMsgCount++;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        if (j == 256) {
+                            // check this msg against new message collection
+                            for (j = 0; j < NewMsgs.Length; j++) {
+                                if (NewMsgs[j] == token.Text) {
+                                    break;
+                                }
+                            }
+                            // if still not found (unique to both)
+                            if (j == NewMsgs.Length) {
+                                // add to new msg list
+                                Array.Resize(ref NewMsgs, NewMsgs.Length + 1);
+                                NewMsgs[^1] = token.Text;
+                                // increment Count
+                                intMsgCount++;
+                            }
+                        }
+                        if (intMsgCount >= 256) {
+                            MessageBox.Show(MDIMain,
+                                "There are too many messages being used by this logic. AGI only " +
+                                "supports 255 messages per logic. Edit the logic to reduce the " +
+                                "number of messages to 255 or less.",
+                                "Too Many Messages",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Exclamation, 0, 0,
+                                WinAGIHelp, "htm\\agi\\logics.htm#messages");
+                            return;
+                        }
+                    }
+                }
+                token = NextMsg(token, strStrings);
+            }
+
+            // Now add all newfound messages to the message array
+            int newmsgnum = 1;
+            for (int i = 0; i < NewMsgs.Length; i++) {
+                // if message is not in use (byref or bynum), we can overwrite it
+                do
+                    if (blnKeepUnused && Messages[newmsgnum].Declared) {
+                        // if keeping declared, skip if this msg is already declared
+                        newmsgnum++;
+                    }
+                    else if (Messages[newmsgnum].ByNumber || Messages[newmsgnum].ByRef) {
+                        // skip if this msg is in use (byref or bynum)
+                        newmsgnum++;
+                    }
+                    else {
+                        // this number can be used for a new msg
+                        break;
+                    }
+                while (newmsgnum < 256);
+                Messages[newmsgnum].Text = NewMsgs[i];
+                // mark it as in use by ref
+                Messages[newmsgnum].ByRef = true;
+                newmsgnum++;
+            }
+            // now build the message section using all messages that are marked as in use
+            // add right after last 'return() command
+            int lastline = fctb.LinesCount - 1;
+            while (fctb.GetLineLength(lastline) == 0) {
+                lastline--;
+                if (lastline == 0) {
+                    break;
+                }
+            }
+            token = fctb.TokenFromPos(new(fctb.GetLineLength(lastline) - 1, lastline));
+            do {
+                if (token.Type == AGITokenType.Identifier) {
+                    if (token.Text == "return") {
+                        break;
+                    }
+                }
+                token = fctb.PreviousToken(token, true);
+            } while (token.Type != AGITokenType.None);
+            int insertline = token.Line + 1;
+            if (token.Type == AGITokenType.None) {
+                // just add to end
+                insertline = fctb.LinesCount;
+            }
+            // remove any defines that come BEFORE the insert line
+            int removed = 0;
+            for (int i = 255; i > 0; i--) {
+                if (Messages[i].Declared && Messages[i].Line < insertline) {
+                    fctb.RemoveLine(Messages[i].Line);
+                    removed++;
+                }
+            }
+            insertline -= removed;
+            // and add a comment header
+            strMsg = "\n[ **************************************\n[ DECLARED MESSAGES\n[ **************************************\n";
+            for (int i = 1; i < 256; i++) {
+                // if used by ref or num, OR if keeping all and it's declared,add this msg
+                if (Messages[i].ByRef || Messages[i].ByNumber || (Messages[i].Declared && blnKeepUnused)) {
+                    strMsg += "#message " + i + " " + Messages[i].Text + "\n";
+                }
+            }
+            // delete everything from here to end of text
+            //  and replace with the messages
+            start = new(0, insertline);
+            end = new(fctb.Lines[fctb.LinesCount - 1].Length, fctb.LinesCount - 1);
+            fctb.Selection.Start = start;
+            fctb.Selection.End = end;
+            fctb.SelectedText = strMsg;
+        }
+
+        private void SelectWord() {
+            int i;
+            if ((string)lstDefines.Tag == "snippets") {
+                string snippetvalue = "";
+                for (i = 0; i < CodeSnippets.Length; i++) {
+                    if (CodeSnippets[i].Name == lstDefines.SelectedItems[0].Text) {
+                        snippetvalue = CodeSnippets[i].Value;
+                        break;
+                    }
+                }
+                i = 1;
+                while (snippetvalue.Contains("%" + i.ToString())) {
+                    string argvalue = "";
+                    //get arg
+                    if (ShowInputDialog(MDIMain, "Enter text for argument #" + i.ToString() + ":", ref argvalue) == DialogResult.OK) {
+                        snippetvalue = snippetvalue.Replace("%" + i.ToString(), argvalue);
+                    }
+                    else {
+                        break;
+                    }
+                    i++;
+                }
+                fctb.SelectedText = snippetvalue;
+            }
+            else {
+                fctb.SelectedText = lstDefines.SelectedItems[0].Text;
+            }
+            fctb.Selection.Start = fctb.Selection.End;
+            lstDefines.ShowItemToolTips = false;
+            lstDefines.Visible = false;
+        }
+
+        internal void InitFonts() {
+            rtfLogic1.ForeColor = WinAGISettings.SyntaxStyle[0].Color.Value;
+            rtfLogic1.BackColor = WinAGISettings.EditorBackColor.Value;
+            rtfLogic1.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
+            rtfLogic1.DefaultStyle = new TextStyle(rtfLogic1.DefaultStyle.ForeBrush, rtfLogic1.DefaultStyle.BackgroundBrush, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
+            if ((FormMode == LogicFormMode.Logic && WinAGISettings.HighlightLogic.Value) ||
+                (FormMode == LogicFormMode.Text && WinAGISettings.HighlightText.Value)) {
+                RefreshSyntaxStyles();
+                AGISyntaxHighlight(rtfLogic1.Range);
+            }
+            else {
+                //clear all styles of changed range
+                rtfLogic1.Range.ClearStyle(StyleIndex.All);
+            }
+
+            rtfLogic2.ForeColor = WinAGISettings.SyntaxStyle[0].Color.Value;
+            rtfLogic2.BackColor = WinAGISettings.EditorBackColor.Value;
+            rtfLogic2.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
+            rtfLogic2.DefaultStyle = new TextStyle(rtfLogic2.DefaultStyle.ForeBrush, rtfLogic2.DefaultStyle.BackgroundBrush, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
+            if ((FormMode == LogicFormMode.Logic && WinAGISettings.HighlightLogic.Value) ||
+                (FormMode == LogicFormMode.Text && WinAGISettings.HighlightText.Value)) {
+                RefreshSyntaxStyles();
+                AGISyntaxHighlight(rtfLogic2.Range);
+            }
+            else {
+                //clear all styles of changed range
+                rtfLogic2.Range.ClearStyle(StyleIndex.All);
+            }
+            documentMap1.BackColor = WinAGISettings.EditorBackColor.Value;
+            lstDefines.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
+            lstDefines.Height = 6 * fctb.CharHeight;
+            lstDefines.Width = 20 * fctb.CharWidth;
+            lstDefines.Columns[0].Width = lstDefines.Width;
+        }
+
+        public void RefreshSyntaxStyles() {
+            CommentStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[1].Color.Value);
+            CommentStyle.FontStyle = WinAGISettings.SyntaxStyle[1].FontStyle.Value;
+            StringStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[2].Color.Value);
+            StringStyle.FontStyle = WinAGISettings.SyntaxStyle[2].FontStyle.Value;
+            KeyWordStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[3].Color.Value);
+            KeyWordStyle.FontStyle = WinAGISettings.SyntaxStyle[3].FontStyle.Value;
+            TestCmdStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[4].Color.Value);
+            TestCmdStyle.FontStyle = WinAGISettings.SyntaxStyle[4].FontStyle.Value;
+            ActionCmdStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[5].Color.Value);
+            ActionCmdStyle.FontStyle = WinAGISettings.SyntaxStyle[5].FontStyle.Value;
+            InvalidCmdStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[6].Color.Value);
+            InvalidCmdStyle.FontStyle = WinAGISettings.SyntaxStyle[6].FontStyle.Value;
+            NumberStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[7].Color.Value);
+            NumberStyle.FontStyle = WinAGISettings.SyntaxStyle[7].FontStyle.Value;
+            ArgIdentifierStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[8].Color.Value);
+            ArgIdentifierStyle.FontStyle = WinAGISettings.SyntaxStyle[8].FontStyle.Value;
+            DefIdentifierStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[9].Color.Value);
+            DefIdentifierStyle.FontStyle = WinAGISettings.SyntaxStyle[9].FontStyle.Value;
+        }
+
+        public void AGISyntaxHighlight(FastColoredTextBoxNS.Range range) {
+            //clear all styles of changed range
+            range.ClearStyle(StyleIndex.All);
+
+            range.SetStyle(CommentStyle, CommentStyleRegEx1, RegexOptions.Multiline);
+            range.SetStyle(CommentStyle, CommentStyleRegEx2, RegexOptions.Multiline);
+            range.SetStyle(StringStyle, StringStyleRegEx);
+            range.SetStyle(KeyWordStyle, KeyWordStyleRegEx);
+            range.SetStyle(InvalidCmdStyle, InvalidCmdStyleRegEx);
+            range.SetStyle(TestCmdStyle, TestCmdStyleRegex);
+            range.SetStyle(ActionCmdStyle, ActionCmdStyleRegEx);
+            range.SetStyle(NumberStyle, NumberStyleRegEx);
+            range.SetStyle(ArgIdentifierStyle, ArgIdentifierStyleRegEx);
+            range.SetStyle(DefIdentifierStyle, DefIdentifierStyleRegEx);
+
+            //clear folding markers
+            range.ClearFoldingMarkers();
+
+            //set folding markers
+            range.SetFoldingMarkers("{", "}");
+        }
+
+        public bool LoadLogic(Logic loadlogic) {
+            InGame = loadlogic.InGame;
+            Encoding codepage;
+            if (InGame) {
+                LogicNumber = (int)loadlogic.Number;
+                codepage = EditLogic.CodePage;
+            }
+            else {
+                // use a number that can never match
+                // when searches for open logics are made
+                LogicNumber = 256;
+                codepage = Encoding.Default;
+            }
+            try {
+                loadlogic.Load();
+            }
+            catch {
+                return false;
+            }
+            if (loadlogic.SrcErrLevel < 0) {
+                return false;
+            }
+            Compiled = loadlogic.Compiled;
+            EditLogic = loadlogic.Clone();
+            if (EditLogic.SourceFile.Length > 0) {
+                if (File.Exists(EditLogic.SourceFile)) {
+                    try {
+                        rtfLogic1.Text = codepage.GetString(codepage.GetBytes(File.ReadAllText(EditLogic.SourceFile)));
+                    }
+                    catch {
+                        return false;
+                    }
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                rtfLogic1.Text = codepage.GetString(codepage.GetBytes(EditLogic.SourceText));
+            }
+            // TODO: set up form for editing, add error handling
+
+            // remove any tabs
+            //if (rtfLogic.Range.FindText("\t")) {
+            //    rtfLogic.Text = rtfLogic.Replace("\t", Space$(WinAGISettings.LogicTabWidth));
+            //}
+            //else {
+            //    rtfLogic.Text = EditLogic.SourceText;
+            //}
+            //if (!WinAGISettings.HighlightLogic) {
+            //    rtfLogic.SyntaxHighlighter = null;
+            //}
+            //else {
+            //    // set up highlighter
+            //    rtfLogic.SyntaxHighlighter = new(rtfLogic);
+            //}
+            rtfLogic1.ClearUndo();
+            if (EditLogic.SourceFile.Length != 0) {
+                rtfLogic1.IsChanged = EditLogic.SourceChanged;
+            }
+            else {
+                LogCount++;
+                EditLogic.ID = "NewLogic" + LogCount;
+                rtfLogic1.IsChanged = true;
+            }
+            // use ID for ingame; filename for not (logics don't
+            // assign file name to ID like the other resources)
+            if (InGame) {
+                Text = sLOGED + ResourceName(EditLogic, true, true);
+            }
+            else {
+                // get file name from SourceFile (if this is a source file)
+                // or from ResFile (if this is a compiled logic file)
+                // or from ID (if a new logic)
+                if (EditLogic.SourceFile.Length > 0) {
+                    Text = sLOGED + Path.GetFileName(EditLogic.SourceFile);
+                }
+                else if (EditLogic.ResFile.Length > 0) {
+                    Text = sLOGED + Path.GetFileName(EditLogic.ResFile);
+                }
+                else {
+                    Text = sLOGED + EditLogic.ID;
+                }
+            }
+            // set IsChanged base on rtfLogic change state
+            IsChanged = rtfLogic1.IsChanged;
+            if (IsChanged) {
+                Text = sDM + Text;
+            }
+            mnuRSave.Enabled = !IsChanged;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            if (WinAGISettings.MaximizeLogics.Value) {
+                WindowState = FormWindowState.Maximized;
+            }
+            loading = false;
+            return true;
+        }
+
+        internal bool LoadText(string filename) {
+            InGame = false;
+            LogicNumber = 256;
+            if (filename.Length > 0) {
+                if (File.Exists(filename)) {
+                    try {
+                        rtfLogic1.OpenFile(filename);
+                        TextFilename = filename;
+                    }
+                    catch {
+                        return false;
+                    }
+                    // remove any tabs
+                    //if (rtfLogic.Range.FindText("\t")) {
+                    //    rtfLogic.Text = rtfLogic.Replace("\t", Space$(WinAGISettings.LogicTabWidth));
+                    //}
+                    //else {
+                    //    rtfLogic.Text = EditLogic.SourceText;
+                    //}
+                }
+                else {
+                    return false;
+                }
+                Text = sLOGED + Path.GetFileName(filename);
+            }
+            else {
+                TextCount++;
+                Text = sLOGED + "NewTextFile" + TextCount.ToString();
+            }
+            rtfLogic1.ClearUndo();
+            IsChanged = rtfLogic1.IsChanged = filename.Length == 0;
+            if (IsChanged) {
+                Text = sDM + Text;
+            }
+            mnuRSave.Enabled = !IsChanged;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+
+            // maximize, if that's the current setting
+            if (WinAGISettings.MaximizeLogics.Value) {
+                WindowState = FormWindowState.Maximized;
+            }
+            loading = false;
+            return true;
+        }
+
+        public string NewTextFileName(string filename = "") {
+            DialogResult rtn;
+
+            if (filename.Length != 0) {
+                MDIMain.SaveDlg.Title = "Save Text File";
+                MDIMain.SaveDlg.FileName = Path.GetFileName(filename);
+            }
+            else {
+                MDIMain.SaveDlg.Title = "Save Text File As";
+                MDIMain.SaveDlg.FileName = "";
+            }
+            MDIMain.SaveDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            MDIMain.SaveDlg.FilterIndex = 1;
+            MDIMain.SaveDlg.DefaultExt = "txt";
+            MDIMain.SaveDlg.CheckPathExists = true;
+            MDIMain.SaveDlg.ExpandedMode = true;
+            MDIMain.SaveDlg.ShowHiddenFiles = false;
+            MDIMain.SaveDlg.OverwritePrompt = true;
+            MDIMain.SaveDlg.OkRequiresInteraction = true;
+            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
+            rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
+            if (rtn == DialogResult.Cancel) {
+                // nothing selected
+                return "";
+            }
+            DefaultResDir = JustPath(MDIMain.SaveDlg.FileName);
+            return MDIMain.SaveDlg.FileName;
+        }
+
+        public void ImportLogic(string importfile) {
+            string strFile = "";
+
+            MDIMain.UseWaitCursor = true;
+            Logic tmpLogic = new();
+            // open file to see if it is sourcecode or compiled logic
+            try {
+                using FileStream fsNewLog = new(importfile, FileMode.Open);
+                using StreamReader srNewLog = new(fsNewLog);
+                strFile = srNewLog.ReadToEnd();
+                srNewLog.Dispose();
+                fsNewLog.Dispose();
+            }
+            catch (Exception) {
+                // ignore errors
+            }
+            // check if logic is a compiled logic:
+            // (check for existence of characters <8)
+            string lChars = "";
+            for (int i = 1; i <= 8; i++) {
+                lChars += ((char)i).ToString();
+            }
+            bool blnSource = !strFile.Any(lChars.Contains);
+            // import the logic
+            // (and check for error)
+            try {
+                if (blnSource) {
+                    tmpLogic.ImportSource(importfile);
+                }
+                else {
+                    tmpLogic.Import(importfile);
+                }
+            }
+            catch (Exception e) {
+                // if a compile error occurred,
+                if (e.HResult == WINAGI_ERR + 567) {
+                    // can't open this resource
+                    MDIMain.UseWaitCursor = false;
+                    ErrMsgBox(e, "An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource");
+                    // restore main form mousepointer and exit
+                    return;
+                }
+                else {
+                    // maybe we assumed source status incorrectly- try again
+                    try {
+                        if (blnSource) {
+                            tmpLogic.Import(importfile);
+                        }
+                        else {
+                            tmpLogic.ImportSource(importfile);
+                        }
+                    }
+                    catch (Exception) {
+                        // if STILL error, something wrong
+                        MDIMain.UseWaitCursor = false;
+                        ErrMsgBox(e, "Unable to load this logic resource. It can't be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource");
+                        return;
+                    }
+                }
+            }
+            if (tmpLogic.SrcErrLevel < 0) {
+                MDIMain.UseWaitCursor = true;
+                switch (tmpLogic.SrcErrLevel) {
+                case -1:
+                    MessageBox.Show(MDIMain,
+                        "Unable to access this logic source file, file not found.",
+                        "Missing Source File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    break;
+                case -2:
+                    MessageBox.Show(MDIMain,
+                        "This logic source file is marked 'readonly'. WinAGI requires write-access to edit source files.",
+                        "Read only Files not Allowed",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    break;
+                case -3:
+                    MessageBox.Show(MDIMain,
+                        "A file access error has occurred. Unable to read this file.",
+                        "File Access Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    break;
+                }
+                return;
+            }
+            EditLogic.SourceText = tmpLogic.SourceText;
+            rtfLogic1.Text = tmpLogic.SourceText;
+            // TODO: refresh highlight?
+        }
+
+        public void SaveLogicSource() {
+            // saves the source code to file; to save the 
+            // AGI resource, use the Compile method
+            UseWaitCursor = true;
+            if (InGame) {
+                //   - copy editor text to GAME LOGIC source
+                //   if a room and using layout editor
+                //      - update source for room references
+                //      - copy updated source back to editor
+                //   -save source
+
+                // unlike other resources, the ingame logic is referenced directly
+                // when being edited; so, it's possible that the logic might get closed
+                // such as when changing which logic is being previewed;
+                // SO, we need to make sure the logic is loaded BEFORE saving
+                bool loaded = EditGame.Logics[LogicNumber].Loaded;
+                if (!loaded) {
+                    EditGame.Logics[LogicNumber].Load();
+                }
+                // TODO: lot of re-work on layout functions
+                // probably can cleanup the update functions so it's easier 
+                // to manage...
+                EditGame.Logics[LogicNumber].SourceText = rtfLogic1.Text;
+
+                if (EditGame.UseLE && EditLogic.IsRoom) {
+                    // need to update the layout editor and the layout data file with new exit info
+
+                    /*
+                    // save current cursor position
+                    lngPos = rtfLogic.Selection.Start;
+                    // cache the current first visible line
+                    lngFirst = SendMessage(rtfLogic.Handle, EM_GETFIRSTVISIBLELINE, 0, 0);
+                    // this returns zero sometimes when it shouldn't
+                    UpdateExitInfo(euUpdateRoom, LogicNumber, EditGame.Logics[LogicNumber]);
+                    rtfLogic.Text = EditGame.Logics[LogicNumber].SourceText;
+                    // reset cursor first; it will scroll the screen if
+                    // cursor is currently offscreen
+                    rtfLogic.Selection.Start = lngPos;
+                    rtfLogic.Selection.End = lngPos;
+                    // TODO: adjust scrolling to match previous position
+                    lngLine = SendMessage(rtfLogic.Handle, EM_GETFIRSTVISIBLELINE, 0, 0);
+                    if (lngLine != lngFirst) {
+                        SendMessage(rtfLogic.Handle, EM_LINESCROLL, 0, lngFirst - lngLine);
+                    }
+                    */
+
+                }
+                // use the ingame logic to save the SOURCE
+                EditGame.Logics[LogicNumber].SaveSource();
+                // update the clone to match
+                // TODO: for logics, why bother? only the source code 
+                // and ingame status need to be tracked, and that can
+                // be done with the rtfLogic control and the InGame local
+                // flag
+                EditLogic.SourceText = EditGame.Logics[LogicNumber].SourceText;
+                if (!loaded) {
+                    EditGame.Logics[LogicNumber].Unload();
+                }
+                // remove existing TODO items and decompiler warnings for this logic
+                MDIMain.ClearWarnings(AGIResType.Logic, (byte)LogicNumber, [EventType.TODO, EventType.DecompWarning]);
+
+                // update TODO list and decomp warnings for this logic
+                List<TWinAGIEventInfo> TODOs = ExtractTODO((byte)LogicNumber, rtfLogic1.Text, EditLogic.ID);
+                foreach (TWinAGIEventInfo tmpInfo in TODOs) {
+                    MDIMain.AddWarning(tmpInfo);
+                }
+                // check for Decompile warnings
+                List<TWinAGIEventInfo> DecompWarnings = ExtractDecompWarn((byte)LogicNumber, rtfLogic1.Text, EditLogic.ID);
+                foreach (TWinAGIEventInfo tmpInfo in DecompWarnings) {
+                    MDIMain.AddWarning(tmpInfo);
+                }
+            }
+            else if (EditLogic.SourceFile.Length != 0) {
+                // preserve all extended characters by using default codepage
+                rtfLogic1.SaveToFile(EditLogic.SourceFile, Encoding.Default);
+            }
+            else {
+                // not in a game, and no sourcefile assigned yet -
+                UseWaitCursor = false;
+                ExportLogic();
+                return;
+            }
+            UpdateStatusBar();
+            MarkAsSaved();
+            if (InGame && !Compiling) {
+                RefreshTree(AGIResType.Logic, LogicNumber);
+            }
+            if (InGame) {
+                Text = sLOGED + ResourceName(EditLogic, true, true);
+            }
+            else {
+                Text = sLOGED + Path.GetFileName(EditLogic.SourceFile);
+            }
+            UseWaitCursor = false;
+        }
+
+        public void SaveTextFile(string filename) {
+            if (filename.Length == 0) {
+                SaveTextFileAs();
+            }
+            else {
+                // preserve all extended characters by using default codepage
+                rtfLogic1.SaveToFile(filename, Encoding.Default);
+                TextFilename = filename;
+                MarkAsSaved();
+            }
+        }
+
+        public void SaveTextFileAs() {
+            // get a filename to export
+            string filename;
+            if (TextFilename.Length == 0) {
+                filename = DefaultResDir + "NewTextFile" + TextCount.ToString() + ".txt";
+            }
+            else {
+                filename = TextFilename;
+            }
+            filename = NewTextFileName(filename);
+            if (filename.Length != 0) {
+                SaveTextFile(filename);
+            }
+        }
+
+        public void ExportLogic() {
+            // export logic or source
+
+            // logics that are NOT in a game can't export the actual logic
+            // resource; they only export the source code (which is functionally
+            // equivalent to 'save as'
+
+            // update sourcecode with current logic text
+            EditLogic.SourceText = rtfLogic1.Text;
+            if (InGame) {
+                // MUST make sure logic sourcefile is set to correct Value
+                // BEFORE calling exporting; this is because EditLogic is NOT
+                // in a game; it only mimics the ingame resource
+                EditLogic.SourceFile = EditGame.Logics[LogicNumber].SourceFile;
+                if (EditGame.Logics[LogicNumber].CompiledCRC != EditLogic.CRC) {
+                    if (MessageBox.Show(MDIMain,
+                        "Source code has changed. Do you want to compile before exporting this logic?",
+                        "Export Logic",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) == DialogResult.Yes) {
+                        if (!CompileLogic(this, (byte)LogicNumber)) {
+                            MessageBox.Show(MDIMain,
+                                "Compile error; Unable to export the logic resource.",
+                                "Compiler error",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                            return;
+                        }
+                    }
+                }
+                if (Base.ExportLogic(EditLogic, true) == 1) {
+                    // because EditLogic is not the actual ingame logic its
+                    // ID needs to be reset back to the ingame value
+                    EditLogic.ID = EditGame.Logics[LogicNumber].ID;
+                }
+                UpdateStatusBar();
+            }
+            else {
+                // not in game; save-as is only operation allowed
+                string strExportName = NewSourceName(EditLogic, InGame);
+                if (strExportName.Length != 0) {
+                    EditLogic.SourceFile = strExportName;
+                    // preserve all extended characters by using default codepage
+                    rtfLogic1.SaveToFile(EditLogic.SourceFile, Encoding.Default);
+                    EditLogic.ID = Path.GetFileName(strExportName);
+                    MarkAsSaved();
+                }
+            }
+        }
+
+        public void ToggleInGame() {
             //toggles the game state of an object
 
             DialogResult rtn;
@@ -1440,18 +2380,16 @@ namespace WinAGI.Editor {
             bool blnDontAsk = false;
 
             if (InGame) {
-                // ask if resource should be exported
-                if (WinAGISettings.AskExport) {
+                if (WinAGISettings.AskExport.Value) {
                     rtn = MsgBoxEx.Show(MDIMain,
-                        "Do you want to export '" + EditLogic.ID + "' source before\nremoving it from your game?",
-                        "Export Logic Before Removal",
+                        "Do you want to export '" + EditLogic.ID + "' source before removing it from your game?",
+                        "Don't ask this question again",
                         MessageBoxButtons.YesNoCancel,
                         MessageBoxIcon.Question,
-                        "Don't ask this question again", ref blnDontAsk);
-                    // save the setting
-                    WinAGISettings.AskExport = !blnDontAsk;
-                    if (!WinAGISettings.AskExport) {
-                        WinAGISettingsList.WriteSetting(sGENERAL, "AskExport", WinAGISettings.AskExport);
+                        "Export Logic Before Removal", ref blnDontAsk);
+                    WinAGISettings.AskExport.Value = !blnDontAsk;
+                    if (!WinAGISettings.AskExport.Value) {
+                        WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
                     }
                 }
                 else {
@@ -1466,12 +2404,11 @@ namespace WinAGI.Editor {
                     // MUST make sure logic sourcefile is set to correct Value
                     // BEFORE calling exporting; this is because EditLogic is NOT
                     // in a game; it only mimics the ingame resource
-                    EditLogic.SourceFile = EditGame.ResDir + EditLogic.ID + EditGame.SourceExt;
-                    // get a filename for the export
+                    EditLogic.SourceFile = EditGame.ResDir + EditLogic.ID + "." + EditGame.SourceExt;
                     strExportName = NewSourceName(EditLogic, InGame);
                     if (strExportName.Length > 0) {
-                        // export it
-                        //rtfLogic.SaveFile strExportName, reOpenSaveText + reOpenSaveCreateAlways, 437
+                        // preserve all extended characters by using default codepage
+                        rtfLogic1.SaveToFile(strExportName, Encoding.Default);
                         UpdateStatusBar();
                     }
                     break;
@@ -1479,3005 +2416,1690 @@ namespace WinAGI.Editor {
                     // nothing to do
                     break;
                 }
-                // confirm removal
-                if (WinAGISettings.AskRemove) {
+                if (WinAGISettings.AskRemove.Value) {
                     rtn = MsgBoxEx.Show(MDIMain,
                         "Removing '" + EditLogic.ID + "' from your game.\n\nSelect OK to proceed, or Cancel to keep it in game.",
-                        "Don't ask this question again",
+                        "Remove Logic From Game",
                         MessageBoxButtons.OKCancel,
                         MessageBoxIcon.Question,
-                        "Remove Logic From Game", ref blnDontAsk);
-                    WinAGISettings.AskRemove = !blnDontAsk;
-                    if (!WinAGISettings.AskRemove) {
-                        WinAGISettingsList.WriteSetting(sGENERAL, "AskRemove", WinAGISettings.AskRemove);
+                        "Don't ask this question again", ref blnDontAsk);
+                    WinAGISettings.AskRemove.Value = !blnDontAsk;
+                    if (!WinAGISettings.AskRemove.Value) {
+                        WinAGISettings.AskRemove.WriteSetting(WinAGISettingsFile);
                     }
                 }
                 else {
-                    // assume OK
                     rtn = DialogResult.OK;
                 }
                 if (rtn == DialogResult.Cancel) {
                     return;
                 }
-                // remove the logic
+                // remove the logic (force-closes this editor)
                 RemoveLogic((byte)LogicNumber);
-                // unload this form
-                this.Close();
             }
             else {
                 // add to game 
-                // (verify a game is loaded)
                 if (EditGame is null) {
                     return;
                 }
-                frmGetResourceNum _frmGetResNum = new(EGetRes.grAddInGame, AGIResType.Logic, 0);
-                if (_frmGetResNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                    // store number
-                    LogicNumber = _frmGetResNum.NewResNum;
+                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Logic, 0);
+                if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    LogicNumber = frmGetNum.NewResNum;
                     // change id before adding to game
-                    EditLogic.ID = _frmGetResNum.txtID.Text;
+                    EditLogic.ID = frmGetNum.txtID.Text;
                     // copy text back into sourcecode
-                    EditLogic.SourceText = rtfLogic.Text;
+                    Debug.Assert(EditLogic.SourceText == rtfLogic1.Text);
+                    //EditLogic.SourceText = rtfLogic1.Text;
                     // always import logics as non-room;
                     // user can always change it later via the
                     // InRoom property
-                    // add Logic (which saves the source file)
+                    // add Logic (which saves the source file ot resdir)
                     AddNewLogic((byte)LogicNumber, EditLogic);
+                    EditGame.Logics[LogicNumber].Load();
                     // copy the Logic back (to ensure internal variables are copied)
                     EditLogic = EditGame.Logics[LogicNumber].Clone();
                     // now we can unload the newly added logic;
                     EditGame.Logics[LogicNumber].Unload();
-                    // update caption
-                    Text = sLOGED + ResourceName(EditLogic, true, true);
-                    // reset dirty flag
-                    rtfLogic.IsChanged = false;
-                    // set ingame flag
+                    MarkAsSaved();
                     InGame = true;
-                    //'change menu caption
-                    //frmMDIMain.mnuRInGame.Caption = "Remove from Game"
-                    //frmMDIMain.Toolbar1.Buttons("remove").Image = 10
-                    //frmMDIMain.Toolbar1.Buttons("remove").ToolTipText = "Remove from Game"
+                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
+                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove Logic";
                 }
-                _frmGetResNum.Dispose();
+            }
+            btnCompile.Enabled = InGame;
+            btnMsgClean.Enabled = InGame;
+        }
+
+        public void RenumberLogic() {
+            if (!InGame) {
+                return;
+            }
+            string oldid = EditLogic.ID;
+            int oldnum = LogicNumber;
+            byte NewResNum = GetNewNumber(AGIResType.Logic, (byte)LogicNumber);
+            if (NewResNum != LogicNumber) {
+                // update ID (it may have changed if using default ID)
+                EditLogic.ID = EditGame.Logics[NewResNum].ID;
+                LogicNumber = NewResNum;
+                Text = sLOGED + ResourceName(EditLogic, InGame, true);
+                if (IsChanged) {
+                    Text = sDM + Text;
+                }
+                if (EditLogic.ID != oldid) {
+                    if (File.Exists(EditGame.ResDir + oldid + "." + EditGame.SourceExt)) {
+                        SafeFileMove(EditGame.ResDir + oldid + "." + EditGame.SourceExt, EditGame.ResDir + EditGame.Logics[NewResNum].ID + "." + EditGame.SourceExt, true);
+                    }
+                }
+                if (EditGame.UseLE) {
+                    UpdateExitInfo(UpdateReason.RenumberRoom, oldnum, null, NewResNum);
+                }
             }
         }
 
+        public void EditLogicProperties(int FirstProp) {
+            string id = EditLogic.ID;
+            string description = EditLogic.Description;
+            if (GetNewResID(AGIResType.Logic, LogicNumber, ref id, ref description, InGame, 1)) {
+                if (EditLogic.Description != description) {
+                    EditLogic.Description = description;
+                }
+                if (EditLogic.ID != id) {
+                    EditLogic.ID = id;
+                    Text = sLOGED + ResourceName(EditLogic, InGame, true);
+                    if (IsChanged) {
+                        Text = sDM + Text;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Builds the local list of defines for use by the tooltip 
+        /// and showlist functions.
+        /// </summary>
+        private void BuildLDefLookup() {
+            string strLine;
+            TDefine tmpDefine = new();
+            bool blnSub;
+
+            // if cursor is already the wait cursor, we need to
+            // NOT restore it after completion; calling function
+            // will do that
+            blnSub = MDIMain.UseWaitCursor;
+            if (!blnSub) {
+                MDIMain.UseWaitCursor = true;
+            }
+            // add local defines (if duplicate defines, only first one will be used)
+
+            LDefLookup = [];
+            for (int i = 0; i < fctb.LinesCount; i++) {
+                // remove comments and trim the line
+                string comment = "";
+                strLine = StripComments(fctb[i].Text, ref comment);
+                if (strLine.Length > 0) {
+                    if (strLine.Left(8).ToLower() == "#define ") {
+                        strLine = strLine[8..].Trim();
+                    }
+                    else {
+                        continue;
+                    }
+                    // there has to be at least one space
+                    if (strLine.Contains(' ')) {
+                        //split it by position of first space
+                        string[] strings = strLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (strings.Length == 2) {
+                            tmpDefine.Name = strings[0];
+                            tmpDefine.Value = strings[1];
+                        }
+                        else {
+                            // no good; get next line
+                            continue;
+                        }
+                    }
+                    else {
+                        // no good; get next line
+                        continue;
+                    }
+                    // don't bother validating; just use it as long as the
+                    // Type can be determined
+                    tmpDefine.Type = DefTypeFromValue(tmpDefine.Value);
+                    Array.Resize(ref LDefLookup, LDefLookup.Length + 1);
+                    LDefLookup[^1] = tmpDefine;
+                }
+            }
+            DefDirty = false;
+
+
+            if (!blnSub) {
+                MDIMain.UseWaitCursor = false;
+            }
+        }
+
+        private void UpdateTip(Place tiplocation) {
+            AGIToken seltoken = fctb.TokenFromPos(tiplocation);
+            if (seltoken.Type == AGITokenType.Comment) {
+                picTip.Visible = false;
+                return;
+            }
+            int oldarg = TipCurArg;
+            TipCurArg = EditArgNumber(fctb, tiplocation);
+            if (oldarg != TipCurArg) {
+                RepositionTip(TipCmdToken);
+                picTip.Refresh();
+            }
+        }
+
+        private int EditArgNumber(WinAGIFCTB fctb, Place place) {
+            // count commas going backward until '(' found
+            bool next = false, failed = false;
+            int argcount = 0;
+            AGIToken token = fctb.TokenFromPos(place);
+            token = fctb.PreviousToken(token, true);
+            while (token.Type != AGITokenType.None) {
+                if (next) {
+                    break;
+                }
+                if (token.Type == AGITokenType.Symbol) {
+                    switch (token.Text) {
+                    case ",":
+                        argcount++;
+                        break;
+                    case "(":
+                        next = true;
+                        break;
+                    default:
+                        failed = true;
+                        break;
+                    }
+                    if (failed) {
+                        break;
+                    }
+                }
+                token = fctb.PreviousToken(token, true);
+            }
+            if (failed) {
+                return 0;
+            }
+            else {
+                return argcount;
+            }
+        }
+
+        private void RepositionTip(AGIToken token) {
+            Font tipfont = new Font("Arial", 9, FontStyle.Regular);
+            Font tipbold = new Font("Arial", 9, FontStyle.Bold);
+            Point startPoint = new Point(0, 0);
+            // Set TextFormatFlags to no padding so strings are drawn together.
+            TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
+            // Declare a proposed size with dimensions set to the maximum integer value.
+            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            using Graphics graphics = picTip.CreateGraphics();
+            Size szText = TextRenderer.MeasureText(graphics, " ()  ", tipfont, proposedSize, flags);
+            startPoint.X += szText.Width;
+            for (int i = 0; i < TipCmdToken.ArgList.Length; i++) {
+                if (TipCurArg == i) {
+                    szText = TextRenderer.MeasureText(graphics, TipCmdToken.ArgList[i], tipbold, proposedSize, flags);
+                }
+                else {
+                    szText = TextRenderer.MeasureText(graphics, TipCmdToken.ArgList[i], tipfont, proposedSize, flags);
+                }
+                startPoint.X += szText.Width;
+                if (i < TipCmdToken.ArgList.Length - 1) {
+                    szText = TextRenderer.MeasureText(graphics, ", ", tipfont, proposedSize, flags);
+                    startPoint.X += szText.Width;
+                }
+            }
+            picTip.Width = startPoint.X;
+            picTip.Height = (int)(szText.Height * 1.2);
+            Place tp = new(token.End + 1, token.Line);
+            Point pPos;
+            pPos = fctb.PlaceToPoint(tp);
+            picTip.Top = pPos.Y + fctb.CharHeight;
+            picTip.Left = pPos.X;
+            picTip.Visible = true;
+        }
+
+        private bool NeedCommandTip(WinAGIFCTB fctb, Place place, bool matchonly = false) {
+            // this function will examine current row, and determine if a command is being
+            // edited
+            // it sets value of the module variables TipCmdPos, TipCurArg, TipCmdNum
+            //
+            // if matchonly is true, it only returns true if the identified command matches
+            // the command currently being tipped
+            //
+            // function returns TRUE if a valid AGI command is found, otherwise it
+            // returns FALSE
+
+            AGIToken seltoken = fctb.TokenFromPos(place);
+            if (seltoken.Type == AGITokenType.Comment) {
+                return false;
+            }
+            // get previous command from current pos
+            int argnum = 0;
+            AGIToken cmdtoken = FindPrevCmd(fctb, seltoken, ref argnum);
+
+            if (cmdtoken.SubType != TokenSubtype.ActionCmd && cmdtoken.SubType != TokenSubtype.TestCmd && cmdtoken.SubType != TokenSubtype.Snippet) {
+                TipCmdToken = new AGIToken();
+                return false;
+            }
+            if (matchonly && cmdtoken.Start == TipCmdToken.Start && cmdtoken.Line == TipCmdToken.Line) {
+                return true;
+            }
+            // only commands that take arguments are of interest
+            if (CmdHasArgs(ref cmdtoken)) {
+                TipCmdToken = cmdtoken;
+                return true;
+            }
+            else {
+                TipCmdToken = new AGIToken();
+                return false;
+            }
+        }
+
+        private bool CmdHasArgs(ref AGIToken cmdtoken) {
+            // returns true if the command has one or more arguments
+            // argument list string is stored in a module variable
+            int i = 0, j = 0;
+            // index based on first letter
+            switch (cmdtoken.Text[0]) {
+            case 'a':
+                i = 0;
+                j = 7;
+                break;
+            case 'b':
+                i = 8;
+                j = 8;
+                break;
+            case 'c':
+                i = 9;
+                j = 20;
+                break;
+            case 'd':
+                i = 21;
+                j = 34;
+                break;
+            case 'e':
+                i = 35;
+                j = 39;
+                break;
+            case 'f':
+                i = 40;
+                j = 43;
+                break;
+            case 'g':
+                i = 44;
+                j = 53;
+                break;
+            case 'h':
+                i = 54;
+                j = 54;
+                break;
+            case 'i':
+                i = 55;
+                j = 60;
+                break;
+            case 'l':
+                i = 61;
+                j = 72;
+                break;
+            case 'm':
+                i = 73;
+                j = 77;
+                break;
+            case 'n':
+                i = 78;
+                j = 82;
+                break;
+            case 'o':
+                i = 83;
+                j = 92;
+                break;
+            case 'p':
+                i = 93;
+                j = 102;
+                break;
+            case 'q':
+                i = 103;
+                j = 103;
+                break;
+            case 'r':
+                i = 104;
+                j = 115;
+                break;
+            case 's':
+                i = 116;
+                j = 153;
+                break;
+            case 't':
+                i = 154;
+                j = 156;
+                break;
+            case 'w':
+                i = 157;
+                j = 158;
+                break;
+            case '#':
+                // snippet args already set
+                if (cmdtoken.ArgList.Length > 0) {
+                    return true;
+                }
+                break;
+            default:
+                return false;
+            }
+            for (int k = i; k <= j; k++) {
+                if (cmdtoken.Text == Editor.Base.LoadResString(ALPHACMDTEXT + k)) {
+                    cmdtoken.ArgList = Editor.Base.LoadResString(5000 + k).Split(", ");
+                    cmdtoken.ArgIndex = k;
+                    return true;
+                }
+            }
+            // not a command with arguments
+            return false;
+        }
+
+        private void RedrawTipWindow(Graphics graphics) {
+            Font tipfont = new Font("Arial", 9, FontStyle.Regular);
+            Font tipbold = new Font("Arial", 9, FontStyle.Bold);
+            Point startPoint = new Point(0, 0);
+            // Set TextFormatFlags to no padding so strings are drawn together.
+            TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
+            // Declare a proposed size with dimensions set to the maximum integer value.
+            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            Size szText = TextRenderer.MeasureText(graphics, " (", tipfont, proposedSize, flags);
+            TextRenderer.DrawText(graphics, " (", tipfont, startPoint, Color.Black, flags);
+            startPoint.X += szText.Width;
+            for (int i = 0; i < TipCmdToken.ArgList.Length; i++) {
+                if (TipCurArg == i) {
+                    szText = TextRenderer.MeasureText(graphics, TipCmdToken.ArgList[i], tipbold, proposedSize, flags);
+                    TextRenderer.DrawText(graphics, TipCmdToken.ArgList[i], tipbold, startPoint, Color.Black, flags);
+                }
+                else {
+                    szText = TextRenderer.MeasureText(graphics, TipCmdToken.ArgList[i], tipfont, proposedSize, flags);
+                    TextRenderer.DrawText(graphics, TipCmdToken.ArgList[i], tipfont, startPoint, Color.Black, flags);
+                }
+                startPoint.X += szText.Width;
+                if (i < TipCmdToken.ArgList.Length - 1) {
+                    szText = TextRenderer.MeasureText(graphics, ", ", tipfont, proposedSize, flags);
+                    TextRenderer.DrawText(graphics, ", ", tipfont, startPoint, Color.Black, flags);
+                    startPoint.X += szText.Width;
+                }
+            }
+            TextRenderer.DrawText(graphics, ")", tipfont, startPoint, Color.Black, flags);
+        }
+
+        private void AddIfUnique(string strName, int lngIcon, string strValue) {
+            if (lstDefines.Items.IndexOfKey(strName) != -1) {
+                return;
+            }
+            // OK to add it
+            ListViewItem item = lstDefines.Items.Add(strName, strName, lngIcon);
+            //item.Name = strName;
+            item.ToolTipText = strValue;
+            return;
+        }
+
+        private void BuildDefineList(ArgListType ArgType = ArgListType.All) {
+            // adds defines to the listview, which is then presented to user
+            // the list defaults to all defines; but when a specific argument
+            // type is needed, it will adjust to show only the defines
+            // of that particular type
+
+            // if no game loaded, skip globals and resIDs (locals and reserved only)
+
+            bool blnAdd;
+            string strLine;
+
+            if (!ListDirty && !DefDirty && ArgType == ListType) {
+                return;
+            }
+            lstDefines.Items.Clear();
+            lstDefines.Tag = "defines";
+
+            // locals not needed if looking for only a ResID
+            if (ArgType < ArgListType.Logic) {
+                if (DefDirty) {
+                    BuildLDefLookup();
+                }
+                // add local defines (if duplicate defines, only first one will be used)
+                for (int i = 0; i < LDefLookup.Length; i++) {
+                    // add these local defines IF
+                    //     types match OR
+                    //     argtype is ALL OR
+                    //     argtype is (msg OR invobj) AND deftype is defined string OR
+                    //     argtype matches a special type
+                    blnAdd = false;
+                    if ((int)LDefLookup[i].Type == (int)ArgType) {
+                        blnAdd = true;
+                    }
+                    else {
+                        switch (ArgType) {
+                        case ArgListType.All:
+                            blnAdd = true;
+                            break;
+                        case ArgListType.IfArg:
+                            // variables and flags
+                            blnAdd = LDefLookup[i].Type == Engine.ArgType.Var || LDefLookup[i].Type == Engine.ArgType.Flag;
+                            break;
+                        case ArgListType.OthArg:
+                            // variables and strings
+                            blnAdd = LDefLookup[i].Type == Engine.ArgType.Var || LDefLookup[i].Type == Engine.ArgType.Str;
+                            break;
+                        case ArgListType.Values:
+                            // variables and numbers
+                            blnAdd = LDefLookup[i].Type == Engine.ArgType.Var || LDefLookup[i].Type == Engine.ArgType.Num;
+                            break;
+                        case ArgListType.Msg or ArgListType.IObj:
+                            blnAdd = LDefLookup[i].Type == Engine.ArgType.DefStr;
+                            break;
+                        }
+                    }
+                    if (blnAdd) {
+                        AddIfUnique(LDefLookup[i].Name, (int)LDefLookup[i].Type, LDefLookup[i].Value);
+                    }
+                }
+            }
+            else {
+                if (EditGame == null) {
+                    // no resIDs if no game is loaded
+                    return;
+                }
+            }
+            // global defines next (but only if not looking for just a ResID AND game is loaded)
+            if (EditGame != null && ArgType < ArgListType.Logic) {
+                for (int i = 0; i < GDefLookup.Length; i++) {
+                    // add these global defines IF
+                    //     types match OR
+                    //     argtype is ALL OR
+                    //     argtype is (msg OR invobj) AND deftype is defined string
+                    //     argtype matches a special type
+                    blnAdd = false;
+                    if ((int)GDefLookup[i].Type == (int)ArgType) {
+                        blnAdd = true;
+                    }
+                    else {
+                        switch (ArgType) {
+                        case ArgListType.All:
+                            blnAdd = true;
+                            break;
+                        case ArgListType.IfArg:
+                            // variables and flags
+                            blnAdd = GDefLookup[i].Type == Engine.ArgType.Var || GDefLookup[i].Type == Engine.ArgType.Flag;
+                            break;
+                        case ArgListType.OthArg:
+                            // variables and strings
+                            blnAdd = GDefLookup[i].Type == Engine.ArgType.Var || GDefLookup[i].Type == Engine.ArgType.Str;
+                            break;
+                        case ArgListType.Values:
+                            // variables and numbers
+                            blnAdd = GDefLookup[i].Type == Engine.ArgType.Var || GDefLookup[i].Type == Engine.ArgType.Num;
+                            break;
+                        case ArgListType.Msg or ArgListType.IObj:
+                            blnAdd = GDefLookup[i].Type == Engine.ArgType.DefStr;
+                            break;
+                        }
+                    }
+                    if (blnAdd) {
+                        // don't add if already defined
+                        AddIfUnique(GDefLookup[i].Name, 11 + (int)GDefLookup[i].Type, GDefLookup[i].Value);
+                    }
+                }
+            }
+            if (EditGame != null) {
+                // check for logics, views, sounds, iobjs, voc words AND pics
+                switch (ArgType) {
+                case ArgListType.All:
+                case ArgListType.Byte:
+                case ArgListType.Values:
+                case ArgListType.Logic:
+                case ArgListType.Picture:
+                case ArgListType.Sound:
+                case ArgListType.View:
+                    for (int j = 0; j < 4; j++) {
+                        if (ArgType == ArgListType.All ||
+                            ArgType == ArgListType.Byte ||
+                            ArgType == ArgListType.Values ||
+                            (int)ArgType - 14 == j) {
+                            for (int i = 0; i < 256; i++) {
+                                // if valid resource, type is atNum
+                                if (IDefLookup[j, i].Type == Engine.ArgType.Num) {
+                                    AddIfUnique(IDefLookup[j, i].Name, 22 + j, IDefLookup[j, i].Value);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case ArgListType.IObj:
+                    // add inv items (ok if matches an existing define)
+                    if (!EditGame.InvObjects.Loaded) {
+                        EditGame.InvObjects.Load();
+                    }
+                    // skip any items that are just a question mark
+                    for (int i = 0; i < EditGame.InvObjects.Count; i++) {
+                        strLine = EditGame.InvObjects[(byte)i].ItemName;
+                        if (strLine != "?") {
+                            if (strLine.Contains(QUOTECHAR)) {
+                                strLine = strLine.Replace("\"", "\\" + QUOTECHAR);
+                            }
+                            lstDefines.Items.Add("\"" + strLine + "\"", "\"" + strLine + "\"", 17).ToolTipText = "i" + i;
+                        }
+                    }
+                    break;
+                case ArgListType.VocWrd:
+                    // add vocab words items (ok if matches an existing define)
+                    if (!EditGame.WordList.Loaded) {
+                        EditGame.WordList.Load();
+                    }
+                    // skip group 0
+                    for (int i = 1; i < EditGame.WordList.GroupCount; i++) {
+                        strLine = "\"" + EditGame.WordList.Group(i).GroupName + "\"";
+                        lstDefines.Items.Add(strLine, strLine, 22).ToolTipText = EditGame.WordList.Group(i).GroupNum.ToString();
+                    }
+                    break;
+                }
+            }
+            // lastly, check for reserved defines option (if not looking for a resourceID)
+            if (((EditGame == null && WinAGISettings.DefUseResDef.Value) || (EditGame != null && EditGame.UseReservedNames)) && ArgType < ArgListType.Logic) {
+                for (int i = 0; i <= 94; i++) {
+                    // add these reserved defines IF
+                    //     types match OR
+                    //     argtype is ALL OR
+                    //     argtype is (msg OR invobj) AND deftype is defined string
+                    //     argtype matches a special type
+                    blnAdd = false;
+                    if ((int)RDefLookup[i].Type == (int)ArgType) {
+                        blnAdd = true;
+                    }
+                    else {
+                        switch (ArgType) {
+                        case ArgListType.All:
+                            blnAdd = true;
+                            break;
+                        case ArgListType.IfArg:
+                            // variables and flags
+                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Flag;
+                            break;
+                        case ArgListType.OthArg:
+                            // variables and strings
+                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Str;
+                            break;
+                        case ArgListType.Values:
+                            // variables and numbers
+                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Num;
+                            break;
+                        case ArgListType.Msg or ArgListType.IObj:
+                            blnAdd = RDefLookup[i].Type == Engine.ArgType.DefStr;
+                            break;
+                        }
+                    }
+                    if (blnAdd) {
+                        // don't add if already defined
+                        AddIfUnique(RDefLookup[i].Name, 26 + (int)RDefLookup[i].Type, RDefLookup[i].Value);
+                    }
+                }
+            }
+            ListDirty = false;
+            ListType = ArgType;
+        }
+
+        private void ShowSynonymList(string aWord) {
+            // displays a list of synonyms in a list box
+            ListDirty = true;
+            int GrpNum = EditGame.WordList[aWord[1..^1]].Group;
+            int GrpCount = EditGame.WordList.GroupN(GrpNum).WordCount;
+            lstDefines.Items.Clear();
+            lstDefines.Tag = "words";
+            for (byte i = 0; i < GrpCount; i++) {
+                lstDefines.Items.Add("\"" + EditGame.WordList.GroupN(GrpNum)[i] + "\"", 21);
+            }
+            // save pos and text
+            DefStartPos = fctb.Selection.Start;
+            DefEndPos = fctb.Selection.End;
+            PrevText = fctb.Selection.Text;
+            DefText = PrevText;
+            // select the word
+            foreach (ListViewItem tmpItem in lstDefines.Items) {
+                if (aWord == tmpItem.Text) {
+                    tmpItem.Selected = true;
+                    tmpItem.EnsureVisible();
+                    break;
+                }
+            }
+            // not found; select first item in list
+            lstDefines.Items[0].Selected = true;
+            lstDefines.Items[0].EnsureVisible();
+            // position it
+            Place tp = fctb.Selection.Start;
+            Point pPos;
+            pPos = fctb.PlaceToPoint(tp);
+            lstDefines.Top = pPos.Y + fctb.CharHeight;
+            lstDefines.Left = pPos.X;
+            lstDefines.Visible = true;
+            lstDefines.Select();
+            return;
+        }
+
+        private void ShowSnippetList() {
+            // displays snippets in a list box
+            if (fctb.Lines[fctb.Selection.Start.iLine][..fctb.Selection.Start.iChar].Length == 0) {
+                SnipIndent = fctb.Selection.Start.iChar;
+            }
+            else {
+                SnipIndent = 0;
+            }
+            ListDirty = true;
+            lstDefines.Items.Clear();
+            lstDefines.Tag = "snippets";
+            for (int i = 0; i < CodeSnippets.Length; i++) {
+                lstDefines.Items.Add(CodeSnippets[i].Name).ToolTipText = CodeSnippets[i].Value;
+            }
+            lstDefines.Items[0].Selected = true;
+            lstDefines.Items[0].EnsureVisible();
+            // save pos and text
+            DefStartPos = fctb.Selection.Start;
+            DefEndPos = fctb.Selection.End;
+            PrevText = "";
+            DefText = "";
+            // position it
+            Place tp = fctb.Selection.Start;
+            Point pPos;
+            pPos = fctb.PlaceToPoint(tp);
+            lstDefines.Top = pPos.Y + fctb.CharHeight;
+            lstDefines.Left = pPos.X;
+            lstDefines.Visible = true;
+            lstDefines.Select();
+        }
+
+        private void ShowDefineList() {
+            // displays defines in a list box
+            // that user can select from to replace current word (if cursor
+            // is in a word) or insert at current position (if cursor is
+            // in between words)
+            AGIToken token;
+            picTip.Visible = false;
+            if (fctb.SelectionLength == 0) {
+                int linelength = fctb.GetLineLength(fctb.Selection.Start.iLine);
+                if (linelength == 0) {
+                    token = fctb.TokenFromPos();
+                }
+                // '|ab ' or ' |ab' or  'a|b'  or 'ab| ' or ' ab|'
+                // should all return 'ab'
+                // TokenFromPos() will get first three
+                else if (fctb.Selection.Start.iChar > 0 && fctb.Selection.Start.iChar == linelength || fctb.Lines[fctb.Selection.Start.iLine][fctb.Selection.Start.iChar] == ' ') {
+                    Place next = fctb.Selection.Start;
+                    next.iChar--;
+                    token = fctb.TokenFromPos(next);
+                }
+                else {
+                    token = fctb.TokenFromPos();
+                }
+            }
+            else {
+                token = fctb.TokenFromPos();
+            }
+            ArgListType tmpType = GetArgType(token);
+            BuildDefineList(tmpType);
+            if (lstDefines.Items.Count == 0) {
+                return;
+            }
+            // expand selection if necessary
+            Place tokenstart = new(token.Start, token.Line);
+            Place tokenend = new(token.End, token.Line);
+            if (fctb.SelectionLength == 0) {
+                if (token.Text.Length > 0 && (token.Type == AGITokenType.Identifier || token.Type == AGITokenType.String || token.Type == AGITokenType.Number)) {
+                    fctb.Selection.Start = tokenstart;
+                    fctb.Selection.End = tokenend;
+                }
+            }
+            else {
+                // expand only if selection is inside the token
+                if (token.Text.Length > 0) {
+                    if (fctb.Selection.Start >= tokenstart && fctb.Selection.End <= tokenend) {
+                        fctb.Selection.Start = tokenstart;
+                        fctb.Selection.End = tokenend;
+                    }
+                }
+            }
+            // save pos and text
+            DefStartPos = fctb.Selection.Start;
+            DefEndPos = fctb.Selection.End;
+            PrevText = fctb.Selection.Text;
+            DefText = PrevText;
+            // check for match or partial in the list
+            if (fctb.SelectionLength > 0) {
+                string strText = fctb.SelectedText;
+                bool selected = false;
+                // check for value match first
+                if (Regex.IsMatch(strText, @"[vfscimo]\d{1,3}\b")) {
+                    foreach (ListViewItem tmpItem in lstDefines.Items) {
+                        if (strText == tmpItem.ToolTipText) {
+                            tmpItem.Selected = true;
+                            tmpItem.EnsureVisible();
+                            selected = true;
+                            break;
+                        }
+                    }
+                }
+                if (!selected) {
+                    foreach (ListViewItem tmpItem in lstDefines.Items) {
+                        switch (strText.ToUpper().CompareTo(tmpItem.Text.ToUpper())) {
+                        case 0:
+                            //select this one
+                            tmpItem.Selected = true;
+                            tmpItem.EnsureVisible();
+                            break;
+                        case > 0:
+                            // strText > tmpItem.Text
+                            // stop here; don't select it, but scroll to it
+                            tmpItem.EnsureVisible();
+                            break;
+                        }
+                    }
+                }
+            }
+            // position it
+            lstDefines.Columns[0].Width = lstDefines.Width;
+            Place tp = fctb.Selection.Start;
+            Point pPos;
+            pPos = fctb.PlaceToPoint(tp);
+            lstDefines.Top = pPos.Y + fctb.CharHeight;
+            lstDefines.Left = pPos.X;
+            lstDefines.ShowItemToolTips = true;
+            lstDefines.Visible = true;
+            lstDefines.Select();
+        }
+
+        private ArgListType GetArgType(AGIToken token) {
+            int argpos = 0;
+            AGIToken cmdtoken = FindPrevCmd(fctb, token, ref argpos);
+            if (cmdtoken.SubType == TokenSubtype.ActionCmd || cmdtoken.SubType == TokenSubtype.TestCmd) {
+                // only commands with args need to be checked
+                if (!CmdHasArgs(ref cmdtoken)) {
+                    // args not valid- let user choose anything
+                    return ArgListType.All;
+                }
+                if (cmdtoken.ArgIndex == 116) {
+                    // 'said' command
+                    return ArgListType.VocWrd;
+                }
+                else {
+                    if (argpos >= cmdtoken.ArgList.Length) {
+                        // too many args - let user choose anything
+                        return ArgListType.All;
+                    }
+                    // use arglist to determine arg type
+                    switch (cmdtoken.ArgList[argpos][0]) {
+                    case 'b':
+                        // byte or number
+                        ArgListType retval = ArgListType.Byte;
+                        // check for special cases where resourceIDs are also valid
+                        switch (cmdtoken.ArgIndex) {
+                        case 0:
+                            // add.to.pic(view, byt, byt, byt, byt, byt, byt)
+                            if (argpos == 0) {
+                                retval = ArgListType.View;
+                            }
+                            break;
+                        case 9:
+                            // call(logic)
+                            retval = ArgListType.Logic;
+                            break;
+                        case 24:
+                            // discard.sound(sound)
+                            retval = ArgListType.Sound;
+                            break;
+                        case 25:
+                            // discard.view(view)
+                            retval = ArgListType.View;
+                            break;
+                        case 66:
+                            // load.logics(logic)
+                            retval = ArgListType.Logic;
+                            break;
+                        case 69:
+                            // load.sound(sound)
+                            retval = ArgListType.Sound;
+                            break;
+                        case 70:
+                            // load.view(view)
+                            retval = ArgListType.View;
+                            break;
+                        case 78:
+                            // new.room(logic)
+                            retval = ArgListType.Logic;
+                            break;
+                        case 138:
+                            // set.view(obj,view)
+                            retval = ArgListType.View;
+                            break;
+                        case 141:
+                            // show.obj(view)
+                            retval = ArgListType.View;
+                            break;
+                        case 143:
+                            // sound(sound,flg)
+                            retval = ArgListType.Sound;
+                            break;
+                        case 156:
+                            // trace.info(logic,byt,byt)
+                            if (argpos == 0) {
+                                retval = ArgListType.Logic;
+                            }
+                            break;
+                        }
+                        return retval;
+                    case 'v':
+                        // variable
+                        return ArgListType.Var;
+                    case 'f':
+                        // flag
+                        return ArgListType.Flag;
+                    case 'm':
+                        // message
+                        return ArgListType.Msg;
+                    case 'o':
+                        // screen obj
+                        return ArgListType.SObj;
+                    case 'i':
+                        // inv obj
+                        return ArgListType.IObj;
+                    case 's':
+                        // string
+                        return ArgListType.Str;
+                    case 'w':
+                        // word
+                        return ArgListType.Word;
+                    case 'c':
+                        // controller
+                        return ArgListType.Ctl;
+                    default:
+                        // not possible but compiler needs a return command
+                        return ArgListType.All;
+                    }
+                }
+            }
+            // not editing a command; use previous token to inform 
+            // choice (skipping '(' tokens)
+            cmdtoken = fctb.PreviousToken(token);
+            while (cmdtoken.Type != AGITokenType.None) {
+                if (cmdtoken.Text != "(") {
+                    break;
+                }
+                cmdtoken = fctb.PreviousToken(cmdtoken);
+            }
+            if (cmdtoken.Type == AGITokenType.None) {
+                // not clear what is being entered
+                return ArgListType.All;
+            }
+            switch (cmdtoken.Text) {
+            case "==" or "!=" or ">" or ">" or "<=" or ">=" or "=<" or "=>" or "||" or "&&":
+                // var or number
+                return ArgListType.Values;
+            case "++" or "--":
+                return ArgListType.Var;
+            case "=":
+                // var, number, string
+                return ArgListType.Values;
+            case "if":
+                // var, flag
+                return ArgListType.IfArg;
+            }
+            // still not clear what is being entered
+            return ArgListType.All;
+        }
+
+        private bool AskClose() {
+            if (EditLogic.ErrLevel < 0) {
+                // if exiting due to error on form load
+                return true;
+            }
+            if (LogicNumber == -1) {
+                // force shutdown
+                return true;
+            }
+            if (IsChanged) {
+                DialogResult rtn = MessageBox.Show(MDIMain,
+                    "Do you want to save changes to " + (FormMode == LogicFormMode.Logic ? "source code" : "text file"),
+                    "Save " + (FormMode == LogicFormMode.Logic ? "Logic Source" : "Text File"),
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+                switch (rtn) {
+                case DialogResult.Yes:
+                    SaveLogicSource();
+                    if (rtfLogic1.IsChanged) {
+                        rtn = MessageBox.Show(MDIMain,
+                            "File not saved. Continue closing anyway?",
+                            "Save " + (FormMode == LogicFormMode.Logic ? "Logic Source" : "Text File"),
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+                        return rtn == DialogResult.Yes;
+                    }
+                    break;
+                case DialogResult.Cancel:
+                    return false;
+                case DialogResult.No:
+                    return true;
+                }
+            }
+            if (InGame && !EditGame.Logics[LogicNumber].Compiled) {
+                // only logics can be in game, so no need to check for text file
+                bool blnDontAsk = false;
+                DialogResult rtn = DialogResult.Yes;
+                switch (WinAGISettings.WarnCompile.Value) {
+                case AskOption.Ask:
+                    rtn = MsgBoxEx.Show(MDIMain,
+                       "Do you want to compile this logic before closing it?",
+                       "Save Logic Source", // Text,
+                                   MessageBoxButtons.YesNoCancel,
+                       MessageBoxIcon.Question,
+                                   "Always take this action when closing a logic source file.", ref blnDontAsk);
+                    if (blnDontAsk) {
+                        if (rtn == DialogResult.Yes) {
+                            WinAGISettings.WarnCompile.Value = AskOption.Yes;
+                        }
+                        else if (rtn == DialogResult.No) {
+                            WinAGISettings.WarnCompile.Value = AskOption.No;
+                        }
+                        WinAGISettings.WarnCompile.WriteSetting(WinAGISettingsFile);
+                    }
+                    break;
+                case AskOption.No:
+                    rtn = DialogResult.No;
+                    break;
+                case AskOption.Yes:
+                    rtn = DialogResult.Yes;
+                    break;
+                }
+                switch (rtn) {
+                case DialogResult.Yes:
+                    if (!CompileLogic(this, (byte)LogicNumber)) {
+                        // error
+                        return false;
+                    }
+                    RefreshTree(AGIResType.Logic, LogicNumber);
+                    return true;
+                case DialogResult.No:
+                    return true;
+                case DialogResult.Cancel:
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public void UpdateStatusBar() {
+
+            // TODO: add statusbars to all resource/tool editors and
+            // merge just like menus
+
             int lngRow, lngCol;
 
             if (!this.Visible) {
                 return;
             }
-            if ((string)MainStatusBar.Tag != AGIResType.Logic.ToString()) {
-                // show correct status
-                AdjustMenus(AGIResType.Logic, InGame, true, rtfLogic.IsChanged);
-            }
             // get row and column of selection
-            lngRow = rtfLogic.Selection.End.iLine;
-            lngCol = rtfLogic.Selection.End.iChar;
-            // set status:
-            MainStatusBar.Items["Row"].Text = "Line: " + lngRow;
-            MainStatusBar.Items["Col"].Text = "Col: " + lngCol;
+            lngRow = fctb.Selection.End.iLine;
+            lngCol = fctb.Selection.End.iChar;
+            // TODO: status bars...
         }
 
-        void MarkAsDirty() {
+        void MarkAsChanged() {
             // ignore when loading (not visible yet)
             if (!Visible) {
                 return;
             }
-            //// TODO: menu state is set whenever the menu
-            //// is clicked, right?
-            ////enable menu and toolbar button
-            //frmMDIMain.mnuRSave.Enabled = true;
-            //frmMDIMain.Toolbar1.Buttons("save").Enabled = true;
-
-            if (Text[0] != '*') {
-                //mark caption
+            if (!IsChanged && (rtfLogic1.IsChanged || rtfLogic2.IsChanged)) {
+                IsChanged = true;
+                mnuRSave.Enabled = true;
+                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
                 Text = sDM + Text;
+            }
+            btnUndo.Enabled = rtfLogic1.UndoEnabled;
+            btnRedo.Enabled = rtfLogic1.RedoEnabled;
+            FindingForm.ResetSearch();
+        }
+
+        private void MarkAsSaved() {
+            if (FormMode == LogicFormMode.Logic) {
+                Text = sLOGED + ResourceName(EditLogic, InGame, true);
+            }
+            else {
+                Text = "Text Editor - " + Path.GetFileName(TextFilename);
+            }
+            IsChanged = false;
+            rtfLogic1.IsChanged = false;
+            mnuRSave.Enabled = false;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+        }
+
+        private void frmLogicEdit_Enter(object sender, EventArgs e) {
+            // force form to front - normally clicking in any control on a form will
+            // automatically bring the form forward, but clicking on the FCTB seems
+            // to skip doing that
+            BringToFront();
+
+            btnCompile.Enabled = InGame;
+            btnMsgClean.Enabled = InGame;
+            fctb?.Select();
+        }
+
+        private void frmLogicEdit_Activated(object sender, EventArgs e) {
+            Debug.Print("frmLogicEdit activated");
+        }
+    }
+
+    public class WinAGIFCTB : FastColoredTextBox {
+        public WinAGIFCTB() {
+        }
+
+        public bool NoMouse {
+            get; set;
+        }
+
+        protected override void OnMouseMove(MouseEventArgs e) {
+            if (!NoMouse) {
+                base.OnMouseMove(e);
             }
         }
 
-        void tmpLog() {
-                    /*
-              public void MenuClickExport()
-                'export logic or source
-
-                'logics that are NOT in a game can't export the actual logic
-                'resource; they only export the source code (which is functionally
-                'equivalent to 'save as'
-
-                Dim rtn As Long
-                Dim strExportName As String
-
-                'update sourcecode with current logic text
-                EditLogic.SourceText = rtfLogic.Text
-
-
-                'if in a game
-                If InGame Then
-                  If MsgBox("Do you want to export the source code for this logic?", vbQuestion + vbYesNo, "Export Logic") = vbYes Then
-                    'MUST make sure logic sourcefile is set to correct Value
-                    'BEFORE calling exporting; this is because EditLogic is NOT
-                    'in a game; it only mimics the ingame resource
-                    EditLogic.SourceFile = ResDir & EditLogic.ID & EditGame.SourceExt
-
-                    'get a filename for the export
-                    strExportName = NewSourceName(EditLogic, InGame)
-                    'if a filename WAS chosen then we can continue
-                    If strExportName <> "" Then
-                      'since EditLogic is not really in a game
-                      rtfLogic.SaveFile strExportName, reOpenSaveText + reOpenSaveCreateAlways, 437
-                      UpdateStatusBar
-                    End If
-                  End If
-
-                  If MsgBox("Do you want to export the compiled logic resource?", vbQuestion + vbYesNo, "Export Logic") = vbYes Then
-                    'if compiled CRCs don't match
-                    If (Logics(LogicNumber).CompiledCRC <> EditLogic.CRC) Then
-
-                      rtn = MsgBox("Source code has changed. Do you want to compile before exporting this logic?", vbQuestion + vbYesNo, "Export Logic")
-
-                      If rtn = vbYes Then
-                        'compile logic
-                        If Not CompileLogic(Me, LogicNumber) Then
-                          MsgBox "Compile error; Unable to export the logic resource.", vbCritical + vbOKOnly, "Compiler error"
-                          Exit Sub
-                        End If
-                      End If
-                    End If
-
-                    'now export it
-                    If ExportLogic(EditLogic.Number) Then
-                      'everything is ok-
-                      'nothing else to do
-                    End If
-                  End If
-                Else
-                  'not in game; saveas is only operation allowed
-
-                  'get a filename for the export
-                  strExportName = NewSourceName(EditLogic, InGame)
-                  'if a filename was chosen, we can continue
-                  If strExportName <> "" Then
-                    'save it
-                    EditLogic.SourceFile = strExportName
-                    rtfLogic.SaveFile EditLogic.SourceFile, reOpenSaveText + reOpenSaveCreateAlways, 437
-
-                    'reset dirty flag and caption
-                    rtfLogic.Dirty = False
-                    EditLogic.ID = FileNameNoExt(strExportName)
-                    Caption = sLOGED & EditLogic.ID
-                    'disable save menu/button
-                    frmMDIMain.mnuRSave.Enabled = False
-                    frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-                  End If
-                End If
-              End Sub
-              Public Sub MenuClickRenumber()
-                'renumbers a resource
-
-                Dim NewResNum As Byte, OldResNum As Byte
-                Dim strOldID As String
-
-                On Error GoTo ErrHandler
-
-                'if not in a game
-                If Not InGame Then
-                  Exit Sub
-                End If
-
-                'save old number to support layout update
-                OldResNum = LogicNumber
-
-                'get new number
-                NewResNum = RenumberResource(LogicNumber, AGIResType.Logic)
-
-                'if changed,
-                If NewResNum <> LogicNumber Then
-                  'copy renumbered logic into EditLogic object
-                  EditLogic.SetLogic Logics(NewResNum)
-
-                  'update number
-                  LogicNumber = NewResNum
-
-                  'update caption
-                  Caption = sLOGED & ResourceName(EditLogic, InGame, True)
-                  If rtfLogic.Dirty Then
-                    Caption = sDM & Caption
-                  End If
-
-                  'if ID changed because of renumbering
-                  If EditLogic.ID <> strOldID Then
-                    'if old default file exists
-                    If FileExists(ResDir & strOldID & EditGame.SourceExt) Then
-                      'rename it
-                      Name ResDir & strOldID & EditGame.SourceExt As ResDir & Logics(NewResNum).ID & EditGame.SourceExt
-                    End If
-                  End If
-
-                  'if using layout editor
-                  If UseLE Then
-                    'update layout
-                    UpdateExitInfo euRenumberRoom, OldResNum, Nothing, NewResNum
-                  End If
-                End If
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Public Sub MenuClickCustom1()
-
-                'compile
-
-                Dim i As Long
-
-                On Error GoTo ErrHandler
-
-                If Not InGame Then
-                  'can't compile
-                  MsgBox "Only Logics in games can be compiled.", vbInformation, "Compile Logic"
-                  Exit Sub
-                End If
-
-                'just it case it takes awhile, use the wait cursor
-                WaitCursor
-
-                'make sure logic is loaded
-                '*'Debug.Assert Not Logics(LogicNumber).Loaded
-                If Not Logics(LogicNumber).Loaded Then
-                  Logics(LogicNumber).Load
-                End If
-
-                'compile logic
-                If CompileLogic(Me, LogicNumber) Then
-                  'nothing to do different whether or not compile is successful
-                End If
-
-                'always update preview and properties
-                UpdateSelection AGIResType.Logic, LogicNumber, umPreview Or umProperty
-
-                Logics(LogicNumber).Unload
-
-                'restore cursor
-                Screen.MousePointer = vbDefault
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-              Public Sub MenuClickCustom2()
-
-                'message cleanup tool
-
-                Dim i As Long, j As Long, rtn As VbMsgBoxResult
-                Dim strLogic As String
-                Dim strMsg As String, lngMsgPos As Long, lngLineEnd As Long
-                Dim MsgUsed(255) As Long, blnKeepUnused As Boolean
-                Dim Messages(255) As String, intMsgCount As Integer
-                Dim NewMsgs As Collection, blnRepeatChoice As Boolean
-                Dim strStrings() As String, lngCount As Long
-
-                'MsgsUsed() array is used to see if a message is declared (bit0 set),
-                'and/or in use by number in the logic (bit1 set)
-                'and/or in use by string reference (bit2 set)
-                'so a value of 0 means neither declared nor in use;
-                '              1 means declared, not in use;
-                '              2 means not declared, but in use by number
-                '              3 means declared, and in use by number
-                '              4 means not declared, not in use by number, but used by
-                '                  string ref
-                '              ...   etc
-
-                'strStrings() array used to hold copy of all string defines in order
-                'to search for 's##="msg text";' syntax
-
-                On Error GoTo ErrHandler
-
-                'if user hasn't decided what to do about unused msgs
-                If Settings.WarnMsgs = 0 Then
-                  'determine if user wants to keep unused messages that are currently
-                  'the message section
-                  rtn = MsgBoxEx("If messages in the message section are not not used anywhere" & vbNewLine & _
-                                 "in the logic text, do you still want to keep them?", vbQuestion + vbYesNoCancel + vbMsgBoxHelpButton, "Message Cleanup Tool", _
-                                 WinAGIHelp, "htm\winagi\Logic_Editor.htm#msgcleanup", "Always take this action when updating messages.", blnRepeatChoice)
-
-                  'if canceled
-                  If rtn = vbCancel Then
-                    Exit Sub
-                  End If
-
-                  'rtn Value indicates choice
-                  blnKeepUnused = (rtn = vbYes)
-                Else
-                  'simulate msgbox response
-                  blnKeepUnused = (Settings.WarnMsgs = 1)
-                End If
-
-                'if no more warnings,
-                If blnRepeatChoice Then
-                  If blnKeepUnused Then
-                    Settings.WarnMsgs = 1
-                  Else
-                    Settings.WarnMsgs = 2
-                  End If
-                  'now save this setting
-                  WriteSetting GameSettings, sLOGICS, "WarnMsgs", Settings.WarnMsgs
-                End If
-
-                'save logic text as a string
-                strLogic = rtfLogic.Text
-
-                'we need a list of all string defines, in order to check for
-                'string assignments that use special syntax
-                If DefDirty Then
-                  BuildLDefLookup
-                End If
-                'check locals, globals, and reserved for string defines
-                ReDim strStrings(0)
-                lngCount = 0
-                For i = 0 To UBound(LDefLookup())
-                  If LDefLookup(i).Type = atStr Then
-                    ReDim Preserve strStrings(lngCount)
-                    strStrings(lngCount) = LDefLookup(i).Name
-                    lngCount = lngCount + 1
-                  End If
-                Next i
-                For i = 0 To UBound(GDefLookup())
-                  If GDefLookup(i).Type = atStr Then
-                    ReDim Preserve strStrings(lngCount)
-                    strStrings(lngCount) = GDefLookup(i).Name
-                    lngCount = lngCount + 1
-                  End If
-                Next i
-                'add the only resdef that's a string
-                ReDim Preserve strStrings(lngCount)
-                strStrings(lngCount) = RDefLookup(94).Name
-
-                'next, get all messages that are predefined
-                If Not ReadMsgs(strLogic, Messages(), MsgUsed(), LDefLookup()) Then
-                  'a problem was found that needs to be fixed before
-                  'messages can be cleaned up
-
-                  'get line from pos
-                  rtfLogic.GetCharPos CLng(Messages(1)), i
-                  strMsg = "Syntax error in line " & CStr(i) & " must be corrected" & vbNewLine & _
-                           "before message cleanup can continue:" & vbNewLine & vbNewLine
-
-                  Select Case Messages(0)
-                  Case "1" 'invalid msg number
-                    MsgBoxEx strMsg & "Invalid message index number", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#messages"
-
-                  Case "2" 'duplicate msg number
-                    MsgBoxEx "Message index " & Messages(2) & " on line " & CStr(i) & _
-                           " is already in use.", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#messages"
-
-                  Case "3" 'msg val should be a string
-                    MsgBoxEx strMsg & "Expected string Value", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#messages"
-
-                  Case "4" 'stuff not allowed on line after msg declaration
-                    MsgBoxEx strMsg & "Expected end of line", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#messages"
-
-                  Case "5" 'missing end quote
-                    MsgBoxEx strMsg & "String is missing end quote mark", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#messages"
-                  End Select
-
-                  'set cursor to beginning of this line
-                  rtfLogic.Selection.Range.StartPos = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, i - 1, 0)
-                  rtfLogic.Selection.Range.EndPos = rtfLogic.Selection.Range.StartPos + SendMessage(rtfLogic.hWnd, EM_LINELENGTH, CLng(Messages(1)), 0)
-                  rtfLogic.SetFocus
-                  Exit Sub
-                End If
-
-                'if we are keeping all currently declared msgs,
-                'determine starting count
-                If blnKeepUnused Then
-                  For i = 1 To 255
-                    If MsgUsed(i) = 1 Then
-                      intMsgCount = intMsgCount + 1
-                    End If
-                  Next i
-                End If
-
-                'array to hold new msgs
-                Set NewMsgs = New Collection
-
-                'now, go through the logic text
-                lngMsgPos = 0
-                Do
-                '*'Debug.Assert lngMsgPos >= 0
-                  strMsg = NextMsg(strLogic, lngMsgPos, LDefLookup(), strStrings())
-                  'if end reached exit the loop
-                  If lngMsgPos = 0 Then
-                    Exit Do
-                  End If
-                  'if a msg marker or an error encountered (due to improperly formatted string)
-                  If lngMsgPos < 0 Then
-                    If Val(strMsg) = 0 Then
-                      'it's a msg marker; let's see it it's valid
-                      j = Val(Right(strMsg, Len(strMsg) - 2))
-
-                      If (MsgUsed(j) And 1) = 1 Then
-                        'we are OK; mark this as used by number
-                        MsgUsed(j) = MsgUsed(j) Or 2
-                      Else
-                        'error! this msg isn't even defined!
-                        rtfLogic.GetCharPos CLng(-lngMsgPos), i
-                        strMsg = "Syntax error in line " & CStr(i) & " must be corrected" & vbNewLine & _
-                                 "before message cleanup can continue:" & vbNewLine & vbNewLine
-                        MsgBoxEx strMsg & "Message 'm" & CStr(j) & "' is not declared", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#messages"
-                        Exit Sub
-                      End If
-                      'need to restore lngpos to a positive value
-                      lngMsgPos = -lngMsgPos
-                    Else
-                      'get line from pos
-                      rtfLogic.GetCharPos CLng(-lngMsgPos), i
-                      'set cursor to beginning of this line
-                      rtfLogic.Selection.Range.StartPos = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, i - 1, 0)
-                      rtfLogic.Selection.Range.EndPos = rtfLogic.Selection.Range.StartPos + SendMessage(rtfLogic.hWnd, EM_LINELENGTH, -lngMsgPos, 0)
-                      rtfLogic.SetFocus
-                      Select Case Val(strMsg)
-                      Case 1 'missing '(' after command
-                        MsgBoxEx "Syntax error in line " & CStr(i) & " must be corrected" & vbNewLine & _
-                               "before message cleanup can continue:" & vbNewLine & vbNewLine & _
-                               "Expected '(' after command text", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#action"
-                      Case 2 'missing end quote
-                        MsgBoxEx "Syntax error in line " & CStr(i) & " must be corrected" & vbNewLine & _
-                               "before message cleanup can continue:" & vbNewLine & vbNewLine & _
-                               "Missing quote mark (""" & ") at end of string", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#text"
-                      Case 3 'not a string
-                        MsgBoxEx "Syntax error in line " & CStr(i) & " must be corrected" & vbNewLine & _
-                               "before message cleanup can continue:" & vbNewLine & vbNewLine & _
-                               "Command argument is not a string or msg marker ('m##')", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Syntax Error", WinAGIHelp, "htm\commands\syntax.htm#text"
-                      End Select
-                      Exit Sub
-                    End If
-                  Else
-                    'check this msg against list of declared messages
-                    For j = 1 To 255
-                      If (MsgUsed(j) And 1) = 1 Then
-                        If Messages(j) = strMsg Then
-                          'if not yet marked as inuse by ref
-                          If (MsgUsed(j) And 4) <> 4 Then
-                            'mark as used by reference
-                            MsgUsed(j) = MsgUsed(j) Or 4
-                            'if not keeping all declared, need to increment the count
-                            If Not blnKeepUnused Then
-                              'increment msgcount
-                              intMsgCount = intMsgCount + 1
-                            End If
-                          End If
-                          Exit For
-                        End If
-                      End If
-                    Next j
-
-                    'if not found,
-                    If j = 256 Then
-                      'check this msg against new message collection
-                      For j = 1 To NewMsgs.Count
-                        If NewMsgs(j) = strMsg Then
-                          'found
-                          Exit For
-                        End If
-                      Next j
-
-                      'if still not found (unique to both)
-                      If j = NewMsgs.Count + 1 Then
-                        'add to new msg list
-                        NewMsgs.Add strMsg
-                        'increment Count
-                        intMsgCount = intMsgCount + 1
-                      End If
-                    End If
-
-                    'if too many msgs now
-                    If intMsgCount >= 256 Then
-                      MsgBoxEx "There are too many messages being used by this logic. AGI only" & vbNewLine & "supports 255 messages per logic. Edit the logic to reduce the" & vbNewLine & "number of messages to 255 or less.", vbCritical + vbOKOnly + vbMsgBoxHelpButton, "Too Many Messages", WinAGIHelp, "htm\agi\logics.htm#messages"
-                      Exit Sub
-                    End If
-                  End If
-                Loop Until lngMsgPos = 0
-
-                'Now add all newfound messages to the message array
-                j = 1
-                For i = 1 To NewMsgs.Count
-                  'if message is not in use (byref or bynum), we can overwrite it
-                  Do
-                    'if keeping declared, skip if declared
-                    If blnKeepUnused And (MsgUsed(j) And 1) = 1 Then
-                      j = j + 1
-
-                    'otherwise, skip if msg is in use (byref or bynum)
-                    ElseIf (MsgUsed(j) And 6) <> 0 Then
-                      j = j + 1
-                    Else
-                      'this number can be used for a new msg
-                      Exit Do
-                    End If
-                  Loop Until j >= 256 'should never get to this, but just in case
-                  '*'Debug.Assert j < 256
-
-                  Messages(j) = NewMsgs(i)
-                  'mark it as in use by ref
-                  MsgUsed(j) = MsgUsed(j) Or 4
-                  j = j + 1
-                Next i
-
-                'now build the message section using all messages that are marked as in use
-                'get first message marker position (adjust by one to get actual start)
-                lngMsgPos = FindNextToken(strLogic, lngMsgPos, "#message") - 1
-
-                'if not found,
-                If lngMsgPos = -1 Then
-                  'just add to end
-                  lngMsgPos = Len(rtfLogic.Text)
-                  'and add a comment header
-                  strMsg = vbNewLine & "[" & vbCr & "[ declared messages" & vbCr & "[" & vbCr
-                End If
-
-                'step through all messages
-                For i = 1 To 255
-                  'if used by ref or num, OR if keeping all and it's declared,
-                  'add this msg
-                  If ((MsgUsed(i) And 6) <> 0) Or ((MsgUsed(i) And 1) = 1 And blnKeepUnused) Then
-                    strMsg = strMsg & "#message " & CStr(i) & " " & Messages(i) & vbCr
-                  End If
-                Next i
-
-                'now add new msg section
-                With rtfLogic
-                  .Selection.Range.StartPos = lngMsgPos
-                  .Selection.Range.EndPos = .Range.EndPos 'this will delete everything from here to end of text
-                  .Selection.Range.Text = strMsg
-                  .Selection.Range.Collapse reChar
-                  .SetFocus
-                End With
-
-              Exit Sub
-
-              ErrHandler:
-                'if unable to extract messages, dont' do the update
-                ErrMsgBox "An error occurred while attempting to update messages.", "The attempt has been aborted.", "Message Update Error"
-
-                Err.Clear
-              End Sub
-
-              Public Sub MenuClickSelectAll()
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                rtfLogic.Range.SelectRange
-              End Sub
-
-              Public Sub MenuClickECustom2()
-
-                'remove block comment marks
-
-                On Error GoTo ErrHandler
-
-                rtfLogic.Selection.Range.Uncomment
-              Exit Sub
-
-              ErrHandler:
-                Err.Clear
-              End Sub
-
-              Private Function CheckQuickInfo(ByVal blnPrev As Boolean, Optional ByVal Force As Boolean = False, Optional ByVal IgnoreQ As Boolean = False) As Boolean
-
-                'this function will examine current row, and determine if a command is being
-                'edited
-
-                ' it sets value of the module variables TipCmdPos, TipCurArg, TipCmdNum
-
-                ' if blnPrev is TRUE, the function will return the immediately preceding
-                ' token, instead of searching backwards for a command token
-
-                ' if Force is FALSE, the function will automatically fail if a tip is
-                ' currently visible; set Force to TRUE to run the function when a tip is
-                ' visible
-
-                ' if IgnoreQ is TRUE, the function will find a command, even if the cusor
-                ' is inside a quote; default behavior is FALSE
-
-                ' function returns TRUE if a valid AGI command is found, otherwise it
-                ' returns FALSE
-
-                Dim strLine As String, strCmd As String
-                Dim strText As String, lngPos As Long
-                Dim rtn As Long, i As Long
-                Dim blnInComment As Boolean, blnInQuote As Boolean
-
-                'if already visible,exit unless forcing
-                If picTip.Visible And Not Force Then
-                  Exit Function
-                End If
-
-                'get line where enter was pressed
-                rtn = SendMessage(rtfLogic.hWnd, EM_LINEFROMCHAR, rtfLogic.Selection.Range.StartPos, 0)
-                'get the start of this line
-                rtn = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, rtn, 0)
-                'get current row, up to point of cursor
-                strLine = rtfLogic.Range(rtn, rtfLogic.Selection.Range.EndPos).Text
-
-                'if the cursor pos is in a string, OR a comment marker occurs
-                'in front of cursor, then no quick info should be shown
-                rtn = CheckLine(strLine)
-                If rtn <> 0 Then
-                  'either in a string, or comment
-
-                  ' if not ignoring quotes, OR if its a comment
-                  If Not IgnoreQ Or 0 Then
-                    'just exit
-                    Exit Function
-                  End If
-                End If
-
-                'check for a command infront of this spot
-                strText = rtfLogic.Text
-                lngPos = rtfLogic.Selection.Range.StartPos
-
-                'get previous command from current pos
-                '(force function to find the immediate cmd)
-                strCmd = FindPrevCmd(strText, lngPos, TipCurArg, False, blnPrev)
-
-                'adjust cmdpos
-                TipCmdPos = lngPos
-
-                'now check this command against list
-                TipCmdNum = LogicCmd(strCmd)
-
-                CheckQuickInfo = (TipCmdNum <> -1)
-              Exit Function
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Function
-
-              Private Sub RepositionTip(ByVal lngPos As Long)
-
-                Dim rtn As Long
-
-                'compare lines; if cursor is not on same line as cmd,
-                'draw the box at current location; otherwise
-                'draw it at cmd pos
-                lngPos = rtfLogic.Selection.Range.StartPos
-                rtn = SendMessage(rtfLogic.hWnd, EM_LINEFROMCHAR, lngPos, 0)
-                If rtn = SendMessage(rtfLogic.hWnd, EM_LINEFROMCHAR, TipCmdPos, 0) Then
-                  lngPos = TipCmdPos
-                Else
-                  lngPos = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, rtn, 0)
-                End If
-
-                With picTip
-                  rtn = SendMessagePtW(rtfLogic.hWnd, EM_POSFROMCHAR, pPos, lngPos)
-                  .Top = pPos.Y + rtfLogic.Top + .Height + 6 '2
-                  'if top is below bottom edge,
-                  If .Top > rtfLogic.Height + rtfLogic.Top - .Height Then
-                    .Top = .Top - 2 * Me.TextHeight("Ay") - 6 '4
-                  End If
-                  .Left = pPos.X + rtfLogic.Left
-                End With
-              End Sub
-
-              Private Sub ShowDefineList()
-
-                'displays defines in a list box
-                'that user can select from to replace current word (if cursor
-                'is in a word) or insert at current position (if cursor is
-                'in between words)
-
-                Dim strLine As String, strCmd As String
-                Dim strText As String, lngPos As Long, LastPos As Long
-                Dim rtn As Long, i As Long
-                Dim blnInComment As Boolean, blnInQuote As Boolean
-                Dim tmpItem As ListItem
-                Dim lngPosType As Long
-                Dim tmpType As EArgListType
-
-                On Error GoTo ErrHandler
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                'get line where cursor is
-                rtn = SendMessage(rtfLogic.hWnd, EM_LINEFROMCHAR, rtfLogic.Selection.Range.StartPos, 0)
-                'get the start of this line
-                LastPos = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, rtn, 0)
-                'get current row
-                strLine = rtfLogic.Range(LastPos, rtfLogic.Selection.Range.EndPos).Text
-
-                'determine if current position is in a comment or quote
-                lngPosType = CheckLine(strLine)
-                'if in a comment
-                If lngPosType = 2 Then
-                  'just exit- nothing to show
-                  Exit Sub
-                End If
-
-                'what's the arg Type?
-                tmpType = GetArgType(lngPosType = 1)
-
-                'add reserved defines, global defines, local defines and
-                'any resIDs, invobjs or 'said' words
-                BuildDefineList tmpType
-
-                With lstDefines
-                  'if none
-                  If .ListItems.Count = 0 Then
-                    Exit Sub
-                  End If
-
-                  'set up cursor
-                  ExpandSelection rtfLogic, (lngPosType = 1)
-
-                  rtn = SendMessagePtW(rtfLogic.hWnd, EM_POSFROMCHAR, pPos, rtfLogic.Selection.Range.StartPos)
-                  .Top = pPos.Y + rtfLogic.Top + Me.TextHeight("Ay")
-                  'if top is below bottom edge,
-                  If .Top > rtfLogic.Height + rtfLogic.Top - .Height Then
-                    .Top = pPos.Y + rtfLogic.Top - .Height
-                  End If
-                  .Left = pPos.X + rtfLogic.Left
-                  .Width = Me.TextWidth("W") * 30
-                  'save start pos and text
-                  DefStartPos = rtfLogic.Selection.Range.StartPos
-                  PrevText = rtfLogic.Selection.Range.Text
-                  DefText = ""
-
-                  'show the listbox
-                  .Visible = True
-                  .Sorted = True
-
-                  'does it match (or partially match) an existing entry?
-                  i = rtfLogic.Selection.Range.Length
-                  If i <> 0 Then
-                    strText = rtfLogic.Selection.Range.Text
-                    For Each tmpItem In .ListItems
-                      Select Case StrComp(Left$(tmpItem.Text, i), strText, vbTextCompare)
-                      Case 0
-                        'select this one
-                        .SelectedItem = tmpItem
-                        tmpItem.EnsureVisible
-                        .SelectedItem.EnsureVisible
-                        .SetFocus
-                        Exit Sub
-                      Case 1 'strText>tmpItem.Text
-                        'stop here; don't select it, but scroll to it
-                        tmpItem.EnsureVisible
-                        .SetFocus
-                        .SelectedItem.Selected = False
-                        Exit Sub
-                      Case -1 'strText<tmpItem.Text
-                        'keep looking
-                      End Select
-                    Next
-                  End If
-
-                  'not found; select first item in list
-                  .ListItems(1).Selected = True
-                  .SelectedItem.EnsureVisible
-                  .SetFocus
-                  .BorderStyle = ccFixedSingle
-                End With
-
-                'lock the control so dbl-clicks don't cause trouble
-                rtfLogic.Locked = True
-
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub ShowSnippetList()
-
-                'displays snippets in a list box
-
-                Dim strLine As String
-                Dim strText As String, lngPos As Long, lngStart As Long
-                Dim rtn As Long, i As Long
-                Dim lngPosType As Long
-
-                On Error GoTo ErrHandler
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                'get line where cursor is
-                rtn = SendMessage(rtfLogic.hWnd, EM_LINEFROMCHAR, rtfLogic.Selection.Range.StartPos, 0)
-                'get the start of this line
-                lngStart = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, rtn, 0)
-                'indent value
-                SnipIndent = rtfLogic.Selection.Range.StartPos - lngStart
-                'get current row
-                strLine = rtfLogic.Range(lngStart, rtfLogic.Selection.Range.EndPos).Text
-
-                'mark list as dirty so next define action will rebuild it
-                ListDirty = True
-
-                'add  snippets
-                With lstDefines
-                  .ListItems.Clear
-                  .Tag = "snippets"
-                  For i = 1 To UBound(CodeSnippets())
-                    .ListItems.Add(, , CodeSnippets(i).Name).Tag = CodeSnippets(i).Value
-                  Next i
-
-                  'if none
-                  If .ListItems.Count = 0 Then
-                    Exit Sub
-                  End If
-
-                  rtn = SendMessagePtW(rtfLogic.hWnd, EM_POSFROMCHAR, pPos, rtfLogic.Selection.Range.StartPos)
-                  .Top = pPos.Y + rtfLogic.Top + Me.TextHeight("Ay")
-                  'if top is below bottom edge,
-                  If .Top > rtfLogic.Height + rtfLogic.Top - .Height Then
-                    .Top = pPos.Y + rtfLogic.Top - .Height
-                  End If
-                  .Left = pPos.X + rtfLogic.Left
-                  .Width = Me.TextWidth("W") * 30
-                  'save start pos and text
-                  DefStartPos = rtfLogic.Selection.Range.StartPos
-                  PrevText = rtfLogic.Selection.Range.Text
-                  DefText = ""
-
-                  'show the listbox
-                  .Visible = True
-                  .Sorted = False
-
-                  'select first item in list
-                  .ListItems(1).Selected = True
-                  .SelectedItem.EnsureVisible
-                  .SetFocus
-                  .BorderStyle = ccFixedSingle
-                End With
-
-                'lock the control so dbl-clicks don't cause trouble
-                rtfLogic.Locked = True
-
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-              Private Sub ShowSynonymList(ByVal aWord As String)
-
-                'displays a list of synonyms in a list box
-
-                Dim strLine As String, strCmd As String
-                Dim strText As String, lngPos As Long, LastPos As Long
-                Dim rtn As Long, i As Long
-                Dim blnInComment As Boolean, blnInQuote As Boolean
-                Dim tmpItem As ListItem
-                Dim lngPosType As Long
-                Dim tmpType As EArgListType
-                Dim GrpNum As Long, GrpCount As Long
-
-                On Error GoTo ErrHandler
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                'get line where cursor is
-                rtn = SendMessage(rtfLogic.hWnd, EM_LINEFROMCHAR, rtfLogic.Selection.Range.StartPos, 0)
-                'get the start of this line
-                LastPos = SendMessage(rtfLogic.hWnd, EM_LINEINDEX, rtn, 0)
-                'get current row
-                strLine = rtfLogic.Range(LastPos, rtfLogic.Selection.Range.EndPos).Text
-
-                'determine if current position is in a comment or quote
-                lngPosType = CheckLine(strLine)
-                'if in a comment
-                If lngPosType = 2 Then
-                  'just exit- nothing to show
-                  Exit Sub
-                End If
-
-                ListDirty = True
-
-                'add  'said' words
-                GrpNum = VocabularyWords(aWord).Group
-                GrpCount = VocabularyWords.GroupN(GrpNum).WordCount - 1
-
-                With lstDefines
-                  .ListItems.Clear
-                  .Tag = "words"
-                  For i = 0 To GrpCount
-                    .ListItems.Add(, , Chr$(34) & VocabularyWords.GroupN(GrpNum).Word(i) & Chr$(34), , 22).Tag = CStr(i)
-                  Next i
-
-                  'if none
-                  If .ListItems.Count = 0 Then
-                    Exit Sub
-                  End If
-
-                  'set up cursor
-                  ExpandSelection rtfLogic, (lngPosType = 1)
-
-                  rtn = SendMessagePtW(rtfLogic.hWnd, EM_POSFROMCHAR, pPos, rtfLogic.Selection.Range.StartPos)
-                  .Top = pPos.Y + rtfLogic.Top + Me.TextHeight("Ay")
-                  'if top is below bottom edge,
-                  If .Top > rtfLogic.Height + rtfLogic.Top - .Height Then
-                    .Top = pPos.Y + rtfLogic.Top - .Height
-                  End If
-                  .Left = pPos.X + rtfLogic.Left
-                  .Width = Me.TextWidth("W") * 30
-                  'save start pos and text
-                  DefStartPos = rtfLogic.Selection.Range.StartPos
-                  PrevText = rtfLogic.Selection.Range.Text
-                  DefText = ""
-
-                  'show the listbox
-                  .Visible = True
-                  .Sorted = True
-
-                  'select the word
-                  For Each tmpItem In .ListItems
-                    If StrComp(Left$(tmpItem.Text, i), aWord, vbTextCompare) = 0 Then
-                      'select this one
-                      .SelectedItem = tmpItem
-                      tmpItem.EnsureVisible
-                      .SelectedItem.EnsureVisible
-                      .SetFocus
-                      Exit Sub
-                    End If
-                  Next
-
-                  'not found; select first item in list
-                  .ListItems(1).Selected = True
-                  .SelectedItem.EnsureVisible
-                  .SetFocus
-                  .BorderStyle = ccFixedSingle
-                End With
-
-                'lock the control so dbl-clicks don't cause trouble
-                rtfLogic.Locked = True
-
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-              Private Sub ShowTip()
-
-                'always hide define
-                picDefine.Visible = False
-
-                With picTip
-                  'reposition it first
-                  RepositionTip TipCmdPos + 1
-
-                  .Cls
-                  .FontBold = False
-
-                  'add command
-                  'build arg list
-                  ShowCmdTip TipCmdNum, TipCurArg
-                  .Visible = True
-                End With
-              End Sub
-
-              Public Sub UpdateID(ByVal NewID As String, NewDescription As String)
-
-                On Error GoTo ErrHandler
-
-                If EditLogic.Description <> NewDescription Then
-                  EditLogic.Description = NewDescription
-                End If
-
-                If EditLogic.ID <> NewID Then
-                  EditLogic.ID = NewID
-                  'set captions
-                  Caption = sLOGED & ResourceName(EditLogic, InGame, True)
-                  If rtfLogic.Dirty Then
-                    Caption = sDM & Caption
-                  End If
-                End If
-
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub UpdateTip()
-
-                Dim rtn As Long, rngTemp As Range
-
-                'if not in string or comment
-                Set rngTemp = rtfLogic.Range(rtfLogic.Selection.Range.StartPos, rtfLogic.Selection.Range.EndPos)
-                rngTemp.StartOf reLine, True
-
-                'if this range of text doesn't end in a comment or quote
-                If CheckLine(rngTemp.Text) = 0 Then
-                  'has lngcurgarg changed?
-                  rtn = TipCurArg
-                  FindPrevCmd rtfLogic.Text, rtfLogic.Selection.Range.StartPos, TipCurArg
-
-                  If rtn <> TipCurArg Then
-                    'reposition if necessary
-                    RepositionTip TipCmdPos + 1
-
-                    'need to update args
-                    ShowCmdTip TipCmdNum, TipCurArg
-                  End If
-                End If
-              End Sub
-
-              Private Sub Form_Activate()
-
-                On Error GoTo ErrHandler
-
-                'if minimized, exit
-                '(to deal with occasional glitch causing focus to lock up)
-                If Me.WindowState = vbMinimized Then
-                  Exit Sub
-                End If
-
-                'if hiding prevwin on lost focus, hide it now
-                If Settings.HidePreview Then
-                  If PreviewWin.Visible Then
-                    PreviewWin.Hide
-                  End If
-                End If
-
-                'if visible,
-                If Visible Then
-                  'force resize
-                  Form_Resize
-                End If
-
-                'if findform is visible,
-                If FindForm.Visible Then
-                  'set correct mode
-                  If FindForm.txtReplace.Visible Then
-                    'show in replace logic mode
-                    FindForm.SetForm ffReplaceLogic, InGame
-                  Else
-                    'show in find logic mode
-                    FindForm.SetForm ffFindLogic, InGame
-                  End If
-                End If
-
-                'if form is active,
-                If frmMDIMain.Enabled Then
-                  'always set focus to textbox
-                  rtfLogic.SetFocus
-                End If
-
-                'set searching form to this form
-                Set SearchForm = Me
-                'then ensure it findform is enabled
-                FindForm.Enabled = True
-
-                'adjust menus and statusbar
-                AdjustMenus AGIResType.Logic, InGame, True, rtfLogic.Dirty
-                UpdateStatusBar
-                SettingError = False
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-              Public Sub MenuClickCopy()
-
-                rtfLogic.Selection.Range.Copy
-
-                'reset globals clipboard
-                ReDim GlobalsClipboard(0)
-
-                UpdateStatusBar
-              End Sub
-              Public Sub MenuClickCut()
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                rtfLogic.Selection.Range.Cut
-
-                'ALWAYS reset search flags
-                FindForm.ResetSearch
-
-                'reset globals clipboard
-                ReDim GlobalsClipboard(0)
-
-                UpdateStatusBar
-              End Sub
-              Public Sub MenuClickPaste()
-
-                Dim blnSmartPaste As Boolean
-
-                On Error GoTo ErrHandler
-
-                'ALWAYS reset search flags
-                FindForm.ResetSearch
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                'if selection has space at end?
-                If rtfLogic.Selection.Range.Length > 0 And Len(Clipboard.GetText) > 0 Then
-                  blnSmartPaste = (Asc(Right(rtfLogic.Selection.Range.Text, 1)) = 32 And Asc(Right(Clipboard.GetText, 1)) <> 32)
-                End If
-                'if across multiple lines, override smartpaste to false
-                If InStr(1, rtfLogic.Selection.Range.Text, vbCr) > 0 Then
-                  blnSmartPaste = False
-                End If
-
-                'do the paste operation
-                rtfLogic.Selection.Range.Paste
-
-                'smart paste?
-                If blnSmartPaste Then
-                  rtfLogic.Selection.Range.Text = " "
-                End If
-
-                UpdateStatusBar
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-              Public Sub MenuClickUndo()
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                rtfLogic.Undo
-
-                UpdateStatusBar
-              End Sub
-
-              Public Sub SetEditMenu()
-                'sets the menu captions on the Edit menu
-                'based on current selection
-
-                Dim strToken As String
-
-                On Error GoTo ErrHandler
-
-                With frmMDIMain
-                  'undo, redo, bar0 always visible
-                  .mnuEUndo.Visible = True
-                  .mnuERedo.Visible = True
-                  .mnuEBar0.Visible = True
-
-                  'enabled only if something to undo
-                  .mnuEUndo.Enabled = rtfLogic.CanUndo
-                  .mnuEUndo.Caption = "&Undo"
-                  If rtfLogic.CanUndo Then
-                    'set caption based on what last action was
-                    Select Case rtfLogic.UndoType
-                    Case reUndoTyping
-                      .mnuEUndo.Caption = .mnuEUndo.Caption & " Typing"
-                    Case reUndoCut
-                      .mnuEUndo.Caption = .mnuEUndo.Caption & " Cut"
-                    Case reUndoPaste
-                      .mnuEUndo.Caption = .mnuEUndo.Caption & " Paste"
-                    Case reUndoDelete
-                      .mnuEUndo.Caption = .mnuEUndo.Caption & " Delete"
-                    Case reUndoDragDrop
-                      .mnuEUndo.Caption = .mnuEUndo.Caption & " Drag/drop"
-                    End Select
-                  End If
-                  .mnuEUndo.Caption = .mnuEUndo.Caption & vbTab & "Ctrl+Z"
-
-                  'enabled only if something to redo
-                  .mnuERedo.Enabled = rtfLogic.CanRedo
-                  .mnuERedo.Caption = "&Redo"
-                  If rtfLogic.CanRedo Then
-                    Select Case rtfLogic.RedoType
-                    Case reUndoTyping
-                      .mnuERedo.Caption = .mnuERedo.Caption & " Typing"
-                    Case reUndoCut
-                      .mnuERedo.Caption = .mnuERedo.Caption & " Cut"
-                    Case reUndoPaste
-                      .mnuERedo.Caption = .mnuERedo.Caption & " Paste"
-                    Case reUndoDelete
-                      .mnuERedo.Caption = .mnuERedo.Caption & " Delete"
-                    Case reUndoDragDrop
-                      .mnuERedo.Caption = .mnuERedo.Caption & " Drag/drop"
-                    End Select
-                  End If
-                  .mnuERedo.Caption = .mnuERedo.Caption & vbTab & "Ctrl+Y"
-
-                  'cut always visible, and enabled if something selected
-                  .mnuECut.Visible = True
-                  .mnuECut.Enabled = rtfLogic.Selection.SelType <> reSelectionIP
-                  .mnuECut.Caption = "Cu&t" & vbTab & "Ctrl+X"
-
-                  'copy is same as cut
-                  .mnuECopy.Visible = True
-                  .mnuECopy.Enabled = .mnuECut.Enabled
-                  .mnuECopy.Caption = "&Copy" & vbTab & "Ctrl+C"
-
-                  'paste always visibie, enabled if something to paste
-                  .mnuEPaste.Visible = True
-                  .mnuEPaste.Enabled = Clipboard.GetFormat(vbCFText)
-                  .mnuEPaste.Caption = "&Paste" & vbTab & "Ctrl+V"
-
-                  'delete is always visible, enabled if something to delete
-                  .mnuEDelete.Visible = True
-                  .mnuEDelete.Enabled = .mnuECut.Enabled
-                  .mnuEDelete.Caption = "Delete" & vbTab & "Del"
-
-                  'clear visible if snippets are in use
-                  .mnuEClear.Visible = Settings.Snippets
-                  .mnuEClear.Enabled = Settings.Snippets
-                  If Settings.Snippets Then
-                    If rtfLogic.Selection.Range.Length = 0 Then
-                      .mnuEClear.Caption = "Insert Code Snippet ..." & vbTab & "Ctrl+T"
-                      .mnuEClear.Enabled = (UBound(CodeSnippets()) > 0)
-                    Else
-                      .mnuEClear.Caption = "Create Code Snippet ..." & vbTab & "Ctrl+T"
-                    End If
-                  End If
-
-                  'insert is  visible
-                  .mnuEInsert.Visible = True
-                  .mnuEInsert.Visible = True
-                  .mnuEInsert.Enabled = True
-                  .mnuEInsert.Caption = "List Defines" & vbTab & "Ctrl+J"
-
-                  'select all always visible and enabled
-                  .mnuESelectAll.Visible = True
-                  .mnuESelectAll.Enabled = True
-                  .mnuESelectAll.Caption = "Select &All" & vbTab & "Ctrl+A"
-
-                  'bar1, find and replace always visible and enabled
-                  .mnuEBar1.Visible = True
-                  .mnuEFind.Visible = True
-                  .mnuEFind.Enabled = True
-                  .mnuEFind.Caption = "&Find" & vbTab & "Ctrl+F"
-                  .mnuEReplace.Visible = True
-                  .mnuEReplace.Enabled = True
-                  .mnuEReplace.Caption = "&Replace" & vbTab & "Ctrl+H"
-
-                  'find next always visible, only enabled if a search is active
-                  .mnuEFindAgain.Visible = True
-                  .mnuEFindAgain.Enabled = (LenB(GFindText) <> 0)
-                  .mnuEFindAgain.Caption = "Find &Next" & vbTab & "F3"
-
-                  'custom menu 1 is visible
-                  .mnuEBar2.Visible = True
-                  .mnuECustom1.Visible = True
-                  .mnuECustom1.Enabled = True
-                  .mnuECustom1.Caption = "Block Comment" & vbTab & "Alt+B"
-
-                  'custom menu 2 is also visible
-                  .mnuECustom2.Visible = True
-                  .mnuECustom2.Enabled = True
-                  .mnuECustom2.Caption = "Block Uncomment" & vbTab & "Alt+U"
-
-                  'custom menu 3 is only visible if an editable resource is under cursor)
-                  strToken = TokenFromCursor(rtfLogic)
-                  If IsResource(strToken) Then
-                    'allow editing
-                    .mnuECustom3.Caption = "Open " & strToken & " for Editing" & vbTab & "Shift+Ctrl+E"
-                    .mnuECustom3.Enabled = True
-                    .mnuECustom3.Visible = True
-                  Else
-                    'assume no synonyms
-                    .mnuECustom3.Visible = False
-                    .mnuECustom3.Enabled = False
-                    'if cursor is part of a command
-                    If CheckQuickInfo(False, False, True) Then
-                      'if a said command
-                      If TipCmdNum = 116 Then
-                        'get word
-                        strToken = TokenFromCursor(rtfLogic, True, True)
-                        If VocabularyWords.WordExists(Mid(strToken, 2, Len(strToken) - 2)) Then
-                          .mnuECustom3.Caption = "View Synonyms for " & strToken  ' & vbTab & "Shift+Ctrl+E"
-                          'only enable if more than one
-                          .mnuECustom3.Enabled = (VocabularyWords.GroupN(VocabularyWords(Mid(strToken, 2, Len(strToken) - 2)).Group).WordCount > 1)
-                          .mnuECustom3.Visible = True
-                        End If
-                      End If
-                    End If
-                  End If
-
-                  'set toggle status for IsRoom menu
-                  .mnuRCustom3.Checked = EditLogic.IsRoom
-                  .mnuRCustom3.Enabled = InGame And (EditLogic.Number <> 0)
-
-                  Toolbar1.Buttons(1).Enabled = .mnuECut.Enabled
-                  Toolbar1.Buttons(2).Enabled = .mnuECopy.Enabled
-                  Toolbar1.Buttons(3).Enabled = .mnuEPaste.Enabled
-                  Toolbar1.Buttons(4).Enabled = .mnuEDelete.Enabled
-                  Toolbar1.Buttons(6).Enabled = .mnuEUndo.Enabled
-                  Toolbar1.Buttons(7).Enabled = .mnuERedo.Enabled
-                  Toolbar1.Buttons(8).Enabled = .mnuEFind.Enabled
-                End With
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
-
-                'detect and respond to keyboard shortcuts
-
-                '** for some reason, key preview does not work when the RichEdAGI object
-                'has focus; keydown events go straight to the object's keyhandler
-
-                'if any other control has focus, set focus to the richedit control and
-                ' then send the keyboard event to the RichEdAGI object
-
-                '*'Debug.Assert Not Me.ActiveControl Is rtfLogic
-
-                On Error GoTo ErrHandler
-
-                'if listbox is visible, let it handle the keypresses
-                If lstDefines.Visible Then
-                  Exit Sub
-                End If
-
-                rtfLogic.SetFocus
-
-                rtfLogic_KeyDown KeyCode, Shift
-
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-              Private Sub Form_Load()
-
-                CalcWidth = MIN_WIDTH
-                CalcHeight = MIN_HEIGHT
-
-                'flag to ignore changes until after load complete
-                mLoading = True
-
-                'initialize font settings
-                InitFonts
-
-                'form is a logic
-                FormMode = fmLogic
-
-                'mark defines and list as dirty
-                DefDirty = True
-                ListDirty = True
-                ListType = -2
-
-                'reset load flag
-                mLoading = False
-              End Sub
-
-              Private Sub Form_LostFocus()
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                'mark define LIST as dirty
-                ListDirty = True
-              End Sub
-
-              Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
-
-                'check if save is necessary (and set cancel if user cancels)
-                Cancel = Not AskClose
-              End Sub
-
-              Private Sub Form_Unload(Cancel As Integer)
-
-                Dim i As Long
-
-                On Error GoTo ErrHandler
-
-                'if unloading due to error on startup
-                'logicedit will be set to nothing
-                If Not EditLogic Is Nothing Then
-                  'dereference object
-                  EditLogic.Unload
-                  Set EditLogic = Nothing
-                End If
-
-                'if ingame logic is loaded (and is a valid number), unload it too
-                If Me.InGame And Me.LogicNumber >= 0 Then
-                  If Logics(Me.LogicNumber).Loaded Then
-                    Logics(Me.LogicNumber).Unload
-                  End If
-                End If
-
-                'remove from logic editor collection
-                For i = 1 To LogicEditors.Count
-                  If LogicEditors(i) Is Me Then
-                    LogicEditors.Remove i
-                    ' if this logic was starting logic for a search
-                    If SearchStartLog = i Then
-                      'need to reset the search
-                      FindForm.ResetSearch
-                    End If
-                    Exit For
-                  End If
-                Next i
-
-                'if this form is the searchform
-                If SearchForm Is Me Then
-                  Set SearchForm = Nothing
-                End If
-
-                'need to check if this is last form
-                LastForm Me
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-              Private Sub lstDefines_DblClick()
-
-                Dim strValue As String
-
-                On Error GoTo ErrHandler
-
-                '**************
-                'OK, this one causes all kinds of trouble without understanding
-                ' the underlying nature of windows and focus; when the listbox
-                ' is shown by the context menu, all of the code in the mousedown
-                ' event is completed before focus shifts to the listbox
-                ' then, when this listbox is dismissed, focus goes to next control
-                ' in line; if that's the rtf window, then things go wonky because
-                ' it gets focus before all the stuff in this logic are
-                ' finished; that's where the 'drag/drop' effect and the ghost-jump
-                ' to start of logic come from
-                ' with another active control on the form that comes after this
-                ' list, then the problem goes away because the list can finish
-                ' all its work without events getting sent to the rtfLogic;
-                ' but then we have to get focus back to the rtf editor; it can't
-                ' be done within any of the listbox events, because the timing
-                ' will still be off, and the bugs return, so answer is to use
-                ' another timer; initial testing shows the time needed to flush
-                ' messages is around 40ms;
-
-                'make sure something selected
-                If lstDefines.SelectedItem Is Nothing Then
-                  Exit Sub
-                End If
-
-                'replace text with selected define
-                With rtfLogic.Selection.Range
-                  .StartPos = DefStartPos
-                  If lstDefines.Tag = "snippets" Then
-                    strValue = AddArgs(lstDefines.SelectedItem.Tag)
-                    If SnipIndent > 0 Then
-                      .Text = Replace(strValue, vbCr, vbCr & Space(SnipIndent))
-                    Else
-                      .Text = strValue
-                    End If
-                  Else
-                    .Text = lstDefines.SelectedItem.Text
-                  End If
-                  .StartPos = .EndPos
-                  DefEndPos = .EndPos
-                End With
-
-                'get the line index of the selected line
-                DefTopLine = SendMessage(rtfLogic.hWnd, EM_GETFIRSTVISIBLELINE, 0, 0)
-
-                lstDefines.Visible = False
-
-              '''  ' can't do this!
-              '''  rtfLogic.SetFocus
-                'use timer instead
-                tmrListDblClick.Enabled = True
-
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-              Private Sub lstDefines_KeyPress(KeyAscii As Integer)
-
-                Dim i As Long, strTmpDef As String
-                Dim lngLine As Long, lngFirst As Long
-                Dim strValue As String
-
-                On Error GoTo ErrHandler
-
-                With rtfLogic.Selection.Range
-                  'if enter, select this word
-                  If KeyAscii = 13 Or KeyAscii = 9 Then
-                    'ignore the keypress?
-                    KeyAscii = 0
-                    'make sure something selected
-                    If lstDefines.SelectedItem Is Nothing Then
-                      rtfLogic.SetFocus
-                      Exit Sub
-                    End If
-                    .StartPos = DefStartPos
-                    If lstDefines.Tag = "snippets" Then
-                      strValue = AddArgs(lstDefines.SelectedItem.Tag)
-
-                      If SnipIndent > 0 Then
-                        .Text = Replace(strValue, vbCr, vbCr & Space(SnipIndent))
-                      Else
-                        .Text = strValue
-                      End If
-                    Else
-                      .Text = lstDefines.SelectedItem.Text
-                    End If
-                    .StartPos = .EndPos
-                    lstDefines.Visible = False
-
-              '''      ' can't do this!
-              '''      rtfLogic.SetFocus
-                    'use timer instead
-                    tmrListDblClick.Enabled = True
-                    Exit Sub
-                  End If
-
-                  'if escape, restore selection, and then exit
-                  If KeyAscii = 27 Then
-                    'if not a snippet
-                    If lstDefines.Tag <> "snippets" Then
-                      .StartPos = DefStartPos
-                      .Text = PrevText
-                    End If
-                    lstDefines.Visible = False
-                    rtfLogic.SetFocus
-                    Exit Sub
-                  End If
-
-                  'if a snippet
-                  If lstDefines.Tag = "snippets" Then
-                    'ignore all othr key presses
-                    KeyAscii = 0
-                    Exit Sub
-                  End If
-
-                  'if backspace, need to delete a character
-                  If KeyAscii = 8 Then
-                    If .EndPos > 1 And .EndPos > DefStartPos Then
-                      DefText = Left(DefText, Len(DefText) - 1)
-                      .Text = DefText
-                    End If
-                  Else
-                    'replace selection with key (if there is something selected, or
-                    'add newly typed character
-                    DefText = DefText & Chr(KeyAscii)
-                    .Text = DefText
-                  End If
-
-                  'find closest match, if there's something typed
-                  If Len(DefText) > 0 Then
-                    For i = 1 To lstDefines.ListItems.Count
-                      strTmpDef = lstDefines.ListItems(i).Text
-                      If UCase(Left(strTmpDef, Len(DefText))) = UCase(DefText) Then
-                        lstDefines.ListItems(i).Selected = True
-                        lstDefines.ListItems(i).EnsureVisible
-                        Exit For
-                      End If
-                    Next i
-                  End If
-                End With
-
-                KeyAscii = 0
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub lstDefines_LostFocus()
-
-                lstDefines.Visible = False
-                picTip.Visible = False
-                tmrListDef.Enabled = False
-              End Sub
-
-              Private Sub lstDefines_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-                On Error Resume Next
-
-                'always hide the tooltip, and start timer
-                picTip.Visible = False
-
-                'reset the defines timer
-                'always reset the timer when the mouse moves
-                tmrListDef.Enabled = False
-                'defines are only shown if mouse is in normal state (no buttons or shift keys)
-                tmrListDef.Enabled = (Button = 0 And Shift = 0)
-
-                'don't show if on scrollbar
-                If X / ScreenTWIPSX > lstDefines.Width - 25 Then
-                  DefTip = ""
-                Else
-                  DefTip = lstDefines.HitTest(X, Y).Tag
-                  picTip.Move X / ScreenTWIPSX + lstDefines.Left + 15, Y / ScreenTWIPSY + lstDefines.Top + 15 ', picTip.TextWidth(DefTip) * 1.1, picTip.TextHeight(DefTip) * 1.1
-                End If
-              End Sub
-
-
-              Private Sub picTip_GotFocus()
-
-                'in case user clicks it or anything...
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-              End Sub
-
-
-              Private Sub rtfLogic_AcceptData(Formats() As Integer, format As Integer, ByVal EventSource As reDataEventSource)
-
-                On Error GoTo ErrHandler
-
-                'if dropping a word or object,
-                If DroppingWord Or DroppingObj Then
-                  'add quotes, so the string being passed will drop between them
-                  With rtfLogic.Selection.Range
-                    .Text = QUOTECHAR & QUOTECHAR
-                    .StartPos = .StartPos + 1
-                    .EndPos = .StartPos
-                  End With
-                End If
-
-                'if dropping a global define
-                If DroppingGlobal Then
-                  'no other action needed
-                End If
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-              Private Sub rtfLogic_Change()
-
-                ' check for stupid control keys
-                If NoChange Then
-                  'reset and ignore
-                  NoChange = False
-                  Exit Sub
-                End If
-
-                'set dirty flag
-                MarkAsDirty
-
-                'also mark defines as dirty
-                DefDirty = True
-
-                'clear status bar
-                If frmMDIMain.ActiveMdiChild Is Me And Not mLoading Then
-                  UpdateStatusBar
-                  MainStatusBar.Panels("Status").Text = vbNullString
-                End If
-              End Sub
-              Function AskClose() As Boolean
-
-                Dim rtn  As VbMsgBoxResult
-                Dim blnSkipWarn As Boolean
-                Dim blnLoaded As Boolean
-
-                On Error GoTo ErrHandler
-
-                'assume okay to close initially,
-                AskClose = True
-
-                'if exiting due to error on form load, logicedit is set to nothing
-                If EditLogic Is Nothing Then
-                  Exit Function
-                End If
-
-                'if text has been modified
-                '(number is set to -1 if closing is forced)
-                If rtfLogic.Dirty And LogicNumber <> -1 Then
-                  'get user input
-                  rtn = MsgBox("Do you want to save changes to source code?", vbYesNoCancel, Caption)
-                  Select Case rtn
-                  Case vbYes
-                    'save source
-                    MenuClickSave
-
-                    'if still dirty,
-                    If rtfLogic.Dirty Then
-                      'verify continue closing
-                      rtn = MsgBox("File not saved. Continue closing anyway?", vbYesNo, Caption)
-                      AskClose = (rtn = vbYes)
-                      Exit Function
-                    End If
-
-                  Case vbCancel 'if user says cancel,
-                    AskClose = False
-                    Exit Function
-
-                  Case vbNo
-                    'take no action; continue closing
-                    Exit Function
-                  End Select
-                End If
-
-                'if in a game, and not compiled
-                If InGame And LogicNumber <> -1 Then
-                  If Not Logics(LogicNumber).Compiled And Settings.WarnCompile Then
-                    'ask if should save
-                    rtn = MsgBoxEx("Do you want to compile and save this logic?", vbQuestion + vbYesNoCancel, Caption, , , "Don't show this warning again", blnSkipWarn)
-                    Select Case rtn
-                    Case vbYes
-                      'compile and save
-                      'compile logic
-                      If Not CompileLogic(Me, LogicNumber) Then
-                        'on error, exit
-                        AskClose = False
-                        Exit Function
-                      End If
-
-                      'update preview and properties
-                      UpdateSelection AGIResType.Logic, LogicNumber, umPreview Or umProperty
-
-                      AskClose = True
-
-                    Case vbNo
-                      AskClose = True
-                    Case vbCancel
-                      AskClose = False
-                    End Select
-
-                    'if asked to skip further warnings
-                    If blnSkipWarn Then
-                      Settings.WarnCompile = False
-                      WriteSetting GameSettings, sGENERAL, "WarnCompile", Settings.WarnCompile
-                    End If
-                  End If
-                End If
-              Exit Function
-
-              ErrHandler:
-                'new files will not have a crc;
-                'that will generate an error that
-                'can be safely ignored
-                If Err.Number <> vbObjectError + 592 Then
-                  '*'Debug.Assert False
-                End If
-                Resume Next
-              End Function
-              Private Sub Form_Resize()
-
-                On Error GoTo ErrHandler
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                'use separate variables for managing minimum width/height
-                If ScaleWidth < MIN_WIDTH Then
-                  CalcWidth = MIN_WIDTH
-                Else
-                  CalcWidth = ScaleWidth
-                End If
-                If ScaleHeight < MIN_HEIGHT Then
-                  CalcHeight = MIN_HEIGHT
-                Else
-                  CalcHeight = ScaleHeight
-                End If
-
-                'if the form is not visible
-                If Not Visible Then
-                  Exit Sub
-                End If
-
-                'if not minimized
-                If WindowState <> vbMinimized Then
-                  rtfLogic.Width = CalcWidth
-                  rtfLogic.Height = CalcHeight - Toolbar1.Height
-                End If
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-              Private Sub rtfLogic_DblClick(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
-
-                blnDblClick = True
-              End Sub
-
-              Private Sub rtfLogic_GotFocus()
-
-                On Error GoTo ErrHandler
-
-                'due to a bug that causes external dbl-clicks to look like
-                'a drag/drop operation, we lock the control when showing
-                'the defines list; if focus ever comes back to the control
-                'while it's locked, DoEvents seems to flush the drag/drop
-                'buffer, then we can unlock the control
-
-                If rtfLogic.Locked Then
-                  DoEvents
-                  rtfLogic.Locked = False
-                End If
-
-                'if not active form
-                If Not frmMDIMain.ActiveMdiChild Is Me Then
-                  'not sure why, but need to exit here to avoid endless looping between two forms
-                  Exit Sub
-                End If
-
-                If Not mLoading Then
-                  'force update of menus
-                  UpdateStatusBar
-                End If
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub rtfLogic_KeyDown(KeyCode As Integer, Shift As Integer)
-
-                'detect and respond to keyboard shortcuts
-
-                On Error GoTo ErrHandler
-
-                Dim strIn As String, i As Integer
-                Dim CharPicker As frmCharPicker
-
-                ' if keycode is <32, need to ignore change
-                ' for all except backspace, tab and return
-                If KeyCode < 32 Then
-                  Select Case KeyCode
-                  Case 8, 9, 10, 13
-                    'ok
-                    NoChange = False
-                  Case Else
-                    ' no change should happen
-                    NoChange = True
-                  End Select
-                Else
-                   NoChange = False
-                End If
-
-                'always check for help first
-                If Shift = 0 And KeyCode = vbKeyF1 Then
-                  MenuClickHelp
-                  KeyCode = 0
-                  Exit Sub
-                End If
-
-                'check for global shortcut keys
-                CheckShortcuts KeyCode, Shift
-                If KeyCode = 0 Then
-                  'if any shortcuts took place,
-                  'just exit
-                  Exit Sub
-                End If
-
-                'for richtext editor only, need to intercept ALT key combos,
-                'control keys that are assigned permanent shortcuts or builtin functionality
-                Select Case Shift
-                Case vbCtrlMask
-                  Select Case KeyCode
-                  Case vbKeyN, vbKeyO, vbKeyB, vbKeyR, vbKeyS, vbKeyE, vbKeyD, vbKeyI, vbKeyP, vbKeyL, vbKeyG, vbKeyM, vbKeyF1, vbKeyF2, vbKeyF3, vbKeyF4, vbKeyF5, vbKeyF6, vbKeyF7
-                    'don't respond to these keys
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyTab
-                    KeyCode = 0
-                    Shift = 0
-                    'move to next window
-                    SendMessage Me.hWnd, WM_SYSCOMMAND, SC_NEXTWINDOW, 0
-
-                  Case vbKeyF
-                    'find
-                    If frmMDIMain.mnuEFind.Enabled Then
-                      MenuClickFind
-                    End If
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyH
-                    'replace
-                    If frmMDIMain.mnuEReplace.Enabled Then
-                      MenuClickReplace
-                    End If
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyJ
-                    'Ctrl+J
-                    ShowDefineList
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyV
-                    'custom paste function, instead of the built in one
-                    MenuClickPaste
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyC
-                    'reset the globals clipboard
-                    ReDim GlobalsClipboard(0)
-
-                  Case vbKeyX
-                    'reset the globals clipboard
-                    ReDim GlobalsClipboard(0)
-
-                    ' reset search flags
-                    FindForm.ResetSearch
-
-                  Case vbKeyInsert
-
-                    Set CharPicker = New frmCharPicker
-                    CharPicker.Show vbModal, frmMDIMain
-
-                    If Not CharPicker.Cancel Then
-                      If Len(CharPicker.InsertString) > 0 Then
-                        'need an actual string variable
-                        'to be able to convert the bytes
-                        'into correct extended chars for display
-                        strIn = CharPicker.InsertString
-                        ByteToExtChar strIn
-                        rtfLogic.Selection.Range.Text = strIn
-                      End If
-                    End If
-
-                    Unload CharPicker
-                    Set CharPicker = Nothing
-
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyT
-                    'insert/create snippet
-                    MenuClickClear
-                    KeyCode = 0
-                    Shift = 0
-                  End Select
-
-                Case 0 'no shift, ctrl, or alt
-                  Select Case KeyCode
-                  Case vbKeyF3
-                    'find again
-                    If frmMDIMain.mnuEFindAgain.Enabled Then
-                      MenuClickFindAgain
-                    End If
-                    KeyCode = 0
-
-                  Case vbKeyF8  'compile
-                    If frmMDIMain.mnuRCustom1.Enabled Then
-                      MenuClickCustom1
-                    End If
-                    KeyCode = 0
-
-                  Case vbKeyF2, vbKeyF4, vbKeyF6, vbKeyF11
-                    'don't respond to these keys
-                    KeyCode = 0
-
-                  Case vbKeyDelete
-                    ' delete key causes search reset
-                    'ALWAYS reset search flags
-                    FindForm.ResetSearch
-                  End Select
-
-                Case vbShiftMask + vbCtrlMask
-                  Select Case KeyCode
-                  Case vbKeyTab
-                    'move to previous window
-                    SendMessage Me.hWnd, WM_SYSCOMMAND, SC_PREVWINDOW, 0
-                    KeyCode = 0
-                    Shift = 0
-                    Exit Sub
-
-                  Case vbKeyS
-                    'save all
-                    'step through all editors
-                    For i = 1 To LogicEditors.Count
-                      If LogicEditors(i).FormMode = fmLogic Then
-                        If LogicEditors(i).rtfLogic.Dirty Then
-                          LogicEditors(i).MenuClickSave
-                        End If
-                      End If
-                    Next i
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyE
-                    ' open resource under cursor for editing
-                    If IsResource(TokenFromCursor(rtfLogic)) Then
-                      MenuClickECustom3
-                    End If
-                  End Select
-
-                Case vbAltMask
-                  Select Case KeyCode
-                  Case vbKeyB
-                    'Alt+B
-                    MenuClickECustom1
-                    'pressing ALT combos causes a 'ding'; can't find a way to turn that off
-                    ' unless a msgbox is displayed; need to find a solution
-                    'and after showing the msgbox, focus goes somewhere, but IDK- it's not the rtfwindow anymore
-                    '
-                    'it appears to be related to the assigned shortcut keys on the main menu
-                    'if a key is assigned and menu is visible, no ding; if menu is not visible
-                    'or key is not assigned, we get a ding - oh well
-                    rtfLogic.SetFocus
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyM
-                    'msg cleanup
-                    If frmMDIMain.mnuRCustom2.Enabled Then
-                      MenuClickCustom2
-                    End If
-                    KeyCode = 0
-                    Shift = 0
-
-                  Case vbKeyU
-                    'Alt+U
-                    MenuClickECustom2
-                    KeyCode = 0
-                    Shift = 0
-                    rtfLogic.SetFocus
-                  End Select
-
-                Case vbShiftMask
-                  'nothing yet...
-                  Select Case KeyCode
-                  Case vbKeyInsert
-                    KeyCode = 0
-                    Shift = 0
-                  End Select
-
-                End Select
-
-                'shortcuts for editing are built in to the rtf box
-                ' redo
-                ' undo
-                ' cut
-                ' copy
-                ' paste
-                ' delete
-                ' select all
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-              Private Sub rtfLogic_KeyPress(KeyAscii As Integer)
-
-                Dim lngLineStart As Long, lngPos As Long
-                Dim strLine As String, rngTemp As Range
-
-                On Error GoTo ErrHandler
-
-                'ALWAYS reset search flags
-                FindForm.ResetSearch
-
-                'ensure define is hidden
-                picDefine.Visible = False
-
-                Select Case KeyAscii
-                Case 9  'TAB
-                  'wow! i never caught this before???? tabs need to be ignored;
-                  ' they are converted to spaces automatically by the control
-                  KeyAscii = 0
-
-                Case 13 'ENTER
-
-                Case 8  'BACKSPACE'
-
-                  'if pictip is visible
-                  If picTip.Visible Then
-                    'if cursor has backed over start of command needing the tip
-                    If rtfLogic.Selection.Range.StartPos <= TipCmdPos Then
-                      'hide it
-                      picTip.Visible = False
-                    End If
-
-                    UpdateTip
-                    If picTip.Visible Then
-                      RepositionTip rtfLogic.Selection.Range.EndPos
-                    End If
-                  End If
-
-                Case 40 'open parenthesis
-                  If Not picTip.Visible And Settings.AutoQuickInfo Then
-                    'check for quicktip
-                    If CheckQuickInfo(True) Then
-                      ShowTip
-                    End If
-                  End If
-
-                Case 32, 44 'space, comma
-                  'if tip not visible and tips are enabled
-                  If Not picTip.Visible And Settings.AutoQuickInfo Then
-                    'check if we need to show it
-                    If CheckQuickInfo(False) Then
-                      'if a comma, need to increment arg pos
-                      If KeyAscii = 44 Then
-                        'increment arg counter
-                        TipCurArg = TipCurArg + 1
-                      End If
-                      ShowTip
-                    End If
-                  Else
-                    'update highlighted argument
-                    Set rngTemp = rtfLogic.Range(rtfLogic.Selection.Range.StartPos, rtfLogic.Selection.Range.EndPos)
-                    rngTemp.StartOf reLine
-                    rngTemp.EndOf reLine, True
-                    ' if this range of text is not in a quote or comment
-                    If CheckLine(rngTemp.Text) = 0 Then
-                      'only increment arg count if a comma was pressed
-                      If KeyAscii = 44 Then
-                        TipCurArg = TipCurArg + 1
-                      End If
-                      'rebuild the tip line
-                      ShowCmdTip TipCmdNum, TipCurArg
-                    End If
-                    Set rngTemp = Nothing
-                  End If
-
-                Case 41 ' )
-                  'always cancel tip if visible
-                  If picTip.Visible Then
-                    'if not in quote
-                    Set rngTemp = rtfLogic.Range(rtfLogic.Selection.Range.StartPos, rtfLogic.Selection.Range.EndPos)
-                    rngTemp.StartOf reLine
-                    rngTemp.EndOf reLine, True
-                    ' if this range of text is not in a quote or comment
-                    If CheckLine(rngTemp.Text) = 0 Then
-                      picTip.Visible = False
-                    End If
-                    Set rngTemp = Nothing
-                  End If
-
-                Case 35 '#'
-                  'if using snippets
-                  If Settings.Snippets Then
-                    'check for a snippet
-
-                    'extract the current line, up to cursor
-                    Set rngTemp = rtfLogic.Range(rtfLogic.Selection.Range.StartPos, rtfLogic.Selection.Range.EndPos)
-                    rngTemp.StartOf reLine, True
-                    lngLineStart = rngTemp.StartPos
-                    strLine = rngTemp.Text
-                    Set rngTemp = Nothing
-
-                    'count spaces before first hashtag (if not a valid
-                    ' snippet, the result in meaningless, so it doesn't
-                    ' hurt to do the count now
-                    SnipIndent = InStr(1, strLine, "#") - 1
-                    'then trim the string
-                    strLine = Trim(strLine)
-
-                    'if nothing
-                    If Len(strLine) = 0 Then
-                      'just exit
-                      Exit Sub
-                    End If
-
-                    'unless this is within a string (inside a snippet argument value)
-                    If CheckLine(strLine) = 0 Then
-                      'find preceding hashtag
-                      lngPos = InStrRev(strLine, "#")
-                      ' if a preceding hashtag found, this is a potential snippet
-                      If lngPos > 0 Then
-                        'trim off leading hashtag
-                        strLine = Trim(Right(strLine, Len(strLine) - lngPos))
-
-                        'if at least one char
-                        If Len(strLine) > 0 Then
-                          'check for snippet entry
-                          If CheckSnippet(strLine, SnipIndent) Then
-                            'replace line
-                            rtfLogic.Selection.Range.StartPos = lngLineStart + SnipIndent + lngPos - 1
-                            rtfLogic.Selection.Range.Text = strLine
-                            rtfLogic.Selection.Range.StartPos = rtfLogic.Selection.Range.StartPos + Len(strLine)
-                            KeyAscii = 0
-                          End If
-                        End If
-                      End If
-                    End If
-                  End If
-                End Select
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-              Private Sub ShowCmdTip(ByVal CmdIndex As Long, ByVal ArgIndex As Long)
-
-                Dim strArgs() As String
-                Dim i As Long
-
-                On Error GoTo ErrHandler
-
-                With picTip
-                  'disable redraw to reduce flicker
-                  SendMessage .hWnd, WM_SETREDRAW, 0, 0
-
-                  .Cls
-                  .FontBold = False
-
-                  'split into array to get different args
-                  strArgs = Split(LoadResString(5000 + CmdIndex), ",")
-
-                  'set intial width to include the parentheses and some space on each end
-                  .Width = .TextWidth(" ()  ")
-                  ' add opening parenthesis
-                  picTip.Print " (";
-
-                  'if first arg is selected
-                  If ArgIndex = 0 Then
-                    picTip.FontBold = True
-                  End If
-
-                  'add first arg
-                  .Width = .Width + .TextWidth(strArgs(0))
-                  picTip.Print strArgs(0);
-
-                  'reset bold
-                  picTip.FontBold = False
-
-                  'add rest of args
-                  For i = 1 To UBound(strArgs())
-                    'add comma
-                    .Width = .Width + .TextWidth(",")
-                    picTip.Print ",";
-
-                    'if this arg is currently selected
-                    If i = ArgIndex Then
-                      picTip.FontBold = True
-                    End If
-
-                    'add the arg
-                    .Width = .Width + .TextWidth(strArgs(i))
-                    picTip.Print strArgs(i);
-
-                    'reset bold
-                    .FontBold = False
-                  Next i
-
-                  'add closing parentheses
-                  picTip.Print ")"
-
-                  'reenable updating
-                  SendMessage .hWnd, WM_SETREDRAW, 1, 0
-                  .Refresh
-                End With
-
-                ' also refresh the editor; if the tip window changes size slightly
-                ' a ghost image will sometimes remain unless the editor is refreshed
-                rtfLogic.Refresh
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-
-              Private Sub rtfLogic_KeyUp(KeyCode As Integer, Shift As Integer)
-
-                On Error GoTo ErrHandler
-
-                'always hide define window
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                Select Case KeyCode
-                Case vbKeyUp
-                  'for now, just exit on keyup/keydown
-                  If picTip.Visible Then
-                    picTip.Visible = False
-                  End If
-
-                Case vbKeyDown
-                  'ensure tip is hidden
-                  If picTip.Visible Then
-                    picTip.Visible = False
-                  End If
-
-                Case vbKeyRight, vbKeyLeft
-                  'do we still need tip?
-                  If picTip.Visible Then
-                    If rtfLogic.Selection.Range.StartPos <= TipCmdPos Then
-                      picTip.Visible = False
-                    Else
-                      UpdateTip
-                    End If
-                  End If
-                End Select
-
-                UpdateStatusBar
-              Exit Sub
-
-              ErrHandler:
-                Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub rtfLogic_LostFocus()
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-              End Sub
-
-              Private Sub rtfLogic_MouseDown(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
-
-                Dim rtn As Long, lngPos As Long
-
-                On Error GoTo ErrHandler
-
-                'popup menus are VERY problematic...
-                ' since they belong to frmMDIMain it
-                'means that form gets focus, even can
-                'cause mouseup/click events on the
-                'form if it happens on the menu border
-                'mouse-up on rtfLogic never happens
-
-                'need to track mouse down status; it's
-                'used to minimize calls to UpdateStatus
-                'and SetEditMenu
-                MouseDown = True
-
-                'convert click point to character position
-                pPos.X = X
-                pPos.Y = Y
-                lngPos = SendMessagePtL(rtfLogic.hWnd, EM_CHARFROMPOS, 0, pPos)
-
-                'if click results in a change in selection
-                If lngPos < rtfLogic.Selection.Range.StartPos Or lngPos > rtfLogic.Selection.Range.EndPos Then
-                  FindForm.ResetSearch
-                End If
-
-                'position selection marker if coming from a find form
-                If FixSel Then
-                  'update selection
-                  If lngPos < rtfLogic.Selection.Range.StartPos Or lngPos > rtfLogic.Selection.Range.EndPos Then
-                    rtfLogic.Selection.Range.StartPos = lngPos
-                    rtfLogic.Selection.Range.EndPos = lngPos
-                    FixSel = False
-                  End If
-                End If
-
-                'intercept rightclick; the ShowContextMenu event
-                'interferes with undo/redo, so it can't be used
-
-                'when right button is clicked, show edit menu
-                If Button = vbRightButton Then
-                  ' if position of cursor is not within current selection
-                  If lngPos < rtfLogic.Selection.Range.StartPos Or lngPos > rtfLogic.Selection.Range.EndPos Then
-                    'move cursor to this point, which results in a statusbar update
-                    ' and also updates the edit menu
-                    rtfLogic.Selection.Range.EndPos = lngPos
-                    rtfLogic.Selection.Range.StartPos = lngPos
-                  End If
-
-                  'rtf editor doesn't do a mouse up when right clicking
-                  MouseDown = False
-
-                  'verify menu is up-to-date
-                  SetEditMenu
-
-                  'if activeform is NOT this form
-                  If Not frmMDIMain.ActiveMdiChild Is Me Then
-                    'call menu update BEFORE popup
-                    AdjustMenus AGIResType.Logic, InGame, True, rtfLogic.Dirty
-                  End If
-
-                  'need doevents so form activation occurs BEFORE popup
-                  'otherwise, errors will be generated because of menu
-                  'adjustments that are made in the form_activate event
-                  DoEvents
-                  '(I tried Me.SetFocus; that doesn't work; not sure if there's
-                  'any other way in code to force the form to be active BEFORE
-                  'calling a popup menu
-                  'NOTE that can't use SafeDoEvents here; stupid rtfEd control...
-                  '  SafeDoEvents
-
-                  'disable tips while showing the list
-                  tmrTip.Enabled = False
-
-                  PopupMenu frmMDIMain.mnuEdit
-                End If
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-              Private Sub rtfLogic_MouseMove(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
-
-                On Error GoTo ErrHandler
-
-                If OldMouseX = X And OldMouseY = Y Then
-                  Exit Sub
-                End If
-
-                OldMouseX = X
-                OldMouseY = Y
-
-                'reset the tips timer
-                'first, always diable it to force it to reset
-                tmrTip.Enabled = False
-                'then enable it ONLY if no buttons/keys pressed, and user wants tips and defines list is not visible
-                tmrTip.Enabled = (Button = 0 And Shift = 0 And Settings.ShowDefTips And Not lstDefines.Visible)
-                picDefine.Visible = False
-
-                ' if moving while mouse button is pressed AND something selected, always hide tip
-                If Button <> 0 And rtfLogic.Selection.Range.Length > 0 Then
-                  picTip.Visible = False
-                End If
-
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub rtfLogic_MouseUp(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As Range)
-
-                'if click location is still inside a command with tip showing
-                'we can leave it; just need to update it for correct argument
-                Dim lngPrevArg As Long, lngPrevPos As Long
-
-                On Error GoTo ErrHandler
-
-                'always reset mousedown flag
-                MouseDown = False
-                ' and dblclick flag
-                blnDblClick = False
-
-                'ensure define is hidden
-                picDefine.Visible = False
-
-                'if tip is showing, determine if it should stay visible
-                ' (no need to check for AutoQuickInfo setting; if tip is visible
-                ' the setting is TRUE)
-                If picTip.Visible Then
-                  'need to know current cmdpos and argpos to be able
-                  'to determine if they have changed
-                  lngPrevArg = TipCurArg
-                  lngPrevPos = TipCmdPos
-
-                  'force the check to find cmdpos and argpos
-                  If CheckQuickInfo(False, True) Then
-                    'as long as cmdpos is the same, keep showing the tip window
-                    If lngPrevPos = TipCmdPos Then
-                      'but update it if arg Value has changed
-                      If lngPrevArg <> TipCurArg Then
-                        'need to reset curarg Value so updatetip will redraw the tip
-                        TipCurArg = lngPrevArg
-                        UpdateTip
-                      End If
-                    Else
-                      'hide it if cmdpos is different
-                      picTip.Visible = False
-                    End If
-                  Else
-                    'hide it if no longer on a cmd
-                    picTip.Visible = False
-                  End If
-                End If
-
-                'if selection is >0 need to update status bar
-                If rtfLogic.Selection.Range.Length > 0 Then
-                  UpdateStatusBar
-                Else
-                  'otherwise, just update edit menu
-                  SetEditMenu
-                End If
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-              Private Sub rtfLogic_Scroll(ByVal Direction As RichEditAGI.reScrollDirection)
-
-                'always hide tip and define windows
-                If picTip.Visible Then
-                  picTip.Visible = False
-                End If
-                If picDefine.Visible Then
-                  picDefine.Visible = False
-                End If
-
-                'and reset the tip timer
-                tmrTip.Enabled = False
-                tmrTip.Enabled = Settings.ShowDefTips
-              End Sub
-
-              Private Sub rtfLogic_SelectionChanged()
-
-                Dim rtn As Long
-
-                On Error GoTo ErrHandler
-
-                'if not visible
-                If Not rtfLogic.Visible Then
-                  'means form isn't visible
-                  Exit Sub
-                End If
-
-                ' if defines list is still up
-                If Me.lstDefines.Visible Then
-                  ' don't need to check for the stupid jump glitch
-                  Exit Sub
-                End If
-
-                'if loading,
-                If mLoading Then
-                  'skip updating status bar
-                  Exit Sub
-                End If
-
-                'even though timer seems to fix the 'dbl-click-jump glitch
-                ' we still check for it, and manually force things back to
-                ' correct state if the glitch manages to come through
-                ' despite the timer fix
-
-                'check for jump due to glitch when dbl-clicking the defines list
-
-                'if cursor is at  very beginning of logic
-                If rtfLogic.Selection.Range.EndPos = 0 Then
-                  'check if a define was recently inserted
-                  If DefEndPos > 0 Then
-                    '*'Debug.Print "fixing the glitch"
-                    ' need to restore window and selection
-
-                    ' see if window jumped up to top
-                    rtn = SendMessage(rtfLogic.hWnd, EM_GETFIRSTVISIBLELINE, 0, 0)
-                    ' it did - it always does...
-                    '*'Debug.Assert rtn = 0
-
-                    ' if actual top line should be something other than
-                    ' first line
-                    If DefTopLine <> rtn Then
-                      'scroll down so the correct top line is shown
-                      rtn = SendMessage(rtfLogic.hWnd, EM_LINESCROLL, 0, DefTopLine)
-                    End If
-
-                    'then move cursor (which recurses this stupid fix...
-                    rtfLogic.Selection.Range.EndPos = DefEndPos
-                    rtfLogic.Selection.Range.StartPos = rtfLogic.Selection.Range.EndPos
-
-                    ' done fixing
-                    FixingGlitch = False
-                    DefEndPos = 0
-                  End If
-                End If
-
-                With rtfLogic.Selection.Range
-                  'if selected something by dbl-click
-                  If .Length > 0 And blnDblClick Then
-                    'reset dblclick so it doesn't recurse
-                    blnDblClick = False
-
-                    'then expand, if an agi command with a dot is selected
-                    ExpandSelection rtfLogic, False, True
-                  End If
-                End With
-
-                'always reset dbl-click
-                blnDblClick = False
-
-                'reset defines list endpos
-                DefEndPos = 0
-
-                'if something selected
-                If rtfLogic.Selection.Range.Length > 0 Then
-                  ' and mouse button is down
-                  If MouseDown Then
-                    UpdateStatusBar
-                  End If
-                Else
-                  UpdateStatusBar
-                End If
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub tmrListDblClick_Timer()
-
-                'popup menu with the defines list creates a glitch when
-                'raised within the rtfLogic mousedown event; there are
-                'additional events/messages occurring that need time
-                'to clear.
-
-                'best fix I can find is to use another control (picGlitch)
-                'which gets the focus (due to Taborder) after the listbox
-                'gets dismissed (by setting visible property to false)
-
-                'then this timer is needed to let enough time to pass for
-                'whatever events/messages are causing the trouble to clear
-                'out; then focus can be sent back to rtfLogic
-
-                ' this timer seems to help by passing focus back to
-                ' the editor after a ~200msec delay
-
-                ' ALWAYS disable the timer
-                tmrListDblClick.Enabled = False
-
-                'shift focus back to the editor
-                rtfLogic.SetFocus
-
-              End Sub
-
-              Private Sub tmrListDef_Timer()
-
-                'pointer not moving; if over a token, show the define
-                Dim rtn As Long, ptPos As POINTAPI, ptOffset As POINTAPI
-
-                Dim strDefine As String, lngPos As Long
-                Dim tmpX As Long, tmpY As Long
-                Dim tgtWnd As Long
-                Dim blnFound As Boolean
-
-                On Error GoTo ErrHandler
-
-                'always turn off timer so we don't recurse
-                tmrListDef.Enabled = False
-
-                'if this form is not active, just exit
-                If Not frmMDIMain.ActiveMdiChild Is Me Then
-                  Exit Sub
-                End If
-
-                'no tips for words
-                If lstDefines.Tag = "words" Then
-                  Exit Sub
-                End If
-
-                'get screen coords of cursor
-                rtn = GetCursorPos(ptPos)
-                'save to calculate the offset
-                ptOffset = ptPos
-
-                'if showing defines list, assign tip text
-                'when enough time has passed
-                If lstDefines.Visible Then
-                  'if over an item, set the tooltip
-                  rtn = WindowFromPoint(ptPos.X, ptPos.Y)
-
-                  If rtn = lstDefines.hWnd And Len(DefTip) > 0 Then
-                    With picTip
-                      .Width = .TextWidth(DefTip) + .TextWidth("e")
-                      .Height = .TextHeight(DefTip) * 1.1
-                      .Cls
-                      picTip.Print " "; DefTip;
-                      .Visible = True
-                    End With
-                  End If
-                  Exit Sub
-                End If
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-              Private Sub tmrTip_Timer()
-
-                'this function  displays the definition of a token when the
-                'user hovers the cursor over it
-
-                'pointer not moving; if over a token, show the define
-                Dim strDefine As String, lngPos As Long
-                Dim tmpX As Long, tmpY As Long, Max As Long
-                Dim rtn As Long, ptPos As POINTAPI, ptOffset As POINTAPI
-                Dim tgtWnd As Long
-                Dim blnFound As Boolean
-
-                On Error GoTo ErrHandler
-
-                'always turn off timer so we don't recurse
-                tmrTip.Enabled = False
-
-                ' for now, let's not disable the tool tip timer
-                ' when form doesn't have focus
-              '''  'if this form is not active, just exit
-              '''  If Not frmMDIMain.ActiveMdiChild Is Me Then
-              '''    Exit Sub
-              '''  End If
-
-                'get screen coords of cursor
-                rtn = GetCursorPos(ptPos)
-                'save to calculate the offset
-                ptOffset = ptPos
-
-                'convert to rtfLogic reference
-                rtn = ScreenToClient(rtfLogic.hWnd, ptPos)
-                'now we can calculate the offset to easily convert to/from screen and rtf window coordinates!
-                ptOffset.X = ptOffset.X - ptPos.X
-                ptOffset.Y = ptOffset.Y - ptPos.Y
-
-                'if not over the rtfbox, just exit
-                If ptPos.X < 0 Or ptPos.Y < 0 Or ptPos.X > rtfLogic.ScaleWidth / ScreenTWIPSX Or ptPos.Y > rtfLogic.ScaleHeight / ScreenTWIPSY Then
-                  Exit Sub
-                End If
-
-                'get the position of character which cursor is over
-                lngPos = rtfLogic.RangeFromPoint(ptPos.X, ptPos.Y).StartPos
-
-                'and then get the real bottom/center coords of the character at this position
-                rtfLogic.Range(lngPos).GetPoint tmpX, tmpY, rePosStart + rePosCenter + rePosBottom
-                tmpX = tmpX - ptOffset.X
-                tmpY = tmpY - ptOffset.Y
-
-                'how do i know if this is the char under cursor?
-                'if difference between xpos of center char is too far from center of
-                If Abs(tmpX - ptPos.X) > 10 Then
-                  Exit Sub
-                End If
-
-                'get the token under the cursor
-                strDefine = GetCursorToken(lngPos)
-
-                'if no valid token found, just exit
-                If Len(strDefine) = 0 Or lngPos < 0 Then
-                  Exit Sub
-                End If
-
-                'rebuild the lookup list, if has recently changed
-                If DefDirty Then
-                  BuildLDefLookup
-                  DefDirty = False
-                End If
-
-                'is it a define value?
-                Do
-                  'check locals first
-                  Max = UBound(LDefLookup())
-                  For rtn = 0 To Max
-                    If StrComp(strDefine, LDefLookup(rtn).Name, vbTextCompare) = 0 Then
-                      strDefine = strDefine & " = " & LDefLookup(rtn).Value
-                      blnFound = True
-                      Exit Do
-                    End If
-                  Next rtn
-
-                  'then check globals
-                  Max = UBound(GDefLookup())
-                  For rtn = 0 To Max
-                    If StrComp(strDefine, GDefLookup(rtn).Name, vbTextCompare) = 0 Then
-                      strDefine = strDefine & " = " & GDefLookup(rtn).Value
-                      blnFound = True
-                      Exit Do
-                    End If
-                  Next rtn
-
-                  'then ids; we will test logics, then views, then sounds, then pics
-                  'as that's the order that defines are most likely to be used
-                  Max = Logics.Max
-                  For rtn = 0 To Max
-                    'if type indicates invalid, skip it
-                    If IDefLookup(rtn).Type <> 11 Then
-                      If StrComp(strDefine, IDefLookup(rtn).Name, vbTextCompare) = 0 Then
-                        strDefine = strDefine & " = " & IDefLookup(rtn).Value
-                        blnFound = True
-                        Exit Do
-                      End If
-                    End If
-                  Next rtn
-
-                  Max = Views.Max
-                  For rtn = 0 To Max
-                    'if type indicates invalid, skip it
-                    If IDefLookup(rtn + 256).Type <> 11 Then
-                      If StrComp(strDefine, IDefLookup(rtn + 256).Name, vbTextCompare) = 0 Then
-                        strDefine = strDefine & " = " & IDefLookup(rtn + 256).Value
-                        blnFound = True
-                        Exit Do
-                      End If
-                    End If
-                  Next rtn
-
-                  Max = Sounds.Max
-                  For rtn = 0 To Max
-                    'if type indicates invalid, skip it
-                    If IDefLookup(rtn + 512).Type <> 11 Then
-                      If StrComp(strDefine, IDefLookup(rtn + 512).Name, vbTextCompare) = 0 Then
-                        strDefine = strDefine & " = " & IDefLookup(rtn + 512).Value
-                        blnFound = True
-                        Exit Do
-                      End If
-                    End If
-                  Next rtn
-
-                  Max = Pictures.Max
-                  For rtn = 0 To Max
-                    'if type indicates invalid, skip it
-                    If IDefLookup(rtn + 768).Type <> 11 Then
-                      If StrComp(strDefine, IDefLookup(rtn + 768).Name, vbTextCompare) = 0 Then
-                        strDefine = strDefine & " = " & IDefLookup(rtn + 768).Value
-                        blnFound = True
-                        Exit Do
-                      End If
-                    End If
-                  Next rtn
-
-                  'if still no match, check reserved defines
-                  Max = 94
-                  For rtn = 0 To Max
-                    If StrComp(strDefine, RDefLookup(rtn).Name, vbTextCompare) = 0 Then
-                      strDefine = strDefine & " = " & RDefLookup(rtn).Value
-                      blnFound = True
-                      Exit Do
-                    End If
-                  Next rtn
-                Loop Until True
-
-                If Not blnFound Then
-                  Exit Sub
-                End If
-
-                With picDefine
-                  .Cls
-                  'add command
-                  .Width = .TextWidth(strDefine & "   ")
-                  picDefine.Print " "; strDefine;
-                  'reposition it
-                  .Top = tmpY + rtfLogic.Top + .Height * 0.1
-                  'if top is below bottom edge,
-                  If .Top > rtfLogic.Height + rtfLogic.Top - .Height Then
-                    .Top = .Top - 2 * Me.TextHeight("Ay") - 4
-                  End If
-                  .Left = tmpX + rtfLogic.Left
-                  .Visible = True
-                End With
-
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-              Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
-
-                On Error GoTo ErrHandler
-
-                Select Case Button.Key
-                Case "cut"
-                  MenuClickCut
-
-                Case "copy"
-                  MenuClickCopy
-
-                Case "paste"
-                  MenuClickPaste
-
-                Case "delete"
-                  MenuClickDelete
-
-                Case "undo"
-                  MenuClickUndo
-
-                Case "find"
-                  MenuClickFind
-
-                Case "compile"
-                  MenuClickCustom1
-
-                Case "msg"
-                  MenuClickCustom2
-
-                Case "redo"
-                  MenuClickRedo
-
-                Case "comment"
-                  rtfLogic.Selection.Range.Comment
-
-                Case "uncomment"
-                  rtfLogic.Selection.Range.Uncomment
-
-                End Select
-              Exit Sub
-
-              ErrHandler:
-                '*'Debug.Assert False
-                Resume Next
-              End Sub
-
-
-                   */
+        public AGIToken TokenFromPos() {
+            if (Selection.Start <= Selection.End) {
+                return TokenFromPos(Selection.Start);
+            }
+            else {
+                return TokenFromPos(Selection.End);
+            }
+        }
+
+        /// <summary>
+        /// Identifies the token type at the specified location in a textbox
+        /// range.
+        /// </summary>
+        /// <param name="range"></param>
+        /// <param name="start"></param>
+        /// <returns>Token information as AGIToken object.</returns>
+        public AGIToken TokenFromPos(Place start) {
+            string checkline = Lines[start.iLine];
+            AGIToken retval = TokenFromPos(checkline, start.iChar);
+            retval.Line = start.iLine;
+            return retval;
+        }
+
+        /// <summary>
+        /// Gets the token immediately following the passed token. If multiline is
+        /// true it will search past end of line to next line.
+        /// </summary>
+        /// <param name="fctb"></param>
+        /// <param name="token"></param>
+        /// <param name="multiline"></param>
+        /// <returns></returns>
+        public  AGIToken NextToken(AGIToken token, bool multiline = false) {
+            AGIToken nexttoken = new AGIToken();
+            nexttoken.Start = token.End;
+            nexttoken.Line = token.Line;
+            nexttoken.Start--;
+            nexttoken.End = nexttoken.Start;
+            string strLine = Lines[token.Line];
+            do {
+                nexttoken.Start++;
+                if (nexttoken.Start >= strLine.Length) {
+                    if (multiline) {
+                        nexttoken.Line++;
+                        nexttoken.Start = 0;
+                        nexttoken.End = nexttoken.Start;
+                        while (nexttoken.Line < LinesCount) {
+                            strLine = Lines[nexttoken.Line];
+                            if (strLine.Length == 0) {
+                                nexttoken.Line++;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                        if (nexttoken.Line >= LinesCount) {
+                            // end of text reached; no token found
+                            return nexttoken;
+                        }
+                    }
+                    else {
+                        // end of line reached; no token found
+                        nexttoken.Start = strLine.Length;
+                        nexttoken.End = nexttoken.Start;
+                        return nexttoken;
+                    }
+                }
+            } while (strLine[nexttoken.Start] <= (char)33);
+
+            switch (strLine[nexttoken.Start]) {
+            case '[':
+                nexttoken.Type = AGITokenType.Comment;
+                break;
+            case '/':
+                if (nexttoken.Start + 1 < strLine.Length && strLine[nexttoken.Start + 1] == '/') {
+                    nexttoken.Type = AGITokenType.Comment;
+                }
+                else {
+                    nexttoken.Type = AGITokenType.Symbol;
+                }
+                break;
+            case '"':
+                nexttoken.Type = AGITokenType.String;
+                break;
+            case '!' or '&' or '\'' or '(' or ')' or '*' or
+                   '+' or ',' or '-' or '.' or ':' or ';' or
+                   '>' or '=' or '<' or '?' or '@' or '\\' or
+                   ']' or '^' or '`' or '{' or '|' or '}' or '~':
+                nexttoken.Type = AGITokenType.Symbol;
+                break;
+            case >= '0' and <= '9':
+                nexttoken.Type = AGITokenType.Number;
+                break;
+            default:
+                nexttoken.Type = AGITokenType.Identifier;
+                break;
+            }
+            return GetTokenEnd(nexttoken, strLine);
+        }
+
+        /// <summary>
+        /// Gets the token immediately preceding the passed token. If multiline is
+        /// true it will search past start of line to previous line.
+        /// </summary>
+        /// <param name="fctb"></param>
+        /// <param name="token"></param>
+        /// <param name="multiline"></param>
+        /// <returns></returns>
+        public AGIToken PreviousToken(AGIToken token, bool multiline = false) {
+            AGIToken prevtoken = new AGIToken();
+            prevtoken.Line = token.Line;
+            prevtoken.Start = token.Start;
+            prevtoken.End = prevtoken.Start;
+            string strLine = Lines[token.Line];
+            do {
+                prevtoken.Start--;
+                if (prevtoken.Start < 0) {
+                    if (multiline) {
+                        prevtoken.Line--;
+                        while (prevtoken.Line >= 0) {
+                            strLine = Lines[prevtoken.Line];
+                            prevtoken.Start = strLine.Length - 1;
+                            prevtoken.End = prevtoken.Start;
+                            if (strLine.Length == 0) {
+                                prevtoken.Line--;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                        if (prevtoken.Line < 0) {
+                            // end of text reached; no token found
+                            return prevtoken;
+                        }
+                    }
+                    else {
+                        // beginning of line reached; no token found
+                        prevtoken.Start = -1;
+                        prevtoken.End = -1;
+                        return prevtoken;
+                    }
+                }
+            } while (strLine[prevtoken.Start] <= (char)33);
+            Place prevplace = new();
+            prevplace.iLine = prevtoken.Line;
+            prevplace.iChar = prevtoken.Start;
+            return TokenFromPos(prevplace);
+        }
+
+        /// <summary>
+        /// Parses a line of text to see determine the token type at the 
+        /// specified position. The start argument is updated to the start
+        /// position of the detected token.
+        /// </summary>
+        /// <param name="strLine"></param>
+        /// <returns>Token type.
+        ///</returns>
+        private static AGITokenType ParseLine(string strLine, ref int start) {
+            bool inQuote = false;
+            bool slashcode = false;
+            int tokenstart = 0;
+            AGITokenType retval = AGITokenType.None;
+
+            if (start >= strLine.Length) {
+                return retval;
+            }
+            for (int i = 0; i < strLine.Length; i++) {
+                if (inQuote && slashcode) {
+                    // ignore char after a slashcode that's inside a string
+                    slashcode = false;
+                }
+                else {
+                    switch (strLine[i]) {
+                    case '"':
+                        inQuote = !inQuote;
+                        if (inQuote) {
+                            retval = AGITokenType.String;
+                            tokenstart = i;
+                        }
+                        break;
+                    case '\\':
+                        if (inQuote) {
+                            // start a slashcode
+                            slashcode = true;
+                        }
+                        else {
+                            retval = AGITokenType.Symbol;
+                            tokenstart = i;
+                        }
+                        break;
+                    case '/':
+                        if (!inQuote) {
+                            if (i < strLine.Length && strLine[i + 1] == '/') {
+                                start = i;
+                                return AGITokenType.Comment;
+                            }
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && strLine[i + 1] == '=') {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '[':
+                        if (!inQuote) {
+                            start = i;
+                            return AGITokenType.Comment;
+                        }
+                        break;
+                    case '!':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && strLine[i + 1] == '=') {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '&':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && strLine[i + 1] == '&') {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '*':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && strLine[i + 1] == '=') {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '+':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && (strLine[i + 1] == '+' || strLine[i + 1] == '=')) {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '-':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && (strLine[i + 1] == '-' || strLine[i + 1] == '=')) {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '>':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && (strLine[i + 1] == '=' || strLine[i + 1] == '<')) {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '=':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            tokenstart = i;
+                            if (i < strLine.Length && (strLine[i + 1] == '=' || strLine[i + 1] == '<' || strLine[i + 1] == '>' || strLine[i + 1] == '@')) {
+                                i++;
+                            }
+                        }
+                        break;
+                    case '<':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && (strLine[i + 1] == '=' || strLine[i + 1] == '>')) {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '@':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && strLine[i + 1] == '=') {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '|':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            if (i < strLine.Length && strLine[i + 1] == '|') {
+                                i++;
+                            }
+                            tokenstart = i;
+                        }
+                        break;
+                    case '\'' or '(' or ')' or ',' or ':' or ';' or '?' or ']' or
+                         '^' or '`' or '{' or '}' or '~':
+                        if (!inQuote) {
+                            retval = AGITokenType.Symbol;
+                            tokenstart = i;
+                        }
+                        break;
+                    case <= (char)33:
+                        if (!inQuote) {
+                            retval = AGITokenType.None;
+                            tokenstart = i;
+                        }
+                        break;
+                    case >= (char)48 and <= (char)57:
+                        if (!inQuote) {
+                            if (retval != AGITokenType.Number && retval != AGITokenType.Identifier) {
+                                retval = AGITokenType.Number;
+                                tokenstart = i;
+                            }
+                        }
+                        break;
+                    case '.':
+                        if (!inQuote) {
+                            if (retval != AGITokenType.Identifier) {
+                                retval = AGITokenType.Symbol;
+                                tokenstart = i;
+                            }
+                        }
+                        break;
+                    default:
+                        // 35, 36, 37, 65-90, 95, 97-122, >127
+                        // #   $   %   A-Z    _    a-z    extended
+                        if (!inQuote) {
+                            if (retval != AGITokenType.Identifier) {
+                                retval = AGITokenType.Identifier;
+                                tokenstart = i;
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (i >= start) {
+                    break;
                 }
             }
+            start = tokenstart;
+            return retval;
+        }
+
+        private static AGIToken GetTokenEnd(AGIToken retval, string checkline) {
+            int endpos = retval.Start + 1;
+            switch (retval.Type) {
+            case AGITokenType.Comment:
+                retval.End = checkline.Length;
+                retval.Text = checkline[retval.Start..];
+                return retval;
+            case AGITokenType.String:
+                bool slashcode = false;
+                while (endpos < checkline.Length) {
+                    if (slashcode) {
+                        // ignore char after slashcode
+                        slashcode = false;
+                    }
+                    else {
+                        if (checkline[endpos] == '\\') {
+                            slashcode = true;
+                        }
+                        if (checkline[endpos] == '"') {
+                            endpos++;
+                            break;
+                        }
+                    }
+                    endpos++;
+                }
+                break;
+            case AGITokenType.Symbol:
+                if (endpos < checkline.Length) {
+                    //39, 40, 41, 44, 46, 58, 59, 63, 92, 93, 94, 96, 123, 125, 126
+                    switch (checkline[retval.Start]) {
+                    //case '\'' or '(' or ')' or ',' or '.' or ':' or ';' or '?' or
+                    //     '\\' or ']' or '^' or '`' or '{' or '}' or '~':
+                    //    // always a single code
+                    //    break;
+                    case '!':
+                        // ! or !=
+                        if (checkline[endpos] == '=') {
+                            endpos++;
+                        }
+                        break;
+                    case '&':
+                        // & or &&
+                        if (checkline[endpos] == '&') {
+                            endpos++;
+                        }
+                        break;
+                    case '*':
+                        // * or *=
+                        if (checkline[endpos] == '=') {
+                            endpos++;
+                        }
+                        break;
+                    case '+':
+                        // + or ++ or +=
+                        if ((checkline[endpos] == '+' || checkline[endpos] == '=')) {
+                            endpos++;
+                        }
+                        break;
+                    case '-':
+                        // - or -- or -=
+                        if ((checkline[endpos] == '-' || checkline[endpos] == '=')) {
+                            endpos++;
+                        }
+                        break;
+                    case '/':
+                        // / or /=
+                        if (checkline[endpos] == '=') {
+                            endpos++;
+                        }
+                        break;
+                    case '>':
+                        // > or >= or ><
+                        if ((checkline[endpos] == '=' || checkline[endpos] == '<')) {
+                            endpos++;
+                        }
+                        break;
+                    case '=':
+                        // = or == or =< or => or =@
+                        switch (checkline[endpos]) {
+                        case '=' or '<' or '>' or '@':
+                            endpos++;
+                            break;
+                        }
+                        break;
+                    case '<':
+                        // < or <= or <>
+                        if ((checkline[endpos] == '=' || checkline[endpos] == '>')) {
+                            endpos++;
+                        }
+                        break;
+                    case '|':
+                        // | or ||
+                        if (checkline[endpos] == '|') {
+                            endpos++;
+                        }
+                        break;
+                    case '@':
+                        // @ or @=
+                        if (checkline[endpos] == '=') {
+                            endpos++;
+                        }
+                        break;
+                    }
+                }
+                break;
+            case AGITokenType.Number:
+                while (endpos < checkline.Length) {
+                    char c = checkline[endpos];
+                    if (c is not >= ((char)48) or not <= ((char)57)) {
+                        break;
+                    }
+                    endpos++;
+                }
+                break;
+            case AGITokenType.Identifier:
+                bool done = false;
+                while (endpos < checkline.Length) {
+                    char c = checkline[endpos];
+                    switch (c) {
+                    case >= 'A' and <= 'Z':
+                    case >= 'a' and <= 'z':
+                    case >= '0' and <= '9':
+                    case '_' or '$' or '#' or '%' or '.':
+                    case > (char)127:
+                        break;
+                    default:
+                        done = true;
+                        break;
+                    }
+                    if (done) {
+                        break;
+                    }
+                    endpos++;
+                }
+                break;
+            case AGITokenType.None:
+                while (endpos < checkline.Length) {
+                    if (checkline[endpos] > 32) {
+                        break;
+                    }
+                    endpos++;
+                }
+                break;
+            }
+            retval.End = endpos;
+            retval.Text = checkline[retval.Start..endpos];
+            return retval;
+        }
+
+        public static AGIToken TokenFromPos(string checkline, int start) {
+            // strategy:
+            // - check if in a comment ([ or //)
+            // - if not, check if in a string (characters inside quotes)
+            // - check if in white space (pos a space or tab, or at end of line)
+            // - next check for two-char symbols: != && *= ++ += -- -= /= >= >< =< => ||
+            // - then check for single char symbols: ! & ' ( ) * + , - / : ; > = < ? \ ] ^ ` { | } ~
+            // - must be an identifier; search backward to white space to find start 
+            //   (adjusting for non-allowed start characters) and foward to find end 
+            AGIToken retval = new AGIToken {
+                Line = 0,
+                Start = start,
+                End = start
+            };
+            int startpos = start;
+            if (startpos >= checkline.Length) {
+                return retval;
+            }
+            // check for comment
+            retval.Type = ParseLine(checkline, ref startpos);
+            retval.Start = startpos;
+            return GetTokenEnd(retval, checkline);
+        }
+
+        public static AGIToken NextToken(string checkline, AGIToken token) {
+            AGIToken nexttoken = new AGIToken();
+            nexttoken.Start = token.End;
+            nexttoken.Line = token.Line;
+            nexttoken.Start--;
+            nexttoken.End = nexttoken.Start;
+            do {
+                nexttoken.Start++;
+                if (nexttoken.Start >= checkline.Length) {
+                    // end of line reached; no token found
+                    nexttoken.Start = checkline.Length;
+                    nexttoken.End = nexttoken.Start;
+                    return nexttoken;
+                }
+            } while (checkline[nexttoken.Start] <= (char)33);
+
+            switch (checkline[nexttoken.Start]) {
+            case '[':
+                nexttoken.Type = AGITokenType.Comment;
+                break;
+            case '/':
+                if (nexttoken.Start + 1 < checkline.Length && checkline[nexttoken.Start + 1] == '/') {
+                    nexttoken.Type = AGITokenType.Comment;
+                }
+                else {
+                    nexttoken.Type = AGITokenType.Symbol;
+                }
+                break;
+            case '"':
+                nexttoken.Type = AGITokenType.String;
+                break;
+            case '!' or '&' or '\'' or '(' or ')' or '*' or
+                   '+' or ',' or '-' or '.' or ':' or ';' or
+                   '>' or '=' or '<' or '?' or '@' or '\\' or
+                   ']' or '^' or '`' or '{' or '|' or '}' or '~':
+                nexttoken.Type = AGITokenType.Symbol;
+                break;
+            case >= '0' and <= '9':
+                nexttoken.Type = AGITokenType.Number;
+                break;
+            default:
+                nexttoken.Type = AGITokenType.Identifier;
+                break;
+            }
+            return GetTokenEnd(nexttoken, checkline);
+        }
+
+        public static AGIToken PreviousToken(string checkline, AGIToken token) {
+            AGIToken prevtoken = new AGIToken();
+            prevtoken.Line = token.Line;
+            prevtoken.Start = token.Start;
+            prevtoken.End = prevtoken.Start;
+            do {
+                prevtoken.Start--;
+                if (prevtoken.Start < 0) {
+                    // beginning of line reached; no token found
+                    prevtoken.Start = -1;
+                    prevtoken.End = -1;
+                    return prevtoken;
+                }
+            } while (checkline[prevtoken.Start] <= (char)33);
+            return TokenFromPos(checkline, prevtoken.Start);
+        }
+
+        internal void RemoveLine(int line) {
+            List<int> lines = new List<int>();
+            lines.Add(line);
+            base.RemoveLines(lines);
+        }
+        
+        internal void SelectLine(int iLine) {
+            try {
+                Selection.Start = new(0, iLine);
+                Selection.End = new(GetLineLength(iLine), iLine);
+            }
+            catch {
+                // ignore errors
+            }
+        }
+    }
 }

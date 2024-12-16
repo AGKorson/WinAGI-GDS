@@ -1,7 +1,9 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
@@ -30,15 +32,11 @@ namespace WinAGI.Engine {
             int lngLoc;
             bool loadWarnings = false;
             TWinAGIEventInfo warnInfo = new() {
-                Type = EventType.etInfo,
-                InfoType = EInfoType.itResources,
-                ID = "",
-                Module = "",
-                Text = "",
+                InfoType = InfoType.Resources,
             };
             game.LoadEventStatus(mode, warnInfo);
             // set up for warnings
-            warnInfo.Type = EventType.etResWarning;
+            warnInfo.Type = EventType.ResourceWarning;
 
             if (game.agIsVersion3) {
                 // check for DIR file
@@ -150,7 +148,7 @@ namespace WinAGI.Engine {
                     }
                     try {
                         // open the file, load it into buffer, and close it
-                        using FileStream fsDIR = new FileStream(strDirFile, FileMode.Open);
+                        using FileStream fsDIR = new(strDirFile, FileMode.Open);
                         bytBuffer = new byte[fsDIR.Length];
                         fsDIR.Read(bytBuffer);
                     }
@@ -214,8 +212,8 @@ namespace WinAGI.Engine {
                     // check for bad resources
                     for (i = 0; i < intResCount; i++) {
                         bytResNum = (byte)i;
-                        warnInfo.Type = EventType.etInfo;
-                        warnInfo.InfoType = EInfoType.itResources;
+                        warnInfo.Type = EventType.Info;
+                        warnInfo.InfoType = InfoType.Resources;
                         warnInfo.ResType = bytResType;
                         warnInfo.ResNum = bytResNum;
                         warnInfo.ID = "";
@@ -223,7 +221,7 @@ namespace WinAGI.Engine {
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
                         game.LoadEventStatus(mode, warnInfo);
-                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.Type = EventType.ResourceWarning;
                         // get location data for this resource
                         byte1 = bytBuffer[lngDirOffset + bytResNum * 3];
                         byte2 = bytBuffer[lngDirOffset + bytResNum * 3 + 1];
@@ -250,8 +248,8 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agLogs.Contains(bytResNum)) {
-                                    game.agLogs[bytResNum].PropsDirty = false;
-                                    game.agLogs[bytResNum].IsDirty = false;
+                                    game.agLogs[bytResNum].PropsChanged = false;
+                                    game.agLogs[bytResNum].IsChanged = false;
                                     // logic source checks come after all resources loaded so leave it loaded
                                 }
                                 break;
@@ -263,8 +261,8 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agPics.Contains(bytResNum)) {
-                                    game.agPics[bytResNum].PropsDirty = false;
-                                    game.agPics[bytResNum].IsDirty = false;
+                                    game.agPics[bytResNum].PropsChanged = false;
+                                    game.agPics[bytResNum].IsChanged = false;
                                     game.agPics[bytResNum].Unload();
                                 }
                                 break;
@@ -276,8 +274,8 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agSnds.Contains(bytResNum)) {
-                                    game.agSnds[bytResNum].PropsDirty = false;
-                                    game.agSnds[bytResNum].IsDirty = false;
+                                    game.agSnds[bytResNum].PropsChanged = false;
+                                    game.agSnds[bytResNum].IsChanged = false;
                                     game.agSnds[bytResNum].Unload();
                                 }
                                 break;
@@ -289,8 +287,8 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agViews.Contains(bytResNum)) {
-                                    game.agViews[bytResNum].PropsDirty = false;
-                                    game.agViews[bytResNum].IsDirty = false;
+                                    game.agViews[bytResNum].PropsChanged = false;
+                                    game.agViews[bytResNum].IsChanged = false;
                                     game.agViews[bytResNum].Unload();
                                 }
                                 break;
@@ -323,12 +321,12 @@ namespace WinAGI.Engine {
             if (errlevel != 0) {
                 List<TWinAGIEventInfo> errCol = ErrorByNum(resType, resNum, errlevel, errdata);
                 foreach (TWinAGIEventInfo warning in errCol) {
-                    ECStatus errstat;
-                    if (warning.Type == EventType.etError) {
-                        errstat = ECStatus.csResError;
+                    GameCompileStatus errstat;
+                    if (warning.Type == EventType.ResourceError) {
+                        errstat = GameCompileStatus.ResError;
                     }
                     else {
-                        errstat = ECStatus.csWarning;
+                        errstat = GameCompileStatus.Warning;
                     }
                     OnCompileGameStatus(errstat, warning);
                 }
@@ -340,14 +338,11 @@ namespace WinAGI.Engine {
             TWinAGIEventInfo warnInfo = new() {
                 ResType = resType,
                 ResNum = resNum,
-                ID = "",
-                Module = "--",
-                Text = "",
-                Line = "--"
+                Line = "--",
             };
-
+            
             if (errlevel < 0) {
-                warnInfo.Type = EventType.etError;
+                warnInfo.Type = EventType.ResourceError;
                 switch (errlevel) {
                 case -1:
                     // error 606: Can't load resource: file not found (%1)
@@ -470,31 +465,26 @@ namespace WinAGI.Engine {
                     warnInfo.Module = errdata[0];
                     break;
                 case -21:
-                    warnInfo.Type = EventType.etError;
                     warnInfo.ID = "RE17";
                     warnInfo.Text = "Unable to decrypt OBJECT file";
                     retval.Add(warnInfo);
                     break;
                 case -22:
-                    warnInfo.Type = EventType.etError;
                     warnInfo.ID = "RE18";
                     warnInfo.Text = "Invalid OBJECT file header, unable to read item data";
                     retval.Add(warnInfo);
                     break;
                 case -23:
-                    warnInfo.Type = EventType.etError;
                     warnInfo.ID = "RE19";
                     warnInfo.Text = "File access error, unable to read OBJECT file";
                     retval.Add(warnInfo);
                     break;
                 case -24:
-                    warnInfo.Type = EventType.etError;
                     warnInfo.ID = "RE20";
                     warnInfo.Text = "Invalid index table";
                     retval.Add(warnInfo);
                     break;
                 case -25:
-                    warnInfo.Type = EventType.etError;
                     warnInfo.ID = "RE21";
                     warnInfo.Text = "File access error, unable to read OBJECT file";
                     retval.Add(warnInfo);
@@ -504,7 +494,7 @@ namespace WinAGI.Engine {
                 return retval;
             }
             else {
-                warnInfo.Type = EventType.etResWarning;
+                warnInfo.Type = EventType.ResourceWarning;
                 switch (resType) {
                 case AGIResType.Logic:
                     // none- will never occur...
@@ -561,19 +551,19 @@ namespace WinAGI.Engine {
                 case AGIResType.Objects:
                     warnInfo.Module = "OBJECT";
                     if ((errlevel & 1) == 1) {
-                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW08";
                         warnInfo.Text = "OBJECT file has no items";
                         retval.Add(warnInfo);
                     }
                     if ((errlevel & 2) == 2) {
-                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW09";
                         warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
                         retval.Add(warnInfo);
                     }
                     if ((errlevel & 4) == 4) {
-                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW10";
                         warnInfo.Text = "First item is not the null '?' item";
                         retval.Add(warnInfo);
@@ -582,25 +572,25 @@ namespace WinAGI.Engine {
                 case AGIResType.Words:
                     warnInfo.Module = "WORDS.TOK";
                     if ((errlevel & 1) == 1) {
-                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW11";
                         warnInfo.Text = "Abnormal index table";
                         retval.Add(warnInfo);
                     }
                     if ((errlevel & 2) == 2) {
-                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW12";
                         warnInfo.Text = "Unexpected end of file";
                         retval.Add(warnInfo);
                     }
                     if ((errlevel & 4) == 4) {
-                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW13";
                         warnInfo.Text = "Upper case characters detected";
                         retval.Add(warnInfo);
                     }
                     if ((errlevel & 8) == 8) {
-                        warnInfo.Type = EventType.etResWarning;
+                        warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW14";
                         warnInfo.Text = "Empty WORDS.TOK file";
                         retval.Add(warnInfo);
@@ -667,6 +657,11 @@ namespace WinAGI.Engine {
         /// <returns>true if another resource in this game has same ID as agRes</returns>
         internal static bool NotUniqueID(AGIResource agRes) {
             string checkID = agRes.ID;
+
+            // non-game resources always have unique IDs
+            if (agRes.parent == null) {
+                return false;
+            }
             foreach (Logic tmpRes in agRes.parent.agLogs) {
                 if (agRes != tmpRes && tmpRes.ID == checkID) {
                     // duplicate
@@ -940,7 +935,7 @@ namespace WinAGI.Engine {
                         // what has been used by most AGI sound tools since the format was
                         // originally decyphered by fans)
                         if (SoundIn[i].Notes[j].FreqDivisor > 0) {
-                            bytNote = (byte)((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5);
+                            bytNote = (byte) (Math.Round((Math.Log10(111860 / (double)(SoundIn[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5));
                             // in case note is too high,
                             if (bytNote > 127) {
                                 bytNote = 127;
@@ -1395,10 +1390,11 @@ namespace WinAGI.Engine {
         /// <param name="SoundIn"></param>
         /// <returns></returns>
         internal static byte[] BuildIIgsPCM(Sound SoundIn) {
-            int lngSize;
-            byte[] bData, bOutput;
             // This method creates just the data stream, not the header. The header is
             // only needed when creating a WAV file.
+            // IIgs WAV sounds are 8000 sample rate, 8bit, one channel.
+            int lngSize;
+            byte[] bData, bOutput;
 
             bData = SoundIn.Data;
             // size of sound data is total resource size, minus the PCM header that
@@ -1494,7 +1490,7 @@ namespace WinAGI.Engine {
             if (intOldCode != 256) {
                 intPrefix = [];
                 bytAppend = [];
-                WinAGIException wex = new(LoadResString(559).Replace(ARG1, "(invalid compression data)")) {
+                WinAGIException wex = new(Engine.Base.LoadResString(559).Replace(ARG1, "(invalid compression data)")) {
                     HResult = Base.WINAGI_ERR + 559,
                 };
                 throw wex;

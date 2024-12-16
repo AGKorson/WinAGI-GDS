@@ -15,6 +15,15 @@ namespace WinAGI.Engine {
     /// classes can expose the resource in the proper formats.
     /// </summary>
     public class AGIResource {
+        //protected class ResByte {
+        //    internal AGIResource mParent = null;
+        //    public byte[] Data = [];
+
+        //    public ResByte(AGIResource parent) {
+        //        mParent = parent;
+        //    }
+        //}
+
         #region Local Members
         protected bool mLoaded = false;
         /// <summary>
@@ -38,9 +47,10 @@ namespace WinAGI.Engine {
         /// Byte array with raw resource data as stored in the VOL files
         /// </summary>      
         protected byte[] mData = [];
+//        protected ResByte mResData = null;
         protected bool mInGame;
-        internal AGIGame parent;
-        internal bool mIsDirty;
+        internal AGIGame parent = null;
+        internal bool mIsChanged;
         protected byte mResNum;
         protected string mDescription = "";
         protected readonly AGIResType mResType;
@@ -63,9 +73,10 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ResType"></param>
         protected AGIResource(AGIResType ResType) {
-            mResType = ResType;
-            // New resources start out NOT in game; so vol and loc are undefined
-            mInGame = false;
+        mResType = ResType;
+        //mResData = new ResByte(this);
+        // New resources start out NOT in game; so vol and loc are undefined
+        mInGame = false;
             mVolume = -1;
             mLoc = -1;
             // assume no compression
@@ -75,6 +86,21 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Returns a reference to the AGI game this resource belongs to. Null
+        /// if not in a game
+        /// </summary>
+        public AGIGame Parent {
+            get {
+                if (mInGame) {
+                    return parent;
+                }
+                else {
+                    return null;
+                }
+            }
+        }
+
         /// <summary>
         /// Gets the number of the VOL file where this resource is located.
         /// </summary>
@@ -120,7 +146,7 @@ namespace WinAGI.Engine {
             get {
                 if (mInGame) {
                     if (mLoaded) {
-                        return mData.Length;
+                        return mData.Length; //return mDataR.mData.Length;
                     }
                     else {
                         return mSize;
@@ -242,27 +268,27 @@ namespace WinAGI.Engine {
         /// When true, indicates resource properties in resource need to be updated
         /// in the game's WAG file. Meaningless if resource is not in a game.
         /// </summary>
-        internal bool PropsDirty { get; set; }
+        internal bool PropsChanged { get; set; }
 
         /// <summary>
-        /// For resources in a game, IsDirty is true if the data in the resource does not
-        /// match the data in the VOL file. For resources not in a game, IsDirty is true
+        /// For resources in a game, IsChanged is true if the data in the resource does not
+        /// match the data in the VOL file. For resources not in a game, IsChanged is true
         /// if the data in the resource does not match the data in the resource file.
         /// </summary>
-        public virtual bool IsDirty {
+        public virtual bool IsChanged {
             get {
-                // if not loaded, resource is never dirty
                 if (mLoaded) {
-                    return mIsDirty;
+                    return mIsChanged;
                 }
                 else {
+                    // if not loaded, resource is never flagged as changed
                     return false;
                 }
             }
             internal set {
                 // DEBUG: should only change if resource is loaded
                 Debug.Assert(mLoaded);
-                mIsDirty = value;
+                mIsChanged = value;
             }
         }
 
@@ -307,13 +333,33 @@ namespace WinAGI.Engine {
         /// </summary>
         public byte[] Data {
             get {
+                // TODO: accessing data using the byte array allows 
+                // for changes that can't be captured. Fix will be to
+                // mimic VB where a method is used for reading/writing
+                // data
                 WinAGIException.ThrowIfNotLoaded(this);
                 return mData;
             }
+            // why can't this be public? it makes it much easier
+            // to import resources. ANSWER: because it copies a
+            // pointer instead of copying actual data...
             internal set {
                 // can only set the data object internally
                 mData = value;
+                mIsChanged = true;
             }
+        }
+
+        /// <summary>
+        /// Replaces the data array in this resource with a new set of
+        /// data.
+        /// </summary>
+        /// <param name="newdata"></param>
+        public void ReplaceData(byte[] newdata) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            mData = [.. newdata];
+            mSize = mData.Length;
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -358,17 +404,19 @@ namespace WinAGI.Engine {
                         }
                     }
                 }
-
                 if (NewID != mResID) {
                     // ingame resources must have unique IDs
                     if (mInGame) {
-                        if (NotUniqueID(this)) {
+                        if (NotUniqueID(NewID, parent)) {
+                            // TODO: should this throw an error?
                             return;
                         }
                     }
                     mResID = NewID;
-                    LogicCompiler.blnSetIDs = false;
-                    parent.WriteGameSetting(mResType.ToString() + Number, "ID", mResID, mResType.ToString() + "s");
+                    if (mInGame) {
+                        LogicCompiler.blnSetIDs = false;
+                        parent.WriteGameSetting(mResType.ToString() + Number, "ID", mResID, mResType.ToString() + "s");
+                    }
                 }
             }
         }
@@ -413,6 +461,8 @@ namespace WinAGI.Engine {
             mResNum = ResNum;
             // ingame resources start loaded
             mLoaded = true;
+            // ingame resources don't have a resfile
+            mResFile = "";
         }
 
         /// <summary>
@@ -493,28 +543,59 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="NewRes"></param>
         internal void CloneTo(AGIResource NewRes) {
-
-            NewRes.parent = parent;
-            // derived resource data are copied by calling method
-            // EORes and CurPos are calculated; don't need to copy them
+            // When cloning, ingame property, and related properties
+            // (parent, number) are never copied; these properties
+            // are only changed by game methods that manage adding,
+            // removing and renumbering.
+            //
+            // Derived resource data properties (e.g. EORes, CurPos,
+            // etc.)  are calculated when property is accessed so they
+            // don't need to be copied.
             NewRes.mResID = mResID;
             NewRes.mDescription = mDescription;
-            NewRes.mResNum = mResNum;
             NewRes.mResFile = mResFile;
-            // copy vol and loc info even though the copy
-            // may or may not also be marked ingame
-            NewRes.mVolume = mVolume;
-            NewRes.mLoc = mLoc;
             NewRes.mLoaded = mLoaded;
             NewRes.Data = mData;
-            NewRes.mIsDirty = mIsDirty;
-            NewRes.PropsDirty = PropsDirty;
+            NewRes.mIsChanged = mIsChanged;
             NewRes.mSize = mSize;
             NewRes.mSizeInVol = mSizeInVol;
             NewRes.mblnEORes = mblnEORes;
             NewRes.mlngCurPos = mlngCurPos;
             NewRes.ErrLevel = ErrLevel;
             NewRes.ErrData = ErrData;
+            // force prop status to changed instead 
+            // since the cloned object has likely changed
+            NewRes.PropsChanged = true;
+        }
+
+
+        /// <summary>
+        /// Copies resource data from the source into this resource
+        /// </summary>
+        /// <param name="SourceRes"></param>
+        internal void CloneFrom(AGIResource SourceRes) {
+            // When cloning, ingame property, and related properties
+            // (parent, number) are never copied; these properties
+            // are only changed by game methods that manage adding,
+            // removing and renumbering.
+            //
+            // Derived resource data properties (e.g. EORes, CurPos,
+            // etc.)  are calculated when property is accessed so they
+            // don't need to be copied.
+            mResID = SourceRes.mResID;
+            mDescription = SourceRes.mDescription;
+            mResFile = SourceRes.mResFile;
+            mLoaded = SourceRes.mLoaded;
+            mData = SourceRes.mData;
+            mIsChanged = SourceRes.mIsChanged;
+            mSize = SourceRes.mSize;
+            mSizeInVol = SourceRes.mSizeInVol;
+            mblnEORes = SourceRes.mblnEORes;
+            mlngCurPos = SourceRes.mlngCurPos;
+            ErrLevel = SourceRes.ErrLevel;
+            ErrData = SourceRes.ErrData;
+            // force prop status to changed 
+            PropsChanged = true;
         }
 
         /// <summary>
@@ -532,8 +613,8 @@ namespace WinAGI.Engine {
             }
             // always return success
             mLoaded = true;
-            mIsDirty = false;
-            PropsDirty = false;
+            mIsChanged = false;
+            PropsChanged = false;
             // clear error info before loading
             ErrLevel = 0;
             mErrData = ["", "", "", "", ""];
@@ -576,7 +657,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // verify resource is within file bounds
-            if (mLoc > fsVOL.Length) {
+            if (mLoc >= fsVOL.Length) {
                 fsVOL.Dispose();
                 brVOL.Dispose();
                 ErrLevel = -4;
@@ -631,7 +712,7 @@ namespace WinAGI.Engine {
             mData = brVOL.ReadBytes(diskSize);
             fsVOL.Dispose();
             brVOL.Dispose();
-            if (blnIsPicture && fullSize != diskSize) {
+            if (blnIsPicture) {
                 // pictures use this decompression
                 V3Compressed = 1;
                 try {
@@ -685,7 +766,7 @@ namespace WinAGI.Engine {
         public virtual void Unload() {
             // reset flag first so size doesn't get cleared for in game resources
             mLoaded = false;
-            mIsDirty = false;
+            mIsChanged = false;
             // reset resource variables
             mData = [];
             // don't mess with sizes though! they remain accessible even when unloaded
@@ -725,8 +806,8 @@ namespace WinAGI.Engine {
                     throw;
                 }
             }
-            // no longer dirty
-            mIsDirty = false;
+            // no longer changed
+            mIsChanged = false;
         }
 
         /// <summary>
@@ -756,10 +837,9 @@ namespace WinAGI.Engine {
             // get temporary file
             FileStream fsExport = null;
             try {
-                // open file for output
-                //TODO: if existing file is larger than new file, what happens?
                 fsExport = new FileStream(ExportFile, FileMode.OpenOrCreate);
-                // write data
+                // erase all existing data first
+                fsExport.SetLength(0);
                 fsExport.Write(mData, 0, mData.Length);
             }
             catch (Exception e) {
@@ -770,8 +850,8 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             finally {
-                // close file,
-                fsExport.Dispose();
+                Debug.Assert(fsExport != null);
+                fsExport?.Dispose();
             }
             // if NOT in a game,
             if (!mInGame) {
@@ -780,7 +860,7 @@ namespace WinAGI.Engine {
                 // ID always tracks the resfile name
                 mResID = Path.GetFileName(ExportFile);
                 if (mResID.Length > 64) {
-                    mResID = Left(mResID, 64);
+                    mResID = mResID.Left(64);
                 }
             }
         }
@@ -829,8 +909,8 @@ namespace WinAGI.Engine {
             // reset resource markers
             mlngCurPos = 0;
             mblnEORes = false;
-            mIsDirty = false;
-            PropsDirty = false;
+            mIsChanged = false;
+            PropsChanged = false;
             // update size property
             mSize = (int)fsImport.Length;
             // always return success
@@ -849,14 +929,16 @@ namespace WinAGI.Engine {
                 // update the resource filename to match
                 mResFile = ImportFile;
             }
-            // set ID to the filename without extension;
+            // set ID to the filename without path;
             // the calling function will take care or reassigning it later, if needed
             // (for example, if being added to a game)
-            string tmpID = Path.GetFileNameWithoutExtension(ImportFile);
-            if (tmpID.Length > 64) {
-                tmpID = tmpID[..64];
-            }
+            string tmpID = Path.GetFileName(ImportFile);
+            //if (tmpID.Length > 64) {
+            //    tmpID = tmpID[..64];
+            //}
             if (mInGame) {
+                // drop the extension if ingame
+                tmpID = Path.GetFileNameWithoutExtension(ImportFile);
                 if (NotUniqueID(tmpID, parent)) {
                     int i = 0;
                     string baseid = mResID;
@@ -898,6 +980,7 @@ namespace WinAGI.Engine {
             mData[Pos] = InputByte;
             mlngCurPos = Pos + 1;
             mblnEORes = (mlngCurPos == mData.Length);
+            mIsChanged = true;
             return;
         }
 
@@ -946,6 +1029,7 @@ namespace WinAGI.Engine {
             }
             mlngCurPos = Pos + 2;
             mblnEORes = (mlngCurPos == mData.Length);
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -1071,6 +1155,7 @@ namespace WinAGI.Engine {
                     mData[lngResEnd + i] = bNewData[i];
                 }
             }
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -1126,7 +1211,7 @@ namespace WinAGI.Engine {
             // mSizeInVol is undefined
             mSizeInVol = -1;
             mblnEORes = false;
-            mIsDirty = true;
+            mIsChanged = true;
             ErrLevel = 0;
             mErrData = ["", "", "", "", ""];
         }

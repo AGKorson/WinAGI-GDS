@@ -52,6 +52,9 @@ namespace WinAGI.Editor {
                 break;
             }
         }
+
+        #region Event Handlers
+        #endregion
         void tmpForm() {
             /*
         private void LoadPalette(string LoadFile)

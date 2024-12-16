@@ -20,7 +20,7 @@ namespace WinAGI.Engine {
         string mResFile = "";
         string mDescription = "";
         bool mInGame;
-        bool mIsDirty;
+        bool mIsChanged;
         bool mLoaded;
         int mErrLevel = 0;
         // 1 = empty file
@@ -29,31 +29,52 @@ namespace WinAGI.Engine {
         // 4 = invalid data (invalid text pointer)
         // 5 = first object is not '?'
         AGIGame parent = null;
-        Encoding mCodePage = Encoding.GetEncoding(437);
+        Encoding mCodePage = Encoding.GetEncoding(Base.CodePage.CodePage);
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Instantiates an inventory item list that is not part of an AGI game.
-        /// </summary>
-        public InventoryList() {
-            mInGame = false;
-            mResFile = "";
-            InitInvObj();
-        }
-
         /// <summary>
         /// Instantiates an inventory item list and attaches it to an AGI game.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="Loaded"></param>
-        public InventoryList(AGIGame parent, bool Loaded = false) {
+        internal InventoryList(AGIGame parent, bool Loaded = false) {
             this.parent = parent;
             mInGame = true;
             mResFile = parent.agGameDir + "OBJECT";
-            mCodePage = parent.agCodePage;
+            mCodePage = Encoding.GetEncoding(parent.agCodePage.CodePage);
             InitInvObj();
             mLoaded = Loaded;
+        }
+
+        /// Instantiates a blank inventory item list that is not part of an AGI game.
+        /// </summary>
+        public InventoryList() {
+            mInGame = false;
+            mResFile = "";
+            InitInvObj();
+            mLoaded = true;
+            mIsChanged = true;
+            
+        }
+
+        /// Instantiates an inventory item list from a file that is not part
+        /// of an AGI game. </summary>
+        public InventoryList(string filename) {
+            mInGame = false;
+            mResFile = filename;
+            InitInvObj();
+            try {
+                Load(filename);
+            }
+            catch {
+                // blank the list
+                mResFile = "";
+                InitInvObj();
+                // return the error
+                throw;
+            }
         }
         #endregion
 
@@ -83,7 +104,7 @@ namespace WinAGI.Engine {
                 WinAGIException.ThrowIfNotLoaded(this);
                 if (value != mMaxScreenObjects) {
                     mMaxScreenObjects = value;
-                    mIsDirty = true;
+                    mIsChanged = true;
                 }
             }
         }
@@ -103,12 +124,12 @@ namespace WinAGI.Engine {
         /// Gets a a value that indicates if this list's items do not match what is 
         /// stored its assigned OBJECT file.
         /// </summary>
-        public bool IsDirty {
+        public bool IsChanged {
             get {
-                return mIsDirty;
+                return mIsChanged;
             }
             internal set {
-                mIsDirty = value;
+                mIsChanged = value;
             }
         }
 
@@ -141,7 +162,7 @@ namespace WinAGI.Engine {
             }
             set {
                 // limit description to 1K
-                value = Left(value, 1024);
+                value = value.Left(1024);
                 if (value != mDescription) {
                     mDescription = value;
                     if (mInGame) {
@@ -209,7 +230,7 @@ namespace WinAGI.Engine {
                 WinAGIException.ThrowIfNotLoaded(this);
                 if (mEncrypted != value) {
                     mEncrypted = value;
-                    mIsDirty = true;
+                    mIsChanged = true;
                 }
             }
         }
@@ -228,14 +249,14 @@ namespace WinAGI.Engine {
         /// characters to or from a byte stream.
         /// </summary>
         public Encoding CodePage {
-            get => mCodePage;
+            get => parent is null ? mCodePage : parent.agCodePage;
             set {
                 if (parent is null) {
                     // confirm new codepage is supported; error if it is not
                     switch (value.CodePage) {
                     case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
                          861 or 862 or 863 or 865 or 866 or 869 or 858:
-                        mCodePage = value;
+                        mCodePage = Encoding.GetEncoding(value.CodePage);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
@@ -267,15 +288,16 @@ namespace WinAGI.Engine {
         private void InitInvObj() {
             mItems = [];
             InventoryItem tmpItem;
-            mMaxScreenObjects = 16;
+            mMaxScreenObjects = defMaxSO;
             // add placeholder for item 0
-            tmpItem = new InventoryItem(this) {
-                ItemName = "?",
-                Room = 0
-            };
+            //tmpItem = new InventoryItem(this) {
+            //    ItemName = "?",
+            //    Room = 0
+            //};
+            tmpItem = new InventoryItem(this);
+            tmpItem.mItemName = "?";
+            tmpItem.mRoom = 0;
             mItems.Add(tmpItem);
-            // intial list begins loaded
-            mLoaded = true;
         }
 
         /// <summary>
@@ -329,7 +351,7 @@ namespace WinAGI.Engine {
                 else {
                     mResFile = LoadFile;
                 }
-                mIsDirty = false;
+                mIsChanged = false;
             }
         }
 
@@ -426,7 +448,7 @@ namespace WinAGI.Engine {
                         break;
                     }
                     bytChar[0] = bytData[lngPos];
-                    sbItem.Append(mCodePage.GetString(bytChar));
+                    sbItem.Append(CodePage.GetString(bytChar));
                     lngPos++;
                 }
                 sItem = sbItem.ToString();
@@ -437,8 +459,8 @@ namespace WinAGI.Engine {
                     // but it might not be a '?'
                     if (sItem != "?") {
                         // rename first object
-                        mItems[0].ItemName = sItem;
-                        mItems[0].Room = bytRoom;
+                        mItems[0].mItemName = sItem;
+                        mItems[0].mRoom = bytRoom;
                         retval |= 4;
                     }
                 }
@@ -462,7 +484,7 @@ namespace WinAGI.Engine {
             }
             Clear();
             mLoaded = false;
-            mIsDirty = false;
+            mIsChanged = false;
         }
 
         /// <summary>
@@ -491,7 +513,7 @@ namespace WinAGI.Engine {
                 Compile(SaveFile);
                 mResFile = SaveFile;
             }
-            mIsDirty = false;
+            mIsChanged = false;
         }
 
         /// <summary>
@@ -499,7 +521,6 @@ namespace WinAGI.Engine {
         /// not in a game, exporting to the current OBJECT file is the same as saving.
         /// </summary>
         /// <param name="ExportFile"></param>
-        /// <param name="ResetDirty"></param>
         /// <exception cref="Exception"></exception>
         public void Export(string ExportFile) {
             WinAGIException.ThrowIfNotLoaded(this);
@@ -513,7 +534,7 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             if (!mInGame) {
-                mIsDirty = false;
+                mIsChanged = false;
                 mResFile = ExportFile;
             }
         }
@@ -537,7 +558,7 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
+            if (!mIsChanged && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
                 return;
             }
             // PC version (most common) has 3 bytes per item in offest table;
@@ -586,11 +607,11 @@ namespace WinAGI.Engine {
                     // element width because offset is from end of header,
                     // not beginning of file; lngPos IS referenced from
                     // beginning of file
-                    bytTemp[i * Dwidth] = (byte)((lngPos - Dwidth) % 256);
-                    bytTemp[i * Dwidth + 1] = (byte)((lngPos - Dwidth) / 256);
-                    bytTemp[i * Dwidth + 2] = mItems[i].Room;
+                    bytTemp[3 + i * Dwidth] = (byte)((lngPos - Dwidth) % 256);
+                    bytTemp[3 + i * Dwidth + 1] = (byte)((lngPos - Dwidth) / 256);
+                    bytTemp[3 + i * Dwidth + 2] = mItems[i].Room;
                     // write all characters of this object
-                    byte[] tmpItemBytes = mCodePage.GetBytes(mItems[i].ItemName);
+                    byte[] tmpItemBytes = CodePage.GetBytes(mItems[i].ItemName);
                     for (CurrentChar = 0; CurrentChar < tmpItemBytes.Length; CurrentChar++) {
                         bytTemp[lngPos++] = tmpItemBytes[CurrentChar];
                     }
@@ -639,7 +660,7 @@ namespace WinAGI.Engine {
             tmpItem.ItemName = NewItem;
             tmpItem.Room = Room;
             mItems.Add(tmpItem);
-            mIsDirty = true;
+            mIsChanged = true;
             return tmpItem;
         }
 
@@ -697,7 +718,7 @@ namespace WinAGI.Engine {
                 mItems[Index].ItemName = "?";
                 mItems[Index].Room = 0;
             }
-            mIsDirty = true;
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -718,7 +739,59 @@ namespace WinAGI.Engine {
                 Room = 0
             };
             mItems.Add(tmpItem);
-            mIsDirty = true;
+            mIsChanged = true;
+        }
+
+        public InventoryList Clone() {
+            // only loaded views can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+
+            InventoryList clonelist = new();
+
+            // copy all items and properties except ingame status
+            // related properties
+            clonelist.mAmigaOBJ = mAmigaOBJ;
+            clonelist.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
+            clonelist.mDescription = mDescription;
+            clonelist.mEncrypted = mEncrypted;
+            clonelist.mErrLevel = mErrLevel;
+            clonelist.mLoaded = mLoaded;
+            clonelist.mMaxScreenObjects = mMaxScreenObjects;
+            clonelist.mResFile = mResFile;
+            clonelist.mIsChanged = mIsChanged;
+            // need to remove the default to avoid duplication
+            clonelist.mItems.RemoveAt(0);
+            foreach (InventoryItem itm in mItems) {
+                InventoryItem tmp = new InventoryItem(this);
+                tmp.mItemName = itm.ItemName;
+                tmp.mRoom = itm.Room;
+                tmp.Unique = itm.Unique;
+                clonelist.mItems.Add(tmp);
+            }
+            return clonelist;
+        }
+
+        public void CloneFrom(InventoryList srcList) {
+            // copy all items and properties except ingame status
+            // related properties
+            WinAGIException.ThrowIfNotLoaded(srcList);
+
+            mAmigaOBJ = srcList.mAmigaOBJ;
+            mCodePage = Encoding.GetEncoding(srcList.mCodePage.CodePage);
+            mDescription = srcList.mDescription;
+            mEncrypted = srcList.mEncrypted;
+            mErrLevel = srcList.mErrLevel;
+            mMaxScreenObjects = srcList.mMaxScreenObjects;
+            mResFile = srcList.mResFile;
+            mIsChanged = srcList.mIsChanged;
+            mItems = [];
+            foreach (InventoryItem itm in srcList.mItems) {
+                InventoryItem tmp = new InventoryItem(this);
+                tmp.ItemName = itm.ItemName;
+                tmp.Room = itm.Room;
+                mItems.Add(tmp);
+            }
+            mLoaded = true;
         }
 
         /// <summary>
@@ -751,9 +824,9 @@ namespace WinAGI.Engine {
             SafeFileDelete(theDir + "OBJECT.amg");
             try {
                 File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg", true);
-                // mark it as dirty, and save it to create a new file in
+                // mark it as changed, and save it to create a new file in
                 // MSDOS format
-                mIsDirty = true;
+                mIsChanged = true;
                 Save();
             }
             catch (Exception e) {
@@ -838,7 +911,6 @@ namespace WinAGI.Engine {
                         return _invitems[position];
                     }
                     catch (IndexOutOfRangeException) {
-
                         throw new InvalidOperationException();
                     }
                 }

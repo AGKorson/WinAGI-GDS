@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using static WinAGI.Common.Base;
 using System.Diagnostics;
+using WinAGI.Common;
 
 namespace WinAGI.Engine {
     /***************************************************************
@@ -39,31 +40,28 @@ namespace WinAGI.Engine {
         Globals = 8,
         Game = 9,
         Text = 10,
-        Warnings = 11,
-        TextScreen = 12,
-        TODOEntry = 99, //refactor error/warnings functions
-        DecompWarn = 100, // add decompile warnings to warning list
+        TextScreen = 11,
         None = 255
     };
 
     public enum AGIColorIndex {
-        agBlack,
-        agBlue,
-        agGreen,
-        agCyan,
-        agRed,
-        agMagenta,
-        agBrown,
-        agLtGray,
-        agDkGray,
-        agLtBlue,
-        agLtGreen,
-        agLtCyan,
-        agLtRed,
-        agLtMagenta,
-        agYellow,
-        agWhite,
-        agNone
+        Black,
+        Blue,
+        Green,
+        Cyan,
+        Red,
+        Magenta,
+        Brown,
+        LtGray,
+        DkGray,
+        LtBlue,
+        LtGreen,
+        LtCyan,
+        LtRed,
+        LtMagenta,
+        Yellow,
+        White,
+        None
     };
 
     public enum ObjDirection {
@@ -78,85 +76,91 @@ namespace WinAGI.Engine {
         odUpLeft
     };
 
-    public enum EPlotShape {
-        psCircle,
-        psRectangle
+    public enum PlotShape {
+        Circle,
+        Rectangle
     };
 
-    public enum EPlotStyle {
-        psSolid,
-        psSplatter
+    public enum PlotStyle {
+        Solid,
+        Splatter
     };
 
     public enum DrawFunction {
-        dfEnableVis = 0xf0,    // Change picture color and enable picture draw.
-        dfDisableVis = 0xF1,   // Disable picture draw.
-        dfEnablePri = 0xF2,    // Change priority color and enable priority draw.
-        dfDisablePri = 0xF3,   // Disable priority draw.
-        dfYCorner = 0xF4,      // Draw a Y corner.
-        dfXCorner = 0xF5,      // Draw an X corner.
-        dfAbsLine = 0xF6,      // Absolute line (long lines).
-        dfRelLine = 0xF7,      // Relative line (short lines).
-        dfFill = 0xF8,         // Fill.
-        dfChangePen = 0xF9,    // Change pen size and style.
-        dfPlotPen = 0xFA,      // Plot with pen.
-        dfEnd = 0xFF           // end of drawing
+        EnableVis = 0xf0,    // Change picture color and enable picture draw.
+        DisableVis = 0xF1,   // Disable picture draw.
+        EnablePri = 0xF2,    // Change priority color and enable priority draw.
+        DisablePri = 0xF3,   // Disable priority draw.
+        YCorner = 0xF4,      // Draw a Y corner.
+        XCorner = 0xF5,      // Draw an X corner.
+        AbsLine = 0xF6,      // Absolute line (long lines).
+        RelLine = 0xF7,      // Relative line (short lines).
+        Fill = 0xF8,         // Fill.
+        ChangePen = 0xF9,    // Change pen size and style.
+        PlotPen = 0xFA,      // Plot with pen.
+        End = 0xFF           // end of drawing
     };
 
     public enum LogicErrorLevel {
-        Low,     // only errors that prevent compilation/decompiliation
+        Low,       // only errors that prevent compilation/decompiliation
                    // are passed; no warnings are given
-        Medium,  // only errors that prevent compilation/decompilation
+        Medium,    // only errors that prevent compilation/decompilation
                    // are passed; warnings embedded in
                    // source code on compilation
-        High,    // all compile/decompile problems are returned as errors
+        High,      // all compile/decompile problems are returned as errors
     };
 
-    public enum ECStatus {
+    public enum GameCompileStatus {
         // used to update editor as components are completed,
-        csCompWords,
-        csCompObjects,
-        csAddResource,
-        csDoneAdding,
-        csCompileComplete,
-        csWarning,
-        csResError,
-        csLogicError,
-        csFatalError,
-        csCanceled
+        CompileWords,
+        CompileObjects,
+        AddResource,
+        DoneAdding,
+        CompileComplete,
+        Warning,
+        ResError,
+        LogicError,
+        FatalError,
+        Canceled
     };
 
     public enum SoundFormat {
-        sfUndefined,
-        sfAGI,    // native agi format
-        sfWAV,    // only IIgs pcm sounds can be exported as wav
-        sfMIDI,   // only pc and IIgs can be saved as midi
-        sfScript, // only pc can be exported as script
+        Undefined,
+        AGI,    // native agi format
+        WAV,    // only IIgs pcm sounds can be exported as wav
+        MIDI,   // only pc and IIgs can be saved as midi
+        Script, // only pc can be exported as script
     };
 
-    public enum ArgTypeEnum {
-        atNum = 0,          // i.e. numeric Value
-        atVar = 1,          // v##
-        atFlag = 2,         // f##
-        atMsg = 3,          // m##
-        atSObj = 4,         // o##
-        atInvItem = 5,      // i##
-        atStr = 6,          // s##
-        atWord = 7,         // w## -- word argument (that user types in)
-        atCtrl = 8,         // c##
-        atDefStr = 9,       // defined string; could be msg, inv obj, or vocword
-        atVocWrd = 10,      // vocabulary word; NOT word argument
-        atActionCmd = 11,   // action command synonym
-        atTestCmd = 12,     // test command synonym
-        atObj = 13,         // dual object type for Sierra syntax
-        atView = 14,        // view type is number, only in Sierra syntax
-        atNone = 15,        // used when a non-valid value is needed
+    public enum SoundPlaybackMode {
+        PCSpeaker, // not implemented yet
+        WAV,
+        MIDI
+    }
+    
+    public enum ArgType {
+        Num = 0,          // i.e. numeric Value
+        Var = 1,          // v##
+        Flag = 2,         // f##
+        Msg = 3,          // m##
+        SObj = 4,         // o##
+        InvItem = 5,      // i##
+        Str = 6,          // s##
+        Word = 7,         // w## -- word argument (that user types in)
+        Ctrl = 8,         // c##
+        DefStr = 9,       // defined string; could be msg, inv obj, or vocword
+        VocWrd = 10,      // vocabulary word; NOT word argument
+        ActionCmd = 11,   // action command synonym
+        TestCmd = 12,     // test command synonym
+        Obj = 13,         // dual object type for Sierra syntax
+        View = 14,        // view type is number, only in Sierra syntax
+        None = 15,        // used when a non-valid value is needed
         // if using Sierra syntax, only valid types are:
-        //   atNum, atVar, atFlag, atDefStr[msg only], atVocWrd,
-        //   atActionCmd, atTestCmd, atObj, atView
+        //   Num, Var, Flag, DefStr[msg only], VocWrd,
+        //   ActionCmd, TestCmd, Obj, View
     }
 
-    public enum PlatformTypeEnum {
+    public enum PlatformType {
         None,
         DosBox,
         ScummVM,
@@ -165,43 +169,43 @@ namespace WinAGI.Engine {
     }
 
     public enum ResDefGroup {
-        rgVariable,
-        rgFlag,
-        rgEdgeCode,
-        rgObjectDir,
-        rgVideoMode,
-        rgComputerType,
-        rgColor,
-        rgObject,
-        rgString,
+        Variable,
+        Flag,
+        EdgeCode,
+        ObjectDir,
+        VideoMode,
+        ComputerType,
+        Color,
+        Object,
+        String,
     }
 
     public enum DefineNameCheck {
-        ncOK,            // 0 = name is valid
-        ncEmpty,         // 1 = no name
-        ncNumeric,       // 2 = name is numeric
-        ncActionCommand, // 3 = name is command
-        ncTestCommand,   // 4 = name is test command
-        ncKeyWord,       // 5 = name is a compiler keyword
-        ncArgMarker,     // 6 = name is an argument marker
-        ncBadChar,       // 7 = name contains improper character
-        ncGlobal,        // 8 = name is already globally defined
-        ncReservedVar,   // 9 = name is reserved variable name
-        ncReservedFlag,  // 10 = name is reserved flag name
-        ncReservedNum,   // 11 = name is reserved number constant
-        ncReservedObj,   // 12 = name is reserved object
-        ncReservedStr,   // 13 = name is reserved string
-        ncReservedMsg,   // 14 = name is reserved message
+        OK,            // 0 = name is valid
+        Empty,         // 1 = no name
+        Numeric,       // 2 = name is numeric
+        ActionCommand, // 3 = name is command
+        TestCommand,   // 4 = name is test command
+        KeyWord,       // 5 = name is a compiler keyword
+        ArgMarker,     // 6 = name is an argument marker
+        BadChar,       // 7 = name contains improper character
+        Global,        // 8 = name is already globally defined
+        ReservedVar,   // 9 = name is reserved variable name
+        ReservedFlag,  // 10 = name is reserved flag name
+        ReservedNum,   // 11 = name is reserved number constant
+        ReservedObj,   // 12 = name is reserved object
+        ReservedStr,   // 13 = name is reserved string
+        ReservedMsg,   // 14 = name is reserved message
     }
 
     public enum DefineValueCheck {
-        vcOK,           // 0 = value is valid
-        vcEmpty,        // 1 = no Value
-        vcOutofBounds,  // 2 = Value is not byte(0-255) or marker value is not byte
-        vcBadArgNumber, // 3 = Value contains an invalid argument Value (controller, string, word)
-        vcNotAValue,    // 4 = Value is not a string, number or argument marker
-        vcReserved,     // 5 = Value is already defined by a reserved name
-        vcGlobal,       // 6 = Value is already defined by a global name
+        OK,           // 0 = value is valid
+        Empty,        // 1 = no Value
+        OutofBounds,  // 2 = Value is not byte(0-255) or marker value is not byte
+        BadArgNumber, // 3 = Value contains an invalid argument Value (controller, string, word)
+        NotAValue,    // 4 = Value is not a string, number or argument marker
+        Reserved,     // 5 = Value is already defined by a reserved name
+        Global,       // 6 = Value is already defined by a global name
     }
 
     public enum OpenGameMode {
@@ -211,31 +215,34 @@ namespace WinAGI.Engine {
     }
 
     public enum EventType {
-        etInfo,
-        etError,
-        etResWarning,
-        etCompWarning,
-        etDecompWarning,
-        etTODO
+        Info,
+        GameLoadError,
+        GameCompileError,
+        LogicCompileError,
+        LogicCompileWarning,
+        ResourceError,
+        ResourceWarning,
+        DecompWarning,
+        TODO
     }
 
-    public enum EInfoType {
+    public enum InfoType {
         //used to update editor during a game load or compile
-        itInitialize,
-        itValidating,     //add check for dirty source code
-        itPropertyFile,
-        itClearWarnings,
-        itResources,
-        itCheckLogic,
-        itCompiling,      // compiling a logic during game compilation
-        itCompiled,       // logic is successfully compiled
-        itDecompiling,    // decompiling logics during an import
-        itCheckCRC,       // checking CRCs during load
-        itFinalizing,
-        itDone            // pass-back value indicating all is well
+        Initialize,
+        Validating,     //add check for changed source code
+        PropertyFile,
+        ClearWarnings,
+        Resources,
+        CheckLogic,
+        Compiling,      // compiling a logic during game compilation
+        Compiled,       // logic is successfully compiled
+        Decompiling,    // decompiling logics during an import
+        CheckCRC,       // checking CRCs during load
+        Finalizing,
+        Done            // pass-back value indicating all is well
     };
 
-    public enum CompStatus {
+    public enum CompileStatus {
         OK,
         Canceled,
         Error,
@@ -247,8 +254,8 @@ namespace WinAGI.Engine {
     public struct PenStatus {
         public AGIColorIndex VisColor;
         public AGIColorIndex PriColor;
-        public EPlotShape PlotShape;
-        public EPlotStyle PlotStyle;
+        public PlotShape PlotShape;
+        public PlotStyle PlotStyle;
         public int PlotSize;
     }
 
@@ -267,28 +274,34 @@ namespace WinAGI.Engine {
     /// structure used for defined names
     /// </summary>
     public struct TDefine {
-        public string Name;
-        public string Default; //for reserved, this is default name; not used for other defines
-        public string Value;
-        public ArgTypeEnum Type;
-        public string Comment;
+        public string Name = "";
+        public string Default = ""; //for reserved, this is default name; not used for other defines
+        public string Value = "";
+        public ArgType Type = ArgType.None;
+        public string Comment = "";
+        public TDefine() {
+        }
     }
 
     public struct TWinAGIEventInfo {
-        public EventType Type;              // type of data being reported - error/warning/info/TODO
-        public EInfoType InfoType;          // sub-type for game load warnings ??? is this even needed anymore???
-        public AGIResType ResType;          // resource type, if applicable to warning or error
-        public byte ResNum;                 // resource number for logics,pics,views,sounds
-        public string ID;                   // warning or error number (could be alphanumeric)
-        public string Text;                 // info, warning or error msg
-        public string Line;                 // line number for comp/decomp errors and warnings
-        public string Module;               // module name, if comp error occurs in an #include file
-        public int Data;                    // number field used for various data purposes
+        public EventType Type = EventType.Info;              // type of data being reported - error/warning/info/TODO
+        public InfoType InfoType = InfoType.Initialize;           // sub-type for game load warnings ??? is this even needed anymore???
+        public AGIResType ResType = AGIResType.Game;          // resource type, if applicable to warning or error
+        public byte ResNum = 0;                 // resource number for logics,pics,views,sounds
+        public string ID = "";                   // warning or error number (could be alphanumeric)
+        public string Text = "";                 // info, warning or error msg
+        public string Line = "";                 // line number for comp/decomp errors and warnings
+        public string Module = "";               // module filename, if comp error occurs in an #include file or resID
+        public string Filename = "";             // full name of file, including path, if an include file
+        public int Data = 0;                    // number field used for various data purposes
+        public TWinAGIEventInfo() {
+
+        }
     }
 
     public struct CommandStruct {
         public string Name;
-        public ArgTypeEnum[] ArgType;
+        public ArgType[] ArgType;
     }
     #endregion
 
@@ -316,13 +329,16 @@ namespace WinAGI.Engine {
         internal const int MAX_GROUP_NUM = 65535;
         internal const int MAX_WORD_GROUPS = 65535;
         internal const int MAX_VOLSIZE = 1047552; // '= 1024 * 1023
+        internal const string DEFRESDIR = "src";
         public const string WINAGI_VERSION = "3.0";
         internal static readonly byte[] bytEncryptKey;
         // member values
-        internal static EGAColors defaultColorEGA = new();
+        internal static EGAColors defaultPalette = new();
         internal static string agTemplateDir = "";
-        internal static string agDefResDir = "";
+        internal static string agDefResDir = DEFRESDIR;
         internal static int defMaxVol0 = MAX_VOLSIZE;
+        internal static byte defMaxSO = 16;
+        internal static Encoding defCodePage;
         #endregion
 
         #region Constructors
@@ -334,8 +350,8 @@ namespace WinAGI.Engine {
             // TODO: why aren't these in InitWinAGI?
             // this makes the codepages used in WinAGI available
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            defCodePage = Encoding.GetEncoding(437);
             bytEncryptKey = Encoding.GetEncoding(437).GetBytes("Avis Durgan");
-            defaultColorEGA = new();
             InitWinAGI();
         }
         #endregion
@@ -344,9 +360,9 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Gets or sets the default colors that are used to display pictures and views in AGI.
         /// </summary>
-        public static EGAColors DefaultColors {
-            get { return defaultColorEGA; }
-            internal set { defaultColorEGA = value; }
+        public static EGAColors DefaultPalette {
+            get { return defaultPalette; }
+            internal set { defaultPalette = value.CopyPalette(); }
         }
 
         /// <summary>
@@ -387,6 +403,35 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// Gets or sets the default max screen object value for new OBJECT files.
+        /// </summary>
+        public static byte DefMaxSO {
+            get { return defMaxSO; }
+            set {
+                if (value < 1) {
+                    defMaxSO = 1;
+                }
+                else {
+                    defMaxSO = value;
+                }
+            }
+        }
+
+        public static Encoding CodePage {
+            get => defCodePage;
+            set {
+                // confirm new codepage is supported; error if it is not
+                switch (value.CodePage) {
+                case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
+                        861 or 862 or 863 or 865 or 866 or 869 or 858:
+                    defCodePage = Encoding.GetEncoding(value.CodePage);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
+                }
+            }
+        }
         #endregion
 
         #region Base Methods
@@ -487,6 +532,22 @@ namespace WinAGI.Engine {
             }
             else {
                 return "2.917";
+            }
+        }
+        
+        /// <summary>
+        /// Error-safe method that provides an easy way to accss WinAGI.Engine
+        /// string resources by number instead of a string key.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public static string LoadResString(int index) {
+            try {
+                return EngineResources.ResourceManager.GetString(index.ToString());
+            }
+            catch (Exception) {
+                // return nothing if string doesn't exist
+                return "";
             }
         }
     }

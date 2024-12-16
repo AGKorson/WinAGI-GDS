@@ -92,16 +92,16 @@ namespace WinAGI.Common {
                 // build resource list
                 BuildResourceTree();
                 // show it, if needed
-                if (WinAGISettings.ResListType != agiSettings.EResListType.None) {
+                if (WinAGISettings.ResListType.Value != EResListType.None) {
                     // show resource tree pane
                     MDIMain.ShowResTree();
                 }
-                switch (WinAGISettings.ResListType) {
-                case agiSettings.EResListType.TreeList:
+                switch (WinAGISettings.ResListType.Value) {
+                case EResListType.TreeList:
                     // select root
                     MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
                     break;
-                case agiSettings.EResListType.ComboList:
+                case EResListType.ComboList:
                     // select root
                     MDIMain.cmbResType.SelectedIndex = 0;
                     // update selected resource
@@ -109,14 +109,21 @@ namespace WinAGI.Common {
                     break;
                 }
                 if (updating) {
-                    if (MessageBox.Show("The template game is from an older version of WinAGI. If your game uses extended characters, you will need to update the logic source files.\n\nDo you want your source files updated automatically?\n\n(Choose NO if your game does NOT use extended characters.)", "Update WAG File to New Version", MessageBoxButtons.YesNo) == DialogResult.Yes) {
-                        foreach (Logic lgc in EditGame.Logics) {
-                            if (File.Exists(lgc.SourceFile)) {
+                    DialogResult rtn = MessageBox.Show(MDIMain,
+                        "The template game is from an older version of WinAGI. " +
+                        "If your game uses extended characters, you will need to update " +
+                        "the logic source files.\n\nDo you want your source files " +
+                        "updated automatically?\n\n(Choose NO if your game does NOT use " +
+                        "extended characters.)",
+                        "Update WAG File to New Version",
+                        MessageBoxButtons.YesNo);
+                    if (rtn == DialogResult.Yes) {
+                        foreach (Logic logic in EditGame.Logics) {
+                            if (File.Exists(logic.SourceFile)) {
                                 try {
-                                    byte[] strdat = File.ReadAllBytes(lgc.SourceFile);
+                                    byte[] strdat = File.ReadAllBytes(logic.SourceFile);
                                     string srcText = EditGame.CodePage.GetString(strdat);
-                                    // TODO: uncomment this after all testing is done
-                                    //File.WriteAllText(lgc.SourceFile, srcText);
+                                    File.WriteAllText(logic.SourceFile, srcText);
                                 }
                                 catch {
                                     // ignore exceptions
@@ -126,7 +133,7 @@ namespace WinAGI.Common {
                     }
                 }
                 // show selection in preview, if needed
-                if (WinAGISettings.ShowPreview) {
+                if (WinAGISettings.ShowPreview.Value) {
                     PreviewWin.Show();
                 }
                 break;
@@ -160,11 +167,6 @@ namespace WinAGI.Common {
             }
         }
 
-        /// <summary>
-        /// This method handles the DoWork event for the background OpenGame object.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         public static void OpenGameDoWork(object sender, DoWorkEventArgs e) {
             string strError = "";
             bool blnWarnings = false;
@@ -191,7 +193,6 @@ namespace WinAGI.Common {
                 EditGame = null;
                 blnLoaded = false;
                 lngErr = ex.HResult;
-                ProgressWin.lblProgress.Text = "Error encountered, game not loaded";
                 if ((lngErr & WINAGI_ERR) == WINAGI_ERR) {
                     switch (lngErr - WINAGI_ERR) {
                     case 501:
@@ -275,18 +276,6 @@ namespace WinAGI.Common {
             }
             if (blnLoaded) {
                 bgwOpenGame.ReportProgress(50, "Game " + (argval.Mode == 0 ? "loaded" : "imported") + " successfully, setting up editors");
-                //// set default directory
-                //BrowserStartDir = EditGame.GameDir;
-                ////set default text file directory to game source file directory
-                //DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
-                //// build the lookup tables for logic tooltips
-                //BuildIDefLookup();
-                //BuildGDefLookup();
-                //// add game specific resdefs
-                //int pos = 91;
-                //for (int i = 0; i < 4; i++) {
-                //    RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
-                //}
                 argval.Warnings = blnWarnings;
             }
             else {
@@ -296,17 +285,12 @@ namespace WinAGI.Common {
             e.Result = argval;
         }
 
-        /// <summary>
-        /// This method handles the ProgressChanged event of the background OpenGame object.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         public static void OpenGameProgressChanged(object sender, ProgressChangedEventArgs e) {
             // progress percentage used to identify different types of events
 
             switch (e.ProgressPercentage) {
             case 1:
-                // load error/warning
+                // resource error/warning
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
             case 2:
@@ -324,34 +308,35 @@ namespace WinAGI.Common {
             case 50:
                 // game finished loading
                 MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
-                // build resource list
                 BuildResourceTree();
-                // show it, if needed
-                if (WinAGISettings.ResListType != agiSettings.EResListType.None) {
-                    // show resource tree pane
+                if (WinAGISettings.ResListType.Value != EResListType.None) {
                     MDIMain.ShowResTree();
                 }
-                switch (WinAGISettings.ResListType) {
-                case agiSettings.EResListType.TreeList:
-                    // select root
+                // setting reslist type will also show PreviewWin if needed
+                switch (WinAGISettings.ResListType.Value) {
+                case EResListType.TreeList:
                     MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
                     break;
-                case agiSettings.EResListType.ComboList:
-                    // select root
+                case EResListType.ComboList:
                     MDIMain.cmbResType.SelectedIndex = 0;
-                    // update selected resource
                     MDIMain.SelectResource(Game, -1);
                     break;
                 }
                 if (updating) {
-                    if (MessageBox.Show("This game was last opened with an older version of WinAGI. If your game uses extended characters, you will need to update your logic source files.\n\nDo you want your source files updated automatically?\n\n(Choose NO if your game does NOT use extended characters.)", "Update WAG File to New Version", MessageBoxButtons.YesNo) == DialogResult.Yes) {
-                        foreach (Logic lgc in EditGame.Logics) {
-                            if (File.Exists(lgc.SourceFile)) {
+                    DialogResult rtn = MessageBox.Show(MDIMain,
+                        "This game was last opened with an older version of WinAGI. " +
+                        "If your game uses extended characters, you will need to update your logic " +
+                        "source files.\n\nDo you want your source files updated automatically?\n\n" +
+                        "(Choose NO if your game does NOT use extended characters.)",
+                        "Update WAG File to New Version",
+                        MessageBoxButtons.YesNo);
+                    if (rtn == DialogResult.Yes) {
+                        foreach (Logic logic in EditGame.Logics) {
+                            if (File.Exists(logic.SourceFile)) {
                                 try {
-                                    byte[] strdat = File.ReadAllBytes(lgc.SourceFile);
+                                    byte[] strdat = File.ReadAllBytes(logic.SourceFile);
                                     string srcText = EditGame.CodePage.GetString(strdat);
-                                    // TODO: uncomment this after all testing is done
-                                    //File.WriteAllText(lgc.SourceFile, srcText);
+                                    File.WriteAllText(logic.SourceFile, srcText);
                                 }
                                 catch {
                                     // ignore exceptions
@@ -359,10 +344,6 @@ namespace WinAGI.Common {
                             }
                         }
                     }
-                }
-                // show selection in preview, if needed
-                if (WinAGISettings.ShowPreview) {
-                    PreviewWin.Show();
                 }
                 break;
             default:
@@ -372,11 +353,6 @@ namespace WinAGI.Common {
             }
         }
 
-        /// <summary>
-        /// This method handles the RunWorkerCompleted event of the background OpenGame object.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         public static void OpenGameWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
             // load is over
             ProgressWin.Close();
@@ -401,30 +377,25 @@ namespace WinAGI.Common {
             }
         }
 
-        /// <summary>
-        /// This method handles the DoWork event for the background CompileGame object.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         public static void CompileGameDoWork(object sender, DoWorkEventArgs e) {
             CompileGameResults argval = (CompileGameResults)e.Argument;
-            CompStatus results = CompStatus.OK;
+            CompileStatus results = CompileStatus.OK;
             mode = argval.Mode;
             try {
                 switch (argval.Mode) {
                 case CompileMode.Full:
                     // full compile
                     replace = argval.parm.Length == 0 || EditGame.GameDir.Equals(argval.parm, StringComparison.OrdinalIgnoreCase);
-                    results = EditGame.CompileGame(false, argval.parm);
+                    results = EditGame.Compile(false, argval.parm);
                     break;
                 case CompileMode.RebuildOnly:
                     // normal rebuild
                     replace = true;
-                    results = EditGame.CompileGame(true);
+                    results = EditGame.Compile(true);
                     break;
-                case CompileMode.DirtyLogics:
+                case CompileMode.ChangedLogics:
                     replace = true;
-                    results = EditGame.CompileDirtyLogics();
+                    results = EditGame.CompileChangedLogics();
                     break;
                 case CompileMode.ChangeVersion:
                     // change version rebuild
@@ -437,67 +408,61 @@ namespace WinAGI.Common {
                 e.Result = argval;
             }
             catch (Exception ex) {
-                argval.Status = CompStatus.Error;
+                argval.Status = CompileStatus.Error;
                 argval.CompExc = ex;
                 e.Result = argval;
             }
         }
 
-        /// <summary>
-        /// This method handles the progress update event for the background CompileGame object.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         public static void CompileGameProgressChanged(object sender, ProgressChangedEventArgs e) {
             TWinAGIEventInfo compInfo = (TWinAGIEventInfo)e.UserState;
             
-            switch ((ECStatus)e.ProgressPercentage) {
-            case ECStatus.csCompWords:
+            switch ((GameCompileStatus)e.ProgressPercentage) {
+            case GameCompileStatus.CompileWords:
                 switch (compInfo.InfoType) {
-                case EInfoType.itResources:
+                case InfoType.Resources:
                     CompStatusWin.lblStatus.Text = "Compiling WORDS.TOK";
                     CompStatusWin.pgbStatus.Value++;
                     break;
-                case EInfoType.itClearWarnings:
-                    MDIMain.ClearWarnings(1, compInfo.ResNum, compInfo.ResType);
+                case InfoType.ClearWarnings:
+                    MDIMain.ClearWarnings(compInfo.ResType, compInfo.ResNum);
                     break;
                 }
                 break;
-            case ECStatus.csCompObjects:
+            case GameCompileStatus.CompileObjects:
                 CompStatusWin.lblStatus.Text = "Compiling OBJECT";
                 CompStatusWin.pgbStatus.Value++;
                 break;
-            case ECStatus.csAddResource:
+            case GameCompileStatus.AddResource:
                 switch (compInfo.InfoType) {
-                case EInfoType.itClearWarnings:
+                case InfoType.ClearWarnings:
                     // clear warnings and errors for this resource
-                    MDIMain.ClearWarnings(1, compInfo.ResNum, compInfo.ResType);
+                    MDIMain.ClearWarnings(compInfo.ResType, compInfo.ResNum, [EventType.LogicCompileError, EventType.LogicCompileWarning, EventType.ResourceError, EventType.ResourceWarning]);
                     break;
-                case EInfoType.itCheckLogic:
+                case InfoType.CheckLogic:
                     CompStatusWin.lblStatus.Text = "Checking logic: " + compInfo.ID;
                     CompStatusWin.pgbStatus.Value++;
                     break;
-                case EInfoType.itCompiling:
+                case InfoType.Compiling:
                     // compiling a logic a resource
                     CompStatusWin.lblStatus.Text = "Compiling logic: " + compInfo.ID;
                     break;
-                case EInfoType.itCompiled:
+                case InfoType.Compiled:
                     RefreshTree(compInfo.ResType, compInfo.ResNum);
                     break;
-                case EInfoType.itResources:
+                case InfoType.Resources:
                     // adding a resource
                     CompStatusWin.lblStatus.Text = "Adding resource: " + compInfo.ID;
                     CompStatusWin.pgbStatus.Value++;
                     break;
                 }
                 break;
-            case ECStatus.csDoneAdding:
+            case GameCompileStatus.DoneAdding:
                 break;
-
-            case ECStatus.csCompileComplete:
+            case GameCompileStatus.CompileComplete:
                 CompStatusWin.lblStatus.Text = "Creating DIR file entries";
                 break;
-            case ECStatus.csWarning:
+            case GameCompileStatus.Warning:
                 // warning generated
                 int warnings = CompStatusWin.Warnings;
                 warnings++;
@@ -506,8 +471,8 @@ namespace WinAGI.Common {
                 CompStatusWin.Warnings = warnings;
                 MDIMain.AddWarning(compInfo);
                 break;
-            case ECStatus.csResError:
-            case ECStatus.csLogicError:
+            case GameCompileStatus.ResError:
+            case GameCompileStatus.LogicError:
                 // error encountered
                 int errors = CompStatusWin.Errors;
                 errors++;
@@ -516,9 +481,13 @@ namespace WinAGI.Common {
                 CompStatusWin.Warnings = errors;
                 MDIMain.AddWarning(compInfo);
                 break;
-            case ECStatus.csFatalError:
+            case GameCompileStatus.FatalError:
+                // need to tell user!
+                CompStatusWin.FatalError = compInfo;
+                CompStatusWin.lblStatus.Text = "FATAL ERROR...";
+                CompStatusWin.pgbStatus.Value = CompStatusWin.pgbStatus.Maximum;
                 break;
-            case ECStatus.csCanceled:
+            case GameCompileStatus.Canceled:
                 CompStatusWin.lblStatus.Text = "CANCELING COMPILE...";
                 CompStatusWin.pgbStatus.Value = CompStatusWin.pgbStatus.Maximum;
                 break;
@@ -526,13 +495,13 @@ namespace WinAGI.Common {
         }
 
         /// <summary>
-        /// This method handles the worker completed event for the background CompileGame object.
+        /// This method handles the worker completed event for the background EditGame.Compile method.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         public static void CompileGameWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
-            // compile is done
-            CompStatusWin?.Close();
+            TWinAGIEventInfo errmsg = CompStatusWin.FatalError;
+            CompStatusWin.Close();
             CompStatusWin?.Dispose();
 
             // refresh results
@@ -541,7 +510,7 @@ namespace WinAGI.Common {
             case CompileMode.Full:
             case CompileMode.RebuildOnly:
                 switch (CompGameResults.Status) {
-                case CompStatus.OK:
+                case CompileStatus.OK:
                     //everything is ok
                     MDIMain.UseWaitCursor = false;
                     if (CompGameResults.Warnings) {
@@ -564,8 +533,8 @@ namespace WinAGI.Common {
                             MessageBoxIcon.Information);
                     }
                     break;
-                case CompStatus.Error:
-                case CompStatus.Canceled:
+                case CompileStatus.Error:
+                case CompileStatus.Canceled:
                     // need to only restore words/object if
                     // compile was to another directory
                     if (CompGameResults.parm != EditGame.GameDir) {
@@ -597,11 +566,13 @@ namespace WinAGI.Common {
                     }
                     MDIMain.UseWaitCursor = false;
                     string strTemp = "";
-                    if (CompGameResults.Status == CompStatus.Error) {
+                    if (CompGameResults.Status == CompileStatus.Error) {
                         // rebuild resource list
                         BuildResourceTree();
-                        strTemp = "An error occurred while building game files. Original files have " +
-                            "been restored, but you should check all files to make sure nothing " +
+                        strTemp = "An error occurred while building game files:\n\n" + 
+                            errmsg.Text +
+                            "\n\nOriginal files have been restored, but you should " + 
+                            "check all files to make sure nothing " +
                             "was lost or corrupted.";
                     }
                     else {
@@ -616,9 +587,9 @@ namespace WinAGI.Common {
                     break;
                 }
                 break;
-            case CompileMode.DirtyLogics:
+            case CompileMode.ChangedLogics:
                 switch (CompGameResults.Status) {
-                case CompStatus.OK:
+                case CompileStatus.OK:
                     //everything is ok
                     MDIMain.UseWaitCursor = false;
                     MessageBox.Show(MDIMain,
@@ -627,7 +598,7 @@ namespace WinAGI.Common {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
                     break;
-                case CompStatus.Error:
+                case CompileStatus.Error:
                     MessageBox.Show(MDIMain,
                         "One or more errors occurred while compiling logics. Not all logics have " +
                         "been compiled.",
@@ -635,7 +606,7 @@ namespace WinAGI.Common {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
                     break;
-                case CompStatus.Canceled:
+                case CompileStatus.Canceled:
                         // cancelled
                     MessageBox.Show(MDIMain,
                         "Logic compile action canceled. Not all logics were compiled.",
@@ -647,7 +618,7 @@ namespace WinAGI.Common {
                 break;
             case CompileMode.ChangeVersion:
                 // change version rebuild
-                if (CompGameResults.Status != CompStatus.OK) {
+                if (CompGameResults.Status != CompileStatus.OK) {
                     ErrMsgBox(CompGameResults.CompExc, "Error during version change: ", "Original version has been restored.", "Change Interpreter Version");
                 }
                 else {

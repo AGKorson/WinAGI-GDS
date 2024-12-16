@@ -10,54 +10,152 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Editor.Base;
+using System.IO;
 
 namespace WinAGI.Editor {
     public partial class frmPicEdit : Form {
         Bitmap thisBMP;
-        float zoom;
+        float zoom = 1;
         bool picMode = false;
 
-        public int PicNumber;
+        public int PictureNumber;
         public Picture EditPicture;
         public bool InGame;
-        public bool IsDirty;
-        public EPicCursorMode CursorMode;
+        public bool IsChanged;
+        //public EPicCursorMode CursorMode;
+        private bool closing = false;
 
         public frmPicEdit() {
             InitializeComponent();
+            MdiParent = MDIMain;
         }
-
+        #region Form Event Handlers
         private void frmPicEdit_Load(object sender, EventArgs e) {
             //load combobox with AGI color indices
-            cmbTransCol.Items.Add(AGIColorIndex.agBlack);
-            cmbTransCol.Items.Add(AGIColorIndex.agBlue);
-            cmbTransCol.Items.Add(AGIColorIndex.agGreen);
-            cmbTransCol.Items.Add(AGIColorIndex.agCyan);
-            cmbTransCol.Items.Add(AGIColorIndex.agRed);
-            cmbTransCol.Items.Add(AGIColorIndex.agMagenta);
-            cmbTransCol.Items.Add(AGIColorIndex.agBrown);
-            cmbTransCol.Items.Add(AGIColorIndex.agLtGray);
-            cmbTransCol.Items.Add(AGIColorIndex.agDkGray);
-            cmbTransCol.Items.Add(AGIColorIndex.agLtBlue);
-            cmbTransCol.Items.Add(AGIColorIndex.agLtGreen);
-            cmbTransCol.Items.Add(AGIColorIndex.agLtCyan);
-            cmbTransCol.Items.Add(AGIColorIndex.agLtRed);
-            cmbTransCol.Items.Add(AGIColorIndex.agLtMagenta);
-            cmbTransCol.Items.Add(AGIColorIndex.agYellow);
-            cmbTransCol.Items.Add(AGIColorIndex.agWhite);
+            cmbTransCol.Items.Add(AGIColorIndex.Black);
+            cmbTransCol.Items.Add(AGIColorIndex.Blue);
+            cmbTransCol.Items.Add(AGIColorIndex.Green);
+            cmbTransCol.Items.Add(AGIColorIndex.Cyan);
+            cmbTransCol.Items.Add(AGIColorIndex.Red);
+            cmbTransCol.Items.Add(AGIColorIndex.Magenta);
+            cmbTransCol.Items.Add(AGIColorIndex.Brown);
+            cmbTransCol.Items.Add(AGIColorIndex.LtGray);
+            cmbTransCol.Items.Add(AGIColorIndex.DkGray);
+            cmbTransCol.Items.Add(AGIColorIndex.LtBlue);
+            cmbTransCol.Items.Add(AGIColorIndex.LtGreen);
+            cmbTransCol.Items.Add(AGIColorIndex.LtCyan);
+            cmbTransCol.Items.Add(AGIColorIndex.LtRed);
+            cmbTransCol.Items.Add(AGIColorIndex.LtMagenta);
+            cmbTransCol.Items.Add(AGIColorIndex.Yellow);
+            cmbTransCol.Items.Add(AGIColorIndex.White);
             cmbTransCol.Items.Add("None");
             cmbTransCol.SelectedIndex = 16;
 
-            // load the picture
-            EditGame.Pictures[1].Load();
-            thisBMP = EditGame.Pictures[1].VisualBMP;
-            // show it with NO transparency
-            ShowAGIBitmap(picVisual, thisBMP);
         }
 
+        private void frmPicEdit_FormClosing(object sender, FormClosingEventArgs e) {
+            if (e.CloseReason == CloseReason.MdiFormClosing) {
+                return;
+            }
+            closing = AskClose();
+            e.Cancel = !closing;
+        }
+
+        private void frmPicEdit_FormClosed(object sender, FormClosedEventArgs e) {
+            // dereference picture
+            EditPicture?.Unload();
+            EditPicture = null;
+            // remove from PicEditor collection
+            foreach (frmPicEdit frm in PictureEditors) {
+                if (frm == this) {
+                    PictureEditors.Remove(frm);
+                    break;
+                }
+            }
+
+            //// destroy undocol
+            //if (UndoCol.Count > 0) {
+            //    for (int i = UndoCol.Count - 1; i >= 0; i--) {
+            //        UndoCol.Remove(i);
+            //    }
+            //}
+            //UndoCol = null;
+
+            //// if a test view is currently loaded,
+            //if (TestView != null) {
+            //    // unload it and release it
+            //    TestView.Unload();
+            //    TestView = null;
+            //}
+
+            //// destroy background picture
+            //BkgdImage = null;
+        }
+        #endregion
+
+        #region Menu Event Handlers
+        internal void SetResourceMenu() {
+
+            mnuRSave.Enabled = IsChanged;
+            MDIMain.mnuRSep3.Visible = true;
+            if (EditGame is null) {
+                // no game is open
+                MDIMain.mnuRImport.Enabled = false;
+                mnuRExport.Text = "Save As ...";
+                mnuRInGame.Enabled = false;
+                mnuRInGame.Text = "Add Picture to Game";
+                mnuRRenumber.Enabled = false;
+                // mnuRProperties no change
+                // mnuRSavePicImage no change
+                // mnuRBackground no change
+            }
+            else {
+                // if a game is loaded, base import is also always available
+                MDIMain.mnuRImport.Enabled = true;
+                mnuRExport.Text = InGame ? "Export Picture" : "Save As ...";
+                mnuRInGame.Enabled = true;
+                mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
+                mnuRRenumber.Enabled = InGame;
+                // mnuRProperties no change
+                // mnuRSavePicImage no change
+                // mnuRBackground no change
+            }
+        }
+
+        public void mnuRSave_Click(object sender, EventArgs e) {
+            SavePicture();
+        }
+
+        public void mnuRExport_Click(object sender, EventArgs e) {
+            ExportPicture();
+        }
+
+        public void mnuRInGame_Click(object sender, EventArgs e) {
+            ToggleInGame();
+        }
+
+        private void mnuRRenumber_Click(object sender, EventArgs e) {
+            RenumberPicture();
+        }
+
+        private void mnuRProperties_Click(object sender, EventArgs e) {
+            EditPictureProperties(1);
+        }
+
+        private void mnuRSavePicImage_Click(object sender, EventArgs e) {
+            MessageBox.Show("TODO: save pic image");
+        }
+
+        private void mnuRBackground_Click(object sender, EventArgs e) {
+            MessageBox.Show("TODO: background");
+        }
+        #endregion
+
+        #region temp code
         private void trackBar1_Scroll(object sender, EventArgs e) {
 
             //resize our picture on the fly
@@ -77,210 +175,32 @@ namespace WinAGI.Editor {
             picMode = !picMode;
             showPic();
         }
-        void showPic() {
-            if (picMode) {
-                thisBMP = (Bitmap)EditGame.Pictures[1].PriorityBMP.Clone();
-            }
-            else {
-                thisBMP = (Bitmap)EditGame.Pictures[1].VisualBMP.Clone();
-            }
-            if (cmbTransCol.SelectedIndex < 16) {
-                thisBMP.MakeTransparent(EditGame.AGIColors[cmbTransCol.SelectedIndex]);
-            }
-            ShowAGIBitmap(picVisual, thisBMP, zoom);
-
-        }
         private void cmbTransCol_SelectionChangeCommitted(object sender, EventArgs e) {
             //redraw, with the selected transparent image
             showPic();
         }
-        public bool LoadPicture(Picture ThisPicture) {
-            return true;
-            /*
-        Dim strTemp() As String, strMsg As String
+        void showPic() {
+            if (picMode) {
+                thisBMP = (Bitmap)EditPicture.PriorityBMP.Clone();
+            }
+            else {
+                thisBMP = (Bitmap)EditPicture.VisualBMP.Clone();
+            }
+            if (cmbTransCol.SelectedIndex < 16) {
+                if (EditGame != null) {
+                    thisBMP.MakeTransparent(EditGame.Palette[cmbTransCol.SelectedIndex]);
+                }
+                else {
+                    thisBMP.MakeTransparent(DefaultPalette[cmbTransCol.SelectedIndex]);
+                }
+            }
+            ShowAGIBitmap(picVisual, thisBMP, zoom);
 
-        On Error GoTo ErrHandler
-
-        'set ingame flag based on picture passed
-        InGame = ThisPicture.Resource.InGame
-
-        'set number if this picture is in a game
-        If InGame Then
-          PicNumber = ThisPicture.Number
-        Else
-          'use a number that can never match
-          'when searches for open pictures are made
-          PicNumber = 256
-        End If
-
-        'create new picture object
-        Set PicEdit = New AGIPicture
-
-        'copy the passed picture to the editor picture
-        PicEdit.SetPicture ThisPicture
-        'get build error level (since entire picture is
-        'loaded during SetPicture function)
-        BMPBuildErr = PicEdit.BMPErrLevel
-
-        'set caption and dirty flag
-        If Not InGame And PicEdit.ID = "NewPicture" Then
-          PicCount = PicCount + 1
-          PicEdit.ID = "NewPicture" & CStr(PicCount)
-          IsDirty = True
-        Else
-          IsDirty = PicEdit.IsDirty
-        End If
-
-        'NOTE- this will actually load the form; for now
-        'we don't want any graphics stuff to run, so
-        'the load method has to ignore things for now
-        Caption = sPICED & ResourceName(PicEdit, InGame, True)
-
-        If IsDirty Then
-          MarkAsDirty
-        Else
-          frmMDIMain.mnuRSave.Enabled = False
-          frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-        End If
-
-        'populate cmd list with commands
-        If Not LoadCmdList() Then
-          'error- stop the form loading process
-          MsgBox "This picture has corrupt or invalid data. Unable to open it for editing.", vbCritical + vbOKOnly, "Picture Data Error"
-          PicEdit.Unload
-          Set PicEdit = Nothing
-          Exit Function
-        End If
-
-        'enable stepdrawing
-        PicEdit.StepDraw = True
-
-        'enable editing
-        PicMode = pmEdit
-        Toolbar1.Buttons("edit").Value = tbrPressed
-
-        'check for a saved background image
-        If Len(PicEdit.BkgdImgFile) <> 0 Then
-          'try loading the background image
-          On Error Resume Next
-          Set BkgdImage = LoadPicture(PicEdit.BkgdImgFile)
-          If Err.Number = 0 And Not (Me.BkgdImage Is Nothing) Then
-            'get rest of parameters
-            BkgdTrans = PicEdit.BkgdTrans
-            strTemp = Split(PicEdit.BkgdSize, "|")
-            tgtW = strTemp(0)
-            tgtH = strTemp(1)
-            srcW = strTemp(2)
-            srcH = strTemp(3)
-            strTemp = Split(PicEdit.BkgdPosition, "|")
-            tgtX = strTemp(0)
-            tgtY = strTemp(1)
-            srcX = strTemp(2)
-            srcY = strTemp(3)
-            'validate a few things...
-            If srcW <= 0 Or srcH <= 0 Then
-              'reset
-              srcW = MetsToPix(BkgdImage.Width)
-              srcH = MetsToPix(BkgdImage.Height)
-            End If
-            If tgtW <= 0 Or tgtH <= 0 Then
-              'reset
-              tgtW = 320
-              tgtH = 168
-            End If
-            If PicEdit.BkgdShow Then
-              Toolbar1.Buttons("bkgd").Value = tbrPressed
-            End If
-          Else
-            'if error is file not found, let user know
-            If Err.Number = 76 Then
-              strMsg = "Background file not found. "
-            Else
-              strMsg = "Error loading background image."
-            End If
-            Err.Clear
-            ' inform user
-            MsgBox strMsg & vbCrLf & vbCrLf & "The 'BkgdImg' property for this picture will be cleared.", vbInformation + vbOKOnly, "Picture Background Image Error"
-
-            ' clear picedit background properties
-            With PicEdit
-              .BkgdImgFile = ""
-              .BkgdPosition = ""
-              .BkgdShow = False
-              .BkgdSize = ""
-              .BkgdTrans = 0
-            End With
-
-            ' clear ingame resource background properties
-            With Pictures(PicNumber)
-              .BkgdImgFile = ""
-              .BkgdPosition = ""
-              .BkgdShow = False
-              .BkgdSize = ""
-              .BkgdTrans = 0
-            End With
-
-            ' update the game wag file
-            WriteProperty "Picture" & CStr(PicNumber), "BkgdImg", "", "Pictures"
-            WriteProperty "Picture" & CStr(PicNumber), "BkgdPosn", ""
-            WriteProperty "Picture" & CStr(PicNumber), "BkgdShow", ""
-            WriteProperty "Picture" & CStr(PicNumber), "BkgdSize", ""
-            ' force file to save after last property is changed
-            WriteProperty "Picture" & CStr(PicNumber), "BkgdTrans", "", "", True
-
-            'make sure image is nothing
-            Set BkgdImage = Nothing
-            'force background off
-            PicEdit.BkgdShow = False
-          End If
-        End If
-
-        'now we actually draw the picture; calls to DrawPicture
-        'during the setup in above code don't do anything since
-        'the pics aren't enabled yet; so we end with a final
-        'call to DrawPicture and Force them to be redrawn
-        DrawPicture True
-
-        'return true
-        EditPicture = True
-      Exit Function
-
-      ErrHandler:
-        ErrMsgBox "Error while opening picture: ", "Unable to open picture for editing.", "Edit Picture Error"
-        PicEdit.Unload
-        Set PicEdit = Nothing
-      */
         }
-        public void MenuClickDescription(int FirstProp) {
-            /*
-              'change description and ID
-              Dim strID As String, strDescription As String
-
-
-              On Error GoTo ErrHandler
-
-              If FirstProp<> 1 And FirstProp <> 2 Then
-                FirstProp = 1
-              End If
-
-
-              strID = PicEdit.ID
-              strDescription = PicEdit.Description
-
-
-              If GetNewResID(AGIResType.Picture, PicNumber, strID, strDescription, InGame, FirstProp) Then
-                'save changes
-                UpdateID strID, strDescription
-              End If
-
-              'force menu update
-              AdjustMenus AGIResType.Picture, InGame, True, IsDirty
-            Exit Sub
-
-            ErrHandler:
-              '*'Debug.Assert False
-              Resume Next
-            */
+        private void button1_Click(object sender, EventArgs e) {
+            EditPicture.Clear();
+            MarkAsChanged();
+            showPic();
         }
 
         void tmpPicForm() {
@@ -508,106 +428,6 @@ namespace WinAGI.Editor {
         Resume Next
       End Function
 
-      Private Sub ExportPicAsGif()
-
-        'export a loop as a gif
-
-        Dim blnCanceled As Boolean, rtn As Long
-        Dim PGOptions As GifOptions
-
-        On Error GoTo ErrHandler
-
-        'show options form
-        Load frmViewGifOptions
-        With frmViewGifOptions
-          'set up form to export this picture
-          .InitForm 1, PicEdit
-          .Show vbModal, frmMDIMain
-          blnCanceled = .Canceled
-
-          'if not canceled, get a filename
-          If Not blnCanceled Then
-
-            'set up commondialog
-            With MainSaveDlg
-              .DialogTitle = "Export Picture GIF"
-              .DefaultExt = "gif"
-              .Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*"
-              .Flags = cdlOFNHideReadOnly Or cdlOFNPathMustExist Or cdlOFNExplorer
-              .FilterIndex = 1
-              .FullName = ""
-              .hWndOwner = frmMDIMain.hWnd
-            End With
-
-            Do
-              On Error Resume Next
-              MainSaveDlg.ShowSaveAs
-              'if canceled,
-              If Err.Number = cdlCancel Then
-                'cancel the export
-                blnCanceled = True
-                Exit Do
-              End If
-
-              'if file exists,
-              If FileExists(MainSaveDlg.FullName) Then
-                'verify replacement
-                rtn = MsgBox(MainSaveDlg.FileName & " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
-
-                If rtn = vbYes Then
-                  Exit Do
-                ElseIf rtn = vbCancel Then
-                  blnCanceled = True
-                  Exit Do
-                End If
-              Else
-                Exit Do
-              End If
-            Loop While True
-            On Error GoTo ErrHandler
-          End If
-
-          'if NOT canceled after getting filename, then export!
-          If Not blnCanceled Then
-            'show progress form
-            Load frmProgress
-            With frmProgress
-              .Caption = "Exporting Picture as GIF"
-              .lblProgress = "Depending in size of picture, this may take awhile. Please wait..."
-              .pgbStatus.Max = PicEdit.Resource.Size
-              .pgbStatus.Value = 0
-              .pgbStatus.Visible = True
-              .Show
-              .Refresh
-            End With
-
-            'show wait cursor
-            WaitCursor
-
-            PGOptions.Cycle = (.chkLoop.Value = vbChecked)
-            PGOptions.Delay = Val(.txtDelay.Text)
-            PGOptions.Zoom = Val(.txtZoom.Text)
-
-            'set options
-            MakePicGif PicEdit, PGOptions, MainSaveDlg.FullName
-
-            'all done!
-            Unload frmProgress
-            MsgBox "Success!", vbInformation + vbOKOnly, "Export Picture as GIF"
-
-            Screen.MousePointer = vbDefault
-          End If
-
-          'done with the options form
-          Unload frmViewGifOptions
-
-        End With
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
 
       Private Sub GetZoomCenter()
 
@@ -680,6 +500,7 @@ namespace WinAGI.Editor {
           Exit Sub
         End If
 
+            // ^ operator not available in c#, have to use Math.Pow()
         cOfX = 1.5 / ScaleFactor ^ 0.5
         cOfY = cOfX * 2 '3 / ScaleFactor ^ 0.5
         cSzX = cOfX * 2 '3 / ScaleFactor ^ 0.5
@@ -2227,7 +2048,7 @@ namespace WinAGI.Editor {
           UndoCol.Add NextUndo
         End If
 
-        MarkAsDirty
+        MarkAsChanged
 
       End Sub
 
@@ -2746,8 +2567,8 @@ namespace WinAGI.Editor {
       End Sub
       Private Sub AddUndo(NextUndo As PictureUndo)
 
-        If Not IsDirty Then
-          MarkAsDirty
+        If Not IsChanged Then
+          MarkAsChanged
         End If
 
         'remove old undo items until there is room for this one
@@ -2768,10 +2589,10 @@ namespace WinAGI.Editor {
 
 
 
-      Private Sub MarkAsDirty()
+      Private Sub MarkAsChanged()
 
-        If Not IsDirty Then
-          IsDirty = True
+        If Not IsChanged Then
+          IsChanged = True
 
           'enable menu and toolbar button
           frmMDIMain.mnuRSave.Enabled = True
@@ -4669,7 +4490,7 @@ namespace WinAGI.Editor {
         If PicEdit.ID <> NewID Then
           'change the PicEdit object's ID and caption
           PicEdit.ID = NewID
-          'if picedit is dirty
+          'if picedit is changed
           If Asc(Caption) = 42 Then
             Caption = sDM & sPICED & ResourceName(PicEdit, InGame, True)
           Else
@@ -5004,8 +4825,8 @@ namespace WinAGI.Editor {
           'add 'end' node to list
           lstCommands.AddItem LoadResString(DRAWFUNCTIONTEXT + 11)
           lstCommands.ItemData(lstCommands.ListCount - 1) = lngPos
-          'mark as dirty
-          MarkAsDirty
+          'mark as changed
+          MarkAsChanged
           'restore cursor
           Screen.MousePointer = vbDefault
           MsgBoxEx "Picture is missing end-of-resource marker; marker has been added and picture" & vbNewLine & "loaded, but picture data may be corrupt.", vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Missing End Command in Picture", WinAGIHelp, "htm\agi\pictures.htm#ff"
@@ -5171,368 +4992,9 @@ namespace WinAGI.Editor {
       End Sub
             */
         }
-        public void MenuClickSave() {
-            /*
-  'save this picture
-  
-  Dim rtn As VbMsgBoxResult
-  Dim i As Long, blnLoaded As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  'if in a game,
-  If InGame Then
-    'show wait cursor
-    WaitCursor
-    
-    'get current load status
-    blnLoaded = Pictures(PicNumber).Loaded
-    
-    'copy view back to game resource
-    Pictures(PicNumber).SetPicture PicEdit
-    
-    'save the picture using save method
-    Pictures(PicNumber).Save
-    
-    'copy back into edit object
-    PicEdit.SetPicture Pictures(PicNumber)
-    
-    'setpicture copies load status to ingame pic resource; may need to unload it
-    If Not blnLoaded Then
-      Pictures(PicNumber).Unload
-    End If
-    
-    'update preview
-    UpdateSelection AGIResType.Picture, PicNumber, umPreview
-  
-    'if autoexporting,
-    If Settings.AutoExport Then
-      'export using default name
-      PicEdit.Export ResDir & PicEdit.ID & ".agp"
-      'reset ID (cuz
-      PicEdit.ID = Pictures(PicEdit.Number).ID
-    End If
-    
-    'restore cursor
-    Screen.MousePointer = vbDefault
-  Else
-    'if no name yet,
-    If LenB(PicEdit.Resource.ResFile) = 0 Then
-      'use export to get a name
-      MenuClickExport
-      Exit Sub
-    Else
-      'show wait cursor
-      WaitCursor
-      
-      'save the picture
-      PicEdit.Export PicEdit.Resource.ResFile
-    
-      'restore cursor
-      Screen.MousePointer = vbDefault
-    End If
-  End If
-  
-  'reset dirty flag
-  IsDirty = False
-  'reset caption
-  Caption = sPICED & ResourceName(PicEdit, InGame, True)
-  'disable save menu/button
-  frmMDIMain.mnuRSave.Enabled = False
-  frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-*/
-        }
 
         public void picfrmcode() {
             /*
-Public Sub MenuClickPrint()
-
-  'show picture printing form
-  Load frmPrint
-  frmPrint.SetMode AGIResType.Picture, PicEdit, , InGame
-  frmPrint.Show vbModal, frmMDIMain
-End Sub
-
-Public Sub MenuClickExport()
-
-  Dim blnOldFlag As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  'need to track dirty flag
-  blnOldFlag = PicEdit.IsDirty
-  
-  'export the agi resource
-  If ExportPicture(PicEdit, InGame) Then
-    If Not InGame Then
-      'reset dirty flag and caption
-      IsDirty = False
-      Caption = sPICED & PicEdit.ID
-      
-      'disable save menu/button
-      frmMDIMain.mnuRSave.Enabled = False
-      frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-    Else
-      'for ingame resources, PicEdit is not actually
-      'the ingame resource, but only a copy that can be edited
-      'because the resource ID is changed to match savefile
-      'name during the export operation, the ID needs to be
-      'forced back to the correct Value
-      PicEdit.ID = Pictures(PicNumber).ID
-    End If
-  Else
-    'if export returns false, it was either canceled
-    'or an image was exported
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Public Sub MenuClickImport()
-  
-  Dim tmpPic As AGIPicture
-  Dim i As Long
-  
-  On Error GoTo ErrHandler
-  
-  'this method is only called by the Main form's Import function
-  'the MainDialog object will contain the name of the file
-  'being imported.
-  
-  'steps to import are to import the picture to tmp object
-  'clear the existing Image, copy tmpobject to this item
-  'and reset it
-  
-  Set tmpPic = New AGIPicture
-  On Error Resume Next
-  tmpPic.Import MainDialog.FileName
-  If Err.Number <> 0 Then
-    ErrMsgBox "An error occurred while importing this picture:", "", "Import Picture Error"
-    Set tmpPic = Nothing
-    Exit Sub
-  End If
-      'now check to see if it's a valid picture resource (by trying to reload it)
-  tmpPic.Load
-  If Err.Number <> 0 Then
-    ErrMsgBox "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource"
-    Set tmpPic = Nothing
-    Exit Sub
-  End If
-  
-  'clear drawing surfaces
-  picVisual.Cls
-  picPriority.Cls
-  
-  'clear picture
-  PicEdit.Clear
-  'copy tmppicture data to picedit
-  PicEdit.Resource.InsertData tmpPic.Resource.AllData, 0
-  'remove the last byte (it is left over from the insert process)
-  PicEdit.Resource.RemoveData PicEdit.Resource.Size - 1
-  
-  'discard the temp pic
-  tmpPic.Unload
-  Set tmpPic = Nothing
-  
-  'redraw tree
-  LoadCmdList
-  
-  'select the end
-  SelectCmd lstCommands.ListCount - 1, False
-  
-  'refresh palette
-  picPalette.Refresh
-  
-  'clear the undo buffer
-  If UndoCol.Count > 0 Then
-    For i = UndoCol.Count To 1 Step -1
-      UndoCol.Remove i
-    Next i
-    SetEditMenu
-  End If
-  
-  'mark as dirty
-  MarkAsDirty
-  
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Public Sub MenuClickNew()
-  'implemented by frmMDIMain
-  
-End Sub
-
-Public Sub MenuClickInGame()
-  'toggles the game state of an object
-  
-  Dim rtn As VbMsgBoxResult
-  Dim blnDontAsk As Boolean
-  
-  If InGame Then
-    'ask if resource should be exported
-    If Settings.AskExport Then
-      rtn = MsgBoxEx("Do you want to export '" & PicEdit.ID & "' before removing it from your game?", _
-                          vbQuestion + vbYesNoCancel, "Export Picture Before Removal", , , _
-                          "Don't ask this question again", blnDontAsk)
-     
-      'save the setting
-      Settings.AskExport = Not blnDontAsk
-      'if now hiding update settings file
-      If Not Settings.AskExport Then
-        WriteSetting GameSettings, sGENERAL, "AskExport", Settings.AskExport
-      End If
-    Else
-      'dont ask; assume no
-      rtn = vbNo
-    End If
-    
-    'if canceled,
-    Select Case rtn
-    Case vbCancel
-      Exit Sub
-    
-    Case vbYes
-      'export it
-      MenuClickExport
-    Case vbNo
-      'nothing to do
-    End Select
-    
-    'confirm removal
-    If Settings.AskRemove Then
-      rtn = MsgBoxEx("Removing '" & PicEdit.ID & "' from your game." & vbCrLf & vbCrLf & "Select OK to proceed, or Cancel to keep it in game.", _
-                      vbQuestion + vbOKCancel, "Remove Picture From Game", , , _
-                      "Don't ask this question again", blnDontAsk)
-    
-      'save the setting
-      Settings.AskRemove = Not blnDontAsk
-      'if now hiding, update settings file
-      If Not Settings.AskRemove Then
-        WriteSetting GameSettings, sGENERAL, "AskRemove", Settings.AskRemove
-      End If
-    Else
-      'assume OK
-      rtn = vbOK
-    End If
-    
-    'if canceled,
-    If rtn = vbCancel Then
-      Exit Sub
-    End If
-    
-    ' now remove the pic
-    RemovePicture PicNumber
-   
-    'unload this form
-    Unload Me
-  Else
-    'add to game
-    
-    'verify a game is loaded,
-    If Not GameLoaded Then
-      Exit Sub
-    End If
-    
-    'no longer possible; add is disabled if already at max
-'''    'if at Max already
-'''    If Pictures.Count = 256 Then
-'''      MsgBox "Maximum number of pics already exist in this game. Remove one or more existing pics, and then try again.", vbInformation + vbOKOnly, "Can't Add Picture"
-'''      Exit Sub
-'''    End If
-    
-    'show add resource form
-    With frmGetResourceNum
-      .ResType = AGIResType.Picture
-      .WindowFunction = grAddInGame
-      'setup before loading so ghosts don't show up
-      .FormSetup
-      'suggest ID based on filename/ID
-      If Len(PicEdit.ID) > 0 Then
-        .txtID.Text = Replace(FileNameNoExt(PicEdit.ID), " ", vbNullString)
-      End If
-      .Show vbModal, frmMDIMain
-    
-      'if user makes a choice
-      If Not .Canceled Then
-        'store number
-        PicNumber = .NewResNum
-        'new id
-        PicEdit.ID = .txtID.Text
-        'add picture
-        AddNewPicture PicNumber, PicEdit
-        
-        'copy the pic back (to ensure internal variables are copied)
-        PicEdit.Clear
-        PicEdit.SetPicture Pictures(PicNumber)
-        
-        'now we can unload the newly added picture;
-        Pictures(PicNumber).Unload
-        
-        'update caption and properties
-        Caption = sPICED & ResourceName(PicEdit, True, True)
-        
-        'set ingame flag
-        InGame = True
-        'reset dirty flag
-        IsDirty = False
-        
-        'change menu caption
-        frmMDIMain.mnuRInGame.Caption = "Remove from Game"
-        frmMDIMain.Toolbar1.Buttons("remove").Image = 10
-        frmMDIMain.Toolbar1.Buttons("remove").ToolTipText = "Remove from Game"
-      End If
-    End With
-    
-    Unload frmGetResourceNum
-  End If
-End Sub
-Public Sub MenuClickRenumber()
-  
-  'renumbers a resource
-  
-  Dim NewResNum As Byte
-  
-  On Error GoTo ErrHandler:
-  
-  'if not in a game
-  If Not InGame Then
-    Exit Sub
-  End If
-  
-  'get new number
-  NewResNum = RenumberResource(PicNumber, AGIResType.Picture)
-  
-  'if changed
-  If NewResNum <> PicNumber Then
-    'copy renumbered picture into PicEdit object
-    PicEdit.SetPicture Pictures(NewResNum)
-    
-    'update number
-    PicNumber = NewResNum
-    
-    'update caption
-    Caption = sPICED & ResourceName(PicEdit, InGame, True)
-    If IsDirty Then
-      Caption = sDM & Caption
-    End If
-  End If
-Exit Sub
-
-ErrHandler:
-  Resume Next
-End Sub
 Public Sub MenuClickECustom1()
   
   'in edit mode, split commands
@@ -5707,42 +5169,6 @@ ErrHandler:
   '*'Debug.Assert False
   Resume Next
 End Sub
-
-Function AskClose() As Boolean
-
-  Dim rtn As VbMsgBoxResult
-
-  On Error GoTo ErrHandler
-  
-  'assume okay to close
-  AskClose = True
-  
-  'if exiting due to error on startup, picedit is set to nothing
-  If PicEdit Is Nothing Then
-    Exit Function
-  End If
-  
-  'if the picture needs to be saved,
-  '(number is set to -1 if closing is forced)
-  If IsDirty And PicNumber <> -1 Then
-    rtn = MsgBox("Do you want to save changes to " & PicEdit.ID & " ?", vbYesNoCancel, "Picture Editor")
-    
-    Select Case rtn
-    Case vbYes
-      'save, then continue closing
-      MenuClickSave
-    Case vbNo
-      'don't save, and continue closing
-    Case vbCancel
-      'don't continue closing
-      AskClose = False
-    End Select
-  End If
-Exit Function
-
-ErrHandler:
-  Resume Next
-End Function
 
 Public Sub ResizePictures()
 
@@ -6241,7 +5667,7 @@ ErrHandler:
   If Err.Number = 35601 And Not blnErrFix Then
     'force update and retry
     blnErrFix = True
-    AdjustMenus AGIResType.Picture, InGame, True, IsDirty
+    AdjustMenus AGIResType.Picture, InGame, True, IsChanged
     Resume
   End If
 End Sub
@@ -6403,6 +5829,7 @@ Private Sub DrawCircle(ByVal StartX As Long, ByVal StartY As Long, ByVal EndX As
     'get ellipse parameters
     a = Int(DX / 2)
     b = Int(DY / 2)
+            // ^ operator not available in c#, have to use Math.Pow()
     a2b2 = a ^ 2 / b ^ 2
     
     'start with Y values;
@@ -6826,7 +6253,7 @@ Private Sub Form_Activate()
   End If
   
   'show picture menus, and enable editing
-  AdjustMenus AGIResType.Picture, InGame, True, IsDirty
+  AdjustMenus AGIResType.Picture, InGame, True, IsChanged
   
   'set edit menu
   SetEditMenu
@@ -8905,8 +8332,8 @@ Public Sub MenuClickUndo()
   'update menu
   SetEditMenu
   
-  'undo should always set dirty flag
-  MarkAsDirty
+  'undo should always set changed flag
+  MarkAsChanged
 Exit Sub
 
 ErrHandler:
@@ -10184,7 +9611,7 @@ Private Sub picVisual_MouseDown(Button As Integer, Shift As Integer, X As Single
       ' verify status bar is correctly set
       With MainStatusBar
         If .Tag <> CStr(AGIResType.Picture) Then
-          AdjustMenus AGIResType.Picture, Me.InGame, True, Me.IsDirty
+          AdjustMenus AGIResType.Picture, Me.InGame, True, Me.IsChanged
         End If
         .Panels("Anchor").Visible = False
         .Panels("Block").Visible = False
@@ -10531,7 +9958,7 @@ Private Sub picVisual_MouseMove(Button As Integer, Shift As Integer, X As Single
   'can get out of synch- so we test for that, and resynch
   'if necessary
   If MainStatusBar.Tag <> CStr(AGIResType.Picture) Then
-    AdjustMenus AGIResType.Picture, InGame, True, IsDirty
+    AdjustMenus AGIResType.Picture, InGame, True, IsChanged
   End If
 
   '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
@@ -10870,7 +10297,7 @@ Private Sub AddCelToPic(ByVal NewX As Byte, ByVal NewY As Byte)
     If frmMDIMain.ActiveMdiChild Is Me Then
       With MainStatusBar
         If .Tag <> CStr(AGIResType.Picture) Then
-          AdjustMenus AGIResType.Picture, InGame, True, IsDirty
+          AdjustMenus AGIResType.Picture, InGame, True, IsChanged
         End If
         'use test object position
         .Panels("CurX").Text = "vX: " & CStr(OldCel.X)
@@ -11232,6 +10659,7 @@ Private Sub tmrSelect_Timer()
   Static CurSize As Single
   
   Dim cOfX As Single, cOfY As Single, cSzX As Single, cSzY As Single
+            // ^ operator not available in c#, have to use Math.Pow()
   cOfX = 1.5 / ScaleFactor ^ 0.5
   cOfY = cOfX * 2 '3 / ScaleFactor ^ 0.5
   cSzX = cOfX * 2 '3 / ScaleFactor ^ 0.5
@@ -11594,7 +11022,7 @@ Private Sub Toolbar1_ButtonClick(ByVal Button As MSComctlLib.Button)
   '*'Debug.Assert MainStatusBar.Tag = AGIResType.Picture
   If MainStatusBar.Tag <> AGIResType.Picture Then
     'show picture menus, and enable editing
-    AdjustMenus AGIResType.Picture, InGame, True, IsDirty
+    AdjustMenus AGIResType.Picture, InGame, True, IsChanged
   End If
   
   'show/hide anchor and block status panels
@@ -11763,6 +11191,405 @@ End Sub
 
 
       */
+        }
+        #endregion
+
+        public bool LoadPicture(Picture loadpic) {
+            InGame = loadpic.InGame;
+            if (InGame) {
+                PictureNumber = loadpic.Number;
+            }
+            else {
+                // use a number that can never match
+                // when searches for open pictures are made
+                PictureNumber = 256;
+            }
+            try {
+                loadpic.Load();
+            }
+            catch {
+                return false;
+            }
+            if (loadpic.ErrLevel < 0) {
+                return false;
+            }
+            EditPicture = loadpic.Clone();
+            if (!InGame && EditPicture.ID == "NewPicture") {
+                PicCount++;
+                EditPicture.ID = "NewPicture" + PicCount;
+                IsChanged = true;
+            }
+            else {
+                // unlike views/sounds, if picture has errors in it don't force a save
+                // because user has to manually edit the bad data to repair it
+                IsChanged = EditPicture.IsChanged;
+            }
+            Text = sPICED + ResourceName(EditPicture, InGame, true);
+            if (IsChanged) {
+                Text = sDM + Text;
+            }
+            mnuRSave.Enabled = !IsChanged;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+
+            /*
+            // populate cmd list with commands (this also draws the picture  on edit surface)
+            if (!LoadCmdList()) {
+                // error- stop the form loading process
+                MessageBox.Show(MDIMain,
+                    "This picture has corrupt or invalid data. Unable to open it for editing.",
+                    "Picture Data Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation);
+                EditPicture.Unload();
+                EditPicture = null;
+                return false;
+            }
+            // enable stepdrawing
+            EditPicture.StepDraw = true;
+            // enable editing
+            PicMode = pmEdit;
+            Toolbar1.Buttons("edit").Value = tbrPressed;
+            // check for a saved background image
+            if (EditPicture.BkgdImgFile.Length != 0) {
+                try {
+                    BkgdImage = LoadImage(Path.GetFullPath(EditGame.GameDir + EditPicture.BkgdImgFile));
+                    // get rest of parameters
+                    BkgdTrans = EditPicture.BkgdTrans;
+                    string[] strTemp = EditPicture.BkgdSize.ToString().Split("|");
+                    tgtW = strTemp[0];
+                    tgtH = strTemp[1];
+                    srcW = strTemp[2];
+                    srcH = strTemp[3];
+                    strTemp = EditPicture.BkgdPosition.ToString().Split("|");
+                    tgtX = strTemp[0];
+                    tgtY = strTemp[1];
+                    srcX = strTemp[2];
+                    srcY = strTemp[3];
+                    // validate a few things...
+                    if (srcW <= 0 || srcH <= 0) {
+                        // reset
+                        srcW = MetsToPix(BkgdImage.Width);
+                        srcH = MetsToPix(BkgdImage.Height);
+                    }
+                    if (tgtW <= 0 || tgtH <= 0) {
+                        // reset
+                        tgtW = 320;
+                        tgtH = 168;
+                    }
+                    if (EditPicture.BkgdShow) {
+                        Toolbar1.Buttons["bkgd"].Value = tbrPressed;
+                        // turn background on
+                        ToggleBkgd(true);
+                    }
+                }
+                catch (Exception ex) {
+                    string strMsg;
+                    // if error is file not found, let user know
+                    if (ex.HResult == 999) {
+                        strMsg = "Background file not found. ";
+                    }
+                    else {
+                        strMsg = "Error loading background image.";
+                    }
+                    // inform user
+                    MessageBox.Show(MDIMain,
+                        strMsg + "\n\nThe 'BkgdImg' property for this picture will be cleared.",
+                        "Picture Background Image Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    // clear picedit background properties
+                    EditPicture.BkgdImgFile = "";
+                    EditPicture.BkgdPosition = new Picture.PicBkgdPos();
+                    EditPicture.BkgdShow = false;
+                    EditPicture.BkgdSize = new Picture.PicBkgdSize();
+                    EditPicture.BkgdTrans = 0;
+                    // clear ingame resource background properties
+                    EditGame.Pictures[PicNumber].BkgdImgFile = "";
+                    EditGame.Pictures[PicNumber].BkgdPosition = new Picture.PicBkgdPos(); ;
+                    EditGame.Pictures[PicNumber].BkgdShow = false;
+                    EditGame.Pictures[PicNumber].BkgdSize = new Picture.PicBkgdSize();
+                    EditGame.Pictures[PicNumber].BkgdTrans = 0;
+                    // update the game wag file
+                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdImg", "", "Pictures");
+                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdPosn", "");
+                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdShow", "");
+                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdSize", "");
+                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdTrans", "");
+                    WinAGISettingsList.Save();
+                    // make sure image is nothing
+                    BkgdImage = null;
+                    // force background off
+                    EditPicture.BkgdShow = false;
+                }
+            }
+            */
+            // load the picture
+            EditPicture.Load();
+            thisBMP = EditPicture.VisualBMP;
+            // show it with NO transparency
+            ShowAGIBitmap(picVisual, thisBMP);
+            return true;
+        }
+
+        public void ImportPicture(string importfile) {
+            MDIMain.UseWaitCursor = true;
+            Picture tmpPicture = new();
+            try {
+                tmpPicture.Import(importfile);
+            }
+            catch (Exception e) {
+                //something wrong
+                MDIMain.UseWaitCursor = false;
+                ErrMsgBox(e, "Error while importing picture:", "Unable to load this picture resource.", "Import Picture Error");
+                return;
+            }
+            // now check to see if it's a valid picture resource (by trying to reload it)
+            tmpPicture.Load();
+            if (tmpPicture.ErrLevel < 0) {
+                MDIMain.UseWaitCursor = false;
+                ErrMsgBox(tmpPicture.ErrLevel, "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource");
+                //restore main form mousepointer and exit
+                return;
+            }
+            // copy only the resource data
+            EditPicture.ReplaceData(tmpPicture.Data);
+            EditPicture.ResetPicture();
+            MarkAsChanged();
+            // TODO: redraw
+            thisBMP = EditPicture.VisualBMP;
+            // show it with NO transparency
+            ShowAGIBitmap(picVisual, thisBMP);
+            MDIMain.UseWaitCursor = false;
+        }
+
+        public void SavePicture() {
+            if (InGame) {
+                MDIMain.UseWaitCursor = true;
+                bool blnLoaded = EditGame.Pictures[PictureNumber].Loaded;
+                if (!blnLoaded) {
+                    EditGame.Pictures[PictureNumber].Load();
+                }
+                EditGame.Pictures[PictureNumber].CloneFrom(EditPicture);
+                EditGame.Pictures[PictureNumber].Save();
+                if (!blnLoaded) {
+                    EditGame.Pictures[PictureNumber].Unload();
+                }
+                RefreshTree(AGIResType.Picture, PictureNumber);
+                if (WinAGISettings.AutoExport.Value) {
+                    EditPicture.Export(EditGame.ResDir + EditPicture.ID + ".agp");
+                    // reset ID (non-game id gets saved by export...)
+                    EditPicture.ID = EditGame.Pictures[PictureNumber].ID;
+                }
+                MarkAsSaved();
+                MDIMain.UseWaitCursor = false;
+            }
+            else {
+                if (EditPicture.ResFile.Length == 0) {
+                    ExportPicture();
+                    return;
+                }
+                else {
+                    MDIMain.UseWaitCursor = true;
+                    EditPicture.Save();
+                    MarkAsSaved();
+                    MDIMain.UseWaitCursor = false;
+                }
+            }
+        }
+
+        private void ExportPicture() {
+            int retval = Base.ExportPicture(EditPicture, InGame);
+            if (InGame) {
+                // because EditPicture is not the actual ingame picture its
+                // ID needs to be reset back to the ingame value
+                EditPicture.ID = EditGame.Pictures[PictureNumber].ID;
+            }
+            else {
+                if (retval == 1) {
+                    MarkAsSaved();
+                }
+            }
+        }
+
+        public void ToggleInGame() {
+            //toggles the game state of an object
+
+            DialogResult rtn;
+            string strExportName;
+            bool blnDontAsk = false;
+
+            if (InGame) {
+                if (WinAGISettings.AskExport.Value) {
+                    rtn = MsgBoxEx.Show(MDIMain,
+                        "Do you want to export '" + EditPicture.ID + "' before removing it from your game?",
+                        "Don't ask this question again",
+                        MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Question,
+                        "Export Picture Before Removal", ref blnDontAsk);
+                    WinAGISettings.AskExport.Value = !blnDontAsk;
+                    if (!WinAGISettings.AskExport.Value) {
+                        WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                    }
+                }
+                else {
+                    // dont ask; assume no
+                    rtn = DialogResult.No;
+                }
+                switch (rtn) {
+                case DialogResult.Cancel:
+                    return;
+                case DialogResult.Yes:
+                    // get a filename for the export
+                    strExportName = NewResourceName(EditPicture, InGame);
+                    if (strExportName.Length > 0) {
+                        EditPicture.Export(strExportName);
+                        //UpdateStatusBar();
+                    }
+                    break;
+                case DialogResult.No:
+                    // nothing to do
+                    break;
+                }
+                // confirm removal
+                if (WinAGISettings.AskRemove.Value) {
+                    rtn = MsgBoxEx.Show(MDIMain,
+                        "Removing '" + EditPicture.ID + "' from your game.\n\nSelect OK to proceed, or Cancel to keep it in game.",
+                        "Remove Picture From Game",
+                        MessageBoxButtons.OKCancel,
+                        MessageBoxIcon.Question,
+                        "Don't ask this question again", ref blnDontAsk);
+                    WinAGISettings.AskRemove.Value = !blnDontAsk;
+                    if (!WinAGISettings.AskRemove.Value) {
+                        WinAGISettings.AskRemove.WriteSetting(WinAGISettingsFile);
+                    }
+                }
+                else {
+                    rtn = DialogResult.OK;
+                }
+                if (rtn == DialogResult.Cancel) {
+                    return;
+                }
+                // remove the picture (force-closes this editor)
+                RemovePicture((byte)PictureNumber);
+            }
+            else {
+                // add to game 
+                if (EditGame is null) {
+                    return;
+                }
+                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Picture, 0);
+                if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    PictureNumber = frmGetNum.NewResNum;
+                    // change id before adding to game
+                    EditPicture.ID = frmGetNum.txtID.Text;
+                    AddNewPicture((byte)PictureNumber, EditPicture);
+                    EditGame.Pictures[PictureNumber].Load();
+                    // copy the picture back (to ensure internal variables are copied)
+                    EditPicture.CloneFrom(EditGame.Pictures[PictureNumber]);
+                    // now we can unload the newly added picture;
+                    EditGame.Pictures[PictureNumber].Unload();
+                    MarkAsSaved();
+                    InGame = true;
+                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
+                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove Picture";
+                }
+            }
+        }
+
+        public void RenumberPicture() {
+            if (!InGame) {
+                return;
+            }
+            string oldid = EditPicture.ID;
+            int oldnum = PictureNumber;
+            byte NewResNum = GetNewNumber(AGIResType.Picture, (byte)PictureNumber);
+            if (NewResNum != PictureNumber) {
+                // update ID (it may have changed if using default ID)
+                EditPicture.ID = EditGame.Pictures[NewResNum].ID;
+                PictureNumber = NewResNum;
+                Text = sPICED + ResourceName(EditPicture, InGame, true);
+                if (IsChanged) {
+                    Text = sDM + Text;
+                }
+                if (EditPicture.ID != oldid) {
+                    if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
+                        SafeFileMove(EditGame.ResDir + oldid + ".agp", EditGame.ResDir + EditGame.Pictures[NewResNum].ID + ".agp", true);
+                    }
+                }
+            }
+        }
+
+        public void EditPictureProperties(int FirstProp) {
+            string id = EditPicture.ID;
+            string description = EditPicture.Description;
+            if (GetNewResID(AGIResType.Picture, PictureNumber, ref id, ref description, InGame, FirstProp)) {
+                if (EditPicture.Description != description) {
+                    EditPicture.Description = description;
+                }
+                if (EditPicture.ID != id) {
+                    EditPicture.ID = id;
+                    Text = sPICED + ResourceName(EditPicture, InGame, true);
+                    if (IsChanged) {
+                        Text = sDM + Text;
+                    }
+                }
+            }
+        }
+
+        private bool AskClose() {
+            if (EditPicture.ErrLevel < 0) {
+                // if exiting due to error on form load
+                return true;
+            }
+            if (PictureNumber == -1) {
+                // force shutdown
+                return true;
+            }
+            if (IsChanged) {
+                DialogResult rtn = MessageBox.Show(MDIMain,
+                    "Do you want to save changes to this picture resource?",
+                    "Save Picture Resource",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+                switch (rtn) {
+                case DialogResult.Yes:
+                    SavePicture();
+                    if (IsChanged) {
+                        rtn = MessageBox.Show(MDIMain,
+                            "Resource not saved. Continue closing anyway?",
+                            "Save Picture Resource",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+                        return rtn == DialogResult.Yes;
+                    }
+                    break;
+                case DialogResult.Cancel:
+                    return false;
+                case DialogResult.No:
+                    break;
+                }
+            }
+            return true;
+        }
+
+        void MarkAsChanged() {
+            // ignore when loading (not visible yet)
+            if (!Visible) {
+                return;
+            }
+            if (!IsChanged) {
+                IsChanged = true;
+                mnuRSave.Enabled = true;
+                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                Text = sDM + Text;
+            }
+        }
+        
+        private void MarkAsSaved() {
+            IsChanged = false;
+            Text = sPICED + ResourceName(EditPicture, InGame, true);
+            mnuRSave.Enabled = false;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
     }
 }

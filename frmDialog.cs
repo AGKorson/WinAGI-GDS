@@ -259,6 +259,47 @@ namespace WinAGI.Editor {
             }
         }
 
+        #region Event Handlers
+        private void frmDialog_KeyDown(object sender, KeyEventArgs e) {
+            // respond to keys depending on mode
+
+            if (e.Alt == true || e.Control == true) {
+                //ignore alt and ctrl
+                e.SuppressKeyPress = true;
+                return;
+            }
+            switch (e.KeyCode) {
+            case Keys.A:
+                if (button1.Text == "Abort") {
+                    button1_Click(this, null);
+                }
+                break;
+            case Keys.R:
+                if (button1.Text == "Retry") {
+                    button1_Click(this, null);
+                }
+                else if (button2.Text == "Retry") {
+                    button2_Click(this, null);
+                }
+                break;
+            case Keys.I:
+                if (button3.Text == "Ignore") {
+                    button3_Click(this, null);
+                }
+                break;
+
+            case Keys.Y:
+                if (button1.Text == "Yes") {
+                    button1_Click(this, null);
+                }
+                break;
+            case Keys.N:
+                if (button2.Text == "No") {
+                    button2_Click(this, null);
+                }
+                break;
+            }
+        }
         private void button1_Click(object sender, EventArgs e) {
             switch (button1.Text) {
             case "OK":
@@ -316,46 +357,6 @@ namespace WinAGI.Editor {
         private void cmdHelp_Click(object sender, EventArgs e) {
             Help.ShowHelp(HelpOwner, HelpFile, HelpNavigator.Topic, HelpTopic);
         }
-
-        private void frmDialog_KeyDown(object sender, KeyEventArgs e) {
-            // respond to keys depending on mode
-
-            if (e.Alt == true || e.Control == true) {
-                //ignore alt and ctrl
-                e.SuppressKeyPress = true;
-                return;
-            }
-            switch (e.KeyCode) {
-            case Keys.A:
-                if (button1.Text == "Abort") {
-                    button1_Click(this, null);
-                }
-                break;
-            case Keys.R:
-                if (button1.Text == "Retry") {
-                    button1_Click(this, null);
-                }
-                else if (button2.Text == "Retry") {
-                    button2_Click(this, null);
-                }
-                break;
-            case Keys.I:
-                if (button3.Text == "Ignore") {
-                    button3_Click(this, null);
-                }
-                break;
-
-            case Keys.Y:
-                if (button1.Text == "Yes") {
-                    button1_Click(this, null);
-                }
-                break;
-            case Keys.N:
-                if (button2.Text == "No") {
-                    button2_Click(this, null);
-                }
-                break;
-            }
-        }
+        #endregion
     }
 }

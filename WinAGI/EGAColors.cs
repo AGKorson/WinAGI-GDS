@@ -62,7 +62,8 @@ namespace WinAGI.Engine {
 
         #region Methods
         /// <summary>
-        /// Converts the color value of the specified color 
+        /// Converts the color value of the specified color to a comma delimited
+        /// string of its rgb components as hex values.
         /// </summary>
         /// <param name="aColor"></param>
         /// <returns></returns>

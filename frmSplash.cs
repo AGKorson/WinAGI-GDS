@@ -9,5 +9,5 @@ namespace WinAGI.Editor {
             lblVersion.Text = "Version " + Application.ProductVersion;
             lblCopyright.Text += Common.Base.COPYRIGHT_YEAR;
         }
-   }
+    }
 }

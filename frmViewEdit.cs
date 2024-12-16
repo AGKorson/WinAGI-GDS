@@ -4,10 +4,12 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Editor.Base;
 
@@ -19,29 +21,113 @@ namespace WinAGI.Editor {
         private int CurLoop = 0;
         private int CurCel = 0;
         internal bool InGame;
+        internal bool IsChanged;
+        private bool closing = false;
 
         public frmViewEdit() {
             InitializeComponent();
+            MdiParent = MDIMain;
         }
 
-        private void cmbView_SelectionChangeCommitted(object sender, EventArgs e) {
-            // unload current view, and load selected view
-            EditView?.Unload();
+        #region Form Event Handlers
 
-            EditView = (Engine.View)cmbView.SelectedItem;
-            EditView.Load();
-            if (EditView.ErrLevel < 0) {
-                //ignore error
-                EditView.Unload();
-                EditView = null;
+        private void frmViewEdit_Load(object sender, EventArgs e) {
+
+        }
+
+        private void frmViewEdit_FormClosing(object sender, FormClosingEventArgs e) {
+            if (e.CloseReason == CloseReason.MdiFormClosing) {
+                return;
             }
-            //clear loop list
+            closing = AskClose();
+            e.Cancel = !closing;
+        }
+
+        private void frmViewEdit_FormClosed(object sender, FormClosedEventArgs e) {
+            // dereference view
+            EditView?.Unload();
+            EditView = null;
+
+            // remove from vieweditor collection
+            foreach (frmViewEdit frm in ViewEditors) {
+                if (frm == this) {
+                    ViewEditors.Remove(frm);
+                    break;
+                }
+            }
+
+            //// destroy undocol
+            //if (UndoCol.Count > 0) {
+            //    for (int i = UndoCol.Count - 1; i >= 0; i--) {
+            //        UndoCol.Remove(i);
+            //    }
+            //}
+            //UndoCol = null;
+
+        }
+        #endregion
+
+        #region Menu Event Handlers
+        internal void SetResourceMenu() {
+            mnuRSave.Enabled = IsChanged;
+            MDIMain.mnuRSep3.Visible = true;
+            if (EditGame is null) {
+                // no game is open
+                MDIMain.mnuRImport.Enabled = false;
+                mnuRExport.Text = "Save As ...";
+                mnuRInGame.Enabled = false;
+                mnuRInGame.Text = "Add View to Game";
+                mnuRRenumber.Enabled = false;
+                // mnuRProperties no change
+                mnuRExportLoopGIF.Enabled = true; // = loop or cel selected
+            }
+            else {
+                // if a game is loaded, base import is also always available
+                MDIMain.mnuRImport.Enabled = true;
+                mnuRExport.Text = InGame ? "Export View" : "Save As ...";
+                mnuRInGame.Enabled = true;
+                mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
+                mnuRRenumber.Enabled = InGame;
+                // mnuRProperties no change
+                mnuRExportLoopGIF.Enabled = true; // = loop or cel selected
+            }
+        }
+
+        public void mnuRSave_Click(object sender, EventArgs e) {
+            SaveView();
+        }
+
+        public void mnuRExport_Click(object sender, EventArgs e) {
+            ExportView();
+        }
+
+        public void mnuRInGame_Click(object sender, EventArgs e) {
+            ToggleInGame();
+        }
+
+        private void mnuRRenumber_Click(object sender, EventArgs e) {
+            RenumberView();
+        }
+
+        private void mnuRProperties_Click(object sender, EventArgs e) {
+            EditViewProperties(1);
+        }
+
+        private void mnuRExportLoopGIF_Click(object sender, EventArgs e) {
+            ExportLoop(EditView, CurLoop);
+        }
+        #endregion
+
+        #region temp code
+
+        private void button2_Click(object sender, EventArgs e) {
+            EditView.Clear();
+            EditView.Loops.Add(1).Cels.Add(0, 5, 5, AGIColorIndex.Brown);
+            MarkAsChanged();
             cmbLoop.Items.Clear();
-            //add loops to the loop box
             foreach (Loop tmpLoop in EditView.Loops) {
                 cmbLoop.Items.Add($"Loop {tmpLoop.Index}");
             }
-            //select first loop
             cmbLoop.SelectedIndex = 0;
         }
 
@@ -50,13 +136,6 @@ namespace WinAGI.Editor {
             // set transparency
             EditView[CurLoop][CurCel].Transparency = chkTrans.Checked;
             ShowAGIBitmap(picCel, EditView[CurLoop][CurCel].CelBMP, zoom);
-        }
-
-        private void frmViewEdit_Load(object sender, EventArgs e) {
-            // load views
-            foreach (Engine.View tmpView in EditGame.Views.Col.Values) {
-                cmbView.Items.Add(tmpView);
-            }
         }
 
         private void cmbLoop_SelectedIndexChanged(object sender, EventArgs e) {
@@ -108,115 +187,6 @@ namespace WinAGI.Editor {
             timer1.Enabled = !timer1.Enabled;
         }
 
-        private void frmViewEdit_FormClosing(object sender, FormClosingEventArgs e) {
-            // make sure view is unloaded
-            EditView?.Unload();
-        }
-
-        public bool LoadView(Engine.View ThisView) {
-            return true;
-            /*
-              On Error GoTo ErrHandler
-
-              'set ingame flag based on view passed
-              InGame = ThisView.Resource.InGame
-
-              'set number if this view is in a game
-              If InGame Then
-                ViewNumber = ThisView.Number
-              Else
-                'use a number that can never match
-                'when searches for open views are made
-                ViewNumber = 256
-              End If
-
-              'create new view object
-              Set ViewEdit = New AGIView
-
-              'copy the passed view to the editor view
-              ViewEdit.SetView ThisView
-              '*'Debug.Assert ViewEdit.Loaded
-
-              'set caption and dirty flag
-              If Not InGame And ViewEdit.ID = "NewView" Then
-                ViewCount = ViewCount + 1
-                ViewEdit.ID = "NewView" & CStr(ViewCount)
-                IsDirty = True
-              Else
-                IsDirty = ViewEdit.IsDirty
-              End If
-              Caption = SVIEWED & ResourceName(ViewEdit, InGame, True)
-              If IsDirty Then
-                MarkAsDirty
-              Else
-                frmMDIMain.mnuRSave.Enabled = False
-                frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-              End If
-
-              'update treeview
-              UpdateTree
-
-              'set selected loop and cel to first cel of first loop
-              SelectedLoop = 0
-              SelectedCel = 0
-
-              'if more than one cel in loop 0, start motion
-              If ViewEdit.Loops(0).Cels.Count > 1 Then
-                tmrMotion.Enabled = True
-                'show stop image
-                cmdVPlay.Picture = imlPreview.ListImages(10).Picture
-              End If
-
-              If ShowVEPrev Then
-                InitPreview
-              End If
-              tmrMotion.Enabled = ShowVEPrev
-
-              'show the form and display first cel
-              Form_Resize
-              DisplayCel
-              Me.Refresh
-
-              'return true
-              EditView = True
-            Exit Function
-
-            ErrHandler:
-              ErrMsgBox "Error while opening view: ", "Unable to open view for editing due to error", "Edit View Error"
-              ViewEdit.Unload
-              Set ViewEdit = Nothing
-                  */
-        }
-
-        public void MenuClickDescription(int FirstProp) {
-            /*
-        'change description and ID
-        Dim strID As String, strDescription As String
-
-        On Error GoTo ErrHandler
-
-        If FirstProp<> 1 And FirstProp <> 2 Then
-          FirstProp = 1
-        End If
-
-        strID = ViewEdit.ID
-        strDescription = ViewEdit.Description
-
-        If GetNewResID(AGIResType.View, ViewNumber, strID, strDescription, InGame, FirstProp) Then
-          'save changes
-          UpdateID strID, strDescription
-        End If
-
-        'force menus to update
-        AdjustMenus AGIResType.View, InGame, True, IsDirty
-        'if a loop is selected, enable gif export
-        frmMDIMain.mnuRCustom1.Enabled = (ViewMode = vmLoop)
-        SetEditMenu
-      Exit Sub
-*/
-
-        }
-
         void tmpviewform() {
             /*
       Option Explicit
@@ -248,7 +218,7 @@ namespace WinAGI.Editor {
 
         Public ViewNumber As Long
         Public InGame As Boolean
-        Public IsDirty As Boolean
+        Public IsChanged As Boolean
 
         'variables for selected components
         Private SelectedLoop As Long
@@ -753,8 +723,8 @@ namespace WinAGI.Editor {
 
       Private Sub AddUndo(NextUndo As ViewUndo)
 
-        If Not IsDirty Then
-          MarkAsDirty
+        If Not IsChanged Then
+          MarkAsChanged
         End If
 
         'remove old undo items until there is no room for this one
@@ -859,7 +829,7 @@ namespace WinAGI.Editor {
           frmNew.ViewEdit.ID = "Copy of " & frmNew.ViewEdit.ID
           'and caption
           frmNew.Caption = SVIEWED & frmNew.ViewEdit.ID
-          'force dirty status by tweaking first pixel
+          'force changed status by tweaking first pixel
           '(yes, this is a hack, but it works for now)
           frmNew.ViewEdit.Loops(0).Cels(0).CelData(0, 0) = frmNew.ViewEdit.Loops(0).Cels(0).CelData(0, 0)
           'update tree
@@ -1043,96 +1013,14 @@ namespace WinAGI.Editor {
             */
         }
 
-        public void MenuClickSave() {
-            /*
-        'save this resource
-
-        Dim rtn As VbMsgBoxResult
-        Dim i As Long
-
-        On Error GoTo ErrHandler
-
-        'if in a game,
-        If InGame Then
-          'show wait cursor
-          WaitCursor
-
-          If SelResType = AGIResType.View Then
-            If SelResNum <> ViewNumber Then
-              '*'Debug.Assert Views(ViewNumber).Loaded = False
-            End If
-          Else
-            '*'Debug.Assert Views(ViewNumber).Loaded = False
-          End If
-          'copy back to game (this marks view as loaded)
-          Views(ViewNumber).SetView ViewEdit
-
-          'save the view
-          Views(ViewNumber).Save
-
-          'copy back to edit sound
-          ViewEdit.SetView Views(ViewNumber)
-          'if this view is selected,
-          If SelResType = AGIResType.View And SelResNum = ViewNumber Then
-            'update preview and properties
-            UpdateSelection AGIResType.View, ViewNumber, umPreview Or umProperty
-          Else
-            'setview copies loaded status to ingame view resource; need to unload it
-            Views(ViewNumber).Unload
-          End If
-
-          'if autoexporting,
-          If Settings.AutoExport Then
-            'export using default name
-            ViewEdit.Export ResDir & ViewEdit.ID & ".agv"
-            'reset ID
-            ViewEdit.ID = Views(ViewEdit.Number).ID
-          End If
-
-          'restore cursor
-          Screen.MousePointer = vbDefault
-        Else
-          'if no name yet,
-          If LenB(ViewEdit.Resource.ResFile) = 0 Then
-            'use export to get a name
-            MenuClickExport
-            Exit Sub
-          Else
-            'show wait cursor
-            WaitCursor
-
-            'save the view
-            ViewEdit.Export ViewEdit.Resource.ResFile
-
-            'restore cursor
-            Screen.MousePointer = vbDefault
-          End If
-        End If
-
-        'reset dirty flag
-        IsDirty = False
-        'reset caption
-        Caption = SVIEWED & ResourceName(ViewEdit, InGame, True)
-        'disable menu and toolbar button
-        frmMDIMain.mnuRSave.Enabled = False
-        frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
-      End Sub
-            */
-        }
-
         void viewfrmcode() {
             /*
       Public Sub MenuClickExport()
 
         If ExportView(ViewEdit, InGame) Then
           If Not InGame Then
-            'reset dirty flag and caption
-            IsDirty = False
+            'reset changed flag and caption
+            IsChanged = False
             Caption = SVIEWED & ViewEdit.ID
 
             'disable menu and toolbar button
@@ -1208,8 +1096,8 @@ namespace WinAGI.Editor {
           SetEditMenu
         End If
 
-        'mark as dirty
-        MarkAsDirty
+        'mark as changed
+        MarkAsChanged
 
       Exit Sub
 
@@ -1333,8 +1221,8 @@ namespace WinAGI.Editor {
 
               'set ingame flag
               InGame = True
-              'reset dirty flag
-              IsDirty = False
+              'reset changed flag
+              IsChanged = False
 
               'change menu caption
               frmMDIMain.mnuRInGame.Caption = "Remove from Game"
@@ -1378,7 +1266,7 @@ namespace WinAGI.Editor {
 
           'update caption
           Caption = SVIEWED & ResourceName(ViewEdit, InGame, True)
-          If ViewEdit.IsDirty Then
+          If ViewEdit.IsChanged Then
             Caption = sDM & Caption
           End If
 
@@ -2226,7 +2114,7 @@ namespace WinAGI.Editor {
 
         'if the view needs to be saved,
         '(number is set to -1 if closing is forced)
-        If IsDirty And ViewNumber <> -1 Then
+        If IsChanged And ViewNumber <> -1 Then
           rtn = MsgBox("Do you want to save changes to " & ViewEdit.ID & " ?", vbYesNoCancel, "View Editor")
 
           Select Case rtn
@@ -4151,7 +4039,7 @@ namespace WinAGI.Editor {
           'change the viewedit object's id and caption
           ViewEdit.ID = NewID
 
-          'if viewedit is dirty
+          'if viewedit is changed
           If Asc(Caption) = 42 Then
             Caption = sDM & SVIEWED & ResourceName(ViewEdit, InGame, True)
           Else
@@ -4221,21 +4109,6 @@ namespace WinAGI.Editor {
       End Function
 
 
-      Private Sub MarkAsDirty()
-
-        If Not IsDirty Then
-          IsDirty = True
-        End If
-
-        'enable menu and toolbar button
-        frmMDIMain.mnuRSave.Enabled = True
-        frmMDIMain.Toolbar1.Buttons("save").Enabled = True
-
-        If Asc(Caption) <> 42 Then
-          'mark caption
-          Caption = sDM & Caption
-        End If
-      End Sub
       Public Sub ClearCel()
         Dim NextUndo As ViewUndo
 
@@ -4618,7 +4491,7 @@ namespace WinAGI.Editor {
 
         blnInGame = InGame
 
-        AdjustMenus AGIResType.View, blnInGame, True, IsDirty
+        AdjustMenus AGIResType.View, blnInGame, True, IsChanged
        'force update of statusbar
         MainStatusBar.Panels("Scale").Text = "Scale: " & CStr(ScaleFactor)
         MainStatusBar.Panels("Tool") = LoadResString(VIEWTOOLTYPETEXT + SelectedTool)
@@ -4651,7 +4524,7 @@ namespace WinAGI.Editor {
         On Error GoTo ErrHandler
 
         blnInGame = InGame
-        AdjustMenus AGIResType.View, blnInGame, True, IsDirty
+        AdjustMenus AGIResType.View, blnInGame, True, IsChanged
         SetEditMenu
 
       Exit Sub
@@ -7643,6 +7516,331 @@ namespace WinAGI.Editor {
       End Sub
 
             */
+        }
+
+        #endregion
+
+        public bool LoadView(Engine.View loadview) {
+            InGame = loadview.InGame;
+            if (InGame) {
+                ViewNumber = loadview.Number;
+            }
+            else {
+                // use a number that can never match
+                // when searches for open views are made
+                ViewNumber = 256;
+            }
+            try {
+                loadview.Load();
+            }
+            catch {
+                return false;
+            }
+            if (loadview.ErrLevel < 0) {
+                return false;
+            }
+            EditView = loadview.Clone();
+            if (!InGame && EditView.ID == "NewView") {
+                ViewCount++;
+                EditView.ID = "NewView" + ViewCount;
+                IsChanged = true;
+            }
+            else {
+                IsChanged = EditView.IsChanged || EditView.ErrLevel != 0;
+            }
+            Text = sVIEWED + ResourceName(EditView, InGame, true);
+            if (IsChanged) {
+                Text = sDM + Text;
+            }
+            mnuRSave.Enabled = !IsChanged;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            // TODO: set up form for editing
+            cmbLoop.Items.Clear();
+            for (int i = 0; i < EditView.Loops.Count; i++) {
+                cmbLoop.Items.Add($"Loop {i}");
+            }
+            cmbLoop.SelectedIndex = 0;
+
+            //UpdateTree();
+            //// set selected loop and cel to first cel of first loop
+            //SelectedLoop = StartLoop;
+            //SelectedCel = StartCel;
+            //// if more than one cel in loop 0, start motion
+            //if (EditView.Loops[0].Cels.Count > 1) {
+            //    // show stop image
+            //    cmdVPlay.Picture = imlPreview.ListImages[10].Picture;
+            //}
+            //if (ShowPreview) {
+            //    InitPreview();
+            //    DisplayPrevCel();
+            //}
+            //tmrMotion.Enabled = WinAGISettings.DefPrevPlay;
+            //// display start cel
+            //DisplayCel();
+
+            return true;
+        }
+
+        public void ImportView(string importfile) {
+            MDIMain.UseWaitCursor = true;
+            Engine.View tmpView = new();
+            try {
+                tmpView.Import(importfile);
+            }
+            catch (Exception e) {
+                //something wrong
+                MDIMain.UseWaitCursor = false;
+                ErrMsgBox(e, "Error while importing view:", "Unable to load this view resource.", "Import View Error");
+                return;
+            }
+            // now check to see if it's a valid view resource (by trying to reload it)
+            tmpView.Load();
+            if (tmpView.ErrLevel < 0) {
+                MDIMain.UseWaitCursor = false;
+                ErrMsgBox(tmpView.ErrLevel, "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource");
+                //restore main form mousepointer and exit
+                return;
+            }
+            // copy only the resource data
+            EditView.ReplaceData(tmpView.Data);
+            EditView.ResetView();
+            MarkAsChanged();
+            // TODO: redraw
+            cmbLoop.Items.Clear();
+            foreach (Loop tmpLoop in EditView.Loops) {
+                cmbLoop.Items.Add($"Loop {tmpLoop.Index}");
+            }
+            cmbLoop.SelectedIndex = 0;
+            MDIMain.UseWaitCursor = false;
+        }
+
+        public void SaveView() {
+            if (InGame) {
+                MDIMain.UseWaitCursor = true;
+                bool blnLoaded = EditGame.Views[ViewNumber].Loaded;
+                if (!blnLoaded) {
+                    EditGame.Views[ViewNumber].Load();
+                }
+                EditGame.Views[ViewNumber].CloneFrom(EditView);
+                EditGame.Views[ViewNumber].Save();
+                EditView.CloneFrom(EditGame.Views[ViewNumber]);
+                if (!blnLoaded) {
+                    EditGame.Views[ViewNumber].Unload();
+                }
+                RefreshTree(AGIResType.View, ViewNumber);
+                if (WinAGISettings.AutoExport.Value) {
+                    EditView.Export(EditGame.ResDir + EditView.ID + ".agv");
+                    // reset ID (non-game id gets changed by export...)
+                    EditView.ID = EditGame.Views[ViewNumber].ID;
+                }
+                MarkAsSaved();
+                MDIMain.UseWaitCursor = false;
+            }
+            else {
+                if (EditView.ResFile.Length == 0) {
+                    ExportView();
+                    return;
+                }
+                else {
+                    MDIMain.UseWaitCursor = true;
+                    EditView.Save();
+                    MarkAsSaved();
+                    MDIMain.UseWaitCursor = false;
+                }
+            }
+        }
+
+        private void ExportView() {
+            int retval = Base.ExportView(EditView, InGame);
+            if (InGame) {
+                // because EditView is not the actual ingame view its
+                // ID needs to be reset back to the ingame value
+                EditView.ID = EditGame.Views[ViewNumber].ID;
+            }
+            else {
+                if (retval == 1) {
+                    MarkAsSaved();
+                }
+            }
+        }
+
+        public void ToggleInGame() {
+            DialogResult rtn;
+            string strExportName;
+            bool blnDontAsk = false;
+
+            if (InGame) {
+                if (WinAGISettings.AskExport.Value) {
+                    rtn = MsgBoxEx.Show(MDIMain,
+                        "Do you want to export '" + EditView.ID + "' before removing it from your game?",
+                        "Don't ask this question again",
+                        MessageBoxButtons.YesNoCancel,
+                        MessageBoxIcon.Question,
+                        "Export View Before Removal", ref blnDontAsk);
+                    WinAGISettings.AskExport.Value = !blnDontAsk;
+                    if (!WinAGISettings.AskExport.Value) {
+                        WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                    }
+                }
+                else {
+                    // dont ask; assume no
+                    rtn = DialogResult.No;
+                }
+                switch (rtn) {
+                case DialogResult.Cancel:
+                    return;
+                case DialogResult.Yes:
+                    // get a filename for the export
+                    strExportName = NewResourceName(EditView, InGame);
+                    if (strExportName.Length > 0) {
+                        EditView.Export(strExportName);
+                        //UpdateStatusBar();
+                    }
+                    break;
+                case DialogResult.No:
+                    // nothing to do
+                    break;
+                }
+                // confirm removal
+                if (WinAGISettings.AskRemove.Value) {
+                    rtn = MsgBoxEx.Show(MDIMain,
+                        "Removing '" + EditView.ID + "' from your game.\n\nSelect OK to proceed, or Cancel to keep it in game.",
+                        "Remove View From Game",
+                        MessageBoxButtons.OKCancel,
+                        MessageBoxIcon.Question,
+                        "Don't ask this question again", ref blnDontAsk);
+                    WinAGISettings.AskRemove.Value = !blnDontAsk;
+                    if (!WinAGISettings.AskRemove.Value) {
+                        WinAGISettings.AskRemove.WriteSetting(WinAGISettingsFile);
+                    }
+                }
+                else {
+                    rtn = DialogResult.OK;
+                }
+                if (rtn == DialogResult.Cancel) {
+                    return;
+                }
+                // remove the view (force-closes this editor)
+                RemoveView((byte)ViewNumber);
+            }
+            else {
+                // add to game 
+                if (EditGame is null) {
+                    return;
+                }
+                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.View, 0);
+                if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    ViewNumber = frmGetNum.NewResNum;
+                    // change id before adding to game
+                    EditView.ID = frmGetNum.txtID.Text;
+                    AddNewView((byte)ViewNumber, EditView);
+                    EditGame.Views[ViewNumber].Load();
+                    // copy the view back (to ensure internal variables are copied)
+                    EditView.CloneFrom(EditGame.Views[ViewNumber]);
+                    // now we can unload the newly added view;
+                    EditGame.Views[ViewNumber].Unload();
+                    MarkAsSaved();
+                    InGame = true;
+                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
+                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove View";
+                }
+            }
+        }
+
+        public void RenumberView() {
+            if (!InGame) {
+                return;
+            }
+            string oldid = EditView.ID;
+            int oldnum = ViewNumber;
+            byte NewResNum = GetNewNumber(AGIResType.View, (byte)ViewNumber);
+            if (NewResNum != ViewNumber) {
+                // update ID (it may have changed if using default ID)
+                EditView.ID = EditGame.Views[NewResNum].ID;
+                ViewNumber = NewResNum;
+                Text = sPICED + ResourceName(EditView, InGame, true);
+                if (IsChanged) {
+                    Text = sDM + Text;
+                }
+                if (EditView.ID != oldid) {
+                    if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
+                        SafeFileMove(EditGame.ResDir + oldid + ".agp", EditGame.ResDir + EditGame.Views[NewResNum].ID + ".agp", true);
+                    }
+                }
+            }
+        }
+
+        public void EditViewProperties(int FirstProp) {
+            string id = EditView.ID;
+            string description = EditView.Description;
+            if (GetNewResID(AGIResType.View, ViewNumber, ref id, ref description, InGame, FirstProp)) {
+                if (EditView.Description != description) {
+                    EditView.Description = description;
+                }
+                if (EditView.ID != id) {
+                    EditView.ID = id;
+                    Text = sSNDED + ResourceName(EditView, InGame, true);
+                    if (IsChanged) {
+                        Text = sDM + Text;
+                    }
+                }
+            }
+        }
+
+        private bool AskClose() {
+            if (EditView.ErrLevel < 0) {
+                // if exiting due to error on form load
+                return true;
+            }
+            if (ViewNumber == -1) {
+                // force shutdown
+                return true;
+            }
+            if (IsChanged) {
+                DialogResult rtn = MessageBox.Show(MDIMain,
+                    "Do you want to save changes to this view resource?",
+                    "Save View Resource",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+                switch (rtn) {
+                case DialogResult.Yes:
+                    SaveView();
+                    if (IsChanged) {
+                        rtn = MessageBox.Show(MDIMain,
+                            "Resource not saved. Continue closing anyway?",
+                            "Save View Resource",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+                        return rtn == DialogResult.Yes;
+                    }
+                    break;
+                case DialogResult.Cancel:
+                    return false;
+                case DialogResult.No:
+                    break;
+                }
+            }
+            return true;
+        }
+
+        private void MarkAsChanged() {
+            // ignore when loading (not visible yet)
+            if (!Visible) {
+                return;
+            }
+            if (!IsChanged) {
+                IsChanged = true;
+                mnuRSave.Enabled = true;
+                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                Text = sDM + Text;
+            }
+        }
+
+        private void MarkAsSaved() {
+            IsChanged = false;
+            Text = sSNDED + ResourceName(EditView, InGame, true);
+            mnuRSave.Enabled = false;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
     }
 }

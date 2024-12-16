@@ -323,7 +323,7 @@ namespace WinAGI.Engine {
             // per sound.
 
             // default is AGI pcjr sound format
-            soundFormat = SoundFormat.sfAGI;
+            soundFormat = SoundFormat.AGI;
             bPlayingWAV = false;
             mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(SAMPLE_RATE, 2)) {
                 ReadFully = true
@@ -342,6 +342,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// This method creates a WAV audio data stream from a PCjr formatted sound resource
         /// for playback.
+        /// WAV generated from PCjr sounds are 44100 sample rate, 16bit, two channel.
         /// </summary>
         /// <param name="sound"></param>
         /// <returns></returns>
@@ -371,8 +372,8 @@ namespace WinAGI.Engine {
                 for (int voiceNum = 0; voiceNum < 4; voiceNum++) {
                     if (voicePlaying[voiceNum]) {
                         if (voiceSampleCount[voiceNum]-- <= 0) {
-                            if (voiceNoteNum[voiceNum] < sound.Track(voiceNum).Notes.Count) {
-                                voiceCurrentNote[voiceNum] = sound.Track(voiceNum).Notes[voiceNoteNum[voiceNum]++];
+                            if (voiceNoteNum[voiceNum] < sound.Tracks[voiceNum].Notes.Count) {
+                                voiceCurrentNote[voiceNum] = sound.Tracks[voiceNum].Notes[voiceNoteNum[voiceNum]++];
                                 psg.Write((byte)((voiceCurrentNote[voiceNum].FreqDivisor % 16) + 128 + 32 * voiceNum));
                                 psg.Write((byte)(voiceCurrentNote[voiceNum].FreqDivisor / 16));
                                 psg.Write((byte)(voiceCurrentNote[voiceNum].Attenuation + (byte)(144 + 32 * voiceNum)));
@@ -470,7 +471,7 @@ namespace WinAGI.Engine {
             RawSourceWaveStream rs;
             ISampleProvider soundMixerInput;
 
-            if (soundFormat == SoundFormat.sfAGI) {
+            if (soundFormat == SoundFormat.AGI) {
                 // WAV generated from PCjr sounds are 44100 sample rate, 16bit, two channel
                 rs = new(memoryStream, new WaveFormat(44100, 16, 2));
                 soundMixerInput = rs.ToSampleProvider();
@@ -508,7 +509,7 @@ namespace WinAGI.Engine {
         private void PlayWithWaveOut(MemoryStream memoryStream) {
             WaveOutEvent wo = new();
             RawSourceWaveStream rs;
-            if (soundFormat == SoundFormat.sfAGI) {
+            if (soundFormat == SoundFormat.AGI) {
                 // WAV generated from PCjr sounds are 44100 sample rate, 16bit, two channel
                 rs = new(memoryStream, new WaveFormat(44100, 16, 2));
             }

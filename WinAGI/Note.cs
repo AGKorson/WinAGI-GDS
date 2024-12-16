@@ -91,7 +91,7 @@ namespace WinAGI.Engine {
                 }
                 mDuration = value;
                 mSndParent?.NoteChanged();
-                mTrkParent?.SetLengthDirty();
+                mTrkParent?.SetLengthChanged();
             }
         }
 

@@ -7,6 +7,7 @@ using static WinAGI.Common.Base;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -20,8 +21,8 @@ namespace WinAGI.Engine {
         string mDescription = "";
         bool mInGame;
         AGIGame parent;
-        Encoding mCodePage = Encoding.GetEncoding(437);
-        bool mIsDirty;
+        Encoding mCodePage = Encoding.GetEncoding(Base.CodePage.CodePage);
+        bool mIsChanged;
         bool mLoaded;
         int mErrLevel = 0;
         // 0 = no errors or warnings
@@ -34,12 +35,32 @@ namespace WinAGI.Engine {
 
         #region Constructors
         /// <summary>
-        /// Instantiates a list of AGI words that are not attached to a game.
+        /// Instantiates a list of AGI words and attaches it to an AGI game.
         /// </summary>
-        public WordList() {
-            // initialize the word collection with a custom sort order
+        /// <param name="parent"></param>
+        /// <param name="Loaded"></param>
+        internal WordList(AGIGame parent, bool Loaded = false) {
             mWordCol = new(new AGIWordComparer());
             mGroupCol = [];
+
+            mInGame = true;
+            this.parent = parent;
+            // if loaded property is passed, set loaded flag as well
+            mLoaded = Loaded;
+            // also sets the default name to 'WORDS.TOK'
+            mResFile = this.parent.agGameDir + "WORDS.TOK";
+            mCodePage = Encoding.GetEncoding(parent.agCodePage.CodePage);
+        }
+
+        /// <summary>
+        /// Instantiates a blank list of AGI words that are not attached to a game.
+        /// </summary>
+        public WordList() {
+            mInGame = false;
+            mResFile = "";
+            mWordCol = new(new AGIWordComparer());
+            mGroupCol = [];
+            mIsChanged = true;
             mLoaded = true;
             // add default words
             AGIWord tmpWord = new() { WordText = "a", Group = 0 };
@@ -64,20 +85,25 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Instantiates a list of AGI words and attaches it to an AGI game.
+        /// Instantiates a list of AGI words from a file that are not attached
+        /// to a game.
         /// </summary>
-        /// <param name="parent"></param>
-        /// <param name="Loaded"></param>
-        internal WordList(AGIGame parent, bool Loaded = false) {
-            mWordCol = [];
-            mGroupCol = [];
-
-            mInGame = true;
-            this.parent = parent;
-            // if loaded property is passed, set loaded flag as well
-            mLoaded = Loaded;
-            // also sets the default name to 'WORDS.TOK'
-            mResFile = this.parent.agGameDir + "WORDS.TOK";
+        public WordList(string filename) {
+            mInGame = false;
+            mResFile = filename;
+            mIsChanged = true;
+            try {
+                Load(filename);
+            }
+            catch {
+                // blank the list
+                mResFile = "";
+                mWordCol = new(new AGIWordComparer());
+                mGroupCol = [];
+                mLoaded = true;
+                // return the error
+                throw;
+            }
         }
         #endregion
 
@@ -150,7 +176,7 @@ namespace WinAGI.Engine {
                     switch (value.CodePage) {
                     case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
                          861 or 862 or 863 or 865 or 866 or 869 or 858:
-                        mCodePage = value;
+                        mCodePage = Encoding.GetEncoding(value.CodePage);
                         break;
                     default:
                         throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
@@ -192,7 +218,7 @@ namespace WinAGI.Engine {
                 return mDescription;
             }
             set {
-                value = Left(value, 1024);
+                value = value.Left(1024);
                 if (value != mDescription) {
                     mDescription = value;
                     if (mInGame) {
@@ -240,10 +266,10 @@ namespace WinAGI.Engine {
         /// Gets a a value that indicates if this list's words do not match what is 
         /// stored its assigned WORDS.TOK file.
         /// </summary>
-        public bool IsDirty {
+        public bool IsChanged {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                return mIsDirty;
+                return mIsChanged;
             }
         }
         #endregion
@@ -289,7 +315,7 @@ namespace WinAGI.Engine {
             else {
                 mResFile = LoadFile;
             }
-            mIsDirty = false;
+            mIsChanged = false;
         }
 
         /// <summary>
@@ -319,7 +345,7 @@ namespace WinAGI.Engine {
             FileStream fsWords;
 
             mLoaded = true;
-            mWordCol = [];
+            mWordCol = new(new AGIWordComparer());
             mGroupCol = [];
             try {
                 fsWords = new(LoadFile, FileMode.Open);
@@ -385,7 +411,7 @@ namespace WinAGI.Engine {
                     }
                     if (bytVal[0] < 0x80) {
                         bytVal[0] = (byte)(bytVal[0] ^ 0x7F + bytExt);
-                        sbThisWord.Append(parent.agCodePage.GetString(bytVal));
+                        sbThisWord.Append(CodePage.GetString(bytVal));
                     }
                     lngPos++;
                     // continue until last character (indicated by flag) or
@@ -400,13 +426,13 @@ namespace WinAGI.Engine {
                 }
                 // add last character (after stripping off flag)
                 bytVal[0] ^= 0xFF;
-                sbThisWord.Append(parent.agCodePage.GetString(bytVal));
+                sbThisWord.Append(CodePage.GetString(bytVal));
                 sThisWord = sbThisWord.ToString();
                 // check for ascii upper case (allowed, but not useful)
                 if (sThisWord.Any(ch => (ch >= 65 && ch <= 90))) {
                     retval |= 4;
                 }
-                sThisWord = LowerAGI(sThisWord);
+                sThisWord = sThisWord.LowerAGI();
                 lngGrpNum = (bytData[lngPos++] << 8) + bytData[lngPos++];
                 // skip if same as previous word (unlikely, but 
                 // it would cause an exception, if it did happen)
@@ -436,7 +462,7 @@ namespace WinAGI.Engine {
             }
             Clear();
             mLoaded = false;
-            mIsDirty = false;
+            mIsChanged = false;
         }
 
         /// <summary>
@@ -474,7 +500,7 @@ namespace WinAGI.Engine {
             else {
                 mResFile = SaveFile;
             }
-            mIsDirty = false;
+            mIsChanged = false;
         }
 
         /// <summary>
@@ -498,7 +524,7 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            if (!mIsDirty && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
+            if (!mIsChanged && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
                 return;
             }
             strTempFile = Path.GetTempFileName();
@@ -513,12 +539,7 @@ namespace WinAGI.Engine {
                 intLetterIndex[0] = 52;
                 foreach (AGIWord tmpWord in mWordCol.Values) {
                     // get next word
-                    if (parent is null) {
-                        strCurWord = mCodePage.GetBytes(tmpWord.WordText);
-                    }
-                    else {
-                        strCurWord = parent.agCodePage.GetBytes(tmpWord.WordText);
-                    }
+                    strCurWord = CodePage.GetBytes(tmpWord.WordText);
                     // if first letter is not current first letter, AND it is 'b' through 'z'
                     // (this ensures non letter words (such as numbers) are included in the 'a' section)
                     if ((strCurWord[0] != strFirstLetter) && (strCurWord[0] >= 97) && (strCurWord[0] <= 122)) {
@@ -632,13 +653,6 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            if (mWordCol.Count == 0) {
-                //error
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, "no words to add")) {
-                    HResult = WINAGI_ERR + 672
-                };
-                throw wex;
-            }
             strTempFile = Path.GetTempFileName();
             try {
                 StreamWriter swWords = new(strTempFile);
@@ -648,6 +662,7 @@ namespace WinAGI.Engine {
                     swWords.WriteLine(this[i].WordText + (char)0 + this[i].Group);
                 }
                 swWords.Close();
+                swWords.Dispose();
                 SafeFileMove(strTempFile, CompileFile, true);
             }
             catch (Exception e) {
@@ -672,7 +687,7 @@ namespace WinAGI.Engine {
                 throw;
             }
             if (!mInGame) {
-                mIsDirty = false;
+                mIsChanged = false;
                 mResFile = ExportFile;
             }
             return;
@@ -695,21 +710,27 @@ namespace WinAGI.Engine {
         /// Creates an exact copy of this WordList.
         /// </summary>
         /// <returns>The WordList that this method creates</returns>
-        public WordList Clone(WordList wordlist) {
+        public WordList Clone() {
+            // only loaded views can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+
             WordList clonelist = new();
+            // clear the defaults
+            clonelist.mWordCol = new(new AGIWordComparer());
+            clonelist.mGroupCol = [];
+
             int lngGrpNum;
             string strWord;
             WordGroup tmpGroup;
             AGIWord tmpWord;
 
-            WinAGIException.ThrowIfNotLoaded(this);
-            foreach (WordGroup group in wordlist) {
+            foreach (WordGroup group in this) {
                 tmpGroup = new WordGroup();
                 lngGrpNum = group.GroupNum;
                 tmpGroup.GroupNum = lngGrpNum;
                 clonelist.mGroupCol.Add(lngGrpNum, tmpGroup);
             }
-            foreach (AGIWord word in wordlist.mWordCol.Values) {
+            foreach (AGIWord word in mWordCol.Values) {
                 strWord = word.WordText;
                 lngGrpNum = word.Group;
                 tmpWord.WordText = strWord;
@@ -717,22 +738,54 @@ namespace WinAGI.Engine {
                 clonelist.mWordCol.Add(strWord, tmpWord);
                 clonelist.mGroupCol[lngGrpNum].AddWordToGroup(strWord);
             }
-            clonelist.mDescription = wordlist.Description;
-            clonelist.mIsDirty = wordlist.IsDirty;
-            clonelist.mResFile = wordlist.ResFile;
-            clonelist.mLoaded = true;
+            clonelist.mLoaded = mLoaded;
+            clonelist.mDescription = mDescription;
+            clonelist.mResFile = mResFile;
+            clonelist.mIsChanged = mIsChanged;
+            clonelist.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
             return clonelist;
         }
 
+        public void CloneFrom(WordList clonelist) {
+            int lngGrpNum;
+            string strWord;
+            WordGroup tmpGroup;
+            AGIWord tmpWord;
+
+            WinAGIException.ThrowIfNotLoaded(this);
+            WinAGIException.ThrowIfNotLoaded(clonelist);
+            mGroupCol = [];
+            foreach (WordGroup group in clonelist) {
+                tmpGroup = new WordGroup();
+                lngGrpNum = group.GroupNum;
+                tmpGroup.GroupNum = lngGrpNum;
+                mGroupCol.Add(lngGrpNum, tmpGroup);
+            }
+            mWordCol = new(new AGIWordComparer());
+            foreach (AGIWord word in clonelist.mWordCol.Values) {
+                strWord = word.WordText;
+                lngGrpNum = word.Group;
+                tmpWord.WordText = strWord;
+                tmpWord.Group = lngGrpNum;
+                mWordCol.Add(strWord, tmpWord);
+                mGroupCol[lngGrpNum].AddWordToGroup(strWord);
+            }
+            mDescription = clonelist.Description;
+            mResFile = clonelist.ResFile;
+            mIsChanged = clonelist.mIsChanged;
+            mCodePage = Encoding.GetEncoding(clonelist.mCodePage.CodePage);
+            mLoaded = true;
+        }
+        
         /// <summary>
         /// Clears this word list and sets all properties to default values.
         /// </summary>
         public void Clear() {
             WinAGIException.ThrowIfNotLoaded(this);
             mGroupCol = [];
-            mWordCol = [];
+            mWordCol = new(new AGIWordComparer());
             mDescription = "";
-            mIsDirty = true;
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -788,7 +841,7 @@ namespace WinAGI.Engine {
                 GroupNum = GroupNumber
             };
             mGroupCol.Add(GroupNumber, tmpGroup);
-            mIsDirty = true;
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -815,7 +868,7 @@ namespace WinAGI.Engine {
                 }
             }
             mGroupCol.Remove(GroupNumber);
-            mIsDirty = true;
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -850,7 +903,7 @@ namespace WinAGI.Engine {
             }
             // then re-add the group
             mGroupCol.Add(newgroupnum, tmpGroup);
-            mIsDirty = true;
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -874,7 +927,7 @@ namespace WinAGI.Engine {
 
             WinAGIException.ThrowIfNotLoaded(this);
             // convert input to lowercase
-            WordText = LowerAGI(WordText);
+            WordText = WordText.LowerAGI();
             // check to see if word is already in collection,
             if (mWordCol.ContainsKey(WordText)) {
                 WinAGIException wex = new(LoadResString(579)) {
@@ -896,7 +949,7 @@ namespace WinAGI.Engine {
             NewWord.WordText = WordText;
             NewWord.Group = Group;
             mWordCol.Add(WordText, NewWord);
-            mIsDirty = true;
+            mIsChanged = true;
         }
 
         /// <summary>
@@ -915,7 +968,7 @@ namespace WinAGI.Engine {
                 mGroupCol.Remove(tmpGroup.GroupNum);
             }
             mWordCol.Remove(aWord);
-            mIsDirty = true;
+            mIsChanged = true;
         }
         #endregion
 

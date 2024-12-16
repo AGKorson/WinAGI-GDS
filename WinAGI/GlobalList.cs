@@ -56,11 +56,16 @@ namespace WinAGI.Engine {
         /// Gets the change state of this defines list. Returns true if the
         /// list has not been changed.
         /// </summary>
-        public bool IsDirty {
+        public bool IsChanged {
             get {
-                // true if CRC shows file hasn't changed
-                DateTime dtFileMod = File.GetLastWriteTime(parent.agGameDir + "globals.txt");
-                return CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC;
+                if (File.Exists(parent.agGameDir + "globals.txt")) {
+                    // true if CRC shows file hasn't changed
+                    DateTime dtFileMod = File.GetLastWriteTime(parent.agGameDir + "globals.txt");
+                    return CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC;
+                }
+                else {
+                    return false;
+                }
             }
         }
 
@@ -75,7 +80,7 @@ namespace WinAGI.Engine {
         /// Loads the specified defines file, creating the defines list.
         /// </summary>
         internal void LoadGlobalDefines(string definefile) {
-            FileStream fsDefines;
+            FileStream fsDefines = null;
             StreamReader srDefines;
             string strLine;
             int i, gCount = 0;
@@ -83,6 +88,7 @@ namespace WinAGI.Engine {
             DateTime dtFileMod;
             agGlobalCRC = 0xffffffff;
 
+            agGlobal = [];
             // file must exist
             if (!File.Exists(definefile)) {
                 WinAGIException wex = new(LoadResString(524).Replace(ARG1, definefile)) {
@@ -92,7 +98,6 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             // file must not be readonly
-            // existing file can't be write-protected
             if ((File.GetAttributes(definefile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                 try {
                     File.SetAttributes(definefile, FileAttributes.Normal);
@@ -105,10 +110,8 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
             }
-            agGlobal = [];
             // open file for input
             try {
-                // open the config file in desired mode
                 fsDefines = new FileStream(definefile, FileMode.Open);
             }
             catch (Exception ex) {
@@ -117,6 +120,7 @@ namespace WinAGI.Engine {
                 };
                 wex.Data["exception"] = ex;
                 wex.Data["badfile"] = definefile;
+                fsDefines?.Dispose();
                 throw wex;
             }
             // if this is an empty file
@@ -124,6 +128,7 @@ namespace WinAGI.Engine {
                 WinAGIException wex = new(LoadResString(605).Replace(ARG1, definefile)) {
                     HResult = WINAGI_ERR + 605,
                 };
+                fsDefines.Dispose();
                 throw wex;
             }
             // grab the file data
@@ -134,27 +139,27 @@ namespace WinAGI.Engine {
                     break;
                 // strip off comment
                 string s = "";
-                strLine = LogicCompiler.StripComments(strLine, ref s);
+                strLine = StripComments(strLine, ref s);
                 if (strLine.Length != 0) {
                     if (strLine[..8] == "#define ") {
-                        strLine = strLine[8..];
+                        strLine = strLine[8..].Trim();
                         i = strLine.IndexOf(' ');
                         if (i != 0) {
-                            tdNewDefine.Name = strLine[..(i - 1)].Trim();
+                            tdNewDefine.Name = strLine[..i].Trim();
                             tdNewDefine.Value = strLine[i..].Trim();
                             // validate define name
                             DefineNameCheck chkName = LogicCompiler.ValidateNameGlobal(tdNewDefine);
                             switch (chkName) {
-                            case ncOK or
-                            ncReservedVar or
-                            ncReservedFlag or
-                            ncReservedNum or
-                            ncReservedObj or
-                            ncReservedStr or
-                            ncReservedMsg:
-                                DefineValueCheck chkValue = LogicCompiler.ValidateDefValue(tdNewDefine);
+                            case DefineNameCheck.OK or
+                            ReservedVar or
+                            ReservedFlag or
+                            ReservedNum or
+                            ReservedObj or
+                            ReservedStr or
+                            ReservedMsg:
+                                DefineValueCheck chkValue = LogicCompiler.ValidateDefValue(ref tdNewDefine);
                                 switch (chkValue) {
-                                case vcOK or vcReserved or vcGlobal:
+                                case DefineValueCheck.OK or Reserved or DefineValueCheck.Global:
                                     gCount++;
                                     Array.Resize(ref agGlobal, gCount);
                                     agGlobal[gCount - 1] = tdNewDefine;

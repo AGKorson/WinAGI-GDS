@@ -16,7 +16,6 @@ namespace WinAGI.Engine {
         internal byte mWidth;
         internal byte mHeight;
         internal AGIColorIndex mTransColor;
-        internal EGAColors colorEGA;
         internal byte[,] mCelData;
         internal int mIndex;
         /// <summary>
@@ -37,7 +36,8 @@ namespace WinAGI.Engine {
         /// mMirrored is true if the cel IS showing the mirror.
         /// </summary>
         bool mMirrored;
-        readonly View mParent;
+        readonly View parentview;
+        internal EGAColors mPalette;
         #endregion
 
         #region Constructors
@@ -47,12 +47,11 @@ namespace WinAGI.Engine {
         /// </summary>
         public Cel() {
             mCelData = new byte[1, 1];
-            mTransColor = agBlack;
-            mCelData[0,0] = (byte)agBlack;
+            mTransColor = Black;
+            mCelData[0,0] = (byte)Black;
             mWidth = 1;
             mHeight = 1;
-            // use default colors
-            colorEGA = defaultColorEGA;
+            mPalette = defaultPalette.CopyPalette();
         }
 
         /// <summary>
@@ -62,19 +61,14 @@ namespace WinAGI.Engine {
         /// <param name="parent"></param>
         internal Cel(View parent) {
             mCelData = new byte[1, 1];
-            mTransColor = agBlack;
-            mCelData[0, 0] = (byte)(agBlack);
+            mTransColor = Black;
+            mCelData[0, 0] = (byte)(Black);
             mWidth = 1;
             mHeight = 1;
-            mParent = parent;
-            // if parent view is part of a game, use the game's colors
-            if (mParent is not null) {
-                if (mParent.parent is not null) {
-                    colorEGA = mParent.parent.agEGAcolors;
-                }
-            }
-            // if not assigned to parent, use default
-            colorEGA ??= defaultColorEGA;
+            parentview = parent;
+            // assign default palette (for cels not attached to
+            // a view)
+            mPalette = defaultPalette.CopyPalette();
         }
         #endregion
 
@@ -121,8 +115,8 @@ namespace WinAGI.Engine {
                     mCelData[xPos, yPos] = value;
                 }
                 mCelChanged = true;
-                if (mParent is not null) {
-                    mParent.IsDirty = true;
+                if (parentview is not null) {
+                    parentview.mViewChanged = true;
                 }
             }
         }
@@ -179,8 +173,9 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
                 mCelData = value;
-                if (mParent is not null) {
-                    mParent.IsDirty = true;
+                if (parentview is not null) {
+                    // mark it as uncompiled
+                    parentview.mViewChanged = true;
                 }
                 mCelChanged = true;
             }
@@ -213,8 +208,9 @@ namespace WinAGI.Engine {
                     }
                     mCelData = tmpData;
                     mWidth = value;
-                    if (mParent is not null) {
-                        mParent.IsDirty = true;
+                    if (parentview is not null) {
+                        // mark it as uncompiled
+                        parentview.mViewChanged = true;
                     }
                     mCelChanged = true;
                 }
@@ -242,7 +238,7 @@ namespace WinAGI.Engine {
                         for (j = 0; j < value; j++) {
                             // if array grew, add transparent pixels
                             if (j >= mHeight) {
-                                mCelData[i, j] = (byte)mTransColor;
+                                tmpData[i, j] = (byte)mTransColor;
                             }
                             else {
                                 tmpData[i, j] = mCelData[i, j];
@@ -251,8 +247,9 @@ namespace WinAGI.Engine {
                     }
                     mCelData = tmpData;
                     mHeight = value;
-                    if (mParent is not null) {
-                        mParent.IsDirty = true;
+                    if (parentview is not null) {
+                        // mark it as uncompiled
+                        parentview.mViewChanged = true;
                     }
                     mCelChanged = true;
                 }
@@ -270,10 +267,11 @@ namespace WinAGI.Engine {
                 }
                 if (value != mTransColor) {
                     mTransColor = value;
-                    mCelChanged = true;
-                    if (mParent is not null) {
-                        mParent.IsDirty = true;
+                    if (parentview is not null) {
+                        // mark it as uncompiled
+                        parentview.mViewChanged = true;
                     }
+                    mCelChanged = true;
                 }
             }
         }
@@ -295,19 +293,29 @@ namespace WinAGI.Engine {
                 // set color palette to match current AGI palette
                 ColorPalette ncp = mCelBMP.Palette;
                 for (i = 0; i < 16; i++) {
-                    ncp.Entries[i] = Color.FromArgb(
-                        (mTransparency && i == (int)mTransColor) ? 0 : 255,
-                        colorEGA[i].R,
-                        colorEGA[i].G,
-                        colorEGA[i].B
-                    );
+                    if (parentview == null) {
+                        ncp.Entries[i] = Color.FromArgb(
+                            (mTransparency && i == (int)mTransColor) ? 0 : 255,
+                            mPalette[i].R,
+                            mPalette[i].G,
+                            mPalette[i].B
+                        );
+                    }
+                    else {
+                        ncp.Entries[i] = Color.FromArgb(
+                            (mTransparency && i == (int)mTransColor) ? 0 : 255,
+                            parentview.Palette[i].R,
+                            parentview.Palette[i].G,
+                            parentview.Palette[i].B
+                        );
+                    }
                 }
                 mCelBMP.Palette = ncp;
                 var BoundsRect = new Rectangle(0, 0, mWidth, mHeight);
                 // create access point for bitmap data
                 BitmapData bmpCelData = mCelBMP.LockBits(BoundsRect, ImageLockMode.WriteOnly, mCelBMP.PixelFormat);
                 IntPtr ptrVis = bmpCelData.Scan0;
-                // now we can create our custom data arrays
+                // now we can create the custom data arrays
                 // array size is determined by stride (bytes per row) and height
                 mCelBData = new byte[bmpCelData.Stride * mHeight];
                 // set cel mirror state to desired Value (determined by mSetMirror)
@@ -344,13 +352,28 @@ namespace WinAGI.Engine {
                 if (mTransparency != value) {
                     mTransparency = value;
                     mCelChanged = true;
-                    if (mParent is not null) {
-                        mParent.IsDirty = true;
+                    if (parentview is not null) {
+                        parentview.PropsChanged = true;
                     }
                 }
             }
         }
 
+        public EGAColors Palette {
+            get {
+                if (parentview != null) {
+                    return parentview.Palette;
+                }
+                else {
+                    return mPalette;
+                }
+            }
+            set {
+                if (parentview == null) {
+                    mPalette = value.CopyPalette();
+                }
+            }
+        }
         #endregion
 
         #region Methods
@@ -378,16 +401,51 @@ namespace WinAGI.Engine {
                 mMirrored = mMirrored,
                 blnCelBMPSet = blnCelBMPSet,
                 mTransparency = mTransparency,
-                mCelChanged = mCelChanged
+                mCelChanged = mCelChanged,
             };
-
+            if (parentview != null) {
+                // copy parent colors
+                CopyCel.mPalette = parentview.Palette.CopyPalette();
+            }
+            else {
+                // copy view colors
+                CopyCel.mPalette = mPalette.CopyPalette();
+            }
             if (mCelBMP is null) {
                 CopyCel.mCelBMP = null;
             }
             else {
                 CopyCel.mCelBMP = (Bitmap)mCelBMP.Clone();
             }
+            if (parentview != null) {
+                // mark it as uncompiled
+                parentview.mViewChanged = true;
+            }
             return CopyCel;
+        }
+
+        /// <summary>
+        /// Copies all data from SourceCel into this cel.
+        /// </summary>
+        /// <param name="SourceCel"></param>
+        public void CloneFrom(Cel SourceCel) {
+            mWidth = SourceCel.mWidth;
+            mHeight = SourceCel.mHeight;
+            mTransColor = SourceCel.mTransColor;
+            mCelData = SourceCel.mCelData;
+            mIndex = SourceCel.mIndex;
+            mSetMirror = SourceCel.mSetMirror;
+            mMirrored = SourceCel.mMirrored;
+            blnCelBMPSet = SourceCel.blnCelBMPSet;
+            mTransparency = SourceCel.mTransparency;
+            mCelChanged = SourceCel.mCelChanged;
+            mPalette = SourceCel.mPalette.CopyPalette();
+            if (SourceCel.mCelBMP is null) {
+                mCelBMP = null;
+            }
+            else {
+            mCelBMP = (Bitmap)SourceCel.mCelBMP.Clone();
+            }
         }
 
         /// <summary>
@@ -398,35 +456,35 @@ namespace WinAGI.Engine {
             blnCelBMPSet = false;
         }
 
-        /// <summary>
-        /// This cel is set to a copy of the specified cel by copying all its data
-        /// elements.
-        /// </summary>
-        /// <param name="SourceCel"></param>
-        public void SetCel(Cel SourceCel) {
-            int i, j;
-            AGIColorIndex tmpColor;
+        ///// <summary>
+        ///// This cel is set to a copy of the specified cel by copying all its data
+        ///// elements.
+        ///// </summary>
+        ///// <param name="SourceCel"></param>
+        //public void SetCel(Cel SourceCel) {
+        //    int i, j;
+        //    AGIColorIndex tmpColor;
 
-            mWidth = SourceCel.Width;
-            mHeight = SourceCel.Height;
-            mTransColor = SourceCel.TransColor;
-            AllCelData = SourceCel.AllCelData;
-            if (mSetMirror) {
-                // need to transpose data
-                for (i = 0; i < mWidth / 2; i++) {
-                    for (j = 0; j < mHeight; j++) {
-                        // swap horizontally
-                        tmpColor = (AGIColorIndex)mCelData[mWidth - 1 - i, j];
-                        mCelData[mWidth - 1 - i, j] = mCelData[i, j];
-                        mCelData[i, j] = (byte)tmpColor;
-                    }
-                }
-            }
-            if (mParent is not null) {
-                mParent.IsDirty = true;
-            }
-            mCelChanged = true;
-        }
+        //    mWidth = SourceCel.Width;
+        //    mHeight = SourceCel.Height;
+        //    mTransColor = SourceCel.TransColor;
+        //    AllCelData = SourceCel.AllCelData;
+        //    if (mSetMirror) {
+        //        // need to transpose data
+        //        for (i = 0; i < mWidth / 2; i++) {
+        //            for (j = 0; j < mHeight; j++) {
+        //                // swap horizontally
+        //                tmpColor = (AGIColorIndex)mCelData[mWidth - 1 - i, j];
+        //                mCelData[mWidth - 1 - i, j] = mCelData[i, j];
+        //                mCelData[i, j] = (byte)tmpColor;
+        //            }
+        //        }
+        //    }
+        //    if (mParent is not null) {
+        //        mParent.IsChanged = true;
+        //    }
+        //    mCelChanged = true;
+        //}
 
         /// <summary>
         /// This method flips the cel data in this cel horizontally.
@@ -447,11 +505,12 @@ namespace WinAGI.Engine {
                     tmpCelData[mWidth - 1 - i, j] = mCelData[i, j];
                 }
             }
-            mCelData = tmpCelData;
             mCelChanged = true;
-            if (mParent is not null) {
-                mParent.IsDirty = true;
+            if (parentview is not null) {
+                // mark it as uncompiled
+                parentview.mViewChanged = true;
             }
+            mCelData = tmpCelData;
         }
 
         /// <summary>
@@ -461,14 +520,15 @@ namespace WinAGI.Engine {
         public void Clear() {
             mHeight = 1;
             mWidth = 1;
-            mTransColor = agBlack;
+            mTransColor = Black;
             mCelData = new byte[1, 1];
-            mCelData[0, 0] = (byte)agBlack;
+            mCelData[0, 0] = (byte)Black;
             if (blnCelBMPSet) {
                 ClearBMP();
             }
-            if (mParent is not null) {
-                mParent.IsDirty = true;
+            if (parentview is not null) {
+                // mark it as uncompiled
+                parentview.mViewChanged = true;
             }
             mCelChanged = true;
         }

@@ -15,14 +15,15 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.AGIResType;
-using static WinAGI.Engine.ArgTypeEnum;
+using static WinAGI.Engine.ArgType;
 using static WinAGI.Editor.Base;
+using System.IO;
 
 namespace WinAGI.Editor {
     public partial class frmGlobals : Form {
         public bool InGame = false;
         public string FileName = "";
-        public bool IsDirty = false;
+        public bool IsChanged = false;
         bool blnDuplicates = false, blnReserved = false;
         private int EditRow;
         private ColType EditCol;
@@ -42,15 +43,556 @@ namespace WinAGI.Editor {
         // a blank, default globals editor
         public frmGlobals() {
             InitializeComponent();
+            MdiParent = MDIMain;
+            InitFonts();
         }
 
-        public frmGlobals(string name) {
-            //set ingame status first, so caption will indicate correctly
-            MdiParent = MDIMain;
-            InGame = true;
-            // loading function will handle any errors
-            LoadGlobalDefines(name);
+        //public frmGlobals(string name) {
+        //    InitializeComponent();
+        //    MdiParent = MDIMain;
+        //    InGame = true;
+        //    // loading function will handle any errors
+        //    LoadGlobalDefines(name);
+        //}
+        #region Event Handlers
+        #endregion
+
+        /// <summary>
+        /// loads the current global defines list into the grid for editing
+        /// </summary>
+        /// <param name="GlobalFile"></param>
+        /// <param name="ClearAll"></param>
+        public bool LoadGlobalDefines(string GlobalFile, bool ClearAll = true) {
+            int lngStartRow, lngInsertRow, Index, intFile;
+            bool blnTry, blnError;
+            string strComment = "", strLine;
+            string[] strSplitLine;
+            StringList stlGlobals;
+            TDefine[] tmpDefines = [];
+            GlobalsUndo NextUndo;
+
+            // Index is used to track the location where the next
+            // insertion should occur;
+            // lngInsertRow is what we pass to the validate function;
+            // if the define gets inserted, then lngInsertRow doesn't
+            // change
+            //
+            // if the define is a replacement, then lngInsertRow is
+            // set to the old line's value, and the new value is
+            // inserted either at Index (if the line being replaced
+            // comes AFTER Index) or at Index-1 (if the line being
+            // replaced comes BEFORE Index)
+
+            // line format should be
+            //  {#define name value [ comment} OR
+            //  {#define name value} OR
+            //  {name tab value}
+
+            // no edit row
+            EditRow = -1;
+
+
+            TDefine[] EditGlobals = [];
+            TDefine tmpDef = new();
+            int NumDefs = 0;
+            try {
+                // if no global file, just exit
+                if (!File.Exists(GlobalFile)) {
+                    return false;
+                }
+                //open file for input
+                using FileStream fsGlobal = new(GlobalFile, FileMode.Open);
+                using StreamReader srGlobal = new(fsGlobal);
+
+                //read in globals
+                while (!srGlobal.EndOfStream) {
+                    //get line
+                    strLine = srGlobal.ReadLine();
+                    //trim it - also, skip comments
+                    string cmt = "";
+                    strLine = StripComments(strLine, ref cmt, true);
+                    //ignore blanks
+                    if (strLine.Length != 0) {
+                        // TODO: ditch support for old format
+                        //even though new format is to match standard #define format,
+                        //still need to look for old format first just in case;
+                        //when saved, the file will be in the new format
+
+                        //assume not valid until we prove otherwise
+                        blnTry = false;
+
+                        //splitline into name and Value
+                        strSplitLine = strLine.Split((char)Keys.Tab);
+
+                        //if exactly two elements,
+                        if (strSplitLine.Length == 2) {
+                            tmpDef.Name = strSplitLine[0].Trim();
+                            tmpDef.Value = strSplitLine[1].Trim();
+                            blnTry = true;
+
+                            //not a valid global.txt; check for defines.txt
+                        }
+                        else {
+                            //tabs need to be replaced with spaces first
+                            strLine = strLine.Replace((char)Keys.Tab, ' ').Trim();
+                            if (strLine.Left(8).Equals("#define ", StringComparison.OrdinalIgnoreCase)) {
+                                //strip off the define statement
+                                strLine = strLine.Right(strLine.Length - 8).Trim();
+                                //extract define name
+                                int i = strLine.IndexOf(' ');
+                                if (i > 0) {
+                                    tmpDef.Name = strLine.Left(i);
+                                    strLine = strLine.Right(strLine.Length - i);
+                                    tmpDef.Value = strLine.Trim();
+                                    blnTry = true;
+                                }
+                            }
+                        }
+
+                        //if the line contains a define, add it to list
+                        //here we don't bother validating; if it's a bad
+                        //define, then user will have to deal with it;
+                        //it's only a tooltip at this point
+                        if (blnTry) {
+                            tmpDef.Type = DefTypeFromValue(tmpDef.Value);
+                            //increment count
+                            NumDefs++;
+                            Array.Resize(ref EditGlobals, NumDefs);
+                            EditGlobals[NumDefs - 1] = tmpDef;
+                        }
+                    }
+                }
+                //close file
+                fsGlobal.Dispose();
+                srGlobal.Dispose();
+            }
+            catch (Exception) {
+                //if error opening file, just exit
+                return false;
+            }
+            Text = "Global Defines Editor";
+            for (int i = 0; i < EditGlobals.Length; i++) {
+                lstGlobals.Items.Add(EditGlobals[i].Name + "    " + EditGlobals[i].Value + "     " + EditGlobals[i].Comment);
+            }
+
+
+            /*
+            if (ClearAll) {
+                // clear the flexgrid
+                ClearGlobalDefines();
+            }
+            else {
+                // remove last blank row (makes it easier to add new entries
+                // by just appending them to end of the list)
+                if (fgGlobals.TextMatrix(fgGlobals.Rows - 1, ColType.ctName) == "") {
+                    if (fgGlobals.Rows == 2) {
+                        // if this is last row, clear it
+                        ClearGlobalDefines();
+                    }
+                }
+                else {
+                    fgGlobals.RemoveItem(fgGlobals.Rows - 1);
+                }
+                // note the starting row so we can tell if nothing got inserted
+                // (it's one past last row because we deleted the blank row
+                // that's normally there)
+                lngStartRow = fgGlobals.Rows;
+
+                if (WinAGISettings.GlobalUndo != 0) {
+                    // setup the undo object
+                    NextUndo = new(GlobalsUndo);
+                    NextUndo.UDAction = udgImportDefines;
+                    NextUndo.UDPos = lngStartRow;
+                    tmpDefines = [];
+                }
+            }
+
+            // always try to add the line to the end
+            Index = fgGlobals.Rows;
+            // TODO: open file for input
+            stlGlobals = textfilereader(GlobalFile);
+            // read in globals
+            int CurLine = 0;
+            while (CurLine < stlGlobals.Count) {
+                // get next line
+                strLine = stlGlobals[CurLine++];
+                strLine = StripComments(strLine, strComment);
+                // ignore blanks
+                if (strLine.Length != 0) {
+                    // even though new format is to match standard #define format,
+                    // still need to look for old format first just in case;
+                    // when saved, the file will be in the new format
+
+                    // assume not valid until we prove otherwise
+                    blnTry = false;
+                    // splitline into name and Value
+                    strSplitLine = strLine.Split('\t');
+
+                    // if exactly two elements
+                    if (strSplitLine.Length == 2) {
+                        strSplitLine[0] = strSplitLine[0].Trim();
+                        strSplitLine[1] = strSplitLine[1].Trim();
+                        blnTry = true;
+                    }
+                    else {
+                        // not a valid global.txt; check for defines.txt
+                        // tabs need to be replaced with spaces first
+                        strLine = strLine.Replace('\t', ' ').Trim();
+                        if (Left(strLine, 8) == DEF_MARKER) {
+                            // set up splitline array
+                            strSplitLine = new string[2];
+                            // strip off the define statement
+                            strLine = Right(strLine, strLine.Length - 8).Trim();
+                            // extract define name
+                            i = strLine.IndexOf(' ');
+                            if (i != 0) {
+                                strSplitLine[0] = Left(strLine, i - 1);
+                              strLine = Right(strLine, strLine.Length - i).Trim();
+                                strSplitLine[1] = strLine;
+                                blnTry = true;
+                            }
+                        }
+                    }
+
+                    // if the line contains a define, validate and add it to grid
+                    if (blnTry) {
+                        // ''''''''''''''''''''''''''''''''''''
+                        //  this section nearly identical to
+                        //  the code in MenuClickPaste sub;
+                        // should consider a single function
+                        // (AddDefine); needs some work on
+                        // differences though; probably not
+                        // worth the effort
+                        // ''''''''''''''''''''''''''''''''''''
+                        lngInsertRow = Index;
+                        if (ValidateDefine(strSplitLine[0], strSplitLine[1], false, lngInsertRow)) {
+                            // if there is a comment, add it
+                            if (strComment.Length > 0) {
+                                fgGlobals.TextMatrix(lngInsertRow, ColType.ctComment) = strComment;
+                            }
+                            // if appending to the current list,
+                            // we need to deal with a possible undo action
+                            if (WinAGISettings.GlobalUndo != 0 && !ClearAll) {
+                                // if adding undo, we need to document what kind of
+                                // "add" was done; either an insert, or a replacement
+
+                                // ReDim Preserve tmpDefines(UBound(tmpDefines) + 1);
+
+                                // was it a replace? we can tell by checking lngInsertRow against Index
+                                if (lngInsertRow != Index) {
+                                    // it was a replacement - 
+                                    // save the define information that was replaced
+                                    tmpDefines[tmpDefines.Length - 1] = RepDefine;
+                                    // use type field to save the row removed and line inserted
+                                    tmpDefines[tmpDefines.Length - 1].Type = ((ArgTypeEnum)(lngInsertRow * 10000));
+                                    // and the index line were replacement was added
+                                    // (it will depend on whether or not the replaced
+                                    // line was before or after the insert position)
+                                    if (lngInsertRow < Index) {
+                                        tmpDefines[tmpDefines.Length - 1].Type = tmpDefines[tmpDefines.Length - 1].Type + Index - 1;
+                                    }
+                                    else {
+                                        tmpDefines[tmpDefines.Length - 1].Type = tmpDefines[tmpDefines.Length - 1].Type + Index;
+                                    }
+                                    // replacements always delete a row, so we need to
+                                    // adjust the starting line
+                                    lngStartRow--;
+                                }
+                                else {
+                                    // if just inserting, we only care about the position
+                                    tmpDefines[tmpDefines.Length - 1].Type = (ArgTypeEnum)Index;
+                                }
+                            }
+                            // if something was actually added (lngInsertRow didn't change)
+                            if (lngInsertRow == Index) {
+                                // increment index
+                                Index++;
+                            }
+                        }
+
+                        // ''''''''''''''''''''''''''''''''''''
+                        // done with try
+                    }
+                    // done with blank line
+                }
+            }
+            // always add one blank line to bottom
+            fgGlobals.AddItem("");
+
+            
+            // if clearing all (loading fresh)
+            if (ClearAll) {
+                // if something was added, select the first item
+                if (fgGlobals.Rows > 1) {
+                    // select name cel of first non-readonly row
+                    fgGlobals.Row = 1;
+                    fgGlobals.Col = ColType.ctName;
+                }
+                // list is clean
+                IsChanged = false;
+                FileName = GlobalFile;
+                // set caption
+                this.Text = "Global Defines - ";
+                if (EditGame != null) {
+                    Text += EditGame.GameID;
+                }
+                else {
+                    Text += FileName;
+                }
+            }
+            else {
+                // if anything was added, note it
+                if (fgGlobals.Rows > lngStartRow + 1) {
+                    // mark as changed
+                    MarkAsChanged();
+                    // ensure selected cell is visible
+                    fgGlobals.Row = lngStartRow;
+                    if (!fgGlobals.RowIsVisible(lngStartRow)) {
+                        fgGlobals.TopRow = lngStartRow;
+                    }
+                    // and add the undo object
+                    if (WinAGISettings.GlobalUndo != 0) {
+                        NextUndo.UDCount = fgGlobals.Rows - lngStartRow - 1;
+                        // if any defines were replaced, we need to add them to the undo object so
+                        // they can be restored during the undo process
+                        if (tmpDefines.Length > 0) {
+                            for (i = 1; i < tmpDefines.Length; i++) {
+                                NextUndo.UDDefine[i - 1] = tmpDefines[i];
+                            }
+                        }
+                        AddUndo(NextUndo);
+                    }
+                }
+                else {
+                    // unless there were duplicates, nothing was added
+                    if (!blnDuplicates) {
+                        MessageBox.Show(MDIMain, "There were no valid defines in the import file. No changes made to this defines list.", "No Defines Added", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+
+            // if errors
+            if (blnError) {
+                // inform user
+                MessageBox.Show(MDIMain, "An error occurred while loading the global defines file. Some entries may be missing or incorrect.", "Global Defines File Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // ensure at least one row
+                if (fgGlobals.Rows == 1) {
+                    fgGlobals.AddItem("");
+                }
+            }
+            // resize to ensure widths adjusted depending on whether
+            // or not scroll bar is visible
+            // Form_Resize
+
+            // if a defines.txt file was loaded, and warnings were generated,
+            if (blnDuplicates) {
+                // reset cursor
+                MDIMain.UseWaitCursor = false;
+                MessageBox.Show(MDIMain, "Some names in this global defines file had duplicate \n" +
+                            "definitions. Duplicate names have been replaced.", "Open Global Defines",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            //ErrHandler:
+            //  blnError = True
+            //  Resume Next
+
+            */
+            return true;
         }
+
+        public void MenuClickSave(bool Exporting = false) {
+            /*
+  'save list of globals
+  
+  Dim strTempFile As String, stlGlobals As StringList
+  Dim intFile As Integer
+  Dim i As Long
+  Dim tmpNode As Node, rtn As VbMsgBoxResult, blnDontAsk As Boolean
+  Dim tmpListItem As ListItem
+  Dim blnError As Boolean, blnChanged As Boolean
+  
+  On Error GoTo ErrHandler
+  
+  'if editing
+  If txtEditName.Visible Or txtEditValue.Visible Or txtEditComment.Visible Then
+    Exit Sub
+  End If
+  
+  'if this is a loaded games's list
+  If InGame Then
+    'replace any changed defines with new names
+    Select Case Settings.AutoUpdateDefines
+    Case 0
+      'get user's response
+      rtn = MsgBoxEx("Do you want to update all logics with any define names that have been changed?", vbQuestion + vbYesNo, "Update Logics?", WinAGIHelp, "htm\winagi\editingdefines.htm#edit", "Always take this action when saving the global defines list.", blnDontAsk)
+      If blnDontAsk Then
+        If rtn = vbYes Then
+          Settings.AutoUpdateDefines = 2
+        Else
+          Settings.AutoUpdateDefines = 1
+        End If
+        WinAGISettingsList.WriteSetting(sLOGICS, "AutoUpdateDefines", Settings.AutoUpdateDefines
+      End If
+    Case 1
+      rtn = vbNo
+    Case 2
+      rtn = vbYes
+    End Select
+
+    WaitCursor
+    
+    'if yes,
+    If rtn = vbYes Then
+      'step through all defines; if the current name is different than
+      'the original name, use replaceall to make the change
+      Load frmProgress
+      frmProgress.pgbStatus.Max = fgGlobals.Rows
+      frmProgress.pgbStatus.Value = 0
+      frmProgress.Caption = "Save Global Defines"
+      frmProgress.lblProgress.Caption = "Locating modified define names"
+      frmProgress.Show vbModeless, frmMDIMain
+      SafeDoEvents
+      
+      With fgGlobals
+        For i = 1 To .Rows - 2
+          frmProgress.pgbStatus.Value = i
+          frmProgress.lblProgress.Caption = "checking " & .TextMatrix(i, 1) & " ..."
+          'refresh on each iteration
+          If Len(.TextMatrix(i, 2)) > 0 Then
+            'if the original name (col0) is different from current name (col1)
+            'then we need to replace it
+            If .TextMatrix(i, 0) <> .TextMatrix(i, 1) Then
+              'mark changed
+              blnChanged = True
+              'new entries won't have a previous value to update
+              If Len(.TextMatrix(i, 0)) > 0 Then
+                WaitCursor
+                'always update names that have changed
+                ReplaceAll .TextMatrix(i, 0), .TextMatrix(i, 1), fdAll, True, True, flAll, rtGlobals
+              End If
+              'update original name
+              .TextMatrix(i, 0) = .TextMatrix(i, 1)
+              
+              'if the define value is NOT numeric or a text string
+              If Not IsNumeric(.TextMatrix(i, 2)) And Asc(.TextMatrix(i, 2)) <> 34 Then
+                WaitCursor
+                'also replace the values that match this define
+                ReplaceAll .TextMatrix(i, 2), .TextMatrix(i, 1), fdAll, True, True, flAll, rtGlobals
+              End If
+            End If
+          End If
+        Next i
+      End With
+    Else
+      'just save -
+      Load frmProgress
+      frmProgress.Caption = "Save Global Defines"
+      frmProgress.Show vbModeless, frmMDIMain
+    End If
+  Else
+    'not in a game; just save it
+    Load frmProgress
+    frmProgress.Caption = "Save Global Defines"
+    frmProgress.Show vbModeless, frmMDIMain
+  End If
+  
+  'done updating logics, now save the list
+  frmProgress.lblProgress.Caption = "Saving global defines file"
+  frmProgress.pgbStatus.Value = 0
+  frmProgress.pgbStatus.Max = fgGlobals.Rows - 1
+  SafeDoEvents
+
+  On Error GoTo ErrHandler
+  
+  ' show wait cursor again, while saving the globals
+  WaitCursor
+  
+  'build the file in a stringlist
+  Set stlGlobals = BuildGlobalsFile(InGame, True)
+  
+  'create the new file
+  strTempFile = TempFileName()
+  intFile = FreeFile()
+  
+  Open strTempFile For Output As intFile
+  
+  'add the file text
+  Print #intFile, stlGlobals.Text
+  
+  'close file
+  Close intFile
+  
+  On Error Resume Next
+  'erase any existing global file
+  Kill GameDir & "globals.txt"
+  
+  On Error GoTo ErrHandler
+  'copy tempfile to globals file
+  FileCopy strTempFile, FileName
+  
+  On Error Resume Next
+  'kill temp file
+  Kill strTempFile
+  
+  'if not exporting
+  If Not Exporting Then
+    'reset changed flag
+    IsChanged = False
+    
+    'set caption
+    Caption = "Global Defines - "
+    If InGame Then
+      Caption = Caption & GameID
+    Else
+      'not in game, just use filename
+      Caption = Caption & FileName
+    End If
+    'disable menu and toolbar button
+    frmMDIMain.mnuRSave.Enabled = False
+    frmMDIMain.Toolbar1.Buttons("save").Enabled = False
+  End If
+  
+  'some extra things to do when saving an InGame list
+  If InGame Then
+    'if at least one update
+    If blnChanged Then
+      'mark all as changed;
+      MakeAllChanged
+      ' agiTODO: need a strategy to only mark affected logics;
+      ' should be able to track what gets added, removed or
+      ' updated
+      '???isn't that already done? if nothing was replaced
+      ' then why do all logics have to be marked?
+    End If
+    
+    'let logic editors know
+    If LogicEditors.Count > 1 Then
+      For i = 1 To LogicEditors.Count
+        LogicEditors(i).IsChanged = True
+      Next i
+    End If
+  End If
+  
+  Unload frmProgress
+  
+  'restore cursor
+  Screen.MousePointer = vbDefault
+Exit Sub
+
+ErrHandler:
+  'something went wrong
+  '*'Debug.Assert False
+  If Not blnError Then
+    MsgBox "An error occurred while writing the global defines file. (Error number " & CStr(Err.Number) & "). You should check that the file manually by editing it as a text file.", vbCritical + vbOKOnly, "Global Defines File Error"
+  End If
+  Err.Clear
+  blnError = True
+  Resume Next
+End Sub
+            */
+        }
+
+        #region temp code
         void globalsfrmcode() {
             /*
 
@@ -76,8 +618,8 @@ namespace WinAGI.Editor {
 
     Private Sub AddUndo(NextUndo As GlobalsUndo)
 
-      If Not IsDirty Then
-        MarkAsDirty
+      If Not IsChanged Then
+        MarkAsChanged
       End If
 
       'remove old undo items until there is room for this one
@@ -295,7 +837,7 @@ namespace WinAGI.Editor {
       'if not loading (form isn't visible when loading)
       If Me.Visible Then
         'list has changed
-        MarkAsDirty
+        MarkAsChanged
       End If
 
     Exit Sub
@@ -324,11 +866,11 @@ namespace WinAGI.Editor {
       picComment.Font.Size = Settings.EFontSize
       lngRowHgt = picComment.TextHeight("")
     End Sub
-    Private Sub MarkAsDirty()
+    Private Sub MarkAsChanged()
 
-      If Not IsDirty Then
-        'set dirty flag
-        IsDirty = True
+      If Not IsChanged Then
+        'set IsChanged flag
+        IsChanged = True
 
         'enable menu and toolbar button
         frmMDIMain.mnuRSave.Enabled = True
@@ -933,198 +1475,690 @@ namespace WinAGI.Editor {
             */
         }
 
-        public void MenuClickSave(bool Exporting = false) {
+        void globalsfrmcode2() {
             /*
-  'save list of globals
-  
-  Dim strTempFile As String, stlGlobals As StringList
-  Dim intFile As Integer
-  Dim i As Long
-  Dim tmpNode As Node, rtn As VbMsgBoxResult, blnDontAsk As Boolean
-  Dim tmpListItem As ListItem
-  Dim blnError As Boolean, blnDirty As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  'if editing
-  If txtEditName.Visible Or txtEditValue.Visible Or txtEditComment.Visible Then
-    Exit Sub
-  End If
-  
-  'if this is a loaded games's list
-  If InGame Then
-    'replace any changed defines with new names
-    Select Case Settings.AutoUpdateDefines
-    Case 0
-      'get user's response
-      rtn = MsgBoxEx("Do you want to update all logics with any define names that have been changed?", vbQuestion + vbYesNo, "Update Logics?", WinAGIHelp, "htm\winagi\editingdefines.htm#edit", "Always take this action when saving the global defines list.", blnDontAsk)
-      If blnDontAsk Then
-        If rtn = vbYes Then
-          Settings.AutoUpdateDefines = 2
-        Else
-          Settings.AutoUpdateDefines = 1
-        End If
-        WriteAppSetting SettingsList, sLOGICS, "AutoUpdateDefines", Settings.AutoUpdateDefines
-      End If
-    Case 1
-      rtn = vbNo
-    Case 2
-      rtn = vbYes
-    End Select
 
-    WaitCursor
-    
-    'if yes,
-    If rtn = vbYes Then
-      'step through all defines; if the current name is different than
-      'the original name, use replaceall to make the change
-      Load frmProgress
-      frmProgress.pgbStatus.Max = fgGlobals.Rows
-      frmProgress.pgbStatus.Value = 0
-      frmProgress.Caption = "Save Global Defines"
-      frmProgress.lblProgress.Caption = "Locating modified define names"
-      frmProgress.Show vbModeless, frmMDIMain
-      SafeDoEvents
-      
-      With fgGlobals
-        For i = 1 To .Rows - 2
-          frmProgress.pgbStatus.Value = i
-          frmProgress.lblProgress.Caption = "checking " & .TextMatrix(i, 1) & " ..."
-          'refresh on each iteration
-          If Len(.TextMatrix(i, 2)) > 0 Then
-            'if the original name (col0) is different from current name (col1)
-            'then we need to replace it
-            If .TextMatrix(i, 0) <> .TextMatrix(i, 1) Then
-              'mark dirty
-              blnDirty = True
-              'new entries won't have a previous value to update
-              If Len(.TextMatrix(i, 0)) > 0 Then
-                WaitCursor
-                'always update names that have changed
-                ReplaceAll .TextMatrix(i, 0), .TextMatrix(i, 1), fdAll, True, True, flAll, rtGlobals
+        Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
+
+          On Error GoTo ErrHandler
+
+          'if right button
+          If Button = vbRightButton Then
+            'if edit menu is enabled
+            If frmMDIMain.mnuEdit.Enabled Then
+              'make sure this form is the active form
+              If Not (frmMDIMain.ActiveMdiChild Is Me) Then
+                'set focus before showing the menu
+                Me.SetFocus
               End If
-              'update original name
-              .TextMatrix(i, 0) = .TextMatrix(i, 1)
-              
-              'if the define value is NOT numeric or a text string
-              If Not IsNumeric(.TextMatrix(i, 2)) And Asc(.TextMatrix(i, 2)) <> 34 Then
-                WaitCursor
-                'also replace the values that match this define
-                ReplaceAll .TextMatrix(i, 2), .TextMatrix(i, 1), fdAll, True, True, flAll, rtGlobals
-              End If
+              'need doevents so form activation occurs BEFORE popup
+              'otherwise, errors will be generated because of menu
+              'adjustments that are made in the form_activate event
+              SafeDoEvents
+              'show edit menu
+              PopupMenu frmMDIMain.mnuEdit
             End If
           End If
-        Next i
-      End With
-    Else
-      'just save -
-      Load frmProgress
-      frmProgress.Caption = "Save Global Defines"
-      frmProgress.Show vbModeless, frmMDIMain
-    End If
-  Else
-    'not in a game; just save it
-    Load frmProgress
-    frmProgress.Caption = "Save Global Defines"
-    frmProgress.Show vbModeless, frmMDIMain
-  End If
-  
-  'done updating logics, now save the list
-  frmProgress.lblProgress.Caption = "Saving global defines file"
-  frmProgress.pgbStatus.Value = 0
-  frmProgress.pgbStatus.Max = fgGlobals.Rows - 1
-  SafeDoEvents
+        Exit Sub
 
-  On Error GoTo ErrHandler
-  
-  ' show wait cursor again, while saving the globals
-  WaitCursor
-  
-  'build the file in a stringlist
-  Set stlGlobals = BuildGlobalsFile(InGame, True)
-  
-  'create the new file
-  strTempFile = TempFileName()
-  intFile = FreeFile()
-  
-  Open strTempFile For Output As intFile
-  
-  'add the file text
-  Print #intFile, stlGlobals.Text
-  
-  'close file
-  Close intFile
-  
-  On Error Resume Next
-  'erase any existing global file
-  Kill GameDir & "globals.txt"
-  
-  On Error GoTo ErrHandler
-  'copy tempfile to globals file
-  FileCopy strTempFile, FileName
-  
-  On Error Resume Next
-  'kill temp file
-  Kill strTempFile
-  
-  'if not exporting
-  If Not Exporting Then
-    'reset dirty flag
-    IsDirty = False
-    
-    'set caption
-    Caption = "Global Defines - "
-    If InGame Then
-      Caption = Caption & GameID
-    Else
-      'not in game, just use filename
-      Caption = Caption & FileName
-    End If
-    'disable menu and toolbar button
-    frmMDIMain.mnuRSave.Enabled = False
-    frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-  End If
-  
-  'some extra things to do when saving an InGame list
-  If InGame Then
-    'if at least one update
-    If blnDirty Then
-      'mark all as dirty;
-      MakeAllDirty
-      ' agiTODO: need a strategy to only mark affected logics;
-      ' should be able to track what gets added, removed or
-      ' updated
-      '???isn't that already done? if nothing was replaced
-      ' then why do all logics have to be marked?
-    End If
-    
-    'let logic editors know
-    If LogicEditors.Count > 1 Then
-      For i = 1 To LogicEditors.Count
-        LogicEditors(i).ListDirty = True
-      Next i
-    End If
-  End If
-  
-  Unload frmProgress
-  
-  'restore cursor
-  Screen.MousePointer = vbDefault
-Exit Sub
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
 
-ErrHandler:
-  'something went wrong
-  '*'Debug.Assert False
-  If Not blnError Then
-    MsgBox "An error occurred while writing the global defines file. (Error number " & CStr(Err.Number) & "). You should check that the file manually by editing it as a text file.", vbCritical + vbOKOnly, "Global Defines File Error"
-  End If
-  Err.Clear
-  blnError = True
-  Resume Next
-End Sub
-            */
+        Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
+
+          Cancel = Not AskClose()
+        End Sub
+
+        Private Sub Form_Resize()
+
+          Dim OldWidth As Single
+
+          On Error GoTo ErrHandler
+
+          'use separate variables for managing minimum width/height
+          If ScaleWidth < MIN_WIDTH Then
+            CalcWidth = MIN_WIDTH
+          Else
+            CalcWidth = ScaleWidth
+          End If
+          If ScaleHeight < MIN_HEIGHT Then
+            CalcHeight = MIN_HEIGHT
+          Else
+            CalcHeight = ScaleHeight
+          End If
+
+          'if minimized or if the form is not visible
+          If Me.WindowState = vbMinimized Or Not Visible Then
+            Exit Sub
+          End If
+
+          'if restoring from minimize, activation may not have triggered
+          If MainStatusBar.Tag <> CStr(rtGlobals) Then
+            ActivateActions
+          End If
+
+          With fgGlobals
+            'save old width of grids
+            OldWidth = .Width
+
+            'resize grids
+            .Height = CalcHeight - 2 * ScreenTWIPSX
+            ' width depends on whether or not scrollbar is present
+            If ScrollBarVisible() Then
+              .Width = CalcWidth - 2 * ScreenTWIPSX
+            Else
+              .Width = CalcWidth
+            End If
+
+            'set splitter height
+            picSplit.Height = .Height
+
+            'if comment column is visible
+            If ShowComment Then
+              'ratio out new column width for name
+              .ColWidth(ctName) = .ColWidth(ctName) / OldWidth * .Width
+              If .ColWidth(ctName) < 36 * ScreenTWIPSX Then
+                .ColWidth(ctName) = 36 * ScreenTWIPSX
+              End If
+              'ratio out new column width for value
+              .ColWidth(ctValue) = .ColWidth(ctValue) / OldWidth * .Width
+              If .ColWidth(ctValue) < 36 * ScreenTWIPSX Then
+                .ColWidth(ctValue) = 36 * ScreenTWIPSX
+              End If
+
+              'set width of globals grid comment column
+              If ScrollBarVisible() Then
+                'take into account scrollbar
+                .ColWidth(ctComment) = .Width - .ColWidth(ctName) - .ColWidth(ctValue) - 17 * ScreenTWIPSX
+              Else
+                'no scrollbar
+                'set width of second column
+                .ColWidth(ctComment) = .Width - .ColWidth(ctName) - .ColWidth(ctValue) - 2 * ScreenTWIPSX
+              End If
+            Else
+              'ratio out new column width for name
+              .ColWidth(ctName) = .ColWidth(ctName) / OldWidth * .Width
+              If .ColWidth(ctName) < 36 * ScreenTWIPSX Then
+                .ColWidth(ctName) = 36 * ScreenTWIPSX
+              End If
+
+              'set width of globals grid Value column
+              If ScrollBarVisible() Then
+                'take into account scrollbar
+                .ColWidth(ctValue) = .Width - .ColWidth(ctName) - 17 * ScreenTWIPSX
+              Else
+                'no scrollbar
+                'set width of second column
+                .ColWidth(ctValue) = .Width - .ColWidth(ctName) - 2 * ScreenTWIPSX
+              End If
+            End If
+          End With
+
+          ' if editing a name
+          With txtEditName
+            If .Visible Then
+              .Move fgGlobals.CellLeft + CellIndentH, fgGlobals.CellTop + fgGlobals.Top + CellIndentV, fgGlobals.CellWidth - CellIndentH ', fgGlobals.CellHeight - CellIndentV
+            End If
+          End With
+
+          'if edting a value
+          With txtEditValue
+            If .Visible Then
+              .Move fgGlobals.CellLeft + CellIndentH, fgGlobals.CellTop + fgGlobals.Top + CellIndentV, fgGlobals.CellWidth - CellIndentH, fgGlobals.CellHeight - CellIndentV
+            End If
+          End With
+
+          ' if editing a comment
+          With txtEditComment
+            If .Visible Then
+              .Move fgGlobals.CellLeft + CellIndentH, fgGlobals.CellTop + fgGlobals.Top + CellIndentV, fgGlobals.CellWidth - CellIndentH, SendMessage(.hWnd, EM_GETLINECOUNT, 0, 0) * lngRowHgt
+            End If
+          End With
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+        Private Sub Form_Unload(Cancel As Integer)
+
+          Dim i As Long
+
+          'if in a game,
+          If InGame Then
+            'reset inuse flag
+            GEInUse = False
+            'release object
+            Set GlobalsEditor = Nothing
+          End If
+
+          'save position so it can be restored later if form
+          'is closed and then re-opened
+          With Me
+            GWState = .WindowState
+            If GWState = vbMaximized Then
+              'save non-max parameters
+              .WindowState = vbNormal
+            End If
+
+            GWLeft = .Left
+            GWTop = .Top
+            GWWidth = .Width
+            GWHeight = .Height
+          End With
+          GWShowComment = ShowComment
+
+          ' save column widths as a fraction of total grid width
+          GWNameFrac = fgGlobals.ColWidth(ctName) / fgGlobals.Width
+          GWValFrac = fgGlobals.ColWidth(ctValue) / fgGlobals.Width
+
+          ' setting values start out the same
+          Settings.GENameFrac = GWNameFrac
+          Settings.GEValFrac = GWValFrac
+          ' then adjust them based on what default showcomment value
+          'is compared to current comment value
+
+          'if default is three columns
+          If Settings.GEShowComment Then
+            'but currently showing two -need to have three columns
+            'on restart; assume comment will be 40%
+            If Not ShowComment Then
+              Settings.GENameFrac = Settings.GENameFrac * 0.6
+              Settings.GEValFrac = Settings.GEValFrac * 0.6
+              'if name value is too small
+              If Settings.GENameFrac < 0.1 Then
+                Settings.GENameFrac = 0.1
+                Settings.GEValFrac = 0.5
+              'if name value it too big
+              ElseIf Settings.GENameFrac > 0.5 Then
+                Settings.GENameFrac = 0.5
+                Settings.GEValFrac = 0.1
+              End If
+            End If
+          Else
+            'default is two - if currently showing three
+            If ShowComment Then
+              'ratio the name column based on just the two columns
+              Settings.GENameFrac = Settings.GENameFrac / (Settings.GENameFrac + Settings.GEValFrac)
+              'value column doesn't matter
+            End If
+          End If
+
+          'save the values
+          WinAGISettingsList.WriteSetting("Globals", "GENameFrac", Settings.GENameFrac
+          WinAGISettingsList.WriteSetting("Globals", "GEValFrac", Settings.GEValFrac
+
+          'destroy undocol
+          If UndoCol.Count > 0 Then
+            For i = UndoCol.Count To 1 Step -1
+              UndoCol.Remove i
+            Next i
+          End If
+          Set UndoCol = Nothing
+
+        #If DEBUGMODE <> 1 Then
+          'release subclass hook to flexgrid
+          SetWindowLong Me.fgGlobals.hWnd, GWL_WNDPROC, PrevFGWndProc
+        #End If 'need to check if this is last form
+          LastForm Me
+        End Sub
+
+        Private Sub picComment_DblClick()
+
+         'edit the underlying comment
+
+          picComment.Visible = False
+          fgGlobals_DblClick
+          'refresh the txtbox, then reset height again
+          txtEditComment.Refresh
+          txtEditComment.Height = SendMessage(txtEditComment.hWnd, EM_GETLINECOUNT, 0, 0) * lngRowHgt
+
+        End Sub
+
+
+        Private Sub picSelFrame_MouseDown(Index As Integer, Button As Integer, Shift As Integer, X As Single, Y As Single)
+          'pass focus to grid
+          fgGlobals.SetFocus
+        End Sub
+
+
+        Private Sub tmrTip_Timer()
+
+          'this function  displays a large tip window that
+          ' shows the full comment text
+
+          Dim lngRow As Long, lngCol As Long
+          Dim rtn As Long, mPos As POINTAPI, i As Long
+          Dim strLine As String, lngCount As Long
+
+          On Error GoTo ErrHandler
+
+          'always turn off timer so we don't recurse
+          tmrTip.Enabled = False
+
+          'if not active form
+          If Not frmMDIMain.ActiveMdiChild Is Me Then
+            Exit Sub
+          End If
+          'if editing
+          If txtEditName.Visible Or txtEditValue.Visible Or txtEditComment.Visible Then
+            Exit Sub
+          End If
+          'also exit if full row is selected
+          If fgGlobals.SelectionMode = flexSelectionByRow Then
+            Exit Sub
+          End If
+
+          'get the cursor position and figure out if it's over picVisual or picPriority
+          rtn = GetCursorPos(mPos)
+          'convert to flexgrid coordinates
+          rtn = ScreenToClient(fgGlobals.hWnd, mPos)
+          'if mouse is not over the grid
+          If (mPos.X * ScreenTWIPSX) > fgGlobals.Width Or (mPos.Y * ScreenTWIPSY) > fgGlobals.Height Then
+            Exit Sub
+          End If
+
+          'get row and col under the cursor
+          lngRow = fgGlobals.MouseRow
+          lngCol = fgGlobals.MouseCol
+
+          'only show tip if it's a comment and it's selected
+          If lngRow <> fgGlobals.RowSel Or lngCol <> fgGlobals.ColSel Or lngCol <> ctComment Then
+            Exit Sub
+          End If
+
+          '*'Debug.Assert lngCol = ctComment
+          If picComment.TextWidth(fgGlobals.TextMatrix(lngRow, lngCol)) > fgGlobals.ColWidth(ctComment) - 60 Then
+            'show tipbox with full comment
+            '
+            ' getting the tip box to show the text
+            ' exactly the same as the text box is not simple
+            ' best way is to assign text to the text box,
+            ' then use API calls to retrieve the text by
+            'line, which is then printed in the picturebox
+            With txtEditComment
+              .Text = fgGlobals.TextMatrix(lngRow, lngCol)
+              .Width = fgGlobals.CellWidth - CellIndentH
+              lngCount = SendMessage(.hWnd, EM_GETLINECOUNT, 0, 0)
+            End With
+            'size the picture box that holds the label
+            With picComment
+              .Width = fgGlobals.CellWidth - CellIndentH
+              .Height = lngRowHgt * (lngCount + 0.2)
+              .Cls
+              For i = 0 To lngCount - 1
+                'get index of beginning of this line
+                rtn = SendMessage(txtEditComment.hWnd, EM_LINEINDEX, i, 0)
+                'get length of this line
+                rtn = SendMessage(txtEditComment.hWnd, EM_LINELENGTH, rtn, 0)
+                'get text of this line
+                strLine = ChrW$(rtn And &HFF) & ChrW$(rtn \ &H100) & String$(rtn, 32)
+                rtn = SendMessageByString(txtEditComment.hWnd, EM_GETLINE, i, strLine)
+                strLine = Replace(strLine, ChrW$(0), vbNullString)
+                strLine = RTrim$(strLine)
+                'print the line
+                .CurrentX = 0
+                .CurrentY = i * lngRowHgt
+                picComment.Print strLine
+              Next i
+
+              'reposition it
+              .Top = (lngRow - fgGlobals.TopRow + 1) * fgGlobals.RowHeight(1) + fgGlobals.Top
+              .Left = 45 + fgGlobals.ColWidth(ctName) + fgGlobals.ColWidth(ctValue)
+              .Visible = True
+            End With
+          End If
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+        Private Sub txtEditComment_Change()
+
+            'adjust height if row count changed
+
+            Dim lngCount As Long
+
+            lngCount = SendMessage(txtEditComment.hWnd, EM_GETLINECOUNT, 0, 0)
+
+            If txtEditComment.Height <> lngCount * lngRowHgt Then
+              txtEditComment.Height = lngCount * lngRowHgt
+            End If
+        End Sub
+
+        Private Sub txtEditComment_KeyPress(KeyAscii As Integer)
+
+          Dim NextUndo As GlobalsUndo
+
+          On Error GoTo ErrHandler
+
+          Select Case KeyAscii
+          Case 9, 10, 13 'enter or tab
+            ' comments don't need to be validated; anything is fine
+
+            'hide the box
+            txtEditComment.Visible = False
+
+            'if changed
+            If fgGlobals.TextMatrix(EditRow, EditCol) <> txtEditComment.Text Then
+              'put the text back into grid
+              If Settings.GlobalUndo <> 0 Then
+                'add undo for a change in comment
+                Set NextUndo = New GlobalsUndo
+                With NextUndo
+                  .UDAction = udgEditComment
+                  .UDCount = 1
+                  'save the old value
+                  .UDPos = EditRow
+                  '*'Debug.Assert EditCol = ctComment
+                  .UDText = fgGlobals.TextMatrix(EditRow, ctComment)
+                End With
+                'add to undo
+                AddUndo NextUndo
+              End If
+            End If
+
+            'copy new comment to grid
+            fgGlobals.TextMatrix(EditRow, EditCol) = txtEditComment.Text
+
+            'change made; enable save
+            MarkAsChanged
+
+            'enter or tab moves to next row
+            'move to name column, next row
+            fgGlobals.Col = ctName
+            fgGlobals.Row = fgGlobals.Row + 1
+
+            'done editing; enable edit menu
+            SetEditMenu
+
+            'ignore key
+            KeyAscii = 0
+
+          Case 27 'escape
+            'hide textbox without saving text
+            txtEditComment.Visible = False
+
+            'ignore key
+            KeyAscii = 0
+
+          Case Else
+
+          End Select
+
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+
+        Private Sub txtEditComment_Validate(Cancel As Boolean)
+
+          'always copy text value back into grid, and then hide the text box
+
+          Dim NextUndo As GlobalsUndo
+
+          On Error GoTo ErrHandler
+
+          'hide the box
+          txtEditComment.Visible = False
+          'restore height
+          txtEditComment.Height = fgGlobals.CellHeight - CellIndentV
+
+          ' if the comment hasn't changed, just exit
+          If fgGlobals.TextMatrix(EditRow, EditCol) = txtEditComment.Text Then
+            Exit Sub
+          End If
+
+          'make change
+
+          'put the text back into grid
+          If Settings.GlobalUndo <> 0 Then
+            'add undo for a change in comment
+            Set NextUndo = New GlobalsUndo
+            With NextUndo
+              .UDAction = udgEditComment
+              .UDCount = 1
+              'save the old value
+              .UDPos = EditRow
+              '*'Debug.Assert EditCol = ctComment
+              .UDText = fgGlobals.TextMatrix(EditRow, ctComment)
+            End With
+            'add to undo
+            AddUndo NextUndo
+          End If
+
+          'copy new comment to grid
+          fgGlobals.TextMatrix(EditRow, EditCol) = txtEditComment.Text
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+        Private Sub txtEditName_Change()
+
+          On Error GoTo ErrHandler
+
+          'if this is last row,
+          If EditRow = fgGlobals.Rows - 1 Then
+            'begin inserting
+            Inserting = True
+
+            'add another row
+            fgGlobals.AddItem vbNullString
+            'adjust column widths by resizing
+            Form_Resize
+          End If
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+        Private Sub txtEditName_KeyPress(KeyAscii As Integer)
+
+          On Error GoTo ErrHandler
+
+          Select Case KeyAscii
+          Case 9, 10, 13 'enter or tab
+            'if result is valid,
+            If ValidateInput() Then
+              'if name is blank and input was valid,
+              'it means we want to delete this row
+              If Len(txtEditName.Text) = 0 Then
+                'delete this row
+                '(no undo if inserting)
+                RemoveRow EditRow, Inserting
+                'cancel the insert
+                Inserting = False
+              End If
+
+              'hide the box
+              txtEditName.Visible = False
+
+              'tab moves to next column and begins editing
+              'if inserting, also always move to next column
+              If Inserting Or (KeyAscii = 9) Then
+                'move to Value column
+                fgGlobals.Col = ctValue
+
+                'start another edit operation
+                fgGlobals_DblClick
+              Else
+                'reset menus
+                SetEditMenu
+              End If
+            Else
+              'need to force focus (might be a tab thing?)
+              txtEditName.SetFocus
+            End If
+
+            'ignore key
+            KeyAscii = 0
+
+          Case 27 'escape
+            'hide textbox without saving text
+            txtEditName.Visible = False
+
+            'ignore key
+            KeyAscii = 0
+
+            'if inserting, we need to cancel it
+            If Inserting Then
+              RemoveRow EditRow, True
+              'cancel the insert
+              Inserting = False
+            End If
+
+          End Select
+
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+        Private Sub txtEditName_LostFocus()
+
+          If MustEditValue Then
+            'move to Value column
+            fgGlobals.Col = ctValue
+
+            'start another edit operation
+            fgGlobals_DblClick
+          End If
+        End Sub
+
+
+        Private Sub txtEditName_Validate(Cancel As Boolean)
+
+          'this will handle cases where user tries to 'click' on something,
+
+          On Error GoTo ErrHandler
+          If Not txtEditName.Visible Then Exit Sub
+
+          'if OK, hide the text box
+          If ValidateInput() Then
+            'if name is blank and input was valid,
+            'it means we want to delete this row
+            If Len(txtEditName.Text) = 0 Then
+              'delete this row
+              '(no undo if inserting)
+              RemoveRow EditRow, Inserting
+              'cancel the insert
+              Inserting = False
+            End If
+
+            'hide the box
+            txtEditName.Visible = False
+          Else
+          'if not OK, cancel
+            Cancel = True
+          End If
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+        Private Sub txtEditValue_KeyPress(KeyAscii As Integer)
+
+          On Error GoTo ErrHandler
+
+          Select Case KeyAscii
+
+          Case 9, 10, 13 'enter or tab
+            'if result is valid,
+            If ValidateInput() Then
+              'hide the box
+              txtEditValue.Visible = False
+
+              'if comment column is visible
+              If ShowComment Then
+                'tab moves to comment column and begins editing
+                If KeyAscii = 9 Then
+                  'move to Value column
+                  fgGlobals.Col = ctComment
+
+                  'start another edit operation
+                  fgGlobals_DblClick
+                Else
+                  'reset menus
+                  SetEditMenu
+                End If
+              Else
+                'enter or tab moves to next row
+                'move to name column, next row
+                fgGlobals.Col = ctName
+                fgGlobals.Row = fgGlobals.Row + 1
+
+                'done editing; enable edit menu
+                SetEditMenu
+              End If
+            Else
+              'need to force focus (might be a tab thing?)
+              txtEditValue.SetFocus
+            End If
+
+            'ignore key
+            KeyAscii = 0
+
+          Case 27 'escape
+            'hide textbox without saving text
+            txtEditValue.Visible = False
+
+            'ignore key
+            KeyAscii = 0
+          End Select
+
+          'if new value is blank (can only happen if editing a new row)
+          'add a blank space as a place holder
+          If LenB(fgGlobals.TextMatrix(EditRow, ctValue)) = 0 Then
+            fgGlobals.TextMatrix(EditRow, ctValue) = Chr$(34) & " " & Chr$(34)
+          End If
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+        Private Sub txtEditValue_Validate(Cancel As Boolean)
+
+          'this will handle cases where user tries to 'click' on something,
+
+          If Not txtEditValue.Visible Then Exit Sub
+          On Error GoTo ErrHandler
+
+          'if OK, hide the text box
+          If ValidateInput() Then
+            txtEditValue.Visible = False
+          Else
+          'if not OK, cancel
+            Cancel = True
+          End If
+        Exit Sub
+
+        ErrHandler:
+          '*'Debug.Assert False
+          Resume Next
+        End Sub
+
+
+                */
         }
-
         void globalsfrmcode3() {
             /*
 Public Sub MenuClickSelectAll()
@@ -1281,8 +2315,8 @@ Public Sub MenuClickUndo()
   
   End Select
   
-  'always mark file as dirty after an undo
-  MarkAsDirty
+  'always mark file as changed after an undo
+  MarkAsChanged
   
 Exit Sub
 
@@ -1331,7 +2365,7 @@ Public Sub RemoveRow(ByVal RowIndex As Long, Optional ByVal DontUndo As Boolean 
   End If
   
   'list has changed
-  MarkAsDirty
+  MarkAsChanged
   
   'adjust column widths by resizing
   Form_Resize
@@ -1459,8 +2493,8 @@ Private Function AskClose() As Boolean
   
   On Error Resume Next
   
-  'if dirty
-  If IsDirty Then
+  'if changed
+  If IsChanged Then
     'ask if should save first
     rtn = MsgBox("Do you want to save changes to this global defines list?", vbQuestion + vbYesNoCancel, "Global Defines")
     
@@ -1657,7 +2691,7 @@ Private Sub SortGlobals(ByVal lngCol As Long, NextUndo As GlobalsUndo)
       End With
       
       blnSorted = True
-      MarkAsDirty
+      MarkAsChanged
     End If
   Next i
   
@@ -1769,7 +2803,7 @@ Private Function ValidateDefine(ByVal NewName As String, ByRef NewValue As Strin
         Settings.WarnDupGName = Not blnNoWarn
         'if now hiding, update settings file
         If Not Settings.WarnDupGName Then
-          WriteAppSetting SettingsList, sGENERAL, "WarnDupGName", Settings.WarnDupGName
+          WinAGISettingsList.WriteSetting(sGENERAL, "WarnDupGName", Settings.WarnDupGName
         End If
         
         If rtn = vbNo Then
@@ -1829,7 +2863,7 @@ Private Function ValidateDefine(ByVal NewName As String, ByRef NewValue As Strin
         Settings.WarnResOvrd = Not blnNoWarn
         'if now hiding update settings file
         If Not Settings.WarnResOvrd Then
-          WriteAppSetting SettingsList, sGENERAL, "WarnResOvrd", Settings.WarnResOvrd
+          WinAGISettingsList.WriteSetting(sGENERAL, "WarnResOvrd", Settings.WarnResOvrd
         End If
         
         If rtn = vbNo Then
@@ -1864,7 +2898,7 @@ Private Function ValidateDefine(ByVal NewName As String, ByRef NewValue As Strin
         
         'if now hiding update settings list
         If Not Settings.WarnDupGVal Then
-          WriteAppSetting SettingsList, sGENERAL, "WarnDupGVal", Settings.WarnDupGVal
+          WinAGISettingsList.WriteSetting(sGENERAL, "WarnDupGVal", Settings.WarnDupGVal
         End If
         
         If rtn = vbNo Then
@@ -1890,7 +2924,7 @@ Private Function ValidateDefine(ByVal NewName As String, ByRef NewValue As Strin
         
         'if now hiding update settings list
         If Not Settings.WarnInvalidStrVal Then
-          WriteAppSetting SettingsList, sGENERAL, "WarnInvalidStrVal", Settings.WarnInvalidStrVal
+          WinAGISettingsList.WriteSetting(sGENERAL, "WarnInvalidStrVal", Settings.WarnInvalidStrVal
         End If
         
         If rtn = vbNo Then
@@ -1911,7 +2945,7 @@ Private Function ValidateDefine(ByVal NewName As String, ByRef NewValue As Strin
         
         'if now hiding update settings list
         If Not Settings.WarnInvalidCtlVal Then
-          WriteAppSetting SettingsList, sGENERAL, "WarnInvalidCtlVal", Settings.WarnInvalidCtlVal
+          WinAGISettingsList.WriteSetting(sGENERAL, "WarnInvalidCtlVal", Settings.WarnInvalidCtlVal
         End If
         
         If rtn = vbNo Then
@@ -1950,7 +2984,7 @@ Private Function ValidateDefine(ByVal NewName As String, ByRef NewValue As Strin
   
   ' if not loading (form isn't visible yet)
   If Me.Visible Then
-    MarkAsDirty
+    MarkAsChanged
   End If
   'if this is a reserved define that needs to be marked
   If blnMark Then
@@ -2305,7 +3339,7 @@ Private Function ValidateInput() As Boolean
         If blnNoWarn Then
           If rtn = vbNo Then Settings.DelBlankG = 1
           If rtn = vbYes Then Settings.DelBlankG = 2
-          WriteAppSetting SettingsList, sGENERAL, "DelBlankG", Settings.DelBlankG
+          WinAGISettingsList.WriteSetting(sGENERAL, "DelBlankG", Settings.DelBlankG
         End If
       Case 1
         rtn = vbNo
@@ -2544,7 +3578,7 @@ Private Function ValidateInput() As Boolean
         
         'if now hiding update settings list
         If Not Settings.WarnDupGVal Then
-          WriteAppSetting SettingsList, sGENERAL, "WarnDupGVal", Settings.WarnDupGVal
+          WinAGISettingsList.WriteSetting(sGENERAL, "WarnDupGVal", Settings.WarnDupGVal
         End If
         
         If msgRtn = vbNo Then
@@ -2574,7 +3608,7 @@ Private Function ValidateInput() As Boolean
         
         'if now hiding update settings list
         If Not Settings.WarnInvalidStrVal Then
-          WriteAppSetting SettingsList, sGENERAL, "WarnInvalidStrVal", Settings.WarnInvalidStrVal
+          WinAGISettingsList.WriteSetting(sGENERAL, "WarnInvalidStrVal", Settings.WarnInvalidStrVal
         End If
         
         If msgRtn = vbNo Then
@@ -2600,7 +3634,7 @@ Private Function ValidateInput() As Boolean
         
         'if now hiding update settings list
         If Not Settings.WarnInvalidCtlVal Then
-          WriteAppSetting SettingsList, sGENERAL, "WarnInvalidCtlVal", Settings.WarnInvalidCtlVal
+          WinAGISettingsList.WriteSetting(sGENERAL, "WarnInvalidCtlVal", Settings.WarnInvalidCtlVal
         End If
         
         If msgRtn = vbNo Then
@@ -2705,8 +3739,8 @@ Private Function ValidateInput() As Boolean
     End If
   End If
   
-  'change made; file is dirty; enable save
-  MarkAsDirty
+  'change made; enable save
+  MarkAsChanged
   'valid;
   ValidateInput = True
 Exit Function
@@ -3536,7 +4570,7 @@ Private Sub ActivateActions()
 
   'adjust menus and statusbar
  '*'Debug.Print "AdjustMenus 51"
-  AdjustMenus rtGlobals, GameLoaded, True, IsDirty
+  AdjustMenus rtGlobals, GameLoaded, True, IsChanged
 
   'set edit menu
   SetEditMenu
@@ -3765,947 +4799,14 @@ ErrHandler:
 End Sub
 */
         }
-        /// <summary>
-        /// loads the current global defines list into the grid for editing
-        /// </summary>
-        /// <param name="GlobalFile"></param>
-        /// <param name="ClearAll"></param>
-        public void LoadGlobalDefines(string GlobalFile, bool ClearAll = true) {
-            int lngStartRow, lngInsertRow, Index, i, intFile;
-            bool blnTry, blnError;
-            string strComment = "", strLine;
-            string[] strSplitLine;
-            StringList stlGlobals;
-            TDefine[] tmpDefines = [];
-            GlobalsUndo NextUndo;
+        #endregion
 
-            // Index is used to track the location where the next
-            // insertion should occur;
-            // lngInsertRow is what we pass to the validate function;
-            // if the define gets inserted, then lngInsertRow doesn't
-            // change
-            //
-            // if the define is a replacement, then lngInsertRow is
-            // set to the old line's value, and the new value is
-            // inserted either at Index (if the line being replaced
-            // comes AFTER Index) or at Index-1 (if the line being
-            // replaced comes BEFORE Index)
-
-            // line format should be
-            //  {#define name value [ comment} OR
-            //  {#define name value} OR
-            //  {name tab value}
-
-            // no edit row
-            EditRow = -1;
-
-
-            Text = "Global Defines Editor";
-            /*
-            if (ClearAll) {
-                // clear the flexgrid
-                ClearGlobalDefines();
-            }
-            else {
-                // remove last blank row (makes it easier to add new entries
-                // by just appending them to end of the list)
-                if (fgGlobals.TextMatrix(fgGlobals.Rows - 1, ColType.ctName) == "") {
-                    if (fgGlobals.Rows == 2) {
-                        // if this is last row, clear it
-                        ClearGlobalDefines();
-                    }
-                }
-                else {
-                    fgGlobals.RemoveItem(fgGlobals.Rows - 1);
-                }
-                // note the starting row so we can tell if nothing got inserted
-                // (it's one past last row because we deleted the blank row
-                // that's normally there)
-                lngStartRow = fgGlobals.Rows;
-
-                if (WinAGISettings.GlobalUndo != 0) {
-                    // setup the undo object
-                    NextUndo = new(GlobalsUndo);
-                    NextUndo.UDAction = udgImportDefines;
-                    NextUndo.UDPos = lngStartRow;
-                    tmpDefines = [];
-                }
-            }
-
-            // always try to add the line to the end
-            Index = fgGlobals.Rows;
-            // TODO: open file for input
-            stlGlobals = textfilereader(GlobalFile);
-            // read in globals
-            int CurLine = 0;
-            while (CurLine < stlGlobals.Count) {
-                // get next line
-                strLine = stlGlobals[CurLine++];
-                strLine = StripComments(strLine, strComment);
-                // ignore blanks
-                if (strLine.Length != 0) {
-                    // even though new format is to match standard #define format,
-                    // still need to look for old format first just in case;
-                    // when saved, the file will be in the new format
-
-                    // assume not valid until we prove otherwise
-                    blnTry = false;
-                    // splitline into name and Value
-                    strSplitLine = strLine.Split('\t');
-
-                    // if exactly two elements
-                    if (strSplitLine.Length == 2) {
-                        strSplitLine[0] = strSplitLine[0].Trim();
-                        strSplitLine[1] = strSplitLine[1].Trim();
-                        blnTry = true;
-                    }
-                    else {
-                        // not a valid global.txt; check for defines.txt
-                        // tabs need to be replaced with spaces first
-                        strLine = strLine.Replace('\t', ' ').Trim();
-                        if (Left(strLine, 8) == DEF_MARKER) {
-                            // set up splitline array
-                            strSplitLine = new string[2];
-                            // strip off the define statement
-                            strLine = Right(strLine, strLine.Length - 8).Trim();
-                            // extract define name
-                            i = strLine.IndexOf(' ');
-                            if (i != 0) {
-                                strSplitLine[0] = Left(strLine, i - 1);
-                              strLine = Right(strLine, strLine.Length - i).Trim();
-                                strSplitLine[1] = strLine;
-                                blnTry = true;
-                            }
-                        }
-                    }
-
-                    // if the line contains a define, validate and add it to grid
-                    if (blnTry) {
-                        // ''''''''''''''''''''''''''''''''''''
-                        //  this section nearly identical to
-                        //  the code in MenuClickPaste sub;
-                        // should consider a single function
-                        // (AddDefine); needs some work on
-                        // differences though; probably not
-                        // worth the effort
-                        // ''''''''''''''''''''''''''''''''''''
-                        lngInsertRow = Index;
-                        if (ValidateDefine(strSplitLine[0], strSplitLine[1], false, lngInsertRow)) {
-                            // if there is a comment, add it
-                            if (strComment.Length > 0) {
-                                fgGlobals.TextMatrix(lngInsertRow, ColType.ctComment) = strComment;
-                            }
-                            // if appending to the current list,
-                            // we need to deal with a possible undo action
-                            if (WinAGISettings.GlobalUndo != 0 && !ClearAll) {
-                                // if adding undo, we need to document what kind of
-                                // "add" was done; either an insert, or a replacement
-
-                                // ReDim Preserve tmpDefines(UBound(tmpDefines) + 1);
-
-                                // was it a replace? we can tell by checking lngInsertRow against Index
-                                if (lngInsertRow != Index) {
-                                    // it was a replacement - 
-                                    // save the define information that was replaced
-                                    tmpDefines[tmpDefines.Length - 1] = RepDefine;
-                                    // use type field to save the row removed and line inserted
-                                    tmpDefines[tmpDefines.Length - 1].Type = ((ArgTypeEnum)(lngInsertRow * 10000));
-                                    // and the index line were replacement was added
-                                    // (it will depend on whether or not the replaced
-                                    // line was before or after the insert position)
-                                    if (lngInsertRow < Index) {
-                                        tmpDefines[tmpDefines.Length - 1].Type = tmpDefines[tmpDefines.Length - 1].Type + Index - 1;
-                                    }
-                                    else {
-                                        tmpDefines[tmpDefines.Length - 1].Type = tmpDefines[tmpDefines.Length - 1].Type + Index;
-                                    }
-                                    // replacements always delete a row, so we need to
-                                    // adjust the starting line
-                                    lngStartRow--;
-                                }
-                                else {
-                                    // if just inserting, we only care about the position
-                                    tmpDefines[tmpDefines.Length - 1].Type = (ArgTypeEnum)Index;
-                                }
-                            }
-                            // if something was actually added (lngInsertRow didn't change)
-                            if (lngInsertRow == Index) {
-                                // increment index
-                                Index++;
-                            }
-                        }
-
-                        // ''''''''''''''''''''''''''''''''''''
-                        // done with try
-                    }
-                    // done with blank line
-                }
-            }
-            // always add one blank line to bottom
-            fgGlobals.AddItem("");
-
-            
-            // if clearing all (loading fresh)
-            if (ClearAll) {
-                // if something was added, select the first item
-                if (fgGlobals.Rows > 1) {
-                    // select name cel of first non-readonly row
-                    fgGlobals.Row = 1;
-                    fgGlobals.Col = ColType.ctName;
-                }
-                // list is clean
-                IsDirty = false;
-                FileName = GlobalFile;
-                // set caption
-                this.Text = "Global Defines - ";
-                if (EditGame != null) {
-                    Text += EditGame.GameID;
-                }
-                else {
-                    Text += FileName;
-                }
-            }
-            else {
-                // if anything was added, note it
-                if (fgGlobals.Rows > lngStartRow + 1) {
-                    // mark as dirty
-                    MarkAsDirty();
-                    // ensure selected cell is visible
-                    fgGlobals.Row = lngStartRow;
-                    if (!fgGlobals.RowIsVisible(lngStartRow)) {
-                        fgGlobals.TopRow = lngStartRow;
-                    }
-                    // and add the undo object
-                    if (WinAGISettings.GlobalUndo != 0) {
-                        NextUndo.UDCount = fgGlobals.Rows - lngStartRow - 1;
-                        // if any defines were replaced, we need to add them to the undo object so
-                        // they can be restored during the undo process
-                        if (tmpDefines.Length > 0) {
-                            for (i = 1; i < tmpDefines.Length; i++) {
-                                NextUndo.UDDefine[i - 1] = tmpDefines[i];
-                            }
-                        }
-                        AddUndo(NextUndo);
-                    }
-                }
-                else {
-                    // unless there were duplicates, nothing was added
-                    if (!blnDuplicates) {
-                        MessageBox.Show(MDIMain, "There were no valid defines in the import file. No changes made to this defines list.", "No Defines Added", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-            }
-
-            // if errors
-            if (blnError) {
-                // inform user
-                MessageBox.Show(MDIMain, "An error occurred while loading the global defines file. Some entries may be missing or incorrect.", "Global Defines File Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                // ensure at least one row
-                if (fgGlobals.Rows == 1) {
-                    fgGlobals.AddItem("");
-                }
-            }
-            // resize to ensure widths adjusted depending on whether
-            // or not scroll bar is visible
-            // Form_Resize
-
-            // if a defines.txt file was loaded, and warnings were generated,
-            if (blnDuplicates) {
-                // reset cursor
-                MDIMain.UseWaitCursor = false;
-                MessageBox.Show(MDIMain, "Some names in this global defines file had duplicate \n" +
-                            "definitions. Duplicate names have been replaced.", "Open Global Defines",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            //ErrHandler:
-            //  blnError = True
-            //  Resume Next
-
-            */
+        internal void InitFonts() {
+            lstGlobals.Font = new Font(WinAGISettings.PreviewFontName.Value, WinAGISettings.PreviewFontSize.Value);
         }
-        void globalsfrmcode2() {
-            /*
 
-        Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-          On Error GoTo ErrHandler
-
-          'if right button
-          If Button = vbRightButton Then
-            'if edit menu is enabled
-            If frmMDIMain.mnuEdit.Enabled Then
-              'make sure this form is the active form
-              If Not (frmMDIMain.ActiveMdiChild Is Me) Then
-                'set focus before showing the menu
-                Me.SetFocus
-              End If
-              'need doevents so form activation occurs BEFORE popup
-              'otherwise, errors will be generated because of menu
-              'adjustments that are made in the form_activate event
-              SafeDoEvents
-              'show edit menu
-              PopupMenu frmMDIMain.mnuEdit
-            End If
-          End If
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-        Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
-
-          Cancel = Not AskClose()
-        End Sub
-
-        Private Sub Form_Resize()
-
-          Dim OldWidth As Single
-
-          On Error GoTo ErrHandler
-
-          'use separate variables for managing minimum width/height
-          If ScaleWidth < MIN_WIDTH Then
-            CalcWidth = MIN_WIDTH
-          Else
-            CalcWidth = ScaleWidth
-          End If
-          If ScaleHeight < MIN_HEIGHT Then
-            CalcHeight = MIN_HEIGHT
-          Else
-            CalcHeight = ScaleHeight
-          End If
-
-          'if minimized or if the form is not visible
-          If Me.WindowState = vbMinimized Or Not Visible Then
-            Exit Sub
-          End If
-
-          'if restoring from minimize, activation may not have triggered
-          If MainStatusBar.Tag <> CStr(rtGlobals) Then
-            ActivateActions
-          End If
-
-          With fgGlobals
-            'save old width of grids
-            OldWidth = .Width
-
-            'resize grids
-            .Height = CalcHeight - 2 * ScreenTWIPSX
-            ' width depends on whether or not scrollbar is present
-            If ScrollBarVisible() Then
-              .Width = CalcWidth - 2 * ScreenTWIPSX
-            Else
-              .Width = CalcWidth
-            End If
-
-            'set splitter height
-            picSplit.Height = .Height
-
-            'if comment column is visible
-            If ShowComment Then
-              'ratio out new column width for name
-              .ColWidth(ctName) = .ColWidth(ctName) / OldWidth * .Width
-              If .ColWidth(ctName) < 36 * ScreenTWIPSX Then
-                .ColWidth(ctName) = 36 * ScreenTWIPSX
-              End If
-              'ratio out new column width for value
-              .ColWidth(ctValue) = .ColWidth(ctValue) / OldWidth * .Width
-              If .ColWidth(ctValue) < 36 * ScreenTWIPSX Then
-                .ColWidth(ctValue) = 36 * ScreenTWIPSX
-              End If
-
-              'set width of globals grid comment column
-              If ScrollBarVisible() Then
-                'take into account scrollbar
-                .ColWidth(ctComment) = .Width - .ColWidth(ctName) - .ColWidth(ctValue) - 17 * ScreenTWIPSX
-              Else
-                'no scrollbar
-                'set width of second column
-                .ColWidth(ctComment) = .Width - .ColWidth(ctName) - .ColWidth(ctValue) - 2 * ScreenTWIPSX
-              End If
-            Else
-              'ratio out new column width for name
-              .ColWidth(ctName) = .ColWidth(ctName) / OldWidth * .Width
-              If .ColWidth(ctName) < 36 * ScreenTWIPSX Then
-                .ColWidth(ctName) = 36 * ScreenTWIPSX
-              End If
-
-              'set width of globals grid Value column
-              If ScrollBarVisible() Then
-                'take into account scrollbar
-                .ColWidth(ctValue) = .Width - .ColWidth(ctName) - 17 * ScreenTWIPSX
-              Else
-                'no scrollbar
-                'set width of second column
-                .ColWidth(ctValue) = .Width - .ColWidth(ctName) - 2 * ScreenTWIPSX
-              End If
-            End If
-          End With
-
-          ' if editing a name
-          With txtEditName
-            If .Visible Then
-              .Move fgGlobals.CellLeft + CellIndentH, fgGlobals.CellTop + fgGlobals.Top + CellIndentV, fgGlobals.CellWidth - CellIndentH ', fgGlobals.CellHeight - CellIndentV
-            End If
-          End With
-
-          'if edting a value
-          With txtEditValue
-            If .Visible Then
-              .Move fgGlobals.CellLeft + CellIndentH, fgGlobals.CellTop + fgGlobals.Top + CellIndentV, fgGlobals.CellWidth - CellIndentH, fgGlobals.CellHeight - CellIndentV
-            End If
-          End With
-
-          ' if editing a comment
-          With txtEditComment
-            If .Visible Then
-              .Move fgGlobals.CellLeft + CellIndentH, fgGlobals.CellTop + fgGlobals.Top + CellIndentV, fgGlobals.CellWidth - CellIndentH, SendMessage(.hWnd, EM_GETLINECOUNT, 0, 0) * lngRowHgt
-            End If
-          End With
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-        Private Sub Form_Unload(Cancel As Integer)
-
-          Dim i As Long
-
-          'if in a game,
-          If InGame Then
-            'reset inuse flag
-            GEInUse = False
-            'release object
-            Set GlobalsEditor = Nothing
-          End If
-
-          'save position so it can be restored later if form
-          'is closed and then re-opened
-          With Me
-            GWState = .WindowState
-            If GWState = vbMaximized Then
-              'save non-max parameters
-              .WindowState = vbNormal
-            End If
-
-            GWLeft = .Left
-            GWTop = .Top
-            GWWidth = .Width
-            GWHeight = .Height
-          End With
-          GWShowComment = ShowComment
-
-          ' save column widths as a fraction of total grid width
-          GWNameFrac = fgGlobals.ColWidth(ctName) / fgGlobals.Width
-          GWValFrac = fgGlobals.ColWidth(ctValue) / fgGlobals.Width
-
-          ' setting values start out the same
-          Settings.GENameFrac = GWNameFrac
-          Settings.GEValFrac = GWValFrac
-          ' then adjust them based on what default showcomment value
-          'is compared to current comment value
-
-          'if default is three columns
-          If Settings.GEShowComment Then
-            'but currently showing two -need to have three columns
-            'on restart; assume comment will be 40%
-            If Not ShowComment Then
-              Settings.GENameFrac = Settings.GENameFrac * 0.6
-              Settings.GEValFrac = Settings.GEValFrac * 0.6
-              'if name value is too small
-              If Settings.GENameFrac < 0.1 Then
-                Settings.GENameFrac = 0.1
-                Settings.GEValFrac = 0.5
-              'if name value it too big
-              ElseIf Settings.GENameFrac > 0.5 Then
-                Settings.GENameFrac = 0.5
-                Settings.GEValFrac = 0.1
-              End If
-            End If
-          Else
-            'default is two - if currently showing three
-            If ShowComment Then
-              'ratio the name column based on just the two columns
-              Settings.GENameFrac = Settings.GENameFrac / (Settings.GENameFrac + Settings.GEValFrac)
-              'value column doesn't matter
-            End If
-          End If
-
-          'save the values
-          WriteAppSetting SettingsList, "Globals", "GENameFrac", Settings.GENameFrac
-          WriteAppSetting SettingsList, "Globals", "GEValFrac", Settings.GEValFrac
-
-          'destroy undocol
-          If UndoCol.Count > 0 Then
-            For i = UndoCol.Count To 1 Step -1
-              UndoCol.Remove i
-            Next i
-          End If
-          Set UndoCol = Nothing
-
-        #If DEBUGMODE <> 1 Then
-          'release subclass hook to flexgrid
-          SetWindowLong Me.fgGlobals.hWnd, GWL_WNDPROC, PrevFGWndProc
-        #End If 'need to check if this is last form
-          LastForm Me
-        End Sub
-
-        Private Sub picComment_DblClick()
-
-         'edit the underlying comment
-
-          picComment.Visible = False
-          fgGlobals_DblClick
-          'refresh the txtbox, then reset height again
-          txtEditComment.Refresh
-          txtEditComment.Height = SendMessage(txtEditComment.hWnd, EM_GETLINECOUNT, 0, 0) * lngRowHgt
-
-        End Sub
-
-
-        Private Sub picSelFrame_MouseDown(Index As Integer, Button As Integer, Shift As Integer, X As Single, Y As Single)
-          'pass focus to grid
-          fgGlobals.SetFocus
-        End Sub
-
-
-        Private Sub tmrTip_Timer()
-
-          'this function  displays a large tip window that
-          ' shows the full comment text
-
-          Dim lngRow As Long, lngCol As Long
-          Dim rtn As Long, mPos As POINTAPI, i As Long
-          Dim strLine As String, lngCount As Long
-
-          On Error GoTo ErrHandler
-
-          'always turn off timer so we don't recurse
-          tmrTip.Enabled = False
-
-          'if not active form
-          If Not frmMDIMain.ActiveMdiChild Is Me Then
-            Exit Sub
-          End If
-          'if editing
-          If txtEditName.Visible Or txtEditValue.Visible Or txtEditComment.Visible Then
-            Exit Sub
-          End If
-          'also exit if full row is selected
-          If fgGlobals.SelectionMode = flexSelectionByRow Then
-            Exit Sub
-          End If
-
-          'get the cursor position and figure out if it's over picVisual or picPriority
-          rtn = GetCursorPos(mPos)
-          'convert to flexgrid coordinates
-          rtn = ScreenToClient(fgGlobals.hWnd, mPos)
-          'if mouse is not over the grid
-          If (mPos.X * ScreenTWIPSX) > fgGlobals.Width Or (mPos.Y * ScreenTWIPSY) > fgGlobals.Height Then
-            Exit Sub
-          End If
-
-          'get row and col under the cursor
-          lngRow = fgGlobals.MouseRow
-          lngCol = fgGlobals.MouseCol
-
-          'only show tip if it's a comment and it's selected
-          If lngRow <> fgGlobals.RowSel Or lngCol <> fgGlobals.ColSel Or lngCol <> ctComment Then
-            Exit Sub
-          End If
-
-          '*'Debug.Assert lngCol = ctComment
-          If picComment.TextWidth(fgGlobals.TextMatrix(lngRow, lngCol)) > fgGlobals.ColWidth(ctComment) - 60 Then
-            'show tipbox with full comment
-            '
-            ' getting the tip box to show the text
-            ' exactly the same as the text box is not simple
-            ' best way is to assign text to the text box,
-            ' then use API calls to retrieve the text by
-            'line, which is then printed in the picturebox
-            With txtEditComment
-              .Text = fgGlobals.TextMatrix(lngRow, lngCol)
-              .Width = fgGlobals.CellWidth - CellIndentH
-              lngCount = SendMessage(.hWnd, EM_GETLINECOUNT, 0, 0)
-            End With
-            'size the picture box that holds the label
-            With picComment
-              .Width = fgGlobals.CellWidth - CellIndentH
-              .Height = lngRowHgt * (lngCount + 0.2)
-              .Cls
-              For i = 0 To lngCount - 1
-                'get index of beginning of this line
-                rtn = SendMessage(txtEditComment.hWnd, EM_LINEINDEX, i, 0)
-                'get length of this line
-                rtn = SendMessage(txtEditComment.hWnd, EM_LINELENGTH, rtn, 0)
-                'get text of this line
-                strLine = ChrW$(rtn And &HFF) & ChrW$(rtn \ &H100) & String$(rtn, 32)
-                rtn = SendMessageByString(txtEditComment.hWnd, EM_GETLINE, i, strLine)
-                strLine = Replace(strLine, ChrW$(0), vbNullString)
-                strLine = RTrim$(strLine)
-                'print the line
-                .CurrentX = 0
-                .CurrentY = i * lngRowHgt
-                picComment.Print strLine
-              Next i
-
-              'reposition it
-              .Top = (lngRow - fgGlobals.TopRow + 1) * fgGlobals.RowHeight(1) + fgGlobals.Top
-              .Left = 45 + fgGlobals.ColWidth(ctName) + fgGlobals.ColWidth(ctValue)
-              .Visible = True
-            End With
-          End If
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-        Private Sub txtEditComment_Change()
-
-            'adjust height if row count changed
-
-            Dim lngCount As Long
-
-            lngCount = SendMessage(txtEditComment.hWnd, EM_GETLINECOUNT, 0, 0)
-
-            If txtEditComment.Height <> lngCount * lngRowHgt Then
-              txtEditComment.Height = lngCount * lngRowHgt
-            End If
-        End Sub
-
-        Private Sub txtEditComment_KeyPress(KeyAscii As Integer)
-
-          Dim NextUndo As GlobalsUndo
-
-          On Error GoTo ErrHandler
-
-          Select Case KeyAscii
-          Case 9, 10, 13 'enter or tab
-            ' comments don't need to be validated; anything is fine
-
-            'hide the box
-            txtEditComment.Visible = False
-
-            'if changed
-            If fgGlobals.TextMatrix(EditRow, EditCol) <> txtEditComment.Text Then
-              'put the text back into grid
-              If Settings.GlobalUndo <> 0 Then
-                'add undo for a change in comment
-                Set NextUndo = New GlobalsUndo
-                With NextUndo
-                  .UDAction = udgEditComment
-                  .UDCount = 1
-                  'save the old value
-                  .UDPos = EditRow
-                  '*'Debug.Assert EditCol = ctComment
-                  .UDText = fgGlobals.TextMatrix(EditRow, ctComment)
-                End With
-                'add to undo
-                AddUndo NextUndo
-              End If
-            End If
-
-            'copy new comment to grid
-            fgGlobals.TextMatrix(EditRow, EditCol) = txtEditComment.Text
-
-            'change made; file is dirty; enable save
-            MarkAsDirty
-
-            'enter or tab moves to next row
-            'move to name column, next row
-            fgGlobals.Col = ctName
-            fgGlobals.Row = fgGlobals.Row + 1
-
-            'done editing; enable edit menu
-            SetEditMenu
-
-            'ignore key
-            KeyAscii = 0
-
-          Case 27 'escape
-            'hide textbox without saving text
-            txtEditComment.Visible = False
-
-            'ignore key
-            KeyAscii = 0
-
-          Case Else
-
-          End Select
-
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-
-        Private Sub txtEditComment_Validate(Cancel As Boolean)
-
-          'always copy text value back into grid, and then hide the text box
-
-          Dim NextUndo As GlobalsUndo
-
-          On Error GoTo ErrHandler
-
-          'hide the box
-          txtEditComment.Visible = False
-          'restore height
-          txtEditComment.Height = fgGlobals.CellHeight - CellIndentV
-
-          ' if the comment hasn't changed, just exit
-          If fgGlobals.TextMatrix(EditRow, EditCol) = txtEditComment.Text Then
-            Exit Sub
-          End If
-
-          'make change
-
-          'put the text back into grid
-          If Settings.GlobalUndo <> 0 Then
-            'add undo for a change in comment
-            Set NextUndo = New GlobalsUndo
-            With NextUndo
-              .UDAction = udgEditComment
-              .UDCount = 1
-              'save the old value
-              .UDPos = EditRow
-              '*'Debug.Assert EditCol = ctComment
-              .UDText = fgGlobals.TextMatrix(EditRow, ctComment)
-            End With
-            'add to undo
-            AddUndo NextUndo
-          End If
-
-          'copy new comment to grid
-          fgGlobals.TextMatrix(EditRow, EditCol) = txtEditComment.Text
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-        Private Sub txtEditName_Change()
-
-          On Error GoTo ErrHandler
-
-          'if this is last row,
-          If EditRow = fgGlobals.Rows - 1 Then
-            'begin inserting
-            Inserting = True
-
-            'add another row
-            fgGlobals.AddItem vbNullString
-            'adjust column widths by resizing
-            Form_Resize
-          End If
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-        Private Sub txtEditName_KeyPress(KeyAscii As Integer)
-
-          On Error GoTo ErrHandler
-
-          Select Case KeyAscii
-          Case 9, 10, 13 'enter or tab
-            'if result is valid,
-            If ValidateInput() Then
-              'if name is blank and input was valid,
-              'it means we want to delete this row
-              If Len(txtEditName.Text) = 0 Then
-                'delete this row
-                '(no undo if inserting)
-                RemoveRow EditRow, Inserting
-                'cancel the insert
-                Inserting = False
-              End If
-
-              'hide the box
-              txtEditName.Visible = False
-
-              'tab moves to next column and begins editing
-              'if inserting, also always move to next column
-              If Inserting Or (KeyAscii = 9) Then
-                'move to Value column
-                fgGlobals.Col = ctValue
-
-                'start another edit operation
-                fgGlobals_DblClick
-              Else
-                'reset menus
-                SetEditMenu
-              End If
-            Else
-              'need to force focus (might be a tab thing?)
-              txtEditName.SetFocus
-            End If
-
-            'ignore key
-            KeyAscii = 0
-
-          Case 27 'escape
-            'hide textbox without saving text
-            txtEditName.Visible = False
-
-            'ignore key
-            KeyAscii = 0
-
-            'if inserting, we need to cancel it
-            If Inserting Then
-              RemoveRow EditRow, True
-              'cancel the insert
-              Inserting = False
-            End If
-
-          End Select
-
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-        Private Sub txtEditName_LostFocus()
-
-          If MustEditValue Then
-            'move to Value column
-            fgGlobals.Col = ctValue
-
-            'start another edit operation
-            fgGlobals_DblClick
-          End If
-        End Sub
-
-
-        Private Sub txtEditName_Validate(Cancel As Boolean)
-
-          'this will handle cases where user tries to 'click' on something,
-
-          On Error GoTo ErrHandler
-          If Not txtEditName.Visible Then Exit Sub
-
-          'if OK, hide the text box
-          If ValidateInput() Then
-            'if name is blank and input was valid,
-            'it means we want to delete this row
-            If Len(txtEditName.Text) = 0 Then
-              'delete this row
-              '(no undo if inserting)
-              RemoveRow EditRow, Inserting
-              'cancel the insert
-              Inserting = False
-            End If
-
-            'hide the box
-            txtEditName.Visible = False
-          Else
-          'if not OK, cancel
-            Cancel = True
-          End If
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-        Private Sub txtEditValue_KeyPress(KeyAscii As Integer)
-
-          On Error GoTo ErrHandler
-
-          Select Case KeyAscii
-
-          Case 9, 10, 13 'enter or tab
-            'if result is valid,
-            If ValidateInput() Then
-              'hide the box
-              txtEditValue.Visible = False
-
-              'if comment column is visible
-              If ShowComment Then
-                'tab moves to comment column and begins editing
-                If KeyAscii = 9 Then
-                  'move to Value column
-                  fgGlobals.Col = ctComment
-
-                  'start another edit operation
-                  fgGlobals_DblClick
-                Else
-                  'reset menus
-                  SetEditMenu
-                End If
-              Else
-                'enter or tab moves to next row
-                'move to name column, next row
-                fgGlobals.Col = ctName
-                fgGlobals.Row = fgGlobals.Row + 1
-
-                'done editing; enable edit menu
-                SetEditMenu
-              End If
-            Else
-              'need to force focus (might be a tab thing?)
-              txtEditValue.SetFocus
-            End If
-
-            'ignore key
-            KeyAscii = 0
-
-          Case 27 'escape
-            'hide textbox without saving text
-            txtEditValue.Visible = False
-
-            'ignore key
-            KeyAscii = 0
-          End Select
-
-          'if new value is blank (can only happen if editing a new row)
-          'add a blank space as a place holder
-          If LenB(fgGlobals.TextMatrix(EditRow, ctValue)) = 0 Then
-            fgGlobals.TextMatrix(EditRow, ctValue) = Chr$(34) & " " & Chr$(34)
-          End If
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-        Private Sub txtEditValue_Validate(Cancel As Boolean)
-
-          'this will handle cases where user tries to 'click' on something,
-
-          If Not txtEditValue.Visible Then Exit Sub
-          On Error GoTo ErrHandler
-
-          'if OK, hide the text box
-          If ValidateInput() Then
-            txtEditValue.Visible = False
-          Else
-          'if not OK, cancel
-            Cancel = True
-          End If
-        Exit Sub
-
-        ErrHandler:
-          '*'Debug.Assert False
-          Resume Next
-        End Sub
-
-
-                */
+        private void frmGlobals_FormClosing(object sender, FormClosingEventArgs e) {
+            GEInUse = false;
         }
     }
 }

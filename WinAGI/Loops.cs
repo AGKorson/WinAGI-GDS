@@ -110,7 +110,7 @@ namespace WinAGI.Engine {
                 mLoopCol[i].Index = (byte)i;
             }
             if (mParent is not null) {
-                mParent.IsDirty = true;
+                mParent.IsChanged = true;
             }
             return agNewLoop;
         }
@@ -152,7 +152,7 @@ namespace WinAGI.Engine {
                 }
             }
             if (mParent is not null) {
-                mParent.IsDirty = true;
+                mParent.IsChanged = true;
             }
         }
 
@@ -168,6 +168,18 @@ namespace WinAGI.Engine {
             }
             return CopyLoops;
             // TODO: need to confirm loops and cels clone correctly
+        }
+
+        /// <summary>
+        /// Copies data from SourceLoops into this loop collection.
+        /// </summary>
+        /// <param name="SourceLoops"></param>
+        public void CloneFrom(Loops SourceLoops) {
+            mLoopCol = [];
+            for (int i = 0; i < SourceLoops.mLoopCol.Count; i++) {
+                mLoopCol.Add(new Loop(mParent));
+                mLoopCol[i].CloneFrom(SourceLoops[i]);
+            }
         }
         #endregion
 

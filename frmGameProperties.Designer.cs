@@ -203,7 +203,7 @@
             label5.AutoSize = true;
             label5.Location = new System.Drawing.Point(220, 180);
             label5.Name = "label5";
-            label5.Size = new System.Drawing.Size(153, 15);
+            label5.Size = new System.Drawing.Size(152, 15);
             label5.TabIndex = 9;
             label5.Text = "Logic Source File Extension:";
             // 
@@ -251,7 +251,7 @@
             label2.AutoSize = true;
             label2.Location = new System.Drawing.Point(220, 19);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(141, 15);
+            label2.Size = new System.Drawing.Size(142, 15);
             label2.TabIndex = 2;
             label2.Text = "Target Interpreter Version:";
             // 
@@ -449,7 +449,7 @@
             lblPlatformFile.AutoSize = true;
             lblPlatformFile.Location = new System.Drawing.Point(19, 223);
             lblPlatformFile.Name = "lblPlatformFile";
-            lblPlatformFile.Size = new System.Drawing.Size(113, 15);
+            lblPlatformFile.Size = new System.Drawing.Size(112, 15);
             lblPlatformFile.TabIndex = 1;
             lblPlatformFile.Text = "Platform Executable";
             // 
@@ -498,7 +498,7 @@
             lblExec.AutoSize = true;
             lblExec.Location = new System.Drawing.Point(34, 73);
             lblExec.Name = "lblExec";
-            lblExec.Size = new System.Drawing.Size(90, 15);
+            lblExec.Size = new System.Drawing.Size(89, 15);
             lblExec.TabIndex = 2;
             lblExec.Text = "DOS Executable";
             // 
@@ -549,7 +549,7 @@
             optDosBox.AutoSize = true;
             optDosBox.Location = new System.Drawing.Point(16, 49);
             optDosBox.Name = "optDosBox";
-            optDosBox.Size = new System.Drawing.Size(68, 19);
+            optDosBox.Size = new System.Drawing.Size(67, 19);
             optDosBox.TabIndex = 1;
             optDosBox.TabStop = true;
             optDosBox.Tag = "#executable";
@@ -577,7 +577,7 @@
             chkSierraSyntax.AutoSize = true;
             chkSierraSyntax.Location = new System.Drawing.Point(19, 324);
             chkSierraSyntax.Name = "chkSierraSyntax";
-            chkSierraSyntax.Size = new System.Drawing.Size(115, 19);
+            chkSierraSyntax.Size = new System.Drawing.Size(114, 19);
             chkSierraSyntax.TabIndex = 3;
             chkSierraSyntax.Tag = "#sierrasrc";
             chkSierraSyntax.Text = "Use Sierra Syntax";
@@ -627,8 +627,6 @@
             Name = "frmGameProperties";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "frmGameProperties";
-            Load += frmGameProperties_Load;
-            VisibleChanged += frmGameProperties_VisibleChanged;
             tabControl1.ResumeLayout(false);
             General.ResumeLayout(false);
             General.PerformLayout();
@@ -665,7 +663,6 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox textBox4;
         internal System.Windows.Forms.TextBox txtGameAuthor;
         internal System.Windows.Forms.TextBox txtGameDescription;
         internal System.Windows.Forms.TextBox txtGameAbout;
@@ -673,7 +670,6 @@
         private System.Windows.Forms.Label lblOptions;
         private System.Windows.Forms.Label lblPlatformFile;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.RadioButton radioButton3;
         private System.Windows.Forms.Label lblExec;
         internal System.Windows.Forms.RadioButton optDosBox;
         internal System.Windows.Forms.RadioButton optNAGI;

@@ -18,8 +18,9 @@ namespace WinAGI.Engine {
         uint mCompiledCRC;
         uint mCRC;
         int mCodeSize;
-        bool mSourceDirty;
+        bool mSourceChanged;
         bool mIsRoom;
+        Encoding mCodePage = Encoding.GetEncoding(Base.CodePage.CodePage);
         #endregion
 
         #region Constructors
@@ -47,6 +48,7 @@ namespace WinAGI.Engine {
                 // make sure isroom flag is false
                 mIsRoom = false;
             }
+            mCodePage = Encoding.GetEncoding(parent.agCodePage.CodePage);
         }
 
         /// <summary>
@@ -65,7 +67,7 @@ namespace WinAGI.Engine {
             // get rest of properties
             mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
             mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
-            SourceFile = parent.agResDir + mResID + parent.agSrcFileExt;
+            SourceFile = parent.agResDir + mResID + "." + parent.agSrcFileExt;
             if (ResNum == 0) {
                 // logic0 can never be a room
                 mIsRoom = false;
@@ -87,8 +89,8 @@ namespace WinAGI.Engine {
                 // save old to be able to rename the source file
                 string oldID = base.ID;
                 base.ID = value;
-                if (mInGame && oldID != null && oldID.Length > 0) {
-                    SafeFileMove(parent.agResDir + oldID + parent.agSrcFileExt, parent.agResDir + base.ID + parent.agSrcFileExt, true);
+                if (mInGame && oldID != null && oldID.Length > 0 && oldID != value) {
+                    SafeFileMove(parent.agResDir + oldID + "." + parent.agSrcFileExt, parent.agResDir + base.ID + "." + parent.agSrcFileExt, true);
                 }
             }
         }
@@ -112,13 +114,14 @@ namespace WinAGI.Engine {
                 return mIsRoom;
             }
             set {
-                // ignore if in a game and logic 0
-                if (mInGame && (Number == 0)) {
-                    return;
-                }
                 if (mIsRoom != value) {
+                    // ignore if in a game and logic 0
+                    if (mInGame && (Number == 0)) {
+                        return;
+                    }
                     mIsRoom = value;
-                    parent.WriteGameSetting("Logic" + Number, "IsRoom", mIsRoom, "Logics");
+                    // update game file if in a game
+                    parent?.WriteGameSetting("Logic" + Number, "IsRoom", mIsRoom, "Logics");
                 }
             }
         }
@@ -127,10 +130,10 @@ namespace WinAGI.Engine {
         /// Gets a flag that indicates if changes in the source code for this logic have
         /// not been saved to file.
         /// </summary>
-        public bool SourceDirty {
+        public bool SourceChanged {
             get {
                 if (mLoaded) {
-                    return mSourceDirty;
+                    return mSourceChanged;
                 }
                 else {
                     return false;
@@ -144,7 +147,7 @@ namespace WinAGI.Engine {
         public string SourceFile {
             get {
                 if (mInGame) {
-                    return parent.agResDir + this.ID + parent.SourceExt;
+                    return parent.agResDir + this.ID + "." + parent.SourceExt;
                 }
                 else {
                     return mSourceFile;
@@ -153,8 +156,8 @@ namespace WinAGI.Engine {
             set {
                 // ignore if in a game
                 if (!mInGame) {
-                    if (!IsValidFilename(value)) {
-                        throw new ArgumentException("invalid file name", nameof(value));
+                    if (!IsValidFilename(Path.GetFileName(value))) {
+                        throw new ArgumentException("invalid file name", value);
                     }
                     mSourceFile = value;
                 }
@@ -241,11 +244,34 @@ namespace WinAGI.Engine {
                 }
                 if (mInGame) {
                     mCRC = CRC32(parent.agCodePage.GetBytes(mSourceText));
-                    mSourceDirty = true;
+                    mSourceChanged = true;
                 }
             }
         }
 
+        /// <summary>
+        /// Gets or sets the character code page to use when converting 
+        /// characters to or from a byte stream.
+        /// </summary>
+        public Encoding CodePage {
+            get => parent is null ? mCodePage : parent.agCodePage;
+            set {
+                if (parent is null) {
+                    // confirm new codepage is supported; error if it is not
+                    switch (value.CodePage) {
+                    case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
+                         861 or 862 or 863 or 865 or 866 or 869 or 858:
+                        mCodePage = Encoding.GetEncoding(value.CodePage);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
+                    }
+                }
+                else {
+                    // ignore; the game sets codepage
+                }
+            }
+        }
         private static readonly string[] separator = new[] {"\r\n", "\r", "\n" };
         #endregion
 
@@ -263,8 +289,8 @@ namespace WinAGI.Engine {
             }
             // code size is message offset value plus two
             mCodeSize = ReadWord(0) + 2;
-            mIsDirty = false;
-            mSourceDirty = false;
+            mIsChanged = false;
+            mSourceChanged = false;
         }
 
         /// <summary>
@@ -280,7 +306,7 @@ namespace WinAGI.Engine {
             if (ErrLevel < 0) {
                 ErrClear();
             }
-            mSourceDirty = false;
+            mSourceChanged = false;
             // get code size (add 2 to msgstart offset)
             mCodeSize = ReadWord(0) + 2;
             // load the sourcetext
@@ -300,7 +326,7 @@ namespace WinAGI.Engine {
                 return;
             }
             base.Unload();
-            mSourceDirty = false;
+            mSourceChanged = false;
             mSourceText = "";
         }
 
@@ -328,7 +354,7 @@ namespace WinAGI.Engine {
                 mCompiledCRC = NewLogic.mCompiledCRC;
                 mCRC = NewLogic.mCRC;
                 mSourceText = NewLogic.mSourceText;
-                mSourceDirty = NewLogic.mSourceDirty;
+                mSourceChanged = NewLogic.mSourceChanged;
                 SourceFile = NewLogic.SourceFile;
             }
         }
@@ -338,6 +364,9 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <returns>The Logic resource this method creates.</returns>
         public Logic Clone() {
+            // only loaded logics can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+
             Logic CopyLogic = new();
             // copy base properties
             base.CloneTo(CopyLogic);
@@ -347,9 +376,33 @@ namespace WinAGI.Engine {
             CopyLogic.mCompiledCRC = mCompiledCRC;
             CopyLogic.mCRC = mCRC;
             CopyLogic.mSourceText = mSourceText;
-            CopyLogic.mSourceDirty = mSourceDirty;
+            CopyLogic.mSourceChanged = mSourceChanged;
             CopyLogic.SourceFile = SourceFile;
+            CopyLogic.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
             return CopyLogic;
+        }
+
+        /// <summary>
+        /// Copies properties from SourceLogic into this logic.
+        /// </summary>
+        /// <param name="SourceLogic"></param>
+        public void CloneFrom(Logic SourceLogic) {
+            // only loaded logics can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+            WinAGIException.ThrowIfNotLoaded(SourceLogic);
+
+            // copy base properties
+            base.CloneFrom(SourceLogic);
+            // add WinAGI items
+            mIsRoom = SourceLogic.mIsRoom;
+            mLoaded = SourceLogic.mLoaded;
+            mCompiledCRC = SourceLogic.mCompiledCRC;
+            mCRC = SourceLogic.mCRC;
+            mSourceText = SourceLogic.mSourceText;
+            mSourceChanged = SourceLogic.mSourceChanged;
+            SourceFile = SourceLogic.SourceFile;
+            mCodePage = Encoding.GetEncoding(SourceLogic.mCodePage.CodePage);
+            return;
         }
 
         /// <summary>
@@ -374,12 +427,12 @@ namespace WinAGI.Engine {
                 mCRC = CRC32(Encoding.GetEncoding(437).GetBytes(mSourceText));
                 mCompiledCRC = mCRC;
             }
-            mSourceDirty = true;
+            mSourceChanged = true;
             mCodeSize = 3;
         }
 
         /// <summary>
-        /// Exports a compiled resource; ingame only (since only ingame logics can be compiled)
+        /// Exports a logic soure code; ingame only (since only ingame logics can be compiled)
         /// </summary>
         /// <param name="ExportFile"></param>
         public void ExportSource(string ExportFile) {
@@ -410,7 +463,7 @@ namespace WinAGI.Engine {
             catch (Exception) {
                 throw;
             }
-            mSourceDirty = false;
+            mSourceChanged = false;
         }
 
         /// <summary>
@@ -435,9 +488,9 @@ namespace WinAGI.Engine {
             // (for example, if the new logic will be added to a game)
             mResID = Path.GetFileNameWithoutExtension(ImportFile);
             if (mResID.Length > 64) {
-                mResID = Left(mResID, 64);
+                mResID = mResID.Left(64);
             }
-            if (NotUniqueID(this)) {
+            if (mInGame && NotUniqueID(this)) {
                 // create one
                 int i = 0;
                 string baseid = mResID;
@@ -446,8 +499,8 @@ namespace WinAGI.Engine {
                 }
                 while (NotUniqueID(this));
             }
-            // reset dirty flag
-            mSourceDirty = false;
+            // reset changed flag
+            mSourceChanged = false;
         }
 
         /// <summary>
@@ -538,6 +591,11 @@ namespace WinAGI.Engine {
                 }
                 try {
                     mSourceText = File.ReadAllText(SourceFile);
+
+
+
+
+
                 }
                 catch (Exception e) {
                     mSrcErrLevel = -3;
@@ -573,7 +631,7 @@ namespace WinAGI.Engine {
                 // update crc
                 mCRC = CRC32(Encoding.GetEncoding(437).GetBytes(mSourceText));
             }
-            mSourceDirty = false;
+            mSourceChanged = false;
         }
 
         /// <summary>
@@ -604,7 +662,7 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            mSourceDirty = false;
+            mSourceChanged = false;
             if (InGame) {
                 parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
                 parent.agLastEdit = DateTime.Now;
@@ -618,12 +676,12 @@ namespace WinAGI.Engine {
         /// Compiles the source code for this logic and saves the resource. Only logics
         /// in a game can be compiled.
         /// </summary>
-        public void Compile() {
+        public bool Compile() {
             // TODO: currently nongame logics can't be compiled; need to refactor to allow it
-            TWinAGIEventInfo tmpInfo;
 
             WinAGIException.ThrowIfNotLoaded(this);
             if (!mInGame) {
+                // for now, only ingame logics can be compiled
                 WinAGIException wex = new(LoadResString(618)) {
                     HResult = WINAGI_ERR + 618
                 };
@@ -637,21 +695,21 @@ namespace WinAGI.Engine {
             }
             try {
                 if (CompileLogic(this)) {
-                    // set dirty flag (forces save to work correctly)
-                    mIsDirty = true;
+                    // set changed flag (forces save to work correctly)
+                    mIsChanged = true;
                     base.Save();
+                    return true;
                 }
                 else {
                     // force uncompiled state
                     mCompiledCRC = 0xffffffff;
-                    // TODO: should this be 'parent' instead of 'compGame'?
                     compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics");
+                    return false;
                 }
             }
             catch (Exception) {
                 // force uncompiled state
                 mCompiledCRC = 0xffffffff;
-                // TODO: should this be 'parent' instead of 'compGame'?
                 compGame.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics");
                 // pass it along
                 throw;
@@ -669,7 +727,7 @@ namespace WinAGI.Engine {
                 parent.WriteGameSetting(strSection, "CRC32", "0x" + mCRC.ToString("x8"));
                 parent.WriteGameSetting(strSection, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
                 parent.WriteGameSetting(strSection, "IsRoom", mIsRoom.ToString());
-                PropsDirty = false;
+                PropsChanged = false;
             }
         }
 
@@ -683,15 +741,19 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="SaveFile"></param>
         public new void Save() {
+            // TODO: rethink logic save function -
+            // regardless of ingame status, should never save resource
+            // using base; only way to do that should be through compiling
+            // and only ingame resources can be compiled (right?)
             WinAGIException.ThrowIfNotLoaded(this);
-            if (PropsDirty && mInGame) {
+            if (PropsChanged && mInGame) {
                 SaveProps();
             }
             if (mInGame) {
                 SaveSource();
             }
             else {
-                if (mIsDirty) {
+                if (mIsChanged) {
                     try {
                         base.Save();
                     }

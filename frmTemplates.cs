@@ -17,6 +17,8 @@ using static WinAGI.Editor.Base;
 namespace WinAGI.Editor {
     public partial class frmTemplates : Form {
         private string[] strVersions = new string[19];
+        public int CodePage;
+        public bool UseResDef, UseLayoutEd, SierraSyntax;
 
         public frmTemplates() {
             InitializeComponent();
@@ -54,12 +56,30 @@ namespace WinAGI.Editor {
             }
         }
 
+        #region Event Handlers
+        private void btnOK_Click(object sender, EventArgs e) {
+            DialogResult = DialogResult.OK;
+            Hide();
+        }
+
+        private void btnCancel_Click(object sender, EventArgs e) {
+            DialogResult = DialogResult.Cancel;
+            Hide();
+        }
+
+        private void lstTemplates_SelectedIndexChanged(object sender, EventArgs e) {
+            if (lstTemplates.SelectedIndex >= 0) {
+                GetTemplateInfo();
+            }
+        }
+        #endregion
+
         private void GetTemplateInfo() {
-            // extract game version and game description from the .wag file located
-            // in the template directory currently selected in lstTemplates
+            // extract codepage, game version and game description from the
+            // .wag file located in the template directory currently selected
+            // in lstTemplates
             string strValue;
-            int i;
-            SettingsList WagFile;
+            SettingsFile WagFile;
             string strVersion, strDescription;
 
             // clear description and version text boxes
@@ -67,15 +87,16 @@ namespace WinAGI.Editor {
             txtDescription.Text = "";
             // check for game file
             try {
-                WagFile = new SettingsList(Directory.GetFiles(Application.StartupPath + "\\Templates\\" + lstTemplates.Text, "*.wag")[0], FileMode.Open);
+                WagFile = new SettingsFile(Directory.GetFiles(Application.StartupPath + "\\Templates\\" + lstTemplates.Text, "*.wag")[0], FileMode.Open);
             }
             catch (Exception e) {
                 // problem accessing the template; assume not valid
-                MessageBox.Show(MDIMain,
-                    "Error occurred trying to validate this template directory.",
-                    "Invalid Template Directory",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error,
-                    0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
+                ErrMsgBox(e, "An error occurred trying to validate this template directory: ",
+                    "", "Invalid Template Directory");
+                //MessageBox.Show(MDIMain,
+                //    "Error occurred trying to validate this template directory.",
+                //    "Invalid Template Directory", MessageBoxButtons.OK, MessageBoxIcon.Error,
+                //    0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
                 RemoveBadTemplate();
                 return;
             }
@@ -92,10 +113,9 @@ namespace WinAGI.Editor {
             // verify WinAGI version
             strValue = WagFile.GetSetting("General", "WinAGIVersion", "");
             if (strValue != WINAGI_VERSION) {
-                if (Left(strValue, 4) == "1.2." || (Left(strValue, 2) == "2.")) {
-                    //// any v1.2.x or 2.x is ok, but need to update
-                    //WagFile.WriteSetting("General", "WinAGIVersion", WINAGI_VERSION);
-                    //WagFile.Save();
+                if (strValue.Left(4) == "1.2." || (strValue.Left(2) == "2.")) {
+                    // any v1.2.x or 2.x is ok, will get updated
+                    // when game is created
                 }
                 else {
                     // not valid
@@ -108,8 +128,13 @@ namespace WinAGI.Editor {
                     return;
                 }
             }
-            strVersion = WagFile.GetSetting("General", "Interpreter", "");
-            strDescription = WagFile.GetSetting("General", "Description", "");
+            strVersion = WagFile.GetSetting("General", "Interpreter", "", true);
+            strDescription = WagFile.GetSetting("General", "Description", "", true);
+            CodePage = WagFile.GetSetting("General", "CodePage", 437, true);
+            UseResDef = WagFile.GetSetting("General", "UseResNames", true, true);
+            UseLayoutEd = WagFile.GetSetting("General", "UseLE", true, true);
+            SierraSyntax = WagFile.GetSetting("General", "SierraSyntax", false, true);
+
             // version is NOT optional
             if (strVersion.Length == 0) {
                 MessageBox.Show(MDIMain,
@@ -134,6 +159,7 @@ namespace WinAGI.Editor {
                     0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
                 RemoveBadTemplate();
             }
+
         }
 
         private void RemoveBadTemplate() {
@@ -143,20 +169,5 @@ namespace WinAGI.Editor {
             btnOK.Enabled = false;
         }
 
-        private void btnOK_Click(object sender, EventArgs e) {
-            DialogResult = DialogResult.OK;
-            Close();
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e) {
-            DialogResult = DialogResult.Cancel;
-            Close();
-        }
-
-        private void lstTemplates_SelectedIndexChanged(object sender, EventArgs e) {
-            if (lstTemplates.SelectedIndex >= 0) {
-                GetTemplateInfo();
-            }
-        }
     }
 }

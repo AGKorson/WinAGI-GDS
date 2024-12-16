@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Net.Http.Headers;
+using System.Drawing;
 using System.Text;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
@@ -15,14 +15,17 @@ namespace WinAGI.Engine {
         /// True if the view resource data does not match the current view
         /// loop/cel/description objects.
         /// </summary>
-        bool mViewSet;
+        internal bool mViewChanged;
         internal Loops mLoopCol;
-        string mViewDesc;
+        internal string mViewDesc;
+        internal EGAColors mPalette;
+        Encoding mCodePage = Encoding.GetEncoding(Base.CodePage.CodePage);
         #endregion
 
         #region Constructors
         /// <summary>
-        /// Constructor to create a new AGI view resource that is not part of an AGI game.
+        /// Constructor to create a new AGI view resource that is not part of
+        /// an AGI game.
         /// </summary>
         public View() : base(AGIResType.View) {
             InitView();
@@ -33,8 +36,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Internal constructor to create a new or cloned view resource to  be added
-        /// to an AGI game has already been loaded. 
+        /// Internal constructor to create a new or cloned view resource to
+        /// be added to an AGI game has already been loaded. 
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="ResNum"></param>
@@ -42,10 +45,12 @@ namespace WinAGI.Engine {
         internal View(AGIGame parent, byte ResNum, View NewView = null) : base(AGIResType.View) {
             InitView(NewView);
             base.InitInGame(parent, ResNum);
+            mCodePage = Encoding.GetEncoding(parent.agCodePage.CodePage);
         }
 
-         /// <summary>
-        /// Internal constructor to add a new AGI view resource during initial game load.
+        /// <summary>
+        /// Internal constructor to add a new AGI view resource during initial
+        /// game load.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="ResNum"></param>
@@ -58,6 +63,15 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Returns true if the loop/cel data do not match the AGI Resource data.
+        /// </summary>
+        public override bool IsChanged {
+            get {
+                return mViewChanged;
+            }
+        }
+        
         /// <summary>
         /// Gets the specified loop from this view.
         /// </summary>
@@ -94,8 +108,52 @@ namespace WinAGI.Engine {
             set {
                 WinAGIException.ThrowIfNotLoaded(this);
                 if (mViewDesc != value) {
-                    mViewDesc = Left(value, 255);
-                    mViewSet = false;
+                    mViewDesc = value.Left(255);
+                    mViewChanged = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the color palette that is used if the resource is not
+        /// attached to a game. 
+        /// </summary>
+        public EGAColors Palette {
+            get {
+                if (mInGame) {
+                    return parent.Palette;
+                }
+                else {
+                    return mPalette;
+                }
+            }
+            set {
+                if (!mInGame) {
+                    mPalette = value.CopyPalette();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the character code page to use when converting 
+        /// characters to or from a byte stream.
+        /// </summary>
+        public Encoding CodePage {
+            get => mCodePage;
+            set {
+                if (parent is null) {
+                    // confirm new codepage is supported; error if it is not
+                    switch (value.CodePage) {
+                    case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
+                         861 or 862 or 863 or 865 or 866 or 869 or 858:
+                        mCodePage = Encoding.GetEncoding(value.CodePage);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
+                    }
+                }
+                else {
+                    // ignore; the game sets codepage
                 }
             }
         }
@@ -114,16 +172,17 @@ namespace WinAGI.Engine {
                 mLoopCol = new Loops(this);
                 mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01,
                          0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
-                mViewSet = true;
+                mViewChanged = false;
                 mViewDesc = "";
             }
             else {
                 // copy base properties
                 NewView.CloneTo(this);
-                mViewSet = NewView.mViewSet;
+                mViewChanged = NewView.mViewChanged;
                 mViewDesc = NewView.mViewDesc;
                 mLoopCol = NewView.mLoopCol.Clone(this);
             }
+            mPalette = defaultPalette.CopyPalette();
         }
 
         /// <summary>
@@ -131,18 +190,57 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <returns>The View resource this method creates.</returns>
         public View Clone() {
+            // only loaded views can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+
             View CopyView = new();
             // copy base properties
             CloneTo(CopyView);
             // copy view properties
-            CopyView.mViewSet = mViewSet;
+            CopyView.mViewChanged = mViewChanged;
             CopyView.mViewDesc = mViewDesc;
-            CopyView.mLoopCol = mLoopCol.Clone(this);
+            CopyView.mLoopCol = mLoopCol.Clone(CopyView);
             CopyView.ErrLevel = ErrLevel;
             CopyView.ErrData = ErrData;
+            if (parent != null) {
+                // copy parent colors
+                CopyView.mPalette = parent.Palette.CopyPalette();
+            }
+            else {
+                // copy view colors
+                CopyView.mPalette = mPalette.CopyPalette();
+            }
+            CopyView.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
             return CopyView;
         }
 
+        /// <summary>
+        /// Copies view data from SourceView into this view.
+        /// </summary>
+        /// <param name="SourceView"></param>
+        public void CloneFrom(View SourceView) {
+            // only loaded views can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+            WinAGIException.ThrowIfNotLoaded(SourceView);
+
+            // copy base properties
+            base.CloneFrom(SourceView);
+            // copy view properties
+            mViewChanged = SourceView.mViewChanged;
+            mViewDesc = SourceView.mViewDesc;
+            mLoopCol.CloneFrom(SourceView.mLoopCol);
+            ErrLevel = SourceView.ErrLevel;
+            ErrData = SourceView.ErrData;
+            if (SourceView.parent != null) {
+                // copy parent colors
+                mPalette = SourceView.parent.Palette.CopyPalette();
+            }
+            else {
+                // copy view colors
+                mPalette = SourceView.mPalette.CopyPalette();
+            }
+            mCodePage = Encoding.GetEncoding(SourceView.mCodePage.CodePage);
+        }
         /// <summary>
         /// Resets the view to a single loop with a single cel of height and width of 1
         /// and transparent color of 0 and no description
@@ -154,15 +252,22 @@ namespace WinAGI.Engine {
             mLoopCol = new Loops(this);
             mLoopCol.Add(0);
             mLoopCol[0].Cels.Add(0);
-            mViewSet = false;
-            mIsDirty = true;
+            mViewChanged = true;
+        }
+
+        /// <summary>
+        /// Forces view loops to rebuild. Use when the calling
+        /// program needs the sound to be refreshed.
+        /// </summary>
+        public void ResetView() {
+            ErrLevel = LoadLoops();
         }
 
         /// <summary>
         /// Converts this view's loop/cel collection into a valid AGI byte array
         /// and stores it in this resource's data.
         /// </summary>
-        void CompileView() {
+        private void CompileView() {
             int[] lngLoopOffset, lngCelOffset;
             int i, j;
             byte bytTransCol;
@@ -247,19 +352,15 @@ namespace WinAGI.Engine {
                 Pos = mData.Length;
                 // add view description
                 byte[] desc;
-                if (parent is null) {
-                    desc = Encoding.GetEncoding(437).GetBytes(mViewDesc);
-                }
-                else {
-                    desc = parent.agCodePage.GetBytes(mViewDesc);
-                }
+                desc = CodePage.GetBytes(mViewDesc);
                 for (i = 0; i < desc.Length; i++) {
                     WriteByte(desc[i]);
                 }
                 // add terminating null char
                 WriteByte(0);
             }
-            mViewSet = true;
+            mViewChanged = false;
+            mIsChanged = true;
             // clear error level
             ErrLevel = 0;
             ErrData = ["", "", "", "", ""];
@@ -384,8 +485,7 @@ namespace WinAGI.Engine {
             if (bytNumLoops == 0) {
                 // error - invalid data
                 ErrData[0] = mResID;
-                mViewSet = true;
-                mIsDirty = false;
+                mViewChanged = false;
                 return 1;
             }
             // get loop offset data for each loop
@@ -395,8 +495,7 @@ namespace WinAGI.Engine {
                     // invalid loop; let any that are alreay loaded stay loaded
                     ErrData[0] = mResID;
                     ErrData[1] = bytLoop.ToString();
-                    mViewSet = true;
-                    mIsDirty = false;
+                    mViewChanged = false;
                     retval |= 2;
                 }
             }
@@ -462,12 +561,7 @@ namespace WinAGI.Engine {
                         bytInput[0] = ReadByte();
                         //if not zero, and string not yet up to 255 characters,
                         if ((bytInput[0] > 0) && (mViewDesc.Length < 255)) {
-                            if (parent is null) {
-                                mViewDesc += Encoding.GetEncoding(437).GetString(bytInput);
-                            }
-                            else {
-                                mViewDesc += parent.agCodePage.GetString(bytInput);
-                            }
+                            mViewDesc += CodePage.GetString(bytInput);
                         }
                     }
                     while (!EORes && bytInput[0] != 0 && mViewDesc.Length < 255);
@@ -478,8 +572,7 @@ namespace WinAGI.Engine {
                     retval |= 64;
                 }
             }
-            mViewSet = true;
-            mIsDirty = false;
+            mViewChanged = false;
             return retval;
         }
 
@@ -489,14 +582,13 @@ namespace WinAGI.Engine {
         /// <param name="ExportFile"></param>
         public new void Export(string ExportFile) {
             WinAGIException.ThrowIfNotLoaded(this);
-            try {
-                if (!mViewSet) {
-                    // need to recompile
-                    CompileView();
-                }
-                Export(ExportFile);
+            if (mViewChanged) {
+                CompileView();
             }
-            catch (Exception) {
+            try {
+                base.Export(ExportFile);
+            }
+            catch {
                 throw;
             }
         }
@@ -531,7 +623,7 @@ namespace WinAGI.Engine {
                 ErrClear();
                 mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01,
                          0x01, 0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
-                mViewSet = true;
+                mViewChanged = false;
                 return;
             }
             // extract loops/cels
@@ -549,7 +641,7 @@ namespace WinAGI.Engine {
             base.Unload();
             // reset loop collection
             mLoopCol = new Loops(this);
-            mViewSet = false;
+            mViewChanged = false;
         }
 
         /// <summary>
@@ -559,7 +651,7 @@ namespace WinAGI.Engine {
             if (mInGame) {
                 parent.WriteGameSetting("View" + Number, "ID", mResID, "Views");
                 parent.WriteGameSetting("View" + Number, "Description", mDescription);
-                PropsDirty = false;
+                PropsChanged = false;
             }
         }
         
@@ -570,18 +662,17 @@ namespace WinAGI.Engine {
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
-            if (PropsDirty && mInGame) {
+            if (PropsChanged && mInGame) {
                 SaveProps();
             }
-            if (mIsDirty) {
+            if (mViewChanged) {
+                CompileView();
+            }
+            if (mIsChanged) {
                 try {
-                    if (!mViewSet) {
-                        CompileView();
-                    }
                     base.Save();
                 }
                 catch {
-                    // pass error along
                     throw;
                 }
             }
@@ -632,7 +723,7 @@ namespace WinAGI.Engine {
             // set the mirror loop mirrorloop property
             mLoopCol[TargetLoop].MirrorPair = -mp;
             mLoopCol[TargetLoop].Cels = mLoopCol[SourceLoop].Cels;
-            mIsDirty = true;
+            mIsChanged = true;
             return 0;
         }
         #endregion

@@ -79,11 +79,11 @@ namespace WinAGI.Engine {
                 statuspos = endpos;
             }
             // set starting/default pen status
-            CurrentPen.VisColor = AGIColorIndex.agNone;
-            CurrentPen.PriColor = AGIColorIndex.agNone;
+            CurrentPen.VisColor = AGIColorIndex.None;
+            CurrentPen.PriColor = AGIColorIndex.None;
             CurrentPen.PlotSize = 0;
-            CurrentPen.PlotShape = EPlotShape.psCircle;
-            CurrentPen.PlotStyle = EPlotStyle.psSolid;
+            CurrentPen.PlotShape = PlotShape.Circle;
+            CurrentPen.PlotStyle = PlotStyle.Solid;
             // initialize the working byte arrays
             VisBuildData = new byte[26880];
             PriBuildData = new byte[26880];
@@ -119,8 +119,8 @@ namespace WinAGI.Engine {
                     case 0xF9:
                         // Change pen size and style
                         bytIn = picdata[lngPos++];
-                        CurrentPen.PlotStyle = (EPlotStyle)((bytIn & 0x20) / 0x20);
-                        CurrentPen.PlotShape = (EPlotShape)((bytIn & 0x10) / 0x10);
+                        CurrentPen.PlotStyle = (PlotStyle)((bytIn & 0x20) / 0x20);
+                        CurrentPen.PlotShape = (PlotShape)((bytIn & 0x10) / 0x10);
                         CurrentPen.PlotSize = bytIn & 0x7;
                         bytIn = picdata[lngPos++];
                         break;
@@ -143,7 +143,7 @@ namespace WinAGI.Engine {
                         break;
                     case 0xF1:
                         // Disable visual draw
-                        CurrentPen.VisColor = AGIColorIndex.agNone;
+                        CurrentPen.VisColor = AGIColorIndex.None;
                         bytIn = picdata[lngPos++];
                         break;
                     case 0xF2:
@@ -156,7 +156,7 @@ namespace WinAGI.Engine {
                         break;
                     case 0xF3:
                         // Disable priority draw
-                        CurrentPen.PriColor = AGIColorIndex.agNone;
+                        CurrentPen.PriColor = AGIColorIndex.None;
                         bytIn = picdata[lngPos];
                         lngPos++;
                         break;
@@ -232,10 +232,10 @@ namespace WinAGI.Engine {
             void DrawPixel(int xPos, int yPos) {
                 int lngIndex = xPos + yPos * 160;
                 if (lngIndex <= 26879) {
-                    if (CurrentPen.VisColor < AGIColorIndex.agNone) {
+                    if (CurrentPen.VisColor < AGIColorIndex.None) {
                         VisBuildData[lngIndex] = (byte)CurrentPen.VisColor;
                     }
-                    if (CurrentPen.PriColor < AGIColorIndex.agNone) {
+                    if (CurrentPen.PriColor < AGIColorIndex.None) {
                         PriBuildData[lngIndex] = (byte)CurrentPen.PriColor;
                     }
                 }
@@ -388,10 +388,10 @@ namespace WinAGI.Engine {
                     X = (byte)bytIn;
                     Y = picdata[lngPos++];
                     // if visual OR priority but not both
-                    if ((CurrentPen.VisColor < AGIColorIndex.agNone) ^ (CurrentPen.PriColor < AGIColorIndex.agNone)) {
-                        if (CurrentPen.VisColor < AGIColorIndex.agNone) {
+                    if ((CurrentPen.VisColor < AGIColorIndex.None) ^ (CurrentPen.PriColor < AGIColorIndex.None)) {
+                        if (CurrentPen.VisColor < AGIColorIndex.None) {
                             // fill visual screen
-                            if (CurrentPen.VisColor != AGIColorIndex.agWhite && (AGIColorIndex)VisBuildData[X + 160 * Y] == AGIColorIndex.agWhite) {
+                            if (CurrentPen.VisColor != AGIColorIndex.White && (AGIColorIndex)VisBuildData[X + 160 * Y] == AGIColorIndex.White) {
                                 lngOffset = Y * 160 + X;
                                 paintqueue.Enqueue(lngOffset);
                                 VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -402,7 +402,7 @@ namespace WinAGI.Engine {
                                     // check above
                                     if (Y > 0) {
                                         lngOffset = (Y - 1) * 160 + X;
-                                        if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
+                                        if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.White) {
                                             VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                             paintqueue.Enqueue(lngOffset);
                                         }
@@ -410,7 +410,7 @@ namespace WinAGI.Engine {
                                     // check left
                                     if (X > 0) {
                                         lngOffset = Y * 160 + X - 1;
-                                        if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
+                                        if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.White) {
                                             VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                             paintqueue.Enqueue(lngOffset);
                                         }
@@ -418,7 +418,7 @@ namespace WinAGI.Engine {
                                     // check right
                                     if (X < 159) {
                                         lngOffset = Y * 160 + X + 1;
-                                        if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
+                                        if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.White) {
                                             VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                             paintqueue.Enqueue(lngOffset);
                                         }
@@ -426,7 +426,7 @@ namespace WinAGI.Engine {
                                     // check below
                                     if (Y < 167) {
                                         lngOffset = (Y + 1) * 160 + X;
-                                        if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
+                                        if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.White) {
                                             VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                             paintqueue.Enqueue(lngOffset);
                                         }
@@ -437,7 +437,7 @@ namespace WinAGI.Engine {
                         }
                         else {
                             // fill priority screen
-                            if (CurrentPen.PriColor != AGIColorIndex.agRed && (AGIColorIndex)PriBuildData[X + 160 * Y] == AGIColorIndex.agRed) {
+                            if (CurrentPen.PriColor != AGIColorIndex.Red && (AGIColorIndex)PriBuildData[X + 160 * Y] == AGIColorIndex.Red) {
                                 lngOffset = Y * 160 + X;
                                 paintqueue.Enqueue(lngOffset);
                                 PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
@@ -448,7 +448,7 @@ namespace WinAGI.Engine {
                                     // check above
                                     if (Y > 0) {
                                         lngOffset = (Y - 1) * 160 + X;
-                                        if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed) {
+                                        if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.Red) {
                                             PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                                             paintqueue.Enqueue(lngOffset);
                                         }
@@ -456,7 +456,7 @@ namespace WinAGI.Engine {
                                     // check left
                                     if (X > 0) {
                                         lngOffset = Y * 160 + X - 1;
-                                        if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed) {
+                                        if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.Red) {
                                             PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                                             paintqueue.Enqueue(lngOffset);
                                         }
@@ -464,7 +464,7 @@ namespace WinAGI.Engine {
                                     // check right
                                     if (X < 159) {
                                         lngOffset = Y * 160 + X + 1;
-                                        if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed) {
+                                        if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.Red) {
                                             PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                                             paintqueue.Enqueue(lngOffset);
                                         }
@@ -472,7 +472,7 @@ namespace WinAGI.Engine {
                                     // check below
                                     if (Y < 167) {
                                         lngOffset = (Y + 1) * 160 + X;
-                                        if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.agRed) {
+                                        if ((AGIColorIndex)PriBuildData[lngOffset] == AGIColorIndex.Red) {
                                             PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                                             paintqueue.Enqueue(lngOffset);
                                         }
@@ -482,9 +482,9 @@ namespace WinAGI.Engine {
                             }
                         }
                     }
-                    else if ((CurrentPen.VisColor < AGIColorIndex.agNone) && (CurrentPen.VisColor < AGIColorIndex.agNone)) {
+                    else if ((CurrentPen.VisColor < AGIColorIndex.None) && (CurrentPen.VisColor < AGIColorIndex.None)) {
                         // drawing both
-                        if (CurrentPen.VisColor != AGIColorIndex.agWhite && (AGIColorIndex)VisBuildData[X + 160 * Y] == AGIColorIndex.agWhite) {
+                        if (CurrentPen.VisColor != AGIColorIndex.White && (AGIColorIndex)VisBuildData[X + 160 * Y] == AGIColorIndex.White) {
                             lngOffset = Y * 160 + X;
                             paintqueue.Enqueue(lngOffset);
                             VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
@@ -497,7 +497,7 @@ namespace WinAGI.Engine {
                                 // check above
                                 if (Y > 0) {
                                     lngOffset = (Y - 1) * 160 + X;
-                                    if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
+                                    if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.White) {
                                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                                         paintqueue.Enqueue(lngOffset);
@@ -506,7 +506,7 @@ namespace WinAGI.Engine {
                                 // check left
                                 if (X > 0) {
                                     lngOffset = Y * 160 + X - 1;
-                                    if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
+                                    if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.White) {
                                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                                         paintqueue.Enqueue(lngOffset);
@@ -515,7 +515,7 @@ namespace WinAGI.Engine {
                                 // check right
                                 if (X < 159) {
                                     lngOffset = Y * 160 + X + 1;
-                                    if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
+                                    if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.White) {
                                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                                         paintqueue.Enqueue(lngOffset);
@@ -524,7 +524,7 @@ namespace WinAGI.Engine {
                                 // check below
                                 if (Y < 167) {
                                     lngOffset = (Y + 1) * 160 + X;
-                                    if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.agWhite) {
+                                    if ((AGIColorIndex)VisBuildData[lngOffset] == AGIColorIndex.White) {
                                         VisBuildData[lngOffset] = (byte)CurrentPen.VisColor;
                                         PriBuildData[lngOffset] = (byte)CurrentPen.PriColor;
                                         paintqueue.Enqueue(lngOffset);
@@ -580,7 +580,7 @@ namespace WinAGI.Engine {
                 bytIn = picdata[lngPos++];
 
                 while (bytIn < 0xF0 && lngPos <= endpos) {
-                    if (CurrentPen.PlotStyle == EPlotStyle.psSplatter) {
+                    if (CurrentPen.PlotStyle == PlotStyle.Splatter) {
                         PatternNum = (byte)(bytIn | 1);
                         // next byte is Xpos
                         bytIn = picdata[lngPos++];
@@ -618,11 +618,11 @@ namespace WinAGI.Engine {
                     else if (PlotY > 167 - CurrentPen.PlotSize) {
                         PlotY = 167 - CurrentPen.PlotSize;
                     }
-                    if (CurrentPen.PlotShape == EPlotShape.psCircle) {
+                    if (CurrentPen.PlotShape == PlotShape.Circle) {
                         for (Y = 0; Y <= CurrentPen.PlotSize * 2; Y++) {
                             for (X = 0; X <= CurrentPen.PlotSize; X++) {
                                 if ((CircleData[(CurrentPen.PlotSize * CurrentPen.PlotSize) + Y] & (1 << (7 - X))) == (1 << (7 - X))) {
-                                    if (CurrentPen.PlotStyle == EPlotStyle.psSplatter) {
+                                    if (CurrentPen.PlotStyle == PlotStyle.Splatter) {
                                         // adjust pattern bit using Sierra's algorithm
                                         if ((PatternNum & 1) == 1) {
                                             PatternNum = (byte)((PatternNum / 2) ^ 0xB8);
@@ -647,7 +647,7 @@ namespace WinAGI.Engine {
                         // square
                         for (Y = 0; Y <= CurrentPen.PlotSize * 2; Y++) {
                             for (X = 0; X <= CurrentPen.PlotSize; X++) {
-                                if (CurrentPen.PlotStyle == EPlotStyle.psSplatter) {
+                                if (CurrentPen.PlotStyle == PlotStyle.Splatter) {
                                     if ((PatternNum & 1) == 1) {
                                         PatternNum = (byte)((PatternNum / 2) ^ 0xB8);
                                     }

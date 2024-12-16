@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.LogicDecoder;
-using static WinAGI.Engine.ArgTypeEnum;
+using static WinAGI.Engine.ArgType;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
 using static WinAGI.Engine.DefineNameCheck;
@@ -22,8 +22,8 @@ namespace WinAGI.Engine {
         /// <param name="restype"></param>
         /// <param name="num"></param>
         /// <param name="errInfo"></param>
-        public class CompileGameEventArgs(ECStatus status, TWinAGIEventInfo errInfo) {
-            public ECStatus CStatus { get; } = status;
+        public class CompileGameEventArgs(GameCompileStatus status, TWinAGIEventInfo errInfo) {
+            public GameCompileStatus CStatus { get; } = status;
             public bool Cancel { get; set; } = false;
             public TWinAGIEventInfo CompileInfo { get; } = errInfo;
         }
@@ -85,7 +85,7 @@ namespace WinAGI.Engine {
         /// <param name="ResNum"></param>
         /// <param name="CompileInfo"></param>
         /// <returns></returns>
-        internal static void OnCompileGameStatus(ECStatus cStatus, TWinAGIEventInfo CompileInfo, ref bool Cancel) {
+        internal static void OnCompileGameStatus(GameCompileStatus cStatus, TWinAGIEventInfo CompileInfo, ref bool Cancel) {
             // Raise the event in a thread-safe manner using the ?. operator.
             CompileGameEventArgs e = new(cStatus, CompileInfo);
             CompileGameStatus?.Invoke(null, e);
@@ -95,7 +95,7 @@ namespace WinAGI.Engine {
             }
         }
 
-        internal static void OnCompileGameStatus(ECStatus cStatus, TWinAGIEventInfo CompileInfo) {
+        internal static void OnCompileGameStatus(GameCompileStatus cStatus, TWinAGIEventInfo CompileInfo) {
             // use a throwaway for cancel check
             bool _ = false;
             OnCompileGameStatus(cStatus, CompileInfo, ref _);
@@ -163,12 +163,12 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="CompInfo"></param>
         internal static bool OnCompileLogicStatus(TWinAGIEventInfo CompInfo) {
-            ECStatus stat;
-            if (CompInfo.Type == EventType.etError) {
-                stat = ECStatus.csLogicError;
+            GameCompileStatus stat;
+            if (CompInfo.Type == EventType.LogicCompileError) {
+                stat = GameCompileStatus.LogicError;
             }
             else {
-                stat = ECStatus.csWarning;
+                stat = GameCompileStatus.Warning;
             }
             if (LogicCompiler.compGame is null || !LogicCompiler.compGame.Compiling) {
                 // not compiling a game, must be compiling a single logic

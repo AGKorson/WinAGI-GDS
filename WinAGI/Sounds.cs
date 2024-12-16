@@ -24,7 +24,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Gets the list of sounds in this game.
         /// </summary>
-        public SortedList<byte, Sound> Col { get; private set; } = [];
+        public SortedList<int, Sound> Col { get; private set; } = [];
 
         /// <summary>
         /// Gets the sound with the specified index value from this list of sounds.
@@ -34,28 +34,28 @@ namespace WinAGI.Engine {
         /// <exception cref="IndexOutOfRangeException"></exception>
         public Sound this[int index] {
             get {
-                if (index < 0 || index > 255 || !Contains((byte)index)) {
+                if (index < 0 || index > 255 || !Contains(index)) {
                     throw new IndexOutOfRangeException();
                 }
-                return Col[(byte)index];
+                return Col[index];
             }
         }
 
         /// <summary>
         /// Gets the number of sounds in this AGI game.
         /// </summary>
-        public byte Count {
+        public int Count {
             get {
-                return (byte)Col.Count;
+                return Col.Count;
             }
         }
 
         /// <summary>
         /// Gets the highest index in use in this sounds collection. 
         /// </summary>
-        public byte Max {
+        public int Max {
             get {
-                byte max = 0;
+                int max = 0;
                 if (Col.Count > 0)
                     max = Col.Keys[Col.Count - 1];
                 return max;
@@ -83,7 +83,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
-        public bool Contains(byte ResNum) {
+        public bool Contains(int ResNum) {
             return Col.ContainsKey(ResNum);
         }
 
@@ -119,8 +119,8 @@ namespace WinAGI.Engine {
             }
             Col.Add(ResNum, agResource);
             // force flags so save function will work
-            agResource.IsDirty = true;
-            agResource.PropsDirty = true;
+            agResource.IsChanged = true;
+            agResource.PropsChanged = true;
             // save new sound to add it to VOL file
             agResource.Save();
             LogicCompiler.blnSetIDs = false;
@@ -211,9 +211,9 @@ namespace WinAGI.Engine {
         /// Implements enumeration for the Sounds class.
         /// </summary>
         internal class SoundEnum : IEnumerator<Sound> {
-            public SortedList<byte, Sound> _sounds;
+            public SortedList<int, Sound> _sounds;
             int position = -1;
-            public SoundEnum(SortedList<byte, Sound> list) {
+            public SoundEnum(SortedList<int, Sound> list) {
                 _sounds = list;
             }
             object IEnumerator.Current => Current;

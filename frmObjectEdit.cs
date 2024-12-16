@@ -3,21 +3,91 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
+using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmObjectEdit : Form {
         public bool InGame;
-        public bool IsDirty;
-        public InventoryList ObjectsEdit;
+        public bool IsChanged;
+        public InventoryList EditInvList;
+        private string EditInvListFilename;
+        private bool closing = false;
 
         public frmObjectEdit() {
             InitializeComponent();
+            InitFonts();
+            MdiParent = MDIMain;
         }
+
+        #region Form Event Handlers
+        private void frmObjectEdit_FormClosing(object sender, FormClosingEventArgs e) {
+            if (e.CloseReason == CloseReason.MdiFormClosing) {
+                return;
+            }
+            closing = AskClose();
+            e.Cancel = !closing;
+        }
+
+        private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
+            // ensure object is cleared and dereferenced
+
+            if (EditInvList != null) {
+                EditInvList.Unload();
+                EditInvList = null;
+            }
+            if (InGame) {
+                OEInUse = false;
+                ObjectEditor = null;
+            }
+        }
+
+        #endregion
+
+        #region Menu Event Handlers
+        internal void SetResourceMenu() {
+
+            mnuRSave.Enabled = IsChanged;
+            MDIMain.mnuRSep3.Visible = true;
+            if (EditGame is null) {
+                // no game is open
+                MDIMain.mnuRImport.Enabled = false;
+                mnuRExport.Text = "Save As ...";
+                // mnuRProperties no change
+                mnuRToggleEncrypt.Checked = EditInvList.Encrypted;
+            }
+            else {
+                // if a game is loaded, base import is also always available
+                MDIMain.mnuRImport.Enabled = true;
+                mnuRExport.Text = InGame ? "Export OBJECT" : "Save As ...";
+                // mnuRProperties no change
+                mnuRExportLoopGIF.Enabled = true; // = loop or cel selected
+            }
+        }
+
+        public void mnuRSave_Click(object sender, EventArgs e) {
+            SaveObjects();
+        }
+
+        public void mnuRExport_Click(object sender, EventArgs e) {
+            ExportObjects();
+        }
+
+        public void mnuRProperties_Click(object sender, EventArgs e) {
+            EditProperties();
+        }
+
+        private void mnuRToggleEncrypt_Click(object sender, EventArgs e) {
+            MessageBox.Show("toggle object encryption");
+        }
+        #endregion
+
+        #region temp code
         void objeditcode() {
             /*
 
@@ -46,10 +116,6 @@ Option Explicit
     ctRoom
   End Enum
 
-  Private CalcWidth As Long, CalcHeight As Long
-  Private Const MIN_HEIGHT = 1500
-  Private Const MIN_WIDTH = 3000
-
 Private Sub EditObj()
 
   On Error GoTo ErrHandler
@@ -65,7 +131,7 @@ Private Sub EditObj()
     If blnNoWarn Then
       'save the setting
       Settings.WarnItem0 = Not blnNoWarn
-      WriteAppSetting SettingsList, sGENERAL, "WarnItem0", Settings.WarnItem0
+      WinAGISettingsList.WriteSetting(sGENERAL, "WarnItem0", Settings.WarnItem0
     End If
     
     If rtn = vbNo Then
@@ -112,7 +178,7 @@ Public Sub MenuClickCustom2()
   If MsgBox("Your current OBJECT file will be saved as 'OBJECT.amg'. Continue with the conversion?", vbQuestion + vbOKCancel, "Convert AMIGA Object File") = vbOK Then
 
     'if the file is not saved, ask if OK to save it first
-    If Me.IsDirty Then
+    If Me.IsChanged Then
       If MsgBox("The OBJECT file needs to be saved before converting. OK to save and convert?", vbQuestion + vbOKCancel, "Save OBJECT File") = vbCancel Then
         Exit Sub
       End If
@@ -129,42 +195,6 @@ ErrHandler:
   Resume Next
 End Sub
 
-Public Sub MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
-  
-  Dim NewValue As Long
-  Dim Lstep As Single
-  
-  On Error Resume Next
-  
-  ' this form must be active
-  If Not frmMDIMain.ActiveMdiChild Is Me Then
-    Exit Sub
-  End If
-  ' and the grid control must have focus
-  If Not Me.ActiveControl Is fgObjects Then
-    Exit Sub
-  End If
-  
-  With fgObjects
-    Lstep = 4
-    
-    If Rotation > 0 Then
-      NewValue = .TopRow - Lstep
-      If NewValue < 1 Then
-        NewValue = 1
-      End If
-    Else
-      NewValue = .TopRow + Lstep
-      If NewValue > .Rows - 1 Then
-        NewValue = .Rows - 1
-      End If
-    End If
-    .TopRow = NewValue
-  
-  End With
-End Sub
-
-
 Public Sub MenuClickHelp()
   
   On Error GoTo ErrHandler
@@ -176,10 +206,6 @@ Exit Sub
 ErrHandler:
   '*'Debug.Assert False
   Resume Next
-End Sub
-Public Sub Activate()
-  'bridge method to call the form's Activate event method
-  Form_Activate
 End Sub
 
 Public Sub BeginFind()
@@ -433,6 +459,7 @@ ErrHandler:
   '*'Debug.Assert False
   Resume Next
 End Sub
+
 Public Sub InitFonts()
 
   On Error GoTo ErrHandler
@@ -475,29 +502,6 @@ ErrHandler:
   Resume Next
 End Sub
 
-Public Sub MenuClickDescription(ByVal FirstProp As Long)
-
-  Dim NextUndo As ObjectsUndo
-  Dim strDesc As String
-  
-  'although it is never used, we need to use same form of this method as all other resources
-  'otherwise, we'll get an error when the main form tries to call this method
-  
-  'use the resource ID/Description change method
-  strDesc = ObjectsEdit.Description
-  If GetNewResID(rtObjects, -1, vbNullString, strDesc, InGame, 2) Then
-    'create new undo object
-    Set NextUndo = New ObjectsUndo
-    NextUndo.UDAction = udoChangeDesc
-    NextUndo.UDObjectText = ObjectsEdit.Description
-    
-    'add to undo
-    AddUndo NextUndo
-      
-    'change description
-    ObjectsEdit.Description = strDesc
-  End If
-End Sub
 
 Public Sub MenuClickReplace()
 
@@ -646,8 +650,8 @@ Public Sub NewObjects()
   
   On Error GoTo ErrHandler
   
-  'set dirty status and caption
-  IsDirty = True
+  'set changed status and caption
+  IsChanged = True
   
   ObjCount = ObjCount + 1
   Caption = sDM & "Objects Editor - NewObjects" & CStr(ObjCount)
@@ -792,161 +796,6 @@ Public Sub MenuClickOpen()
 End Sub
             */
         }
-        public void MenuClickSave() {
-            /*
-  'save the object file
-  
-  On Error Resume Next
-  
-  'AutoUpdate feature still needs significant work; disable it for now
-  
-''  'if in a game, and autoupdate is in ask mode or yes mode
-''  If InGame And Settings.AutoUpdateObjects <> 1 Then
-''    'if not automatic,
-''    If Settings.AutoUpdateObjects = 0 Then
-''      'get user's response
-''      rtn = MsgBoxEx("Do you want to update all game logics with the changes made in the object list?", vbQuestion + vbYesNo, "Update Logics?", , , "Always take this action when saving the object list.", blnDontAsk)
-''      If blnDontAsk Then
-''        If rtn = vbYes Then
-''          Settings.AutoUpdateObjects = 2
-''        Else
-''          Settings.AutoUpdateObjects = 1
-''        End If
-''      End If
-''    Else
-''      rtn = vbYes
-''    End If
-''
-''    'if yes,
-''    If rtn = vbYes Then
-''      '
-''      'test cmds that use vtIObj:
-''      '  has, obj.in.room
-''      '
-''      'std cmds that use vtIObj:
-''      '  get, drop, put
-''
-''
-''
-''      'hide find form
-''      FindForm.Visible = False
-''
-''      'set mouse cursor and disable main form
-''      'show wait cursor
-''      WaitCursor
-''      frmMDIMain.Enabled = False
-''      'show progress form
-''      With frmProgress
-''        .Caption = "Updating Objects in Logics"
-''        .lblProgress.Caption = "Searching..."
-''        .pgbStatus.Max = InventoryObjects.Count - 1
-''        .pgbStatus.Value = 0
-''        .Show vbModeless, frmMDIMain
-''        .Refresh
-''      End With
-''
-''      'refresh
-''      DoEvents
-''
-''      'step through all current objects; (skip first obj with '?'
-''      For i = 1 To InventoryObjects.Count - 1
-''        'if deleted
-''        If i >= ObjectsEdit.Count Then
-''          'mark all objects in logics as deleted
-''          ResMan.ReplaceAll quotechar & InventoryObjects(i).ItemName & quotechar, "i" & CStr(i), fdAll, True, True, flAll, rtObjects
-''        Else
-''          'if now a '?'
-''          If ObjectsEdit(i).ItemName = "?" Then
-''            'mark all objects in logics as deleted
-''            ResMan.ReplaceAll quotechar & InventoryObjects(i).ItemName & quotechar, "i" & CStr(i), fdAll, True, True, flAll, rtObjects
-''          ElseIf ObjectsEdit(i).ItemName <> InventoryObjects(i).ItemName Then
-''            'change to new object item name
-''            ResMan.ReplaceAll quotechar & InventoryObjects(i).ItemName & quotechar, quotechar & ObjectsEdit(i).ItemName & quotechar, fdAll, True, True, flAll, rtObjects
-''          End If
-''        End If
-''        frmProgress.pgbStatus.Value = i
-''        frmProgress.Refresh
-''      Next i
-''
-''      'close the progress form
-''      Unload frmProgress
-''
-''      're-enable form
-''      frmMDIMain.Enabled = True
-''      Screen.MousePointer = vbDefault
-''      frmMDIMain.SetFocus
-''    End If
-''  End If
-''
-  
-  'if in a game
-  If InGame Then
-    'show wait cursor
-    WaitCursor
-    
-    'copy back to game object
-    InventoryObjects.SetObjects ObjectsEdit
-    'compile
-    InventoryObjects.Save
-    If Err.Number <> 0 Then
-      ErrMsgBox "Error during OBJECT compilation: ", "Existing OBJECT has not been modified.", "OBJECT Compile Error"
-      Screen.MousePointer = vbDefault
-      Exit Sub
-    End If
-    
-    MakeAllDirty
-
-    'update property window if object is currently selected
-    UpdateSelection rtObjects, -1, umProperty
-'      'if previewing the object
-'      If SelResType = rtObjects Then
-'        'repaint properties
-'        PaintPropertyWindow
-'      End If
-    
-    'clear any warnings
-    frmMDIMain.ClearWarningList 0, rtObjects
-    
-    'reset mouse pointer
-    Screen.MousePointer = vbDefault
-    
-  Else
-    'if no filename
-    If LenB(ObjectsEdit.ResFile) = 0 Then
-      MenuClickExport
-      Exit Sub
-    Else
-      'show wait cursor
-      WaitCursor
-      'use save method
-      ObjectsEdit.Save
-      If Err.Number <> 0 Then
-        ErrMsgBox "An error occurred while trying to save object list: ", "Existing object list has not been modified.", "Object List Save Error"
-        Screen.MousePointer = vbDefault
-        Exit Sub
-      End If
-      'reset mouse pointer
-      Screen.MousePointer = vbDefault
-    End If
-  End If
-  
-  'reset dirty flag
-  IsDirty = False
-  
-  'set caption
-  Caption = "Objects Editor - "
-  If InGame Then
-    Caption = Caption & GameID
-  Else
-    Caption = Caption & CompactPath(ObjectsEdit.ResFile, 75)
-  End If
-  
-  'disable menu and toolbar button
-  frmMDIMain.mnuRSave.Enabled = False
-  frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-End Sub
-            */
-        }
         void objformcode2() {
             /*
 Public Sub MenuClickPrint()
@@ -962,8 +811,8 @@ Public Sub MenuClickExport()
   If ExportObjects(ObjectsEdit, InGame) Then
     'if this is NOT the in game file,
     If Not InGame Then
-      'reset dirty flag and caption
-      IsDirty = False
+      'reset changed flag and caption
+      IsChanged = False
       'update caption
       Caption = "Objects Editor - " & CompactPath(ObjectsEdit.ResFile, 75)
       'disable save menu/button
@@ -1098,7 +947,7 @@ Private Sub AddUndo(NextUndo As ObjectsUndo)
   frmMDIMain.mnuEUndo.Enabled = True
   frmMDIMain.mnuEUndo.Caption = "&Undo " & LoadResString(OBJUNDOTEXT + NextUndo.UDAction) & vbTab & "Ctrl+Z"
   
-  MarkAsDirty
+  MarkAsChanged
   
   'reset searchflags
   FindForm.ResetSearch
@@ -1109,11 +958,11 @@ ErrHandler:
   Resume Next
 End Sub
 
-Private Sub MarkAsDirty()
+Private Sub MarkAsChanged()
 
-  If Not IsDirty Then
-    'set dirty flag
-    IsDirty = True
+  If Not IsChanged Then
+    'set changed flag
+    IsChanged = True
     
     'mark caption
     Caption = sDM & Caption
@@ -1264,7 +1113,7 @@ Public Sub LoadObjects(ByVal ObjectFile As String)
   fgObjects.RemoveItem 1
   
   'file is clean
-  IsDirty = False
+  IsChanged = False
   
   'set caption
   Caption = "Objects Editor - "
@@ -1323,67 +1172,6 @@ Public Sub ShowRow()
   fgObjects.TopRow = NewTop
 End Sub
 
-Public Sub ToggleEncryption(NewEncrypt As Boolean, Optional ByVal DontUndo As Boolean = False)
-  
-  Dim NextUndo As ObjectsUndo
-  Dim blnCorrect As Boolean, blnNoWarn As Boolean
-  Dim rtn As VbMsgBoxResult
-  
-  'if no change
-  If ObjectsEdit.Encrypted = NewEncrypt Then
-    Exit Sub
-  End If
-  
-  'if ingame and not undoing, warn user if going to wrong type
-  If Me.InGame And Not DontUndo Then
-    'check if new value matches interpreter target
-    blnCorrect = Not (InterpreterVersion = "2.089" Or InterpreterVersion = "2.272")
-    
-    If blnCorrect <> NewEncrypt And Settings.WarnEncrypt Then
-      rtn = MsgBoxEx("The target Interpreter Version for this game needs the OBJECT file to" & vbCrLf & _
-      "be " & IIf(blnCorrect, "ENCRYPTED", "UNENCRYPTED") & ". Are you sure you want to change it?", _
-      vbYesNo + vbQuestion + vbMsgBoxHelpButton, "Change OBJECT Encryption", WinAGIHelp, _
-      "htm\agi\object.htm#format", "Don't show this warning again.", blnNoWarn)
-      
-      'if asked to skip further warnings
-      If blnNoWarn Then
-        Settings.WarnEncrypt = False
-        WriteAppSetting SettingsList, sGENERAL, "WarnEncrypt", Settings.WarnEncrypt
-      End If
-      
-      If rtn = vbNo Then
-        ' exit
-        Exit Sub
-      End If
-    End If
-  End If
-  
-  'if not skipping undo
-  If Not DontUndo Then
-    Set NextUndo = New ObjectsUndo
-    NextUndo.UDAction = udoTglEncrypt
-    NextUndo.UDObjectRoom = CByte(ObjectsEdit.Encrypted)
-    'add to undo collection
-    AddUndo NextUndo
-  End If
-  
-  'set encryption
-  ObjectsEdit.Encrypted = NewEncrypt
-  
-  'set menu check
-  frmMDIMain.mnuRCustom3.Checked = ObjectsEdit.Encrypted
-  
-  '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
-  'update statusbar
-  If ObjectsEdit.Encrypted Then
-    MainStatusBar.Panels("Encrypt").Text = "Encrypted"
-  Else
-    MainStatusBar.Panels("Encrypt").Text = "Not Encrypted"
-  End If
-  
-  MarkAsDirty
-End Sub
-
 
 Private Function ValidateRoom() As Boolean
 
@@ -1431,7 +1219,7 @@ Private Function ValidateObject() As Boolean
             Settings.WarnDupObj = Not blnNoWarn
             'if now hiding update settings file
             If Not Settings.WarnDupObj Then
-              WriteAppSetting SettingsList, sGENERAL, "WarnDupObj", Settings.WarnDupObj
+              WinAGISettingsList.WriteSetting(sGENERAL, "WarnDupObj", Settings.WarnDupObj
             End If
             
             'if canceled,
@@ -1717,7 +1505,7 @@ Private Sub ActivateActions()
  
   'show object menu
  '*'Debug.Print "AdjustMenus 55"
-  AdjustMenus rtObjects, InGame, True, IsDirty
+  AdjustMenus rtObjects, InGame, True, IsChanged
   
   'set edit menu
   SetEditMenu
@@ -2065,7 +1853,7 @@ Public Sub MenuClickUndo()
       InventoryObjects.Description = NextUndo.UDObjectText
       InventoryObjects.Save
       'update prop window
-      UpdateSelection rtObjects, -1, umProperty
+      RefreshTree rtObjects, -1, umProperty
     End If
     
   Case udoChangeMaxObj     'store old maxobjects
@@ -2283,7 +2071,7 @@ Public Function AskClose() As Boolean
   
   On Error GoTo ErrHandler
   'if object list has been modified since last save,
-  If IsDirty Then
+  If IsChanged Then
     'get user input
     rtn = MsgBox("Do you want to save changes to this objects file before closing?", vbYesNoCancel, "Objects Editor")
     
@@ -3098,6 +2886,286 @@ End Sub
 
 
             */
+        }
+
+        private void button1_Click(object sender, EventArgs e) {
+            EditInvList.Clear();
+            if (EditInvList.Count > 1) {
+                label1.Text = $"Item 1: {EditInvList[1].ItemName}";
+            }
+            else {
+                label1.Text = "Only one item";
+            }
+            label2.Text = $"Max SObj: {EditInvList.MaxScreenObjects}";
+            MarkAsChanged();
+        }
+
+        #endregion
+
+        public bool LoadOBJECT(InventoryList objectobj) {
+
+            InGame = objectobj.InGame;
+            IsChanged = objectobj.IsChanged;
+            try {
+                if (InGame) {
+                    objectobj.Load();
+                }
+            }
+            catch {
+                return false;
+            }
+            if (objectobj.ErrLevel < 0) {
+                return false; ;
+            }
+            EditInvList = objectobj.Clone();
+            EditInvListFilename = objectobj.ResFile;
+
+
+
+            // TODO: setup form for editing
+            label1.Text = $"Max SObj: {EditInvList.MaxScreenObjects}";
+            for (int i = 0; i < EditInvList.Count; i++) {
+                lstItems.Items.Add(i.ToString() + ": " + EditInvList[(byte)i].ItemName);
+            }
+
+
+
+            Text = "Objects Editor - ";
+            if (InGame) {
+                Text += EditGame.GameID;
+            }
+            else {
+                if (EditInvListFilename.Length > 0) {
+                    Text += Common.Base.CompactPath(EditInvListFilename, 75);
+                }
+                else {
+                    ObjCount++;
+                    Text += "NewObjects" + ObjCount.ToString();
+                }
+            }
+            if (IsChanged) {
+                Text = sDM + Text;
+            }
+
+            mnuRSave.Enabled = !IsChanged;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            return true;
+        }
+
+        public void ImportObjects(string importfile) {
+            InventoryList tmpList;
+
+            MDIMain.UseWaitCursor = true;
+            try {
+                tmpList = new(importfile);
+            }
+            catch (Exception e) {
+                ErrMsgBox(e, "An error occurred during import:", "", "Import Object File Error");
+                MDIMain.UseWaitCursor = false;
+                return;
+            }
+            // replace current objectlist
+            EditInvList = tmpList;
+            EditInvListFilename = importfile;
+            // TODO: refresh the editor
+            if (EditInvList.Count > 1) {
+                label1.Text = $"Item 1: {EditInvList[1].ItemName}";
+            }
+            else {
+                label1.Text = "Only one item";
+            }
+            label2.Text = $"Max SObj: {EditInvList.MaxScreenObjects}";
+            MarkAsChanged();
+            MDIMain.UseWaitCursor = false;
+        }
+
+        public void SaveObjects() {
+            // TODO: AutoUpdate feature still needs significant work; disable it for now
+            //bool blnDontAsk = false;
+            //DialogResult rtn = DialogResult.No;
+            //if (InGame && WinAGISettings.AutoUpdateObjects != 1) {
+            //    if (WinAGISettings.AutoUpdateObjects == 0) {
+            //         = MsgBoxEx.Show(MDIMain,
+            //            "Do you want to update all game logics with the changes made in the object list?",
+            //            "Update Logics?",
+            //            MessageBoxButtons.YesNo,
+            //            MessageBoxIcon.Question,
+            //            "Always take this action when saving the object list.", ref blnDontAsk);
+            //        if (blnDontAsk) {
+            //            if (rtn == DialogResult.Yes) {
+            //                WinAGISettings.AutoUpdateObjects = 2;
+            //            }
+            //            else {
+            //                WinAGISettings.AutoUpdateObjects = 1;
+            //            }
+            //        }
+            //    }
+            //    else {
+            //        rtn = DialogResult.Yes;
+            //    }
+            //    if (rtn == DialogResult.Yes) {
+            //        // test cmds that use IObj:
+            //        //   has, obj.in.room
+            //        //
+            //        // action cmds that use IObj:
+            //        //   get, drop, put
+            //        FindForm.Visible = false;
+            //        MDIMain.UseWaitCursor = true;
+            //        ProgressWin.Text = "Updating Objects in Logics";
+            //        ProgressWin.lblProgress.Text = "Searching...";
+            //        ProgressWin.pgbStatus.Maximum = EditInvList.Count - 1;
+            //        ProgressWin.pgbStatus.Value = 0;
+            //        ProgressWin.Show(MDIMain);
+            //        ProgressWin.Refresh();
+            //        for (int i = 1; i < EditGame.InvObjects.Count; i++) {
+            //            if (i >= EditInvList.Count) {
+            //                // mark all objects in logics as deleted
+            //                ReplaceAll("\"" + EditGame.InvObjects[i].ItemName + "\"", "i" + i.ToString(), fdAll, true, true, flAll, AGIResType.Objects);
+            //            }
+            //            else {
+            //                if (EditInvList[i].ItemName == "?") {
+            //                    // mark all objects in logics as deleted
+            //                    ReplaceAll("\"" + EditGame.InvObjects[i].ItemName + "\"", "i" + i.ToString(), fdAll, true, true, flAll, AGIResType.Objects);
+            //                }
+            //                else if (EditInvList[i].ItemName != EditGame.InvObjects[i].ItemName) {
+            //                    // change to new object item name
+            //                    ReplaceAll("\"" + EditGame.InvObjects[i].ItemName + "\"", "\"" + EditInvList[i].ItemName + "\"", fdAll, true, true, flAll, AGIResType.Objects);
+            //                }
+            //            }
+            //            ProgressWin.pgbStatus.Value = i;
+            //            ProgressWin.Refresh();
+            //        }
+            //        ProgressWin.Close();
+            //        MDIMain.UseWaitCursor = false;
+            //    }
+            //}
+
+            if (InGame) {
+                MDIMain.UseWaitCursor = true;
+                bool loaded = EditGame.InvObjects.Loaded;
+                if (!loaded) {
+                    EditGame.InvObjects.Load();
+                }
+                EditGame.InvObjects.CloneFrom(EditInvList);
+                try {
+                    EditGame.InvObjects.Save();
+                }
+                catch (Exception ex) {
+                    ErrMsgBox(ex, "Error during OBJECT compilation: ",
+                        "Existing OBJECT has not been modified.",
+                        "OBJECT Compile Error");
+                    MDIMain.UseWaitCursor = false;
+                    return;
+                }
+                MakeAllChanged();
+                RefreshTree(AGIResType.Objects, 0);
+                MDIMain.ClearWarnings(AGIResType.Objects, 0);
+                if (!loaded) {
+                    EditGame.InvObjects.Unload();
+                }
+                MDIMain.UseWaitCursor = false;
+            }
+            else {
+                if (EditInvList.ResFile.Length == 0) {
+                    ExportObjects();
+                    return;
+                }
+                else {
+                    MDIMain.UseWaitCursor = true;
+                    try {
+                        EditInvList.Save();
+                    }
+                    catch (Exception ex) {
+                        ErrMsgBox(ex, "An error occurred while trying to save object list: ",
+                            "Existing object list has not been modified.",
+                            "Object List Save Error");
+                        MDIMain.UseWaitCursor = false;
+                        return;
+                    }
+                    MDIMain.UseWaitCursor = false;
+                }
+            }
+            MarkAsSaved();
+        }
+
+        public void ExportObjects() {
+            bool retval = Base.ExportObjects(EditInvList, InGame);
+            if (!InGame && retval) {
+                EditInvListFilename = EditInvList.ResFile;
+                MarkAsSaved();
+            };
+        }
+
+        public void EditProperties() {
+            string strDesc = EditInvList.Description;
+            string id = "";
+            if (GetNewResID(AGIResType.Objects, -1, ref id, ref strDesc, InGame, 2)) {
+                EditInvList.Description = strDesc;
+                MDIMain.RefreshPropertyGrid(AGIResType.Objects, 0);
+            }
+        }
+
+        private bool AskClose() {
+            if (EditInvList.ErrLevel < 0) {
+                // if exiting due to error on form load
+                return true;
+            }
+            if (IsChanged) {
+                DialogResult rtn = MessageBox.Show(MDIMain,
+                    "Do you want to save changes to this OBJECT file?",
+                    "Save OBJECT",
+                    MessageBoxButtons.YesNoCancel,
+                    MessageBoxIcon.Question);
+                switch (rtn) {
+                case DialogResult.Yes:
+                    SaveObjects();
+                    if (IsChanged) {
+                        rtn = MessageBox.Show(MDIMain,
+                            "OBJECT file not saved. Continue closing anyway?",
+                            "Save OBJECT",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question);
+                        return rtn == DialogResult.Yes;
+                    }
+                    break;
+                case DialogResult.Cancel:
+                    return false;
+                case DialogResult.No:
+                    break;
+                }
+            }
+            return true;
+        }
+
+        void MarkAsChanged() {
+            // ignore when loading (not visible yet)
+            if (!Visible) {
+                return;
+            }
+            if (!IsChanged) {
+                IsChanged = true;
+                mnuRSave.Enabled = true;
+                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                Text = sDM + Text;
+            }
+        }
+
+        private void MarkAsSaved() {
+            IsChanged = false;
+            Text = "Objects Editor - ";
+            if (InGame) {
+                Text += EditGame.GameID;
+            }
+            else {
+                Text += Common.Base.CompactPath(EditInvListFilename, 75);
+            }
+            mnuRSave.Enabled = false;
+            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+        }
+
+        internal void InitFonts() {
+            // TODO: after finalizing form layout, need to adjust font init
+            lstItems.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿namespace WinAGI.Editor {
+    using System.Diagnostics;
     using System.Windows.Forms;
     partial class frmMDIMain {
         /// <summary>
@@ -26,15 +27,16 @@
         private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMDIMain));
-            TreeNode treeNode8 = new TreeNode("Logics");
-            TreeNode treeNode9 = new TreeNode("Pictures");
-            TreeNode treeNode10 = new TreeNode("Sounds");
-            TreeNode treeNode11 = new TreeNode("Views");
-            TreeNode treeNode12 = new TreeNode("Objects");
-            TreeNode treeNode13 = new TreeNode("Words");
-            TreeNode treeNode14 = new TreeNode("AGIGAME", new TreeNode[] { treeNode8, treeNode9, treeNode10, treeNode11, treeNode12, treeNode13 });
+            TreeNode treeNode1 = new TreeNode("Logics");
+            TreeNode treeNode2 = new TreeNode("Pictures");
+            TreeNode treeNode3 = new TreeNode("Sounds");
+            TreeNode treeNode4 = new TreeNode("Views");
+            TreeNode treeNode5 = new TreeNode("Objects");
+            TreeNode treeNode6 = new TreeNode("Words");
+            TreeNode treeNode7 = new TreeNode("AGIGAME", new TreeNode[] { treeNode1, treeNode2, treeNode3, treeNode4, treeNode5, treeNode6 });
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
             menuStrip1 = new MenuStrip();
             mnuGame = new ToolStripMenuItem();
             mnuGNew = new ToolStripMenuItem();
@@ -47,7 +49,7 @@
             mnuGCompile = new ToolStripMenuItem();
             mnuGCompileTo = new ToolStripMenuItem();
             mnuGRebuild = new ToolStripMenuItem();
-            mnuGCompileDirty = new ToolStripMenuItem();
+            mnuGCompileChanged = new ToolStripMenuItem();
             mnuGSep2 = new ToolStripSeparator();
             mnuGRun = new ToolStripMenuItem();
             mnuGSep3 = new ToolStripSeparator();
@@ -65,38 +67,38 @@
             mnuRNPicture = new ToolStripMenuItem();
             mnuRNSound = new ToolStripMenuItem();
             mnuRNView = new ToolStripMenuItem();
-            toolStripSeparator6 = new ToolStripSeparator();
+            mnuRNSep1 = new ToolStripSeparator();
             mnuRNObjects = new ToolStripMenuItem();
             mnuRNWords = new ToolStripMenuItem();
-            toolStripSeparator5 = new ToolStripSeparator();
+            mnuRNSep2 = new ToolStripSeparator();
             mnuRNText = new ToolStripMenuItem();
             mnuROpen = new ToolStripMenuItem();
             mnuROLogic = new ToolStripMenuItem();
             mnuROPicture = new ToolStripMenuItem();
             mnuROSound = new ToolStripMenuItem();
             mnuROView = new ToolStripMenuItem();
-            toolStripSeparator13 = new ToolStripSeparator();
+            mnuROSep1 = new ToolStripSeparator();
             mnuROObjects = new ToolStripMenuItem();
             mnuROWords = new ToolStripMenuItem();
-            toolStripSeparator14 = new ToolStripSeparator();
+            mnuROSep2 = new ToolStripSeparator();
             mnuROText = new ToolStripMenuItem();
             mnuRImport = new ToolStripMenuItem();
             mnuRILogic = new ToolStripMenuItem();
             mnuRIPicture = new ToolStripMenuItem();
             mnuRISound = new ToolStripMenuItem();
             mnuRIView = new ToolStripMenuItem();
-            toolStripSeparator15 = new ToolStripSeparator();
+            mnuRISep = new ToolStripSeparator();
             mnuRIObjects = new ToolStripMenuItem();
             mnuRIWords = new ToolStripMenuItem();
-            mnuRSeparator1 = new ToolStripSeparator();
+            mnuRSep1 = new ToolStripSeparator();
             mnuROpenRes = new ToolStripMenuItem();
             mnuRSave = new ToolStripMenuItem();
             mnuRExport = new ToolStripMenuItem();
-            mnuRSeparator2 = new ToolStripSeparator();
-            mnuRAddRemove = new ToolStripMenuItem();
+            mnuRSep2 = new ToolStripSeparator();
+            mnuRRemove = new ToolStripMenuItem();
             mnuRRenumber = new ToolStripMenuItem();
-            mnuRIDDesc = new ToolStripMenuItem();
-            mnuRSeparator3 = new ToolStripSeparator();
+            mnuRProperties = new ToolStripMenuItem();
+            mnuRSep3 = new ToolStripSeparator();
             mnuRCompileLogic = new ToolStripMenuItem();
             mnuRSavePicImage = new ToolStripMenuItem();
             mnuRExportGIF = new ToolStripMenuItem();
@@ -106,9 +108,10 @@
             mnuTLayout = new ToolStripMenuItem();
             mnuTMenuEditor = new ToolStripMenuItem();
             mnuTGlobals = new ToolStripMenuItem();
-            mnuReserved = new ToolStripMenuItem();
+            mnuTReserved = new ToolStripMenuItem();
             mnuTSnippets = new ToolStripMenuItem();
             mnuTPalette = new ToolStripMenuItem();
+            mnuTWarning = new ToolStripMenuItem();
             mnuTSep2 = new ToolStripSeparator();
             mnuTCustom1 = new ToolStripMenuItem();
             mnuTCustom2 = new ToolStripMenuItem();
@@ -124,7 +127,7 @@
             mnuWTileH = new ToolStripMenuItem();
             mnuWArrange = new ToolStripMenuItem();
             mnuWMinimize = new ToolStripMenuItem();
-            toolStripSeparator8 = new ToolStripSeparator();
+            mnuWSep1 = new ToolStripSeparator();
             mnuWClose = new ToolStripMenuItem();
             mnuHelp = new ToolStripMenuItem();
             mnuHContents = new ToolStripMenuItem();
@@ -140,11 +143,10 @@
             btnNewSound = new ToolStripMenuItem();
             btnNewView = new ToolStripMenuItem();
             statusStrip1 = new StatusStrip();
-            StatusPanel1 = new ToolStripStatusLabel();
-            springLabel = new ToolStripStatusLabel();
-            CapsLockLabel = new ToolStripStatusLabel();
-            NumLockLabel = new ToolStripStatusLabel();
-            InsertLockLabel = new ToolStripStatusLabel();
+            spStatus = new ToolStripStatusLabel();
+            spCapsLock = new ToolStripStatusLabel();
+            spNumLock = new ToolStripStatusLabel();
+            spInsLock = new ToolStripStatusLabel();
             toolStrip1 = new ToolStrip();
             btnOpenGame = new ToolStripButton();
             btnCloseGame = new ToolStripButton();
@@ -174,12 +176,21 @@
             btnGlobals = new ToolStripButton();
             btnSep5 = new ToolStripSeparator();
             btnHelp = new ToolStripButton();
-            toolStripSplitButton2 = new ToolStripSplitButton();
-            toolStripSplitButton3 = new ToolStripSplitButton();
-            toolStripSplitButton4 = new ToolStripSplitButton();
             pnlResources = new Panel();
             splResource = new SplitContainer();
             tvwResources = new TreeView();
+            cmsResource = new ContextMenuStrip(components);
+            cmROpenRes = new ToolStripMenuItem();
+            cmRSave = new ToolStripMenuItem();
+            cmRExport = new ToolStripMenuItem();
+            cmRSep1 = new ToolStripSeparator();
+            cmRRemove = new ToolStripMenuItem();
+            cmRRenumber = new ToolStripMenuItem();
+            cmRProperties = new ToolStripMenuItem();
+            cmRSep2 = new ToolStripSeparator();
+            cmRCompileLogic = new ToolStripMenuItem();
+            cmRSavePicImage = new ToolStripMenuItem();
+            cmRExportLoopGIF = new ToolStripMenuItem();
             cmbResType = new ComboBox();
             lstResources = new ListView();
             columnHeader1 = new ColumnHeader();
@@ -189,23 +200,27 @@
             cmsGrid = new ContextMenuStrip(components);
             cmiDismiss = new ToolStripMenuItem();
             cmiDismissAll = new ToolStripMenuItem();
-            cmiErrorHelp = new ToolStripMenuItem();
+            cmiGoWarning = new ToolStripMenuItem();
+            cmiHelp = new ToolStripMenuItem();
+            cmiIgnoreWarning = new ToolStripMenuItem();
             picNavList = new PictureBox();
             splitResource = new Splitter();
             pnlWarnings = new Panel();
             fgWarnings = new DataGridView();
+            colEventType = new DataGridViewTextBoxColumn();
+            colResType = new DataGridViewTextBoxColumn();
             colWarning = new DataGridViewTextBoxColumn();
             colDesc = new DataGridViewTextBoxColumn();
             colResNum = new DataGridViewTextBoxColumn();
-            colLIne = new DataGridViewTextBoxColumn();
+            colLine = new DataGridViewTextBoxColumn();
             colModule = new DataGridViewTextBoxColumn();
+            colFilename = new DataGridViewTextBoxColumn();
             splitWarning = new Splitter();
             imageList1 = new ImageList(components);
             tmrNavList = new Timer(components);
             FolderDlg = new FolderBrowserDialog();
             OpenDlg = new OpenFileDialog();
             SaveDlg = new SaveFileDialog();
-            imlPropButtons = new ImageList(components);
             hlpWinAGI = new HelpProvider();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
@@ -215,6 +230,7 @@
             splResource.Panel1.SuspendLayout();
             splResource.Panel2.SuspendLayout();
             splResource.SuspendLayout();
+            cmsResource.SuspendLayout();
             cmsGrid.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picNavList).BeginInit();
             pnlWarnings.SuspendLayout();
@@ -223,18 +239,18 @@
             // 
             // menuStrip1
             // 
-            menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
+            menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             menuStrip1.Items.AddRange(new ToolStripItem[] { mnuGame, mnuResources, mnuTools, mnuWindow, mnuHelp });
             menuStrip1.Location = new System.Drawing.Point(0, 0);
             menuStrip1.MdiWindowListItem = mnuWindow;
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Size = new System.Drawing.Size(1282, 24);
+            menuStrip1.Size = new System.Drawing.Size(851, 24);
             menuStrip1.TabIndex = 0;
             menuStrip1.Text = "menuStrip1";
             // 
             // mnuGame
             // 
-            mnuGame.DropDownItems.AddRange(new ToolStripItem[] { mnuGNew, mnuGOpen, mnuGImport, mnuGClose, mnuGSep1, mnuGCompile, mnuGCompileTo, mnuGRebuild, mnuGCompileDirty, mnuGSep2, mnuGRun, mnuGSep3, mnuGProperties, mnuGMRUBar, mnuGMRU0, mnuGMRU1, mnuGMRU2, mnuGMRU3, mnuGSep5, mnuGExit });
+            mnuGame.DropDownItems.AddRange(new ToolStripItem[] { mnuGNew, mnuGOpen, mnuGImport, mnuGClose, mnuGSep1, mnuGCompile, mnuGCompileTo, mnuGRebuild, mnuGCompileChanged, mnuGSep2, mnuGRun, mnuGSep3, mnuGProperties, mnuGMRUBar, mnuGMRU0, mnuGMRU1, mnuGMRU2, mnuGMRU3, mnuGSep5, mnuGExit });
             mnuGame.Name = "mnuGame";
             mnuGame.Size = new System.Drawing.Size(50, 20);
             mnuGame.Text = "&Game";
@@ -244,14 +260,14 @@
             // 
             mnuGNew.DropDownItems.AddRange(new ToolStripItem[] { mnuGNewTemplate, mnuGNewBlank });
             mnuGNew.Name = "mnuGNew";
-            mnuGNew.Size = new System.Drawing.Size(261, 22);
+            mnuGNew.Size = new System.Drawing.Size(284, 22);
             mnuGNew.Text = "&New Game";
             // 
             // mnuGNewTemplate
             // 
             mnuGNewTemplate.Name = "mnuGNewTemplate";
             mnuGNewTemplate.ShortcutKeys = Keys.Control | Keys.N;
-            mnuGNewTemplate.Size = new System.Drawing.Size(196, 22);
+            mnuGNewTemplate.Size = new System.Drawing.Size(197, 22);
             mnuGNewTemplate.Text = "From &Template";
             mnuGNewTemplate.Click += mnuGNewTemplate_Click;
             // 
@@ -259,7 +275,7 @@
             // 
             mnuGNewBlank.Name = "mnuGNewBlank";
             mnuGNewBlank.ShortcutKeys = Keys.Control | Keys.Shift | Keys.N;
-            mnuGNewBlank.Size = new System.Drawing.Size(196, 22);
+            mnuGNewBlank.Size = new System.Drawing.Size(197, 22);
             mnuGNewBlank.Text = "&Blank";
             mnuGNewBlank.Click += mnuGNewBlank_Click;
             // 
@@ -267,7 +283,7 @@
             // 
             mnuGOpen.Name = "mnuGOpen";
             mnuGOpen.ShortcutKeys = Keys.Control | Keys.O;
-            mnuGOpen.Size = new System.Drawing.Size(261, 22);
+            mnuGOpen.Size = new System.Drawing.Size(284, 22);
             mnuGOpen.Text = "&Open Game";
             mnuGOpen.Click += mnuGOpen_Click;
             // 
@@ -275,7 +291,7 @@
             // 
             mnuGImport.Name = "mnuGImport";
             mnuGImport.ShortcutKeys = Keys.Control | Keys.I;
-            mnuGImport.Size = new System.Drawing.Size(261, 22);
+            mnuGImport.Size = new System.Drawing.Size(284, 22);
             mnuGImport.Text = "&Import Game";
             mnuGImport.Click += mnuGImport_Click;
             // 
@@ -283,20 +299,20 @@
             // 
             mnuGClose.Name = "mnuGClose";
             mnuGClose.ShortcutKeys = Keys.Alt | Keys.X;
-            mnuGClose.Size = new System.Drawing.Size(261, 22);
+            mnuGClose.Size = new System.Drawing.Size(284, 22);
             mnuGClose.Text = "C&lose Game";
             mnuGClose.Click += mnuGClose_Click;
             // 
             // mnuGSep1
             // 
             mnuGSep1.Name = "mnuGSep1";
-            mnuGSep1.Size = new System.Drawing.Size(258, 6);
+            mnuGSep1.Size = new System.Drawing.Size(281, 6);
             // 
             // mnuGCompile
             // 
             mnuGCompile.Name = "mnuGCompile";
             mnuGCompile.ShortcutKeys = Keys.Control | Keys.B;
-            mnuGCompile.Size = new System.Drawing.Size(261, 22);
+            mnuGCompile.Size = new System.Drawing.Size(284, 22);
             mnuGCompile.Text = "&Compile Game";
             mnuGCompile.Click += mnuGCompile_Click;
             // 
@@ -304,7 +320,7 @@
             // 
             mnuGCompileTo.Name = "mnuGCompileTo";
             mnuGCompileTo.ShortcutKeys = Keys.Control | Keys.Shift | Keys.B;
-            mnuGCompileTo.Size = new System.Drawing.Size(261, 22);
+            mnuGCompileTo.Size = new System.Drawing.Size(284, 22);
             mnuGCompileTo.Text = "Compile &To ...";
             mnuGCompileTo.Click += mnuGCompileTo_Click;
             // 
@@ -312,54 +328,54 @@
             // 
             mnuGRebuild.Name = "mnuGRebuild";
             mnuGRebuild.ShortcutKeys = Keys.Control | Keys.Shift | Keys.R;
-            mnuGRebuild.Size = new System.Drawing.Size(261, 22);
+            mnuGRebuild.Size = new System.Drawing.Size(284, 22);
             mnuGRebuild.Text = "Rebuild &VOL Files";
             mnuGRebuild.Click += mnuGRebuild_Click;
             // 
-            // mnuGCompileDirty
+            // mnuGCompileChanged
             // 
-            mnuGCompileDirty.Name = "mnuGCompileDirty";
-            mnuGCompileDirty.ShortcutKeys = Keys.Control | Keys.Shift | Keys.D;
-            mnuGCompileDirty.Size = new System.Drawing.Size(261, 22);
-            mnuGCompileDirty.Text = "Complile &Dirty Logics";
-            mnuGCompileDirty.Click += mnuGCompileDirty_Click;
+            mnuGCompileChanged.Name = "mnuGCompileChanged";
+            mnuGCompileChanged.ShortcutKeys = Keys.Control | Keys.Shift | Keys.D;
+            mnuGCompileChanged.Size = new System.Drawing.Size(284, 22);
+            mnuGCompileChanged.Text = "Complile Changed Logics";
+            mnuGCompileChanged.Click += mnuGCompileChanged_Click;
             // 
             // mnuGSep2
             // 
             mnuGSep2.Name = "mnuGSep2";
-            mnuGSep2.Size = new System.Drawing.Size(258, 6);
+            mnuGSep2.Size = new System.Drawing.Size(281, 6);
             // 
             // mnuGRun
             // 
             mnuGRun.Name = "mnuGRun";
             mnuGRun.ShortcutKeys = Keys.Control | Keys.R;
-            mnuGRun.Size = new System.Drawing.Size(261, 22);
+            mnuGRun.Size = new System.Drawing.Size(284, 22);
             mnuGRun.Text = "&Run";
             mnuGRun.Click += mnuGRun_Click;
             // 
             // mnuGSep3
             // 
             mnuGSep3.Name = "mnuGSep3";
-            mnuGSep3.Size = new System.Drawing.Size(258, 6);
+            mnuGSep3.Size = new System.Drawing.Size(281, 6);
             // 
             // mnuGProperties
             // 
             mnuGProperties.Name = "mnuGProperties";
             mnuGProperties.ShortcutKeys = Keys.F4;
-            mnuGProperties.Size = new System.Drawing.Size(261, 22);
+            mnuGProperties.Size = new System.Drawing.Size(284, 22);
             mnuGProperties.Text = "&Properties ...";
             mnuGProperties.Click += mnuGProperties_Click;
             // 
             // mnuGMRUBar
             // 
             mnuGMRUBar.Name = "mnuGMRUBar";
-            mnuGMRUBar.Size = new System.Drawing.Size(258, 6);
+            mnuGMRUBar.Size = new System.Drawing.Size(281, 6);
             mnuGMRUBar.Visible = false;
             // 
             // mnuGMRU0
             // 
             mnuGMRU0.Name = "mnuGMRU0";
-            mnuGMRU0.Size = new System.Drawing.Size(261, 22);
+            mnuGMRU0.Size = new System.Drawing.Size(284, 22);
             mnuGMRU0.Tag = "0";
             mnuGMRU0.Text = "mru1";
             mnuGMRU0.Visible = false;
@@ -368,7 +384,7 @@
             // mnuGMRU1
             // 
             mnuGMRU1.Name = "mnuGMRU1";
-            mnuGMRU1.Size = new System.Drawing.Size(261, 22);
+            mnuGMRU1.Size = new System.Drawing.Size(284, 22);
             mnuGMRU1.Tag = "1";
             mnuGMRU1.Text = "mru2";
             mnuGMRU1.Visible = false;
@@ -377,7 +393,7 @@
             // mnuGMRU2
             // 
             mnuGMRU2.Name = "mnuGMRU2";
-            mnuGMRU2.Size = new System.Drawing.Size(261, 22);
+            mnuGMRU2.Size = new System.Drawing.Size(284, 22);
             mnuGMRU2.Tag = "2";
             mnuGMRU2.Text = "mru3";
             mnuGMRU2.Visible = false;
@@ -386,7 +402,7 @@
             // mnuGMRU3
             // 
             mnuGMRU3.Name = "mnuGMRU3";
-            mnuGMRU3.Size = new System.Drawing.Size(261, 22);
+            mnuGMRU3.Size = new System.Drawing.Size(284, 22);
             mnuGMRU3.Tag = "3";
             mnuGMRU3.Text = "mru4";
             mnuGMRU3.Visible = false;
@@ -395,29 +411,28 @@
             // mnuGSep5
             // 
             mnuGSep5.Name = "mnuGSep5";
-            mnuGSep5.Size = new System.Drawing.Size(258, 6);
+            mnuGSep5.Size = new System.Drawing.Size(281, 6);
             // 
             // mnuGExit
             // 
             mnuGExit.Name = "mnuGExit";
             mnuGExit.ShortcutKeyDisplayString = "Alt+F4";
-            mnuGExit.Size = new System.Drawing.Size(261, 22);
+            mnuGExit.Size = new System.Drawing.Size(284, 22);
             mnuGExit.Text = "E&xit";
             mnuGExit.Click += mnuGExit_Click;
             // 
             // mnuResources
             // 
-            mnuResources.DropDownItems.AddRange(new ToolStripItem[] { mnuRNew, mnuROpen, mnuRImport, mnuRSeparator1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSeparator2, mnuRAddRemove, mnuRRenumber, mnuRIDDesc, mnuRSeparator3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF });
+            mnuResources.DropDownItems.AddRange(new ToolStripItem[] { mnuRNew, mnuROpen, mnuRImport, mnuRSep1, mnuROpenRes, mnuRSave, mnuRExport, mnuRSep2, mnuRRemove, mnuRRenumber, mnuRProperties, mnuRSep3, mnuRCompileLogic, mnuRSavePicImage, mnuRExportGIF });
             mnuResources.ImageScaling = ToolStripItemImageScaling.None;
             mnuResources.Name = "mnuResources";
             mnuResources.Size = new System.Drawing.Size(72, 20);
             mnuResources.Text = "&Resources";
-            mnuResources.DropDownClosed += mnuResources_DropDownClosed;
             mnuResources.DropDownOpening += mnuResources_DropDownOpening;
             // 
             // mnuRNew
             // 
-            mnuRNew.DropDownItems.AddRange(new ToolStripItem[] { mnuRNLogic, mnuRNPicture, mnuRNSound, mnuRNView, toolStripSeparator6, mnuRNObjects, mnuRNWords, toolStripSeparator5, mnuRNText });
+            mnuRNew.DropDownItems.AddRange(new ToolStripItem[] { mnuRNLogic, mnuRNPicture, mnuRNSound, mnuRNView, mnuRNSep1, mnuRNObjects, mnuRNWords, mnuRNSep2, mnuRNText });
             mnuRNew.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuRNew.Name = "mnuRNew";
             mnuRNew.Size = new System.Drawing.Size(305, 22);
@@ -427,7 +442,7 @@
             // 
             mnuRNLogic.Name = "mnuRNLogic";
             mnuRNLogic.ShortcutKeys = Keys.Control | Keys.D1;
-            mnuRNLogic.Size = new System.Drawing.Size(200, 22);
+            mnuRNLogic.Size = new System.Drawing.Size(201, 22);
             mnuRNLogic.Text = "&Logic";
             mnuRNLogic.Click += mnuRNLogic_Click;
             // 
@@ -435,7 +450,7 @@
             // 
             mnuRNPicture.Name = "mnuRNPicture";
             mnuRNPicture.ShortcutKeys = Keys.Control | Keys.D2;
-            mnuRNPicture.Size = new System.Drawing.Size(200, 22);
+            mnuRNPicture.Size = new System.Drawing.Size(201, 22);
             mnuRNPicture.Text = "&Picture";
             mnuRNPicture.Click += mnuRNPicture_Click;
             // 
@@ -443,7 +458,7 @@
             // 
             mnuRNSound.Name = "mnuRNSound";
             mnuRNSound.ShortcutKeys = Keys.Control | Keys.D3;
-            mnuRNSound.Size = new System.Drawing.Size(200, 22);
+            mnuRNSound.Size = new System.Drawing.Size(201, 22);
             mnuRNSound.Text = "&Sound";
             mnuRNSound.Click += mnuRNSound_Click;
             // 
@@ -451,20 +466,20 @@
             // 
             mnuRNView.Name = "mnuRNView";
             mnuRNView.ShortcutKeys = Keys.Control | Keys.D4;
-            mnuRNView.Size = new System.Drawing.Size(200, 22);
+            mnuRNView.Size = new System.Drawing.Size(201, 22);
             mnuRNView.Text = "&View";
             mnuRNView.Click += mnuRNView_Click;
             // 
-            // toolStripSeparator6
+            // mnuRNSep1
             // 
-            toolStripSeparator6.Name = "toolStripSeparator6";
-            toolStripSeparator6.Size = new System.Drawing.Size(197, 6);
+            mnuRNSep1.Name = "mnuRNSep1";
+            mnuRNSep1.Size = new System.Drawing.Size(198, 6);
             // 
             // mnuRNObjects
             // 
             mnuRNObjects.Name = "mnuRNObjects";
             mnuRNObjects.ShortcutKeys = Keys.Control | Keys.D5;
-            mnuRNObjects.Size = new System.Drawing.Size(200, 22);
+            mnuRNObjects.Size = new System.Drawing.Size(201, 22);
             mnuRNObjects.Text = "&OBJECT File";
             mnuRNObjects.Click += mnuRNObjects_Click;
             // 
@@ -472,31 +487,30 @@
             // 
             mnuRNWords.Name = "mnuRNWords";
             mnuRNWords.ShortcutKeys = Keys.Control | Keys.D6;
-            mnuRNWords.Size = new System.Drawing.Size(200, 22);
+            mnuRNWords.Size = new System.Drawing.Size(201, 22);
             mnuRNWords.Text = "&WORDS.TOK File";
             mnuRNWords.Click += mnuRNWords_Click;
             // 
-            // toolStripSeparator5
+            // mnuRNSep2
             // 
-            toolStripSeparator5.Name = "toolStripSeparator5";
-            toolStripSeparator5.Size = new System.Drawing.Size(197, 6);
+            mnuRNSep2.Name = "mnuRNSep2";
+            mnuRNSep2.Size = new System.Drawing.Size(198, 6);
             // 
             // mnuRNText
             // 
             mnuRNText.Name = "mnuRNText";
             mnuRNText.ShortcutKeys = Keys.Control | Keys.D7;
-            mnuRNText.Size = new System.Drawing.Size(200, 22);
+            mnuRNText.Size = new System.Drawing.Size(201, 22);
             mnuRNText.Text = "&Text File";
             mnuRNText.Click += mnuRNText_Click;
             // 
             // mnuROpen
             // 
-            mnuROpen.DropDownItems.AddRange(new ToolStripItem[] { mnuROLogic, mnuROPicture, mnuROSound, mnuROView, toolStripSeparator13, mnuROObjects, mnuROWords, toolStripSeparator14, mnuROText });
+            mnuROpen.DropDownItems.AddRange(new ToolStripItem[] { mnuROLogic, mnuROPicture, mnuROSound, mnuROView, mnuROSep1, mnuROObjects, mnuROWords, mnuROSep2, mnuROText });
             mnuROpen.Image = (System.Drawing.Image)resources.GetObject("mnuROpen.Image");
             mnuROpen.ImageScaling = ToolStripItemImageScaling.None;
             mnuROpen.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuROpen.Name = "mnuROpen";
-            mnuROpen.ShortcutKeys = Keys.Control | Keys.O;
             mnuROpen.Size = new System.Drawing.Size(305, 22);
             mnuROpen.Text = "&Open Resource";
             // 
@@ -504,7 +518,7 @@
             // 
             mnuROLogic.Name = "mnuROLogic";
             mnuROLogic.ShortcutKeys = Keys.Alt | Keys.D1;
-            mnuROLogic.Size = new System.Drawing.Size(196, 22);
+            mnuROLogic.Size = new System.Drawing.Size(197, 22);
             mnuROLogic.Text = "&Logic";
             mnuROLogic.Click += mnuROLogic_Click;
             // 
@@ -512,7 +526,7 @@
             // 
             mnuROPicture.Name = "mnuROPicture";
             mnuROPicture.ShortcutKeys = Keys.Alt | Keys.D2;
-            mnuROPicture.Size = new System.Drawing.Size(196, 22);
+            mnuROPicture.Size = new System.Drawing.Size(197, 22);
             mnuROPicture.Text = "&Picture";
             mnuROPicture.Click += mnuROPicture_Click;
             // 
@@ -520,7 +534,7 @@
             // 
             mnuROSound.Name = "mnuROSound";
             mnuROSound.ShortcutKeys = Keys.Alt | Keys.D3;
-            mnuROSound.Size = new System.Drawing.Size(196, 22);
+            mnuROSound.Size = new System.Drawing.Size(197, 22);
             mnuROSound.Text = "&Sound";
             mnuROSound.Click += mnuROSound_Click;
             // 
@@ -528,20 +542,20 @@
             // 
             mnuROView.Name = "mnuROView";
             mnuROView.ShortcutKeys = Keys.Alt | Keys.D4;
-            mnuROView.Size = new System.Drawing.Size(196, 22);
+            mnuROView.Size = new System.Drawing.Size(197, 22);
             mnuROView.Text = "&View";
             mnuROView.Click += mnuROView_Click;
             // 
-            // toolStripSeparator13
+            // mnuROSep1
             // 
-            toolStripSeparator13.Name = "toolStripSeparator13";
-            toolStripSeparator13.Size = new System.Drawing.Size(193, 6);
+            mnuROSep1.Name = "mnuROSep1";
+            mnuROSep1.Size = new System.Drawing.Size(194, 6);
             // 
             // mnuROObjects
             // 
             mnuROObjects.Name = "mnuROObjects";
             mnuROObjects.ShortcutKeys = Keys.Alt | Keys.D5;
-            mnuROObjects.Size = new System.Drawing.Size(196, 22);
+            mnuROObjects.Size = new System.Drawing.Size(197, 22);
             mnuROObjects.Text = "&OBJECT File";
             mnuROObjects.Click += mnuROObjects_Click;
             // 
@@ -549,26 +563,26 @@
             // 
             mnuROWords.Name = "mnuROWords";
             mnuROWords.ShortcutKeys = Keys.Alt | Keys.D6;
-            mnuROWords.Size = new System.Drawing.Size(196, 22);
+            mnuROWords.Size = new System.Drawing.Size(197, 22);
             mnuROWords.Text = "&WORDS.TOK File";
             mnuROWords.Click += mnuROWords_Click;
             // 
-            // toolStripSeparator14
+            // mnuROSep2
             // 
-            toolStripSeparator14.Name = "toolStripSeparator14";
-            toolStripSeparator14.Size = new System.Drawing.Size(193, 6);
+            mnuROSep2.Name = "mnuROSep2";
+            mnuROSep2.Size = new System.Drawing.Size(194, 6);
             // 
             // mnuROText
             // 
             mnuROText.Name = "mnuROText";
             mnuROText.ShortcutKeys = Keys.Alt | Keys.D7;
-            mnuROText.Size = new System.Drawing.Size(196, 22);
+            mnuROText.Size = new System.Drawing.Size(197, 22);
             mnuROText.Text = "&Text File";
             mnuROText.Click += mnuROText_Click;
             // 
             // mnuRImport
             // 
-            mnuRImport.DropDownItems.AddRange(new ToolStripItem[] { mnuRILogic, mnuRIPicture, mnuRISound, mnuRIView, toolStripSeparator15, mnuRIObjects, mnuRIWords });
+            mnuRImport.DropDownItems.AddRange(new ToolStripItem[] { mnuRILogic, mnuRIPicture, mnuRISound, mnuRIView, mnuRISep, mnuRIObjects, mnuRIWords });
             mnuRImport.Name = "mnuRImport";
             mnuRImport.Size = new System.Drawing.Size(305, 22);
             mnuRImport.Text = "&Import Resource";
@@ -577,7 +591,7 @@
             // 
             mnuRILogic.Name = "mnuRILogic";
             mnuRILogic.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D1;
-            mnuRILogic.Size = new System.Drawing.Size(223, 22);
+            mnuRILogic.Size = new System.Drawing.Size(224, 22);
             mnuRILogic.Text = "&Logic";
             mnuRILogic.Click += mnuRILogic_Click;
             // 
@@ -585,7 +599,7 @@
             // 
             mnuRIPicture.Name = "mnuRIPicture";
             mnuRIPicture.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D2;
-            mnuRIPicture.Size = new System.Drawing.Size(223, 22);
+            mnuRIPicture.Size = new System.Drawing.Size(224, 22);
             mnuRIPicture.Text = "&Picture";
             mnuRIPicture.Click += mnuRIPicture_Click;
             // 
@@ -593,7 +607,7 @@
             // 
             mnuRISound.Name = "mnuRISound";
             mnuRISound.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D3;
-            mnuRISound.Size = new System.Drawing.Size(223, 22);
+            mnuRISound.Size = new System.Drawing.Size(224, 22);
             mnuRISound.Text = "&Sound";
             mnuRISound.Click += mnuRISound_Click;
             // 
@@ -601,20 +615,20 @@
             // 
             mnuRIView.Name = "mnuRIView";
             mnuRIView.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D4;
-            mnuRIView.Size = new System.Drawing.Size(223, 22);
+            mnuRIView.Size = new System.Drawing.Size(224, 22);
             mnuRIView.Text = "&View";
             mnuRIView.Click += mnuRIView_Click;
             // 
-            // toolStripSeparator15
+            // mnuRISep
             // 
-            toolStripSeparator15.Name = "toolStripSeparator15";
-            toolStripSeparator15.Size = new System.Drawing.Size(220, 6);
+            mnuRISep.Name = "mnuRISep";
+            mnuRISep.Size = new System.Drawing.Size(221, 6);
             // 
             // mnuRIObjects
             // 
             mnuRIObjects.Name = "mnuRIObjects";
             mnuRIObjects.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D5;
-            mnuRIObjects.Size = new System.Drawing.Size(223, 22);
+            mnuRIObjects.Size = new System.Drawing.Size(224, 22);
             mnuRIObjects.Text = "&OBJECT File";
             mnuRIObjects.Click += mnuRIObjects_Click;
             // 
@@ -622,20 +636,22 @@
             // 
             mnuRIWords.Name = "mnuRIWords";
             mnuRIWords.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D6;
-            mnuRIWords.Size = new System.Drawing.Size(223, 22);
+            mnuRIWords.Size = new System.Drawing.Size(224, 22);
             mnuRIWords.Text = "&WORDS.TOK File";
             mnuRIWords.Click += mnuRIWords_Click;
             // 
-            // mnuRSeparator1
+            // mnuRSep1
             // 
-            mnuRSeparator1.Name = "mnuRSeparator1";
-            mnuRSeparator1.Size = new System.Drawing.Size(302, 6);
+            mnuRSep1.Name = "mnuRSep1";
+            mnuRSep1.Size = new System.Drawing.Size(302, 6);
             // 
             // mnuROpenRes
             // 
             mnuROpenRes.Name = "mnuROpenRes";
+            mnuROpenRes.ShortcutKeys = Keys.Control | Keys.Alt | Keys.O;
             mnuROpenRes.Size = new System.Drawing.Size(305, 22);
-            mnuROpenRes.Text = "Open Resource";
+            mnuROpenRes.Text = "O&pen Resource";
+            mnuROpenRes.Click += mnuROpenRes_Click;
             // 
             // mnuRSave
             // 
@@ -646,6 +662,7 @@
             mnuRSave.ShortcutKeys = Keys.Control | Keys.S;
             mnuRSave.Size = new System.Drawing.Size(305, 22);
             mnuRSave.Text = "&Save Resource";
+            mnuRSave.Click += mnuRSave_Click;
             // 
             // mnuRExport
             // 
@@ -653,19 +670,20 @@
             mnuRExport.ShortcutKeys = Keys.Control | Keys.E;
             mnuRExport.Size = new System.Drawing.Size(305, 22);
             mnuRExport.Text = "&Export Resource";
+            mnuRExport.Click += mnuRExport_Click;
             // 
-            // mnuRSeparator2
+            // mnuRSep2
             // 
-            mnuRSeparator2.Name = "mnuRSeparator2";
-            mnuRSeparator2.Size = new System.Drawing.Size(302, 6);
+            mnuRSep2.Name = "mnuRSep2";
+            mnuRSep2.Size = new System.Drawing.Size(302, 6);
             // 
-            // mnuRAddRemove
+            // mnuRRemove
             // 
-            mnuRAddRemove.Name = "mnuRAddRemove";
-            mnuRAddRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
-            mnuRAddRemove.Size = new System.Drawing.Size(305, 22);
-            mnuRAddRemove.Text = "Remove Resource from &Game";
-            mnuRAddRemove.Click += mnuRAddRemove_Click;
+            mnuRRemove.Name = "mnuRRemove";
+            mnuRRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
+            mnuRRemove.Size = new System.Drawing.Size(305, 22);
+            mnuRRemove.Text = "Remove Resource from &Game";
+            mnuRRemove.Click += mnuRRemove_Click;
             // 
             // mnuRRenumber
             // 
@@ -675,47 +693,50 @@
             mnuRRenumber.Text = "&Renumber Resource";
             mnuRRenumber.Click += mnuRRenumber_Click;
             // 
-            // mnuRIDDesc
+            // mnuRProperties
             // 
-            mnuRIDDesc.Image = (System.Drawing.Image)resources.GetObject("mnuRIDDesc.Image");
-            mnuRIDDesc.ImageScaling = ToolStripItemImageScaling.None;
-            mnuRIDDesc.ImageTransparentColor = System.Drawing.Color.Magenta;
-            mnuRIDDesc.Name = "mnuRIDDesc";
-            mnuRIDDesc.ShortcutKeys = Keys.Control | Keys.D;
-            mnuRIDDesc.Size = new System.Drawing.Size(305, 22);
-            mnuRIDDesc.Text = "I&D/Description ...";
-            mnuRIDDesc.Click += mnuRIDDesc_Click;
+            mnuRProperties.Image = (System.Drawing.Image)resources.GetObject("mnuRProperties.Image");
+            mnuRProperties.ImageScaling = ToolStripItemImageScaling.None;
+            mnuRProperties.ImageTransparentColor = System.Drawing.Color.Magenta;
+            mnuRProperties.Name = "mnuRProperties";
+            mnuRProperties.ShortcutKeys = Keys.Control | Keys.D;
+            mnuRProperties.Size = new System.Drawing.Size(305, 22);
+            mnuRProperties.Text = "I&D/Description ...";
+            mnuRProperties.Click += mnuRProperties_Click;
             // 
-            // mnuRSeparator3
+            // mnuRSep3
             // 
-            mnuRSeparator3.Name = "mnuRSeparator3";
-            mnuRSeparator3.Size = new System.Drawing.Size(302, 6);
+            mnuRSep3.Name = "mnuRSep3";
+            mnuRSep3.Size = new System.Drawing.Size(302, 6);
             // 
             // mnuRCompileLogic
             // 
             mnuRCompileLogic.Name = "mnuRCompileLogic";
             mnuRCompileLogic.Size = new System.Drawing.Size(305, 22);
-            mnuRCompileLogic.Text = "Compile This Logic";
+            mnuRCompileLogic.Text = "&Compile This Logic";
+            mnuRCompileLogic.Click += mnuRCompileLogic_Click;
             // 
             // mnuRSavePicImage
             // 
             mnuRSavePicImage.Name = "mnuRSavePicImage";
             mnuRSavePicImage.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
             mnuRSavePicImage.Size = new System.Drawing.Size(305, 22);
-            mnuRSavePicImage.Text = "Save Picture Image As...";
+            mnuRSavePicImage.Text = "S&ave Picture Image As...";
+            mnuRSavePicImage.Click += mnuRSavePicImage_Click;
             // 
             // mnuRExportGIF
             // 
             mnuRExportGIF.Name = "mnuRExportGIF";
             mnuRExportGIF.Size = new System.Drawing.Size(305, 22);
-            mnuRExportGIF.Text = "Export Loop as GIF...";
+            mnuRExportGIF.Text = "E&xport Loop As GIF...";
+            mnuRExportGIF.Click += mnuRExportGIF_Click;
             // 
             // mnuTools
             // 
-            mnuTools.DropDownItems.AddRange(new ToolStripItem[] { mnuTSettings, mnuTSep1, mnuTLayout, mnuTMenuEditor, mnuTGlobals, mnuReserved, mnuTSnippets, mnuTPalette, mnuTSep2, mnuTCustom1, mnuTCustom2, mnuTCustom3, mnuTCustom4, mnuTCustom5, mnuTCustom6, mnuTSep3, mnuTCustomize });
+            mnuTools.DropDownItems.AddRange(new ToolStripItem[] { mnuTSettings, mnuTSep1, mnuTLayout, mnuTMenuEditor, mnuTGlobals, mnuTReserved, mnuTSnippets, mnuTPalette, mnuTWarning, mnuTSep2, mnuTCustom1, mnuTCustom2, mnuTCustom3, mnuTCustom4, mnuTCustom5, mnuTCustom6, mnuTSep3, mnuTCustomize });
             mnuTools.MergeIndex = 1;
             mnuTools.Name = "mnuTools";
-            mnuTools.Size = new System.Drawing.Size(46, 20);
+            mnuTools.Size = new System.Drawing.Size(47, 20);
             mnuTools.Text = "&Tools";
             mnuTools.DropDownOpening += mnuTools_DropDownOpening;
             // 
@@ -723,68 +744,81 @@
             // 
             mnuTSettings.Name = "mnuTSettings";
             mnuTSettings.ShortcutKeys = Keys.F2;
-            mnuTSettings.Size = new System.Drawing.Size(234, 22);
+            mnuTSettings.Size = new System.Drawing.Size(249, 22);
             mnuTSettings.Text = "&Settings";
             mnuTSettings.Click += mnuTSettings_Click;
             // 
             // mnuTSep1
             // 
             mnuTSep1.Name = "mnuTSep1";
-            mnuTSep1.Size = new System.Drawing.Size(231, 6);
+            mnuTSep1.Size = new System.Drawing.Size(246, 6);
             // 
             // mnuTLayout
             // 
             mnuTLayout.Name = "mnuTLayout";
             mnuTLayout.ShortcutKeys = Keys.Control | Keys.L;
-            mnuTLayout.Size = new System.Drawing.Size(234, 22);
+            mnuTLayout.Size = new System.Drawing.Size(249, 22);
             mnuTLayout.Text = "Room &Layout Editor";
+            mnuTLayout.Click += mnuTLayout_Click;
             // 
             // mnuTMenuEditor
             // 
             mnuTMenuEditor.Name = "mnuTMenuEditor";
             mnuTMenuEditor.ShortcutKeys = Keys.Control | Keys.M;
-            mnuTMenuEditor.Size = new System.Drawing.Size(234, 22);
+            mnuTMenuEditor.Size = new System.Drawing.Size(249, 22);
             mnuTMenuEditor.Text = "&Menu Editor";
+            mnuTMenuEditor.Click += mnuTMenuEditor_Click;
             // 
             // mnuTGlobals
             // 
             mnuTGlobals.Name = "mnuTGlobals";
             mnuTGlobals.ShortcutKeys = Keys.Control | Keys.G;
-            mnuTGlobals.Size = new System.Drawing.Size(234, 22);
+            mnuTGlobals.Size = new System.Drawing.Size(249, 22);
             mnuTGlobals.Text = "&Global Defines ...";
             mnuTGlobals.Click += mnuTGlobals_Click;
             // 
-            // mnuReserved
+            // mnuTReserved
             // 
-            mnuReserved.Name = "mnuReserved";
-            mnuReserved.ShortcutKeys = Keys.Control | Keys.W;
-            mnuReserved.Size = new System.Drawing.Size(234, 22);
-            mnuReserved.Text = "&Reserved Defines ...";
+            mnuTReserved.Name = "mnuTReserved";
+            mnuTReserved.ShortcutKeys = Keys.Control | Keys.W;
+            mnuTReserved.Size = new System.Drawing.Size(249, 22);
+            mnuTReserved.Text = "&Reserved Defines ...";
+            mnuTReserved.Click += mnuTReserved_Click;
             // 
             // mnuTSnippets
             // 
             mnuTSnippets.Name = "mnuTSnippets";
             mnuTSnippets.ShortcutKeys = Keys.Control | Keys.Shift | Keys.T;
-            mnuTSnippets.Size = new System.Drawing.Size(234, 22);
+            mnuTSnippets.Size = new System.Drawing.Size(249, 22);
             mnuTSnippets.Text = "Code &Snippets ...";
+            mnuTSnippets.Click += mnuTSnippets_Click;
             // 
             // mnuTPalette
             // 
             mnuTPalette.Name = "mnuTPalette";
             mnuTPalette.ShortcutKeys = Keys.Control | Keys.Shift | Keys.P;
-            mnuTPalette.Size = new System.Drawing.Size(234, 22);
+            mnuTPalette.Size = new System.Drawing.Size(249, 22);
             mnuTPalette.Text = "Color &Palette ...";
+            mnuTPalette.Click += mnuTPalette_Click;
+            // 
+            // mnuTWarning
+            // 
+            mnuTWarning.Name = "mnuTWarning";
+            mnuTWarning.ShortcutKeys = Keys.Control | Keys.Shift | Keys.W;
+            mnuTWarning.Size = new System.Drawing.Size(249, 22);
+            mnuTWarning.Text = "Show Warning List";
+            mnuTWarning.Click += mnuTWarning_Click;
             // 
             // mnuTSep2
             // 
             mnuTSep2.Name = "mnuTSep2";
-            mnuTSep2.Size = new System.Drawing.Size(231, 6);
+            mnuTSep2.Size = new System.Drawing.Size(246, 6);
             mnuTSep2.Visible = false;
             // 
             // mnuTCustom1
             // 
             mnuTCustom1.Name = "mnuTCustom1";
-            mnuTCustom1.Size = new System.Drawing.Size(234, 22);
+            mnuTCustom1.Size = new System.Drawing.Size(249, 22);
             mnuTCustom1.Text = "tool1";
             mnuTCustom1.Visible = false;
             mnuTCustom1.Click += mnuTCustom_Click;
@@ -792,7 +826,7 @@
             // mnuTCustom2
             // 
             mnuTCustom2.Name = "mnuTCustom2";
-            mnuTCustom2.Size = new System.Drawing.Size(234, 22);
+            mnuTCustom2.Size = new System.Drawing.Size(249, 22);
             mnuTCustom2.Text = "tool2";
             mnuTCustom2.Visible = false;
             mnuTCustom2.Click += mnuTCustom_Click;
@@ -800,7 +834,7 @@
             // mnuTCustom3
             // 
             mnuTCustom3.Name = "mnuTCustom3";
-            mnuTCustom3.Size = new System.Drawing.Size(234, 22);
+            mnuTCustom3.Size = new System.Drawing.Size(249, 22);
             mnuTCustom3.Text = "tool3";
             mnuTCustom3.Visible = false;
             mnuTCustom3.Click += mnuTCustom_Click;
@@ -808,7 +842,7 @@
             // mnuTCustom4
             // 
             mnuTCustom4.Name = "mnuTCustom4";
-            mnuTCustom4.Size = new System.Drawing.Size(234, 22);
+            mnuTCustom4.Size = new System.Drawing.Size(249, 22);
             mnuTCustom4.Text = "tool4";
             mnuTCustom4.Visible = false;
             mnuTCustom4.Click += mnuTCustom_Click;
@@ -816,7 +850,7 @@
             // mnuTCustom5
             // 
             mnuTCustom5.Name = "mnuTCustom5";
-            mnuTCustom5.Size = new System.Drawing.Size(234, 22);
+            mnuTCustom5.Size = new System.Drawing.Size(249, 22);
             mnuTCustom5.Text = "tool5";
             mnuTCustom5.Visible = false;
             mnuTCustom5.Click += mnuTCustom_Click;
@@ -824,7 +858,7 @@
             // mnuTCustom6
             // 
             mnuTCustom6.Name = "mnuTCustom6";
-            mnuTCustom6.Size = new System.Drawing.Size(234, 22);
+            mnuTCustom6.Size = new System.Drawing.Size(249, 22);
             mnuTCustom6.Text = "tool6";
             mnuTCustom6.Visible = false;
             mnuTCustom6.Click += mnuTCustom_Click;
@@ -832,19 +866,20 @@
             // mnuTSep3
             // 
             mnuTSep3.Name = "mnuTSep3";
-            mnuTSep3.Size = new System.Drawing.Size(231, 6);
+            mnuTSep3.Size = new System.Drawing.Size(246, 6);
             // 
             // mnuTCustomize
             // 
             mnuTCustomize.Name = "mnuTCustomize";
             mnuTCustomize.ShortcutKeys = Keys.F6;
-            mnuTCustomize.Size = new System.Drawing.Size(234, 22);
+            mnuTCustomize.Size = new System.Drawing.Size(249, 22);
             mnuTCustomize.Text = "&Customize Tool Menu ...";
             mnuTCustomize.Click += mnuTCustomize_Click;
             // 
             // mnuWindow
             // 
-            mnuWindow.DropDownItems.AddRange(new ToolStripItem[] { mnuWCascade, mnuWTileV, mnuWTileH, mnuWArrange, mnuWMinimize, toolStripSeparator8, mnuWClose });
+            mnuWindow.DropDownItems.AddRange(new ToolStripItem[] { mnuWCascade, mnuWTileV, mnuWTileH, mnuWArrange, mnuWMinimize, mnuWSep1, mnuWClose });
+            mnuWindow.ImageScaling = ToolStripItemImageScaling.None;
             mnuWindow.Name = "mnuWindow";
             mnuWindow.Size = new System.Drawing.Size(63, 20);
             mnuWindow.Text = "&Window";
@@ -853,47 +888,47 @@
             // mnuWCascade
             // 
             mnuWCascade.Name = "mnuWCascade";
-            mnuWCascade.Size = new System.Drawing.Size(150, 22);
+            mnuWCascade.Size = new System.Drawing.Size(151, 22);
             mnuWCascade.Text = "Cascade";
             mnuWCascade.Click += mnuWCascade_Click;
             // 
             // mnuWTileV
             // 
             mnuWTileV.Name = "mnuWTileV";
-            mnuWTileV.Size = new System.Drawing.Size(150, 22);
+            mnuWTileV.Size = new System.Drawing.Size(151, 22);
             mnuWTileV.Text = "Tile Vertical";
             mnuWTileV.Click += mnuWTileV_Click;
             // 
             // mnuWTileH
             // 
             mnuWTileH.Name = "mnuWTileH";
-            mnuWTileH.Size = new System.Drawing.Size(150, 22);
+            mnuWTileH.Size = new System.Drawing.Size(151, 22);
             mnuWTileH.Text = "Tile Horizontal";
             mnuWTileH.Click += mnuWTileH_Click;
             // 
             // mnuWArrange
             // 
             mnuWArrange.Name = "mnuWArrange";
-            mnuWArrange.Size = new System.Drawing.Size(150, 22);
+            mnuWArrange.Size = new System.Drawing.Size(151, 22);
             mnuWArrange.Text = "Arrange Icons";
             mnuWArrange.Click += mnuWArrange_Click;
             // 
             // mnuWMinimize
             // 
             mnuWMinimize.Name = "mnuWMinimize";
-            mnuWMinimize.Size = new System.Drawing.Size(150, 22);
+            mnuWMinimize.Size = new System.Drawing.Size(151, 22);
             mnuWMinimize.Text = "Minimize All";
             mnuWMinimize.Click += mnuWMinimize_Click;
             // 
-            // toolStripSeparator8
+            // mnuWSep1
             // 
-            toolStripSeparator8.Name = "toolStripSeparator8";
-            toolStripSeparator8.Size = new System.Drawing.Size(147, 6);
+            mnuWSep1.Name = "mnuWSep1";
+            mnuWSep1.Size = new System.Drawing.Size(148, 6);
             // 
             // mnuWClose
             // 
             mnuWClose.Name = "mnuWClose";
-            mnuWClose.Size = new System.Drawing.Size(150, 22);
+            mnuWClose.Size = new System.Drawing.Size(151, 22);
             mnuWClose.Text = "Close Window";
             mnuWClose.Click += mnuWClose_Click;
             // 
@@ -998,60 +1033,56 @@
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { StatusPanel1, springLabel, CapsLockLabel, NumLockLabel, InsertLockLabel });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { spStatus, spCapsLock, spNumLock, spInsLock });
             statusStrip1.Location = new System.Drawing.Point(0, 355);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(1282, 23);
+            statusStrip1.Size = new System.Drawing.Size(851, 23);
             statusStrip1.TabIndex = 2;
             statusStrip1.Text = "statusStrip1";
             // 
-            // StatusPanel1
+            // spStatus
             // 
-            StatusPanel1.Name = "StatusPanel1";
-            StatusPanel1.Size = new System.Drawing.Size(0, 18);
+            spStatus.Name = "spStatus";
+            spStatus.Size = new System.Drawing.Size(584, 18);
+            spStatus.Spring = true;
+            spStatus.Text = "";
+            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // springLabel
+            // spCapsLock
             // 
-            springLabel.Name = "springLabel";
-            springLabel.Size = new System.Drawing.Size(1046, 18);
-            springLabel.Spring = true;
+            spCapsLock.AutoSize = false;
+            spCapsLock.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spCapsLock.BorderStyle = Border3DStyle.SunkenInner;
+            spCapsLock.Name = "spCapsLock";
+            spCapsLock.Size = new System.Drawing.Size(74, 18);
+            spCapsLock.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // CapsLockLabel
+            // spNumLock
             // 
-            CapsLockLabel.AutoSize = false;
-            CapsLockLabel.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            CapsLockLabel.BorderStyle = Border3DStyle.SunkenInner;
-            CapsLockLabel.Name = "CapsLockLabel";
-            CapsLockLabel.Size = new System.Drawing.Size(74, 18);
-            CapsLockLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spNumLock.AutoSize = false;
+            spNumLock.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spNumLock.BorderStyle = Border3DStyle.SunkenInner;
+            spNumLock.Name = "spNumLock";
+            spNumLock.Size = new System.Drawing.Size(74, 18);
+            spNumLock.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // NumLockLabel
+            // spInsLock
             // 
-            NumLockLabel.AutoSize = false;
-            NumLockLabel.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            NumLockLabel.BorderStyle = Border3DStyle.SunkenInner;
-            NumLockLabel.Name = "NumLockLabel";
-            NumLockLabel.Size = new System.Drawing.Size(74, 18);
-            NumLockLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // InsertLockLabel
-            // 
-            InsertLockLabel.AutoSize = false;
-            InsertLockLabel.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            InsertLockLabel.BorderStyle = Border3DStyle.SunkenInner;
-            InsertLockLabel.Name = "InsertLockLabel";
-            InsertLockLabel.Size = new System.Drawing.Size(74, 18);
+            spInsLock.AutoSize = false;
+            spInsLock.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spInsLock.BorderStyle = Border3DStyle.SunkenInner;
+            spInsLock.Name = "spInsLock";
+            spInsLock.Size = new System.Drawing.Size(74, 18);
             // 
             // toolStrip1
             // 
-            toolStrip1.AllowItemReorder = true;
             toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             toolStrip1.Items.AddRange(new ToolStripItem[] { btnOpenGame, btnCloseGame, btnRun, btnSep1, btnNewRes, btnOpenRes, btnImportRes, btnSep2, btnWords, btnOjects, btnSep3, btnSaveResource, btnAddRemove, btnExportRes, btnSep4, btnLayoutEd, btnMenuEd, btnTextEd, btnGlobals, btnSep5, btnHelp });
             toolStrip1.Location = new System.Drawing.Point(0, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Padding = new Padding(0, 1, 2, 1);
-            toolStrip1.Size = new System.Drawing.Size(1282, 36);
+            toolStrip1.Size = new System.Drawing.Size(851, 36);
             toolStrip1.TabIndex = 3;
             toolStrip1.Text = "toolStrip1";
             // 
@@ -1076,7 +1107,7 @@
             btnCloseGame.Name = "btnCloseGame";
             btnCloseGame.Size = new System.Drawing.Size(28, 28);
             btnCloseGame.Text = "&Close";
-            btnCloseGame.Click += mnuGClose_Click;
+            btnCloseGame.Click += btnCloseGame_Click;
             // 
             // btnRun
             // 
@@ -1088,7 +1119,7 @@
             btnRun.Name = "btnRun";
             btnRun.Size = new System.Drawing.Size(28, 28);
             btnRun.Text = "&Run";
-            btnRun.Click += mnuGRun_Click;
+            btnRun.Click += btnRun_Click;
             // 
             // btnSep1
             // 
@@ -1243,6 +1274,7 @@
             btnAddRemove.Name = "btnAddRemove";
             btnAddRemove.Size = new System.Drawing.Size(28, 28);
             btnAddRemove.Text = "Add/Remove Resource";
+            btnAddRemove.Click += btnAddRemove_Click;
             // 
             // btnExportRes
             // 
@@ -1254,6 +1286,7 @@
             btnExportRes.Name = "btnExportRes";
             btnExportRes.Size = new System.Drawing.Size(28, 28);
             btnExportRes.Text = "Export Resource";
+            btnExportRes.Click += btnExportRes_Click;
             // 
             // btnSep4
             // 
@@ -1271,6 +1304,7 @@
             btnLayoutEd.Name = "btnLayoutEd";
             btnLayoutEd.Size = new System.Drawing.Size(28, 28);
             btnLayoutEd.Text = "Layout Editor";
+            btnLayoutEd.Click += btnLayoutEd_Click;
             // 
             // btnMenuEd
             // 
@@ -1281,6 +1315,7 @@
             btnMenuEd.Name = "btnMenuEd";
             btnMenuEd.Size = new System.Drawing.Size(28, 28);
             btnMenuEd.Text = "Menu Editor";
+            btnMenuEd.Click += btnMenuEd_Click;
             // 
             // btnTextEd
             // 
@@ -1290,6 +1325,7 @@
             btnTextEd.Name = "btnTextEd";
             btnTextEd.Size = new System.Drawing.Size(28, 31);
             btnTextEd.Text = "Text Mode Editor";
+            btnTextEd.Click += btnTextEd_Click;
             // 
             // btnGlobals
             // 
@@ -1300,6 +1336,7 @@
             btnGlobals.Name = "btnGlobals";
             btnGlobals.Size = new System.Drawing.Size(28, 28);
             btnGlobals.Text = "Global Defines";
+            btnGlobals.Click += mnuTGlobals_Click;
             // 
             // btnSep5
             // 
@@ -1316,27 +1353,7 @@
             btnHelp.Name = "btnHelp";
             btnHelp.Size = new System.Drawing.Size(28, 28);
             btnHelp.Text = "Help";
-            // 
-            // toolStripSplitButton2
-            // 
-            toolStripSplitButton2.Image = (System.Drawing.Image)resources.GetObject("toolStripSplitButton2.Image");
-            toolStripSplitButton2.Name = "toolStripSplitButton2";
-            toolStripSplitButton2.Size = new System.Drawing.Size(180, 22);
-            toolStripSplitButton2.Text = "toolStripMenuItem3";
-            // 
-            // toolStripSplitButton3
-            // 
-            toolStripSplitButton3.Image = (System.Drawing.Image)resources.GetObject("toolStripSplitButton3.Image");
-            toolStripSplitButton3.Name = "toolStripSplitButton3";
-            toolStripSplitButton3.Size = new System.Drawing.Size(180, 22);
-            toolStripSplitButton3.Text = "toolStripMenuItem4";
-            // 
-            // toolStripSplitButton4
-            // 
-            toolStripSplitButton4.Image = (System.Drawing.Image)resources.GetObject("toolStripSplitButton4.Image");
-            toolStripSplitButton4.Name = "toolStripSplitButton4";
-            toolStripSplitButton4.Size = new System.Drawing.Size(180, 22);
-            toolStripSplitButton4.Text = "toolStripMenuItem5";
+            btnHelp.Click += btnHelp_Click;
             // 
             // pnlResources
             // 
@@ -1379,6 +1396,7 @@
             // tvwResources
             // 
             tvwResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tvwResources.ContextMenuStrip = cmsResource;
             hlpWinAGI.SetHelpKeyword(tvwResources, "htm\\winagi\\restree.htm#restree");
             hlpWinAGI.SetHelpNavigator(tvwResources, HelpNavigator.Topic);
             hlpWinAGI.SetHelpString(tvwResources, "");
@@ -1386,21 +1404,21 @@
             tvwResources.Location = new System.Drawing.Point(0, 26);
             tvwResources.Margin = new Padding(2, 1, 2, 1);
             tvwResources.Name = "tvwResources";
-            treeNode8.Name = "logics";
-            treeNode8.Text = "Logics";
-            treeNode9.Name = "pictures";
-            treeNode9.Text = "Pictures";
-            treeNode10.Name = "sounds";
-            treeNode10.Text = "Sounds";
-            treeNode11.Name = "views";
-            treeNode11.Text = "Views";
-            treeNode12.Name = "objects";
-            treeNode12.Text = "Objects";
-            treeNode13.Name = "words";
-            treeNode13.Text = "Words";
-            treeNode14.Name = "Node0";
-            treeNode14.Text = "AGIGAME";
-            tvwResources.Nodes.AddRange(new TreeNode[] { treeNode14 });
+            treeNode1.Name = "logics";
+            treeNode1.Text = "Logics";
+            treeNode2.Name = "pictures";
+            treeNode2.Text = "Pictures";
+            treeNode3.Name = "sounds";
+            treeNode3.Text = "Sounds";
+            treeNode4.Name = "views";
+            treeNode4.Text = "Views";
+            treeNode5.Name = "objects";
+            treeNode5.Text = "Objects";
+            treeNode6.Name = "words";
+            treeNode6.Text = "Words";
+            treeNode7.Name = "Node0";
+            treeNode7.Text = "AGIGAME";
+            tvwResources.Nodes.AddRange(new TreeNode[] { treeNode7 });
             hlpWinAGI.SetShowHelp(tvwResources, true);
             tvwResources.Size = new System.Drawing.Size(157, 118);
             tvwResources.TabIndex = 25;
@@ -1409,6 +1427,92 @@
             tvwResources.NodeMouseClick += tvwResources_NodeMouseClick;
             tvwResources.NodeMouseDoubleClick += tvwResources_NodeMouseDoubleClick;
             tvwResources.MouseDown += tvwResources_MouseDown;
+            // 
+            // cmsResource
+            // 
+            cmsResource.Items.AddRange(new ToolStripItem[] { cmROpenRes, cmRSave, cmRExport, cmRSep1, cmRRemove, cmRRenumber, cmRProperties, cmRSep2, cmRCompileLogic, cmRSavePicImage, cmRExportLoopGIF });
+            cmsResource.Name = "cmsResource";
+            cmsResource.Size = new System.Drawing.Size(308, 214);
+            cmsResource.Opening += cmsResource_Opening;
+            // 
+            // cmROpenRes
+            // 
+            cmROpenRes.Name = "cmROpenRes";
+            cmROpenRes.ShortcutKeys = Keys.Control | Keys.Alt | Keys.O;
+            cmROpenRes.Size = new System.Drawing.Size(307, 22);
+            cmROpenRes.Text = "O&pen Resource";
+            cmROpenRes.Click += mnuROpenRes_Click;
+            // 
+            // cmRSave
+            // 
+            cmRSave.Name = "cmRSave";
+            cmRSave.ShortcutKeys = Keys.Control | Keys.S;
+            cmRSave.Size = new System.Drawing.Size(307, 22);
+            cmRSave.Text = "&Save Resource";
+            cmRSave.Click += mnuRSave_Click;
+            // 
+            // cmRExport
+            // 
+            cmRExport.Name = "cmRExport";
+            cmRExport.ShortcutKeys = Keys.Control | Keys.E;
+            cmRExport.Size = new System.Drawing.Size(307, 22);
+            cmRExport.Text = "&Export Resource";
+            cmRExport.Click += mnuRExport_Click;
+            // 
+            // cmRSep1
+            // 
+            cmRSep1.Name = "cmRSep1";
+            cmRSep1.Size = new System.Drawing.Size(304, 6);
+            // 
+            // cmRRemove
+            // 
+            cmRRemove.Name = "cmRRemove";
+            cmRRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
+            cmRRemove.Size = new System.Drawing.Size(307, 22);
+            cmRRemove.Text = "Remove Resource From &Game";
+            cmRRemove.Click += mnuRRemove_Click;
+            // 
+            // cmRRenumber
+            // 
+            cmRRenumber.Name = "cmRRenumber";
+            cmRRenumber.ShortcutKeys = Keys.Alt | Keys.N;
+            cmRRenumber.Size = new System.Drawing.Size(307, 22);
+            cmRRenumber.Text = "&Renumber Resource";
+            cmRRenumber.Click += mnuRRenumber_Click;
+            // 
+            // cmRProperties
+            // 
+            cmRProperties.Name = "cmRProperties";
+            cmRProperties.ShortcutKeys = Keys.Control | Keys.D;
+            cmRProperties.Size = new System.Drawing.Size(307, 22);
+            cmRProperties.Text = "I&D/Description ...";
+            cmRProperties.Click += mnuRProperties_Click;
+            // 
+            // cmRSep2
+            // 
+            cmRSep2.Name = "cmRSep2";
+            cmRSep2.Size = new System.Drawing.Size(304, 6);
+            // 
+            // cmRCompileLogic
+            // 
+            cmRCompileLogic.Name = "cmRCompileLogic";
+            cmRCompileLogic.Size = new System.Drawing.Size(307, 22);
+            cmRCompileLogic.Text = "&Compile This Logic";
+            cmRCompileLogic.Click += mnuRCompileLogic_Click;
+            // 
+            // cmRSavePicImage
+            // 
+            cmRSavePicImage.Name = "cmRSavePicImage";
+            cmRSavePicImage.Size = new System.Drawing.Size(307, 22);
+            cmRSavePicImage.Text = "S&ave Picture Image As ...";
+            cmRSavePicImage.Click += mnuRSavePicImage_Click;
+            // 
+            // cmRExportLoopGIF
+            // 
+            cmRExportLoopGIF.Name = "cmRExportLoopGIF";
+            cmRExportLoopGIF.Size = new System.Drawing.Size(307, 22);
+            cmRExportLoopGIF.Text = "E&xport Loop As GIF ...";
+            cmRExportLoopGIF.Click += mnuRExportGIF_Click;
             // 
             // cmbResType
             // 
@@ -1429,6 +1533,7 @@
             lstResources.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             lstResources.BorderStyle = BorderStyle.FixedSingle;
             lstResources.Columns.AddRange(new ColumnHeader[] { columnHeader1 });
+            lstResources.ContextMenuStrip = cmsResource;
             lstResources.FullRowSelect = true;
             lstResources.HeaderStyle = ColumnHeaderStyle.None;
             lstResources.Location = new System.Drawing.Point(0, 52);
@@ -1486,27 +1591,45 @@
             // 
             // cmsGrid
             // 
-            cmsGrid.Items.AddRange(new ToolStripItem[] { cmiDismiss, cmiDismissAll, cmiErrorHelp });
+            cmsGrid.Items.AddRange(new ToolStripItem[] { cmiDismiss, cmiDismissAll, cmiGoWarning, cmiHelp, cmiIgnoreWarning });
             cmsGrid.Name = "cmsGrid";
-            cmsGrid.Size = new System.Drawing.Size(176, 70);
+            cmsGrid.Size = new System.Drawing.Size(185, 114);
+            cmsGrid.Opening += cmsGrid_Opening;
             // 
             // cmiDismiss
             // 
             cmiDismiss.Name = "cmiDismiss";
-            cmiDismiss.Size = new System.Drawing.Size(175, 22);
-            cmiDismiss.Text = "Dismiss";
+            cmiDismiss.Size = new System.Drawing.Size(184, 22);
+            cmiDismiss.Text = "Dismiss Warning";
+            cmiDismiss.Click += cmiDismiss_Click;
             // 
             // cmiDismissAll
             // 
             cmiDismissAll.Name = "cmiDismissAll";
-            cmiDismissAll.Size = new System.Drawing.Size(175, 22);
-            cmiDismissAll.Text = "Dismiss All";
+            cmiDismissAll.Size = new System.Drawing.Size(184, 22);
+            cmiDismissAll.Text = "Dismiss All Warnings";
+            cmiDismissAll.Click += cmiDismissAll_Click;
             // 
-            // cmiErrorHelp
+            // cmiGoWarning
             // 
-            cmiErrorHelp.Name = "cmiErrorHelp";
-            cmiErrorHelp.Size = new System.Drawing.Size(175, 22);
-            cmiErrorHelp.Text = "Help with this Error";
+            cmiGoWarning.Name = "cmiGoWarning";
+            cmiGoWarning.Size = new System.Drawing.Size(184, 22);
+            cmiGoWarning.Text = "Goto ...";
+            cmiGoWarning.Click += cmiGoTODO_Click;
+            // 
+            // cmiHelp
+            // 
+            cmiHelp.Name = "cmiHelp";
+            cmiHelp.Size = new System.Drawing.Size(184, 22);
+            cmiHelp.Text = "Help with this Error";
+            cmiHelp.Click += cmiErrorHelp_Click;
+            // 
+            // cmiIgnoreWarning
+            // 
+            cmiIgnoreWarning.Name = "cmiIgnoreWarning";
+            cmiIgnoreWarning.Size = new System.Drawing.Size(184, 22);
+            cmiIgnoreWarning.Text = "Ignore This Warning";
+            cmiIgnoreWarning.Click += cmiIgnoreError_Click;
             // 
             // picNavList
             // 
@@ -1539,7 +1662,7 @@
             pnlWarnings.Location = new System.Drawing.Point(159, 269);
             pnlWarnings.Margin = new Padding(1, 0, 1, 0);
             pnlWarnings.Name = "pnlWarnings";
-            pnlWarnings.Size = new System.Drawing.Size(1123, 86);
+            pnlWarnings.Size = new System.Drawing.Size(692, 86);
             pnlWarnings.TabIndex = 20;
             // 
             // fgWarnings
@@ -1547,30 +1670,33 @@
             fgWarnings.AllowUserToAddRows = false;
             fgWarnings.AllowUserToDeleteRows = false;
             fgWarnings.AllowUserToResizeRows = false;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(224, 224, 224);
+            fgWarnings.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             fgWarnings.BorderStyle = BorderStyle.None;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
+            fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            fgWarnings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            fgWarnings.Columns.AddRange(new DataGridViewColumn[] { colEventType, colResType, colWarning, colDesc, colResNum, colLine, colModule, colFilename });
+            fgWarnings.ContextMenuStrip = cmsGrid;
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
             dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
             dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle3.WrapMode = DataGridViewTriState.False;
-            fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle3;
-            fgWarnings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            fgWarnings.Columns.AddRange(new DataGridViewColumn[] { colWarning, colDesc, colResNum, colLIne, colModule });
-            fgWarnings.ContextMenuStrip = cmsGrid;
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = DataGridViewTriState.False;
-            fgWarnings.DefaultCellStyle = dataGridViewCellStyle4;
+            fgWarnings.DefaultCellStyle = dataGridViewCellStyle3;
             fgWarnings.Dock = DockStyle.Fill;
             fgWarnings.EditMode = DataGridViewEditMode.EditOnEnter;
             fgWarnings.Location = new System.Drawing.Point(0, 0);
             fgWarnings.Margin = new Padding(2);
+            fgWarnings.MultiSelect = false;
             fgWarnings.Name = "fgWarnings";
             fgWarnings.ReadOnly = true;
             fgWarnings.RowHeadersVisible = false;
@@ -1582,19 +1708,39 @@
             fgWarnings.ShowCellErrors = false;
             fgWarnings.ShowCellToolTips = false;
             fgWarnings.ShowEditingIcon = false;
+            hlpWinAGI.SetShowHelp(fgWarnings, true);
             fgWarnings.ShowRowErrors = false;
-            fgWarnings.Size = new System.Drawing.Size(1123, 86);
+            fgWarnings.Size = new System.Drawing.Size(692, 86);
             fgWarnings.StandardTab = true;
             fgWarnings.TabIndex = 0;
+            fgWarnings.CellDoubleClick += fgWarnings_CellDoubleClick;
+            fgWarnings.CellFormatting += fgWarnings_CellFormatting;
+            fgWarnings.CellMouseEnter += fgWarnings_CellMouseEnter;
+            fgWarnings.CellMouseLeave += fgWarnings_CellMouseLeave;
             fgWarnings.ColumnHeaderMouseClick += fgWarnings_ColumnHeaderMouseClick;
+            fgWarnings.RowsAdded += fgWarnings_RowsAdded;
             fgWarnings.SortCompare += fgWarnings_SortCompare;
-            fgWarnings.Sorted += fgWarnings_Sorted;
+            fgWarnings.MouseDown += fgWarnings_MouseDown;
+            // 
+            // colEventType
+            // 
+            colEventType.HeaderText = "eventtype";
+            colEventType.Name = "colEventType";
+            colEventType.ReadOnly = true;
+            colEventType.Visible = false;
+            // 
+            // colResType
+            // 
+            colResType.HeaderText = "restype";
+            colResType.Name = "colResType";
+            colResType.ReadOnly = true;
+            colResType.Visible = false;
             // 
             // colWarning
             // 
             colWarning.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             colWarning.FillWeight = 20F;
-            colWarning.HeaderText = "Warning";
+            colWarning.HeaderText = "Code";
             colWarning.MinimumWidth = 10;
             colWarning.Name = "colWarning";
             colWarning.ReadOnly = true;
@@ -1617,14 +1763,14 @@
             colResNum.Name = "colResNum";
             colResNum.ReadOnly = true;
             // 
-            // colLIne
+            // colLine
             // 
-            colLIne.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            colLIne.FillWeight = 10F;
-            colLIne.HeaderText = "Line#";
-            colLIne.MinimumWidth = 10;
-            colLIne.Name = "colLIne";
-            colLIne.ReadOnly = true;
+            colLine.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colLine.FillWeight = 10F;
+            colLine.HeaderText = "Line#";
+            colLine.MinimumWidth = 10;
+            colLine.Name = "colLine";
+            colLine.ReadOnly = true;
             // 
             // colModule
             // 
@@ -1635,13 +1781,20 @@
             colModule.Name = "colModule";
             colModule.ReadOnly = true;
             // 
+            // colFilename
+            // 
+            colFilename.HeaderText = "filename";
+            colFilename.Name = "colFilename";
+            colFilename.ReadOnly = true;
+            colFilename.Visible = false;
+            // 
             // splitWarning
             // 
             splitWarning.Dock = DockStyle.Bottom;
             splitWarning.Location = new System.Drawing.Point(159, 267);
             splitWarning.Margin = new Padding(1, 0, 1, 0);
             splitWarning.Name = "splitWarning";
-            splitWarning.Size = new System.Drawing.Size(1123, 2);
+            splitWarning.Size = new System.Drawing.Size(692, 2);
             splitWarning.TabIndex = 22;
             splitWarning.TabStop = false;
             splitWarning.Visible = false;
@@ -1687,18 +1840,6 @@
             // 
             FolderDlg.ShowNewFolderButton = false;
             // 
-            // imlPropButtons
-            // 
-            imlPropButtons.ColorDepth = ColorDepth.Depth8Bit;
-            imlPropButtons.ImageStream = (ImageListStreamer)resources.GetObject("imlPropButtons.ImageStream");
-            imlPropButtons.TransparentColor = System.Drawing.Color.Transparent;
-            imlPropButtons.Images.SetKeyName(0, "dropdown_u.bmp");
-            imlPropButtons.Images.SetKeyName(1, "dropover_u.bmp");
-            imlPropButtons.Images.SetKeyName(2, "dropdialog_u.bmp");
-            imlPropButtons.Images.SetKeyName(3, "dropdown_d.bmp");
-            imlPropButtons.Images.SetKeyName(4, "dropover_d.bmp");
-            imlPropButtons.Images.SetKeyName(5, "dropdialog_d.bmp");
-            // 
             // hlpWinAGI
             // 
             hlpWinAGI.HelpNamespace = "C:\\Users\\Andy\\OneDrive\\AGI Stuff\\WinAGI GDS Files\\Visual Studio Projects\\WinAGI\\WinAGI GDS\\WinAGI.chm";
@@ -1707,7 +1848,7 @@
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
-            ClientSize = new System.Drawing.Size(1282, 378);
+            ClientSize = new System.Drawing.Size(851, 378);
             Controls.Add(picNavList);
             Controls.Add(splitWarning);
             Controls.Add(pnlWarnings);
@@ -1724,6 +1865,7 @@
             Text = "WinAGI GDS";
             FormClosing += frmMDIMain_FormClosing;
             Load += frmMDIMain_Load;
+            MdiChildActivate += frmMDIMain_MdiChildActivate;
             KeyDown += frmMDIMain_KeyDown;
             KeyPress += frmMDIMain_KeyPress;
             PreviewKeyDown += frmMDIMain_PreviewKeyDown;
@@ -1738,6 +1880,7 @@
             splResource.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splResource).EndInit();
             splResource.ResumeLayout(false);
+            cmsResource.ResumeLayout(false);
             cmsGrid.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)picNavList).EndInit();
             pnlWarnings.ResumeLayout(false);
@@ -1749,93 +1892,81 @@
         #endregion
 
         private MenuStrip menuStrip1;
-        private ToolStripStatusLabel CapsLockLabel;
-        private ToolStripMenuItem fileToolStripMenuItem;
-        private ToolStripMenuItem newToolStripMenuItem;
-        private ToolStripMenuItem mnuROpen;
-        private ToolStripSeparator mnuRSeparator1;
-        private ToolStripMenuItem saveToolStripMenuItem;
-        private ToolStripMenuItem saveAsToolStripMenuItem;
-        private ToolStripSeparator mnuRSeparator2;
-        private ToolStripMenuItem printToolStripMenuItem;
-        private ToolStripMenuItem mnuR;
-        private ToolStripMenuItem exitToolStripMenuItem;
-        private ToolStripMenuItem editToolStripMenuItem;
-        private ToolStripMenuItem toolsToolStripMenuItem;
-        private ToolStripMenuItem customizeToolStripMenuItem;
-        private ToolStripMenuItem optionsToolStripMenuItem;
-        private ToolStripMenuItem mnuHelp;
-        private ToolStripMenuItem contentsToolStripMenuItem;
-        private ToolStripMenuItem indexToolStripMenuItem;
-        private ToolStripMenuItem searchToolStripMenuItem;
-        private ToolStripMenuItem aboutToolStripMenuItem;
-        private ToolStripButton btnOpen;
-        private ToolStripButton btnClose;
-        private ToolStripButton saveToolStripButton;
-        private ToolStripButton printToolStripButton;
-        private ToolStripSeparator toolStripSeparator;
-        private ToolStripButton cutToolStripButton;
-        private ToolStripButton btnOject;
-        private ToolStripSeparator btnSep3;
-        private ToolStripButton helpToolStripButton;
+        public ToolStripMenuItem mnuGame;
         private ToolStripMenuItem mnuGNew;
         private ToolStripMenuItem mnuGNewTemplate;
+        public ToolStripMenuItem mnuGNewBlank;
         private ToolStripMenuItem mnuGOpen;
         private ToolStripMenuItem mnuGImport;
+        public ToolStripMenuItem mnuGClose;
         private ToolStripSeparator mnuGSep1;
         private ToolStripMenuItem mnuGCompile;
+        public ToolStripMenuItem mnuGCompileTo;
+        public ToolStripMenuItem mnuGRebuild;
+        public ToolStripMenuItem mnuGCompileChanged;
+        private ToolStripSeparator mnuGSep2;
         private ToolStripMenuItem mnuGRun;
+        private ToolStripSeparator mnuGSep3;
         private ToolStripMenuItem mnuGProperties;
+        public ToolStripSeparator mnuGMRUBar;
+        public ToolStripMenuItem mnuGMRU0;
+        public ToolStripMenuItem mnuGMRU1;
+        public ToolStripMenuItem mnuGMRU2;
+        public ToolStripMenuItem mnuGMRU3;
+        private ToolStripSeparator mnuGSep5;
         private ToolStripMenuItem mnuGExit;
         private ToolStripMenuItem mnuResources;
-        private ToolStripMenuItem mnuWindow;
-        private ToolStripMenuItem mnuWCascade;
-        private ToolStripMenuItem mnuWTileV;
-        private ToolStripMenuItem mnuWTileH;
-        private ToolStripMenuItem mnuWArrange;
-        private ToolStripMenuItem mnuWMinimize;
-        private ToolStripSeparator toolStripSeparator8;
-        private ToolStripMenuItem mnuWClose;
-        public Splitter splitResource;
-        public Splitter splitWarning;
         private ToolStripMenuItem mnuRNew;
-        private ToolStripMenuItem mnuRSave;
-        private ToolStripMenuItem mnuRExport;
-        private ToolStripMenuItem mnuRIDDesc;
         private ToolStripMenuItem mnuRNLogic;
         private ToolStripMenuItem mnuRNPicture;
         private ToolStripMenuItem mnuRNSound;
         private ToolStripMenuItem mnuRNView;
-        private ToolStripSeparator toolStripSeparator6;
+        private ToolStripSeparator mnuRNSep1;
         private ToolStripMenuItem mnuRNObjects;
         private ToolStripMenuItem mnuRNWords;
-        private ToolStripSeparator toolStripSeparator5;
+        private ToolStripSeparator mnuRNSep2;
         private ToolStripMenuItem mnuRNText;
+        private ToolStripMenuItem mnuROpen;
         private ToolStripMenuItem mnuROLogic;
         private ToolStripMenuItem mnuROPicture;
         private ToolStripMenuItem mnuROSound;
         private ToolStripMenuItem mnuROView;
-        private ToolStripSeparator toolStripSeparator13;
+        private ToolStripSeparator mnuROSep1;
         private ToolStripMenuItem mnuROObjects;
         private ToolStripMenuItem mnuROWords;
-        private ToolStripSeparator toolStripSeparator14;
+        private ToolStripSeparator mnuROSep2;
         private ToolStripMenuItem mnuROText;
+        public ToolStripMenuItem mnuRImport;
         private ToolStripMenuItem mnuRILogic;
         private ToolStripMenuItem mnuRIPicture;
         private ToolStripMenuItem mnuRISound;
         private ToolStripMenuItem mnuRIView;
-        private ToolStripSeparator toolStripSeparator15;
+        private ToolStripSeparator mnuRISep;
         private ToolStripMenuItem mnuRIObjects;
         private ToolStripMenuItem mnuRIWords;
-        private ToolStripSeparator mnuGSep2;
-        private ToolStripSeparator mnuGSep3;
-        private ToolStripSeparator mnuGSep5;
+        private ToolStripSeparator mnuRSep1;
+        private ToolStripMenuItem mnuROpenRes;
+        private ToolStripMenuItem mnuRSave;
+        private ToolStripMenuItem mnuRExport;
+        public ToolStripSeparator mnuRSep2;
+        private ToolStripMenuItem mnuRRemove;
+        private ToolStripMenuItem mnuRRenumber;
+        private ToolStripMenuItem mnuRProperties;
+        public ToolStripSeparator mnuRSep3;
+        private ToolStripMenuItem mnuRCompileLogic;
+        private ToolStripMenuItem mnuRSavePicImage;
+        private ToolStripMenuItem mnuRExportGIF;
+        internal ToolStripMenuItem mnuTools;
         private ToolStripMenuItem mnuTSettings;
         private ToolStripSeparator mnuTSep1;
+        internal ToolStripMenuItem mnuTLayout;
+        internal ToolStripMenuItem mnuTGlobals;
         private ToolStripMenuItem mnuTMenuEditor;
-        private ToolStripMenuItem mnuReserved;
+        private ToolStripMenuItem mnuTReserved;
         private ToolStripMenuItem mnuTSnippets;
         private ToolStripMenuItem mnuTPalette;
+        public ToolStripMenuItem mnuTWarning;
+        internal ToolStripSeparator mnuTSep2;
         private ToolStripMenuItem mnuTCustom1;
         private ToolStripMenuItem mnuTCustom2;
         private ToolStripMenuItem mnuTCustom3;
@@ -1844,6 +1975,15 @@
         private ToolStripMenuItem mnuTCustom6;
         private ToolStripSeparator mnuTSep3;
         private ToolStripMenuItem mnuTCustomize;
+        private ToolStripMenuItem mnuWindow;
+        private ToolStripMenuItem mnuWCascade;
+        private ToolStripMenuItem mnuWTileV;
+        private ToolStripMenuItem mnuWTileH;
+        private ToolStripMenuItem mnuWArrange;
+        private ToolStripMenuItem mnuWMinimize;
+        private ToolStripSeparator mnuWSep1;
+        private ToolStripMenuItem mnuWClose;
+        private ToolStripMenuItem mnuHelp;
         private ToolStripMenuItem mnuHContents;
         private ToolStripMenuItem mnuHIndex;
         private ToolStripSeparator mnuHSep1;
@@ -1851,102 +1991,91 @@
         private ToolStripMenuItem mnuHReference;
         private ToolStripSeparator mnuHSep2;
         private ToolStripMenuItem mnuHAbout;
-        private ImageList imageList1;
+        internal ToolStrip toolStrip1;
         private ToolStripButton btnOpenGame;
         private ToolStripButton btnCloseGame;
         private ToolStripButton btnRun;
         private ToolStripSeparator btnSep1;
         private ToolStripSplitButton btnNewRes;
+        private ToolStripMenuItem btnNewLogic;
+        private ToolStripMenuItem btnNewPicture;
+        private ToolStripMenuItem btnNewSound;
+        private ToolStripMenuItem btnNewView;
         private ToolStripSplitButton btnOpenRes;
         private ToolStripMenuItem btnOpenLogic;
         private ToolStripMenuItem btnOpenPicture;
         private ToolStripMenuItem btnOpenSound;
         private ToolStripMenuItem btnOpenView;
         private ToolStripSplitButton btnImportRes;
-        private ToolStripSeparator btnSep2;
         private ToolStripMenuItem btnImportLogic;
         private ToolStripMenuItem btnImportPicture;
         private ToolStripMenuItem btnImportSound;
         private ToolStripMenuItem btnImportView;
+        private ToolStripSeparator btnSep2;
         private ToolStripButton btnWords;
         private ToolStripButton btnOjects;
+        private ToolStripSeparator btnSep3;
         private ToolStripButton btnSaveResource;
         private ToolStripButton btnAddRemove;
         private ToolStripButton btnExportRes;
         private ToolStripSeparator btnSep4;
         private ToolStripButton btnLayoutEd;
         private ToolStripButton btnMenuEd;
+        private ToolStripButton btnTextEd;
         private ToolStripButton btnGlobals;
         private ToolStripSeparator btnSep5;
         private ToolStripButton btnHelp;
-        private ToolStripMenuItem btnNewLogic;
-        private ToolStripMenuItem btnNewPicture;
-        private ToolStripMenuItem btnNewSound;
-        private ToolStripMenuItem btnNewView;
-        private Timer tmrNavList;
-        private ToolStripSplitButton toolStripSplitButton2;
-        private ToolStripSplitButton toolStripSplitButton3;
-        private ToolStripSplitButton toolStripSplitButton4;
+        private ContextMenuStrip cmsResource;
+        private ToolStripMenuItem cmROpenRes;
+        private ToolStripMenuItem cmRSave;
+        private ToolStripMenuItem cmRExport;
+        private ToolStripSeparator cmRSep1;
+        private ToolStripMenuItem cmRRemove;
+        private ToolStripMenuItem cmRRenumber;
+        private ToolStripMenuItem cmRProperties;
+        private ToolStripSeparator cmRSep2;
+        private ToolStripMenuItem cmRCompileLogic;
+        private ToolStripMenuItem cmRSavePicImage;
+        private ToolStripMenuItem cmRExportLoopGIF;
+        public StatusStrip statusStrip1;
+        private ToolStripStatusLabel spStatus;
+        private ToolStripStatusLabel spCapsLock;
+        private ToolStripStatusLabel spNumLock;
+        private ToolStripStatusLabel spInsLock;
+        public Splitter splitResource;
+        private SplitContainer splResource;
+        internal Panel pnlResources;
+        private PictureBox picNavList;
         public Button cmdForward;
         public Button cmdBack;
-        internal Panel pnlResources;
-        public OpenFileDialog OpenDlg;
-        public SaveFileDialog SaveDlg;
-        public Panel pnlWarnings;
-        public ToolStripSeparator mnuGMRUBar;
-        public ToolStripMenuItem mnuGMRU0;
-        public ToolStripMenuItem mnuGMRU1;
-        public ToolStripMenuItem mnuGMRU2;
-        public ToolStripMenuItem mnuGMRU3;
-        public ToolStripMenuItem mnuGame;
-        public ImageList imlPropButtons;
-        public ToolStripMenuItem mnuRAddRemove;
-        public ToolStripMenuItem mnuGCompileTo;
-        public ToolStripMenuItem mnuGCompileDirty;
-        public ToolStripMenuItem mnuGNewBlank;
-        public ToolStripMenuItem mnuGRebuild;
-        public ToolStripMenuItem mnuRImport;
-        public ToolStripMenuItem mnuGClose;
-        public ToolStripMenuItem mnuRRenumber;
-        private ToolStripStatusLabel Label1;
-        private ToolStripStatusLabel Label2;
-        private ToolStripStatusLabel toolStripStatusLabel1;
-        private ToolStripStatusLabel springLabel;
-        private ToolStripStatusLabel NumLockLabel;
-        private ToolStripStatusLabel InsertLockLabel;
-        private ToolStripStatusLabel StatusPanel1;
-        private DataGridView fgWarnings;
-        private PictureBox picNavList;
-        public FolderBrowserDialog FolderDlg;
-        private SplitContainer splResource;
         public TreeView tvwResources;
-        public ListView lstResources;
         public ComboBox cmbResType;
-        private SplitContainer splitContainer1;
-        private PropertyGrid propertyGrid1;
+        public ListView lstResources;
+        internal PropertyGrid propertyGrid1;
         private ColumnHeader columnHeader1;
+        public Splitter splitWarning;
+        public Panel pnlWarnings;
+        private DataGridView fgWarnings;
+        private DataGridViewTextBoxColumn colEventType;
+        private DataGridViewTextBoxColumn colResType;
         private DataGridViewTextBoxColumn colWarning;
         private DataGridViewTextBoxColumn colDesc;
         private DataGridViewTextBoxColumn colResNum;
-        private DataGridViewTextBoxColumn colLIne;
+        private DataGridViewTextBoxColumn colLine;
         private DataGridViewTextBoxColumn colModule;
-        private ToolStripMenuItem mnuROpenRes;
-        private ToolStripSeparator mnuRSeparator3;
-        private ToolStripMenuItem mnuRSavePicImage;
-        private ToolStripMenuItem mnuRExportGIF;
-        private ToolStripMenuItem mnuRCompileLogic;
+        private DataGridViewTextBoxColumn colFilename;
         private ContextMenuStrip cmsGrid;
         private ToolStripMenuItem cmiDismiss;
         private ToolStripMenuItem cmiDismissAll;
-        private ToolStripMenuItem cmiErrorHelp;
+        private ToolStripMenuItem cmiGoWarning;
+        private ToolStripMenuItem cmiIgnoreWarning;
+        private ToolStripMenuItem cmiHelp;
+        private Timer tmrNavList;
+        public OpenFileDialog OpenDlg;
+        public SaveFileDialog SaveDlg;
+        public FolderBrowserDialog FolderDlg;
         public HelpProvider hlpWinAGI;
-        internal ToolStripMenuItem mnuTools;
-        internal ToolStripSeparator mnuTSep2;
-        internal ToolStrip toolStrip1;
-        private ToolStripButton btnTextEd;
-        internal ToolStripMenuItem mnuTLayout;
-        internal ToolStripMenuItem mnuTGlobals;
-        public StatusStrip statusStrip1;
+        public ImageList imageList1;
     }
 }
 

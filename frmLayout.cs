@@ -7,21 +7,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static WinAGI.Editor.Base;
 
-namespace WinAGI.Editor
-{
+namespace WinAGI.Editor {
     public partial class frmLayout : Form {
 
         // other variables
-        public bool IsDirty = false;
+        public bool IsChanged = false;
 
         public frmLayout() {
             InitializeComponent();
+            MdiParent = MDIMain;
         }
+
+        #region Event Handlers
+        #endregion
 
         internal void SelectRoom(int selResNum) {
             throw new NotImplementedException();
         }
+
         public void DrawLayout(bool DrawSel = true) {
             /*
         Dim rtn As Long
@@ -310,8 +315,8 @@ namespace WinAGI.Editor
             //SaveLayout();
         }
 
-    void tmplayoutform()
-    {
+        #region temp code
+        void tmplayoutform() {
             /*
 
         'layout editor types
@@ -538,7 +543,7 @@ namespace WinAGI.Editor
               End With
             End Select
 
-            MarkAsDirty
+            MarkAsChanged
           Next i
 
           'step through again and reposition everyone
@@ -595,8 +600,8 @@ namespace WinAGI.Editor
               .Y = GridPos((NewY) / DSF - OffsetY)
             End With
 
-            'set dirty flag (since repositionroom is not called for comments
-            MarkAsDirty
+            'set changed flag (since repositionroom is not called for comments
+            MarkAsChanged
 
           Case lsErrPt
             With ErrPt(Selection.Number).Loc
@@ -2022,6 +2027,7 @@ namespace WinAGI.Editor
           'slope of line
           m = DX / DY
           'calculate first term (to save on cpu times by only doing the math once)
+            // ^ operator not available in c#, have to use Math.Pow()
           ldivs = Sgn(DY) * Length / Sqr(m ^ 2 + 1)
 
           v(1).X = EPX - ldivs * (m + tanTheta)
@@ -3271,13 +3277,13 @@ namespace WinAGI.Editor
         'reposition exit lines
         SetExitPos NewSel.Number, NewSel.ExitID
 
-        MarkAsDirty
+        MarkAsChanged
       End Sub
-      Private Sub MarkAsDirty()
+      Private Sub MarkAsChanged()
 
-        If Not IsDirty Then
-          'set dirty flag
-          IsDirty = True
+        If Not IsChanged Then
+          'set changed flag
+          IsChanged = True
 
           'enable menu and toolbar button
           frmMDIMain.mnuRSave.Enabled = True
@@ -3484,8 +3490,8 @@ namespace WinAGI.Editor
 
           'change menu caption
           frmMDIMain.mnuRCustom2.Caption = "Show All &Pics" & vbTab & "Ctrl+Alt+S"
-          'mark as dirty
-          MarkAsDirty
+          'mark as changed
+          MarkAsChanged
 
         Else 'menu says 'Show'
           For i = 0 To 255
@@ -3498,8 +3504,8 @@ namespace WinAGI.Editor
 
           'change menu caption
           frmMDIMain.mnuRCustom2.Caption = "Hide All &Pics" & vbTab & "Ctrl+Alt+H"
-          'mark as dirty
-          MarkAsDirty
+          'mark as changed
+          MarkAsChanged
         End If
 
         'force redraw
@@ -3531,7 +3537,7 @@ namespace WinAGI.Editor
           Logics(Selection.Number).Save
 
           'update selection
-          UpdateSelection AGIResType.Logic, Selection.Number, umProperty
+          RefreshTree AGIResType.Logic, Selection.Number, umProperty
 
           'if there is a layout file,
           If FileExists(GameDir & GameID & ".wal") Then
@@ -3594,7 +3600,7 @@ namespace WinAGI.Editor
           'now remove logic (this clears the selection
           'which is why it has to be last)
           RemoveLogic Selection.Number
-          MarkAsDirty
+          MarkAsChanged
 
           'clear out exit info for the deleted logic AFTER removing it
           Set Exits(Selection.Number) = New AGIExits
@@ -3607,7 +3613,7 @@ namespace WinAGI.Editor
           'redraw
           DrawLayout
 
-          MarkAsDirty
+          MarkAsChanged
 
         Case lsErrPt
           'remove the errpt and its exit line
@@ -3627,7 +3633,7 @@ namespace WinAGI.Editor
           'deselect and redraw
           DeselectObj
           DrawLayout True
-          MarkAsDirty
+          MarkAsChanged
 
         Case lsComment
           'delete the selected comment
@@ -3645,7 +3651,7 @@ namespace WinAGI.Editor
           'deselect and redraw
           DeselectObj
           DrawLayout
-          MarkAsDirty
+          MarkAsChanged
 
         Case lsExit
           'delete this exit
@@ -3654,7 +3660,7 @@ namespace WinAGI.Editor
           'deselect and redraw
           DeselectObj
           DrawLayout
-          MarkAsDirty
+          MarkAsChanged
         End Select
 
         SetEditMenu
@@ -3864,8 +3870,8 @@ namespace WinAGI.Editor
                   'reposition (since rooms may have moved since it was deleted)
                   SetExitPos FromRoom, CreateNewExit
 
-                  'mark as dirty
-                  MarkAsDirty
+                  'mark as changed
+                  MarkAsChanged
                   Exit Function
                 End If
 
@@ -3926,8 +3932,8 @@ namespace WinAGI.Editor
         'set end points
         SetExitPos FromRoom, CreateNewExit
 
-        'mark as dirty
-        MarkAsDirty
+        'mark as changed
+        MarkAsChanged
       Exit Function
 
       ErrHandler:
@@ -4167,6 +4173,7 @@ namespace WinAGI.Editor
           ptCursor = GetZoomCenter()
 
           'calculate new DSF value
+            // ^ operator not available in c#, have to use Math.Pow()
           NewDSF = 40 * 1.25 ^ (NewScale - 1)
 
           'calculate new offset values
@@ -4244,7 +4251,7 @@ namespace WinAGI.Editor
 
         'reset statusbar
         If MainStatusBar.Tag <> CStr(rtLayout) Then
-          AdjustMenus rtLayout, True, True, IsDirty
+          AdjustMenus rtLayout, True, True, IsChanged
         End If
 
         With MainStatusBar.Panels
@@ -4301,6 +4308,7 @@ namespace WinAGI.Editor
           'slope of line
           m = DX / DY
           'calculate first term (to save on cpu times by only doing the math once)
+            // ^ operator not available in c#, have to use Math.Pow()
           ldivs = Sgn(DY) * Length / Sqr(m ^ 2 + 1)
 
           v(1).X = (EPX - ldivs * (m + tanTheta) + OffsetX) * DSF
@@ -4650,6 +4658,7 @@ namespace WinAGI.Editor
           'slope of line
           m = DX / DY
           'calculate first term (to save on cpu times by only doing the math once)
+            // ^ operator not available in c#, have to use Math.Pow()
           ldivs = Sgn(DY) * Length / Sqr(m ^ 2 + 1)
 
 
@@ -4821,7 +4830,7 @@ namespace WinAGI.Editor
 
         'set status bar
         If MainStatusBar.Tag <> CStr(rtLayout) Then
-          AdjustMenus rtLayout, True, True, IsDirty
+          AdjustMenus rtLayout, True, True, IsChanged
         End If
 
         With Selection
@@ -5052,6 +5061,7 @@ namespace WinAGI.Editor
           rtn = BitBlt(picHandle.hDC, 0, 0, 8, 8, picDraw.hDC, .X1, .Y1, SRCCOPY)
           rtn = BitBlt(picHandle.hDC, 24, 0, 8, 8, picDraw.hDC, .X2, .Y2, SRCCOPY)
 
+            // ^ operator not available in c#, have to use Math.Pow()
           'if one direction, AND exit is two way
           If .TwoWay = ltwOneWay Then
             'add third handle by arrowhead
@@ -5073,7 +5083,7 @@ namespace WinAGI.Editor
         End With
 
         If MainStatusBar.Tag <> CStr(rtLayout) Then
-          AdjustMenus rtLayout, True, True, IsDirty
+          AdjustMenus rtLayout, True, True, IsChanged
         End If
 
         'write to status bar
@@ -5241,10 +5251,10 @@ namespace WinAGI.Editor
           Next i
         End If
 
-        'if loading, don't mark as dirty
+        'if loading, don't mark as changed
         If Not blnLoadingLayout Then
-          'set dirty flag
-          MarkAsDirty
+          'set changed flag
+          MarkAsChanged
         End If
       Exit Sub
 
@@ -5601,6 +5611,7 @@ namespace WinAGI.Editor
                 'recalculate distances
                 DX = TP0.X - .SPX
                 DY = TP0.Y - .SPY
+            // ^ operator not available in c#, have to use Math.Pow()
                 DL = Sqr(DX ^ 2 + DY ^ 2)
                 If DL = 0 Then
                   'force apart
@@ -5863,7 +5874,7 @@ namespace WinAGI.Editor
         AskClose = True
 
         'if layout has been modified since last save,
-        If IsDirty Then
+        If IsChanged Then
           'get user input
           rtn = MsgBox("Do you want to save changes to the layout and update logics before closing?", vbYesNoCancel, "Layout Editor")
 
@@ -7061,7 +7072,7 @@ namespace WinAGI.Editor
         Selection.Leg = llNoTrans
         MoveExit = False
         MoveObj = False
-        IsDirty = False
+        IsChanged = False
         SetEditMenu
 
         'use default filename (gameid and wal extension)
@@ -7110,11 +7121,11 @@ namespace WinAGI.Editor
           strVer = strLine
           Select Case strLine
           Case "10" 'version 1.0
-            'mark as dirty so it gets updated to version 1.2
-            MarkAsDirty
+            'mark as changed so it gets updated to version 1.2
+            MarkAsChanged
           Case "11", "12" 'version  1.1, 1.2
-            'mark as dirty so it gets updated to v 2.1
-            MarkAsDirty
+            'mark as changed so it gets updated to v 2.1
+            MarkAsChanged
           Case "21"
               'current version
           Case Else
@@ -7152,6 +7163,7 @@ namespace WinAGI.Editor
             If DrawScale > 9 Then DrawScale = 9
 
       '''      DSF = Val(strData(1))
+            // ^ operator not available in c#, have to use Math.Pow()
             'DSF is a calculated value; no need to store/retrieve it
             DSF = 40 * 1.25 ^ (DrawScale - 1)
 
@@ -7419,8 +7431,8 @@ namespace WinAGI.Editor
                 End If
                 'update it (showing it if necessary)
                 UpdateLayout Reason, lngNumber, tmpExits
-                'mark as dirty to force update
-                MarkAsDirty
+                'mark as changed to force update
+                MarkAsChanged
 
               Case 84 '"T" - transfer info  'T|##|v|o|x1|y1|x2|y2|r1|r2|e1|e2|ctr
                 'visible flag is ignored for transfer points; counter determines visibility
@@ -7500,8 +7512,8 @@ namespace WinAGI.Editor
 
                 'update
                 UpdateLayout euRenumberRoom, Val(strData(1)), Nothing, Val(strData(2))
-                'mark as dirty so it gets updated
-                MarkAsDirty
+                'mark as changed so it gets updated
+                MarkAsChanged
               End Select
             'always exit parsing loop
             Loop Until True
@@ -7614,8 +7626,8 @@ namespace WinAGI.Editor
           strLine = strLine & vbNewLine & vbNewLine & "A list of specific issues encountered can be found in the 'layout_errors.txt'" & vbNewLine & "file in your game directory."
           MsgBoxEx strLine, vbInformation + vbOKOnly + vbMsgBoxHelpButton, "Layout Editor Errors", WinAGIHelp, "htm\winagi\Layout_Editor.htm#layoutrepair"
 
-          'mark as dirty to force update
-          MarkAsDirty
+          'mark as changed to force update
+          MarkAsChanged
         End If
 
         'return true
@@ -7861,11 +7873,11 @@ namespace WinAGI.Editor
 
         'if a logic is being previewed, update selection, in case the logic is changed
         If SelResType = AGIResType.Logic Then
-          UpdateSelection AGIResType.Logic, SelResNum, umPreview
+          RefreshTree AGIResType.Logic, SelResNum, umPreview
         End If
 
-        'reset dirty flag
-        IsDirty = False
+        'reset changed flag
+        IsChanged = False
         'set caption
         Caption = GameID & " - Room Layout"
         'disable menu and toolbar button
@@ -7962,8 +7974,8 @@ namespace WinAGI.Editor
           End If
         Next i
 
-        'mark as dirty
-        MarkAsDirty
+        'mark as changed
+        MarkAsChanged
       Exit Sub
 
       ErrHandler:
@@ -8006,7 +8018,7 @@ namespace WinAGI.Editor
             DrawLayout True
 
             'update selection
-            UpdateSelection AGIResType.Logic, .NewResNum, umProperty
+            RefreshTree AGIResType.Logic, .NewResNum, umProperty
           End If
         End With
 
@@ -8315,7 +8327,7 @@ namespace WinAGI.Editor
           Next i
         End Select
 
-        MarkAsDirty
+        MarkAsChanged
 
       Exit Sub
 
@@ -8599,7 +8611,7 @@ namespace WinAGI.Editor
             'save source
             ThisLogic.SourceText = strSource
             ThisLogic.SaveSource
-            'mark as dirty
+            'mark as changed
             SetLogicCompiledStatus ThisLogic.Number, False
 
             'setup to check for open editor
@@ -8723,7 +8735,7 @@ namespace WinAGI.Editor
         End If
 
         'adjust menus and statusbar
-        AdjustMenus rtLayout, True, True, IsDirty
+        AdjustMenus rtLayout, True, True, IsChanged
 
         'if findform is visible,
         If FindForm.Visible Then
@@ -8908,8 +8920,8 @@ namespace WinAGI.Editor
           frmMDIMain.mnuECustom1.Caption = "Show Room Picture" & vbTab & "Ctrl+R"
         End If
 
-        'mark as dirty
-        MarkAsDirty
+        'mark as changed
+        MarkAsChanged
       Exit Sub
 
       ErrHandler:
@@ -8936,8 +8948,8 @@ namespace WinAGI.Editor
           'redraw layout to reflect changes
           DrawLayout
 
-          'mark as dirty
-          MarkAsDirty
+          'mark as changed
+          MarkAsChanged
 
           'if a matching logic editor is open, it needs to be updated too
           If LogicEditors.Count > 0 Then
@@ -8982,6 +8994,7 @@ namespace WinAGI.Editor
         'get default scale
         DrawScale = Settings.LEZoom
 
+            // ^ operator not available in c#, have to use Math.Pow()
         DSF = 40 * 1.25 ^ (DrawScale - 1)
         picDraw.Font.Size = DSF / 10
         txtComment.Font.Size = DSF / 10
@@ -9929,7 +9942,7 @@ namespace WinAGI.Editor
                 Set tmpExits = ExtractExits(Logics(.NewResNum))
 
                 'if adding picture too
-                If .chkIncludePic.Value = vbChecked Then
+                If .chkIncludePic.Checked Then
                   'if a picture already exists, delete it before adding a new one
                   '*'Debug.Assert (.chkIncludePic.Caption = "Replace existing Picture") = Pictures.Exists(.NewResNum)
                   If .chkIncludePic.Caption = "Replace existing Picture" Then
@@ -10026,7 +10039,7 @@ namespace WinAGI.Editor
         picTip.Visible = False
 
         If MainStatusBar.Tag <> CStr(rtLayout) Then
-          AdjustMenus rtLayout, True, True, IsDirty
+          AdjustMenus rtLayout, True, True, IsChanged
         End If
         MainStatusBar.Panels("CurX").Text = "X: " & format$(X / DSF - OffsetX, "0.00")
         MainStatusBar.Panels("CurY").Text = "Y: " & format$(Y / DSF - OffsetY, "0.00")
@@ -10822,7 +10835,7 @@ namespace WinAGI.Editor
 
                     'redraw
                     DrawLayout True
-                    MarkAsDirty
+                    MarkAsChanged
                   End If
 
                 Else
@@ -10842,7 +10855,7 @@ namespace WinAGI.Editor
 
                   'redraw
                   DrawLayout True
-                  MarkAsDirty
+                  MarkAsChanged
                 End If
               Else
                 'two-way; change both from and to room
@@ -10913,7 +10926,7 @@ namespace WinAGI.Editor
 
                 'redraw
                 DrawLayout True
-                MarkAsDirty
+                MarkAsChanged
               End If
             End If
 
@@ -10939,7 +10952,7 @@ namespace WinAGI.Editor
 
             shpMove.Visible = False
             SizingComment = 0
-            MarkAsDirty
+            MarkAsChanged
             AdjustMaxMin
             DrawLayout
             Exit Sub
@@ -10975,6 +10988,7 @@ namespace WinAGI.Editor
           If tmpSel.Number = NewExitRoom Then
             'unless line is at least .4 units (half the room width/height), assume user doesnt want an exit
             With linMove
+            // ^ operator not available in c#, have to use Math.Pow()
               If Sqr((.X2 - .X1) ^ 2 + (.Y2 - .Y1) ^ 2) / DSF < RM_SIZE / 2 Then
                 Exit Sub
               End If
@@ -11269,7 +11283,7 @@ namespace WinAGI.Editor
         On Error GoTo ErrHandler
 
         If MainStatusBar.Tag <> CStr(rtLayout) Then
-          AdjustMenus rtLayout, True, True, IsDirty
+          AdjustMenus rtLayout, True, True, IsChanged
         End If
 
         Select Case Button.Key
@@ -11503,8 +11517,8 @@ namespace WinAGI.Editor
 
         'if editing text,
         If txtComment.Visible Then
-          'set dirty flag
-          MarkAsDirty
+          'set changed flag
+          MarkAsChanged
         End If
 
       End Sub
@@ -11751,6 +11765,11 @@ namespace WinAGI.Editor
       End Sub
 
            */
+        }
+        #endregion
+
+        internal void InitFonts() {
+            MessageBox.Show("init fonts");
         }
     }
 }

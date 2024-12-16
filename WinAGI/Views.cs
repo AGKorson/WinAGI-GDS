@@ -119,8 +119,8 @@ namespace WinAGI.Engine {
             }
             Col.Add(ResNum, agResource);
             // force flags so save function will work
-            agResource.IsDirty = true;
-            agResource.PropsDirty = true;
+            agResource.IsChanged = true;
+            agResource.PropsChanged = true;
             //save new view to add it to VOL file
             agResource.Save();
             LogicCompiler.blnSetIDs = false;

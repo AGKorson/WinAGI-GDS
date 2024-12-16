@@ -1,24 +1,21 @@
 ﻿
-namespace WinAGI.Editor
-{
-  partial class frmGetResourceNum
-  {
-    /// <summary>
-    /// Required designer variable.
-    /// </summary>
-    private System.ComponentModel.IContainer components = null;
+namespace WinAGI.Editor {
+    partial class frmGetResourceNum {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-    /// <summary>
-    /// Clean up any resources being used.
-    /// </summary>
-    /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-    protected override void Dispose(bool disposing)
-    {
-      if (disposing && (components != null)) {
-        components.Dispose();
-      }
-      base.Dispose(disposing);
-    }
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing) {
+            if (disposing && (components != null)) {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
         #region Windows Form Designer generated code
 
@@ -51,6 +48,8 @@ namespace WinAGI.Editor
             txtID.Size = new System.Drawing.Size(216, 23);
             txtID.TabIndex = 0;
             txtID.WordWrap = false;
+            txtID.TextChanged += txtID_TextChanged;
+            txtID.KeyPress += txtID_KeyPress;
             // 
             // chkRoom
             // 
@@ -63,6 +62,7 @@ namespace WinAGI.Editor
             chkRoom.Text = "Include Room Template Code";
             chkRoom.UseVisualStyleBackColor = true;
             chkRoom.Visible = false;
+            chkRoom.CheckedChanged += chkRoom_CheckedChanged;
             // 
             // txtDescription
             // 
@@ -85,6 +85,7 @@ namespace WinAGI.Editor
             chkIncludePic.Text = "Create Matching Picture";
             chkIncludePic.UseVisualStyleBackColor = true;
             chkIncludePic.Visible = false;
+            chkIncludePic.CheckedChanged += chkIncludePic_CheckedChanged;
             // 
             // chkOpenRes
             // 
@@ -148,7 +149,7 @@ namespace WinAGI.Editor
             btnOK.Click += btnOK_Click;
             // 
             // btnDont
-            // 
+            //
             btnDont.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
             btnDont.Location = new System.Drawing.Point(92, 180);
             btnDont.Margin = new System.Windows.Forms.Padding(0);
@@ -158,6 +159,7 @@ namespace WinAGI.Editor
             btnDont.Text = "Open Don't Import";
             btnDont.UseVisualStyleBackColor = true;
             btnDont.Visible = false;
+            btnDont.Click += btnDont_Click;
             // 
             // Label2
             // 
@@ -225,10 +227,10 @@ namespace WinAGI.Editor
         #endregion
 
         public System.Windows.Forms.TextBox txtID;
-    public System.Windows.Forms.CheckBox chkRoom;
-    public System.Windows.Forms.TextBox txtDescription;
-    public System.Windows.Forms.CheckBox chkIncludePic;
-    public System.Windows.Forms.CheckBox chkOpenRes;
+        public System.Windows.Forms.CheckBox chkRoom;
+        public System.Windows.Forms.TextBox txtDescription;
+        public System.Windows.Forms.CheckBox chkIncludePic;
+        public System.Windows.Forms.CheckBox chkOpenRes;
         private System.Windows.Forms.ListBox lstResNum;
         private System.Windows.Forms.Label lblID;
         private System.Windows.Forms.Label lblDescription;

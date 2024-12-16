@@ -2,15 +2,16 @@
 using System.Windows.Forms;
 using static WinAGI.Editor.Base;
 using WinAGI.Engine;
-using static WinAGI.Editor.Base.EGetRes;
+using static WinAGI.Editor.Base.GetRes;
 using System.Windows.Forms.Design;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace WinAGI.Editor {
-    public partial class frmEditDescription : Form {
+    public partial class frmEditResourceProperties : Form {
         int SelCtrl = 0; // 0=none; 1=ID, 2=description
         public string NewID = "", NewDescription = "";
-        public frmEditDescription(AGIResType EWMode, byte ResNum, string OldID, string OldDescription, bool InGame, int FirstProp) {
+
+        public frmEditResourceProperties(AGIResType EWMode, byte ResNum, string OldID, string OldDescription, bool InGame, int FirstProp) {
             InitializeComponent();
 
             switch (EWMode) {
@@ -18,14 +19,15 @@ namespace WinAGI.Editor {
             case AGIResType.Picture:
             case AGIResType.Sound:
             case AGIResType.View:
-                if (!InGame) {
-                    txtID.Width = 272;
-                    chkUpdate.Visible = false;
+                if (InGame) {
+                    chkUpdate.Checked = DefUpdateVal;
+                    lblID.Text = "Resource ID for " + EWMode.ToString() + " " + ResNum + ": ";
                 }
                 else {
-                    chkUpdate.Checked = DefUpdateVal;
+                    txtID.Width = 272;
+                    chkUpdate.Visible = false;
+                    lblID.Text = "Resource ID: ";
                 }
-                lblID.Text = "Resource ID for " + EWMode.ToString() + " " + ResNum + ": ";
                 NewID = OldID;
                 NewDescription = OldDescription;
                 break;
@@ -43,6 +45,7 @@ namespace WinAGI.Editor {
             }
             txtDescription.Text = OldDescription;
             txtID.Text = OldID;
+            btnOK.Enabled = false;
             if (!InGame) {
                 txtID.Enabled = false;
                 SelCtrl = 2;
@@ -56,30 +59,32 @@ namespace WinAGI.Editor {
             case 1:
                 // select id
                 txtID.SelectAll();
-                txtID.Focus();
+                txtID.Select();
                 break;
             case 2:
                 // select description
                 txtDescription.SelectAll();
-                txtDescription.Focus();
+                txtDescription.Select();
                 break;
             }
         }
+
+        #region Event Handlers
 
         private void btnOK_Click(object sender, EventArgs e) {
             DialogResult = DialogResult.OK;
             NewID = txtID.Text;
             NewDescription = txtDescription.Text;
-            Close();
+            Hide();
         }
 
         private void btnCancel_Click(object sender, EventArgs e) {
             DialogResult = DialogResult.Cancel;
-            Close();
+            Hide();
         }
 
         private void txtDescription_TextChanged(object sender, EventArgs e) {
-            btnOK.Enabled = true;
+            btnOK.Enabled = (txtID.Text.Length > 0 || !txtID.Visible);
         }
 
         private void txtID_TextChanged(object sender, EventArgs e) {
@@ -104,21 +109,22 @@ namespace WinAGI.Editor {
                 break;
             }
         }
-    }
+        #endregion
 
-    /*
-Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
-  'check for help key
-  If Shift = 0 And KeyCode = vbKeyF1 Then
-    If ActiveControl Is txtDescription Then
-      'help with description
-      HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Managing Resources.htm#descriptions"
-    Else
-      'help with ID
-      HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Managing Resources.htm#resourceids"
-    End If
-    KeyCode = 0
-  End If
-End Sub
-    */
+        /*
+    Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
+      'check for help key
+      If Shift = 0 And KeyCode = vbKeyF1 Then
+        If ActiveControl Is txtDescription Then
+          'help with description
+          HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Managing Resources.htm#descriptions"
+        Else
+          'help with ID
+          HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Managing Resources.htm#resourceids"
+        End If
+        KeyCode = 0
+      End If
+    End Sub
+        */
+    }
 }

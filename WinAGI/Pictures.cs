@@ -28,7 +28,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Gets the list of pictures in this game.
         /// </summary>
-        public SortedList<byte, Picture> Col { get; private set; } = [];
+        public SortedList<int, Picture> Col { get; private set; } = [];
 
         /// <summary>
         /// Gets the picture with the specified index value from this list of pictures.
@@ -38,28 +38,28 @@ namespace WinAGI.Engine {
         /// <exception cref="IndexOutOfRangeException"></exception>
         public Picture this[int index] {
             get {
-                if (index < 0 || index > 255 || !Contains((byte)index)) {
+                if (index < 0 || index > 255 || !Contains(index)) {
                     throw new IndexOutOfRangeException();
                 }
-                return Col[(byte)index];
+                return Col[index];
             }
         }
 
         /// <summary>
         /// Gets the number of pictures in this AGI game.
         /// </summary>
-        public byte Count {
+        public int Count {
             get {
-                return (byte)Col.Count;
+                return Col.Count;
             }
         }
 
         /// <summary>
         /// Gets the highest index in use in this pictures collection.
         /// </summary>
-        public byte Max {
+        public int Max {
             get {
-                byte max = 0;
+                int max = 0;
                 if (Col.Count > 0)
                     max = Col.Keys[Col.Count - 1];
                 return max;
@@ -87,7 +87,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
-        public bool Contains(byte ResNum) {
+        public bool Contains(int ResNum) {
             return Col.ContainsKey(ResNum);
         }
 
@@ -123,8 +123,8 @@ namespace WinAGI.Engine {
             }
             Col.Add(ResNum, agResource);
             // force flags so save function will work
-            agResource.IsDirty = true;
-            agResource.PropsDirty = true;
+            agResource.IsChanged = true;
+            agResource.PropsChanged = true;
             // save new picture to add it to VOL file
             agResource.Save();
             LogicCompiler.blnSetIDs = false;
@@ -215,9 +215,9 @@ namespace WinAGI.Engine {
         /// Implements enumeration for the Pictures class
         /// </summary>
         internal class PictureEnum : IEnumerator<Picture> {
-            public SortedList<byte, Picture> _pictures;
+            public SortedList<int, Picture> _pictures;
             int position = -1;
-            public PictureEnum(SortedList<byte, Picture> list) {
+            public PictureEnum(SortedList<int, Picture> list) {
                 _pictures = list;
             }
             object IEnumerator.Current => Current;

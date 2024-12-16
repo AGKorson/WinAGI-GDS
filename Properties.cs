@@ -26,7 +26,7 @@ namespace WinAGI.Editor {
             set
             {
                 if (ChangeGameID(value)) {
-                    // mark any logics that use the gameID token as dirty
+                    // mark any logics that use the gameID token as changed
                     UpdateReservedToken(EditGame.ReservedGameDefines[0].Name);
                     RDefLookup[91].Value = '"' + EditGame.GameID + '"';
                 }
@@ -117,9 +117,9 @@ namespace WinAGI.Editor {
         }
 
         public bool UseResNames { 
-            get => LogicCompiler.UseReservedNames;
+            get => EditGame.UseReservedNames;
             // TODO: useresnames usage checks
-            set => LogicCompiler.UseReservedNames = value;
+            set => EditGame.UseReservedNames = value;
         }
     }
     
@@ -165,12 +165,12 @@ namespace WinAGI.Editor {
                     pLogic.IsRoom = value;
                     pLogic.SaveProps();
                     if (EditGame.UseLE) {
-                        EUReason reason;
+                        UpdateReason reason;
                         if (pLogic.IsRoom) {
-                            reason = EUReason.euShowRoom;
+                            reason = UpdateReason.ShowRoom;
                         }
                         else {
-                            reason = EUReason.euRemoveRoom;
+                            reason = UpdateReason.RemoveRoom;
                         }
                         // update layout editor to show new room status
                         UpdateExitInfo(reason, SelResNum, pLogic);
@@ -343,7 +343,8 @@ namespace WinAGI.Editor {
         }
 
         public string ViewDesc {
-            get;
+            get => pView.ViewDescription;
+            set { }
         }
 
         public int Volume {
@@ -442,7 +443,7 @@ namespace WinAGI.Editor {
                     resnum = ((ViewProperties)context.Instance).Number;
                     break;
                 }
-                _frmGetResNum = new(isroom ? EGetRes.grRenumberRoom : EGetRes.grRenumber, restype, resnum);
+                _frmGetResNum = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, restype, resnum);
                 if (_frmGetResNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
                     value = _frmGetResNum.NewResNum;
                 }
@@ -474,7 +475,7 @@ namespace WinAGI.Editor {
                     thisres = EditGame.Views[resnum];
                     break;
                 }
-                MDIMain.SelectedItemDescription(1);
+                MDIMain.EditSelectedItemProperties(1);
                 return thisres.ID;
             case "Description":
                 switch (context.Instance.ToString()) {
@@ -507,7 +508,7 @@ namespace WinAGI.Editor {
                 case "WinAGI.Editor.WordListProperties":
                     break;
                 }
-                MDIMain.SelectedItemDescription(1);
+                MDIMain.EditSelectedItemProperties(1);
                 switch (context.Instance.ToString()) {
                 case "WinAGI.Editor.InvObjProperties":
                     return EditGame.InvObjects.Description;

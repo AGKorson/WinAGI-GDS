@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using WinAGI.Common;
+using static WinAGI.Engine.Base;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.PictureFunctions;
 
 namespace WinAGI.Engine {
@@ -15,7 +17,7 @@ namespace WinAGI.Engine {
         /// Encapsulates the position information for a background picture that
         /// can be overlaid on an AGI Picture resource while it is being edited.
         /// </summary>
-        public struct PicBkgdPos {
+        public struct PicBkgdPos () {
             public float srcX;
             public float srcY;
             public float tgtX;
@@ -125,6 +127,7 @@ namespace WinAGI.Engine {
         byte[] mPriData;
         Bitmap bmpVis;
         Bitmap bmpPri;
+        private EGAColors mPalette;
         #endregion
 
         #region Constructors
@@ -231,7 +234,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkImgFile = value;
-                PropsDirty = true;
+                PropsChanged = true;
             }
         }
 
@@ -245,7 +248,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkPos = value;
-                PropsDirty = true;
+                PropsChanged = true;
             }
         }
 
@@ -259,7 +262,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkSize = value;
-                PropsDirty = true;
+                PropsChanged = true;
             }
         }
 
@@ -273,7 +276,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkTrans = value;
-                PropsDirty = true;
+                PropsChanged = true;
             }
         }
 
@@ -287,7 +290,7 @@ namespace WinAGI.Engine {
             }
             set {
                 mBkShow = value;
-                PropsDirty = true;
+                PropsChanged = true;
             }
         }
 
@@ -316,7 +319,7 @@ namespace WinAGI.Engine {
                 else {
                     mPriBase = value;
                 }
-                PropsDirty = true;
+                PropsChanged = true;
             }
         }
 
@@ -376,6 +379,26 @@ namespace WinAGI.Engine {
                 }
             }
         }
+
+        /// <summary>
+        /// Gets or sets the color palette that is used if the resource is not
+        /// attached to a game. 
+        /// </summary>
+        public EGAColors Palette {
+            get {
+                if (mInGame) {
+                    return parent.Palette;
+                }
+                else {
+                    return mPalette;
+                }
+            }
+            set {
+                if (!mInGame) {
+                    mPalette = value.CopyPalette();
+                }
+            }
+        }
         #endregion
 
         #region Methods
@@ -412,19 +435,24 @@ namespace WinAGI.Engine {
                 mBkTrans = NewPicture.mBkTrans;
                 mBkPos = NewPicture.mBkPos;
                 mBkSize = NewPicture.mBkSize;
-                mPicBMPSet = NewPicture.mPicBMPSet;
                 mStepDraw = NewPicture.mStepDraw;
                 mCurrentPen = NewPicture.mCurrentPen;
                 mVisData = NewPicture.mVisData;
                 mPriData = NewPicture.mPriData;
+                // bitmaps always need to be rebuilt
+                mPicBMPSet = false;
             }
+            mPalette = defaultPalette.CopyPalette();
         }
 
         /// <summary>
         /// Creates an exact copy of this Picture resource.
         /// </summary>
         /// <returns>The Picture resource this method creates.</returns>
-        internal Picture Clone() {
+        public Picture Clone() {
+            // only loaded pictures can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+
             Picture CopyPicture = new();
             // copy base properties
             base.CloneTo(CopyPicture);
@@ -435,14 +463,59 @@ namespace WinAGI.Engine {
             CopyPicture.mBkPos = mBkPos;
             CopyPicture.mBkSize = mBkSize;
             CopyPicture.mPriBase = mPriBase;
-            CopyPicture.mPicBMPSet = mPicBMPSet;
             CopyPicture.mDrawPos = mDrawPos;
             CopyPicture.mStepDraw = mStepDraw;
             CopyPicture.mCurrentPen = mCurrentPen;
             CopyPicture.mVisData = mVisData;
             CopyPicture.mPriData = mPriData;
+            if (parent != null) {
+                // copy parent colors
+                CopyPicture.mPalette = parent.Palette.CopyPalette();
+            }
+            else {
+                // copy picture colors
+                CopyPicture.mPalette = mPalette.CopyPalette();
+            }
             CopyPicture.ErrLevel = ErrLevel;
+            // bitmaps always need to be rebuilt
+            CopyPicture.mPicBMPSet = false;
             return CopyPicture;
+        }
+
+        /// <summary>
+        /// Copies properties from SourcePicture into this picture.
+        /// </summary>
+        /// <param name="SourcePicture"></param>
+        public void CloneFrom(Picture SourcePicture) {
+            // only loaded pictures can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+            WinAGIException.ThrowIfNotLoaded(SourcePicture);
+
+            // copy base properties
+            base.CloneFrom(SourcePicture);
+            // copy picture properties
+            mBkImgFile = SourcePicture.mBkImgFile;
+            mBkShow = SourcePicture.mBkShow;
+            mBkTrans = SourcePicture.mBkTrans;
+            mBkPos = SourcePicture.mBkPos;
+            mBkSize = SourcePicture.mBkSize;
+            mPriBase = SourcePicture.mPriBase;
+            mDrawPos = SourcePicture.mDrawPos;
+            mStepDraw = SourcePicture.mStepDraw;
+            mCurrentPen = SourcePicture.mCurrentPen;
+            mVisData = SourcePicture.mVisData;
+            mPriData = SourcePicture.mPriData;
+            if (SourcePicture.parent != null) {
+                // copy parent colors
+                mPalette = SourcePicture.parent.Palette.CopyPalette();
+            }
+            else {
+                // copy picture colors
+                mPalette = SourcePicture.mPalette.CopyPalette();
+            }
+            ErrLevel = SourcePicture.ErrLevel;
+            // bitmaps always need to be rebuilt
+            mPicBMPSet = false;
         }
 
         /// <summary>
@@ -475,7 +548,7 @@ namespace WinAGI.Engine {
             EndX = (byte)(X + Length - 1);
             for (i = X; i <= EndX; i++) {
                 CurPri = (AGIColorIndex)mPriData[i + 160 * Y];
-                if (CurPri != AGIColorIndex.agCyan) {
+                if (CurPri != AGIColorIndex.Cyan) {
                     return false;
                 }
             }
@@ -509,7 +582,7 @@ namespace WinAGI.Engine {
             if (!mPicBMPSet) {
                 BuildBMPs();
             }
-            retval = AGIColorIndex.agWhite;
+            retval = AGIColorIndex.White;
             do {
                 CurPri = (AGIColorIndex)mPriData[X + i + 160 * Y];
                 if (CurPri < retval) {
@@ -588,10 +661,10 @@ namespace WinAGI.Engine {
             do {
                 retval = (AGIColorIndex)mPriData[X + (160 * Y++)];
             }
-            while (retval < AGIColorIndex.agCyan && Y < 168);
-            if (retval < AGIColorIndex.agCyan) {
+            while (retval < AGIColorIndex.Cyan && Y < 168);
+            if (retval < AGIColorIndex.Cyan) {
                 // control pixels all the way down - return default
-                return AGIColorIndex.agWhite;
+                return AGIColorIndex.White;
             }
             else {
                 return retval;
@@ -667,7 +740,7 @@ namespace WinAGI.Engine {
         /// Forces bitmap to reload. Use when palette changes (or any other reason
         /// that the calling program needs the cel to be refreshed).
         /// </summary>
-        public void ResetBMP() {
+        public void ResetPicture() {
             mPicBMPSet = false;
         }
 
@@ -701,7 +774,7 @@ namespace WinAGI.Engine {
                     parent.WriteGameSetting(strPicKey, "BkgdPosn", mBkPos.ToString());
                     parent.WriteGameSetting(strPicKey, "BkgdSize", mBkSize.ToString());
                 }
-                PropsDirty = false;
+                PropsChanged = false;
             }
         }
 
@@ -712,10 +785,10 @@ namespace WinAGI.Engine {
         /// </summary>
         public new void Save() {
             WinAGIException.ThrowIfNotLoaded(this);
-            if (PropsDirty && mInGame) {
+            if (PropsChanged && mInGame) {
                 SaveProps();
             }
-            if (mIsDirty) {
+            if (mIsChanged) {
                 // No picture-specific action needed, since changes in picture are made
                 // directly to resource data. Use the base save method. Any bmp errors
                 // will remain until they are fixed by the user, so don't reset error
@@ -738,12 +811,18 @@ namespace WinAGI.Engine {
             bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
             // update color palette
             ColorPalette ncp = bmpVis.Palette;
-            if (parent is not null) {
-                for (int i = 0; i < 16; i++) {
+            for (int i = 0; i < 16; i++) {
+                if (parent != null) {
                     ncp.Entries[i] = Color.FromArgb(255,
-                    parent.AGIColors[i].R,
-                    parent.AGIColors[i].G,
-                    parent.AGIColors[i].B);
+                    parent.Palette[i].R,
+                    parent.Palette[i].G,
+                    parent.Palette[i].B);
+                }
+                else {
+                    ncp.Entries[i] = Color.FromArgb(255,
+                    mPalette[i].R,
+                    mPalette[i].G,
+                    mPalette[i].B);
                 }
             }
             // both bitmaps use same palette

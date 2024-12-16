@@ -16,7 +16,7 @@ namespace WinAGI.Engine {
     public class Logics : IEnumerable<Logic> {
         #region Members
         readonly AGIGame parent;
-        internal string mSourceFileExt = "";
+//        internal string mSourceFileExt = "";
         #endregion
 
         #region Constructors
@@ -26,7 +26,6 @@ namespace WinAGI.Engine {
         /// <param name="parent"></param>
         internal Logics(AGIGame parent) {
             this.parent = parent;
-            mSourceFileExt = DefaultSrcExt;
         }
         #endregion
 
@@ -34,7 +33,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Gets the list of logics in this game.
         /// </summary>
-        public SortedList<byte, Logic> Col { get; private set; } = [];
+        public SortedList<int, Logic> Col { get; private set; } = [];
 
         /// <summary>
         /// Gets the logic with the specified index value from this list of logics.
@@ -44,58 +43,31 @@ namespace WinAGI.Engine {
         /// <exception cref="IndexOutOfRangeException"></exception>
         public Logic this[int index] {
             get {
-                if (index < 0 || index > 255 || !Contains((byte)index)) {
+                if (index < 0 || index > 255 || !Contains(index)) {
                     throw new IndexOutOfRangeException();
                 }
-                return Col[(byte)index];
+                return Col[index];
             }
         }
 
         /// <summary>
         /// Gets the number of logics in this AGI game.
         /// </summary>
-        public byte Count { 
+        public int Count { 
             get { 
-                return (byte)Col.Count;
+                return Col.Count;
             }
         }
 
         /// <summary>
         /// Gets the highest index in use in this logics collection.
         /// </summary>
-        public byte Max {
+        public int Max {
             get {
-                byte max = 0;
+                int max = 0;
                 if (Col.Count > 0)
                     max = Col.Keys[Col.Count - 1];
                 return max;
-            }
-        }
-        
-        /// <summary>
-        /// Gets or sets the default source file extension that will be used for
-        /// source code files in this game.
-        /// </summary>
-        public string SourceFileExt {
-            get {
-                return mSourceFileExt;
-            }
-            set {
-                if (value.Length == 0) {
-                    // use default
-                    mSourceFileExt = DefaultSrcExt;
-                    return;
-                }
-                // no period
-                if (mSourceFileExt.Contains('.')) {
-                    throw new ArgumentException("unallowable characters");
-                }
-                // no unallowed filename characters
-                if (mSourceFileExt.Any(Path.GetInvalidFileNameChars().Contains)) {
-                    throw new ArgumentException("unallowable characters");
-                }
-                mSourceFileExt = value.ToLower();
-                parent.WriteGameSetting("General", "SourceFileExt", mSourceFileExt, "Logics");
             }
         }
         #endregion
@@ -120,7 +92,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ResNum"></param>
         /// <returns></returns>
-        public bool Contains(byte ResNum) {
+        public bool Contains(int ResNum) {
             return Col.ContainsKey(ResNum);
         }
         
@@ -156,8 +128,8 @@ namespace WinAGI.Engine {
             agResource.ID = strID;
             Col.Add(ResNum, agResource);
             // force flags so save function will work
-            agResource.IsDirty = true;
-            agResource.PropsDirty = true;
+            agResource.IsChanged = true;
+            agResource.PropsChanged = true;
             // add it to VOL file using base save method
             // (because Logic.Save only saves the source for ingame resource)
             ((AGIResource)agResource).Save();
@@ -222,17 +194,6 @@ namespace WinAGI.Engine {
                     strID = strBaseID + "_" + intNextNum;
                     intNextNum++;
                 }
-                //// move source file to match new ID
-                //try {
-                //    File.Move(parent.agResDir + tmpLogic.ID + parent.agSrcFileExt, parent.agResDir + strID + parent.agSrcFileExt, true);
-                //}
-                //catch (Exception e) {
-                //    WinAGIException wex = new(LoadResString(670)) {
-                //        HResult = WINAGI_ERR + 670,
-                //    };
-                //    wex.Data["exception"] = e;
-                //    throw wex;
-                //}
                 tmpLogic.ID = strID;
             }
             // add it back with new number
@@ -248,7 +209,7 @@ namespace WinAGI.Engine {
         /// to be recompiled.
         /// </summary>
         /// <param name="ResNum"></param>
-        public void MarkAsDirty(byte ResNum) {
+        public void MarkAsChanged(byte ResNum) {
             if (Contains(ResNum)) {
                 Col[ResNum].CompiledCRC = 0xffffffff;
                 parent.WriteGameSetting("Logic" + ResNum.ToString(), "CompCRC32", "0xffffffff", "Logics");
@@ -260,7 +221,7 @@ namespace WinAGI.Engine {
         /// Sets the CRC for all logics in the collection to indicate they need
         /// to be recompiled.
         /// </summary>
-        public void MarkAllAsDirty() {
+        public void MarkAllAsChanged() {
             foreach (Logic tmpLogic in Col.Values) {
                 tmpLogic.CompiledCRC = 0xffffffff;
                 parent.WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0xffffffff", "Logics");
@@ -275,9 +236,9 @@ namespace WinAGI.Engine {
         /// <param name="ArgType"></param>
         /// <param name="VarOrNum"></param>
         /// <returns></returns>
-        public string ConvertArg(string ArgIn, ArgTypeEnum ArgType, bool VarOrNum = false) {
+        public string ConvertArg(string ArgIn, ArgType ArgType, bool VarOrNum = false) {
             if (parent is not null) {
-                if (!parent.GlobalDefines.IsDirty) {
+                if (!parent.GlobalDefines.IsChanged) {
                     parent.GlobalDefines.LoadGlobalDefines(parent.agGameDir + "globals.txt");
                 }
                 if (!blnSetIDs) {
@@ -304,9 +265,9 @@ namespace WinAGI.Engine {
         /// Implements enumeration for the Logics class.
         /// </summary>
         internal class LogicEnum : IEnumerator<Logic> {
-            public SortedList<byte, Logic> _logics;
+            public SortedList<int, Logic> _logics;
             int position = -1;
-            public LogicEnum(SortedList<byte, Logic> list) {
+            public LogicEnum(SortedList<int, Logic> list) {
                 _logics = list;
             }
             object IEnumerator.Current => Current;

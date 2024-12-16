@@ -11,7 +11,7 @@ namespace WinAGI.Engine {
         byte mInstrument;
         bool mVisible;
         internal Sound mParent;
-        bool mLengthDirty;
+        bool mLengthChanged;
         double mLength;
         #endregion
 
@@ -21,7 +21,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public Track() {
             mNotes = [];
-            mLengthDirty = true;
+            mLengthChanged = true;
             mVisible = true;
             mInstrument = 80;
         }
@@ -32,7 +32,7 @@ namespace WinAGI.Engine {
         /// <param name="parent"></param>
         internal Track(Sound parent) {
             mNotes = new Notes(parent, this);
-            mLengthDirty = true;
+            mLengthChanged = true;
             mVisible = true;
             mInstrument = 80;
             mParent = parent;
@@ -82,12 +82,12 @@ namespace WinAGI.Engine {
         public double Length {
             get {
                 int i, lngTickCount = 0;
-                if (mLengthDirty) {
+                if (mLengthChanged) {
                     for (i = 0; i <= mNotes.Count - 1; i++) {
                         lngTickCount += mNotes[i].Duration;
                     }
                     mLength = (double)lngTickCount / 60;
-                    mLengthDirty = false;
+                    mLengthChanged = false;
                 }
                 return mLength;
             }
@@ -128,8 +128,8 @@ namespace WinAGI.Engine {
         /// This method is used by parent sound to let this track know that sound
         /// length needs to be recalculated.
         /// </summary>
-        internal void SetLengthDirty() {
-            mLengthDirty = true;
+        internal void SetLengthChanged() {
+            mLengthChanged = true;
         }
 
         /// <summary>
@@ -138,17 +138,28 @@ namespace WinAGI.Engine {
         /// <param name="cloneparent"></param>
         /// <returns>The Tracks object this method creates.</returns>
         public Track Clone(Sound cloneparent) {
-            //
             Track CopyTrack = new(cloneparent) {
-                mNotes = new Notes(cloneparent, this),
                 mMuted = mMuted,
                 mInstrument = mInstrument,
                 mVisible = mVisible,
-                mLengthDirty = mLengthDirty,
+                mLengthChanged = mLengthChanged,
                 mLength = mLength
             };
-            CopyTrack.mNotes = mNotes.Clone(this);
+            CopyTrack.mNotes = new Notes(cloneparent, CopyTrack);
+            CopyTrack.mNotes = mNotes.Clone(CopyTrack);
             return CopyTrack;
+        }
+
+        /// <summary>
+        /// Copies track data from SourceTrack into this track.
+        /// </summary>
+        public void CloneFrom(Track SourceTrack) {
+            mMuted = SourceTrack.mMuted;
+            mInstrument = SourceTrack.mInstrument;
+            mVisible = SourceTrack.mVisible;
+            mLengthChanged = SourceTrack.mLengthChanged;
+            mLength = SourceTrack.mLength;
+            mNotes.CloneFrom(SourceTrack.mNotes);
         }
         #endregion
     }

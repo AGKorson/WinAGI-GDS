@@ -28,11 +28,11 @@ namespace WinAGI.Editor {
         private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPreview));
-            pnlLogic = new System.Windows.Forms.Panel();
-            rtfLogPrev = new FastColoredTextBox();
             cmsLogic = new System.Windows.Forms.ContextMenuStrip(components);
             cmiSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             cmiCopy = new System.Windows.Forms.ToolStripMenuItem();
+            cmiSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            cmiLineNumbers = new System.Windows.Forms.ToolStripMenuItem();
             pnlPicture = new System.Windows.Forms.Panel();
             tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             pnlPicHeader = new System.Windows.Forms.Panel();
@@ -97,10 +97,14 @@ namespace WinAGI.Editor {
             tbbBottom = new System.Windows.Forms.ToolStripMenuItem();
             tmrMotion = new System.Windows.Forms.Timer(components);
             tmrSound = new System.Windows.Forms.Timer(components);
+            menuStrip1 = new System.Windows.Forms.MenuStrip();
+            mnuResources = new System.Windows.Forms.ToolStripMenuItem();
+            mnuRExportAll = new System.Windows.Forms.ToolStripMenuItem();
+            mnuRExportGIF = new System.Windows.Forms.ToolStripMenuItem();
+            pnlLogic = new System.Windows.Forms.Panel();
+            rtfLogPrev = new FastColoredTextBox();
             statusStrip1 = new System.Windows.Forms.StatusStrip();
-            tspPreviewText = new System.Windows.Forms.ToolStripStatusLabel();
-            pnlLogic.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)rtfLogPrev).BeginInit();
+            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             cmsLogic.SuspendLayout();
             pnlPicture.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -122,67 +126,23 @@ namespace WinAGI.Editor {
             ((System.ComponentModel.ISupportInitialize)fraVCorner).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picCel).BeginInit();
             tsViewPrev.SuspendLayout();
+            menuStrip1.SuspendLayout();
+            pnlLogic.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)rtfLogPrev).BeginInit();
             statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
-            // pnlLogic
-            // 
-            pnlLogic.Controls.Add(rtfLogPrev);
-            pnlLogic.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlLogic.Location = new System.Drawing.Point(0, 0);
-            pnlLogic.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
-            pnlLogic.Name = "pnlLogic";
-            pnlLogic.Size = new System.Drawing.Size(541, 392);
-            pnlLogic.TabIndex = 0;
-            pnlLogic.Visible = false;
-            // 
-            // rtfLogPrev
-            // 
-            rtfLogPrev.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
-            rtfLogPrev.AutoCompleteBracketsList = new char[]
-    {
-    '(',
-    ')',
-    '{',
-    '}',
-    '"',
-    '"'
-    };
-            rtfLogPrev.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
-            rtfLogPrev.AutoScrollMinSize = new System.Drawing.Size(27, 14);
-            rtfLogPrev.BackBrush = null;
-            rtfLogPrev.CharHeight = 14;
-            rtfLogPrev.CharWidth = 8;
-            rtfLogPrev.ContextMenuStrip = cmsLogic;
-            rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
-            rtfLogPrev.Font = new System.Drawing.Font("Courier New", 9.75F);
-            rtfLogPrev.Hotkeys = resources.GetString("rtfLogPrev.Hotkeys");
-            rtfLogPrev.IsReplaceMode = false;
-            rtfLogPrev.Location = new System.Drawing.Point(0, 0);
-            rtfLogPrev.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
-            rtfLogPrev.Name = "rtfLogPrev";
-            rtfLogPrev.Paddings = new System.Windows.Forms.Padding(0);
-            rtfLogPrev.ReadOnly = true;
-            rtfLogPrev.SelectionColor = System.Drawing.Color.FromArgb(60, 0, 0, 255);
-            rtfLogPrev.ServiceColors = (ServiceColors)resources.GetObject("rtfLogPrev.ServiceColors");
-            rtfLogPrev.Size = new System.Drawing.Size(537, 389);
-            rtfLogPrev.TabIndex = 0;
-            rtfLogPrev.Zoom = 100;
-            rtfLogPrev.DoubleClick += rtfLogPrev_DoubleClick;
-            rtfLogPrev.KeyDown += rtfLogPrev_KeyDown;
-            rtfLogPrev.MouseDown += rtfLogPrev_MouseDown;
-            // 
             // cmsLogic
             // 
-            cmsLogic.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { cmiSelectAll, cmiCopy });
+            cmsLogic.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { cmiSelectAll, cmiCopy, cmiSeparator1, cmiLineNumbers });
             cmsLogic.Name = "contextMenuStrip1";
-            cmsLogic.Size = new System.Drawing.Size(165, 48);
+            cmsLogic.Size = new System.Drawing.Size(177, 76);
             // 
             // cmiSelectAll
             // 
             cmiSelectAll.Name = "cmiSelectAll";
             cmiSelectAll.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A;
-            cmiSelectAll.Size = new System.Drawing.Size(164, 22);
+            cmiSelectAll.Size = new System.Drawing.Size(176, 22);
             cmiSelectAll.Text = "Select All";
             cmiSelectAll.Click += cmiSelectAll_Click;
             // 
@@ -190,9 +150,21 @@ namespace WinAGI.Editor {
             // 
             cmiCopy.Name = "cmiCopy";
             cmiCopy.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C;
-            cmiCopy.Size = new System.Drawing.Size(164, 22);
+            cmiCopy.Size = new System.Drawing.Size(176, 22);
             cmiCopy.Text = "Copy";
             cmiCopy.Click += cmiCopy_Click;
+            // 
+            // cmiSeparator1
+            // 
+            cmiSeparator1.Name = "cmiSeparator1";
+            cmiSeparator1.Size = new System.Drawing.Size(173, 6);
+            // 
+            // cmiLineNumbers
+            // 
+            cmiLineNumbers.Name = "cmiLineNumbers";
+            cmiLineNumbers.Size = new System.Drawing.Size(176, 22);
+            cmiLineNumbers.Text = "Hide Line Numbers";
+            cmiLineNumbers.Click += cmiLineNumbers_Click;
             // 
             // pnlPicture
             // 
@@ -204,7 +176,6 @@ namespace WinAGI.Editor {
             pnlPicture.Size = new System.Drawing.Size(541, 392);
             pnlPicture.TabIndex = 1;
             pnlPicture.Visible = false;
-            pnlPicture.Leave += pnlPicture_Leave;
             // 
             // tableLayoutPanel1
             // 
@@ -510,7 +481,7 @@ namespace WinAGI.Editor {
             chkTrack3.AutoSize = true;
             chkTrack3.Location = new System.Drawing.Point(21, 136);
             chkTrack3.Name = "chkTrack3";
-            chkTrack3.Size = new System.Drawing.Size(128, 19);
+            chkTrack3.Size = new System.Drawing.Size(130, 19);
             chkTrack3.TabIndex = 3;
             chkTrack3.Text = "Track 3: Noise Track";
             chkTrack3.UseVisualStyleBackColor = true;
@@ -521,7 +492,7 @@ namespace WinAGI.Editor {
             chkTrack2.AutoSize = true;
             chkTrack2.Location = new System.Drawing.Point(21, 97);
             chkTrack2.Name = "chkTrack2";
-            chkTrack2.Size = new System.Drawing.Size(126, 19);
+            chkTrack2.Size = new System.Drawing.Size(127, 19);
             chkTrack2.TabIndex = 2;
             chkTrack2.Text = "Track 2 Instrument:";
             chkTrack2.UseVisualStyleBackColor = true;
@@ -532,7 +503,7 @@ namespace WinAGI.Editor {
             chkTrack1.AutoSize = true;
             chkTrack1.Location = new System.Drawing.Point(21, 66);
             chkTrack1.Name = "chkTrack1";
-            chkTrack1.Size = new System.Drawing.Size(126, 19);
+            chkTrack1.Size = new System.Drawing.Size(127, 19);
             chkTrack1.TabIndex = 1;
             chkTrack1.Text = "Track 1 Instrument:";
             chkTrack1.UseVisualStyleBackColor = true;
@@ -543,7 +514,7 @@ namespace WinAGI.Editor {
             chkTrack0.AutoSize = true;
             chkTrack0.Location = new System.Drawing.Point(21, 37);
             chkTrack0.Name = "chkTrack0";
-            chkTrack0.Size = new System.Drawing.Size(126, 19);
+            chkTrack0.Size = new System.Drawing.Size(127, 19);
             chkTrack0.TabIndex = 0;
             chkTrack0.Text = "Track 0 Instrument:";
             chkTrack0.UseVisualStyleBackColor = true;
@@ -578,7 +549,7 @@ namespace WinAGI.Editor {
             chkTrans.Location = new System.Drawing.Point(137, 4);
             chkTrans.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             chkTrans.Name = "chkTrans";
-            chkTrans.Size = new System.Drawing.Size(95, 19);
+            chkTrans.Size = new System.Drawing.Size(96, 19);
             chkTrans.TabIndex = 10;
             chkTrans.Text = "Transparency";
             chkTrans.UseVisualStyleBackColor = true;
@@ -905,27 +876,112 @@ namespace WinAGI.Editor {
             tmrSound.Interval = 1;
             tmrSound.Tick += Timer1_Tick;
             // 
+            // menuStrip1
+            // 
+            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuResources });
+            menuStrip1.Location = new System.Drawing.Point(0, 0);
+            menuStrip1.Name = "menuStrip1";
+            menuStrip1.Size = new System.Drawing.Size(541, 24);
+            menuStrip1.TabIndex = 13;
+            menuStrip1.Text = "menuStrip1";
+            menuStrip1.Visible = false;
+            // 
+            // mnuResources
+            // 
+            mnuResources.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuRExportAll, mnuRExportGIF });
+            mnuResources.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
+            mnuResources.MergeIndex = 1;
+            mnuResources.Name = "mnuResources";
+            mnuResources.Size = new System.Drawing.Size(72, 20);
+            mnuResources.Text = "Resources";
+            // 
+            // mnuRExportAll
+            // 
+            mnuRExportAll.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            mnuRExportAll.MergeIndex = 6;
+            mnuRExportAll.Name = "mnuRExportAll";
+            mnuRExportAll.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E;
+            mnuRExportAll.Size = new System.Drawing.Size(220, 22);
+            mnuRExportAll.Text = "Export All Resources";
+            mnuRExportAll.Visible = false;
+            mnuRExportAll.Click += mnuRExportAll_Click;
+            // 
+            // mnuRExportGIF
+            // 
+            mnuRExportGIF.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            mnuRExportGIF.MergeIndex = 14;
+            mnuRExportGIF.Name = "mnuRExportGIF";
+            mnuRExportGIF.Size = new System.Drawing.Size(220, 22);
+            mnuRExportGIF.Text = "Export Loop As GIF...";
+            mnuRExportGIF.Click += mnuRExportGIF_Click;
+            // 
+            // pnlLogic
+            // 
+            pnlLogic.Controls.Add(rtfLogPrev);
+            pnlLogic.Dock = System.Windows.Forms.DockStyle.Fill;
+            pnlLogic.Location = new System.Drawing.Point(0, 0);
+            pnlLogic.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            pnlLogic.Name = "pnlLogic";
+            pnlLogic.Size = new System.Drawing.Size(541, 392);
+            pnlLogic.TabIndex = 0;
+            pnlLogic.Visible = false;
+            // 
+            // rtfLogPrev
+            // 
+            rtfLogPrev.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            rtfLogPrev.AutoCompleteBracketsList = new char[]
+    {
+    '(',
+    ')',
+    '{',
+    '}',
+    '"',
+    '"'
+    };
+            rtfLogPrev.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
+            rtfLogPrev.AutoScrollMinSize = new System.Drawing.Size(27, 14);
+            rtfLogPrev.BackBrush = null;
+            rtfLogPrev.CharHeight = 14;
+            rtfLogPrev.CharWidth = 8;
+            rtfLogPrev.ContextMenuStrip = cmsLogic;
+            rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            rtfLogPrev.Hotkeys = resources.GetString("rtfLogPrev.Hotkeys");
+            rtfLogPrev.IsReplaceMode = false;
+            rtfLogPrev.LineNumberStartValue = 0U;
+            rtfLogPrev.Location = new System.Drawing.Point(0, 0);
+            rtfLogPrev.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            rtfLogPrev.Name = "rtfLogPrev";
+            rtfLogPrev.Paddings = new System.Windows.Forms.Padding(0);
+            rtfLogPrev.ReadOnly = true;
+            rtfLogPrev.SelectionColor = System.Drawing.Color.FromArgb(60, 0, 0, 255);
+            rtfLogPrev.ServiceColors = (ServiceColors)resources.GetObject("rtfLogPrev.ServiceColors");
+            rtfLogPrev.Size = new System.Drawing.Size(537, 389);
+            rtfLogPrev.TabIndex = 0;
+            rtfLogPrev.Zoom = 100;
+            rtfLogPrev.DoubleClick += rtfLogPrev_DoubleClick;
+            rtfLogPrev.KeyDown += rtfLogPrev_KeyDown;
+            rtfLogPrev.MouseDown += rtfLogPrev_MouseDown;
+            // 
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { tspPreviewText });
-            statusStrip1.Location = new System.Drawing.Point(0, 372);
+            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spStatus });
+            statusStrip1.Location = new System.Drawing.Point(-89, 185);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 8, 0);
-            statusStrip1.Size = new System.Drawing.Size(541, 20);
-            statusStrip1.TabIndex = 12;
-            statusStrip1.Text = "statusStrip1";
+            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
+            statusStrip1.Size = new System.Drawing.Size(719, 23);
+            statusStrip1.TabIndex = 14;
             statusStrip1.Visible = false;
             // 
-            // tspPreviewText
+            // spStatus
             // 
-            tspPreviewText.BorderStyle = System.Windows.Forms.Border3DStyle.Sunken;
-            tspPreviewText.MergeIndex = 1;
-            tspPreviewText.Name = "tspPreviewText";
-            tspPreviewText.Size = new System.Drawing.Size(532, 15);
-            tspPreviewText.Spring = true;
-            tspPreviewText.Text = "blah";
-            tspPreviewText.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            spStatus.MergeIndex = 0;
+            spStatus.Name = "spStatus";
+            spStatus.Size = new System.Drawing.Size(705, 18);
+            spStatus.Spring = true;
+            spStatus.Text = "preview status";
+            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // frmPreview
             // 
@@ -933,13 +989,15 @@ namespace WinAGI.Editor {
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(541, 392);
             ControlBox = false;
+            Controls.Add(statusStrip1);
             Controls.Add(pnlLogic);
             Controls.Add(pnlSound);
             Controls.Add(pnlView);
             Controls.Add(pnlPicture);
-            Controls.Add(statusStrip1);
+            Controls.Add(menuStrip1);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             KeyPreview = true;
+            MainMenuStrip = menuStrip1;
             Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             MaximizeBox = false;
             MinimizeBox = false;
@@ -949,13 +1007,10 @@ namespace WinAGI.Editor {
             Activated += frmPreview_Activated;
             Deactivate += frmPreview_Deactivate;
             FormClosing += frmPreview_FormClosing;
-            Load += frmPreview_Load;
             VisibleChanged += frmPreview_VisibleChanged;
             KeyDown += frmPreview_KeyDown;
             KeyPress += frmPreview_KeyPress;
             PreviewKeyDown += frmPreview_PreviewKeyDown;
-            pnlLogic.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)rtfLogPrev).EndInit();
             cmsLogic.ResumeLayout(false);
             pnlPicture.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);
@@ -982,6 +1037,10 @@ namespace WinAGI.Editor {
             ((System.ComponentModel.ISupportInitialize)picCel).EndInit();
             tsViewPrev.ResumeLayout(false);
             tsViewPrev.PerformLayout();
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
+            pnlLogic.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)rtfLogPrev).EndInit();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ResumeLayout(false);
@@ -989,12 +1048,6 @@ namespace WinAGI.Editor {
         }
 
         #endregion
-
-        private System.Windows.Forms.Panel pnlLogic;
-        private FastColoredTextBox rtfLogPrev;
-        private System.Windows.Forms.Panel pnlPicture;
-        private System.Windows.Forms.Panel pnlSound;
-        private System.Windows.Forms.Panel pnlView;
         private System.Windows.Forms.ToolStrip tsViewPrev;
         private System.Windows.Forms.ToolStripButton tbbZoomIn;
         private System.Windows.Forms.ToolStripButton tbbZoomOut;
@@ -1008,7 +1061,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem tbbMiddle;
         private System.Windows.Forms.ToolStripMenuItem tbbBottom;
         private System.Windows.Forms.Timer tmrMotion;
-        private System.Windows.Forms.Timer tmrSound;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Panel pnlPicHeader;
         private System.Windows.Forms.RadioButton optPriority;
@@ -1054,12 +1106,24 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.PictureBox fraVCorner;
         private System.Windows.Forms.Panel pnlProgressBar;
         private System.Windows.Forms.PictureBox picProgress;
-        private System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel tspPreviewText;
         private System.Windows.Forms.RadioButton optMIDI;
         private System.Windows.Forms.RadioButton optPCjr;
         private System.Windows.Forms.ContextMenuStrip cmsLogic;
-        private System.Windows.Forms.ToolStripMenuItem cmiSelectAll;
         private System.Windows.Forms.ToolStripMenuItem cmiCopy;
+        private System.Windows.Forms.ToolStripMenuItem cmiSelectAll;
+        private System.Windows.Forms.ToolStripSeparator cmiSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem cmiLineNumbers;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem mnuResources;
+        private System.Windows.Forms.ToolStripMenuItem mnuRExportGIF;
+        private System.Windows.Forms.Panel pnlLogic;
+        private System.Windows.Forms.Panel pnlPicture;
+        private System.Windows.Forms.Panel pnlSound;
+        private System.Windows.Forms.Panel pnlView;
+        public System.Windows.Forms.Timer tmrSound;
+        public FastColoredTextBox rtfLogPrev;
+        private System.Windows.Forms.ToolStripMenuItem mnuRExportAll;
+        public System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel spStatus;
     }
 }

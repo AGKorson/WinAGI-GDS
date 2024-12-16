@@ -1,5 +1,5 @@
 ﻿namespace WinAGI.Editor {
-    partial class frmEditDescription {
+    partial class frmEditResourceProperties {
         /// <summary>
         /// Required designer variable.
         /// </summary>
