@@ -2927,8 +2927,9 @@ End Sub
             for (int i = 0; i < EditInvList.Count; i++) {
                 lstItems.Items.Add(i.ToString() + ": " + EditInvList[(byte)i].ItemName);
             }
-
-
+            // statusbar has not been merged yet
+            statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
+            statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
 
             Text = "Objects Editor - ";
             if (InGame) {

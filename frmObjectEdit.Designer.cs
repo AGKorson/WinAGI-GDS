@@ -46,9 +46,9 @@ namespace WinAGI.Editor {
             lstItems = new System.Windows.Forms.ListBox();
             label1 = new System.Windows.Forms.Label();
             statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             spCount = new System.Windows.Forms.ToolStripStatusLabel();
             spEncrypt = new System.Windows.Forms.ToolStripStatusLabel();
+            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
@@ -243,16 +243,6 @@ namespace WinAGI.Editor {
             statusStrip1.Text = "statusStrip1";
             statusStrip1.Visible = false;
             // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 2;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(565, 18);
-            spStatus.Spring = true;
-            spStatus.Text = "object status";
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // spCount
             // 
             spCount.AutoSize = false;
@@ -261,8 +251,8 @@ namespace WinAGI.Editor {
             spCount.MergeAction = System.Windows.Forms.MergeAction.Insert;
             spCount.MergeIndex = 0;
             spCount.Name = "spCount";
-            spCount.Size = new System.Drawing.Size(70, 18);
-            spCount.Text = "objectcount";
+            spCount.Size = new System.Drawing.Size(140, 18);
+            spCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // spEncrypt
             // 
@@ -272,8 +262,18 @@ namespace WinAGI.Editor {
             spEncrypt.MergeAction = System.Windows.Forms.MergeAction.Insert;
             spEncrypt.MergeIndex = 1;
             spEncrypt.Name = "spEncrypt";
-            spEncrypt.Size = new System.Drawing.Size(70, 18);
-            spEncrypt.Text = "objectencrypt";
+            spEncrypt.Size = new System.Drawing.Size(140, 18);
+            spEncrypt.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // spStatus
+            // 
+            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            spStatus.MergeIndex = 2;
+            spStatus.Name = "spStatus";
+            spStatus.Size = new System.Drawing.Size(425, 18);
+            spStatus.Spring = true;
+            spStatus.Text = "object status";
+            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // frmObjectEdit
             // 

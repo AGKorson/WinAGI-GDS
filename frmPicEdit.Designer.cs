@@ -1,4 +1,6 @@
 ﻿
+using System.Windows.Forms;
+
 namespace WinAGI.Editor {
     partial class frmPicEdit {
         /// <summary>
@@ -25,27 +27,6 @@ namespace WinAGI.Editor {
         /// </summary>
         private void InitializeComponent() {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPicEdit));
-            picVisual = new System.Windows.Forms.PictureBox();
-            trackBar1 = new System.Windows.Forms.TrackBar();
-            cmbTransCol = new System.Windows.Forms.ComboBox();
-            menuStrip1 = new System.Windows.Forms.MenuStrip();
-            mnuResource = new System.Windows.Forms.ToolStripMenuItem();
-            mnuROpenRes = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRSave = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRExport = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRInGame = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRRenumber = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRProperties = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRCompile = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRSavePicImage = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRExportLoopGIF = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRBackground = new System.Windows.Forms.ToolStripMenuItem();
-            mnuEdit = new System.Windows.Forms.ToolStripMenuItem();
-            mnuECut = new System.Windows.Forms.ToolStripMenuItem();
-            mnuECopy = new System.Windows.Forms.ToolStripMenuItem();
-            mnuEPaste = new System.Windows.Forms.ToolStripMenuItem();
-            button1 = new System.Windows.Forms.Button();
-            statusStrip1 = new System.Windows.Forms.StatusStrip();
             spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             spCurX = new System.Windows.Forms.ToolStripStatusLabel();
             spCurY = new System.Windows.Forms.ToolStripStatusLabel();
@@ -58,6 +39,27 @@ namespace WinAGI.Editor {
             spCapsLock = new System.Windows.Forms.ToolStripStatusLabel();
             spNumLock = new System.Windows.Forms.ToolStripStatusLabel();
             spInsLock = new System.Windows.Forms.ToolStripStatusLabel();
+            picVisual = new PictureBox();
+            trackBar1 = new TrackBar();
+            cmbTransCol = new ComboBox();
+            menuStrip1 = new MenuStrip();
+            mnuResource = new ToolStripMenuItem();
+            mnuROpenRes = new ToolStripMenuItem();
+            mnuRSave = new ToolStripMenuItem();
+            mnuRExport = new ToolStripMenuItem();
+            mnuRInGame = new ToolStripMenuItem();
+            mnuRRenumber = new ToolStripMenuItem();
+            mnuRProperties = new ToolStripMenuItem();
+            mnuRCompile = new ToolStripMenuItem();
+            mnuRSavePicImage = new ToolStripMenuItem();
+            mnuRExportLoopGIF = new ToolStripMenuItem();
+            mnuRBackground = new ToolStripMenuItem();
+            mnuEdit = new ToolStripMenuItem();
+            mnuECut = new ToolStripMenuItem();
+            mnuECopy = new ToolStripMenuItem();
+            mnuEPaste = new ToolStripMenuItem();
+            button1 = new Button();
+            statusStrip1 = new StatusStrip();
             ((System.ComponentModel.ISupportInitialize)picVisual).BeginInit();
             ((System.ComponentModel.ISupportInitialize)trackBar1).BeginInit();
             menuStrip1.SuspendLayout();
@@ -76,7 +78,7 @@ namespace WinAGI.Editor {
             // trackBar1
             // 
             trackBar1.Location = new System.Drawing.Point(11, 395);
-            trackBar1.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            trackBar1.Margin = new Padding(2, 1, 2, 1);
             trackBar1.Name = "trackBar1";
             trackBar1.Size = new System.Drawing.Size(484, 45);
             trackBar1.TabIndex = 2;
@@ -84,7 +86,7 @@ namespace WinAGI.Editor {
             // 
             // cmbTransCol
             // 
-            cmbTransCol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbTransCol.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbTransCol.FormattingEnabled = true;
             cmbTransCol.Location = new System.Drawing.Point(530, 397);
             cmbTransCol.Name = "cmbTransCol";
@@ -95,10 +97,10 @@ namespace WinAGI.Editor {
             // menuStrip1
             // 
             menuStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuResource, mnuEdit });
+            menuStrip1.Items.AddRange(new ToolStripItem[] { mnuResource, mnuEdit });
             menuStrip1.Location = new System.Drawing.Point(0, 0);
             menuStrip1.Name = "menuStrip1";
-            menuStrip1.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
+            menuStrip1.Padding = new Padding(3, 1, 0, 1);
             menuStrip1.Size = new System.Drawing.Size(800, 24);
             menuStrip1.TabIndex = 4;
             menuStrip1.Text = "menuStrip1";
@@ -106,8 +108,8 @@ namespace WinAGI.Editor {
             // 
             // mnuResource
             // 
-            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuROpenRes, mnuRSave, mnuRExport, mnuRInGame, mnuRRenumber, mnuRProperties, mnuRCompile, mnuRSavePicImage, mnuRExportLoopGIF, mnuRBackground });
-            mnuResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
+            mnuResource.DropDownItems.AddRange(new ToolStripItem[] { mnuROpenRes, mnuRSave, mnuRExport, mnuRInGame, mnuRRenumber, mnuRProperties, mnuRCompile, mnuRSavePicImage, mnuRExportLoopGIF, mnuRBackground });
+            mnuResource.MergeAction = MergeAction.MatchOnly;
             mnuResource.MergeIndex = 1;
             mnuResource.Name = "mnuResource";
             mnuResource.Size = new System.Drawing.Size(67, 22);
@@ -116,7 +118,7 @@ namespace WinAGI.Editor {
             // 
             // mnuROpenRes
             // 
-            mnuROpenRes.MergeAction = System.Windows.Forms.MergeAction.Remove;
+            mnuROpenRes.MergeAction = MergeAction.Remove;
             mnuROpenRes.MergeIndex = 4;
             mnuROpenRes.Name = "mnuROpenRes";
             mnuROpenRes.Size = new System.Drawing.Size(274, 22);
@@ -124,57 +126,57 @@ namespace WinAGI.Editor {
             // 
             // mnuRSave
             // 
-            mnuRSave.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            mnuRSave.MergeAction = MergeAction.Replace;
             mnuRSave.MergeIndex = 4;
             mnuRSave.Name = "mnuRSave";
-            mnuRSave.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S;
+            mnuRSave.ShortcutKeys = Keys.Control | Keys.S;
             mnuRSave.Size = new System.Drawing.Size(274, 22);
             mnuRSave.Text = "&Save Picture";
             mnuRSave.Click += mnuRSave_Click;
             // 
             // mnuRExport
             // 
-            mnuRExport.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            mnuRExport.MergeAction = MergeAction.Replace;
             mnuRExport.MergeIndex = 5;
             mnuRExport.Name = "mnuRExport";
-            mnuRExport.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E;
+            mnuRExport.ShortcutKeys = Keys.Control | Keys.E;
             mnuRExport.Size = new System.Drawing.Size(274, 22);
             mnuRExport.Text = "export res";
             mnuRExport.Click += mnuRExport_Click;
             // 
             // mnuRInGame
             // 
-            mnuRInGame.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            mnuRInGame.MergeAction = MergeAction.Replace;
             mnuRInGame.MergeIndex = 7;
             mnuRInGame.Name = "mnuRInGame";
-            mnuRInGame.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.A;
+            mnuRInGame.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
             mnuRInGame.Size = new System.Drawing.Size(274, 22);
             mnuRInGame.Text = "ToggleInGame";
             mnuRInGame.Click += mnuRInGame_Click;
             // 
             // mnuRRenumber
             // 
-            mnuRRenumber.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            mnuRRenumber.MergeAction = MergeAction.Replace;
             mnuRRenumber.MergeIndex = 8;
             mnuRRenumber.Name = "mnuRRenumber";
-            mnuRRenumber.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.N;
+            mnuRRenumber.ShortcutKeys = Keys.Alt | Keys.N;
             mnuRRenumber.Size = new System.Drawing.Size(274, 22);
             mnuRRenumber.Text = "Renumber Picture";
             mnuRRenumber.Click += mnuRRenumber_Click;
             // 
             // mnuRProperties
             // 
-            mnuRProperties.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            mnuRProperties.MergeAction = MergeAction.Replace;
             mnuRProperties.MergeIndex = 9;
             mnuRProperties.Name = "mnuRProperties";
-            mnuRProperties.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D;
+            mnuRProperties.ShortcutKeys = Keys.Control | Keys.D;
             mnuRProperties.Size = new System.Drawing.Size(274, 22);
             mnuRProperties.Text = "I&D/Description ...";
             mnuRProperties.Click += mnuRProperties_Click;
             // 
             // mnuRCompile
             // 
-            mnuRCompile.MergeAction = System.Windows.Forms.MergeAction.Remove;
+            mnuRCompile.MergeAction = MergeAction.Remove;
             mnuRCompile.MergeIndex = 11;
             mnuRCompile.Name = "mnuRCompile";
             mnuRCompile.Size = new System.Drawing.Size(274, 22);
@@ -182,17 +184,17 @@ namespace WinAGI.Editor {
             // 
             // mnuRSavePicImage
             // 
-            mnuRSavePicImage.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            mnuRSavePicImage.MergeAction = MergeAction.Replace;
             mnuRSavePicImage.MergeIndex = 11;
             mnuRSavePicImage.Name = "mnuRSavePicImage";
-            mnuRSavePicImage.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.S;
+            mnuRSavePicImage.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
             mnuRSavePicImage.Size = new System.Drawing.Size(274, 22);
             mnuRSavePicImage.Text = "S&ave Picture Image As ...";
             mnuRSavePicImage.Click += mnuRSavePicImage_Click;
             // 
             // mnuRExportLoopGIF
             // 
-            mnuRExportLoopGIF.MergeAction = System.Windows.Forms.MergeAction.Remove;
+            mnuRExportLoopGIF.MergeAction = MergeAction.Remove;
             mnuRExportLoopGIF.MergeIndex = 12;
             mnuRExportLoopGIF.Name = "mnuRExportLoopGIF";
             mnuRExportLoopGIF.Size = new System.Drawing.Size(274, 22);
@@ -201,15 +203,15 @@ namespace WinAGI.Editor {
             // mnuRBackground
             // 
             mnuRBackground.Name = "mnuRBackground";
-            mnuRBackground.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.B;
+            mnuRBackground.ShortcutKeys = Keys.Control | Keys.Alt | Keys.B;
             mnuRBackground.Size = new System.Drawing.Size(274, 22);
             mnuRBackground.Text = "Background";
             mnuRBackground.Click += mnuRBackground_Click;
             // 
             // mnuEdit
             // 
-            mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuECut, mnuECopy, mnuEPaste });
-            mnuEdit.MergeAction = System.Windows.Forms.MergeAction.Insert;
+            mnuEdit.DropDownItems.AddRange(new ToolStripItem[] { mnuECut, mnuECopy, mnuEPaste });
+            mnuEdit.MergeAction = MergeAction.Insert;
             mnuEdit.MergeIndex = 2;
             mnuEdit.Name = "mnuEdit";
             mnuEdit.Size = new System.Drawing.Size(39, 22);
@@ -249,7 +251,7 @@ namespace WinAGI.Editor {
             statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spScale, spMode, spTool, spAnchor, spBlock, spStatus, spCurX, spCurY, spPriBand, spCapsLock, spNumLock, spInsLock });
             statusStrip1.Location = new System.Drawing.Point(41, 214);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
+            statusStrip1.Padding = new Padding(1, 0, 13, 0);
             statusStrip1.Size = new System.Drawing.Size(719, 23);
             statusStrip1.TabIndex = 8;
             statusStrip1.Text = "statusStrip1";
@@ -359,7 +361,7 @@ namespace WinAGI.Editor {
             // frmPicEdit
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(800, 450);
             Controls.Add(statusStrip1);
             Controls.Add(button1);
@@ -369,7 +371,7 @@ namespace WinAGI.Editor {
             Controls.Add(picVisual);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Name = "frmPicEdit";
-            StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
+            StartPosition = FormStartPosition.WindowsDefaultBounds;
             Text = "frmPicEdit";
             FormClosing += frmPicEdit_FormClosing;
             FormClosed += frmPicEdit_FormClosed;

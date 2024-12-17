@@ -376,7 +376,10 @@ namespace WinAGI.Editor {
         }
 
         private void imgPicture_MouseLeave(object sender, EventArgs e) {
-            //MainStatusBar.Items[nameof(spStatus)].Text = "";
+            if (this != MDIMain.ActiveMdiChild) {
+                return;
+            }
+            MainStatusBar.Items[nameof(spStatus)].Text = "";
         }
 
         private void imgPicture_MouseDown(object sender, MouseEventArgs e) {
@@ -403,6 +406,9 @@ namespace WinAGI.Editor {
         }
 
         private void imgPicture_MouseMove(object sender, MouseEventArgs e) {
+            if (PreviewWin != MDIMain.ActiveMdiChild) {
+                return;
+            }
             // if left mouse button is down and either or both scrollbars are
             // visible, scroll the image;
             // if mouse button is up, show coordinates
@@ -418,8 +424,8 @@ namespace WinAGI.Editor {
 
                 //if dragging picture
                 if (blnDraggingPic) {
-                    //always clear statusbar
-                    //MainStatusBar.Items[nameof(spStatus)].Text = "";
+                    // always clear statusbar
+                    MainStatusBar.Items[nameof(spStatus)].Text = "";
                     if (vsbPic.Visible) {
                         // adjust scroll bars by amount of delta from 
                         // starting offset (subract from scrollbar value, since
@@ -466,7 +472,7 @@ namespace WinAGI.Editor {
 
             }
             else if (e.Button == MouseButtons.None) {
-                //MainStatusBar.Items[nameof(spStatus)].Text = $"X: {e.X / 2 / PicScale}    Y: {e.Y / PicScale}";
+                MainStatusBar.Items[nameof(spStatus)].Text = $"X: {e.X / 2 / PicScale}    Y: {e.Y / PicScale}";
             }
         }
 
@@ -854,6 +860,26 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void picCel_MouseWheel(object sender, MouseEventArgs e) {
+            switch (e.Delta) {
+            case < 0:
+                // wheel down
+                ZoomPrev(-1);
+                break;
+            case > 0:
+                // wheel up
+                ZoomPrev(1);
+                break;
+            }
+        }
+
+        private void picCel_MouseLeave(object sender, EventArgs e) {
+            if (this != MDIMain.ActiveMdiChild) {
+                return;
+            }
+            MainStatusBar.Items["spStatus"].Text = "";
+        }
+
         void pnlView_DoubleClick(object sender, EventArgs e) {
             //let user change background color
             frmPalette NewPallete = new(1);
@@ -870,6 +896,9 @@ namespace WinAGI.Editor {
         }
 
         void picCel_MouseMove(object sender, MouseEventArgs e) {
+            if (this != MDIMain.ActiveMdiChild) {
+                return;
+            }
             // if left mouse button is down and either or both scrollbars are
             // visible, scroll the image;
             // if mouse button is up, show coordinates
@@ -933,7 +962,7 @@ namespace WinAGI.Editor {
             }
             else if (e.Button == MouseButtons.None) {
                 // show coordinates in statusbar
-                //MainStatusBar.Items[nameof(spStatus)].Text = $"X: {e.X / 2 / ViewScale}    Y: {e.Y / ViewScale}";
+                MainStatusBar.Items[nameof(spStatus)].Text = $"X: {e.X / 2 / ViewScale}    Y: {e.Y / ViewScale}";
             }
         }
 

@@ -3354,8 +3354,7 @@ namespace WinAGI.Editor {
             }
             // no error
             if (editor != null) {
-                editor.Tag = ResourceName(EditGame.Logics[logicnum], true, true) + " successfully compiled.";
-                MainStatusBar.Items["spStatus"].Text = (string)editor.Tag;
+                MainStatusBar.Items["spStatus"].Text = ResourceName(EditGame.Logics[logicnum], true, true) + " successfully compiled.";
             }
             // hmm, currently no easy way to tell if there are warnings; 
             //if (warnings) {
@@ -5713,6 +5712,7 @@ namespace WinAGI.Editor {
                 }
                 frmOpen.Close();
                 frmOpen.Dispose();
+                MDIMain.UseWaitCursor = false;
                 return false;
             }
             // restore mousepointer and exit

@@ -273,12 +273,16 @@ namespace WinAGI.Editor {
             if (MDIMain.ActiveMdiChild == null) {
                 UpdateTBResourceBtns(AGIResType.None, false, false);
                 ToolStripManager.RevertMerge(statusStrip1);
+                MainStatusBar.Items["spStatus"].Text = "";
             }
             else {
                 dynamic form = MDIMain.ActiveMdiChild;
                 dynamic statusbar = form.statusStrip1;
                 ToolStripManager.RevertMerge(statusStrip1);
-                ToolStripManager.Merge(statusbar, nameof(statusStrip1));
+                MainStatusBar.Items["spStatus"].Text = "";
+                if (statusbar != null) {
+                    ToolStripManager.Merge(statusbar, nameof(statusStrip1));
+                }
                 bool ingame = false;
                 bool changed = false;
                 AGIResType restype = AGIResType.None;
@@ -433,7 +437,7 @@ namespace WinAGI.Editor {
             //    msg = "none";
             //}
             //Debug.Print($"mdichild focus : {msg}");
-
+            //Debug.Print("loged has focus: " + MDIMain.MdiChildren[1].Focused);
 
 
             // Update the 'lock' panels when the program is idle
@@ -1021,10 +1025,16 @@ namespace WinAGI.Editor {
 
         private void mnuTLayout_Click(object sender, EventArgs e) {
             MessageBox.Show(MDIMain, "TODO: layout editor");
+            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
+                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
+            }
         }
 
         private void mnuTMenuEditor_Click(object sender, EventArgs e) {
             MessageBox.Show(MDIMain, "TODO: menu editor");
+            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
+                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
+            }
         }
 
         private void mnuTGlobals_Click(object sender, EventArgs e) {
@@ -1033,14 +1043,22 @@ namespace WinAGI.Editor {
 
         private void mnuTReserved_Click(object sender, EventArgs e) {
             MessageBox.Show(MDIMain, "TODO: reserved defines editor");
+            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
+                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
+            }
         }
 
         private void mnuTSnippets_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: snippets editor");
+            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
+                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
+            }
         }
 
         private void mnuTPalette_Click(object sender, EventArgs e) {
             MessageBox.Show(MDIMain, "TODO: palette editor");
+            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
+                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
+            }
         }
 
         private void mnuTWarning_Click(object sender, EventArgs e) {

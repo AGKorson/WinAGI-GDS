@@ -22,6 +22,7 @@ using EnvDTE;
 using System.Runtime.Serialization;
 using System.Collections.ObjectModel;
 using WinAGI.Common;
+using System.Runtime.InteropServices;
 
 namespace WinAGI.Editor {
     public partial class frmLogicEdit : Form {
@@ -117,6 +118,21 @@ namespace WinAGI.Editor {
         }
 
         #region Form Event Handlers
+        private void frmLogicEdit_Enter(object sender, EventArgs e) {
+            // force form to front - normally clicking in any control on a form will
+            // automatically bring the form forward, but clicking on the FCTB seems
+            // to skip doing that
+            //BringToFront();
+
+            //btnCompile.Enabled = InGame;
+            //btnMsgClean.Enabled = InGame;
+            //fctb?.Select();
+        }
+
+        private void frmLogicEdit_Activated(object sender, EventArgs e) {
+            //Debug.Print("frmLogicEdit activated");
+        }
+
         private void frmLogicEdit_FormClosing(object sender, FormClosingEventArgs e) {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
@@ -291,6 +307,7 @@ namespace WinAGI.Editor {
             EditLogic.IsRoom = !EditLogic.IsRoom;
             MarkAsChanged();
             MessageBox.Show("TODO: update Layout");
+            RestoreFocusHack();
         }
         #endregion
 
@@ -505,6 +522,7 @@ namespace WinAGI.Editor {
             }
             else {
                 MessageBox.Show("TODO: create new snippet");
+                RestoreFocusHack();
             }
         }
 
@@ -571,6 +589,7 @@ namespace WinAGI.Editor {
                         MessageBoxIcon.Information, 0, 0,
                         @"htm\commands\syntax.htm#include",
                         WinAGIHelp);
+                    RestoreFocusHack();
                     return;
                 }
                 OpenTextFile(filename);
@@ -597,7 +616,29 @@ namespace WinAGI.Editor {
         }
 
         private void mnuECharMap_Click(object sender, EventArgs e) {
-            MessageBox.Show("TODO: charmap");
+            MessageBox.Show(MDIMain, "TODO: charmap");
+            RestoreFocusHack();
+        }
+
+        [DllImport("user32.dll")]
+        static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
+        private const int WM_SETREDRAW = 11;
+
+        public void RestoreFocusHack() {
+            // something about this form (probably the fctb? it's the only 
+            // 'non-standard' control on the form) causes focus to jump to
+            // the previous form/control when a messagebox or other external
+            // dialog window is called from within the form. This hack seems
+            // to fix it. Ugh.
+
+            _ = SendMessage(Handle, WM_SETREDRAW, false, 0);
+            _ = SendMessage(MDIMain.Handle, WM_SETREDRAW, false, 0);
+            Point pos = this.Location;
+            Hide();
+            Show();
+            Location = pos;
+            _ = SendMessage(Handle, WM_SETREDRAW, true, 0);
+            _ = SendMessage(MDIMain.Handle, WM_SETREDRAW, true, 0);
         }
         #endregion
 
@@ -834,9 +875,19 @@ namespace WinAGI.Editor {
             if (fctb == null) {
                 return;
             }
-            MainStatusBar.Items["spStatus"].Text = "";
-            //MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
-            //MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
+            if (MainStatusBar.Items.ContainsKey("spLine")) {
+                MainStatusBar.Items["spStatus"].Text = "";
+                try {
+                    MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
+                    MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
+                }
+                catch (Exception ex) {
+                    Debug.Print(ex.ToString());
+                }
+            }
+            else {
+                    Debug.Print("no status bar");
+            }
         }
 
         private void fctb_TextChanged(object sender, TextChangedEventArgs e) {
@@ -846,9 +897,11 @@ namespace WinAGI.Editor {
             }
             DefDirty = true;
             MarkAsChanged();
-            //MainStatusBar.Items["spStatus"].Text = "";
-            //MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
-            //MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
+            if (MainStatusBar.Items.ContainsKey("spLine")) {
+                MainStatusBar.Items["spStatus"].Text = "";
+                MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
+                MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
+            }
         }
 
         private void fctb_TextChangedDelayed(object sender, FastColoredTextBoxNS.TextChangedEventArgs e) {
@@ -1475,7 +1528,7 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Question,
                     "Always take this action when updating messages.", ref repeatAction,
                    WinAGIHelp, "htm\\winagi\\Logic_Editor.htm#msgcleanup");
-
+                RestoreFocusHack();
                 // if canceled
                 if (rtn == DialogResult.Cancel) {
                     return;
@@ -1531,6 +1584,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
                         WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    RestoreFocusHack();
                     break;
                 case 2:
                     // duplicate msg number
@@ -1540,6 +1594,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
                         WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    RestoreFocusHack();
                     break;
                 case 3:
                     // msg val should be a string
@@ -1549,6 +1604,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
                         WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    RestoreFocusHack();
                     break;
                 case 4:
                     // stuff not allowed on line after msg declaration
@@ -1558,6 +1614,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
                         WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    RestoreFocusHack();
                     break;
                 case 5:
                     // missing end quote
@@ -1567,6 +1624,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
                         WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                    RestoreFocusHack();
                     break;
                 }
                 fctb.Selection.Start = errorlocation;
@@ -1598,6 +1656,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
                             WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        RestoreFocusHack();
                         break;
                     case -2:
                         // missing end quote
@@ -1607,6 +1666,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
                             WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        RestoreFocusHack();
                         break;
                     case -3:
                         // arg not a string
@@ -1616,6 +1676,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
                             WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        RestoreFocusHack();
                         break;
                     case -4:
                         // stuff not allowed after message string
@@ -1625,6 +1686,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
                             WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        RestoreFocusHack();
                         break;
                     case -5:
                         // missing arg value
@@ -1634,6 +1696,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
                             WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        RestoreFocusHack();
                         break;
                     case -6:
                         // missing comma after arg
@@ -1643,6 +1706,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
                             WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        RestoreFocusHack();
                         break;
                     case -7:
                         // invalid string marker
@@ -1652,6 +1716,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
                             WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        RestoreFocusHack();
                         break;
                     case -8:
                         // invalid message marker
@@ -1661,6 +1726,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
                             WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        RestoreFocusHack();
                         break;
                     }
                     return;
@@ -1682,6 +1748,7 @@ namespace WinAGI.Editor {
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Information, 0, 0,
                                     WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                                RestoreFocusHack();
                                 return;
                             }
                             if (Messages[j].Declared) {
@@ -1698,6 +1765,7 @@ namespace WinAGI.Editor {
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Information, 0, 0,
                                     WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                                RestoreFocusHack();
                                 return;
                             }
                         }
@@ -1746,6 +1814,7 @@ namespace WinAGI.Editor {
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Exclamation, 0, 0,
                                 WinAGIHelp, "htm\\agi\\logics.htm#messages");
+                            RestoreFocusHack();
                             return;
                         }
                     }
@@ -2176,6 +2245,7 @@ namespace WinAGI.Editor {
                         "Missing Source File",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
+                    RestoreFocusHack();
                     break;
                 case -2:
                     MessageBox.Show(MDIMain,
@@ -2183,6 +2253,7 @@ namespace WinAGI.Editor {
                         "Read only Files not Allowed",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
+                    RestoreFocusHack();
                     break;
                 case -3:
                     MessageBox.Show(MDIMain,
@@ -2190,6 +2261,7 @@ namespace WinAGI.Editor {
                         "File Access Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
+                    RestoreFocusHack();
                     break;
                 }
                 return;
@@ -2348,8 +2420,10 @@ namespace WinAGI.Editor {
                                 "Compiler error",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error);
+                            RestoreFocusHack();
                             return;
                         }
+                        RestoreFocusHack();
                     }
                 }
                 if (Base.ExportLogic(EditLogic, true) == 1) {
@@ -2465,6 +2539,7 @@ namespace WinAGI.Editor {
                     MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
                     MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove Logic";
                 }
+                RestoreFocusHack();
             }
             btnCompile.Enabled = InGame;
             btnMsgClean.Enabled = InGame;
@@ -3363,6 +3438,7 @@ namespace WinAGI.Editor {
                     "Save " + (FormMode == LogicFormMode.Logic ? "Logic Source" : "Text File"),
                     MessageBoxButtons.YesNoCancel,
                     MessageBoxIcon.Question);
+                RestoreFocusHack();
                 switch (rtn) {
                 case DialogResult.Yes:
                     SaveLogicSource();
@@ -3470,21 +3546,6 @@ namespace WinAGI.Editor {
             rtfLogic1.IsChanged = false;
             mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
-        }
-
-        private void frmLogicEdit_Enter(object sender, EventArgs e) {
-            // force form to front - normally clicking in any control on a form will
-            // automatically bring the form forward, but clicking on the FCTB seems
-            // to skip doing that
-            BringToFront();
-
-            btnCompile.Enabled = InGame;
-            btnMsgClean.Enabled = InGame;
-            fctb?.Select();
-        }
-
-        private void frmLogicEdit_Activated(object sender, EventArgs e) {
-            Debug.Print("frmLogicEdit activated");
         }
     }
 

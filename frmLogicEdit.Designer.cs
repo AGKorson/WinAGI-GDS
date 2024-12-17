@@ -79,9 +79,9 @@
             btnMsgClean = new System.Windows.Forms.ToolStripButton();
             splitContainer1 = new System.Windows.Forms.SplitContainer();
             splitLogic = new System.Windows.Forms.SplitContainer();
+            rtfLogic1 = new WinAGIFCTB();
             rtfLogic2 = new WinAGIFCTB();
             contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
-            rtfLogic1 = new WinAGIFCTB();
             documentMap1 = new FastColoredTextBoxNS.DocumentMap();
             picTip = new System.Windows.Forms.PictureBox();
             lstDefines = new System.Windows.Forms.ListView();

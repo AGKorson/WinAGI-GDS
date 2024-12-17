@@ -109,6 +109,7 @@ namespace WinAGI.Editor {
             lstGroups.SelectedIndex = 0;
             lblGroupCount.Text = "Group Count: 3";
             lblWordCount.Text = "Word Count: 3";
+            MainStatusBar.Items["spWordCount"].Text = "Word Count: 3";
             MarkAsChanged();
         }
 
@@ -5289,8 +5290,9 @@ End Sub
             lstGroups.SelectedIndex = 0;
             lblGroupCount.Text = "Group Count: " + EditWordList.GroupCount;
             lblWordCount.Text = "Word Count: " + EditWordList.WordCount;
-
-
+            // statusbar has not been merged yet
+            statusStrip1.Items["spGroupCount"].Text = "Group Count: " + EditWordList.GroupCount;
+            statusStrip1.Items["spWordCount"].Text = "Word Count: " + EditWordList.WordCount;
 
             // caption
             Text = "WORDS.TOK Editor - ";

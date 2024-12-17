@@ -754,6 +754,8 @@ namespace WinAGI.Editor {
             picCel.MouseDown += picCel_MouseDown;
             picCel.MouseMove += picCel_MouseMove;
             picCel.MouseUp += picCel_MouseUp;
+            picCel.MouseWheel += picCel_MouseWheel;
+            picCel.MouseLeave += picCel_MouseLeave;
             // 
             // tsViewPrev
             // 

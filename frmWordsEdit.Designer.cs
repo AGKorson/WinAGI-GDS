@@ -50,9 +50,9 @@ namespace WinAGI.Editor {
             lblGroupCount = new System.Windows.Forms.Label();
             lblWordCount = new System.Windows.Forms.Label();
             statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             spGroupCount = new System.Windows.Forms.ToolStripStatusLabel();
             spWordCount = new System.Windows.Forms.ToolStripStatusLabel();
+            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
@@ -282,16 +282,6 @@ namespace WinAGI.Editor {
             statusStrip1.Text = "statusStrip1";
             statusStrip1.Visible = false;
             // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 2;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(635, 18);
-            spStatus.Spring = true;
-            spStatus.Text = "logic status panel";
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // spGroupCount
             // 
             spGroupCount.AutoSize = false;
@@ -300,8 +290,8 @@ namespace WinAGI.Editor {
             spGroupCount.MergeAction = System.Windows.Forms.MergeAction.Insert;
             spGroupCount.MergeIndex = 0;
             spGroupCount.Name = "spGroupCount";
-            spGroupCount.Size = new System.Drawing.Size(70, 18);
-            spGroupCount.Text = "logRow";
+            spGroupCount.Size = new System.Drawing.Size(140, 18);
+            spGroupCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // spWordCount
             // 
@@ -311,8 +301,18 @@ namespace WinAGI.Editor {
             spWordCount.MergeAction = System.Windows.Forms.MergeAction.Insert;
             spWordCount.MergeIndex = 1;
             spWordCount.Name = "spWordCount";
-            spWordCount.Size = new System.Drawing.Size(70, 18);
-            spWordCount.Text = "logCol";
+            spWordCount.Size = new System.Drawing.Size(140, 18);
+            spWordCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // spStatus
+            // 
+            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            spStatus.MergeIndex = 2;
+            spStatus.Name = "spStatus";
+            spStatus.Size = new System.Drawing.Size(425, 18);
+            spStatus.Spring = true;
+            spStatus.Text = "word edit status";
+            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // frmWordsEdit
             // 
