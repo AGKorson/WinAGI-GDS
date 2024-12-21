@@ -331,6 +331,15 @@ namespace WinAGI.Common {
                         "Update WAG File to New Version",
                         MessageBoxButtons.YesNo);
                     if (rtn == DialogResult.Yes) {
+                        try {
+                            Directory.CreateDirectory(EditGame.ResDir + "_BACKUP");
+                            foreach (string file in Directory.GetFiles(EditGame.ResDir, "*.lgc")) {
+                                SafeFileMove(file, EditGame.ResDir + "_BACKUP\\" + Path.GetFileName(file), true);
+                            }
+                        }
+                        catch {
+                            // ignore exceptions
+                        }
                         foreach (Logic logic in EditGame.Logics) {
                             if (File.Exists(logic.SourceFile)) {
                                 try {

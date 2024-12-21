@@ -609,13 +609,11 @@ namespace WinAGI.Engine {
         public Encoding CodePage {
             get { return agCodePage; }
             set {
-                switch (value.CodePage) {
-                case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
-                     861 or 862 or 863 or 865 or 866 or 869 or 858:
+                if (validcodepages.Contains(value.CodePage)) {
                     agCodePage = Encoding.GetEncoding(value.CodePage);
                     WriteGameSetting("General", "CodePage", agCodePage.CodePage);
-                    break;
-                default:
+                }
+                else {
                     throw new ArgumentOutOfRangeException(nameof(value), "Unsupported or invalid CodePage value");
                 }
             }

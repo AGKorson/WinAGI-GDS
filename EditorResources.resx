@@ -1986,4 +1986,49 @@
   <data name="vsQuestion" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\vsQuestionI.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="CP437" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi437glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP737" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi737glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP775" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi775glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP850" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi850glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP852" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi852glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP855" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi855glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP857" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi857glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP858" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi858glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP860" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi860glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP861" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi861glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP862" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi862glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP863" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi863glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP865" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi865glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP866" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi866glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CP869" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\agi869glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

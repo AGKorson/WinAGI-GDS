@@ -1394,10 +1394,10 @@ namespace WinAGI.Editor {
         }
 
         private void tvwResources_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e) {
-            //if not the same as the current item
             if (e.Node != tvwResources.SelectedNode) {
-                //select it
-                tvwResources_NodeMouseClick(null, e);
+                // this seems to only happen if the tree is collapsing or expanding;
+                // best thing to do is just ignore the dblclick in that case
+                return;
             }
             switch (e.Node.Level) {
             case 0:

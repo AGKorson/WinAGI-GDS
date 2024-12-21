@@ -1,5 +1,5 @@
 
-// Code Page 437 MS DOS
+[ Code Page 437 MS DOS
 print("ÇüéâäàåçêëèïîìÄÅ"
       "ÉæÆôöòûùÿÖÜ¢£¥₧ƒ"
       "áíóúñÑªº¿⌐¬½¼¡«»"
@@ -72,3 +72,22 @@ print("ђЂѓЃёЁєЄѕЅіІїЇјЈ"
 
 // Code Page 857 Turkish
 print("");
+
+
+C:\Users\Andy\OneDrive\AGI Stuff\WinAGI GDS Files\Visual Studio Projects\WinAGI\WinAGI GDS\bin\Debug\net8.0-windows\Templates\Version3\AGIV3.wag
+
+
+\n vs \\n
+
+\ to \\ then cr to \n
+
+c:\new\line
+
+"c:\\new\\line"
+
+c:\newline
+\nextline
+
+"c:\\newline\n\\nextline"
+has to be done sequentially, can't do global replace...
+

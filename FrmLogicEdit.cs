@@ -616,8 +616,15 @@ namespace WinAGI.Editor {
         }
 
         private void mnuECharMap_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: charmap");
-            RestoreFocusHack();
+            frmCharPicker CharPicker = new(EditLogic.CodePage.CodePage);
+            CharPicker.ShowDialog(MDIMain);
+            if (!CharPicker.Cancel) {
+                if (CharPicker.InsertString.Length > 0) {
+                    fctb.InsertText(CharPicker.InsertString, true);
+                }
+            }
+            CharPicker.Close();
+            CharPicker.Dispose();
         }
 
         [DllImport("user32.dll")]

@@ -6,8 +6,8 @@ X    4. Game menu functions
 X    5. Resource menu functions
 X    6. Tools menu functions
 X    7. Logic Editor
-     8. Status Bar
-     9. Character Map
+X    8. Status Bar
+X    9. Character Map
     10. Snippets Editor
     11. Defines Editor
     12. Object Editor
@@ -25,10 +25,6 @@ X    7. Logic Editor
 
 Miscellaneous Notes
 ===========================================================================================================
-      ***check WORDS.TOK opening function; it is missing a check to make sure the file exists,
-      and creates a zero length file during the load attempt. ; if one doesn't
-      the user should be told that, and (if in game) given option to create a new one; 
-      
       
       to print text:
             Font font = new Font(NAME, SIZE, STYLE);
@@ -1131,4 +1127,106 @@ if (test()) {
 } else {
     action();
 }
+
+Status Bar:
+MDIMain:
+  spStatus    [0] (spring, flat)
+  spCapsLock  [1] (SunkenInside)
+  spNumLock   [2] (SunkenInside)
+  spInsLock   [3] (SunkenInside)
+
+frmGlobalEdit:
+    spStatus -> Replace[0]
+
+frmLayout:
+    spScale -> Insert[0]
+    spTool -> Insert[1]
+    spID -> Insert[2]
+    spType -> Insert[3]
+    spRoom1 -> Insert[4]
+    spRoom2 -> Insert[5]
+    spStatus -> Replace[6]
+    spCurX -> Insert[7]
+    spCurY -> Insert[8]
+    spCapsLock -> Remove[9]
+    spNumLock -> Remove[9]
+    spInsLock -> Remove[9]
+
+frmLogicEdit:
+    spStatus(spring, flat) -> Replace
+    spLine (SunkenInside) -> Insert[1]
+    spColumn (SunkenInside) -> Insert[2]
+
+frmMenuEdit:
+    spStatus -> Replace[0]
+
+frmObjectEdit:
+    spCount -> Insert[0]
+    spEncrypt -> Insert[1]
+    spStatus -> Replace[2]
+
+frmPicEdit:
+    spScale -> Insert[0]
+    spMode -> Insert[1]
+    spTool -> Insert[2]
+    spAnchor -> Insert[3]
+    spBlock -> Insert[4]
+    spStatus -> Replace[5]
+    spCurX -> Insert[6]
+    spCurY -> Insert[7]
+    spPriBand -> Insert[8]
+    spCapsLock -> Remove[9]
+    spNumLock -> Remove[9]
+    spInsLock -> Remove[9]
+
+frmPreview:
+    spStatus -> Replace[0]
+
+frmSoundEdit:
+    spScale -> Insert[0]
+    spTime -> Insert[1]
+    spStatus -> Replace[2]
+
+frmTextScreenEdit:
+    spScale -> Insert[0]
+    spMode -> Insert[1]
+    spTool -> Insert[2]
+    spStatus -> Replace[3]
+
+frmViewEdit:
+    spScale -> Insert[0]
+    spTool -> Insert[1]
+    spStatus -> Replace[2]
+
+frmWordsEdit:
+    spGroupCount -> Insert[0]
+    spWordCount -> Insert[1]
+    spStatus -> Replace[2]
+
+
+
+status bar events:
+mousedown - cache mouse position
+PanelClick:
+  frmPreview, frmLogicEdit - panel.key = 'Status'
+       if panel.text is 'Error -...', clicking displays entire error in MsgBoxEX with help
+       if not 'error', just show a msgbox
+
+  frmPictureEdit:
+       panel = scale, adjust pic scale up/down for left/right button
+               anchor= popup anchor copy menu
+               block= popup block copy menu
+  
+  frmSoundEdit:
+       panel = scale, adjust zoom
+  
+  frmViewEdit:
+       panel = scale, adjust zoom
+      
+  frmLayout:
+       panel = scale, adjust zoom
+Panel double-click
+   frmObjectEdit, if panel = 'encrypt', toggle encryption
+
+
 

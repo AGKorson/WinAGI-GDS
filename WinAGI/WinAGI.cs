@@ -5,6 +5,7 @@ using System.Text;
 using static WinAGI.Common.Base;
 using System.Diagnostics;
 using WinAGI.Common;
+using System.Diagnostics.Eventing.Reader;
 
 namespace WinAGI.Engine {
     /***************************************************************
@@ -339,6 +340,7 @@ namespace WinAGI.Engine {
         internal static int defMaxVol0 = MAX_VOLSIZE;
         internal static byte defMaxSO = 16;
         internal static Encoding defCodePage;
+        internal static readonly int[] validcodepages = [437, 737, 775, 850, 852, 855, 857, 858, 860, 861, 862, 863, 865, 866, 869];
         #endregion
 
         #region Constructors
@@ -422,15 +424,21 @@ namespace WinAGI.Engine {
             get => defCodePage;
             set {
                 // confirm new codepage is supported; error if it is not
-                switch (value.CodePage) {
-                case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
-                        861 or 862 or 863 or 865 or 866 or 869 or 858:
+                if (validcodepages.Contains(value.CodePage)) {
                     defCodePage = Encoding.GetEncoding(value.CodePage);
-                    break;
-                default:
+                }
+                else {
                     throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets an array of valid code page vales. These are the only codepages
+        /// that WinAGI can support.
+        /// </summary>
+        public static int[] ValidCodePages {
+            get => validcodepages;
         }
         #endregion
 
