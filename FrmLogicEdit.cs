@@ -337,6 +337,9 @@ namespace WinAGI.Editor {
             // Character Map (Ctrl+Ins) V; E;
             mnuEUndo.Enabled = fctb.UndoEnabled;
             mnuERedo.Enabled = fctb.RedoEnabled;
+            mnuECut.Enabled = mnuECopy.Enabled = mnuEDelete.Enabled = fctb.SelectionLength > 0;
+            mnuEPaste.Enabled = Clipboard.ContainsText();
+            mnuESelectAll.Enabled = fctb.TextLength > 0;
             mnuESnippet.Visible = WinAGISettings.UseSnippets.Value;
             mnuESnippet.Text = fctb.Selection.Length > 0 ? "Create Code Snippet..." : "Insert Code Snippet";
             mnuEFindAgain.Enabled = fctb.findForm?.tbFind.Text.Length > 0;
@@ -467,7 +470,9 @@ namespace WinAGI.Editor {
         }
 
         private void mnuECut_Click(object sender, EventArgs e) {
-            fctb.Cut();
+            if (fctb.SelectionLength > 0) {
+                fctb.Cut();
+            }
             MarkAsChanged();
         }
 
@@ -483,7 +488,9 @@ namespace WinAGI.Editor {
         }
 
         private void mnuECopy_Click(object sender, EventArgs e) {
-            fctb.Copy();
+            if (fctb.SelectionLength > 0) {
+                fctb.Copy();
+            }
         }
 
         private void mnuEPaste_Click(object sender, EventArgs e) {
@@ -521,8 +528,10 @@ namespace WinAGI.Editor {
                 ShowSnippetList();
             }
             else {
-                MessageBox.Show("TODO: create new snippet");
-                RestoreFocusHack();
+                frmSnippets Snippets = new(true, fctb.SelectedText);
+                _ = Snippets.ShowDialog(this);
+                Snippets.Dispose();
+                //RestoreFocusHack();
             }
         }
 
@@ -787,9 +796,9 @@ namespace WinAGI.Editor {
                     if (snippetname.Start > 0 && strLine[..snippetname.Start].Trim().Length == 0) {
                         SnipIndent = snippetname.Start;
                     }
-                    TDefine snippetvalue = new TDefine();
-                    snippetvalue = CheckSnippet(snippetname.Text[1..^1], SnipIndent);
-                    if (snippetvalue.Type == ArgType.None) {
+                    Snippet snippetvalue = new();
+                    snippetvalue = CheckSnippet(snippetname.Text[1..^1]);
+                    if (snippetvalue.Name.Length == 0) {
                         return;
                     }
                     snippetvalue.Value = snippetvalue.Value.Replace("\r\n", "\r\n" + "".PadRight(SnipIndent));
@@ -1001,15 +1010,15 @@ namespace WinAGI.Editor {
         }
 
         private void lstDefines_MouseDoubleClick(object sender, MouseEventArgs e) {
-            SelectWord();
+            SelectDefine();
         }
 
         private void lstDefines_KeyPress(object sender, KeyPressEventArgs e) {
 
             switch (e.KeyChar) {
             case '\r' or '\n':
-                // ENTER selects the highlighted word
-                SelectWord();
+                // ENTER selects the highlighted define
+                SelectDefine();
                 lstDefines.Visible = false;
                 break;
             case (char)27:
@@ -1901,8 +1910,10 @@ namespace WinAGI.Editor {
             fctb.SelectedText = strMsg;
         }
 
-        private void SelectWord() {
+        private void SelectDefine() {
             int i;
+            bool cancel = false;
+
             if ((string)lstDefines.Tag == "snippets") {
                 string snippetvalue = "";
                 for (i = 0; i < CodeSnippets.Length; i++) {
@@ -1912,10 +1923,20 @@ namespace WinAGI.Editor {
                     }
                 }
                 i = 1;
+                string[] arglist = CodeSnippets[i].ArgTips.Split(',');
                 while (snippetvalue.Contains("%" + i.ToString())) {
                     string argvalue = "";
-                    //get arg
-                    if (ShowInputDialog(MDIMain, "Enter text for argument #" + i.ToString() + ":", ref argvalue) == DialogResult.OK) {
+                    // TODO: use arglist to provide better prompt
+                    string argprompt = "Enter text for argument #" + i.ToString() + ":";
+                    string arginfo;
+                    if (arglist.Length >= i) {
+                        arginfo = arglist[i - 1];
+                    }
+                    else {
+                        arginfo = "";
+                    }
+                    cancel = ShowInputDialog(MDIMain, argprompt, arginfo, ref argvalue) != DialogResult.OK;
+                    if (!cancel) {
                         snippetvalue = snippetvalue.Replace("%" + i.ToString(), argvalue);
                     }
                     else {
@@ -1923,7 +1944,9 @@ namespace WinAGI.Editor {
                     }
                     i++;
                 }
-                fctb.SelectedText = snippetvalue;
+                if (!cancel) {
+                    fctb.SelectedText = snippetvalue;
+                }
             }
             else {
                 fctb.SelectedText = lstDefines.SelectedItems[0].Text;
@@ -1936,6 +1959,10 @@ namespace WinAGI.Editor {
         internal void InitFonts() {
             rtfLogic1.ForeColor = WinAGISettings.SyntaxStyle[0].Color.Value;
             rtfLogic1.BackColor = WinAGISettings.EditorBackColor.Value;
+            int red = 255 - WinAGISettings.EditorBackColor.Value.R;
+            int green = 255 - WinAGISettings.EditorBackColor.Value.G;
+            int blue = 255 - WinAGISettings.EditorBackColor.Value.B;
+            rtfLogic1.SelectionColor = System.Drawing.Color.FromArgb(128, red, green, blue);
             rtfLogic1.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
             rtfLogic1.DefaultStyle = new TextStyle(rtfLogic1.DefaultStyle.ForeBrush, rtfLogic1.DefaultStyle.BackgroundBrush, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
             if ((FormMode == LogicFormMode.Logic && WinAGISettings.HighlightLogic.Value) ||
@@ -1947,7 +1974,7 @@ namespace WinAGI.Editor {
                 //clear all styles of changed range
                 rtfLogic1.Range.ClearStyle(StyleIndex.All);
             }
-
+            rtfLogic1.TabLength = WinAGISettings.LogicTabWidth.Value;
             rtfLogic2.ForeColor = WinAGISettings.SyntaxStyle[0].Color.Value;
             rtfLogic2.BackColor = WinAGISettings.EditorBackColor.Value;
             rtfLogic2.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
@@ -1961,6 +1988,7 @@ namespace WinAGI.Editor {
                 //clear all styles of changed range
                 rtfLogic2.Range.ClearStyle(StyleIndex.All);
             }
+            rtfLogic2.TabLength = WinAGISettings.LogicTabWidth.Value;
             documentMap1.BackColor = WinAGISettings.EditorBackColor.Value;
             lstDefines.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
             lstDefines.Height = 6 * fctb.CharHeight;
@@ -3174,6 +3202,7 @@ namespace WinAGI.Editor {
             lstDefines.Tag = "snippets";
             for (int i = 0; i < CodeSnippets.Length; i++) {
                 lstDefines.Items.Add(CodeSnippets[i].Name).ToolTipText = CodeSnippets[i].Value;
+                lstDefines.Items[i].Tag = CodeSnippets[i].ArgTips;
             }
             lstDefines.Items[0].Selected = true;
             lstDefines.Items[0].EnsureVisible();
@@ -3188,6 +3217,7 @@ namespace WinAGI.Editor {
             pPos = fctb.PlaceToPoint(tp);
             lstDefines.Top = pPos.Y + fctb.CharHeight;
             lstDefines.Left = pPos.X;
+            lstDefines.ShowItemToolTips = true;
             lstDefines.Visible = true;
             lstDefines.Select();
         }

@@ -614,7 +614,6 @@
             rtfLogic2.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic2.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic2.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
-            rtfLogic2.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic2.Hotkeys = resources.GetString("rtfLogic2.Hotkeys");
             rtfLogic2.IsReplaceMode = false;
             rtfLogic2.LineNumberStartValue = 0U;
@@ -646,7 +645,7 @@
             // 
             contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuERedo, mnuESep0, mnuECut, mnuEDelete, mnuECopy, mnuEPaste, mnuESelectAll, mnuESep1, mnuEFind, mnuEFindAgain, mnuEReplace, mnuESep2, mnuEListDefines, mnuEViewSynonym, mnuESnippet, mnuEBlockCmt, mnuEUnblockCmt, mnuEOpenRes, mnuESep3, mnuEDocumentMap, mnuELineNumbers, mnuECharMap });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(263, 446);
+            contextMenuStrip1.Size = new System.Drawing.Size(263, 468);
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
             // rtfLogic1
@@ -699,7 +698,6 @@
             rtfLogic1.MouseDown += fctb_MouseDown;
             rtfLogic1.MouseMove += fctb_MouseMove;
             rtfLogic1.MouseUp += fctb_MouseUp;
-            rtfLogic1.SelectionChangedDelayed += fctb_SelectionChanged;
             // 
             // documentMap1
             // 
@@ -815,7 +813,6 @@
             spStatus.Name = "spStatus";
             spStatus.Size = new System.Drawing.Size(565, 18);
             spStatus.Spring = true;
-            spStatus.Text = "";
             spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // spLine

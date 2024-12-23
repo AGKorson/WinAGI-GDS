@@ -1000,6 +1000,17 @@ namespace WinAGI.Editor {
             }
         }
 
+        public struct Snippet {
+            public string Name = "";
+            public string Value = "";
+            public string ArgTips = "";
+            public Snippet() {
+            }
+            public readonly override string ToString() {
+                return Name;
+            }
+        }
+
         #endregion
 
         #region Global Variables
@@ -1067,7 +1078,7 @@ namespace WinAGI.Editor {
         //  // I might consider adding them
         //  public static TDefine[] // ODefLookup()
         //  public static TDefine[] // WDefLookup()
-        public static TDefine[] CodeSnippets;
+        public static Snippet[] CodeSnippets;
         public static frmSnippets SnippetForm;
         public static int SnipMode; //0=create, 1=manage
         public static GifOptions DefaultVGOptions;
@@ -2607,7 +2618,7 @@ namespace WinAGI.Editor {
             // with it...
             int pos = 0;
             do {
-                TDefine addsnippet = new();
+                Snippet addsnippet = new();
                 KeyValuePair<string, string>[] snipinfo = SnipList.GetNextSection("Snippet", ref pos);
                 for (int i = 0; i < snipinfo.Length; i++) {
                     switch (snipinfo[i].Key) {
@@ -2618,7 +2629,7 @@ namespace WinAGI.Editor {
                         addsnippet.Value = DecodeSnippet(snipinfo[i].Value);
                         break;
                     case "ArgTips":
-                        addsnippet.Comment = snipinfo[i].Value;
+                        addsnippet.ArgTips = DecodeSnippet(snipinfo[i].Value);
                         break;
                     }
                 }
@@ -7724,10 +7735,10 @@ namespace WinAGI.Editor {
                     // check against snippets
                     if (WinAGISettings.UseSnippets.Value) {
                         for (int i = 0; i < CodeSnippets.Length; i++) {
-                            if (token.Text[1..] == CodeSnippets[i].Name && CodeSnippets[i].Comment.Length > 0) {
+                            if (token.Text[1..] == CodeSnippets[i].Name && CodeSnippets[i].ArgTips.Length > 0) {
                                 token.SubType = TokenSubtype.Snippet;
                                 token.Number = i;
-                                token.ArgList = CodeSnippets[i].Comment.Split(",");
+                                token.ArgList = CodeSnippets[i].ArgTips.Split(",");
                                 argCount = lngArgCount;
                                 return token;
                             }
@@ -7784,11 +7795,10 @@ namespace WinAGI.Editor {
             return -1;
         }
 
-        public static TDefine CheckSnippet(string sniptext, int IndentAmt) {
-            // check all snippets; if a match is found, return a define struct
-            // with type atDefStr; if no match, type is set to atNone
-            TDefine retval = new();
-            retval.Type = ArgType.None;
+        public static Snippet CheckSnippet(string sniptext) {
+            // check all snippets; if a match is found, return the snippet
+            // if no match, set name to empty string
+            Snippet retval = new();
             if (CodeSnippets.Length == 0) {
                 return retval;
             }
@@ -7860,8 +7870,8 @@ namespace WinAGI.Editor {
             }
             for (int i = 0; i < CodeSnippets.Length; i++) {
                 if (CodeSnippets[i].Name == sniptoken.Text) {
+                    retval.Name = CodeSnippets[i].Name;
                     retval.Value = CodeSnippets[i].Value;
-                    retval.Type = ArgType.DefStr;
                     if (lngArgCount > 0) {
                         for (int j = 0; j < lngArgCount; j++) {
                             retval.Value = retval.Value.Replace("%" + (j + 1).ToString(), strArgs[j]);
@@ -8582,37 +8592,52 @@ namespace WinAGI.Editor {
             }
         }
 
-        public static DialogResult ShowInputDialog(Form owner, string title, ref string input) {
-            System.Drawing.Size size = new System.Drawing.Size(200, 70);
+        public static DialogResult ShowInputDialog(Form owner, string title, string info, ref string input) {
+            int offset = 0;
             Form inputBox = new Form();
             inputBox.StartPosition = FormStartPosition.CenterParent;
-            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            inputBox.FormBorderStyle = FormBorderStyle.FixedToolWindow;
             inputBox.MinimizeBox = false;
             inputBox.MaximizeBox = false;
             inputBox.ShowInTaskbar = false;
-            inputBox.ClientSize = size;
+            if (info.Length > 0) {
+                offset = 20;
+                inputBox.ClientSize = new(200, 70 + offset);
+                Label labelInfo = new() {
+                    Size = new System.Drawing.Size(inputBox.ClientSize.Width - 10, 15),
+                    Location = new System.Drawing.Point(5, 5),
+                    Text = info
+                };
+                inputBox.Controls.Add(labelInfo);
+            }
+            else {
+                inputBox.ClientSize = new(200, 70);
+            }
             inputBox.Text = title;
 
-            System.Windows.Forms.TextBox textBox = new TextBox();
-            textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
-            textBox.Location = new System.Drawing.Point(5, 5);
-            textBox.Text = input;
+            TextBox textBox = new() {
+                Size = new System.Drawing.Size(inputBox.ClientSize.Width - 10, 23 + offset),
+                Location = new System.Drawing.Point(5, 5+ offset),
+                Text = input
+            };
             inputBox.Controls.Add(textBox);
 
-            Button okButton = new Button();
-            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-            okButton.Name = "okButton";
-            okButton.Size = new System.Drawing.Size(75, 23);
-            okButton.Text = "&OK";
-            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
+            Button okButton = new() {
+                DialogResult = System.Windows.Forms.DialogResult.OK,
+                Name = "okButton",
+                Size = new System.Drawing.Size(75, 23),
+                Text = "&OK",
+                Location = new System.Drawing.Point(inputBox.ClientSize.Width - 160, 39 + offset)
+            };
             inputBox.Controls.Add(okButton);
 
-            Button cancelButton = new Button();
-            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            cancelButton.Name = "cancelButton";
-            cancelButton.Size = new System.Drawing.Size(75, 23);
-            cancelButton.Text = "&Cancel";
-            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
+            Button cancelButton = new() {
+                DialogResult = System.Windows.Forms.DialogResult.Cancel,
+                Name = "cancelButton",
+                Size = new System.Drawing.Size(75, 23),
+                Text = "&Cancel",
+                Location = new System.Drawing.Point(inputBox.ClientSize.Width - 80, 39 + offset)
+            };
             inputBox.Controls.Add(cancelButton);
 
             inputBox.AcceptButton = okButton;

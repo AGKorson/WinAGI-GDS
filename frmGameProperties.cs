@@ -119,7 +119,7 @@ namespace WinAGI.Editor {
         }
 
         private void txtGameID_KeyPress(object sender, KeyPressEventArgs e) {
-            // allow alpha numeric only, lower case allowed, limit of five characters
+            // allow alpha numeric only, limit of five characters
             
             switch ((int)e.KeyChar) {
             case 8:
@@ -130,9 +130,9 @@ namespace WinAGI.Editor {
                 e.Handled = true;
                 cmbVersion.Select();
                 return;
-            case >= 97 and <= 122:
-                e.KeyChar = (char)((int)e.KeyChar - 32);
-                return;
+            //case >= 97 and <= 122:
+            //    e.KeyChar = (char)((int)e.KeyChar - 32);
+            //    return;
             case <= 7:
             case >= 9 and <= 47:
             case >= 91 and <= 96:

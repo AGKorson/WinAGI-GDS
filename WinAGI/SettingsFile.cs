@@ -1058,23 +1058,25 @@ namespace WinAGI.Common {
                             string key = strLine[..split].Trim();
                             string value = strLine[(split + 1)..].Trim();
                             int lngPos;
-                            if (value[0] == '"') {
-                                // string delimiter
-                                value = value[1..];
-                                // find ending delimiter
-                                lngPos = value.LastIndexOf('"');
-                                if (lngPos >= 0) {
-                                    value = value[..lngPos];
+                            if (value.Length != 0) {
+                                if (value[0] == '"') {
+                                    // string delimiter
+                                    value = value[1..];
+                                    // find ending delimiter
+                                    lngPos = value.LastIndexOf('"');
+                                    if (lngPos >= 0) {
+                                        value = value[..lngPos];
+                                    }
                                 }
-                            }
-                            else {
-                                // TODO: when adding a value, if it contains '#' it must be in quotes
-                                lngPos = value.IndexOf('#');
-                                if (lngPos == -1) {
-                                    // no delimiter or comment found; assume entire line
-                                    lngPos = value.Length;
+                                else {
+                                    // TODO: when adding a value, if it contains '#' it must be in quotes
+                                    lngPos = value.IndexOf('#');
+                                    if (lngPos == -1) {
+                                        // no delimiter or comment found; assume entire line
+                                        lngPos = value.Length;
+                                    }
+                                    value = value[..lngPos].Trim();
                                 }
-                                value = value[..lngPos].Trim();
                             }
                             if (key.Length > 0 && value.Length > 0) {
                                 KeyValuePair<string, string> add = new(key, value);

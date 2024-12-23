@@ -1049,9 +1049,9 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTSnippets_Click(object sender, EventArgs e) {
-            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
-                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
-            }
+            frmSnippets Snippets = new(false);
+            _ = Snippets.ShowDialog(this);
+            Snippets.Dispose();
         }
 
         private void mnuTPalette_Click(object sender, EventArgs e) {

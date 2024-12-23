@@ -690,7 +690,7 @@ namespace WinAGI.Editor {
 
     }
 
-    class SelectablePictureBox : PictureBox {
+    public class SelectablePictureBox : PictureBox {
         public SelectablePictureBox() {
             this.SetStyle(ControlStyles.Selectable, true);
             this.TabStop = true;

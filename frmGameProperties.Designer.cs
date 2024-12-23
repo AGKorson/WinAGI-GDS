@@ -257,6 +257,7 @@
             // 
             // txtGameID
             // 
+            txtGameID.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
             txtGameID.Location = new System.Drawing.Point(19, 37);
             txtGameID.Name = "txtGameID";
             txtGameID.Size = new System.Drawing.Size(87, 23);
