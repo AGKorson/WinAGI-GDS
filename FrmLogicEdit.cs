@@ -1192,12 +1192,12 @@ namespace WinAGI.Editor {
                             }
                         }
                         if (!blnDefFound) {
-                            for (int i = 0; i < LogicCompiler.ReservedDefines(ArgType.DefStr).Length; i++) {
-                                if (LogicCompiler.ReservedDefines(ArgType.DefStr)[i].Name == token.Text) {
-                                    blnDefFound = true;
-                                    break;
-                                }
-                            }
+                            //for (int i = 0; i < LogicCompiler.ReservedDefines(ArgType.DefStr).Length; i++) {
+                            //    if (LogicCompiler.ReservedDefines(ArgType.DefStr)[i].Name == token.Text) {
+                            //        blnDefFound = true;
+                            //        break;
+                            //    }
+                            //}
                         }
                         // if it was replaced, we accept whatever was used as
                         // the define name; if not replaced, it's error
@@ -3108,46 +3108,46 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
-            // lastly, check for reserved defines option (if not looking for a resourceID)
-            if (((EditGame == null && WinAGISettings.DefUseResDef.Value) || (EditGame != null && EditGame.UseReservedNames)) && ArgType < ArgListType.Logic) {
-                for (int i = 0; i <= 94; i++) {
-                    // add these reserved defines IF
-                    //     types match OR
-                    //     argtype is ALL OR
-                    //     argtype is (msg OR invobj) AND deftype is defined string
-                    //     argtype matches a special type
-                    blnAdd = false;
-                    if ((int)RDefLookup[i].Type == (int)ArgType) {
-                        blnAdd = true;
-                    }
-                    else {
-                        switch (ArgType) {
-                        case ArgListType.All:
-                            blnAdd = true;
-                            break;
-                        case ArgListType.IfArg:
-                            // variables and flags
-                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Flag;
-                            break;
-                        case ArgListType.OthArg:
-                            // variables and strings
-                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Str;
-                            break;
-                        case ArgListType.Values:
-                            // variables and numbers
-                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Num;
-                            break;
-                        case ArgListType.Msg or ArgListType.IObj:
-                            blnAdd = RDefLookup[i].Type == Engine.ArgType.DefStr;
-                            break;
-                        }
-                    }
-                    if (blnAdd) {
-                        // don't add if already defined
-                        AddIfUnique(RDefLookup[i].Name, 26 + (int)RDefLookup[i].Type, RDefLookup[i].Value);
-                    }
-                }
-            }
+            //// lastly, check for reserved defines option (if not looking for a resourceID)
+            //if (((EditGame == null && WinAGISettings.DefIncludeReserved.Value) || (EditGame != null && EditGame.UseReservedNames)) && ArgType < ArgListType.Logic) {
+            //    for (int i = 0; i <= 94; i++) {
+            //        // add these reserved defines IF
+            //        //     types match OR
+            //        //     argtype is ALL OR
+            //        //     argtype is (msg OR invobj) AND deftype is defined string
+            //        //     argtype matches a special type
+            //        blnAdd = false;
+            //        if ((int)RDefLookup[i].Type == (int)ArgType) {
+            //            blnAdd = true;
+            //        }
+            //        else {
+            //            switch (ArgType) {
+            //            case ArgListType.All:
+            //                blnAdd = true;
+            //                break;
+            //            case ArgListType.IfArg:
+            //                // variables and flags
+            //                blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Flag;
+            //                break;
+            //            case ArgListType.OthArg:
+            //                // variables and strings
+            //                blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Str;
+            //                break;
+            //            case ArgListType.Values:
+            //                // variables and numbers
+            //                blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Num;
+            //                break;
+            //            case ArgListType.Msg or ArgListType.IObj:
+            //                blnAdd = RDefLookup[i].Type == Engine.ArgType.DefStr;
+            //                break;
+            //            }
+            //        }
+            //        if (blnAdd) {
+            //            // don't add if already defined
+            //            AddIfUnique(RDefLookup[i].Name, 26 + (int)RDefLookup[i].Type, RDefLookup[i].Value);
+            //        }
+            //    }
+            //}
             ListDirty = false;
             ListType = ArgType;
         }

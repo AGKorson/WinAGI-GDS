@@ -586,7 +586,7 @@ namespace WinAGI.Editor {
                     txtExec.Text = EditGame.DOSExec;
                 }
                 // resdefines 
-                chkUseReserved.Checked = EditGame.UseReservedNames;
+                //chkUseReserved.Checked = EditGame.UseReservedNames;
 
                 // layout editor
                 chkUseLE.Checked = EditGame.UseLE;
@@ -625,7 +625,7 @@ namespace WinAGI.Editor {
                 txtSrcExt.Text = LogicDecoder.DefaultSrcExt;
 
                 // resdefines
-                chkUseReserved.Checked = WinAGISettings.DefUseResDef.Value;
+                chkUseReserved.Checked = WinAGISettings.DefIncludeReserved.Value;
                 // layout editor
                 chkUseLE.Checked = WinAGISettings.DefUseLE.Value;
                 // platform- check for autofill platform property

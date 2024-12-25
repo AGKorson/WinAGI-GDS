@@ -8,7 +8,7 @@ X    6. Tools menu functions
 X    7. Logic Editor
 X    8. Status Bar
 X    9. Character Map
-    10. Snippets Editor
+X   10. Snippets Editor
     11. Defines Editor
     12. Object Editor
     13. Word Editor
@@ -24,26 +24,27 @@ X    9. Character Map
 
 
 Miscellaneous Notes
-===========================================================================================================
+================================================================================
       
-      to print text:
-            Font font = new Font(NAME, SIZE, STYLE);
-            Point startPoint = new Point(TOP, LEFT);  
-            // Set TextFormatFlags to no padding if strings are to be drawn together.
-            TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
-            // Declare a proposed size with dimensions set to the maximum integer value.
-            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
-            // get size (to adjust position if drawing strings in order)
-            Size szText = TextRenderer.MeasureText(graphics, TEXT, font, proposedSize, flags);
-            TextRenderer.DrawText(graphics, TEXT, font, startPoint, Color.Black, flags);
+to print text:
+      Font font = new Font(NAME, SIZE, STYLE);
+      Point startPoint = new Point(TOP, LEFT);  
+      // Set TextFormatFlags to no padding if strings are to be drawn together.
+      TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
+      // Declare a proposed size with dimensions set to the maximum integer value.
+      Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+      // get size (to adjust position if drawing strings in order)
+      Size szText = TextRenderer.MeasureText(graphics, TEXT, font, proposedSize, flags);
+      TextRenderer.DrawText(graphics, TEXT, font, startPoint, Color.Black, flags);
 
 
-early AGI versions don't support loop mirroring- changing int version needs to deal with that
+early AGI versions don't support loop mirroring- changing int version needs to 
+deal with that
 
 
 
 GAME EXCEPTIONS: 
-===========================================================================================================
+================================================================================
 CLASS             FUNCTION:                 TYPE/NUMBER:          DESCRIPTION
 AGIGame           .ctor                     PASS                  pass-through OpenGameDIR/OpenGameWAG
 AGIGame           CodePage/set              ArgOutOfRange         new value is invalid codepage value
@@ -663,7 +664,7 @@ AudioPlayer PlayMIDISound
 
 
 Menu Structures
-=========================================================================
+================================================================================
 MDIMain
 mnuResources
     mnuRNew
@@ -836,7 +837,7 @@ A  help
 
 
 Decompilation Codes
-===========================================================================================================
+================================================================================
 DC01: Invalid message: MSGNUM at position POS
 DC02: Invalid word (WORDNUM) at position POS
 DC03: Invalid inventory item (INVITEM) at position POS
@@ -858,7 +859,7 @@ DC18: Invalid message section data
 
 
 Syntax highlighting notes:
-===========================================================================================================
+================================================================================
 white space: any char <= 33
 
 single char operators:
@@ -876,7 +877,8 @@ strings:
     "*"
     "*
      where * = anything else
-when inside a string \" is not a quote (if preceded by two slashes it should count)
+when inside a string \" is not a quote (if preceded by two slashes it should
+ count)
 34
 
 comments:
@@ -1209,7 +1211,8 @@ status bar events:
 mousedown - cache mouse position
 PanelClick:
   frmPreview, frmLogicEdit - panel.key = 'Status'
-       if panel.text is 'Error -...', clicking displays entire error in MsgBoxEX with help
+       if panel.text is 'Error -...', clicking displays entire error in MsgBoxEX
+       with help
        if not 'error', just show a msgbox
 
   frmPictureEdit:
@@ -1227,6 +1230,46 @@ PanelClick:
        panel = scale, adjust zoom
 Panel double-click
    frmObjectEdit, if panel = 'encrypt', toggle encryption
+
+
+================================================================================
+MAJOR CHANGE IN HANDLING RESERVED/GLOBAL DEFINES
+================================================================================
+no more reserved defines, global defines; resource IDs not automatically 
+included; all defines have to be in #include files
+
+WinAGI handles auto-creation/management of resource IDs (resources.txt) and 
+reserved defines (reserved.txt); user can add global define list (globals.txt)
+or other define lists as desired
+
+A new resources category for the resource list will contain include files that
+are managed by WinAGI. App settings determine if new games will have 
+resources.txt, reserved.txt, and/or globals.txt added automatically; user can
+add other defines lists if they want, but only one can be designated as
+global that WinAGI will automatically add to all logics
+
+A game property will manage specific game settings to include these files
+automatically
+
+user will not be allowed to edit resources.txt directly; WinAGI will handle the
+creation and updating of this file as resources are added, removed and updated;
+it will also be refreshed before any logic is compiled
+
+reserved.txt will normally be edited in a special reserved editor form, but if 
+user insists, editing will be allowed in the defines editor or a text editor
+
+globals.txt will be default name for a global game defines list, and will be
+automatically added to all new logics; if user removes it, raise a warning
+
+globals.txt can have any name, although globals.txt will always be the default
+
+
+A static grid editor for reserved defines that has 'reset to default option'
+
+A dynamic grid editor for global.txt and any other defines (except for 
+resources.txt) is included in WinAGI (what was the old Globals Editor);
+reserved.txt can be edited in defines editor, but is normally handled in a
+special editor
 
 
 

@@ -377,7 +377,7 @@ namespace WinAGI.Engine {
                         for (intArg = 0; intArg < ActionCommands[bytCmd].ArgType.Length; intArg++) {
                             bytCurData = bytData[lngPos++];
                             strArg = ArgValue(bytCurData, ActionCommands[bytCmd].ArgType[intArg]);
-                            if (ReservedAsText && compGame.UseReservedNames && SourceLogic.InGame) {
+                            if (ReservedAsText && compGame.IncludeReservedDefines && SourceLogic.InGame) {
                                 // some commands use resources as arguments; substitute as appropriate
                                 switch (bytCmd) {
                                 case 18:

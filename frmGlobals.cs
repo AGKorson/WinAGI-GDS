@@ -4806,7 +4806,7 @@ End Sub
         }
 
         private void frmGlobals_FormClosing(object sender, FormClosingEventArgs e) {
-            GEInUse = false;
+            //GEInUse = false;
         }
     }
 }

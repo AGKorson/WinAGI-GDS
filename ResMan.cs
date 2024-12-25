@@ -611,8 +611,16 @@ namespace WinAGI.Editor {
             public SettingInt PreviewFontSize = new(nameof(PreviewFontSize), 12, sLOGICS);
             // ErrorLevel: 
             public SettingLogicErrorLevel ErrorLevel = new(nameof(ErrorLevel), LogicErrorLevel.Medium, sLOGICS);
-            // DefUseResDef: default value for UseResDef
-            public SettingBool DefUseResDef = new(nameof(DefUseResDef), true, sLOGICS);
+
+
+            // DefIncludeReserved: default value for IncludeReserved
+            public SettingBool DefIncludeReserved = new(nameof(DefIncludeReserved), true, sLOGICS);
+            // DeIncludeIDs: default value for IncludeIDs
+            public SettingBool DefIncludeIDs = new(nameof(DefIncludeIDs), true, sLOGICS);
+            // DefIncludeGlobals: default value for IncludeGlobals
+            public SettingBool DefIncludeGlobals = new(nameof(DefIncludeGlobals), true, sLOGICS);
+
+
             // UseSnippets: 
             public SettingBool UseSnippets = new(nameof(UseSnippets), true, sLOGICS);
 
@@ -862,7 +870,7 @@ namespace WinAGI.Editor {
                 clonesettings.PreviewFontName = new(PreviewFontName);
                 clonesettings.PreviewFontSize = new(PreviewFontSize);
                 clonesettings.ErrorLevel = new(ErrorLevel);
-                clonesettings.DefUseResDef = new(DefUseResDef);
+                clonesettings.DefIncludeReserved = new(DefIncludeReserved);
                 clonesettings.UseSnippets = new(UseSnippets);
                 // SYNTAX HIGHLIGHTING
                 clonesettings.EditorBackColor = new(EditorBackColor);
@@ -1064,8 +1072,8 @@ namespace WinAGI.Editor {
         public static frmWordsEdit WordEditor;
         public static bool WEInUse;
         public static int WrdCount;
-        public static frmGlobals GlobalsEditor;
-        public static bool GEInUse;
+        public static List<frmGlobals> DefinesEditors;
+        //public static bool GEInUse;
         public static int TextCount;
         //lookup lists for logic editor
         //tooltips and define lists
@@ -1186,66 +1194,66 @@ namespace WinAGI.Editor {
             MDIMain.cmdForward.Enabled = false;
         }
 
-        public static void GetResDefOverrides() {
-            string strIn;
-            string[] strDef;
-            int intCount;
-            int i;
-            //check to see if there are any overrides:
-            intCount = WinAGISettingsFile.GetSetting("ResDefOverrides", "Count", 0);
-            if (intCount == 0) {
-                return;
-            }
-            //ok, get the overrides, and apply them
-            for (i = 1; i <= intCount; i++) {
-                strIn = WinAGISettingsFile.GetSetting("ResDefOverrides", "Override" + i, "");
-                //split it to get the def value and def name
-                //(0)=group
-                //(1)=index
-                //(2)=newname
-                strDef = strIn.Split(":");
-                if (strDef.Length == 3) {
-                    //get the new name, if a valid entry
-                    if (strDef[1].Val() < LogicCompiler.ResDefByGrp((ResDefGroup)strDef[0].Val()).Length) {
-                        LogicCompiler.SetResDef((int)strDef[0].Val(), (int)strDef[1].Val(), strDef[2]);
-                    }
-                }
-            }
-            //need to make sure we don't have any bad overrides (where overridden name matches
-            //another name); if a duplicate is found, just reset the follow on name back to its
-            //default value
-            //we check AFTER all overrides are made just in case a swap is desired- checking in
-            //realtime would not allow a swap
-            if (!LogicCompiler.ValidateResDefs()) {
-                //if any were changed, re-write the WinAGI.config file
-                SaveResDefOverrides();
-            }
-        }
+        //public static void GetResDefOverrides() {
+        //    string strIn;
+        //    string[] strDef;
+        //    int intCount;
+        //    int i;
+        //    //check to see if there are any overrides:
+        //    intCount = WinAGISettingsFile.GetSetting("ResDefOverrides", "Count", 0);
+        //    if (intCount == 0) {
+        //        return;
+        //    }
+        //    //ok, get the overrides, and apply them
+        //    for (i = 1; i <= intCount; i++) {
+        //        strIn = WinAGISettingsFile.GetSetting("ResDefOverrides", "Override" + i, "");
+        //        //split it to get the def value and def name
+        //        //(0)=group
+        //        //(1)=index
+        //        //(2)=newname
+        //        strDef = strIn.Split(":");
+        //        if (strDef.Length == 3) {
+        //            //get the new name, if a valid entry
+        //            if (strDef[1].Val() < LogicCompiler.ResDefByGrp((ResDefGroup)strDef[0].Val()).Length) {
+        //                LogicCompiler.SetResDef((int)strDef[0].Val(), (int)strDef[1].Val(), strDef[2]);
+        //            }
+        //        }
+        //    }
+        //    //need to make sure we don't have any bad overrides (where overridden name matches
+        //    //another name); if a duplicate is found, just reset the follow on name back to its
+        //    //default value
+        //    //we check AFTER all overrides are made just in case a swap is desired- checking in
+        //    //realtime would not allow a swap
+        //    if (!LogicCompiler.ValidateResDefs()) {
+        //        //if any were changed, re-write the WinAGI.config file
+        //        SaveResDefOverrides();
+        //    }
+        //}
 
-        public static void SaveResDefOverrides() {
-            //if any reserved define names are different from the default values,
-            //write them to the app settings;
-            int intCount = 0, i;
-            TDefine[] dfTemp;
-            //need to make string comparisons case sensitive, in case user
-            //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
+        //public static void SaveResDefOverrides() {
+        //    //if any reserved define names are different from the default values,
+        //    //write them to the app settings;
+        //    int intCount = 0, i;
+        //    TDefine[] dfTemp;
+        //    //need to make string comparisons case sensitive, in case user
+        //    //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
 
-            //first, delete any previous overrides
-            WinAGISettingsFile.DeleteSection("ResDefOverrides");
-            //now step through each type of define value; if name is not the default, then save it
-            for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
-                dfTemp = LogicCompiler.ResDefByGrp(grp);
-                for (i = 0; i < dfTemp.Length; i++) {
-                    if (dfTemp[i].Default != dfTemp[i].Name) {
-                        //save it
-                        intCount++;
-                        WinAGISettingsFile.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
-                    }
-                }
-            }
-            //write the count value
-            WinAGISettingsFile.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
-        }
+        //    //first, delete any previous overrides
+        //    WinAGISettingsFile.DeleteSection("ResDefOverrides");
+        //    //now step through each type of define value; if name is not the default, then save it
+        //    for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
+        //        dfTemp = LogicCompiler.ResDefByGrp(grp);
+        //        for (i = 0; i < dfTemp.Length; i++) {
+        //            if (dfTemp[i].Default != dfTemp[i].Name) {
+        //                //save it
+        //                intCount++;
+        //                WinAGISettingsFile.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
+        //            }
+        //        }
+        //    }
+        //    //write the count value
+        //    WinAGISettingsFile.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
+        //}
 
         public static void InitializeResMan() {
             string defaulteditorfont;
@@ -2018,10 +2026,10 @@ namespace WinAGI.Editor {
                 // build the lookup tables for logic tooltips
                 BuildIDefLookup();
                 BuildGDefLookup();
-                int pos = 91;
-                for (int i = 0; i < 4; i++) {
-                    RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
-                }
+                //int pos = 91;
+                //for (int i = 0; i < 4; i++) {
+                //    RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
+                //}
                 InvalidCmdStyleRegEx = @"";
                 for (int i = ActionCount; i < 182; i++) {
                     InvalidCmdStyleRegEx += Engine.Commands.ActionCommands[i].Name.Replace(".", "\\.");
@@ -2114,6 +2122,21 @@ namespace WinAGI.Editor {
                     }
                 }
             }
+            // unload ingame defines editors
+            for (i = DefinesEditors.Count -1; i >= 0; i--) {
+                if (DefinesEditors[i].InGame) {
+                    j = DefinesEditors.Count;
+                    Form form = DefinesEditors[i];
+                    form.Close();
+                    // check for cancellation
+                    if (j == DefinesEditors.Count) {
+                        return false;
+                    }
+                    else {
+                        form?.Dispose();
+                    }
+                }
+            }
             // unload ingame Objects Editor
             if (OEInUse) {
                 ObjectEditor.Close();
@@ -2143,16 +2166,6 @@ namespace WinAGI.Editor {
                 }
                 else {
                     LayoutEditor?.Dispose();
-                }
-            }
-            // unload globals editor
-            if (GEInUse) {
-                GlobalsEditor.Close();
-                if (GEInUse) {
-                    return false;
-                }
-                else {
-                    GlobalsEditor?.Dispose();
                 }
             }
             // unload the menu editor
@@ -2577,19 +2590,19 @@ namespace WinAGI.Editor {
             // game specific: 4 (id, about, description, invObjcount)
             // Total of 95
 
-            int pos = 0;
-            // first add gloal resdefs
-            for (ResDefGroup grp = 0; (int)grp < 9; grp++) {
-                for (int i = 0; i < LogicCompiler.ResDefByGrp(grp).Length; i++) {
-                    RDefLookup[pos++] = LogicCompiler.ResDefByGrp(grp)[i];
-                }
-            }
-            // then let open logic editors know
-            if (LogicEditors.Count > 1) {
-                foreach (frmLogicEdit tmpEd in LogicEditors) {
-                    tmpEd.ListChanged = true;
-                }
-            }
+            //int pos = 0;
+            //// first add gloal resdefs
+            //for (ResDefGroup grp = 0; (int)grp < 9; grp++) {
+            //    for (int i = 0; i < LogicCompiler.ResDefByGrp(grp).Length; i++) {
+            //        RDefLookup[pos++] = LogicCompiler.ResDefByGrp(grp)[i];
+            //    }
+            //}
+            //// then let open logic editors know
+            //if (LogicEditors.Count > 1) {
+            //    foreach (frmLogicEdit tmpEd in LogicEditors) {
+            //        tmpEd.ListChanged = true;
+            //    }
+            //}
         }
 
         public static void BuildSnippets() {
@@ -2927,28 +2940,16 @@ namespace WinAGI.Editor {
         /// </summary>
         public static void CompileGame(string CompGameDir = "", bool RebuildOnly = false) {
             DialogResult rtn = DialogResult.Cancel;
-            string strTemp = "";
             bool blnDontAsk = false;
 
             if (EditGame == null) {
                 return;
             }
-            //if global editor or layout editor open and unsaved, ask to continue
-            if (GEInUse && GlobalsEditor.IsChanged) {
-                strTemp = "Do you want to save the Global Defines list before compiling?";
-            }
+            // if layout editor open and unsaved, ask to continue
             if (LEInUse && LayoutEditor.IsChanged) {
-                if (strTemp.Length > 0) {
-                    strTemp = "Do you want to save the Global Defines list and \nLayout Editor before compiling?";
-                }
-                else {
-                    strTemp = "Do you want to save the Global Defines list before compiling?";
-                }
-            }
-            if (strTemp.Length > 0) {
                 rtn = MessageBox.Show(MDIMain,
-                         strTemp,
-                         "Save Before Compile?",
+                         "Do you want to save the Layout Editor before compiling?",
+                         "Save Layout Before Compile?",
                          MessageBoxButtons.YesNoCancel,
                          MessageBoxIcon.Question);
                 switch (rtn) {
@@ -2956,11 +2957,6 @@ namespace WinAGI.Editor {
                     if (LEInUse) {
                         if (LayoutEditor.IsChanged) {
                             LayoutEditor.MenuClickSave();
-                        }
-                    }
-                    if (GEInUse) {
-                        if (GlobalsEditor.IsChanged) {
-                            GlobalsEditor.MenuClickSave();
                         }
                     }
                     break;
@@ -2971,7 +2967,7 @@ namespace WinAGI.Editor {
             // check for any open resources
             foreach (frmLogicEdit frm in LogicEditors) {
                 if (frm.FormMode == LogicFormMode.Logic) {
-                    if (frm.rtfLogic2.IsChanged) {
+                    if (frm.InGame && frm.rtfLogic2.IsChanged) {
                         switch (WinAGISettings.SaveOnCompile.Value) {
                         case AskOption.Ask:
                             // ask user for input
@@ -3012,7 +3008,7 @@ namespace WinAGI.Editor {
                 }
             }
             foreach (frmPicEdit frm in PictureEditors) {
-                if (frm.EditPicture.IsChanged) {
+                if (frm.InGame && frm.EditPicture.IsChanged) {
                     if (WinAGISettings.SaveOnCompile.Value != AskOption.No) {
                         // saveoncompile is in ask mode or yes mode
                         if (WinAGISettings.SaveOnCompile.Value == AskOption.Ask) {
@@ -3050,7 +3046,7 @@ namespace WinAGI.Editor {
                 }
             }
             foreach (frmSoundEdit frm in SoundEditors) {
-                if (frm.EditSound.IsChanged) {
+                if (frm.InGame && frm.EditSound.IsChanged) {
                     if (WinAGISettings.SaveOnCompile.Value != AskOption.No) {
                         // saveoncompile is in ask mode or yes mode
                         if (WinAGISettings.SaveOnCompile.Value == AskOption.Ask) {
@@ -3088,7 +3084,7 @@ namespace WinAGI.Editor {
                 }
             }
             foreach (frmViewEdit frm in ViewEditors) {
-                if (frm.EditView.IsChanged) {
+                if (frm.InGame && frm.EditView.IsChanged) {
                     if (WinAGISettings.SaveOnCompile.Value != AskOption.No) {
                         // saveoncompile is in ask mode or yes mode
                         if (WinAGISettings.SaveOnCompile.Value == AskOption.Ask) {
@@ -3121,6 +3117,44 @@ namespace WinAGI.Editor {
                         case DialogResult.Yes:
                             // save it
                             frm.SaveView();
+                            break;
+                        }
+                    }
+                }
+            }
+            foreach (frmGlobals frm in DefinesEditors) {
+                if (frm.InGame && frm.IsChanged) {
+                    if (WinAGISettings.SaveOnCompile.Value != AskOption.No) {
+                        // saveoncompile is in ask mode or yes mode
+                        if (WinAGISettings.SaveOnCompile.Value == AskOption.Ask) {
+                            // get user's response
+                            frm.Select();
+                            rtn = MsgBoxEx.Show(MDIMain,
+                                "Do you want to save this Defines list before compiling?",
+                                "Update Defines List?",
+                                MessageBoxButtons.YesNoCancel,
+                                MessageBoxIcon.Question,
+                                "Always take this action when compiling a game.",
+                                ref blnDontAsk);
+                            if (blnDontAsk) {
+                                if (rtn == DialogResult.Yes) {
+                                    WinAGISettings.SaveOnCompile.Value = AskOption.Yes;
+                                }
+                                else {
+                                    WinAGISettings.SaveOnCompile.Value = AskOption.No;
+                                }
+                                WinAGISettings.SaveOnCompile.WriteSetting(WinAGISettingsFile);
+                            }
+                        }
+                        else {
+                            // if on automatic, always say yes
+                            rtn = DialogResult.Yes;
+                        }
+                        switch (rtn) {
+                        case DialogResult.Cancel:
+                            return;
+                        case DialogResult.Yes:
+                            //     frm.SaveDefines();
                             break;
                         }
                     }
@@ -3614,7 +3648,7 @@ namespace WinAGI.Editor {
                     if (EditGame.PlatformType > 0) {
                         EditGame.Platform = propform.NewPlatformFile;
                     }
-                    EditGame.UseReservedNames = propform.chkUseReserved.Checked;
+                    //EditGame.UseReservedNames = propform.chkUseReserved.Checked;
                     EditGame.UseLE = propform.chkUseLE.Checked;
                     // force a save of the property file
                     WinAGISettingsFile.Save();
@@ -3634,11 +3668,12 @@ namespace WinAGI.Editor {
                     // build the lookup tables for logic tooltips
                     BuildIDefLookup();
                     BuildGDefLookup();
-                    // add game specific resdefs
-                    int pos = 91;
-                    for (i = 0; i < 4; i++) {
-                        RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
-                    }
+                    BuildRDefLookup();
+                    //// add game specific resdefs
+                    //int pos = 91;
+                    //for (i = 0; i < 4; i++) {
+                    //    RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
+                    //}
                 }
                 else {
                     //make sure warning grid is hidden
@@ -4010,14 +4045,14 @@ namespace WinAGI.Editor {
             // open editor if not yet in use
             // or switch to it if it's already open
             if (EditGame != null && !ForceLoad) {
-                if (GEInUse) {
-                    GlobalsEditor.Activate();
-                    if (GlobalsEditor.WindowState == FormWindowState.Minimized) {
-                        // if minimized, restore it
-                        GlobalsEditor.WindowState = FormWindowState.Normal;
-                    }
-                }
-                else {
+                //if (GEInUse) {
+                //    //GlobalsEditor.Activate();
+                //    //if (GlobalsEditor.WindowState == FormWindowState.Minimized) {
+                //    //    // if minimized, restore it
+                //    //    GlobalsEditor.WindowState = FormWindowState.Normal;
+                //    //}
+                //}
+                //else {
                     MDIMain.UseWaitCursor = true;
                     // use the game's default globals file
                     strFileName = EditGame.GameDir + "globals.txt";
@@ -4038,17 +4073,17 @@ namespace WinAGI.Editor {
                     if (!File.Exists(strFileName)) {
                         // TODO: create blank file and open it
                     }
-                    GlobalsEditor = new frmGlobals();
-                    if (GlobalsEditor.LoadGlobalDefines(strFileName)) {
-                        // TODO: deal with errors
-                    }
-                    GlobalsEditor.Show();
-                    GlobalsEditor.Activate();
-                    // mark editor as in use
-                    GEInUse = true;
+                    //GlobalsEditor = new frmGlobals();
+                    //if (GlobalsEditor.LoadGlobalDefines(strFileName)) {
+                    //    // TODO: deal with errors
+                    //}
+                    //GlobalsEditor.Show();
+                    //GlobalsEditor.Activate();
+                    //// mark editor as in use
+                    //GEInUse = true;
                     // reset cursor
                     MDIMain.UseWaitCursor = false;
-                }
+                //}
             }
             else {
                 // either a game is NOT loaded, OR we are forcing a load from file
@@ -6389,15 +6424,15 @@ namespace WinAGI.Editor {
                 //horizon
                 strLogic = strLogic.Replace("%h", WinAGISettings.PTHorizon.Value.ToString());
 
-                //if using reserved names, insert them
-                if (EditGame.UseReservedNames) {
-                    //f5, v0, f2, f4, v9
-                    strLogic = strLogic.Replace("f5", LogicCompiler.ReservedDefines(Flag)[5].Name);
-                    strLogic = strLogic.Replace("f2", LogicCompiler.ReservedDefines(Flag)[2].Name);
-                    strLogic = strLogic.Replace("f4", LogicCompiler.ReservedDefines(Flag)[4].Name);
-                    strLogic = strLogic.Replace("v0", LogicCompiler.ReservedDefines(Var)[0].Name);
-                    strLogic = strLogic.Replace("v9", LogicCompiler.ReservedDefines(Var)[9].Name);
-                }
+                ////if using reserved names, insert them
+                //if (EditGame.UseReservedNames) {
+                //    //f5, v0, f2, f4, v9
+                //    strLogic = strLogic.Replace("f5", LogicCompiler.ReservedDefines(Flag)[5].Name);
+                //    strLogic = strLogic.Replace("f2", LogicCompiler.ReservedDefines(Flag)[2].Name);
+                //    strLogic = strLogic.Replace("f4", LogicCompiler.ReservedDefines(Flag)[4].Name);
+                //    strLogic = strLogic.Replace("v0", LogicCompiler.ReservedDefines(Var)[0].Name);
+                //    strLogic = strLogic.Replace("v9", LogicCompiler.ReservedDefines(Var)[9].Name);
+                //}
             }
             catch (Exception) {
                 //ignore errors return whatever is left

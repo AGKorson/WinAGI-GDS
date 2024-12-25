@@ -27,7 +27,8 @@ namespace WinAGI.Editor {
             {
                 if (ChangeGameID(value)) {
                     // mark any logics that use the gameID token as changed
-                    UpdateReservedToken(EditGame.ReservedGameDefines[0].Name);
+                    //UpdateReservedToken(EditGame.ReservedGameDefines[0].Name);
+                    UpdateReservedToken("gameid");
                     RDefLookup[91].Value = '"' + EditGame.GameID + '"';
                 }
             }
@@ -74,7 +75,8 @@ namespace WinAGI.Editor {
             get => EditGame.GameVersion;
             set {
                 EditGame.GameVersion = value;
-                UpdateReservedToken(EditGame.ReservedGameDefines[1].Name);
+                //UpdateReservedToken(EditGame.ReservedGameDefines[1].Name);
+                UpdateReservedToken("gameversion");
                 RDefLookup[92].Value = '"' + EditGame.GameVersion + '"';
             }
         }
@@ -85,7 +87,8 @@ namespace WinAGI.Editor {
             get => EditGame.GameAbout;
             set {
                 EditGame.GameAbout = value;
-                UpdateReservedToken(EditGame.ReservedGameDefines[2].Name);
+                //UpdateReservedToken(EditGame.ReservedGameDefines[2].Name);
+                UpdateReservedToken("gameabout");
                 RDefLookup[93].Value = '"' + EditGame.GameAbout + '"';
             }
         }
@@ -98,31 +101,46 @@ namespace WinAGI.Editor {
             }
         }
 
+        public bool IncludeIDs {
+            get => EditGame.IncludeResourceIDs;
+            set => EditGame.IncludeResourceIDs = value;
+        }
+
+        public bool IncludeReserved {
+            get => EditGame.IncludeReservedDefines;
+            set => EditGame.IncludeReservedDefines = value;
+        }
+
+        public bool IncludeGlobals {
+            get => EditGame.IncludeGlobals;
+            set => EditGame.IncludeGlobals = value;
+        }
+
         public DateTime LastEdit { 
             get => EditGame.LastEdit; }
     }
 
     public class LogicHdrProperties {
-        public LogicHdrProperties() {
-            GlobalDef = "(List)";
-        }
+        //public LogicHdrProperties() {
+        //    GlobalDef = "(List)";
+        //}
 
         public int Count { 
             get => EditGame.Logics.Count; 
         }
 
-        [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
-        public string GlobalDef { get => "(List)"; set { }
-        }
+        //[Editor(typeof(AGIPropertyEditor),
+        //        typeof(System.Drawing.Design.UITypeEditor))]
+        //public string GlobalDef { get => "(List)"; set { }
+        //}
 
-        public bool UseResNames { 
-            get => EditGame.UseReservedNames;
-            // TODO: useresnames usage checks
-            set => EditGame.UseReservedNames = value;
-        }
+        //public bool UseResNames {
+        //    get => EditGame.UseReservedNames;
+        //    // TODO: useresnames usage checks
+        //    set => EditGame.UseReservedNames = value;
+        //}
     }
-    
+
     public class LogicProperties {
         Logic pLogic;
 
@@ -519,7 +537,8 @@ namespace WinAGI.Editor {
                 }
             case "GlobalDef":
                 // same as clicking globals menu item
-                OpenGlobals(GEInUse);
+                MessageBox.Show("TODO: defines editor");
+                //OpenGlobals(GEInUse);
                 return value;
             default:
                 // to avoid compile error, need a default case

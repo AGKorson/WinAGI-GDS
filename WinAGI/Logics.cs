@@ -238,9 +238,9 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         public string ConvertArg(string ArgIn, ArgType ArgType, bool VarOrNum = false) {
             if (parent is not null) {
-                if (!parent.GlobalDefines.IsChanged) {
-                    parent.GlobalDefines.LoadGlobalDefines(parent.agGameDir + "globals.txt");
-                }
+                //if (!parent.GlobalDefines.IsChanged) {
+                //    parent.GlobalDefines.LoadGlobalDefines(parent.agGameDir + "globals.txt");
+                //}
                 if (!blnSetIDs) {
                     SetResourceIDs(parent);
                 }

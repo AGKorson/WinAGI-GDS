@@ -177,7 +177,7 @@ namespace WinAGI.Editor {
             NewSettings.PreviewFontName.Reset();
             NewSettings.PreviewFontSize.Reset();
             NewSettings.ErrorLevel.Reset();
-            NewSettings.DefUseResDef.Reset();
+            NewSettings.DefIncludeReserved.Reset();
             NewSettings.UseSnippets.Reset();
             // Syntax Highlights
             NewSettings.EditorBackColor.Reset();
@@ -1100,7 +1100,7 @@ namespace WinAGI.Editor {
         }
 
         private void chkUseReserved_CheckedChanged(object sender, EventArgs e) {
-            NewSettings.DefUseResDef.Value = chkUseReserved.Checked;
+            NewSettings.DefIncludeReserved.Value = chkUseReserved.Checked;
         }
 
         private void chkShowComment_CheckedChanged(object sender, EventArgs e) {
@@ -2214,7 +2214,7 @@ namespace WinAGI.Editor {
             chkSpecialSyntax.Checked = NewSettings.SpecialSyntax.Value;
             chkResVarText.Checked = NewSettings.ReservedAsText.Value;
             cmbCodeStyle.SelectedIndex = NewSettings.CodeStyle.IntValue;
-            chkUseReserved.Checked = NewSettings.DefUseResDef.Value;
+            chkUseReserved.Checked = NewSettings.DefIncludeReserved.Value;
 
             /*
             // pictures
@@ -2365,7 +2365,7 @@ namespace WinAGI.Editor {
             WinAGISettings.PreviewFontName.WriteSetting(WinAGISettingsFile);
             WinAGISettings.PreviewFontSize.WriteSetting(WinAGISettingsFile);
             WinAGISettings.ErrorLevel.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.DefUseResDef.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.DefIncludeReserved.WriteSetting(WinAGISettingsFile);
             WinAGISettings.UseSnippets.WriteSetting(WinAGISettingsFile);
 
             // syntax highlighting styles

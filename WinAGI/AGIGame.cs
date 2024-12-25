@@ -30,7 +30,8 @@ namespace WinAGI.Engine {
         internal Pictures agPics;
         internal InventoryList agInvObj;
         internal WordList agVocabWords;
-        internal GlobalList agGlobals;
+        //internal GlobalList agGlobals;
+        //internal bool agUseResVar = true;
         internal EGAColors agEGAcolors = new();
         internal string agGameDir = "";
         internal string agResDir = "";
@@ -53,7 +54,6 @@ namespace WinAGI.Engine {
         internal string agPlatformOpts = "";
         internal string agDOSExec = "";
         internal bool agUseLE = false;
-        internal bool agUseResVar = true;
         internal Encoding agCodePage = Encoding.GetEncoding(437);
         internal bool agPowerPack = false;
         internal string agSrcFileExt = "";
@@ -159,10 +159,10 @@ namespace WinAGI.Engine {
         /// </summary>
         public InventoryList InvObjects { get => agInvObj; }
 
-        /// <summary>
-        /// Gets the list of global defines for this game. Used by the logic compiler.
-        /// </summary>
-        public GlobalList GlobalDefines { get => agGlobals; }
+        ///// <summary>
+        ///// Gets the list of global defines for this game. Used by the logic compiler.
+        ///// </summary>
+        //public GlobalList GlobalDefines { get => agGlobals; }
 
         /// <summary>
         /// Gets the AGI color palette that is used for displaying pictures and views.
@@ -451,31 +451,35 @@ namespace WinAGI.Engine {
             }
         }
 
-        /// <summary>
-        /// Gets or sets a value that determines if reserved variables and flags are 
-        /// considered automatically defined, or if they must be manually defined.
-        /// </summary>
-        public bool UseReservedNames {
-            get => agUseResVar;
-            set {
-                agUseResVar = value;
-                WriteGameSetting("General", "UseLE", agUseResVar.ToString());
-            }
-        }
-        /// <summary>
-        /// Gets the reserved defines that are game-specific(GameID, GameVersion, GameAbout,
-        /// InvItem Count).
-        /// </summary>
-        public TDefine[] ReservedGameDefines {
-            get {
-                // refresh before returning
-                agResGameDef[0].Value = "\"" + agGameID + "\"";
-                agResGameDef[1].Value = "\"" + agGameVersion + "\"";
-                agResGameDef[2].Value = "\"" + agGameAbout + "\"";
-                agResGameDef[3].Value = agInvObj.Count.ToString();
-                return agResGameDef;
-            }
-        }
+        ///// <summary>
+        ///// Gets or sets a value that determines if reserved variables and flags are 
+        ///// considered automatically defined, or if they must be manually defined.
+        ///// </summary>
+        //public bool UseReservedNames {
+        //    get => agUseResVar;
+        //    set {
+        //        agUseResVar = value;
+        //        WriteGameSetting("General", "UseLE", agUseResVar.ToString());
+        //    }
+        //}
+        public bool IncludeReservedDefines { get; set; } = true;
+        public bool IncludeResourceIDs { get; set; } = true;
+        public bool IncludeGlobals { get; set; } = true;
+
+        ///// <summary>
+        ///// Gets the reserved defines that are game-specific(GameID, GameVersion, GameAbout,
+        ///// InvItem Count).
+        ///// </summary>
+        //public TDefine[] ReservedGameDefines {
+        //    get {
+        //        // refresh before returning
+        //        agResGameDef[0].Value = "\"" + agGameID + "\"";
+        //        agResGameDef[1].Value = "\"" + agGameVersion + "\"";
+        //        agResGameDef[2].Value = "\"" + agGameAbout + "\"";
+        //        agResGameDef[3].Value = agInvObj.Count.ToString();
+        //        return agResGameDef;
+        //    }
+        //}
 
         /// <summary>
         /// Gets the load warnings flag - true if warnings were encountered when 
@@ -2010,7 +2014,7 @@ namespace WinAGI.Engine {
             agViews = new Views(this);
             agInvObj = new InventoryList(this);
             agVocabWords = new WordList(this);
-            agGlobals = new GlobalList(this);
+            //agGlobals = new GlobalList(this);
             // clear out game properties
             agGameID = "";
             agIntVersion = "2.917";
@@ -2255,7 +2259,10 @@ namespace WinAGI.Engine {
             agPlatformFile = agGameProps.GetSetting("General", "Platform", "");
             agDOSExec = agGameProps.GetSetting("General", "DOSExec", "");
             agPlatformOpts = agGameProps.GetSetting("General", "PlatformOpts", "");
-            UseReservedNames = agGameProps.GetSetting("General", "UseResNames", true);
+            //UseReservedNames = agGameProps.GetSetting("General", "UseResNames", true);
+            IncludeResourceIDs = agGameProps.GetSetting("General", "IncludeResourceIDs", true);
+            IncludeReservedDefines = agGameProps.GetSetting("General", "IncludeReservedDefines", true);
+            IncludeGlobals = agGameProps.GetSetting("General", "IncludeGlobals", true);
             agUseLE = agGameProps.GetSetting("General", "UseLE", false);
             agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", false);
             agSrcFileExt = agGameProps.GetSetting("Decompiler", "SourceFileExt", agDefSrcExt).ToLower().Trim();

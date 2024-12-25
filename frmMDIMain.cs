@@ -124,6 +124,7 @@ namespace WinAGI.Editor {
             ViewEditors = [];
             PictureEditors = [];
             SoundEditors = [];
+            DefinesEditors = [];
         }
 
         #region Form Event Handlers
@@ -395,7 +396,7 @@ namespace WinAGI.Editor {
             ObjectEditor?.Dispose();
             WordEditor?.Dispose();
             LayoutEditor?.Dispose();
-            GlobalsEditor?.Dispose();
+            //GlobalsEditor?.Dispose();
             MenuEditor?.Dispose();
             SnippetForm?.Dispose();
             FindingForm?.Dispose();
@@ -1038,7 +1039,8 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTGlobals_Click(object sender, EventArgs e) {
-            OpenGlobals(GEInUse);
+            MessageBox.Show(MDIMain, "TODO: globals editor");
+            //OpenGlobals(GEInUse);
         }
 
         private void mnuTReserved_Click(object sender, EventArgs e) {
@@ -3317,7 +3319,7 @@ namespace WinAGI.Editor {
             }
             WinAGISettings.ErrorLevel.ReadSetting(WinAGISettingsFile);
             LogicCompiler.ErrorLevel = WinAGISettings.ErrorLevel.Value;
-            WinAGISettings.DefUseResDef.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.DefIncludeReserved.ReadSetting(WinAGISettingsFile);
             WinAGISettings.UseSnippets.ReadSetting(WinAGISettingsFile);
 
             // SYNTAXHIGHLIGHTFORMAT
@@ -3581,8 +3583,8 @@ namespace WinAGI.Editor {
             }
             mnuTSep2.Visible = blnTools;
 
-            // RESERVED DEFINES OVERRIDES
-            GetResDefOverrides();
+            //// RESERVED DEFINES OVERRIDES
+            //GetResDefOverrides();
 
             // IGNORED COMPILER WARNINGS
             lngNoCompVal = WinAGISettingsFile.GetSetting(sLOGICS, "NoCompWarn0", 0);
@@ -4189,7 +4191,7 @@ namespace WinAGI.Editor {
                     SafeFileMove(aLogic.SourceFile, EditGame.ResDir + Path.GetFileNameWithoutExtension(aLogic.SourceFile) + "." + EditGame.SourceExt, true);
                 }
             }
-            EditGame.UseReservedNames = (propForm.chkUseReserved.Checked);
+            //EditGame.UseReservedNames = (propForm.chkUseReserved.Checked);
             EditGame.UseLE = (propForm.chkUseLE.Checked);
             // update menu/toolbar, and hide LE if not in use anymore
             UpdateLEStatus();
