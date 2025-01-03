@@ -372,7 +372,8 @@ namespace WinAGI.Common {
                         if (File.Exists(logic.SourceFile)) {
                             try {
                                 byte[] strdat = File.ReadAllBytes(logic.SourceFile);
-                                string srcText = EditGame.CodePage.GetString(strdat);
+                                bool _ = false;
+                                string srcText = CheckIncludes(EditGame.CodePage.GetString(strdat),EditGame, ref _);
                                 File.WriteAllText(logic.SourceFile, srcText);
                             }
                             catch {
@@ -530,6 +531,7 @@ namespace WinAGI.Common {
                 CompStatusWin.pgbStatus.Value = CompStatusWin.pgbStatus.Maximum;
                 break;
             }
+            CompStatusWin.Refresh();
         }
 
         /// <summary>

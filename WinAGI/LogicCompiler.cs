@@ -946,7 +946,6 @@ namespace WinAGI.Engine {
                                 if (intVal == 0)
                                     return Reserved;
                             }
-
                             break;
                         case InvItem:
                             break;
@@ -1157,7 +1156,7 @@ namespace WinAGI.Engine {
                 return;
             }
             StringList resIDlist = [
-                "[ Resource ID Defines file for " + game.agGameID,
+                "[ Resource ID Defines for " + game.agGameID,
                 "[",
                 "[ WinAGI generated code required for IncludeResourceIDs support - ",
                 "[ do not modify the contents of this file with the code editor.",
@@ -1387,7 +1386,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     // check for a pointer
-                    if (checktoken[0] == '&') {
+                    if (checktoken[0] == '&' && checktoken.Length > 1) {
                         int ptrVal = PointerValue(checktoken[1..]);
                         if (ptrVal != -1) {
                             checktoken = ptrVal.ToString();
@@ -1736,7 +1735,7 @@ namespace WinAGI.Engine {
                     if (int.TryParse(compGame.GlobalDefines[i].Value, out _)) {
                         return -1;
                     }
-                    switch (tdDefines[i].Value[0]) {
+                    switch (compGame.GlobalDefines[i].Value[0]) {
                     // check for standard arg types
                     case 'v' or 'f' or 'c' or 'o' or 's' or 'w' or 'm' or 'i':
                         int varVal = VariableValue(compGame.GlobalDefines[i].Value);
@@ -2841,7 +2840,6 @@ namespace WinAGI.Engine {
             if (lngLine == -1) {
                 return (char)0;
             }
-
             do {
                 lngPos++;
                 if (lngPos >= strCurrentLine.Length) {
@@ -3061,14 +3059,14 @@ namespace WinAGI.Engine {
                 }
                 return retval;
             case '&':
-                // special case; "&" and "&&" returned as separate tokens
+                // special case; "&&" returned as separate token
                 if (lngPos + 1 < strCurrentLine.Length) {
                     if (strCurrentLine[lngPos + 1] == '&') {
                         lngPos++;
                         retval = "&&";
                     }
                 }
-                return retval;
+                break;
             case '@':
                 // special case; "@=" returned as separate token
                 if (agSierraSyntax) {
@@ -3797,8 +3795,9 @@ namespace WinAGI.Engine {
                                 // argument value not valid for controller, string, word
                                 switch (tdNewDefine.Type) {
                                 case Ctrl:
-                                    lngErrNum = 4136;
-                                    strError = LoadResString(4136);
+                                    if (ErrorLevel == Medium) {
+                                        AddWarning(5060);
+                                    }
                                     break;
                                 case Str:
                                     // only an error if errorlevel is high
@@ -5685,6 +5684,7 @@ namespace WinAGI.Engine {
                 if (lngMsgLen > 0) {
                     // convert to byte array based on codepage
                     bMessage = compLogic.CodePage.GetBytes(strMsg[lngMsg]);
+                    Debug.Assert(bMessage.Length == strMsg[lngMsg].Length);
                     // step through all characters in this msg
                     intCharPos = 0;
                     while (intCharPos < bMessage.Length) {
@@ -5723,7 +5723,7 @@ namespace WinAGI.Engine {
                                     // (make sure at least two more characters)
                                     if (intCharPos < lngMsgLen - 3) {
                                         // get next 2 chars and hexify them
-                                        strHex = "0x" + bMessage[(intCharPos + 2)..(intCharPos + 4)];
+                                        strHex = "0x" + strMsg[lngMsg][(intCharPos + 2)..(intCharPos + 4)];
                                         //if this hex value >=1 and <256, use it
                                         try {
                                             i = Convert.ToInt32(strHex, 16);
@@ -6489,10 +6489,6 @@ namespace WinAGI.Engine {
             }
             // first token has been evaluated as valid variable or flag
             if (blnIsVar) {
-                // can't have a NOT in front of variable comparisons
-                if (blnNOT) {
-                    AddError(4098, false);
-                }
                 // arg 1 is 'v#'
                 intArg1 = VariableValue(strArg1);
                 if (intArg1 == -1) {

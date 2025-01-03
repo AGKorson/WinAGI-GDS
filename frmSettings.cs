@@ -481,7 +481,6 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
-            // logic decoder also uses default extension
             LogicDecoder.DefaultSrcExt = NewSettings.DefaultExt.Value.ToLower();
             LogicCompiler.ErrorLevel = NewSettings.ErrorLevel.Value;
 

@@ -4312,7 +4312,7 @@ namespace WinAGI.Editor {
                     break;
                 }
                 else {
-                    if (!strOldID.Equals(frmeditprop.NewID, StringComparison.OrdinalIgnoreCase)) {
+                    if (strOldID != frmeditprop.NewID) {
                         //validate new id
                         rtn = ValidateID(frmeditprop.NewID, strOldID);
                         switch (rtn) {
@@ -4370,12 +4370,10 @@ namespace WinAGI.Editor {
                                 "htm\\winagi\\Managing Resources.htm#resourceids");
                         }
                         else {
-                            //make the change
-                            //update ID for the ingame resource
                             switch (ResType) {
                             case AGIResType.Logic:
                                 DialogResult result;
-                                if (File.Exists(EditGame.ResDir + frmeditprop.NewID + "." + EditGame.SourceExt)) {
+                                if (!strOldID.Equals(frmeditprop.NewID, StringComparison.OrdinalIgnoreCase) && File.Exists(EditGame.ResDir + frmeditprop.NewID + "." + EditGame.SourceExt)) {
                                     // import existing, or overwrite it?
                                     result = MessageBox.Show(MDIMain,
                                        "There is already a source file with the name '" + frmeditprop.NewID + "." +
@@ -4421,47 +4419,17 @@ namespace WinAGI.Editor {
             // return new id
             if (strOldID != frmeditprop.NewID) {
                 ResID = frmeditprop.NewID;
-            }
-            // if description changed, update it
-            if (strOldDesc != frmeditprop.NewDescription) {
-                Description = frmeditprop.NewDescription;
+                blnReplace = DefUpdateVal = frmeditprop.chkUpdate.Checked;
+                // for ingame resources, update resource files, preview, treelist
                 if (InGame) {
-                    //update the description
+                    // update the logic tooltip lookup table for log/pic/view/snd
                     switch (ResType) {
                     case AGIResType.Logic:
-                        EditGame.Logics[ResNum].Description = Description;
-                        break;
                     case AGIResType.Picture:
-                        EditGame.Pictures[ResNum].Description = Description;
-                        break;
                     case AGIResType.Sound:
-                        EditGame.Sounds[ResNum].Description = Description;
-                        break;
                     case AGIResType.View:
-                        EditGame.Views[ResNum].Description = Description;
-                        break;
-                    case Words:
-                        EditGame.WordList.Description = Description;
-                        break;
-                    case Objects:
-                        EditGame.InvObjects.Description = Description;
-                        break;
-                    }
-                }
-            }
-            blnReplace = DefUpdateVal = frmeditprop.chkUpdate.Checked;
-            frmeditprop.Dispose();
+                        IDefLookup[(int)ResType, ResNum].Name = ResID;
 
-            // for ingame resources, update resource files, preview, treelist
-            if (InGame) {
-                // update the logic tooltip lookup table for log/pic/view/snd
-                switch (ResType) {
-                case AGIResType.Logic:
-                case AGIResType.Picture:
-                case AGIResType.Sound:
-                case AGIResType.View:
-                    IDefLookup[(int)ResType, ResNum].Name = ResID;
-                    if (strOldID != ResID) {
                         // if not just a change in text case
                         if (!strOldID.Equals(ResID, StringComparison.OrdinalIgnoreCase)) {
                             //update resource file if ID has changed
@@ -4506,14 +4474,42 @@ namespace WinAGI.Editor {
                             FindingForm.ResetSearch();
                             ReplaceAll(MDIMain, strOldID, ResID, FindDirection.All, true, true, FindLocation.All, ResType);
                         }
+                        break;
                     }
-                    break;
-                }
-                // refresh the property page if visible
-                if (MDIMain.propertyGrid1.Visible) {
-                    MDIMain.propertyGrid1.Refresh();
+                    // refresh the property page if visible
+                    if (MDIMain.propertyGrid1.Visible) {
+                        MDIMain.propertyGrid1.Refresh();
+                    }
                 }
             }
+            // if description changed, update it
+            if (strOldDesc != frmeditprop.NewDescription) {
+                Description = frmeditprop.NewDescription;
+                if (InGame) {
+                    //update the description
+                    switch (ResType) {
+                    case AGIResType.Logic:
+                        EditGame.Logics[ResNum].Description = Description;
+                        break;
+                    case AGIResType.Picture:
+                        EditGame.Pictures[ResNum].Description = Description;
+                        break;
+                    case AGIResType.Sound:
+                        EditGame.Sounds[ResNum].Description = Description;
+                        break;
+                    case AGIResType.View:
+                        EditGame.Views[ResNum].Description = Description;
+                        break;
+                    case Words:
+                        EditGame.WordList.Description = Description;
+                        break;
+                    case Objects:
+                        EditGame.InvObjects.Description = Description;
+                        break;
+                    }
+                }
+            }
+            frmeditprop.Dispose();
             return true;
         }
 
@@ -7258,7 +7254,7 @@ namespace WinAGI.Editor {
             if (MatchWord) {
                 string pattern = @"\b" + FindText + @"\b";
                 if (InWindow) {
-                    SearchWin.fctb.Text = Regex.Replace(SearchLogic.SourceText, pattern, x => {
+                    SearchWin.fctb.Text = Regex.Replace(SearchWin.fctb.Text, pattern, x => {
                         ReplaceCount++;
                         return ReplaceText;
                     }, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
@@ -7269,40 +7265,10 @@ namespace WinAGI.Editor {
                         return ReplaceText;
                     }, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
                 }
-
-                //do {
-                //    if (InWindow) {
-                //        FoundPos = FindWholeWord(FoundPos, SearchWin.fctb.Text, FindText, MatchCase, false, SearchType);
-                //    }
-                //    else {
-                //        FoundPos = FindWholeWord(FoundPos, SearchLogic.SourceText, FindText, MatchCase, false, SearchType);
-                //    }
-                //    if (FoundPos >= 0) {
-                //        if (InWindow) {
-                //            //FastColoredTextBoxNS.Range range = SearchWin.fctb.GetRange(FoundPos, FoundPos + FindText.Length);
-                //            //Debug.Assert(range.Text == FindText);
-                //            //SearchWin.fctb.Selection = range;
-                //            //SearchWin.fctb.SelectedText = ReplaceText;
-                //            SearchWin.fctb.Text = Regex.Replace(SearchLogic.SourceText, FindText, x => {
-                //                return x.Index == FoundPos ? ReplaceText : x.Value;
-                //            },  MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
-                //        }
-                //        else {
-                //            SearchLogic.SourceText = Regex.Replace(SearchLogic.SourceText, FindText, x => {
-                //                return x.Index == FoundPos ? ReplaceText : x.Value;
-                //            }, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
-                //        }
-                //        FoundPos += ReplaceText.Length;
-                //        ReplaceCount++;
-                //    }
-                //    else {
-                //        break;
-                //    }
-                //} while (FoundPos >= 0);
             }
             else {
                 if (InWindow) {
-                    SearchWin.fctb.Text = Regex.Replace(SearchLogic.SourceText, FindText, x => {
+                    SearchWin.fctb.Text = Regex.Replace(SearchWin.fctb.Text, FindText, x => {
                         ReplaceCount++;
                         return ReplaceText;
                     }, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
