@@ -3317,7 +3317,9 @@ namespace WinAGI.Editor {
             }
             WinAGISettings.ErrorLevel.ReadSetting(WinAGISettingsFile);
             LogicCompiler.ErrorLevel = WinAGISettings.ErrorLevel.Value;
-            WinAGISettings.DefUseResDef.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.DefIncludeIDs.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.DefIncludeReserved.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.DefIncludeGlobals.ReadSetting(WinAGISettingsFile);
             WinAGISettings.UseSnippets.ReadSetting(WinAGISettingsFile);
 
             // SYNTAXHIGHLIGHTFORMAT
@@ -4189,8 +4191,10 @@ namespace WinAGI.Editor {
                     SafeFileMove(aLogic.SourceFile, EditGame.ResDir + Path.GetFileNameWithoutExtension(aLogic.SourceFile) + "." + EditGame.SourceExt, true);
                 }
             }
-            EditGame.UseReservedNames = (propForm.chkUseReserved.Checked);
-            EditGame.UseLE = (propForm.chkUseLE.Checked);
+            EditGame.IncludeIDs = propForm.chkResourceIDs.Checked;
+            EditGame.IncludeReserved = propForm.chkResDefs.Checked;
+            EditGame.IncludeGlobals = propForm.chkGlobals.Checked;
+            EditGame.UseLE = propForm.chkUseLE.Checked;
             // update menu/toolbar, and hide LE if not in use anymore
             UpdateLEStatus();
             EditGame.CodePage = Encoding.GetEncoding(propForm.NewCodePage);

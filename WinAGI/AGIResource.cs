@@ -508,7 +508,7 @@ namespace WinAGI.Engine {
                 strLoadResFile = parent.agGameDir + "VOL." + mVolume.ToString();
             }
             try {
-                fsVOL = new FileStream(strLoadResFile, FileMode.Open);
+                fsVOL = new FileStream(strLoadResFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 brVOL = new BinaryReader(fsVOL);
                 if (fsVOL.Length >= mLoc + (parent.agIsVersion3 ? 7 : 5)) {
                     fsVOL.Seek(mLoc, SeekOrigin.Begin);
@@ -645,7 +645,7 @@ namespace WinAGI.Engine {
             FileStream fsVOL = null;
             BinaryReader brVOL = null;
             try {
-                fsVOL = new FileStream(strLoadResFile, FileMode.Open);
+                fsVOL = new FileStream(strLoadResFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 brVOL = new BinaryReader(fsVOL);
             }
             catch (Exception e1) {
@@ -889,7 +889,7 @@ namespace WinAGI.Engine {
             }
             FileStream fsImport;
             try {
-                fsImport = new FileStream(ImportFile, FileMode.Open);
+                fsImport = new FileStream(ImportFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             }
             catch (Exception) {
                 WinAGIException wex = new(LoadResString(605).Replace(ARG1, ImportFile)) {

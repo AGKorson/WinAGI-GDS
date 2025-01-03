@@ -8,8 +8,8 @@ X    6. Tools menu functions
 X    7. Logic Editor
 X    8. Status Bar
 X    9. Character Map
-    10. Snippets Editor
-    11. Defines Editor
+X   10. Snippets Editor
+o   11. Defines Editor
     12. Object Editor
     13. Word Editor
     14. Palette Editor
@@ -979,7 +979,9 @@ WinAGI settings and warnings:
 // PreviewFontName
 // PreviewFontSize
 // ErrorLevel
-// DefUseResDef
+// DefIncludeIDs
+// DefIncludeReserved
+// DefIncludeGlobal
 // UseSnippets
 
 // ************************************************
@@ -1227,6 +1229,4 @@ PanelClick:
        panel = scale, adjust zoom
 Panel double-click
    frmObjectEdit, if panel = 'encrypt', toggle encryption
-
-
 

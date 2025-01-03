@@ -120,7 +120,7 @@ namespace WinAGI.Editor {
 
         private void txtGameID_KeyPress(object sender, KeyPressEventArgs e) {
             // allow alpha numeric only, limit of five characters
-            
+
             switch ((int)e.KeyChar) {
             case 8:
                 // backspace is OK
@@ -220,7 +220,7 @@ namespace WinAGI.Editor {
             case 13:
                 // enter is same as tabbing to next control
                 e.Handled = true;
-                chkUseReserved.Select();
+                chkResourceIDs.Select();
                 break;
             case <= 7:
             case >= 9 and <= 32:
@@ -264,8 +264,15 @@ namespace WinAGI.Editor {
             btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
         }
 
+        private void chkResourceIDs_CheckedChanged(object sender, EventArgs e) {
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
         private void chkUseReserved_CheckedChanged(object sender, EventArgs e) {
-            // enable ok if an ID and directory have been chosen
+            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+        }
+
+        private void chkGlobals_CheckedChanged(object sender, EventArgs e) {
             btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
         }
 
@@ -585,8 +592,10 @@ namespace WinAGI.Editor {
                 if (txtExec.Enabled) {
                     txtExec.Text = EditGame.DOSExec;
                 }
-                // resdefines 
-                chkUseReserved.Checked = EditGame.UseReservedNames;
+                // include options 
+                chkResourceIDs.Checked = EditGame.IncludeIDs;
+                chkResDefs.Checked = EditGame.IncludeReserved;
+                chkGlobals.Checked = EditGame.IncludeGlobals;
 
                 // layout editor
                 chkUseLE.Checked = EditGame.UseLE;
@@ -623,9 +632,10 @@ namespace WinAGI.Editor {
                 txtGameDir.Text = "";
                 txtResDir.Text = WinAGI.Engine.Base.DefResDir;
                 txtSrcExt.Text = LogicDecoder.DefaultSrcExt;
-
-                // resdefines
-                chkUseReserved.Checked = WinAGISettings.DefUseResDef.Value;
+                // include options
+                chkResourceIDs.Checked = WinAGISettings.DefIncludeIDs.Value;
+                chkResDefs.Checked = WinAGISettings.DefIncludeReserved.Value;
+                chkGlobals.Checked = WinAGISettings.DefIncludeGlobals.Value;
                 // layout editor
                 chkUseLE.Checked = WinAGISettings.DefUseLE.Value;
                 // platform- check for autofill platform property

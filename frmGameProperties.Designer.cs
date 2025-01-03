@@ -30,7 +30,7 @@
             General = new System.Windows.Forms.TabPage();
             btnGameDir = new System.Windows.Forms.Button();
             chkUseLE = new System.Windows.Forms.CheckBox();
-            chkUseReserved = new System.Windows.Forms.CheckBox();
+            chkGlobals = new System.Windows.Forms.CheckBox();
             txtSrcExt = new System.Windows.Forms.TextBox();
             txtResDir = new System.Windows.Forms.TextBox();
             label5 = new System.Windows.Forms.Label();
@@ -69,6 +69,8 @@
             cmbCodePage = new System.Windows.Forms.ComboBox();
             lblSierraSyntax = new System.Windows.Forms.Label();
             lblCodePage = new System.Windows.Forms.Label();
+            chkResDefs = new System.Windows.Forms.CheckBox();
+            chkResourceIDs = new System.Windows.Forms.CheckBox();
             tabControl1.SuspendLayout();
             General.SuspendLayout();
             Version.SuspendLayout();
@@ -113,9 +115,11 @@
             // 
             // General
             // 
+            General.Controls.Add(chkResourceIDs);
+            General.Controls.Add(chkResDefs);
             General.Controls.Add(btnGameDir);
             General.Controls.Add(chkUseLE);
-            General.Controls.Add(chkUseReserved);
+            General.Controls.Add(chkGlobals);
             General.Controls.Add(txtSrcExt);
             General.Controls.Add(txtResDir);
             General.Controls.Add(label5);
@@ -150,28 +154,32 @@
             // chkUseLE
             // 
             chkUseLE.AutoSize = true;
+            chkUseLE.Checked = true;
+            chkUseLE.CheckState = System.Windows.Forms.CheckState.Checked;
             chkUseLE.Location = new System.Drawing.Point(19, 310);
             chkUseLE.Name = "chkUseLE";
             chkUseLE.Size = new System.Drawing.Size(118, 19);
-            chkUseLE.TabIndex = 12;
+            chkUseLE.TabIndex = 14;
             chkUseLE.Tag = "#uselayouted";
             chkUseLE.Text = "Use Layout Editor";
             chkUseLE.UseVisualStyleBackColor = true;
             chkUseLE.CheckedChanged += chkUseLE_CheckedChanged;
             chkUseLE.HelpRequested += frmGameProperties_HelpRequested;
             // 
-            // chkUseReserved
+            // chkGlobals
             // 
-            chkUseReserved.AutoSize = true;
-            chkUseReserved.Location = new System.Drawing.Point(19, 283);
-            chkUseReserved.Name = "chkUseReserved";
-            chkUseReserved.Size = new System.Drawing.Size(172, 19);
-            chkUseReserved.TabIndex = 11;
-            chkUseReserved.Tag = "#useresnames";
-            chkUseReserved.Text = "Use Reserved Define Names";
-            chkUseReserved.UseVisualStyleBackColor = true;
-            chkUseReserved.CheckedChanged += chkUseReserved_CheckedChanged;
-            chkUseReserved.HelpRequested += frmGameProperties_HelpRequested;
+            chkGlobals.AutoSize = true;
+            chkGlobals.Checked = true;
+            chkGlobals.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkGlobals.Location = new System.Drawing.Point(19, 282);
+            chkGlobals.Name = "chkGlobals";
+            chkGlobals.Size = new System.Drawing.Size(221, 19);
+            chkGlobals.TabIndex = 13;
+            chkGlobals.Tag = "#useresnames";
+            chkGlobals.Text = "Automatically Include Global Defines";
+            chkGlobals.UseVisualStyleBackColor = true;
+            chkGlobals.CheckedChanged += chkGlobals_CheckedChanged;
+            chkGlobals.HelpRequested += frmGameProperties_HelpRequested;
             // 
             // txtSrcExt
             // 
@@ -613,6 +621,34 @@
             lblCodePage.TabIndex = 0;
             lblCodePage.Text = resources.GetString("lblCodePage.Text");
             // 
+            // chkResDefs
+            // 
+            chkResDefs.AutoSize = true;
+            chkResDefs.Checked = true;
+            chkResDefs.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkResDefs.Location = new System.Drawing.Point(19, 262);
+            chkResDefs.Name = "chkResDefs";
+            chkResDefs.Size = new System.Drawing.Size(269, 19);
+            chkResDefs.TabIndex = 12;
+            chkResDefs.Tag = "#useresnames";
+            chkResDefs.Text = "Automatically Include Reserved Define Names";
+            chkResDefs.UseVisualStyleBackColor = true;
+            chkResDefs.CheckedChanged += chkUseReserved_CheckedChanged;
+            // 
+            // chkResourceIDs
+            // 
+            chkResourceIDs.AutoSize = true;
+            chkResourceIDs.Checked = true;
+            chkResourceIDs.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkResourceIDs.Location = new System.Drawing.Point(19, 242);
+            chkResourceIDs.Name = "chkResourceIDs";
+            chkResourceIDs.Size = new System.Drawing.Size(215, 19);
+            chkResourceIDs.TabIndex = 11;
+            chkResourceIDs.Tag = "#useresnames";
+            chkResourceIDs.Text = "Automatically Include Resource IDs ";
+            chkResourceIDs.UseVisualStyleBackColor = true;
+            chkResourceIDs.CheckedChanged += chkResourceIDs_CheckedChanged;
+            // 
             // frmGameProperties
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -659,7 +695,7 @@
         internal System.Windows.Forms.TextBox txtResDir;
         internal System.Windows.Forms.TextBox txtSrcExt;
         internal System.Windows.Forms.CheckBox chkUseLE;
-        internal System.Windows.Forms.CheckBox chkUseReserved;
+        internal System.Windows.Forms.CheckBox chkGlobals;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label7;
@@ -688,5 +724,7 @@
         internal System.Windows.Forms.Button btnOK;
         internal System.Windows.Forms.TabControl tabControl1;
         internal System.Windows.Forms.RadioButton optNone;
+        internal System.Windows.Forms.CheckBox chkResourceIDs;
+        internal System.Windows.Forms.CheckBox chkResDefs;
     }
 }

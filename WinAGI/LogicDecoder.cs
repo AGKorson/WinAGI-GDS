@@ -221,9 +221,26 @@ namespace WinAGI.Engine {
                 DecodeBlock[i].Length = 0;
                 DecodeBlock[i].HasQuit = false;
             }
+            stlOutput.Add("[*********************************************************************");
+            stlOutput.Add("[");
+            stlOutput.Add("[ " + SourceLogic.ID);
+            stlOutput.Add("[");
+            stlOutput.Add("[*********************************************************************");
+            // add standard include files
+            if (SourceLogic.parent.agIncludeIDs) {
+                stlOutput.Add("#include \"resourceids.txt\"");
+            }
+            if (SourceLogic.parent.agIncludeReserved) {
+                stlOutput.Add("#include \"reserved.txt\"");
+            }
+            if (SourceLogic.parent.agIncludeGlobals) {
+                stlOutput.Add("#include \"globals.txt\"");
+            }
+            stlOutput.Add("");
             // treat empty logic as a single return command
             if (bytData.Length == 0) {
-                return "return();" + NEWLINE;
+                stlOutput.Add("return();");
+                return string.Join(NEWLINE, [.. stlOutput]);
             }
 
             // extract messages (add two to offset because the message
@@ -233,7 +250,9 @@ namespace WinAGI.Engine {
             if (!ReadMessages(bytData, lngMsgSecStart, SourceLogic.V3Compressed != 2)) {
                 SourceLogic.ErrLevel = 1;
                 SourceLogic.ErrData[0] = strError;
-                return "return();" + NEWLINE;
+                stlOutput.Add("[ " + strError);
+                stlOutput.Add("return();");
+                return string.Join(NEWLINE, [.. stlOutput]);
             }
 
             // reset main block info
@@ -260,13 +279,17 @@ namespace WinAGI.Engine {
                         // use error string set by findlabels
                         SourceLogic.ErrLevel = 2;
                         SourceLogic.ErrData[0] = strError;
-                        return "[ " + strError + NEWLINE + "return();" + NEWLINE;
+                        stlOutput.Add("[ " + strError);
+                        stlOutput.Add("return();");
+                        return string.Join(NEWLINE, [.. stlOutput]);
                     }
                 }
                 else {
                     SourceLogic.ErrLevel = 2;
                     SourceLogic.ErrData[0] = strError;
-                    return "[ " + strError + NEWLINE + "return();" + NEWLINE;
+                    stlOutput.Add("[ " + strError);
+                    stlOutput.Add("return();");
+                    return string.Join(NEWLINE, [.. stlOutput]);
                 }
             }
             // reset decoder to beginning of bytecode data
@@ -298,7 +321,9 @@ namespace WinAGI.Engine {
                     if (!DecodeIf(bytData, stlOutput)) {
                         SourceLogic.ErrLevel = 4;
                         SourceLogic.ErrData[0] = strError;
-                        return "[ " + strError + NEWLINE + "return();" + NEWLINE;
+                        stlOutput.Add("[ " + strError);
+                        stlOutput.Add("return();");
+                        return string.Join(NEWLINE, [.. stlOutput]);
                     }
                     break;
                 case 0xFE:
@@ -377,7 +402,7 @@ namespace WinAGI.Engine {
                         for (intArg = 0; intArg < ActionCommands[bytCmd].ArgType.Length; intArg++) {
                             bytCurData = bytData[lngPos++];
                             strArg = ArgValue(bytCurData, ActionCommands[bytCmd].ArgType[intArg]);
-                            if (ReservedAsText && compGame.UseReservedNames && SourceLogic.InGame) {
+                            if (ReservedAsText && compGame.agIncludeReserved && SourceLogic.InGame) {
                                 // some commands use resources as arguments; substitute as appropriate
                                 switch (bytCmd) {
                                 case 18:

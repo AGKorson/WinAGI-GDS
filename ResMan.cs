@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using FastColoredTextBoxNS;
+using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,14 +24,22 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
 
 namespace WinAGI.Editor {
-    //***************************************************
-    // Resource Manager Class
-    //
-    // contains global constants, structures, enumerations
-    // methods, functions, that are used by the user 
-    // interface
-    //
-    //***************************************************
+    /***************************************************************
+    WinAGI Game Engine
+    Copyright (C) 2005 - 2025 Andrew Korson
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.    ***************************************************************/
 
     public static class Base {
         #region Global Constants
@@ -106,7 +115,7 @@ namespace WinAGI.Editor {
         public static string CommentStyleRegEx1 = @"\[.*$";
         public static string CommentStyleRegEx2 = @"//.*$";
         public static string StringStyleRegEx = @"""""|"".*?[^\\\n]""|"".*";
-        public static string KeyWordStyleRegEx = @"if|else|goto|#define|#include|#message";
+        public static string KeyWordStyleRegEx = @"\bif\b|\belse\b|\bgoto\b|#define\b|#include\b|#message\b";
         public static string TestCmdStyleRegex = @"\b(" +
                 @"center\.posn|compare\.strings|controller|equaln|equalv|greatern|greaterv|has|" +
                 @"have\.key|isset|issetv|lessn|lessv|obj\.in\.box|obj\.in\.room|posn|right\.posn|" +
@@ -135,8 +144,8 @@ namespace WinAGI.Editor {
                 @"script\.size|set\.cel\.v|set\.cel|set\.cursor\.char|set\.dir|set\.game\.id|" +
                 @"set\.horizon|set\.key|set\.loop\.v|set\.loop|set\.menu\.item|set\.menu|" +
                 @"set\.pri\.base|set\.priority\.v|set\.priority|set\.scan\.start|set\.simple|" +
-                @"set\.string|set\.text\.attribute|set\.upper\.left|set\.view\.v|set\.view|set\.v" +
-                @"|set|shake\.screen|show\.mem|show\.mouse|show\.obj\.v|show\.obj|show\.pic|" +
+                @"set\.string|set\.text\.attribute|set\.upper\.left|set\.view\.v|set\.view|set\.v|" +
+                @"set|shake\.screen|show\.mem|show\.mouse|show\.obj\.v|show\.obj|show\.pic|" +
                 @"show\.pri\.screen|sound|start\.cycling|start\.motion|start\.update|" +
                 @"status\.line\.off|status\.line\.on|status|step\.size|step\.time|stop\.cycling|" +
                 @"stop\.motion|stop\.sound|stop\.update|submit\.menu|subn|subv|text\.screen|" +
@@ -144,7 +153,7 @@ namespace WinAGI.Editor {
                 @"unknowntest19|version|wander|word\.to\.string)\b";
         public static string InvalidCmdStyleRegEx = @"";
         public static string NumberStyleRegEx = @"\b\d+\b";
-        public static string ArgIdentifierStyleRegEx = @"[vfscimo]\d{1,3}\b";
+        public static string ArgIdentifierStyleRegEx = @"\b[vfscimo]\d{1,3}\b";
         //public static string DefIdentifierStyleRegEx = @"(\w|\%|\$|\#|\.|[^\x00-\x7F])+";
         public static string DefIdentifierStyleRegEx = @"(\w|\%|\$|\#|[^\x00-\x7F])(\w|\!|\%|\$|\#|\.|[^\x00-\x7F])+";
         #endregion
@@ -611,8 +620,12 @@ namespace WinAGI.Editor {
             public SettingInt PreviewFontSize = new(nameof(PreviewFontSize), 12, sLOGICS);
             // ErrorLevel: 
             public SettingLogicErrorLevel ErrorLevel = new(nameof(ErrorLevel), LogicErrorLevel.Medium, sLOGICS);
-            // DefUseResDef: default value for UseResDef
-            public SettingBool DefUseResDef = new(nameof(DefUseResDef), true, sLOGICS);
+            // DefIncludeIDs: default value for IncludeIDs property
+            public SettingBool DefIncludeIDs = new(nameof(DefIncludeIDs), true, sLOGICS);
+            // DefIncludeReserved: default value for IncludeReserved property
+            public SettingBool DefIncludeReserved = new(nameof(DefIncludeReserved), true, sLOGICS);
+            // DefIncludeGlobals: default value for IncludeGlobals property
+            public SettingBool DefIncludeGlobals = new(nameof(DefIncludeGlobals), true, sLOGICS);
             // UseSnippets: 
             public SettingBool UseSnippets = new(nameof(UseSnippets), true, sLOGICS);
 
@@ -862,7 +875,7 @@ namespace WinAGI.Editor {
                 clonesettings.PreviewFontName = new(PreviewFontName);
                 clonesettings.PreviewFontSize = new(PreviewFontSize);
                 clonesettings.ErrorLevel = new(ErrorLevel);
-                clonesettings.DefUseResDef = new(DefUseResDef);
+                clonesettings.DefIncludeReserved = new(DefIncludeReserved);
                 clonesettings.UseSnippets = new(UseSnippets);
                 // SYNTAX HIGHLIGHTING
                 clonesettings.EditorBackColor = new(EditorBackColor);
@@ -2022,12 +2035,18 @@ namespace WinAGI.Editor {
                 for (int i = 0; i < 4; i++) {
                     RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
                 }
-                InvalidCmdStyleRegEx = @"";
-                for (int i = ActionCount; i < 182; i++) {
-                    InvalidCmdStyleRegEx += Engine.Commands.ActionCommands[i].Name.Replace(".", "\\.");
-                    if (i != 181) {
-                        InvalidCmdStyleRegEx += @"|";
+                if (ActionCount < 182) {
+                    InvalidCmdStyleRegEx = @"\b(";
+                    for (int i = ActionCount; i < 182; i++) {
+                        InvalidCmdStyleRegEx += Engine.Commands.ActionCommands[i].Name.Replace(".", "\\.");
+                        if (i != 181) {
+                            InvalidCmdStyleRegEx += @"|";
+                        }
                     }
+                    InvalidCmdStyleRegEx += @")\b";
+                }
+                else {
+                    InvalidCmdStyleRegEx = "";
                 }
             }
             else {
@@ -2455,8 +2474,8 @@ namespace WinAGI.Editor {
                 MDIMain.cmbResType.Items[0] = EditGame.GameID;
                 switch (MDIMain.cmbResType.SelectedIndex) {
                 case 1:
-                    foreach (ListViewItem tmpItem in MDIMain.cmbResType.Items) {
-                        if (EditGame.Logics[(byte)tmpItem.Tag].Compiled && EditGame.Logics[(byte)tmpItem.Tag].ErrLevel >= 0) {
+                    foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
+                            if (EditGame.Logics[(byte)tmpItem.Tag].Compiled && EditGame.Logics[(byte)tmpItem.Tag].ErrLevel >= 0) {
                             tmpItem.ForeColor = Color.Black;
                         }
                         else {
@@ -2465,17 +2484,17 @@ namespace WinAGI.Editor {
                     }
                     break;
                 case 2:
-                    foreach (ListViewItem tmpItem in MDIMain.cmbResType.Items) {
+                    foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
                         tmpItem.ForeColor = EditGame.Pictures[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
                     }
                     break;
                 case 3:
-                    foreach (ListViewItem tmpItem in MDIMain.cmbResType.Items) {
+                    foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
                         tmpItem.ForeColor = EditGame.Sounds[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
                     }
                     break;
                 case 4:
-                    foreach (ListViewItem tmpItem in MDIMain.cmbResType.Items) {
+                    foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
                         tmpItem.ForeColor = EditGame.Views[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
                     }
                     break;
@@ -2562,6 +2581,17 @@ namespace WinAGI.Editor {
         }
 
         public static void BuildRDefLookup() {
+            // confirm include template is in app directory
+            if (!File.Exists(Application.StartupPath + "reserved.txt")) {
+                try {
+                    using (FileStream fs = new(Application.StartupPath + "reserved.txt", FileMode.Create)) {
+                        // create from embedded resource
+                        fs.Write(EngineResources.default_resdef);
+                    }
+                }
+                catch (Exception) {
+                }
+            }
             //populate the lookup list that logics will
             //use to support tooltips and define list lookups
             //reserve define count:
@@ -2811,13 +2841,13 @@ namespace WinAGI.Editor {
             //clear the lookup list
             GDefLookup = [];
             try {
-                strFileName = EditGame.GameDir + "globals.txt";
+                strFileName = EditGame.ResDir + "globals.txt";
                 // if no global file, just exit
                 if (!File.Exists(strFileName)) {
                     return;
                 }
                 //open file for input
-                using FileStream fsGlobal = new(strFileName, FileMode.Open);
+                using FileStream fsGlobal = new(strFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using StreamReader srGlobal = new(fsGlobal);
 
                 //read in globals
@@ -3536,11 +3566,12 @@ namespace WinAGI.Editor {
                         break;
                     }
                 }
+                propform.chkResourceIDs.Checked = templateform.IncludeIDs;
+                propform.chkResDefs.Checked = templateform.IncludeReserved;
+                propform.chkGlobals.Checked = templateform.IncludeGlobals;
                 propform.NewCodePage = templateform.CodePage;
-                propform.chkUseReserved.Checked = templateform.UseResDef;
                 propform.chkUseLE.Checked = templateform.UseLayoutEd;
                 propform.chkSierraSyntax.Checked = templateform.SierraSyntax;
-
             }
             // now get properties from user
             if (propform.ShowDialog() == DialogResult.OK) {
@@ -3614,7 +3645,9 @@ namespace WinAGI.Editor {
                     if (EditGame.PlatformType > 0) {
                         EditGame.Platform = propform.NewPlatformFile;
                     }
-                    EditGame.UseReservedNames = propform.chkUseReserved.Checked;
+                    EditGame.IncludeIDs = propform.chkResourceIDs.Checked;
+                    EditGame.IncludeReserved = propform.chkResDefs.Checked;
+                    EditGame.IncludeGlobals = propform.chkGlobals.Checked;
                     EditGame.UseLE = propform.chkUseLE.Checked;
                     // force a save of the property file
                     WinAGISettingsFile.Save();
@@ -4020,7 +4053,7 @@ namespace WinAGI.Editor {
                 else {
                     MDIMain.UseWaitCursor = true;
                     // use the game's default globals file
-                    strFileName = EditGame.GameDir + "globals.txt";
+                    strFileName = EditGame.ResDir + "globals.txt";
                     // look for global file
                     if (!File.Exists(strFileName)) {
                         // look for a defines.txt file in the resource directory
@@ -4868,7 +4901,7 @@ namespace WinAGI.Editor {
                 blnImporting = true;
                 // open file to see if it is sourcecode or compiled logic
                 try {
-                    using FileStream fsNewLog = new(ImportLogicFile, FileMode.Open);
+                    using FileStream fsNewLog = new(ImportLogicFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     using StreamReader srNewLog = new(fsNewLog);
                     strFile = srNewLog.ReadToEnd();
                     srNewLog.Dispose();
@@ -4974,10 +5007,22 @@ namespace WinAGI.Editor {
                     }
                     else {
                         // add default text
-                        tmpLogic.SourceText = "[ " + NEWLINE + "[ " + tmpLogic.ID + NEWLINE +
-                                       "[ " + NEWLINE + NEWLINE + "return();" + NEWLINE + NEWLINE +
-                                       "[*****" + NEWLINE + "[ messages         [  declared messages go here" +
-                                       NEWLINE + "[*****";
+                        StringList src =
+                        [
+                            "[*********************************************************************",
+                            "[",
+                            "[ " + tmpLogic.ID,
+                            "[",
+                            "[*********************************************************************",
+                            "",
+                            "return();",
+                            "",
+                            "[***************************************",
+                            "[ DECLARED MESSAGES",
+                            "[***************************************",
+                            "[  declared messages go here"
+                        ];
+                        tmpLogic.SourceText = string.Join(NEWLINE, [.. src]);
                     }
                 }
                 else {
@@ -4991,14 +5036,37 @@ namespace WinAGI.Editor {
                         //if not importing, we need to add boilerplate text
                         if (blnTemplate) {
                             // add template text to logic source
-                            strLogic = LogTemplateText(tmpLogic.ID, tmpLogic.Description);
+                            bool changed = false;
+                            strLogic = CheckIncludes(LogTemplateText(tmpLogic.ID, tmpLogic.Description), EditGame, ref changed);
                         }
                         else {
                             //add default text
-                            strLogic = "[ " + NEWLINE + "[ " + tmpLogic.ID + NEWLINE +
-                                       "[ " + NEWLINE + NEWLINE + "return();" + NEWLINE + NEWLINE +
-                                       "[*****" + NEWLINE + "[ messages         [  declared messages go here" +
-                                       NEWLINE + "[*****";
+                            StringList src =
+                            [
+                                "[*********************************************************************",
+                                "[",
+                                "[ " + tmpLogic.ID,
+                                "[",
+                                "[*********************************************************************",
+                            ];
+                            // add standard include files
+                            if (EditGame.IncludeIDs) {
+                                src.Add("#include \"resourceids.txt\"");
+                            }
+                            if (EditGame.IncludeReserved) {
+                                src.Add("#include \"reserved.txt\"");
+                            }
+                            if (EditGame.IncludeGlobals) {
+                                src.Add("#include \"globals.txt\"");
+                            }
+                            src.Add("");
+                            src.Add("return();");
+                            src.Add("");
+                            src.Add("[***************************************");
+                            src.Add("[ DECLARED MESSAGES");
+                            src.Add("[***************************************");
+                            src.Add("[  declared messages go here");
+                            strLogic = string.Join(NEWLINE, [.. src]);
                         }
                         //for new resources, need to set the source text
                         tmpLogic.SourceText = strLogic;
@@ -5209,7 +5277,7 @@ namespace WinAGI.Editor {
                 string filedata = "";
                 bool isAGI = true;
                 try {
-                    using FileStream fsSnd = new(ImportSoundFile, FileMode.Open);
+                    using FileStream fsSnd = new(ImportSoundFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     using StreamReader srSnd = new(fsSnd);
                     filedata = srSnd.ReadToEnd();
                     fsSnd.Dispose();
@@ -6346,13 +6414,32 @@ namespace WinAGI.Editor {
             RDefLookup[93].Value = (EditGame.InvObjects.Count - 1).ToString();
         }
 
+        public static void RefreshLogicIncludes() {
+            // updates the include files in all logic source and open ingame editors.
+            // this is done when the include files are changed
+            // in the game settings
+
+            foreach (frmLogicEdit frm in LogicEditors) {
+                if (frm.FormMode == LogicFormMode.Logic) {
+                    if (frm.InGame) {
+                        frm.UpdateIncludes();
+                    }
+                }
+            }
+            foreach (Logic logic in EditGame.Logics) {
+                logic.UpdateIncludes();
+            }
+            // now refresh reslist to indicate correct changed status
+            RefreshTree();
+        }
+
         public static string LogTemplateText(string NewID, string NewDescription) {
             string strLogic = "";
             bool blnNoFile = false;
             //first, get the default file, if there is one
             if (File.Exists(ProgramDir + "deflog.txt")) {
                 try {
-                    using FileStream fsLogTempl = new(ProgramDir + "deflog.txt", FileMode.Open);
+                    using FileStream fsLogTempl = new(ProgramDir + "deflog.txt", FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     using StreamReader srLogTempl = new(fsLogTempl);
                     strLogic = srLogTempl.ReadToEnd();
                 }
@@ -6390,7 +6477,7 @@ namespace WinAGI.Editor {
                 strLogic = strLogic.Replace("%h", WinAGISettings.PTHorizon.Value.ToString());
 
                 //if using reserved names, insert them
-                if (EditGame.UseReservedNames) {
+                if (EditGame.IncludeReserved) {
                     //f5, v0, f2, f4, v9
                     strLogic = strLogic.Replace("f5", LogicCompiler.ReservedDefines(Flag)[5].Name);
                     strLogic = strLogic.Replace("f2", LogicCompiler.ReservedDefines(Flag)[2].Name);
@@ -6858,7 +6945,7 @@ namespace WinAGI.Editor {
                         Text = "Find in Logic"
                     };
                     ProgressWin.lblProgress.Text = "Searching " + EditGame.Logics[LogNum].ID + "...";
-                    ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count;
+                    ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + 1;
                     ProgressWin.pgbStatus.Value = LogicEditors.Count;
                     ProgressWin.Show(MDIMain);
                     ProgressWin.Refresh();

@@ -6680,7 +6680,7 @@ namespace WinAGI.Editor {
             string filedata = "";
             bool isAGI = true;
             try {
-                using FileStream fsSnd = new(importfile, FileMode.Open);
+                using FileStream fsSnd = new(importfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using StreamReader srSnd = new(fsSnd);
                 filedata = srSnd.ReadToEnd();
                 fsSnd.Dispose();

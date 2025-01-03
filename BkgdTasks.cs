@@ -151,6 +151,30 @@ namespace WinAGI.Common {
             MDIMain.Refresh();
             NewResults = (NewGameResults)e.Result;
             if (NewResults.Failed) {
+                // remove everything from target directory
+                foreach (string file in Directory.GetFiles(EditGame.GameDir)) {
+                    try {
+                        File.Delete(file);
+                    }
+                    catch {
+                        // ignore errors
+                    }
+                }
+                foreach (string file in Directory.GetFiles(EditGame.ResDir)) {
+                    try {
+                        File.Delete(file);
+                    }
+                    catch {
+                        // ignore errors
+                    }
+                }
+                try {
+                    Directory.Delete(EditGame.ResDir);
+                }
+                catch {
+                    // ignore errors
+                }
+
                 MessageBox.Show(MDIMain,
                     "Unable to create new game due to an error:\n\n" + NewResults.ErrorMsg,
                     "New AGI Game Error",
@@ -266,6 +290,7 @@ namespace WinAGI.Common {
                     default:
                         // unknown error
                         Debug.Assert(false);
+                        strError = "UNKNOWN: " + lngErr.ToString() + " - " + ex.Source + " - " + ex.Message;
                         break;
                     }
                 }
@@ -323,36 +348,40 @@ namespace WinAGI.Common {
                     break;
                 }
                 if (updating) {
-                    DialogResult rtn = MessageBox.Show(MDIMain,
+                    _ = MessageBox.Show(MDIMain,
                         "This game was last opened with an older version of WinAGI. " +
-                        "If your game uses extended characters, you will need to update your logic " +
-                        "source files.\n\nDo you want your source files updated automatically?\n\n" +
-                        "(Choose NO if your game does NOT use extended characters.)",
-                        "Update WAG File to New Version",
-                        MessageBoxButtons.YesNo);
-                    if (rtn == DialogResult.Yes) {
+                        "Logic source files need to be updated.\n\n" +
+                        "Your original source files will be moved to a backup folder " +
+                        "in your game directory.",
+                        "Updating WAG File to New Version",
+                        MessageBoxButtons.OK);
+                    try {
+                        Directory.CreateDirectory(EditGame.ResDir[..^1] + "_BACKUP");
+                    }
+                    catch {
+                        // ignore exceptions
+                    }
+                    foreach (string file in Directory.GetFiles(EditGame.ResDir, "*.lgc")) {
                         try {
-                            Directory.CreateDirectory(EditGame.ResDir + "_BACKUP");
-                            foreach (string file in Directory.GetFiles(EditGame.ResDir, "*.lgc")) {
-                                SafeFileMove(file, EditGame.ResDir + "_BACKUP\\" + Path.GetFileName(file), true);
-                            }
+                            File.Copy(file, EditGame.ResDir[..^1] + "_BACKUP\\" + Path.GetFileName(file), true);
                         }
                         catch {
-                            // ignore exceptions
                         }
-                        foreach (Logic logic in EditGame.Logics) {
-                            if (File.Exists(logic.SourceFile)) {
-                                try {
-                                    byte[] strdat = File.ReadAllBytes(logic.SourceFile);
-                                    string srcText = EditGame.CodePage.GetString(strdat);
-                                    File.WriteAllText(logic.SourceFile, srcText);
-                                }
-                                catch {
-                                    // ignore exceptions
-                                }
+                    }
+                    foreach (Logic logic in EditGame.Logics) {
+                        if (File.Exists(logic.SourceFile)) {
+                            try {
+                                byte[] strdat = File.ReadAllBytes(logic.SourceFile);
+                                string srcText = EditGame.CodePage.GetString(strdat);
+                                File.WriteAllText(logic.SourceFile, srcText);
+                            }
+                            catch {
+                                // ignore exceptions
                             }
                         }
                     }
+                    // move globals file
+                    SafeFileMove(EditGame.GameDir + "globals.txt", EditGame.ResDir + "globals.txt", true);
                 }
                 break;
             default:

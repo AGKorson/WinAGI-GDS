@@ -53,7 +53,9 @@ namespace WinAGI.Engine {
         internal string agPlatformOpts = "";
         internal string agDOSExec = "";
         internal bool agUseLE = false;
-        internal bool agUseResVar = true;
+        internal bool agIncludeIDs = true;
+        internal bool agIncludeReserved = true;
+        internal bool agIncludeGlobals = true;
         internal Encoding agCodePage = Encoding.GetEncoding(437);
         internal bool agPowerPack = false;
         internal string agSrcFileExt = "";
@@ -452,16 +454,42 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets or sets a value that determines if reserved variables and flags are 
-        /// considered automatically defined, or if they must be manually defined.
+        /// Gets or sets a value that determines if resource IDs are automatically
+        /// considered  defined, or if they must be manually defined.
         /// </summary>
-        public bool UseReservedNames {
-            get => agUseResVar;
+        public bool IncludeIDs {
+            get => agIncludeIDs;
             set {
-                agUseResVar = value;
-                WriteGameSetting("General", "UseLE", agUseResVar.ToString());
+                agIncludeIDs = value;
+                WriteGameSetting("General", "IncludeIDs", agIncludeIDs.ToString());
             }
         }
+
+        /// <summary>
+        /// Gets or sets a value that determines if reserved variables and flags 
+        /// are automatically defined, or if they must be manually defined.
+        /// </summary>
+        public bool IncludeReserved {
+            get => agIncludeReserved;
+            set {
+                agIncludeReserved = value;
+                WriteGameSetting("General", "IncludeReserved", agIncludeReserved.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value that determines if global defines are 
+        /// automatically included in all logics, or if they must be manually
+        /// defined.
+        /// </summary>
+        public bool IncludeGlobals {
+            get => agIncludeGlobals;
+            set {
+                agIncludeGlobals = value;
+                WriteGameSetting("General", "IncludeGlobals", agIncludeGlobals.ToString());
+            }
+        }
+
         /// <summary>
         /// Gets the reserved defines that are game-specific(GameID, GameVersion, GameAbout,
         /// InvItem Count).
@@ -933,7 +961,7 @@ namespace WinAGI.Engine {
                 TWinAGIEventInfo tmpError = new() {
                     Type = EventType.GameCompileError,
                     ResType = AGIResType.Game,
-                    Text = e.Message,
+                    Text = e.Message + ":\n\n" + e.StackTrace.SplitLines()[0],
                     Data = e.HResult - WINAGI_ERR
                 };
                 OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
@@ -1357,8 +1385,45 @@ namespace WinAGI.Engine {
                 // set commands based on AGI version
                 CorrectCommands(agIntVersion);
                 // add logic zero
-                agLogs.Add(0).Save();
+                Logic newlogic = agLogs.Add(0);
+
+                //add default text
+                StringList src =
+                [];
+                // add standard include files
+                if (IncludeIDs) {
+                    src.Add("#include \"resourceids.txt\"");
+                }
+                if (IncludeReserved) {
+                    src.Add("#include \"reserved.txt\"");
+                }
+                if (IncludeGlobals) {
+                    src.Add("#include \"globals.txt\"");
+                }
+                src.Add("");
+                src.Add("return();");
+                src.Add("");
+                newlogic.SourceText = string.Join(NEWLINE, [.. src]);
+                newlogic.Save();
                 agLogs[0].Unload();
+                if (IncludeGlobals) {
+
+                    StringList resIDlist = [
+                        "[",
+                        "[ global defines file for " + agGameID,
+                        "[",
+                        ""];
+                    try {
+                        using FileStream fsList = new FileStream(agResDir + "globals.txt", FileMode.Create);
+                        using StreamWriter swList = new StreamWriter(fsList);
+                        foreach (string line in resIDlist) {
+                            swList.WriteLine(line);
+                        }
+                    }
+                    catch {
+                        // ignore errors for now
+                    }
+                }
             }
             else {
                 eventInfo.InfoType = InfoType.Initialize;
@@ -1476,9 +1541,9 @@ namespace WinAGI.Engine {
                     break;
                 }
                 // update global file header
-                if (File.Exists(agGameDir + "globals.txt")) {
+                if (File.Exists(agResDir + "globals.txt")) {
                     try {
-                        stlGlobals = new SettingsFile(agGameDir + "globals.txt", FileMode.OpenOrCreate);
+                        stlGlobals = new SettingsFile(agResDir + "globals.txt", FileMode.OpenOrCreate);
                         if (stlGlobals.Lines.Count > 3) {
                             if (stlGlobals.Lines[1].Trim().Left(1) == "[") {
                                 stlGlobals.Lines[1] = "[ global defines file for " + NewID;
@@ -1509,8 +1574,9 @@ namespace WinAGI.Engine {
                 }
                 //check retval
             }
-            // force id reset
             blnSetIDs = false;
+            SetResourceIDs(this);
+            SetReserved(this, true);
             // give access to compiler
             compGame = this;
             // enable file watcher
@@ -1969,7 +2035,8 @@ namespace WinAGI.Engine {
             LoadEventStatus(mode, loadInfo);
             // force id reset
             blnSetIDs = false;
-            // if extracting a game
+            SetResourceIDs(this);
+            SetReserved(this, false);
             if (mode == OpenGameMode.Directory) {
                 // write create date
                 WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
@@ -2095,7 +2162,7 @@ namespace WinAGI.Engine {
                             // open file and get chunk
                             string strChunk = new(' ', 6);
                             try {
-                                using (fsCOM = new FileStream(strLoader, FileMode.Open)) {
+                                using (fsCOM = new FileStream(strLoader, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                                     // see if the word 'LOADER' is at position 3 of the file
                                     fsCOM.Position = 3;
                                     fsCOM.Read(bChunk, 0, 6);
@@ -2255,7 +2322,9 @@ namespace WinAGI.Engine {
             agPlatformFile = agGameProps.GetSetting("General", "Platform", "");
             agDOSExec = agGameProps.GetSetting("General", "DOSExec", "");
             agPlatformOpts = agGameProps.GetSetting("General", "PlatformOpts", "");
-            UseReservedNames = agGameProps.GetSetting("General", "UseResNames", true);
+            agIncludeReserved = agGameProps.GetSetting("General", "IncludeReserved", true);
+            agIncludeIDs = agGameProps.GetSetting("General", "IncludeIDs", true);
+            agIncludeGlobals = agGameProps.GetSetting("General", "IncludeGlobals", true);
             agUseLE = agGameProps.GetSetting("General", "UseLE", false);
             agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", false);
             agSrcFileExt = agGameProps.GetSetting("Decompiler", "SourceFileExt", agDefSrcExt).ToLower().Trim();

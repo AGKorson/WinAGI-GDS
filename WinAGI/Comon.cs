@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Engine.Base;
@@ -90,7 +91,7 @@ namespace WinAGI.Common {
         public const string ARG2 = "%2";
         public const string ARG3 = "%3";
         public const string sAPPNAME = "WinAGI Game Development System 3.0 alpha";
-        public const string COPYRIGHT_YEAR = "2024";
+        public const string COPYRIGHT_YEAR = "2025";
         internal static uint[] CRC32Table = new uint[256];
         internal static bool CRC32Loaded;
         public static readonly char[] INVALID_ID_CHARS;
@@ -273,6 +274,195 @@ namespace WinAGI.Common {
             }
             // truncate directory, pad with ... and return combined dir/filename
             return strDir.Left(MaxLength - 4) + "...\\" + strFile;
+        }
+
+        public static string CheckIncludes(string logicsource, AGIGame game, ref bool changed) {
+            // For ingame logics only, this verifies the corrct include lines are
+            // at the start of the file. They should be the first three lines of the
+            // file, following any comment header.
+            //
+            // If the lines are not there and they should be, add them. If there
+            // and not neeeded, remove them.
+            int line, insertpos = -1, idpos = -1, reservedpos = -1, globalspos = -1;
+            int badidpos = -1, badreservedpos = -1, badglobalspos = -1;
+            changed = false;
+            StringList src = [];
+            src.Add(logicsource);
+            string includefile;
+            Regex goodinclude;
+            Regex badinclude;
+
+            for (line = 0; line < src.Count; line++) {
+                if (insertpos < 0 && src[line].Trim().Left(1) != "[" && src[line].Trim().Left(2) != "//") {
+                    insertpos = line;
+                }
+                if (src[line].Trim().Left(8) == "#include") {
+                    // resourceids.txt
+                    includefile = @"resourceids\.txt";
+                    goodinclude = new Regex(@"#include\s*(?i)""" + includefile + @"""");
+                    badinclude = new Regex(@"(#include|\binclude)\s*(?i)(""" + includefile + @"(?!"")\b|" + includefile + @"""|" + includefile + @"\b)");
+                    if (idpos == -1 && goodinclude.Match(src[line]).Success) {
+                        idpos = line;
+                    }
+                    else if (badidpos == -1 && badinclude.Match(src[line]).Success) {
+                        badidpos = line;
+                    }
+                    // reserved.txt
+                    includefile = @"reserved\.txt";
+                    goodinclude = new Regex(@"#include\s*(?i)""" + includefile + @"""");
+                    badinclude = new Regex(@"(#include|\binclude)\s*(?i)(""" + includefile + @"(?!"")\b|" + includefile + @"""|" + includefile + @"\b)");
+                    if (reservedpos == -1 && goodinclude.Match(src[line]).Success) {
+                        reservedpos = line;
+                    }
+                    else if (badreservedpos == -1 && badinclude.Match(src[line]).Success) {
+                        badreservedpos = line;
+                    }
+                    // globals.txt
+                    includefile = @"globals\.txt";
+                    goodinclude = new Regex(@"#include\s*(?i)""" + includefile + @"""");
+                    badinclude = new Regex(@"(#include|\binclude)\s*(?i)(""" + includefile + @"(?!"")\b|" + includefile + @"""|" + includefile + @"\b)");
+                    if (globalspos == -1 && goodinclude.Match(src[line]).Success) {
+                        globalspos = line;
+                    }
+                    else if (badglobalspos == -1 && badinclude.Match(src[line]).Success) {
+                        badglobalspos = line;
+                    }
+                }
+                if (idpos >= 0 && reservedpos >= 0 && globalspos >= 0) {
+                    break;
+                }
+            }
+            if (game.IncludeIDs) {
+                if (idpos >= 0) {
+                    if (idpos != insertpos) {
+                        // move it
+                        if (reservedpos >= 0 && reservedpos < idpos) reservedpos++;
+                        if (badreservedpos >= 0 && badreservedpos < idpos) badreservedpos++;
+                        if (globalspos >= 0 && globalspos < idpos) globalspos++;
+                        if (badglobalspos >= 0 && badglobalspos < idpos) badglobalspos++;
+                        src.Insert(insertpos, src[idpos]);
+                        src.RemoveAt(++idpos);
+                        changed = true;
+                    }
+                }
+                else if (badidpos >= 0) {
+                    // move it, but update to correct text
+                    if (reservedpos >= 0 && reservedpos < idpos) reservedpos++;
+                    if (badreservedpos >= 0 && badreservedpos < idpos) badreservedpos++;
+                    if (globalspos >= 0 && globalspos < idpos) globalspos++;
+                    if (badglobalspos >= 0 && badglobalspos < idpos) badglobalspos++;
+                    src.Insert(insertpos, "#include \"resourceids.txt\"");
+                    src.RemoveAt(++badidpos);
+                    changed = true;
+                }
+                else {
+                    // insert it
+                    if (reservedpos >= 0) reservedpos++;
+                    if (badreservedpos >= 0) reservedpos++;
+                    if (globalspos >= 0) globalspos++;
+                    if (badglobalspos >= 0) globalspos++;
+                    src.Insert(insertpos, "#include \"resourceids.txt\"");
+                    changed = true;
+                }
+                insertpos++;
+            }
+            else {
+                if (idpos >= 0) {
+                    if (reservedpos > idpos) reservedpos--;
+                    if (badreservedpos > idpos) reservedpos--;
+                    if (globalspos > idpos) globalspos--;
+                    if (badglobalspos > idpos) globalspos--;
+                    src.RemoveAt(idpos);
+                    changed = true;
+                }
+                else if (badidpos >= 0) {
+                    if (reservedpos > badidpos) reservedpos--;
+                    if (badreservedpos > badidpos) reservedpos--;
+                    if (globalspos > badidpos) globalspos--;
+                    if (badglobalspos > badidpos) globalspos--;
+                    src.RemoveAt(badidpos);
+                    changed = true;
+                }
+            }
+            if (game.IncludeReserved) {
+                if (reservedpos >= 0) {
+                    if (reservedpos != insertpos) {
+                        // move it
+                        if (globalspos >= 0 && globalspos < reservedpos) globalspos++;
+                        if (badglobalspos >= 0 && badglobalspos < reservedpos) badglobalspos++;
+                        src.Insert(insertpos, src[reservedpos]);
+                        src.RemoveAt(++reservedpos);
+                        changed = true;
+                    }
+                }
+                else if (badreservedpos >= 0) {
+                    // move it, but update to correct text
+                    if (globalspos >= 0 && globalspos < badreservedpos) globalspos++;
+                    if (badglobalspos >= 0 && badglobalspos < badreservedpos) badglobalspos++;
+                    src.Insert(insertpos, "#include \"reserved.txt\"");
+                    src.RemoveAt(++badreservedpos);
+                    changed = true;
+                }
+                else {
+                    // insert it
+                    if (globalspos >= 0) globalspos++;
+                    if (badglobalspos >= 0) globalspos++;
+                    src.Insert(insertpos, "#include \"reserved.txt\"");
+                    changed = true;
+                }
+                insertpos++;
+            }
+            else {
+                if (reservedpos >= 0) {
+                    if (globalspos > reservedpos) globalspos--;
+                    if (badglobalspos > reservedpos) badglobalspos--;
+                    src.RemoveAt(reservedpos);
+                    changed = true;
+                }
+                else if (badreservedpos >= 0) {
+                    if (globalspos > badreservedpos) globalspos--;
+                    if (badglobalspos > badreservedpos) badglobalspos--;
+                    src.RemoveAt(badreservedpos);
+                    changed = true;
+                }
+            }
+            if (game.IncludeGlobals) {
+                if (globalspos >= 0) {
+                    if (globalspos != insertpos) {
+                        // move it
+                        src.Insert(insertpos, src[globalspos]);
+                        src.RemoveAt(++globalspos);
+                        changed = true;
+                    }
+                }
+                else if (badglobalspos >= 0) {
+                    // move it, but update to correct text
+                    src.Insert(insertpos, "#include \"globals.txt\"");
+                    src.RemoveAt(++badglobalspos);
+                    changed = true;
+                }
+                else {
+                    // insert it
+                    src.Insert(insertpos, "#include \"globals.txt\"");
+                    changed = true;
+                }
+            }
+            else {
+                if (globalspos >= 0) {
+                    src.RemoveAt(globalspos);
+                    changed = true;
+                }
+                else if (badglobalspos >= 0) {
+                    src.RemoveAt(badglobalspos);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                return string.Join(NEWLINE, [.. src]);
+            }
+            else {
+                return logicsource;
+            }
         }
 
         /// <summary>

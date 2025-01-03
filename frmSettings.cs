@@ -177,7 +177,7 @@ namespace WinAGI.Editor {
             NewSettings.PreviewFontName.Reset();
             NewSettings.PreviewFontSize.Reset();
             NewSettings.ErrorLevel.Reset();
-            NewSettings.DefUseResDef.Reset();
+            NewSettings.DefIncludeReserved.Reset();
             NewSettings.UseSnippets.Reset();
             // Syntax Highlights
             NewSettings.EditorBackColor.Reset();
@@ -1099,8 +1099,16 @@ namespace WinAGI.Editor {
             NewSettings.AutoWarn.Value = chkAutoWarn.Checked;
         }
 
-        private void chkUseReserved_CheckedChanged(object sender, EventArgs e) {
-            NewSettings.DefUseResDef.Value = chkUseReserved.Checked;
+        private void chkIncludeIDs_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.DefIncludeIDs.Value = chkIncludeIDs.Checked;
+        }
+
+        private void chkIncludeResDefs_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.DefIncludeReserved.Value = chkIncludeResDefs.Checked;
+        }
+
+        private void chkIncludeGlobals_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.DefIncludeGlobals.Value = chkIncludeGlobals.Checked;
         }
 
         private void chkShowComment_CheckedChanged(object sender, EventArgs e) {
@@ -2214,7 +2222,9 @@ namespace WinAGI.Editor {
             chkSpecialSyntax.Checked = NewSettings.SpecialSyntax.Value;
             chkResVarText.Checked = NewSettings.ReservedAsText.Value;
             cmbCodeStyle.SelectedIndex = NewSettings.CodeStyle.IntValue;
-            chkUseReserved.Checked = NewSettings.DefUseResDef.Value;
+            chkIncludeIDs.Checked = NewSettings.DefIncludeIDs.Value;
+            chkIncludeResDefs.Checked = NewSettings.DefIncludeReserved.Value;
+            chkIncludeGlobals.Checked = NewSettings.DefIncludeGlobals.Value;
 
             /*
             // pictures
@@ -2365,7 +2375,9 @@ namespace WinAGI.Editor {
             WinAGISettings.PreviewFontName.WriteSetting(WinAGISettingsFile);
             WinAGISettings.PreviewFontSize.WriteSetting(WinAGISettingsFile);
             WinAGISettings.ErrorLevel.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.DefUseResDef.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.DefIncludeIDs.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.DefIncludeReserved.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.DefIncludeGlobals.WriteSetting(WinAGISettingsFile);
             WinAGISettings.UseSnippets.WriteSetting(WinAGISettingsFile);
 
             // syntax highlighting styles

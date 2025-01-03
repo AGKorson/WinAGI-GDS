@@ -11,11 +11,11 @@
     <ApplicationIcon>fWinAGI32.ico</ApplicationIcon>
     <Authors>Andrew Korson</Authors>
     <Company />
-    <Copyright>2024</Copyright>
+    <Copyright>2025</Copyright>
     <PackageIcon>winagi.jpg</PackageIcon>
     <PackageId>WinAGI_GDS</PackageId>
-    <VersionPrefix>3.0.1</VersionPrefix>
-    <VersionSuffix>alpha8.0</VersionSuffix>
+    <VersionPrefix>3.0.0</VersionPrefix>
+    <VersionSuffix>alpha11.0</VersionSuffix>
     <ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>

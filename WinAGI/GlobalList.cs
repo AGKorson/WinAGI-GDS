@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
@@ -58,10 +59,10 @@ namespace WinAGI.Engine {
         /// </summary>
         public bool IsChanged {
             get {
-                if (File.Exists(parent.agGameDir + "globals.txt")) {
+                if (File.Exists(parent.agResDir + "globals.txt")) {
                     // true if CRC shows file hasn't changed
-                    DateTime dtFileMod = File.GetLastWriteTime(parent.agGameDir + "globals.txt");
-                    return CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString())) != agGlobalCRC;
+                    DateTime dtFileMod = File.GetLastWriteTime(parent.agResDir + "globals.txt");
+                    return CRC32(System.Text.Encoding.Unicode.GetBytes(dtFileMod.ToString())) != agGlobalCRC;
                 }
                 else {
                     return false;
@@ -112,7 +113,7 @@ namespace WinAGI.Engine {
             }
             // open file for input
             try {
-                fsDefines = new FileStream(definefile, FileMode.Open);
+                fsDefines = new FileStream(definefile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             }
             catch (Exception ex) {
                 WinAGIException wex = new(LoadResString(502).Replace(ARG1, ex.HResult.ToString()).Replace(ARG2, definefile)) {
@@ -137,14 +138,15 @@ namespace WinAGI.Engine {
                 strLine = srDefines.ReadLine();
                 if (strLine is null)
                     break;
+                strLine = strLine.Replace('\t', ' ');
                 // strip off comment
                 string s = "";
                 strLine = StripComments(strLine, ref s);
                 if (strLine.Length != 0) {
-                    if (strLine[..8] == "#define ") {
+                    if (strLine.Left(8) == "#define ") {
                         strLine = strLine[8..].Trim();
                         i = strLine.IndexOf(' ');
-                        if (i != 0) {
+                        if (i != -1) {
                             tdNewDefine.Name = strLine[..i].Trim();
                             tdNewDefine.Value = strLine[i..].Trim();
                             // validate define name
@@ -172,9 +174,9 @@ namespace WinAGI.Engine {
                 }
             }
             // get datemodified property
-            dtFileMod = File.GetLastWriteTime(parent.agGameDir + "globals.txt");
+            dtFileMod = File.GetLastWriteTime(parent.agResDir + "globals.txt");
             // save crc for this file
-            agGlobalCRC = CRC32(System.Text.Encoding.GetEncoding(437).GetBytes(dtFileMod.ToString()));
+            agGlobalCRC = CRC32(Encoding.Unicode.GetBytes(dtFileMod.ToString()));
             srDefines.Dispose();
             fsDefines.Dispose();
         }

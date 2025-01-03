@@ -101,7 +101,7 @@ namespace WinAGI.Editor {
                     return false;
                 }
                 //open file for input
-                using FileStream fsGlobal = new(GlobalFile, FileMode.Open);
+                using FileStream fsGlobal = new(GlobalFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using StreamReader srGlobal = new(fsGlobal);
 
                 //read in globals
@@ -524,7 +524,7 @@ namespace WinAGI.Editor {
   
   On Error Resume Next
   'erase any existing global file
-  Kill GameDir & "globals.txt"
+  Kill ResDir & "globals.txt"
   
   On Error GoTo ErrHandler
   'copy tempfile to globals file
@@ -1158,7 +1158,7 @@ End Sub
       If blnInGame Then
         'restore ingame status and filename
         InGame = True
-        FileName = GameDir & "globals.txt"
+        FileName = ResDir & "globals.txt"
       End If
 
     End Sub
@@ -3083,7 +3083,7 @@ Public Function ValidateName(NewDefName As String) As Long
     End If
   Next i
   
-  If LogicCompiler.UseReservedNames Then
+  If LogicCompiler.IncludeReserved Then
     'check against reserved names
     tmpDefines = LogicSourceSettings.ReservedDefines(atVar)
     For i = 0 To UBound(tmpDefines)
@@ -3234,7 +3234,7 @@ Private Function ValidateValue(ByVal NewDefValue As String) As Long
         End If
         
         'if using reserved words
-        If LogicCompiler.UseReservedNames Then
+        If LogicCompiler.IncludeReserved Then
           'if Value is a variable
           If Asc(LCase$(NewDefValue)) = 118 Then
             'if already defined as a reserved variable

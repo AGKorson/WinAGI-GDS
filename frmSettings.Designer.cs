@@ -87,7 +87,7 @@
             groupBox5 = new System.Windows.Forms.GroupBox();
             chkShowComment = new System.Windows.Forms.CheckBox();
             groupBox4 = new System.Windows.Forms.GroupBox();
-            chkUseReserved = new System.Windows.Forms.CheckBox();
+            chkIncludeIDs = new System.Windows.Forms.CheckBox();
             chkAutoWarn = new System.Windows.Forms.CheckBox();
             cmbErrorLevel = new System.Windows.Forms.ComboBox();
             label11 = new System.Windows.Forms.Label();
@@ -105,6 +105,8 @@
             Views = new System.Windows.Forms.TabPage();
             LayoutTab = new System.Windows.Forms.TabPage();
             cdColors = new System.Windows.Forms.ColorDialog();
+            chkIncludeResDefs = new System.Windows.Forms.CheckBox();
+            chkIncludeGlobals = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)rtfPreview).BeginInit();
             tabControl1.SuspendLayout();
             General.SuspendLayout();
@@ -179,7 +181,6 @@
             rtfPreview.CharWidth = 8;
             rtfPreview.CommentPrefix = "[";
             rtfPreview.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
-            rtfPreview.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfPreview.Hotkeys = resources.GetString("rtfPreview.Hotkeys");
             rtfPreview.IsReplaceMode = false;
             rtfPreview.Location = new System.Drawing.Point(24, 35);
@@ -829,7 +830,9 @@
             // 
             // groupBox4
             // 
-            groupBox4.Controls.Add(chkUseReserved);
+            groupBox4.Controls.Add(chkIncludeGlobals);
+            groupBox4.Controls.Add(chkIncludeResDefs);
+            groupBox4.Controls.Add(chkIncludeIDs);
             groupBox4.Controls.Add(chkAutoWarn);
             groupBox4.Controls.Add(cmbErrorLevel);
             groupBox4.Controls.Add(label11);
@@ -840,16 +843,16 @@
             groupBox4.TabStop = false;
             groupBox4.Text = "Compiler Settings";
             // 
-            // chkUseReserved
+            // chkIncludeIDs
             // 
-            chkUseReserved.AutoSize = true;
-            chkUseReserved.Location = new System.Drawing.Point(230, 22);
-            chkUseReserved.Name = "chkUseReserved";
-            chkUseReserved.Size = new System.Drawing.Size(172, 19);
-            chkUseReserved.TabIndex = 3;
-            chkUseReserved.Text = "Always use reserved defines";
-            chkUseReserved.UseVisualStyleBackColor = true;
-            chkUseReserved.CheckedChanged += chkUseReserved_CheckedChanged;
+            chkIncludeIDs.AutoSize = true;
+            chkIncludeIDs.Location = new System.Drawing.Point(230, 22);
+            chkIncludeIDs.Name = "chkIncludeIDs";
+            chkIncludeIDs.Size = new System.Drawing.Size(172, 19);
+            chkIncludeIDs.TabIndex = 3;
+            chkIncludeIDs.Text = "Always include resource IDs";
+            chkIncludeIDs.UseVisualStyleBackColor = true;
+            chkIncludeIDs.CheckedChanged += chkIncludeIDs_CheckedChanged;
             // 
             // chkAutoWarn
             // 
@@ -1012,7 +1015,7 @@
             Views.Text = "Views";
             Views.UseVisualStyleBackColor = true;
             // 
-            // Layout
+            // LayoutTab
             // 
             LayoutTab.Location = new System.Drawing.Point(4, 24);
             LayoutTab.Name = "LayoutTab";
@@ -1025,6 +1028,28 @@
             // 
             cdColors.AnyColor = true;
             cdColors.SolidColorOnly = true;
+            // 
+            // chkIncludeResDefs
+            // 
+            chkIncludeResDefs.AutoSize = true;
+            chkIncludeResDefs.Location = new System.Drawing.Point(230, 47);
+            chkIncludeResDefs.Name = "chkIncludeResDefs";
+            chkIncludeResDefs.Size = new System.Drawing.Size(193, 19);
+            chkIncludeResDefs.TabIndex = 4;
+            chkIncludeResDefs.Text = "Always include reserved defines";
+            chkIncludeResDefs.UseVisualStyleBackColor = true;
+            chkIncludeResDefs.CheckedChanged += chkIncludeResDefs_CheckedChanged;
+            // 
+            // chkIncludeGlobals
+            // 
+            chkIncludeGlobals.AutoSize = true;
+            chkIncludeGlobals.Location = new System.Drawing.Point(230, 72);
+            chkIncludeGlobals.Name = "chkIncludeGlobals";
+            chkIncludeGlobals.Size = new System.Drawing.Size(182, 19);
+            chkIncludeGlobals.TabIndex = 5;
+            chkIncludeGlobals.Text = "Always include global defines";
+            chkIncludeGlobals.UseVisualStyleBackColor = true;
+            chkIncludeGlobals.CheckedChanged += chkIncludeGlobals_CheckedChanged;
             // 
             // frmSettings
             // 
@@ -1139,7 +1164,7 @@
         private System.Windows.Forms.GroupBox groupBox5;
         private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.CheckBox chkUseReserved;
+        private System.Windows.Forms.CheckBox chkIncludeIDs;
         private System.Windows.Forms.CheckBox chkAutoWarn;
         private System.Windows.Forms.ComboBox cmbErrorLevel;
         private System.Windows.Forms.Label label11;
@@ -1154,5 +1179,7 @@
         private System.Windows.Forms.CheckBox chkMsgsByNum;
         private System.Windows.Forms.CheckBox chkDocMap;
         private System.Windows.Forms.CheckBox chkLineNumbers;
+        private System.Windows.Forms.CheckBox chkIncludeGlobals;
+        private System.Windows.Forms.CheckBox chkIncludeResDefs;
     }
 }

@@ -22,7 +22,7 @@ namespace WinAGI {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class EngineResources {
+    public class EngineResources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -1546,6 +1546,24 @@ namespace WinAGI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Include file cannot be this logic&apos;s source code file.
+        /// </summary>
+        internal static string _4166 {
+            get {
+                return ResourceManager.GetString("4166", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 is a required #include file for this logic.
+        /// </summary>
+        internal static string _4167 {
+            get {
+                return ResourceManager.GetString("4167", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This command block contains no commands.
         /// </summary>
         internal static string _5001 {
@@ -2203,7 +2221,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The message box won&apos;t draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39.
+        ///   Looks up a localized string similar to The message box may not draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39.
         /// </summary>
         internal static string _5068 {
             get {
@@ -2671,11 +2689,20 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Commands after a quit() command are always ignored by AGI.
+        ///   Looks up a localized string similar to Commands after a forced quit() command are always ignored by AGI.
         /// </summary>
         internal static string _5116 {
             get {
                 return ResourceManager.GetString("5116", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate include file (%1).
+        /// </summary>
+        internal static string _5117 {
+            get {
+                return ResourceManager.GetString("5117", resourceCulture);
             }
         }
         
@@ -4012,11 +4039,29 @@ namespace WinAGI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected error when importing game from DIR.
+        /// </summary>
+        internal static string _648 {
+            get {
+                return ResourceManager.GetString("648", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unhandled error in Views.Add method(%1).
         /// </summary>
         internal static string _649 {
             get {
                 return ResourceManager.GetString("649", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected error when opening game from WAG file.
+        /// </summary>
+        internal static string _650 {
+            get {
+                return ResourceManager.GetString("650", resourceCulture);
             }
         }
         
@@ -4512,6 +4557,16 @@ namespace WinAGI {
         internal static string _999 {
             get {
                 return ResourceManager.GetString("999", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] default_resdef {
+            get {
+                object obj = ResourceManager.GetObject("default_resdef", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

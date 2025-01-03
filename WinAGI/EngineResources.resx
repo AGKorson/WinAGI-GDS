@@ -1614,4 +1614,11 @@
   <data name="650" xml:space="preserve">
     <value>Unexpected error when opening game from WAG file</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="default_resdef" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\reserved.txt;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="4167" xml:space="preserve">
+    <value>%1 is a required #include file for this logic</value>
+  </data>
 </root>

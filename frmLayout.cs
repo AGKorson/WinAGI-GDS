@@ -3958,7 +3958,7 @@ namespace WinAGI.Editor {
           NewExit.Reason = erOther
           NewExitText = NewExitText & "condition == True)" & LineCR & Space$(Settings.LogicTabWidth) & "{" & Space$(Settings.LogicTabWidth) & LineCR & Space$(Settings.LogicTabWidth) & strNewRoom
         Else
-          If LogicCompiler.UseReservedNames Then
+          If LogicCompiler.IncludeReserved Then
             NewExitText = NewExitText & LogicSourceSettings.ReservedDefines(atVar)(2).Name & " == " & LogicSourceSettings.ReservedDefines(atNum)(NewExit.Reason).Name & ")" & LineCR & Space$(Settings.LogicTabWidth) & "{" & LineCR & Space$(Settings.LogicTabWidth) & strNewRoom
           Else
             NewExitText = NewExitText & "v2 == " & CStr(NewExit.Reason) & ")" & LineCR & Space$(Settings.LogicTabWidth) & "{" & LineCR & Space$(Settings.LogicTabWidth) & strNewRoom

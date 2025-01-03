@@ -16,33 +16,12 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmTemplates : Form {
-        private string[] strVersions = new string[19];
+        //private string[] strVersions = new string[19];
         public int CodePage;
-        public bool UseResDef, UseLayoutEd, SierraSyntax;
-
+        public bool IncludeReserved, UseLayoutEd, SierraSyntax;
+        public bool IncludeIDs, IncludeGlobals;
         public frmTemplates() {
             InitializeComponent();
-
-            // load versions
-            strVersions[0] = "2.089";
-            strVersions[1] = "2.272";
-            strVersions[2] = "2.411";
-            strVersions[3] = "2.425";
-            strVersions[4] = "2.426";
-            strVersions[5] = "2.435";
-            strVersions[6] = "2.439";
-            strVersions[7] = "2.440";
-            strVersions[8] = "2.903";
-            strVersions[9] = "2.911";
-            strVersions[10] = "2.912";
-            strVersions[11] = "2.915";
-            strVersions[12] = "2.917";
-            strVersions[13] = "2.936";
-            strVersions[14] = "3.002086";
-            strVersions[15] = "3.002098";
-            strVersions[16] = "3.002102";
-            strVersions[17] = "3.002107";
-            strVersions[18] = "3.002149";
 
             // step through all subdirectories in the templates directory
             // if the directory contains a .wag file,
@@ -131,7 +110,9 @@ namespace WinAGI.Editor {
             strVersion = WagFile.GetSetting("General", "Interpreter", "", true);
             strDescription = WagFile.GetSetting("General", "Description", "", true);
             CodePage = WagFile.GetSetting("General", "CodePage", 437, true);
-            UseResDef = WagFile.GetSetting("General", "UseResNames", true, true);
+            IncludeIDs = WagFile.GetSetting("General", "IncludeIDs", true, true);
+            IncludeReserved = WagFile.GetSetting("General", "IncludeReserved", true, true);
+            IncludeGlobals = WagFile.GetSetting("General", "IncludeGlobals", true, true);
             UseLayoutEd = WagFile.GetSetting("General", "UseLE", true, true);
             SierraSyntax = WagFile.GetSetting("General", "SierraSyntax", false, true);
 
@@ -145,7 +126,7 @@ namespace WinAGI.Editor {
                 RemoveBadTemplate();
                 return;
             }
-            if (strVersions.Contains(strVersion)) {
+            if (WinAGI.Engine.Base.IntVersions.Contains(strVersion)) {
                 txtVersion.Text = strVersion;
                 txtDescription.Text = strDescription;
                 btnOK.Enabled = true;

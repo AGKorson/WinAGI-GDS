@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
@@ -243,7 +244,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if (mInGame) {
-                    mCRC = CRC32(parent.agCodePage.GetBytes(mSourceText));
+                    mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
                     mSourceChanged = true;
                 }
             }
@@ -424,7 +425,7 @@ namespace WinAGI.Engine {
             mSourceText = "return();" + NEWLINE;
             if (mInGame) {
                 // reset crcs
-                mCRC = CRC32(Encoding.GetEncoding(437).GetBytes(mSourceText));
+                mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
                 mCompiledCRC = mCRC;
             }
             mSourceChanged = true;
@@ -591,11 +592,6 @@ namespace WinAGI.Engine {
                 }
                 try {
                     mSourceText = File.ReadAllText(SourceFile);
-
-
-
-
-
                 }
                 catch (Exception e) {
                     mSrcErrLevel = -3;
@@ -614,7 +610,7 @@ namespace WinAGI.Engine {
             }
             // calculate source crc
             if (mInGame) {
-                tmpCRC = CRC32(parent.agCodePage.GetBytes(mSourceText));
+                tmpCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
                 if (mCRC != tmpCRC) {
                     // update crc
                     mCRC = tmpCRC;
@@ -629,9 +625,29 @@ namespace WinAGI.Engine {
             }
             else {
                 // update crc
-                mCRC = CRC32(Encoding.GetEncoding(437).GetBytes(mSourceText));
+                mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
             }
             mSourceChanged = false;
+        }
+
+        public  void UpdateIncludes() {
+            if (!mInGame) {
+                return;
+            }
+            bool changed = false, unload = false;
+            if (!mLoaded) {
+                LoadSource();
+                unload = true;
+            }
+            mSourceText = CheckIncludes(mSourceText, parent, ref changed);
+            if (changed) {
+                mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
+                parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
+                SaveSource();
+            }
+            if (unload) {
+                Unload();
+            }
         }
 
         /// <summary>

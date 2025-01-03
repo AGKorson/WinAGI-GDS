@@ -13,6 +13,7 @@ using static WinAGI.Engine.LogicErrorLevel;
 using System.Diagnostics;
 using System.Net.Quic;
 using WinAGI.Common;
+using System.Windows.Forms;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -735,7 +736,7 @@ namespace WinAGI.Engine {
             }
             // check against reserved names if this game is using them,
             // OR if testing the list of reserved names
-            if (Reserved || compGame.UseReservedNames) {
+            if (Reserved || compGame.agIncludeReserved) {
                 // reserved variables
                 tmpDefines = ReservedDefines(Var);
                 for (i = 0; i < tmpDefines.Length; i++) {
@@ -833,14 +834,14 @@ namespace WinAGI.Engine {
                 return tmpResult;
             }
             // check against current globals
-            if (compGame is not null) {
+            if (compGame is not null && compGame.agIncludeGlobals) {
                 for (i = 0; i < compGame.GlobalDefines.Count; i++) {
                     if (CheckDef.Name == compGame.GlobalDefines[i].Name)
                         return DefineNameCheck.Global;
                 }
             }
             // check against ingame reserved defines:
-            if (compGame is not null && compGame.UseReservedNames) {
+            if (compGame is not null && compGame.agIncludeReserved) {
                 for (i = 0; i < compGame.agResGameDef.Length; i++) {
                     if (CheckDef.Name == compGame.agResGameDef[i].Name)
                         //invobj count is number; rest are msgstrings
@@ -920,7 +921,7 @@ namespace WinAGI.Engine {
                         // check if Value is already assigned
                         switch (TestDefine.Type) {
                         case Flag:
-                            if (compGame.UseReservedNames) {
+                            if (compGame.agIncludeReserved) {
                                 if (intVal <= 15)
                                     return Reserved;
                                 if (intVal == 20) {
@@ -932,7 +933,7 @@ namespace WinAGI.Engine {
                             }
                             break;
                         case Var:
-                            if (compGame.UseReservedNames) {
+                            if (compGame.agIncludeReserved) {
                                 if (intVal <= 26)
                                     return Reserved;
                             }
@@ -940,7 +941,7 @@ namespace WinAGI.Engine {
                         case Msg:
                             break;
                         case SObj:
-                            if (compGame.UseReservedNames) {
+                            if (compGame.agIncludeReserved) {
                                 // can't be ego
                                 if (intVal == 0)
                                     return Reserved;
@@ -1047,9 +1048,9 @@ namespace WinAGI.Engine {
             List<string> stlSource;
             compLogic = SourceLogic;
 
-            if (compGame.GlobalDefines.IsChanged) {
+            if (compGame.IncludeGlobals && compGame.GlobalDefines.IsChanged) {
                 try {
-                    compGame.GlobalDefines.LoadGlobalDefines(compGame.agGameDir + "globals.txt");
+                    compGame.GlobalDefines.LoadGlobalDefines(compGame.agResDir + "globals.txt");
                 }
                 catch (Exception ex) {
                     // if no file or empty file, then continue, with no global entries
@@ -1155,6 +1156,12 @@ namespace WinAGI.Engine {
             if (blnSetIDs) {
                 return;
             }
+            StringList resIDlist = [
+                "[ Resource ID Defines file for " + game.agGameID,
+                "[",
+                "[ WinAGI generated code required for IncludeResourceIDs support - ",
+                "[ do not modify the contents of this file with the code editor.",
+                ""];
             strLogID = new string[256];
             strPicID = new string[256];
             strSndID = new string[256];
@@ -1163,19 +1170,126 @@ namespace WinAGI.Engine {
             Array.Fill(strPicID, "");
             Array.Fill(strSndID, "");
             Array.Fill(strViewID, "");
+            resIDlist.Add("[ Logics");
             foreach (Logic tmpLog in game.agLogs) {
                 strLogID[tmpLog.Number] = tmpLog.ID;
+                resIDlist.Add("#define " + tmpLog.ID.PadRight(17) + tmpLog.Number.ToString().PadLeft(5));
             }
+            resIDlist.Add("");
+            resIDlist.Add("[ Pictures");
             foreach (Picture tmpPic in game.agPics) {
                 strPicID[tmpPic.Number] = tmpPic.ID;
+                resIDlist.Add("#define " + tmpPic.ID.PadRight(17) + tmpPic.Number.ToString().PadLeft(5));
             }
+            resIDlist.Add("");
+            resIDlist.Add("[ Sounds");
             foreach (Sound tmpSnd in game.agSnds) {
                 strSndID[tmpSnd.Number] = tmpSnd.ID;
+                resIDlist.Add("#define " + tmpSnd.ID.PadRight(17) + tmpSnd.Number.ToString().PadLeft(5));
             }
+            resIDlist.Add("");
+            resIDlist.Add("[ Views");
             foreach (View tmpView in game.agViews) {
                 strViewID[tmpView.Number] = tmpView.ID;
+                resIDlist.Add("#define " + tmpView.ID.PadRight(17) + tmpView.Number.ToString().PadLeft(5));
+            }
+            // save defines file
+            try {
+                using FileStream fsList = new FileStream(game.agResDir + "resourceids.txt", FileMode.Create);
+                using StreamWriter swList = new StreamWriter(fsList);
+                foreach (string line in resIDlist) {
+                    swList.WriteLine(line);
+                }
+            }
+            catch {
+                // ignore errors for now
             }
             blnSetIDs = true;
+        }
+
+        /// <summary>
+        /// This method updates the reserved defines file for the specified game.
+        /// </summary>
+        /// <param name="game"></param>
+        internal static void SetReserved(AGIGame game, bool force) {
+            if (!game.IncludeReserved) {
+                return;
+            }
+            // only need to update if file is missing, OR if any of the defines
+            // have changed, OR if game properties have changed
+            if (!File.Exists(game.agResDir + "reserved.txt") || force) {
+                StringList resList = [
+                "[ Reserved Defines",
+                "[",
+                "[ WinAGI generated code required for IncludeReserved support - ",
+                "[ do not modify the contents of this file with the code editor.",
+                "",
+                "[ Reserved Variables"];
+                for (int i = 0; i < agResVar.Length; i++) {
+                    resList.Add("#define " + agResVar[i].Name.PadRight(17) + agResVar[i].Value.PadLeft(5));
+                }
+                resList.Add("");
+                resList.Add("[ Reserved Flags");
+                for (int i = 0; i < agResFlag.Length; i++) {
+                    resList.Add("#define " + agResFlag[i].Name.PadRight(17) + agResFlag[i].Value.PadLeft(5));
+                }
+                resList.Add("");
+                resList.Add("[ Edge Codes");
+                for (int i = 0; i < agEdgeCodes.Length; i++) {
+                    resList.Add("#define " + agEdgeCodes[i].Name.PadRight(17) + agEdgeCodes[i].Value.PadLeft(5));
+                }
+                resList.Add("");
+                resList.Add("[ Object Direction");
+                for (int i = 0; i < agEgoDir.Length; i++) {
+                    resList.Add("#define " + agEgoDir[i].Name.PadRight(17) + agEgoDir[i].Value.PadLeft(5));
+                }
+                resList.Add("");
+                resList.Add("[ Video Modes");
+                for (int i = 0; i < agVideoMode.Length; i++) {
+                    resList.Add("#define " + agVideoMode[i].Name.PadRight(17) + agVideoMode[i].Value.PadLeft(5));
+                }
+                resList.Add("");
+                resList.Add("[ Computer Types");
+                for (int i = 0; i < agCompType.Length; i++) {
+                    resList.Add("#define " + agCompType[i].Name.PadRight(17) + agCompType[i].Value.PadLeft(5));
+                }
+                resList.Add("");
+                resList.Add("[ Colors");
+                for (int i = 0; i < agResColor.Length; i++) {
+                    resList.Add("#define " + agResColor[i].Name.PadRight(17) + agResColor[i].Value.PadLeft(5));
+                }
+                resList.Add("");
+                resList.Add("[ Other Defines");
+                resList.Add("#define " + agResObj[0].Name.PadRight(17) + agResObj[0].Value.PadLeft(5));
+                resList.Add("#define " + agResStr[0].Name.PadRight(17) + agResStr[0].Value.PadLeft(5));
+                resList.Add("");
+                resList.Add("[ Game Properties");
+                game.agResGameDef[0].Value = game.agGameID;
+                game.agResGameDef[1].Value = game.agGameVersion;
+                game.agResGameDef[2].Value = game.agGameAbout;
+                bool loaded = game.InvObjects.Loaded;
+                if (!loaded) {
+                    game.InvObjects.Load();
+                }
+                game.agResGameDef[3].Value = game.InvObjects.Count.ToString();
+                if (!loaded) {
+                    game.InvObjects.Unload();
+                }
+                for (int i = 0; i < game.agResGameDef.Length; i++) {
+                    resList.Add("#define " + game.agResGameDef[i].Name.PadRight(17) + game.agResGameDef[i].Value.PadLeft(5));
+                }
+                // save defines file
+                try {
+                    using FileStream fsList = new FileStream(game.agResDir + "reserved.txt", FileMode.Create);
+                    using StreamWriter swList = new StreamWriter(fsList);
+                    foreach (string line in resList) {
+                        swList.WriteLine(line);
+                    }
+                }
+                catch {
+                    // ignore errors for now
+                }
+            }
         }
 
         /// <summary>
@@ -1462,7 +1576,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 // lastly, check reserved names if they are being used
-                if (compGame.UseReservedNames) {
+                if (compGame.agIncludeReserved) {
                     switch (argtype) {
                     case Num:
                         for (i = 0; i <= 4; i++) {
@@ -1639,23 +1753,23 @@ namespace WinAGI.Engine {
                 }
             }
             // lastly, check reserved names, if they are being used
-            if (compGame.UseReservedNames) {
+            if (compGame.agIncludeReserved) {
                 for (int i = 0; i <= 26; i++) {
                     if (strArgIn == agResVar[i].Name) {
                         return i;
                     }
                 }
-            }
-            for (int i = 0; i <= 17; i++) {
-                if (strArgIn == agResFlag[i].Name) {
-                    return i;
+                for (int i = 0; i <= 17; i++) {
+                    if (strArgIn == agResFlag[i].Name) {
+                        return i;
+                    }
+                }
+                // check for o0, s0
+                if (strArgIn == agResObj[0].Name || strArgIn == agResStr[0].Name) {
+                    return 0;
                 }
             }
-            // check for o0, s0
-            if (strArgIn == agResObj[0].Name || strArgIn == agResStr[0].Name) {
-                return 0;
-            }
-            //if not found or error, return false
+            // if not found or error, return false
             return -1;
         }
 
@@ -1726,7 +1840,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// This method passes through the inpuyt logic and replaces all include statements
+        /// This method passes through the input logic and replaces all include statements
         /// with the contents of the specified include file.
         /// </summary>
         /// <param name="stlLogicText"></param>
@@ -1736,7 +1850,7 @@ namespace WinAGI.Engine {
             // include file lines are given a marker to identify them as belonging to
             // an include file
             string strLineText;
-
+            bool includesID = false, includesReserved = false, includesGlobals = false;
             // begin with empty array of source lines
             stlInput = [];
             for (lngLine = 0; lngLine < stlLogicText.Count; lngLine++) {
@@ -1771,9 +1885,37 @@ namespace WinAGI.Engine {
                     // for errors)
                     stlInput.Add("");
                     break;
+                case 2:
+                    // resourceids.txt - skip this include file
+                    includesID = true;
+                    stlInput.Add("");
+                    break;
+                case 3:
+                    // reserved.txt - skip this include file
+                    includesReserved = true;
+                    stlInput.Add("");
+                    break;
+                case 4:
+                    // globals.txt - skip this include file
+                    includesGlobals = true;
+                    stlInput.Add("");
+                    break;
                 default: // -1 = error
                     return false;
                 }
+            }
+            // confirm auto-includes were added
+            if (compGame.IncludeIDs && !includesID) {
+                AddError(4167, LoadResString(4167).Replace(ARG1, "resourceids.txt"), true);
+                return false;
+            }
+            if (compGame.IncludeReserved && !includesReserved) {
+                AddError(4167, LoadResString(4167).Replace(ARG1, "reserved.txt"), true);
+                return false;
+            }
+            if (compGame.IncludeGlobals && !includesGlobals) {
+                AddError(4167, LoadResString(4167).Replace(ARG1, "globals.txt"), true);
+                return false;
             }
             // success
             return true;
@@ -1865,6 +2007,18 @@ namespace WinAGI.Engine {
             if (!File.Exists(strIncludeFilename)) {
                 AddError(4050, LoadResString(4050).Replace(ARG1, strIncludeFilename), true);
                 return -1;
+            }
+            if (compGame.IncludeIDs && strIncludeFilename == compGame.agResDir + "resourceids.txt") {
+                // skip it- IDs handled separately
+                return 2;
+            }
+            if (compGame.IncludeReserved && strIncludeFilename == compGame.agResDir + "reserved.txt") {
+                // skip it- reserved defines handled separately
+                return 3;
+            }
+            if (compGame.IncludeGlobals && strIncludeFilename == compGame.agResDir + "globals.txt") {
+                // skip it- globals handled separately
+                return 4;
             }
             // check all loaded includes
             for (i = 0; i < intFileCount; i++) {

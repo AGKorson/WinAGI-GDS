@@ -349,7 +349,7 @@ namespace WinAGI.Editor {
             AGIToken seltoken = fctb.TokenFromPos();
             switch (seltoken.Type) {
             case AGITokenType.Identifier:
-                // look for id or define
+                // look for resourceid or define
                 for (int restype = 0; restype < 4; restype++) {
                     for (int num = 0; num < 256; num++) {
                         if (IDefLookup[restype, num].Type != ArgType.None) {
@@ -361,6 +361,7 @@ namespace WinAGI.Editor {
                                 };
                                 mnuEOpenRes.Tag = taginfo;
                                 mnuEOpenRes.Visible = true;
+                                mnuEOpenRes.Enabled = true;
                                 break;
                             }
                         }
@@ -369,14 +370,18 @@ namespace WinAGI.Editor {
                 break;
             case AGITokenType.String:
                 if (fctb.PreviousToken(seltoken).Text == "#include") {
+                    if (seltoken.Text[^1] != '"') {
+                        seltoken.Text += '"';
+                    }
                     mnuEOpenRes.Text = "Open " + seltoken.Text + " for Editing";
-                    //mnuEOpenRes.Tag = seltoken.Text;
                     Point taginfo = new() {
                         X = 4,
                         Y = 0
                     };
                     mnuEOpenRes.Tag = taginfo;
                     mnuEOpenRes.Visible = true;
+                    // resoureids.txt is not editable
+                    mnuEOpenRes.Enabled = (!seltoken.Text.Equals("\"resourceids.txt\"",StringComparison.OrdinalIgnoreCase));
                     break;
                 }
                 // not an include, check for 'said' word
@@ -563,9 +568,20 @@ namespace WinAGI.Editor {
                 OpenGameView((byte)taginfo.Y);
                 break;
             default:
-                //"Open " + seltoken.Text + " for Editing"
+                // include file
                 string filename = mnuEOpenRes.Text[6..(^13)];
                 if (InGame) {
+                    // globals.txt and reserved.txt use special editors
+                    if (filename.Equals("globals.txt", StringComparison.OrdinalIgnoreCase)) {
+                        OpenGlobals();
+                        return;
+                    }
+                    else if (filename.Equals("reserved.txt", StringComparison.OrdinalIgnoreCase)) {
+                        MessageBox.Show(MDIMain,
+                            "TODO: reserved defines editor");
+                        return;
+
+                    }
                     // relatve to the source dir
                     filename = Path.GetFullPath(EditGame.ResDir + filename);
                 }
@@ -692,7 +708,6 @@ namespace WinAGI.Editor {
             // ALWAYS reset search flags
             FindForm.ResetSearch();
             */
-
             switch ((int)e.KeyChar) {
             case 9:
                 // TAB
@@ -2218,7 +2233,7 @@ namespace WinAGI.Editor {
             Logic tmpLogic = new();
             // open file to see if it is sourcecode or compiled logic
             try {
-                using FileStream fsNewLog = new(importfile, FileMode.Open);
+                using FileStream fsNewLog = new(importfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using StreamReader srNewLog = new(fsNewLog);
                 strFile = srNewLog.ReadToEnd();
                 srNewLog.Dispose();
@@ -2301,9 +2316,8 @@ namespace WinAGI.Editor {
                 }
                 return;
             }
-            EditLogic.SourceText = tmpLogic.SourceText;
-            rtfLogic1.Text = tmpLogic.SourceText;
-            // TODO: refresh highlight?
+            UpdateIncludes();
+            EditLogic.SourceText = fctb.Text;
         }
 
         public void SaveLogicSource() {
@@ -2328,7 +2342,8 @@ namespace WinAGI.Editor {
                 // TODO: lot of re-work on layout functions
                 // probably can cleanup the update functions so it's easier 
                 // to manage...
-                EditGame.Logics[LogicNumber].SourceText = rtfLogic1.Text;
+                UpdateIncludes();
+                EditGame.Logics[LogicNumber].SourceText = fctb.Text;
 
                 if (EditGame.UseLE && EditLogic.IsRoom) {
                     // need to update the layout editor and the layout data file with new exit info
@@ -2556,9 +2571,9 @@ namespace WinAGI.Editor {
                     LogicNumber = frmGetNum.NewResNum;
                     // change id before adding to game
                     EditLogic.ID = frmGetNum.txtID.Text;
+                    UpdateIncludes();
                     // copy text back into sourcecode
-                    Debug.Assert(EditLogic.SourceText == rtfLogic1.Text);
-                    //EditLogic.SourceText = rtfLogic1.Text;
+                    EditLogic.SourceText = fctb.Text;
                     // always import logics as non-room;
                     // user can always change it later via the
                     // InRoom property
@@ -2602,6 +2617,172 @@ namespace WinAGI.Editor {
                 }
                 if (EditGame.UseLE) {
                     UpdateExitInfo(UpdateReason.RenumberRoom, oldnum, null, NewResNum);
+                }
+            }
+        }
+
+        public void UpdateIncludes() {
+            // For ingame logics only, this verifies the correct include lines are
+            // at the start of the source code. They should be the first three lines of the
+            // file, following any comment header.
+            //
+            // If the lines are not there and they should be, add them. If there
+            // and not needed, remove them.
+            int line, insertpos = -1, idpos = -1, reservedpos = -1, globalspos = -1;
+            int badidpos = -1, badreservedpos = -1, badglobalspos = -1;
+            string includefile;
+            Regex goodinclude;
+            Regex badinclude;
+
+            for (line = 0; line < fctb.Lines.Count; line++) {
+                if (insertpos < 0 && fctb.Lines[line].Trim().Left(1) != "[" && fctb.Lines[line].Trim().Left(2) != "//") {
+                    insertpos = line;
+                }
+                if (fctb.Lines[line].Trim().StartsWith("#include")) {
+                    // resourceids.txt
+                    includefile = @"resourceids\.txt";
+                    goodinclude = new Regex(@"#include\s*(?i)""" + includefile + @"""");
+                    badinclude = new Regex(@"(#include|\binclude)\s*(?i)(""" + includefile + @"(?!"")\b|" + includefile + @"""|" + includefile + @"\b)");
+                    if (idpos == -1 && goodinclude.Match(fctb.Lines[line]).Success) {
+                        idpos = line;
+                    }
+                    else if (badidpos == -1 && badinclude.Match(fctb.Lines[line]).Success) {
+                        badidpos = line;
+                    }
+                    // reserved.txt
+                    includefile = @"reserved\.txt";
+                    goodinclude = new Regex(@"#include\s*(?i)""" + includefile + @"""");
+                    badinclude = new Regex(@"(#include|\binclude)\s*(?i)(""" + includefile + @"(?!"")\b|" + includefile + @"""|" + includefile + @"\b)");
+                    if (reservedpos == -1 && goodinclude.Match(fctb.Lines[line]).Success) {
+                        reservedpos = line; 
+                    }
+                    else if (badreservedpos == -1 && badinclude.Match(fctb.Lines[line]).Success) {
+                        badreservedpos = line;
+                    }
+                    // globals.txt
+                    includefile = @"globals\.txt";
+                    goodinclude = new Regex(@"#include\s*(?i)""" + includefile + @"""");
+                    badinclude = new Regex(@"(#include|\binclude)\s*(?i)(""" + includefile + @"(?!"")\b|" + includefile + @"""|" + includefile + @"\b)");
+                    if (globalspos == -1 && goodinclude.Match(fctb.Lines[line]).Success) {
+                        globalspos = line;
+                    }
+                    else if (badglobalspos == -1 && badinclude.Match(fctb.Lines[line]).Success) {
+                        badglobalspos = line;
+                    }
+
+                }
+                if (idpos >= 0 && reservedpos >= 0 && globalspos >= 0) {
+                    break;
+                }
+            }
+            if (EditGame.IncludeIDs) {
+                if (idpos >= 0) {
+                    if (idpos != insertpos) {
+                        // move it
+                        if (reservedpos >= 0 && reservedpos < idpos) reservedpos++;
+                        if (badreservedpos >= 0 && badreservedpos < idpos) badreservedpos++;
+                        if (globalspos >= 0 && globalspos < idpos) globalspos++;
+                        if (badglobalspos >= 0 && badglobalspos < idpos) badglobalspos++;
+                        fctb.InsertLine(insertpos, fctb.Lines[idpos]);
+                        fctb.RemoveLine(++idpos);
+                    }
+                }
+                else if (badidpos >= 0) {
+                    // move it, but update to correct text
+                    if (reservedpos >= 0 && reservedpos < idpos) reservedpos++;
+                    if (badreservedpos >= 0 && badreservedpos < idpos) badreservedpos++;
+                    if (globalspos >= 0 && globalspos < idpos) globalspos++;
+                    if (badglobalspos >= 0 && badglobalspos < idpos) badglobalspos++;
+                    fctb.InsertLine(insertpos, "#include \"resourceids.txt\"");
+                    fctb.RemoveLine(++badidpos);
+                }
+                else {
+                    // insert it
+                    if (reservedpos >= 0) reservedpos++;
+                    if (badreservedpos >= 0) reservedpos++;
+                    if (globalspos >= 0) globalspos++;
+                    if (badglobalspos >= 0) globalspos++;
+                    fctb.InsertLine(insertpos, "#include \"resourceids.txt\"");
+                }
+                insertpos++;
+            }
+            else {
+                if (idpos >= 0) {
+                    if (reservedpos > idpos) reservedpos--;
+                    if (badreservedpos > idpos) reservedpos--;
+                    if (globalspos > idpos) globalspos--;
+                    if (badglobalspos > idpos) globalspos--;
+                    fctb.RemoveLine(idpos);
+                }
+                else if (badidpos >= 0) {
+                    if (reservedpos > badidpos) reservedpos--;
+                    if (badreservedpos > badidpos) reservedpos--;
+                    if (globalspos > badidpos) globalspos--;
+                    if (badglobalspos > badidpos) globalspos--;
+                    fctb.RemoveLine(badidpos);
+                }
+            }
+            if (EditGame.IncludeReserved) {
+                if (reservedpos >= 0) {
+                    if (reservedpos != insertpos) {
+                        // move it
+                        if (globalspos >= 0 && globalspos < reservedpos) globalspos++;
+                        if (badglobalspos >= 0 && badglobalspos < reservedpos) badglobalspos++;
+                        fctb.InsertLine(insertpos, fctb.Lines[reservedpos]);
+                        fctb.RemoveLine(++reservedpos);
+                    }
+                }
+                else if (badreservedpos >= 0) {
+                    // move it, but update to correct text
+                    if (globalspos >= 0 && globalspos < badreservedpos) globalspos++;
+                    if (badglobalspos >= 0 && badglobalspos < badreservedpos) badglobalspos++;
+                    fctb.InsertLine(insertpos, "#include \"reserved.txt\"");
+                    fctb.RemoveLine(++badreservedpos);
+                }
+                else {
+                    // insert it
+                    if (globalspos >= 0) globalspos++;
+                    if (badglobalspos >= 0) globalspos++;
+                    fctb.InsertLine(insertpos, "#include \"reserved.txt\"");
+                }
+                insertpos++;
+            }
+            else {
+                if (reservedpos >= 0) {
+                    if (globalspos > reservedpos) globalspos--;
+                    if (badglobalspos > reservedpos) badglobalspos--;
+                    fctb.RemoveLine(reservedpos);
+                }
+                else if (badreservedpos >= 0) {
+                    if (globalspos > badreservedpos) globalspos--;
+                    if (badglobalspos > badreservedpos) badglobalspos--;
+                    fctb.RemoveLine(badreservedpos);
+                }
+            }
+            if (EditGame.IncludeGlobals) {
+                if (globalspos >= 0) {
+                    if (globalspos != insertpos) {
+                        // move it
+                        fctb.InsertLine(insertpos, fctb.Lines[globalspos]);
+                        fctb.RemoveLine(++globalspos);
+                    }
+                }
+                else if (badglobalspos >= 0) {
+                    // move it, but update to correct text
+                    fctb.InsertLine(insertpos, "#include \"globals.txt\"");
+                    fctb.RemoveLine(++badglobalspos);
+                }
+                else {
+                    // insert it
+                    fctb.InsertLine(insertpos, "#include \"globals.txt\"");
+                }
+            }
+            else {
+                if (globalspos >= 0) {
+                    fctb.RemoveLine(globalspos);
+                }
+                else if (badglobalspos >= 0) {
+                    fctb.RemoveLine(badglobalspos);
                 }
             }
         }
@@ -3109,7 +3290,7 @@ namespace WinAGI.Editor {
                 }
             }
             // lastly, check for reserved defines option (if not looking for a resourceID)
-            if (((EditGame == null && WinAGISettings.DefUseResDef.Value) || (EditGame != null && EditGame.UseReservedNames)) && ArgType < ArgListType.Logic) {
+            if (((EditGame == null && WinAGISettings.DefIncludeReserved.Value) || (EditGame != null && EditGame.IncludeReserved)) && ArgType < ArgListType.Logic) {
                 for (int i = 0; i <= 94; i++) {
                     // add these reserved defines IF
                     //     types match OR
@@ -4185,11 +4366,43 @@ namespace WinAGI.Editor {
         }
 
         internal void RemoveLine(int line) {
+            Place start = Selection.Start;
+            if (start.iLine > line) {
+                start.iLine--;
+            }
+            else if (start.iLine == line) {
+                start.iChar = 0;
+            }
+
+            Place end = Selection.End;
+            if (end.iLine > line) {
+                end.iLine--;
+            }
+            else if (end.iLine == line) {
+                end.iChar = 0;
+            }
             List<int> lines = new List<int>();
             lines.Add(line);
             base.RemoveLines(lines);
+            Selection.Start = start;
+            Selection.End = end;
         }
-        
+
+        internal void InsertLine(int line, string text) {
+            Place start = Selection.Start;
+            if (start.iLine > line) {
+                start.iLine++;
+            }
+            Place end = Selection.End;
+            if (end.iLine > line) {
+                end.iLine++;
+            }
+            Selection.Start = Selection.End = new Place(0, line);
+            InsertText(text + "\n", false);
+            Selection.Start = start;
+            Selection.End = end;
+        }
+
         internal void SelectLine(int iLine) {
             try {
                 Selection.Start = new(0, iLine);
