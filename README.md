@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha11.0
+        Version 3.0.0alpha11.1
     ==============================
 
 
@@ -53,14 +53,18 @@ WinAGI is a full featured game development system, that includes editors which p
   
 ### History:  
 
-**alpha8.0:** First public release. All game-level functions (opening, importing, creating new from blank or template, managing setting and properties, rebuilding/compiling, etc) and basic resource management (adding/removing, renumbering, exporting, importing, previewing) are functional. The only working editor is the Logics editor.  
-  
-  
+**alpha11.1:** Converting WinAGIv2 game files now add includes when game is first opened. Fixed some bugs in the logic compiler, the ReplaceAll function and resID mod function.
+
+
+**alpha11.0:** Snippets editor is complete. Beginning work on defines editor. Major change in handling of defines. What were previously treated as 'built-in' (for resource IDs), 'reserved' (variables, flags, constants reserved by AGI) and 'global' defines now use real include files that must be added to every file using #include directive. (In WinAGI VB no #include directives were needed, the defines were automatically added by the compiler.) With this change, all source files are self-sufficient and will compile in any AGI compiler (e.g. AGI Studio). WinAGI automatically updates the three include files, and will add/remove the #include directives to/from the source files automatically as well. Users can opt to disable the auto-include feature if they wish to maintain all defines manually.  
+
+
 **alpha9.0:** Character Map dialog to allow insertion of extended characters is complete and integrated into logic editor. When upgrading version 2 wag files, logic source files are backed up before being converted.  
   
   
-**alpha11.0:** Snippets editor is complete. Beginning work on defines editor. Major change in handling of defines. What were previously treated as 'built-in' (for resource IDs), 'reserved' (variables, flags, constants reserved by AGI) and 'global' defines now use real include files that must be added to every file using #include directive. (In WinAGI VB no #include directives were needed, the defines were automatically added by the compiler.) With this change, all source files are self-sufficient and will compile in any AGI compiler (e.g. AGI Studio). WinAGI automatically updates the three include files, and will add/remove the #include directives to/from the source files automatically as well. Users can opt to disable the auto-include feature if they wish to maintain all defines manually.  
-
+**alpha8.0:** First public release. All game-level functions (opening, importing, creating new from blank or template, managing setting and properties, rebuilding/compiling, etc) and basic resource management (adding/removing, renumbering, exporting, importing, previewing) are functional. The only working editor is the Logics editor.  
+  
+  
 ---
 
 ### Licensing
