@@ -528,7 +528,7 @@ namespace WinAGI.Editor {
                 WinAGISettings.WarnDupGVal.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnInvalidStrVal.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnInvalidCtlVal.Reset(WinAGISettingsFile);
-                WinAGISettings.WarnResOveride.Reset(WinAGISettingsFile);
+                WinAGISettings.WarnResOverride.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnDupObj.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnCompile.Reset(WinAGISettingsFile);
                 WinAGISettings.DelBlankG.Reset(WinAGISettingsFile);

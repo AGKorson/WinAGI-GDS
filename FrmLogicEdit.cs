@@ -31,7 +31,7 @@ namespace WinAGI.Editor {
         public bool Compiled = false;
         internal readonly LogicFormMode FormMode;
         public bool ListChanged = false;
-        internal bool InGame = false; // dynamic
+        public bool InGame = false; // dynamic
         public bool IsChanged = false; // dynamic
         public string TextFilename = "";
         private bool closing = false;
@@ -129,10 +129,6 @@ namespace WinAGI.Editor {
             //fctb?.Select();
         }
 
-        private void frmLogicEdit_Activated(object sender, EventArgs e) {
-            //Debug.Print("frmLogicEdit activated");
-        }
-
         private void frmLogicEdit_FormClosing(object sender, FormClosingEventArgs e) {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
@@ -165,7 +161,7 @@ namespace WinAGI.Editor {
         /// <summary>
         /// Dynamic function to set up the resource menu.
         /// </summary>
-        internal void SetResourceMenu() {
+        public void SetResourceMenu() {
 
             mnuRSave.Enabled = fctb.IsChanged;
             if (EditGame is null) {
@@ -267,7 +263,7 @@ namespace WinAGI.Editor {
                 ExportLogic();
             }
             else {
-                SaveTextFileAs();
+                SaveTextFile();
             }
         }
 
@@ -698,10 +694,6 @@ namespace WinAGI.Editor {
             lstDefines.BringToFront();
         }
 
-        private void fctb_KeyDown(object sender, KeyEventArgs e) {
-
-        }
-
         private void fctb_KeyPressed(object sender, KeyPressEventArgs e) {
             string strLine;
             /*
@@ -876,10 +868,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void fctb_MouseMove(object sender, MouseEventArgs e) {
-
-        }
-
         private void fctb_MouseUp(object sender, MouseEventArgs e) {
             if (picTip.Visible) {
                 if (fctb.Selection.Start.iLine != TipCmdToken.Line) {
@@ -933,10 +921,6 @@ namespace WinAGI.Editor {
                 MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
                 MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
             }
-        }
-
-        private void fctb_TextChangedDelayed(object sender, FastColoredTextBoxNS.TextChangedEventArgs e) {
-
         }
 
         private void fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e) {
@@ -1971,6 +1955,10 @@ namespace WinAGI.Editor {
             lstDefines.Visible = false;
         }
 
+        /// <summary>
+        /// Dynamic function to handle changes in displayed fonts used 
+        /// by the editor.
+        /// </summary>
         internal void InitFonts() {
             rtfLogic1.ForeColor = WinAGISettings.SyntaxStyle[0].Color.Value;
             rtfLogic1.BackColor = WinAGISettings.EditorBackColor.Value;
@@ -2197,7 +2185,7 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        public string NewTextFileName(string filename = "") {
+        private string NewTextFileName(string filename = "") {
             DialogResult rtn;
 
             if (filename.Length != 0) {
@@ -2417,31 +2405,23 @@ namespace WinAGI.Editor {
             UseWaitCursor = false;
         }
 
-        public void SaveTextFile(string filename) {
+        public void SaveTextFile(string filename = "") {
             if (filename.Length == 0) {
-                SaveTextFileAs();
+                if (TextFilename.Length == 0) {
+                    filename = DefaultResDir + "NewTextFile" + TextCount.ToString() + ".txt";
+                }
+                else {
+                    filename = TextFilename;
+                }
+                filename = NewTextFileName(filename);
+                if (filename.Length == 0) {
+                    return;
+                }
             }
-            else {
-                // preserve all extended characters by using default codepage
-                rtfLogic1.SaveToFile(filename, Encoding.Default);
-                TextFilename = filename;
-                MarkAsSaved();
-            }
-        }
-
-        public void SaveTextFileAs() {
-            // get a filename to export
-            string filename;
-            if (TextFilename.Length == 0) {
-                filename = DefaultResDir + "NewTextFile" + TextCount.ToString() + ".txt";
-            }
-            else {
-                filename = TextFilename;
-            }
-            filename = NewTextFileName(filename);
-            if (filename.Length != 0) {
-                SaveTextFile(filename);
-            }
+            // preserve all extended characters by using default codepage
+            rtfLogic1.SaveToFile(filename, Encoding.Default);
+            TextFilename = filename;
+            MarkAsSaved();
         }
 
         public void ExportLogic() {
@@ -2851,8 +2831,7 @@ namespace WinAGI.Editor {
                         // no good; get next line
                         continue;
                     }
-                    // don't bother validating; just use it as long as the
-                    // Type can be determined
+                    // don't bother validating; just use it as is
                     tmpDefine.Type = DefTypeFromValue(tmpDefine.Value);
                     Array.Resize(ref LDefLookup, LDefLookup.Length + 1);
                     LDefLookup[^1] = tmpDefine;
@@ -4411,6 +4390,16 @@ namespace WinAGI.Editor {
             catch {
                 // ignore errors
             }
+        }
+
+        public void UpdateText(string newtext) {
+            Place start = Selection.Start;
+            Place end = Selection.End;
+            FastColoredTextBoxNS.Range vr = VisibleRange;
+            Text = newtext;
+            Selection.Start = start;
+            Selection.End = end;
+            DoRangeVisible(vr);
         }
     }
 }

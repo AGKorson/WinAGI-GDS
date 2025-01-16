@@ -94,9 +94,15 @@ namespace WinAGI.Common {
         public const string COPYRIGHT_YEAR = "2025";
         internal static uint[] CRC32Table = new uint[256];
         internal static bool CRC32Loaded;
-        public static readonly char[] INVALID_ID_CHARS;
+        public static readonly char[] INVALID_DEFINE_CHARS;
         public static readonly char[] INVALID_FIRST_CHARS;
-        public static readonly char[] INVALID_DEFNAME_CHARS;
+        public static readonly char[] INVALID_SIERRA_CHARS;
+        public static readonly char[] INVALID_SIERRA_1ST_CHARS;
+        public static readonly string s_INVALID_DEFINE_CHARS;
+        public static readonly string s_INVALID_FIRST_CHARS;
+        public static readonly string s_INVALID_SIERRA_CHARS;
+        public static readonly string s_INVALID_SIERRA_1ST_CHARS;
+
         #endregion
 
         public enum EResListType {
@@ -115,22 +121,22 @@ namespace WinAGI.Common {
         /// Constructor for the WinAGI.Common Base class.
         /// </summary>
         static Base() {
-            // invalid ID characters: these, plus control chars and extended chars
+            // invalid DEFINE/ID characters: these, plus control chars and extended chars
             //        3       4         5         6         7         8         9         0         1         2
             //        234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
             //NOT OK  .!"   &'()*+,- /          :;<=>?                           [\]^ `                          {|}~x
-            //    OK     #$%        . 0123456789      @ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz    
-            INVALID_ID_CHARS = " !\"&'()*+,-/:;<=>?[\\]^`{|}~".ToCharArray();
-            INVALID_FIRST_CHARS = [.. INVALID_ID_CHARS, .. "#$%.0123456789@".ToCharArray()];
-            // invalid Define Name characters: these, plus control chars and extended chars
-            //        3       4         5         6         7         8         9         0         1         2
-            //        234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
-            //NOT OK  .!"#$%&'()*+,-           :;<=> @                           [\]^ `                          {|}~x
-            //    OK                ./0123456789    ?  ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz    
-            // sierra syntax allows ' ?
-            // sierra syntax allows / for anything but first char
-            INVALID_DEFNAME_CHARS = " !\"#$%&'()*+,-:;<=>?@[\\]^`{|}~".ToCharArray();
-            //INVALID_DEFNAME_CHARS = CTRL_CHARS + " !\"#$%&'()*+,-:;<=>?@[\\]^`{|}~" + EXT_CHARS;
+            //ANY OK     #$%        . 0123456789      @ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz
+            //1ST OK                                   ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz
+            INVALID_DEFINE_CHARS = " !\"&'()*+,-/:;<=>?[\\]^`{|}~".ToCharArray();
+            INVALID_FIRST_CHARS = [.. INVALID_DEFINE_CHARS, .. "#$%.0123456789@".ToCharArray()];
+            // sierra syntax allows ' / and ?
+            // sierra syntax allows any valid symbol for first char except /
+            INVALID_SIERRA_CHARS = " !\"&()*+,-:;<=>[\\]^`{|}~".ToCharArray();
+            INVALID_SIERRA_1ST_CHARS = [.. INVALID_SIERRA_CHARS, .. "/".ToCharArray()];
+            s_INVALID_DEFINE_CHARS = new string(INVALID_DEFINE_CHARS);
+            s_INVALID_FIRST_CHARS = new string(INVALID_FIRST_CHARS);
+            s_INVALID_SIERRA_CHARS = new string(INVALID_SIERRA_CHARS);
+            s_INVALID_SIERRA_1ST_CHARS = new string(INVALID_SIERRA_1ST_CHARS);
         }
         #endregion
 

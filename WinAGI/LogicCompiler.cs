@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Net.Quic;
 using WinAGI.Common;
 using System.Windows.Forms;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -495,6 +496,7 @@ namespace WinAGI.Engine {
                 break;
             case DefStr:
                 // none
+                //!! what about gamedefs?
                 tmpDefines = [];
                 break;
             case VocWrd:
@@ -629,55 +631,55 @@ namespace WinAGI.Engine {
             int i;
 
             for (i = 0; i < agResVar.Length; i++) {
-                if (ValidateName(agResVar[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agResVar[i], true) != DefineNameCheck.OK) {
                     agResVar[i].Name = agResVar[i].Default;
                     retval = false;
                 }
             }
             for (i = 0; i < agResFlag.Length; i++) {
-                if (ValidateName(agResFlag[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agResFlag[i], true) != DefineNameCheck.OK) {
                     agResFlag[i].Name = agResFlag[i].Default;
                     retval = false;
                 }
             }
             for (i = 0; i < agEdgeCodes.Length; i++) {
-                if (ValidateName(agEdgeCodes[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agEdgeCodes[i], true) != DefineNameCheck.OK) {
                     agEdgeCodes[i].Name = agEdgeCodes[i].Default;
                     retval = false;
                 }
             }
             for (i = 0; i < agEgoDir.Length; i++) {
-                if (ValidateName(agEgoDir[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agEgoDir[i], true) != DefineNameCheck.OK) {
                     agEgoDir[i].Name = agEgoDir[i].Default;
                     retval = false;
                 }
             }
             for (i = 0; i < agVideoMode.Length; i++) {
-                if (ValidateName(agVideoMode[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agVideoMode[i], true) != DefineNameCheck.OK) {
                     agVideoMode[i].Name = agVideoMode[i].Default;
                     retval = false;
                 }
             }
             for (i = 0; i < agCompType.Length; i++) {
-                if (ValidateName(agCompType[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agCompType[i], true) != DefineNameCheck.OK) {
                     agCompType[i].Name = agCompType[i].Default;
                     retval = false;
                 }
             }
             for (i = 0; i < agResColor.Length; i++) {
-                if (ValidateName(agResColor[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agResColor[i], true) != DefineNameCheck.OK) {
                     agResColor[i].Name = agResColor[i].Default;
                     retval = false;
                 }
             }
             for (i = 0; i < agResObj.Length; i++) {
-                if (ValidateName(agResObj[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agResObj[i], true) != DefineNameCheck.OK) {
                     agResObj[i].Name = agResObj[i].Default;
                     retval = false;
                 }
             }
             for (i = 0; i < agResStr.Length; i++) {
-                if (ValidateName(agResStr[i], true) != DefineNameCheck.OK) {
+                if (ValidateDefineName(agResStr[i], true) != DefineNameCheck.OK) {
                     agResStr[i].Name = agResStr[i].Default;
                     retval = false;
                 }
@@ -686,166 +688,155 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// This method determines if the specified define name is valid or not.
-        /// </summary>
-        /// <param name="TestDef"></param>
-        /// <param name="Reserved">true if testing a reserved define name</param>
-        /// <returns>OK if name is valid, error type if it is not.</returns>
-        internal static DefineNameCheck ValidateName(TDefine TestDef, bool Reserved = false) {
-            int i;
-            TDefine[] tmpDefines;
-
-            // if already at default, just exit
-            if (TestDef.Name == TestDef.Default) {
-                return DefineNameCheck.OK;
-            }
-            // if no name,
-            if (TestDef.Name.Length == 0) {
-                return DefineNameCheck.Empty;
-            }
-            // name can't be numeric
-            if (TestDef.Name.IsNumeric()) {
-                return Numeric;
-            }
-            // check against regular commands
-            for (i = 0; i < ActionCount; i++) {
-                if (TestDef.Name == ActionCommands[i].Name) {
-                    return ActionCommand;
-                }
-            }
-            // check against test commands
-            for (i = 0; i < TestCount; i++) {
-                if (TestDef.Name == TestCommands[i].Name) {
-                    return TestCommand;
-                }
-            }
-            // check against compiler keywords
-            if (
-                TestDef.Name == "if" || TestDef.Name == "else" || TestDef.Name == "goto") {
-                return KeyWord;
-            }
-            // if the name starts with any of these letters
-            // (OK for sierra syntax)
-            if (!agSierraSyntax) {
-                if ("vfmoiswc".Any(TestDef.Name.ToLower().StartsWith)) {
-                    if (TestDef.Name.Right(TestDef.Name.Length - 1).IsNumeric()) {
-                      // can't have a name that's a valid marker
-                        return ArgMarker;
-                    }
-                }
-            }
-            // check against reserved names if this game is using them,
-            // OR if testing the list of reserved names
-            if (Reserved || compGame.agIncludeReserved) {
-                // reserved variables
-                tmpDefines = ReservedDefines(Var);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (TestDef.Name ==tmpDefines[i].Name) {
-                        // if testing a reserved define AND values match, it's OK
-                        // if NOT testing a reserved define OR values DON'T match, it's invalid
-                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
-                            return ReservedVar;
-                        }
-                    }
-                }
-                // reserved flags
-                tmpDefines = ReservedDefines(Flag);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (TestDef.Name == tmpDefines[i].Name) {
-                        // if testing a reserved define AND values match, it's OK
-                        // if NOT testing a reserved define OR values DON'T match, it's invalid
-                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
-                            return ReservedFlag;
-                        }
-                    }
-                }
-                // reserved numbers
-                tmpDefines = ReservedDefines(Num);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (TestDef.Name == tmpDefines[i].Name) {
-                        // if testing a reserved define AND values match, it's OK
-                        // if NOT testing a reserved define OR values DON'T match, it's invalid
-                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
-                            return ReservedNum;
-                        }
-                    }
-                }
-                // reserved objects
-                tmpDefines = ReservedDefines(SObj);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (TestDef.Name == tmpDefines[i].Name) {
-                        // if testing a reserved define AND values match, it's OK
-                        // if NOT testing a reserved define OR values DON'T match, it's invalid
-                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
-                            return ReservedObj;
-                        }
-                    }
-                }
-                // reserved strings
-                tmpDefines = ReservedDefines(Str);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (TestDef.Name == tmpDefines[i].Name) {
-                        // if testing a reserved define AND values match, it's OK
-                        // if NOT testing a reserved define OR values DON'T match, it's invalid
-                        if (!Reserved || tmpDefines[i].Value != TestDef.Value) {
-                            return ReservedStr;
-                        }
-                    }
-                }
-            }
-            // check name against improper character list
-            if ((INVALID_DEFNAME_CHARS).Any(TestDef.Name.Contains)) {
-                // bad
-                return BadChar;
-            }
-            if (TestDef.Name.Any(ch => ch > 127 || ch < 32)) {
-                // bad
-                return BadChar;
-            }
-            // sierra syntax allows '?' 
-            if (("'?").Any(TestDef.Name.Contains)) {
-                if (!agSierraSyntax) {
-                    return BadChar;
-                }
-            }
-            // sierra syntax allows / for anything but first char
-            if (("/").Any(TestDef.Name.Contains)) {
-                if (!agSierraSyntax || i == 1) {
-                    return BadChar;
-                }
-            }
-            // must be OK!
-            return DefineNameCheck.OK;
-        }
-
-        /// <summary>
         /// This method determines if the specified define name is valid, including a check
         /// against this game's current global defines.
         /// </summary>
         /// <param name="CheckDef"></param>
         /// <returns>OK if define is valid, error value if not.</returns>
-        internal static DefineNameCheck ValidateNameGlobal(TDefine CheckDef) {
+        public static DefineNameCheck ValidateDefineName(TDefine CheckDef, AGIGame game = null, bool Reserved = false) {
             int i;
-            DefineNameCheck tmpResult;
 
-            // check name against non-globals first
-            tmpResult = ValidateName(CheckDef);
-            if (tmpResult != DefineNameCheck.OK) {
-                return tmpResult;
+            // basic checks
+            // if no name,
+            if (CheckDef.Name.Length == 0) {
+                return DefineNameCheck.Empty;
             }
-            // check against current globals
-            if (compGame is not null && compGame.agIncludeGlobals) {
+            // if already at default, just exit
+            if (CheckDef.Name == CheckDef.Default) {
+                return DefineNameCheck.OK;
+            }
+            // name can't be numeric
+            if (CheckDef.Name.IsNumeric()) {
+                return Numeric;
+            }
+            // check name against improper character list
+            if (game == null || !game.SierraSyntax) {
+                if (INVALID_FIRST_CHARS.Any(ch => ch == CheckDef.Name[0])) {
+                    return BadChar;
+                }
+                if (CheckDef.Name[1..].Any(INVALID_DEFINE_CHARS.Contains)) {
+                    return BadChar;
+                }
+            }
+            else {
+                if (INVALID_SIERRA_1ST_CHARS.Any(ch => ch == CheckDef.Name[0])) {
+                    return BadChar;
+                }
+                if (CheckDef.Name[1..].Any(INVALID_SIERRA_CHARS.Contains)) {
+                    return BadChar;
+                }
+            }
+            if (CheckDef.Name.Any(ch => ch > 127 || ch < 32)) {
+                return BadChar;
+            }
+            // check against regular commands
+            for (i = 0; i < ActionCount; i++) {
+                if (CheckDef.Name == ActionCommands[i].Name) {
+                    return ActionCommand;
+                }
+            }
+            // check against test commands
+            for (i = 0; i < TestCount; i++) {
+                if (CheckDef.Name == TestCommands[i].Name) {
+                    return TestCommand;
+                }
+            }
+            // check against compiler keywords
+            if (CheckDef.Name is "if" or "else" or "goto") {
+                return KeyWord;
+            }
+            // if the name starts with any of these letters
+            // (OK for sierra syntax)
+            if (!agSierraSyntax) {
+                if ("vfmoiswc".Any(CheckDef.Name.StartsWith)) {
+                    if (CheckDef.Name.Right(CheckDef.Name.Length - 1).IsNumeric()) {
+                        // can't have a name that's a valid marker
+                        return ArgMarker;
+                    }
+                }
+            }
+            // check against globals
+            if (game is not null && game.agIncludeGlobals) {
+                if (game.GlobalDefines.IsChanged) {
+                    try {
+                        game.GlobalDefines.LoadGlobalDefines(game.agResDir + "globals.txt");
+                    }
+                    catch (Exception ex) {
+                        // if no file or empty file, then continue, with no global entries
+                        if (ex.HResult == WINAGI_ERR + 524 || ex.HResult == WINAGI_ERR + 605) {
+                        }
+                        else {
+                            throw;
+                        }
+                    }
+                }
                 for (i = 0; i < compGame.GlobalDefines.Count; i++) {
                     if (CheckDef.Name == compGame.GlobalDefines[i].Name)
                         return DefineNameCheck.Global;
                 }
             }
-            // check against ingame reserved defines:
-            if (compGame is not null && compGame.agIncludeReserved) {
+            // check against basic reserved
+            if (game is not null && game.agIncludeReserved) {
+                // reserved variables
+                TDefine[] tmpDefines = ReservedDefines(Var);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (CheckDef.Name == tmpDefines[i].Name) {
+                        return ReservedVar;
+                    }
+                }
+                // reserved flags
+                tmpDefines = ReservedDefines(Flag);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (CheckDef.Name == tmpDefines[i].Name) {
+                        return ReservedFlag;
+                    }
+                }
+                // reserved numbers
+                tmpDefines = ReservedDefines(Num);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (CheckDef.Name == tmpDefines[i].Name) {
+                        return ReservedNum;
+                    }
+                }
+                // reserved objects
+                tmpDefines = ReservedDefines(SObj);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (CheckDef.Name == tmpDefines[i].Name) {
+                        return ReservedObj;
+                    }
+                }
+                // reserved strings
+                tmpDefines = ReservedDefines(Str);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (CheckDef.Name == tmpDefines[i].Name) {
+                        return ReservedStr;
+                    }
+                }
+                // game-specific:
                 for (i = 0; i < compGame.agResGameDef.Length; i++) {
                     if (CheckDef.Name == compGame.agResGameDef[i].Name)
-                        //invobj count is number; rest are msgstrings
+                        // invobj count is number; rest are msgstrings
                         return i == 3 ? ReservedNum : ReservedMsg;
+                }
+            }
+            // resourceIDs
+            if (game != null && game.IncludeIDs) {
+                if (!blnSetIDs) {
+                    SetResourceIDs(game);
+                }
+                for (i= 0; i < 256; i++) {
+                    if (CheckDef.Name == strLogID[i]) {
+                        return DefineNameCheck.ResourceID;
+                    }
+                    if (CheckDef.Name == strPicID[i]) {
+                        return DefineNameCheck.ResourceID;
+                    }
+                    if (CheckDef.Name == strSndID[i]) {
+                        return DefineNameCheck.ResourceID;
+                    }
+                    if (CheckDef.Name == strViewID[i]) {
+                        return DefineNameCheck.ResourceID;
+                    }
                 }
             }
             // if no error conditions, it's OK
@@ -858,11 +849,19 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="CheckName"></param>
         /// <returns></returns>
-        internal static DefineNameCheck ValidateDefName(string CheckName) {
+        public static DefineNameCheck ValidateDefineName(string CheckName, AGIGame game) {
             TDefine CheckDef = new() {
                 Name = CheckName
             };
-            return ValidateNameGlobal(CheckDef);
+            return ValidateDefineName(CheckDef, game, false);
+        }
+
+        public static DefineNameCheck ValidateDefineName(TDefine CheckDef, bool Reserved) {
+            return ValidateDefineName(CheckDef, null, Reserved);
+        }
+
+        public static DefineNameCheck ValidateDefineName(TDefine CheckDef, AGIGame game) {
+            return ValidateDefineName(CheckDef, game, false);
         }
 
         /// <summary>
@@ -871,7 +870,9 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="TestDefine"></param>
         /// <returns></returns>
-        internal static DefineValueCheck ValidateDefValue(ref TDefine TestDefine) {
+        public static DefineValueCheck ValidateDefineValue(ref TDefine TestDefine, AGIGame game) {
+            // default type
+            TestDefine.Type = None;
             if (TestDefine.Value.Length == 0) {
                 return DefineValueCheck.Empty;
             }
@@ -879,8 +880,7 @@ namespace WinAGI.Engine {
 
             // if NOT a number:
             if (!int.TryParse(TestDefine.Value, out int intVal)) {
-                char ch = TestDefine.Value[0];
-                if ("vfmoiswc".Contains(ch)) {
+                if ("vfmoiswc".Contains(TestDefine.Value[0])) {
                     string strVal = TestDefine.Value[1..];
                     if (int.TryParse(strVal, out intVal)) {
                         if (intVal < 0 || intVal > 255) {
@@ -913,68 +913,70 @@ namespace WinAGI.Engine {
                             TestDefine.Type = Ctrl;
                             break;
                         }
-                        // check defined globals
-                        for (int i = 0; i < compGame.GlobalDefines.Count; i++) {
-                            if (compGame.GlobalDefines[i].Value == TestDefine.Value)
-                                return DefineValueCheck.Global;
-                        }
-                        // check if Value is already assigned
-                        switch (TestDefine.Type) {
-                        case Flag:
-                            if (compGame.agIncludeReserved) {
-                                if (intVal <= 15)
-                                    return Reserved;
-                                if (intVal == 20) {
-                                    switch (compGame.agIntVersion) {
-                                    case "3.002.098" or "3.002.102" or "3.002.107" or "3.002.149":
+                        if (game != null) {
+                            // check defined globals
+                            for (int i = 0; i < game.GlobalDefines.Count; i++) {
+                                if (game.GlobalDefines[i].Value == TestDefine.Value)
+                                    return DefineValueCheck.Global;
+                            }
+                            // check if Value is already assigned
+                            switch (TestDefine.Type) {
+                            case Flag:
+                                if (game.agIncludeReserved) {
+                                    if (intVal <= 15)
                                         return Reserved;
+                                    if (intVal == 20) {
+                                        switch (game.agIntVersion) {
+                                        case "3.002.098" or "3.002.102" or "3.002.107" or "3.002.149":
+                                            return Reserved;
+                                        }
                                     }
                                 }
-                            }
-                            break;
-                        case Var:
-                            if (compGame.agIncludeReserved) {
-                                if (intVal <= 26)
-                                    return Reserved;
-                            }
-                            break;
-                        case Msg:
-                            break;
-                        case SObj:
-                            if (compGame.agIncludeReserved) {
-                                // can't be ego
-                                if (intVal == 0)
-                                    return Reserved;
-                            }
-                            break;
-                        case InvItem:
-                            break;
-                        case Str:
-                            if (intVal > 23 || (intVal > 11 &&
-                              (compGame.agIntVersion == "2.089" ||
-                              compGame.agIntVersion == "2.272" ||
-                              compGame.agIntVersion == "3.002149"))) {
-                                return BadArgNumber;
-                            }
+                                break;
+                            case Var:
+                                if (game.agIncludeReserved) {
+                                    if (intVal <= 26)
+                                        return Reserved;
+                                }
+                                break;
+                            case Msg:
+                                break;
+                            case SObj:
+                                if (game.agIncludeReserved) {
+                                    // can't be ego
+                                    if (intVal == 0)
+                                        return Reserved;
+                                }
+                                break;
+                            case InvItem:
+                                break;
+                            case Str:
+                                if (intVal > 23 || (intVal > 11 &&
+                                  (game.agIntVersion == "2.089" ||
+                                  game.agIntVersion == "2.272" ||
+                                  game.agIntVersion == "3.002149"))) {
+                                    return BadArgNumber;
+                                }
 
-                            break;
-                        case Word:
-                            // valid from w1 to w10
-                            // applies to fanAGI syntax only;
-                            // base is 1 because of how msg formatting
-                            // uses words; compiler will automatically
-                            // convert it to base zero when used - see
-                            // WinAGI help file for more details
-                            if (intVal < 1 || intVal > 10) {
-                                return BadArgNumber;
+                                break;
+                            case Word:
+                                // valid from w1 to w10
+                                // applies to fanAGI syntax only;
+                                // base is 1 because of how msg formatting
+                                // uses words; compiler will automatically
+                                // convert it to base zero when used - see
+                                // WinAGI help file for more details
+                                if (intVal < 1 || intVal > 10) {
+                                    return BadArgNumber;
+                                }
+                                break;
+                            case Ctrl:
+                                // controllers limited to 0-49
+                                if (intVal > 49) {
+                                    return BadArgNumber;
+                                }
+                                break;
                             }
-                            break;
-                        case Ctrl:
-                            // controllers limited to 0-49
-                            if (intVal > 49) {
-                                return BadArgNumber;
-                            }
-                            break;
                         }
                         return DefineValueCheck.OK;
                     }
@@ -999,6 +1001,12 @@ namespace WinAGI.Engine {
                     return OutofBounds;
                 }
             }
+        }
+
+        public static DefineValueCheck ValidateDefineValue(string testvalue, AGIGame game) {
+            TDefine tmpDef = new TDefine();
+            tmpDef.Value = testvalue;
+            return ValidateDefineValue(ref tmpDef, game);
         }
 
         /// <summary>
@@ -1962,14 +1970,7 @@ namespace WinAGI.Engine {
             }
             // check for correct quotes used 
             if (strIncludeFilename[0] != QUOTECHAR || strIncludeFilename[^1] != QUOTECHAR) {
-                switch (ErrorLevel) {
-                case High:
-                    AddError(4059, true);
-                    return -1;
-                case Medium or Low:
-                    AddWarning(5028, LoadResString(5028).Replace(ARG1, strIncludeFilename));
-                    break;
-                }
+                AddWarning(5028, LoadResString(5028).Replace(ARG1, strIncludeFilename));
             }
             // strip off quotes
             if (strIncludeFilename[0] == QUOTECHAR) {
@@ -2302,10 +2303,8 @@ namespace WinAGI.Engine {
                     else {
                         //convert it to 2s-compliment unsigned value by adding it to 256
                         strArg = (256 + strArg.Val()).ToString();
-                        switch (ErrorLevel) {
-                        case High or Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5098);
-                            break;
                         }
                     }
                 }
@@ -2324,25 +2323,13 @@ namespace WinAGI.Engine {
                 // controllers should be  0 - 49
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4136, LoadResString(4136).Replace(ARG1, (argpos + 1).ToString()), false);
-                        break;
-                    case Medium or Low:
-                        AddError(4066, LoadResString(4066).Replace(ARG1, (argpos + 1).ToString()), false);
-                        break;
-                    }
+                    AddError(4066, LoadResString(4066).Replace(ARG1, (argpos + 1).ToString()), false);
                     return -1;
                 }
                 else {
                     if (lngArg > 49) {
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4136, LoadResString(4136).Replace(ARG1, (argpos + 1).ToString()), false);
-                            break;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5060);
-                            break;
                         }
                     }
                 }
@@ -2354,59 +2341,27 @@ namespace WinAGI.Engine {
                 }
                 // check against max screen object Value
                 if (lngArg > compGame.InvObjects.MaxScreenObjects) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4119, LoadResString(4119).Replace(ARG1, (compGame.InvObjects.MaxScreenObjects).ToString()), false);
-                        break;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5006, LoadResString(5006).Replace(ARG1, compGame.InvObjects.MaxScreenObjects.ToString()));
-                        break;
                     }
                 }
                 break;
             case Str:
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
-                    switch (ErrorLevel) {
-                    case High:
-                        // for version 2.089, 2.272, and 3.002149 only 12 strings
-                        switch (compGame.agIntVersion) {
-                        case "2.089" or "2.272" or "3.002149":
-                            AddError(4079, LoadResString(4079).Replace(ARG1, (argpos + 1).ToString()).Replace(ARG2, "11"), false);
-                            break;
-                        default:
-                            AddError(4079, LoadResString(4079).Replace(ARG1, (argpos + 1).ToString()).Replace(ARG2, "23"), false);
-                            break;
-                        }
+                    switch (compGame.agIntVersion) {
+                    case "2.089" or "2.272" or "3.002149":
+                        AddWarning(5007, LoadResString(5007).Replace(ARG1, "11"));
                         break;
-                    case Medium or Low:
-                        switch (compGame.agIntVersion) {
-                        case "2.089" or "2.272" or "3.002149":
-                            AddWarning(5007, LoadResString(5007).Replace(ARG1, "11"));
-                            break;
-                        default:
-                            AddWarning(5007, LoadResString(5007).Replace(ARG1, "23"));
-                            break;
-                        }
+                    default:
+                        AddWarning(5007, LoadResString(5007).Replace(ARG1, "23"));
                         break;
                     }
                 }
                 else {
                     // if outside expected bounds (strings should be limited to 0-23)
                     if ((lngArg > 23) || (lngArg > 11 && (compGame.agIntVersion == "2.089" || compGame.agIntVersion == "2.272" || compGame.agIntVersion == "3.002149"))) {
-                        switch (ErrorLevel) {
-                        case High:
-                            // for version 2.089, 2.272, and 3.002149 only 12 strings
-                            switch (compGame.agIntVersion) {
-                            case "2.089" or "2.272" or "3.002149":
-                                AddError(4079, LoadResString(4079).Replace(ARG1, (argpos + 1).ToString()).Replace(ARG2, "11"), false);
-                                break;
-                            default:
-                                AddError(4079, LoadResString(4079).Replace(ARG1, (argpos + 1).ToString()).Replace(ARG2, "23"), false);
-                                break;
-                            }
-                            break;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             switch (compGame.agIntVersion) {
                             case "2.089" or "2.272" or "3.002149":
                                 AddWarning(5007, LoadResString(5007).Replace(ARG1, "11"));
@@ -2415,7 +2370,6 @@ namespace WinAGI.Engine {
                                 AddWarning(5007, LoadResString(5007).Replace(ARG1, "23"));
                                 break;
                             }
-                            break;
                         }
                     }
                 }
@@ -2425,24 +2379,12 @@ namespace WinAGI.Engine {
                 // word args should be limited to 0-9)
                 lngArg = VariableValue(strArg);
                 if (lngArg == -1) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4090, LoadResString(4090).Replace(ARG1, (argpos + 1).ToString()), false);
-                        break;
-                    case Medium or Low:
-                        AddError(4066, LoadResString(4066).Replace(ARG1, (argpos + 1).ToString()), false);
-                        break;
-                    }
+                    AddError(4066, LoadResString(4066).Replace(ARG1, (argpos + 1).ToString()), false);
                 }
                 else {
                     if (lngArg > 9) {
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4090, LoadResString(4090).Replace(ARG1, (argpos + 1).ToString()), false);
-                            break;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5008);
-                            break;
                         }
                     }
                 }
@@ -2481,36 +2423,20 @@ namespace WinAGI.Engine {
                 }
                 // m0 is not allowed
                 if (lngArg == 0) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4107, false);
-                        // make this a null msg
-                        blnMsg[lngArg] = true;
-                        strMsg[lngArg] = "";
-                        return -1;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5091, LoadResString(5091).Replace(ARG1, lngArg.ToString()));
                         // make this a null msg
                         blnMsg[lngArg] = true;
                         strMsg[lngArg] = "";
-                        break;
                     }
                 }
                 // verify msg exists
                 if (!blnMsg[lngArg]) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4113, LoadResString(4113).Replace(ARG1, lngArg.ToString()), false);
-                        //make this a null msg
-                        blnMsg[lngArg] = true;
-                        strMsg[lngArg] = "";
-                        break;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5090, LoadResString(5090).Replace(ARG1, lngArg.ToString()));
                         //make this a null msg
                         blnMsg[lngArg] = true;
                         strMsg[lngArg] = "";
-                        break;
                     }
                 }
                 break;
@@ -2557,13 +2483,8 @@ namespace WinAGI.Engine {
                         // check for valid, but non-unique object (if passed by
                         // text string, it can't be one that is not unique)
                         if (lngArg != -1 && !compGame.InvObjects[(byte)lngArg].Unique) {
-                            switch (ErrorLevel) {
-                            case High:
-                                AddError(4036, LoadResString(4036).Replace(ARG1, (argpos + 1).ToString()), false);
-                                break;
-                            case Medium:
+                            if  (ErrorLevel == Medium) {
                                 AddWarning(5003, LoadResString(5003).Replace(ARG1, (argpos + 1).ToString()));
-                                break;
                             }
                         }
                         break;
@@ -2575,25 +2496,15 @@ namespace WinAGI.Engine {
                 }
                 else {
                     if (lngArg >= compGame.InvObjects.Count) {
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4112, LoadResString(4112).Replace(ARG1, (argpos + 1).ToString()), false);
-                            break;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5005, LoadResString(5005).Replace(ARG1, (argpos + 1).ToString()));
-                            break;
                         }
                     }
                     else {
                         // check for question mark
                         if (compGame.InvObjects[(byte)lngArg].ItemName == "?") {
-                            switch (ErrorLevel) {
-                            case High:
-                                AddError(4111, LoadResString(4111).Replace(ARG1, (argpos + 1).ToString()), false);
-                                return -1;
-                            case Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5004);
-                                break;
                             }
                         }
                     }
@@ -2616,13 +2527,8 @@ namespace WinAGI.Engine {
                     else {
                         // valldate the group
                         if (!compGame.agVocabWords.GroupExists(lngArg)) {
-                            switch (ErrorLevel) {
-                            case High:
-                                AddError(4114, LoadResString(4114).Replace(ARG1, strArg), false);
-                                break;
-                            case Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5019, LoadResString(5019).Replace(ARG1, strArg));
-                                break;
                             }
                         }
                     }
@@ -2664,10 +2570,8 @@ namespace WinAGI.Engine {
                         if (strArg == "i" || strArg == "a") {
                             lngArg = 0;
                             // add warning
-                            switch (ErrorLevel) {
-                            case High or Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5108, LoadResString(5108).Replace(ARG1, strArg));
-                                break;
                             }
                         }
                         // "anyword" and "rol" are keywords, even if not explicitly
@@ -2679,13 +2583,8 @@ namespace WinAGI.Engine {
                             lngArg = 9999;
                         }
                         else {
-                            switch (ErrorLevel) {
-                            case High:
-                                AddError(4114, LoadResString(4114).Replace(ARG1, strArg), false);
-                                break;
-                            case Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5019, LoadResString(5019).Replace(ARG1, strArg));
-                                break;
                             }
                             // use 1 as placeholder
                             lngArg = 1;
@@ -2694,13 +2593,8 @@ namespace WinAGI.Engine {
                 }
                 // check for group 0
                 if (lngArg == 0) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4035, LoadResString(4035).Replace(ARG1, strArg), false);
-                        return -1;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5083, LoadResString(5083).Replace(ARG1, strArg));
-                        break;
                     }
                 }
                 break;
@@ -3207,13 +3101,8 @@ namespace WinAGI.Engine {
             if (strText[^1] != '\"') {
                 // missing end quote - add it
                 retval += "\"";
-                switch (ErrorLevel) {
-                case High:
-                    AddError(4080, false);
-                    break;
-                case Medium:
+                if (ErrorLevel == Medium) {
                     AddWarning(5002);
-                    break;
                 }
                 // note which line had quotes added, in case it results
                 // in an error caused by a missing end ')' or whatever
@@ -3269,9 +3158,6 @@ namespace WinAGI.Engine {
                         // the next required element is
                         lngQuoteAdded = lngLine;
                         switch (ErrorLevel) {
-                        case High:
-                            AddError(4080, false);
-                            return "";
                         case Medium:
                             strTextContinue += QUOTECHAR;
                             AddWarning(5002);
@@ -3540,7 +3426,7 @@ namespace WinAGI.Engine {
                             }
                         }
                         // validate define name
-                        checkName = ValidateDefName(tdNewDefine.Name);
+                        checkName = ValidateDefineName(tdNewDefine);
                         if (agSierraSyntax) {
                             // ignore overrides 
                             if (checkName > BadChar) {
@@ -3568,13 +3454,8 @@ namespace WinAGI.Engine {
                                     // default to number
                                     tdNewDefine.Type = Num;
                                     if (compGame is not null) {
-                                        switch (ErrorLevel) {
-                                        case High:
-                                            AddError(6003, false);
-                                            break;
-                                        case Medium:
+                                        if (ErrorLevel == Medium) {
                                             AddWarning(5110);
-                                            break;
                                         }
                                     }
                                 }
@@ -3727,7 +3608,7 @@ namespace WinAGI.Engine {
                         lngErrNum = 0;
                         // type is already set for sierra syntax; value validation
                         // sets it for fanAGI
-                        checkValue = ValidateDefValue(ref tdNewDefine);
+                        checkValue = ValidateDefineValue(ref tdNewDefine, compGame);
                         // value errors 4-6 are only warnings if errorlevel is medium or low
                         switch (ErrorLevel) {
                         case Medium:
@@ -3800,28 +3681,12 @@ namespace WinAGI.Engine {
                                     }
                                     break;
                                 case Str:
-                                    // only an error if errorlevel is high
-                                    switch (ErrorLevel) {
-                                    case High:
-                                        lngErrNum = 4079;
-                                        switch (compGame.agIntVersion) {
-                                        case "2.089" or "2.272" or "3.002149":
-                                            strError = LoadResString(4079).Replace(ARG1, "").Replace(ARG2, "11");
-                                            break;
-                                        default:
-                                            strError = LoadResString(4079).Replace(ARG1, "").Replace(ARG2, "23");
-                                            break;
-                                        }
+                                    switch (compGame.agIntVersion) {
+                                    case "2.089" or "2.272" or "3.002149":
+                                        AddWarning(5007, LoadResString(5007).Replace(ARG1, "11"));
                                         break;
-                                    case Medium or Low:
-                                        switch (compGame.agIntVersion) {
-                                        case "2.089" or "2.272" or "3.002149":
-                                            AddWarning(5007, LoadResString(5007).Replace(ARG1, "11"));
-                                            break;
-                                        default:
-                                            AddWarning(5007, LoadResString(5007).Replace(ARG1, "23"));
-                                            break;
-                                        }
+                                    default:
+                                        AddWarning(5007, LoadResString(5007).Replace(ARG1, "23"));
                                         break;
                                     }
                                     break;
@@ -3870,13 +3735,8 @@ namespace WinAGI.Engine {
                                 if (tdNewDefine.Value == tdDefines[i].Value) {
                                     // numeric duplicates are OK
                                     if (!int.TryParse(tdNewDefine.Value, out _)) {
-                                        switch (ErrorLevel) {
-                                        case High:
-                                            AddError(4023, LoadResString(4023).Replace(ARG1, tdDefines[i].Value).Replace(ARG2, tdDefines[i].Name), false);
-                                            break;
-                                        case Medium:
+                                        if (ErrorLevel == Medium) {
                                             AddWarning(5033, LoadResString(5033).Replace(ARG1, tdDefines[i].Value).Replace(ARG2, tdDefines[i].Name));
-                                            break;
                                         }
                                     }
                                 }
@@ -4033,13 +3893,8 @@ namespace WinAGI.Engine {
                         }
                         // if either (or both) quote is missing, deal with it
                         if (lngQuotesOK > 0) {
-                            switch (ErrorLevel) {
-                            case High:
-                                AddError(4051, true);
-                                return false;
-                            case Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5002);
-                                break;
                             }
                             // note which line had quotes added, in case it results
                             // in an error caused by a missing end ')' or whatever
@@ -4214,10 +4069,8 @@ namespace WinAGI.Engine {
                         if (blnOrBlock) {
                             if (intNumCmdsInBlock == 0) {
                                 // or block with no commands
-                                switch (ErrorLevel) {
-                                case High or Medium:
+                                if (ErrorLevel == Medium) {
                                     AddWarning(5113);
-                                    break;
                                 }
                             }
                             else {
@@ -4232,13 +4085,8 @@ namespace WinAGI.Engine {
                         }
                         else if (intNumTestCmds == 0) {
                             // if block with no commands
-                            switch (ErrorLevel) {
-                            case High:
-                                AddError(4057, false);
-                                break;
-                            case Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5114);
-                                break;
                             }
                             // done with if
                             tmpLogRes.WriteByte(0xFF);
@@ -4282,10 +4130,8 @@ namespace WinAGI.Engine {
                             // check for return.false() token
                             if (bytTestCmd == 0) {
                                 // warn user that it's not compatible with AGI Studio
-                                switch (ErrorLevel) {
-                                case High or Medium:
+                                if (ErrorLevel == Medium) {
                                     AddWarning(5081);
-                                    break;
                                 }
                             }
                             if (bytTestCmd == 0xE) {
@@ -4448,10 +4294,8 @@ namespace WinAGI.Engine {
                             tmpLogRes.WriteByte(0xFC);
                             if (intNumCmdsInBlock == 1) {
                                 // or block with one command
-                                switch (ErrorLevel) {
-                                case High or Medium:
+                                if (ErrorLevel == Medium) {
                                     AddWarning(5109);
-                                    break;
                                 }
                             }
                         }
@@ -4577,13 +4421,8 @@ namespace WinAGI.Engine {
                 // for div.n(vA, B) only, check for divide-by-zero
                 if (CmdNum == 167) {
                     if (ArgVal[1] == 0) {
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4149, false);
-                            return false;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5030);
-                            break;
                         }
                     }
                 }
@@ -4599,13 +4438,8 @@ namespace WinAGI.Engine {
             case 18:
                 // new.room(A)
                 if (!compGame.agLogs.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4120, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5053);
-                        break;
                     }
                 }
                 // expect no more commands
@@ -4619,13 +4453,8 @@ namespace WinAGI.Engine {
             case 20:
                 // load.logics(A)
                 if (!compGame.agLogs.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4121, LoadResString(4121).Replace(ARG1, ArgVal[0].ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5013);
-                        break;
                     }
                 }
                 break;
@@ -4633,96 +4462,59 @@ namespace WinAGI.Engine {
                 // call(A)
                 if (ArgVal[0] == 0) {
                     // calling logic0 is a BAD idea
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4118, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5010);
-                        break;
                     }
                 }
                 if (!compGame.agLogs.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4156, LoadResString(4156).Replace(ARG1, (ArgVal[0]).ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5076);
-                        break;
                     }
                 }
                 if (ArgVal[0] == bytLogComp) {
                     // recursive calling is usually BAD
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4117, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5089);
-                        break;
                     }
                 }
                 break;
             case 30:
                 // load.view(A)
                 if (!compGame.agViews.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4122, LoadResString(4122).Replace(ARG1, (ArgVal[0]).ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5015);
-                        break;
                     }
                 }
                 break;
             case 32:
                 // discard.view(A)
                 if (!compGame.agViews.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4123, LoadResString(4123).Replace(ARG1, ArgVal[0].ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5024);
-                        break;
                     }
                 }
                 break;
             case 37:
                 // position(oA, X,Y)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4128, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5023);
-                        break;
                     }
                 }
                 break;
             case 39:
                 // get.posn
                 if (ArgVal[1] <= 26 || ArgVal[2] <= 26) {
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
             case 41:
                 // set.view(oA, B)
                 if (!compGame.agViews.Contains(ArgVal[1])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4124, LoadResString(4124).Replace(ARG1, (ArgVal[1]).ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5037);
-                        break;
                     }
                 }
                 break;
@@ -4732,10 +4524,8 @@ namespace WinAGI.Engine {
                 // get.num
                 if (ArgVal[1] <= 26) {
                     // variable arg is second and should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
@@ -4743,13 +4533,8 @@ namespace WinAGI.Engine {
                 // set.priority(oA, B)
                 if (ArgVal[1] > 15) {
                     // invalid priority Value
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4125, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5050);
-                        break;
                     }
                 }
                 break;
@@ -4757,31 +4542,14 @@ namespace WinAGI.Engine {
                 // get.priority
                 if (ArgVal[1] <= 26) {
                     // variable is second argument and should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
             case 63:
                 // set.horizon(A)
-                switch (ErrorLevel) {
-                case High:
-                    if (ArgVal[0] >= 167) {
-                        // >=167 will cause AGI to freeze/crash
-                        AddError(4126, false);
-                        return false;
-                    }
-                    // >120 or <16 is unusual
-                    if (ArgVal[0] > 120) {
-                        AddWarning(5042);
-                    }
-                    else if (ArgVal[0] < 16) {
-                        AddWarning(5041);
-                    }
-                    break;
-                case Medium:
+                if (ErrorLevel == Medium) {
                     if (ArgVal[0] >= 167) {
                         AddWarning(5043);
                     }
@@ -4791,17 +4559,14 @@ namespace WinAGI.Engine {
                     else if (ArgVal[0] < 16) {
                         AddWarning(5041);
                     }
-                    break;
                 }
                 break;
             case >= 64 and <= 66:
                 // object.on.water, object.on.land, object.on.anything
                 if (ArgVal[0] == 0) {
                     // warn if used on ego
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5082);
-                        break;
                     }
                 }
                 break;
@@ -4809,10 +4574,8 @@ namespace WinAGI.Engine {
                 // distance(oA, oB, vC)
                 if (ArgVal[2] <= 26) {
                     // variable is third arg and should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
@@ -4820,39 +4583,28 @@ namespace WinAGI.Engine {
                 // end.of.loop, reverse.loop
                 if (ArgVal[1] <= 15) {
                     // flag arg should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
             case 81:
                 // move.obj(oA, X,Y,STEP,fDONE)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4127, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5062);
-                        break;
                     }
                 }
                 if (ArgVal[0] == 0) {
                     // ego object forces program mode
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5045);
-                        break;
                     }
                 }
                 if (ArgVal[4] <= 15) {
                     // flag arg should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
@@ -4860,44 +4612,34 @@ namespace WinAGI.Engine {
                 // move.obj.v
                 if (ArgVal[0] == 0) {
                     // ego object forces program mode
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5045);
-                        break;
                     }
                 }
                 if (ArgVal[4] <= 15) {
                     // flag arg should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
             case 83:
                 // follow.ego(oA, DISTANCE, fDONE)
                 if (ArgVal[1] <= 1) {
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5102);
-                        break;
                     }
                 }
                 if (ArgVal[0] == 0) {
                     // ego can't follow ego
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5027);
-                        break;
                     }
                 }
                 if (ArgVal[2] <= 15) {
                     // flag arg should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 CheckResFlagUse(ArgVal[2]);
@@ -4906,10 +4648,8 @@ namespace WinAGI.Engine {
                 // set.dir(oA, vB)
                 if (ArgVal[0] == 0) {
                     // has no effect on ego object
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5026);
-                        break;
                     }
                 }
                 break;
@@ -4917,68 +4657,44 @@ namespace WinAGI.Engine {
                 // get.dir (oA, vB)
                 if (ArgVal[1] <= 26) {
                     // variable arg should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
             case 90:
                 // block(x1,y1,x2,y2)
                 if (ArgVal[0] > 159 || ArgVal[1] > 167 || ArgVal[2] > 159 || ArgVal[3] > 167) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4129, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5020);
-                        break;
                     }
                 }
                 if ((ArgVal[2] - ArgVal[0] < 2) || (ArgVal[3] - ArgVal[1] < 2)) {
                     // invalid arguments
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4129, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5051);
-                        break;
                     }
                 }
                 break;
             case 98:
                 // load.sound(A)
                 if (!compGame.agSnds.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4130, LoadResString(4130).Replace(ARG1, ArgVal[0].ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5014);
-                        break;
                     }
                 }
                 break;
             case 99:
                 // sound(A, fB)
                 if (!compGame.agSnds.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4137, LoadResString(4137).Replace(ARG1, ArgVal[0].ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5084);
-                        break;
                     }
                 }
                 if (ArgVal[1] <= 15) {
                     // flag arg should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5078, LoadResString(5078).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 CheckResFlagUse(ArgVal[1]);
@@ -4986,13 +4702,8 @@ namespace WinAGI.Engine {
             case 103:
                 // display(ROW, COL, mC)
                 if (ArgVal[0] > 24 || ArgVal[1] > 39) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4131, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5059);
-                        break;
                     }
                 }
                 break;
@@ -5000,22 +4711,15 @@ namespace WinAGI.Engine {
                 // clear.lines(TOP, BTM, C)
                 if (ArgVal[0] > 24 || ArgVal[1] > 24 || ArgVal[0] > ArgVal[1]) {
                     // top must be >btm; both must be <=24
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4132, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5011);
-                        break;
                     }
                 }
                 if (ArgVal[2] > 0 && ArgVal[2] != 15) {
                     // color value should be 0 or 15 /(but it doesn't
                     // hurt to be anything else)
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5100);
-                        break;
                     }
                 }
                 break;
@@ -5024,13 +4728,8 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] > 15 || ArgVal[1] > 15) {
                     // color value should be 0 or 15 /(but it doesn't
                     // hurt to be anything else)
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4133, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5029);
-                        break;
                     }
                 }
                 break;
@@ -5038,8 +4737,7 @@ namespace WinAGI.Engine {
                 // shake.screen(A)
                 if (ArgVal[0] == 0) {
                     // zero is BAD
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddError(4134, false);
                         return false;
                     }
@@ -5047,18 +4745,14 @@ namespace WinAGI.Engine {
                 else if (ArgVal[0] > 15) {
                     if (ArgVal[0] >= 100 && ArgVal[0] <= 109) {
                         // could be a palette change
-                        switch (ErrorLevel) {
-                        case High or Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5058);
-                            break;
                         }
                     }
                     else {
                         // shouldn't normally have more than a few shakes
-                        switch (ErrorLevel) {
-                        case High or Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5057);
-                            break;
                         }
                     }
                 }
@@ -5067,37 +4761,26 @@ namespace WinAGI.Engine {
                 // configure.screen(TOP,INPUT,STATUS)
                 if (ArgVal[0] > 3) {
                     // top should be <=3
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4135, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5044);
-                        break;
                     }
                 }
                 if (ArgVal[1] > 24 || ArgVal[2] > 24) {
                     // input or status are invalid
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5099);
-                        break;
                     }
                 }
                 if (ArgVal[1] == ArgVal[2]) {
                     // input and status should not be equal
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5048);
-                        break;
                     }
                 }
                 if ((ArgVal[1] >= ArgVal[0] && ArgVal[1] <= ArgVal[0] + 20) || (ArgVal[2] >= ArgVal[0] && ArgVal[2] <= ArgVal[0] + 20)) {
                     // input and status should be <top or >=top+21
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5049);
-                        break;
                     }
                 }
                 break;
@@ -5106,10 +4789,8 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] == 0) {
                     if (strMsg[ArgVal[1]].Length > 10) {
                         // warn user if setting input prompt to unusually long value
-                        switch (ErrorLevel) {
-                        case High or Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5096);
-                            break;
                         }
                     }
                 }
@@ -5118,29 +4799,20 @@ namespace WinAGI.Engine {
                 // get.string(sA, mB, ROW,COL,LEN)
                 if (ArgVal[2] > 24) {
                     // if row>24, both row/col are ignored
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5052);
-                        break;
                     }
                 }
                 if (ArgVal[3] > 39) {
                     // if col>39, len is limited automatically to <=40
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4004, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5080);
-                        break;
                     }
                 }
                 if (ArgVal[4] > 40) {
                     // invalid len value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5056);
-                        break;
                     }
                 }
                 break;
@@ -5151,26 +4823,16 @@ namespace WinAGI.Engine {
                 if (ArgVal[0] > 0 && ArgVal[1] > 0 && ArgVal[0] != 1) {
                     // A or B must be zero to be valid ascii or keycode
                     // (A can be 1 to mean joystick)
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4154, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5065);
-                        break;
                     }
                 }
                 // check for improper ASCII assignments
                 if (ArgVal[1] == 0) {
                     if (ArgVal[0] == 8 || ArgVal[0] == 13 || ArgVal[0] == 32) {
                         // ascii codes for bkspace, enter, spacebar
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4155, false);
-                            return false;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5066);
-                            break;
                         }
                     }
                 }
@@ -5180,13 +4842,8 @@ namespace WinAGI.Engine {
                         (ArgVal[1] >= 75 && ArgVal[1] <= 77) ||
                         (ArgVal[1] >= 79 && ArgVal[1] <= 83)) {
                         // ascii codes arrow keys can't be assigned to controller
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4155, false);
-                            return false;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5066);
-                            break;
                         }
                     }
                 }
@@ -5194,14 +4851,9 @@ namespace WinAGI.Engine {
             case 122:
                 // add.to.pic(VIEW,LOOP,CEL,X,Y,PRI,MGN)
                 if (!compGame.agViews.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4138, LoadResString(4138).Replace(ARG1, (ArgVal[0]).ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5064);
                         blnWarned = true;
-                        break;
                     }
                 }
                 if (!blnWarned) {
@@ -5212,55 +4864,28 @@ namespace WinAGI.Engine {
                         }
                         // if view is valid, check loop
                         if (ArgVal[1] >= compGame.agViews[ArgVal[0]].Loops.Count) {
-                            switch (ErrorLevel) {
-                            case High:
-                                AddError(4139, LoadResString(4139).Replace(ARG1, ArgVal[1].ToString()).Replace(ARG2, ArgVal[0].ToString()), false);
-                                if (blnUnload) {
-                                    compGame.agViews[ArgVal[0]].Unload();
-                                }
-                                return false;
-                            case Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5085);
                                 blnWarned = true;
-                                break;
                             }
                         }
                         // if loop is valid, check cel
                         if (!blnWarned) {
                             if (ArgVal[2] >= compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels.Count) {
-                                switch (ErrorLevel) {
-                                case High:
-                                    AddError(4140, LoadResString(4140).Replace(ARG1, ArgVal[2].ToString()).Replace(ARG2, ArgVal[1].ToString()).Replace(ARG3, ArgVal[0].ToString()), false);
-                                    if (blnUnload) {
-                                        compGame.agViews[ArgVal[0]].Unload();
-                                    }
-                                    return false;
-                                case Medium:
+                                if (ErrorLevel == Medium) {
                                     AddWarning(5086);
-                                    break;
                                 }
                             }
                             if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width < 3 && ArgVal[6] < 4) {
                                 // CEL width must be >=3
-                                switch (ErrorLevel) {
-                                case High:
-                                    if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width == 2) {
-                                        AddError(4165, false);
-                                        return false;
-                                    }
-                                    else {
-                                        AddWarning(5115);
-                                        break;
-                                    }
-                                case Medium:
+                                if (ErrorLevel == Medium) {
                                     AddWarning(5115);
-                                    break;
                                 }
                             }
                         }
                     }
                     catch (Exception) {
-                        // error trying to load add a warning
+                        // error trying to load- add a warning
                         AddWarning(5021, LoadResString(5021).Replace(ARG1, ArgVal[0].ToString()));
                     }
                     if (blnUnload) {
@@ -5269,115 +4894,75 @@ namespace WinAGI.Engine {
                 }
                 if (ArgVal[3] > 159 || ArgVal[4] > 167) {
                     // invalid x or y value
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4141, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5038);
-                        break;
                     }
                 }
                 if (ArgVal[5] > 15) {
                     // invalid priority value
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4142, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5079);
-                        break;
                     }
                 }
                 if (ArgVal[5] < 4 && ArgVal[5] != 0) {
                     // unusual priority value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5079);
-                        break;
                     }
                 }
                 if (ArgVal[6] > 15) {
                     // MGN values >15 will only use lower nibble
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5101);
-                        break;
                     }
                 }
                 break;
             case 129:
                 // show.obj(VIEW)
                 if (!compGame.agViews.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4144, LoadResString(4144).Replace(ARG1, ArgVal[0].ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5061);
-                        break;
                     }
                 }
                 break;
             case 127 or 176 or 178:
                 // init.disk, hide.mouse, show.mouse
                 // these commands have no usefulness
-                switch (ErrorLevel) {
-                case High or Medium:
+                if (ErrorLevel == Medium) {
                     AddWarning(5087, LoadResString(5087).Replace(ARG1, ActionCommands[CmdNum].Name));
-                    break;
                 }
                 break;
             case 175 or 179 or 180:
                 // discard.sound, fence.mouse, mouse.posn
                 // these commands not valid in MSDOS AGI
-                switch (ErrorLevel) {
-                case High:
-                    AddError(4152, LoadResString(4152).Replace(ARG1, ActionCommands[CmdNum].Name), false);
-                    return false;
-                case Medium:
+                if (ErrorLevel == Medium) {
                     AddWarning(5088, LoadResString(5088).Replace(ARG1, ActionCommands[CmdNum].Name));
-                    break;
                 }
                 break;
             case 130:
                 // random(LOWER,UPPER,vRESULT)
                 if (ArgVal[0] > ArgVal[1]) {
                     // lower should be < upper
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4145, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5054);
-                        break;
                     }
                 }
                 if (ArgVal[0] == ArgVal[1]) {
                     // lower=upper means result=lower=upper
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5106);
-                        break;
                     }
                 }
                 if (ArgVal[0] == ArgVal[1] + 1) {
                     // this causes divide by 0!
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4158, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5107);
-                        break;
                     }
                 }
                 if (ArgVal[2] <= 26) {
                     // variable arg should not be a reserved Value
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5077, LoadResString(5077).Replace(ARG1, ActionCommands[CmdNum].Name));
-                        break;
                     }
                 }
                 break;
@@ -5393,61 +4978,40 @@ namespace WinAGI.Engine {
                 // script.size
                 if (bytLogComp != 0) {
                     //warn if in other than logic0
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5039);
-                        break;
                     }
                 }
                 if (ArgVal[0] < 10) {
                     // absurdly low value for script size
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5009);
-                        break;
                     }
                 }
                 break;
             case 147:
                 // reposition.to(oA, B,C)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4128, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5023);
-                        break;
                     }
                 }
                 break;
             case 150:
                 // trace.info(LOGIC,ROW,HEIGHT)
                 if (!compGame.agLogs.Contains(ArgVal[0])) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4153, LoadResString(4153).Replace(ARG1, ArgVal[0].ToString()), false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5040);
-                        break;
                     }
                 }
                 if (ArgVal[2] < 2) {
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5046);
-                        break;
                     }
                 }
                 if (ArgVal[1] + ArgVal[2] > 23) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4146, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5063);
-                        break;
                     }
                 }
                 break;
@@ -5455,58 +5019,36 @@ namespace WinAGI.Engine {
                 // print.at(mA, ROW, COL, MAXWIDTH)
                 // print.at.v(vMSG, ROW, COL, MAXWIDTH)
                 if (ArgVal[1] > 22) {
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4147, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5067);
-                        break;
                     }
                 }
                 switch (ArgVal[3]) {
                 case 0:
                     //maxwidth=0 defaults to 30
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5105);
-                        break;
                     }
                     break;
                 case 1:
                     //maxwidth=1 crashes AGI
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4043, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5103);
-                        break;
                     }
                     break;
                 default:
                     if (ArgVal[3] > 36) {
                         //maxwidth >36 won't work
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4043, false);
-                            return false;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5104);
-                            break;
                         }
                     }
                     break;
                 }
                 if (ArgVal[2] < 2 || ArgVal[2] + ArgVal[3] > 39) {
                     // invalid COL value
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4148, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5068);
-                        break;
                     }
                 }
                 break;
@@ -5516,11 +5058,7 @@ namespace WinAGI.Engine {
                    ArgVal[2] > 24 || ArgVal[3] > 39 ||
                    ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
                     // invalid items
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4150, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         if (ArgVal[2] < ArgVal[0] || ArgVal[3] < ArgVal[1]) {
                             // pos2 < pos1
                             AddWarning(5069);
@@ -5530,16 +5068,13 @@ namespace WinAGI.Engine {
                             // variables outside limits
                             AddWarning(5070);
                         }
-                        break;
                     }
                 }
                 if (ArgVal[4] > 0 && ArgVal[4] != 15) {
                     // color value should be 0 or 15  (but
                     // it doesn't hurt to be anything else)
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5100);
-                        break;
                     }
                 }
                 break;
@@ -5547,10 +5082,8 @@ namespace WinAGI.Engine {
                 // submit.menu()
                 if (bytLogComp != 0) {
                     // should only be called in logic0
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5047);
-                        break;
                     }
                 }
                 break;
@@ -5558,10 +5091,8 @@ namespace WinAGI.Engine {
                 // set.pri.base(A)
                 if (ArgVal[0] > 167) {
                     // value >167 doesn't make sense
-                    switch (ErrorLevel) {
-                    case High or Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5071);
-                        break;
                     }
                 }
                 break;
@@ -5586,24 +5117,14 @@ namespace WinAGI.Engine {
                 // right.posn(oA, X1, Y1, X2, Y2)
                 if (ArgVal[1] > 159 || ArgVal[2] > 167 || ArgVal[3] > 159 || ArgVal[4] > 167) {
                     // invalid position
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4151, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5072);
-                        break;
                     }
                 }
                 if ((ArgVal[1] > ArgVal[3]) || (ArgVal[2] > ArgVal[4])) {
                     // start and stop are backwards
-                    switch (ErrorLevel) {
-                    case High:
-                        AddError(4151, false);
-                        return false;
-                    case Medium:
+                    if (ErrorLevel == Medium) {
                         AddWarning(5073);
-                        break;
                     }
                 }
                 break;
@@ -5623,13 +5144,11 @@ namespace WinAGI.Engine {
                 return;
             }
             if (strMsg.Any(ch => ch > 127)) {
-                switch (ErrorLevel) {
-                case High or Medium:
+                if (ErrorLevel == Medium) {
                     AddWarning(5094);
                     // need to track warning in case this msg is
                     // also included in body of logic
                     intMsgWarn[MsgNum] |= 2;
-                    break;
                 }
             }
         }
@@ -5837,7 +5356,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     if (strLabel.Length != 0) {
-                        DefineNameCheck chkLabel = ValidateDefName(strLabel);
+                        DefineNameCheck chkLabel = ValidateDefineName(strLabel, compGame);
                         switch (chkLabel) {
                         case Numeric:
                             // numbers are ok for labels
@@ -5924,8 +5443,7 @@ namespace WinAGI.Engine {
                 blnLastCmdRtn = false;
                 if (endingCmd > 0) {
                     if (nextToken != "}") {
-                        switch (ErrorLevel) {
-                        case High or Medium:
+                        if (ErrorLevel == Medium) {
                             switch (endingCmd) {
                             case 1:
                                 // return
@@ -5954,7 +5472,6 @@ namespace WinAGI.Engine {
                                 }
                                 break;
                             }
-                            break;
                         }
                     }
                     endingCmd = 0;
@@ -5974,13 +5491,8 @@ namespace WinAGI.Engine {
                     else {
                         if (tmpLogRes.Size == Block[BlockDepth].StartPos + 2) {
                             // block is only two bytes long, meaning no commands
-                            switch (ErrorLevel) {
-                            case High:
-                                AddError(4049, false);
-                                break;
-                            case Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5001);
-                                break;
                             }
                         }
                         // calculate and write block length
@@ -6296,10 +5808,6 @@ namespace WinAGI.Engine {
             else {
                 if (!blnLastCmdRtn) {
                     switch (ErrorLevel) {
-                    case High:
-                        AddError(4102, false);
-                        blnCriticalError = false;
-                        return false;
                     case Medium:
                         // add the missing return code
                         tmpLogRes.WriteByte(0);
@@ -6342,10 +5850,8 @@ namespace WinAGI.Engine {
 
             if (strMsgIn.Length == 0) {
                 // blank messages are not common
-                switch (ErrorLevel) {
-                case High or Medium:
+                if (ErrorLevel == Medium) {
                     AddWarning(5074);
-                    break;
                 }
             }
             for (lngMsg = 1; lngMsg <= 255; lngMsg++) {
@@ -6411,13 +5917,8 @@ namespace WinAGI.Engine {
                 // just not supported in this agi version
                 for (byte retval = agNumCmds; retval < MAX_CMDS; retval++) {
                     if (strCmdName == ActionCommands[retval].Name) {
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4065, LoadResString(4065).Replace(ARG1, strCmdName), false);
-                            break;
-                        case Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5075, LoadResString(5075).Replace(ARG1, strCmdName));
-                            break;
                         }
                         // don't worry about command validity; return the extracted command num
                         return retval;
@@ -6705,24 +6206,15 @@ namespace WinAGI.Engine {
                     // assume rest of syntax is correct even though not allowed
                 }
                 intArg1 = VariableValue(strArg1);
-                switch (ErrorLevel) {
-                case High or Medium:
+                if (ErrorLevel == Medium) {
                     // for version 2.089, 2.272, and 3.002149 only 12 strings
                     maxStr = compGame.agIntVersion switch {
                         "2.089" or "2.272" or "3.002149" => 11,
                         _ => 23,
                     };
                     if (intArg1 > maxStr) {
-                        switch (ErrorLevel) {
-                        case High:
-                            AddError(4079, LoadResString(4079).Replace(ARG1, "1").Replace(ARG2, maxStr.ToString()), false);
-                            break;
-                        case Medium:
-                            AddWarning(5007, LoadResString(5007).Replace(ARG1, maxStr.ToString()));
-                            break;
-                        }
+                        AddWarning(5007, LoadResString(5007).Replace(ARG1, maxStr.ToString()));
                     }
-                    break;
                 }
                 // next token must be "="
                 if (!CheckToken("=")) {
@@ -7025,10 +6517,8 @@ namespace WinAGI.Engine {
                             }
                             // convert to unsigned byte
                             intArg2 = 256 + intArg2;
-                            switch (ErrorLevel) {
-                            case High or Medium:
+                            if (ErrorLevel == Medium) {
                                 AddWarning(5098);
-                                break;
                             }
                         }
                         else {
@@ -7099,10 +6589,8 @@ namespace WinAGI.Engine {
                     if (strArg2 == ";") {
                         // this is a simple assign (with a variable being assigned
                         // to itself!!)
-                        switch (ErrorLevel) {
-                        case High or Medium:
+                        if (ErrorLevel == Medium) {
                             AddWarning(5036);
-                            break;
                         }
                         // assign.v
                         bytCmd = 0x3;

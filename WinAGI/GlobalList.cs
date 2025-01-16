@@ -150,7 +150,7 @@ namespace WinAGI.Engine {
                             tdNewDefine.Name = strLine[..i].Trim();
                             tdNewDefine.Value = strLine[i..].Trim();
                             // validate define name
-                            DefineNameCheck chkName = LogicCompiler.ValidateNameGlobal(tdNewDefine);
+                            DefineNameCheck chkName = LogicCompiler.ValidateDefineName(tdNewDefine);
                             switch (chkName) {
                             case DefineNameCheck.OK or
                             ReservedVar or
@@ -159,7 +159,7 @@ namespace WinAGI.Engine {
                             ReservedObj or
                             ReservedStr or
                             ReservedMsg:
-                                DefineValueCheck chkValue = LogicCompiler.ValidateDefValue(ref tdNewDefine);
+                                DefineValueCheck chkValue = LogicCompiler.ValidateDefineValue(ref tdNewDefine, this.parent);
                                 switch (chkValue) {
                                 case DefineValueCheck.OK or Reserved or DefineValueCheck.Global:
                                     gCount++;

@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha11.1
+        Version 3.0.0alpha11.2
     ==============================
 
 
@@ -36,22 +36,26 @@ WinAGI is a full featured game development system, that includes editors which p
     X  8. Status Bar
     X  9. Character Map
     X 10. Snippets Editor
-    O 11. Defines Editor
-      12. Object Editor
-      13. Word Editor
-      14. Palette Editor
-      15. Picture Editor
-      16. View Editor
-      17. Layout Editor
-      18. Menu Editor
-      19. Text Screen Editor
-      20. Help Integration
-      21. BETA TESTING
+    X 11. Global Defines Editor
+    O 12. Reserved Defines Editor
+      13. Object Editor
+      14. Word Editor
+      15. Palette Editor
+      16. Picture Editor
+      17. View Editor
+      18. Layout Editor
+      19. Menu Editor
+      20. Text Screen Editor
+      21. Help Integration
+      22. BETA TESTING
 
 ---
 
   
 ### History:  
+
+**alpha11.2:** Global Defines editor is complete. Removed the 'High' setting for logic compiler errors. A few other minor bug fixes.
+
 
 **alpha11.1:** Converting WinAGIv2 game files now add includes when game is first opened. Fixed some bugs in the logic compiler, the ReplaceAll function and resID mod function.
 

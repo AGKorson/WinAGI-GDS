@@ -385,16 +385,31 @@ namespace WinAGI.Engine {
                 else if (NewID.Length > 64) {
                     NewID = NewID[..64];
                 }
-                if (INVALID_FIRST_CHARS.Any(ch => ch == NewID[0])) {
-                    NewID = "_" + NewID[1..];
-                }
-                if (NewID.Any(INVALID_ID_CHARS.Contains)) {
-                    // replace them with '_'
-                    StringBuilder sb = new(NewID);
-                    foreach (char c in INVALID_ID_CHARS) {
-                        sb.Replace(c, '_');
+                if (parent == null || !parent.SierraSyntax) {
+                    if (INVALID_FIRST_CHARS.Any(ch => ch == NewID[0])) {
+                        NewID = "_" + NewID[1..];
                     }
-                    NewID = sb.ToString();
+                    if (NewID.Any(INVALID_DEFINE_CHARS.Contains)) {
+                        // replace them with '_'
+                        StringBuilder sb = new(NewID);
+                        foreach (char c in INVALID_DEFINE_CHARS) {
+                            sb.Replace(c, '_');
+                        }
+                        NewID = sb.ToString();
+                    }
+                }
+                else {
+                    if (INVALID_SIERRA_1ST_CHARS.Any(ch => ch == NewID[0])) {
+                        NewID = "_" + NewID[1..];
+                    }
+                    if (NewID.Any(INVALID_SIERRA_CHARS.Contains)) {
+                        // replace them with '_'
+                        StringBuilder sb = new(NewID);
+                        foreach (char c in INVALID_SIERRA_CHARS) {
+                            sb.Replace(c, '_');
+                        }
+                        NewID = sb.ToString();
+                    }
                 }
                 if (NewID.Any(ch => ch > 127) || NewID.Any(ch => ch < 32)) {
                     StringBuilder sb = new(NewID);

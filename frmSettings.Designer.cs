@@ -869,7 +869,7 @@
             // 
             cmbErrorLevel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbErrorLevel.FormattingEnabled = true;
-            cmbErrorLevel.Items.AddRange(new object[] { "Low", "Medium", "High" });
+            cmbErrorLevel.Items.AddRange(new object[] { "Low", "Medium" });
             cmbErrorLevel.Location = new System.Drawing.Point(6, 44);
             cmbErrorLevel.Name = "cmbErrorLevel";
             cmbErrorLevel.Size = new System.Drawing.Size(122, 23);

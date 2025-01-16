@@ -781,10 +781,8 @@ namespace WinAGI.Engine {
                         }
                         else {
                             //non-unique - use obj number instead
-                            switch (ErrorLevel) {
-                            case High or Medium:
+                            if (ErrorLevel == Medium) {
                                 AddDecodeWarning("DC05", "Non-unique inventory item '" + compGame.agInvObj[ArgNum].ItemName + "' [resource index: " + lngPos + "]", stlOutput.Count - 1);
-                                break;
                             }
                             return 'i' + ArgNum.ToString();
                         }

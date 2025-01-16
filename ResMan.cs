@@ -504,7 +504,7 @@ namespace WinAGI.Editor {
             //// AutoUpdateObjects:
             //public SettingAskOption AutoUpdateObjects = new(nameof(AutoUpdateObjects), AskOption.Ask, sGENERAL);
             // WarnDupGName: 
-            public SettingBool WarnDupGName = new(nameof(WarnDupGName), true, "Warnings");
+            public SettingAskOption WarnDupGName = new(nameof(WarnDupGName), AskOption.Ask, "Warnings");
             // WarnDupGVal: 
             public SettingBool WarnDupGVal = new(nameof(WarnDupGVal), true, "Warnings");
             // WarnInvalidStrVal: 
@@ -512,7 +512,7 @@ namespace WinAGI.Editor {
             // WarnInvalidCtlVal: 
             public SettingBool WarnInvalidCtlVal = new(nameof(WarnInvalidCtlVal), true, "Warnings");
             // WarnResOvrd: warn user if attempting to override definition of a reserved var/flag/etc
-            public SettingBool WarnResOveride = new(nameof(WarnResOveride), true, "Warnings");
+            public SettingBool WarnResOverride = new(nameof(WarnResOverride), true, "Warnings");
             // WarnDupObj: 
             public SettingBool WarnDupObj = new(nameof(WarnDupObj), true, "Warnings");
             // WarnCompile: when true, a warning is shown when a logic is closed that isn't compiled
@@ -825,7 +825,7 @@ namespace WinAGI.Editor {
                 clonesettings.WarnDupGVal = new(WarnDupGVal);
                 clonesettings.WarnInvalidStrVal = new(WarnInvalidStrVal);
                 clonesettings.WarnInvalidCtlVal = new(WarnInvalidCtlVal);
-                clonesettings.WarnResOveride = new(WarnResOveride);
+                clonesettings.WarnResOverride = new(WarnResOverride);
                 clonesettings.WarnDupObj = new(WarnDupObj);
                 clonesettings.WarnCompile = new(WarnCompile);
                 clonesettings.DelBlankG = new(DelBlankG);
@@ -1112,7 +1112,6 @@ namespace WinAGI.Editor {
         public static bool DroppingWord;
         public static bool DroppingObj;
         public static bool DroppingGlobal;
-        public static TDefine[] GlobalsClipboard;
         //default colors
         public static Color[] DefEGAColor = new Color[16];
 
@@ -1293,8 +1292,6 @@ namespace WinAGI.Editor {
             DefaultVGOptions.VAlign = 1;
             // default value for updating logics is 'checked'
             DefUpdateVal = true;
-            // initialize clipboard object if not already done
-            GlobalsClipboard = [];
             // initialize code snippet array
             CodeSnippets = [];
             // set up background worker to create new games
@@ -2921,14 +2918,21 @@ namespace WinAGI.Editor {
         }
 
         public static ArgType DefTypeFromValue(string strValue) {
+            if (strValue.Length == 0) {
+                //strValue = "\"\"";
+                return DefStr;
+            }
+            else if (strValue[0] == 34) {
+                //if (strValue.Length == 1 || strValue[^1] != 34) {
+                //    strValue += "\"";
+                //}
+                return DefStr;
+            }
             if (strValue.IsNumeric()) {
                 return Num;
             }
-            else if (strValue[0] == 34) {
-                return DefStr;
-            }
             else {
-                switch ((int)strValue.ToLower()[0]) {
+                switch ((int)strValue[0]) {
                 case 99: //"c"
                     return Ctrl;
                 case 102: //"f"
@@ -2946,7 +2950,11 @@ namespace WinAGI.Editor {
                 case 119: //"w"
                     return Word;
                 default:
-                    //assume a defined string
+                    // assume a defined string
+                    //strValue = "\"" + strValue;
+                    //if (strValue[^1] != '\"') {
+                    //    strValue += "\"";
+                    //}
                     return DefStr;
                 }
             }
@@ -3750,17 +3758,27 @@ namespace WinAGI.Editor {
                     return 6;
                 }
             }
-
             //check name against improper character lists
-            if (INVALID_FIRST_CHARS.Any(ch => ch == NewID[0])) {
-                return 14;
+            if (EditGame == null || !EditGame.SierraSyntax) {
+                if (INVALID_FIRST_CHARS.Any(ch => ch == NewID[0])) {
+                    return 14;
+                }
+                if (NewID[1..].Any(INVALID_DEFINE_CHARS.Contains)) {
+                    return 14;
+                }
             }
-            if (NewID.Any(INVALID_ID_CHARS.Contains)) {
-                return 14;
+            else {
+                if (INVALID_SIERRA_1ST_CHARS.Any(ch => ch == NewID[0])) {
+                    return 14;
+                }
+                if (NewID[1..].Any(INVALID_SIERRA_CHARS.Contains)) {
+                    return 14;
+                }
             }
             if (NewID.Any(ch => ch > 127 || ch < 32)) {
                 return 14;
             }
+
             // check against existing IDs
             for (int restype = 0; restype <= 3; restype++) {
                 for (int i = 0; i <= 255; i++) {
@@ -4072,7 +4090,7 @@ namespace WinAGI.Editor {
                         // TODO: create blank file and open it
                     }
                     GlobalsEditor = new frmGlobals();
-                    if (GlobalsEditor.LoadGlobalDefines(strFileName)) {
+                    if (GlobalsEditor.LoadGlobalDefines(strFileName, true)) {
                         // TODO: deal with errors
                     }
                     GlobalsEditor.Show();
@@ -4109,7 +4127,7 @@ namespace WinAGI.Editor {
                 // and open this file into it
                 MDIMain.UseWaitCursor = true;
                 frmNew = new();
-                if (frmNew.LoadGlobalDefines(strFileName)) {
+                if (frmNew.LoadGlobalDefines(strFileName, false)) {
                     // TODO: handle error
                 }
                 frmNew.Show();
@@ -7117,6 +7135,7 @@ namespace WinAGI.Editor {
                 ProgressWin.Text = "Replace All";
                 ProgressWin.lblProgress.Text = "Searching...";
                 ProgressWin.pgbStatus.Maximum = LogicEditors.Count;
+                ProgressWin.pgbStatus.Value = 0;
                 ProgressWin.Show(MDIMain);
                 ProgressWin.Refresh();
                 for (int i = 0; i < LogicEditors.Count; i++) {

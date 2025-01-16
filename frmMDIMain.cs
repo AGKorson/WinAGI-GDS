@@ -22,6 +22,7 @@ using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.EventType;
+using System.Text.RegularExpressions;
 
 namespace WinAGI.Editor {
     public partial class frmMDIMain : Form {
@@ -2026,6 +2027,7 @@ namespace WinAGI.Editor {
             if (e.Value == null) {
                 return;
             }
+            // first determine if tooltip is needed
             DataGridViewCell cell = fgWarnings.Rows[e.RowIndex].Cells[e.ColumnIndex];
             string text = (string)e.Value;
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
@@ -2039,6 +2041,10 @@ namespace WinAGI.Editor {
             else {
                 cell.ToolTipText = "";
             }
+
+            // then apply formatting based on warning type
+            // TODO: right now, this is done when rows are added, and it works
+            // fine; maybe I don't need to move it to this formatting event
         }
 
         private void fgWarnings_CellMouseEnter(object sender, DataGridViewCellEventArgs e) {
@@ -3190,7 +3196,7 @@ namespace WinAGI.Editor {
             WinAGISettings.WarnDupGVal.ReadSetting(WinAGISettingsFile);
             WinAGISettings.WarnInvalidStrVal.ReadSetting(WinAGISettingsFile);
             WinAGISettings.WarnInvalidCtlVal.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.WarnResOveride.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.WarnResOverride.ReadSetting(WinAGISettingsFile);
             WinAGISettings.WarnDupObj.ReadSetting(WinAGISettingsFile);
             WinAGISettings.WarnCompile.ReadSetting(WinAGISettingsFile);
             WinAGISettings.DelBlankG.ReadSetting(WinAGISettingsFile);

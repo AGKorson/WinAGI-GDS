@@ -79,9 +79,9 @@
             btnMsgClean = new System.Windows.Forms.ToolStripButton();
             splitContainer1 = new System.Windows.Forms.SplitContainer();
             splitLogic = new System.Windows.Forms.SplitContainer();
-            rtfLogic1 = new WinAGIFCTB();
             rtfLogic2 = new WinAGIFCTB();
             contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
+            rtfLogic1 = new WinAGIFCTB();
             documentMap1 = new FastColoredTextBoxNS.DocumentMap();
             picTip = new System.Windows.Forms.PictureBox();
             lstDefines = new System.Windows.Forms.ListView();
@@ -551,7 +551,7 @@
             // splitContainer1
             // 
             splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            splitContainer1.Location = new System.Drawing.Point(0, 33);
+            splitContainer1.Location = new System.Drawing.Point(0, 57);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -562,7 +562,7 @@
             // 
             splitContainer1.Panel2.Controls.Add(documentMap1);
             splitContainer1.Panel2MinSize = 75;
-            splitContainer1.Size = new System.Drawing.Size(719, 309);
+            splitContainer1.Size = new System.Drawing.Size(719, 285);
             splitContainer1.SplitterDistance = 600;
             splitContainer1.TabIndex = 4;
             splitContainer1.TabStop = false;
@@ -583,8 +583,8 @@
             // 
             splitLogic.Panel2.Controls.Add(rtfLogic1);
             splitLogic.Panel2MinSize = 0;
-            splitLogic.Size = new System.Drawing.Size(600, 309);
-            splitLogic.SplitterDistance = 149;
+            splitLogic.Size = new System.Drawing.Size(600, 285);
+            splitLogic.SplitterDistance = 137;
             splitLogic.TabIndex = 4;
             splitLogic.TabStop = false;
             // 
@@ -604,7 +604,7 @@
     '\''
     };
             rtfLogic2.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
-            rtfLogic2.AutoScrollMinSize = new System.Drawing.Size(27, 14);
+            rtfLogic2.AutoScrollMinSize = new System.Drawing.Size(2, 14);
             rtfLogic2.BackBrush = null;
             rtfLogic2.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
             rtfLogic2.CharHeight = 14;
@@ -614,6 +614,7 @@
             rtfLogic2.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic2.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic2.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
+            rtfLogic2.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic2.Hotkeys = resources.GetString("rtfLogic2.Hotkeys");
             rtfLogic2.IsReplaceMode = false;
             rtfLogic2.LineNumberStartValue = 0U;
@@ -625,27 +626,24 @@
             rtfLogic2.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic2.ServiceColors");
             rtfLogic2.ShowCaretWhenInactive = true;
             rtfLogic2.ShowFoldingLines = true;
-            rtfLogic2.Size = new System.Drawing.Size(600, 149);
+            rtfLogic2.Size = new System.Drawing.Size(600, 137);
             rtfLogic2.SourceTextBox = rtfLogic1;
             rtfLogic2.TabIndex = 1;
             rtfLogic2.Zoom = 100;
             rtfLogic2.ToolTipNeeded += fctb_ToolTipNeeded;
             rtfLogic2.TextChanged += fctb_TextChanged;
             rtfLogic2.SelectionChanged += fctb_SelectionChanged;
-            rtfLogic2.TextChangedDelayed += fctb_TextChangedDelayed;
             rtfLogic2.KeyPressed += fctb_KeyPressed;
             rtfLogic2.Enter += fctb_Enter;
-            rtfLogic2.KeyDown += fctb_KeyDown;
             rtfLogic2.KeyUp += fctb_KeyUp;
             rtfLogic2.MouseDown += fctb_MouseDown;
-            rtfLogic2.MouseMove += fctb_MouseMove;
             rtfLogic2.MouseUp += fctb_MouseUp;
             // 
             // contextMenuStrip1
             // 
             contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuERedo, mnuESep0, mnuECut, mnuEDelete, mnuECopy, mnuEPaste, mnuESelectAll, mnuESep1, mnuEFind, mnuEFindAgain, mnuEReplace, mnuESep2, mnuEListDefines, mnuEViewSynonym, mnuESnippet, mnuEBlockCmt, mnuEUnblockCmt, mnuEOpenRes, mnuESep3, mnuEDocumentMap, mnuELineNumbers, mnuECharMap });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(263, 468);
+            contextMenuStrip1.Size = new System.Drawing.Size(263, 446);
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
             // rtfLogic1
@@ -664,7 +662,7 @@
     '\''
     };
             rtfLogic1.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
-            rtfLogic1.AutoScrollMinSize = new System.Drawing.Size(27, 14);
+            rtfLogic1.AutoScrollMinSize = new System.Drawing.Size(2, 14);
             rtfLogic1.BackBrush = null;
             rtfLogic1.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
             rtfLogic1.CharHeight = 14;
@@ -674,6 +672,7 @@
             rtfLogic1.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic1.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic1.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
+            rtfLogic1.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic1.Hotkeys = resources.GetString("rtfLogic1.Hotkeys");
             rtfLogic1.IsReplaceMode = false;
             rtfLogic1.LineNumberStartValue = 0U;
@@ -684,19 +683,16 @@
             rtfLogic1.SelectionColor = System.Drawing.Color.FromArgb(60, 255, 255, 255);
             rtfLogic1.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic1.ServiceColors");
             rtfLogic1.ShowCaretWhenInactive = true;
-            rtfLogic1.Size = new System.Drawing.Size(600, 156);
+            rtfLogic1.Size = new System.Drawing.Size(600, 144);
             rtfLogic1.TabIndex = 0;
             rtfLogic1.Zoom = 100;
             rtfLogic1.ToolTipNeeded += fctb_ToolTipNeeded;
             rtfLogic1.TextChanged += fctb_TextChanged;
             rtfLogic1.SelectionChanged += fctb_SelectionChanged;
-            rtfLogic1.TextChangedDelayed += fctb_TextChangedDelayed;
             rtfLogic1.KeyPressed += fctb_KeyPressed;
             rtfLogic1.Enter += fctb_Enter;
-            rtfLogic1.KeyDown += fctb_KeyDown;
             rtfLogic1.KeyUp += fctb_KeyUp;
             rtfLogic1.MouseDown += fctb_MouseDown;
-            rtfLogic1.MouseMove += fctb_MouseMove;
             rtfLogic1.MouseUp += fctb_MouseUp;
             // 
             // documentMap1
@@ -705,7 +701,7 @@
             documentMap1.ForeColor = System.Drawing.Color.Maroon;
             documentMap1.Location = new System.Drawing.Point(0, 0);
             documentMap1.Name = "documentMap1";
-            documentMap1.Size = new System.Drawing.Size(115, 309);
+            documentMap1.Size = new System.Drawing.Size(115, 285);
             documentMap1.TabIndex = 4;
             documentMap1.Target = rtfLogic1;
             documentMap1.Text = "documentMap1";
@@ -854,7 +850,6 @@
             Name = "frmLogicEdit";
             StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
             Text = "Form1";
-            Activated += frmLogicEdit_Activated;
             FormClosing += frmLogicEdit_FormClosing;
             FormClosed += frmLogicEdit_FormClosed;
             Enter += frmLogicEdit_Enter;

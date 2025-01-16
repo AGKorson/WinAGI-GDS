@@ -100,12 +100,11 @@ namespace WinAGI.Engine {
     };
 
     public enum LogicErrorLevel {
-        Low,       // only errors that prevent compilation/decompiliation
-                   // are passed; no warnings are given
-        Medium,    // only errors that prevent compilation/decompilation
-                   // are passed; warnings embedded in
-                   // source code on compilation
-        High,      // all compile/decompile problems are returned as errors
+        Low,       // errors that prevent compilation/decompiliation
+                   // are passed; minimal warnings are given
+        Medium,    // errors that prevent compilation/decompilation
+                   // are passed; warnings embedded in source
+                   // code on compilation
     };
 
     public enum GameCompileStatus {
@@ -194,6 +193,7 @@ namespace WinAGI.Engine {
         ReservedObj,   // 12 = name is reserved object
         ReservedStr,   // 13 = name is reserved string
         ReservedMsg,   // 14 = name is reserved message
+        ResourceID,    // 15 = name is a resourceID
     }
 
     public enum DefineValueCheck {
@@ -277,6 +277,8 @@ namespace WinAGI.Engine {
         public string Value = "";
         public ArgType Type = ArgType.None;
         public string Comment = "";
+        public DefineNameCheck NameCheck = DefineNameCheck.OK;
+        public DefineValueCheck ValueCheck = DefineValueCheck.OK;
         public TDefine() {
         }
     }
