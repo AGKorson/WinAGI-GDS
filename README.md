@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha11.2
+        Version 3.0.0alpha11.3
     ==============================
 
 
@@ -52,7 +52,7 @@ WinAGI is a full featured game development system, that includes editors which p
 ---
 
   
-### History:  
+### History: 
 
 **alpha11.2:** Global Defines editor is complete. Removed the 'High' setting for logic compiler errors. A few other minor bug fixes.
 

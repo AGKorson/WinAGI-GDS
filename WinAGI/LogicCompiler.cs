@@ -70,17 +70,18 @@ namespace WinAGI.Engine {
         // compiler warnings
         public const int WARNCOUNT = 117;
         internal static bool[] agNoCompWarn = new bool[WARNCOUNT + 1];
-        // reserved defines
-        internal static TDefine[] agResVar = new TDefine[27];    // 27: text name of built in variables
-        internal static TDefine[] agResFlag = new TDefine[18];   // 18: text name of built in flags
-        internal static TDefine[] agEdgeCodes = new TDefine[5];  //  5: text of edge codes
-        internal static TDefine[] agEgoDir = new TDefine[9];     //  9: text of ego direction codes
-        internal static TDefine[] agVideoMode = new TDefine[5];  //  5: text of video mode codes
-        internal static TDefine[] agCompType = new TDefine[9];   //  9: computer type codes
-        internal static TDefine[] agResObj = new TDefine[1];     //  1: just ego object (o0)
-        internal static TDefine[] agResStr = new TDefine[1];     //  1: just prompt (s0)  
-        internal static TDefine[] agResColor = new TDefine[16];  // 16: text of color indices
-        internal static bool agSierraSyntax = false;
+        // default reserved defines
+        //internal static TDefine[] defaultResVar = new TDefine[27];    // 27: text name of built in variables
+        //internal static TDefine[] defaultResFlag = new TDefine[18];   // 18: text name of built in flags
+        //internal static TDefine[] defaultEdgeCodes = new TDefine[5];  //  5: text of edge codes
+        //internal static TDefine[] defaultObjDirs = new TDefine[9];     //  9: text of object direction codes
+        //internal static TDefine[] defaultVideoModes = new TDefine[5];  //  5: text of video mode codes
+        //internal static TDefine[] defaultCompTypes = new TDefine[9];   //  9: computer type codes
+        //internal static TDefine[] defaultColorNames = new TDefine[16];  // 16: text of color indices
+        //internal static TDefine[] defaultGameInfo = new TDefine[4];    //  4: gameID, gameabout, gamedescription, invcount
+        //internal static TDefine[] defaultResObj = new TDefine[1];     //  1: just ego object (o0)
+        //internal static TDefine[] defaultResStr = new TDefine[1];     //  1: just prompt (s0)  
+        internal static bool defaultSierraSyntax = false;
 
         internal static Logic tmpLogRes;
         internal const int MAX_BLOCK_DEPTH = 64;
@@ -138,256 +139,6 @@ namespace WinAGI.Engine {
 
         #region Methods
         /// <summary>
-        /// This method initializes all reserved defines used by the logic compiler.
-        /// </summary>
-        public static void AssignReservedDefines() {
-            // predefined variables, flags, and objects
-            // Variables v0 - v26
-            // Flags f0 - f16, f20 [in version 3.102 and above]
-            // object variable, o0, gameversion string, gameabout string
-            //and numberofitems
-            // also various numerical constants
-
-            // variables
-            agResVar[0].Name = "currentRoom";
-            agResVar[0].Value = "v0";
-            agResVar[1].Name = "previousRoom";
-            agResVar[1].Value = "v1";
-            agResVar[2].Name = "edgeEgoHit";
-            agResVar[2].Value = "v2";
-            agResVar[3].Name = "currentScore";
-            agResVar[3].Value = "v3";
-            agResVar[4].Name = "objHitEdge";
-            agResVar[4].Value = "v4";
-            agResVar[5].Name = "edgeObjHit";
-            agResVar[5].Value = "v5";
-            agResVar[6].Name = "egoDir";
-            agResVar[6].Value = "v6";
-            agResVar[7].Name = "maxScore";
-            agResVar[7].Value = "v7";
-            agResVar[8].Name = "memoryLeft";
-            agResVar[8].Value = "v8";
-            agResVar[9].Name = "unknownWordNum";
-            agResVar[9].Value = "v9";
-            agResVar[10].Name = "animationInterval";
-            agResVar[10].Value = "v10";
-            agResVar[11].Name = "elapsedSeconds";
-            agResVar[11].Value = "v11";
-            agResVar[12].Name = "elapsedMinutes";
-            agResVar[12].Value = "v12";
-            agResVar[13].Name = "elapsedHours";
-            agResVar[13].Value = "v13";
-            agResVar[14].Name = "elapsedDays";
-            agResVar[14].Value = "v14";
-            agResVar[15].Name = "dblClickDelay";
-            agResVar[15].Value = "v15";
-            agResVar[16].Name = "currentEgoView";
-            agResVar[16].Value = "v16";
-            agResVar[17].Name = "errorNumber";
-            agResVar[17].Value = "v17";
-            agResVar[18].Name = "errorParameter";
-            agResVar[18].Value = "v18";
-            agResVar[19].Name = "lastChar";
-            agResVar[19].Value = "v19";
-            agResVar[20].Name = "machineType";
-            agResVar[20].Value = "v20";
-            agResVar[21].Name = "printTimeout";
-            agResVar[21].Value = "v21";
-            agResVar[22].Name = "numberOfVoices";
-            agResVar[22].Value = "v22";
-            agResVar[23].Name = "attenuation";
-            agResVar[23].Value = "v23";
-            agResVar[24].Name = "inputLength";
-            agResVar[24].Value = "v24";
-            agResVar[25].Name = "selectedItem";
-            agResVar[25].Value = "v25";
-            agResVar[26].Name = "monitorType";
-            agResVar[26].Value = "v26";
-
-            // flags
-            agResFlag[0].Name = "onWater";
-            agResFlag[0].Value = "f0";
-            agResFlag[1].Name = "egoHidden";
-            agResFlag[1].Value = "f1";
-            agResFlag[2].Name = "haveInput";
-            agResFlag[2].Value = "f2";
-            agResFlag[3].Name = "egoHitSpecial";
-            agResFlag[3].Value = "f3";
-            agResFlag[4].Name = "haveMatch";
-            agResFlag[4].Value = "f4";
-            agResFlag[5].Name = "newRoom";
-            agResFlag[5].Value = "f5";
-            agResFlag[6].Name = "gameRestarted";
-            agResFlag[6].Value = "f6";
-            agResFlag[7].Name = "noScript";
-            agResFlag[7].Value = "f7";
-            agResFlag[8].Name = "enableDblClick";
-            agResFlag[8].Value = "f8";
-            agResFlag[9].Name = "soundOn";
-            agResFlag[9].Value = "f9";
-            agResFlag[10].Name = "enableTrace";
-            agResFlag[10].Value = "f10";
-            agResFlag[11].Name = "hasNoiseChannel";
-            agResFlag[11].Value = "f11";
-            agResFlag[12].Name = "gameRestored";
-            agResFlag[12].Value = "f12";
-            agResFlag[13].Name = "enableItemSelect";
-            agResFlag[13].Value = "f13";
-            agResFlag[14].Name = "enableMenu";
-            agResFlag[14].Value = "f14";
-            agResFlag[15].Name = "leaveWindow";
-            agResFlag[15].Value = "f15";
-            agResFlag[16].Name = "noPromptRestart";
-            agResFlag[16].Value = "f16";
-            agResFlag[17].Name = "forceAutoloop";
-            agResFlag[17].Value = "f20";
-
-            // edge codes
-            agEdgeCodes[0].Name = "NOT_HIT";
-            agEdgeCodes[0].Value = "0";
-            agEdgeCodes[1].Name = "TOP_EDGE";
-            agEdgeCodes[1].Value = "1";
-            agEdgeCodes[2].Name = "RIGHT_EDGE";
-            agEdgeCodes[2].Value = "2";
-            agEdgeCodes[3].Name = "BOTTOM_EDGE";
-            agEdgeCodes[3].Value = "3";
-            agEdgeCodes[4].Name = "LEFT_EDGE";
-            agEdgeCodes[4].Value = "4";
-
-            // object direction
-            agEgoDir[0].Name = "STOPPED";
-            agEgoDir[0].Value = "0";
-            agEgoDir[1].Name = "UP";
-            agEgoDir[1].Value = "1";
-            agEgoDir[2].Name = "UP_RIGHT";
-            agEgoDir[2].Value = "2";
-            agEgoDir[3].Name = "RIGHT";
-            agEgoDir[3].Value = "3";
-            agEgoDir[4].Name = "DOWN_RIGHT";
-            agEgoDir[4].Value = "4";
-            agEgoDir[5].Name = "DOWN";
-            agEgoDir[5].Value = "5";
-            agEgoDir[6].Name = "DOWN_LEFT";
-            agEgoDir[6].Value = "6";
-            agEgoDir[7].Name = "LEFT";
-            agEgoDir[7].Value = "7";
-            agEgoDir[8].Name = "UP_LEFT";
-            agEgoDir[8].Value = "8";
-
-            // video modes
-            agVideoMode[0].Name = "CGA";
-            agVideoMode[0].Value = "0";
-            agVideoMode[1].Name = "RGB";
-            agVideoMode[1].Value = "1";
-            agVideoMode[2].Name = "MONO";
-            agVideoMode[2].Value = "2";
-            agVideoMode[3].Name = "EGA";
-            agVideoMode[3].Value = "3";
-            agVideoMode[4].Name = "VGA";
-            agVideoMode[4].Value = "4";
-
-            // computer types
-            agCompType[0].Name = "PC";
-            agCompType[0].Value = "0";
-            agCompType[1].Name = "PCJR";
-            agCompType[1].Value = "1";
-            agCompType[2].Name = "TANDY";
-            agCompType[2].Value = "2";
-            agCompType[3].Name = "APPLEII";
-            agCompType[3].Value = "3";
-            agCompType[4].Name = "ATARI";
-            agCompType[4].Value = "4";
-            agCompType[5].Name = "AMIGA";
-            agCompType[5].Value = "5";
-            agCompType[6].Name = "MACINTOSH";
-            agCompType[6].Value = "6";
-            agCompType[7].Name = "CORTLAND";
-            agCompType[7].Value = "7";
-            agCompType[8].Name = "PS2";
-            agCompType[8].Value = "8";
-
-            // colors
-            agResColor[0].Name = "BLACK";
-            agResColor[0].Value = "0";
-            agResColor[1].Name = "BLUE";
-            agResColor[1].Value = "1";
-            agResColor[2].Name = "GREEN";
-            agResColor[2].Value = "2";
-            agResColor[3].Name = "CYAN";
-            agResColor[3].Value = "3";
-            agResColor[4].Name = "RED";
-            agResColor[4].Value = "4";
-            agResColor[5].Name = "MAGENTA";
-            agResColor[5].Value = "5";
-            agResColor[6].Name = "BROWN";
-            agResColor[6].Value = "6";
-            agResColor[7].Name = "LT_GRAY";
-            agResColor[7].Value = "7";
-            agResColor[8].Name = "DK_GRAY";
-            agResColor[8].Value = "8";
-            agResColor[9].Name = "LT_BLUE";
-            agResColor[9].Value = "9";
-            agResColor[10].Name = "LT_GREEN";
-            agResColor[10].Value = "10";
-            agResColor[11].Name = "LT_CYAN";
-            agResColor[11].Value = "11";
-            agResColor[12].Name = "LT_RED";
-            agResColor[12].Value = "12";
-            agResColor[13].Name = "LT_MAGENTA";
-            agResColor[13].Value = "13";
-            agResColor[14].Name = "YELLOW";
-            agResColor[14].Value = "14";
-            agResColor[15].Name = "WHITE";
-            agResColor[15].Value = "15";
-
-            // objects
-            agResObj[0].Name = "ego";
-            agResObj[0].Value = "o0";
-
-            // strings
-            agResStr[0].Name = "inputPrompt";
-            agResStr[0].Value = "s0";
-
-            // set types and defaults
-            int i;
-            for (i = 0; i <= 26; i++) {
-                agResVar[i].Type = ArgType.Var;
-                agResVar[i].Default = agResVar[i].Name;
-            }
-            for (i = 0; i <= 17; i++) {
-                agResFlag[i].Type = ArgType.Flag;
-                agResFlag[i].Default = agResFlag[i].Name;
-            }
-            for (i = 0; i <= 4; i++) {
-                agEdgeCodes[i].Type = ArgType.Num;
-                agEdgeCodes[i].Default = agEdgeCodes[i].Name;
-            }
-            for (i = 0; i <= 8; i++) {
-                agEgoDir[i].Type = ArgType.Num;
-                agEgoDir[i].Default = agEgoDir[i].Name;
-            }
-            for (i = 0; i <= 4; i++) {
-                agVideoMode[i].Type = ArgType.Num;
-                agVideoMode[i].Default = agVideoMode[i].Name;
-            }
-            for (i = 0; i <= 8; i++) {
-                agCompType[i].Type = ArgType.Num;
-                agCompType[i].Default = agCompType[i].Name;
-            }
-            for (i = 0; i <= 15; i++) {
-                agResColor[i].Type = ArgType.Num;
-                agResColor[i].Default = agResColor[i].Name;
-            }
-
-            // objects
-            agResObj[0].Type = ArgType.SObj;
-            agResObj[0].Default = agResObj[0].Name;
-            // strings
-            agResStr[0].Type = ArgType.Str;
-            agResStr[0].Default = agResStr[0].Name;
-        }
-
-        /// <summary>
         /// Returns the single letter argument type prefix for the specified
         /// argument type ('v', 'f', etc.).
         /// </summary>
@@ -443,323 +194,29 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the reserved defines that match the specified argument
-        /// type as an array of defines. NOT the same as returning by 'group'
-        /// (which is used for saving changes to reserved define names).
-        /// </summary>
-        /// <param name="ArgType"></param>
-        /// <returns></returns>
-        public static TDefine[] ReservedDefines(ArgType ArgType) {
-            TDefine[] tmpDefines = [];
-
-            switch (ArgType) {
-            case Num:
-                // return all numerical reserved defines
-                tmpDefines = [];
-                tmpDefines = [.. tmpDefines, .. agEdgeCodes];
-                tmpDefines = [.. tmpDefines, .. agEgoDir];
-                tmpDefines = [.. tmpDefines, .. agVideoMode];
-                tmpDefines = [.. tmpDefines, .. agCompType];
-                tmpDefines = [.. tmpDefines, .. agResColor];
-                break;
-            case Var:
-                // return all variable reserved defines
-                tmpDefines = agResVar;
-                break;
-            case Flag:
-                // return all flag reserved defines
-                tmpDefines = agResFlag;
-                break;
-            case Msg:
-                // none
-                tmpDefines = [];
-                break;
-            case SObj:
-                // one - ego
-                tmpDefines = agResObj;
-                break;
-            case InvItem:
-                // none
-                tmpDefines = [];
-                break;
-            case Str:
-                // one - input prompt
-                tmpDefines = agResStr;
-                break;
-            case Word:
-                // none
-                tmpDefines = [];
-                break;
-            case Ctrl:
-                // none
-                tmpDefines = [];
-                break;
-            case DefStr:
-                // none
-                //!! what about gamedefs?
-                tmpDefines = [];
-                break;
-            case VocWrd:
-                // none
-                tmpDefines = [];
-                break;
-            }
-            return tmpDefines;
-        }
-
-        /// <summary>
-        /// Returns reserved defines by their 'group' instead by by variable type.
-        /// </summary>
-        /// <param name="Group"></param>
-        /// <returns></returns>
-        /// <exception cref="IndexOutOfRangeException"></exception>
-        public static TDefine[] ResDefByGrp(ResDefGroup Group) {
-            switch (Group) {
-            case ResDefGroup.Variable:
-                return agResVar;
-            case ResDefGroup.Flag:
-                return agResFlag;
-            case ResDefGroup.EdgeCode:
-                return agEdgeCodes;
-            case ResDefGroup.ObjectDir:
-                return agEgoDir;
-            case ResDefGroup.VideoMode:
-                return agVideoMode;
-            case ResDefGroup.ComputerType:
-                return agCompType;
-            case ResDefGroup.Color:
-                return agResColor;
-            case ResDefGroup.Object:
-                return agResObj;
-            case ResDefGroup.String:
-                return agResStr;
-            default:
-                throw new IndexOutOfRangeException("bad form");
-            }
-        }
-
-        /// <summary>
-        /// This method lets user update a reserved define name. It is up
-        /// to calling procedure to make sure there are no conflicts. If the
-        /// define value doesn't match an actual reserved item, an exception
-        /// is thrown.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="index"></param>
-        /// <param name="newname"></param>
-        /// <exception cref="IndexOutOfRangeException"></exception>
-        public static void SetResDef(int type, int index, string newname) {
-            // type is a numeric value that maps to the six different types
-            // (catgories) of reserved defines
-            switch (type) {
-            case 1:
-                // variable: value must be 0-26
-                if (index < 0 || index > 27) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agResVar[index].Name = newname;
-                break;
-            case 2:
-                // flag: value must be 0-17
-                if (index < 0 || index > 17) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agResFlag[index].Name = newname;
-                break;
-            case 3:
-                // edgecode: value must be 0-4
-                if (index < 0 || index > 4) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agEdgeCodes[index].Name = newname;
-                break;
-            case 4:
-                // direction: value must be 0-8
-                if (index < 0 || index > 8) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agEgoDir[index].Name = newname;
-                break;
-            case 5:
-                // video: value must be 0-4
-                if (index < 0 || index > 4) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agVideoMode[index].Name = newname;
-                break;
-            case 6:
-                // computer: value must be 0-8
-                if (index < 0 || index > 8) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agCompType[index].Name = newname;
-                break;
-            case 7:
-                // color: value must be 0-15
-                if (index < 0 || index > 15) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agResColor[index].Name = newname;
-                break;
-            case 8:
-                // only 0 (ego)
-                if (index != 0) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agResObj[index].Name = newname;
-                break;
-            case 9:
-                // only 0 (input prompt)
-                if (index != 0) {
-                    throw new IndexOutOfRangeException(nameof(index));
-                }
-                agResStr[index].Name = newname;
-                break;
-            default:
-                throw new IndexOutOfRangeException(nameof(type));
-            }
-        }
-
-        /// <summary>
-        /// This method checks all reserved defines to confirm they are all valid. Any
-        /// invalid define names are replaced with their defaults.
-        /// </summary>
-        /// <returns>true if all defines are OK, false if one or  more are invalid.</returns>
-        public static bool ValidateResDefs() {
-            // assume OK
-            bool retval = true;
-            int i;
-
-            for (i = 0; i < agResVar.Length; i++) {
-                if (ValidateDefineName(agResVar[i], true) != DefineNameCheck.OK) {
-                    agResVar[i].Name = agResVar[i].Default;
-                    retval = false;
-                }
-            }
-            for (i = 0; i < agResFlag.Length; i++) {
-                if (ValidateDefineName(agResFlag[i], true) != DefineNameCheck.OK) {
-                    agResFlag[i].Name = agResFlag[i].Default;
-                    retval = false;
-                }
-            }
-            for (i = 0; i < agEdgeCodes.Length; i++) {
-                if (ValidateDefineName(agEdgeCodes[i], true) != DefineNameCheck.OK) {
-                    agEdgeCodes[i].Name = agEdgeCodes[i].Default;
-                    retval = false;
-                }
-            }
-            for (i = 0; i < agEgoDir.Length; i++) {
-                if (ValidateDefineName(agEgoDir[i], true) != DefineNameCheck.OK) {
-                    agEgoDir[i].Name = agEgoDir[i].Default;
-                    retval = false;
-                }
-            }
-            for (i = 0; i < agVideoMode.Length; i++) {
-                if (ValidateDefineName(agVideoMode[i], true) != DefineNameCheck.OK) {
-                    agVideoMode[i].Name = agVideoMode[i].Default;
-                    retval = false;
-                }
-            }
-            for (i = 0; i < agCompType.Length; i++) {
-                if (ValidateDefineName(agCompType[i], true) != DefineNameCheck.OK) {
-                    agCompType[i].Name = agCompType[i].Default;
-                    retval = false;
-                }
-            }
-            for (i = 0; i < agResColor.Length; i++) {
-                if (ValidateDefineName(agResColor[i], true) != DefineNameCheck.OK) {
-                    agResColor[i].Name = agResColor[i].Default;
-                    retval = false;
-                }
-            }
-            for (i = 0; i < agResObj.Length; i++) {
-                if (ValidateDefineName(agResObj[i], true) != DefineNameCheck.OK) {
-                    agResObj[i].Name = agResObj[i].Default;
-                    retval = false;
-                }
-            }
-            for (i = 0; i < agResStr.Length; i++) {
-                if (ValidateDefineName(agResStr[i], true) != DefineNameCheck.OK) {
-                    agResStr[i].Name = agResStr[i].Default;
-                    retval = false;
-                }
-            }
-            return retval;
-        }
-
-        /// <summary>
         /// This method determines if the specified define name is valid, including a check
         /// against this game's current global defines.
         /// </summary>
         /// <param name="CheckDef"></param>
         /// <returns>OK if define is valid, error value if not.</returns>
-        public static DefineNameCheck ValidateDefineName(TDefine CheckDef, AGIGame game = null, bool Reserved = false) {
+        private static DefineNameCheck ValidateDefineName(TDefine CheckDef, AGIGame game) {
             int i;
-
-            // basic checks
-            // if no name,
-            if (CheckDef.Name.Length == 0) {
-                return DefineNameCheck.Empty;
-            }
+            bool sierrasyntax = game != null && game.SierraSyntax;
             // if already at default, just exit
             if (CheckDef.Name == CheckDef.Default) {
                 return DefineNameCheck.OK;
             }
-            // name can't be numeric
-            if (CheckDef.Name.IsNumeric()) {
-                return Numeric;
+            // basic checks
+            DefineNameCheck retval = BaseNameCheck(CheckDef.Name, sierrasyntax);
+            if (retval != DefineNameCheck.OK) {
+                return retval;
             }
-            // check name against improper character list
-            if (game == null || !game.SierraSyntax) {
-                if (INVALID_FIRST_CHARS.Any(ch => ch == CheckDef.Name[0])) {
-                    return BadChar;
-                }
-                if (CheckDef.Name[1..].Any(INVALID_DEFINE_CHARS.Contains)) {
-                    return BadChar;
-                }
-            }
-            else {
-                if (INVALID_SIERRA_1ST_CHARS.Any(ch => ch == CheckDef.Name[0])) {
-                    return BadChar;
-                }
-                if (CheckDef.Name[1..].Any(INVALID_SIERRA_CHARS.Contains)) {
-                    return BadChar;
-                }
-            }
-            if (CheckDef.Name.Any(ch => ch > 127 || ch < 32)) {
-                return BadChar;
-            }
-            // check against regular commands
-            for (i = 0; i < ActionCount; i++) {
-                if (CheckDef.Name == ActionCommands[i].Name) {
-                    return ActionCommand;
-                }
-            }
-            // check against test commands
-            for (i = 0; i < TestCount; i++) {
-                if (CheckDef.Name == TestCommands[i].Name) {
-                    return TestCommand;
-                }
-            }
-            // check against compiler keywords
-            if (CheckDef.Name is "if" or "else" or "goto") {
-                return KeyWord;
-            }
-            // if the name starts with any of these letters
-            // (OK for sierra syntax)
-            if (!agSierraSyntax) {
-                if ("vfmoiswc".Any(CheckDef.Name.StartsWith)) {
-                    if (CheckDef.Name.Right(CheckDef.Name.Length - 1).IsNumeric()) {
-                        // can't have a name that's a valid marker
-                        return ArgMarker;
-                    }
-                }
-            }
+
             // check against globals
-            if (game is not null && game.agIncludeGlobals) {
+            if (game != null && game.agIncludeGlobals) {
                 if (game.GlobalDefines.IsChanged) {
                     try {
-                        game.GlobalDefines.LoadGlobalDefines(game.agResDir + "globals.txt");
+                        game.GlobalDefines.Load();
                     }
                     catch (Exception ex) {
                         // if no file or empty file, then continue, with no global entries
@@ -776,51 +233,52 @@ namespace WinAGI.Engine {
                 }
             }
             // check against basic reserved
-            if (game is not null && game.agIncludeReserved) {
+            if (game != null && game.agIncludeReserved) {
                 // reserved variables
-                TDefine[] tmpDefines = ReservedDefines(Var);
+                TDefine[] tmpDefines = game.agReservedDefines.ByArgType(Var);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (CheckDef.Name == tmpDefines[i].Name) {
                         return ReservedVar;
                     }
                 }
                 // reserved flags
-                tmpDefines = ReservedDefines(Flag);
+                tmpDefines = game.agReservedDefines.ByArgType(Flag);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (CheckDef.Name == tmpDefines[i].Name) {
                         return ReservedFlag;
                     }
                 }
                 // reserved numbers
-                tmpDefines = ReservedDefines(Num);
+                tmpDefines = game.agReservedDefines.ByArgType(Num);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (CheckDef.Name == tmpDefines[i].Name) {
                         return ReservedNum;
                     }
                 }
                 // reserved objects
-                tmpDefines = ReservedDefines(SObj);
+                tmpDefines = game.agReservedDefines.ByArgType(SObj);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (CheckDef.Name == tmpDefines[i].Name) {
                         return ReservedObj;
                     }
                 }
                 // reserved strings
-                tmpDefines = ReservedDefines(Str);
+                tmpDefines = game.agReservedDefines.ByArgType(Str);
                 for (i = 0; i < tmpDefines.Length; i++) {
                     if (CheckDef.Name == tmpDefines[i].Name) {
                         return ReservedStr;
                     }
                 }
-                // game-specific:
-                for (i = 0; i < compGame.agResGameDef.Length; i++) {
-                    if (CheckDef.Name == compGame.agResGameDef[i].Name)
-                        // invobj count is number; rest are msgstrings
-                        return i == 3 ? ReservedNum : ReservedMsg;
+                // msg/defined strings
+                tmpDefines = game.agReservedDefines.ByArgType(DefStr);
+                for (i = 0; i < tmpDefines.Length; i++) {
+                    if (CheckDef.Name == tmpDefines[i].Name) {
+                        return ReservedMsg;
+                    }
                 }
             }
             // resourceIDs
-            if (game != null && game.IncludeIDs) {
+            if (game != null && game.agIncludeIDs) {
                 if (!blnSetIDs) {
                     SetResourceIDs(game);
                 }
@@ -849,19 +307,11 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="CheckName"></param>
         /// <returns></returns>
-        public static DefineNameCheck ValidateDefineName(string CheckName, AGIGame game) {
+        private static DefineNameCheck ValidateDefineName(string CheckName, AGIGame game) {
             TDefine CheckDef = new() {
                 Name = CheckName
             };
-            return ValidateDefineName(CheckDef, game, false);
-        }
-
-        public static DefineNameCheck ValidateDefineName(TDefine CheckDef, bool Reserved) {
-            return ValidateDefineName(CheckDef, null, Reserved);
-        }
-
-        public static DefineNameCheck ValidateDefineName(TDefine CheckDef, AGIGame game) {
-            return ValidateDefineName(CheckDef, game, false);
+            return ValidateDefineName(CheckDef, game);
         }
 
         /// <summary>
@@ -1055,9 +505,9 @@ namespace WinAGI.Engine {
             List<string> stlSource;
             compLogic = SourceLogic;
 
-            if (compGame.IncludeGlobals && compGame.GlobalDefines.IsChanged) {
+            if (compGame.IncludeGlobals && !compGame.GlobalDefines.Loaded) {
                 try {
-                    compGame.GlobalDefines.LoadGlobalDefines(compGame.agResDir + "globals.txt");
+                    compGame.GlobalDefines.Load();
                 }
                 catch (Exception ex) {
                     // if no file or empty file, then continue, with no global entries
@@ -1075,10 +525,10 @@ namespace WinAGI.Engine {
             CorrectCommands(compGame.agIntVersion);
 
             //refresh  values for game specific reserved defines
-            compGame.agResGameDef[0].Value = "\"" + compGame.agGameID + "\"";
-            compGame.agResGameDef[1].Value = "\"" + compGame.agGameVersion + "\"";
-            compGame.agResGameDef[2].Value = "\"" + compGame.agGameAbout + "\"";
-            compGame.agResGameDef[3].Value = (compGame.InvObjects.Count).ToString();
+            compGame.agReservedDefines.GameInfo[0].Value = "\"" + compGame.agGameID + "\"";
+            compGame.agReservedDefines.GameInfo[1].Value = "\"" + compGame.agGameVersion + "\"";
+            compGame.agReservedDefines.GameInfo[2].Value = "\"" + compGame.agGameAbout + "\"";
+            compGame.agReservedDefines.GameInfo[3].Value = (compGame.InvObjects.Count).ToString();
 
             // get source text by lines as a list of strings
             stlSource = SourceLogic.SourceText.SplitLines();
@@ -1215,91 +665,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// This method updates the reserved defines file for the specified game.
-        /// </summary>
-        /// <param name="game"></param>
-        internal static void SetReserved(AGIGame game, bool force) {
-            if (!game.IncludeReserved) {
-                return;
-            }
-            // only need to update if file is missing, OR if any of the defines
-            // have changed, OR if game properties have changed
-            if (!File.Exists(game.agResDir + "reserved.txt") || force) {
-                StringList resList = [
-                "[ Reserved Defines",
-                "[",
-                "[ WinAGI generated code required for IncludeReserved support - ",
-                "[ do not modify the contents of this file with the code editor.",
-                "",
-                "[ Reserved Variables"];
-                for (int i = 0; i < agResVar.Length; i++) {
-                    resList.Add("#define " + agResVar[i].Name.PadRight(17) + agResVar[i].Value.PadLeft(5));
-                }
-                resList.Add("");
-                resList.Add("[ Reserved Flags");
-                for (int i = 0; i < agResFlag.Length; i++) {
-                    resList.Add("#define " + agResFlag[i].Name.PadRight(17) + agResFlag[i].Value.PadLeft(5));
-                }
-                resList.Add("");
-                resList.Add("[ Edge Codes");
-                for (int i = 0; i < agEdgeCodes.Length; i++) {
-                    resList.Add("#define " + agEdgeCodes[i].Name.PadRight(17) + agEdgeCodes[i].Value.PadLeft(5));
-                }
-                resList.Add("");
-                resList.Add("[ Object Direction");
-                for (int i = 0; i < agEgoDir.Length; i++) {
-                    resList.Add("#define " + agEgoDir[i].Name.PadRight(17) + agEgoDir[i].Value.PadLeft(5));
-                }
-                resList.Add("");
-                resList.Add("[ Video Modes");
-                for (int i = 0; i < agVideoMode.Length; i++) {
-                    resList.Add("#define " + agVideoMode[i].Name.PadRight(17) + agVideoMode[i].Value.PadLeft(5));
-                }
-                resList.Add("");
-                resList.Add("[ Computer Types");
-                for (int i = 0; i < agCompType.Length; i++) {
-                    resList.Add("#define " + agCompType[i].Name.PadRight(17) + agCompType[i].Value.PadLeft(5));
-                }
-                resList.Add("");
-                resList.Add("[ Colors");
-                for (int i = 0; i < agResColor.Length; i++) {
-                    resList.Add("#define " + agResColor[i].Name.PadRight(17) + agResColor[i].Value.PadLeft(5));
-                }
-                resList.Add("");
-                resList.Add("[ Other Defines");
-                resList.Add("#define " + agResObj[0].Name.PadRight(17) + agResObj[0].Value.PadLeft(5));
-                resList.Add("#define " + agResStr[0].Name.PadRight(17) + agResStr[0].Value.PadLeft(5));
-                resList.Add("");
-                resList.Add("[ Game Properties");
-                game.agResGameDef[0].Value = game.agGameID;
-                game.agResGameDef[1].Value = game.agGameVersion;
-                game.agResGameDef[2].Value = game.agGameAbout;
-                bool loaded = game.InvObjects.Loaded;
-                if (!loaded) {
-                    game.InvObjects.Load();
-                }
-                game.agResGameDef[3].Value = game.InvObjects.Count.ToString();
-                if (!loaded) {
-                    game.InvObjects.Unload();
-                }
-                for (int i = 0; i < game.agResGameDef.Length; i++) {
-                    resList.Add("#define " + game.agResGameDef[i].Name.PadRight(17) + game.agResGameDef[i].Value.PadLeft(5));
-                }
-                // save defines file
-                try {
-                    using FileStream fsList = new FileStream(game.agResDir + "reserved.txt", FileMode.Create);
-                    using StreamWriter swList = new StreamWriter(fsList);
-                    foreach (string line in resList) {
-                        swList.WriteLine(line);
-                    }
-                }
-                catch {
-                    // ignore errors for now
-                }
-            }
-        }
-
-        /// <summary>
         /// This method converts an unkonwn token read from the input into the
         /// appropriate argument token. If the conversion fails, the method 
         /// returns false.
@@ -1349,7 +714,7 @@ namespace WinAGI.Engine {
             //value of 'v##, f##, s##, o##, w##, i##, c##'
             int i;
 
-            if (agSierraSyntax) {
+            if (compGame.agSierraSyntax) {
                 // vocab words can be any text/string (but not in quotes)
                 //all others must be a number
                 if (argtype == VocWrd) {
@@ -1523,42 +888,44 @@ namespace WinAGI.Engine {
             }
 
             // if not sierra syntax check global defines, ResIDs and reserved
-            if (!agSierraSyntax) {
-                for (i = 0; i < compGame.GlobalDefines.Count; i++) {
-                    if (checktoken == compGame.GlobalDefines[i].Name) {
-                        if (compGame.GlobalDefines[i].Type == argtype) {
-                            checktoken = compGame.GlobalDefines[i].Value;
-                            if (argtype == Num) {
-                                // argument is numeric
-                                varOrnum = false;
+            if (!compGame.agSierraSyntax) {
+                if (compGame.agIncludeGlobals) {
+                    for (i = 0; i < compGame.GlobalDefines.Count; i++) {
+                        if (checktoken == compGame.GlobalDefines[i].Name) {
+                            if (compGame.GlobalDefines[i].Type == argtype) {
+                                checktoken = compGame.GlobalDefines[i].Value;
+                                if (argtype == Num) {
+                                    // argument is numeric
+                                    varOrnum = false;
+                                }
+                                // ok
+                                return true;
                             }
-                            // ok
-                            return true;
-                        }
-                        // special case - looking for number, but var also OK
-                        if (varOrnum && compGame.GlobalDefines[i].Type == Var) {
-                            checktoken = compGame.GlobalDefines[i].Value;
-                            return true;
-                        }
-                        // special case - message, item can be a string in quotes
-                        if (argtype == Msg || argtype == InvItem) {
-                            if (compGame.GlobalDefines[i].Type == DefStr) {
+                            // special case - looking for number, but var also OK
+                            if (varOrnum && compGame.GlobalDefines[i].Type == Var) {
                                 checktoken = compGame.GlobalDefines[i].Value;
                                 return true;
                             }
+                            // special case - message, item can be a string in quotes
+                            if (argtype == Msg || argtype == InvItem) {
+                                if (compGame.GlobalDefines[i].Type == DefStr) {
+                                    checktoken = compGame.GlobalDefines[i].Value;
+                                    return true;
+                                }
+                            }
+                            // special case - vocab words are numbers or strings
+                            if (argtype == VocWrd && (compGame.GlobalDefines[i].Type == Num || compGame.GlobalDefines[i].Type == DefStr)) {
+                                checktoken = compGame.GlobalDefines[i].Value;
+                                return true;
+                            }
+                            // the define value is not valid
+                            return false;
                         }
-                        // special case - vocab words are numbers or strings
-                        if (argtype == VocWrd && (compGame.GlobalDefines[i].Type == Num || compGame.GlobalDefines[i].Type == DefStr)) {
-                            checktoken = compGame.GlobalDefines[i].Value;
-                            return true;
-                        }
-                        // the define value is not valid
-                        return false;
                     }
                 }
                 // check numbers against list of resource IDs (can only be
                 // numeric)
-                if (argtype == Num) {
+                if (compGame.agIncludeIDs && argtype == Num) {
                     for (i = 0; i < 256; i++) {
                         if (checktoken == strLogID[i]) {
                             checktoken = i.ToString();
@@ -1587,48 +954,48 @@ namespace WinAGI.Engine {
                     switch (argtype) {
                     case Num:
                         for (i = 0; i <= 4; i++) {
-                            if (checktoken == agEdgeCodes[i].Name) {
-                                checktoken = agEdgeCodes[i].Value;
+                            if (checktoken == compGame.agReservedDefines.EdgeCodes[i].Name) {
+                                checktoken = compGame.agReservedDefines.EdgeCodes[i].Value;
                                 // argument is numeric
                                 varOrnum = false;
                                 return true;
                             }
                         }
                         for (i = 0; i <= 8; i++) {
-                            if (checktoken == agEgoDir[i].Name) {
-                                checktoken = agEgoDir[i].Value;
+                            if (checktoken == compGame.agReservedDefines.ObjDirections[i].Name) {
+                                checktoken = compGame.agReservedDefines.ObjDirections[i].Value;
                                 // argument is numeric
                                 varOrnum = false;
                                 return true;
                             }
                         }
                         for (i = 0; i <= 4; i++) {
-                            if (checktoken == agVideoMode[i].Name) {
-                                checktoken = agVideoMode[i].Value;
+                            if (checktoken == compGame.agReservedDefines.VideoModes[i].Name) {
+                                checktoken = compGame.agReservedDefines.VideoModes[i].Value;
                                 // argument is numeric
                                 varOrnum = false;
                                 return true;
                             }
                         }
                         for (i = 0; i <= 8; i++) {
-                            if (checktoken == agCompType[i].Name) {
-                                checktoken = agCompType[i].Value;
+                            if (checktoken == compGame.agReservedDefines.ComputerTypes[i].Name) {
+                                checktoken = compGame.agReservedDefines.ComputerTypes[i].Value;
                                 // argument is numeric
                                 varOrnum = false;
                                 return true;
                             }
                         }
                         for (i = 0; i <= 15; i++) {
-                            if (checktoken == agResColor[i].Name) {
-                                checktoken = agResColor[i].Value;
+                            if (checktoken == compGame.agReservedDefines.ColorNames[i].Name) {
+                                checktoken = compGame.agReservedDefines.ColorNames[i].Value;
                                 // argument is numeric
                                 varOrnum = false;
                                 return true;
                             }
                         }
                         //check against invobj Count
-                        if (checktoken == compGame.agResGameDef[3].Name) {
-                            checktoken = compGame.agResGameDef[3].Value;
+                        if (checktoken == compGame.agReservedDefines.GameInfo[3].Name) {
+                            checktoken = compGame.agReservedDefines.GameInfo[3].Value;
                             //argument is numeric
                             varOrnum = false;
                             return true;
@@ -1637,8 +1004,8 @@ namespace WinAGI.Engine {
                         if (varOrnum) {
                             // check against builtin variables as well
                             for (i = 0; i <= 26; i++) {
-                                if (checktoken == agResVar[i].Name) {
-                                    checktoken = agResVar[i].Value;
+                                if (checktoken == compGame.agReservedDefines.ReservedVariables[i].Name) {
+                                    checktoken = compGame.agReservedDefines.ReservedVariables[i].Value;
                                     return true;
                                 }
                             }
@@ -1646,37 +1013,37 @@ namespace WinAGI.Engine {
                         break;
                     case Var:
                         for (i = 0; i <= 26; i++) {
-                            if (checktoken == agResVar[i].Name) {
-                                checktoken = agResVar[i].Value;
+                            if (checktoken == compGame.agReservedDefines.ReservedVariables[i].Name) {
+                                checktoken = compGame.agReservedDefines.ReservedVariables[i].Value;
                                 return true;
                             }
                         }
                         break;
                     case Flag:
                         for (i = 0; i <= 17; i++) {
-                            if (checktoken == agResFlag[i].Name) {
-                                checktoken = agResFlag[i].Value;
+                            if (checktoken == compGame.agReservedDefines.ReservedFlags[i].Name) {
+                                checktoken = compGame.agReservedDefines.ReservedFlags[i].Value;
                                 return true;
                             }
                         }
                         break;
                     case Msg:
-                        for (i = 1; i <= 2; i++) {
-                            if (checktoken == compGame.agResGameDef[i].Name) {
-                                checktoken = compGame.agResGameDef[i].Value;
+                        for (i = 0; i <= 2; i++) {
+                            if (checktoken == compGame.agReservedDefines.GameInfo[i].Name) {
+                                checktoken = compGame.agReservedDefines.GameInfo[i].Value;
                                 return true;
                             }
                         }
                         break;
                     case SObj:
-                        if (checktoken == agResObj[0].Name) {
-                            checktoken = agResObj[0].Value;
+                        if (checktoken == compGame.agReservedDefines.ReservedObjects[0].Name) {
+                            checktoken = compGame.agReservedDefines.ReservedObjects[0].Value;
                             return true;
                         }
                         break;
                     case Str:
-                        if (checktoken == agResStr[0].Name) {
-                            checktoken = agResStr[0].Value;
+                        if (checktoken == compGame.agReservedDefines.ReservedStrings[0].Name) {
+                            checktoken = compGame.agReservedDefines.ReservedObjects[0].Value;
                             return true;
                         }
                         break;
@@ -1762,17 +1129,17 @@ namespace WinAGI.Engine {
             // lastly, check reserved names, if they are being used
             if (compGame.agIncludeReserved) {
                 for (int i = 0; i <= 26; i++) {
-                    if (strArgIn == agResVar[i].Name) {
+                    if (strArgIn == compGame.agReservedDefines.ReservedVariables[i].Name) {
                         return i;
                     }
                 }
                 for (int i = 0; i <= 17; i++) {
-                    if (strArgIn == agResFlag[i].Name) {
+                    if (strArgIn == compGame.agReservedDefines.ReservedFlags[i].Name) {
                         return i;
                     }
                 }
                 // check for o0, s0
-                if (strArgIn == agResObj[0].Name || strArgIn == agResStr[0].Name) {
+                if (strArgIn == compGame.agReservedDefines.ReservedObjects[0].Name || strArgIn == compGame.agReservedDefines.ReservedStrings[0].Name) {
                     return 0;
                 }
             }
@@ -1863,7 +1230,7 @@ namespace WinAGI.Engine {
             for (lngLine = 0; lngLine < stlLogicText.Count; lngLine++) {
                 // cache error line
                 errorLine = lngLine.ToString();
-                if (agSierraSyntax) {
+                if (compGame.agSierraSyntax) {
                     // get next line, convert tabs to spaces  but don't
                     // trim whitespace from start of line
                     strLineText = stlLogicText[lngLine].Replace('\t', ' ');
@@ -1941,7 +1308,7 @@ namespace WinAGI.Engine {
             string strIncludeFilename, strIncludeText;
             int intIncludeNum, CurIncludeLine;
             int retval, i;
-            if (strLineText.Left(8) != "#include" && (strLineText.Left(8) != "%include" || !agSierraSyntax)) {
+            if (strLineText.Left(8) != "#include" && (strLineText.Left(8) != "%include" || !compGame.agSierraSyntax)) {
                 // not an include line
                 return 0;
             }
@@ -2044,7 +1411,7 @@ namespace WinAGI.Engine {
                 strIncludeFile[intIncludeNum] = strIncludeFilename;
                 // add all these lines into this position
                 for (CurIncludeLine = 0; CurIncludeLine < IncludeLines.Count; CurIncludeLine++) {
-                    if (agSierraSyntax) {
+                    if (compGame.agSierraSyntax) {
                         // get next line, convert tabs to spaces, but don't trim
                         // leading whitespace
                         strIncludeText = IncludeLines[CurIncludeLine].Replace('\t', ' ');
@@ -2147,8 +1514,8 @@ namespace WinAGI.Engine {
                 // no restrictions
             }
             else {
-                // all other reserved variables should be read only
-                AddWarning(5025, LoadResString(5025).Replace(ARG1, agResFlag[ArgVal].Name));
+                // all other reserved flags should be read only
+                AddWarning(5025, LoadResString(5025).Replace(ARG1, compGame.agReservedDefines.ReservedFlags[ArgVal].Name));
             }
         }
 
@@ -2175,7 +1542,7 @@ namespace WinAGI.Engine {
                 //ego direction
                 // should be restricted to values 0-8
                 if (ArgVal > 8) {
-                    AddWarning(5018, LoadResString(5018).Replace(ARG1, agResVar[6].Name).Replace(ARG2, "8"));
+                    AddWarning(5018, LoadResString(5018).Replace(ARG1, compGame.ReservedDefines.ReservedVariables[6].Name).Replace(ARG2, "8"));
                 }
                 break;
             case 10:
@@ -2189,32 +1556,32 @@ namespace WinAGI.Engine {
                 // error value, and error info
                 // resetting to zero is usually a good thing; other values don't make sense
                 if (ArgVal > 0) {
-                    AddWarning(5092, LoadResString(5092).Replace(ARG1, agResVar[ArgNum].Name));
+                    AddWarning(5092, LoadResString(5092).Replace(ARG1, compGame.ReservedDefines.ReservedVariables[ArgNum].Name));
                 }
                 break;
             case 19:
                 // key_pressed value
                 // ok if resetting for key input
                 if (ArgVal > 0) {
-                    AddWarning(5017, LoadResString(5017).Replace(ARG1, agResVar[ArgNum].Name));
+                    AddWarning(5017, LoadResString(5017).Replace(ARG1, compGame.ReservedDefines.ReservedVariables[ArgNum].Name));
                 }
                 break;
             case 23:
                 // sound attenuation
                 // restrict to 0-15
                 if (ArgVal > 15) {
-                    AddWarning(5018, LoadResString(5018).Replace(ARG1, agResVar[23].Name).Replace(ARG2, "15"));
+                    AddWarning(5018, LoadResString(5018).Replace(ARG1, compGame.ReservedDefines.ReservedVariables[23].Name).Replace(ARG2, "15"));
                 }
                 break;
             case 24:
                 // max input length
                 if (ArgVal > 39) {
-                    AddWarning(5018, LoadResString(5018).Replace(ARG1, agResVar[24].Name).Replace(ARG2, "39"));
+                    AddWarning(5018, LoadResString(5018).Replace(ARG1, compGame.ReservedDefines.ReservedVariables[24].Name).Replace(ARG2, "39"));
                 }
                 break;
             default:
                 // all other reserved variables should be read only
-                AddWarning(5017, LoadResString(5017).Replace(ARG1, agResVar[ArgNum].Name));
+                AddWarning(5017, LoadResString(5017).Replace(ARG1, compGame.ReservedDefines.ReservedVariables[ArgNum].Name));
                 break;
             }
         }
@@ -2391,7 +1758,7 @@ namespace WinAGI.Engine {
                 break;
             case Msg:
                 // arg token is either m## or "msg" [or ## for sierra syntax]
-                if (agSierraSyntax) {
+                if (compGame.agSierraSyntax) {
                     lngArg = VariableValue(strArg);
                 }
                 else {
@@ -2447,7 +1814,7 @@ namespace WinAGI.Engine {
                 // WinAGI enforces that i0 MUST be '?', and can't be changed
                 // also, if any code tries to access an object by '?', return
                 // error
-                if (agSierraSyntax) {
+                if (compGame.agSierraSyntax) {
                     lngArg = VariableValue(strArg);
                 }
                 else {
@@ -2513,7 +1880,7 @@ namespace WinAGI.Engine {
             case VocWrd:
                 // words can be ## or "word" [or no quotes, dollar sign for spaces for
                 // Sierra syntax]
-                if (strArg.IsNumeric() && !agSierraSyntax) {
+                if (strArg.IsNumeric() && !compGame.agSierraSyntax) {
                     if (!int.TryParse(strArg, out lngArg)) {
                         // use value of  as placdholder and raise error
                         lngArg = 1;
@@ -2534,7 +1901,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 else {
-                    if (agSierraSyntax) {
+                    if (compGame.agSierraSyntax) {
                         strArg = strArg.ToLower().Replace('$', ' ');
                     }
                     else {
@@ -2808,7 +2175,7 @@ namespace WinAGI.Engine {
             switch (retval[0]) {
             case '\'' or '?':
                 // sierra syntax doesn't treat these as a single character token
-                if (!agSierraSyntax) {
+                if (!compGame.agSierraSyntax) {
                     // fan AGI does
                     return retval;
                 }
@@ -2828,7 +2195,7 @@ namespace WinAGI.Engine {
                         retval = "==";
                         break;
                     case '@':
-                        if (agSierraSyntax) {
+                        if (compGame.agSierraSyntax) {
                             lngPos++;
                             retval = "=@";
                         }
@@ -2963,7 +2330,7 @@ namespace WinAGI.Engine {
                 break;
             case '@':
                 // special case; "@=" returned as separate token
-                if (agSierraSyntax) {
+                if (compGame.agSierraSyntax) {
                     if (lngPos + 1 < strCurrentLine.Length) {
                         if (strCurrentLine[lngPos + 1] == '=') {
                             lngPos++;
@@ -2986,7 +2353,7 @@ namespace WinAGI.Engine {
                         break;
                     }
                     else if ("'/?".Any(nextChar.ToString().Contains)) {
-                        if (agSierraSyntax) {
+                        if (compGame.agSierraSyntax) {
                             // sierra syntax allows these in tokens
                             retval += nextChar;
                             lngPos++;
@@ -3060,7 +2427,7 @@ namespace WinAGI.Engine {
                 // temporarily set to line where error really is
                 newLine = errorLine;
                 errorLine = oldLine;
-                if (agSierraSyntax) {
+                if (compGame.agSierraSyntax) {
                     AddWarning(5111);
                 }
                 else {
@@ -3207,7 +2574,7 @@ namespace WinAGI.Engine {
             do {
                 intROLIgnore = -1;
                 lngPos = 0;
-                if (!agSierraSyntax) {
+                if (!compGame.agSierraSyntax) {
                     //??? TODO: why only non-Sierra syntax?
                     blnInQuotes = false;
                 }
@@ -3215,7 +2582,7 @@ namespace WinAGI.Engine {
                     while (lngPos < strCurrentLine.Length) {
                         if (!blnInQuotes) {
                             // check for comment characters at this position
-                            if ((strCurrentLine.Mid(lngPos, 2) == CMT2_TOKEN && !agSierraSyntax) || strCurrentLine[lngPos] == CMT1_TOKEN[0]) {
+                            if ((strCurrentLine.Mid(lngPos, 2) == CMT2_TOKEN && !compGame.agSierraSyntax) || strCurrentLine[lngPos] == CMT1_TOKEN[0]) {
                                 intROLIgnore = lngPos;
                                 break;
                             }
@@ -3248,7 +2615,7 @@ namespace WinAGI.Engine {
                         strCurrentLine = strCurrentLine[..intROLIgnore];
                     }
                 }
-                if (!agSierraSyntax) {
+                if (!compGame.agSierraSyntax) {
                     strCurrentLine = strCurrentLine.Trim();
                 }
                 // update the line with comments removed
@@ -3320,9 +2687,9 @@ namespace WinAGI.Engine {
                 strToken = NextToken(true);
                 // with Sierra syntax, blank lines return a null token
                 // check for preprocessor mark '#' (or '%' in Sierra syntax only)
-                if (strToken.Length > 0 && strToken[0] == '#' || (strToken[0] == '%' && agSierraSyntax)) {
+                if (strToken.Length > 0 && strToken[0] == '#' || (strToken[0] == '%' && compGame.agSierraSyntax)) {
                     strToken = strToken[1..];
-                    if (agSierraSyntax) {
+                    if (compGame.agSierraSyntax) {
                         switch (strToken) {
                         case "tokens":
                             // deprecated; just ignore (don't allow different WORDS.TOK file)
@@ -3426,8 +2793,8 @@ namespace WinAGI.Engine {
                             }
                         }
                         // validate define name
-                        checkName = ValidateDefineName(tdNewDefine);
-                        if (agSierraSyntax) {
+                        checkName = ValidateDefineName(tdNewDefine, compGame);
+                        if (compGame.agSierraSyntax) {
                             // ignore overrides 
                             if (checkName > BadChar) {
                                 checkName = DefineNameCheck.OK;
@@ -3513,7 +2880,7 @@ namespace WinAGI.Engine {
                                 strError = LoadResString(4072);
                                 break;
                             case ActionCommand:
-                                if (agSierraSyntax) {
+                                if (compGame.agSierraSyntax) {
                                     // OK if defining a command name with '#define/#action/#test'
                                     switch (lngDefType) {
                                     case DefineType.Default:
@@ -3535,7 +2902,7 @@ namespace WinAGI.Engine {
                                 }
                                 break;
                             case TestCommand:
-                                if (agSierraSyntax) {
+                                if (compGame.agSierraSyntax) {
                                     // OK if defining a command name with #test/#action/#define
                                     switch (lngDefType) {
                                     case DefineType.Default:
@@ -3643,7 +3010,7 @@ namespace WinAGI.Engine {
                                 // missing quotes
                                 // if not using original Sierra syntax, only strings
                                 // and numbers are allowed
-                                if (!agSierraSyntax) {
+                                if (!compGame.agSierraSyntax) {
                                     // fix the value
                                     if (tdNewDefine.Value[0] != '\"') {
                                         tdNewDefine.Value = '\"' + tdNewDefine.Value;
@@ -3785,11 +3152,11 @@ namespace WinAGI.Engine {
             ResetCompiler();
             do {
                 strToken = NextToken(true);
-                if (strToken == MSG_TOKEN || agSierraSyntax && strToken == "%message") {
+                if (strToken == MSG_TOKEN || compGame.agSierraSyntax && strToken == "%message") {
                     // save starting line number (incase this msg uses multiple lines)
                     lngMsgStart = lngLine;
                     // get next token as message number (on this line if not Sierra syntax)
-                    strToken = NextToken(!agSierraSyntax);
+                    strToken = NextToken(!compGame.agSierraSyntax);
                     // this should be a msg number
                     if (!int.TryParse(strToken, out _)) {
                         // critical error because no way to know what number
@@ -3813,7 +3180,7 @@ namespace WinAGI.Engine {
                     }
                     // next token should be the message text
                     strToken = NextToken(false);
-                    if (agSierraSyntax) {
+                    if (compGame.agSierraSyntax) {
                         // in Sierra syntax msgtext can only be a string, with quotes required
                         if (strToken.Length == 0) {
                             // could only happen if at end of logic
@@ -3919,7 +3286,7 @@ namespace WinAGI.Engine {
                     if (lngPos != strCurrentLine.Length - 1) {
                         char nextchar = NextChar(true);
                         if (nextchar != 0) {
-                            if (agSierraSyntax) {
+                            if (compGame.agSierraSyntax) {
                                 // ';' at end is OK
                                 if (strToken[0] != ';' || NextChar(true) != 0) {
                                     AddError(4099, false);
@@ -3955,7 +3322,7 @@ namespace WinAGI.Engine {
                     } while (lngMsgStart <= lngLine);
                 }
                 else {
-                    if (strToken == "%message" && !agSierraSyntax) {
+                    if (strToken == "%message" && !compGame.agSierraSyntax) {
                         AddError(4061, LoadResString(4061).Replace(ARG1, strToken), false);
                     }
                 }
@@ -5318,7 +4685,7 @@ namespace WinAGI.Engine {
                 if (strCurrentLine.Contains(':')) {
                     strLabel = strCurrentLine;
                     // check for 'label:' (FanAGI syntax only)
-                    if (strLabel[^1] == ':' && !agSierraSyntax) {
+                    if (strLabel[^1] == ':' && !compGame.agSierraSyntax) {
                         strLabel = strLabel[..^1];
                         if (strLabel[^1] == ' ') {
                             // no spaces allowed between ':' and label name
@@ -5340,7 +4707,7 @@ namespace WinAGI.Engine {
                         strLabel = "";
                     }
                     // Sierra syntax allows optional ';' at end of label
-                    if (agSierraSyntax) {
+                    if (compGame.agSierraSyntax) {
                         if (strLabel[^1] == ';') {
                             // remove it (and any trailing spaces)             
                             strLabel = strLabel[..^1].Trim();
@@ -5560,7 +4927,7 @@ namespace WinAGI.Engine {
                     }
                     break;
                 case "goto":
-                    if (!agSierraSyntax) {
+                    if (!compGame.agSierraSyntax) {
                         // next token should be "("
                         if (!CheckChar('(')) {
                             AddError(4006, false);
@@ -5588,7 +4955,7 @@ namespace WinAGI.Engine {
                             AddError(4108, LoadResString(4108).Replace(ARG1, MAXGOTOS.ToString()), false);
                         }
                     }
-                    if (agSierraSyntax) {
+                    if (compGame.agSierraSyntax) {
                         // Sierra syntax allows optional ';'
                         char tmp = NextChar(true);
                         if (tmp != (char)0 && tmp != ';') {
@@ -5650,7 +5017,7 @@ namespace WinAGI.Engine {
                         llLabel[intLabelNum].Loc = tmpLogRes.Size;
                     }
                     // sierra syntax allows optional trailing ';'
-                    if (agSierraSyntax) {
+                    if (compGame.agSierraSyntax) {
                         _ = CheckChar(';', true);
                     }
                     break;
@@ -5798,7 +5165,7 @@ namespace WinAGI.Engine {
                 nextToken = NextToken();
             }
             // Sierra syntax adds return automatically
-            if (agSierraSyntax) {
+            if (compGame.agSierraSyntax) {
                 tmpLogRes.WriteByte(0);
                 // if a return was already coded, warn user
                 if (blnLastCmdRtn) {
@@ -6124,7 +5491,7 @@ namespace WinAGI.Engine {
             // assume OK until proven otherwise
             strArg1 = strArgIn;
             if (strArg1[0] == INDIR_CHAR) {
-                if (agSierraSyntax) {
+                if (compGame.agSierraSyntax) {
                     // not allowed in Sierra syntax
                     AddError(4105, false);
                 }
@@ -6171,7 +5538,7 @@ namespace WinAGI.Engine {
                     case "=" or "==":
                         // assume variable assignment/math
                         lngLineType = 2;
-                        if (!agSierraSyntax) {
+                        if (!compGame.agSierraSyntax) {
                             // but it's just a guess
                             blnGuess = true;
                         }
@@ -6201,7 +5568,7 @@ namespace WinAGI.Engine {
                 //     s# = "<string>"
 
                 // not allowed in Sierra syntax
-                if (agSierraSyntax) {
+                if (compGame.agSierraSyntax) {
                     AddError(6009, false);
                     // assume rest of syntax is correct even though not allowed
                 }
@@ -6345,7 +5712,7 @@ namespace WinAGI.Engine {
                     case "@=":
                         // Sierra syntax only; 
                         // v# @= #; v# @= v#;
-                        if (agSierraSyntax) {
+                        if (compGame.agSierraSyntax) {
                             // assume number indirection
                             bytCmd = 0xB;
                         }
@@ -6358,7 +5725,7 @@ namespace WinAGI.Engine {
                     case "=@":
                         // Sierra syntax only
                         // v# =@ v#;
-                        if (agSierraSyntax) {
+                        if (compGame.agSierraSyntax) {
                             bytCmd = 0xA;
                         }
                         else {
@@ -6383,7 +5750,7 @@ namespace WinAGI.Engine {
                 // flag assignment
                 //     f# = true;
                 //     f# = false;
-                if (agSierraSyntax) {
+                if (compGame.agSierraSyntax) {
                     // not allowed in Sierra syntax
                     AddError(6010, false);
                     // continue anyway
@@ -6436,7 +5803,7 @@ namespace WinAGI.Engine {
                 strArg2 = NextToken();
                 if (strArg2 == "*") {
                     // indirection
-                    if (agSierraSyntax) {
+                    if (compGame.agSierraSyntax) {
                         // this form not allowed in Sierra syntax
                         AddError(4105, false);
                     }
@@ -6600,7 +5967,7 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // this may be long arithmetic
-                        if (agSierraSyntax) {
+                        if (compGame.agSierraSyntax) {
                             // not allowed in Sierra syntax
                             AddError(6012, false);
                             return true;

@@ -21,6 +21,7 @@ using System.IO;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Text.RegularExpressions;
+using FastColoredTextBoxNS;
 
 namespace WinAGI.Editor {
     public partial class frmGlobals : Form {
@@ -65,7 +66,7 @@ namespace WinAGI.Editor {
             s_invalid1st = new string(invalid1st);
             s_invalidall = new string(invalidall);
             DataGridViewRow template = new();
-            template.CreateCells(fgGlobals);
+            template.CreateCells(globalsgrid);
             template.Cells[0].Value = ArgType.None;
             template.Cells[1].Value = "";
             template.Cells[2].Value = "";
@@ -73,15 +74,15 @@ namespace WinAGI.Editor {
             template.Cells[4].Value = "";
             template.Cells[5].Value = DefineNameCheck.OK;
             template.Cells[6].Value = DefineValueCheck.OK;
-            fgGlobals.RowTemplate = template;
+            globalsgrid.RowTemplate = template;
 
-            fgGlobals.Rows[0].Cells[0].Value = ArgType.None;
-            fgGlobals.Rows[0].Cells[1].Value = "";
-            fgGlobals.Rows[0].Cells[2].Value = "";
-            fgGlobals.Rows[0].Cells[3].Value = "";
-            fgGlobals.Rows[0].Cells[4].Value = "";
-            fgGlobals.Rows[0].Cells[5].Value = DefineNameCheck.OK;
-            fgGlobals.Rows[0].Cells[6].Value = DefineValueCheck.OK;
+            globalsgrid.Rows[0].Cells[0].Value = ArgType.None;
+            globalsgrid.Rows[0].Cells[1].Value = "";
+            globalsgrid.Rows[0].Cells[2].Value = "";
+            globalsgrid.Rows[0].Cells[3].Value = "";
+            globalsgrid.Rows[0].Cells[4].Value = "";
+            globalsgrid.Rows[0].Cells[5].Value = DefineNameCheck.OK;
+            globalsgrid.Rows[0].Cells[6].Value = DefineValueCheck.OK;
 
 
         }
@@ -90,8 +91,8 @@ namespace WinAGI.Editor {
 
         private void frmGlobals_FormClosing(object sender, FormClosingEventArgs e) {
             // cancel editing
-            if (fgGlobals.IsCurrentCellInEditMode) {
-                fgGlobals.CancelEdit();
+            if (globalsgrid.IsCurrentCellInEditMode) {
+                globalsgrid.CancelEdit();
             }
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
@@ -150,7 +151,7 @@ namespace WinAGI.Editor {
         }
 
         private void SetEditMenu() {
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 mnuEUndo.Enabled = false;
                 mnuECut.Enabled = false;
                 mnuECopy.Enabled = false;
@@ -172,11 +173,11 @@ namespace WinAGI.Editor {
             mnuECut.Text = "Cut ";
             mnuECopy.Text = "Copy ";
             mnuEDelete.Text = "Delete ";
-            if (fgGlobals.SelectionMode == DataGridViewSelectionMode.CellSelect) {
+            if (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect) {
                 mnuECut.Enabled = false;
-                mnuECopy.Enabled = fgGlobals.CurrentRow.Index != fgGlobals.NewRowIndex;
+                mnuECopy.Enabled = globalsgrid.CurrentRow.Index != globalsgrid.NewRowIndex;
                 mnuEDelete.Enabled = false;
-                switch (fgGlobals.CurrentCell.ColumnIndex) {
+                switch (globalsgrid.CurrentCell.ColumnIndex) {
                 case 2:
                     mnuECut.Text += "Name";
                     mnuECopy.Text += "Name";
@@ -195,11 +196,11 @@ namespace WinAGI.Editor {
                 }
             }
             else {
-                mnuECut.Enabled = mnuECopy.Enabled = mnuEDelete.Enabled = (fgGlobals.CurrentRow.Index != fgGlobals.NewRowIndex);
+                mnuECut.Enabled = mnuECopy.Enabled = mnuEDelete.Enabled = (globalsgrid.CurrentRow.Index != globalsgrid.NewRowIndex);
                 mnuECut.Text += "Row";
                 mnuECopy.Text += "Row";
                 mnuEDelete.Text += "Row";
-                if (fgGlobals.SelectedRows.Count > 1) {
+                if (globalsgrid.SelectedRows.Count > 1) {
                     mnuECut.Text += "s";
                     mnuECopy.Text += "s";
                     mnuEDelete.Text += "s";
@@ -223,17 +224,17 @@ namespace WinAGI.Editor {
             //mnuESelectAll.Enabled = true; // always available
             mnuEFindInLogics.Visible = mnuESep1.Visible = EditGame != null;
             if (mnuESep1.Visible) {
-                if (fgGlobals.SelectionMode == DataGridViewSelectionMode.CellSelect) {
-                    mnuEFindInLogics.Enabled = fgGlobals.CurrentCell.ColumnIndex == NameCol;
+                if (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect) {
+                    mnuEFindInLogics.Enabled = globalsgrid.CurrentCell.ColumnIndex == NameCol;
                 }
                 else {
-                    mnuEFindInLogics.Enabled = (fgGlobals.SelectedRows.Count == 1 && fgGlobals.CurrentRow.Index != fgGlobals.NewRowIndex);
+                    mnuEFindInLogics.Enabled = (globalsgrid.SelectedRows.Count == 1 && globalsgrid.CurrentRow.Index != globalsgrid.NewRowIndex);
                 }
             }
         }
 
         private void cmGrid_Opening(object sender, CancelEventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 e.Cancel = true;
                 return;
             }
@@ -303,14 +304,14 @@ namespace WinAGI.Editor {
         private void mnuEUndo_Click(object sender, EventArgs e) {
             int validname;
 
-            if (UndoCol.Count == 0 || fgGlobals.IsCurrentCellInEditMode) {
+            if (UndoCol.Count == 0 || globalsgrid.IsCurrentCellInEditMode) {
                 return;
             }
             GlobalsUndo NextUndo = UndoCol.Pop();
             switch (NextUndo.UDAction) {
             case GlobalsUndo.udgActionType.udgAddDefine:
                 // remove the define values that was added
-                fgGlobals.Rows.RemoveAt(NextUndo.UDPos);
+                globalsgrid.Rows.RemoveAt(NextUndo.UDPos);
                 break;
             case GlobalsUndo.udgActionType.udgImportDefines:
             case GlobalsUndo.udgActionType.udgPasteDefines:
@@ -325,13 +326,13 @@ namespace WinAGI.Editor {
                     string value = NextUndo.UDDefine[i].Value;
                     if (value.Length > 0) {
                         // undo a replace
-                        fgGlobals[ValueCol, rownum].Value = value;
-                        fgGlobals[TypeCol, rownum].Value = NextUndo.UDDefine[i].Type;
-                        fgGlobals[CommentCol, rownum].Value = NextUndo.UDDefine[i].Comment;
+                        globalsgrid[ValueCol, rownum].Value = value;
+                        globalsgrid[TypeCol, rownum].Value = NextUndo.UDDefine[i].Type;
+                        globalsgrid[CommentCol, rownum].Value = NextUndo.UDDefine[i].Comment;
                     }
                     else {
                         // undo an addition
-                        fgGlobals.Rows.RemoveAt(rownum);
+                        globalsgrid.Rows.RemoveAt(rownum);
                     }
                 }
                 break;
@@ -339,19 +340,19 @@ namespace WinAGI.Editor {
             case GlobalsUndo.udgActionType.udgCutDefine:
             case GlobalsUndo.udgActionType.udgClearList:
                 // add back the items removed and select them
-                fgGlobals.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                fgGlobals.Rows.Insert(NextUndo.UDPos, NextUndo.UDCount);
+                globalsgrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                globalsgrid.Rows.Insert(NextUndo.UDPos, NextUndo.UDCount);
                 for (int i = 0; i < NextUndo.UDCount; i++) {
                     // set values for hidden columns first
-                    fgGlobals[TypeCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Type;
-                    fgGlobals[NameCheckCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].NameCheck;
-                    fgGlobals[ValueCheckCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].ValueCheck;
-                    fgGlobals[DefaultCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Default;
+                    globalsgrid[TypeCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Type;
+                    globalsgrid[NameCheckCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].NameCheck;
+                    globalsgrid[ValueCheckCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].ValueCheck;
+                    globalsgrid[DefaultCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Default;
                     // visible columns will trigger format event
-                    fgGlobals[NameCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Name;
-                    fgGlobals[ValueCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Value;
-                    fgGlobals[CommentCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Comment;
-                    fgGlobals.Rows[NextUndo.UDPos + i].Selected = true;
+                    globalsgrid[NameCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Name;
+                    globalsgrid[ValueCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Value;
+                    globalsgrid[CommentCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Comment;
+                    globalsgrid.Rows[NextUndo.UDPos + i].Selected = true;
                     if (NextUndo.UDDefine[i].Default.Length > 0) {
                         DelDefine delDefine = new() {
                             Name = NextUndo.UDDefine[i].Default,
@@ -360,26 +361,26 @@ namespace WinAGI.Editor {
                         DeletedDefines.Remove(delDefine);
                     }
                 }
-                if (!fgGlobals.Rows[NextUndo.UDPos].Displayed) {
-                    fgGlobals.FirstDisplayedScrollingRowIndex = fgGlobals.Rows[NextUndo.UDPos].Index;
+                if (!globalsgrid.Rows[NextUndo.UDPos].Displayed) {
+                    globalsgrid.FirstDisplayedScrollingRowIndex = globalsgrid.Rows[NextUndo.UDPos].Index;
                 }
                 break;
             case GlobalsUndo.udgActionType.udgEditName:
-                validname = (int)ValidateDefineName(NextUndo.UDText);
-                fgGlobals[NameCol, NextUndo.UDPos].Value = NextUndo.UDText;
-                fgGlobals[NameCol, NextUndo.UDPos].Selected = true;
+                validname = (int)ValidateGlobalName(NextUndo.UDText);
+                globalsgrid[NameCol, NextUndo.UDPos].Value = NextUndo.UDText;
+                globalsgrid[NameCol, NextUndo.UDPos].Selected = true;
                 break;
             case GlobalsUndo.udgActionType.udgEditValue:
-                fgGlobals[ValueCol, NextUndo.UDPos].Value = NextUndo.UDText;
+                globalsgrid[ValueCol, NextUndo.UDPos].Value = NextUndo.UDText;
                 ArgType type = ArgType.None;
-                DefineValueCheck valcheck = ValidateDefineValue(NextUndo.UDText, ref type);
-                fgGlobals[ValueCheckCol, NextUndo.UDPos].Value = valcheck;
-                fgGlobals[TypeCol, NextUndo.UDPos].Value = type;
-                fgGlobals[ValueCol, NextUndo.UDPos].Selected = true;
+                DefineValueCheck valcheck = ValidateGlobalValue(NextUndo.UDText, ref type);
+                globalsgrid[ValueCheckCol, NextUndo.UDPos].Value = valcheck;
+                globalsgrid[TypeCol, NextUndo.UDPos].Value = type;
+                globalsgrid[ValueCol, NextUndo.UDPos].Selected = true;
                 break;
             case GlobalsUndo.udgActionType.udgEditComment:
-                fgGlobals[CommentCol, NextUndo.UDPos].Value = NextUndo.UDText;
-                fgGlobals[CommentCol, NextUndo.UDPos].Selected = true;
+                globalsgrid[CommentCol, NextUndo.UDPos].Value = NextUndo.UDText;
+                globalsgrid[CommentCol, NextUndo.UDPos].Selected = true;
                 break;
             case GlobalsUndo.udgActionType.udgSort:
                 // restore the previous sort order
@@ -387,19 +388,19 @@ namespace WinAGI.Editor {
                 break;
             }
             MarkAsChanged();
-            fgGlobals.Refresh();
+            globalsgrid.Refresh();
         }
 
         private void mnuECut_Click(object sender, EventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode ||
-                fgGlobals.SelectionMode == DataGridViewSelectionMode.CellSelect ||
-                fgGlobals.CurrentRow.Index == fgGlobals.NewRowIndex) {
+            if (globalsgrid.IsCurrentCellInEditMode ||
+                globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect ||
+                globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex) {
                 return;
             }
             // copy
             mnuECopy_Click(sender, e);
             // then delete
-            RemoveRows(fgGlobals.SelectedRows[0].Index, fgGlobals.SelectedRows[^1].Index);
+            RemoveRows(globalsgrid.SelectedRows[0].Index, globalsgrid.SelectedRows[^1].Index);
             // rename last Undo object
             UndoCol.Peek().UDAction = GlobalsUndo.udgActionType.udgCutDefine;
         }
@@ -413,13 +414,13 @@ namespace WinAGI.Editor {
             string strData = "";
             int TopRow, BtmRow;
 
-            if (fgGlobals.IsCurrentCellInEditMode ||
-                fgGlobals.CurrentRow.Index == fgGlobals.NewRowIndex) {
+            if (globalsgrid.IsCurrentCellInEditMode ||
+                globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex) {
                 return;
             }
-            if (fgGlobals.SelectionMode == DataGridViewSelectionMode.FullRowSelect) {
-                TopRow = fgGlobals.SelectedRows[0].Index;
-                BtmRow = fgGlobals.SelectedRows[^1].Index;
+            if (globalsgrid.SelectionMode == DataGridViewSelectionMode.FullRowSelect) {
+                TopRow = globalsgrid.SelectedRows[0].Index;
+                BtmRow = globalsgrid.SelectedRows[^1].Index;
                 if (BtmRow < TopRow) {
                     int swap = BtmRow;
                     BtmRow = TopRow;
@@ -427,9 +428,9 @@ namespace WinAGI.Editor {
                 }
                 for (int i = TopRow; i <= BtmRow; i++) {
                     // add to normal clipboard
-                    strData += DEF_MARKER + (string)fgGlobals[NameCol, i].Value + " " + (string)fgGlobals[ValueCol, i].Value;
-                    if ((string)fgGlobals[CommentCol, i].Value != "") {
-                        strData += " " + (string)fgGlobals[CommentCol, i].Value;
+                    strData += DEF_MARKER + (string)globalsgrid[NameCol, i].Value + " " + (string)globalsgrid[ValueCol, i].Value;
+                    if ((string)globalsgrid[CommentCol, i].Value != "") {
+                        strData += " " + (string)globalsgrid[CommentCol, i].Value;
                     }
                     if (i != BtmRow) {
                         strData += "\n";
@@ -438,7 +439,7 @@ namespace WinAGI.Editor {
             }
             else {
                 // select just this cell text
-                strData = (string)fgGlobals.CurrentCell.Value;
+                strData = (string)globalsgrid.CurrentCell.Value;
             }
 
             // put selected text on clipboard
@@ -449,7 +450,7 @@ namespace WinAGI.Editor {
         private void mnuEPaste_Click(object sender, EventArgs e) {
             bool enabled;
 
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 enabled = false;
             }
             else {
@@ -474,7 +475,7 @@ namespace WinAGI.Editor {
             bool blnErrors = false;
             GlobalsUndo NextUndo = new();
             NextUndo.UDAction = GlobalsUndo.udgActionType.udgPasteDefines;
-            NextUndo.UDPos = fgGlobals.CurrentRow.Index;
+            NextUndo.UDPos = globalsgrid.CurrentRow.Index;
             TDefine[] PasteDefines;
             PasteDefines = ReadDefines(Clipboard.GetText(TextDataFormat.Text), ref blnErrors);
             if (PasteDefines.Length == 0) {
@@ -487,7 +488,7 @@ namespace WinAGI.Editor {
                 return;
             }
             // add the defines at the insert position
-            TDefine[] undodata = InsertDefines(PasteDefines, fgGlobals.CurrentRow.Index, ref blnErrors);
+            TDefine[] undodata = InsertDefines(PasteDefines, globalsgrid.CurrentRow.Index, ref blnErrors);
 
             // if nothing was added, no undo data exists
             if (undodata.Length == 0) {
@@ -514,16 +515,16 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEDelete_Click(object sender, EventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode ||
-                fgGlobals.SelectionMode == DataGridViewSelectionMode.CellSelect ||
-                fgGlobals.CurrentRow.Index == fgGlobals.NewRowIndex) {
+            if (globalsgrid.IsCurrentCellInEditMode ||
+                globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect ||
+                globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex) {
                 return;
             }
-            RemoveRows(fgGlobals.SelectedRows[0].Index, fgGlobals.SelectedRows[^1].Index);
+            RemoveRows(globalsgrid.SelectedRows[0].Index, globalsgrid.SelectedRows[^1].Index);
         }
 
         private void mnuEClear_Click(object sender, EventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 return;
             }
             if (MessageBox.Show(MDIMain,
@@ -535,24 +536,24 @@ namespace WinAGI.Editor {
             }
             GlobalsUndo NextUndo = new();
             NextUndo.UDAction = GlobalsUndo.udgActionType.udgClearList;
-            NextUndo.UDCount = fgGlobals.RowCount;
-            for (int i = 0; i < fgGlobals.RowCount - 1; i++) {
+            NextUndo.UDCount = globalsgrid.RowCount;
+            for (int i = 0; i < globalsgrid.RowCount - 1; i++) {
                 TDefine tmpdef = new TDefine();
-                tmpdef.Type = (ArgType)fgGlobals[TypeCol, i].Value;
-                tmpdef.Default = (string)fgGlobals[DefaultCol, i].Value;
-                tmpdef.Name = (string)fgGlobals[NameCol, i].Value;
-                tmpdef.Value = (string)fgGlobals[ValueCol, i].Value;
-                tmpdef.Comment = (string)fgGlobals[CommentCol, i].Value;
+                tmpdef.Type = (ArgType)globalsgrid[TypeCol, i].Value;
+                tmpdef.Default = (string)globalsgrid[DefaultCol, i].Value;
+                tmpdef.Name = (string)globalsgrid[NameCol, i].Value;
+                tmpdef.Value = (string)globalsgrid[ValueCol, i].Value;
+                tmpdef.Comment = (string)globalsgrid[CommentCol, i].Value;
                 NextUndo.UDDefine[i] = tmpdef;
             }
             UndoCol.Push(NextUndo);
             // clear grid by deleting all rows
-            fgGlobals.Rows.Clear();
-            fgGlobals[NameCol, 0].Selected = true;
+            globalsgrid.Rows.Clear();
+            globalsgrid[NameCol, 0].Selected = true;
         }
 
         private void mnuEInsert_Click(object sender, EventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 return;
             }
             EditDefine.Type = ArgType.None;
@@ -560,46 +561,46 @@ namespace WinAGI.Editor {
             EditDefine.Name = "";
             EditDefine.Value = "";
             EditDefine.Comment = "";
-            if (fgGlobals.NewRowIndex != fgGlobals.CurrentRow.Index) {
-                if (fgGlobals.SelectionMode != DataGridViewSelectionMode.CellSelect) {
-                    fgGlobals.SelectionMode = DataGridViewSelectionMode.CellSelect;
+            if (globalsgrid.NewRowIndex != globalsgrid.CurrentRow.Index) {
+                if (globalsgrid.SelectionMode != DataGridViewSelectionMode.CellSelect) {
+                    globalsgrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
                 }
                 DataGridViewRow newRow = new DataGridViewRow();
-                newRow.CreateCells(fgGlobals);
+                newRow.CreateCells(globalsgrid);
                 newRow.Cells[0].Value = ArgType.None;
                 newRow.Cells[1].Value = "";
                 newRow.Cells[2].Value = "";
                 newRow.Cells[3].Value = "";
                 newRow.Cells[4].Value = "";
-                fgGlobals.Rows.Insert(fgGlobals.CurrentRow.Index, newRow);
-                fgGlobals[NameCol, fgGlobals.CurrentRow.Index - 1].Selected = true;
+                globalsgrid.Rows.Insert(globalsgrid.CurrentRow.Index, newRow);
+                globalsgrid[NameCol, globalsgrid.CurrentRow.Index - 1].Selected = true;
             }
             else {
                 // force column to name for new rows
-                if (fgGlobals.CurrentCell.ColumnIndex != NameCol) {
-                    fgGlobals[NameCol, fgGlobals.CurrentCell.RowIndex].Selected = true;
+                if (globalsgrid.CurrentCell.ColumnIndex != NameCol) {
+                    globalsgrid[NameCol, globalsgrid.CurrentCell.RowIndex].Selected = true;
                 }
             }
-            fgGlobals.Refresh();
+            globalsgrid.Refresh();
             Inserting = true;
-            fgGlobals.BeginEdit(true);
+            globalsgrid.BeginEdit(true);
         }
 
         private void mnuESelectAll_Click(object sender, EventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 return;
             }
-            fgGlobals.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            fgGlobals.MultiSelect = true;
-            fgGlobals.CurrentCell = fgGlobals[NameCol, 0];
-            fgGlobals.SelectAll();
-            fgGlobals.Refresh();
+            globalsgrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            globalsgrid.MultiSelect = true;
+            globalsgrid.CurrentCell = globalsgrid[NameCol, 0];
+            globalsgrid.SelectAll();
+            globalsgrid.Refresh();
         }
 
         private void mnuEFindInLogics_Click(object sender, EventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode ||
-            (fgGlobals.SelectionMode == DataGridViewSelectionMode.CellSelect && fgGlobals.CurrentCell.ColumnIndex != NameCol) ||
-            (fgGlobals.SelectionMode != DataGridViewSelectionMode.CellSelect && (fgGlobals.SelectedRows.Count == 0 || fgGlobals.CurrentRow.Index == fgGlobals.NewRowIndex))
+            if (globalsgrid.IsCurrentCellInEditMode ||
+            (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect && globalsgrid.CurrentCell.ColumnIndex != NameCol) ||
+            (globalsgrid.SelectionMode != DataGridViewSelectionMode.CellSelect && (globalsgrid.SelectedRows.Count == 0 || globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex))
             ) {
                 return;
             }
@@ -609,23 +610,23 @@ namespace WinAGI.Editor {
             GLogFindLoc = FindLocation.All;
             GFindSynonym = false;
             FindingForm.ResetSearch();
-            string searchtext = (string)fgGlobals[NameCol, fgGlobals.CurrentRow.Index].Value;
+            string searchtext = (string)globalsgrid[NameCol, globalsgrid.CurrentRow.Index].Value;
             FindInLogic(this, searchtext, FindDirection.All, true, true, FindLocation.All);
         }
 
         private void fgGlobals_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
-            if (e.Value == null || e.RowIndex == fgGlobals.NewRowIndex ||
-                fgGlobals[TypeCol, e.RowIndex].Value == null) {
+            if (e.Value == null || e.RowIndex == globalsgrid.NewRowIndex ||
+                globalsgrid[TypeCol, e.RowIndex].Value == null) {
                 return;
             }
             // first determine if tooltip is needed
-            DataGridViewCell cell = fgGlobals.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            DataGridViewCell cell = globalsgrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
             string text = (string)e.Value;
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
             // Declare a proposed size with dimensions set to the maximum integer value.
             Size proposedSize = new Size(int.MaxValue, int.MaxValue);
             // get size
-            Size szText = TextRenderer.MeasureText(fgGlobals.CreateGraphics(), text, e.CellStyle.Font, proposedSize, flags);
+            Size szText = TextRenderer.MeasureText(globalsgrid.CreateGraphics(), text, e.CellStyle.Font, proposedSize, flags);
             if (szText.Width > cell.Size.Width - 8) {
                 cell.ToolTipText = text;
             }
@@ -636,14 +637,14 @@ namespace WinAGI.Editor {
             // next apply formatting based on validatecheck status
             switch (e.ColumnIndex) {
             case NameCol:
-                if (fgGlobals[NameCheckCol, e.RowIndex].Value != null) {
-                    switch ((DefineNameCheck)fgGlobals[NameCheckCol, e.RowIndex].Value) {
+                if (globalsgrid[NameCheckCol, e.RowIndex].Value != null) {
+                    switch ((DefineNameCheck)globalsgrid[NameCheckCol, e.RowIndex].Value) {
                     case DefineNameCheck.OK:
                         // default style
-                        if (e.CellStyle.Font.Name != fgGlobals.DefaultCellStyle.Font.Name ||
+                        if (e.CellStyle.Font.Name != globalsgrid.DefaultCellStyle.Font.Name ||
                             e.CellStyle.Font.Bold) {
                             e.CellStyle.ForeColor = Color.Black;
-                            e.CellStyle.Font = new(fgGlobals.DefaultCellStyle.Font, FontStyle.Regular);
+                            e.CellStyle.Font = new(globalsgrid.DefaultCellStyle.Font, FontStyle.Regular);
                         }
                         break;
                     case DefineNameCheck.Empty:
@@ -666,7 +667,7 @@ namespace WinAGI.Editor {
                         // use override style
                         if (!e.CellStyle.Font.Bold) {
                             e.CellStyle.ForeColor = Color.Red;
-                            e.CellStyle.Font = new(fgGlobals.DefaultCellStyle.Font, FontStyle.Bold);
+                            e.CellStyle.Font = new(globalsgrid.DefaultCellStyle.Font, FontStyle.Bold);
                         }
                         break;
                     }
@@ -674,9 +675,9 @@ namespace WinAGI.Editor {
                 break;
             case ValueCol:
                 // TODO: format based on token type
-                switch ((DefineValueCheck)fgGlobals[ValueCheckCol, e.RowIndex].Value) {
+                switch ((DefineValueCheck)globalsgrid[ValueCheckCol, e.RowIndex].Value) {
                 case DefineValueCheck.OK:
-                    switch ((ArgType)fgGlobals[TypeCol, e.RowIndex].Value) {
+                    switch ((ArgType)globalsgrid[TypeCol, e.RowIndex].Value) {
                     case ArgType.None:
                         break;
                     case ArgType.Num:
@@ -722,7 +723,7 @@ namespace WinAGI.Editor {
                 case DefineValueCheck.BadArgNumber:
                     if (e.CellStyle.ForeColor != Color.Red) {
                         e.CellStyle.ForeColor = Color.Red;
-                        e.CellStyle.Font = new(fgGlobals.DefaultCellStyle.Font, FontStyle.Italic);
+                        e.CellStyle.Font = new(globalsgrid.DefaultCellStyle.Font, FontStyle.Italic);
                     }
                     break;
                 case DefineValueCheck.NotAValue:
@@ -736,7 +737,7 @@ namespace WinAGI.Editor {
                     // overrides
                     if (e.CellStyle.ForeColor != Color.Red) {
                         e.CellStyle.ForeColor = Color.Red;
-                        e.CellStyle.Font = new(fgGlobals.DefaultCellStyle.Font, FontStyle.Bold);
+                        e.CellStyle.Font = new(globalsgrid.DefaultCellStyle.Font, FontStyle.Bold);
                     }
                     break;
                 }
@@ -744,7 +745,7 @@ namespace WinAGI.Editor {
             case CommentCol:
                 if (!e.CellStyle.Font.Italic) {
                     e.CellStyle.ForeColor = Color.FromArgb(0x50, 0x50, 0x50);
-                    e.CellStyle.Font = new(fgGlobals.DefaultCellStyle.Font, FontStyle.Italic);
+                    e.CellStyle.Font = new(globalsgrid.DefaultCellStyle.Font, FontStyle.Italic);
                 }
                 break;
             }
@@ -754,14 +755,14 @@ namespace WinAGI.Editor {
             if (e.ColumnIndex < 0 || e.RowIndex < 0) {
                 return;
             }
-            DataGridViewCell cell = fgGlobals.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            DataGridViewCell cell = globalsgrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
             if (cell.ToolTipText.Length > 0) {
-                fgGlobals.ShowCellToolTips = true;
+                globalsgrid.ShowCellToolTips = true;
             }
         }
 
         private void fgGlobals_CellMouseLeave(object sender, DataGridViewCellEventArgs e) {
-            fgGlobals.ShowCellToolTips = false;
+            globalsgrid.ShowCellToolTips = false;
         }
 
         private void fgGlobals_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e) {
@@ -769,51 +770,52 @@ namespace WinAGI.Editor {
         }
 
         private void fgGlobals_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
+                cmCel.Show();
                 return;
             }
-            if (fgGlobals.SelectionMode == DataGridViewSelectionMode.FullRowSelect && e.Button == MouseButtons.Right) {
-                if (e.RowIndex == -1 || fgGlobals.Rows[e.RowIndex].Selected) {
+            if (globalsgrid.SelectionMode == DataGridViewSelectionMode.FullRowSelect && e.Button == MouseButtons.Right) {
+                if (e.RowIndex == -1 || globalsgrid.Rows[e.RowIndex].Selected) {
                     return;
                 }
             }
             if (e.ColumnIndex == -1) {
-                if (fgGlobals.SelectionMode != DataGridViewSelectionMode.FullRowSelect) {
-                    fgGlobals.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                    fgGlobals.MultiSelect = true;
+                if (globalsgrid.SelectionMode != DataGridViewSelectionMode.FullRowSelect) {
+                    globalsgrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                    globalsgrid.MultiSelect = true;
                     if (e.Button == MouseButtons.Right) {
                         // force selection
                         if (e.RowIndex != -1) {
-                            fgGlobals.CurrentCell = fgGlobals[NameCol, e.RowIndex];
-                            fgGlobals.CurrentRow.Selected = true;
-                            fgGlobals.Refresh();
+                            globalsgrid.CurrentCell = globalsgrid[NameCol, e.RowIndex];
+                            globalsgrid.CurrentRow.Selected = true;
+                            globalsgrid.Refresh();
                         }
                     }
                 }
             }
             else {
-                fgGlobals.SelectionMode = DataGridViewSelectionMode.CellSelect;
-                fgGlobals.MultiSelect = false;
+                globalsgrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
+                globalsgrid.MultiSelect = false;
                 if (e.Button == MouseButtons.Right) {
                     // force selection
-                    fgGlobals.CurrentCell = fgGlobals[e.ColumnIndex, e.RowIndex];
-                    fgGlobals.CurrentCell.Selected = true;
-                    fgGlobals.Refresh();
+                    globalsgrid.CurrentCell = globalsgrid[e.ColumnIndex, e.RowIndex];
+                    globalsgrid.CurrentCell.Selected = true;
+                    globalsgrid.Refresh();
                 }
             }
         }
 
         private void fgGlobals_SelectionChanged(object sender, EventArgs e) {
-            if (fgGlobals.SelectedRows.Count > 0) {
-                fgGlobals.MultiSelect = true;
-                if (fgGlobals.SelectedRows.Count > 1) {
-                    if (fgGlobals.Rows[^1].Selected) {
-                        fgGlobals.Rows[^1].Selected = false;
+            if (globalsgrid.SelectedRows.Count > 0) {
+                globalsgrid.MultiSelect = true;
+                if (globalsgrid.SelectedRows.Count > 1) {
+                    if (globalsgrid.Rows[^1].Selected) {
+                        globalsgrid.Rows[^1].Selected = false;
                     }
                 }
             }
             else {
-                fgGlobals.MultiSelect = false;
+                globalsgrid.MultiSelect = false;
             }
         }
 
@@ -839,20 +841,20 @@ namespace WinAGI.Editor {
         }
 
         private void fgGlobals_CellValidating(object sender, DataGridViewCellValidatingEventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 e.Cancel = true;
             }
         }
 
         private void fgGlobals_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e) {
-            if (fgGlobals.CurrentRow.Index == fgGlobals.NewRowIndex) {
-                fgGlobals.Rows[fgGlobals.NewRowIndex].Cells[0].Value = ArgType.None;
-                fgGlobals.Rows[fgGlobals.NewRowIndex].Cells[1].Value = "";
-                fgGlobals.Rows[fgGlobals.NewRowIndex].Cells[2].Value = "";
-                fgGlobals.Rows[fgGlobals.NewRowIndex].Cells[3].Value = "";
-                fgGlobals.Rows[fgGlobals.NewRowIndex].Cells[4].Value = "";
-                fgGlobals.Rows[fgGlobals.NewRowIndex].Cells[5].Value = DefineNameCheck.OK;
-                fgGlobals.Rows[fgGlobals.NewRowIndex].Cells[6].Value = DefineValueCheck.OK;
+            if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex) {
+                globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[0].Value = ArgType.None;
+                globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[1].Value = "";
+                globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[2].Value = "";
+                globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[3].Value = "";
+                globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[4].Value = "";
+                globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[5].Value = DefineNameCheck.OK;
+                globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[6].Value = DefineValueCheck.OK;
 
                 if (!Inserting) {
                     Inserting = true;
@@ -861,8 +863,8 @@ namespace WinAGI.Editor {
         }
 
         private void fgGlobals_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
-            Debug.Assert(fgGlobals.CurrentCell.Value != null);
-            if (fgGlobals.CurrentRow.Index == fgGlobals.NewRowIndex || fgGlobals.CurrentCell.Value == null) {
+            Debug.Assert(globalsgrid.CurrentCell.Value != null);
+            if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex || globalsgrid.CurrentCell.Value == null) {
                 // only start new define in first column
                 if (e.ColumnIndex != NameCol) {
                     return;
@@ -874,18 +876,18 @@ namespace WinAGI.Editor {
                 EditDefine.Comment = "";
             }
             else {
-                EditDefine.Type = (ArgType)fgGlobals[TypeCol, fgGlobals.CurrentRow.Index].Value;
-                EditDefine.Default = (string)fgGlobals[DefaultCol, fgGlobals.CurrentRow.Index].Value;
-                EditDefine.Name = (string)fgGlobals[NameCol, fgGlobals.CurrentRow.Index].Value;
-                EditDefine.Value = (string)fgGlobals[ValueCol, fgGlobals.CurrentRow.Index].Value;
-                EditDefine.Comment = (string)fgGlobals[CommentCol, fgGlobals.CurrentRow.Index].Value;
+                EditDefine.Type = (ArgType)globalsgrid[TypeCol, globalsgrid.CurrentRow.Index].Value;
+                EditDefine.Default = (string)globalsgrid[DefaultCol, globalsgrid.CurrentRow.Index].Value;
+                EditDefine.Name = (string)globalsgrid[NameCol, globalsgrid.CurrentRow.Index].Value;
+                EditDefine.Value = (string)globalsgrid[ValueCol, globalsgrid.CurrentRow.Index].Value;
+                EditDefine.Comment = (string)globalsgrid[CommentCol, globalsgrid.CurrentRow.Index].Value;
             }
-            fgGlobals.BeginEdit(true);
+            globalsgrid.BeginEdit(true);
         }
 
         private void fgGlobals_KeyDown(object sender, KeyEventArgs e) {
-            if (e.KeyData == (Keys.E | Keys.Alt) && !fgGlobals.IsCurrentCellInEditMode) {
-                if (fgGlobals.CurrentRow.Index == fgGlobals.NewRowIndex) {
+            if (e.KeyData == (Keys.E | Keys.Alt) && !globalsgrid.IsCurrentCellInEditMode) {
+                if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex) {
                     EditDefine.Type = ArgType.None;
                     EditDefine.Default = "";
                     EditDefine.Name = "";
@@ -893,13 +895,13 @@ namespace WinAGI.Editor {
                     EditDefine.Comment = "";
                 }
                 else {
-                    EditDefine.Type = (ArgType)fgGlobals[TypeCol, fgGlobals.CurrentRow.Index].Value;
-                    EditDefine.Default = (string)fgGlobals[DefaultCol, fgGlobals.CurrentRow.Index].Value;
-                    EditDefine.Name = (string)fgGlobals[NameCol, fgGlobals.CurrentRow.Index].Value;
-                    EditDefine.Value = (string)fgGlobals[ValueCol, fgGlobals.CurrentRow.Index].Value;
-                    EditDefine.Comment = (string)fgGlobals[CommentCol, fgGlobals.CurrentRow.Index].Value;
+                    EditDefine.Type = (ArgType)globalsgrid[TypeCol, globalsgrid.CurrentRow.Index].Value;
+                    EditDefine.Default = (string)globalsgrid[DefaultCol, globalsgrid.CurrentRow.Index].Value;
+                    EditDefine.Name = (string)globalsgrid[NameCol, globalsgrid.CurrentRow.Index].Value;
+                    EditDefine.Value = (string)globalsgrid[ValueCol, globalsgrid.CurrentRow.Index].Value;
+                    EditDefine.Comment = (string)globalsgrid[CommentCol, globalsgrid.CurrentRow.Index].Value;
                 }
-                fgGlobals.BeginEdit(true);
+                globalsgrid.BeginEdit(true);
             }
         }
 
@@ -918,12 +920,12 @@ namespace WinAGI.Editor {
                 // normally just cancel, and restore previous value
                 // but if quitting on value when adding a new line,
                 // entire line needs to be deleted
-                fgGlobals.CancelEdit();
-                fgGlobals.EndEdit();
-                if ((string)fgGlobals.CurrentCell.Value == "") {
+                globalsgrid.CancelEdit();
+                globalsgrid.EndEdit();
+                if ((string)globalsgrid.CurrentCell.Value == "") {
                     // delete current row if not insert row
-                    if (!fgGlobals.CurrentRow.IsNewRow) {
-                        fgGlobals.Rows.RemoveAt(fgGlobals.CurrentRow.Index);
+                    if (!globalsgrid.CurrentRow.IsNewRow) {
+                        globalsgrid.Rows.RemoveAt(globalsgrid.CurrentRow.Index);
                     }
                     return;
                 }
@@ -934,20 +936,20 @@ namespace WinAGI.Editor {
                 EditTextBox.Text = EditTextBox.Text.Trim();
                 GlobalsUndo NextUndo;
                 // validate the input
-                switch (fgGlobals.CurrentCell.ColumnIndex) {
+                switch (globalsgrid.CurrentCell.ColumnIndex) {
                 case NameCol:
                     if (EditDefine.Name == EditTextBox.Text) {
                         // no change
-                        fgGlobals.EndEdit();
+                        globalsgrid.EndEdit();
                         if (EditDefine.Name.Length == 0) {
                             //cancel an add
-                            fgGlobals.Rows.RemoveAt(fgGlobals.Rows.Count - 1);
+                            globalsgrid.Rows.RemoveAt(globalsgrid.Rows.Count - 1);
                         }
                         return;
                     }
                     // can't use the compiler validation checks, because they won't catch
                     // changes that are in the current modified globals list
-                    DefineNameCheck namecheck = ValidateDefineName(EditTextBox.Text);
+                    DefineNameCheck namecheck = ValidateGlobalName(EditTextBox.Text);
                     // first eight codes are error
                     if (namecheck is >= (DefineNameCheck)1 and <= (DefineNameCheck)8) {
                         switch (namecheck) {
@@ -978,10 +980,10 @@ namespace WinAGI.Editor {
                             }
                             if (rtn == DialogResult.Yes) {
                                 // OK to delete this row - first, cancel and end edit
-                                fgGlobals.CancelEdit();
-                                fgGlobals.EndEdit();
+                                globalsgrid.CancelEdit();
+                                globalsgrid.EndEdit();
                                 // now delete current row
-                                RemoveRow(fgGlobals.CurrentRow.Index);
+                                RemoveRow(globalsgrid.CurrentRow.Index);
                             }
                             return;
                         case DefineNameCheck.Numeric:
@@ -1116,20 +1118,20 @@ namespace WinAGI.Editor {
                         NextUndo = new() {
                             UDAction = GlobalsUndo.udgActionType.udgEditName,
                             UDCount = 1,
-                            UDPos = fgGlobals.CurrentRow.Index,
-                            UDText = fgGlobals.CurrentCell.Value.ToString()
+                            UDPos = globalsgrid.CurrentRow.Index,
+                            UDText = globalsgrid.CurrentCell.Value.ToString()
                         };
                         AddUndo(NextUndo);
                     }
-                    fgGlobals[NameCheckCol, fgGlobals.CurrentRow.Index].Value = namecheck;
+                    globalsgrid[NameCheckCol, globalsgrid.CurrentRow.Index].Value = namecheck;
                     break;
                 case ValueCol:
                     if (EditDefine.Value == EditTextBox.Text) {
                         // no change
-                        fgGlobals.EndEdit();
+                        globalsgrid.EndEdit();
                         return;
                     }
-                    DefineValueCheck valuecheck = ValidateDefineValue(EditTextBox.Text, ref EditDefine.Type);
+                    DefineValueCheck valuecheck = ValidateGlobalValue(EditTextBox.Text, ref EditDefine.Type);
                     if (valuecheck is >= (DefineValueCheck)1 and <= (DefineValueCheck)2) {
                         //errors
                         switch (valuecheck) {
@@ -1275,18 +1277,18 @@ namespace WinAGI.Editor {
                         NextUndo = new();
                         NextUndo.UDAction = GlobalsUndo.udgActionType.udgEditValue;
                         NextUndo.UDCount = 1;
-                        NextUndo.UDPos = fgGlobals.CurrentRow.Index;
-                        NextUndo.UDText = fgGlobals.CurrentCell.Value.ToString();
+                        NextUndo.UDPos = globalsgrid.CurrentRow.Index;
+                        NextUndo.UDText = globalsgrid.CurrentCell.Value.ToString();
                         AddUndo(NextUndo);
                     }
-                    fgGlobals[ValueCheckCol, fgGlobals.CurrentRow.Index].Value = valuecheck;
-                    fgGlobals[TypeCol, fgGlobals.CurrentRow.Index].Value = EditDefine.Type;
+                    globalsgrid[ValueCheckCol, globalsgrid.CurrentRow.Index].Value = valuecheck;
+                    globalsgrid[TypeCol, globalsgrid.CurrentRow.Index].Value = EditDefine.Type;
                     break;
                 case CommentCol:
                     // make sure the edit marker is present
                     if (EditDefine.Comment == EditTextBox.Text && !Inserting) {
                         // no change
-                        fgGlobals.EndEdit();
+                        globalsgrid.EndEdit();
                         return;
                     }
                     if (EditTextBox.Text.Length > 0) {
@@ -1298,34 +1300,34 @@ namespace WinAGI.Editor {
                     NextUndo = new();
                     if (Inserting) {
                         NextUndo.UDAction = GlobalsUndo.udgActionType.udgAddDefine;
-                        fgGlobals.CurrentRow.Cells[TypeCol].Value = EditDefine.Type;
-                        fgGlobals.CurrentRow.Cells[DefaultCol].Value = "";
+                        globalsgrid.CurrentRow.Cells[TypeCol].Value = EditDefine.Type;
+                        globalsgrid.CurrentRow.Cells[DefaultCol].Value = "";
                         Inserting = false;
                     }
                     else {
                         NextUndo.UDAction = GlobalsUndo.udgActionType.udgEditComment;
-                        NextUndo.UDText = fgGlobals.CurrentCell.Value.ToString();
+                        NextUndo.UDText = globalsgrid.CurrentCell.Value.ToString();
                     }
                     NextUndo.UDCount = 1;
-                    NextUndo.UDPos = fgGlobals.CurrentRow.Index;
+                    NextUndo.UDPos = globalsgrid.CurrentRow.Index;
                     AddUndo(NextUndo);
                     break;
                 }
-                fgGlobals.EndEdit();
-                if (fgGlobals.CurrentCell.ColumnIndex < CommentCol) {
-                    fgGlobals.CurrentCell = fgGlobals[fgGlobals.CurrentCell.ColumnIndex + 1, fgGlobals.CurrentCell.RowIndex];
+                globalsgrid.EndEdit();
+                if (globalsgrid.CurrentCell.ColumnIndex < CommentCol) {
+                    globalsgrid.CurrentCell = globalsgrid[globalsgrid.CurrentCell.ColumnIndex + 1, globalsgrid.CurrentCell.RowIndex];
                 }
                 else {
-                    fgGlobals.CurrentCell = fgGlobals[NameCol, fgGlobals.CurrentCell.RowIndex + 1];
+                    globalsgrid.CurrentCell = globalsgrid[NameCol, globalsgrid.CurrentCell.RowIndex + 1];
                 }
                 //if (forceedit) {
                 if (Inserting) {
-                    fgGlobals.BeginEdit(true);
+                    globalsgrid.BeginEdit(true);
                 }
                 MarkAsChanged();
                 return;
             }
-            if (fgGlobals.CurrentCell.ColumnIndex == NameCol) {
+            if (globalsgrid.CurrentCell.ColumnIndex == NameCol) {
                 // check for and ignore invalid characters
                 if (invalidall.Contains((char)e.KeyValue)) {
                     e.Handled = true;
@@ -1358,7 +1360,7 @@ namespace WinAGI.Editor {
             mnuCelCopy.Enabled = EditTextBox.SelectionLength > 0;
             mnuCelPaste.Enabled = Clipboard.ContainsText();
             mnuCelDelete.Enabled = EditTextBox.SelectionLength > 0;
-            mnuCelCharMap.Visible = fgGlobals.CurrentCell.ColumnIndex != NameCol;
+            mnuCelCharMap.Visible = globalsgrid.CurrentCell.ColumnIndex != NameCol;
             mnuCelSelectAll.Enabled = EditTextBox.TextLength > 0;
         }
 
@@ -1427,10 +1429,10 @@ namespace WinAGI.Editor {
 
         private void mnuCelCancel_Click(object sender, EventArgs e) {
             EditTextBox.Hide();
-            bool canx = fgGlobals.CancelEdit();
+            bool canx = globalsgrid.CancelEdit();
             // cancel alone doesn't work (the cell remains in edit mode)
             // but calling EndEdit immediately after seems to work
-            fgGlobals.EndEdit();
+            globalsgrid.EndEdit();
         }
         #endregion
 
@@ -1439,11 +1441,11 @@ namespace WinAGI.Editor {
         /// by the editor.
         /// </summary>
         internal void InitFonts() {
-            Font commonFont = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
-            fgGlobals.Font = commonFont;
-            fgGlobals.ColumnHeadersDefaultCellStyle.Font = commonFont;
-            fgGlobals.AlternatingRowsDefaultCellStyle.Font = commonFont;
-            fgGlobals.AlternatingRowsDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            Font commonFont = new(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
+            globalsgrid.Font = commonFont;
+            globalsgrid.ColumnHeadersDefaultCellStyle.Font = commonFont;
+            globalsgrid.AlternatingRowsDefaultCellStyle.Font = commonFont;
+            globalsgrid.AlternatingRowsDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
         }
 
         /// <summary>
@@ -1472,7 +1474,7 @@ namespace WinAGI.Editor {
             }
             TDefine[] defines = ReadDefines(definetext, ref blnError);
             for (int i = 0; i < defines.Length; i++) {
-                fgGlobals.Rows.Add(defines[i].Type, defines[i].Name, defines[i].Name, defines[i].Value, defines[i].Comment, defines[i].NameCheck, defines[i].ValueCheck);
+                globalsgrid.Rows.Add(defines[i].Type, defines[i].Name, defines[i].Name, defines[i].Value, defines[i].Comment, defines[i].NameCheck, defines[i].ValueCheck);
             }
             Text = "Defines Editor for " + Path.GetFileName(GlobalFile);
             IsChanged = false;
@@ -1509,9 +1511,9 @@ namespace WinAGI.Editor {
                         tmpDef.Name = token.Text;
                         tmpDef.Value = WinAGIFCTB.NextToken(strLine, token).Text;
                         tmpDef.Comment = cmt;
-                        DefineNameCheck validatename = ValidateDefineName(tmpDef.Name);
+                        DefineNameCheck validatename = ValidateGlobalName(tmpDef.Name);
                         ArgType deftype = ArgType.None;
-                        DefineValueCheck validatevalue = ValidateDefineValue(tmpDef.Value, ref deftype);
+                        DefineValueCheck validatevalue = ValidateGlobalValue(tmpDef.Value, ref deftype);
                         if ((validatename != DefineNameCheck.OK && validatename < DefineNameCheck.Global) ||
                             (validatevalue != DefineValueCheck.OK && validatevalue < DefineValueCheck.BadArgNumber)) {
                             // something wrong with this entry
@@ -1536,9 +1538,9 @@ namespace WinAGI.Editor {
 
         public void MenuClickSave(string savefile = "") {
             // save list of globals
-            bool blnDirty = false;
+            string FindText, pattern, replacetext;
 
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 return;
             }
             if (savefile.Length == 0) {
@@ -1603,48 +1605,64 @@ namespace WinAGI.Editor {
                             bool textchanged = false;
                             // check for deleted define names
                             for (int i = 0; i < DeletedDefines.Count; i++) {
-                                // for regex to work, '$' chars have to be escaped
-                                string FindText = DeletedDefines[i].Name.Replace("$", "\\$");
+                                FindText = DeletedDefines[i].Name;
                                 // this pattern ensures only whole tokens are found
-                                string pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + FindText + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
-                                if (Regex.IsMatch(loged.fctb.Text, pattern)) {
-                                    textchanged = true;
+                                pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + Regex.Escape(FindText) + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
+                                MatchCollection mc = Regex.Matches(loged.fctb.Text, pattern);
+                                if (mc.Count > 0) {
                                     ProgressWin.lblProgress.Text = "Updating editor for " + loged.EditLogic.ID;
                                     ProgressWin.Refresh();
-                                    loged.fctb.UpdateText(Regex.Replace(loged.fctb.Text, pattern, DeletedDefines[i].Value));
+                                    for (int m = mc.Count - 1; m >= 0; m--) {
+                                        Place pl = loged.fctb.PositionToPlace(mc[m].Index);
+                                        AGIToken token = loged.fctb.TokenFromPos(pl);
+                                        if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
+                                            loged.fctb.ReplaceToken(token, DeletedDefines[i].Value);
+                                            textchanged = true;
+                                        }
+                                    }
                                     ProgressWin.lblProgress.Text = "Locating modified define names...";
                                     ProgressWin.Refresh();
                                 }
-
                             }
-                            for (int i = 0; i < fgGlobals.RowCount - 1; i++) {
-                                // if name has changed
-                                if (fgGlobals[DefaultCol, i].Value != fgGlobals[NameCol, i].Value && (string)fgGlobals[DefaultCol, i].Value != "") {
-                                    // for regex to work, '$' chars have to be escaped
-                                    string FindText = ((string)fgGlobals[DefaultCol, i].Value).Replace("$", "\\$");
-                                    // this pattern ensures only whole tokens are found
-                                    string pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + FindText + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
-                                    if (Regex.IsMatch(loged.fctb.Text, pattern)) {
-                                        textchanged = true;
+                            for (int i = 0; i < globalsgrid.RowCount - 1; i++) {
+                                // check for name change
+                                FindText = (string)globalsgrid[DefaultCol, i].Value;
+                                replacetext = (string)globalsgrid[NameCol, i].Value;
+                                if (FindText != replacetext && FindText.Length > 0) {
+                                    pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + Regex.Escape(FindText) + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
+                                    MatchCollection mc = Regex.Matches(loged.fctb.Text, pattern);
+                                    if (mc.Count > 0) {
                                         ProgressWin.lblProgress.Text = "Updating editor for " + loged.EditLogic.ID;
                                         ProgressWin.Refresh();
-                                        //loged.fctb.Text = Regex.Replace(loged.fctb.Text, pattern, (string)fgGlobals[NameCol, i].Value);
-                                        loged.fctb.UpdateText(Regex.Replace(loged.fctb.Text, pattern, (string)fgGlobals[NameCol, i].Value));
+                                        for (int m = mc.Count - 1; m >= 0; m--) {
+                                            Place pl = loged.fctb.PositionToPlace(mc[m].Index);
+                                            AGIToken token = loged.fctb.TokenFromPos(pl);
+                                            if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
+                                                loged.fctb.ReplaceToken(token, replacetext);
+                                                textchanged = true;
+                                            }
+                                        }
                                         ProgressWin.lblProgress.Text = "Locating modified define names...";
                                         ProgressWin.Refresh();
                                     }
                                 }
-                                // if the define value is a standard arg identifier
-                                if ((ArgType)fgGlobals[TypeCol, i].Value >= (ArgType)1 &&
-                                    (ArgType)fgGlobals[TypeCol, i].Value <= (ArgType)8) {
-                                    string pattern = $@"\b" + (string)fgGlobals[ValueCol, i].Value + $@"\b";
-                                    string replacetext = (string)fgGlobals[NameCol, i].Value;
-                                    if (Regex.IsMatch(loged.fctb.Text, pattern)) {
-                                        textchanged = true;
+                                // check for standard arg identifier
+                                if ((ArgType)globalsgrid[TypeCol, i].Value >= (ArgType)1 &&
+                                    (ArgType)globalsgrid[TypeCol, i].Value <= (ArgType)8) {
+                                    FindText = (string)globalsgrid[ValueCol, i].Value;
+                                    pattern = $@"\b" + (string)globalsgrid[ValueCol, i].Value + $@"\b";
+                                    MatchCollection mc = Regex.Matches(loged.fctb.Text, pattern);
+                                    if (mc.Count > 0) {
                                         ProgressWin.lblProgress.Text = "Updating editor for " + loged.EditLogic.ID;
                                         ProgressWin.Refresh();
-                                        //loged.fctb.Text = Regex.Replace(loged.fctb.Text, pattern, replacetext, RegexOptions.None);
-                                        loged.fctb.UpdateText(Regex.Replace(loged.fctb.Text, pattern, replacetext, RegexOptions.None));
+                                        for (int m = mc.Count - 1; m >= 0; m--) {
+                                            Place pl = loged.fctb.PositionToPlace(mc[m].Index);
+                                            AGIToken token = loged.fctb.TokenFromPos(pl);
+                                            if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
+                                                loged.fctb.ReplaceToken(token, replacetext);
+                                                textchanged = true;
+                                            }
+                                        }
                                         ProgressWin.lblProgress.Text = "Locating modified define names...";
                                         ProgressWin.Refresh();
                                     }
@@ -1665,54 +1683,68 @@ namespace WinAGI.Editor {
                             if (unload) {
                                 logic.Load();
                             }
-                            // for regex to work, '$' chars have to be escaped
-                            string FindText = DeletedDefines[i].Name.Replace("$", "\\$");
-                            // this pattern ensures only whole tokens are found
-                            string pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + FindText + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
-                            if (Regex.IsMatch(logic.SourceText, pattern)) {
-                                textchanged = true;
+                            FindText = DeletedDefines[i].Name;
+                            pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + Regex.Escape(FindText) + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
+                            MatchCollection mc = Regex.Matches(logic.SourceText, pattern);
+                            if (mc.Count > 0) {
                                 ProgressWin.lblProgress.Text = "Updating source code for " + logic.ID;
                                 ProgressWin.Refresh();
-                                unload = logic.Loaded;
-                                logic.SourceText = Regex.Replace(logic.SourceText, pattern, DeletedDefines[i].Value);
+                                for (int m = mc.Count - 1; m >= 0; m--) {
+                                    AGIToken token = WinAGIFCTB.TokenFromPos(logic.SourceText, mc[m].Index);
+                                    if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
+                                        logic.SourceText = logic.SourceText.ReplaceFirst(FindText, DeletedDefines[i].Value, mc[m].Index);
+                                        textchanged = true;
+                                    }
+                                }
                                 ProgressWin.lblProgress.Text = "Locating modified define names...";
                                 ProgressWin.Refresh();
                             }
                         }
-                        for (int i = 0; i < fgGlobals.RowCount - 1; i++) {
-                            // if name has changed
-                            if (fgGlobals[DefaultCol, i].Value != fgGlobals[NameCol, i].Value && (string)fgGlobals[DefaultCol, i].Value != "") {
+                        for (int i = 0; i < globalsgrid.RowCount - 1; i++) {
+                            FindText = (string)globalsgrid[DefaultCol, i].Value;
+                            replacetext = (string)globalsgrid[NameCol, i].Value;
+                            // check for name change
+                            if (FindText != replacetext && FindText.Length > 0) {
                                 // load first
                                 if (unload) {
                                     logic.Load();
                                 }
-                                // for regex to work, '$' chars have to be escaped
-                                string FindText = ((string)fgGlobals[DefaultCol, i].Value).Replace("$", "\\$");
                                 // this pattern ensures only whole tokens are found
-                                string pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + FindText + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
-                                if (Regex.IsMatch(logic.SourceText, pattern)) {
-                                    textchanged = true;
+                                pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + Regex.Escape(FindText) + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
+                                MatchCollection mc = Regex.Matches(logic.SourceText, pattern);
+                                if (mc.Count > 0) {
                                     ProgressWin.lblProgress.Text = "Updating source code for " + logic.ID;
                                     ProgressWin.Refresh();
-                                    unload = logic.Loaded;
-                                    logic.SourceText = Regex.Replace(logic.SourceText, pattern, (string)fgGlobals[NameCol, i].Value);
+                                    for (int m = mc.Count - 1; m >= 0; m--) {
+                                        AGIToken token = WinAGIFCTB.TokenFromPos(logic.SourceText, mc[m].Index);
+                                        if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
+                                            logic.SourceText = logic.SourceText.ReplaceFirst(FindText, replacetext, mc[m].Index);
+                                            textchanged = true;
+                                        }
+                                    }
                                     ProgressWin.lblProgress.Text = "Locating modified define names...";
                                     ProgressWin.Refresh();
                                 }
                             }
-                            // if the define value is a standard arg identifier
-                            if ((ArgType)fgGlobals[TypeCol, i].Value >= (ArgType)1 &&
-                                    (ArgType)fgGlobals[TypeCol, i].Value <= (ArgType)8) {
+                            // check for standard arg identifier
+                            if ((ArgType)globalsgrid[TypeCol, i].Value >= (ArgType)1 &&
+                                    (ArgType)globalsgrid[TypeCol, i].Value <= (ArgType)8) {
                                 if (unload) {
                                     logic.Load();
                                 }
-                                string pattern = $@"\b" + (string)fgGlobals[ValueCol, i].Value + $@"\b";
-                                string replacetext = (string)fgGlobals[NameCol, i].Value;
-                                if (Regex.IsMatch(logic.SourceText, pattern)) {
-                                    textchanged = true;
+                                FindText = (string)globalsgrid[ValueCol, i].Value;
+                                pattern = $@"\b" + FindText + $@"\b";
+                                MatchCollection mc = Regex.Matches(logic.SourceText, pattern);
+                                if (mc.Count > 0) {
                                     ProgressWin.lblProgress.Text = "Updating source code for " + logic.ID;
                                     ProgressWin.Refresh();
-                                    logic.SourceText = Regex.Replace(logic.SourceText, pattern, replacetext, RegexOptions.None);
+                                    for (int m = mc.Count - 1; m >= 0; m--) {
+                                        AGIToken token = WinAGIFCTB.TokenFromPos(logic.SourceText, mc[m].Index);
+                                        if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
+                                            logic.SourceText = logic.SourceText.ReplaceFirst(FindText, replacetext, mc[m].Index);
+                                            textchanged = true;
+                                        }
+                                    }
                                     ProgressWin.lblProgress.Text = "Locating modified define names...";
                                     ProgressWin.Refresh();
                                 }
@@ -1720,18 +1752,18 @@ namespace WinAGI.Editor {
                         }
                         if (textchanged) {
                             logic.SaveSource();
-                            if (unload) {
-                                logic.Unload();
-                            }
                             //update reslist
                             RefreshTree(AGIResType.Logic, logic.Number);
+                        }
+                        if (unload) {
+                            logic.Unload();
                         }
                         ProgressWin.pgbStatus.Value++;
                         ProgressWin.Refresh();
                     }
-                    for (int i = 0; i < fgGlobals.RowCount - 1; i++) {
-                        if (fgGlobals[DefaultCol, i].Value != fgGlobals[NameCol, i].Value) {
-                            fgGlobals[DefaultCol, i].Value = fgGlobals[NameCol, i].Value;
+                    for (int i = 0; i < globalsgrid.RowCount - 1; i++) {
+                        if (globalsgrid[DefaultCol, i].Value != globalsgrid[NameCol, i].Value) {
+                            globalsgrid[DefaultCol, i].Value = globalsgrid[NameCol, i].Value;
                         }
                     }
                     DeletedDefines.Clear();
@@ -1755,27 +1787,36 @@ namespace WinAGI.Editor {
             //ProgressWin.Text = "Save Defines List";
             ProgressWin.lblProgress.Text = "Saving defines to file ...";
             ProgressWin.pgbStatus.Value = 0;
-            ProgressWin.pgbStatus.Maximum = fgGlobals.RowCount;
+            ProgressWin.pgbStatus.Maximum = globalsgrid.Rows.Count + 1;
             ProgressWin.Refresh();
-            StringList stlGlobals = BuildGlobalsFile(InGame, true);
-            try {
-                File.WriteAllLines(savefile, stlGlobals);
-            }
-            catch (Exception e) {
-                ErrMsgBox(e, "Unable to save due to file error.", "", "File Error");
-            }
-            FileName = savefile;
-            MarkAsSaved();
-            // some extra things to do when saving an InGame list
+
+            // update the globallist object
             if (InGame) {
-                // if at least one update
-                if (blnDirty) {
-                    MakeAllChanged();
-                    //  TODO: need a strategy to ONLY mark affected logics;
-                    //  should be able to track what gets added, removed or
-                    //  updated
+                EditGame.GlobalDefines.Clear();
+                for (int i = 0; i < globalsgrid.Rows.Count - 1; i++) {
+                    EditGame.GlobalDefines.Add(
+                        (string)globalsgrid[NameCol, i].Value,
+                        (string)globalsgrid[ValueCol, i].Value,
+                        (string)globalsgrid[CommentCol, i].Value,
+                        (ArgType)globalsgrid[TypeCol, i].Value
+                    );
+                    ProgressWin.pgbStatus.Value += 1;
+                    ProgressWin.Refresh();
                 }
+                EditGame.GlobalDefines.Save();
             }
+            else {
+                // save the file
+                StringList stlGlobals = BuildGlobalsFile(true);
+                try {
+                    File.WriteAllLines(savefile, stlGlobals);
+                }
+                catch (Exception e) {
+                    ErrMsgBox(e, "Unable to save due to file error.", "", "File Error");
+                }
+                FileName = savefile;
+            }
+            MarkAsSaved();
             ProgressWin.Close();
             ProgressWin.Dispose();
             MDIMain.UseWaitCursor = false;
@@ -1826,7 +1867,7 @@ namespace WinAGI.Editor {
 
         public void AddGlobalsFromFile() {
             // adds to the existing globals list, instead of replacing it
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 return;
             }
             // get a file
@@ -1866,7 +1907,7 @@ namespace WinAGI.Editor {
             }
             GlobalsUndo NextUndo = new();
             NextUndo.UDAction = GlobalsUndo.udgActionType.udgImportDefines;
-            NextUndo.UDPos = fgGlobals.NewRowIndex;
+            NextUndo.UDPos = globalsgrid.NewRowIndex;
             TDefine[] addDefines = ReadDefines(definetext, ref blnError);
             if (addDefines.Length == 0) {
                 // nothing to paste
@@ -1877,7 +1918,7 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Information);
                 return;
             }
-            TDefine[] undodata = InsertDefines(addDefines, fgGlobals.NewRowIndex, ref blnError);
+            TDefine[] undodata = InsertDefines(addDefines, globalsgrid.NewRowIndex, ref blnError);
             // if nothing was added, no undo data exists
             if (undodata.Length == 0) {
                 MessageBox.Show(MDIMain,
@@ -1913,9 +1954,9 @@ namespace WinAGI.Editor {
                 // coming from internal clipboard means no concerns
                 //  about formatting, so just validate and add it
 
-                DefineNameCheck nameCheck = ValidateDefineName(PasteDefines[i].Name);
+                DefineNameCheck nameCheck = ValidateGlobalName(PasteDefines[i].Name);
                 ArgType t = ArgType.None;
-                DefineValueCheck valueCheck = ValidateDefineValue(PasteDefines[i].Value, ref t);
+                DefineValueCheck valueCheck = ValidateGlobalValue(PasteDefines[i].Value, ref t);
                 if (((int)nameCheck > 0 && (int)nameCheck <= 7) || ((int)valueCheck > 0 && (int)valueCheck <= 3)) {
                     errors = true;
                 }
@@ -1923,9 +1964,9 @@ namespace WinAGI.Editor {
                     // check for defines that replace existing defines
                     if (nameCheck == DefineNameCheck.Global) {
                         string oldval = "";
-                        for (replacerow = 0; replacerow < fgGlobals.RowCount; replacerow++) {
-                            if ((string)fgGlobals[NameCol, replacerow].Value == PasteDefines[i].Name) {
-                                oldval = (string)fgGlobals[ValueCol, replacerow].Value;
+                        for (replacerow = 0; replacerow < globalsgrid.RowCount; replacerow++) {
+                            if ((string)globalsgrid[NameCol, replacerow].Value == PasteDefines[i].Name) {
+                                oldval = (string)globalsgrid[ValueCol, replacerow].Value;
                                 break;
                             }
                         }
@@ -1964,16 +2005,16 @@ namespace WinAGI.Editor {
                         if (rtn == DialogResult.Yes) {
                             // add a modified undo item to indicate the replacement
                             tmpdef = new();
-                            tmpdef.Type = (ArgType)fgGlobals[TypeCol, replacerow].Value;
+                            tmpdef.Type = (ArgType)globalsgrid[TypeCol, replacerow].Value;
                             tmpdef.Name = replacerow.ToString();
                             tmpdef.Value = oldval;
-                            tmpdef.Comment = (string)fgGlobals[CommentCol, replacerow].Value;
+                            tmpdef.Comment = (string)globalsgrid[CommentCol, replacerow].Value;
                             Array.Resize(ref retval, retval.Length + 1);
                             retval[^1] = tmpdef;
                             // make the replacement
-                            fgGlobals[TypeCol, replacerow].Value = PasteDefines[i].Type;
-                            fgGlobals[ValueCol, replacerow].Value = PasteDefines[i].Value;
-                            fgGlobals[CommentCol, replacerow].Value = PasteDefines[i].Comment;
+                            globalsgrid[TypeCol, replacerow].Value = PasteDefines[i].Type;
+                            globalsgrid[ValueCol, replacerow].Value = PasteDefines[i].Value;
+                            globalsgrid[CommentCol, replacerow].Value = PasteDefines[i].Comment;
                         }
                         continue;
                     }
@@ -1983,7 +2024,7 @@ namespace WinAGI.Editor {
                     Array.Resize(ref retval, retval.Length + 1);
                     retval[^1] = tmpdef;
                     // add a new row
-                    fgGlobals.Rows.Insert(insertrow++,
+                    globalsgrid.Rows.Insert(insertrow++,
                         PasteDefines[i].Type,
                         PasteDefines[i].Default,
                         PasteDefines[i].Name,
@@ -2224,100 +2265,61 @@ ErrHandler:
         */
         #endregion
 
-        public DefineNameCheck ValidateDefineName(string checkname) {
+        public DefineNameCheck ValidateGlobalName(string checkname) {
             // basic checks
-            // if no name,
-            if (checkname.Length == 0) {
-                return DefineNameCheck.Empty;
-            }
-            // name can't be numeric
-            if (checkname.IsNumeric()) {
-                return DefineNameCheck.Numeric;
-            }
-            // check name against improper character list
-            if (invalid1st.Any(ch => ch == checkname[0])) {
-                return DefineNameCheck.BadChar;
-            }
-            if (checkname[1..].Any(invalidall.Contains)) {
-                return DefineNameCheck.BadChar;
-            }
-            if (checkname.Any(ch => ch > 127 || ch < 32)) {
-                return DefineNameCheck.BadChar;
-            }
-            // check against regular commands
-            for (int i = 0; i < ActionCount; i++) {
-                if (checkname == ActionCommands[i].Name) {
-                    return DefineNameCheck.ActionCommand;
-                }
-            }
-            // check against test commands
-            for (int i = 0; i < TestCount; i++) {
-                if (checkname == TestCommands[i].Name) {
-                    return DefineNameCheck.TestCommand;
-                }
-            }
-            // check against compiler keywords
-            if (checkname is "if" or "else" or "goto") {
-                return DefineNameCheck.KeyWord;
-            }
-            // if the name starts with any of these letters
-            // (OK for sierra syntax)
-            if (EditGame == null || (EditGame != null && EditGame.SierraSyntax)) {
-                if ("vfmoiswc".Any(checkname.StartsWith)) {
-                    if (checkname.Right(checkname.Length - 1).IsNumeric()) {
-                        // can't have a name that's a valid marker
-                        return DefineNameCheck.ArgMarker;
-                    }
-                }
+            bool sierrasyntax = InGame && EditGame.SierraSyntax;
+            DefineNameCheck retval = BaseNameCheck(checkname, sierrasyntax);
+            if (retval != DefineNameCheck.OK) {
+                return retval;
             }
             // check against globals in this list
-            for (int i = 0; i < fgGlobals.Rows.Count; i++) {
+            for (int i = 0; i < globalsgrid.Rows.Count; i++) {
                 // skip empty rows
-                if (i != fgGlobals.NewRowIndex) {
-                    if (i != fgGlobals.CurrentRow.Index && fgGlobals[NameCol, i].Value.ToString() == checkname)
+                if (i != globalsgrid.NewRowIndex) {
+                    if (i != globalsgrid.CurrentRow.Index && globalsgrid[NameCol, i].Value.ToString() == checkname)
                         return DefineNameCheck.Global;
                 }
             }
             // check against basic reserved
             if (EditGame is not null && EditGame.IncludeReserved) {
                 // reserved variables
-                TDefine[] tmpDefines = LogicCompiler.ReservedDefines(Var);
+                TDefine[] tmpDefines = EditGame.ReservedDefines.ReservedVariables;
                 for (int i = 0; i < tmpDefines.Length; i++) {
                     if (checkname == tmpDefines[i].Name) {
                         return DefineNameCheck.ReservedVar;
                     }
                 }
                 // reserved flags
-                tmpDefines = LogicCompiler.ReservedDefines(Flag);
+                tmpDefines = EditGame.ReservedDefines.ReservedFlags;
                 for (int i = 0; i < tmpDefines.Length; i++) {
                     if (checkname == tmpDefines[i].Name) {
                         return DefineNameCheck.ReservedFlag;
                     }
                 }
                 // reserved numbers
-                tmpDefines = LogicCompiler.ReservedDefines(Num);
+                tmpDefines = EditGame.ReservedDefines.ByArgType(Num);
                 for (int i = 0; i < tmpDefines.Length; i++) {
                     if (checkname == tmpDefines[i].Name) {
                         return DefineNameCheck.ReservedNum;
                     }
                 }
                 // reserved objects
-                tmpDefines = LogicCompiler.ReservedDefines(SObj);
+                tmpDefines = EditGame.ReservedDefines.ReservedObjects;
                 for (int i = 0; i < tmpDefines.Length; i++) {
                     if (checkname == tmpDefines[i].Name) {
                         return DefineNameCheck.ReservedObj;
                     }
                 }
                 // reserved strings
-                tmpDefines = LogicCompiler.ReservedDefines(Str);
+                tmpDefines = EditGame.ReservedDefines.ReservedStrings;
                 for (int i = 0; i < tmpDefines.Length; i++) {
                     if (checkname == tmpDefines[i].Name) {
                         return DefineNameCheck.ReservedStr;
                     }
                 }
-                // game-specific:
-                for (int i = 0; i < EditGame.ReservedGameDefines.Length; i++) {
-                    if (checkname == EditGame.ReservedGameDefines[i].Name)
+                // game info:
+                for (int i = 0; i < EditGame.ReservedDefines.GameInfo.Length; i++) {
+                    if (checkname == EditGame.ReservedDefines.GameInfo[i].Name)
                         // invobj count is number; rest are msgstrings
                         return i == 3 ? DefineNameCheck.ReservedNum : DefineNameCheck.ReservedMsg;
                 }
@@ -2352,7 +2354,7 @@ ErrHandler:
             return DefineNameCheck.OK;
         }
 
-        public DefineValueCheck ValidateDefineValue(string checkvalue, ref ArgType type) {
+        public DefineValueCheck ValidateGlobalValue(string checkvalue, ref ArgType type) {
             // default type
             type = ArgType.None;
 
@@ -2397,9 +2399,9 @@ ErrHandler:
                             break;
                         }
                         // check defined globals
-                        for (int i = 0; i < fgGlobals.Rows.Count; i++) {
-                            if (i != fgGlobals.NewRowIndex) {
-                                if (i != fgGlobals.CurrentRow.Index && fgGlobals[ValueCol, i].Value.ToString() == checkvalue)
+                        for (int i = 0; i < globalsgrid.Rows.Count; i++) {
+                            if (i != globalsgrid.NewRowIndex) {
+                                if (i != globalsgrid.CurrentRow.Index && globalsgrid[ValueCol, i].Value.ToString() == checkvalue)
                                     return DefineValueCheck.Global;
                             }
                         }
@@ -2482,7 +2484,7 @@ ErrHandler:
             }
         }
 
-        public StringList BuildGlobalsFile(bool UpdateLookup, bool Progress = false) {
+        public StringList BuildGlobalsFile(bool Progress = false) {
             string strName, strValue, strComment;
             int lngMaxLen, lngMaxV = 0;
             TDefine tmpDef = new();
@@ -2490,26 +2492,16 @@ ErrHandler:
 
             // determine longest name length to facilitate aligning values
             lngMaxLen = 0;
-            for (int i = 0; i < fgGlobals.Rows.Count - 1; i++) {
-                if (((string)fgGlobals[NameCol, i].Value).Length > lngMaxLen) {
-                    lngMaxLen = ((string)fgGlobals[NameCol, i].Value).Length;
+            for (int i = 0; i < globalsgrid.Rows.Count - 1; i++) {
+                if (((string)globalsgrid[NameCol, i].Value).Length > lngMaxLen) {
+                    lngMaxLen = ((string)globalsgrid[NameCol, i].Value).Length;
                 }
                 // right-align non-strings; need to know length of longest
                 // non-string
-                if (((string)fgGlobals[ValueCol, i].Value)[0] != '"') {
-                    if (((string)fgGlobals[ValueCol, i].Value).Length > lngMaxV) {
-                        lngMaxV = ((string)fgGlobals[ValueCol, i].Value).Length;
+                if (((string)globalsgrid[ValueCol, i].Value)[0] != '"') {
+                    if (((string)globalsgrid[ValueCol, i].Value).Length > lngMaxV) {
+                        lngMaxV = ((string)globalsgrid[ValueCol, i].Value).Length;
                     }
-                }
-            }
-            // if also updating the logic tooltip lookup list
-            if (UpdateLookup) {
-                // if no defines
-                if (fgGlobals.Rows.Count == 0) {
-                    GDefLookup = Array.Empty<TDefine>();
-                }
-                else {
-                    GDefLookup = new TDefine[fgGlobals.Rows.Count - 1];
                 }
             }
             tmpStrList = [];
@@ -2520,29 +2512,19 @@ ErrHandler:
             if (Progress) {
                 ProgressWin.pgbStatus.Value = 1;
             }
-            for (int i = 0; i < fgGlobals.Rows.Count - 1; i++) {
+            for (int i = 0; i < globalsgrid.Rows.Count - 1; i++) {
                 // get name and Value
-                strName = ((string)fgGlobals[NameCol, i].Value).PadRight(lngMaxLen);
-                strValue = ((string)fgGlobals[ValueCol, i].Value).PadLeft(4);
+                strName = ((string)globalsgrid[NameCol, i].Value).PadRight(lngMaxLen);
+                strValue = ((string)globalsgrid[ValueCol, i].Value).PadLeft(4);
                 // right align non-strings
                 if (strValue[0] != '"') {
                     strValue = strValue.PadLeft(lngMaxV);
                 }
-                strComment = (string)fgGlobals[CommentCol, i].Value;
+                strComment = (string)globalsgrid[CommentCol, i].Value;
                 if (strComment.Length > 0) {
                     strComment = " " + strComment;
                 }
                 tmpStrList.Add("#define " + strName + "  " + strValue + strComment);
-                if (UpdateLookup) {
-                    // update the global lookup list, if this list is part of a game
-                    tmpDef.Type = (ArgType)fgGlobals[TypeCol, i].Value;
-                    tmpDef.Default = (string)fgGlobals[NameCol, i].Value;
-                    tmpDef.Name = (string)fgGlobals[NameCol, i].Value;
-                    tmpDef.Value = (string)fgGlobals[ValueCol, i].Value;
-                    tmpDef.NameCheck = (DefineNameCheck)fgGlobals[NameCheckCol, i].Value;
-                    tmpDef.ValueCheck = (DefineValueCheck)fgGlobals[ValueCheckCol, i].Value;
-                    GDefLookup[i] = tmpDef;
-                }
                 if (Progress) {
                     ProgressWin.pgbStatus.Value++;
                     ProgressWin.Refresh();
@@ -2564,11 +2546,11 @@ ErrHandler:
                 NextUndo.UDCount = BtmRow - TopRow + 1;
                 NextUndo.UDPos = TopRow;
                 for (int i = 0; i <= BtmRow - TopRow; i++) {
-                    tmpDef.Type = (ArgType)fgGlobals[TypeCol, TopRow + i].Value;
-                    tmpDef.Default = (string)fgGlobals[DefaultCol, TopRow + i].Value;
-                    tmpDef.Name = (string)fgGlobals[NameCol, TopRow + i].Value;
-                    tmpDef.Value = (string)fgGlobals[ValueCol, TopRow + i].Value;
-                    tmpDef.Comment = (string)fgGlobals[CommentCol, TopRow + i].Value;
+                    tmpDef.Type = (ArgType)globalsgrid[TypeCol, TopRow + i].Value;
+                    tmpDef.Default = (string)globalsgrid[DefaultCol, TopRow + i].Value;
+                    tmpDef.Name = (string)globalsgrid[NameCol, TopRow + i].Value;
+                    tmpDef.Value = (string)globalsgrid[ValueCol, TopRow + i].Value;
+                    tmpDef.Comment = (string)globalsgrid[CommentCol, TopRow + i].Value;
                     NextUndo.UDDefine[i] = tmpDef;
                     if (tmpDef.Default.Length > 0) {
                         DelDefine deldef = new DelDefine {
@@ -2584,9 +2566,9 @@ ErrHandler:
             // delete the selected rows
             // (go backwards so rows are deleted correctly)
             for (int i = BtmRow; i >= TopRow; i--) {
-                fgGlobals.Rows.RemoveAt(i);
+                globalsgrid.Rows.RemoveAt(i);
             }
-            fgGlobals.Refresh();
+            globalsgrid.Refresh();
         }
 
         private void RemoveRow(int RowIndex, bool DontUndo = false) {
@@ -2596,11 +2578,11 @@ ErrHandler:
                 NextUndo.UDCount = 1;
                 NextUndo.UDPos = RowIndex;
                 TDefine tmpDef = new();
-                tmpDef.Type = (ArgType)fgGlobals[TypeCol, RowIndex].Value;
-                tmpDef.Default = (string)fgGlobals[DefaultCol, RowIndex].Value;
-                tmpDef.Name = (string)fgGlobals[NameCol, RowIndex].Value;
-                tmpDef.Value = (string)fgGlobals[ValueCol, RowIndex].Value;
-                tmpDef.Comment = (string)fgGlobals[CommentCol, RowIndex].Value;
+                tmpDef.Type = (ArgType)globalsgrid[TypeCol, RowIndex].Value;
+                tmpDef.Default = (string)globalsgrid[DefaultCol, RowIndex].Value;
+                tmpDef.Name = (string)globalsgrid[NameCol, RowIndex].Value;
+                tmpDef.Value = (string)globalsgrid[ValueCol, RowIndex].Value;
+                tmpDef.Comment = (string)globalsgrid[CommentCol, RowIndex].Value;
                 NextUndo.UDDefine[0] = tmpDef;
                 AddUndo(NextUndo);
                 if (tmpDef.Default.Length > 0) {
@@ -2610,7 +2592,7 @@ ErrHandler:
                     DeletedDefines.Add(deldef);
                 }
             }
-            fgGlobals.Rows.RemoveAt(RowIndex);
+            globalsgrid.Rows.RemoveAt(RowIndex);
             MarkAsChanged();
         }
 
@@ -2673,24 +2655,24 @@ ErrHandler:
         }
 
         private void fgGlobals_Scroll(object sender, ScrollEventArgs e) {
-            if (fgGlobals.IsCurrentCellInEditMode) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
                 e.NewValue = e.OldValue;
             }
         }
 
         private void fgGlobals_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
 
-            if (fgGlobals[TypeCol, e.RowIndex].Value == null) {
-                fgGlobals[TypeCol, e.RowIndex].Value = ArgType.None;
+            if (globalsgrid[TypeCol, e.RowIndex].Value == null) {
+                globalsgrid[TypeCol, e.RowIndex].Value = ArgType.None;
             }
-            if (fgGlobals[DefaultCol, e.RowIndex].Value == null) {
-                fgGlobals[DefaultCol, e.RowIndex].Value = "";
+            if (globalsgrid[DefaultCol, e.RowIndex].Value == null) {
+                globalsgrid[DefaultCol, e.RowIndex].Value = "";
             }
-            if (fgGlobals[NameCheckCol, e.RowIndex].Value == null) {
-                fgGlobals[NameCheckCol, e.RowIndex].Value = DefineNameCheck.OK;
+            if (globalsgrid[NameCheckCol, e.RowIndex].Value == null) {
+                globalsgrid[NameCheckCol, e.RowIndex].Value = DefineNameCheck.OK;
             }
-            if (fgGlobals[ValueCheckCol, e.RowIndex].Value == null) {
-                fgGlobals[ValueCheckCol, e.RowIndex].Value = DefineValueCheck.OK;
+            if (globalsgrid[ValueCheckCol, e.RowIndex].Value == null) {
+                globalsgrid[ValueCheckCol, e.RowIndex].Value = DefineValueCheck.OK;
             }
         }
     }

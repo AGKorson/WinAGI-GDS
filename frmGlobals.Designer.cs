@@ -30,7 +30,7 @@ namespace WinAGI.Editor {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmGlobals));
             statusStrip1 = new System.Windows.Forms.StatusStrip();
             spStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            fgGlobals = new System.Windows.Forms.DataGridView();
+            globalsgrid = new System.Windows.Forms.DataGridView();
             colType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             colDefault = new System.Windows.Forms.DataGridViewTextBoxColumn();
             colName = new DefineColumn();
@@ -76,7 +76,7 @@ namespace WinAGI.Editor {
             mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelCharMap = new System.Windows.Forms.ToolStripMenuItem();
             statusStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)fgGlobals).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)globalsgrid).BeginInit();
             cmGrid.SuspendLayout();
             menuStrip1.SuspendLayout();
             cmCel.SuspendLayout();
@@ -106,10 +106,10 @@ namespace WinAGI.Editor {
             // 
             // fgGlobals
             // 
-            fgGlobals.AllowUserToResizeRows = false;
+            globalsgrid.AllowUserToResizeRows = false;
             dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.ControlLight;
-            fgGlobals.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
-            fgGlobals.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
+            globalsgrid.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
+            globalsgrid.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.ControlLight;
             dataGridViewCellStyle4.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -117,33 +117,33 @@ namespace WinAGI.Editor {
             dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
             dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            fgGlobals.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
-            fgGlobals.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            fgGlobals.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { colType, colDefault, colName, colValue, colComment, NameCheck, ValueCheck });
-            fgGlobals.ContextMenuStrip = cmGrid;
-            fgGlobals.Dock = System.Windows.Forms.DockStyle.Fill;
-            fgGlobals.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
-            fgGlobals.Location = new System.Drawing.Point(0, 0);
-            fgGlobals.Name = "fgGlobals";
-            fgGlobals.RowHeadersWidth = 24;
-            fgGlobals.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
-            fgGlobals.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            fgGlobals.ShowCellErrors = false;
-            fgGlobals.ShowCellToolTips = false;
-            fgGlobals.Size = new System.Drawing.Size(765, 359);
-            fgGlobals.TabIndex = 9;
-            fgGlobals.CellBeginEdit += fgGlobals_CellBeginEdit;
-            fgGlobals.CellDoubleClick += fgGlobals_CellDoubleClick;
-            fgGlobals.CellFormatting += fgGlobals_CellFormatting;
-            fgGlobals.CellMouseDown += fgGlobals_CellMouseDown;
-            fgGlobals.CellMouseEnter += fgGlobals_CellMouseEnter;
-            fgGlobals.CellMouseLeave += fgGlobals_CellMouseLeave;
-            fgGlobals.CellValidating += fgGlobals_CellValidating;
-            fgGlobals.EditingControlShowing += fgGlobals_EditingControlShowing;
-            fgGlobals.RowsAdded += fgGlobals_RowsAdded;
-            fgGlobals.Scroll += fgGlobals_Scroll;
-            fgGlobals.SelectionChanged += fgGlobals_SelectionChanged;
-            fgGlobals.KeyDown += fgGlobals_KeyDown;
+            globalsgrid.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            globalsgrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            globalsgrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { colType, colDefault, colName, colValue, colComment, NameCheck, ValueCheck });
+            globalsgrid.ContextMenuStrip = cmGrid;
+            globalsgrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            globalsgrid.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
+            globalsgrid.Location = new System.Drawing.Point(0, 0);
+            globalsgrid.Name = "fgGlobals";
+            globalsgrid.RowHeadersWidth = 24;
+            globalsgrid.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            globalsgrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+            globalsgrid.ShowCellErrors = false;
+            globalsgrid.ShowCellToolTips = false;
+            globalsgrid.Size = new System.Drawing.Size(765, 359);
+            globalsgrid.TabIndex = 9;
+            globalsgrid.CellBeginEdit += fgGlobals_CellBeginEdit;
+            globalsgrid.CellDoubleClick += fgGlobals_CellDoubleClick;
+            globalsgrid.CellFormatting += fgGlobals_CellFormatting;
+            globalsgrid.CellMouseDown += fgGlobals_CellMouseDown;
+            globalsgrid.CellMouseEnter += fgGlobals_CellMouseEnter;
+            globalsgrid.CellMouseLeave += fgGlobals_CellMouseLeave;
+            globalsgrid.CellValidating += fgGlobals_CellValidating;
+            globalsgrid.EditingControlShowing += fgGlobals_EditingControlShowing;
+            globalsgrid.RowsAdded += fgGlobals_RowsAdded;
+            globalsgrid.Scroll += fgGlobals_Scroll;
+            globalsgrid.SelectionChanged += fgGlobals_SelectionChanged;
+            globalsgrid.KeyDown += fgGlobals_KeyDown;
             // 
             // colType
             // 
@@ -490,7 +490,7 @@ namespace WinAGI.Editor {
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(765, 359);
             Controls.Add(menuStrip1);
-            Controls.Add(fgGlobals);
+            Controls.Add(globalsgrid);
             Controls.Add(statusStrip1);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Name = "frmGlobals";
@@ -500,7 +500,7 @@ namespace WinAGI.Editor {
             FormClosed += frmGlobals_FormClosed;
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)fgGlobals).EndInit();
+            ((System.ComponentModel.ISupportInitialize)globalsgrid).EndInit();
             cmGrid.ResumeLayout(false);
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
@@ -512,7 +512,7 @@ namespace WinAGI.Editor {
         #endregion
         public System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel spStatus;
-        private System.Windows.Forms.DataGridView fgGlobals;
+        private System.Windows.Forms.DataGridView globalsgrid;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem mnuResource;
         private System.Windows.Forms.ToolStripMenuItem mnuROpenRes;

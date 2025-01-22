@@ -130,6 +130,7 @@ namespace WinAGI.Common {
                                 }
                             }
                         }
+                        SafeFileMove(EditGame.GameDir + "globals.txt", EditGame.ResDir + "globals.txt", true);
                     }
                 }
                 // show selection in preview, if needed

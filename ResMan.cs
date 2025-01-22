@@ -39,7 +39,8 @@ namespace WinAGI.Editor {
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.    ***************************************************************/
+    along with this program.  If not, see <https://www.gnu.org/licenses/>. 
+    ***************************************************************/
 
     public static class Base {
         #region Global Constants
@@ -1002,8 +1003,8 @@ namespace WinAGI.Editor {
         public struct AGIToken {
             public AGITokenType Type;
             public int Line;
-            public int Start;
-            public int End;
+            public int StartPos;
+            public int EndPos;
             public string Text = "";
             public TokenSubtype SubType = TokenSubtype.Undefined;
             public int Number = -1;
@@ -1011,6 +1012,8 @@ namespace WinAGI.Editor {
             public int ArgIndex = -1;
             public AGIToken() {
             }
+            public readonly Place Start => new(StartPos, Line);
+            public readonly Place End => new(StartPos + Text.Length, Line);
         }
 
         public struct Snippet {
@@ -1082,8 +1085,6 @@ namespace WinAGI.Editor {
         public static int TextCount;
         //lookup lists for logic editor
         //tooltips and define lists
-        public static TDefine[] RDefLookup = new TDefine[95];
-        public static TDefine[] GDefLookup;
         public static TDefine[,] IDefLookup = new TDefine[4, 256];
         //  //for now we will not do lookups
         //  // on words and invObjects
@@ -1196,67 +1197,6 @@ namespace WinAGI.Editor {
             ResQPtr = -1;
             MDIMain.cmdBack.Enabled = false;
             MDIMain.cmdForward.Enabled = false;
-        }
-
-        public static void GetResDefOverrides() {
-            string strIn;
-            string[] strDef;
-            int intCount;
-            int i;
-            //check to see if there are any overrides:
-            intCount = WinAGISettingsFile.GetSetting("ResDefOverrides", "Count", 0);
-            if (intCount == 0) {
-                return;
-            }
-            //ok, get the overrides, and apply them
-            for (i = 1; i <= intCount; i++) {
-                strIn = WinAGISettingsFile.GetSetting("ResDefOverrides", "Override" + i, "");
-                //split it to get the def value and def name
-                //(0)=group
-                //(1)=index
-                //(2)=newname
-                strDef = strIn.Split(":");
-                if (strDef.Length == 3) {
-                    //get the new name, if a valid entry
-                    if (strDef[1].Val() < LogicCompiler.ResDefByGrp((ResDefGroup)strDef[0].Val()).Length) {
-                        LogicCompiler.SetResDef((int)strDef[0].Val(), (int)strDef[1].Val(), strDef[2]);
-                    }
-                }
-            }
-            //need to make sure we don't have any bad overrides (where overridden name matches
-            //another name); if a duplicate is found, just reset the follow on name back to its
-            //default value
-            //we check AFTER all overrides are made just in case a swap is desired- checking in
-            //realtime would not allow a swap
-            if (!LogicCompiler.ValidateResDefs()) {
-                //if any were changed, re-write the WinAGI.config file
-                SaveResDefOverrides();
-            }
-        }
-
-        public static void SaveResDefOverrides() {
-            //if any reserved define names are different from the default values,
-            //write them to the app settings;
-            int intCount = 0, i;
-            TDefine[] dfTemp;
-            //need to make string comparisons case sensitive, in case user
-            //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
-
-            //first, delete any previous overrides
-            WinAGISettingsFile.DeleteSection("ResDefOverrides");
-            //now step through each type of define value; if name is not the default, then save it
-            for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
-                dfTemp = LogicCompiler.ResDefByGrp(grp);
-                for (i = 0; i < dfTemp.Length; i++) {
-                    if (dfTemp[i].Default != dfTemp[i].Name) {
-                        //save it
-                        intCount++;
-                        WinAGISettingsFile.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
-                    }
-                }
-            }
-            //write the count value
-            WinAGISettingsFile.WriteSetting("ResDefOverrides", "Count", intCount.ToString());
         }
 
         public static void InitializeResMan() {
@@ -2025,13 +1965,8 @@ namespace WinAGI.Editor {
                 AddToMRU(EditGame.GameFile);
                 BrowserStartDir = EditGame.GameDir;
                 DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
-                // build the lookup tables for logic tooltips
+                // build ID lookup table
                 BuildIDefLookup();
-                BuildGDefLookup();
-                int pos = 91;
-                for (int i = 0; i < 4; i++) {
-                    RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
-                }
                 if (ActionCount < 182) {
                     InvalidCmdStyleRegEx = @"\b(";
                     for (int i = ActionCount; i < 182; i++) {
@@ -2577,48 +2512,6 @@ namespace WinAGI.Editor {
             return;
         }
 
-        public static void BuildRDefLookup() {
-            // confirm include template is in app directory
-            if (!File.Exists(Application.StartupPath + "reserved.txt")) {
-                try {
-                    using (FileStream fs = new(Application.StartupPath + "reserved.txt", FileMode.Create)) {
-                        // create from embedded resource
-                        fs.Write(EngineResources.default_resdef);
-                    }
-                }
-                catch (Exception) {
-                }
-            }
-            //populate the lookup list that logics will
-            //use to support tooltips and define list lookups
-            //reserve define count:
-            // group 0:      27 variables
-            // group 1:      18 flags
-            // group 2:       5 edge codes
-            // group 3:       9 object direction codes
-            // group 4:       5 video mode codes
-            // group 5:       9 computer type codes
-            // group 6:      16 color indices
-            // group 7:       1 object (o0)
-            // group 8:       1 input prompt (s0)  
-            // game specific: 4 (id, about, description, invObjcount)
-            // Total of 95
-
-            int pos = 0;
-            // first add gloal resdefs
-            for (ResDefGroup grp = 0; (int)grp < 9; grp++) {
-                for (int i = 0; i < LogicCompiler.ResDefByGrp(grp).Length; i++) {
-                    RDefLookup[pos++] = LogicCompiler.ResDefByGrp(grp)[i];
-                }
-            }
-            // then let open logic editors know
-            if (LogicEditors.Count > 1) {
-                foreach (frmLogicEdit tmpEd in LogicEditors) {
-                    tmpEd.ListChanged = true;
-                }
-            }
-        }
-
         public static void BuildSnippets() {
             // loads snippet file, and creates array of snippets
             SettingsFile SnipList = new(ProgramDir + "snippets.txt", FileMode.OpenOrCreate);
@@ -2820,112 +2713,12 @@ namespace WinAGI.Editor {
             //ID lookup list are handled by the add/remove resource functions
         }
 
-        public static void BuildGDefLookup() {
-            //loads all global defines into single list for use by
-            //the logic tooltip lookup function
-
-            //we don't have to worry about errors (we just ignore them)
-            //or order (add them as they are in the file)
-            //or duplicate ("just leave it!!!") :-)
-            //or resdef overrides (it's actually easier for the tootip function anyway)
-            string strFileName;
-            string strLine;
-            string[] strSplitLine;
-            TDefine tmpDef = new();
-            bool blnTry;
-            int i, NumDefs = 0;
-
-            //clear the lookup list
-            GDefLookup = [];
-            try {
-                strFileName = EditGame.ResDir + "globals.txt";
-                // if no global file, just exit
-                if (!File.Exists(strFileName)) {
-                    return;
-                }
-                //open file for input
-                using FileStream fsGlobal = new(strFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                using StreamReader srGlobal = new(fsGlobal);
-
-                //read in globals
-                while (!srGlobal.EndOfStream) {
-                    //get line
-                    strLine = srGlobal.ReadLine();
-                    //trim it - also, skip comments
-                    string cmt = "";
-                    strLine = StripComments(strLine, ref cmt, true);
-                    //ignore blanks
-                    if (strLine.Length != 0) {
-                        //even though new format is to match standard #define format,
-                        //still need to look for old format first just in case;
-                        //when saved, the file will be in the new format
-
-                        //assume not valid until we prove otherwise
-                        blnTry = false;
-
-                        //splitline into name and Value
-                        strSplitLine = strLine.Split((char)Keys.Tab);
-
-                        //if exactly two elements,
-                        if (strSplitLine.Length == 2) {
-                            tmpDef.Name = strSplitLine[0].Trim();
-                            tmpDef.Value = strSplitLine[1].Trim();
-                            blnTry = true;
-
-                            //not a valid global.txt; check for defines.txt
-                        }
-                        else {
-                            //tabs need to be replaced with spaces first
-                            strLine = strLine.Replace((char)Keys.Tab, ' ').Trim();
-                            if (strLine.Left(8).Equals("#define ", StringComparison.OrdinalIgnoreCase)) {
-                                //strip off the define statement
-                                strLine = strLine.Right(strLine.Length - 8).Trim();
-                                //extract define name
-                                i = strLine.IndexOf(' ');
-                                if (i > 0) {
-                                    tmpDef.Name = strLine.Left(i);
-                                    strLine = strLine.Right(strLine.Length - i);
-                                    tmpDef.Value = strLine.Trim();
-                                    blnTry = true;
-                                }
-                            }
-                        }
-
-                        //if the line contains a define, add it to list
-                        //here we don't bother validating; if it's a bad
-                        //define, then user will have to deal with it;
-                        //it's only a tooltip at this point
-                        if (blnTry) {
-                            tmpDef.Type = DefTypeFromValue(tmpDef.Value);
-                            //increment count
-                            NumDefs++;
-                            Array.Resize(ref GDefLookup, NumDefs);
-                            GDefLookup[NumDefs - 1] = tmpDef;
-                        }
-                    }
-                }
-                //close file
-                fsGlobal.Dispose();
-                srGlobal.Dispose();
-            }
-            catch (Exception) {
-                //if error opening file, just exit
-                return;
-            }
-            //don't need to worry about open editors; the initial build is
-            //only called when a game is first loaded; changes to the
-            //global lookup list are handled by the Global Editor
-        }
-
         public static ArgType DefTypeFromValue(string strValue) {
             if (strValue.Length == 0) {
                 //strValue = "\"\"";
                 return DefStr;
             }
-            else if (strValue[0] == 34) {
-                //if (strValue.Length == 1 || strValue[^1] != 34) {
-                //    strValue += "\"";
-                //}
+            if (strValue[0] == 34) {
                 return DefStr;
             }
             if (strValue.IsNumeric()) {
@@ -3672,14 +3465,8 @@ namespace WinAGI.Editor {
                     BrowserStartDir = EditGame.GameDir;
                     //set default text file directory to game source file directory
                     DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
-                    // build the lookup tables for logic tooltips
+                    // build ID lookup table
                     BuildIDefLookup();
-                    BuildGDefLookup();
-                    // add game specific resdefs
-                    int pos = 91;
-                    for (i = 0; i < 4; i++) {
-                        RDefLookup[pos++] = EditGame.ReservedGameDefines[i];
-                    }
                 }
                 else {
                     //make sure warning grid is hidden
@@ -3695,102 +3482,28 @@ namespace WinAGI.Editor {
             return;
         }
 
-        public static int ValidateID(string NewID, string OldID) {
+        public static DefineNameCheck ValidateID(string NewID, string OldID) {
             //validates if a resource ID is agreeable or not
-            //returns zero if ok;
-            //error Value if not
 
-            //1 = no ID
-            //2 = ID is numeric
-            //3 = ID is command
-            //4 = ID is test command
-            //5 = ID is a compiler keyword
-            //6 = ID is an argument marker
-            //////  //7 = ID is globally defined
-            //////  //8 = ID is reserved variable name
-            //////  //9 = ID is reserved flag name
-            //////  //10 = ID is reserved number constant
-            //////  //11 = ID is reserved object constant
-            //////  //12 = ID is reserved message constant
-            //////  //13 = ID is reserved string constant
-            //14 = ID contains improper character
-            //15 = ID matches any existing ResourceID (not OldID)
-
-            //ignore if it's old id, or a different case of old id
-            if (NewID.Equals(OldID, StringComparison.OrdinalIgnoreCase)) {
-                //it is OK
-                return 0;
+            if (NewID == OldID) {
+                return DefineNameCheck.OK;
             }
-
-            //if no name,
-            if (NewID.Length == 0) {
-                return 1;
+            bool sierrasyntax = EditGame != null && EditGame.SierraSyntax;
+            DefineNameCheck retval = BaseNameCheck(NewID, sierrasyntax);
+            if (retval != DefineNameCheck.OK) {
+                return retval;
             }
-
-            //name cant be numeric
-            if (NewID.IsNumeric()) {
-                return 2;
-            }
-
-            //check against regular commands
-            for (int i = 0; i < WinAGI.Engine.Commands.ActionCount; i++) {
-                if (NewID.Equals(ActionCommands[i].Name, StringComparison.OrdinalIgnoreCase)) {
-                    return 3;
-                }
-            }
-
-            //check against test commands
-            for (int i = 0; i < TestCount; i++) {
-                if (NewID.Equals(TestCommands[i].Name, StringComparison.OrdinalIgnoreCase)) {
-                    return 4;
-                }
-            }
-
-            //check against keywords
-            if (NewID == "if" || NewID == "else" || NewID == "goto") {
-                return 5;
-            }
-
-            //check against variable/flag/controller/string/message names
-            // if the name starts with any of these letters
-            if ("vfmoiswc".Any(NewID.ToLower().StartsWith)) {
-                if (NewID.Right(NewID.Length - 1).IsNumeric()) {
-                    return 6;
-                }
-            }
-            //check name against improper character lists
-            if (EditGame == null || !EditGame.SierraSyntax) {
-                if (INVALID_FIRST_CHARS.Any(ch => ch == NewID[0])) {
-                    return 14;
-                }
-                if (NewID[1..].Any(INVALID_DEFINE_CHARS.Contains)) {
-                    return 14;
-                }
-            }
-            else {
-                if (INVALID_SIERRA_1ST_CHARS.Any(ch => ch == NewID[0])) {
-                    return 14;
-                }
-                if (NewID[1..].Any(INVALID_SIERRA_CHARS.Contains)) {
-                    return 14;
-                }
-            }
-            if (NewID.Any(ch => ch > 127 || ch < 32)) {
-                return 14;
-            }
-
             // check against existing IDs
             for (int restype = 0; restype <= 3; restype++) {
                 for (int i = 0; i <= 255; i++) {
                     if (IDefLookup[restype, i].Type != ArgType.None) {
-                        if (NewID.Equals(IDefLookup[restype, i].Name, StringComparison.OrdinalIgnoreCase)) {
-                            return 15;
+                        if (NewID ==IDefLookup[restype, i].Name) {
+                            return DefineNameCheck.ResourceID;
                         }
                     }
                 }
             }
-            //ok - 
-            return 0;
+            return DefineNameCheck.OK;
         }
 
         public static bool ChangeGameID(string NewID) {
@@ -4009,9 +3722,11 @@ namespace WinAGI.Editor {
             return true;
         }
 
+        /// <summary>
+        /// Checks all logics; if the token is in use in a logic, it gets marked as changed.
+        /// </summary>
+        /// <param name="strToken"></param>
         public static void UpdateReservedToken(string strToken) {
-            // checks all logics; if the token is in use in a logic, it gets marked as changed
-
             foreach (Logic tmpLogic in EditGame.Logics) {
                 if (!tmpLogic.Loaded) {
                     tmpLogic.Load();
@@ -4074,6 +3789,7 @@ namespace WinAGI.Editor {
                     strFileName = EditGame.ResDir + "globals.txt";
                     // look for global file
                     if (!File.Exists(strFileName)) {
+                        // TODO: move defines.txt conversion to the GlobalList object
                         // look for a defines.txt file in the resource directory
                         if (File.Exists(EditGame.ResDir + "defines.txt")) {
                             // copy it to globals.txt
@@ -4274,7 +3990,6 @@ namespace WinAGI.Editor {
             string strOldResFile = "", strOldDesc;
             string strOldID;
             bool blnReplace; //used when replacing IDs in logics
-            int rtn;
             string strErrMsg = "";
 
             // should never get here with other restypes
@@ -4332,52 +4047,43 @@ namespace WinAGI.Editor {
                 else {
                     if (strOldID != frmeditprop.NewID) {
                         //validate new id
-                        rtn = ValidateID(frmeditprop.NewID, strOldID);
+                        DefineNameCheck rtn = ValidateID(frmeditprop.NewID, strOldID);
                         switch (rtn) {
-                        case 0:
-                            //ok
+                        case DefineNameCheck.OK:
                             break;
-                        case 1:
-                            // no ID
+                        case DefineNameCheck.Empty:
                             strErrMsg = "Resource ID cannot be blank.";
                             break;
-                        case 2: // ID is numeric
+                        case DefineNameCheck.Numeric:
                             strErrMsg = "Resource ID cannot be numeric.";
                             break;
-                        case 3:
-                            // ID is command
+                        case DefineNameCheck.ActionCommand:
                             strErrMsg = "'" + frmeditprop.txtID.Text + "' is an AGI command, and cannot be used as a resource ID.";
                             break;
-                        case 4:
-                            // ID is test command
+                        case DefineNameCheck.TestCommand:
                             strErrMsg = "'" + frmeditprop.txtID.Text + "' is an AGI test command, and cannot be used as a resource ID.";
                             break;
-                        case 5:
-                            // ID is a compiler keyword
+                        case DefineNameCheck.KeyWord:
                             strErrMsg = "'" + frmeditprop.txtID.Text + "' is a compiler reserved word, and cannot be used as a resource ID.";
                             break;
-                        case 6:
-                            // ID is an argument marker
+                        case DefineNameCheck.ArgMarker:
                             strErrMsg = "Resource IDs cannot be argument markers";
                             break;
-                        case 14:
-                            // ID contains improper character
+                        case DefineNameCheck.BadChar:
                             strErrMsg = "Invalid character in resource ID:" + Environment.NewLine + "   !" + QUOTECHAR + "&//()*+,-/:;<=>?[\\]^`{|}~ and spaces" + Environment.NewLine + "are not allowed.";
                             break;
-                        case 15:
-                            // ID matches existing ResourceID
-                            //only enforce if in a game
+                        case DefineNameCheck.ResourceID:
+                            // only enforce if in a game
                             if (InGame) {
                                 strErrMsg = "'" + frmeditprop.txtID.Text + "' is already in use as a resource ID.";
                             }
                             else {
-                                //reset to no error
-                                rtn = 0;
+                                rtn = DefineNameCheck.OK;
                             }
                             break;
                         }
                         // if there is an error
-                        if (rtn != 0) {
+                        if (rtn != DefineNameCheck.OK) {
                             MessageBox.Show(MDIMain,
                                 strErrMsg,
                                 "Change Resource ID",
@@ -6424,15 +6130,15 @@ namespace WinAGI.Editor {
                 break;
             }
             RefreshTree(SelResType, SelResNum);
-            // update the reserved lookup values
-            RDefLookup[93].Value = (EditGame.InvObjects.Count - 1).ToString();
         }
 
         public static void RefreshLogicIncludes() {
             // updates the include files in all logic source and open ingame editors.
             // this is done when the include files are changed
             // in the game settings
-
+            if (EditGame.IncludeReserved) {
+                EditGame.ReservedDefines.SaveList(true);
+            }
             foreach (frmLogicEdit frm in LogicEditors) {
                 if (frm.FormMode == LogicFormMode.Logic) {
                     if (frm.InGame) {
@@ -6493,11 +6199,11 @@ namespace WinAGI.Editor {
                 //if using reserved names, insert them
                 if (EditGame.IncludeReserved) {
                     //f5, v0, f2, f4, v9
-                    strLogic = strLogic.Replace("f5", LogicCompiler.ReservedDefines(Flag)[5].Name);
-                    strLogic = strLogic.Replace("f2", LogicCompiler.ReservedDefines(Flag)[2].Name);
-                    strLogic = strLogic.Replace("f4", LogicCompiler.ReservedDefines(Flag)[4].Name);
-                    strLogic = strLogic.Replace("v0", LogicCompiler.ReservedDefines(Var)[0].Name);
-                    strLogic = strLogic.Replace("v9", LogicCompiler.ReservedDefines(Var)[9].Name);
+                    strLogic = strLogic.Replace("f5", EditGame.ReservedDefines.ReservedFlags[5].Name);
+                    strLogic = strLogic.Replace("f2", EditGame.ReservedDefines.ReservedFlags[2].Name);
+                    strLogic = strLogic.Replace("f4", EditGame.ReservedDefines.ReservedFlags[4].Name);
+                    strLogic = strLogic.Replace("v0", EditGame.ReservedDefines.ReservedVariables[0].Name);
+                    strLogic = strLogic.Replace("v9", EditGame.ReservedDefines.ReservedVariables[9].Name);
                 }
             }
             catch (Exception) {
@@ -7836,8 +7542,8 @@ namespace WinAGI.Editor {
             }
             // not editing a command arg list
             token.Type = AGITokenType.None;
-            token.Start = -1;
-            token.End = -1;
+            token.StartPos = -1;
+            token.EndPos = -1;
             token.Line = 0;
             return token;
         }
@@ -7894,7 +7600,7 @@ namespace WinAGI.Editor {
                                     strArgs[lngArgCount - 1] = "";
                                 }
                                 // make sure it's end of line
-                                blnSnipOK = argtoken.End == sniptext.Length;
+                                blnSnipOK = argtoken.EndPos == sniptext.Length;
                                 break;
                             }
                             else if (argtoken.Text == ",") {
@@ -7916,7 +7622,7 @@ namespace WinAGI.Editor {
                         else {
                             // next arg should be a comma or closing parenthesis
                             if (argtoken.Text == ")") {
-                                blnSnipOK = argtoken.End == sniptext.Length;
+                                blnSnipOK = argtoken.EndPos == sniptext.Length;
                                 break;
                             }
                             if (argtoken.Text != ",") {

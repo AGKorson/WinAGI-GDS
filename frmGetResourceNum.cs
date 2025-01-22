@@ -45,7 +45,6 @@ namespace WinAGI.Editor {
         }
 
         private void btnOK_Click(object sender, EventArgs e) {
-            int rtn;
             string strErrMsg = "";
             // validate resnum
             NewResNum = ((ListItemData)lstResNum.SelectedItem).ResNum;
@@ -63,48 +62,36 @@ namespace WinAGI.Editor {
                 break;
             case AddNew or AddInGame or Import:
                 // validate resourceID (use impossible value for old ID to avoid matching
-                rtn = ValidateID(txtID.Text, 255.ToString());
+                DefineNameCheck rtn = ValidateID(txtID.Text, 255.ToString());
                 switch (rtn) {
-                case 0:
-                    // ok
+                case DefineNameCheck.OK:
                     break;
-                case 1:
-                    // no ID
+                case DefineNameCheck.Empty:
                     strErrMsg = "Resource ID cannot be blank.";
                     break;
-                case 2:
-                    // ID is numeric
+                case DefineNameCheck.Numeric:
                     strErrMsg = "Resource IDs cannot be numeric.";
                     break;
-                case 3:
-                    // ID is command
+                case DefineNameCheck.ActionCommand:
                     strErrMsg = "'" + txtID.Text + "' is an AGI command, and cannot be used as a resource ID.";
                     break;
-                case 4:
-                    // ID is test command
+                case DefineNameCheck.TestCommand:
                     strErrMsg = "'" + txtID.Text + "' is an AGI test command, and cannot be used as a resource ID.";
                     break;
-                case 5:
-                    // ID is a compiler keyword
+                case DefineNameCheck.KeyWord:
                     strErrMsg = "'" + txtID.Text + "' is a compiler reserved word, and cannot be used as a resource ID.";
                     break;
-                case 6:
-                    // ID is an argument marker
+                case DefineNameCheck.ArgMarker:
                     strErrMsg = "Resource IDs cannot be argument markers";
                     break;
-                case 14:
-                    // ID contains improper character
-                    strErrMsg = "Invalid character in resource ID: " + Environment.NewLine + "!\"&'()*+,-/:;<=>?[\\]^`{|}~ and spaces" + Environment.NewLine + "are not allowed.";
+                case DefineNameCheck.BadChar:
+                    strErrMsg = "Invalid character in resource ID";
                     break;
-                case 15:
-                    // ID matches existing ResourceID
-                    // ingame is presumed true
+                case DefineNameCheck.ResourceID:
                     strErrMsg = "'" + txtID.Text + "' is already in use as a resource ID.";
                     break;
                 }
-
-                // if there is an error
-                if (rtn != 0) {
+                if (rtn != DefineNameCheck.OK) {
                     // error - show msgbox
                     MessageBox.Show(strErrMsg, "Invalid Resource ID", MessageBoxButtons.OK, MessageBoxIcon.Information); // vbMsgBoxHelpButton, WinAGIHelp, "htm\winagi\Managing Resources.htm#resourceids"
                     // send user back to the form to try again

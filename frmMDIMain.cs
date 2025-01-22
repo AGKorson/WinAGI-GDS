@@ -164,11 +164,6 @@ namespace WinAGI.Editor {
             // by the form to set up defaults
             PreviewWin = new();
             ResetTreeList();
-
-            // build the lookup table for reserved defines
-            BuildRDefLookup();
-            // default to an empty globals list
-            GDefLookup = [];
             //if using snippets
             if (WinAGISettings.UseSnippets.Value) {
                 // build snippet table
@@ -1043,7 +1038,11 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTReserved_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: reserved defines editor");
+            frmReserved frm = new();
+            frm.ShowDialog(MDIMain);
+            frm.Dispose();
+
+
             if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
                 ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
             }
@@ -2383,7 +2382,6 @@ namespace WinAGI.Editor {
                 case InfoType.Validating:
                     // check for WinAGI version update
                     if (e.LoadInfo.Text.Length > 0) {
-                        Debug.Print("cocksucker! reporting old version");
                         bgwOpenGame.ReportProgress(4, "");
                     }
                     bgwOpenGame.ReportProgress(0, "Validating AGI game files ...");
@@ -3589,8 +3587,8 @@ namespace WinAGI.Editor {
             }
             mnuTSep2.Visible = blnTools;
 
-            // RESERVED DEFINES OVERRIDES
-            GetResDefOverrides();
+            // DEFAULT RESERVED DEFINES
+            DefaultReservedDefines = new(WinAGISettingsFile);
 
             // IGNORED COMPILER WARNINGS
             lngNoCompVal = WinAGISettingsFile.GetSetting(sLOGICS, "NoCompWarn0", 0);
@@ -4205,12 +4203,6 @@ namespace WinAGI.Editor {
             UpdateLEStatus();
             EditGame.CodePage = Encoding.GetEncoding(propForm.NewCodePage);
             WinAGISettingsFile.Save();
-
-            // update the reserved lookup values
-            RDefLookup[91].Value = '\"' + EditGame.GameID + '\"';
-            RDefLookup[92].Value = '\"' + EditGame.GameAbout + '\"';
-            RDefLookup[93].Value = '\"' + EditGame.GameVersion + '\"';
-
             propForm.Dispose();
         }
 

@@ -42,7 +42,9 @@ namespace WinAGI.Engine {
 
         #region Members
         private static Logic compLogic;
+        private static AGIGame decompGame;
         internal static byte bytLogComp;
+        private static ReservedDefineList dcReservedList;
         internal static string moduleID;
         static byte bytBlockDepth;
         static DecodeBlockType[] DecodeBlock = new DecodeBlockType[WinAGI.Engine.LogicCompiler.MAX_BLOCK_DEPTH];
@@ -209,7 +211,14 @@ namespace WinAGI.Engine {
             stlOutput = [];
             strError = "";
             badQuit = false;
-
+            if (compLogic.parent != null) {
+                dcReservedList = compLogic.parent.ReservedDefines;
+                decompGame = compLogic.Parent;
+            }
+            else {
+                dcReservedList = Engine.Base.DefaultReservedDefines;
+                decompGame = null;
+            }
             if (!blnTokensSet) {
                 InitTokens(CodeStyle);
             }
@@ -303,7 +312,7 @@ namespace WinAGI.Engine {
                 AddBlockEnds(stlOutput);
                 // check for label at this position
                 if (bytLabelCount > 0 && lngLabelPos[lngNextLabel] == lngPos) {
-                    if (agSierraSyntax) {
+                    if (decompGame.agSierraSyntax) {
                         stlOutput.Add(":label" + lngNextLabel.ToString());
                     }
                     else {
@@ -389,7 +398,7 @@ namespace WinAGI.Engine {
                     // they are all validated in FindLabels)
                     if (bytCurData > ActionCount - 1) {
                         //this command is not expected for the targeted interpreter version
-                        AddDecodeWarning("DC10", "This command is not valid for selected interpreter version (" + compGame.agIntVersion + ")  [resource index: " + lngPos + "]", stlOutput.Count - 1);
+                        AddDecodeWarning("DC10", "This command is not valid for selected interpreter version (" + decompGame.agIntVersion + ")  [resource index: " + lngPos + "]", stlOutput.Count - 1);
                     }
                     bytCmd = bytCurData;
                     string strCurrentLine = INDENT.MultStr(bytBlockDepth);
@@ -402,13 +411,13 @@ namespace WinAGI.Engine {
                         for (intArg = 0; intArg < ActionCommands[bytCmd].ArgType.Length; intArg++) {
                             bytCurData = bytData[lngPos++];
                             strArg = ArgValue(bytCurData, ActionCommands[bytCmd].ArgType[intArg]);
-                            if (ReservedAsText && compGame.agIncludeReserved && SourceLogic.InGame) {
+                            if (ReservedAsText && decompGame.agIncludeReserved && SourceLogic.InGame) {
                                 // some commands use resources as arguments; substitute as appropriate
                                 switch (bytCmd) {
                                 case 18:
                                     // new.room - only arg is a logic
-                                    if (compGame.agLogs.Contains(bytCurData)) {
-                                        strArg = compGame.agLogs[bytCurData].ID;
+                                    if (decompGame.agLogs.Contains(bytCurData)) {
+                                        strArg = decompGame.agLogs[bytCurData].ID;
                                     }
                                     else {
                                         AddDecodeWarning("DC11", "Logic " + bytCurData.ToString() + " in new.room() does not exist  [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -416,8 +425,8 @@ namespace WinAGI.Engine {
                                     break;
                                 case 20: 
                                     // load.logics - only arg is a logic
-                                    if (compGame.agLogs.Contains(bytCurData)) {
-                                        strArg = compGame.agLogs[bytCurData].ID;
+                                    if (decompGame.agLogs.Contains(bytCurData)) {
+                                        strArg = decompGame.agLogs[bytCurData].ID;
                                     }
                                     else {
                                         AddDecodeWarning("DC11", "Logic " + bytCurData.ToString() + " in load.logics() " + lngPos.ToString() + " does not exist", stlOutput.Count - 1);
@@ -425,8 +434,8 @@ namespace WinAGI.Engine {
                                     break;
                                 case 22:
                                     // call - only arg is a logic
-                                    if (compGame.agLogs.Contains(bytCurData)) {
-                                        strArg = compGame.agLogs[bytCurData].ID;
+                                    if (decompGame.agLogs.Contains(bytCurData)) {
+                                        strArg = decompGame.agLogs[bytCurData].ID;
                                     }
                                     else {
                                         AddDecodeWarning("DC11", "Logic " + bytCurData.ToString() + " in call() does not exist [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -434,8 +443,8 @@ namespace WinAGI.Engine {
                                     break;
                                 case 30:  
                                     // load.view - only arg is a view
-                                    if (compGame.agViews.Contains(bytCurData)) {
-                                        strArg = compGame.agViews[bytCurData].ID;
+                                    if (decompGame.agViews.Contains(bytCurData)) {
+                                        strArg = decompGame.agViews[bytCurData].ID;
                                     }
                                     else {
                                         AddDecodeWarning("DC11", "View " + bytCurData.ToString() + " in load.view() does not exist [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -443,8 +452,8 @@ namespace WinAGI.Engine {
                                     break;
                                 case 32: 
                                     // discard.view - only arg is a view
-                                    if (compGame.agViews.Contains(bytCurData)) {
-                                        strArg = compGame.agViews[bytCurData].ID;
+                                    if (decompGame.agViews.Contains(bytCurData)) {
+                                        strArg = decompGame.agViews[bytCurData].ID;
                                     }
                                     else {
                                         AddDecodeWarning("DC11", "View " + bytCurData.ToString() + " in discard.view() does not exist [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -453,8 +462,8 @@ namespace WinAGI.Engine {
                                 case 41: 
                                     // set.view - 2nd arg is a view
                                     if (intArg == 1) {
-                                        if (compGame.agViews.Contains(bytCurData)) {
-                                            strArg = compGame.agViews[bytCurData].ID;
+                                        if (decompGame.agViews.Contains(bytCurData)) {
+                                            strArg = decompGame.agViews[bytCurData].ID;
                                         }
                                         else {
                                             AddDecodeWarning("DC11", "View " + bytCurData.ToString() + " in set.view() does not exist [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -463,8 +472,8 @@ namespace WinAGI.Engine {
                                     break;
                                 case 98:  
                                     // load.sound - only arg is asound
-                                    if (compGame.agSnds.Contains(bytCurData)) {
-                                        strArg = compGame.agSnds[bytCurData].ID;
+                                    if (decompGame.agSnds.Contains(bytCurData)) {
+                                        strArg = decompGame.agSnds[bytCurData].ID;
                                     }
                                     else {
                                         AddDecodeWarning("DC11", "Sound " + bytCurData.ToString() + " in load.sound() does not exist [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -473,8 +482,8 @@ namespace WinAGI.Engine {
                                 case 99: 
                                     // sound = 1st arg is a sound
                                     if (intArg == 0) {
-                                        if (compGame.agSnds.Contains(bytCurData)) {
-                                            strArg = compGame.agSnds[bytCurData].ID;
+                                        if (decompGame.agSnds.Contains(bytCurData)) {
+                                            strArg = decompGame.agSnds[bytCurData].ID;
                                         }
                                         else {
                                             AddDecodeWarning("DC11", "Sound " + bytCurData.ToString() + " in sound() does not exist [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -484,8 +493,8 @@ namespace WinAGI.Engine {
                                 case 122:
                                     // add.to.pic - 1st arg is a view
                                     if (intArg == 0) {
-                                        if (compGame.agViews.Contains(bytCurData)) {
-                                            strArg = compGame.agViews[bytCurData].ID;
+                                        if (decompGame.agViews.Contains(bytCurData)) {
+                                            strArg = decompGame.agViews[bytCurData].ID;
                                         }
                                         else {
                                             AddDecodeWarning("DC11", "View " + bytCurData.ToString() + " in add.to.pic() does not exist [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -494,8 +503,8 @@ namespace WinAGI.Engine {
                                     break;
                                 case 129: 
                                     // show.obj - only arg is a view
-                                    if (compGame.agViews.Contains(bytCurData)) {
-                                        strArg = compGame.agViews[bytCurData].ID;
+                                    if (decompGame.agViews.Contains(bytCurData)) {
+                                        strArg = decompGame.agViews[bytCurData].ID;
                                     }
                                     else {
                                         AddDecodeWarning("DC11", "View " + bytCurData.ToString() + " in show.obj() at does not exist [resource index: " + lngPos + "]", stlOutput.Count - 1);
@@ -504,8 +513,8 @@ namespace WinAGI.Engine {
                                 case 150:
                                     // trace.info - 1st arg is a logic
                                     if (intArg == 0) {
-                                        if (compGame.agLogs.Contains(bytCurData)) {
-                                            strArg = compGame.agLogs[bytCurData].ID;
+                                        if (decompGame.agLogs.Contains(bytCurData)) {
+                                            strArg = decompGame.agLogs[bytCurData].ID;
                                         }
                                         else {
                                             AddDecodeWarning("DC11", "Logic " + bytCurData.ToString() + " in trace.info() does not exist", stlOutput.Count - 1);
@@ -514,8 +523,8 @@ namespace WinAGI.Engine {
                                     break;
                                 case 175:
                                     // discard.sound - only arg is a sound
-                                    if (compGame.agSnds.Contains(bytCurData)) {
-                                        strArg = compGame.agSnds[bytCurData].ID;
+                                    if (decompGame.agSnds.Contains(bytCurData)) {
+                                        strArg = decompGame.agSnds[bytCurData].ID;
                                     }
                                     else {
                                         AddDecodeWarning("DC11", "Sound " + bytCurData.ToString() + " in discard.sound() does not exist", stlOutput.Count - 1);
@@ -530,21 +539,21 @@ namespace WinAGI.Engine {
                                     // clear.lines - 3rd arg
                                     if (intArg == 2) {
                                         if (strArg.Val() < 16) {
-                                            strArg = agResColor[(int)strArg.Val()].Name;
+                                            strArg = dcReservedList.ColorNames[(int)strArg.Val()].Name;
                                         }
                                     }
                                     break;
                                 case 109:
                                     // set.text.attribute - all args
                                     if (strArg.Val() < 16) {
-                                        strArg = agResColor[(int)strArg.Val()].Name;
+                                        strArg = dcReservedList.ColorNames[(int)strArg.Val()].Name;
                                     }
                                     break;
                                 case 154:
                                     // clear.text.rect - 5th arg
                                     if (intArg == 4) {
                                         if (strArg.Val() < 16) {
-                                            strArg = agResColor[(int)strArg.Val()].Name;
+                                            strArg = dcReservedList.ColorNames[(int)strArg.Val()].Name;
                                         }
                                     }
                                     break;
@@ -691,7 +700,7 @@ namespace WinAGI.Engine {
                 case 2 or 5:
                     // v2 and v5 use edge codes
                     if (ArgNum <= 4) {
-                        return agEdgeCodes[ArgNum].Name;
+                        return dcReservedList.EdgeCodes[ArgNum].Name;
                     }
                     else {
                         return ArgNum.ToString();
@@ -699,7 +708,7 @@ namespace WinAGI.Engine {
                 case 6:
                     // v6 uses direction codes
                     if (ArgNum <= 8) {
-                        return agEgoDir[ArgNum].Name;
+                        return dcReservedList.ObjDirections[ArgNum].Name;
                     }
                     else {
                         return ArgNum.ToString();
@@ -707,7 +716,7 @@ namespace WinAGI.Engine {
                 case 20:
                     // v20 uses computer type codes
                     if (ArgNum <= 8) {
-                        return agCompType[ArgNum].Name;
+                        return dcReservedList.ComputerTypes[ArgNum].Name;
                     }
                     else {
                         return ArgNum.ToString();
@@ -715,7 +724,7 @@ namespace WinAGI.Engine {
                 case 26:
                     // v26 uses video mode codes
                     if (ArgNum <= 4) {
-                        return agVideoMode[ArgNum].Name;
+                        return dcReservedList.VideoModes[ArgNum].Name;
                     }
                     else {
                         return ArgNum.ToString();
@@ -726,17 +735,17 @@ namespace WinAGI.Engine {
                 }
             case Var:
                 if (ArgNum <= 26) {
-                    return agResVar[ArgNum].Name;
+                    return dcReservedList.ReservedVariables[ArgNum].Name;
                 }
                 else {
                     return 'v' + ArgNum.ToString();
                 }
             case Flag:
                 if (ArgNum <= 16) {
-                    return agResFlag[ArgNum].Name;
+                    return dcReservedList.ReservedFlags[ArgNum].Name;
                 }
-                else if (ArgNum == 20 && (double.Parse(compGame.agIntVersion) >= 3.002102)) {
-                    return agResFlag[17].Name;
+                else if (ArgNum == 20 && decompGame != null && (double.Parse(decompGame.agIntVersion) >= 3.002102)) {
+                    return dcReservedList.ReservedFlags[17].Name;
                 }
                 else {
                     //not a reserved data type
@@ -759,30 +768,30 @@ namespace WinAGI.Engine {
                 }
             case SObj:
                 if (ArgNum == 0) {
-                    return agResObj[0].Name;
+                    return dcReservedList.ReservedObjects[0].Name;
                 }
                 else {
                     return 'o' + ArgNum.ToString();
                 }
             case InvItem:
-                if (compGame is not null && !IObjsByNumber) {
-                    Debug.Assert(compGame.agInvObj.Loaded);
-                    if (ArgNum < compGame.agInvObj.Count) {
-                        if (compGame.agInvObj[ArgNum].Unique) {
-                            if (compGame.agInvObj[ArgNum].ItemName == "?") {
+                if (decompGame is not null && !IObjsByNumber) {
+                    Debug.Assert(decompGame.agInvObj.Loaded);
+                    if (ArgNum < decompGame.agInvObj.Count) {
+                        if (decompGame.agInvObj[ArgNum].Unique) {
+                            if (decompGame.agInvObj[ArgNum].ItemName == "?") {
                                 // use the inventory item number, and post a warning
                                 AddDecodeWarning("DC04", "Reference to null inventory item ('?')  [resource index: " + lngPos + "]", stlOutput.Count - 1);
                                 return 'i' + ArgNum.ToString();
                             }
                             else {
                                 // a unique, non-questionmark item- use it's string Value
-                                return QUOTECHAR + compGame.agInvObj[ArgNum].ItemName.Replace(QUOTECHAR.ToString(), "\\\"") + QUOTECHAR;
+                                return QUOTECHAR + decompGame.agInvObj[ArgNum].ItemName.Replace(QUOTECHAR.ToString(), "\\\"") + QUOTECHAR;
                             }
                         }
                         else {
                             //non-unique - use obj number instead
                             if (ErrorLevel == Medium) {
-                                AddDecodeWarning("DC05", "Non-unique inventory item '" + compGame.agInvObj[ArgNum].ItemName + "' [resource index: " + lngPos + "]", stlOutput.Count - 1);
+                                AddDecodeWarning("DC05", "Non-unique inventory item '" + decompGame.agInvObj[ArgNum].ItemName + "' [resource index: " + lngPos + "]", stlOutput.Count - 1);
                             }
                             return 'i' + ArgNum.ToString();
                         }
@@ -798,7 +807,7 @@ namespace WinAGI.Engine {
                 }
             case ArgType.Str:
                 if (ArgNum == 0) {
-                    return agResStr[0].Name;
+                    return dcReservedList.ReservedStrings[0].Name;
                 }
                 else {
                     return 's' + ArgNum.ToString();
@@ -1026,13 +1035,13 @@ namespace WinAGI.Engine {
                             for (intArg1Val = 1; intArg1Val <= bytNumSaidArgs; intArg1Val++) {
                                 lngWordGroupNum = 256 * bytData[lngPos + 1] + bytData[lngPos];
                                 lngPos += 2;
-                                if (!WordsByNumber && compGame is not null) {
-                                    if (compGame.agVocabWords.GroupExists(lngWordGroupNum)) {
-                                        if (agSierraSyntax) {
-                                            strLine += QUOTECHAR + compGame.agVocabWords.GroupN(lngWordGroupNum).GroupName.Replace(' ', '$');
+                                if (!WordsByNumber && decompGame is not null) {
+                                    if (decompGame.agVocabWords.GroupExists(lngWordGroupNum)) {
+                                        if (decompGame.agSierraSyntax) {
+                                            strLine += QUOTECHAR + decompGame.agVocabWords.GroupN(lngWordGroupNum).GroupName.Replace(' ', '$');
                                         }
                                         else {
-                                            strLine += QUOTECHAR + compGame.agVocabWords.GroupN(lngWordGroupNum).GroupName + QUOTECHAR;
+                                            strLine += QUOTECHAR + decompGame.agVocabWords.GroupN(lngWordGroupNum).GroupName + QUOTECHAR;
                                         }
                                     }
                                     else {
@@ -1231,7 +1240,7 @@ namespace WinAGI.Engine {
                         // AND this version is one that uses arg value for quit
                         // this error is most likely due to bad coding of quit cmd
                         // if otherwise not an exact match, it will be caught when the block ends are added
-                        if (lngPos - DecodeBlock[CurBlock].EndPos == 1 && compGame.agIntVersion != "2.089" && DecodeBlock[CurBlock].HasQuit) {
+                        if (lngPos - DecodeBlock[CurBlock].EndPos == 1 && decompGame.agIntVersion != "2.089" && DecodeBlock[CurBlock].HasQuit) {
                             strError = "CHECKQUIT";
                             return false;
                         }
@@ -1573,7 +1582,7 @@ namespace WinAGI.Engine {
                 D_TKN_MESSAGE = "#message %1 %2";
                 break;
             }
-            if (agSierraSyntax) {
+            if (decompGame.agSierraSyntax) {
                 // goto doesn't include parentheses
                 D_TKN_GOTO = "goto %1";
             }

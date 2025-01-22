@@ -238,8 +238,10 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         public string ConvertArg(string ArgIn, ArgType ArgType, bool VarOrNum = false) {
             if (parent is not null) {
-                if (parent.agIncludeGlobals && parent.GlobalDefines.IsChanged) {
-                    parent.GlobalDefines.LoadGlobalDefines(parent.agResDir + "globals.txt");
+                if (parent.agIncludeGlobals) {
+                    if (!parent.GlobalDefines.Loaded) {
+                        parent.GlobalDefines.Load();
+                    }
                 }
                 if (!blnSetIDs) {
                     SetResourceIDs(parent);

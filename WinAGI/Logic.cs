@@ -524,7 +524,7 @@ namespace WinAGI.Engine {
                         File.Move(parent.agResDir + mResID + ".txt", SourceFile);
                     }
                     else {
-                        if (agSierraSyntax) {
+                        if (parent.agSierraSyntax) {
                             if (File.Exists(parent.agResDir + "RM" + Number + ".cg")) {
                                 File.Move(parent.agResDir + "RM" + Number + ".cg", SourceFile);
                             }

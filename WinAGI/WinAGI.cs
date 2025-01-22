@@ -23,7 +23,8 @@ namespace WinAGI.Engine {
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.    ***************************************************************/
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+    ***************************************************************/
 
     #region Enums
     public enum AGIResType {
@@ -175,6 +176,7 @@ namespace WinAGI.Engine {
         Color,
         Object,
         String,
+        GameInfo,
     }
 
     public enum DefineNameCheck {
@@ -193,7 +195,8 @@ namespace WinAGI.Engine {
         ReservedObj,   // 12 = name is reserved object
         ReservedStr,   // 13 = name is reserved string
         ReservedMsg,   // 14 = name is reserved message
-        ResourceID,    // 15 = name is a resourceID
+        ReservedGameInfo, // 15 = name is reserved gameinfo
+        ResourceID,    // 16 = name is a resourceID
     }
 
     public enum DefineValueCheck {
@@ -340,6 +343,7 @@ namespace WinAGI.Engine {
         internal static byte defMaxSO = 16;
         internal static Encoding defCodePage;
         internal static readonly int[] validcodepages = [437, 737, 775, 850, 852, 855, 857, 858, 860, 861, 862, 863, 865, 866, 869];
+        public static ReservedDefineList DefaultReservedDefines;
         #endregion
 
         #region Constructors
@@ -455,7 +459,7 @@ namespace WinAGI.Engine {
             }
 
             // calling this forces the module to load and initialize
-            LogicCompiler.AssignReservedDefines();
+            LogicCompiler.compGame = null;
         }
 
         /// <summary>

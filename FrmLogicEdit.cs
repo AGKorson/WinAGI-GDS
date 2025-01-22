@@ -377,7 +377,7 @@ namespace WinAGI.Editor {
                     mnuEOpenRes.Tag = taginfo;
                     mnuEOpenRes.Visible = true;
                     // resoureids.txt is not editable
-                    mnuEOpenRes.Enabled = (!seltoken.Text.Equals("\"resourceids.txt\"",StringComparison.OrdinalIgnoreCase));
+                    mnuEOpenRes.Enabled = (!seltoken.Text.Equals("\"resourceids.txt\"", StringComparison.OrdinalIgnoreCase));
                     break;
                 }
                 // not an include, check for 'said' word
@@ -620,9 +620,9 @@ namespace WinAGI.Editor {
 
         private void mnuEViewSynonym_Click(object sender, EventArgs e) {
             AGIToken token = fctb.TokenFromPos();
-            Place place = new(token.Start, token.Line);
+            Place place = new(token.StartPos, token.Line);
             fctb.Selection.Start = place;
-            place.iChar = token.End;
+            place.iChar = token.EndPos;
             fctb.Selection.End = place;
             ShowSynonymList(token.Text);
         }
@@ -714,7 +714,7 @@ namespace WinAGI.Editor {
             case 8:
                 // BACKSPACE
                 if (picTip.Visible) {
-                    Place thispos = new Place(TipCmdToken.End + 1, TipCmdToken.Line);
+                    Place thispos = new Place(TipCmdToken.EndPos + 1, TipCmdToken.Line);
                     if (fctb.Selection.Start <= thispos) {
                         // cursor has backed over start of command needing the tip - hide it
                         picTip.Visible = false;
@@ -788,8 +788,8 @@ namespace WinAGI.Editor {
                                 starttoken = WinAGIFCTB.PreviousToken(strLine, starttoken);
                                 if (starttoken.Text[0] == '#') {
                                     // adjust snippetname
-                                    snippetname.Start = starttoken.Start;
-                                    snippetname.Text = strLine[snippetname.Start..snippetname.End];
+                                    snippetname.StartPos = starttoken.StartPos;
+                                    snippetname.Text = strLine[snippetname.StartPos..snippetname.EndPos];
                                 }
                             }
                         }
@@ -800,8 +800,8 @@ namespace WinAGI.Editor {
                     // check for indentation; if leading hashtag is preceded ONLY by
                     // white space, save the indent value in case the replaced text
                     // is multi-line
-                    if (snippetname.Start > 0 && strLine[..snippetname.Start].Trim().Length == 0) {
-                        SnipIndent = snippetname.Start;
+                    if (snippetname.StartPos > 0 && strLine[..snippetname.StartPos].Trim().Length == 0) {
+                        SnipIndent = snippetname.StartPos;
                     }
                     Snippet snippetvalue = new();
                     snippetvalue = CheckSnippet(snippetname.Text[1..^1]);
@@ -809,7 +809,7 @@ namespace WinAGI.Editor {
                         return;
                     }
                     snippetvalue.Value = snippetvalue.Value.Replace("\r\n", "\r\n" + "".PadRight(SnipIndent));
-                    Place start = new(snippetname.Start, snippetname.Line);
+                    Place start = new(snippetname.StartPos, snippetname.Line);
                     Place end = fctb.Selection.Start;
                     fctb.Selection.Start = start;
                     fctb.Selection.End = end;
@@ -877,7 +877,7 @@ namespace WinAGI.Editor {
                     AGIToken seltoken = fctb.TokenFromPos();
                     int argcount = 0;
                     AGIToken cmdtoken = FindPrevCmd(fctb, seltoken, ref argcount);
-                    if (cmdtoken.Start == TipCmdToken.Start && cmdtoken.End == TipCmdToken.End) {
+                    if (cmdtoken.StartPos == TipCmdToken.StartPos && cmdtoken.EndPos == TipCmdToken.EndPos) {
                         if (argcount != TipCurArg) {
                             TipCurArg = argcount;
                             picTip.Refresh();
@@ -905,7 +905,7 @@ namespace WinAGI.Editor {
                 }
             }
             else {
-                    Debug.Print("no status bar");
+                Debug.Print("no status bar");
             }
         }
 
@@ -948,58 +948,65 @@ namespace WinAGI.Editor {
             }
             if (EditGame != null) {
                 // next check globals
-                for (int i = 0; i < GDefLookup.Length; i++) {
-                    if (strDefine.Equals(GDefLookup[i].Name)) {
-                        strDefine += " = " + GDefLookup[i].Value;
-                        e.ToolTipText = strDefine;
-                        return;
-                    }
-                }
-                // then ids; we will test logics, then views, then sounds, then pics
-                // as that's the order that defines are most likely to be used
-                for (int i = 0; i <= EditGame.Logics.Max; i++) {
-                    if (IDefLookup[(int)AGIResType.Logic, i].Type != ArgType.None) {
-                        if (strDefine.Equals(IDefLookup[(int)AGIResType.Logic, i].Name)) {
-                            strDefine += " = " + IDefLookup[(int)AGIResType.Logic, i].Value;
+                if (EditGame.IncludeGlobals) {
+                    for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
+                        if (strDefine.Equals(EditGame.GlobalDefines[i].Name)) {
+                            strDefine += " = " + EditGame.GlobalDefines[i].Value;
                             e.ToolTipText = strDefine;
                             return;
                         }
                     }
                 }
-                for (int i = 0; i <= EditGame.Views.Max; i++) {
-                    if (IDefLookup[(int)AGIResType.View, i].Type != ArgType.None) {
-                        if (strDefine.Equals(IDefLookup[(int)AGIResType.View, i].Name)) {
-                            strDefine += " = " + IDefLookup[(int)AGIResType.View, i].Value;
-                            e.ToolTipText = strDefine;
-                            return;
+                if (EditGame.IncludeIDs) {
+                    // then ids; we will test logics, then views, then sounds, then pics
+                    // as that's the order that defines are most likely to be used
+                    for (int i = 0; i <= EditGame.Logics.Max; i++) {
+                        if (IDefLookup[(int)AGIResType.Logic, i].Type != ArgType.None) {
+                            if (strDefine.Equals(IDefLookup[(int)AGIResType.Logic, i].Name)) {
+                                strDefine += " = " + IDefLookup[(int)AGIResType.Logic, i].Value;
+                                e.ToolTipText = strDefine;
+                                return;
+                            }
                         }
                     }
-                }
-                for (int i = 0; i <= EditGame.Sounds.Max; i++) {
-                    if (IDefLookup[(int)AGIResType.Sound, i].Type != ArgType.None) {
-                        if (strDefine.Equals(IDefLookup[(int)AGIResType.Sound, i].Name)) {
-                            strDefine += " = " + IDefLookup[(int)AGIResType.Sound, i].Value;
-                            e.ToolTipText = strDefine;
-                            return;
+                    for (int i = 0; i <= EditGame.Views.Max; i++) {
+                        if (IDefLookup[(int)AGIResType.View, i].Type != ArgType.None) {
+                            if (strDefine.Equals(IDefLookup[(int)AGIResType.View, i].Name)) {
+                                strDefine += " = " + IDefLookup[(int)AGIResType.View, i].Value;
+                                e.ToolTipText = strDefine;
+                                return;
+                            }
                         }
                     }
-                }
-                for (int i = 0; i <= EditGame.Pictures.Max; i++) {
-                    if (IDefLookup[(int)AGIResType.Picture, i].Type != ArgType.None) {
-                        if (strDefine.Equals(IDefLookup[(int)AGIResType.Picture, i].Name)) {
-                            strDefine += " = " + IDefLookup[(int)AGIResType.Picture, i].Value;
-                            e.ToolTipText = strDefine;
-                            return;
+                    for (int i = 0; i <= EditGame.Sounds.Max; i++) {
+                        if (IDefLookup[(int)AGIResType.Sound, i].Type != ArgType.None) {
+                            if (strDefine.Equals(IDefLookup[(int)AGIResType.Sound, i].Name)) {
+                                strDefine += " = " + IDefLookup[(int)AGIResType.Sound, i].Value;
+                                e.ToolTipText = strDefine;
+                                return;
+                            }
+                        }
+                    }
+                    for (int i = 0; i <= EditGame.Pictures.Max; i++) {
+                        if (IDefLookup[(int)AGIResType.Picture, i].Type != ArgType.None) {
+                            if (strDefine.Equals(IDefLookup[(int)AGIResType.Picture, i].Name)) {
+                                strDefine += " = " + IDefLookup[(int)AGIResType.Picture, i].Value;
+                                e.ToolTipText = strDefine;
+                                return;
+                            }
                         }
                     }
                 }
             }
-            // still no match, check reserved defines
-            for (int i = 0; i <= 94; i++) {
-                if (strDefine.Equals(RDefLookup[i].Name)) {
-                    strDefine += " = " + RDefLookup[i].Value;
-                    e.ToolTipText = strDefine;
-                    return;
+            if (EditGame == null || EditGame.IncludeReserved) {
+                // still no match, check reserved define
+                TDefine[] tmpDefines = EditGame.ReservedDefines.All();
+                for (int i = 0; i < tmpDefines.Length; i++) {
+                    if (strDefine.Equals(tmpDefines[i].Name)) {
+                        strDefine += " = " + tmpDefines[i].Value;
+                        e.ToolTipText = strDefine;
+                        return;
+                    }
                 }
             }
         }
@@ -1103,7 +1110,7 @@ namespace WinAGI.Editor {
                     if (token.Type != AGITokenType.Number || (intMsgNum = int.Parse(token.Text)) < 1 || intMsgNum > 255) {
                         // invalid msg number
                         Messages[0].Line = 1;
-                        Messages[1].Line = token.Start;
+                        Messages[1].Line = token.StartPos;
                         // displayed lines are '1' based
                         Messages[2].Line = token.Line + 1;
                         return false;
@@ -1113,7 +1120,7 @@ namespace WinAGI.Editor {
                         // return false, and use the Message structure to indicate
                         // what the problem is, and on which line it occurred
                         Messages[0].Line = 2;
-                        Messages[1].Line = token.Start;
+                        Messages[1].Line = token.StartPos;
                         Messages[2].Line = token.Line + 1;
                         Messages[3].Line = intMsgNum;
                         return false;
@@ -1125,7 +1132,7 @@ namespace WinAGI.Editor {
                         // valid string is >1 char, ends with '"' and doesn't end with '\"'
                         if (token.Text.Length == 1 || token.Text[^1] != '\"' || token.Text[^2] == '\\') {
                             Messages[0].Line = 5;
-                            Messages[1].Line = token.Start;
+                            Messages[1].Line = token.StartPos;
                             Messages[2].Line = token.Line + 1;
                             Messages[3].Line = intMsgNum;
                             return false;
@@ -1137,7 +1144,7 @@ namespace WinAGI.Editor {
                         AGIToken concattoken;
                         do {
                             // check for end of line
-                            Place concatstart = new(token.Start, token.Line);
+                            Place concatstart = new(token.StartPos, token.Line);
                             token = fctb.NextToken(token, false);
                             if (token.Type != AGITokenType.None && token.Type != AGITokenType.Comment) {
                                 // stuff not allowed on line after msg declaration
@@ -1153,7 +1160,7 @@ namespace WinAGI.Editor {
                                     // valid string is >1 char, ends with '"' and doesn't end with '\"'
                                     if (concattoken.Text.Length == 1 || concattoken.Text[^1] != '\"' || concattoken.Text[^2] == '\\') {
                                         Messages[0].Line = 5;
-                                        Messages[1].Line = concattoken.Start;
+                                        Messages[1].Line = concattoken.StartPos;
                                         Messages[2].Line = concattoken.Line + 1;
                                         Messages[3].Line = intMsgNum;
                                         return false;
@@ -1181,9 +1188,9 @@ namespace WinAGI.Editor {
                             }
                         }
                         if (!blnDefFound) {
-                            for (int i = 0; i < GDefLookup.Length; i++) {
-                                if (GDefLookup[i].Type == ArgType.DefStr) {
-                                    if (GDefLookup[i].Name == token.Text) {
+                            for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
+                                if (EditGame.GlobalDefines[i].Type == ArgType.DefStr) {
+                                    if (EditGame.GlobalDefines[i].Name == token.Text) {
                                         blnDefFound = true;
                                         break;
                                     }
@@ -1191,8 +1198,8 @@ namespace WinAGI.Editor {
                             }
                         }
                         if (!blnDefFound) {
-                            for (int i = 0; i < LogicCompiler.ReservedDefines(ArgType.DefStr).Length; i++) {
-                                if (LogicCompiler.ReservedDefines(ArgType.DefStr)[i].Name == token.Text) {
+                            for (int i = 0; i < EditGame.ReservedDefines.ByArgType(ArgType.DefStr).Length; i++) {
+                                if (EditGame.ReservedDefines.ByArgType(ArgType.DefStr)[i].Name == token.Text) {
                                     blnDefFound = true;
                                     break;
                                 }
@@ -1210,7 +1217,7 @@ namespace WinAGI.Editor {
                         else {
                             // not a string or defined string
                             Messages[0].Line = 3;
-                            Messages[1].Line = token.Start;
+                            Messages[1].Line = token.StartPos;
                             Messages[2].Line = token.Line + 1;
                             Messages[3].Line = intMsgNum;
                             return false;
@@ -1218,7 +1225,7 @@ namespace WinAGI.Editor {
                     default:
                         // not a string or identifer
                         Messages[0].Line = 3;
-                        Messages[1].Line = token.Start;
+                        Messages[1].Line = token.StartPos;
                         Messages[2].Line = token.Line + 1;
                         Messages[3].Line = intMsgNum;
                         return false;
@@ -1415,7 +1422,7 @@ namespace WinAGI.Editor {
 
                                 // add it to current 
                                 msgtoken.Text = msgtoken.Text[..^1] + concattoken.Text[1..];
-                                msgtoken.End = concattoken.End;
+                                msgtoken.EndPos = concattoken.EndPos;
                                 msgtoken.Line = concattoken.Line;
                                 concattoken = fctb.NextToken(concattoken, true);
                             }
@@ -1460,15 +1467,15 @@ namespace WinAGI.Editor {
                                 }
                             }
                             // try globals next
-                            for (int i = 0; i < GDefLookup.Length; i++) {
-                                if (msgtoken.Text == GDefLookup[i].Name) {
-                                    switch (GDefLookup[i].Type) {
+                            for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
+                                if (msgtoken.Text == EditGame.GlobalDefines[i].Name) {
+                                    switch (EditGame.GlobalDefines[i].Type) {
                                     case ArgType.Msg:
-                                        //msgtoken.Text = GDefLookup[i].Value;
+                                        //msgtoken.Text = EditGame.GlobalDefines[i].Value;
                                         msgtoken.Number = 0;
                                         return msgtoken;
                                     case ArgType.DefStr:
-                                        //msgtoken.Text = GDefLookup[i].Value;
+                                        //msgtoken.Text = EditGame.GlobalDefines[i].Value;
                                         msgtoken.Number = 0;
                                         return msgtoken;
                                     default:
@@ -1479,8 +1486,9 @@ namespace WinAGI.Editor {
                                 }
                             }
                             // lastly check reserved defines
-                            for (int i = 91; i <= 93; i++) {
-                                if (msgtoken.Text == RDefLookup[i].Name) {
+
+                            for (int i = 0; i <= 2; i++) {
+                                if (msgtoken.Text == EditGame.ReservedDefines.GameInfo[i].Name) {
                                     //msgtoken.Text = RDefLookup[i].Value;
                                     msgtoken.Number = 0;
                                     return msgtoken;
@@ -1573,15 +1581,15 @@ namespace WinAGI.Editor {
                     strStrings[^1] = LDefLookup[i].Name;
                 }
             }
-            for (int i = 0; i < GDefLookup.Length; i++) {
-                if (GDefLookup[i].Type == ArgType.Str) {
+            for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
+                if (EditGame.GlobalDefines[i].Type == ArgType.Str) {
                     Array.Resize(ref strStrings, ++lngCount);
-                    strStrings[^1] = GDefLookup[i].Name;
+                    strStrings[^1] = EditGame.GlobalDefines[i].Name;
                 }
             }
             // add the only resdef that's a string
             Array.Resize(ref strStrings, ++lngCount);
-            strStrings[^1] = RDefLookup[90].Name;
+            strStrings[^1] = EditGame.ReservedDefines.ReservedStrings[0].Name;
 
             // next, get all messages that are predefined
             if (!ReadMsgs(ref Messages)) {
@@ -2634,7 +2642,7 @@ namespace WinAGI.Editor {
                     goodinclude = new Regex(@"#include\s*(?i)""" + includefile + @"""");
                     badinclude = new Regex(@"(#include|\binclude)\s*(?i)(""" + includefile + @"(?!"")\b|" + includefile + @"""|" + includefile + @"\b)");
                     if (reservedpos == -1 && goodinclude.Match(fctb.Lines[line]).Success) {
-                        reservedpos = line; 
+                        reservedpos = line;
                     }
                     else if (badreservedpos == -1 && badinclude.Match(fctb.Lines[line]).Success) {
                         badreservedpos = line;
@@ -2921,7 +2929,7 @@ namespace WinAGI.Editor {
             }
             picTip.Width = startPoint.X;
             picTip.Height = (int)(szText.Height * 1.2);
-            Place tp = new(token.End + 1, token.Line);
+            Place tp = new(token.EndPos + 1, token.Line);
             Point pPos;
             pPos = fctb.PlaceToPoint(tp);
             picTip.Top = pPos.Y + fctb.CharHeight;
@@ -2952,7 +2960,7 @@ namespace WinAGI.Editor {
                 TipCmdToken = new AGIToken();
                 return false;
             }
-            if (matchonly && cmdtoken.Start == TipCmdToken.Start && cmdtoken.Line == TipCmdToken.Line) {
+            if (matchonly && cmdtoken.StartPos == TipCmdToken.StartPos && cmdtoken.Line == TipCmdToken.Line) {
                 return true;
             }
             // only commands that take arguments are of interest
@@ -3177,14 +3185,14 @@ namespace WinAGI.Editor {
             }
             // global defines next (but only if not looking for just a ResID AND game is loaded)
             if (EditGame != null && ArgType < ArgListType.Logic) {
-                for (int i = 0; i < GDefLookup.Length; i++) {
+                for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
                     // add these global defines IF
                     //     types match OR
                     //     argtype is ALL OR
                     //     argtype is (msg OR invobj) AND deftype is defined string
                     //     argtype matches a special type
                     blnAdd = false;
-                    if ((int)GDefLookup[i].Type == (int)ArgType) {
+                    if ((int)EditGame.GlobalDefines[i].Type == (int)ArgType) {
                         blnAdd = true;
                     }
                     else {
@@ -3194,24 +3202,24 @@ namespace WinAGI.Editor {
                             break;
                         case ArgListType.IfArg:
                             // variables and flags
-                            blnAdd = GDefLookup[i].Type == Engine.ArgType.Var || GDefLookup[i].Type == Engine.ArgType.Flag;
+                            blnAdd = EditGame.GlobalDefines[i].Type == Engine.ArgType.Var || EditGame.GlobalDefines[i].Type == Engine.ArgType.Flag;
                             break;
                         case ArgListType.OthArg:
                             // variables and strings
-                            blnAdd = GDefLookup[i].Type == Engine.ArgType.Var || GDefLookup[i].Type == Engine.ArgType.Str;
+                            blnAdd = EditGame.GlobalDefines[i].Type == Engine.ArgType.Var || EditGame.GlobalDefines[i].Type == Engine.ArgType.Str;
                             break;
                         case ArgListType.Values:
                             // variables and numbers
-                            blnAdd = GDefLookup[i].Type == Engine.ArgType.Var || GDefLookup[i].Type == Engine.ArgType.Num;
+                            blnAdd = EditGame.GlobalDefines[i].Type == Engine.ArgType.Var || EditGame.GlobalDefines[i].Type == Engine.ArgType.Num;
                             break;
                         case ArgListType.Msg or ArgListType.IObj:
-                            blnAdd = GDefLookup[i].Type == Engine.ArgType.DefStr;
+                            blnAdd = EditGame.GlobalDefines[i].Type == Engine.ArgType.DefStr;
                             break;
                         }
                     }
                     if (blnAdd) {
                         // don't add if already defined
-                        AddIfUnique(GDefLookup[i].Name, 11 + (int)GDefLookup[i].Type, GDefLookup[i].Value);
+                        AddIfUnique(EditGame.GlobalDefines[i].Name, 11 + (int)EditGame.GlobalDefines[i].Type, EditGame.GlobalDefines[i].Value);
                     }
                 }
             }
@@ -3270,14 +3278,15 @@ namespace WinAGI.Editor {
             }
             // lastly, check for reserved defines option (if not looking for a resourceID)
             if (((EditGame == null && WinAGISettings.DefIncludeReserved.Value) || (EditGame != null && EditGame.IncludeReserved)) && ArgType < ArgListType.Logic) {
-                for (int i = 0; i <= 94; i++) {
+                TDefine[] tmpDefines = EditGame.ReservedDefines.All();
+                for (int i = 0; i < tmpDefines.Length; i++) {
                     // add these reserved defines IF
                     //     types match OR
                     //     argtype is ALL OR
                     //     argtype is (msg OR invobj) AND deftype is defined string
                     //     argtype matches a special type
                     blnAdd = false;
-                    if ((int)RDefLookup[i].Type == (int)ArgType) {
+                    if ((int)tmpDefines[i].Type == (int)ArgType) {
                         blnAdd = true;
                     }
                     else {
@@ -3287,24 +3296,24 @@ namespace WinAGI.Editor {
                             break;
                         case ArgListType.IfArg:
                             // variables and flags
-                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Flag;
+                            blnAdd = tmpDefines[i].Type == Engine.ArgType.Var || tmpDefines[i].Type == Engine.ArgType.Flag;
                             break;
                         case ArgListType.OthArg:
                             // variables and strings
-                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Str;
+                            blnAdd = tmpDefines[i].Type == Engine.ArgType.Var || tmpDefines[i].Type == Engine.ArgType.Str;
                             break;
                         case ArgListType.Values:
                             // variables and numbers
-                            blnAdd = RDefLookup[i].Type == Engine.ArgType.Var || RDefLookup[i].Type == Engine.ArgType.Num;
+                            blnAdd = tmpDefines[i].Type == Engine.ArgType.Var || tmpDefines[i].Type == Engine.ArgType.Num;
                             break;
                         case ArgListType.Msg or ArgListType.IObj:
-                            blnAdd = RDefLookup[i].Type == Engine.ArgType.DefStr;
+                            blnAdd = tmpDefines[i].Type == Engine.ArgType.DefStr;
                             break;
                         }
                     }
                     if (blnAdd) {
                         // don't add if already defined
-                        AddIfUnique(RDefLookup[i].Name, 26 + (int)RDefLookup[i].Type, RDefLookup[i].Value);
+                        AddIfUnique(tmpDefines[i].Name, 26 + (int)tmpDefines[i].Type, tmpDefines[i].Value);
                     }
                 }
             }
@@ -3415,8 +3424,8 @@ namespace WinAGI.Editor {
                 return;
             }
             // expand selection if necessary
-            Place tokenstart = new(token.Start, token.Line);
-            Place tokenend = new(token.End, token.Line);
+            Place tokenstart = new(token.StartPos, token.Line);
+            Place tokenend = new(token.EndPos, token.Line);
             if (fctb.SelectionLength == 0) {
                 if (token.Text.Length > 0 && (token.Type == AGITokenType.Identifier || token.Type == AGITokenType.String || token.Type == AGITokenType.Number)) {
                     fctb.Selection.Start = tokenstart;
@@ -3760,6 +3769,10 @@ namespace WinAGI.Editor {
             }
         }
 
+        /// <summary>
+        /// Gets the token at the current selection position.
+        /// </summary>
+        /// <returns></returns>
         public AGIToken TokenFromPos() {
             if (Selection.Start <= Selection.End) {
                 return TokenFromPos(Selection.Start);
@@ -3791,20 +3804,20 @@ namespace WinAGI.Editor {
         /// <param name="token"></param>
         /// <param name="multiline"></param>
         /// <returns></returns>
-        public  AGIToken NextToken(AGIToken token, bool multiline = false) {
+        public AGIToken NextToken(AGIToken token, bool multiline = false) {
             AGIToken nexttoken = new AGIToken();
-            nexttoken.Start = token.End;
+            nexttoken.StartPos = token.EndPos;
             nexttoken.Line = token.Line;
-            nexttoken.Start--;
-            nexttoken.End = nexttoken.Start;
+            nexttoken.StartPos--;
+            nexttoken.EndPos = nexttoken.StartPos;
             string strLine = Lines[token.Line];
             do {
-                nexttoken.Start++;
-                if (nexttoken.Start >= strLine.Length) {
+                nexttoken.StartPos++;
+                if (nexttoken.StartPos >= strLine.Length) {
                     if (multiline) {
                         nexttoken.Line++;
-                        nexttoken.Start = 0;
-                        nexttoken.End = nexttoken.Start;
+                        nexttoken.StartPos = 0;
+                        nexttoken.EndPos = nexttoken.StartPos;
                         while (nexttoken.Line < LinesCount) {
                             strLine = Lines[nexttoken.Line];
                             if (strLine.Length == 0) {
@@ -3821,19 +3834,19 @@ namespace WinAGI.Editor {
                     }
                     else {
                         // end of line reached; no token found
-                        nexttoken.Start = strLine.Length;
-                        nexttoken.End = nexttoken.Start;
+                        nexttoken.StartPos = strLine.Length;
+                        nexttoken.EndPos = nexttoken.StartPos;
                         return nexttoken;
                     }
                 }
-            } while (strLine[nexttoken.Start] <= (char)33);
+            } while (strLine[nexttoken.StartPos] <= (char)33);
 
-            switch (strLine[nexttoken.Start]) {
+            switch (strLine[nexttoken.StartPos]) {
             case '[':
                 nexttoken.Type = AGITokenType.Comment;
                 break;
             case '/':
-                if (nexttoken.Start + 1 < strLine.Length && strLine[nexttoken.Start + 1] == '/') {
+                if (nexttoken.StartPos + 1 < strLine.Length && strLine[nexttoken.StartPos + 1] == '/') {
                     nexttoken.Type = AGITokenType.Comment;
                 }
                 else {
@@ -3870,18 +3883,18 @@ namespace WinAGI.Editor {
         public AGIToken PreviousToken(AGIToken token, bool multiline = false) {
             AGIToken prevtoken = new AGIToken();
             prevtoken.Line = token.Line;
-            prevtoken.Start = token.Start;
-            prevtoken.End = prevtoken.Start;
+            prevtoken.StartPos = token.StartPos;
+            prevtoken.EndPos = prevtoken.StartPos;
             string strLine = Lines[token.Line];
             do {
-                prevtoken.Start--;
-                if (prevtoken.Start < 0) {
+                prevtoken.StartPos--;
+                if (prevtoken.StartPos < 0) {
                     if (multiline) {
                         prevtoken.Line--;
                         while (prevtoken.Line >= 0) {
                             strLine = Lines[prevtoken.Line];
-                            prevtoken.Start = strLine.Length - 1;
-                            prevtoken.End = prevtoken.Start;
+                            prevtoken.StartPos = strLine.Length - 1;
+                            prevtoken.EndPos = prevtoken.StartPos;
                             if (strLine.Length == 0) {
                                 prevtoken.Line--;
                             }
@@ -3896,15 +3909,15 @@ namespace WinAGI.Editor {
                     }
                     else {
                         // beginning of line reached; no token found
-                        prevtoken.Start = -1;
-                        prevtoken.End = -1;
+                        prevtoken.StartPos = -1;
+                        prevtoken.EndPos = -1;
                         return prevtoken;
                     }
                 }
-            } while (strLine[prevtoken.Start] <= (char)33);
+            } while (strLine[prevtoken.StartPos] <= (char)33);
             Place prevplace = new();
             prevplace.iLine = prevtoken.Line;
-            prevplace.iChar = prevtoken.Start;
+            prevplace.iChar = prevtoken.StartPos;
             return TokenFromPos(prevplace);
         }
 
@@ -3925,7 +3938,18 @@ namespace WinAGI.Editor {
             if (start >= strLine.Length) {
                 return retval;
             }
-            for (int i = 0; i < strLine.Length; i++) {
+            int i;
+            // find line start
+            for (i = start; i > 0; i--) {
+                if (strLine[i - 1] == '\r' || strLine[i - 1] == '\n') {
+                    break;
+                }
+            }
+            for (; i < strLine.Length; i++) {
+                // check for line end
+                if (strLine[i] == '\r' || strLine[i] == '\n') {
+                    break;
+                }
                 if (inQuote && slashcode) {
                     // ignore char after a slashcode that's inside a string
                     slashcode = false;
@@ -4108,15 +4132,24 @@ namespace WinAGI.Editor {
         }
 
         private static AGIToken GetTokenEnd(AGIToken retval, string checkline) {
-            int endpos = retval.Start + 1;
+            int endpos = retval.StartPos + 1;
             switch (retval.Type) {
             case AGITokenType.Comment:
-                retval.End = checkline.Length;
-                retval.Text = checkline[retval.Start..];
-                return retval;
+                while (endpos < checkline.Length) {
+                    // check for line end
+                    if (checkline[endpos] == '\r' || checkline[endpos] == '\n') {
+                        break;
+                    }
+                    endpos++;
+                }
+                break;
             case AGITokenType.String:
                 bool slashcode = false;
                 while (endpos < checkline.Length) {
+                    // check for line end
+                    if (checkline[endpos] == '\r' || checkline[endpos] == '\n') {
+                        break;
+                    }
                     if (slashcode) {
                         // ignore char after slashcode
                         slashcode = false;
@@ -4135,8 +4168,12 @@ namespace WinAGI.Editor {
                 break;
             case AGITokenType.Symbol:
                 if (endpos < checkline.Length) {
+                    // check for line end
+                    if (checkline[endpos] == '\r' || checkline[endpos] == '\n') {
+                        break;
+                    }
                     //39, 40, 41, 44, 46, 58, 59, 63, 92, 93, 94, 96, 123, 125, 126
-                    switch (checkline[retval.Start]) {
+                    switch (checkline[retval.StartPos]) {
                     //case '\'' or '(' or ')' or ',' or '.' or ':' or ';' or '?' or
                     //     '\\' or ']' or '^' or '`' or '{' or '}' or '~':
                     //    // always a single code
@@ -4166,8 +4203,24 @@ namespace WinAGI.Editor {
                         }
                         break;
                     case '-':
+                        // -## is a number
+                        if (checkline[endpos] >= '0' && checkline[endpos] <= '9') {
+                            retval.Type = AGITokenType.Number;
+                            while (endpos < checkline.Length) {
+                                // check for line end
+                                if (checkline[endpos] == '\r' || checkline[endpos] == '\n') {
+                                    break;
+                                }
+                                char c = checkline[endpos];
+                                if (c is not >= ((char)48) or not <= ((char)57)) {
+                                    break;
+                                }
+                                endpos++;
+                            }
+                            break;
+                        }
                         // - or -- or -=
-                        if ((checkline[endpos] == '-' || checkline[endpos] == '=')) {
+                        if (checkline[endpos] == '-' || checkline[endpos] == '=') {
                             endpos++;
                         }
                         break;
@@ -4214,6 +4267,10 @@ namespace WinAGI.Editor {
                 break;
             case AGITokenType.Number:
                 while (endpos < checkline.Length) {
+                    // check for line end
+                    if (checkline[endpos] == '\r' || checkline[endpos] == '\n') {
+                        break;
+                    }
                     char c = checkline[endpos];
                     if (c is not >= ((char)48) or not <= ((char)57)) {
                         break;
@@ -4224,6 +4281,10 @@ namespace WinAGI.Editor {
             case AGITokenType.Identifier:
                 bool done = false;
                 while (endpos < checkline.Length) {
+                    // check for line end
+                    if (checkline[endpos] == '\r' || checkline[endpos] == '\n') {
+                        break;
+                    }
                     char c = checkline[endpos];
                     switch (c) {
                     case >= 'A' and <= 'Z':
@@ -4244,6 +4305,10 @@ namespace WinAGI.Editor {
                 break;
             case AGITokenType.None:
                 while (endpos < checkline.Length) {
+                    // check for line end
+                    if (checkline[endpos] == '\r' || checkline[endpos] == '\n') {
+                        break;
+                    }
                     if (checkline[endpos] > 32) {
                         break;
                     }
@@ -4251,8 +4316,8 @@ namespace WinAGI.Editor {
                 }
                 break;
             }
-            retval.End = endpos;
-            retval.Text = checkline[retval.Start..endpos];
+            retval.EndPos = endpos;
+            retval.Text = checkline[retval.StartPos..endpos];
             return retval;
         }
 
@@ -4267,8 +4332,8 @@ namespace WinAGI.Editor {
             //   (adjusting for non-allowed start characters) and foward to find end 
             AGIToken retval = new AGIToken {
                 Line = 0,
-                Start = start,
-                End = start
+                StartPos = start,
+                EndPos = start
             };
             int startpos = start;
             if (startpos >= checkline.Length) {
@@ -4276,32 +4341,32 @@ namespace WinAGI.Editor {
             }
             // check for comment
             retval.Type = ParseLine(checkline, ref startpos);
-            retval.Start = startpos;
+            retval.StartPos = startpos;
             return GetTokenEnd(retval, checkline);
         }
 
         public static AGIToken NextToken(string checkline, AGIToken token) {
             AGIToken nexttoken = new AGIToken();
-            nexttoken.Start = token.End;
+            nexttoken.StartPos = token.EndPos;
             nexttoken.Line = token.Line;
-            nexttoken.Start--;
-            nexttoken.End = nexttoken.Start;
+            nexttoken.StartPos--;
+            nexttoken.EndPos = nexttoken.StartPos;
             do {
-                nexttoken.Start++;
-                if (nexttoken.Start >= checkline.Length) {
+                nexttoken.StartPos++;
+                if (nexttoken.StartPos >= checkline.Length) {
                     // end of line reached; no token found
-                    nexttoken.Start = checkline.Length;
-                    nexttoken.End = nexttoken.Start;
+                    nexttoken.StartPos = checkline.Length;
+                    nexttoken.EndPos = nexttoken.StartPos;
                     return nexttoken;
                 }
-            } while (checkline[nexttoken.Start] <= (char)33);
+            } while (checkline[nexttoken.StartPos] <= (char)33);
 
-            switch (checkline[nexttoken.Start]) {
+            switch (checkline[nexttoken.StartPos]) {
             case '[':
                 nexttoken.Type = AGITokenType.Comment;
                 break;
             case '/':
-                if (nexttoken.Start + 1 < checkline.Length && checkline[nexttoken.Start + 1] == '/') {
+                if (nexttoken.StartPos + 1 < checkline.Length && checkline[nexttoken.StartPos + 1] == '/') {
                     nexttoken.Type = AGITokenType.Comment;
                 }
                 else {
@@ -4330,18 +4395,18 @@ namespace WinAGI.Editor {
         public static AGIToken PreviousToken(string checkline, AGIToken token) {
             AGIToken prevtoken = new AGIToken();
             prevtoken.Line = token.Line;
-            prevtoken.Start = token.Start;
-            prevtoken.End = prevtoken.Start;
+            prevtoken.StartPos = token.StartPos;
+            prevtoken.EndPos = prevtoken.StartPos;
             do {
-                prevtoken.Start--;
-                if (prevtoken.Start < 0) {
+                prevtoken.StartPos--;
+                if (prevtoken.StartPos < 0) {
                     // beginning of line reached; no token found
-                    prevtoken.Start = -1;
-                    prevtoken.End = -1;
+                    prevtoken.StartPos = -1;
+                    prevtoken.EndPos = -1;
                     return prevtoken;
                 }
-            } while (checkline[prevtoken.Start] <= (char)33);
-            return TokenFromPos(checkline, prevtoken.Start);
+            } while (checkline[prevtoken.StartPos] <= (char)33);
+            return TokenFromPos(checkline, prevtoken.StartPos);
         }
 
         internal void RemoveLine(int line) {
@@ -4397,6 +4462,18 @@ namespace WinAGI.Editor {
             Place end = Selection.End;
             FastColoredTextBoxNS.Range vr = VisibleRange;
             Text = newtext;
+            Selection.Start = start;
+            Selection.End = end;
+            DoRangeVisible(vr);
+        }
+
+        public void ReplaceToken(AGIToken token, string newtext) {
+            Place start = Selection.Start;
+            Place end = Selection.End;
+            FastColoredTextBoxNS.Range vr = VisibleRange;
+            Selection.Start = token.Start;
+            Selection.End = token.End;
+            this.SelectedText = newtext;
             Selection.Start = start;
             Selection.End = end;
             DoRangeVisible(vr);

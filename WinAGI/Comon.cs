@@ -745,6 +745,75 @@ namespace WinAGI.Common {
             }
             return retval;
         }
+
+        /// <summary>
+        /// Checks a define name to confirm it meets basic requirements (non-numeric,
+        /// no invalid characters, etc.)
+        /// </summary>
+        /// <param name="checkname"></param>
+        /// <param name="sierrasyntax"></param>
+        /// <returns></returns>
+        public static DefineNameCheck BaseNameCheck(string checkname, bool sierrasyntax = false) {
+            // basic checks
+            // if no name,
+            if (checkname.Length == 0) {
+                return DefineNameCheck.Empty;
+            }
+            // name can't be numeric
+            if (checkname.IsNumeric()) {
+                return DefineNameCheck.Numeric;
+            }
+            // check name against improper character list
+            if (sierrasyntax) {
+                if (INVALID_FIRST_CHARS.Any(ch => ch == checkname[0])) {
+                    return DefineNameCheck.BadChar;
+                }
+                if (checkname[1..].Any(INVALID_DEFINE_CHARS.Contains)) {
+                    return DefineNameCheck.BadChar;
+                }
+            }
+            else {
+                if (INVALID_SIERRA_1ST_CHARS.Any(ch => ch == checkname[0])) {
+                    return DefineNameCheck.BadChar;
+                }
+                if (checkname[1..].Any(INVALID_SIERRA_CHARS.Contains)) {
+                    return DefineNameCheck.BadChar;
+                }
+            }
+            if (checkname.Any(ch => ch > 127 || ch < 32)) {
+                return DefineNameCheck.BadChar;
+            }
+            // check against regular commands
+            for (int i = 0; i < Commands.ActionCount; i++) {
+                if (checkname == Commands.ActionCommands[i].Name) {
+                    return DefineNameCheck.ActionCommand;
+                }
+            }
+            // check against test commands
+            // TODO: for sierra syntax, skip cmdname check?
+            for (int i = 0; i < Commands.TestCount; i++) {
+                if (checkname == Commands.TestCommands[i].Name) {
+                    return DefineNameCheck.TestCommand;
+                }
+            }
+            // check against compiler keywords
+            if (checkname is "if" or "else" or "goto") {
+                return DefineNameCheck.KeyWord;
+            }
+            // if the name starts with any of these letters
+            // (OK for sierra syntax)
+            if (sierrasyntax) {
+                if ("vfmoiswc".Any(checkname.StartsWith)) {
+                    if (checkname.Right(checkname.Length - 1).IsNumeric()) {
+                        // can't have a name that's a valid marker
+                        return DefineNameCheck.ArgMarker;
+                    }
+                }
+            }
+            // if no error conditions, it's OK
+            return DefineNameCheck.OK;
+        }
+
         #endregion
 
     }

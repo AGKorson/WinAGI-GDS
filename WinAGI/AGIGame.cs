@@ -31,6 +31,7 @@ namespace WinAGI.Engine {
         internal InventoryList agInvObj;
         internal WordList agVocabWords;
         internal GlobalList agGlobals;
+        internal ReservedDefineList agReservedDefines;
         internal EGAColors agEGAcolors = new();
         internal string agGameDir = "";
         internal string agResDir = "";
@@ -59,7 +60,7 @@ namespace WinAGI.Engine {
         internal Encoding agCodePage = Encoding.GetEncoding(437);
         internal bool agPowerPack = false;
         internal string agSrcFileExt = "";
-        internal TDefine[] agResGameDef = new TDefine[4];
+        internal bool agSierraSyntax = false;
         internal SettingsFile agGameProps;
         internal WinAGIFileWatcher agFileWatcher;
         #endregion
@@ -165,6 +166,8 @@ namespace WinAGI.Engine {
         /// Gets the list of global defines for this game. Used by the logic compiler.
         /// </summary>
         public GlobalList GlobalDefines { get => agGlobals; }
+
+        public ReservedDefineList ReservedDefines { get => agReservedDefines;  }
 
         /// <summary>
         /// Gets the AGI color palette that is used for displaying pictures and views.
@@ -491,21 +494,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the reserved defines that are game-specific(GameID, GameVersion, GameAbout,
-        /// InvItem Count).
-        /// </summary>
-        public TDefine[] ReservedGameDefines {
-            get {
-                // refresh before returning
-                agResGameDef[0].Value = "\"" + agGameID + "\"";
-                agResGameDef[1].Value = "\"" + agGameVersion + "\"";
-                agResGameDef[2].Value = "\"" + agGameAbout + "\"";
-                agResGameDef[3].Value = agInvObj.Count.ToString();
-                return agResGameDef;
-            }
-        }
-
-        /// <summary>
         /// Gets the load warnings flag - true if warnings were encountered when 
         /// game was loaded.
         /// </summary>
@@ -698,20 +686,6 @@ namespace WinAGI.Engine {
         private void InitGame() {
             // set up volume manager
             volManager = new(this);
-
-            // reserved game defines
-            agResGameDef[0].Name = "gameID";
-            agResGameDef[0].Default = "gameID";
-            agResGameDef[0].Type = ArgType.DefStr;
-            agResGameDef[1].Name = "gameVersionMsg";
-            agResGameDef[1].Default = "gameVersionMsg";
-            agResGameDef[1].Type = ArgType.DefStr;
-            agResGameDef[2].Name = "gameAboutMsg";
-            agResGameDef[2].Default = "gameAboutMsg";
-            agResGameDef[2].Type = ArgType.DefStr;
-            agResGameDef[3].Name = "numberOfItems";
-            agResGameDef[3].Default = "numberOfItems";
-            agResGameDef[3].Type = ArgType.Num;
 
             // initialize all game variables
             ClearGameState();
@@ -1382,6 +1356,9 @@ namespace WinAGI.Engine {
                         throw;
                     }
                 }
+                agReservedDefines = new(this);
+                agGlobals = new(this);
+
                 // set commands based on AGI version
                 CorrectCommands(agIntVersion);
                 // add logic zero
@@ -1576,7 +1553,6 @@ namespace WinAGI.Engine {
             }
             blnSetIDs = false;
             SetResourceIDs(this);
-            SetReserved(this, true);
             // give access to compiler
             compGame = this;
             // enable file watcher
@@ -1947,6 +1923,16 @@ namespace WinAGI.Engine {
                 AddLoadWarning(mode, this, AGIResType.Objects, 0, agInvObj.ErrLevel, []);
                 blnWarnings = true;
             }
+            // reserved defines
+            agReservedDefines = new(this);
+            // load globals file
+            agGlobals = new GlobalList(this);
+            agGlobals.Load();
+            if (agGlobals.ErrLevel != 0) {
+                // note the problem as a warning
+                AddLoadWarning(mode, this, AGIResType.Globals, 0, agGlobals.ErrLevel, []);
+                blnWarnings = true;
+            }
             // adust commands based on AGI version
             CorrectCommands(agIntVersion);
             // check for decompile warnings, TODO entries and validate logic CRC values
@@ -2036,7 +2022,6 @@ namespace WinAGI.Engine {
             // force id reset
             blnSetIDs = false;
             SetResourceIDs(this);
-            SetReserved(this, false);
             if (mode == OpenGameMode.Directory) {
                 // write create date
                 WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
@@ -2077,7 +2062,8 @@ namespace WinAGI.Engine {
             agViews = new Views(this);
             agInvObj = new InventoryList(this);
             agVocabWords = new WordList(this);
-            agGlobals = new GlobalList(this);
+            agReservedDefines = null;
+            agGlobals = null;// new GlobalList(this);
             // clear out game properties
             agGameID = "";
             agIntVersion = "2.917";
@@ -2326,7 +2312,7 @@ namespace WinAGI.Engine {
             agIncludeIDs = agGameProps.GetSetting("General", "IncludeIDs", true);
             agIncludeGlobals = agGameProps.GetSetting("General", "IncludeGlobals", true);
             agUseLE = agGameProps.GetSetting("General", "UseLE", false);
-            agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", false);
+            agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", defaultSierraSyntax);
             agSrcFileExt = agGameProps.GetSetting("Decompiler", "SourceFileExt", agDefSrcExt).ToLower().Trim();
             if (agSrcFileExt[0] == '.') {
                 agSrcFileExt = agSrcFileExt[1..];

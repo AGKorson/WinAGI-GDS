@@ -596,6 +596,32 @@ namespace WinAGI.Engine {
                         retval.Add(warnInfo);
                     }
                     break;
+                case AGIResType.Globals:
+                    warnInfo.Type = EventType.ResourceWarning;
+                    switch (errlevel) {
+                    case 1:
+                        // 1 = file access error
+                        warnInfo.ID = "RW15";
+                        warnInfo.Text = "globals.txt file access error";
+                        break;
+                    case 2:
+                        // 2 = file read error
+                        warnInfo.ID = "RW16";
+                        warnInfo.Text = "globals.txt file data error";
+                        break;
+                    case 3:
+                        // 3 = file not found
+                        warnInfo.ID = "RW17";
+                        warnInfo.Text = "globals.txt file not found";
+                        break;
+                    case 4:
+                        // 4 = file is read-only
+                        warnInfo.ID = "RW17";
+                        warnInfo.Text = "globals.txt file is read only";
+                        break;
+                    }
+                    retval.Add(warnInfo);
+                    break;
                 }
                 return retval;
             }

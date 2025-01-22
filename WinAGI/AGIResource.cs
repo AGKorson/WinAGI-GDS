@@ -146,7 +146,7 @@ namespace WinAGI.Engine {
             get {
                 if (mInGame) {
                     if (mLoaded) {
-                        return mData.Length; //return mDataR.mData.Length;
+                        return mData.Length;
                     }
                     else {
                         return mSize;

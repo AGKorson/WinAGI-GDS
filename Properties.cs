@@ -37,8 +37,9 @@ namespace WinAGI.Editor {
             {
                 if (ChangeGameID(value)) {
                     // mark any logics that use the gameID token as changed
-                    UpdateReservedToken(EditGame.ReservedGameDefines[0].Name);
-                    RDefLookup[91].Value = '"' + EditGame.GameID + '"';
+                    UpdateReservedToken(EditGame.ReservedDefines.GameInfo[0].Name);
+                    EditGame.ReservedDefines.GameInfo[0].Value = '"' + EditGame.GameID + '"';
+                    
                 }
             }
         }
@@ -84,8 +85,8 @@ namespace WinAGI.Editor {
             get => EditGame.GameVersion;
             set {
                 EditGame.GameVersion = value;
-                UpdateReservedToken(EditGame.ReservedGameDefines[1].Name);
-                RDefLookup[92].Value = '"' + EditGame.GameVersion + '"';
+                UpdateReservedToken(EditGame.ReservedDefines.GameInfo[1].Name);
+                EditGame.ReservedDefines.GameInfo[1].Value = '"' + EditGame.GameVersion + '"';
             }
         }
 
@@ -95,8 +96,8 @@ namespace WinAGI.Editor {
             get => EditGame.GameAbout;
             set {
                 EditGame.GameAbout = value;
-                UpdateReservedToken(EditGame.ReservedGameDefines[2].Name);
-                RDefLookup[93].Value = '"' + EditGame.GameAbout + '"';
+                UpdateReservedToken(EditGame.ReservedDefines.GameInfo[2].Name);
+                EditGame.ReservedDefines.GameInfo[2].Value = '"' + EditGame.GameAbout + '"';
             }
         }
 
@@ -244,7 +245,17 @@ namespace WinAGI.Editor {
         }
 
         public int CodeSize {
-            get => pLogic.CodeSize;
+            get {
+                bool unload = !pLogic.Loaded;
+                if (unload) {
+                    pLogic.Load();
+                }
+                int retval = pLogic.CodeSize;
+                if (unload) {
+                    pLogic.Unload();
+                }
+                return retval;
+            }
         }
     }
     
