@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha11.3
+        Version 3.0.0alpha12.0
     ==============================
 
 
@@ -37,7 +37,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X  9. Character Map
     X 10. Snippets Editor
     X 11. Global Defines Editor
-    O 12. Reserved Defines Editor
+    X 12. Reserved Defines Editor
       13. Object Editor
       14. Word Editor
       15. Palette Editor
@@ -53,6 +53,12 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History: 
+
+**alpha12.0:** Reserved Defines editor is complete. 
+
+
+**alpha11.3:** globallist and reservedlist objects now work similarly to other game objects- with load/save/add/clear options; cleaned up game load/new functions and logic editors and compiler to use the objects.
+
 
 **alpha11.2:** Global Defines editor is complete. Removed the 'High' setting for logic compiler errors. A few other minor bug fixes.
 

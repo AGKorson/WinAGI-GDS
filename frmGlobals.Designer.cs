@@ -104,7 +104,7 @@ namespace WinAGI.Editor {
             spStatus.Text = "globals edit status";
             spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // fgGlobals
+            // globalsgrid
             // 
             globalsgrid.AllowUserToResizeRows = false;
             dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.ControlLight;
@@ -124,7 +124,7 @@ namespace WinAGI.Editor {
             globalsgrid.Dock = System.Windows.Forms.DockStyle.Fill;
             globalsgrid.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             globalsgrid.Location = new System.Drawing.Point(0, 0);
-            globalsgrid.Name = "fgGlobals";
+            globalsgrid.Name = "globalsgrid";
             globalsgrid.RowHeadersWidth = 24;
             globalsgrid.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             globalsgrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
@@ -132,18 +132,18 @@ namespace WinAGI.Editor {
             globalsgrid.ShowCellToolTips = false;
             globalsgrid.Size = new System.Drawing.Size(765, 359);
             globalsgrid.TabIndex = 9;
-            globalsgrid.CellBeginEdit += fgGlobals_CellBeginEdit;
-            globalsgrid.CellDoubleClick += fgGlobals_CellDoubleClick;
-            globalsgrid.CellFormatting += fgGlobals_CellFormatting;
-            globalsgrid.CellMouseDown += fgGlobals_CellMouseDown;
-            globalsgrid.CellMouseEnter += fgGlobals_CellMouseEnter;
-            globalsgrid.CellMouseLeave += fgGlobals_CellMouseLeave;
-            globalsgrid.CellValidating += fgGlobals_CellValidating;
-            globalsgrid.EditingControlShowing += fgGlobals_EditingControlShowing;
-            globalsgrid.RowsAdded += fgGlobals_RowsAdded;
-            globalsgrid.Scroll += fgGlobals_Scroll;
-            globalsgrid.SelectionChanged += fgGlobals_SelectionChanged;
-            globalsgrid.KeyDown += fgGlobals_KeyDown;
+            globalsgrid.CellBeginEdit += globalsgrid_CellBeginEdit;
+            globalsgrid.CellDoubleClick += globalsgrid_CellDoubleClick;
+            globalsgrid.CellFormatting += globalsgrid_CellFormatting;
+            globalsgrid.CellMouseDown += globalsgrid_CellMouseDown;
+            globalsgrid.CellMouseEnter += globalsgrid_CellMouseEnter;
+            globalsgrid.CellMouseLeave += globalsgrid_CellMouseLeave;
+            globalsgrid.CellValidating += globalsgrid_CellValidating;
+            globalsgrid.EditingControlShowing += globalsgrid_EditingControlShowing;
+            globalsgrid.RowsAdded += globalsgrid_RowsAdded;
+            globalsgrid.Scroll += globalsgrid_Scroll;
+            globalsgrid.SelectionChanged += globalsgrid_SelectionChanged;
+            globalsgrid.KeyDown += globalsgrid_KeyDown;
             // 
             // colType
             // 

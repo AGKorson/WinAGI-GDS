@@ -614,7 +614,7 @@ namespace WinAGI.Editor {
             FindInLogic(this, searchtext, FindDirection.All, true, true, FindLocation.All);
         }
 
-        private void fgGlobals_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
+        private void globalsgrid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
             if (e.Value == null || e.RowIndex == globalsgrid.NewRowIndex ||
                 globalsgrid[TypeCol, e.RowIndex].Value == null) {
                 return;
@@ -751,7 +751,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void fgGlobals_CellMouseEnter(object sender, DataGridViewCellEventArgs e) {
+        private void globalsgrid_CellMouseEnter(object sender, DataGridViewCellEventArgs e) {
             if (e.ColumnIndex < 0 || e.RowIndex < 0) {
                 return;
             }
@@ -761,21 +761,28 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void fgGlobals_CellMouseLeave(object sender, DataGridViewCellEventArgs e) {
+        private void globalsgrid_CellMouseLeave(object sender, DataGridViewCellEventArgs e) {
             globalsgrid.ShowCellToolTips = false;
         }
 
-        private void fgGlobals_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e) {
-
-        }
-
-        private void fgGlobals_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e) {
+        private void globalsgrid_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e) {
             if (globalsgrid.IsCurrentCellInEditMode) {
-                cmCel.Show();
+                if (e.Button == MouseButtons.Right) {
+                    cmCel.Show();
+                }
+                else {
+                    if (e.ColumnIndex < 2 || e.RowIndex < 0 || !globalsgrid[e.ColumnIndex, e.RowIndex].IsInEditMode) {
+                        // same as pressing ENTER
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                    }
+                }
+                return;
+            }
+            if (e.RowIndex == -1) {
                 return;
             }
             if (globalsgrid.SelectionMode == DataGridViewSelectionMode.FullRowSelect && e.Button == MouseButtons.Right) {
-                if (e.RowIndex == -1 || globalsgrid.Rows[e.RowIndex].Selected) {
+                if (globalsgrid.Rows[e.RowIndex].Selected) {
                     return;
                 }
             }
@@ -805,7 +812,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void fgGlobals_SelectionChanged(object sender, EventArgs e) {
+        private void globalsgrid_SelectionChanged(object sender, EventArgs e) {
             if (globalsgrid.SelectedRows.Count > 0) {
                 globalsgrid.MultiSelect = true;
                 if (globalsgrid.SelectedRows.Count > 1) {
@@ -819,7 +826,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void fgGlobals_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e) {
+        private void globalsgrid_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e) {
             if (e.Control is TextBox) {
                 // need to set MultiLine to true so the ENTER key can be captured by
                 // KeyPress event
@@ -840,13 +847,13 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void fgGlobals_CellValidating(object sender, DataGridViewCellValidatingEventArgs e) {
+        private void globalsgrid_CellValidating(object sender, DataGridViewCellValidatingEventArgs e) {
             if (globalsgrid.IsCurrentCellInEditMode) {
                 e.Cancel = true;
             }
         }
 
-        private void fgGlobals_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e) {
+        private void globalsgrid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e) {
             if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex) {
                 globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[0].Value = ArgType.None;
                 globalsgrid.Rows[globalsgrid.NewRowIndex].Cells[1].Value = "";
@@ -862,7 +869,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void fgGlobals_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
+        private void globalsgrid_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
             Debug.Assert(globalsgrid.CurrentCell.Value != null);
             if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex || globalsgrid.CurrentCell.Value == null) {
                 // only start new define in first column
@@ -885,7 +892,7 @@ namespace WinAGI.Editor {
             globalsgrid.BeginEdit(true);
         }
 
-        private void fgGlobals_KeyDown(object sender, KeyEventArgs e) {
+        private void globalsgrid_KeyDown(object sender, KeyEventArgs e) {
             if (e.KeyData == (Keys.E | Keys.Alt) && !globalsgrid.IsCurrentCellInEditMode) {
                 if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex) {
                     EditDefine.Type = ArgType.None;
@@ -1554,7 +1561,6 @@ namespace WinAGI.Editor {
             if (savefile.Length == 0) {
                 return;
             }
-            MDIMain.UseWaitCursor = true;
             if (InGame) {
                 // replace any changed defines with new names
                 DialogResult rtn = DialogResult.No;
@@ -1650,7 +1656,7 @@ namespace WinAGI.Editor {
                                 if ((ArgType)globalsgrid[TypeCol, i].Value >= (ArgType)1 &&
                                     (ArgType)globalsgrid[TypeCol, i].Value <= (ArgType)8) {
                                     FindText = (string)globalsgrid[ValueCol, i].Value;
-                                    pattern = $@"\b" + (string)globalsgrid[ValueCol, i].Value + $@"\b";
+                                    pattern = $@"\b" + FindText + $@"\b";
                                     MatchCollection mc = Regex.Matches(loged.fctb.Text, pattern);
                                     if (mc.Count > 0) {
                                         ProgressWin.lblProgress.Text = "Updating editor for " + loged.EditLogic.ID;
@@ -2045,223 +2051,6 @@ public void MenuClickHelp() {
   
   HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\editingdefines.htm"
 }
-
-private void SortGlobals(ByVal lngCol As Long, NextUndo As GlobalsUndo)
-
-  // sorts the global list by column; if column is -1, it means restore
-  // the list from the current Undo object;
-  Dim i As Long, j As Long
-  Dim lngSwapRow As Long, lngCount As Long
-  Dim strTemp As String, lngTemp As Long, blnBold As Boolean
-  Dim lngOrder() As Long
-  Dim tmpDefine As TDefine, blnSorted As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  // number of items
-  lngCount = fgGlobals.Rows - 2
-  
-  // if nothing to sort (need at least two)
-  if (lngCount < 2) {
-    return;
-  }
-  
-  #if (DEBUGMODE != 1) {
-    SendMessage fgGlobals.hWnd, WM_SETREDRAW, 0, 0
-  #}
-  
-  // show wait cursor
-  WaitCursor
-  
-  // use a temp array to track original order
-  ReDim lngOrder(lngCount - 1)
-  // if NOT resetting from an Undo object,
-  if (lngCol != -1) {
-    // create the undo object
-    NextUndo = New GlobalsUndo
-      NextUndo.UDAction = udgSort
-      // can't access the members of the
-      // array directly, so we will use
-      // a local number array
-      For i = 0 To lngCount - 1
-        lngOrder(i) = i
-      Next i
-  } else {
-    For i = 0 To lngCount - 1
-      lngOrder(i) = NextUndo.UDDefine(i).Type
-    Next i
-  }
-  
-  // step through all rows except last
-  For i = 1 To lngCount - 1
-    // set swap row to starting row
-    lngSwapRow = i
-    // compare the swap row to all rows past this one
-    For j = i + 1 To lngCount
-      // should row j be above swaprow?
-      Select Case lngCol
-      Case ctName
-        if (StrComp(fgGlobals.TextMatrix(j, ctName), fgGlobals.TextMatrix(lngSwapRow, ctName), vbTextCompare) = -1) {
-          // j is new swap row
-          lngSwapRow = j
-        }
-        
-      Case ctValue
-        // values are trickier to sort; need to take into account presence of plain numbers
-        // as well as normal argument types and literal strings
-        
-        // if isnumeric,
-        if (IsNumeric(fgGlobals.TextMatrix(j, ctValue))) {
-          // if test row is a number, sort depends on what
-          // the current swap row is;
-          // if current swap row is NOT a number, always move the
-          // number up
-          // if current swap row IS a number, only move up if
-          // the test row is less than swap row
-          if (IsNumeric(fgGlobals.TextMatrix(lngSwapRow, ctValue))) {
-            if (Val(fgGlobals.TextMatrix(j, ctValue)) < Val(fgGlobals.TextMatrix(lngSwapRow, ctValue))) {
-              lngSwapRow = j
-            }
-          } else {
-            lngSwapRow = j
-          }
-        } else {
-          // if test row is NOT a number, sort depends on what the
-          // current swap row is;
-          // if current swap row is a number, don't swap
-          // if current swap row is NOT a number, do a text compare
-          // BUT, within each arg type, we want to sort by number value; not string value
-          // (i.e. we want v1,v2,v11,v20... NOT v1,v11,v2,v20...
-          if (Not IsNumeric(fgGlobals.TextMatrix(lngSwapRow, ctValue))) {
-            // check first letter ONLY at first
-            if (StrComp(Left$(fgGlobals.TextMatrix(j, ctValue), 1), Left$(fgGlobals.TextMatrix(lngSwapRow, ctValue), 1), vbTextCompare) = -1) {
-              // swap
-              lngSwapRow = j
-              
-            // if both first letters are the same (this will also handle string assignments)
-            } else if ( StrComp(Left$(fgGlobals.TextMatrix(j, ctValue), 1), Left$(fgGlobals.TextMatrix(lngSwapRow, ctValue), 1), vbTextCompare) = 0) {
-              // are both numeric?
-              if (IsNumeric(Right$(fgGlobals.TextMatrix(j, ctValue), Len(fgGlobals.TextMatrix(j, ctValue)) - 1)) And IsNumeric(Right$(fgGlobals.TextMatrix(lngSwapRow, ctValue), Len(fgGlobals.TextMatrix(lngSwapRow, ctValue)) - 1))) {
-                // swap only if Value of j row is less than Value of swap row
-                if (Val(Right$(fgGlobals.TextMatrix(j, ctValue), Len(fgGlobals.TextMatrix(j, ctValue)) - 1)) < Val(Right$(fgGlobals.TextMatrix(lngSwapRow, ctValue), Len(fgGlobals.TextMatrix(lngSwapRow, ctValue)) - 1))) {
-                  lngSwapRow = j
-                }
-              } else {
-                // swap if string is less than
-                if (StrComp(fgGlobals.TextMatrix(j, ctValue), fgGlobals.TextMatrix(lngSwapRow, ctValue), vbTextCompare) = -1) {
-                  lngSwapRow = j
-                }
-              }
-            }
-          }
-        }
-       
-      Case -1
-        // when restoring from undo, we only care about what original order was - much easier to determine
-        // if swap is required!
-        if (lngOrder(j - 1) < lngOrder(lngSwapRow - 1)) {
-          // j is the new swap row
-          lngSwapRow = j
-        }
-      End Select
-    Next j
-    
-    // if rows need to be swapped
-    if (lngSwapRow != i) {
-        // swap name
-        strTemp = fgGlobals.TextMatrix(i, ctName)
-        fgGlobals.TextMatrix(i, ctName) = fgGlobals.TextMatrix(lngSwapRow, ctName)
-        fgGlobals.TextMatrix(lngSwapRow, ctName) = strTemp
-        // swap Value
-        strTemp = fgGlobals.TextMatrix(i, ctValue)
-        fgGlobals.TextMatrix(i, ctValue) = fgGlobals.TextMatrix(lngSwapRow, ctValue)
-        fgGlobals.TextMatrix(lngSwapRow, ctValue) = strTemp
-        // swap original name
-        strTemp = fgGlobals.TextMatrix(i, 0)
-        fgGlobals.TextMatrix(i, 0) = fgGlobals.TextMatrix(lngSwapRow, 0)
-        fgGlobals.TextMatrix(lngSwapRow, 0) = strTemp
-        // swap comment
-        strTemp = fgGlobals.TextMatrix(i, ctComment)
-        fgGlobals.TextMatrix(i, ctComment) = fgGlobals.TextMatrix(lngSwapRow, ctComment)
-        fgGlobals.TextMatrix(lngSwapRow, ctComment) = strTemp
-        // also swap the order list
-        lngTemp = lngOrder(i - 1)
-        lngOrder(i - 1) = lngOrder(lngSwapRow - 1)
-        lngOrder(lngSwapRow - 1) = lngTemp
-        
-        // if either row, but not both, contain
-        // an override, then the color and
-        // bold status of the two rows needs to
-        // be swapped
-        // (only name column gets highlighted)
-        fgGlobals.Col = ctName
-        
-        // check lngSwapRow first
-        fgGlobals.Row = lngSwapRow
-        // note whether this cell is an override or not
-        blnBold = .CellFontBold
-        
-        // now select i row
-        fgGlobals.Row = i
-        // if override status is different
-        // then we need to swap them
-        if (.CellFontBold != blnBold) {
-          // make this row match blnBold
-          fgGlobals.CellFontBold = blnBold
-          if (blnBold) {
-            fgGlobals.CellForeColor = vbRed
-          } else {
-            fgGlobals.CellForeColor = vbBlack
-          }
-          // then toggle the swaprow
-          fgGlobals.Row = lngSwapRow
-          fgGlobals.CellFontBold = Not blnBold
-          if (Not blnBold) {
-            fgGlobals.CellForeColor = vbRed
-          } else {
-            fgGlobals.CellForeColor = vbBlack
-          }
-        }
-      
-      blnSorted = true
-      MarkAsChanged
-    }
-  Next i
-  
-  // as long as something was sorted, continue
-  if (blnSorted) {
-    // select first item
-    fgGlobals.Row = 1
-    fgGlobals.Col = ctName
-    if (Not fgGlobals.RowIsVisible(1)) {
-      fgGlobals.TopRow = fgGlobals.Row
-    }
-    
-    // if saving for an undo,
-    if (lngCol != -1) {
-      // copy the results of the sort into the undo object
-        NextUndo.UDCount = lngCount
-        For i = 0 To lngCount - 1
-          tmpDefine.Type = lngOrder(i)
-          NextUndo.UDDefine(i) = tmpDefine
-        Next i
-      // add the undo
-      AddUndo NextUndo
-    }
-  }
-  
-  #if (DEBUGMODE != 1) {
-    SendMessage fgGlobals.hWnd, WM_SETREDRAW, 1, 0
-  #}
-  fgGlobals.Refresh
-  NextUndo = Nothing
-  Screen.MousePointer = vbDefault
-return;
-
-ErrHandler:
-  // *'Debug.Assert false
-  Resume Next
-}
         */
         #endregion
 
@@ -2654,13 +2443,13 @@ ErrHandler:
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
 
-        private void fgGlobals_Scroll(object sender, ScrollEventArgs e) {
+        private void globalsgrid_Scroll(object sender, ScrollEventArgs e) {
             if (globalsgrid.IsCurrentCellInEditMode) {
                 e.NewValue = e.OldValue;
             }
         }
 
-        private void fgGlobals_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
+        private void globalsgrid_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
 
             if (globalsgrid[TypeCol, e.RowIndex].Value == null) {
                 globalsgrid[TypeCol, e.RowIndex].Value = ArgType.None;

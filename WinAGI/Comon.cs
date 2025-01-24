@@ -802,7 +802,7 @@ namespace WinAGI.Common {
             }
             // if the name starts with any of these letters
             // (OK for sierra syntax)
-            if (sierrasyntax) {
+            if (!sierrasyntax) {
                 if ("vfmoiswc".Any(checkname.StartsWith)) {
                     if (checkname.Right(checkname.Length - 1).IsNumeric()) {
                         // can't have a name that's a valid marker

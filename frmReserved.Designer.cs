@@ -23,40 +23,50 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            fgReserved = new WinAGIGrid();
+            reservedgrid = new WinAGIGrid();
             colName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             colValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
+            cmCopy = new System.Windows.Forms.ToolStripMenuItem();
+            cmReset = new System.Windows.Forms.ToolStripMenuItem();
             btnSave = new System.Windows.Forms.Button();
             btnReset = new System.Windows.Forms.Button();
             btnCancel = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)fgReserved).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)reservedgrid).BeginInit();
+            contextMenuStrip1.SuspendLayout();
             SuspendLayout();
             // 
-            // fgReserved
+            // reservedgrid
             // 
-            fgReserved.AllowUserToAddRows = false;
-            fgReserved.AllowUserToDeleteRows = false;
-            fgReserved.AllowUserToResizeColumns = false;
-            fgReserved.AllowUserToResizeRows = false;
+            reservedgrid.AllowUserToAddRows = false;
+            reservedgrid.AllowUserToDeleteRows = false;
+            reservedgrid.AllowUserToResizeColumns = false;
+            reservedgrid.AllowUserToResizeRows = false;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.ControlLight;
-            fgReserved.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
-            fgReserved.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            fgReserved.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
-            fgReserved.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            fgReserved.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { colName, colValue });
-            fgReserved.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnKeystroke;
-            fgReserved.Location = new System.Drawing.Point(0, 0);
-            fgReserved.MultiSelect = false;
-            fgReserved.Name = "fgReserved";
-            fgReserved.RowHeadersVisible = false;
-            fgReserved.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            fgReserved.ShowCellErrors = false;
-            fgReserved.ShowCellToolTips = false;
-            fgReserved.ShowEditingIcon = false;
-            fgReserved.ShowRowErrors = false;
-            fgReserved.Size = new System.Drawing.Size(395, 310);
-            fgReserved.TabIndex = 0;
+            reservedgrid.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            reservedgrid.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            reservedgrid.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
+            reservedgrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            reservedgrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { colName, colValue });
+            reservedgrid.ContextMenuStrip = contextMenuStrip1;
+            reservedgrid.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnKeystroke;
+            reservedgrid.Location = new System.Drawing.Point(0, 0);
+            reservedgrid.MultiSelect = false;
+            reservedgrid.Name = "reservedgrid";
+            reservedgrid.RowHeadersVisible = false;
+            reservedgrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+            reservedgrid.ShowCellErrors = false;
+            reservedgrid.ShowCellToolTips = false;
+            reservedgrid.ShowEditingIcon = false;
+            reservedgrid.ShowRowErrors = false;
+            reservedgrid.Size = new System.Drawing.Size(395, 310);
+            reservedgrid.TabIndex = 0;
+            reservedgrid.CellFormatting += reservedgrid_CellFormatting;
+            reservedgrid.CellMouseDown += reservedgrid_CellMouseDown;
+            reservedgrid.CellValidated += reservedgrid_CellValidated;
+            reservedgrid.CellValidating += reservedgrid_CellValidating;
             // 
             // colName
             // 
@@ -73,8 +83,32 @@
             colValue.ReadOnly = true;
             colValue.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
+            // contextMenuStrip1
+            // 
+            contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { cmCopy, cmReset });
+            contextMenuStrip1.Name = "contextMenuStrip1";
+            contextMenuStrip1.Size = new System.Drawing.Size(199, 48);
+            contextMenuStrip1.Opening += contextMenuStrip1_Opening;
+            // 
+            // cmCopy
+            // 
+            cmCopy.Name = "cmCopy";
+            cmCopy.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C;
+            cmCopy.Size = new System.Drawing.Size(198, 22);
+            cmCopy.Text = "Copy Name";
+            cmCopy.Click += cmCopy_Click;
+            // 
+            // cmReset
+            // 
+            cmReset.Name = "cmReset";
+            cmReset.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z;
+            cmReset.Size = new System.Drawing.Size(198, 22);
+            cmReset.Text = "Reset to Default";
+            cmReset.Click += cmReset_Click;
+            // 
             // btnSave
             // 
+            btnSave.Enabled = false;
             btnSave.Location = new System.Drawing.Point(12, 330);
             btnSave.Name = "btnSave";
             btnSave.Size = new System.Drawing.Size(79, 25);
@@ -111,23 +145,27 @@
             Controls.Add(btnCancel);
             Controls.Add(btnReset);
             Controls.Add(btnSave);
-            Controls.Add(fgReserved);
+            Controls.Add(reservedgrid);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             Name = "frmReserved";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "Reserved Defines Editor";
             Load += frmReserved_Load;
-            ((System.ComponentModel.ISupportInitialize)fgReserved).EndInit();
+            ((System.ComponentModel.ISupportInitialize)reservedgrid).EndInit();
+            contextMenuStrip1.ResumeLayout(false);
             ResumeLayout(false);
         }
 
         #endregion
 
-        private WinAGIGrid fgReserved;
+        private WinAGIGrid reservedgrid;
         private System.Windows.Forms.DataGridViewTextBoxColumn colName;
         private System.Windows.Forms.DataGridViewTextBoxColumn colValue;
         private System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Button btnReset;
         private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem cmCopy;
+        private System.Windows.Forms.ToolStripMenuItem cmReset;
     }
 }

@@ -9,17 +9,18 @@ X    7. Logic Editor
 X    8. Status Bar
 X    9. Character Map
 X   10. Snippets Editor
-o   11. Defines Editor
-    12. Object Editor
-    13. Word Editor
-    14. Palette Editor
-    15. Picture Editor
-    16. View Editor
-    17. Layout Editor
-    18. Menu Editor
-    19. Text Screen Editor
-    20. Help Integration
-    21. BETA TESTING
+X   11. Global Defines Editor
+X   12. Reserved Defines Editor
+    13. Object Editor
+    14. Word Editor
+    15. Palette Editor
+    16. Picture Editor
+    17. View Editor
+    18. Layout Editor
+    19. Menu Editor
+    20. Text Screen Editor
+    21. Help Integration
+    22. BETA TESTING
       
 
 
