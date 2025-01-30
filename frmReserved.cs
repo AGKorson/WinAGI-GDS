@@ -17,7 +17,6 @@ using WinAGI.Common;
 
 namespace WinAGI.Editor {
     public partial class frmReserved : Form {
-        private TextBox EditTextBox = null;
         Font defaultfont, boldfont;
         ReservedDefineList EditList;
         private char[] invalidall, invalid1st;
@@ -314,13 +313,13 @@ namespace WinAGI.Editor {
                     message = "Define names cannot be numeric.";
                     break;
                 case DefineNameCheck.ActionCommand:
-                    message = "'" + EditTextBox.Text + "' is an AGI command, and cannot be redefined.";
+                    message = "'" + checkname + "' is an AGI command, and cannot be redefined.";
                     break;
                 case DefineNameCheck.TestCommand:
-                    message = "'" + EditTextBox.Text + "' is an AGI test command, and cannot be redefined.";
+                    message = "'" + checkname + "' is an AGI test command, and cannot be redefined.";
                     break;
                 case DefineNameCheck.KeyWord:
-                    message = "'" + EditTextBox.Text + "' is a compiler reserved word, and cannot be redefined.";
+                    message = "'" + checkname + "' is a compiler reserved word, and cannot be redefined.";
                     break;
                 case DefineNameCheck.ArgMarker:
                     message = "Invalid define name - define names cannot be argument markers.";
@@ -329,14 +328,14 @@ namespace WinAGI.Editor {
                     string bad1st = "", badchars = "";
                     // build list of the bad chars in the name
                     for (int i = 0; i < invalid1st.Length; i++) {
-                        if (invalid1st[i] == EditTextBox.Text[0]) {
+                        if (invalid1st[i] == checkname[0]) {
                             bad1st = invalid1st[i].ToString();
                             break;
                         }
                     }
                     for (int i = 0; i < invalidall.Length; i++) {
-                        for (int j = 1; j < EditTextBox.TextLength; j++) {
-                            if (invalidall[i] == EditTextBox.Text[j]) {
+                        for (int j = 1; j < checkname.Length; j++) {
+                            if (invalidall[i] == checkname[j]) {
                                 if (!badchars.Contains(invalidall[i])) {
                                     badchars += invalidall[i].ToString();
                                 }

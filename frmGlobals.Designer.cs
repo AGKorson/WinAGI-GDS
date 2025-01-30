@@ -25,17 +25,17 @@ namespace WinAGI.Editor {
         /// </summary>
         private void InitializeComponent() {
             components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmGlobals));
             statusStrip1 = new System.Windows.Forms.StatusStrip();
             spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             globalsgrid = new System.Windows.Forms.DataGridView();
             colType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             colDefault = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            colName = new DefineColumn();
-            colValue = new DefineColumn();
-            colComment = new DefineColumn();
+            colName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colComment = new System.Windows.Forms.DataGridViewTextBoxColumn();
             NameCheck = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ValueCheck = new System.Windows.Forms.DataGridViewTextBoxColumn();
             cmGrid = new System.Windows.Forms.ContextMenuStrip(components);
@@ -70,11 +70,12 @@ namespace WinAGI.Editor {
             mnuCelCopy = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelPaste = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelDelete = new System.Windows.Forms.ToolStripMenuItem();
+            mnuCelCharMap = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelSep1 = new System.Windows.Forms.ToolStripSeparator();
             mnuCelSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelSep2 = new System.Windows.Forms.ToolStripSeparator();
             mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
-            mnuCelCharMap = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEditItem = new System.Windows.Forms.ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)globalsgrid).BeginInit();
             cmGrid.SuspendLayout();
@@ -107,17 +108,17 @@ namespace WinAGI.Editor {
             // globalsgrid
             // 
             globalsgrid.AllowUserToResizeRows = false;
-            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.ControlLight;
-            globalsgrid.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.ControlLight;
+            globalsgrid.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             globalsgrid.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.ControlLight;
-            dataGridViewCellStyle4.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            globalsgrid.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.ControlLight;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            globalsgrid.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             globalsgrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             globalsgrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { colType, colDefault, colName, colValue, colComment, NameCheck, ValueCheck });
             globalsgrid.ContextMenuStrip = cmGrid;
@@ -194,9 +195,9 @@ namespace WinAGI.Editor {
             // 
             // cmGrid
             // 
-            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics });
+            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics, mnuEditItem });
             cmGrid.Name = "contextMenuStrip1";
-            cmGrid.Size = new System.Drawing.Size(220, 214);
+            cmGrid.Size = new System.Drawing.Size(220, 258);
             cmGrid.Closed += cmGrid_Closed;
             cmGrid.Opening += cmGrid_Opening;
             // 
@@ -402,7 +403,8 @@ namespace WinAGI.Editor {
             // 
             cmCel.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuCelUndo, mnuCelSep0, mnuCelCut, mnuCelCopy, mnuCelPaste, mnuCelDelete, mnuCelCharMap, mnuCelSep1, mnuCelSelectAll, mnuCelSep2, mnuCelCancel });
             cmCel.Name = "cmCel";
-            cmCel.Size = new System.Drawing.Size(225, 220);
+            cmCel.Size = new System.Drawing.Size(225, 198);
+            cmCel.Closed += cmCel_Closed;
             cmCel.Opening += cmCel_Opening;
             // 
             // mnuCelUndo
@@ -450,6 +452,14 @@ namespace WinAGI.Editor {
             mnuCelDelete.Text = "Delete";
             mnuCelDelete.Click += mnuCelDelete_Click;
             // 
+            // mnuCelCharMap
+            // 
+            mnuCelCharMap.Name = "mnuCelCharMap";
+            mnuCelCharMap.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Insert;
+            mnuCelCharMap.Size = new System.Drawing.Size(224, 22);
+            mnuCelCharMap.Text = "Character Map...";
+            mnuCelCharMap.Click += mnuCelCharMap_Click;
+            // 
             // mnuCelSep1
             // 
             mnuCelSep1.Name = "mnuCelSep1";
@@ -476,13 +486,13 @@ namespace WinAGI.Editor {
             mnuCelCancel.Text = "Cancel                     Esc";
             mnuCelCancel.Click += mnuCelCancel_Click;
             // 
-            // mnuCelCharMap
+            // mnuEditItem
             // 
-            mnuCelCharMap.Name = "mnuCelCharMap";
-            mnuCelCharMap.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Insert;
-            mnuCelCharMap.Size = new System.Drawing.Size(224, 22);
-            mnuCelCharMap.Text = "Character Map...";
-            mnuCelCharMap.Click += mnuCelCharMap_Click;
+            mnuEditItem.Name = "mnuEditItem";
+            mnuEditItem.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Enter;
+            mnuEditItem.Size = new System.Drawing.Size(219, 22);
+            mnuEditItem.Text = "Edit Item";
+            mnuEditItem.Click += mnuEditItem_Click;
             // 
             // frmGlobals
             // 
@@ -498,6 +508,7 @@ namespace WinAGI.Editor {
             Text = "frmGlobals";
             FormClosing += frmGlobals_FormClosing;
             FormClosed += frmGlobals_FormClosed;
+            Leave += frmGlobals_Leave;
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)globalsgrid).EndInit();
@@ -551,11 +562,12 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuCelCancel;
         private System.Windows.Forms.DataGridViewTextBoxColumn colType;
         private System.Windows.Forms.DataGridViewTextBoxColumn colDefault;
-        private DefineColumn colName;
-        private DefineColumn colValue;
-        private DefineColumn colComment;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colName;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colValue;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colComment;
         private System.Windows.Forms.DataGridViewTextBoxColumn NameCheck;
         private System.Windows.Forms.DataGridViewTextBoxColumn ValueCheck;
         private System.Windows.Forms.ToolStripMenuItem mnuCelCharMap;
+        private System.Windows.Forms.ToolStripMenuItem mnuEditItem;
     }
 }

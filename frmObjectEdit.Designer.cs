@@ -24,8 +24,11 @@ namespace WinAGI.Editor {
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            components = new System.ComponentModel.Container();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmObjectEdit));
-            label2 = new System.Windows.Forms.Label();
+            Label1 = new System.Windows.Forms.Label();
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             mnuResource = new System.Windows.Forms.ToolStripMenuItem();
             mnuROpenRes = new System.Windows.Forms.ToolStripMenuItem();
@@ -38,29 +41,57 @@ namespace WinAGI.Editor {
             mnuRSavePicImage = new System.Windows.Forms.ToolStripMenuItem();
             mnuRExportLoopGIF = new System.Windows.Forms.ToolStripMenuItem();
             mnuRToggleEncrypt = new System.Windows.Forms.ToolStripMenuItem();
+            mnuRAmigaOBJ = new System.Windows.Forms.ToolStripMenuItem();
             mnuEdit = new System.Windows.Forms.ToolStripMenuItem();
-            mnuECut = new System.Windows.Forms.ToolStripMenuItem();
-            mnuECopy = new System.Windows.Forms.ToolStripMenuItem();
-            mnuEPaste = new System.Windows.Forms.ToolStripMenuItem();
-            button1 = new System.Windows.Forms.Button();
-            lstItems = new System.Windows.Forms.ListBox();
-            label1 = new System.Windows.Forms.Label();
+            cmGrid = new System.Windows.Forms.ContextMenuStrip(components);
+            mnuEUndo = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            mnuEDelete = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEClear = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEInsert = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            mnuEFind = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEFindAgain = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEReplace = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            mnuEFindInLogic = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEditItem = new System.Windows.Forms.ToolStripMenuItem();
+            cmCel = new System.Windows.Forms.ContextMenuStrip(components);
+            mnuCelUndo = new System.Windows.Forms.ToolStripMenuItem();
+            mnuCelSep0 = new System.Windows.Forms.ToolStripSeparator();
+            mnuCelCut = new System.Windows.Forms.ToolStripMenuItem();
+            mnuCelCopy = new System.Windows.Forms.ToolStripMenuItem();
+            mnuCelPaste = new System.Windows.Forms.ToolStripMenuItem();
+            mnuCelDelete = new System.Windows.Forms.ToolStripMenuItem();
+            mnuCelCharMap = new System.Windows.Forms.ToolStripMenuItem();
+            mnuCelSep1 = new System.Windows.Forms.ToolStripSeparator();
+            mnuCelSelectAll = new System.Windows.Forms.ToolStripMenuItem();
+            mnuCelSep2 = new System.Windows.Forms.ToolStripSeparator();
+            mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
             statusStrip1 = new System.Windows.Forms.StatusStrip();
+            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             spCount = new System.Windows.Forms.ToolStripStatusLabel();
             spEncrypt = new System.Windows.Forms.ToolStripStatusLabel();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            txtMaxScreenObjs = new System.Windows.Forms.TextBox();
+            fgObjects = new System.Windows.Forms.DataGridView();
+            colIndex = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colRoom = new System.Windows.Forms.DataGridViewTextBoxColumn();
             menuStrip1.SuspendLayout();
-            statusStrip1.SuspendLayout();
+            cmGrid.SuspendLayout();
+            cmCel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)fgObjects).BeginInit();
             SuspendLayout();
             // 
-            // label2
+            // Label1
             // 
-            label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(12, 9);
-            label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(39, 15);
-            label2.TabIndex = 1;
-            label2.Text = "Items:";
+            Label1.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            Label1.AutoSize = true;
+            Label1.Location = new System.Drawing.Point(542, 3);
+            Label1.Name = "Label1";
+            Label1.Size = new System.Drawing.Size(145, 15);
+            Label1.TabIndex = 1;
+            Label1.Text = "Maximum Screen Objects:";
             // 
             // menuStrip1
             // 
@@ -69,14 +100,14 @@ namespace WinAGI.Editor {
             menuStrip1.Location = new System.Drawing.Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
-            menuStrip1.Size = new System.Drawing.Size(800, 24);
+            menuStrip1.Size = new System.Drawing.Size(691, 24);
             menuStrip1.TabIndex = 5;
             menuStrip1.Text = "menuStrip1";
             menuStrip1.Visible = false;
             // 
             // mnuResource
             // 
-            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuROpenRes, mnuRSave, mnuRExport, mnuRInGame, mnuRRenumber, mnuRProperties, mnuRCompile, mnuRSavePicImage, mnuRExportLoopGIF, mnuRToggleEncrypt });
+            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuROpenRes, mnuRSave, mnuRExport, mnuRInGame, mnuRRenumber, mnuRProperties, mnuRCompile, mnuRSavePicImage, mnuRExportLoopGIF, mnuRToggleEncrypt, mnuRAmigaOBJ });
             mnuResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
             mnuResource.MergeIndex = 1;
             mnuResource.Name = "mnuResource";
@@ -174,67 +205,205 @@ namespace WinAGI.Editor {
             mnuRToggleEncrypt.Text = "En&crypt";
             mnuRToggleEncrypt.Click += mnuRToggleEncrypt_Click;
             // 
+            // mnuRAmigaOBJ
+            // 
+            mnuRAmigaOBJ.Name = "mnuRAmigaOBJ";
+            mnuRAmigaOBJ.Size = new System.Drawing.Size(274, 22);
+            mnuRAmigaOBJ.Text = "Convert AMIGA Format to DOS";
+            // 
             // mnuEdit
             // 
-            mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuECut, mnuECopy, mnuEPaste });
             mnuEdit.MergeAction = System.Windows.Forms.MergeAction.Insert;
             mnuEdit.MergeIndex = 2;
             mnuEdit.Name = "mnuEdit";
             mnuEdit.Size = new System.Drawing.Size(39, 22);
             mnuEdit.Text = "&Edit";
+            mnuEdit.DropDownClosed += mnuEdit_DropDownClosed;
+            mnuEdit.DropDownOpening += mnuEdit_DropDownOpening;
             // 
-            // mnuECut
+            // cmGrid
             // 
-            mnuECut.Name = "mnuECut";
-            mnuECut.Size = new System.Drawing.Size(108, 22);
-            mnuECut.Text = "Cut l";
+            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, toolStripSeparator1, mnuEDelete, mnuEClear, mnuEInsert, toolStripSeparator2, mnuEFind, mnuEFindAgain, mnuEReplace, toolStripSeparator3, mnuEFindInLogic, mnuEditItem });
+            cmGrid.Name = "cmEdit";
+            cmGrid.Size = new System.Drawing.Size(215, 242);
+            cmGrid.Closed += cmEdit_Closed;
+            cmGrid.Opening += cmEdit_Opening;
             // 
-            // mnuECopy
+            // mnuEUndo
             // 
-            mnuECopy.Name = "mnuECopy";
-            mnuECopy.Size = new System.Drawing.Size(108, 22);
-            mnuECopy.Text = "Copy l";
+            mnuEUndo.Name = "mnuEUndo";
+            mnuEUndo.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z;
+            mnuEUndo.Size = new System.Drawing.Size(214, 22);
+            mnuEUndo.Text = "Undo";
+            mnuEUndo.Click += mnuEUndo_Click;
             // 
-            // mnuEPaste
+            // toolStripSeparator1
             // 
-            mnuEPaste.Name = "mnuEPaste";
-            mnuEPaste.Size = new System.Drawing.Size(108, 22);
-            mnuEPaste.Text = "Paste l";
+            toolStripSeparator1.Name = "toolStripSeparator1";
+            toolStripSeparator1.Size = new System.Drawing.Size(211, 6);
             // 
-            // button1
+            // mnuEDelete
             // 
-            button1.Location = new System.Drawing.Point(325, 35);
-            button1.Name = "button1";
-            button1.Size = new System.Drawing.Size(100, 31);
-            button1.TabIndex = 6;
-            button1.Text = "Clear";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            mnuEDelete.Name = "mnuEDelete";
+            mnuEDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            mnuEDelete.Size = new System.Drawing.Size(214, 22);
+            mnuEDelete.Text = "Delete Item";
+            mnuEDelete.Click += mnuEDelete_Click;
             // 
-            // lstItems
+            // mnuEClear
             // 
-            lstItems.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            lstItems.FormattingEnabled = true;
-            lstItems.HorizontalScrollbar = true;
-            lstItems.ItemHeight = 15;
-            lstItems.Location = new System.Drawing.Point(15, 35);
-            lstItems.Name = "lstItems";
-            lstItems.Size = new System.Drawing.Size(304, 409);
-            lstItems.TabIndex = 7;
+            mnuEClear.Name = "mnuEClear";
+            mnuEClear.ShortcutKeys = System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Delete;
+            mnuEClear.Size = new System.Drawing.Size(214, 22);
+            mnuEClear.Text = "Clear List";
+            mnuEClear.Click += mnuEClear_Click;
             // 
-            // label1
+            // mnuEInsert
             // 
-            label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(329, 9);
-            label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(95, 15);
-            label1.TabIndex = 8;
-            label1.Text = "Max Screen Obj: ";
+            mnuEInsert.Name = "mnuEInsert";
+            mnuEInsert.ShortcutKeys = System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Insert;
+            mnuEInsert.Size = new System.Drawing.Size(214, 22);
+            mnuEInsert.Text = "Add Item";
+            // 
+            // toolStripSeparator2
+            // 
+            toolStripSeparator2.Name = "toolStripSeparator2";
+            toolStripSeparator2.Size = new System.Drawing.Size(211, 6);
+            // 
+            // mnuEFind
+            // 
+            mnuEFind.Name = "mnuEFind";
+            mnuEFind.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F;
+            mnuEFind.Size = new System.Drawing.Size(214, 22);
+            mnuEFind.Text = "Find";
+            mnuEFind.Click += mnuEFind_Click;
+            // 
+            // mnuEFindAgain
+            // 
+            mnuEFindAgain.Name = "mnuEFindAgain";
+            mnuEFindAgain.ShortcutKeys = System.Windows.Forms.Keys.F3;
+            mnuEFindAgain.Size = new System.Drawing.Size(214, 22);
+            mnuEFindAgain.Text = "Find Again";
+            mnuEFindAgain.Click += mnuEFindAgain_Click;
+            // 
+            // mnuEReplace
+            // 
+            mnuEReplace.Name = "mnuEReplace";
+            mnuEReplace.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.H;
+            mnuEReplace.Size = new System.Drawing.Size(214, 22);
+            mnuEReplace.Text = "Replace";
+            mnuEReplace.Click += mnuEReplace_Click;
+            // 
+            // toolStripSeparator3
+            // 
+            toolStripSeparator3.Name = "toolStripSeparator3";
+            toolStripSeparator3.Size = new System.Drawing.Size(211, 6);
+            // 
+            // mnuEFindInLogic
+            // 
+            mnuEFindInLogic.Name = "mnuEFindInLogic";
+            mnuEFindInLogic.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F;
+            mnuEFindInLogic.Size = new System.Drawing.Size(214, 22);
+            mnuEFindInLogic.Text = "Find in Logic";
+            mnuEFindInLogic.Click += mnuEFindInLogic_Click;
+            // 
+            // mnuEditItem
+            // 
+            mnuEditItem.Name = "mnuEditItem";
+            mnuEditItem.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Enter;
+            mnuEditItem.Size = new System.Drawing.Size(214, 22);
+            mnuEditItem.Text = "Edit Item";
+            mnuEditItem.Click += mnuEditItem_Click;
+            // 
+            // cmCel
+            // 
+            cmCel.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuCelUndo, mnuCelSep0, mnuCelCut, mnuCelCopy, mnuCelPaste, mnuCelDelete, mnuCelCharMap, mnuCelSep1, mnuCelSelectAll, mnuCelSep2, mnuCelCancel });
+            cmCel.Name = "cmCel";
+            cmCel.Size = new System.Drawing.Size(216, 198);
+            cmCel.Closed += cmCel_Closed;
+            cmCel.Opening += cmCel_Opening;
+            // 
+            // mnuCelUndo
+            // 
+            mnuCelUndo.Name = "mnuCelUndo";
+            mnuCelUndo.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z;
+            mnuCelUndo.Size = new System.Drawing.Size(215, 22);
+            mnuCelUndo.Text = "Undo";
+            mnuCelUndo.Click += mnuCelUndo_Click;
+            // 
+            // mnuCelSep0
+            // 
+            mnuCelSep0.Name = "mnuCelSep0";
+            mnuCelSep0.Size = new System.Drawing.Size(212, 6);
+            // 
+            // mnuCelCut
+            // 
+            mnuCelCut.Name = "mnuCelCut";
+            mnuCelCut.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X;
+            mnuCelCut.Size = new System.Drawing.Size(215, 22);
+            mnuCelCut.Text = "Cut";
+            mnuCelCut.Click += mnuCelCut_Click;
+            // 
+            // mnuCelCopy
+            // 
+            mnuCelCopy.Name = "mnuCelCopy";
+            mnuCelCopy.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C;
+            mnuCelCopy.Size = new System.Drawing.Size(215, 22);
+            mnuCelCopy.Text = "Copy";
+            mnuCelCopy.Click += mnuCelCopy_Click;
+            // 
+            // mnuCelPaste
+            // 
+            mnuCelPaste.Name = "mnuCelPaste";
+            mnuCelPaste.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V;
+            mnuCelPaste.Size = new System.Drawing.Size(215, 22);
+            mnuCelPaste.Text = "Paste";
+            mnuCelPaste.Click += mnuCelPaste_Click;
+            // 
+            // mnuCelDelete
+            // 
+            mnuCelDelete.Name = "mnuCelDelete";
+            mnuCelDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            mnuCelDelete.Size = new System.Drawing.Size(215, 22);
+            mnuCelDelete.Text = "Delete";
+            mnuCelDelete.Click += mnuCelDelete_Click;
+            // 
+            // mnuCelCharMap
+            // 
+            mnuCelCharMap.Name = "mnuCelCharMap";
+            mnuCelCharMap.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Insert;
+            mnuCelCharMap.Size = new System.Drawing.Size(215, 22);
+            mnuCelCharMap.Text = "Character Map";
+            mnuCelCharMap.Click += mnuCelCharMap_Click;
+            // 
+            // mnuCelSep1
+            // 
+            mnuCelSep1.Name = "mnuCelSep1";
+            mnuCelSep1.Size = new System.Drawing.Size(212, 6);
+            // 
+            // mnuCelSelectAll
+            // 
+            mnuCelSelectAll.Name = "mnuCelSelectAll";
+            mnuCelSelectAll.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A;
+            mnuCelSelectAll.Size = new System.Drawing.Size(215, 22);
+            mnuCelSelectAll.Text = "Select All";
+            mnuCelSelectAll.Click += mnuCelSelectAll_Click;
+            // 
+            // mnuCelSep2
+            // 
+            mnuCelSep2.Name = "mnuCelSep2";
+            mnuCelSep2.Size = new System.Drawing.Size(212, 6);
+            // 
+            // mnuCelCancel
+            // 
+            mnuCelCancel.Name = "mnuCelCancel";
+            mnuCelCancel.Size = new System.Drawing.Size(215, 22);
+            mnuCelCancel.Text = "Cancel";
+            mnuCelCancel.Click += mnuCelCancel_Click;
             // 
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spCount, spEncrypt, spStatus });
             statusStrip1.Location = new System.Drawing.Point(41, 214);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
@@ -243,65 +412,127 @@ namespace WinAGI.Editor {
             statusStrip1.Text = "statusStrip1";
             statusStrip1.Visible = false;
             // 
+            // spStatus
+            // 
+            spStatus.Name = "spStatus";
+            spStatus.Size = new System.Drawing.Size(23, 23);
+            // 
             // spCount
             // 
-            spCount.AutoSize = false;
-            spCount.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spCount.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spCount.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spCount.MergeIndex = 0;
             spCount.Name = "spCount";
-            spCount.Size = new System.Drawing.Size(140, 18);
-            spCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spCount.Size = new System.Drawing.Size(23, 23);
             // 
             // spEncrypt
             // 
-            spEncrypt.AutoSize = false;
-            spEncrypt.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spEncrypt.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spEncrypt.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spEncrypt.MergeIndex = 1;
             spEncrypt.Name = "spEncrypt";
-            spEncrypt.Size = new System.Drawing.Size(140, 18);
-            spEncrypt.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spEncrypt.Size = new System.Drawing.Size(23, 23);
             // 
-            // spStatus
+            // txtMaxScreenObjs
             // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 2;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(425, 18);
-            spStatus.Spring = true;
-            spStatus.Text = "object status";
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            txtMaxScreenObjs.BackColor = System.Drawing.SystemColors.Control;
+            txtMaxScreenObjs.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            txtMaxScreenObjs.Dock = System.Windows.Forms.DockStyle.Right;
+            txtMaxScreenObjs.Location = new System.Drawing.Point(691, 0);
+            txtMaxScreenObjs.MaxLength = 3;
+            txtMaxScreenObjs.Name = "txtMaxScreenObjs";
+            txtMaxScreenObjs.Size = new System.Drawing.Size(45, 23);
+            txtMaxScreenObjs.TabIndex = 2;
+            txtMaxScreenObjs.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            txtMaxScreenObjs.TextChanged += txtMaxScreenObjs_TextChanged;
+            txtMaxScreenObjs.Enter += txtMaxScreenObjs_Enter;
+            txtMaxScreenObjs.KeyDown += txtMaxScreenObjs_KeyDown;
+            txtMaxScreenObjs.KeyPress += txtMaxScreenObjs_KeyPress;
+            txtMaxScreenObjs.Leave += txtMaxScreenObjs_Leave;
+            txtMaxScreenObjs.Validating += txtMaxScreenObjs_Validating;
+            // 
+            // fgObjects
+            // 
+            fgObjects.AllowUserToDeleteRows = false;
+            fgObjects.AllowUserToResizeColumns = false;
+            fgObjects.AllowUserToResizeRows = false;
+            fgObjects.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            fgObjects.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
+            fgObjects.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            fgObjects.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { colIndex, colDescription, colRoom });
+            fgObjects.ContextMenuStrip = cmGrid;
+            fgObjects.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
+            fgObjects.Location = new System.Drawing.Point(0, 24);
+            fgObjects.MultiSelect = false;
+            fgObjects.Name = "fgObjects";
+            fgObjects.RowHeadersVisible = false;
+            fgObjects.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+            fgObjects.ShowCellErrors = false;
+            fgObjects.ShowCellToolTips = false;
+            fgObjects.ShowRowErrors = false;
+            fgObjects.Size = new System.Drawing.Size(736, 176);
+            fgObjects.TabIndex = 0;
+            fgObjects.CellDoubleClick += fgObjects_CellDoubleClick;
+            fgObjects.CellFormatting += fgObjects_CellFormatting;
+            fgObjects.CellMouseDown += fgObjects_CellMouseDown;
+            fgObjects.CellMouseEnter += fgObjects_CellMouseEnter;
+            fgObjects.CellMouseLeave += fgObjects_CellMouseLeave;
+            fgObjects.CellValidated += fgObjects_CellValidated;
+            fgObjects.CellValidating += fgObjects_CellValidating;
+            fgObjects.EditingControlShowing += fgObjects_EditingControlShowing;
+            fgObjects.RowsAdded += fgObjects_RowsAdded;
+            fgObjects.KeyDown += fgObjects_KeyDown;
+            // 
+            // colIndex
+            // 
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle1.Format = "0'. '";
+            colIndex.DefaultCellStyle = dataGridViewCellStyle1;
+            colIndex.FillWeight = 80F;
+            colIndex.HeaderText = "Item #";
+            colIndex.Name = "colIndex";
+            colIndex.ReadOnly = true;
+            colIndex.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Programmatic;
+            // 
+            // colDescription
+            // 
+            colDescription.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            colDescription.HeaderText = "Item Description";
+            colDescription.Name = "colDescription";
+            colDescription.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Programmatic;
+            // 
+            // colRoom
+            // 
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            colRoom.DefaultCellStyle = dataGridViewCellStyle2;
+            colRoom.FillWeight = 80F;
+            colRoom.HeaderText = "Room #";
+            colRoom.Name = "colRoom";
+            colRoom.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Programmatic;
             // 
             // frmObjectEdit
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(800, 450);
-            Controls.Add(statusStrip1);
-            Controls.Add(label1);
-            Controls.Add(lstItems);
-            Controls.Add(button1);
-            Controls.Add(label2);
+            ClientSize = new System.Drawing.Size(736, 192);
+            Controls.Add(Label1);
             Controls.Add(menuStrip1);
+            Controls.Add(statusStrip1);
+            Controls.Add(txtMaxScreenObjs);
+            Controls.Add(fgObjects);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Name = "frmObjectEdit";
             StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
             Text = "frmObjectEdit";
             FormClosing += frmObjectEdit_FormClosing;
             FormClosed += frmObjectEdit_FormClosed;
+            Load += frmObjectEdit_Load;
+            Leave += frmObjectEdit_Leave;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
+            cmGrid.ResumeLayout(false);
+            cmCel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)fgObjects).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label Label1;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem mnuResource;
         private System.Windows.Forms.ToolStripMenuItem mnuROpenRes;
@@ -314,16 +545,43 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuRSavePicImage;
         private System.Windows.Forms.ToolStripMenuItem mnuRExportLoopGIF;
         private System.Windows.Forms.ToolStripMenuItem mnuRToggleEncrypt;
+        private System.Windows.Forms.ToolStripMenuItem mnuRAmigaOBJ;
         private System.Windows.Forms.ToolStripMenuItem mnuEdit;
-        private System.Windows.Forms.ToolStripMenuItem mnuECut;
-        private System.Windows.Forms.ToolStripMenuItem mnuECopy;
-        private System.Windows.Forms.ToolStripMenuItem mnuEPaste;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.ListBox lstItems;
-        private System.Windows.Forms.Label label1;
+
+        private System.Windows.Forms.ContextMenuStrip cmGrid;
+        private System.Windows.Forms.ToolStripMenuItem mnuEUndo;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem mnuEDelete;
+        private System.Windows.Forms.ToolStripMenuItem mnuEClear;
+        private System.Windows.Forms.ToolStripMenuItem mnuEInsert;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem mnuEFind;
+        private System.Windows.Forms.ToolStripMenuItem mnuEFindAgain;
+        private System.Windows.Forms.ToolStripMenuItem mnuEReplace;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripMenuItem mnuEFindInLogic;
+
+        private System.Windows.Forms.ContextMenuStrip cmCel;
+        private System.Windows.Forms.ToolStripMenuItem mnuCelUndo;
+        private System.Windows.Forms.ToolStripSeparator mnuCelSep0;
+        private System.Windows.Forms.ToolStripMenuItem mnuCelCut;
+        private System.Windows.Forms.ToolStripMenuItem mnuCelCopy;
+        private System.Windows.Forms.ToolStripMenuItem mnuCelPaste;
+        private System.Windows.Forms.ToolStripMenuItem mnuCelDelete;
+        private System.Windows.Forms.ToolStripMenuItem mnuCelCharMap;
+        private System.Windows.Forms.ToolStripSeparator mnuCelSep1;
+        private System.Windows.Forms.ToolStripMenuItem mnuCelSelectAll;
+        private System.Windows.Forms.ToolStripSeparator mnuCelSep2;
+        private System.Windows.Forms.ToolStripMenuItem mnuCelCancel;
         public System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel spStatus;
         private System.Windows.Forms.ToolStripStatusLabel spCount;
         private System.Windows.Forms.ToolStripStatusLabel spEncrypt;
+        private System.Windows.Forms.TextBox txtMaxScreenObjs;
+        private System.Windows.Forms.DataGridView fgObjects;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colIndex;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colDescription;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colRoom;
+        private System.Windows.Forms.ToolStripMenuItem mnuEditItem;
     }
 }

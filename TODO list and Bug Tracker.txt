@@ -11,16 +11,17 @@ X    9. Character Map
 X   10. Snippets Editor
 X   11. Global Defines Editor
 X   12. Reserved Defines Editor
-    13. Object Editor
+0   13. Object Editor
     14. Word Editor
     15. Palette Editor
     16. Picture Editor
     17. View Editor
-    18. Layout Editor
-    19. Menu Editor
-    20. Text Screen Editor
-    21. Help Integration
-    22. BETA TESTING
+    18. Sound Editor
+    19. Layout Editor
+    20. Menu Editor
+    21. Text Screen Editor
+    22. Help Integration
+    23. BETA TESTING
       
 
 

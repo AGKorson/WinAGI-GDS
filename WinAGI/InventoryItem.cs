@@ -82,8 +82,8 @@ namespace WinAGI.Engine {
                         // not need to be reset
                         byte dupItem = 0, dupCount = 0;
                         for (i = 0; i < mParent.Count; i++) {
-                            if (mParent[(byte)i] != this) {
-                                if (mItemName == mParent[(byte)i].ItemName) {
+                            if (mParent[i] != this) {
+                                if (mItemName == mParent[i].ItemName) {
                                     // duplicate found- is this the second?
                                     if (dupCount == 1) {
                                         // yes - the other's are still non-unique
@@ -114,10 +114,10 @@ namespace WinAGI.Engine {
                     if (mItemName != "?") {
                         // check for duplicates
                         for (i = 0; i < mParent.Count; i++) {
-                            if (mParent[(byte)i] != this) {
-                                if (mItemName == mParent[(byte)i].ItemName) {
+                            if (mParent[i] != this) {
+                                if (mItemName == mParent[i].ItemName) {
                                     // mark both as NOT unique
-                                    mParent[(byte)i].Unique = false;
+                                    mParent[i].Unique = false;
                                     Unique = false;
                                     // no need to continue
                                     break;

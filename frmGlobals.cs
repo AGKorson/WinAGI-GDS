@@ -50,6 +50,7 @@ namespace WinAGI.Editor {
             public string Value;
         }
 
+        #region Constructors
         // a blank, default globals editor
         public frmGlobals() {
             InitializeComponent();
@@ -86,8 +87,19 @@ namespace WinAGI.Editor {
 
 
         }
+        #endregion
 
         #region Event Handlers
+        #region Form Events
+        private void frmGlobals_Leave(object sender, EventArgs e) {
+            // if editing, need to cancel; otherwise, the edit text box
+            // control stays active, and any other form will not be able
+            // to ediit its grid cells
+            if (globalsgrid.IsCurrentCellInEditMode) {
+                // same as pressing Escape
+                EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Escape));
+            }
+        }
 
         private void frmGlobals_FormClosing(object sender, FormClosingEventArgs e) {
             // cancel editing
@@ -106,7 +118,9 @@ namespace WinAGI.Editor {
                 GEInUse = false;
             }
         }
+        #endregion
 
+        #region Menu Events
         /// <summary>
         /// Dynamic function to set up the resource menu.
         /// </summary>
@@ -161,6 +175,7 @@ namespace WinAGI.Editor {
                 mnuEInsert.Enabled = false;
                 mnuESelectAll.Enabled = false;
                 mnuEFindInLogics.Enabled = false;
+                mnuEditItem.Enabled = false;
                 return;
             }
             mnuEUndo.Enabled = UndoCol.Count > 0;
@@ -231,6 +246,32 @@ namespace WinAGI.Editor {
                     mnuEFindInLogics.Enabled = (globalsgrid.SelectedRows.Count == 1 && globalsgrid.CurrentRow.Index != globalsgrid.NewRowIndex);
                 }
             }
+            mnuEditItem.Text = "Edit ";
+            switch (globalsgrid.CurrentCell.ColumnIndex) {
+            case NameCol:
+                mnuEditItem.Text += "Name";
+                break;
+            case ValueCol:
+                mnuEditItem.Text += "Value";
+                break;
+            case CommentCol:
+                mnuEditItem.Text += "Comment";
+                break;
+            }
+        }
+
+        private void ResetEditMenu() {
+            // enable all items so shortcut keys are always available
+            mnuEClear.Enabled = true;
+            mnuECopy.Enabled = true;
+            mnuECut.Enabled = true;
+            mnuEDelete.Enabled = true;
+            mnuEFindInLogics.Enabled = true;
+            mnuEInsert.Enabled = true;
+            mnuEPaste.Enabled = true;
+            mnuESelectAll.Enabled = true;
+            mnuEUndo.Enabled = true;
+            mnuEditItem.Enabled = true;
         }
 
         private void cmGrid_Opening(object sender, CancelEventArgs e) {
@@ -242,62 +283,19 @@ namespace WinAGI.Editor {
         }
 
         private void cmGrid_Closed(object sender, ToolStripDropDownClosedEventArgs e) {
-            // instead of managing each menu item individually
-            // all items are enabled when menu is closed so
-            // all shortcut keys will always be available
-            //
-            // this means each menu item must verify its option is
-            // actually available before it runs its code
-            mnuEClear.Enabled = true;
-            mnuECopy.Enabled = true;
-            mnuECut.Enabled = true;
-            mnuEDelete.Enabled = true;
-            mnuEFindInLogics.Enabled = true;
-            mnuEInsert.Enabled = true;
-            mnuEPaste.Enabled = true;
-            mnuESelectAll.Enabled = true;
-            mnuEUndo.Enabled = true;
+            ResetEditMenu();
         }
 
         private void mnuEdit_DropDownOpening(object sender, EventArgs e) {
             // move menu items to edit menu
-            mnuEUndo.Owner = mnuEdit.DropDown;
-            mnuESep0.Owner = mnuEdit.DropDown;
-            mnuECut.Owner = mnuEdit.DropDown;
-            mnuECopy.Owner = mnuEdit.DropDown;
-            mnuEPaste.Owner = mnuEdit.DropDown;
-            mnuEDelete.Owner = mnuEdit.DropDown;
-            mnuEClear.Owner = mnuEdit.DropDown;
-            mnuEInsert.Owner = mnuEdit.DropDown;
-            mnuESelectAll.Owner = mnuEdit.DropDown;
-            mnuESep1.Owner = mnuEdit.DropDown;
-            mnuEFindInLogics.Owner = mnuEdit.DropDown;
+            mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics, mnuEditItem });
             SetEditMenu();
         }
 
         private void mnuEdit_DropDownClosed(object sender, EventArgs e) {
             // return menu items to context menu
-            mnuEUndo.Owner = cmGrid;
-            mnuESep0.Owner = cmGrid;
-            mnuECut.Owner = cmGrid;
-            mnuECopy.Owner = cmGrid;
-            mnuEPaste.Owner = cmGrid;
-            mnuEDelete.Owner = cmGrid;
-            mnuEClear.Owner = cmGrid;
-            mnuEInsert.Owner = cmGrid;
-            mnuESelectAll.Owner = cmGrid;
-            mnuESep1.Owner = cmGrid;
-            mnuEFindInLogics.Owner = cmGrid;
-
-            mnuEClear.Enabled = true;
-            mnuECopy.Enabled = true;
-            mnuECut.Enabled = true;
-            mnuEDelete.Enabled = true;
-            mnuEFindInLogics.Enabled = true;
-            mnuEInsert.Enabled = true;
-            mnuEPaste.Enabled = true;
-            mnuESelectAll.Enabled = true;
-            mnuEUndo.Enabled = true;
+            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics, mnuEditItem });
+            ResetEditMenu();
 
         }
 
@@ -597,6 +595,10 @@ namespace WinAGI.Editor {
             globalsgrid.Refresh();
         }
 
+        private void mnuEditItem_Click(object sender, EventArgs e) {
+            EditCell(globalsgrid.CurrentCell.ColumnIndex);
+        }
+
         private void mnuEFindInLogics_Click(object sender, EventArgs e) {
             if (globalsgrid.IsCurrentCellInEditMode ||
             (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect && globalsgrid.CurrentCell.ColumnIndex != NameCol) ||
@@ -614,12 +616,123 @@ namespace WinAGI.Editor {
             FindInLogic(this, searchtext, FindDirection.All, true, true, FindLocation.All);
         }
 
+        private void cmCel_Opening(object sender, CancelEventArgs e) {
+            mnuCelUndo.Enabled = EditTextBox.CanUndo;
+            mnuCelCut.Enabled = EditTextBox.SelectionLength > 0;
+            mnuCelCopy.Enabled = EditTextBox.SelectionLength > 0;
+            mnuCelPaste.Enabled = Clipboard.ContainsText();
+            mnuCelDelete.Enabled = EditTextBox.SelectionLength > 0;
+            mnuCelCharMap.Visible = globalsgrid.CurrentCell.ColumnIndex != NameCol;
+            mnuCelSelectAll.Enabled = EditTextBox.TextLength > 0;
+        }
+
+        private void cmCel_Closed(object sender, ToolStripDropDownClosedEventArgs e) {
+            mnuCelUndo.Enabled = true;
+            mnuCelCut.Enabled = true;
+            mnuCelCopy.Enabled = true;
+            mnuCelPaste.Enabled = true;
+            mnuCelDelete.Enabled = true;
+            mnuCelSelectAll.Enabled = true;
+        }
+
+        private void mnuCelUndo_Click(object sender, EventArgs e) {
+            if (EditTextBox.CanUndo) {
+                EditTextBox.Undo();
+            }
+        }
+
+        private void mnuCelCut_Click(object sender, EventArgs e) {
+            if (EditTextBox.SelectionLength > 0) {
+                EditTextBox.Cut();
+            }
+        }
+
+        private void mnuCelCopy_Click(object sender, EventArgs e) {
+            if (EditTextBox.SelectionLength > 0) {
+                EditTextBox.Copy();
+            }
+        }
+
+        private void mnuCelPaste_Click(object sender, EventArgs e) {
+            if (Clipboard.ContainsText()) {
+                EditTextBox.Paste();
+                if (EditTextBox.Text.Contains("\r\n")) {
+                    EditTextBox.Text = EditTextBox.Text.Replace("\r\n", "");
+                }
+                if (EditTextBox.Text.Contains('\r')) {
+                    EditTextBox.Text = EditTextBox.Text.Replace("\r", "");
+                }
+                if (EditTextBox.Text.Contains('\n')) {
+                    EditTextBox.Text = EditTextBox.Text.Replace("\n", "");
+                }
+            }
+        }
+
+        private void mnuCelDelete_Click(object sender, EventArgs e) {
+            if (EditTextBox.SelectionLength > 0) {
+                EditTextBox.SelectedText = "";
+            }
+        }
+
+        private void mnuCelCharMap_Click(object sender, EventArgs e) {
+            if (globalsgrid.CurrentCell.ColumnIndex == NameCol) {
+                return;
+            }
+            frmCharPicker CharPicker;
+            if (EditGame != null) {
+                CharPicker = new(EditGame.CodePage.CodePage);
+            }
+            else {
+                CharPicker = new(WinAGISettings.DefCP.Value);
+            }
+            CharPicker.ShowDialog(MDIMain);
+            if (!CharPicker.Cancel) {
+                if (CharPicker.InsertString.Length > 0) {
+                    EditTextBox.SelectedText = CharPicker.InsertString;
+                }
+            }
+            CharPicker.Close();
+            CharPicker.Dispose();
+        }
+
+        private void mnuCelSelectAll_Click(object sender, EventArgs e) {
+            if (EditTextBox.TextLength > 0) {
+                EditTextBox.SelectAll();
+            }
+        }
+
+        private void mnuCelCancel_Click(object sender, EventArgs e) {
+            EditTextBox.Hide();
+            globalsgrid.CancelEdit();
+            // cancel alone doesn't work (the cell remains in edit mode)
+            // but calling EndEdit immediately after seems to work
+            globalsgrid.EndEdit();
+        }
+        #endregion
+
+        #region Grid Events
+        private void globalsgrid_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
+
+            if (globalsgrid[TypeCol, e.RowIndex].Value == null) {
+                globalsgrid[TypeCol, e.RowIndex].Value = ArgType.None;
+            }
+            if (globalsgrid[DefaultCol, e.RowIndex].Value == null) {
+                globalsgrid[DefaultCol, e.RowIndex].Value = "";
+            }
+            if (globalsgrid[NameCheckCol, e.RowIndex].Value == null) {
+                globalsgrid[NameCheckCol, e.RowIndex].Value = DefineNameCheck.OK;
+            }
+            if (globalsgrid[ValueCheckCol, e.RowIndex].Value == null) {
+                globalsgrid[ValueCheckCol, e.RowIndex].Value = DefineValueCheck.OK;
+            }
+        }
+
         private void globalsgrid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
             if (e.Value == null || e.RowIndex == globalsgrid.NewRowIndex ||
                 globalsgrid[TypeCol, e.RowIndex].Value == null) {
                 return;
             }
-            // first determine if tooltip is needed
+            // determine if tooltip is needed
             DataGridViewCell cell = globalsgrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
             string text = (string)e.Value;
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
@@ -871,25 +984,13 @@ namespace WinAGI.Editor {
 
         private void globalsgrid_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
             Debug.Assert(globalsgrid.CurrentCell.Value != null);
-            if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex || globalsgrid.CurrentCell.Value == null) {
-                // only start new define in first column
-                if (e.ColumnIndex != NameCol) {
-                    return;
-                }
-                EditDefine.Type = ArgType.None;
-                EditDefine.Default = "";
-                EditDefine.Name = "";
-                EditDefine.Value = "";
-                EditDefine.Comment = "";
+            EditCell(e.ColumnIndex);
+        }
+
+        private void globalsgrid_Scroll(object sender, ScrollEventArgs e) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
+                e.NewValue = e.OldValue;
             }
-            else {
-                EditDefine.Type = (ArgType)globalsgrid[TypeCol, globalsgrid.CurrentRow.Index].Value;
-                EditDefine.Default = (string)globalsgrid[DefaultCol, globalsgrid.CurrentRow.Index].Value;
-                EditDefine.Name = (string)globalsgrid[NameCol, globalsgrid.CurrentRow.Index].Value;
-                EditDefine.Value = (string)globalsgrid[ValueCol, globalsgrid.CurrentRow.Index].Value;
-                EditDefine.Comment = (string)globalsgrid[CommentCol, globalsgrid.CurrentRow.Index].Value;
-            }
-            globalsgrid.BeginEdit(true);
         }
 
         private void globalsgrid_KeyDown(object sender, KeyEventArgs e) {
@@ -911,7 +1012,9 @@ namespace WinAGI.Editor {
                 globalsgrid.BeginEdit(true);
             }
         }
+        #endregion
 
+        #region EditTextBox Events
         private void EditTextBox_Validating(object sender, CancelEventArgs e) {
             // textbox Validating event ignores Cancel property, use CellValidate
         }
@@ -920,7 +1023,7 @@ namespace WinAGI.Editor {
             // pressing enter should move to next COLUMN, not next ROW
             // (unless it's at end of row)
             string message = "";
-            bool blnNoWarn = false, forceedit = false;
+            bool blnNoWarn = false;
             DialogResult rtn = DialogResult.No;
 
             if (e.KeyCode == Keys.Escape) {
@@ -934,8 +1037,8 @@ namespace WinAGI.Editor {
                     if (!globalsgrid.CurrentRow.IsNewRow) {
                         globalsgrid.Rows.RemoveAt(globalsgrid.CurrentRow.Index);
                     }
-                    return;
                 }
+                return;
             }
             if (e.KeyValue == (int)Keys.Enter || e.KeyValue == (int)Keys.Tab) {
                 e.Handled = true;
@@ -1279,7 +1382,6 @@ namespace WinAGI.Editor {
                         }
                     }
                     EditDefine.Value = EditTextBox.Text;
-                    forceedit = Inserting;
                     if (!Inserting) {
                         NextUndo = new();
                         NextUndo.UDAction = GlobalsUndo.udgActionType.udgEditValue;
@@ -1360,89 +1462,10 @@ namespace WinAGI.Editor {
                 }
             }
         }
-
-        private void cmCel_Opening(object sender, CancelEventArgs e) {
-            mnuCelUndo.Enabled = EditTextBox.CanUndo;
-            mnuCelCut.Enabled = EditTextBox.SelectionLength > 0;
-            mnuCelCopy.Enabled = EditTextBox.SelectionLength > 0;
-            mnuCelPaste.Enabled = Clipboard.ContainsText();
-            mnuCelDelete.Enabled = EditTextBox.SelectionLength > 0;
-            mnuCelCharMap.Visible = globalsgrid.CurrentCell.ColumnIndex != NameCol;
-            mnuCelSelectAll.Enabled = EditTextBox.TextLength > 0;
-        }
-
-        private void mnuCelUndo_Click(object sender, EventArgs e) {
-            if (EditTextBox.CanUndo) {
-                EditTextBox.Undo();
-            }
-        }
-
-        private void mnuCelCut_Click(object sender, EventArgs e) {
-            if (EditTextBox.SelectionLength > 0) {
-                EditTextBox.Cut();
-            }
-        }
-
-        private void mnuCelCopy_Click(object sender, EventArgs e) {
-            if (EditTextBox.SelectionLength > 0) {
-                EditTextBox.Copy();
-            }
-        }
-
-        private void mnuCelPaste_Click(object sender, EventArgs e) {
-            if (Clipboard.ContainsText()) {
-                EditTextBox.Paste();
-                if (EditTextBox.Text.Contains("\r\n")) {
-                    EditTextBox.Text = EditTextBox.Text.Replace("\r\n", "");
-                }
-                if (EditTextBox.Text.Contains('\r')) {
-                    EditTextBox.Text = EditTextBox.Text.Replace("\r", "");
-                }
-                if (EditTextBox.Text.Contains('\n')) {
-                    EditTextBox.Text = EditTextBox.Text.Replace("\n", "");
-                }
-            }
-        }
-
-        private void mnuCelDelete_Click(object sender, EventArgs e) {
-            if (EditTextBox.SelectionLength > 0) {
-                EditTextBox.SelectedText = "";
-            }
-        }
-
-        private void mnuCelCharMap_Click(object sender, EventArgs e) {
-            frmCharPicker CharPicker;
-            if (EditGame != null) {
-                CharPicker = new(EditGame.CodePage.CodePage);
-            }
-            else {
-                CharPicker = new(WinAGISettings.DefCP.Value);
-            }
-            CharPicker.ShowDialog(MDIMain);
-            if (!CharPicker.Cancel) {
-                if (CharPicker.InsertString.Length > 0) {
-                    EditTextBox.SelectedText = CharPicker.InsertString;
-                }
-            }
-            CharPicker.Close();
-            CharPicker.Dispose();
-        }
-
-        private void mnuCelSelectAll_Click(object sender, EventArgs e) {
-            if (EditTextBox.TextLength > 0) {
-                EditTextBox.SelectAll();
-            }
-        }
-
-        private void mnuCelCancel_Click(object sender, EventArgs e) {
-            EditTextBox.Hide();
-            bool canx = globalsgrid.CancelEdit();
-            // cancel alone doesn't work (the cell remains in edit mode)
-            // but calling EndEdit immediately after seems to work
-            globalsgrid.EndEdit();
-        }
+        #endregion
         #endregion
 
+        #region Methods
         /// <summary>
         /// Dynamic function to handle changes in displayed fonts used 
         /// by the editor.
@@ -1857,6 +1880,28 @@ namespace WinAGI.Editor {
             return MDIMain.SaveDlg.FileName;
         }
 
+        private void EditCell(int columnindex) {
+            if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex || globalsgrid.CurrentCell.Value == null) {
+                // only start new define in first column
+                if (columnindex != NameCol) {
+                    return;
+                }
+                EditDefine.Type = ArgType.None;
+                EditDefine.Default = "";
+                EditDefine.Name = "";
+                EditDefine.Value = "";
+                EditDefine.Comment = "";
+            }
+            else {
+                EditDefine.Type = (ArgType)globalsgrid[TypeCol, globalsgrid.CurrentRow.Index].Value;
+                EditDefine.Default = (string)globalsgrid[DefaultCol, globalsgrid.CurrentRow.Index].Value;
+                EditDefine.Name = (string)globalsgrid[NameCol, globalsgrid.CurrentRow.Index].Value;
+                EditDefine.Value = (string)globalsgrid[ValueCol, globalsgrid.CurrentRow.Index].Value;
+                EditDefine.Comment = (string)globalsgrid[CommentCol, globalsgrid.CurrentRow.Index].Value;
+            }
+            globalsgrid.BeginEdit(true);
+        }
+
         private void AddUndo(GlobalsUndo NextUndo) {
             if (!IsChanged) {
                 MarkAsChanged();
@@ -2043,17 +2088,6 @@ namespace WinAGI.Editor {
             return retval;
         }
 
-        #region temp code
-        /*
-public void MenuClickHelp() {
-  
-  On Error GoTo ErrHandler
-  
-  HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\editingdefines.htm"
-}
-        */
-        #endregion
-
         public DefineNameCheck ValidateGlobalName(string checkname) {
             // basic checks
             bool sierrasyntax = InGame && EditGame.SierraSyntax;
@@ -2220,6 +2254,8 @@ public void MenuClickHelp() {
                             case InvItem:
                                 break;
                             case Str:
+                                if (intVal == 0)
+                                    return DefineValueCheck.Reserved;
                                 if (intVal > 23 || (intVal > 11 &&
                                     (EditGame.InterpreterVersion == "2.089" ||
                                     EditGame.InterpreterVersion == "2.272" ||
@@ -2443,217 +2479,28 @@ public void MenuClickHelp() {
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
 
-        private void globalsgrid_Scroll(object sender, ScrollEventArgs e) {
-            if (globalsgrid.IsCurrentCellInEditMode) {
-                e.NewValue = e.OldValue;
-            }
-        }
-
-        private void globalsgrid_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
-
-            if (globalsgrid[TypeCol, e.RowIndex].Value == null) {
-                globalsgrid[TypeCol, e.RowIndex].Value = ArgType.None;
-            }
-            if (globalsgrid[DefaultCol, e.RowIndex].Value == null) {
-                globalsgrid[DefaultCol, e.RowIndex].Value = "";
-            }
-            if (globalsgrid[NameCheckCol, e.RowIndex].Value == null) {
-                globalsgrid[NameCheckCol, e.RowIndex].Value = DefineNameCheck.OK;
-            }
-            if (globalsgrid[ValueCheckCol, e.RowIndex].Value == null) {
-                globalsgrid[ValueCheckCol, e.RowIndex].Value = DefineValueCheck.OK;
-            }
-        }
-    }
-
-    public class DefineColumn : DataGridViewColumn {
-        public DefineColumn() : base(new DefineCell()) {
-        }
-
-        public override DataGridViewCell CellTemplate {
-            get {
-                return base.CellTemplate;
-            }
-            set {
-                if (value != null &&
-                    !value.GetType().IsAssignableFrom(typeof(DefineCell))) {
-                    throw new InvalidCastException("Must be a DefineCell");
-                }
-                base.CellTemplate = value;
-            }
-        }
-    }
-
-    public class DefineCell : DataGridViewTextBoxCell {
-
-        public DefineCell()
-            : base() {
-            // no custom initialization needed
-        }
-
-        public override void InitializeEditingControl(int rowIndex, object
-            initialFormattedValue, DataGridViewCellStyle dataGridViewCellStyle) {
-            // Set the value of the editing control to the current cell value.
-            base.InitializeEditingControl(rowIndex, initialFormattedValue,
-                dataGridViewCellStyle);
-            DefineEditingControl ctl =
-                DataGridView.EditingControl as DefineEditingControl;
-            // Use the default row value when Value property is null.
-            if (this.Value == null) {
-                ctl.Text = "";
-            }
-            else {
-                ctl.Text = (string)this.Value;
-            }
-        }
-
-        public override Type EditType {
-            get {
-                return typeof(DefineEditingControl);
-            }
-        }
-
-        public override Type ValueType {
-            get {
-                return typeof(string);
-            }
-        }
-
-        public override object DefaultNewRowValue {
-            get {
-                return "";
-            }
-        }
-    }
-
-    class DefineEditingControl : TextBox, IDataGridViewEditingControl {
-        DataGridView dataGridView;
-        private bool valueChanged = false;
-        int rowIndex;
-
-        public DefineEditingControl() {
-            base.Multiline = true;  
-            base.AcceptsReturn = true;
-            base.AcceptsTab = true;
-        }
-
-        // Implements the IDataGridViewEditingControl.EditingControlFormattedValue
-        // property.
-        public object EditingControlFormattedValue {
-            get {
-                return this.Text;
-            }
-            set {
-                if (value is String) {
-                    try {
-                        this.Text = (string)value;
-                    }
-                    catch {
-                        // In the case of an exception, just use the
-                        // default value so we're not left with a null
-                        // value.
-                        this.Text = "";
-                    }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+            // Enter key is usually captured by the grid, but we want it to go to the textbox
+            if (keyData == Keys.Enter) {
+                if (EditTextBox.Focused) {
+                    //if (fgObjects.IsCurrentCellInEditMode) {
+                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                    return true;
                 }
             }
-        }
-
-        // Implements the
-        // IDataGridViewEditingControl.GetEditingControlFormattedValue method.
-        public object GetEditingControlFormattedValue(
-            DataGridViewDataErrorContexts context) {
-            return EditingControlFormattedValue;
-        }
-
-        // Implements the
-        // IDataGridViewEditingControl.ApplyCellStyleToEditingControl method.
-        public void ApplyCellStyleToEditingControl(
-            DataGridViewCellStyle dataGridViewCellStyle) {
-            this.Font = dataGridViewCellStyle.Font;
-        }
-
-        // Implements the IDataGridViewEditingControl.EditingControlRowIndex
-        // property.
-        public int EditingControlRowIndex {
-            get {
-                return rowIndex;
-            }
-            set {
-                rowIndex = value;
-            }
-        }
-
-        // Implements the IDataGridViewEditingControl.EditingControlWantsInputKey
-        // method.
-        public bool EditingControlWantsInputKey(
-            Keys key, bool dataGridViewWantsInputKey) {
-            // Let the DateTimePicker handle the keys listed.
-            switch (key & Keys.KeyCode) {
-            case Keys.Tab:
-            case Keys.Enter:
-            case Keys.Escape:
-            case Keys.Left:
-            case Keys.Up:
-            case Keys.Down:
-            case Keys.Right:
-            case Keys.Home:
-            case Keys.End:
-            case Keys.PageDown:
-            case Keys.PageUp:
-                return true;
-            default:
-                return !dataGridViewWantsInputKey;
-            }
-        }
-
-        // Implements the IDataGridViewEditingControl.PrepareEditingControlForEdit
-        // method.
-        public void PrepareEditingControlForEdit(bool selectAll) {
-            // No preparation needs to be done.
-        }
-
-        // Implements the IDataGridViewEditingControl
-        // .RepositionEditingControlOnValueChange property.
-        public bool RepositionEditingControlOnValueChange {
-            get {
-                return false;
-            }
-        }
-
-        // Implements the IDataGridViewEditingControl
-        // .EditingControlDataGridView property.
-        public DataGridView EditingControlDataGridView {
-            get {
-                return dataGridView;
-            }
-            set {
-                dataGridView = value;
-            }
-        }
-
-        // Implements the IDataGridViewEditingControl.EditingControlValueChanged property.
-        public bool EditingControlValueChanged {
-            get {
-                return valueChanged;
-            }
-            set {
-                valueChanged = value;
-            }
-        }
-
-        // Implements the IDataGridViewEditingControl.EditingPanelCursor property.
-        public Cursor EditingPanelCursor {
-            get {
-                return base.Cursor;
-            }
-        }
-
-        protected override void OnTextChanged(EventArgs eventargs) {
-            // Notify the DataGridView that the contents of the cell
-            // have changed.
-            valueChanged = true;
-            this.EditingControlDataGridView.NotifyCurrentCellDirty(true);
-            base.OnTextChanged(eventargs);
+            return base.ProcessCmdKey(ref msg, keyData);
         }
     }
+    #endregion
+
+    #region temp code
+    /*
+public void MenuClickHelp() {
+
+On Error GoTo ErrHandler
+
+HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\editingdefines.htm"
+}
+    */
+    #endregion
 }

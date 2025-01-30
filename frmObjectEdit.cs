@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WinAGI.Common;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
-
+using static WinAGI.Editor.ObjectsUndo.ActionType;
 namespace WinAGI.Editor {
     public partial class frmObjectEdit : Form {
         public bool InGame;
@@ -18,9 +20,16 @@ namespace WinAGI.Editor {
         public InventoryList EditInvList;
         private string EditInvListFilename;
         private bool closing = false;
-
+        private Stack<ObjectsUndo> UndoCol = [];
+        private TextBox EditTextBox = null;
+        private InventoryItem EditItem = new();
+        private bool Adding = false;
         public frmObjectEdit() {
             InitializeComponent();
+            // set default row style
+            fgObjects.Columns[0].ValueType = typeof(int);
+            fgObjects.Columns[1].ValueType = typeof(string);
+            fgObjects.Columns[2].ValueType = typeof(byte);
             InitFonts();
             MdiParent = MDIMain;
         }
@@ -47,6 +56,19 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void frmObjectEdit_Leave(object sender, EventArgs e) {
+            // if editing, need to cancel; otherwise, the edit text box
+            // control stays active, and any other form will not be able
+            // to ediit its grid cells
+            if (fgObjects.IsCurrentCellInEditMode) {
+                // same as pressing Escape
+                EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Escape));
+            }
+        }
+
+        private void frmObjectEdit_Load(object sender, EventArgs e) {
+
+        }
         #endregion
 
         #region Menu Event Handlers
@@ -83,83 +105,773 @@ namespace WinAGI.Editor {
         }
 
         private void mnuRToggleEncrypt_Click(object sender, EventArgs e) {
-            MessageBox.Show("toggle object encryption");
+            SetEncryption(!EditInvList.Encrypted);
+        }
+
+        private void SetEditMenu() {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                mnuEUndo.Enabled = false;
+                mnuEDelete.Enabled = false;
+                mnuEClear.Enabled = false;
+                mnuEInsert.Enabled = false;
+                mnuEFind.Enabled = false;
+                mnuEFindAgain.Enabled = false;
+                mnuEReplace.Enabled = false;
+                mnuEditItem.Enabled = false;
+                mnuEFindInLogic.Enabled = false;
+                return;
+            }
+            mnuEUndo.Enabled = UndoCol.Count > 0;
+            mnuEUndo.Text = "Undo ";
+            if (UndoCol.Count > 0) {
+                mnuEUndo.Text += LoadResString((int)(OBJUNDOTEXT + UndoCol.Peek().UDAction));
+            }
+            // item i0 can not be deleted
+            mnuEDelete.Enabled = fgObjects.CurrentCell.RowIndex > 1;
+            mnuEClear.Enabled = true;
+            mnuEInsert.Enabled = EditInvList.Count < 256;
+            mnuEFind.Enabled = true;
+            mnuEFindAgain.Enabled = GFindText.Length != 0;
+            mnuEReplace.Enabled = true;
+            mnuEditItem.Enabled = fgObjects.CurrentRow.Index >= 0 && fgObjects.CurrentRow.Index != fgObjects.NewRowIndex;
+            switch (fgObjects.CurrentCell.ColumnIndex) {
+            case 0:
+                mnuEditItem.Visible = false;
+                break;
+            case 1:
+                mnuEditItem.Visible = true;
+                mnuEditItem.Text = "Edit Item";
+                break;
+            case 2:
+                mnuEditItem.Visible = true;
+                mnuEditItem.Text = "Edit Room";
+                break;
+            }
+            //enable findinlogics if object is not a ' ? '
+            mnuEFindInLogic.Enabled = (string)fgObjects[1, fgObjects.CurrentCell.RowIndex].Value != "?";
+        }
+
+        private void ResetEditMenu() {
+            mnuEUndo.Enabled = true;
+            mnuEDelete.Enabled = true;
+            mnuEClear.Enabled = true;
+            mnuEInsert.Enabled = true;
+            mnuEFind.Enabled = true;
+            mnuEFindAgain.Enabled = true;
+            mnuEReplace.Enabled = true;
+            mnuEditItem.Enabled = true;
+            mnuEFindInLogic.Enabled = true;
+        }
+
+        private void mnuEdit_DropDownOpening(object sender, EventArgs e) {
+            mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, toolStripSeparator1, mnuEDelete, mnuEClear, mnuEInsert, toolStripSeparator2, mnuEFind, mnuEFindAgain, mnuEReplace, toolStripSeparator3, mnuEditItem, mnuEFindInLogic });
+            SetEditMenu();
+        }
+
+        private void mnuEdit_DropDownClosed(object sender, EventArgs e) {
+            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, toolStripSeparator1, mnuEDelete, mnuEClear, mnuEInsert, toolStripSeparator2, mnuEFind, mnuEFindAgain, mnuEReplace, toolStripSeparator3, mnuEditItem, mnuEFindInLogic });
+            ResetEditMenu();
+        }
+
+        private void cmEdit_Opening(object sender, CancelEventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                e.Cancel = true;
+                return;
+            }
+            SetEditMenu();
+        }
+
+        private void cmEdit_Closed(object sender, ToolStripDropDownClosedEventArgs e) {
+            ResetEditMenu();
+        }
+
+        private void mnuEUndo_Click(object sender, EventArgs e) {
+            if (UndoCol.Count == 0) {
+                return;
+            }
+            ObjectsUndo NextUndo = UndoCol.Pop();
+            switch (NextUndo.UDAction) {
+            case AddItem:
+                fgObjects.Rows.RemoveAt(EditInvList.Count - 1);
+                EditInvList.Remove(EditInvList.Count - 1);
+                fgObjects[1, EditInvList.Count - 1].Selected = true;
+                break;
+            case DeleteItem:
+                if (NextUndo.UDObjectNo == EditInvList.Count) {
+                    EditInvList.Add(NextUndo.UDObjectText, NextUndo.UDObjectRoom);
+                    fgObjects.Rows.Add();
+                    fgObjects[0, NextUndo.UDObjectNo].Value = NextUndo.UDObjectNo;
+                }
+                else {
+                    EditInvList[NextUndo.UDObjectNo].ItemName = NextUndo.UDObjectText;
+                    EditInvList[NextUndo.UDObjectNo].Room = NextUndo.UDObjectRoom;
+                }
+                fgObjects[1, NextUndo.UDObjectNo].Value = NextUndo.UDObjectText;
+                fgObjects[2, NextUndo.UDObjectNo].Value = NextUndo.UDObjectRoom;
+                fgObjects[1, NextUndo.UDObjectNo].Selected = true;
+                break;
+            case ModifyItem:
+            case Replace:
+                fgObjects[1, NextUndo.UDObjectNo].Value = NextUndo.UDObjectText;
+                EditInvList[NextUndo.UDObjectNo].ItemName = NextUndo.UDObjectText;
+                break;
+            case ModifyRoom:
+                fgObjects[2, NextUndo.UDObjectNo].Value = NextUndo.UDObjectRoom;
+                EditInvList[NextUndo.UDObjectNo].Room = NextUndo.UDObjectRoom;
+                break;
+            case ChangeMaxObj:
+                // old Max is stored in room variable
+                ModifyMax(NextUndo.UDObjectRoom, true);
+                return;
+            case TglEncrypt:
+                SetEncryption(NextUndo.UDObjectRoom == 1, true);
+                break;
+            case Clear:
+                //// if undoing a clear, EditInvList is already empty so don't
+                //// need to clear it; grid will already be empty also
+
+                //// restore Max objects
+                //ModifyMax(NextUndo.UDObjectRoom, true);
+                //// restore encryption
+                //ToggleEncryption((bool)NextUndo.UDObjectRoom, true);
+                //// split out items
+                //string[] strObjs = NextUndo.UDObjectText.Split('\r');
+                //for (int i = 0; i < strObjs.Length; i++) {
+                //    if (i != 0) {
+                //        int newrow = fgObjects.Rows.Add();
+                //        fgObjects[0, newrow].Value = EditInvList.Count;
+                //        fgObjects[1, newrow].Value = strObjs[i];
+                //    }
+                //}
+                break;
+            case ObjectsUndo.ActionType.ReplaceAll:
+                //// udstring has previous items in pipe-delimited string
+                //string[] strObjs = NextUndo.UDObjectText.Split('|');
+                //// object numbers and old values are in pairs
+                //for (int i = 0; i < strObjs.Length; i++) {
+                //    // first element is obj number, second is old obj desc
+                //    EditInvList[byte.Parse(strObjs[i++])].ItemName = strObjs[i];
+                //    fgObjects[1, int.Parse(strObjs[i++])].Value = strObjs[i];
+                //}
+                break;
+            }
+            //ensure selected row is visible
+            fgObjects.FirstDisplayedScrollingRowIndex = fgObjects.CurrentRow.Index;
+        }
+
+        private void mnuEDelete_Click(object sender, EventArgs e) {
+            if (fgObjects.CurrentRow.Index == fgObjects.NewRowIndex ||
+                fgObjects.CurrentRow.Index < 0) {
+                return;
+            }
+            ObjectsUndo NextUndo = new() {
+                UDAction = DeleteItem,
+                UDObjectNo = fgObjects.CurrentRow.Index,
+                UDObjectText = (string)fgObjects[1, fgObjects.CurrentRow.Index].Value,
+                UDObjectRoom = (byte)fgObjects[2, fgObjects.CurrentRow.Index].Value
+            };
+            AddUndo(NextUndo);
+            if (fgObjects.CurrentRow.Index == fgObjects.NewRowIndex - 1) {
+                EditInvList.Remove(fgObjects.CurrentRow.Index);
+                fgObjects.Rows.RemoveAt(fgObjects.CurrentRow.Index);
+            }
+            else {
+                EditInvList[fgObjects.CurrentRow.Index].ItemName = "?";
+                EditInvList[fgObjects.CurrentRow.Index].Room = 0;
+                fgObjects[1, fgObjects.CurrentRow.Index].Value = "?";
+                fgObjects[2, fgObjects.CurrentRow.Index].Value = (byte)0;
+            }
+            MarkAsChanged();
+        }
+
+        private void mnuEClear_Click(object sender, EventArgs e) {
+            ObjectsUndo NextUndo = new();
+            NextUndo.UDAction = Clear;
+            NextUndo.UDObjectRoom = EditInvList.MaxScreenObjects;
+            NextUndo.UDObjectNo = EditInvList.Encrypted ? 1 : 0;
+            NextUndo.UDObjectText = EditInvList[0].ItemName + '|' + EditInvList[0].Room.ToString();
+            for (int i = 1; i < EditInvList.Count - 1; i++) {
+                NextUndo.UDObjectText += '\r' + EditInvList[i].ItemName + '|' + EditInvList[i].Room.ToString();
+            }
+            AddUndo(NextUndo);
+            fgObjects.Rows.Clear();
+            fgObjects.Rows.Add();
+            fgObjects.Rows[0].SetValues(new object[] { 0, "?", 0 });
+            fgObjects.Rows[0].Selected = true;
+            EditInvList.Clear();
+            EditInvList.MaxScreenObjects = WinAGISettings.DefMaxSO.Value;
+            EditInvList.Encrypted = false;
+            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            MarkAsChanged();
+        }
+
+        private void mnuEInsert_Click(object sender, EventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                return;
+            }
+            EditItem.ItemName = "";
+            EditItem.Room = 0;
+
+            // force row to newrow, column to itemname
+            fgObjects[1, fgObjects.NewRowIndex].Selected = true;
+            fgObjects.Refresh();
+            Adding = true;
+            fgObjects.BeginEdit(true);
+        }
+
+        private void mnuEFind_Click(object sender, EventArgs e) {
+            MessageBox.Show("find");
+        }
+
+        private void mnuEFindAgain_Click(object sender, EventArgs e) {
+            MessageBox.Show("find again");
+        }
+
+        private void mnuEReplace_Click(object sender, EventArgs e) {
+            MessageBox.Show("replace");
+        }
+
+        private void mnuEditItem_Click(object sender, EventArgs e) {
+            if (fgObjects.CurrentRow.Index == fgObjects.NewRowIndex) {
+                EditItem.ItemName = "";
+                EditItem.Room = 0;
+                Adding = true;
+            }
+            else {
+                EditItem.ItemName = (string)fgObjects[1, fgObjects.CurrentRow.Index].Value;
+                EditItem.Room = (byte)fgObjects[2, fgObjects.CurrentRow.Index].Value;
+                Adding = false;
+            }
+            fgObjects.BeginEdit(true);
+        }
+
+        private void mnuEFindInLogic_Click(object sender, EventArgs e) {
+            MessageBox.Show("find in logic");
+        }
+
+        private void cmCel_Opening(object sender, CancelEventArgs e) {
+            mnuCelUndo.Enabled = EditTextBox.CanUndo;
+            mnuCelCut.Enabled = EditTextBox.SelectionLength > 0;
+            mnuCelCopy.Enabled = EditTextBox.SelectionLength > 0;
+            mnuCelPaste.Enabled = Clipboard.ContainsText();
+            mnuCelDelete.Enabled = EditTextBox.SelectionLength > 0;
+            mnuCelCharMap.Visible = fgObjects.CurrentCell.ColumnIndex == 1;
+            mnuCelSelectAll.Enabled = EditTextBox.TextLength > 0;
+        }
+
+        private void cmCel_Closed(object sender, ToolStripDropDownClosedEventArgs e) {
+            mnuCelUndo.Enabled = true;
+            mnuCelCut.Enabled = true;
+            mnuCelCopy.Enabled = true;
+            mnuCelPaste.Enabled = true;
+            mnuCelDelete.Enabled = true;
+            mnuCelSelectAll.Enabled = true;
+        }
+
+        private void mnuCelUndo_Click(object sender, EventArgs e) {
+            if (EditTextBox.CanUndo) {
+                EditTextBox.Undo();
+            }
+        }
+
+        private void mnuCelCut_Click(object sender, EventArgs e) {
+            if (EditTextBox.SelectionLength > 0) {
+                EditTextBox.Cut();
+            }
+        }
+
+        private void mnuCelCopy_Click(object sender, EventArgs e) {
+            if (EditTextBox.SelectionLength > 0) {
+                EditTextBox.Copy();
+            }
+        }
+
+        private void mnuCelPaste_Click(object sender, EventArgs e) {
+            if (Clipboard.ContainsText()) {
+                EditTextBox.Paste();
+                if (EditTextBox.Text.Contains("\r\n")) {
+                    EditTextBox.Text = EditTextBox.Text.Replace("\r\n", "");
+                }
+                if (EditTextBox.Text.Contains('\r')) {
+                    EditTextBox.Text = EditTextBox.Text.Replace("\r", "");
+                }
+                if (EditTextBox.Text.Contains('\n')) {
+                    EditTextBox.Text = EditTextBox.Text.Replace("\n", "");
+                }
+            }
+        }
+
+        private void mnuCelDelete_Click(object sender, EventArgs e) {
+            if (EditTextBox.SelectionLength > 0) {
+                EditTextBox.SelectedText = "";
+            }
+        }
+
+        private void mnuCelCharMap_Click(object sender, EventArgs e) {
+            if (fgObjects.CurrentCell.ColumnIndex != 1) {
+                return;
+            }
+            frmCharPicker CharPicker;
+            if (EditGame != null) {
+                CharPicker = new(EditGame.CodePage.CodePage);
+            }
+            else {
+                CharPicker = new(WinAGISettings.DefCP.Value);
+            }
+            CharPicker.ShowDialog(MDIMain);
+            if (!CharPicker.Cancel) {
+                if (CharPicker.InsertString.Length > 0) {
+                    EditTextBox.SelectedText = CharPicker.InsertString;
+                }
+            }
+            CharPicker.Close();
+            CharPicker.Dispose();
+        }
+
+        private void mnuCelSelectAll_Click(object sender, EventArgs e) {
+            if (EditTextBox.TextLength > 0) {
+                EditTextBox.SelectAll();
+            }
+        }
+
+        private void mnuCelCancel_Click(object sender, EventArgs e) {
+            EditTextBox.Hide();
+            fgObjects.CancelEdit();
+            // cancel alone doesn't work (the cell remains in edit mode)
+            // but calling EndEdit immediately after seems to work
+            fgObjects.EndEdit();
         }
         #endregion
 
+        #region Grid Events
+        private void fgObjects_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e) {
+            if (e.Control is TextBox) {
+                // need to set MultiLine to true so the ENTER key can be captured by
+                // KeyPress event
+                EditTextBox = e.Control as TextBox;
+                if (EditTextBox.Tag == null) {
+                    EditTextBox.Tag = "set";
+                    EditTextBox.Multiline = true;
+                    EditTextBox.AcceptsReturn = true;
+                    EditTextBox.AcceptsTab = true;
+                    EditTextBox.Validating += EditTextBox_Validating;
+                    EditTextBox.KeyDown += EditTextBox_KeyDown;
+                    EditTextBox.TextChanged += EditTextBox_TextChanged;
+                }
+                else {
+                    EditTextBox.Multiline = true;
+                    EditTextBox.AcceptsReturn = true;
+                    EditTextBox.AcceptsTab = true;
+                }
+            }
+        }
+
+        private void fgObjects_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                if (e.Button == MouseButtons.Right) {
+                    //cmCel.Show();
+                }
+                else {
+                    if (e.ColumnIndex < 2 || e.RowIndex < 0 || !fgObjects[e.ColumnIndex, e.RowIndex].IsInEditMode) {
+                        // same as pressing ENTER
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                    }
+                }
+                return;
+            }
+            if (e.RowIndex == -1) {
+                return;
+            }
+            if (e.ColumnIndex == -1) {
+                if (e.Button == MouseButtons.Right) {
+                    // force selection
+                    if (e.RowIndex != -1) {
+                        fgObjects.CurrentCell = fgObjects[1, e.RowIndex];
+                        fgObjects.Refresh();
+                    }
+                }
+            }
+            else {
+                if (e.Button == MouseButtons.Right) {
+                    // force selection
+                    fgObjects.CurrentCell = fgObjects[e.ColumnIndex, e.RowIndex];
+                    fgObjects.Refresh();
+                }
+            }
+        }
+
+        private void fgObjects_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
+            if (e.Value == null || e.RowIndex == fgObjects.NewRowIndex) {
+                return;
+            }
+            // determine if tooltip is needed
+            DataGridViewCell cell = fgObjects.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            string text = e.Value.ToString();
+            TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
+            // Declare a proposed size with dimensions set to the maximum integer value.
+            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            // get size
+            Size szText = TextRenderer.MeasureText(fgObjects.CreateGraphics(), text, e.CellStyle.Font, proposedSize, flags);
+            if (szText.Width > cell.Size.Width - 8) {
+                cell.ToolTipText = text;
+            }
+            else {
+                cell.ToolTipText = "";
+            }
+        }
+
+        private void fgObjects_CellValidating(object sender, DataGridViewCellValidatingEventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                e.Cancel = true;
+            }
+        }
+
+        private void fgObjects_CellValidated(object sender, DataGridViewCellEventArgs e) {
+            // skip if not editing
+            if (fgObjects.IsCurrentCellInEditMode) {
+                // force blanks to default
+                switch (e.ColumnIndex) {
+                case 1:
+                    // object text
+                    if (string.IsNullOrEmpty((string)fgObjects[1, e.RowIndex].Value)) {
+                        fgObjects[1, e.RowIndex].Value = "?";
+                    }
+                    break;
+                case 2:
+                    // object room number
+                    if (string.IsNullOrEmpty((string)fgObjects[2, e.RowIndex].Value)) {
+                        fgObjects[2, e.RowIndex].Value = (byte)0;
+                    }
+                    break;
+                }
+            }
+        }
+
+        private void fgObjects_KeyDown(object sender, KeyEventArgs e) {
+            if (e.KeyData == (Keys.E | Keys.Alt) && !fgObjects.IsCurrentCellInEditMode) {
+                if (fgObjects.CurrentRow.Index == fgObjects.NewRowIndex) {
+                    EditItem.ItemName = "";
+                    EditItem.Room = 0;
+                }
+                else {
+                    EditItem.ItemName = (string)fgObjects[1, fgObjects.CurrentRow.Index].Value;
+                    EditItem.Room = (byte)fgObjects[2, fgObjects.CurrentRow.Index].Value;
+                }
+                fgObjects.BeginEdit(true);
+            }
+        }
+
+        private void fgObjects_CellMouseEnter(object sender, DataGridViewCellEventArgs e) {
+            if (e.ColumnIndex < 0 || e.RowIndex < 0) {
+                return;
+            }
+            DataGridViewCell cell = fgObjects.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            if (cell.ToolTipText.Length > 0) {
+                fgObjects.ShowCellToolTips = true;
+            }
+        }
+
+        private void fgObjects_CellMouseLeave(object sender, DataGridViewCellEventArgs e) {
+            fgObjects.ShowCellToolTips = false;
+        }
+
+        private void fgObjects_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
+            // although not required, object i0 is traditionally set
+            // to ' ? ', as are all 'unused' objects
+            if (fgObjects.CurrentCell.RowIndex == 0 && WinAGISettings.WarnItem0.Value) {
+                bool blnNoWarn = false;
+                DialogResult rtn = MsgBoxEx.Show(MDIMain,
+                    "Item 0 is usually set to '?'. Editing it is possible, but not normal. Are " +
+                    "you sure you want to edit it?",
+                    "Editing Item 0",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question,
+                    "Don't show this warning again.", ref blnNoWarn,
+                    WinAGIHelp, "htm\\agi\\object.htm#nullitem");
+                if (blnNoWarn) {
+                    WinAGISettings.WarnItem0.Value = false;
+                    WinAGISettings.WarnItem0.WriteSetting(WinAGISettingsFile);
+                }
+                if (rtn == DialogResult.No) {
+                    return;
+                }
+            }
+            if (fgObjects.CurrentRow.Index == fgObjects.NewRowIndex) {
+                EditItem.ItemName = "";
+                EditItem.Room = 0;
+                Adding = true;
+            }
+            else {
+                EditItem.ItemName = (string)fgObjects[1, fgObjects.CurrentRow.Index].Value;
+                EditItem.Room = (byte)fgObjects[2, fgObjects.CurrentRow.Index].Value;
+                Adding = false;
+            }
+            fgObjects.BeginEdit(true);
+        }
+
+        private void fgObjects_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
+            // ensure the new row is formatted correctly
+            if (e.RowIndex == fgObjects.NewRowIndex && e.RowCount == 1) {
+                // actual new row is above this row
+                fgObjects[0, e.RowIndex - 1].Value = e.RowIndex - 1;
+                fgObjects[1, e.RowIndex - 1].Value = "";
+                fgObjects[2, e.RowIndex - 1].Value = (byte)0;
+            }
+        }
+
+        private void txtMaxScreenObjs_KeyDown(object sender, KeyEventArgs e) {
+            // ignore everything except numbers, backspace, delete, enter, tab, and escape
+            switch (e.KeyCode) {
+            case Keys.Enter:
+                fgObjects.Focus();
+                e.SuppressKeyPress = true;
+                break;
+            case Keys.Escape:
+                txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+                fgObjects.Focus();
+                e.SuppressKeyPress = true;
+                break;
+            }
+        }
+
+        private void txtMaxScreenObjs_KeyPress(object sender, KeyPressEventArgs e) {
+            // ignore everything except numbers, backspace, delete, enter, tab, and escape
+            switch (e.KeyChar) {
+            case '\x08':
+            case '\x09':
+                break;
+            case < '0':
+            case > '9':
+                e.Handled = true;
+                break;
+            }
+        }
+
+        private void txtMaxScreenObjs_TextChanged(object sender, EventArgs e) {
+            if (txtMaxScreenObjs.Text.Length > 0 && !txtMaxScreenObjs.Text.IsNumeric()) {
+                txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            }
+        }
+
+        private void txtMaxScreenObjs_Leave(object sender, EventArgs e) {
+            txtMaxScreenObjs.BackColor = SystemColors.Control;
+        }
+
+        private void txtMaxScreenObjs_Enter(object sender, EventArgs e) {
+            txtMaxScreenObjs.BackColor = SystemColors.Window;
+        }
+
+        private void txtMaxScreenObjs_Validating(object sender, CancelEventArgs e) {
+
+            if (int.TryParse(txtMaxScreenObjs.Text, out int newMax)) {
+                if (newMax != EditInvList.MaxScreenObjects) {
+                    if (newMax == 0) {
+                        if (MessageBox.Show(MDIMain,
+                        "Setting MaxScreenObject to 0 means only ego can be animated.\n\nAre you sure you want to set this value?",
+                        "Zero Max Screen Objects Count",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question, 0, 0,
+                        WinAGIHelp, "htm\\agi\\screenobjs.htm#maxscreenobjs") == DialogResult.No) {
+                            e.Cancel = true;
+                            return;
+                        }
+                    }
+                    else if (newMax < 8) {
+                        if (MessageBox.Show(MDIMain,
+                        "Less than 8 screen objects is unusually low.\n\nAre you sure you want to set this value?",
+                        "Low Max Screen Objects Count",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question, 0, 0,
+                        WinAGIHelp, "htm\\agi\\screenobjs.htm#maxscreenobjs") == DialogResult.No) {
+                            e.Cancel = true;
+                            return;
+                        }
+                    }
+                    else if (newMax > 32) {
+                        if (newMax > 255) {
+                            newMax = 255;
+                        }
+                        if (MessageBox.Show(MDIMain,
+                        "More than 32 screen objects is unusually high, and can affect graphics and memory performance.\n\nAre you sure you want to set this value?",
+                        "High Max Screen Objects Count",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question, 0, 0,
+                        WinAGIHelp, "htm\\agi\\screenobjs.htm#maxscreenobjs") == DialogResult.No) {
+                            e.Cancel = true;
+                            return;
+                        }
+                    }
+                    ModifyMax((byte)newMax);
+                }
+            }
+            else {
+                txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            }
+        }
+
+        private void EditTextBox_TextChanged(object sender, EventArgs e) {
+            if (fgObjects.CurrentCell.ColumnIndex == 2) {
+                if (EditTextBox.Text.Length > 0 && !EditTextBox.Text.IsNumeric()) {
+                    EditTextBox.Text = (string)fgObjects.CurrentCell.Value;
+                }
+            }
+        }
+
+        private void EditTextBox_Validating(object sender, CancelEventArgs e) {
+            // textbox Validating event ignores Cancel property, use CellValidate
+        }
+
+        private void EditTextBox_KeyDown(object sender, KeyEventArgs e) {
+            // pressing enter should move to next COLUMN, not next ROW
+            // (unless it's at end of row)
+
+            if (e.KeyCode == Keys.Escape) {
+                // normally just cancel, and restore previous value
+                // but if quitting on value when adding a new line,
+                // entire line needs to be deleted
+                fgObjects.CancelEdit();
+                fgObjects.EndEdit();
+                if (Adding) {
+                    Adding = false;
+                    //fgObjects.Rows.RemoveAt(fgObjects.CurrentRow.Index);
+                }
+                return;
+            }
+            if (e.KeyValue == (int)Keys.Enter || e.KeyValue == (int)Keys.Tab) {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                EditTextBox.Text = EditTextBox.Text.Trim();
+                ObjectsUndo NextUndo;
+                // validate the input
+                switch (fgObjects.CurrentCell.ColumnIndex) {
+                case 1:
+                    // item text
+                    if (EditTextBox.Text.Length == 0) {
+                        //if adding, a blank means cancel
+                        if (Adding) {
+                            fgObjects.CancelEdit();
+                            fgObjects.EndEdit();
+                            Adding = false;
+                            fgObjects.Rows.RemoveAt(fgObjects.CurrentRow.Index);
+                            return;
+                        }
+                        // otherwise a blank is same as '?'
+                        EditTextBox.Text = "?";
+                    }
+                    if (EditItem.ItemName == EditTextBox.Text) {
+                        // no change
+                        fgObjects.CancelEdit();
+                        fgObjects.EndEdit();
+                        return;
+                    }
+                    // TODO: check for duplicates
+                    if (EditTextBox.Text != "?") {
+                        if (WinAGISettings.WarnDupObj.Value) {
+                            for (int i = 0; i < EditInvList.Count; i++) {
+                                if (i != fgObjects.CurrentCell.RowIndex) {
+                                    if (EditInvList[i].ItemName == EditTextBox.Text) {
+                                        bool blnNoWarn = false;
+                                        DialogResult rtn = MsgBoxEx.Show(MDIMain,
+                                            "'" + EditTextBox.Text + "' already exists in this object list.\nDo you want to keep this duplicate object?",
+                                             "Duplicate Object",
+                                             MessageBoxButtons.YesNo,
+                                             MessageBoxIcon.Question,
+                                             "Don't show this warning again.", ref blnNoWarn,
+                                             WinAGIHelp, "htm\\winagi\\Objects_Editor.htm#duplicates");
+                                        WinAGISettings.WarnDupObj.Value = !blnNoWarn;
+                                        if (!WinAGISettings.WarnDupObj.Value) {
+                                            WinAGISettings.WarnDupObj.WriteSetting(WinAGISettingsFile);
+                                        }
+                                        if (rtn == DialogResult.No) {
+                                            // remain in edit mode
+                                            return;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    EditItem.ItemName = EditTextBox.Text;
+                    if (!Adding) {
+                        NextUndo = new() {
+                            UDAction = ObjectsUndo.ActionType.ModifyItem,
+                            UDObjectNo = fgObjects.CurrentRow.Index,
+                            UDObjectText = fgObjects.CurrentCell.Value.ToString()
+                        };
+                        AddUndo(NextUndo);
+                    }
+                    break;
+                case 2:
+                    // room number
+                    if (EditTextBox.Text.Length == 0) {
+                        // blank is same as '0'
+                        EditTextBox.Text = "0";
+                    }
+                    if (!Adding && EditItem.Room.ToString() == EditTextBox.Text) {
+                        // no change
+                        fgObjects.EndEdit();
+                        return;
+                    }
+                    EditItem.Room = byte.Parse(EditTextBox.Text);
+                    if (Adding) {
+                        NextUndo = new() {
+                            UDAction = AddItem,
+                            UDObjectNo = fgObjects.CurrentRow.Index,
+                        };
+                        AddUndo(NextUndo);
+                    }
+                    else {
+                        NextUndo = new() {
+                            UDAction = ModifyRoom,
+                            UDObjectNo = fgObjects.CurrentRow.Index,
+                            UDObjectRoom = byte.Parse(fgObjects.CurrentCell.Value.ToString())
+                        };
+                        AddUndo(NextUndo);
+                    }
+                    break;
+                }
+                fgObjects.EndEdit();
+                if (fgObjects.CurrentCell.ColumnIndex == 1) {
+                    fgObjects.CurrentCell = fgObjects[2, fgObjects.CurrentCell.RowIndex];
+                    if (Adding) {
+                        fgObjects.BeginEdit(true);
+                    }
+                }
+                else {
+                    fgObjects.CurrentCell = fgObjects[1, fgObjects.CurrentCell.RowIndex + 1];
+                    if (Adding) {
+                        EditInvList.Add(EditItem);
+                        Adding = false;
+                    }
+                }
+                MarkAsChanged();
+                return;
+            }
+            // any char is fine for item text; room number is numeric
+            if (fgObjects.CurrentCell.ColumnIndex == 2) {
+                // only numbers, backspace, delete
+                if (e.KeyValue < 33 && e.KeyValue != 8) {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    return;
+                }
+                if (e.KeyValue < 48 || e.KeyValue > 57) {
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    return;
+                }
+            }
+        }
+
+        #endregion
+
         #region temp code
-        void objeditcode() {
-            /*
+        /*
 
-Option Explicit
-
-  
-  Private UndoCol As Collection
   
   Private EditRow As Long, EditCol As ColType
-  Private CellIndentH As Single
-  Private CellIndentV As Single
   
-  Private AddingItem As Boolean
-  Private EditItemNum As Byte
-  Private blnRecurse As Boolean
-  Private PickChar As Boolean
-  
-  Public PrevFGWndProc As Long
-  Public PrevTBMOWndProc As Long
-  Public PrevTBRmWndProc As Long
-  Public PrevTBOTWndProc As Long
-  
-  Private Enum ColType
-    ctNumber
-    ctDesc
-    ctRoom
-  End Enum
-
-Private Sub EditObj()
-
-  On Error GoTo ErrHandler
-  
-  Dim blnNoWarn As Boolean, rtn As VbMsgBoxResult
-  
-  ' although not required, object i0 is traditionally set
-  ' to '?', as are all 'unused' objects
-  If fgObjects.Row = 1 And Settings.WarnItem0 Then
-    rtn = MsgBoxEx("Item 0 is usually set to '?'. Editing it is possible, but not normal. Are " & vbCrLf & _
-      "you sure you want to edit it?", vbYesNo + vbQuestion + vbMsgBoxHelpButton, "Editing Item 0", _
-      WinAGIHelp, "htm\agi\object.htm#nullitem", "Don't show this warning again.", blnNoWarn)
-    If blnNoWarn Then
-      'save the setting
-      Settings.WarnItem0 = Not blnNoWarn
-      WinAGISettingsList.WriteSetting(sGENERAL, "WarnItem0", Settings.WarnItem0
-    End If
-    
-    If rtn = vbNo Then
-      'cancel and exit
-      rtfObject.Visible = False
-      DoEvents
-      fgObjects.SetFocus
-      Exit Sub
-    End If
-  End If
-  
-  'begin edit of item description
-  With rtfObject
-    .Move fgObjects.CellLeft + CellIndentH - 1, fgObjects.CellTop + fgObjects.Top + CellIndentV, fgObjects.CellWidth - CellIndentH, fgObjects.CellHeight - CellIndentV
-    .TextB = ObjectsEdit(fgObjects.Row - 1).ItemName
-    .Visible = True
-    .Range.SelectRange
-    .SetFocus
-  End With
-
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-
 Public Sub MenuClickCustom2()
   
   'convert an Amiga format OBJECT file to DOS format
@@ -178,7 +890,7 @@ Public Sub MenuClickCustom2()
   If MsgBox("Your current OBJECT file will be saved as 'OBJECT.amg'. Continue with the conversion?", vbQuestion + vbOKCancel, "Convert AMIGA Object File") = vbOK Then
 
     'if the file is not saved, ask if OK to save it first
-    If Me.IsChanged Then
+    If Me.IsDirty Then
       If MsgBox("The OBJECT file needs to be saved before converting. OK to save and convert?", vbQuestion + vbOKCancel, "Save OBJECT File") = vbCancel Then
         Exit Sub
       End If
@@ -188,11 +900,6 @@ Public Sub MenuClickCustom2()
     'hide the menu
     frmMDIMain.mnuRCustom2.Visible = False
   End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
 End Sub
 
 Public Sub MenuClickHelp()
@@ -201,11 +908,6 @@ Public Sub MenuClickHelp()
   
   'help
   HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Objects_Editor.htm"
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
 End Sub
 
 Public Sub BeginFind()
@@ -246,7 +948,7 @@ Private Sub FindInObjects(ByVal FindText As String, ByVal FindDir As FindDirecti
     Exit Sub
   End If
     
-  If ObjectsEdit.Count = 0 Then
+  If EditInvList.Count = 0 Then
     MsgBox "No inventory objects in list.", vbOKOnly + vbInformation, "Find in Object List"
     Exit Sub
   End If
@@ -269,7 +971,7 @@ Private Sub FindInObjects(ByVal FindText As String, ByVal FindDir As FindDirecti
   If (Replacing And FindDir = fdUp) Or (Not Replacing And FindDir <> fdUp) Then
     'add one to skip current object
     SearchPos = SearchPos + 1
-    If SearchPos > ObjectsEdit.Count - 1 Then
+    If SearchPos > EditInvList.Count - 1 Then
       SearchPos = 0
     End If
   Else
@@ -290,12 +992,12 @@ Private Sub FindInObjects(ByVal FindText As String, ByVal FindDir As FindDirecti
       FoundPos = SearchPos - 1
       Do Until FoundPos = -1
         If MatchWord Then
-          If StrComp(ObjectsEdit(FoundPos).ItemName, FindText, vbcComp) = 0 Then
+          If StrComp(EditInvList(FoundPos).ItemName, FindText, vbcComp) = 0 Then
             'found
             Exit Do
           End If
         Else
-          If InStr(1, ObjectsEdit(FoundPos).ItemName, FindText, vbcComp) <> 0 Then
+          If InStr(1, EditInvList(FoundPos).ItemName, FindText, vbcComp) <> 0 Then
             'found
             Exit Do
           End If
@@ -303,30 +1005,30 @@ Private Sub FindInObjects(ByVal FindText As String, ByVal FindDir As FindDirecti
         FoundPos = FoundPos - 1
       Loop
       'reset searchpos
-      SearchPos = ObjectsEdit.Count - 1
+      SearchPos = EditInvList.Count - 1
     Else
       'iterate forward until word found or foundpos=objcount
       FoundPos = SearchPos
       Do
         If MatchWord Then
-          If StrComp(ObjectsEdit(FoundPos).ItemName, FindText, vbcComp) = 0 Then
+          If StrComp(EditInvList(FoundPos).ItemName, FindText, vbcComp) = 0 Then
             'found
             Exit Do
           End If
         Else
-          If InStr(1, ObjectsEdit(FoundPos).ItemName, FindText, vbcComp) <> 0 Then
+          If InStr(1, EditInvList(FoundPos).ItemName, FindText, vbcComp) <> 0 Then
             'found
             Exit Do
           End If
         End If
         FoundPos = FoundPos + 1
-      Loop Until FoundPos = ObjectsEdit.Count
+      Loop Until FoundPos = EditInvList.Count
       'reset searchpos
       SearchPos = 0
     End If
     
     'if found
-    If FoundPos >= 0 And FoundPos < ObjectsEdit.Count Then
+    If FoundPos >= 0 And FoundPos < EditInvList.Count Then
       'if back at start
       If FoundPos = ObjStartPos Then
         FoundPos = -1
@@ -392,7 +1094,7 @@ Private Sub FindInObjects(ByVal FindText As String, ByVal FindDir As FindDirecti
   Loop
         
   'if search string found
-  If FoundPos >= 0 And FoundPos < ObjectsEdit.Count Then
+  If FoundPos >= 0 And FoundPos < EditInvList.Count Then
     'if this is first occurrence
     If Not FirstFind Then
       'save this position
@@ -411,10 +1113,10 @@ Private Sub FindInObjects(ByVal FindText As String, ByVal FindDir As FindDirecti
       If MatchWord Then
         ModifyItem FoundPos, ReplaceText
       Else
-        ModifyItem FoundPos, Replace(ObjectsEdit(FoundPos).ItemName, FindText, ReplaceText, 1, -1, vbcComp)
+        ModifyItem FoundPos, Replace(EditInvList(FoundPos).ItemName, FindText, ReplaceText, 1, -1, vbcComp)
       End If
       'change undoobject
-      UndoCol(UndoCol.Count).UDAction = udoReplace
+      UndoCol(UndoCol.Count).UDAction = Replace
       frmMDIMain.mnuEUndo.Caption = "&Undo Replace" & vbTab & "Ctrl+Z"
       
       'recurs the find method to get next occurrence
@@ -453,137 +1155,12 @@ Private Sub FindInObjects(ByVal FindText As String, ByVal FindDir As FindDirecti
   
   'reset cursor
   Screen.MousePointer = vbDefault
-Exit Sub
-  
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
 End Sub
-
-Public Sub InitFonts()
-
-  On Error GoTo ErrHandler
-  
-  'set form font to enable height/width calculations
-  Me.Font.Name = Settings.EFontName
-  Me.Font.Size = Settings.EFontSize
-  
-  'set grid font and column widths
-  fgObjects.Font.Name = Settings.EFontName
-  fgObjects.Font.Size = Settings.EFontSize
-  fgObjects.ColWidth(0) = Me.TextWidth("Item # ")
-  fgObjects.ColWidth(2) = Me.TextWidth("Room # ")
-  'if more rows than will fit on screen
-  If fgObjects.Rows * fgObjects.RowHeight(0) > fgObjects.Height Then
-    'account for scrollbar
-    fgObjects.ColWidth(1) = fgObjects.Width - fgObjects.ColWidth(2) - fgObjects.ColWidth(0) - 320
-  Else
-    fgObjects.ColWidth(1) = fgObjects.Width - fgObjects.ColWidth(2) - fgObjects.ColWidth(0)
-  End If
-  fgObjects.Refresh
-  
-  rtfObject.Font.Name = Settings.EFontName
-  rtfObject.Font.Size = Settings.EFontSize
-  
-  txtRoomNo.Font.Name = Settings.EFontName
-  txtRoomNo.Font.Size = Settings.EFontSize
-  txtMaxScreenObj.Font.Name = Settings.EFontName
-  txtMaxScreenObj.Font.Size = Settings.EFontSize
-  txtMaxScreenObj.Height = 60 + fgObjects.RowHeight(1)
-  Label1.Font.Name = Settings.EFontName
-  Label1.Font.Size = Settings.EFontSize
-  Label1.Width = Me.TextWidth(Label1.Caption)
-  Label1.Left = txtMaxScreenObj.Left - Label1.Width
-  fgObjects.Top = txtMaxScreenObj.Top + txtMaxScreenObj.Height
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
 
 Public Sub MenuClickReplace()
 
   'use menuclickfind in replace mode
   MenuClickFind ffReplaceObject
-End Sub
-
-
-Private Sub AddItem(NewItem As String, Room As Byte, Optional DontUndo As Boolean = False)
-  'adds a new item to end of list
-  
-  Dim NextUndo As ObjectsUndo
-  
-  'if already at Max
-  If ObjectsEdit.Count >= 256 Then
-    'just exit
-    Exit Sub
-  End If
-  
-  'add item to game object
-  ObjectsEdit.Add NewItem, Room
-  
-  'add item to grid
-  fgObjects.AddItem CStr(ObjectsEdit.Count - 1) & ". " & vbTab & CPToUnicode(NewItem, SessionCodePage) & vbTab & CStr(Room)
-  'select item that was just added
-  fgObjects.Row = fgObjects.Rows - 1
-  If Not fgObjects.RowIsVisible(fgObjects.Row) Then
-    fgObjects.TopRow = fgObjects.Rows - 1
-  End If
-  fgObjects.Col = 1
-  fgObjects.Enabled = True
-  
-  'if not skipping undo
-  If Not DontUndo Then
-    Set NextUndo = New ObjectsUndo
-    NextUndo.UDAction = udoAddItem
-    'add to undo collection
-    AddUndo NextUndo
-  End If
-  
-  'set add flag
-  AddingItem = True
-  
-  '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
-  'update status bar with Count (subtract one cuz first item doesnt Count)
-  MainStatusBar.Panels("Count").Text = "Object Count: " & CStr(ObjectsEdit.Count) - 1
-  
-End Sub
-
-
-Private Sub DeleteItem(ByVal ItemIndex As Byte, Optional ByVal DontUndo As Boolean = False)
-
-  Dim NextUndo As ObjectsUndo
-  
-  'if not skipping undo
-  If Not DontUndo Then
-    Set NextUndo = New ObjectsUndo
-    NextUndo.UDAction = udoDeleteItem
-    NextUndo.UDObjectNo = ItemIndex
-    NextUndo.UDObjectText = ObjectsEdit(ItemIndex).ItemName
-    NextUndo.UDObjectRoom = ObjectsEdit(ItemIndex).Room
-    'add to undo collection
-    AddUndo NextUndo
-  End If
-  
-  'if there are at least two objects and deleting last item
-  If ObjectsEdit.Count >= 2 And ItemIndex = ObjectsEdit.Count - 1 Then
-    'delete the row
-    fgObjects.RemoveItem ItemIndex + 1
-  Else
-    'set item description to '?'
-    fgObjects.TextMatrix(ItemIndex + 1, 1) = "?"
-    'set row to zero
-    fgObjects.TextMatrix(ItemIndex + 1, 2) = "0"
-  End If
-  
-  'delete the object from game object
-  ObjectsEdit.Remove ItemIndex
-  
-  '*'Debug.Assert frmMDIMain.ActiveMdiChild Is Me
-  'update status bar with Count (subtract one cuz first item doesnt Count)
-  MainStatusBar.Panels("Count").Text = "Object Count: " & CStr(ObjectsEdit.Count - 1)
 End Sub
 
 Public Sub MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindObject)
@@ -618,11 +1195,6 @@ Public Sub MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindObje
     'ensure this form is the search form
     Set SearchForm = Me
   End With
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
 End Sub
 
 Public Sub MenuClickFindAgain()
@@ -636,40 +1208,8 @@ Public Sub MenuClickFindAgain()
     'show find form
     MenuClickFind
   End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
 End Sub
 
-
-Public Sub NewObjects()
-
-  'creates a new objects file
-  
-  On Error GoTo ErrHandler
-  
-  'set changed status and caption
-  IsChanged = True
-  
-  ObjCount = ObjCount + 1
-  Caption = sDM & "Objects Editor - NewObjects" & CStr(ObjCount)
-  fgObjects.TextMatrix(1, 0) = "0."
-  fgObjects.TextMatrix(1, 1) = "?"
-  fgObjects.TextMatrix(1, 2) = "0"
-  
-  Set ObjectsEdit = New AGIInventoryObjects
-  ObjectsEdit.NewObjects
-  
-  'clear filename
-  ObjectsEdit.ResFile = vbNullString
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
 Private Sub ReplaceAll(ByVal FindText As String, ByVal MatchWord As Boolean, ByVal MatchCase As Boolean, ByVal ReplaceText As String)
 
   'replace all occurrences of FindText with ReplaceText
@@ -687,7 +1227,7 @@ Private Sub ReplaceAll(ByVal FindText As String, ByVal MatchWord As Boolean, ByV
   End If
   
   'if no objects in list
-  If ObjectsEdit.Count = 0 Then
+  If EditInvList.Count = 0 Then
     MsgBox "Object list is empty.", vbOKOnly + vbInformation, "Replace All"
     Exit Sub
   End If
@@ -697,23 +1237,23 @@ Private Sub ReplaceAll(ByVal FindText As String, ByVal MatchWord As Boolean, ByV
   
   'create new undo object
   Set NextUndo = New ObjectsUndo
-  NextUndo.UDAction = udoReplaceAll
+  NextUndo.UDAction = ReplaceAll
   
   'set comparison method for string search,
   vbcComp = CLng(MatchCase) + 1 ' CLng(True) + 1 = 0 = vbBinaryCompare; Clng(False) + 1 = 1 = vbTextCompare
   
   If MatchWord Then
     'step through all objects
-    For i = 0 To ObjectsEdit.Count - 1
-      If StrComp(ObjectsEdit(i).ItemName, FindText, vbcComp) = 0 Then
+    For i = 0 To EditInvList.Count - 1
+      If StrComp(EditInvList(i).ItemName, FindText, vbcComp) = 0 Then
         'add  word being replaced to undo
         If lngCount = 0 Then
-          NextUndo.UDObjectText = CStr(i) & "|" & ObjectsEdit(i).ItemName
+          NextUndo.UDObjectText = CStr(i) & "|" & EditInvList(i).ItemName
         Else
-          NextUndo.UDObjectText = NextUndo.UDObjectText & "|" & CStr(i) & "|" & ObjectsEdit(i).ItemName
+          NextUndo.UDObjectText = NextUndo.UDObjectText & "|" & CStr(i) & "|" & EditInvList(i).ItemName
         End If
         'replace the word
-        ObjectsEdit(i).ItemName = ReplaceText
+        EditInvList(i).ItemName = ReplaceText
         'update grid
         fgObjects.TextMatrix(i + 1, ctDesc) = ReplaceText
         'increment counter
@@ -721,18 +1261,18 @@ Private Sub ReplaceAll(ByVal FindText As String, ByVal MatchWord As Boolean, ByV
       End If
     Next i
   Else
-    For i = 0 To ObjectsEdit.Count - 1
-      If InStr(1, ObjectsEdit(i).ItemName, FindText, vbcComp) <> 0 Then
+    For i = 0 To EditInvList.Count - 1
+      If InStr(1, EditInvList(i).ItemName, FindText, vbcComp) <> 0 Then
         'add  word being replaced to undo
         If lngCount = 0 Then
-          NextUndo.UDObjectText = CStr(i) & "|" & ObjectsEdit(i).ItemName
+          NextUndo.UDObjectText = CStr(i) & "|" & EditInvList(i).ItemName
         Else
-          NextUndo.UDObjectText = NextUndo.UDObjectText & "|" & CStr(i) & "|" & ObjectsEdit(i).ItemName
+          NextUndo.UDObjectText = NextUndo.UDObjectText & "|" & CStr(i) & "|" & EditInvList(i).ItemName
         End If
         'replace the word
-        ObjectsEdit(i).ItemName = Replace(ObjectsEdit(i).ItemName, FindText, ReplaceText, 1, -1, vbcComp)
+        EditInvList(i).ItemName = Replace(EditInvList(i).ItemName, FindText, ReplaceText, 1, -1, vbcComp)
         'update grid
-        fgObjects.TextMatrix(i + 1, ctDesc) = Replace(ObjectsEdit(i).ItemName, FindText, ReplaceText)
+        fgObjects.TextMatrix(i + 1, ctDesc) = Replace(EditInvList(i).ItemName, FindText, ReplaceText)
         'increment counter
         lngCount = lngCount + 1
       End If
@@ -751,94 +1291,9 @@ Private Sub ReplaceAll(ByVal FindText As String, ByVal MatchWord As Boolean, ByV
   End If
   
   Screen.MousePointer = vbDefault
-Exit Sub
-
-ErrHandler:
-  Resume Next
 End Sub
 
-Public Sub MenuClickClear()
-
-  'clear the object list
-  Clear
-End Sub
-
-Public Sub MenuClickDelete()
-  'delete object
-  
-  'first item can be edited, but it CAN'T be deleted
-  
-  'if on a valid row,
-  If fgObjects.Row > 1 Then
-    EditItemNum = fgObjects.Row - 1
-    'delete
-    DeleteItem EditItemNum
-  End If
-  
-End Sub
-
-Public Sub MenuClickInsert()
-  'add object
-  
-  ' make sure there is room first
-  If ObjectsEdit.Count < 256 Then
-    'add a new item to the grid
-    AddItem "?", 0
-  
-    'use doubleclick
-    fgObjects_DblClick
-  End If
-End Sub
-
-
-Public Sub MenuClickOpen()
-
-End Sub
-            */
-        }
-        void objformcode2() {
-            /*
-Public Sub MenuClickPrint()
-
-  Load frmPrint
-  frmPrint.SetMode rtObjects, ObjectsEdit, , InGame
-  frmPrint.Show vbModal, frmMDIMain
-  
-End Sub
-
-Public Sub MenuClickExport()
-
-  If ExportObjects(ObjectsEdit, InGame) Then
-    'if this is NOT the in game file,
-    If Not InGame Then
-      'reset changed flag and caption
-      IsChanged = False
-      'update caption
-      Caption = "Objects Editor - " & CompactPath(ObjectsEdit.ResFile, 75)
-      'disable save menu/button
-      frmMDIMain.mnuRSave.Enabled = False
-      frmMDIMain.Toolbar1.Buttons("save").Enabled = False
-    End If
-  End If
-End Sub
-
-Public Sub MenuClickImport()
-
-End Sub
-
-Public Sub MenuClickNew()
-
-End Sub
-
-Public Sub MenuClickInGame()
-  'not used
-End Sub
-
-Public Sub MenuClickRenumber()
-
-End Sub
-
-Public Sub MenuClickECustom2()
+Public Sub FindInLogic()
   
   'call findinlogic with current invobj
   
@@ -875,2032 +1330,50 @@ Public Sub MenuClickECustom2()
     FindInLogic QUOTECHAR & Replace(strObj, QUOTECHAR, "\""") & QUOTECHAR, fdAll, True, False, flAll, False, vbNullString
   End If
 End Sub
-
-Public Sub Clear(Optional ByVal DontUndo As Boolean = False)
-
-  Dim i As Long
-  Dim NextUndo As ObjectsUndo
-  
-  On Error GoTo ErrHandler
-  
-  'if skipping undo
-  If Not DontUndo Then
-    'create new undo object
-    Set NextUndo = New ObjectsUndo
-    NextUndo.UDAction = udoClear
-    
-    With ObjectsEdit
-      'store Max objects
-      NextUndo.UDObjectRoom = .MaxScreenObjects
-      'store encryption
-      NextUndo.UDObjectNo = CLng(.Encrypted)
-      'add first object, using tabs and cr's
-      NextUndo.UDObjectText = .Item(0).ItemName & vbTab & CStr(.Item(0).Room)
-      'now add rest of objects
-      For i = 1 To .Count - 1
-        NextUndo.UDObjectText = NextUndo.UDObjectText & vbCr & .Item(i).ItemName & vbTab & CStr(.Item(i).Room)
-      Next i
-    End With
-    'add to undo
-    AddUndo NextUndo
-  End If
-  
-  'clear grid
-  For i = fgObjects.Rows - 2 To 1 Step -1
-    fgObjects.RemoveItem i
-  Next i
-  
-  'add one blank line
-  fgObjects.TextMatrix(1, 0) = "0."
-  fgObjects.TextMatrix(1, 1) = "?"
-  fgObjects.TextMatrix(1, 2) = "0"
-  
-  'now clear the object list
-  ObjectsEdit.Clear
-  ObjectsEdit.MaxScreenObjects = Settings.MaxSO
-  ObjectsEdit.Encrypted = False
-  
-  'update status bar with Count (subtract one cuz first item doesnt Count)
-  MainStatusBar.Panels("Count").Text = "Object Count: 0"
-  MainStatusBar.Panels("Encrypt").Text = "Not Encrypted"
-  frmMDIMain.mnuRCustom3.Checked = False
-  Err.Clear
-  
-  txtMaxScreenObj.Text = CStr(ObjectsEdit.MaxScreenObjects)
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub AddUndo(NextUndo As ObjectsUndo)
-
-  '*'Debug.Assert Not (UndoCol Is Nothing)
-  
-  On Error GoTo ErrHandler
-  
-  'adds the next undo object
-  UndoCol.Add NextUndo
-  
-  'set undo menu
-  frmMDIMain.mnuEUndo.Enabled = True
-  frmMDIMain.mnuEUndo.Caption = "&Undo " & LoadResString(OBJUNDOTEXT + NextUndo.UDAction) & vbTab & "Ctrl+Z"
-  
-  MarkAsChanged
-  
-  'reset searchflags
-  FindForm.ResetSearch
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub MarkAsChanged()
-
-  If Not IsChanged Then
-    'set changed flag
-    IsChanged = True
-    
-    'mark caption
-    Caption = sDM & Caption
-    
-    'enable menu and toolbar button
-    frmMDIMain.mnuRSave.Enabled = True
-    frmMDIMain.Toolbar1.Buttons("save").Enabled = True
-  End If
-  
-End Sub
-Public Sub MenuClickCustom3()
-  'toggle encryption
-  
-  ToggleEncryption Not ObjectsEdit.Encrypted
-End Sub
-
-Private Sub ModifyItem(ByVal ItemIndex As Long, ByVal NewItemText As String, Optional ByVal DontUndo As Boolean = False)
-
-  Dim NextUndo As ObjectsUndo
-  
-  On Error GoTo ErrHandler
-  
-  'if no change
-  If StrComp(ObjectsEdit(ItemIndex).ItemName, NewItemText, vbBinaryCompare) = 0 Then
-    Exit Sub
-  End If
-  
-  'if change is to empty string
-  If LenB(NewItemText) = 0 Then
-    'same as delete
-    DeleteItem ItemIndex
-    Exit Sub
-  End If
-  
-  'if not skipping undo
-  If Not DontUndo Then
-    Set NextUndo = New ObjectsUndo
-    'if adding a new item
-    If AddingItem Then
-      'skip undo- it has already been added
-      AddingItem = False
-    Else
-      NextUndo.UDAction = udoModifyItem
-      NextUndo.UDObjectNo = ItemIndex
-      NextUndo.UDObjectText = ObjectsEdit(ItemIndex).ItemName
-      'add to undo collection
-      AddUndo NextUndo
-    End If
-  End If
-  
-  'make changes
-  ObjectsEdit(ItemIndex).ItemName = NewItemText
-  'update grid
-  fgObjects.TextMatrix(ItemIndex + 1, 1) = CPToUnicode(NewItemText, SessionCodePage)
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub ModifyMax(ByVal NewMax As Byte, Optional ByVal DontUndo As Boolean = False)
-
-  Dim NextUndo As ObjectsUndo
-  
-  'if no change
-  If ObjectsEdit.MaxScreenObjects = NewMax Then
-    Exit Sub
-  End If
-  
-  'if not skipping undo
-  If Not DontUndo Then
-    Set NextUndo = New ObjectsUndo
-    NextUndo.UDAction = udoChangeMaxObj
-    NextUndo.UDObjectRoom = ObjectsEdit.MaxScreenObjects
-    'add to undo collection
-    AddUndo NextUndo
-  End If
-  
-  'make changes
-  ObjectsEdit.MaxScreenObjects = NewMax
-  txtMaxScreenObj.Text = CStr(ObjectsEdit.MaxScreenObjects)
-End Sub
-
-
-Private Sub ModifyRoom(ByVal ItemIndex As Long, ByVal NewRoom As Byte, Optional ByVal DontUndo As Boolean = False)
-
-  Dim NextUndo As ObjectsUndo
-  
-  'if no change
-  If ObjectsEdit(ItemIndex).Room = NewRoom Then
-    Exit Sub
-  End If
-  
-  'if not skipping undo
-  If Not DontUndo Then
-    Set NextUndo = New ObjectsUndo
-    NextUndo.UDAction = udoModifyRoom
-    NextUndo.UDObjectNo = ItemIndex
-    NextUndo.UDObjectRoom = ObjectsEdit(ItemIndex).Room
-    'add to undo collection
-    AddUndo NextUndo
-  End If
-  
-  'make changes
-  ObjectsEdit(ItemIndex).Room = NewRoom
-  'update grid
-  fgObjects.TextMatrix(ItemIndex + 1, 2) = CStr(NewRoom)
-End Sub
-
-Public Sub LoadObjects(ByVal ObjectFile As String)
-  
-  'opens an object file and loads it into the editor
-  Dim i As Long
-  Dim tmpObjects As AGIInventoryObjects
-  
-  On Error GoTo ErrHandler
-  
-  ' show wait cursor; this may take awhile
-  WaitCursor
-  
-  'use a temp objects object to get items
-  Set tmpObjects = New AGIInventoryObjects
-  
-  'trap errors
-  On Error Resume Next
-  tmpObjects.Load ObjectFile
-  If Err.Number <> 0 Then
-    'restore cursor
-    Screen.MousePointer = vbDefault
-  
-    ErrMsgBox "Unable to load this object file due to error: ", "", "Load Object Error"
-    On Error GoTo 0: Err.Raise vbObjectError + 601, "frmObjectEdit", "Load Object Error"
-    Exit Sub
-  End If
-  On Error GoTo ErrHandler
-  
-  'set Max screen objs
-  txtMaxScreenObj.Text = CStr(tmpObjects.MaxScreenObjects)
-  
-  'add items
-  For i = 0 To tmpObjects.Count - 1
-    ' convert extended characters to correct byte value
-    fgObjects.AddItem CStr(i) & ". " & vbTab & CPToUnicode(tmpObjects(i).ItemName, SessionCodePage) & vbTab & CStr(tmpObjects(i).Room)
-  Next i
-  
-  'remove first line that was left by the clear function
-  fgObjects.RemoveItem 1
-  
-  'file is clean
-  IsChanged = False
-  
-  'set caption
-  Caption = "Objects Editor - "
-  If InGame Then
-    Caption = Caption & GameID
-  Else
-    Caption = Caption & CompactPath(ObjectFile, 75)
-  End If
-  
-  'save filename
-  '*'Debug.Assert tmpObjects.ResFile = ObjectFile
-    
-  'copy to local objects object
-  Set ObjectsEdit = New AGIInventoryObjects
-  ObjectsEdit.SetObjects tmpObjects
-  
-  'restore cursor
-  Screen.MousePointer = vbDefault
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-
-Public Sub ShowRow()
-  'ensures selected row in the object grid is visible
-  
-  'top row needs to be adjusted down by one because
-  'the fixed row (which is zero) is not counted by toprow)
-  Dim LastRow As Long
-  Dim NewTop As Long
-  Dim RowNum As Long
-  
-  'get selected row
-  RowNum = fgObjects.Row
-  
-  'last full row is top row plus number of fully visible rows (not including
-  'top row)
-  'number of fully visible rows is grid height divided by cell height
-  'adjust by 3 (compensate once for heading row, and once for zero based state
-  'of object counting and once to ensure toprow is not counted twice)
-  LastRow = fgObjects.TopRow + fgObjects.Height \ fgObjects.CellHeight - 3
-  
-  'if rownum is between toprow(adjusted) and lastrow
-  If RowNum >= fgObjects.TopRow - 1 And RowNum <= LastRow Then
-    Exit Sub
-  End If
-  
-  'set toprow so rownum will be the third row visible
-  NewTop = RowNum - 3
-  If NewTop < 0 Then
-    NewTop = 0
-  End If
-  fgObjects.TopRow = NewTop
-End Sub
-
-
-Private Function ValidateRoom() As Boolean
-
-  Dim NewRoom As Long
-  
-  'any value from 0-255 is valid
-  
-  On Error GoTo ErrHandler
-  
-  NewRoom = Val(Me.txtRoomNo.Text)
-  
-  If NewRoom > 255 Then
-    'warn user
-    MsgBox "Room numbers may not be greater than 255." & vbCrLf & vbCrLf & _
-    "Resetting value to 255. ", vbInformation + vbOKOnly, "Room Value Limit"
-    NewRoom = 255
-  End If
-  
-  'save new room value
-  ModifyRoom EditItemNum, NewRoom
-  ValidateRoom = True
-Exit Function
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
-
-Private Function ValidateObject() As Boolean
-
-  Dim i As Long, rtn As VbMsgBoxResult
-  Dim blnNoWarn As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  If rtfObject.Text <> "?" Then
-    'check for duplicate name
-    If Settings.WarnDupObj Then
-      For i = 0 To ObjectsEdit.Count - 1
-        If i <> EditItemNum Then
-          If StrComp(ObjectsEdit(i).ItemName, UnicodeToCP(rtfObject.Text, SessionCodePage), vbBinaryCompare) = 0 Then
-            'warn
-            rtn = MsgBoxEx(ChrW$(39) & rtfObject.Text & "' already exists in this object list." & vbNewLine & "Do you want to keep this duplicate object?", vbQuestion + vbYesNo + vbMsgBoxHelpButton, "Duplicate Object", WinAGIHelp, "htm\winagi\Objects_Editor.htm#duplicates", "Don't show this warning again.", blnNoWarn)
-            'reset warning flag, if necessary
-            Settings.WarnDupObj = Not blnNoWarn
-            'if now hiding update settings file
-            If Not Settings.WarnDupObj Then
-              WinAGISettingsList.WriteSetting(sGENERAL, "WarnDupObj", Settings.WarnDupObj
-            End If
-            
-            'if canceled,
-            If rtn = vbNo Then
-              ValidateObject = True
-              Exit Function
-            End If
-            Exit For
-          End If
-        End If
-      Next i
-    End If
-  End If
-
-  'save change to item description
-  ModifyItem EditItemNum, UnicodeToCP(rtfObject.Text, SessionCodePage)
-  ValidateObject = True
-Exit Function
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
-
-
-Private Sub fgObjects_EnterCell()
-  'if in first column
-  If fgObjects.Col = 0 Then
-    'move to second column
-    fgObjects.Col = 1
-  End If
-    
-  SetEditMenu
-End Sub
-
-Private Sub fgObjects_GotFocus()
-
-  'always hide the selection bars
-  picSelFrame(0).Visible = False
-  picSelFrame(2).Visible = False
-  picSelFrame(3).Visible = False
-  picSelFrame(1).Visible = False
-  
-End Sub
-
-Private Sub fgObjects_KeyPress(KeyAscii As Integer)
-
-  On Error GoTo ErrHandler
-  
-  'some keys should be ignored...?
-  Select Case KeyAscii
-  Case 9  'tab
-    With fgObjects
-      'if on name, move to column
-      If .Col = ctDesc Then
-        .Col = ctRoom
-      Else
-        If .Row < .Rows - 1 Then '(to account for header row)
-          .Row = .Row + 1
-          .Col = 1
-        End If
-      End If
-    End With
-    KeyAscii = 0
-    
-  Case 10, 13 'enter key
-    'same as dbl-click
-    fgObjects_DblClick
-    KeyAscii = 0
-    
-  Case Else
-    'if in the empty row, AND on description column, begin editing
-    If fgObjects.Row = fgObjects.Rows - 1 And fgObjects.Col = ctDesc Then
-      fgObjects_DblClick
-      rtfObject.Text = ChrW$(KeyAscii)
-      rtfObject.Selection.Range.StartPos = 1
-    End If
-  End Select
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub fgObjects_LostFocus()
-
-  'if editing, don't show
-  If rtfObject.Visible Or txtRoomNo.Visible Then
-    Exit Sub
-  End If
-  
-  'if something on grid is selected
-  picSelFrame(0).Left = fgObjects.CellLeft
-  picSelFrame(0).Top = fgObjects.CellTop + fgObjects.Top
-  picSelFrame(0).Width = fgObjects.CellWidth
-  
-  picSelFrame(2).Left = picSelFrame(0).Left
-  picSelFrame(2).Top = picSelFrame(0).Top + fgObjects.CellHeight - picSelFrame(2).Height
-  picSelFrame(2).Width = picSelFrame(0).Width
-  
-  picSelFrame(3).Left = picSelFrame(0).Left
-  picSelFrame(3).Top = picSelFrame(0).Top
-  picSelFrame(3).Height = fgObjects.CellHeight
-  
-  picSelFrame(1).Left = picSelFrame(0).Left + picSelFrame(0).Width - picSelFrame(1).Width
-  picSelFrame(1).Top = picSelFrame(3).Top
-  picSelFrame(1).Height = picSelFrame(3).Height
-  
-  picSelFrame(0).Visible = True
-  picSelFrame(2).Visible = True
-  picSelFrame(3).Visible = True
-  picSelFrame(1).Visible = True
-  
-End Sub
-
-Private Sub fgObjects_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-  
-  Dim tmpRow As Long, tmpCol As Long
-  Dim TopRow As Long, BtmRow As Long
-
-  On Error GoTo ErrHandler
-  
-  If rtfObject.Visible Or txtRoomNo.Visible Then
-    Exit Sub
-  End If
-  
-  With fgObjects
-    tmpCol = .MouseCol
-    If tmpCol = 0 Then tmpCol = 1
-    tmpRow = .MouseRow
-    'first row is usually '?', but it's not mandatory
-'''    If tmpRow < 2 Then tmpRow = 2
-    If tmpRow < 1 Then tmpRow = 1
-    
-    'if right click
-    If Button = vbRightButton Then
-      'determine top/bottom rows
-      If .Row < .RowSel Then
-        TopRow = .Row
-        BtmRow = .RowSel
-      Else
-        TopRow = .RowSel
-        BtmRow = .Row
-      End If
-
-      'if row and column are NOT within selected area
-      If tmpRow < TopRow Or tmpRow > BtmRow Then
-        'make new selection
-        'check for selection of entire row
-        If X < ScreenTWIPSX * 12 Then
-          'select entire row
-          .Col = 0
-          .Row = tmpRow
-          .ColSel = 3
-          .SelectionMode = flexSelectionByRow
-          .Highlight = flexHighlightAlways
-          .MergeCells = flexMergeNever
-        Else
-          'select freely
-          .Col = tmpCol
-          .Row = tmpRow
-          .SelectionMode = flexSelectionFree
-          .Highlight = flexHighlightNever
-          .MergeCells = flexMergeRestrictAll
-        End If
-      End If
-
-      'if on an editable row
-'''      If tmpRow > 1 Then
-      If tmpRow > 0 Then
-        'set edit menu parameters
-        SetEditMenu
-
-        'make sure this form is the active form
-        If Not (frmMDIMain.ActiveMdiChild Is Me) Then
-          'set focus before showing the menu
-          Me.SetFocus
-        End If
-        'need doevents so form activation occurs BEFORE popup
-        'otherwise, errors will be generated because of menu
-        'adjustments that are made in the form_activate event
-        SafeDoEvents
-        'show popup menu
-        PopupMenu frmMDIMain.mnuEdit
-      End If
-      'done with right click activities
-      Exit Sub
-    End If
-
-'     'check for selection of entire row
-'    If X < ScreenTWIPSX * 12 Then
-'      'select entire row
-'      .Col = 0
-'      .SelectionMode = flexSelectionByRow
-'      .Highlight = flexHighlightAlways
-'      .MergeCells = flexMergeNever
-'      .ColSel = 2
-'
-'    Else
-      'select freely
-      If tmpCol <> -1 Then
-        .Col = tmpCol
-      Else
-        .Col = ctDesc
-      End If
-      .Row = tmpRow
-      .SelectionMode = flexSelectionFree
-      .Highlight = flexHighlightNever
-      .MergeCells = flexMergeRestrictAll
-'    End If
-  End With
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub fgObjects_MouseMove(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  'if left button is down, begin dragging
-  If Button = vbLeftButton Then
-    If Not DroppingObj Then
-      'object i0 is not moveable or delete-able
-      'if something selected,
-      If fgObjects.Row > 1 And fgObjects.RowSel = fgObjects.Row Then
-        fgObjects.OLEDrag
-      End If
-    End If
-  End If
-End Sub
-
-Private Sub fgObjects_OLECompleteDrag(Effect As Long)
-
-  'reset dragging flag
-  DroppingObj = False
-End Sub
-
-Private Sub fgObjects_OLEStartDrag(Data As MSFlexGridLib.DataObject, AllowedEffects As Long)
-
-  On Error GoTo ErrHandler
-  
-  'set global drop flag (so logics (or other text receivers) know
-  'when an object is being dropped
-  DroppingObj = True
-  
-  'set allowed effects to copy only
-  AllowedEffects = vbDropEffectCopy
-  Data.SetData fgObjects.TextMatrix(fgObjects.Row, 1), vbCFText
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub Form_Activate()
-
-  'if minimized, exit
-  '(to deal with occasional glitch causing focus to lock up)
-  If Me.WindowState = vbMinimized Then
-    Exit Sub
-  End If
-  
-  ActivateActions
-  
-  'if visible,
-  If Visible Then
-    'force resize
-    Form_Resize
-  End If
-End Sub
-
-Private Sub ActivateActions()
-  
-  On Error GoTo ErrHandler
-  
-  'if hiding prevwin on lost focus, hide it now
-  If Settings.HidePreview Then
-    PreviewWin.Hide
-  End If
- 
-  'show object menu
- '*'Debug.Print "AdjustMenus 55"
-  AdjustMenus rtObjects, InGame, True, IsChanged
-  
-  'set edit menu
-  SetEditMenu
-  
-  'update status bar with Count (subtract one cuz first item doesnt Count)
-  MainStatusBar.Panels("Count").Text = "Object Count: " & CStr(ObjectsEdit.Count - 1)
-  MainStatusBar.Panels("Encrypt").Text = IIf(ObjectsEdit.Encrypted, "Encrypted", "Not Encrypted")
-  
-  'if findform is visible,
-  If FindForm.Visible Then
-    'set correct mode
-    If FindForm.rtfReplace.Visible Then
-      'show in replace object mode
-      FindForm.SetForm ffReplaceObject, False
-    Else
-      'show in find object mode
-      FindForm.SetForm ffFindObject, False
-    End If
-  End If
-  
-  'set searching form to this form
-  Set SearchForm = Me
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
-  
-  'detect and respond to keyboard shortcuts
-  
-  'always check for help first
-  If Shift = 0 And KeyCode = vbKeyF1 Then
-    MenuClickHelp
-    KeyCode = 0
-    Exit Sub
-  End If
-
-  'if editing something
-  If rtfObject.Visible Or txtRoomNo.Visible Or ActiveControl Is txtMaxScreenObj Then
-    Exit Sub
-  End If
-  
-  'check for global shortcut keys
-  CheckShortcuts KeyCode, Shift
-  If KeyCode = 0 Then
-    Exit Sub
-  End If
-  
-  Select Case Shift
-  Case vbCtrlMask
-    Select Case KeyCode
-    Case vbKeyZ 'undo
-      If frmMDIMain.mnuEUndo.Enabled Then
-        MenuClickUndo
-        KeyCode = 0
-      End If
-      
-    Case vbKeyF 'find
-      If frmMDIMain.mnuEdit.Enabled Then
-        MenuClickFind
-        KeyCode = 0
-      End If
-      
-    Case vbKeyH 'replace
-      If frmMDIMain.mnuEReplace.Enabled Then
-        MenuClickReplace
-        KeyCode = 0
-      End If
-    End Select
-   
-  Case 0 'no shift, ctrl, alt
-    Select Case KeyCode
-    Case vbKeyDelete
-      If frmMDIMain.mnuEDelete.Enabled Then
-        MenuClickDelete
-        KeyCode = 0
-      End If
-      
-    Case vbKeyF3
-      'find again
-      If frmMDIMain.Enabled Then
-        MenuClickFindAgain
-        KeyCode = 0
-      End If
-    End Select
-  
-  Case vbShiftMask
-    Select Case KeyCode
-    Case vbKeyDelete
-      If frmMDIMain.mnuEClear.Enabled Then
-        MenuClickClear
-        KeyCode = 0
-      End If
-    
-    Case vbKeyInsert
-      If frmMDIMain.mnuEInsert.Enabled Then
-        MenuClickInsert
-        KeyCode = 0
-      End If
-    End Select
-    
-  Case 3  'shift+ctrl
-    Select Case KeyCode
-    Case vbKeyF
-      If frmMDIMain.mnuECustom2.Enabled Then
-        MenuClickECustom2
-        KeyCode = 0
-      End If
-    
-    Case vbKeyE
-      If frmMDIMain.mnuRCustom3.Enabled Then
-        MenuClickCustom3
-        KeyCode = 0
-      End If
-    End Select
-  
-  Case vbAltMask
-    Select Case KeyCode
-    Case vbKeyReturn
-      If frmMDIMain.mnuECustom1.Enabled Then
-        MenuClickECustom1
-        KeyCode = 0
-      End If
-    End Select
-  End Select
-End Sub
-Private Sub Form_Load()
-  
-  On Error GoTo ErrHandler
-    
-  CalcWidth = MIN_WIDTH
-  CalcHeight = MIN_HEIGHT
-  
-  'initialize undo collection
-  Set UndoCol = New Collection
-  
-  'set indent Value
-  CellIndentH = ScreenTWIPSX * 3
-  CellIndentV = ScreenTWIPSY * 1
-  
-  'setup fonts
-  InitFonts
-  'set code page to correct value
-  rtfObject.CodePage = SessionCodePage
-  
-  'set grid format
-  fgObjects.ColAlignment(0) = flexAlignRightCenter
-  fgObjects.ColAlignment(1) = flexAlignLeftCenter
-  fgObjects.ColAlignment(2) = flexAlignCenterCenter
-  fgObjects.FixedAlignment(0) = flexAlignCenterCenter
-  fgObjects.FixedAlignment(1) = flexAlignLeftCenter
-  fgObjects.FixedAlignment(2) = flexAlignCenterCenter
-
-  'add fixed row titles
-  fgObjects.Clear
-  fgObjects.TextMatrix(0, 0) = "Item #"
-  fgObjects.TextMatrix(0, 1) = "Item Description"
-  fgObjects.TextMatrix(0, 2) = "Room #"
-  
-  'reset search parameters
-  FindForm.ResetSearch
-  
-#If DEBUGMODE <> 1 Then
-  'subclass the flexgrid
-  PrevFGWndProc = SetWindowLong(Me.fgObjects.hWnd, GWL_WNDPROC, AddressOf ScrollWndProc)
-  'also the text boxes
-  PrevTBMOWndProc = SetWindowLong(Me.txtMaxScreenObj.hWnd, GWL_WNDPROC, AddressOf TBWndProc)
-  PrevTBRmWndProc = SetWindowLong(Me.txtRoomNo.hWnd, GWL_WNDPROC, AddressOf TBWndProc)
-#End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Private Sub Form_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  On Error GoTo ErrHandler
-  
-  'if right button
-  If Button = vbRightButton Then
-    'if edit menu is enabled
-    If frmMDIMain.mnuEdit.Enabled Then
-      'make sure this form is the active form
-      If Not (frmMDIMain.ActiveMdiChild Is Me) Then
-        'set focus before showing the menu
-        Me.SetFocus
-      End If
-      'need doevents so form activation occurs BEFORE popup
-      'otherwise, errors will be generated because of menu
-      'adjustments that are made in the form_activate event
-      SafeDoEvents
-      'show edit menu
-      PopupMenu frmMDIMain.mnuEdit
-    End If
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub Form_QueryUnload(Cancel As Integer, UnloadMode As Integer)
-  
-  Cancel = Not AskClose()
-End Sub
-
-Sub Form_Resize()
-
-  Dim sngBorders As Single
-  
-  On Error GoTo ErrHandler
-  
-  'use separate variables for managing minimum width/height
-  If ScaleWidth < MIN_WIDTH Then
-    CalcWidth = MIN_WIDTH
-  Else
-    CalcWidth = ScaleWidth
-  End If
-  If ScaleHeight < MIN_HEIGHT Then
-    CalcHeight = MIN_HEIGHT
-  Else
-    CalcHeight = ScaleHeight
-  End If
-  
-  'if minimized or if the form is not visible
-  If Me.WindowState = vbMinimized Or Not Visible Then
-    Exit Sub
-  End If
-  
-  'if restoring from minimize, activation may not have triggered
-  If MainStatusBar.Tag <> CStr(rtObjects) Then
-    ActivateActions
-  End If
-  
-  sngBorders = Width - ScaleWidth
-  
-  fgObjects.Height = CalcHeight - fgObjects.Top
-  
-  'resize interior items
-  'reposition Max objects stuff
-  txtMaxScreenObj.Left = CalcWidth - txtMaxScreenObj.Width
-  Label1.Left = txtMaxScreenObj.Left - Label1.Width
-  
-  fgObjects.Width = CalcWidth
-  'if more rows than will fit on screen
-  If fgObjects.Rows * fgObjects.RowHeight(0) > fgObjects.Height Then
-    'account for scrollbar
-    fgObjects.ColWidth(1) = fgObjects.Width - fgObjects.ColWidth(2) - fgObjects.ColWidth(0) - 320
-  Else
-    fgObjects.ColWidth(1) = fgObjects.Width - fgObjects.ColWidth(2) - fgObjects.ColWidth(0)
-  End If
-  
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-
-Public Sub MenuClickECustom1()
-  'edit object
-  
-  'first item CAN be edited
-  
-  'if on a valid row
-  If fgObjects.Row > 0 Then
-    'use double-click to force edit
-    fgObjects_DblClick
-  End If
-  
-End Sub
-Public Sub MenuClickUndo()
-  
-  Dim NextUndo As ObjectsUndo
-  Dim i As Long, strObjs() As String
-  
-  On Error GoTo ErrHandler
-  
-  'if there are no undo actions
-  If UndoCol.Count = 0 Then
-    'just exit
-    Exit Sub
-  End If
-  
-  'get next undo object
-  Set NextUndo = UndoCol(UndoCol.Count)
-  
-  'remove undo object
-  UndoCol.Remove UndoCol.Count
-  'reset undo menu
-  frmMDIMain.mnuEUndo.Enabled = (UndoCol.Count > 0)
-  If frmMDIMain.mnuEUndo.Enabled Then
-    frmMDIMain.mnuEUndo.Caption = "&Undo " & LoadResString(OBJUNDOTEXT + UndoCol(UndoCol.Count).UDAction) & vbTab & "Ctrl+Z"
-  Else
-    frmMDIMain.mnuEUndo.Caption = "&Undo" & vbTab & "Ctrl+Z"
-  End If
-  
-  'undo the action
-  Select Case NextUndo.UDAction
-  Case udoAddItem        'store object number that was added
-    'delete the last item
-    DeleteItem ObjectsEdit.Count - 1, True
-    'select last item
-    fgObjects.Row = fgObjects.Rows - 1
-    fgObjects.Col = 1
-  
-  Case udoDeleteItem        'store object number, text, and room that was deleted
-    'if object number is equal to current Count
-    If NextUndo.UDObjectNo = ObjectsEdit.Count Then
-      'need to add item to restore
-      AddItem NextUndo.UDObjectText, NextUndo.UDObjectRoom, True
-    Else
-      'use modify item to restore
-      ModifyItem NextUndo.UDObjectNo, NextUndo.UDObjectText, True
-      ModifyRoom NextUndo.UDObjectNo, NextUndo.UDObjectRoom, True
-    End If
-    'select this item
-    fgObjects.Row = NextUndo.UDObjectNo + 1
-    fgObjects.Col = 1
-    
-  Case udoModifyItem, udoReplace    'store old object number, text
-    ModifyItem NextUndo.UDObjectNo, NextUndo.UDObjectText, True
-    'select this item
-    fgObjects.Row = NextUndo.UDObjectNo + 1
-    fgObjects.Col = 1
-    
-  Case udoModifyRoom    'store old object number, room
-    ModifyRoom NextUndo.UDObjectNo, NextUndo.UDObjectRoom, True
-    'select this item
-    fgObjects.Row = NextUndo.UDObjectNo + 1
-    fgObjects.Col = 2
-  
-  Case udoChangeDesc       'store old description
-    'restore old id
-    ObjectsEdit.Description = NextUndo.UDObjectText
-    'if in a game
-    If InGame Then
-      'restore the ingame resource as well
-      InventoryObjects.Description = NextUndo.UDObjectText
-      InventoryObjects.Save
-      'update prop window
-      RefreshTree rtObjects, -1, umProperty
-    End If
-    
-  Case udoChangeMaxObj     'store old maxobjects
-    'old Max is stored in room variable
-    ModifyMax NextUndo.UDObjectRoom, True
-    
-  Case udoTglEncrypt       'store old encryption Value
-    'old encryption is stored in room variable
-    ToggleEncryption CBool(NextUndo.UDObjectRoom), True
-    
-  Case udoClear            'restore old Objects
-    'if undoing a clear, objectsedit is already empty
-    'so don't need to clear it; grid will already be
-    'empty also
-    
-    'restore Max objects
-    ObjectsEdit.MaxScreenObjects = NextUndo.UDObjectRoom
-    txtMaxScreenObj.Text = CStr(NextUndo.UDObjectRoom)
-    
-    'restore encryption
-    ObjectsEdit.Encrypted = CBool(NextUndo.UDObjectNo)
-    frmMDIMain.mnuRCustom3.Checked = ObjectsEdit.Encrypted
-    MainStatusBar.Panels("Encrypt").Text = "Encrypted"
-    If Not ObjectsEdit.Encrypted Then
-      MainStatusBar.Panels("Encrypt").Text = "Not " & MainStatusBar.Panels("Encrypt").Text
-    End If
-    
-    'split out items
-    strObjs = Split(NextUndo.UDObjectText, vbCr)
-    
-    'add them back to grid and the objectedit object
-    For i = 0 To UBound(strObjs)
-      If i <> 0 Then
-        fgObjects.AddItem CStr(i) & "." & vbTab & strObjs(i)
-        ObjectsEdit.Add fgObjects.TextMatrix(i + 1, ctDesc), CByte(fgObjects.TextMatrix(i + 1, ctRoom))
-      End If
-    Next i
-    
-    'update status bar with Count (subtract one cuz first item doesnt Count)
-    MainStatusBar.Panels("Count").Text = "Object Count: " & CStr(i - 1)
-    
-  Case udoReplaceAll
-    'udstring has previous items in pipe-delimited string
-    strObjs = Split(NextUndo.UDObjectText, "|")
-    
-    'object numbers and old values are in pairs
-    For i = 0 To UBound(strObjs) Step 2
-      'first element is obj number, second is old obj desc
-      ObjectsEdit(CLng(strObjs(i))).ItemName = strObjs(i + 1)
-      'update grid
-      fgObjects.TextMatrix(CLng(strObjs(i)) + 1, ctDesc) = strObjs(i + 1)
-      
-    Next i
-    
-  End Select
-  
-  'ensure selected row is visible
-  ShowRow
-Exit Sub
-
-ErrHandler:
-  Resume Next
-End Sub
-
-Public Sub SetEditMenu()
-  
-  'sets the menu captions on the Edit menu
-  'based on current selection
-  
-  On Error GoTo ErrHandler
-  
-  'always force form to current
-  If Not frmMDIMain.ActiveMdiChild Is Nothing Then
-    If Not (frmMDIMain.ActiveMdiChild Is Me) And Visible Then
-      Me.SetFocus
-    End If
-  End If
-  
-  With frmMDIMain
-    .mnuEdit.Enabled = True
-    'redo, cut, copy, paste, select all are hidden
-    .mnuERedo.Visible = False
-    .mnuECut.Visible = False
-    .mnuECopy.Visible = False
-    .mnuEPaste.Visible = False
-    .mnuESelectAll.Visible = False
-    .mnuECustom3.Visible = False
-    .mnuECustom4.Visible = False
-    
-    .mnuEUndo.Visible = True
-    'if there is something to undo
-    If UndoCol.Count > 0 Then
-      .mnuEUndo.Caption = "&Undo " & LoadResString(OBJUNDOTEXT + UndoCol(UndoCol.Count).UDAction) & vbTab & "Ctrl+Z"
-      .mnuEUndo.Enabled = True
-    Else
-      .mnuEUndo.Caption = "&Undo" & vbTab & "Ctrl+Z"
-      .mnuEUndo.Enabled = False
-    End If
-    .mnuEBar0.Visible = True
-    
-    .mnuEDelete.Visible = True
-    'item i0 can not be deleted
-    .mnuEDelete.Enabled = fgObjects.Row > 1
-    .mnuEDelete.Caption = "&Delete Item" & vbTab & "Del"
-    
-    .mnuEClear.Visible = True
-    .mnuEClear.Enabled = True
-    .mnuEClear.Caption = "&Clear List" & vbTab & "Shift+Del"
-    
-    .mnuEInsert.Visible = True
-    .mnuEInsert.Enabled = ObjectsEdit.Count < 256
-    .mnuEInsert.Caption = "&Add Item" & vbTab & "Shift+Ins"
-    
-    .mnuEBar1.Visible = True
-    .mnuEFind.Visible = True
-    .mnuEFind.Enabled = True
-    .mnuEFind.Caption = "&Find" & vbTab & "Ctrl+F"
-    
-    .mnuEFindAgain.Visible = True
-    .mnuEFindAgain.Enabled = LenB(GFindText) <> 0
-    .mnuEFindAgain.Caption = "Find A&gain" & vbTab & "F3"
-    
-    .mnuEReplace.Visible = True
-    .mnuEReplace.Enabled = True
-    .mnuEReplace.Caption = "Replace" & vbTab & "Ctrl+H"
-    
-    'enable findinlogics if object is not a '?'
-    .mnuEBar2.Visible = True
-    .mnuECustom2.Visible = True
-    .mnuECustom2.Enabled = (fgObjects.TextMatrix(fgObjects.Row, ctDesc) <> "?")
-    .mnuECustom2.Caption = "Find In Logics" & vbTab & "Shift+Ctrl+F"
-    
-    .mnuECustom1.Visible = True
-    'although not normal, object i0 can be edited
-    .mnuECustom1.Enabled = fgObjects.Row > 0
-    .mnuECustom1.Caption = "&Edit Item" & vbTab & "Alt+Enter"
-    
-    'set menu status for encryption
-    If Not ObjectsEdit Is Nothing Then
-      .mnuRCustom3.Checked = ObjectsEdit.Encrypted
-    End If
-    'check for Amiga format
-    .mnuRCustom2.Visible = ObjectsEdit.AmigaOBJ
-    If ObjectsEdit.AmigaOBJ Then
-      .mnuRCustom2.Caption = "Convert AMIGA Format to DOS"
-    End If
-  End With
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-Private Sub fgObjects_DblClick()
-  
-  On Error GoTo ErrHandler
-  
-  Dim blnNoWarn As Boolean
-  
-  'save row and column being edited
-  EditRow = fgObjects.Row
-  EditCol = fgObjects.Col
-  EditItemNum = fgObjects.Row - 1
-
-  'if on editable item row
-  If fgObjects.Row > 0 Then
-    'begin edit
-    Select Case EditCol
-    Case ctNumber, ctDesc
-      'disable edit menu
-      frmMDIMain.mnuEdit.Enabled = False
-      
-      EditObj
-      
-    Case ctRoom
-      'disable edit menu
-      frmMDIMain.mnuEdit.Enabled = False
-
-      'begin edit of room
-      With txtRoomNo
-        .Move fgObjects.CellLeft + CellIndentH, fgObjects.CellTop + fgObjects.Top + CellIndentV, fgObjects.CellWidth - CellIndentH, fgObjects.CellHeight - CellIndentV
-        .Text = ObjectsEdit(fgObjects.Row - 1).Room
-        .Visible = True
-        'select all
-        .SelStart = 0
-        .SelLength = Len(.Text)
-        .SetFocus
-      End With
-    End Select
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Sub fgObjects_KeyDown(KeyCode As Integer, Shift As Integer)
-  
-  If (fgObjects.Rows >= 1) Then
-    Select Case KeyCode
-    Case 46
-      DeleteItem fgObjects.Row - 1
-    Case 48
-      MenuClickInsert
-    End Select
-  End If
-End Sub
-Public Function AskClose() As Boolean
-
-  Dim rtn As VbMsgBoxResult
-
-  'assume ok to close
-  AskClose = True
-  
-  On Error GoTo ErrHandler
-  'if object list has been modified since last save,
-  If IsChanged Then
-    'get user input
-    rtn = MsgBox("Do you want to save changes to this objects file before closing?", vbYesNoCancel, "Objects Editor")
-    
-    'if user wants to save
-    If rtn = vbYes Then
-      'save by calling the menuclick method
-      MenuClickSave
-    End If
-    
-    'return false if cancel was selected
-    AskClose = rtn <> vbCancel
-  End If
-Exit Function
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
-
-
-Private Sub Form_Unload(Cancel As Integer)
-
-  'ensure object is cleared and dereferenced
-  If Not ObjectsEdit Is Nothing Then
-    '*'Debug.Assert ObjectsEdit.Loaded
-    ObjectsEdit.Unload
-    Set ObjectsEdit = Nothing
-  End If
-  
-  'if this is the ingame
-  If InGame Then
-    'reset inuse flag
-    OEInUse = False
-    'release the object
-    Set ObjectEditor = Nothing
-  End If
-
-#If DEBUGMODE <> 1 Then
-  'release subclass hook to flexgrid
-  SetWindowLong Me.fgObjects.hWnd, GWL_WNDPROC, PrevFGWndProc
-  'and the text boxes
-  SetWindowLong Me.txtMaxScreenObj.hWnd, GWL_WNDPROC, PrevTBMOWndProc
-  SetWindowLong Me.txtRoomNo.hWnd, GWL_WNDPROC, PrevTBRmWndProc
-#End If
-  'need to check if this is last form
-  LastForm Me
-End Sub
-
-Private Sub picSelFrame_MouseDown(Index As Integer, Button As Integer, Shift As Integer, X As Single, Y As Single)
-  'pass focus to grid
-  fgObjects.SetFocus
-End Sub
-
-Private Sub txtMaxScreenObj_KeyDown(KeyCode As Integer, Shift As Integer)
-
-  Dim strCBText As String, blnPasteOK As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  'need to handle cut, copy, paste, select all shortcuts
-  Select Case Shift
-  Case vbCtrlMask
-    Select Case KeyCode
-    Case vbKeyX 'cut
-      'only is something selected
-      If txtMaxScreenObj.SelLength > 0 Then
-        'put the selected text into clipboard
-        Clipboard.Clear
-        Clipboard.SetText txtMaxScreenObj.SelText
-        'then delete it
-        txtMaxScreenObj.SelText = ""
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyC 'copy
-      'only is something selected
-      If txtMaxScreenObj.SelLength > 0 Then
-        'put the selected text into clipboard
-        Clipboard.Clear
-        Clipboard.SetText txtMaxScreenObj.SelText
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyV 'paste
-      'paste only allowed if clipboard text is a valid number
-      strCBText = Clipboard.GetText
-      ' put a zero in front, just in case it's a hex or octal
-      ' string; we don't want those
-      If IsNumeric("0" & strCBText) And Len(strCBText) > 0 Then
-        'only integers
-        If Int(strCBText) = Val(strCBText) Then
-          'range 0-255
-          If Val(strCBText) >= 0 And Val(strCBText) <= 255 Then
-            blnPasteOK = True
-          Else
-            blnPasteOK = False
-          End If
-        Else
-          blnPasteOK = False
-        End If
-      Else
-        blnPasteOK = False
-      End If
-      
-      If blnPasteOK Then
-        'put cbtext into selection
-        txtMaxScreenObj.SelText = strCBText
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyA 'select all
-      txtMaxScreenObj.SelStart = 0
-      txtMaxScreenObj.SelLength = Len(txtMaxScreenObj.Text)
-      KeyCode = 0
-      Shift = 0
-    End Select
-  End Select
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub txtMaxScreenObj_KeyPress(KeyAscii As Integer)
-
-  'allow only numbers, backspace, and delete
-  
-  On Error GoTo ErrHandler
-  
-  Select Case KeyAscii
-  Case 8  ' backspace
-    'ignore if no characters
-  
-  Case 48 To 57 'numbers
-  Case 9, 10, 13 'enter or tab
-    'if result is valid,
-    If ValidateMaxSObj() Then
-      'set focus to grid
-      fgObjects.SetFocus
-      'reenable edit menu
-      frmMDIMain.mnuEdit.Enabled = True
-      
-    Else
-      'need to force focus (might be a tab thing?)
-      With txtMaxScreenObj
-        .SelStart = 0
-        .SelLength = Len(.Text)
-        .SetFocus
-      End With
-    End If
-    
-    'ignore key
-    KeyAscii = 0
-    
-  Case 27 'escape
-    'restore value
-    txtMaxScreenObj.Text = CStr(ObjectsEdit.MaxScreenObjects)
-
-    'set focus to grid
-    fgObjects.SetFocus
-    'reenable edit menu
-    frmMDIMain.mnuEdit.Enabled = True
-  
-    'ignore key
-    KeyAscii = 0
-    
-  Case Else
-    'ignore all other keys
-    KeyAscii = 0
-  End Select
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Function ValidateMaxSObj() As Boolean
-  
-  Dim NewMax As Long
-  
-  On Error GoTo ErrHandler
-  
-  'assume ok until proven otherwise
-  ValidateMaxSObj = True
-  
-  If Val(txtMaxScreenObj.Text) <= 0 Then
-    'force it to 0 and warn user
-    NewMax = 0
-    If MsgBoxEx("Setting MaxScreenObject to 0 means only ego can be animated." & vbCrLf & _
-    "Are you sure you want to set this value?", vbQuestion + vbYesNo + vbMsgBoxHelpButton, "Zero Screen Objects", WinAGIHelp, "htm\agi\screenobjs.htm#maxscreenobjs") = vbNo Then
-      'fail validation
-      ValidateMaxSObj = False
-    End If
-    
-  ElseIf Val(txtMaxScreenObj.Text) > 255 Then
-    'force it to 255
-    NewMax = 255
-    'ask user to validate
-    If MsgBoxEx("Largest value for MaxScreenObject is 255. Setting a value this" & vbNewLine & _
-                "high will likely result in running out of memory. Are you sure" & vbNewLine & "you want to set this value?", vbQuestion + vbYesNo + vbMsgBoxHelpButton, "High Max Screen Object Count", WinAGIHelp, "htm\agi\screenobjs.htm#maxscreenobjs") = vbNo Then
-      'fail validation
-      ValidateMaxSObj = False
-    End If
-    
-  Else
-    'use it if it's a valid byte value
-    NewMax = Val(txtMaxScreenObj.Text)
-    
-    'check for abnormally small or large values
-    If NewMax < 16 Then
-      If MsgBoxEx("Less than 16 screen objects is unusually low." & vbCrLf & _
-      "Are you sure you want to set this value?", vbQuestion + vbYesNo + vbMsgBoxHelpButton, "Low Max Screen Object Count", WinAGIHelp, "htm\agi\screenobjs.htm#maxscreenobjs") = vbNo Then
-        'fail validation
-        ValidateMaxSObj = False
-      End If
-    ElseIf NewMax > 48 Then
-      If MsgBoxEx("More than 48 screen objects is unusually high." & vbCrLf & _
-      "Are you sure you want to set this value?", vbQuestion + vbYesNo + vbMsgBoxHelpButton, "High Max Screen Object Count", WinAGIHelp, "htm\agi\screenobjs.htm#maxscreenobjs") = vbNo Then
-        'fail validation
-        ValidateMaxSObj = False
-      End If
-    End If
-  End If
-  
-  If ValidateMaxSObj Then
-    'if new value is OK, keep it,
-    ModifyMax NewMax
-  Else
-    'reset and highlight the text box
-    txtMaxScreenObj.Text = CStr(ObjectsEdit.MaxScreenObjects)
-    txtMaxScreenObj.SelStart = 0
-    txtMaxScreenObj.SelLength = Len(txtMaxScreenObj.Text)
-  End If
-Exit Function
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Function
-
-Public Sub txtMaxScreenObj_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  Dim strCBText As String
-  
-  On Error GoTo ErrHandler
-  
-  ' check for right click to show context menu
-  If Button = vbRightButton Then
-    'configure the edit menu
-    With frmMDIMain
-      .mnuTBCopy.Enabled = txtMaxScreenObj.SelLength > 0
-      .mnuTBCut.Enabled = .mnuTBCopy.Enabled
-      'paste only allowed if clipboard text is a valid number
-      strCBText = Clipboard.GetText
-      ' put a zero in front, just in case it's a hex or octal
-      ' string; we don't want those
-      If IsNumeric("0" & strCBText) And Len(strCBText) > 0 Then
-        'only integers
-        If Int(strCBText) = Val(strCBText) Then
-          'range 0-255
-          If Val(strCBText) >= 0 And Val(strCBText) <= 255 Then
-            .mnuTBPaste.Enabled = True
-          Else
-            .mnuTBPaste.Enabled = False
-          End If
-        Else
-          .mnuTBPaste.Enabled = False
-        End If
-      Else
-        .mnuTBPaste.Enabled = False
-      End If
-      
-      'char picker not used here
-      .mnuTBSeparator1.Visible = False
-      .mnuTBCharMap.Visible = False
-      
-      ' set the command operation to none
-      TBCmd = 0
-      
-      'now show the popup menu
-      PopupMenu .mnuTBPopup
-    End With
-    
-    'deal with the result
-    Select Case TBCmd
-    Case 0 'canceled
-      'do nothing
-      Exit Sub
-    Case 1 'cut
-      'put the selected text into clipboard
-      Clipboard.Clear
-      Clipboard.SetText txtMaxScreenObj.SelText
-      'then delete it
-      txtMaxScreenObj.SelText = ""
-    Case 2 'copy
-      'put the selected text into clipboard
-      Clipboard.Clear
-      Clipboard.SetText txtMaxScreenObj.SelText
-    Case 3 'paste
-      'put cbtext into selection
-      txtMaxScreenObj.SelText = strCBText
-    Case 4 'select all
-      txtMaxScreenObj.SelStart = 0
-      txtMaxScreenObj.SelLength = Len(txtMaxScreenObj.Text)
-    End Select
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub txtMaxScreenObj_Validate(Cancel As Boolean)
-
-  'this will handle cases where user tries to 'click' on something,
-  
-  On Error GoTo ErrHandler
-  
-  'if OK, hide the text box
-  If ValidateMaxSObj() Then
-    'set focus to grid
-    fgObjects.SetFocus
-  Else
-  'if not OK, cancel
-    Cancel = True
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub rtfObject_Change()
-
-  On Error GoTo ErrHandler
-  
-  'if this is last row,
-  If EditRow = fgObjects.Rows - 1 Then
-''    'add another row
-''    fgObjects.AddItem vbNullString
-''    'adjust column widths by resizing
-''    Form_Resize
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub rtfObject_KeyDown(KeyCode As Integer, Shift As Integer)
-
-  Dim strCBText As String
-  
-  On Error GoTo ErrHandler
-  
-  'to avoid the annoying 'ding' when pressing ENTER in a single line
-  'richtext control, also need to ignore it in KeyDown event
-  If KeyCode = 13 Then
-    KeyCode = 0
-  End If
-  'if no characters, also ignore backspace
-  If KeyCode = 8 And Len(rtfObject.Text) = 0 Then
-    KeyCode = 0
-  End If
-  
-  'always check for help first
-  If Shift = 0 And KeyCode = vbKeyF1 Then
-    MenuClickHelp
-    KeyCode = 0
-    Exit Sub
-  End If
-  
-  'need to handle cut, copy, paste, select all shortcuts
-  Select Case Shift
-  Case vbCtrlMask
-    Select Case KeyCode
-    Case vbKeyX 'cut
-      'only is something selected
-      If rtfObject.Selection.Range.Length > 0 Then
-        'put the selected text into clipboard
-        rtfObject.Selection.Range.Cut
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyC 'copy
-      'only is something selected
-      If rtfObject.Selection.Range.Length > 0 Then
-        'put the selected text into clipboard
-        rtfObject.Selection.Range.Copy
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyV 'paste
-      ' put cbtext into selection
-      ' trim white space off clipboard text, and no multi-line text
-      strCBText = Trim$(Clipboard.GetText)
-      strCBText = Replace(strCBText, vbCr, "")
-      strCBText = Replace(strCBText, vbLf, "")
-      'paste only allowed if clipboard has text
-      If Len(strCBText) > 0 Then
-        'put cbtext into selection
-'''        rtfObject.Selection.Range.Paste
-        rtfObject.Selection.Range.TextB = strCBText
-        rtfObject.Selection.Range.Collapse reEnd
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyA 'select all
-      rtfObject.Range.SelectRange
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyInsert
-      'set flag so other controls know charpicker is active
-      PickChar = True
-      ShowCharPickerForm rtfObject
-      KeyCode = 0
-      Shift = 0
-      'done with charpicker
-      PickChar = False
-    End Select
-  End Select
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub rtfObject_KeyPress(KeyAscii As Integer)
-  
-  On Error GoTo ErrHandler
-  
-  Select Case KeyAscii
-  Case 9, 10, 13 'enter or tab
-    'if result is valid,
-    If ValidateObject() Then
-      'hide the box
-      rtfObject.Visible = False
-      
-      fgObjects.SetFocus
-      'reenable edit menu
-      frmMDIMain.mnuEdit.Enabled = True
-      
-      'tab moves to next column and begins editing
-      If KeyAscii = 9 Then
-        'move to Room column
-        fgObjects.Col = ctRoom
-        'start another edit operation
-        fgObjects_DblClick
-      End If
-    Else
-      'need to force focus so issue can be fixed
-      rtfObject.SetFocus
-    End If
-    
-    'ignore key
-    KeyAscii = 0
-    
-  Case 27 'escape
-    'hide the textbox without saving text
-    rtfObject.Visible = False
-    
-    'ignore key
-    KeyAscii = 0
-  End Select
-  
-  'if new object is blank
-  If LenB(fgObjects.TextMatrix(EditRow, ctDesc)) = 0 Then
-    MenuClickDelete
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub rtfObject_MouseDown(Button As Integer, Shift As Integer, X As Long, Y As Long, LinkRange As RichEditAGI.Range)
-
-  Dim strCBText As String
-  
-  On Error GoTo ErrHandler
-  
-  ' check for right click to show context menu
-  If Button = vbRightButton Then
-    'configure the edit menu
-    With frmMDIMain
-      .mnuTBCopy.Enabled = rtfObject.Selection.Range.Length > 0
-      .mnuTBCut.Enabled = .mnuTBCopy.Enabled
-      ' put cbtext into selection
-      ' trim white space off clipboard text, and no multi-line text
-      strCBText = Trim$(Clipboard.GetText)
-      strCBText = Replace(strCBText, vbCr, "")
-      strCBText = Replace(strCBText, vbLf, "")
-      'paste only allowed if clipboard has text
-      If Len(strCBText) > 0 Then
-          .mnuTBPaste.Enabled = True
-      Else
-        .mnuTBPaste.Enabled = False
-      End If
-      
-      'char picker always available
-      .mnuTBSeparator1.Visible = True
-      .mnuTBCharMap.Visible = True
-      
-      ' set the command operation to none
-      TBCmd = 0
-      
-      'now show the popup menu
-      PopupMenu .mnuTBPopup
-    End With
-    
-    'deal with the result
-    Select Case TBCmd
-    Case 0 'canceled
-      'do nothing
-      Exit Sub
-    Case 1 'cut
-      'put the selected text into clipboard
-      rtfObject.Selection.Range.Cut
-    
-    Case 2 'copy
-      'put the selected text into clipboard
-      rtfObject.Selection.Range.Copy
-      
-    Case 3 'paste
-      'put cbtext into selection
-      rtfObject.Selection.Range.TextB = strCBText
-      rtfObject.Selection.Range.Collapse reEnd
-    Case 4 'select all
-      rtfObject.Range.SelectRange
-    Case 5 ' show char picker
-      'set flag so other controls know charpicker is active
-      PickChar = True
-      ShowCharPickerForm rtfObject
-      'done with charpicker
-      PickChar = False
-    End Select
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub rtfObject_Validate(Cancel As Boolean)
-  
-  'this will handle cases where user tries to 'click' on something,
-  
-  On Error GoTo ErrHandler
-  
-  If Not rtfObject.Visible Then Exit Sub
-  
-  'if OK, hide the text box
-  If ValidateObject() Then
-    rtfObject.Visible = False
-  Else
-  'if not OK, cancel
-    Cancel = True
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-
-
-Private Sub txtRoomNo_KeyDown(KeyCode As Integer, Shift As Integer)
-
-  Dim strCBText As String, blnPasteOK As Boolean
-  
-  On Error GoTo ErrHandler
-  
-  'need to handle cut, copy, paste, select all shortcuts
-  Select Case Shift
-  Case vbCtrlMask
-    Select Case KeyCode
-    Case vbKeyX 'cut
-      'only is something selected
-      If txtRoomNo.SelLength > 0 Then
-        'put the selected text into clipboard
-        Clipboard.Clear
-        Clipboard.SetText txtRoomNo.SelText
-        'then delete it
-        txtRoomNo.SelText = ""
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyC 'copy
-      'only is something selected
-      If txtRoomNo.SelLength > 0 Then
-        'put the selected text into clipboard
-        Clipboard.Clear
-        Clipboard.SetText txtRoomNo.SelText
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyV 'paste
-      'paste only allowed if clipboard text is a valid number
-      strCBText = Clipboard.GetText
-      ' put a zero in front, just in case it's a hex or octal
-      ' string; we don't want those
-      If IsNumeric("0" & strCBText) And Len(strCBText) > 0 Then
-        'only integers
-        If Int(strCBText) = Val(strCBText) Then
-          'range 0-255
-          If Val(strCBText) >= 0 And Val(strCBText) <= 255 Then
-            blnPasteOK = True
-          Else
-            blnPasteOK = False
-          End If
-        Else
-          blnPasteOK = False
-        End If
-      Else
-        blnPasteOK = False
-      End If
-      
-      If blnPasteOK Then
-        'put cbtext into selection
-        txtRoomNo.SelText = strCBText
-      End If
-      KeyCode = 0
-      Shift = 0
-      
-    Case vbKeyA 'select all
-      txtRoomNo.SelStart = 0
-      txtRoomNo.SelLength = Len(txtRoomNo.Text)
-      KeyCode = 0
-      Shift = 0
-    End Select
-  End Select
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-Private Sub txtRoomNo_KeyPress(KeyAscii As Integer)
-
-  'allow only numbers, backspace, and delete
-  On Error GoTo ErrHandler
-  
-  Select Case KeyAscii
-  Case 48 To 57, 8  'numbers and backspace
-  Case 9, 10, 13 'enter or tab
-    'if result is valid,
-    If ValidateRoom() Then
-      'hide the box
-      txtRoomNo.Visible = False
-      fgObjects.SetFocus
-      'reenable edit menu
-      frmMDIMain.mnuEdit.Enabled = True
-      
-      'tab moves to next row, description
-      If KeyAscii = 9 Then
-        'if on last row
-        If fgObjects.Row = fgObjects.Rows - 1 Then
-''          'add a new row
-''          fgObjects.AddItem vbNullString
-        Else
-          'move to next column, next row
-          fgObjects.Col = 1
-          fgObjects.Row = fgObjects.Row + 1
-          
-          'start another edit operation
-          fgObjects_DblClick
-        End If
-        
-      End If
-    Else
-      'need to force focus (might be a tab thing?)
-      txtRoomNo.SetFocus
-    End If
-      
-    'ignore key
-    KeyAscii = 0
-    
-  Case 27 'escape
-    'hide textbox without saving text
-    txtRoomNo.Visible = False
-    
-    'ignore key
-    KeyAscii = 0
-    fgObjects.SetFocus
-    'reenable edit menu
-    frmMDIMain.mnuEdit.Enabled = True
-  
-  Case Else
-    'ignore all other keys
-    KeyAscii = 0
-  End Select
-  
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-
-Public Sub txtRoomNo_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-  Dim strCBText As String
-  
-  On Error GoTo ErrHandler
-  
-  ' check for right click to show context menu
-  If Button = vbRightButton Then
-    'configure the edit menu
-    With frmMDIMain
-      .mnuTBCopy.Enabled = txtRoomNo.SelLength > 0
-      .mnuTBCut.Enabled = .mnuTBCopy.Enabled
-      'paste only allowed if clipboard text is a valid number
-      strCBText = Clipboard.GetText
-      ' put a zero in front, just in case it's a hex or octal
-      ' string; we don't want those
-      If IsNumeric("0" & strCBText) And Len(strCBText) > 0 Then
-        'only integers
-        If Int(strCBText) = Val(strCBText) Then
-          'range 0-255
-          If Val(strCBText) >= 0 And Val(strCBText) <= 255 Then
-            .mnuTBPaste.Enabled = True
-          Else
-            .mnuTBPaste.Enabled = False
-          End If
-        Else
-          .mnuTBPaste.Enabled = False
-        End If
-      Else
-        .mnuTBPaste.Enabled = False
-      End If
-      
-      ' set the command operation to none
-      TBCmd = 0
-      
-      'now show the popup menu
-      PopupMenu .mnuTBPopup
-    End With
-    
-    'deal with the result
-    Select Case TBCmd
-    Case 0 'canceled
-      'do nothing
-      Exit Sub
-    Case 1 'cut
-      'put the selected text into clipboard
-      Clipboard.Clear
-      Clipboard.SetText txtRoomNo.SelText
-      'then delete it
-      txtRoomNo.SelText = ""
-    Case 2 'copy
-      'put the selected text into clipboard
-      Clipboard.Clear
-      Clipboard.SetText txtRoomNo.SelText
-    Case 3 'paste
-      'put cbtext into selection
-      txtRoomNo.SelText = strCBText
-    Case 4 'select all
-      txtRoomNo.SelStart = 0
-      txtRoomNo.SelLength = Len(txtRoomNo.Text)
-    End Select
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-
-Private Sub txtRoomNo_Validate(Cancel As Boolean)
-
-  'this will handle cases where user tries to 'click' on something,
-  'but NOT when keys are pressed?
-  
-  On Error GoTo ErrHandler
-  If Not txtRoomNo.Visible Then Exit Sub
-  
-  'if OK, hide the text box
-  If ValidateRoom() Then
-    txtRoomNo.Visible = False
-  Else
-  'if not OK, cancel
-    Cancel = True
-  End If
-Exit Sub
-
-ErrHandler:
-  '*'Debug.Assert False
-  Resume Next
-End Sub
-
-
-
-            */
-        }
-
-        private void button1_Click(object sender, EventArgs e) {
-            EditInvList.Clear();
-            if (EditInvList.Count > 1) {
-                label1.Text = $"Item 1: {EditInvList[1].ItemName}";
-            }
-            else {
-                label1.Text = "Only one item";
-            }
-            label2.Text = $"Max SObj: {EditInvList.MaxScreenObjects}";
-            MarkAsChanged();
-        }
+        */
 
         #endregion
+
+        private void AddUndo(ObjectsUndo NextUndo) {
+            UndoCol.Push(NextUndo);
+            MarkAsChanged();
+            FindingForm.ResetSearch();
+        }
+
+        private void SetEncryption(bool encrypt, bool DontUndo = false) {
+            if (encrypt == EditInvList.Encrypted) {
+                return;
+            }
+            if (InGame && !DontUndo) {
+                bool blnCorrect = !(EditGame.InterpreterVersion == "2.089" || EditGame.InterpreterVersion == "2.272");
+                bool blnNoWarn = false;
+                if (blnCorrect != encrypt && WinAGISettings.WarnEncrypt.Value) {
+                    DialogResult rtn = MsgBoxEx.Show(MDIMain,
+                        "The target Interpreter Version for this game needs the OBJECT file to be " +
+                        (blnCorrect ? "ENCRYPTED" : "UNENCRYPTED") + ". Are you sure you want to change it?",
+                        "Change OBJECT Encryption",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question,
+                        "Don't show this warning again.", ref blnNoWarn,
+                        WinAGIHelp, "htm\\agi\\object.htm#format");
+                    if (blnNoWarn) {
+                        WinAGISettings.WarnEncrypt.Value = false;
+                        WinAGISettings.WarnEncrypt.WriteSetting(WinAGISettingsFile);
+                    }
+                    if (rtn == DialogResult.No) {
+                        return;
+                    }
+                }
+            }
+            if (!DontUndo) {
+                ObjectsUndo NextUndo = new();
+                NextUndo.UDAction = TglEncrypt;
+                NextUndo.UDObjectRoom = (byte)(EditInvList.Encrypted ? 1 : 0);
+                AddUndo(NextUndo);
+            }
+            EditInvList.Encrypted = encrypt;
+            MarkAsChanged();
+        }
 
         public bool LoadOBJECT(InventoryList objectobj) {
 
@@ -2919,17 +1392,17 @@ End Sub
             }
             EditInvList = objectobj.Clone();
             EditInvListFilename = objectobj.ResFile;
-
-
-
-            // TODO: setup form for editing
-            label1.Text = $"Max SObj: {EditInvList.MaxScreenObjects}";
             for (int i = 0; i < EditInvList.Count; i++) {
-                lstItems.Items.Add(i.ToString() + ": " + EditInvList[(byte)i].ItemName);
+                int currentrow = fgObjects.Rows.Add();
+                fgObjects[0, currentrow].Value = i;
+                fgObjects[1, currentrow].Value = EditInvList[i].ItemName;
+                fgObjects[2, currentrow].Value = EditInvList[i].Room;
             }
+            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+
             // statusbar has not been merged yet
-            statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
-            statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
+            //statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
+            //statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
 
             Text = "Objects Editor - ";
             if (InGame) {
@@ -2968,14 +1441,14 @@ End Sub
             // replace current objectlist
             EditInvList = tmpList;
             EditInvListFilename = importfile;
-            // TODO: refresh the editor
-            if (EditInvList.Count > 1) {
-                label1.Text = $"Item 1: {EditInvList[1].ItemName}";
+            fgObjects.Rows.Clear();
+            for (int i = 0; i < EditInvList.Count; i++) {
+                int currentrow = fgObjects.Rows.Add();
+                fgObjects[0, currentrow].Value = i;
+                fgObjects[1, currentrow].Value = EditInvList[i].ItemName;
+                fgObjects[2, currentrow].Value = EditInvList[i].Room;
             }
-            else {
-                label1.Text = "Only one item";
-            }
-            label2.Text = $"Max SObj: {EditInvList.MaxScreenObjects}";
+            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
             MarkAsChanged();
             MDIMain.UseWaitCursor = false;
         }
@@ -3040,7 +1513,6 @@ End Sub
             //        MDIMain.UseWaitCursor = false;
             //    }
             //}
-
             if (InGame) {
                 MDIMain.UseWaitCursor = true;
                 bool loaded = EditGame.InvObjects.Loaded;
@@ -3165,8 +1637,64 @@ End Sub
         }
 
         internal void InitFonts() {
-            // TODO: after finalizing form layout, need to adjust font init
-            lstItems.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
+            Font formfont = new(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
+            Label1.Font = formfont;
+            txtMaxScreenObjs.Font = formfont;
+            Label1.Left = txtMaxScreenObjs.Left - Label1.Width - 1;
+            fgObjects.Top = txtMaxScreenObjs.Height;
+            fgObjects.Font = formfont;
+        }
+
+        private void ModifyMax(byte NewMax, bool DontUndo = false) {
+            if (EditInvList.MaxScreenObjects == NewMax) {
+                return;
+            }
+            if (!DontUndo) {
+                ObjectsUndo NextUndo = new() {
+                    UDAction = ChangeMaxObj,
+                    UDObjectRoom = EditInvList.MaxScreenObjects
+                };
+                AddUndo(NextUndo);
+            }
+            EditInvList.MaxScreenObjects = NewMax;
+            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            MarkAsChanged();
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+            // Enter key is usually captured by the grid, but we want it to go to the textbox
+            if (keyData == Keys.Enter) {
+                if (EditTextBox.Focused) {
+                    //if (fgObjects.IsCurrentCellInEditMode) {
+                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                    return true;
+                }
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+    }
+
+    public class ObjectsUndo {
+        public ActionType UDAction;
+        public byte UDObjectRoom; // also used for Max objects & encryption
+        public int UDObjectNo;
+        public string UDObjectText = "";
+
+        public enum ActionType {
+            AddItem,      // store object number that was added
+            DeleteItem,   // store object number, text, and room that was deleted
+            ModifyItem,   // store old object number, text
+            ModifyRoom,   // store old object number, room
+            ChangeDesc,     // store old description
+            ChangeMaxObj,   // store old maxobjects
+            TglEncrypt,     // store old encryption Value
+            Clear,          // store old Objects object
+            Replace,    // store old object number, text
+            ReplaceAll, // store all old numbers and text
+        }
+
+        public ObjectsUndo() {
+
         }
     }
 }

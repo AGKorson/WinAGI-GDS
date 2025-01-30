@@ -801,7 +801,12 @@ namespace WinAGI.Engine {
                     parent.InvObjects.Unload();
                 }
                 for (int i = 0; i < agGameInfo.Length; i++) {
-                    resList.Add("#define " + agGameInfo[i].Name.PadRight(17) + agGameInfo[i].Value.PadLeft(5));
+                    if (agGameInfo[i].Type == ArgType.DefStr) {
+                        resList.Add("#define " + agGameInfo[i].Name.PadRight(17) + '"' + agGameInfo[i].Value + '"');
+                    }
+                    else {
+                        resList.Add("#define " + agGameInfo[i].Name.PadRight(17) + agGameInfo[i].Value.PadLeft(5));
+                    }
                 }
                 // save defines file
                 try {

@@ -3254,7 +3254,7 @@ namespace WinAGI.Editor {
                     }
                     // skip any items that are just a question mark
                     for (int i = 0; i < EditGame.InvObjects.Count; i++) {
-                        strLine = EditGame.InvObjects[(byte)i].ItemName;
+                        strLine = EditGame.InvObjects[i].ItemName;
                         if (strLine != "?") {
                             if (strLine.Contains(QUOTECHAR)) {
                                 strLine = strLine.Replace("\"", "\\" + QUOTECHAR);

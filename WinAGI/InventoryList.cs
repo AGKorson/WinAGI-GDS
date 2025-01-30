@@ -89,7 +89,15 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public InventoryItem this[byte index] { get { return mItems[index]; } }
+        public InventoryItem this[int index] {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                if (index < 0 || index >= mItems.Count) {
+                    throw new ArgumentOutOfRangeException();
+                }
+                return mItems[index];
+            }
+        }
 
         /// <summary>
         /// Gets or sets the index of highest allowable screen object that gets stored
@@ -189,12 +197,12 @@ namespace WinAGI.Engine {
         /// Gets the number of inventory items in this list, including all
         /// null ('?') items.
         /// </summary>
-        public byte Count {
+        public int Count {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
                 // although first object is a null item, it still needs
                 // to be counted (as do all other nulls)
-                return (byte)mItems.Count;
+                return mItems.Count;
             }
         }
 
@@ -664,12 +672,31 @@ namespace WinAGI.Engine {
             return tmpItem;
         }
 
+        public InventoryItem Add(InventoryItem item) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            if (mItems.Count == MAX_ITEMS) {
+                WinAGIException wex = new(LoadResString(569)) {
+                    HResult = WINAGI_ERR + 569,
+                };
+                throw wex;
+            }
+            InventoryItem tmpItem = new InventoryItem(this);
+            tmpItem.ItemName = item.ItemName;
+            tmpItem.Room = item.Room;
+            mItems.Add(tmpItem);
+            mIsChanged = true;
+            return tmpItem;
+        }
+
         /// <summary>
         /// Removes an inventory item from this list.
         /// </summary>
         /// <param name="Index"></param>
-        public void Remove(byte Index) {
+        public void Remove(int Index) {
             WinAGIException.ThrowIfNotLoaded(this);
+            if (Index < 0 || Index >= mItems.Count) {
+                throw new ArgumentOutOfRangeException();
+            }
             InventoryItem tmpItem = mItems[Index];
 
             //if this item is currently a duplicate, 

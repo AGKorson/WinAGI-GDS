@@ -1832,7 +1832,7 @@ namespace WinAGI.Engine {
                         // otherwise the object would never match
                         strArg = strArg.Replace("\\\"", QUOTECHAR.ToString());
                         for (i = 0; i < compGame.InvObjects.Count; i++) {
-                            if (strArg == compGame.InvObjects[(byte)i].ItemName) {
+                            if (strArg == compGame.InvObjects[i].ItemName) {
                                 lngArg = i;
                                 break;
                             }
@@ -1849,7 +1849,7 @@ namespace WinAGI.Engine {
                         }
                         // check for valid, but non-unique object (if passed by
                         // text string, it can't be one that is not unique)
-                        if (lngArg != -1 && !compGame.InvObjects[(byte)lngArg].Unique) {
+                        if (lngArg != -1 && !compGame.InvObjects[lngArg].Unique) {
                             if  (ErrorLevel == Medium) {
                                 AddWarning(5003, LoadResString(5003).Replace(ARG1, (argpos + 1).ToString()));
                             }
@@ -1869,7 +1869,7 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // check for question mark
-                        if (compGame.InvObjects[(byte)lngArg].ItemName == "?") {
+                        if (compGame.InvObjects[lngArg].ItemName == "?") {
                             if (ErrorLevel == Medium) {
                                 AddWarning(5004);
                             }
