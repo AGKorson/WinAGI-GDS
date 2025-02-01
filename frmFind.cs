@@ -23,6 +23,7 @@ namespace WinAGI.Editor {
             InitializeComponent();
             cmbDirection.SelectedIndex = 0;
             MDIMain.AddOwnedForm(this);
+            this.Owner = MDIMain;
         }
         #region Event Handlers
         private void chkMatchWord_CheckedChanged(object sender, EventArgs e) {
@@ -179,12 +180,12 @@ namespace WinAGI.Editor {
             cmbDirection.Enabled = false;
             chkMatchWord.Enabled = true;
             chkMatchCase.Text = "Match Case";
-            if (!Visible) {
+            //if (!Visible) {
                 cmbDirection.SelectedIndex = (int)GFindDir;
                 chkMatchWord.Checked = GMatchWord;
                 rtfReplace.Text = GReplaceText;
                 chkMatchCase.Checked = GMatchCase;
-            }
+            //}
             cmbFind.Text = GFindText;
 
             switch (FormFunction) {
@@ -445,6 +446,19 @@ namespace WinAGI.Editor {
                 break;
             case FindFormFunction.FindObject:
             case FindFormFunction.ReplaceObject:
+                if (MDIMain.ActiveMdiChild is frmObjectEdit) {
+                    switch (FindingForm.FormAction) {
+                    case FindFormAction.Find:
+                        ((frmObjectEdit)(MDIMain.ActiveMdiChild)).FindInObjects(GFindText, GFindDir, GMatchWord, GMatchCase);
+                        break;
+                    case FindFormAction.Replace:
+                        ((frmObjectEdit)(MDIMain.ActiveMdiChild)).FindInObjects(GFindText, GFindDir, GMatchWord, GMatchCase, true, GReplaceText);
+                        break;
+                    case FindFormAction.ReplaceAll:
+                        ((frmObjectEdit)(MDIMain.ActiveMdiChild)).ReplaceAll(GFindText, GReplaceText, GMatchWord, GMatchCase);
+                        break;
+                    }
+                }
                 break;
             case FindFormFunction.FindText:
             case FindFormFunction.ReplaceText:

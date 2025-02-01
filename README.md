@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha12.1
+        Version 3.0.0alpha13.0
     ==============================
 
 
@@ -22,8 +22,8 @@ WinAGI is a full featured game development system, that includes editors which p
  - When installing, don't use a sub-directory of Program Files. There are weird file access permission issues that will prevent the app from running.
 
 ---
-  
-  
+
+
 ### Progress Points:  
 
     X  1. Game and Form basic structure
@@ -38,7 +38,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X 10. Snippets Editor
     X 11. Global Defines Editor
     X 12. Reserved Defines Editor
-    O 13. Object Editor
+    X 13. Object Editor
       14. Word Editor
       15. Palette Editor
       16. Picture Editor
@@ -54,6 +54,9 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History: 
+
+**alpha13.0** OBJECT file editor is complete. Fixed errors in Find form, fixed right-click menu in globals and objects editors, added keyhandler to msgboxex class.
+
 
 **alpha12.1** Working on OBJECT file editor. Basic editing functions working, still need to add find/replace functions.
 

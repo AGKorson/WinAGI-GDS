@@ -210,6 +210,7 @@ namespace WinAGI.Editor {
             mnuRAmigaOBJ.Name = "mnuRAmigaOBJ";
             mnuRAmigaOBJ.Size = new System.Drawing.Size(274, 22);
             mnuRAmigaOBJ.Text = "Convert AMIGA Format to DOS";
+            mnuRAmigaOBJ.Click += mnuRAmigaOBJ_Click;
             // 
             // mnuEdit
             // 
@@ -224,10 +225,10 @@ namespace WinAGI.Editor {
             // cmGrid
             // 
             cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, toolStripSeparator1, mnuEDelete, mnuEClear, mnuEInsert, toolStripSeparator2, mnuEFind, mnuEFindAgain, mnuEReplace, toolStripSeparator3, mnuEFindInLogic, mnuEditItem });
-            cmGrid.Name = "cmEdit";
-            cmGrid.Size = new System.Drawing.Size(215, 242);
-            cmGrid.Closed += cmEdit_Closed;
-            cmGrid.Opening += cmEdit_Opening;
+            cmGrid.Name = "cmGrid";
+            cmGrid.Size = new System.Drawing.Size(215, 220);
+            cmGrid.Closed += cmGrid_Closed;
+            cmGrid.Opening += cmGrid_Opening;
             // 
             // mnuEUndo
             // 
@@ -264,6 +265,7 @@ namespace WinAGI.Editor {
             mnuEInsert.ShortcutKeys = System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Insert;
             mnuEInsert.Size = new System.Drawing.Size(214, 22);
             mnuEInsert.Text = "Add Item";
+            mnuEInsert.Click += mnuEInsert_Click;
             // 
             // toolStripSeparator2
             // 
@@ -518,6 +520,7 @@ namespace WinAGI.Editor {
             Name = "frmObjectEdit";
             StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
             Text = "frmObjectEdit";
+            Activated += frmObjectEdit_Activated;
             FormClosing += frmObjectEdit_FormClosing;
             FormClosed += frmObjectEdit_FormClosed;
             Load += frmObjectEdit_Load;

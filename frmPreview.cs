@@ -107,17 +107,28 @@ namespace WinAGI.Editor {
 
             MdiParent = MDIMain;
             SelResNum = -1;
+            PositionPreview();
         }
 
         #region Event Handlers
         #region Form Event Handlers
         private void frmPreview_Activated(object sender, EventArgs e) {
-            
-            //if findform is visible,
             if (FindingForm.Visible) {
-                //hide it it
                 FindingForm.Visible = false;
             }
+
+
+            //// if findform is visible,
+            //if (FindingForm.Visible) {
+            //    // if coming from a resourceid search
+            //    if (IDSearch) {
+            //        // hide it it
+            //        IDSearch = false;
+            //    }
+            //    else {
+            //        FindingForm.Visible = false;
+            //    }
+            //}
         }
 
         private void frmPreview_Deactivate(object sender, EventArgs e) {
@@ -191,12 +202,16 @@ namespace WinAGI.Editor {
         }
 
         private void frmPreview_VisibleChanged(object sender, EventArgs e) {
+            // position is set when form is loaded, and saved when form
+            // is disposed; no need to do it here is there????
+            
+            
             // if now visible, need to force position to correct value
             if (Visible) {
-                PositionPreview();
+                //PositionPreview();
             }
             else {
-                SavePreviewPos();
+                //SavePreviewPos();
             }
         }
 
@@ -1010,21 +1025,20 @@ namespace WinAGI.Editor {
         private void PositionPreview() {
             int sngLeft, sngTop;
             int sngWidth, sngHeight;
-
             // get preview window position
             sngWidth = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
             if (sngWidth <= MIN_WIDTH) {
                 sngWidth = MIN_WIDTH;
             }
-            else if (sngWidth > 0.75 * Screen.GetWorkingArea(this).Width) {
-                sngWidth = (int)(0.75 * Screen.GetWorkingArea(this).Width);
+            else if (sngWidth > 0.75 * Screen.GetWorkingArea(this.Parent).Width) {
+                sngWidth = (int)(0.75 * Screen.GetWorkingArea(this.Parent).Width);
             }
             sngHeight = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
             if (sngHeight <= MIN_HEIGHT) {
                 sngHeight = MIN_HEIGHT;
             }
-            else if (sngHeight > 0.75 * Screen.GetWorkingArea(this).Height) {
-                sngHeight = (int)(0.75 * Screen.GetWorkingArea(this).Height);
+            else if (sngHeight > 0.75 * Screen.GetWorkingArea(this.Parent).Height) {
+                sngHeight = (int)(0.75 * Screen.GetWorkingArea(this.Parent).Height);
             }
             sngLeft = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewLeft", 0);
             if (sngLeft < 0) {

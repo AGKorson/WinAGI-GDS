@@ -8738,9 +8738,9 @@ namespace WinAGI.Editor {
         AdjustMenus rtLayout, True, True, IsChanged
 
         'if findform is visible,
-        If FindForm.Visible Then
+        If FindingForm.Visible Then
           'hide it it
-          FindForm.Visible = False
+          FindingForm.Visible = False
         End If
 
         'set edit menu

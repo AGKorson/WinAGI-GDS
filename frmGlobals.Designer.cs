@@ -50,6 +50,7 @@ namespace WinAGI.Editor {
             mnuESelectAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuESep1 = new System.Windows.Forms.ToolStripSeparator();
             mnuEFindInLogics = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEditItem = new System.Windows.Forms.ToolStripMenuItem();
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             mnuResource = new System.Windows.Forms.ToolStripMenuItem();
             mnuROpenRes = new System.Windows.Forms.ToolStripMenuItem();
@@ -75,7 +76,6 @@ namespace WinAGI.Editor {
             mnuCelSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelSep2 = new System.Windows.Forms.ToolStripSeparator();
             mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
-            mnuEditItem = new System.Windows.Forms.ToolStripMenuItem();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)globalsgrid).BeginInit();
             cmGrid.SuspendLayout();
@@ -197,7 +197,7 @@ namespace WinAGI.Editor {
             // 
             cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics, mnuEditItem });
             cmGrid.Name = "contextMenuStrip1";
-            cmGrid.Size = new System.Drawing.Size(220, 258);
+            cmGrid.Size = new System.Drawing.Size(220, 236);
             cmGrid.Closed += cmGrid_Closed;
             cmGrid.Opening += cmGrid_Opening;
             // 
@@ -282,6 +282,14 @@ namespace WinAGI.Editor {
             mnuEFindInLogics.Size = new System.Drawing.Size(219, 22);
             mnuEFindInLogics.Text = "Find in Logics";
             mnuEFindInLogics.Click += mnuEFindInLogics_Click;
+            // 
+            // mnuEditItem
+            // 
+            mnuEditItem.Name = "mnuEditItem";
+            mnuEditItem.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Enter;
+            mnuEditItem.Size = new System.Drawing.Size(219, 22);
+            mnuEditItem.Text = "Edit Item";
+            mnuEditItem.Click += mnuEditItem_Click;
             // 
             // menuStrip1
             // 
@@ -486,14 +494,6 @@ namespace WinAGI.Editor {
             mnuCelCancel.Text = "Cancel                     Esc";
             mnuCelCancel.Click += mnuCelCancel_Click;
             // 
-            // mnuEditItem
-            // 
-            mnuEditItem.Name = "mnuEditItem";
-            mnuEditItem.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Enter;
-            mnuEditItem.Size = new System.Drawing.Size(219, 22);
-            mnuEditItem.Text = "Edit Item";
-            mnuEditItem.Click += mnuEditItem_Click;
-            // 
             // frmGlobals
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -506,6 +506,7 @@ namespace WinAGI.Editor {
             Name = "frmGlobals";
             StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
             Text = "frmGlobals";
+            Activated += frmGlobals_Activated;
             FormClosing += frmGlobals_FormClosing;
             FormClosed += frmGlobals_FormClosed;
             Leave += frmGlobals_Leave;

@@ -286,6 +286,20 @@ namespace WinAGI.Engine {
             get {
                 return mAmigaOBJ;
             }
+            set {
+                // for now, only allow converting FROM Amiga TO DOS
+                if (!mAmigaOBJ || value) {
+                    return;
+                }
+                if (mAmigaOBJ != value) {
+                    if (value) {
+                        SetAmigaFormat();
+                    }
+                    else {
+                        SetMSDOSFormat();
+                    }
+                }
+            }
         }
         #endregion
 
@@ -775,7 +789,7 @@ namespace WinAGI.Engine {
 
             InventoryList clonelist = new();
 
-            // copy all items and properties except ingame status
+            // copy all items and properties except ingame status and parent
             // related properties
             clonelist.mAmigaOBJ = mAmigaOBJ;
             clonelist.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
@@ -789,7 +803,7 @@ namespace WinAGI.Engine {
             // need to remove the default to avoid duplication
             clonelist.mItems.RemoveAt(0);
             foreach (InventoryItem itm in mItems) {
-                InventoryItem tmp = new InventoryItem(this);
+                InventoryItem tmp = new InventoryItem(clonelist);
                 tmp.mItemName = itm.ItemName;
                 tmp.mRoom = itm.Room;
                 tmp.Unique = itm.Unique;
@@ -830,8 +844,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Changes the format of this inventory list to Amiga, and updates
-        /// the OBJECT file. Amiga format uses four bytes per item entry in
+        /// Changes the format of this inventory list to MSDOS, and updates
+        /// the OBJECT file. MSDOS format uses three bytes per item entry in
         /// the offset table.
         /// </summary>
         public void SetMSDOSFormat() {
@@ -851,8 +865,7 @@ namespace WinAGI.Engine {
             SafeFileDelete(theDir + "OBJECT.amg");
             try {
                 File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg", true);
-                // mark it as changed, and save it to create a new file in
-                // MSDOS format
+                // mark it as changed, and save it to create a new file in MSDOS format
                 mIsChanged = true;
                 Save();
             }

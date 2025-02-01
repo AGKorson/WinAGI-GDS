@@ -5460,9 +5460,9 @@ namespace WinAGI.Editor {
         SetEditMenu
 
         'if findform is visible,
-        If FindForm.Visible Then
+        If FindingForm.Visible Then
           'hide it it
-          FindForm.Visible = False
+          FindingForm.Visible = False
         End If
 
         MainStatusBar.Panels("Scale").Text = "Scale: " & CStr(StaffScale)

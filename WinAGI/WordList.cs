@@ -711,7 +711,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <returns>The WordList that this method creates</returns>
         public WordList Clone() {
-            // only loaded views can be cloned
+            // only loaded wordlists can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
 
             WordList clonelist = new();

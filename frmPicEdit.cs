@@ -6262,9 +6262,9 @@ Private Sub Form_Activate()
   SelectedTool = tmpTool
   
   'if findform is visible,
-  If FindForm.Visible Then
+  If FindingForm.Visible Then
     'hide it it
-    FindForm.Visible = False
+    FindingForm.Visible = False
   End If
   
   'force form update

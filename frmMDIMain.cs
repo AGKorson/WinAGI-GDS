@@ -260,6 +260,29 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
+        
+            // TODO: need to supress ctrl+ keycodes that aren't valid menu calls to stop the ding
+            // but... only on forms where those keys aren't required for that form 
+            if (ActiveMdiChild == null) {
+                if (e.KeyCode == Keys.Enter) {
+                    e.SuppressKeyPress = true;
+                }
+                if (e.Control) {
+                    switch (e.KeyCode) {
+                    case Keys.F:
+                        SearchForID();
+                        break;
+                    }
+                    e.SuppressKeyPress = true;
+                }
+            }
+            else {
+                switch (ActiveMdiChild.Name) {
+                case "frmLogicEdit":
+                    // no keypresses are suppressed
+                    break;
+                }
+            }
         }
 
         private void frmMDIMain_MdiChildActivate(object sender, EventArgs e) {
@@ -370,10 +393,7 @@ namespace WinAGI.Editor {
             if (e.Cancel) {
                 return;
             }
-
-            //write lastload status
             WinAGISettingsFile.WriteSetting(sMRULIST, "LastLoad", blnLastLoad);
-            //save settings to register
             SaveSettings();
 
             // detach  AGI game events
@@ -3188,8 +3208,8 @@ namespace WinAGI.Editor {
             WinAGISettings.AskRemove.ReadSetting(WinAGISettingsFile);
             WinAGISettings.AutoUpdateDefines.ReadSetting(WinAGISettingsFile);
             WinAGISettings.AutoUpdateResDefs.ReadSetting(WinAGISettingsFile);
-            //WinAGISettings.AutoUpdateWords.ReadSetting(WinAGISettingsFile);
-            //WinAGISettings.AutoUpdateObjects.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.AutoUpdateWords.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.AutoUpdateObjects.ReadSetting(WinAGISettingsFile);
             WinAGISettings.WarnDupGName.ReadSetting(WinAGISettingsFile);
             WinAGISettings.WarnDupGVal.ReadSetting(WinAGISettingsFile);
             WinAGISettings.WarnInvalidStrVal.ReadSetting(WinAGISettingsFile);
@@ -3669,6 +3689,25 @@ namespace WinAGI.Editor {
             }
             WinAGISettingsFile.WriteSetting(sLOGICS, "NoCompWarn3", lngCompVal);
 
+            // make sure header is present
+            if (WinAGISettingsFile.Lines[1] != "# WinAGI GDS Configuration File") {
+                // delete any comment lines at beginning, then re-add the correct header
+                do {
+                    if (WinAGISettingsFile.Lines[0].Trim().Length == 0 || WinAGISettingsFile.Lines[0].Trim()[0] == '#') {
+                        WinAGISettingsFile.Lines.RemoveAt(0);
+                    }
+                    else {
+                        break;
+                    }
+                } while (true);
+                WinAGISettingsFile.Lines.InsertRange(0, [
+                    "#", 
+                    "# WinAGI GDS Configuration File",
+                    "#",
+                    "# These settings should normally be adjusted from within WinAGI",
+                    "#"
+                ]);
+            }
             // now save all settings to file
             WinAGISettingsFile.Save();
         }
@@ -3751,8 +3790,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        public void SearchForID(FindFormFunction ffValue = FindFormFunction.FindLogic) {
-            //set search form defaults
+        public void SearchForID() {
             switch (SelResType) {
             case AGIResType.Logic:
                 GFindText = EditGame.Logics[(byte)SelResNum].ID;
@@ -3767,7 +3805,6 @@ namespace WinAGI.Editor {
                 GFindText = EditGame.Views[(byte)SelResNum].ID;
                 break;
             }
-
             GFindDir = FindDirection.All;
             GMatchWord = true;
             GMatchCase = true;
@@ -3779,7 +3816,7 @@ namespace WinAGI.Editor {
 
             //display find form
             FindingForm.SetForm(FindFormFunction.FindLogic, true);
-            FindingForm.Show(MDIMain);
+            FindingForm.Visible = true;
 
             // decided to stick with just showing the form, instead of
             // automatically starting a search

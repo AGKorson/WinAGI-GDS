@@ -500,10 +500,10 @@ namespace WinAGI.Editor {
             public SettingAskOption AutoUpdateDefines = new(nameof(AutoUpdateDefines), AskOption.Ask, "Warnings");
             // AutoUpdateResDefs: when true logics are updated automatically when reserved defines change
             public SettingAskOption AutoUpdateResDefs = new(nameof(AutoUpdateResDefs), AskOption.Ask, "Warnings");
-            //// AutoUpdateWords:
-            //public SettingAskOption AutoUpdateWords = new(nameof(AutoUpdateWords), AskOption.Ask, sGENERAL);
-            //// AutoUpdateObjects:
-            //public SettingAskOption AutoUpdateObjects = new(nameof(AutoUpdateObjects), AskOption.Ask, sGENERAL);
+            // AutoUpdateWords:
+            public SettingAskOption AutoUpdateWords = new(nameof(AutoUpdateWords), AskOption.Ask, sGENERAL);
+            // AutoUpdateObjects:
+            public SettingAskOption AutoUpdateObjects = new(nameof(AutoUpdateObjects), AskOption.Ask, sGENERAL);
             // WarnDupGName: 
             public SettingAskOption WarnDupGName = new(nameof(WarnDupGName), AskOption.Ask, "Warnings");
             // WarnDupGVal: 
@@ -820,8 +820,8 @@ namespace WinAGI.Editor {
                 clonesettings.AskRemove = new(AutoExport);
                 clonesettings.AutoUpdateDefines = new(AutoUpdateResDefs);
                 clonesettings.AutoUpdateResDefs = new(AutoUpdateResDefs);
-                // clonesettings.AutoUpdateWords = new(AutoUpdateWords);
-                // clonesettings.AutoUpdateObjects = new(AutoUpdateObjects);
+                clonesettings.AutoUpdateWords = new(AutoUpdateWords);
+                clonesettings.AutoUpdateObjects = new(AutoUpdateObjects);
                 clonesettings.WarnDupGName = new(WarnDupGName);
                 clonesettings.WarnDupGVal = new(WarnDupGVal);
                 clonesettings.WarnInvalidStrVal = new(WarnInvalidStrVal);
@@ -6642,7 +6642,9 @@ namespace WinAGI.Editor {
                     Debug.Assert(FindingForm.Visible);
                 }
                 else {
-                    LogicEditors[nextLogicIndex].Select();
+                    if (nextLogicIndex >= 0) {
+                        LogicEditors[nextLogicIndex].Select();
+                    }
                 }
                 // reset search flags
                 FindingForm.ResetSearch();

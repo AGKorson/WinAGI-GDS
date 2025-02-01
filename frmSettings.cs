@@ -514,8 +514,6 @@ namespace WinAGI.Editor {
             // LAYOUT
             // no updates needed
 
-            //      WinAGISettings.AutoUpdateObjects = 0
-            //      WinAGISettings.AutoUpdateWords = 0
             // RESET WARNINGS
             if (chkResetWarnings.Checked || blnResetWarnings) {
                 WinAGISettings.RenameWAG.Reset(WinAGISettingsFile);
@@ -524,6 +522,8 @@ namespace WinAGI.Editor {
                 WinAGISettings.AskRemove.Reset(WinAGISettingsFile);
                 WinAGISettings.AutoUpdateDefines.Reset(WinAGISettingsFile);
                 WinAGISettings.AutoUpdateResDefs.Reset(WinAGISettingsFile);
+                WinAGISettings.AutoUpdateWords.Reset(WinAGISettingsFile);
+                WinAGISettings.AutoUpdateObjects.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnDupGName.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnDupGVal.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnInvalidStrVal.Reset(WinAGISettingsFile);
