@@ -240,7 +240,7 @@ namespace WinAGI.Editor {
                     Point childoffset = new() {
                         X = -(((Form)owner).Width - ((Form)owner).ClientSize.Width)
                     };
-                    childoffset.Y = -(((Form)owner).Height -((Form)owner).ClientSize.Height + childoffset.X / 2);
+                    childoffset.Y = -(((Form)owner).Height - ((Form)owner).ClientSize.Height + childoffset.X / 2);
                     // calculate childpos in screen coordinates by applying the child offset
                     // value to the pointtoscreen function
                     pos = ((Form)owner).PointToScreen(childoffset);
@@ -260,7 +260,7 @@ namespace WinAGI.Editor {
         }
 
         #region Event Handlers
-        private void frmDialog_KeyDown(object sender, KeyEventArgs e) {
+        private void Form_KeyDown(object sender, KeyEventArgs e) {
             // respond to keys depending on mode
 
             if (e.Alt == true || e.Control == true) {
@@ -271,35 +271,37 @@ namespace WinAGI.Editor {
             switch (e.KeyCode) {
             case Keys.A:
                 if (button1.Text == "Abort") {
-                    button1_Click(this, null);
+                    DialogResult = DialogResult.Abort;
+                    Close();
                 }
                 break;
             case Keys.R:
-                if (button1.Text == "Retry") {
-                    button1_Click(this, null);
-                }
-                else if (button2.Text == "Retry") {
-                    button2_Click(this, null);
+                if (button1.Text == "Retry" || button2.Text == "Retry") {
+                    DialogResult = DialogResult.Retry;
+                    Close();
                 }
                 break;
             case Keys.I:
                 if (button3.Text == "Ignore") {
-                    button3_Click(this, null);
+                    DialogResult = DialogResult.Ignore;
+                    Close();
                 }
                 break;
-
             case Keys.Y:
                 if (button1.Text == "Yes") {
-                    button1_Click(this, null);
+                    DialogResult = DialogResult.Yes;
+                    Close();
                 }
                 break;
             case Keys.N:
                 if (button2.Text == "No") {
-                    button2_Click(this, null);
+                    DialogResult = DialogResult.No;
+                    Close();
                 }
                 break;
             }
         }
+
         private void button1_Click(object sender, EventArgs e) {
             switch (button1.Text) {
             case "OK":
@@ -357,6 +359,7 @@ namespace WinAGI.Editor {
         private void cmdHelp_Click(object sender, EventArgs e) {
             Help.ShowHelp(HelpOwner, HelpFile, HelpNavigator.Topic, HelpTopic);
         }
-        #endregion
+
+#endregion
     }
 }

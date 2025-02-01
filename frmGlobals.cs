@@ -101,6 +101,12 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void frmGlobals_Activated(object sender, EventArgs e) {
+            if (FindingForm.Visible) {
+                FindingForm.Visible = false;
+            }
+        }
+
         private void frmGlobals_FormClosing(object sender, FormClosingEventArgs e) {
             // cancel editing
             if (globalsgrid.IsCurrentCellInEditMode) {
@@ -360,7 +366,12 @@ namespace WinAGI.Editor {
                     }
                 }
                 if (!globalsgrid.Rows[NextUndo.UDPos].Displayed) {
-                    globalsgrid.FirstDisplayedScrollingRowIndex = globalsgrid.Rows[NextUndo.UDPos].Index;
+                    if (globalsgrid.Rows[NextUndo.UDPos].Index < 2) {
+                        globalsgrid.FirstDisplayedScrollingRowIndex = 0;
+                    }
+                    else {
+                        globalsgrid.FirstDisplayedScrollingRowIndex = globalsgrid.Rows[NextUndo.UDPos].Index - 2;
+                    }
                 }
                 break;
             case GlobalsUndo.udgActionType.udgEditName:
@@ -880,16 +891,17 @@ namespace WinAGI.Editor {
 
         private void globalsgrid_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e) {
             if (globalsgrid.IsCurrentCellInEditMode) {
-                if (e.Button == MouseButtons.Right) {
-                    cmCel.Show();
-                }
-                else {
-                    if (e.ColumnIndex < 2 || e.RowIndex < 0 || !globalsgrid[e.ColumnIndex, e.RowIndex].IsInEditMode) {
+                if (e.ColumnIndex < 2 || e.RowIndex < 0 || !globalsgrid[e.ColumnIndex, e.RowIndex].IsInEditMode) {
+                    if (e.Button == MouseButtons.Right) {
+                        // same as ESCAPE
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Escape));
+                    }
+                    else {
                         // same as pressing ENTER
                         EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                        return;
                     }
                 }
-                return;
             }
             if (e.RowIndex == -1) {
                 return;
@@ -1620,7 +1632,7 @@ namespace WinAGI.Editor {
                 // TODO: do I need error handling for load/source changes?
                 if (rtn == DialogResult.Yes) {
                     // step through all defines; if the current name is different than
-                    // the original name, use replaceall to make the change
+                    // the original name, change it in all logics
                     ProgressWin = new() {
                         Text = "Updating Global Defines",
                     };

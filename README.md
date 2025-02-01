@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha12.1
+        Version 3.0.0alpha12.2
     ==============================
 
 
@@ -54,6 +54,9 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History: 
+
+**alpha12.2** tbd, fixes in Find form, fixed right-click menu in globals and objects editors, added keyhandler to msgboxex
+
 
 **alpha12.1** Working on OBJECT file editor. Basic editing functions working, still need to add find/replace functions.
 

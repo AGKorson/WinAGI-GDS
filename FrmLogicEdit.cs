@@ -118,16 +118,17 @@ namespace WinAGI.Editor {
         }
 
         #region Form Event Handlers
-        private void frmLogicEdit_Enter(object sender, EventArgs e) {
-            // force form to front - normally clicking in any control on a form will
-            // automatically bring the form forward, but clicking on the FCTB seems
-            // to skip doing that
-            //BringToFront();
+        private void frmLogicEdit_Activated(object sender, EventArgs e) {
 
-            //btnCompile.Enabled = InGame;
-            //btnMsgClean.Enabled = InGame;
-            //fctb?.Select();
-        }
+            if (FindingForm.Visible) {
+                if (FindingForm.rtfReplace.Visible) {
+                    FindingForm.SetForm(FindFormFunction.ReplaceLogic, InGame);
+                }
+                else {
+                    FindingForm.SetForm(FindFormFunction.FindLogic, InGame);
+                }
+            }
+       }
 
         private void frmLogicEdit_FormClosing(object sender, FormClosingEventArgs e) {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
@@ -338,7 +339,7 @@ namespace WinAGI.Editor {
             mnuESelectAll.Enabled = fctb.TextLength > 0;
             mnuESnippet.Visible = WinAGISettings.UseSnippets.Value;
             mnuESnippet.Text = fctb.Selection.Length > 0 ? "Create Code Snippet..." : "Insert Code Snippet";
-            mnuEFindAgain.Enabled = fctb.findForm?.tbFind.Text.Length > 0;
+            mnuEFindAgain.Enabled = GFindText.Length > 0;
             // default to not visible
             mnuEOpenRes.Visible = false;
             mnuEViewSynonym.Visible = false;
@@ -454,6 +455,8 @@ namespace WinAGI.Editor {
             mnuEDocumentMap.Owner = contextMenuStrip1;
             mnuELineNumbers.Owner = contextMenuStrip1;
             mnuECharMap.Owner = contextMenuStrip1;
+            // TODO: re-enable all menu items so shortcut keys will work
+
         }
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
@@ -509,19 +512,21 @@ namespace WinAGI.Editor {
                 FindingForm.cmbFind.Text = fctb.SelectedText;
             }
             if (!FindingForm.Visible) {
-                FindingForm.Show(MDIMain);
+                FindingForm.Visible = true;
             }
             FindingForm.Select();
             FindingForm.cmbFind.Select();
         }
 
         private void mnuEFindAgain_Click(object sender, EventArgs e) {
-            fctb.findForm.FindNext(fctb.findForm.tbFind.Text);
+            if (GFindText.Length > 0) {
+                FindInLogic(this, GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc);
+            }
         }
 
         private void mnuEReplace_Click(object sender, EventArgs e) {
             FindingForm.SetForm(FormMode == LogicFormMode.Logic ? FindFormFunction.ReplaceLogic : FindFormFunction.ReplaceText, InGame);
-            FindingForm.Show(MDIMain);
+            FindingForm.Visible = true;
         }
 
         private void mnuESnippet_Click(object sender, EventArgs e) {
@@ -698,7 +703,7 @@ namespace WinAGI.Editor {
             string strLine;
             /*
             // ALWAYS reset search flags
-            FindForm.ResetSearch();
+            FindingForm.ResetSearch();
             */
             switch ((int)e.KeyChar) {
             case 9:

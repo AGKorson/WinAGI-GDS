@@ -251,7 +251,6 @@ namespace WinAGI.Editor {
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lblReplace;
-        private System.Windows.Forms.TextBox rtfReplace;
         private System.Windows.Forms.GroupBox fraLogic;
         private System.Windows.Forms.RadioButton optAllGameLogics;
         private System.Windows.Forms.RadioButton optAllOpenLogics;
@@ -265,5 +264,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.Button cmdReplaceAll;
         private System.Windows.Forms.Button cmdCancel;
         public System.Windows.Forms.ComboBox cmbFind;
+        public System.Windows.Forms.TextBox rtfReplace;
     }
 }

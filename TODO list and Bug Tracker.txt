@@ -11,7 +11,7 @@ X    9. Character Map
 X   10. Snippets Editor
 X   11. Global Defines Editor
 X   12. Reserved Defines Editor
-0   13. Object Editor
+X   13. Object Editor
     14. Word Editor
     15. Palette Editor
     16. Picture Editor
@@ -954,8 +954,8 @@ WinAGI settings and warnings:
 // AskRemove
 // AutoUpdateDefines
 // AutoUpdateResDefs
-// //AutoUpdateWords
-// //AutoUpdateObjects
+// AutoUpdateWords
+// AutoUpdateObjects
 // WarnDupGName
 // WarnDupGVal
 // WarnInvalidStrVal

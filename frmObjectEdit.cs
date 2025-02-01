@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FastColoredTextBoxNS;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -6,7 +7,9 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Common;
@@ -24,6 +27,10 @@ namespace WinAGI.Editor {
         private TextBox EditTextBox = null;
         private InventoryItem EditItem = new();
         private bool Adding = false;
+        private bool FirstFind = false;
+        private Font formFont;
+        private Font dupFont;
+
         public frmObjectEdit() {
             InitializeComponent();
             // set default row style
@@ -41,6 +48,17 @@ namespace WinAGI.Editor {
             }
             closing = AskClose();
             e.Cancel = !closing;
+        }
+
+        private void frmObjectEdit_Activated(object sender, EventArgs e) {
+            if (FindingForm.Visible) {
+                if (FindingForm.rtfReplace.Visible) {
+                    FindingForm.SetForm(FindFormFunction.ReplaceObject, InGame);
+                }
+                else {
+                    FindingForm.SetForm(FindFormFunction.FindObject, InGame);
+                }
+            }
         }
 
         private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
@@ -108,6 +126,27 @@ namespace WinAGI.Editor {
             SetEncryption(!EditInvList.Encrypted);
         }
 
+        private void mnuRAmigaOBJ_Click(object sender, EventArgs e) {
+            // convert an Amiga format OBJECT file to DOS format
+            Debug.Assert(!EditInvList.AmigaOBJ);
+            if (MessageBox.Show(MDIMain,
+                "Your current OBJECT file will be saved as 'OBJECT.amg'. Continue with the conversion?",
+                "Convert AMIGA Object File",
+                MessageBoxButtons.OKCancel,
+                MessageBoxIcon.Question) == DialogResult.OK) {
+                if (IsChanged) {
+                    if (MessageBox.Show(MDIMain,
+                        "The OBJECT file needs to be saved before converting. OK to save and convert?",
+                        "Save OBJECT File",
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Question) == DialogResult.OK) {
+                        return;
+                    }
+                }
+                EditInvList.AmigaOBJ = false;
+            }
+        }
+
         private void SetEditMenu() {
             if (fgObjects.IsCurrentCellInEditMode) {
                 mnuEUndo.Enabled = false;
@@ -173,7 +212,7 @@ namespace WinAGI.Editor {
             ResetEditMenu();
         }
 
-        private void cmEdit_Opening(object sender, CancelEventArgs e) {
+        private void cmGrid_Opening(object sender, CancelEventArgs e) {
             if (fgObjects.IsCurrentCellInEditMode) {
                 e.Cancel = true;
                 return;
@@ -181,7 +220,7 @@ namespace WinAGI.Editor {
             SetEditMenu();
         }
 
-        private void cmEdit_Closed(object sender, ToolStripDropDownClosedEventArgs e) {
+        private void cmGrid_Closed(object sender, ToolStripDropDownClosedEventArgs e) {
             ResetEditMenu();
         }
 
@@ -210,14 +249,16 @@ namespace WinAGI.Editor {
                 fgObjects[2, NextUndo.UDObjectNo].Value = NextUndo.UDObjectRoom;
                 fgObjects[1, NextUndo.UDObjectNo].Selected = true;
                 break;
-            case ModifyItem:
+            case ObjectsUndo.ActionType.ModifyItem:
             case Replace:
                 fgObjects[1, NextUndo.UDObjectNo].Value = NextUndo.UDObjectText;
                 EditInvList[NextUndo.UDObjectNo].ItemName = NextUndo.UDObjectText;
+                fgObjects[1, NextUndo.UDObjectNo].Selected = true;
                 break;
             case ModifyRoom:
                 fgObjects[2, NextUndo.UDObjectNo].Value = NextUndo.UDObjectRoom;
                 EditInvList[NextUndo.UDObjectNo].Room = NextUndo.UDObjectRoom;
+                fgObjects[2, NextUndo.UDObjectNo].Selected = true;
                 break;
             case ChangeMaxObj:
                 // old Max is stored in room variable
@@ -227,36 +268,52 @@ namespace WinAGI.Editor {
                 SetEncryption(NextUndo.UDObjectRoom == 1, true);
                 break;
             case Clear:
-                //// if undoing a clear, EditInvList is already empty so don't
-                //// need to clear it; grid will already be empty also
-
-                //// restore Max objects
-                //ModifyMax(NextUndo.UDObjectRoom, true);
-                //// restore encryption
-                //ToggleEncryption((bool)NextUndo.UDObjectRoom, true);
-                //// split out items
-                //string[] strObjs = NextUndo.UDObjectText.Split('\r');
-                //for (int i = 0; i < strObjs.Length; i++) {
-                //    if (i != 0) {
-                //        int newrow = fgObjects.Rows.Add();
-                //        fgObjects[0, newrow].Value = EditInvList.Count;
-                //        fgObjects[1, newrow].Value = strObjs[i];
-                //    }
-                //}
+                // restore Max objects
+                ModifyMax(NextUndo.UDObjectRoom, true);
+                // restore encryption
+                SetEncryption(NextUndo.UDObjectNo == 1, true);
+                // split out items
+                string[] strObjs = NextUndo.UDObjectText.Split('\r');
+                string[] item = strObjs[0].Split('|');
+                // item0 is always present
+                fgObjects[0, 0].Value = 0;
+                fgObjects[1, 0].Value = item[0];
+                fgObjects[2, 0].Value = byte.Parse(item[1]);
+                EditInvList[0].ItemName = item[0];
+                EditInvList[0].Room = byte.Parse(item[1]);
+                // add remaining items
+                for (int i = 1; i < strObjs.Length; i++) {
+                    item = strObjs[i].Split('|');
+                    int newrow = fgObjects.Rows.Add();
+                    fgObjects[0, newrow].Value = EditInvList.Count;
+                    fgObjects[1, newrow].Value = item[0];
+                    fgObjects[2, newrow].Value = byte.Parse(item[1]);
+                    EditInvList.Add(item[0], byte.Parse(item[1]));
+                }
                 break;
             case ObjectsUndo.ActionType.ReplaceAll:
-                //// udstring has previous items in pipe-delimited string
-                //string[] strObjs = NextUndo.UDObjectText.Split('|');
-                //// object numbers and old values are in pairs
-                //for (int i = 0; i < strObjs.Length; i++) {
-                //    // first element is obj number, second is old obj desc
-                //    EditInvList[byte.Parse(strObjs[i++])].ItemName = strObjs[i];
-                //    fgObjects[1, int.Parse(strObjs[i++])].Value = strObjs[i];
-                //}
+                // udstring has previous items in pipe-delimited string
+                strObjs = NextUndo.UDObjectText.Split('\r');
+                // object numbers and old values are in pairs
+                for (int i = 0; i < strObjs.Length; i++) {
+                    item = strObjs[i].Split('|');
+                    // first element is obj number, second is old obj desc
+                    EditInvList[byte.Parse(item[0])].ItemName = item[1];
+                    fgObjects[1, int.Parse(item[0])].Value = item[1];
+                }
+                fgObjects[1, 0].Selected = true;
                 break;
             }
             //ensure selected row is visible
-            fgObjects.FirstDisplayedScrollingRowIndex = fgObjects.CurrentRow.Index;
+            if (!fgObjects.CurrentRow.Displayed) {
+                if (fgObjects.CurrentRow.Index < 2) {
+                    fgObjects.FirstDisplayedScrollingRowIndex = 0;
+                }
+                else {
+                    fgObjects.FirstDisplayedScrollingRowIndex = fgObjects.CurrentRow.Index - 2;
+                }
+            }
+            MarkAsChanged();
         }
 
         private void mnuEDelete_Click(object sender, EventArgs e) {
@@ -290,7 +347,7 @@ namespace WinAGI.Editor {
             NextUndo.UDObjectRoom = EditInvList.MaxScreenObjects;
             NextUndo.UDObjectNo = EditInvList.Encrypted ? 1 : 0;
             NextUndo.UDObjectText = EditInvList[0].ItemName + '|' + EditInvList[0].Room.ToString();
-            for (int i = 1; i < EditInvList.Count - 1; i++) {
+            for (int i = 1; i < EditInvList.Count; i++) {
                 NextUndo.UDObjectText += '\r' + EditInvList[i].ItemName + '|' + EditInvList[i].Room.ToString();
             }
             AddUndo(NextUndo);
@@ -320,15 +377,20 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEFind_Click(object sender, EventArgs e) {
-            MessageBox.Show("find");
+            StartSearch(FindFormFunction.FindObject);
         }
 
         private void mnuEFindAgain_Click(object sender, EventArgs e) {
-            MessageBox.Show("find again");
+            if (GFindText.Length == 0) {
+                StartSearch(FindFormFunction.FindObject);
+            }
+            else {
+                FindInObjects(GFindText, GFindDir, GMatchWord, GMatchCase);
+            }
         }
 
         private void mnuEReplace_Click(object sender, EventArgs e) {
-            MessageBox.Show("replace");
+            StartSearch(FindFormFunction.ReplaceObject);
         }
 
         private void mnuEditItem_Click(object sender, EventArgs e) {
@@ -346,7 +408,24 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEFindInLogic_Click(object sender, EventArgs e) {
-            MessageBox.Show("find in logic");
+            string strObj = (string)fgObjects[1, fgObjects.CurrentCell.RowIndex].Value;
+            if (strObj == "?") {
+                return;
+            }
+            FindingForm.ResetSearch();
+            FirstFind = false;
+            GFindText = '"' + strObj.Replace("\"", "\\\"") + '"';
+            GFindDir = FindDirection.All;
+            GMatchWord = true;
+            GMatchCase = true;
+            GLogFindLoc = FindLocation.All;
+            GFindSynonym = false;
+            SearchType = AGIResType.Objects;
+            if (FindingForm.Visible) {
+                // set it to match desired search parameters
+                FindingForm.SetForm(FindFormFunction.FindLogic, true);
+            }
+            FindInLogic(this, GFindText, FindDirection.All, true, false, FindLocation.All, false, "");
         }
 
         private void cmCel_Opening(object sender, CancelEventArgs e) {
@@ -449,8 +528,8 @@ namespace WinAGI.Editor {
                 // need to set MultiLine to true so the ENTER key can be captured by
                 // KeyPress event
                 EditTextBox = e.Control as TextBox;
-                if (EditTextBox.Tag == null) {
-                    EditTextBox.Tag = "set";
+                if (EditTextBox.ContextMenuStrip != cmCel) {
+                    EditTextBox.ContextMenuStrip = cmCel;
                     EditTextBox.Multiline = true;
                     EditTextBox.AcceptsReturn = true;
                     EditTextBox.AcceptsTab = true;
@@ -468,16 +547,17 @@ namespace WinAGI.Editor {
 
         private void fgObjects_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e) {
             if (fgObjects.IsCurrentCellInEditMode) {
-                if (e.Button == MouseButtons.Right) {
-                    //cmCel.Show();
-                }
-                else {
-                    if (e.ColumnIndex < 2 || e.RowIndex < 0 || !fgObjects[e.ColumnIndex, e.RowIndex].IsInEditMode) {
+                if (e.ColumnIndex < 1 || e.RowIndex < 0 || !fgObjects[e.ColumnIndex, e.RowIndex].IsInEditMode) {
+                    if (e.Button == MouseButtons.Right) {
+                        // same as ESCAPE
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Escape));
+                    }
+                    else {
                         // same as pressing ENTER
                         EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                        return;
                     }
                 }
-                return;
             }
             if (e.RowIndex == -1) {
                 return;
@@ -517,6 +597,15 @@ namespace WinAGI.Editor {
             }
             else {
                 cell.ToolTipText = "";
+            }
+            if (e.ColumnIndex == 1) {
+                if (EditInvList[e.RowIndex].Unique) {
+                    e.CellStyle.Font = formFont;
+                }
+                else {
+                    e.CellStyle.ForeColor = Color.OrangeRed;
+                    e.CellStyle.Font = dupFont;
+                }
             }
         }
 
@@ -611,7 +700,7 @@ namespace WinAGI.Editor {
 
         private void fgObjects_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
             // ensure the new row is formatted correctly
-            if (e.RowIndex == fgObjects.NewRowIndex && e.RowCount == 1) {
+            if (e.RowIndex > 0 && e.RowIndex == fgObjects.NewRowIndex && e.RowCount == 1) {
                 // actual new row is above this row
                 fgObjects[0, e.RowIndex - 1].Value = e.RowIndex - 1;
                 fgObjects[1, e.RowIndex - 1].Value = "";
@@ -633,7 +722,9 @@ namespace WinAGI.Editor {
                 break;
             }
         }
+        #endregion
 
+        #region Control Events
         private void txtMaxScreenObjs_KeyPress(object sender, KeyPressEventArgs e) {
             // ignore everything except numbers, backspace, delete, enter, tab, and escape
             switch (e.KeyChar) {
@@ -793,6 +884,7 @@ namespace WinAGI.Editor {
                         }
                     }
                     EditItem.ItemName = EditTextBox.Text;
+                    EditInvList[fgObjects.CurrentRow.Index].ItemName = EditTextBox.Text;
                     if (!Adding) {
                         NextUndo = new() {
                             UDAction = ObjectsUndo.ActionType.ModifyItem,
@@ -814,6 +906,7 @@ namespace WinAGI.Editor {
                         return;
                     }
                     EditItem.Room = byte.Parse(EditTextBox.Text);
+                    EditInvList[fgObjects.CurrentRow.Index].Room = EditItem.Room;
                     if (Adding) {
                         NextUndo = new() {
                             UDAction = AddItem,
@@ -833,9 +926,14 @@ namespace WinAGI.Editor {
                 }
                 fgObjects.EndEdit();
                 if (fgObjects.CurrentCell.ColumnIndex == 1) {
-                    fgObjects.CurrentCell = fgObjects[2, fgObjects.CurrentCell.RowIndex];
-                    if (Adding) {
-                        fgObjects.BeginEdit(true);
+                    if (Adding || e.KeyCode == Keys.Tab) {
+                        fgObjects.CurrentCell = fgObjects[2, fgObjects.CurrentCell.RowIndex];
+                        if (Adding) {
+                            fgObjects.BeginEdit(true);
+                        }
+                    }
+                    else {
+                        fgObjects.CurrentCell = fgObjects[1, fgObjects.CurrentCell.RowIndex + 1];
                     }
                 }
                 else {
@@ -845,6 +943,7 @@ namespace WinAGI.Editor {
                         Adding = false;
                     }
                 }
+                fgObjects.Refresh();
                 MarkAsChanged();
                 return;
             }
@@ -866,478 +965,313 @@ namespace WinAGI.Editor {
 
         #endregion
 
-        #region temp code
-        /*
+        #region Methods
+        private void StartSearch(FindFormFunction formfunction) {
+            string searchtext;
+            if (fgObjects.CurrentCell == null || fgObjects.CurrentCell.RowIndex < 0 ||
+                fgObjects.CurrentCell.RowIndex == fgObjects.NewRowIndex) {
+                searchtext = "";
+            }
+            else {
+                searchtext = (string)fgObjects[1, fgObjects.CurrentCell.RowIndex].Value;
+            }
+            // TODO: should I remove quotes, if the current search string includes them?
 
-  
-  Private EditRow As Long, EditCol As ColType
-  
-Public Sub MenuClickCustom2()
-  
-  'convert an Amiga format OBJECT file to DOS format
-  
-  On Error GoTo ErrHandler
-  
-  'verify it's an Amiga file
-  If Not InventoryObjects.AmigaOBJ Then
-    'hmm, not sure how we got here
-    frmMDIMain.mnuRCustom2.Visible = False
-    MsgBox "This is not an AMIGA Object file, so no conversion is necessary.", vbInformation + vbOKOnly, "Convert AMIGA Object File"
-    Exit Sub
-  End If
-  
-  'get permission
-  If MsgBox("Your current OBJECT file will be saved as 'OBJECT.amg'. Continue with the conversion?", vbQuestion + vbOKCancel, "Convert AMIGA Object File") = vbOK Then
+            //default to matchcase, and wholeword
+            GMatchCase = true;
+            GMatchWord = true;
+            FindingForm.SetForm(formfunction, InGame);
+            FindingForm.cmbFind.Text = searchtext;
+            if (!FindingForm.Visible) {
+                FindingForm.Visible = true;
+            }
+            FindingForm.Select();
+            FindingForm.cmbFind.Select();
+        }
 
-    'if the file is not saved, ask if OK to save it first
-    If Me.IsDirty Then
-      If MsgBox("The OBJECT file needs to be saved before converting. OK to save and convert?", vbQuestion + vbOKCancel, "Save OBJECT File") = vbCancel Then
-        Exit Sub
-      End If
-    End If
-    'file is saved; change the AmigaOBJ property to affect the conversion
-    InventoryObjects.AmigaOBJ = False
-    'hide the menu
-    frmMDIMain.mnuRCustom2.Visible = False
-  End If
-End Sub
+        public void FindInObjects(string FindText, FindDirection FindDir, bool MatchWord, bool MatchCase, bool Replacing = false, string ReplaceText = "") {
+            bool blnRecurse = false;
+            StringComparison vbcComp = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
-Public Sub MenuClickHelp()
-  
-  On Error GoTo ErrHandler
-  
-  'help
-  HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Objects_Editor.htm"
-End Sub
+            if (Replacing && FindText.Equals(ReplaceText, vbcComp)) {
+                return;
+            }
+            if (EditInvList.Count == 0) {
+                MessageBox.Show(MDIMain,
+                    "No inventory objects in list.",
+                    "Find in Object List",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+            MDIMain.UseWaitCursor = true;
+            // if replacing and searching up   searchrow = currentrow +1
+            // if replacing and searching down searchrow = currentrow
+            // if not repl  and searching up   searchrow = currentrow
+            // if not repl  and searching down searchrow = currentrow +1
+            int searchrow = fgObjects.CurrentCell.RowIndex;
+            int foundrow = -1;
+            // adjust to next row per replace/direction selections
+            if ((Replacing && FindDir == FindDirection.Up) || (!Replacing && FindDir != FindDirection.Up)) {
+                searchrow += 1;
+                if (searchrow >= EditInvList.Count) {
+                    searchrow = 0;
+                }
+            }
+            else {
+                // if already at beginning of search, the replace function will mistakenly
+                // think the find operation is complete and stop
+                if (Replacing && (searchrow == ObjStartPos)) {
+                    FindingForm.ResetSearch();
+                    FirstFind = false;
+                }
+            }
+            //main search loop
+            do {
+                if (FindDir == FindDirection.Up) {
+                    // iterate backwards until word found or foundrow=-1
+                    foundrow = searchrow - 1;
+                    while (foundrow != -1) {
+                        if (MatchWord) {
+                            if (EditInvList[foundrow].ItemName.Equals(FindText, vbcComp)) {
+                                // found
+                                break;
+                            }
+                        }
+                        else {
+                            if (EditInvList[foundrow].ItemName.Contains(FindText, vbcComp)) {
+                                // found
+                                break;
+                            }
+                        }
+                        foundrow--;
+                    }
+                    // reset searchpos
+                    searchrow = EditInvList.Count;
+                }
+                else {
+                    // iterate forward until word found or end reached (foundrow=objcount)
+                    foundrow = searchrow;
+                    do {
+                        if (MatchWord) {
+                            if (EditInvList[foundrow].ItemName.Equals(FindText, vbcComp)) {
+                                // found
+                                break;
+                            }
+                        }
+                        else {
+                            if (EditInvList[foundrow].ItemName.Contains(FindText, vbcComp)) {
+                                // found
+                                break;
+                            }
+                        }
+                        foundrow++;
+                    } while (foundrow < EditInvList.Count);
+                    // reset searchrow
+                    searchrow = 0;
+                }
+                // found?
+                if (foundrow >= 0 && foundrow < EditInvList.Count) {
+                    if (foundrow == ObjStartPos) {
+                        foundrow = -1;
+                    }
+                    break;
+                }
+                // if not found, action depends on search mode
+                switch (FindDir) {
+                case FindDirection.Up:
+                    if (!RestartSearch) {
+                        DialogResult rtn;
+                        if (blnRecurse) {
+                            // just say no
+                            rtn = DialogResult.No;
+                        }
+                        else {
+                            rtn = MessageBox.Show(MDIMain,
+                                "Beginning of search scope reached. Do you want to continue from the end?",
+                                "Find in Object List",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question);
+                        }
+                        if (rtn == DialogResult.No) {
+                            // reset search
+                            FindingForm.ResetSearch();
+                            FirstFind = false;
+                            MDIMain.UseWaitCursor = false;
+                            return;
+                        }
+                    }
+                    else {
+                        // entire scope already searched; exit DO
+                        break;
+                    }
+                    break;
+                case FindDirection.Down:
+                    if (!RestartSearch) {
+                        DialogResult rtn;
+                        if (blnRecurse) {
+                            // just say no
+                            rtn = DialogResult.No;
+                        }
+                        else {
+                            rtn = MessageBox.Show(MDIMain,
+                                "End of search scope reached. Do you want to continue from the beginning?",
+                                "Find in Object List",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question);
+                        }
+                        if (rtn == DialogResult.No) {
+                            FindingForm.ResetSearch();
+                            FirstFind = false;
+                            MDIMain.UseWaitCursor = false;
+                            return;
+                        }
+                    }
+                    else {
+                        // entire scope already searched; exit DO
+                        break;
+                    }
+                    break;
+                case FindDirection.All:
+                    if (RestartSearch) {
+                        // exit DO
+                        break;
+                    }
+                    break;
+                }
+                if (RestartSearch) {
+                    break;
+                }
+                RestartSearch = true;
+            } while (true);
+            // loop is exited by finding the searchtext or reaching end of search area
 
-Public Sub BeginFind()
+            if (foundrow >= 0 && foundrow < EditInvList.Count) {
+                if (!FirstFind) {
+                    //save this position
+                    FirstFind = true;
+                    ObjStartPos = foundrow;
+                }
+                fgObjects[1, foundrow].Selected = true;
+                if (!fgObjects.Rows[foundrow].Displayed) {
+                    fgObjects.FirstDisplayedScrollingRowIndex = foundrow - 2;
+                }
+                if (Replacing) {
+                    if (MatchWord) {
+                        ModifyItem(foundrow, ReplaceText);
+                    }
+                    else {
+                        ModifyItem(foundrow, EditInvList[foundrow].ItemName.Replace(FindText, ReplaceText, vbcComp));
+                    }
+                    // adjust undoobject
+                    UndoCol.Peek().UDAction = Replace;
+                    //recurse the find method to get next occurrence
+                    // !!!!!!!!ACK!!!!!!!!!!!!
+                    // GET RID OF THIS RECURSION
+                    blnRecurse = true;
+                    FindInObjects(FindText, FindDir, MatchWord, MatchCase, false);
+                    blnRecurse = false;
+                }
+            }
+            else {
+                if (!blnRecurse) {
+                    if (FirstFind) {
+                        // search complete; no more instances found
+                        MessageBox.Show(MDIMain,
+                            "The specified region has been searched.",
+                            "Find in Object List",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    }
+                    else {
+                        MessageBox.Show(MDIMain,
+                            "Search text not found.",
+                            "Find in Object List",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    }
+                }
+                FindingForm.ResetSearch();
+                FirstFind = false;
+            }
+            fgObjects.Focus();
+            MDIMain.UseWaitCursor = false;
+        }
 
-  'each form has slightly different search parameters
-  'and procedure; so each form will get what it needs
-  'from the form, and update the global search parameters
-  'as needed
-  '
-  'that's why each search form cheks for changes, and
-  'sets the global values, instead of doing it once inside
-  'the FindForm code
-  
-  Select Case FindForm.FormAction
-  Case faFind
-    'now find the object
-    FindInObjects GFindText, GFindDir, GMatchWord, GMatchCase
-  Case faReplace
-    FindInObjects GFindText, GFindDir, GMatchWord, GMatchCase, True, GReplaceText
-  Case faReplaceAll
-    ReplaceAll GFindText, GMatchWord, GMatchCase, GReplaceText
-  Case faCancel
-    'don't do anything
-  End Select
-End Sub
+        public void ReplaceAll(string FindText, string ReplaceText, bool MatchWord, bool MatchCase) {
+            StringComparison vbcComp = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            int lngCount = 0;
 
-Private Sub FindInObjects(ByVal FindText As String, ByVal FindDir As FindDirection, ByVal MatchWord As Boolean, ByVal MatchCase As Boolean, Optional ByVal Replacing As Boolean = False, Optional ByVal ReplaceText As String = vbNullString)
-
-  Dim SearchPos As Long, FoundPos As Long
-  Dim rtn As VbMsgBoxResult
-  Dim vbcComp As VbCompareMethod
-  
-  On Error GoTo ErrHandler
-  
-  'if replacing and new text is the same
-  If Replacing And (StrComp(FindText, ReplaceText, vbTextCompare) = 0) Then
-    'exit
-    Exit Sub
-  End If
-    
-  If EditInvList.Count = 0 Then
-    MsgBox "No inventory objects in list.", vbOKOnly + vbInformation, "Find in Object List"
-    Exit Sub
-  End If
-  
-  'show wait cursor
-  WaitCursor
-  
-  'set comparison method for string search,
-  vbcComp = CLng(MatchCase) + 1 ' CLng(True) + 1 = 0 = vbBinaryCompare; Clng(False) + 1 = 1 = vbTextCompare
-  
-  'if replacing and searching up   searchpos = current pos+1
-  'if replacing and searching down searchpos = current pos
-  'if not repl  and searching up   searchpos = current pos
-  'if not repl  and searching down searchpos = current pos+1
-  
-  'set searchpos to current item index (current item index is row-1)
-  SearchPos = fgObjects.Row - 1
-  
-  'adjust to next object per replace/direction selections
-  If (Replacing And FindDir = fdUp) Or (Not Replacing And FindDir <> fdUp) Then
-    'add one to skip current object
-    SearchPos = SearchPos + 1
-    If SearchPos > EditInvList.Count - 1 Then
-      SearchPos = 0
-    End If
-  Else
-    'if already AT beginning of search, the replace function will mistakenly
-    'think the find operation is complete and stop
-    If Replacing And (SearchPos = ObjStartPos) Then
-      'reset search
-      FindForm.ResetSearch
-    End If
-  End If
-  
-  
-  'main search loop
-  Do
-    'if direction is up
-    If FindDir = fdUp Then
-      'iterate backwards until word found or foundpos=-1
-      FoundPos = SearchPos - 1
-      Do Until FoundPos = -1
-        If MatchWord Then
-          If StrComp(EditInvList(FoundPos).ItemName, FindText, vbcComp) = 0 Then
-            'found
-            Exit Do
-          End If
-        Else
-          If InStr(1, EditInvList(FoundPos).ItemName, FindText, vbcComp) <> 0 Then
-            'found
-            Exit Do
-          End If
-        End If
-        FoundPos = FoundPos - 1
-      Loop
-      'reset searchpos
-      SearchPos = EditInvList.Count - 1
-    Else
-      'iterate forward until word found or foundpos=objcount
-      FoundPos = SearchPos
-      Do
-        If MatchWord Then
-          If StrComp(EditInvList(FoundPos).ItemName, FindText, vbcComp) = 0 Then
-            'found
-            Exit Do
-          End If
-        Else
-          If InStr(1, EditInvList(FoundPos).ItemName, FindText, vbcComp) <> 0 Then
-            'found
-            Exit Do
-          End If
-        End If
-        FoundPos = FoundPos + 1
-      Loop Until FoundPos = EditInvList.Count
-      'reset searchpos
-      SearchPos = 0
-    End If
-    
-    'if found
-    If FoundPos >= 0 And FoundPos < EditInvList.Count Then
-      'if back at start
-      If FoundPos = ObjStartPos Then
-        FoundPos = -1
-      End If
-      Exit Do
-    End If
-    
-    'if not found, action depends on search mode
-    Select Case FindDir
-    Case fdUp
-      'if not reset yet
-      If Not RestartSearch Then
-        'if recursing
-        If blnRecurse Then
-          'just say no
-          rtn = vbNo
-        Else
-          rtn = MsgBox("Beginning of search scope reached. Do you want to continue from the end?", vbQuestion + vbYesNo, "Find in Object List")
-        End If
-        If rtn = vbNo Then
-          'reset search
-          FindForm.ResetSearch
-          Screen.MousePointer = vbDefault
-          Exit Sub
-        End If
-      Else
-        'entire scope already searched; exit
-        Exit Do
-      End If
-      
-    Case fdDown
-      'if not reset yet
-      If Not RestartSearch Then
-        'if recursing
-        If blnRecurse Then
-          'just say no
-          rtn = vbNo
-        Else
-          rtn = MsgBox("End of search scope reached. Do you want to continue from the beginning?", vbQuestion + vbYesNo, "Find in Object List")
-        End If
-        If rtn = vbNo Then
-          'reset search
-          FindForm.ResetSearch
-          Screen.MousePointer = vbDefault
-          Exit Sub
-        End If
-      Else
-        'entire scope already searched; exit
-        Exit Do
-      End If
-      
-    Case fdAll
-      If RestartSearch Then
-        Exit Do
-      End If
-      
-    End Select
-    
-    'reset search so when we get back to start, search will end
-    RestartSearch = True
-  
-  'loop is exited by finding the searchtext or reaching end of search area
-  Loop
-        
-  'if search string found
-  If FoundPos >= 0 And FoundPos < EditInvList.Count Then
-    'if this is first occurrence
-    If Not FirstFind Then
-      'save this position
-      FirstFind = True
-      ObjStartPos = FoundPos
-    End If
-    
-    'highlight object
-    fgObjects.Row = FoundPos + 1
-    If Not fgObjects.RowIsVisible(FoundPos + 1) Then
-      fgObjects.TopRow = FoundPos - 2
-    End If
-    
-    'if replacing
-    If Replacing Then
-      If MatchWord Then
-        ModifyItem FoundPos, ReplaceText
-      Else
-        ModifyItem FoundPos, Replace(EditInvList(FoundPos).ItemName, FindText, ReplaceText, 1, -1, vbcComp)
-      End If
-      'change undoobject
-      UndoCol(UndoCol.Count).UDAction = Replace
-      frmMDIMain.mnuEUndo.Caption = "&Undo Replace" & vbTab & "Ctrl+Z"
-      
-      'recurs the find method to get next occurrence
-      blnRecurse = True
-      FindInObjects FindText, FindDir, MatchWord, MatchCase, False
-      blnRecurse = False
-    End If
-    
-  Else
-    'if not recursing, show a msg
-    If Not blnRecurse Then
-      'if something was previously found
-      If FirstFind Then
-        'search complete; no new instances found
-        MsgBox "The specified region has been searched.", vbInformation, "Find in Object List"
-      Else
-        'show not found msg
-        MsgBox "Search text not found.", vbInformation, "Find in Object List"
-      End If
-    End If
-    
-    'reset search flags
-    FindForm.ResetSearch
-  End If
-  
-  fgObjects.SetFocus
-  
-  'need to always make sure right form has focus; if finding a word
-  'causes the group list to change, VB puts the wordeditor form in focus
-  ' but we want focus to match the starting form
-  If SearchStartDlg Then
-    FindForm.SetFocus
-  Else
-    Me.SetFocus
-  End If
-  
-  'reset cursor
-  Screen.MousePointer = vbDefault
-End Sub
-
-Public Sub MenuClickReplace()
-
-  'use menuclickfind in replace mode
-  MenuClickFind ffReplaceObject
-End Sub
-
-Public Sub MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindObject)
-
-  On Error GoTo ErrHandler
-  
-  With FindForm
-    'set form defaults
-    If Not .Visible Then
-      If Len(GFindText) > 0 Then
-        'if it has quotes, remove them
-        If Asc(GFindText) = 34 Then
-          GFindText = Right$(GFindText, Len(GFindText) - 1)
-        End If
-        If Right$(GFindText, 1) = QUOTECHAR Then
-          GFindText = Left$(GFindText, Len(GFindText) - 1)
-        End If
-      End If
-    End If
-    
-    'set find dialog to object mode
-    .SetForm ffValue, False
-    
-    'show the form
-    .Show , frmMDIMain
-  
-    'always highlight search text
-    .rtfFindText.Selection.Range.StartPos = 0
-    .rtfFindText.Selection.Range.EndPos = Len(.rtfFindText.Text)
-    .rtfFindText.SetFocus
-    
-    'ensure this form is the search form
-    Set SearchForm = Me
-  End With
-End Sub
-
-Public Sub MenuClickFindAgain()
-  
-  On Error GoTo ErrHandler
-  
-  'if nothing in find form textbox
-  If LenB(GFindText) <> 0 Then
-    FindInObjects GFindText, GFindDir, GMatchWord, GMatchCase
-  Else
-    'show find form
-    MenuClickFind
-  End If
-End Sub
-
-Private Sub ReplaceAll(ByVal FindText As String, ByVal MatchWord As Boolean, ByVal MatchCase As Boolean, ByVal ReplaceText As String)
-
-  'replace all occurrences of FindText with ReplaceText
-  
-  Dim i As Long, vbcComp As VbCompareMethod
-  Dim lngCount As Long
-  Dim NextUndo As ObjectsUndo
-  
-  On Error GoTo ErrHandler
-  
-  'if replacing and new text is the same
-  If StrComp(FindText, ReplaceText, vbTextCompare) = 0 Then
-    'exit
-    Exit Sub
-  End If
-  
-  'if no objects in list
-  If EditInvList.Count = 0 Then
-    MsgBox "Object list is empty.", vbOKOnly + vbInformation, "Replace All"
-    Exit Sub
-  End If
-  
-  'show wait cursor
-  WaitCursor
-  
-  'create new undo object
-  Set NextUndo = New ObjectsUndo
-  NextUndo.UDAction = ReplaceAll
-  
-  'set comparison method for string search,
-  vbcComp = CLng(MatchCase) + 1 ' CLng(True) + 1 = 0 = vbBinaryCompare; Clng(False) + 1 = 1 = vbTextCompare
-  
-  If MatchWord Then
-    'step through all objects
-    For i = 0 To EditInvList.Count - 1
-      If StrComp(EditInvList(i).ItemName, FindText, vbcComp) = 0 Then
-        'add  word being replaced to undo
-        If lngCount = 0 Then
-          NextUndo.UDObjectText = CStr(i) & "|" & EditInvList(i).ItemName
-        Else
-          NextUndo.UDObjectText = NextUndo.UDObjectText & "|" & CStr(i) & "|" & EditInvList(i).ItemName
-        End If
-        'replace the word
-        EditInvList(i).ItemName = ReplaceText
-        'update grid
-        fgObjects.TextMatrix(i + 1, ctDesc) = ReplaceText
-        'increment counter
-        lngCount = lngCount + 1
-      End If
-    Next i
-  Else
-    For i = 0 To EditInvList.Count - 1
-      If InStr(1, EditInvList(i).ItemName, FindText, vbcComp) <> 0 Then
-        'add  word being replaced to undo
-        If lngCount = 0 Then
-          NextUndo.UDObjectText = CStr(i) & "|" & EditInvList(i).ItemName
-        Else
-          NextUndo.UDObjectText = NextUndo.UDObjectText & "|" & CStr(i) & "|" & EditInvList(i).ItemName
-        End If
-        'replace the word
-        EditInvList(i).ItemName = Replace(EditInvList(i).ItemName, FindText, ReplaceText, 1, -1, vbcComp)
-        'update grid
-        fgObjects.TextMatrix(i + 1, ctDesc) = Replace(EditInvList(i).ItemName, FindText, ReplaceText)
-        'increment counter
-        lngCount = lngCount + 1
-      End If
-    Next i
-  End If
-  
-  'if nothing found,
-  If lngCount = 0 Then
-    MsgBox "Search text not found.", vbInformation, "Replace All"
-  Else
-    'add undo
-    AddUndo NextUndo
-    
-    'show how many replacements made
-    MsgBox "The specified region has been searched. " & CStr(lngCount) & " replacements were made.", vbInformation, "Replace All"
-  End If
-  
-  Screen.MousePointer = vbDefault
-End Sub
-
-Public Sub FindInLogic()
-  
-  'call findinlogic with current invobj
-  
-  Dim strObj As String
-  
-  strObj = fgObjects.TextMatrix(fgObjects.Row, ctDesc)
-  
-  If strObj <> "?" Then
-    'reset logic search
-    FindForm.ResetSearch
-    
-    'set search parameters
-    GFindText = QUOTECHAR & strObj & QUOTECHAR
-    GFindDir = fdAll
-    GMatchWord = True
-    GMatchCase = False
-    GLogFindLoc = flAll
-    GFindSynonym = False
-    SearchType = rtObjects
-    
-    With FindForm
-      'if the findform is visible,
-      If .Visible Then
-      'set it to match desired search parameters
-        'set find dialog to find textinlogic mode
-        .SetForm ffFindLogic, True
-      End If
-    End With
-    
-    'ensure this form is the search form
-    Set SearchForm = Me
-    
-    'now search all logics
-    FindInLogic QUOTECHAR & Replace(strObj, QUOTECHAR, "\""") & QUOTECHAR, fdAll, True, False, flAll, False, vbNullString
-  End If
-End Sub
-        */
-
-        #endregion
+            if (FindText.Equals(ReplaceText, vbcComp)) {
+                return;
+            }
+            if (EditInvList.Count == 0) {
+                MessageBox.Show(MDIMain,
+                    "No inventory objects in list.",
+                    "Find in Object List",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+            MDIMain.UseWaitCursor = true;
+            ObjectsUndo NextUndo = new() {
+                UDAction = ObjectsUndo.ActionType.ReplaceAll
+            };
+            if (MatchWord) {
+                for (int i = 0; i < EditInvList.Count; i++) {
+                    if (EditInvList[i].ItemName.Equals(FindText, vbcComp)) {
+                        // add  word being replaced to undo
+                        if (lngCount == 0) {
+                            NextUndo.UDObjectText = i + "|" + EditInvList[i].ItemName;
+                        }
+                        else {
+                            NextUndo.UDObjectText += "\r" + i + "|" + EditInvList[i].ItemName;
+                        }
+                        EditInvList[i].ItemName = ReplaceText;
+                        fgObjects[1, i].Value = ReplaceText;
+                        lngCount++;
+                    }
+                }
+            }
+            else {
+                for (int i = 0; i < EditInvList.Count; i++) {
+                    if (EditInvList[i].ItemName.Contains(FindText, vbcComp)) {
+                        // add  word being replaced to undo
+                        if (lngCount == 0) {
+                            NextUndo.UDObjectText = i + "|" + EditInvList[i].ItemName;
+                        }
+                        else {
+                            NextUndo.UDObjectText += "\r" + i + "|" + EditInvList[i].ItemName;
+                        }
+                        EditInvList[i].ItemName = EditInvList[i].ItemName.Replace(FindText, ReplaceText, vbcComp);
+                        fgObjects[1, i].Value = EditInvList[i].ItemName;
+                        lngCount++;
+                    }
+                }
+            }
+            if (lngCount == 0) {
+                MessageBox.Show(MDIMain,
+                    "Search text not found.",
+                    "Replace All",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            else {
+                AddUndo(NextUndo);
+                MessageBox.Show(MDIMain,
+                "The specified region has been searched. " + lngCount + " replacements were made.",
+                "Replace All",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            }
+            MDIMain.UseWaitCursor = false;
+        }
 
         private void AddUndo(ObjectsUndo NextUndo) {
             UndoCol.Push(NextUndo);
             MarkAsChanged();
             FindingForm.ResetSearch();
+            FirstFind = false;
         }
 
         private void SetEncryption(bool encrypt, bool DontUndo = false) {
@@ -1455,64 +1389,196 @@ End Sub
 
         public void SaveObjects() {
             // TODO: AutoUpdate feature still needs significant work; disable it for now
-            //bool blnDontAsk = false;
-            //DialogResult rtn = DialogResult.No;
-            //if (InGame && WinAGISettings.AutoUpdateObjects != 1) {
-            //    if (WinAGISettings.AutoUpdateObjects == 0) {
-            //         = MsgBoxEx.Show(MDIMain,
-            //            "Do you want to update all game logics with the changes made in the object list?",
-            //            "Update Logics?",
-            //            MessageBoxButtons.YesNo,
-            //            MessageBoxIcon.Question,
-            //            "Always take this action when saving the object list.", ref blnDontAsk);
-            //        if (blnDontAsk) {
-            //            if (rtn == DialogResult.Yes) {
-            //                WinAGISettings.AutoUpdateObjects = 2;
-            //            }
-            //            else {
-            //                WinAGISettings.AutoUpdateObjects = 1;
-            //            }
-            //        }
-            //    }
-            //    else {
-            //        rtn = DialogResult.Yes;
-            //    }
-            //    if (rtn == DialogResult.Yes) {
-            //        // test cmds that use IObj:
-            //        //   has, obj.in.room
-            //        //
-            //        // action cmds that use IObj:
-            //        //   get, drop, put
-            //        FindForm.Visible = false;
-            //        MDIMain.UseWaitCursor = true;
-            //        ProgressWin.Text = "Updating Objects in Logics";
-            //        ProgressWin.lblProgress.Text = "Searching...";
-            //        ProgressWin.pgbStatus.Maximum = EditInvList.Count - 1;
-            //        ProgressWin.pgbStatus.Value = 0;
-            //        ProgressWin.Show(MDIMain);
-            //        ProgressWin.Refresh();
-            //        for (int i = 1; i < EditGame.InvObjects.Count; i++) {
-            //            if (i >= EditInvList.Count) {
-            //                // mark all objects in logics as deleted
-            //                ReplaceAll("\"" + EditGame.InvObjects[i].ItemName + "\"", "i" + i.ToString(), fdAll, true, true, flAll, AGIResType.Objects);
-            //            }
-            //            else {
-            //                if (EditInvList[i].ItemName == "?") {
-            //                    // mark all objects in logics as deleted
-            //                    ReplaceAll("\"" + EditGame.InvObjects[i].ItemName + "\"", "i" + i.ToString(), fdAll, true, true, flAll, AGIResType.Objects);
-            //                }
-            //                else if (EditInvList[i].ItemName != EditGame.InvObjects[i].ItemName) {
-            //                    // change to new object item name
-            //                    ReplaceAll("\"" + EditGame.InvObjects[i].ItemName + "\"", "\"" + EditInvList[i].ItemName + "\"", fdAll, true, true, flAll, AGIResType.Objects);
-            //                }
-            //            }
-            //            ProgressWin.pgbStatus.Value = i;
-            //            ProgressWin.Refresh();
-            //        }
-            //        ProgressWin.Close();
-            //        MDIMain.UseWaitCursor = false;
-            //    }
-            //}
+            DialogResult rtn = DialogResult.No;
+            if (InGame) {
+                bool blnDontAsk = false;
+                if (WinAGISettings.AutoUpdateObjects.Value == Common.Base.AskOption.Ask) {
+                    rtn = MsgBoxEx.Show(MDIMain,
+                       "Do you want to update all game logics with the changes made in the object list?",
+                       "Update Logics?",
+                       MessageBoxButtons.YesNo,
+                       MessageBoxIcon.Question,
+                       "Always take this action when saving the object list.", ref blnDontAsk);
+                    if (blnDontAsk) {
+                        if (rtn == DialogResult.Yes) {
+                            WinAGISettings.AutoUpdateObjects.Value = Common.Base.AskOption.Yes;
+                        }
+                        else {
+                            WinAGISettings.AutoUpdateObjects.Value = Common.Base.AskOption.No;
+                        }
+                        WinAGISettings.AutoUpdateObjects.WriteSetting(WinAGISettingsFile);
+                    }
+                }
+                else {
+                    if (WinAGISettings.AutoUpdateObjects.Value == Common.Base.AskOption.Yes) {
+                        rtn = DialogResult.Yes;
+                    }
+                    else {
+                        rtn = DialogResult.No;
+                    }
+                }
+                if (rtn == DialogResult.Yes) {
+                    // test cmds that use IObj:
+                    //   has, obj.in.room
+                    //
+                    // action cmds that use IObj:
+                    //   get, drop, put
+                    FindingForm.Visible = false;
+                    MDIMain.UseWaitCursor = true;
+                    ProgressWin = new() {
+                        Text = "Updating Inventory Objects in Logics"
+                    };
+                    ProgressWin.lblProgress.Text = "Locating modified item entries...";
+                    ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + LogicEditors.Count + 1;
+                    ProgressWin.pgbStatus.Value = 0;
+                    ProgressWin.Show(MDIMain);
+                    ProgressWin.Refresh();
+
+                    string FindText = "", replacetext = "", pattern;
+
+                    foreach (frmLogicEdit loged in LogicEditors) {
+                        if (loged.FormMode == LogicFormMode.Logic && loged.InGame) {
+                            bool textchanged = false;
+                            // run through all objects in the current object list
+                            for (int i = 0; i < EditGame.InvObjects.Count; i++) {
+                                bool replaceitem = false;
+                                if (EditGame.InvObjects[i].ItemName != "?") {
+                                    if (i >= EditInvList.Count) {
+                                        if (EditGame.InvObjects[i].ItemName != "?") {
+                                            // replace old item name with argument marker
+                                            FindText = '"' + EditGame.InvObjects[i].ItemName + '"';
+                                            replacetext = "i" + i.ToString();
+                                            replaceitem = true;
+                                        }
+                                    }
+                                    else {
+                                        if (EditInvList[i].ItemName == "?" && EditGame.InvObjects[i].ItemName != "?") {
+                                            // replace old item name with argument marker
+                                            FindText = '"' + EditGame.InvObjects[i].ItemName + '"';
+                                            replacetext = "i" + i.ToString();
+                                            replaceitem = true;
+                                        }
+                                        else if (EditInvList[i].ItemName != EditGame.InvObjects[i].ItemName) {
+                                            // replaceold item name with new name
+                                            FindText = '"' + EditGame.InvObjects[i].ItemName + '"';
+                                            replacetext = '"' + EditInvList[i].ItemName + '"';
+                                            replaceitem = true;
+                                        }
+                                    }
+                                    if (replaceitem) {
+                                        pattern = Regex.Escape(FindText);
+                                        MatchCollection mc = Regex.Matches(loged.fctb.Text, pattern);
+                                        if (mc.Count > 0) {
+                                            ProgressWin.lblProgress.Text = "Updating editor for " + loged.EditLogic.ID;
+                                            ProgressWin.Refresh();
+                                            for (int m = mc.Count - 1; m >= 0; m--) {
+                                                Place pl = loged.fctb.PositionToPlace(mc[m].Index);
+                                                AGIToken token = loged.fctb.TokenFromPos(pl);
+                                                // test cmds that use IObj:
+                                                //   has, obj.in.room
+                                                //
+                                                // action cmds that use IObj:
+                                                //   get, drop, put
+                                                AGIToken token2 = loged.fctb.PreviousToken(token);
+                                                if (token2.Text == "(") {
+                                                    token2 = loged.fctb.PreviousToken(token2);
+                                                    if (token2.Text == "has" || token2.Text == "obj.in.room" ||
+                                                        token2.Text == "get" || token2.Text == "drop" || token2.Text == "put") {
+                                                        loged.fctb.ReplaceToken(token, replacetext);
+                                                        textchanged = true;
+                                                    }
+                                                }
+                                            }
+                                            ProgressWin.lblProgress.Text = "Locating modified define names...";
+                                            ProgressWin.Refresh();
+                                        }
+                                    }
+                                }
+                            }
+                            if (textchanged) {
+                                // ? who cares for editors...
+                            }
+                        }
+                        ProgressWin.pgbStatus.Value++;
+                        ProgressWin.Refresh();
+                    }
+                    foreach (Logic logic in EditGame.Logics) {
+                        bool unload = !logic.Loaded;
+                        bool textchanged = false;
+                        // run through all objects in the current object list
+                        for (int i = 0; i < EditGame.InvObjects.Count; i++) {
+                            bool replaceitem = false;
+                            if (EditGame.InvObjects[i].ItemName != "?") {
+                                if (i >= EditInvList.Count) {
+                                    if (EditGame.InvObjects[i].ItemName != "?") {
+                                        // replace old item name with argument marker
+                                        FindText = '"' + EditGame.InvObjects[i].ItemName + '"';
+                                        replacetext = "i" + i.ToString();
+                                        replaceitem = true;
+                                    }
+                                }
+                                else {
+                                    if (EditInvList[i].ItemName == "?" && EditGame.InvObjects[i].ItemName != "?") {
+                                        // replace old item name with argument marker
+                                        FindText = '"' + EditGame.InvObjects[i].ItemName + '"';
+                                        replacetext = "i" + i.ToString();
+                                        replaceitem = true;
+                                    }
+                                    else if (EditInvList[i].ItemName != EditGame.InvObjects[i].ItemName) {
+                                        // replaceold item name with new name
+                                        FindText = '"' + EditGame.InvObjects[i].ItemName + '"';
+                                        replacetext = '"' + EditInvList[i].ItemName + '"';
+                                        replaceitem = true;
+                                    }
+                                }
+                                if (replaceitem) {
+                                    // load first
+                                    if (unload) {
+                                        logic.Load();
+                                    }
+                                    pattern = Regex.Escape(FindText);
+                                    MatchCollection mc = Regex.Matches(logic.SourceText, pattern);
+                                    if (mc.Count > 0) {
+                                        ProgressWin.lblProgress.Text = "Updating source code for " + logic.ID;
+                                        ProgressWin.Refresh();
+                                        for (int m = mc.Count - 1; m >= 0; m--) {
+                                            AGIToken token = WinAGIFCTB.TokenFromPos(logic.SourceText, mc[m].Index);
+                                            // test cmds that use IObj:
+                                            //   has, obj.in.room
+                                            //
+                                            // action cmds that use IObj:
+                                            //   get, drop, put
+                                            AGIToken token2 = WinAGIFCTB.PreviousToken(logic.SourceText, token);
+                                            if (token2.Text == "(") {
+                                                token2 = WinAGIFCTB.PreviousToken(logic.SourceText, token2);
+                                                if (token2.Text == "has" || token2.Text == "obj.in.room" ||
+                                                    token2.Text == "get" || token2.Text == "drop" || token2.Text == "put") {
+                                                    logic.SourceText = logic.SourceText.ReplaceFirst(FindText, replacetext, mc[m].Index);
+                                                    textchanged = true;
+                                                }
+                                            }
+                                        }
+                                        ProgressWin.lblProgress.Text = "Locating modified define names...";
+                                        ProgressWin.Refresh();
+                                    }
+                                }
+                            }
+                        }
+                        if (textchanged) {
+                            logic.SaveSource();
+                            //update reslist
+                            RefreshTree(AGIResType.Logic, logic.Number);
+                        }
+                        if (unload) {
+                            logic.Unload();
+                        }
+                        ProgressWin.pgbStatus.Value++;
+                        ProgressWin.Refresh();
+                    }
+                    ProgressWin.Close();
+                    MDIMain.UseWaitCursor = false;
+                }
+            }
             if (InGame) {
                 MDIMain.UseWaitCursor = true;
                 bool loaded = EditGame.InvObjects.Loaded;
@@ -1578,6 +1644,69 @@ End Sub
             }
         }
 
+        internal void InitFonts() {
+            formFont = new(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
+            dupFont = new(formFont, FontStyle.Bold);
+            Label1.Font = formFont;
+            txtMaxScreenObjs.Font = formFont;
+            Label1.Left = txtMaxScreenObjs.Left - Label1.Width - 1;
+            fgObjects.Top = txtMaxScreenObjs.Height;
+            fgObjects.Font = formFont;
+        }
+
+        private void ModifyMax(byte NewMax, bool DontUndo = false) {
+            if (EditInvList.MaxScreenObjects == NewMax) {
+                return;
+            }
+            if (!DontUndo) {
+                ObjectsUndo NextUndo = new() {
+                    UDAction = ChangeMaxObj,
+                    UDObjectRoom = EditInvList.MaxScreenObjects
+                };
+                AddUndo(NextUndo);
+            }
+            EditInvList.MaxScreenObjects = NewMax;
+            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            MarkAsChanged();
+        }
+
+        private void ModifyItem(int index, string NewItem, bool DontUndo = false) {
+            if (EditInvList[index].ItemName == NewItem) {
+                return;
+            }
+            if (!DontUndo) {
+                ObjectsUndo NextUndo = new() {
+                    UDAction = ObjectsUndo.ActionType.ModifyItem,
+                    UDObjectNo = index,
+                    UDObjectText = EditInvList[index].ItemName
+                };
+                AddUndo(NextUndo);
+            }
+            EditInvList[index].ItemName = NewItem;
+            fgObjects[1, index].Value = NewItem;
+            MarkAsChanged();
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+            // Enter key is usually captured by the grid, but we want it to go to the textbox
+            switch (keyData) {
+            case Keys.Enter:
+                if (EditTextBox.Focused) {
+                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                    return true;
+                }
+                break;
+            case Keys.Tab:
+                if (EditTextBox.Focused) {
+                    //if (fgObjects.IsCurrentCellInEditMode) {
+                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Tab));
+                    return true;
+                }
+                break;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         private bool AskClose() {
             if (EditInvList.ErrLevel < 0) {
                 // if exiting due to error on form load
@@ -1635,43 +1764,7 @@ End Sub
             mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
-
-        internal void InitFonts() {
-            Font formfont = new(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
-            Label1.Font = formfont;
-            txtMaxScreenObjs.Font = formfont;
-            Label1.Left = txtMaxScreenObjs.Left - Label1.Width - 1;
-            fgObjects.Top = txtMaxScreenObjs.Height;
-            fgObjects.Font = formfont;
-        }
-
-        private void ModifyMax(byte NewMax, bool DontUndo = false) {
-            if (EditInvList.MaxScreenObjects == NewMax) {
-                return;
-            }
-            if (!DontUndo) {
-                ObjectsUndo NextUndo = new() {
-                    UDAction = ChangeMaxObj,
-                    UDObjectRoom = EditInvList.MaxScreenObjects
-                };
-                AddUndo(NextUndo);
-            }
-            EditInvList.MaxScreenObjects = NewMax;
-            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
-            MarkAsChanged();
-        }
-
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
-            // Enter key is usually captured by the grid, but we want it to go to the textbox
-            if (keyData == Keys.Enter) {
-                if (EditTextBox.Focused) {
-                    //if (fgObjects.IsCurrentCellInEditMode) {
-                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
-                    return true;
-                }
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
+#endregion
     }
 
     public class ObjectsUndo {

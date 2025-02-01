@@ -237,7 +237,7 @@ Private Sub FindWordInLogic(ByVal SearchWord As String, ByVal FindSynonyms As Bo
   On Error GoTo ErrHandler
   
   'reset logic search
-  FindForm.ResetSearch
+  FindingForm.ResetSearch
     
   'set global search values
   GFindText = QUOTECHAR & SearchWord & QUOTECHAR
@@ -250,7 +250,7 @@ Private Sub FindWordInLogic(ByVal SearchWord As String, ByVal FindSynonyms As Bo
   SearchType = rtWords
   
   'set it to match desired search parameters
-  With FindForm
+  With FindingForm
     'set find dialog to find textinlogic mode
     .SetForm ffFindWordsLogic, True
     
@@ -282,7 +282,7 @@ End Sub
 ''  Dim lngPos1 As Long, lngPos2 As Long
 ''
 ''  'hide find form
-''  FindForm.Visible = False
+''  FindingForm.Visible = False
 ''
 ''  'show wait cursor
 ''  WaitCursor
@@ -690,7 +690,7 @@ Public Sub BeginFind()
   '
   'that's why each search form cheks for changes, and
   'sets the global values, instead of doing it once inside
-  'the FindForm code
+  'the FindingForm code
   
   'when searching for a word in a logic, the first time the
   'user presses the 'find' button, the SearchForm is the
@@ -700,7 +700,7 @@ Public Sub BeginFind()
   'future presses of the Find button will search logics
   'as expected
   
-  With FindForm
+  With FindingForm
     'if searching in logics
     If .FormFunction = ffFindWordsLogic Then
       'begin a logic search
@@ -1938,7 +1938,7 @@ Public Sub MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindWord
   On Error GoTo ErrHandler
   
   'set form defaults
-  With FindForm
+  With FindingForm
     If Not .Visible Then
       If Len(GFindText) > 0 Then
         'if it has quotes, remove them
@@ -2040,7 +2040,7 @@ Private Sub FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, By
       'think the find operation is complete and stop
       If Replacing And (SearchWord = StartWord And SearchGrp = StartGrp) Then
         'reset search
-        FindForm.ResetSearch
+        FindingForm.ResetSearch
       End If
     End If
     
@@ -2146,7 +2146,7 @@ Private Sub FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, By
           End If
           If rtn = vbNo Then
             'reset search
-            FindForm.ResetSearch
+            FindingForm.ResetSearch
             Me.MousePointer = vbDefault
             Exit Sub
           End If
@@ -2167,7 +2167,7 @@ Private Sub FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, By
           End If
           If rtn = vbNo Then
             'reset search
-            FindForm.ResetSearch
+            FindingForm.ResetSearch
             Me.MousePointer = vbDefault
             Exit Sub
           End If
@@ -2227,7 +2227,7 @@ Private Sub FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, By
           End Select
           'always reset search when replacing, because
           'word index almost always changes
-          FindForm.ResetSearch
+          FindingForm.ResetSearch
           
           'recurse the find method to get the next occurence
           blnRecurse = True
@@ -2251,14 +2251,14 @@ Private Sub FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, By
       End If
       
       'reset search flags
-      FindForm.ResetSearch
+      FindingForm.ResetSearch
     End If
     
     'need to always make sure right form has focus; if finding a word
     'causes the group list to change, VB puts the wordeditor form in focus
     ' but we want focus to match the starting form
     If SearchStartDlg Then
-      FindForm.SetFocus
+      FindingForm.SetFocus
     Else
       Me.SetFocus
     End If
@@ -2380,7 +2380,7 @@ Private Sub FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, By
           End If
           If rtn = vbNo Then
             'reset search
-            FindForm.ResetSearch
+            FindingForm.ResetSearch
             Me.MousePointer = vbDefault
             Exit Sub
           End If
@@ -2401,7 +2401,7 @@ Private Sub FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, By
           End If
           If rtn = vbNo Then
             'reset search
-            FindForm.ResetSearch
+            FindingForm.ResetSearch
             Me.MousePointer = vbDefault
             Exit Sub
           End If
@@ -2450,14 +2450,14 @@ Private Sub FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, By
       End If
       
       'reset search flags
-      FindForm.ResetSearch
+      FindingForm.ResetSearch
     End If
     
     'need to always make sure right form has focus; if finding a word
     'causes the group list to change, VB puts the wordeditor form in focus
     ' but we want focus to match the starting form
     If SearchStartDlg Then
-      FindForm.SetFocus
+      FindingForm.SetFocus
     Else
       Me.SetFocus
     End If
@@ -4003,14 +4003,14 @@ End Sub
               UpdateStatusBar
 
               'if findform is visible,
-              If FindForm.Visible Then
+              If FindingForm.Visible Then
                 'set correct mode
-                If FindForm.rtfReplace.Visible Then
+                If FindingForm.rtfReplace.Visible Then
                   'show in replace word mode
-                  FindForm.SetForm ffReplaceWord, False
+                  FindingForm.SetForm ffReplaceWord, False
                 Else
                   'show in find word mode
-                  FindForm.SetForm ffFindWord, False
+                  FindingForm.SetForm ffFindWord, False
                 End If
               End If
 

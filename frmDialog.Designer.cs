@@ -42,6 +42,7 @@
             button1.Text = "button1";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
+            button1.KeyDown += Form_KeyDown;
             // 
             // button2
             // 
@@ -53,6 +54,7 @@
             button2.UseVisualStyleBackColor = true;
             button2.Visible = false;
             button2.Click += button2_Click;
+            button2.KeyDown += Form_KeyDown;
             // 
             // button3
             // 
@@ -64,6 +66,7 @@
             button3.UseVisualStyleBackColor = true;
             button3.Visible = false;
             button3.Click += button3_Click;
+            button3.KeyDown += Form_KeyDown;
             // 
             // cmdHelp
             // 
@@ -75,6 +78,7 @@
             cmdHelp.UseVisualStyleBackColor = true;
             cmdHelp.Visible = false;
             cmdHelp.Click += cmdHelp_Click;
+            cmdHelp.KeyDown += Form_KeyDown;
             // 
             // Check1
             // 
@@ -124,7 +128,7 @@
             Name = "frmDialog";
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "frmDialog";
-            KeyDown += frmDialog_KeyDown;
+            KeyDown += Form_KeyDown;
             ((System.ComponentModel.ISupportInitialize)Image1).EndInit();
             ResumeLayout(false);
             PerformLayout();

@@ -752,10 +752,10 @@ namespace WinAGI.Editor {
             picCel.TabStop = false;
             picCel.DoubleClick += picCel_DoubleClick;
             picCel.MouseDown += picCel_MouseDown;
+            picCel.MouseLeave += picCel_MouseLeave;
             picCel.MouseMove += picCel_MouseMove;
             picCel.MouseUp += picCel_MouseUp;
             picCel.MouseWheel += picCel_MouseWheel;
-            picCel.MouseLeave += picCel_MouseLeave;
             // 
             // tsViewPrev
             // 
@@ -947,6 +947,7 @@ namespace WinAGI.Editor {
             rtfLogPrev.CharWidth = 8;
             rtfLogPrev.ContextMenuStrip = cmsLogic;
             rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            rtfLogPrev.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogPrev.Hotkeys = resources.GetString("rtfLogPrev.Hotkeys");
             rtfLogPrev.IsReplaceMode = false;
             rtfLogPrev.LineNumberStartValue = 0U;
@@ -1005,7 +1006,7 @@ namespace WinAGI.Editor {
             MinimizeBox = false;
             Name = "frmPreview";
             ShowInTaskbar = false;
-            Text = "Form1";
+            Text = "Preview";
             Activated += frmPreview_Activated;
             Deactivate += frmPreview_Deactivate;
             FormClosing += frmPreview_FormClosing;
