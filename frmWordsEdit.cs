@@ -26,6 +26,19 @@ namespace WinAGI.Editor {
             MdiParent = MDIMain;
         }
 
+        private void frmWordsEdit_Activated(object sender, EventArgs e) {
+            if (FindingForm.Visible) {
+                if (FindingForm.rtfReplace.Visible) {
+                    FindingForm.SetForm(FindFormFunction.ReplaceObject, InGame);
+                }
+                else {
+                    FindingForm.SetForm(FindFormFunction.FindObject, InGame);
+                }
+            }
+            statusStrip1.Items["spGroupCount"].Text = "Group Count: " + EditWordList.GroupCount;
+            statusStrip1.Items["spWordCount"].Text = "Word Count: " + EditWordList.WordCount;
+        }
+
         #region Form Event Handlers
         private void frmWordsEdit_FormClosing(object sender, FormClosingEventArgs e) {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
@@ -48,6 +61,18 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void frmWordsEdit_Resize(object sender, EventArgs e) {
+            // Calculate the new width for each list box
+            int newWidth = (this.ClientSize.Width - 20) / 2; // Subtracting 20 for padding/margin
+
+            // Set the new width and position for lstGroups
+            lstGroups.Width = newWidth;
+            lstGroups.Left = 10; // Padding from the left edge
+
+            // Set the new width and position for lstWords
+            lstWords.Width = newWidth;
+            lstWords.Left = lstGroups.Right + 10; // Padding between the list boxes
+        }
         #endregion
 
         #region Menu Event Handlers
@@ -107,15 +132,13 @@ namespace WinAGI.Editor {
             lstGroups.Items.Add("   1: anyword");
             lstGroups.Items.Add("9999: rol");
             lstGroups.SelectedIndex = 0;
-            lblGroupCount.Text = "Group Count: 3";
-            lblWordCount.Text = "Word Count: 3";
             MainStatusBar.Items["spWordCount"].Text = "Word Count: 3";
             MarkAsChanged();
         }
 
         private void lstGroups_SelectedIndexChanged(object sender, EventArgs e) {
             lstWords.Items.Clear();
-            if (lstGroups.SelectedIndex >=0) {
+            if (lstGroups.SelectedIndex >= 0) {
                 string grp = ((string)lstGroups.SelectedItem)[..((string)lstGroups.SelectedItem).IndexOf(':')];
                 int group = int.Parse(grp);
                 foreach (string word in EditWordList.GroupN(group)) {
@@ -5286,10 +5309,8 @@ End Sub
             lstGroups.Items.Clear();
             for (int i = 0; i < EditWordList.GroupCount; i++) {
                 lstGroups.Items.Add((EditWordList.Group(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.Group(i).GroupName);
-            } 
+            }
             lstGroups.SelectedIndex = 0;
-            lblGroupCount.Text = "Group Count: " + EditWordList.GroupCount;
-            lblWordCount.Text = "Word Count: " + EditWordList.WordCount;
             // statusbar has not been merged yet
             statusStrip1.Items["spGroupCount"].Text = "Group Count: " + EditWordList.GroupCount;
             statusStrip1.Items["spWordCount"].Text = "Word Count: " + EditWordList.WordCount;
@@ -5478,6 +5499,8 @@ End Sub
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
                 Text = sDM + Text;
             }
+            statusStrip1.Items["spGroupCount"].Text = "Group Count: " + EditWordList.GroupCount;
+            statusStrip1.Items["spWordCount"].Text = "Word Count: " + EditWordList.WordCount;
         }
 
         private void MarkAsSaved() {
@@ -5494,9 +5517,24 @@ End Sub
         }
 
         internal void InitFonts() {
-            // TODO: after finalizing form layout, need to adjust font init
+            label1.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
+            label2.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
             lstGroups.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
             lstWords.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
+            lstGroups.Top = label1.Bottom + 5;
+            lstWords.Top = lstGroups.Top;
+            //rtfWord.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
+            //txtGrpNum.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
+        }
+
+        private void frmWordsEdit_Resize_1(object sender, EventArgs e) {
+            int newWidth = (this.ClientSize.Width - 10) / 2;
+            lstGroups.Width = newWidth;
+            lstWords.Width = newWidth;
+            lstWords.Left = lstGroups.Right + 5;
+            label1.Width = lstGroups.Width;
+            label2.Width = lstWords.Width;
+            label2.Left = lstWords.Left;
         }
     }
 }

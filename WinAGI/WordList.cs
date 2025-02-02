@@ -386,8 +386,7 @@ namespace WinAGI.Engine {
             // for first word, there is no previous word
             strPrevWord = "";
             // read character Count for first word
-            bytPrevWordCharCount = bytData[lngPos];
-            lngPos++;
+            bytPrevWordCharCount = bytData[lngPos++];
             // continue loading words until end of resource is reached
             while (lngPos < bytData.Length) {
                 if (bytPrevWordCharCount > 0) {
@@ -410,8 +409,8 @@ namespace WinAGI.Engine {
                         bytExt = 0;
                     }
                     if (bytVal[0] < 0x80) {
-                        bytVal[0] = (byte)(bytVal[0] ^ 0x7F + bytExt);
-                        sbThisWord.Append(CodePage.GetString(bytVal));
+                        byte[] charbyte = [(byte)(bytVal[0] ^ 0x7F + bytExt)];
+                        sbThisWord.Append(CodePage.GetString(charbyte));
                     }
                     lngPos++;
                     // continue until last character (indicated by flag) or
@@ -426,6 +425,7 @@ namespace WinAGI.Engine {
                 }
                 // add last character (after stripping off flag)
                 bytVal[0] ^= 0xFF;
+                bytVal[0] += bytExt;
                 sbThisWord.Append(CodePage.GetString(bytVal));
                 sThisWord = sbThisWord.ToString();
                 // check for ascii upper case (allowed, but not useful)
@@ -441,6 +441,7 @@ namespace WinAGI.Engine {
                         // remove the old one so a duplicate isn't
                         // added, which would cause an exception
                         RemoveWord(sThisWord);
+                        // TODO: this should add a warning
                     }
                     AddWord(sThisWord, lngGrpNum);
                     // this word is now the previous word

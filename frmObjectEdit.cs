@@ -59,6 +59,9 @@ namespace WinAGI.Editor {
                     FindingForm.SetForm(FindFormFunction.FindObject, InGame);
                 }
             }
+            // hmm, status strip isn't set yet...
+            //statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
+            //statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
         }
 
         private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
@@ -1750,6 +1753,8 @@ namespace WinAGI.Editor {
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
                 Text = sDM + Text;
             }
+            statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
+            statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
         }
 
         private void MarkAsSaved() {

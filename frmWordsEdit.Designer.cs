@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace WinAGI.Editor {
     partial class frmWordsEdit {
         /// <summary>
@@ -24,6 +26,7 @@ namespace WinAGI.Editor {
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmWordsEdit));
             label1 = new System.Windows.Forms.Label();
             label2 = new System.Windows.Forms.Label();
@@ -41,39 +44,53 @@ namespace WinAGI.Editor {
             mnuRMerge = new System.Windows.Forms.ToolStripMenuItem();
             mnuRGroupCheck = new System.Windows.Forms.ToolStripMenuItem();
             mnuEdit = new System.Windows.Forms.ToolStripMenuItem();
-            mnuECut = new System.Windows.Forms.ToolStripMenuItem();
-            mnuECopy = new System.Windows.Forms.ToolStripMenuItem();
-            mnuEPaste = new System.Windows.Forms.ToolStripMenuItem();
             lstGroups = new System.Windows.Forms.ListBox();
             lstWords = new System.Windows.Forms.ListBox();
-            btnClear = new System.Windows.Forms.Button();
-            lblGroupCount = new System.Windows.Forms.Label();
-            lblWordCount = new System.Windows.Forms.Label();
             statusStrip1 = new System.Windows.Forms.StatusStrip();
             spGroupCount = new System.Windows.Forms.ToolStripStatusLabel();
             spWordCount = new System.Windows.Forms.ToolStripStatusLabel();
             spStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            cmWords = new System.Windows.Forms.ContextMenuStrip(components);
+            mnuEUndo = new System.Windows.Forms.ToolStripMenuItem();
+            mnESep0 = new System.Windows.Forms.ToolStripSeparator();
+            mnuECut = new System.Windows.Forms.ToolStripMenuItem();
+            mnuECopy = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEPaste = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEDelete = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEClear = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEInsertGroup = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEInsertWord = new System.Windows.Forms.ToolStripMenuItem();
+            mnuESep1 = new System.Windows.Forms.ToolStripSeparator();
+            mnuEFind = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEFindAgain = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEReplace = new System.Windows.Forms.ToolStripMenuItem();
+            mnuESep2 = new System.Windows.Forms.ToolStripSeparator();
+            mnuEditItem = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEFindInLogic = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEditMode = new System.Windows.Forms.ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
+            cmWords.SuspendLayout();
             SuspendLayout();
             // 
             // label1
             // 
-            label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(12, 9);
+            label1.Location = new System.Drawing.Point(0, 0);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(48, 15);
+            label1.Size = new System.Drawing.Size(342, 15);
             label1.TabIndex = 0;
-            label1.Text = "Groups:";
+            label1.Text = "Groups";
+            label1.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // label2
             // 
-            label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(168, 9);
+            label2.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
+            label2.Location = new System.Drawing.Point(342, 0);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(126, 15);
+            label2.Size = new System.Drawing.Size(342, 15);
             label2.TabIndex = 1;
-            label2.Text = "Synonyms for Group #";
+            label2.Text = "Words";
+            label2.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // menuStrip1
             // 
@@ -82,7 +99,7 @@ namespace WinAGI.Editor {
             menuStrip1.Location = new System.Drawing.Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Padding = new System.Windows.Forms.Padding(3, 1, 0, 1);
-            menuStrip1.Size = new System.Drawing.Size(800, 24);
+            menuStrip1.Size = new System.Drawing.Size(713, 24);
             menuStrip1.TabIndex = 6;
             menuStrip1.Text = "menuStrip1";
             menuStrip1.Visible = false;
@@ -194,81 +211,36 @@ namespace WinAGI.Editor {
             // 
             // mnuEdit
             // 
-            mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuECut, mnuECopy, mnuEPaste });
             mnuEdit.MergeAction = System.Windows.Forms.MergeAction.Insert;
             mnuEdit.MergeIndex = 2;
             mnuEdit.Name = "mnuEdit";
             mnuEdit.Size = new System.Drawing.Size(39, 22);
             mnuEdit.Text = "&Edit";
             // 
-            // mnuECut
-            // 
-            mnuECut.Name = "mnuECut";
-            mnuECut.Size = new System.Drawing.Size(108, 22);
-            mnuECut.Text = "Cut l";
-            // 
-            // mnuECopy
-            // 
-            mnuECopy.Name = "mnuECopy";
-            mnuECopy.Size = new System.Drawing.Size(108, 22);
-            mnuECopy.Text = "Copy l";
-            // 
-            // mnuEPaste
-            // 
-            mnuEPaste.Name = "mnuEPaste";
-            mnuEPaste.Size = new System.Drawing.Size(108, 22);
-            mnuEPaste.Text = "Paste l";
-            // 
             // lstGroups
             // 
             lstGroups.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
             lstGroups.FormattingEnabled = true;
             lstGroups.HorizontalScrollbar = true;
+            lstGroups.IntegralHeight = false;
             lstGroups.ItemHeight = 15;
-            lstGroups.Location = new System.Drawing.Point(12, 27);
+            lstGroups.Location = new System.Drawing.Point(5, 15);
             lstGroups.Name = "lstGroups";
-            lstGroups.Size = new System.Drawing.Size(189, 274);
+            lstGroups.Size = new System.Drawing.Size(342, 296);
             lstGroups.TabIndex = 7;
             lstGroups.SelectedIndexChanged += lstGroups_SelectedIndexChanged;
             // 
             // lstWords
             // 
-            lstWords.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            lstWords.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
             lstWords.FormattingEnabled = true;
             lstWords.HorizontalScrollbar = true;
+            lstWords.IntegralHeight = false;
             lstWords.ItemHeight = 15;
-            lstWords.Location = new System.Drawing.Point(214, 27);
+            lstWords.Location = new System.Drawing.Point(342, 15);
             lstWords.Name = "lstWords";
-            lstWords.Size = new System.Drawing.Size(189, 274);
+            lstWords.Size = new System.Drawing.Size(337, 296);
             lstWords.TabIndex = 8;
-            // 
-            // btnClear
-            // 
-            btnClear.Location = new System.Drawing.Point(473, 27);
-            btnClear.Name = "btnClear";
-            btnClear.Size = new System.Drawing.Size(90, 24);
-            btnClear.TabIndex = 9;
-            btnClear.Text = "Clear";
-            btnClear.UseVisualStyleBackColor = true;
-            btnClear.Click += btnClear_Click;
-            // 
-            // lblGroupCount
-            // 
-            lblGroupCount.AutoSize = true;
-            lblGroupCount.Location = new System.Drawing.Point(474, 71);
-            lblGroupCount.Name = "lblGroupCount";
-            lblGroupCount.Size = new System.Drawing.Size(89, 15);
-            lblGroupCount.TabIndex = 10;
-            lblGroupCount.Text = "Group Count: #";
-            // 
-            // lblWordCount
-            // 
-            lblWordCount.AutoSize = true;
-            lblWordCount.Location = new System.Drawing.Point(473, 97);
-            lblWordCount.Name = "lblWordCount";
-            lblWordCount.Size = new System.Drawing.Size(75, 15);
-            lblWordCount.TabIndex = 11;
-            lblWordCount.Text = "Word Count:";
             // 
             // statusStrip1
             // 
@@ -314,17 +286,132 @@ namespace WinAGI.Editor {
             spStatus.Text = "word edit status";
             spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // cmWords
+            // 
+            cmWords.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsertGroup, mnuEInsertWord, mnuESep1, mnuEFind, mnuEFindAgain, mnuEReplace, mnuESep2, mnuEditItem, mnuEFindInLogic, mnuEditMode });
+            cmWords.Name = "cmWords";
+            cmWords.Size = new System.Drawing.Size(235, 330);
+            // 
+            // mnuEUndo
+            // 
+            mnuEUndo.Name = "mnuEUndo";
+            mnuEUndo.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z;
+            mnuEUndo.Size = new System.Drawing.Size(234, 22);
+            mnuEUndo.Text = "Undo";
+            // 
+            // mnESep0
+            // 
+            mnESep0.Name = "mnESep0";
+            mnESep0.Size = new System.Drawing.Size(231, 6);
+            // 
+            // mnuECut
+            // 
+            mnuECut.Name = "mnuECut";
+            mnuECut.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X;
+            mnuECut.Size = new System.Drawing.Size(234, 22);
+            mnuECut.Text = "Cut";
+            // 
+            // mnuECopy
+            // 
+            mnuECopy.Name = "mnuECopy";
+            mnuECopy.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C;
+            mnuECopy.Size = new System.Drawing.Size(234, 22);
+            mnuECopy.Text = "Copy";
+            // 
+            // mnuEPaste
+            // 
+            mnuEPaste.Name = "mnuEPaste";
+            mnuEPaste.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V;
+            mnuEPaste.Size = new System.Drawing.Size(234, 22);
+            mnuEPaste.Text = "Paste";
+            // 
+            // mnuEDelete
+            // 
+            mnuEDelete.Name = "mnuEDelete";
+            mnuEDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
+            mnuEDelete.Size = new System.Drawing.Size(234, 22);
+            mnuEDelete.Text = "Delete";
+            // 
+            // mnuEClear
+            // 
+            mnuEClear.Name = "mnuEClear";
+            mnuEClear.ShortcutKeys = System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Delete;
+            mnuEClear.Size = new System.Drawing.Size(234, 22);
+            mnuEClear.Text = "Clear Word List";
+            // 
+            // mnuEInsertGroup
+            // 
+            mnuEInsertGroup.Name = "mnuEInsertGroup";
+            mnuEInsertGroup.ShortcutKeys = System.Windows.Forms.Keys.Insert;
+            mnuEInsertGroup.Size = new System.Drawing.Size(234, 22);
+            mnuEInsertGroup.Text = "Insert Group";
+            // 
+            // mnuEInsertWord
+            // 
+            mnuEInsertWord.Name = "mnuEInsertWord";
+            mnuEInsertWord.Size = new System.Drawing.Size(234, 22);
+            mnuEInsertWord.Text = "Insert Word";
+            // 
+            // mnuESep1
+            // 
+            mnuESep1.Name = "mnuESep1";
+            mnuESep1.Size = new System.Drawing.Size(231, 6);
+            // 
+            // mnuEFind
+            // 
+            mnuEFind.Name = "mnuEFind";
+            mnuEFind.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F;
+            mnuEFind.Size = new System.Drawing.Size(234, 22);
+            mnuEFind.Text = "Find";
+            // 
+            // mnuEFindAgain
+            // 
+            mnuEFindAgain.Name = "mnuEFindAgain";
+            mnuEFindAgain.ShortcutKeys = System.Windows.Forms.Keys.F3;
+            mnuEFindAgain.Size = new System.Drawing.Size(234, 22);
+            mnuEFindAgain.Text = "Find Again";
+            // 
+            // mnuEReplace
+            // 
+            mnuEReplace.Name = "mnuEReplace";
+            mnuEReplace.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.R;
+            mnuEReplace.Size = new System.Drawing.Size(234, 22);
+            mnuEReplace.Text = "Replace";
+            // 
+            // mnuESep2
+            // 
+            mnuESep2.Name = "mnuESep2";
+            mnuESep2.Size = new System.Drawing.Size(231, 6);
+            // 
+            // mnuEditItem
+            // 
+            mnuEditItem.Name = "mnuEditItem";
+            mnuEditItem.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Enter;
+            mnuEditItem.Size = new System.Drawing.Size(234, 22);
+            mnuEditItem.Text = "Edit Group Number";
+            // 
+            // mnuEFindInLogic
+            // 
+            mnuEFindInLogic.Name = "mnuEFindInLogic";
+            mnuEFindInLogic.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F;
+            mnuEFindInLogic.Size = new System.Drawing.Size(234, 22);
+            mnuEFindInLogic.Text = "Find In Logics";
+            // 
+            // mnuEditMode
+            // 
+            mnuEditMode.Name = "mnuEditMode";
+            mnuEditMode.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.M;
+            mnuEditMode.Size = new System.Drawing.Size(234, 22);
+            mnuEditMode.Text = "Display by Words";
+            // 
             // frmWordsEdit
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(713, 311);
-            Controls.Add(statusStrip1);
-            Controls.Add(lblWordCount);
-            Controls.Add(lblGroupCount);
-            Controls.Add(btnClear);
+            ClientSize = new System.Drawing.Size(684, 311);
             Controls.Add(lstWords);
             Controls.Add(lstGroups);
+            Controls.Add(statusStrip1);
             Controls.Add(menuStrip1);
             Controls.Add(label2);
             Controls.Add(label1);
@@ -332,12 +419,15 @@ namespace WinAGI.Editor {
             Name = "frmWordsEdit";
             StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
             Text = "frmWordsEdit";
+            Activated += frmWordsEdit_Activated;
             FormClosing += frmWordsEdit_FormClosing;
             FormClosed += frmWordsEdit_FormClosed;
+            Resize += frmWordsEdit_Resize_1;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
+            cmWords.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -359,18 +449,30 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuRExportLoopGIF;
         private System.Windows.Forms.ToolStripMenuItem mnuRMerge;
         private System.Windows.Forms.ToolStripMenuItem mnuEdit;
-        private System.Windows.Forms.ToolStripMenuItem mnuECut;
-        private System.Windows.Forms.ToolStripMenuItem mnuECopy;
-        private System.Windows.Forms.ToolStripMenuItem mnuEPaste;
         private System.Windows.Forms.ToolStripMenuItem mnuRGroupCheck;
         private System.Windows.Forms.ListBox lstGroups;
         private System.Windows.Forms.ListBox lstWords;
-        private System.Windows.Forms.Button btnClear;
-        private System.Windows.Forms.Label lblGroupCount;
-        private System.Windows.Forms.Label lblWordCount;
         public System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel spStatus;
         private System.Windows.Forms.ToolStripStatusLabel spGroupCount;
         private System.Windows.Forms.ToolStripStatusLabel spWordCount;
+        private System.Windows.Forms.ContextMenuStrip cmWords;
+        private System.Windows.Forms.ToolStripMenuItem mnuEUndo;
+        private System.Windows.Forms.ToolStripSeparator mnESep0;
+        private System.Windows.Forms.ToolStripMenuItem mnuECut;
+        private System.Windows.Forms.ToolStripMenuItem mnuECopy;
+        private System.Windows.Forms.ToolStripMenuItem mnuEPaste;
+        private System.Windows.Forms.ToolStripMenuItem mnuEDelete;
+        private System.Windows.Forms.ToolStripMenuItem mnuEClear;
+        private System.Windows.Forms.ToolStripMenuItem mnuEInsertGroup;
+        private System.Windows.Forms.ToolStripMenuItem mnuEInsertWord;
+        private System.Windows.Forms.ToolStripSeparator mnuESep1;
+        private System.Windows.Forms.ToolStripMenuItem mnuEFind;
+        private System.Windows.Forms.ToolStripMenuItem mnuEFindAgain;
+        private System.Windows.Forms.ToolStripMenuItem mnuEReplace;
+        private System.Windows.Forms.ToolStripSeparator mnuESep2;
+        private System.Windows.Forms.ToolStripMenuItem mnuEditItem;
+        private System.Windows.Forms.ToolStripMenuItem mnuEFindInLogic;
+        private System.Windows.Forms.ToolStripMenuItem mnuEditMode;
     }
 }
