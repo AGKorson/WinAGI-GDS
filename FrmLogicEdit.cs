@@ -22,6 +22,7 @@ using EnvDTE;
 using System.Runtime.Serialization;
 using System.Collections.ObjectModel;
 using WinAGI.Common;
+using static WinAGI.Common.API;
 using System.Runtime.InteropServices;
 
 namespace WinAGI.Editor {
@@ -392,7 +393,7 @@ namespace WinAGI.Editor {
                             mnuEViewSynonym.Text = "View Synonyms for " + seltoken.Text;
                             int group = EditGame.WordList[wordtext].Group;
                             mnuEViewSynonym.Tag = group;
-                            mnuEViewSynonym.Enabled = EditGame.WordList.GroupN(group).WordCount > 1;
+                            mnuEViewSynonym.Enabled = EditGame.WordList.GroupByNumber(group).WordCount > 1;
                         }
                     }
                 }
@@ -652,10 +653,6 @@ namespace WinAGI.Editor {
             CharPicker.Close();
             CharPicker.Dispose();
         }
-
-        [DllImport("user32.dll")]
-        static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
-        private const int WM_SETREDRAW = 11;
 
         public void RestoreFocusHack() {
             // something about this form (probably the fctb? it's the only 
@@ -3275,8 +3272,8 @@ namespace WinAGI.Editor {
                     }
                     // skip group 0
                     for (int i = 1; i < EditGame.WordList.GroupCount; i++) {
-                        strLine = "\"" + EditGame.WordList.Group(i).GroupName + "\"";
-                        lstDefines.Items.Add(strLine, strLine, 22).ToolTipText = EditGame.WordList.Group(i).GroupNum.ToString();
+                        strLine = "\"" + EditGame.WordList.GroupByIndex(i).GroupName + "\"";
+                        lstDefines.Items.Add(strLine, strLine, 22).ToolTipText = EditGame.WordList.GroupByIndex(i).GroupNum.ToString();
                     }
                     break;
                 }
@@ -3330,11 +3327,11 @@ namespace WinAGI.Editor {
             // displays a list of synonyms in a list box
             ListDirty = true;
             int GrpNum = EditGame.WordList[aWord[1..^1]].Group;
-            int GrpCount = EditGame.WordList.GroupN(GrpNum).WordCount;
+            int GrpCount = EditGame.WordList.GroupByNumber(GrpNum).WordCount;
             lstDefines.Items.Clear();
             lstDefines.Tag = "words";
             for (byte i = 0; i < GrpCount; i++) {
-                lstDefines.Items.Add("\"" + EditGame.WordList.GroupN(GrpNum)[i] + "\"", 21);
+                lstDefines.Items.Add("\"" + EditGame.WordList.GroupByNumber(GrpNum)[i] + "\"", 21);
             }
             // save pos and text
             DefStartPos = fctb.Selection.Start;

@@ -2031,4 +2031,10 @@
   <data name="CP869" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\agi869glyphs.bmp;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="ewi_bygroup" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\ewi_bygroup.ico;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ewi_byword" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\ewi_byword.ico;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

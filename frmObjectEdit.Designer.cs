@@ -69,9 +69,9 @@ namespace WinAGI.Editor {
             mnuCelSep2 = new System.Windows.Forms.ToolStripSeparator();
             mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
             statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             spCount = new System.Windows.Forms.ToolStripStatusLabel();
             spEncrypt = new System.Windows.Forms.ToolStripStatusLabel();
+            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             txtMaxScreenObjs = new System.Windows.Forms.TextBox();
             fgObjects = new System.Windows.Forms.DataGridView();
             colIndex = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -80,6 +80,7 @@ namespace WinAGI.Editor {
             menuStrip1.SuspendLayout();
             cmGrid.SuspendLayout();
             cmCel.SuspendLayout();
+            statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)fgObjects).BeginInit();
             SuspendLayout();
             // 
@@ -406,6 +407,7 @@ namespace WinAGI.Editor {
             // statusStrip1
             // 
             statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
+            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spCount, spEncrypt, spStatus });
             statusStrip1.Location = new System.Drawing.Point(41, 214);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
@@ -414,20 +416,31 @@ namespace WinAGI.Editor {
             statusStrip1.Text = "statusStrip1";
             statusStrip1.Visible = false;
             // 
-            // spStatus
-            // 
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(23, 23);
-            // 
             // spCount
             // 
+            spCount.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
+            spCount.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
+            spCount.MergeAction = System.Windows.Forms.MergeAction.Insert;
+            spCount.MergeIndex = 0;
             spCount.Name = "spCount";
-            spCount.Size = new System.Drawing.Size(23, 23);
+            spCount.Size = new System.Drawing.Size(4, 18);
             // 
             // spEncrypt
             // 
+            spEncrypt.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
+            spEncrypt.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
+            spEncrypt.MergeAction = System.Windows.Forms.MergeAction.Insert;
+            spEncrypt.MergeIndex = 1;
             spEncrypt.Name = "spEncrypt";
-            spEncrypt.Size = new System.Drawing.Size(23, 23);
+            spEncrypt.Size = new System.Drawing.Size(4, 18);
+            // 
+            // spStatus
+            // 
+            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
+            spStatus.MergeIndex = 2;
+            spStatus.Name = "spStatus";
+            spStatus.Size = new System.Drawing.Size(697, 18);
+            spStatus.Spring = true;
             // 
             // txtMaxScreenObjs
             // 
@@ -529,6 +542,8 @@ namespace WinAGI.Editor {
             menuStrip1.PerformLayout();
             cmGrid.ResumeLayout(false);
             cmCel.ResumeLayout(false);
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)fgObjects).EndInit();
             ResumeLayout(false);
             PerformLayout();

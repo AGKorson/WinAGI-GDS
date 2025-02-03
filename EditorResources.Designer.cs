@@ -5775,6 +5775,26 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ewi_bygroup {
+            get {
+                object obj = ResourceManager.GetObject("ewi_bygroup", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ewi_byword {
+            get {
+                object obj = ResourceManager.GetObject("ewi_byword", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
         internal static System.Drawing.Icon vsError {

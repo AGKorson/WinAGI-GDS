@@ -13,7 +13,7 @@ namespace WinAGI.Engine {
     /// <summary>
     /// Collection of words (agiWord objects).
     /// </summary>
-    public class WordList : IEnumerable<WordGroup> {
+    public class WordList : IEnumerable<AGIWord> {
         #region Members
         SortedList<string, AGIWord> mWordCol;
         SortedList<int, WordGroup> mGroupCol;
@@ -725,7 +725,7 @@ namespace WinAGI.Engine {
             WordGroup tmpGroup;
             AGIWord tmpWord;
 
-            foreach (WordGroup group in this) {
+            foreach (WordGroup group in mGroupCol.Values) {
                 tmpGroup = new WordGroup();
                 lngGrpNum = group.GroupNum;
                 tmpGroup.GroupNum = lngGrpNum;
@@ -756,7 +756,7 @@ namespace WinAGI.Engine {
             WinAGIException.ThrowIfNotLoaded(this);
             WinAGIException.ThrowIfNotLoaded(clonelist);
             mGroupCol = [];
-            foreach (WordGroup group in clonelist) {
+            foreach (WordGroup group in clonelist.mGroupCol.Values) {
                 tmpGroup = new WordGroup();
                 lngGrpNum = group.GroupNum;
                 tmpGroup.GroupNum = lngGrpNum;
@@ -794,10 +794,18 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="groupNum"></param>
         /// <returns></returns>
-        public WordGroup GroupN(int groupNum) {
+        public WordGroup GroupByNumber(int groupNum) {
             WinAGIException.ThrowIfNotLoaded(this);
             // return this group by its number (key value)
             return mGroupCol[groupNum];
+        }
+
+        public int GroupIndexFromNumber(int groupNum) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            if (!mGroupCol.ContainsKey(groupNum)) {
+                throw new ArgumentException("group number not found");
+            }
+            return mGroupCol.IndexOfKey(groupNum);
         }
 
         /// <summary>
@@ -805,7 +813,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="Index"></param>
         /// <returns></returns>
-        public WordGroup Group(int Index) {
+        public WordGroup GroupByIndex(int Index) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (Index < 0 || Index > mGroupCol.Count - 1) {
                 throw new IndexOutOfRangeException("invalid word group index");
@@ -963,7 +971,7 @@ namespace WinAGI.Engine {
                 throw new ArgumentException("word does not exist");
             }
             // delete this word from its assigned group by Group number
-            WordGroup tmpGroup = GroupN(value.Group);
+            WordGroup tmpGroup = GroupByNumber(value.Group);
             tmpGroup.DeleteWordFromGroup(aWord);
             if (tmpGroup.WordCount == 0) {
                 mGroupCol.Remove(tmpGroup.GroupNum);
@@ -974,30 +982,30 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        public WGrpEnum GetEnumerator() {
-            return new WGrpEnum(mGroupCol);
+        public WordNumEnum GetEnumerator() {
+            return new WordNumEnum(mWordCol);
         }
         IEnumerator IEnumerable.GetEnumerator() {
             return (IEnumerator)GetEnumerator();
         }
-        IEnumerator<WordGroup> IEnumerable<WordGroup>.GetEnumerator() {
-            return (IEnumerator<WordGroup>)GetEnumerator();
+        IEnumerator<AGIWord> IEnumerable<AGIWord>.GetEnumerator() {
+            return (IEnumerator<AGIWord>)GetEnumerator();
         }
 
         /// <summary>
         /// Implements enumeration for the WordList class.
         /// </summary>
-        public class WGrpEnum : IEnumerator<WordGroup> {
-            public SortedList<int, WordGroup> _groups;
+        public class WordNumEnum : IEnumerator<AGIWord> {
+            public SortedList<string, AGIWord> _words;
             int position = -1;
-            public WGrpEnum(SortedList<int, WordGroup> list) {
-                _groups = list;
+            public WordNumEnum(SortedList<string, AGIWord> list) {
+                _words = list;
             }
             object IEnumerator.Current => Current;
-            public WordGroup Current {
+            public AGIWord Current {
                 get {
                     try {
-                        return _groups.Values[position];
+                        return _words.Values[position];
                     }
                     catch (IndexOutOfRangeException) {
 
@@ -1007,13 +1015,13 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _groups.Count);
+                return (position < _words.Count);
             }
             public void Reset() {
                 position = -1;
             }
             public void Dispose() {
-                _groups = null;
+                _words = null;
             }
         }
         #endregion

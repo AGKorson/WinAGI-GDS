@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha13.0
+        Version 3.0.0alpha13.2
     ==============================
 
 
@@ -39,7 +39,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X 11. Global Defines Editor
     X 12. Reserved Defines Editor
     X 13. Object Editor
-      14. Word Editor
+    O 14. Word Editor
       15. Palette Editor
       16. Picture Editor
       17. View Editor
@@ -54,6 +54,12 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History: 
+
+**alpha13.2** basic word editor layout complete.  object editor now updates status bar correctly
+
+
+**alpha13.1** fixed bug in wordlist that wasn't reading extended characters correctly; added statusbar updates to object editor; working on word editor form layout
+
 
 **alpha13.0** OBJECT file editor is complete. Fixed errors in Find form, fixed right-click menu in globals and objects editors, added keyhandler to msgboxex class.
 

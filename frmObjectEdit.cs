@@ -59,9 +59,8 @@ namespace WinAGI.Editor {
                     FindingForm.SetForm(FindFormFunction.FindObject, InGame);
                 }
             }
-            // hmm, status strip isn't set yet...
-            //statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
-            //statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
+            this.statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
+            this.statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
         }
 
         private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
@@ -206,12 +205,12 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEdit_DropDownOpening(object sender, EventArgs e) {
-            mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, toolStripSeparator1, mnuEDelete, mnuEClear, mnuEInsert, toolStripSeparator2, mnuEFind, mnuEFindAgain, mnuEReplace, toolStripSeparator3, mnuEditItem, mnuEFindInLogic });
+            mnuEdit.DropDownItems.AddRange([mnuEUndo, toolStripSeparator1, mnuEDelete, mnuEClear, mnuEInsert, toolStripSeparator2, mnuEFind, mnuEFindAgain, mnuEReplace, toolStripSeparator3, mnuEditItem, mnuEFindInLogic]);
             SetEditMenu();
         }
 
         private void mnuEdit_DropDownClosed(object sender, EventArgs e) {
-            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, toolStripSeparator1, mnuEDelete, mnuEClear, mnuEInsert, toolStripSeparator2, mnuEFind, mnuEFindAgain, mnuEReplace, toolStripSeparator3, mnuEditItem, mnuEFindInLogic });
+            cmGrid.Items.AddRange([mnuEUndo, toolStripSeparator1, mnuEDelete, mnuEClear, mnuEInsert, toolStripSeparator2, mnuEFind, mnuEFindAgain, mnuEReplace, toolStripSeparator3, mnuEditItem, mnuEFindInLogic]);
             ResetEditMenu();
         }
 

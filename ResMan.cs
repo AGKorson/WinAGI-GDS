@@ -6389,17 +6389,17 @@ namespace WinAGI.Editor {
                             //step through each word in the word group; if the word is found in this logic,
                             //check if it occurs before the current found position
                             FoundPos = -1;
-                            for (int i = 0; i < WordEditor.EditWordList.GroupN(GFindGrpNum).WordCount; i++) {
-                                lngPossFind = searchFCTB.Text.IndexOf(QUOTECHAR + WordEditor.EditWordList.GroupN(GFindGrpNum)[i] + QUOTECHAR, SearchPos);
+                            for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
+                                lngPossFind = searchFCTB.Text.IndexOf(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR, SearchPos);
                                 if (lngPossFind > 0) {
                                     if (FoundPos == -1) {
                                         FoundPos = lngPossFind;
-                                        FindText = QUOTECHAR + WordEditor.EditWordList.GroupN(GFindGrpNum)[i] + QUOTECHAR;
+                                        FindText = QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR;
                                     }
                                     else {
                                         if (lngPossFind < FoundPos) {
                                             FoundPos = lngPossFind;
-                                            FindText = QUOTECHAR + WordEditor.EditWordList.GroupN(GFindGrpNum)[i] + QUOTECHAR;
+                                            FindText = QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR;
                                         }
                                     }
                                 }
@@ -6597,8 +6597,8 @@ namespace WinAGI.Editor {
                 searchFCTB.Refresh();
                 //if a synonym was found, note it on status bar
                 if (GFindSynonym) {
-                    if (FindText != QUOTECHAR + WordEditor.EditWordList.GroupN(GFindGrpNum).GroupName + QUOTECHAR) {
-                        MainStatusBar.Items["spStatus"].Text = FindText + " is a synonym for " + QUOTECHAR + WordEditor.EditWordList.GroupN(GFindGrpNum).GroupName + QUOTECHAR;
+                    if (FindText != QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum).GroupName + QUOTECHAR) {
+                        MainStatusBar.Items["spStatus"].Text = FindText + " is a synonym for " + QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum).GroupName + QUOTECHAR;
                         // TODO: flash the status bar
                         //MDIMain.tmrFlash.Enabled = true;
                     }
@@ -6722,8 +6722,8 @@ namespace WinAGI.Editor {
                         // step through each word in the word group; if the word is found in this logic,
                         // then stop
                         bool found = true;
-                        for (int i = 0; i < WordEditor.EditWordList.GroupN(GFindGrpNum).WordCount; i++) {
-                            if (EditGame.Logics[LogNum].SourceText.IndexOf(QUOTECHAR + WordEditor.EditWordList.GroupN(GFindGrpNum)[i] + QUOTECHAR, vbcComp) != -1) {
+                        for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
+                            if (EditGame.Logics[LogNum].SourceText.IndexOf(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR, vbcComp) != -1) {
                                 found = true;
                                 break;
                             }

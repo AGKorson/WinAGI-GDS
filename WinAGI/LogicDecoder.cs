@@ -1038,10 +1038,10 @@ namespace WinAGI.Engine {
                                 if (!WordsByNumber && decompGame is not null) {
                                     if (decompGame.agVocabWords.GroupExists(lngWordGroupNum)) {
                                         if (decompGame.agSierraSyntax) {
-                                            strLine += QUOTECHAR + decompGame.agVocabWords.GroupN(lngWordGroupNum).GroupName.Replace(' ', '$');
+                                            strLine += QUOTECHAR + decompGame.agVocabWords.GroupByNumber(lngWordGroupNum).GroupName.Replace(' ', '$');
                                         }
                                         else {
-                                            strLine += QUOTECHAR + decompGame.agVocabWords.GroupN(lngWordGroupNum).GroupName + QUOTECHAR;
+                                            strLine += QUOTECHAR + decompGame.agVocabWords.GroupByNumber(lngWordGroupNum).GroupName + QUOTECHAR;
                                         }
                                     }
                                     else {
