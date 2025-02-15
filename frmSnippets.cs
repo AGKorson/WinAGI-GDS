@@ -233,12 +233,14 @@ namespace WinAGI.Editor {
         private void mnuEDelete_Click(object sender, EventArgs e) {
             if (rtfSnipValue.SelectionLength > 0) {
                 rtfSnipValue.SelectedText = "";
+                WordsClipboard = new();
             }
         }
 
         private void mnuECopy_Click(object sender, EventArgs e) {
             if (rtfSnipValue.SelectionLength > 0) {
                 rtfSnipValue.Copy();
+                WordsClipboard = new();
             }
         }
 

@@ -53,7 +53,10 @@ WinAGI is a full featured game development system, that includes editors which p
 ---
 
   
-### History: 
+### History:
+
+**alpha13.3** all words.tok editing functions done, working on search/replace functions
+
 
 **alpha13.2** basic word editor layout complete.  object editor now updates status bar correctly
 

@@ -280,7 +280,7 @@ namespace WinAGI.Engine {
         /// LoadFile must be specified.
         /// </summary>
         /// <param name="LoadFile"></param>
-        public void Load(string LoadFile = "") {
+        public virtual void Load(string LoadFile = "") {
             if (mLoaded) {
                 return;
             }
@@ -329,6 +329,8 @@ namespace WinAGI.Engine {
         /// 2 = unexpected end of file<br />
         /// 4 = upper case character in word<br />
         /// 8 = no data/empty file<br />
+        /// 16 = multiple group 1 words<br />
+        /// 32 = multiple group 9999 words<br />
         /// -24 = invalid index - can't read file<br />
         /// -25 = file access error, unable to read file
         /// </returns>
@@ -446,6 +448,17 @@ namespace WinAGI.Engine {
                     AddWord(sThisWord, lngGrpNum);
                     // this word is now the previous word
                     strPrevWord = sThisWord;
+                    // check for multiple words in group 1 or 9999
+                    if (lngGrpNum == 1) {
+                        if (mGroupCol[lngGrpNum].mWords.Count > 1) {
+                            retval |= 8;
+                        }
+                    }
+                    if (lngGrpNum == 9999) {
+                        if (mGroupCol[lngGrpNum].mWords.Count > 1) {
+                            retval |= 16;
+                        }
+                    }
                 }
                 bytPrevWordCharCount = bytData[lngPos++];
             }
@@ -908,6 +921,9 @@ namespace WinAGI.Engine {
                 if (mWordCol.Values[i].Group == oldgroupnum) {
                     AGIWord tmpWord = mWordCol.Values[i];
                     tmpWord.Group = newgroupnum;
+                    mWordCol.RemoveAt(i);
+                    mWordCol.Add(tmpWord.WordText, tmpWord);
+
                 }
             }
             // then re-add the group
@@ -931,7 +947,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="WordText"></param>
         /// <param name="Group"></param>
-        public void AddWord(string WordText, int Group) {
+        public int AddWord(string WordText, int Group) {
             AGIWord NewWord;
 
             WinAGIException.ThrowIfNotLoaded(this);
@@ -959,13 +975,14 @@ namespace WinAGI.Engine {
             NewWord.Group = Group;
             mWordCol.Add(WordText, NewWord);
             mIsChanged = true;
+            return mWordCol.IndexOfKey(WordText);
         }
 
         /// <summary>
         /// Removes the specified word from this word list.
         /// </summary>
         /// <param name="aWord"></param>
-        void RemoveWord(string aWord) {
+        public void RemoveWord(string aWord) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (!mWordCol.TryGetValue(aWord, out AGIWord value)) {
                 throw new ArgumentException("word does not exist");
@@ -973,11 +990,19 @@ namespace WinAGI.Engine {
             // delete this word from its assigned group by Group number
             WordGroup tmpGroup = GroupByNumber(value.Group);
             tmpGroup.DeleteWordFromGroup(aWord);
-            if (tmpGroup.WordCount == 0) {
-                mGroupCol.Remove(tmpGroup.GroupNum);
-            }
+            //if (tmpGroup.GroupNum != 0 && tmpGroup.GroupNum != 1 && tmpGroup.GroupNum != 9999 && tmpGroup.WordCount == 0) {
+            //    mGroupCol.Remove(tmpGroup.GroupNum);
+            //}
             mWordCol.Remove(aWord);
             mIsChanged = true;
+        }
+
+        public int WordIndex(string aWord) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            if (!mWordCol.TryGetValue(aWord, out AGIWord value)) {
+                throw new ArgumentException("word does not exist");
+            }
+            return mWordCol.IndexOfKey(aWord);
         }
         #endregion
 
@@ -1032,7 +1057,7 @@ namespace WinAGI.Engine {
         /// lettters; within each sub-group, words are sorted by
         /// standard string comparison.
         /// </summary>
-        class AGIWordComparer : Comparer<string> {
+        public class AGIWordComparer : Comparer<string> {
             public override int Compare(string x, string y) {
                 if (x is null || x.Length == 0) {
                     return -1;

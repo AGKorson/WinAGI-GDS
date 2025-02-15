@@ -477,8 +477,9 @@ namespace WinAGI.Editor {
         private void mnuECut_Click(object sender, EventArgs e) {
             if (fctb.SelectionLength > 0) {
                 fctb.Cut();
+                WordsClipboard = new();
+                MarkAsChanged();
             }
-            MarkAsChanged();
         }
 
         private void mnuEDelete_Click(object sender, EventArgs e) {
@@ -494,6 +495,7 @@ namespace WinAGI.Editor {
 
         private void mnuECopy_Click(object sender, EventArgs e) {
             if (fctb.SelectionLength > 0) {
+                WordsClipboard = new();
                 fctb.Copy();
             }
         }

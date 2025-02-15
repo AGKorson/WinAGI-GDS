@@ -41,17 +41,33 @@ namespace WinAGI.Engine {
             }
         }
 
+        public List<string> Words {
+            get {
+                // don't return the original, to prevent changes
+                List<string> list = [.. mWords];
+                return list; 
+            }
+        }
         /// <summary>
         /// Gets the group name for this word group. The group name is the first word
         /// in the group alphabetically.
         /// </summary>
         public string GroupName {
             get {
-                if (mWords.Count == 0) {
-                    return "";
-                }
-                else {
-                    return mWords[0];
+                switch (mGroupNum) {
+                case 0:
+                    return "<null words>";
+                case 1:
+                    return "<any word>";
+                case 9999:
+                    return "<rest of line>";
+                default:
+                    if (mWords.Count == 0) {
+                        return "";
+                    }
+                    else {
+                        return mWords[0];
+                    }
                 }
             }
         }

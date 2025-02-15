@@ -1660,16 +1660,16 @@ namespace WinAGI.Engine {
             switch (argtype) {
             case Num:
                 // check for negative number
-                if (strArg.Val() < 0) {
+                if (strArg.IntVal() < 0) {
                     //valid negative numbers are -1 to -128
-                    if (strArg.Val() < -128) {
+                    if (strArg.IntVal() < -128) {
                         AddError(4157, false);
                         // use dummy value to continue
                         strArg = "1";
                     }
                     else {
                         //convert it to 2s-compliment unsigned value by adding it to 256
-                        strArg = (256 + strArg.Val()).ToString();
+                        strArg = (256 + strArg.IntVal()).ToString();
                         if (ErrorLevel == Medium) {
                             AddWarning(5098);
                         }

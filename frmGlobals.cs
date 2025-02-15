@@ -454,6 +454,7 @@ namespace WinAGI.Editor {
             // put selected text on clipboard
             Clipboard.Clear();
             Clipboard.SetText(strData);
+            WordsClipboard = new();
         }
 
         private void mnuEPaste_Click(object sender, EventArgs e) {
@@ -654,12 +655,14 @@ namespace WinAGI.Editor {
 
         private void mnuCelCut_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
+                WordsClipboard = new();
                 EditTextBox.Cut();
             }
         }
 
         private void mnuCelCopy_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
+                WordsClipboard = new();
                 EditTextBox.Copy();
             }
         }

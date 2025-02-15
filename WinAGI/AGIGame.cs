@@ -1236,7 +1236,7 @@ namespace WinAGI.Engine {
                 eventInfo.Text = "creating new game components";
                 OnNewGameStatus(eventInfo);
                 if (!IntVersions.Contains(NewVersion)) {
-                    if (NewVersion.Val() < 2 || NewVersion.Val() > 3) {
+                    if (NewVersion.Val() < 2 || NewVersion.Val() >= 4) {
                         // not a version 2 or 3 game
                         WinAGIException wex = new(LoadResString(597)) {
                             HResult = WINAGI_ERR + 597

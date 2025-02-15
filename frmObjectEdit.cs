@@ -59,8 +59,8 @@ namespace WinAGI.Editor {
                     FindingForm.SetForm(FindFormFunction.FindObject, InGame);
                 }
             }
-            this.statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
-            this.statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
+            spCount.Text = "Object Count: " + EditInvList.Count;
+            spEncrypt.Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
         }
 
         private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
@@ -457,6 +457,7 @@ namespace WinAGI.Editor {
 
         private void mnuCelCut_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
+                WordsClipboard = new();
                 EditTextBox.Cut();
             }
         }
@@ -464,6 +465,7 @@ namespace WinAGI.Editor {
         private void mnuCelCopy_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
                 EditTextBox.Copy();
+                WordsClipboard = new();
             }
         }
 
@@ -485,6 +487,13 @@ namespace WinAGI.Editor {
         private void mnuCelDelete_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
                 EditTextBox.SelectedText = "";
+            }
+            else {
+                if (EditTextBox.SelectionStart < EditTextBox.Text.Length) {
+                    int oldsel = EditTextBox.SelectionStart;
+                    EditTextBox.Text = EditTextBox.Text[..oldsel] + EditTextBox.Text[(oldsel + 1)..];
+                    EditTextBox.SelectionStart = oldsel;
+                }
             }
         }
 
@@ -1385,12 +1394,12 @@ namespace WinAGI.Editor {
                 fgObjects[2, currentrow].Value = EditInvList[i].Room;
             }
             txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            UndoCol = new();
             MarkAsChanged();
             MDIMain.UseWaitCursor = false;
         }
 
         public void SaveObjects() {
-            // TODO: AutoUpdate feature still needs significant work; disable it for now
             DialogResult rtn = DialogResult.No;
             if (InGame) {
                 bool blnDontAsk = false;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -977,6 +978,14 @@ namespace WinAGI.Common {
             return 0;
         }
 
+        public static int IntVal(this string strIn) {
+            if (int.TryParse(strIn, out int dResult)) {
+                return dResult;
+            }
+            // not a valid integer; return 0
+            return 0;
+        }
+
         /// <summary>
         /// Splits a string into an List of lines using all forms of line separators
         /// (CR, CRLF, LF).
@@ -987,6 +996,13 @@ namespace WinAGI.Common {
             return strText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Cast<string>().ToList();
         }
 
+        public static string SingleSpace(this string input) {
+            if (string.IsNullOrEmpty(input)) {
+                return input;
+            }
+            // Use regular expression to replace all whitespace sequences with a single space
+            return Regex.Replace(input, @"\s+", " ");
+        }
     }
 
     /// <summary>
@@ -994,6 +1010,8 @@ namespace WinAGI.Common {
     /// Add method.
     /// </summary>
     public class StringList : List<string> {
+        public string Text => string.Join(Environment.NewLine, this);
+
         public new void Add(string item) {
             // check for multiple lines in item
             if (item.Contains('\n') || item.Contains('\r')) {

@@ -389,7 +389,7 @@ namespace WinAGI.Engine {
                 case -8:
                     // 502: Error %1 occurred while trying to access logic source file(%2).
                     warnInfo.ID = "RE04";
-                    warnInfo.Text = $"Logic {resNum} is invalid due to file access error ({errdata[0]})";
+                    warnInfo.Text = $"Logic {resNum} source file is invalid due to file access error ({errdata[0]})";
                     warnInfo.Module = errdata[1];
                     break;
                 case -9:
@@ -419,49 +419,49 @@ namespace WinAGI.Engine {
                 case -13:
                     // error 598: invalid sound data
                     warnInfo.ID = "RE09";
-                    warnInfo.Text = $"Invalid sound data format, unable to load tracks";
+                    warnInfo.Text = $"Sound {resNum} has invalid sound data format, unable to load tracks";
                     warnInfo.Module = errdata[0];
                     break;
                 case -14:
                     // error 565: sound invalid data error
                     warnInfo.ID = "RE10";
-                    warnInfo.Text = $"Error encountered in LoadTracks ({errdata[1]})";
+                    warnInfo.Text = $"Sound {resNum} had error encountered in LoadTracks ({errdata[1]})";
                     warnInfo.Module = errdata[0];
                     break;
                 case -15:
                     // error 595: invalid view data
                     warnInfo.ID = "RE11";
-                    warnInfo.Text = $"Invalid view data, unable to load view";
+                    warnInfo.Text = $"View {resNum} has invalid view data, unable to load view";
                     warnInfo.Module = errdata[0];
                     break;
                 case -16:
                     // error 548: invalid loop pointer
                     warnInfo.ID = "RE12";
-                    warnInfo.Text = $"Invalid loop data pointer detected (loop {errdata[1]})";
+                    warnInfo.Text = $"View {resNum} has invalid loop data pointer detected (loop {errdata[1]})";
                     warnInfo.Module = errdata[0];
                     break;
                 case -17:
                     // error 539: invalid source loop for mirror/invalid mirror loop number
                     warnInfo.ID = "RE13";
-                    warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} and/or loop {errdata[3]})";
+                    warnInfo.Text = $"View {resNum} has invalid Mirror loop value detected (loop {errdata[2]} and/or loop {errdata[3]})";
                     warnInfo.Module = errdata[0];
                     break;
                 case -18:
                     // error 550: invalid mirror data, target loop already mirrored
                     warnInfo.ID = "RE14";
-                    warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[3]} already mirrored)";
+                    warnInfo.Text = $"View {resNum} has invalid Mirror loop value detected (loop {errdata[3]} already mirrored)";
                     warnInfo.Module = errdata[0];
                     break;
                 case -19:
                     // 551: invalid mirror data, source already a mirror
                     warnInfo.ID = "RE15";
-                    warnInfo.Text = $"Invalid Mirror loop value detected (loop {errdata[2]} already mirrored)";
+                    warnInfo.Text = $"View {resNum} has invalid Mirror loop value detected (loop {errdata[2]} already mirrored)";
                     warnInfo.Module = errdata[0];
                     break;
                 case -20:
                     // 553: invalid cel data pointer
                     warnInfo.ID = "RE16";
-                    warnInfo.Text = $"Invalid cel pointer detected (cel {errdata[2]} of loop {errdata[1]})";
+                    warnInfo.Text = $"View {resNum} has invalid cel pointer detected (cel {errdata[2]} of loop {errdata[1]})";
                     warnInfo.Module = errdata[0];
                     break;
                 case -21:
@@ -486,7 +486,7 @@ namespace WinAGI.Engine {
                     break;
                 case -25:
                     warnInfo.ID = "RE21";
-                    warnInfo.Text = "File access error, unable to read OBJECT file";
+                    warnInfo.Text = "File access error, unable to read WORDS.TOK file";
                     retval.Add(warnInfo);
                     break;
                 }
@@ -574,19 +574,19 @@ namespace WinAGI.Engine {
                     if ((errlevel & 1) == 1) {
                         warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW11";
-                        warnInfo.Text = "Abnormal index table";
+                        warnInfo.Text = "Abnormal word index table";
                         retval.Add(warnInfo);
                     }
                     if ((errlevel & 2) == 2) {
                         warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW12";
-                        warnInfo.Text = "Unexpected end of file";
+                        warnInfo.Text = "Unexpected WORDS.TOK end of file";
                         retval.Add(warnInfo);
                     }
                     if ((errlevel & 4) == 4) {
                         warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW13";
-                        warnInfo.Text = "Upper case characters detected";
+                        warnInfo.Text = "Upper case characters detected in WORDS.TOK";
                         retval.Add(warnInfo);
                     }
                     if ((errlevel & 8) == 8) {
@@ -595,28 +595,41 @@ namespace WinAGI.Engine {
                         warnInfo.Text = "Empty WORDS.TOK file";
                         retval.Add(warnInfo);
                     }
+                    if ((errlevel & 8) == 16) {
+                        warnInfo.Type = EventType.ResourceWarning;
+                        warnInfo.ID = "RW15";
+                        warnInfo.Text = "Multiple group 1 words";
+                        retval.Add(warnInfo);
+                    }
+                    if ((errlevel & 8) == 32) {
+                        warnInfo.Type = EventType.ResourceWarning;
+                        warnInfo.ID = "RW16";
+                        warnInfo.Text = "Multiple group 9999 words";
+                        retval.Add(warnInfo);
+                    }
+
                     break;
                 case AGIResType.Globals:
                     warnInfo.Type = EventType.ResourceWarning;
                     switch (errlevel) {
                     case 1:
                         // 1 = file access error
-                        warnInfo.ID = "RW15";
+                        warnInfo.ID = "RW17";
                         warnInfo.Text = "globals.txt file access error";
                         break;
                     case 2:
                         // 2 = file read error
-                        warnInfo.ID = "RW16";
+                        warnInfo.ID = "RW18";
                         warnInfo.Text = "globals.txt file data error";
                         break;
                     case 3:
                         // 3 = file not found
-                        warnInfo.ID = "RW17";
+                        warnInfo.ID = "RW19";
                         warnInfo.Text = "globals.txt file not found";
                         break;
                     case 4:
                         // 4 = file is read-only
-                        warnInfo.ID = "RW17";
+                        warnInfo.ID = "RW20";
                         warnInfo.Text = "globals.txt file is read only";
                         break;
                     }

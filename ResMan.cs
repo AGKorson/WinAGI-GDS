@@ -1075,11 +1075,14 @@ namespace WinAGI.Editor {
         static public frmMenuEdit MenuEditor;
         public static bool MEInUse;
         static public frmObjectEdit ObjectEditor;
-        public static bool OEInUse;
+        public static bool OEInUse = false;
+        public static bool DragObject = false;
         public static int ObjCount;
         public static frmWordsEdit WordEditor;
-        public static bool WEInUse;
+        public static bool WEInUse = false;
+        public static bool DragWord = false;
         public static int WrdCount;
+        public static WordsUndo WordsClipboard = new();
         public static frmGlobals GlobalsEditor;
         public static bool GEInUse;
         public static int TextCount;
@@ -5375,18 +5378,18 @@ namespace WinAGI.Editor {
 
         public static string GetOpenResourceFilename(string mode, AGIResType restype) {
             // get a file to open as a resource
-            OpenFileDialog opendialog = new();
-            opendialog.FileName = "";
-            opendialog.InitialDirectory = BrowserStartDir;
+            MDIMain.OpenDlg.FileName = "";
+            MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
             switch (restype) {
             case AGIResType.Game:
-                opendialog.Title = mode + "WinAGI Game File";
-                opendialog.Filter = "WinAGI Game file (*.wag)|*.wag|All files (*.*)|*.*";
-                opendialog.DefaultExt = "";
-                opendialog.FilterIndex = 1;
+                MDIMain.OpenDlg.Title = mode + "WinAGI Game File";
+                MDIMain.OpenDlg.Filter = "WinAGI Game file (*.wag)|*.wag|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "";
+                MDIMain.OpenDlg.FilterIndex = 1;
+                MDIMain.OpenDlg.InitialDirectory = BrowserStartDir;
                 break;
             case AGIResType.Logic:
-                opendialog.Title = mode + "Logic Source File";
+                MDIMain.OpenDlg.Title = mode + "Logic Source File";
                 string defext;
                 if (EditGame == null) {
                     defext = WinAGISettings.DefaultExt.Value;
@@ -5401,64 +5404,90 @@ namespace WinAGI.Editor {
                 else {
                     textext = "|Text files (*.txt)|*.txt";
                 }
-                opendialog.Filter = $"WinAGI Logic Source files (*.{defext})|*.{defext}{textext}|All files (*.*)|*.*";
-                opendialog.DefaultExt = "";
-                opendialog.FilterIndex = 1;
+                MDIMain.OpenDlg.Filter = $"WinAGI Logic Source files (*.{defext})|*.{defext}{textext}|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Logics", sOPENFILTER, 1);
                 break;
             case AGIResType.Picture:
-                opendialog.Title = mode + "Picture Resource File";
-                opendialog.Filter = "WinAGI Picture Resource files (*.agp)|*.agp|All files (*.*)|*.*";
-                opendialog.DefaultExt = "";
-                opendialog.FilterIndex = 1;
+                MDIMain.OpenDlg.Title = mode + "Picture Resource File";
+                MDIMain.OpenDlg.Filter = "WinAGI Picture Resource files (*.agp)|*.agp|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Pictures", sOPENFILTER, 1);
                 break;
             case AGIResType.Sound:
-                opendialog.Title = mode + "Sound Resource File";
-                opendialog.Filter = "WinAGI Sound Resource files (*.ags)|*.ags|AGI Sound Script files (*.ass)|*.ass|All files (*.*)|*.*";
-                opendialog.DefaultExt = "";
-                opendialog.FilterIndex = 1;
+                MDIMain.OpenDlg.Title = mode + "Sound Resource File";
+                MDIMain.OpenDlg.Filter = "WinAGI Sound Resource files (*.ags)|*.ags|AGI Sound Script files (*.ass)|*.ass|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Sounds", sOPENFILTER, 1);
                 break;
             case AGIResType.View:
-                opendialog.Title = mode + "View Resource File";
-                opendialog.Filter = "WinAGI View Resource files (*.agv)|*.agv|All files (*.*)|*.*";
-                opendialog.DefaultExt = "";
-                opendialog.FilterIndex = 1;
+                MDIMain.OpenDlg.Title = mode + "View Resource File";
+                MDIMain.OpenDlg.Filter = "WinAGI View Resource files (*.agv)|*.agv|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Views", sOPENFILTER, 1);
                 break;
             case AGIResType.Objects:
-                opendialog.Title = mode + "OBJECT File";
-                opendialog.Filter = "AGI OBJECT files|OBJECT|All files (*.*)|*.*";
-                opendialog.DefaultExt = "";
-                opendialog.FilterIndex = 1;
+                MDIMain.OpenDlg.Title = mode + "OBJECT File";
+                MDIMain.OpenDlg.Filter = "AGI OBJECT files|OBJECT|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Objects", sOPENFILTER, 1);
                 break;
             case AGIResType.Words:
-                opendialog.Title = mode + "WORDS.TOK File";
-                opendialog.Filter = "AGI WORDS.TOK files|WORDS.TOK|All files (*.*)|*.*";
-                opendialog.DefaultExt = "";
-                opendialog.FilterIndex = 1;
+                MDIMain.OpenDlg.Title = mode + "WORDS.TOK File";
+                MDIMain.OpenDlg.Filter = "AGI WORDS.TOK files|WORDS.TOK|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Words", sOPENFILTER, 1);
                 break;
             case AGIResType.Globals:
-                opendialog.Title = "Global Defines File";
-                opendialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-                opendialog.DefaultExt = "txt";
-                opendialog.FilterIndex = WinAGISettingsFile.GetSetting("Globals", sOPENFILTER, 1);
+                MDIMain.OpenDlg.Title = "Global Defines File";
+                MDIMain.OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "txt";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Globals", sOPENFILTER, 1);
                 break;
             case AGIResType.Text:
-                opendialog.Title = "Text File";
-                opendialog.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-                opendialog.DefaultExt = "txt";
+                MDIMain.OpenDlg.Title = "Text File";
+                MDIMain.OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                MDIMain.OpenDlg.FilterIndex = 1;
+                MDIMain.OpenDlg.DefaultExt = "txt";
                 break;
             }
-            if (opendialog.ShowDialog() == DialogResult.Cancel) {
+            if (MDIMain.OpenDlg.ShowDialog() == DialogResult.Cancel) {
                 // user canceled
-                opendialog.Dispose();
                 return "";
             }
             else {
-                // TODO: some resources track default filter; need to do that here
-
-                // use the selected file
-                BrowserStartDir = Path.GetDirectoryName(opendialog.FileName);
-                opendialog.Dispose();
-                return opendialog.FileName;
+                string section = "";
+                switch (restype) {
+                case AGIResType.Logic:
+                    section = "Logics";
+                    break;
+                case AGIResType.Picture:
+                    section = "Pictures";
+                    break;
+                case AGIResType.Sound:
+                    section = "Sounds";
+                    break;
+                case AGIResType.View:
+                    section = "Views";
+                    break;
+                case AGIResType.Objects:
+                    section = "Objects";
+                    break;
+                case AGIResType.Words:
+                    section = "Words";
+                    break;
+                case AGIResType.Globals:
+                    section = "Globals";
+                    break;
+                }
+                if (section.Length > 0) {
+                    WinAGISettingsFile.WriteSetting(section, sOPENFILTER, MDIMain.OpenDlg.FilterIndex);
+                    DefaultResDir = JustPath(MDIMain.OpenDlg.FileName);
+                }
+                else {
+                    BrowserStartDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
+                }
+                return MDIMain.OpenDlg.FileName;
             }
         }
 
@@ -8108,7 +8137,7 @@ namespace WinAGI.Editor {
                 MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
             }
             MDIMain.SaveDlg.Filter = "AGI OBJECT Files|OBJECT|All files (*.*)|*.*";
-            MDIMain.SaveDlg.FilterIndex = 0;
+            MDIMain.SaveDlg.FilterIndex = WinAGISettingsFile.GetSetting("Objects", sOPENFILTER, 1);
             MDIMain.SaveDlg.DefaultExt = "";
             MDIMain.SaveDlg.OverwritePrompt = true;
             MDIMain.SaveDlg.CheckPathExists = true;

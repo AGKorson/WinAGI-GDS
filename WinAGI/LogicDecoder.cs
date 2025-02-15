@@ -538,22 +538,22 @@ namespace WinAGI.Engine {
                                 case 105:
                                     // clear.lines - 3rd arg
                                     if (intArg == 2) {
-                                        if (strArg.Val() < 16) {
-                                            strArg = dcReservedList.ColorNames[(int)strArg.Val()].Name;
+                                        if (strArg.IntVal() < 16) {
+                                            strArg = dcReservedList.ColorNames[strArg.IntVal()].Name;
                                         }
                                     }
                                     break;
                                 case 109:
                                     // set.text.attribute - all args
-                                    if (strArg.Val() < 16) {
-                                        strArg = dcReservedList.ColorNames[(int)strArg.Val()].Name;
+                                    if (strArg.IntVal() < 16) {
+                                        strArg = dcReservedList.ColorNames[strArg.IntVal()].Name;
                                     }
                                     break;
                                 case 154:
                                     // clear.text.rect - 5th arg
                                     if (intArg == 4) {
-                                        if (strArg.Val() < 16) {
-                                            strArg = dcReservedList.ColorNames[(int)strArg.Val()].Name;
+                                        if (strArg.IntVal() < 16) {
+                                            strArg = dcReservedList.ColorNames[strArg.IntVal()].Name;
                                         }
                                     }
                                     break;

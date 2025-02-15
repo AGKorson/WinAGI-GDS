@@ -820,22 +820,26 @@ namespace WinAGI.Editor {
         }
 
         internal void mnuROObjects_Click(object sender, EventArgs e) {
-            if (EditGame == null) {
-                string filename = GetOpenResourceFilename("Open ", AGIResType.Objects);
-                OpenOBJECT(filename);
+            if (EditGame != null && !OEInUse) {
+                OpenGameOBJECT();
             }
             else {
-                OpenGameOBJECT();
+                string filename = GetOpenResourceFilename("Open ", AGIResType.Objects);
+                if (filename.Length > 0) {
+                    OpenOBJECT(filename);
+                }
             }
         }
 
         internal void mnuROWords_Click(object sender, EventArgs e) {
-            if (EditGame == null) {
-                string filename = GetOpenResourceFilename("Open ", AGIResType.Words);
-                OpenWORDSTOK(filename);
+            if (EditGame != null && !WEInUse) {
+                OpenGameWORDSTOK();
             }
             else {
-                OpenGameWORDSTOK();
+                string filename = GetOpenResourceFilename("Open ", AGIResType.Words);
+                if (filename.Length > 0) {
+                    OpenWORDSTOK(filename);
+                }
             }
         }
 
@@ -924,7 +928,8 @@ namespace WinAGI.Editor {
             if (importfile.Length > 0) {
                 if (ActiveMdiChild.Name == "frmObjectEdit") {
                     if (MessageBox.Show(MDIMain,
-                        "Do you want to replace the OBJECT file you are currently editing?",
+                        "Do you want to replace the OBJECT file you are currently editing? " +
+                        "(This CANNOT be undone.)",
                         "Import OBJECT",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question) == DialogResult.Yes) {
@@ -943,7 +948,8 @@ namespace WinAGI.Editor {
             if (importfile.Length > 0) {
                 if (ActiveMdiChild.Name == "frmWordsEdit") {
                     if (MessageBox.Show(MDIMain,
-                        "Do you want to replace the WORDS.TOK file you are currently editing?",
+                        "Do you want to replace the WORDS.TOK file you are currently editing? " +
+                        "(This CANNOT be undone.)",
                         "Import WORDS.TOK",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question) == DialogResult.Yes) {
@@ -2287,11 +2293,31 @@ namespace WinAGI.Editor {
         }
 
         private void btnWords_Click(object sender, EventArgs e) {
-            mnuROWords_Click(sender, e);
+            if (EditGame != null) {
+                if (WEInUse) {
+                    WordEditor.Focus();
+                }
+                else {
+                    OpenGameWORDSTOK();
+                }
+            }
+            else {
+                mnuROWords_Click(sender, e);
+            }
         }
 
         private void btnOjects_Click(object sender, EventArgs e) {
-            mnuROObjects_Click(sender, e);
+            if (EditGame != null) {
+                if (OEInUse) {
+                    ObjectEditor.Focus();
+                }
+                else {
+                    OpenGameOBJECT();
+                }
+            }
+            else {
+                mnuROObjects_Click(sender, e);
+            }
         }
 
         private void btnSaveResource_Click(object sender, EventArgs e) {
@@ -3761,10 +3787,6 @@ namespace WinAGI.Editor {
                     // open a logic resource
                     NewLogic(args[1]);
                     break;
-                case ".ago":
-                    // open a object resource
-                    NewInvObjList(args[1]);
-                    break;
                 case ".agp":
                     // open a picture resource
                     NewPicture(args[1]);
@@ -3777,14 +3799,18 @@ namespace WinAGI.Editor {
                     // open a view resource
                     NewView(args[1]);
                     break;
-                case ".agw":
-                    // open a word resource
-                    NewWordList(args[1]);
-                    break;
-
                 default:
-                    // ignore anything else
-                    MessageBox.Show($"'{Path.GetFileName(args[1])}' is not a valid WinAGI resource filename.");
+                    // check for 'OBJECT' and 'WORDS.TOK'
+                    if (Path.GetFileName(args[1]).Equals("OBJECT", StringComparison.CurrentCultureIgnoreCase)) {
+                        NewInvObjList(args[1]);
+                    }
+                    else if (Path.GetFileName(args[1]).Equals("WORDS.TOK", StringComparison.CurrentCultureIgnoreCase)) {
+                        NewWordList(args[1]);
+                    }
+                    else {
+                        // ignore anything else
+                        MessageBox.Show($"'{Path.GetFileName(args[1])}' is not a valid WinAGI resource filename.");
+                    }
                     break;
                 }
             }

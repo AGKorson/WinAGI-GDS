@@ -1089,7 +1089,7 @@ namespace WinAGI.Engine {
                                 }
                                 break;
                             case "##tpqn":
-                                mTPQN = (int)strTag[1].Val() / 4 * 4;
+                                mTPQN = (int)strTag[1].IntVal() / 4 * 4;
                                 if (mTPQN < 4) {
                                     mTPQN = 4;
                                 }
@@ -1098,7 +1098,7 @@ namespace WinAGI.Engine {
                                 }
                                 break;
                             case "##key":
-                                mKey = (int)strTag[1].Val();
+                                mKey = strTag[1].IntVal();
                                 if (mKey < -7) {
                                     mKey = -7;
                                 }
@@ -1172,7 +1172,7 @@ namespace WinAGI.Engine {
                         }
                         // get volume and duration
                         bytVol = (byte)strTag[2].Val();
-                        lngDur = (int)strTag[3].Val();
+                        lngDur = strTag[3].IntVal();
                     }
                     else if (strTag.Length == 3) {
                         // note type must be set
@@ -1201,7 +1201,7 @@ namespace WinAGI.Engine {
                         }
                         // get volume and duration
                         bytVol = (byte)strTag[1].Val();
-                        lngDur = (int)strTag[2].Val();
+                        lngDur = strTag[2].IntVal();
                     }
                     else {
                         blnError = true;
