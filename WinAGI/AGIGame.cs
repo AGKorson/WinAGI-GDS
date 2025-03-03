@@ -702,8 +702,6 @@ namespace WinAGI.Engine {
             agViews.Clear();
             agInvObj.Unload();
             agVocabWords.Unload();
-            //restore default AGI colors
-            DefaultPalette = new();
             //write date of last edit
             WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
             //now save it
@@ -2088,8 +2086,6 @@ namespace WinAGI.Engine {
             agPlatformFile = "";
             agPlatformOpts = "";
             agDOSExec = "";
-            // colors
-            agEGAcolors = DefaultPalette;
             // other properties
             DecodeGameID = "";
             IndentSize = 4;
@@ -2290,8 +2286,7 @@ namespace WinAGI.Engine {
             //     Decompiler:
             //         logic sourcefile extension
 
-            // Palette: (make sure AGI defaults set first)
-            DefaultPalette = new();
+            // Palette:
             for (int i = 0; i < 16; i++) {
                 Palette[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultPalette[i]);
             }

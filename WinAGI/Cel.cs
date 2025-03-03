@@ -417,10 +417,6 @@ namespace WinAGI.Engine {
             else {
                 CopyCel.mCelBMP = (Bitmap)mCelBMP.Clone();
             }
-            if (parentview != null) {
-                // mark it as uncompiled
-                parentview.mViewChanged = true;
-            }
             return CopyCel;
         }
 

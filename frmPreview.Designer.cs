@@ -522,6 +522,7 @@ namespace WinAGI.Editor {
             // 
             // pnlView
             // 
+            pnlView.BackColor = System.Drawing.SystemColors.Control;
             pnlView.Controls.Add(picTrans);
             pnlView.Controls.Add(chkTrans);
             pnlView.Controls.Add(tableLayoutPanel2);
@@ -707,7 +708,7 @@ namespace WinAGI.Editor {
             pnlCel.Size = new System.Drawing.Size(535, 297);
             pnlCel.TabIndex = 11;
             pnlCel.Paint += pnlCel_Paint;
-            pnlCel.DoubleClick += picCel_DoubleClick;
+            pnlCel.DoubleClick += pnlCel_DoubleClick;
             pnlCel.Resize += pnlCel_Resize;
             // 
             // fraVCorner
@@ -1006,11 +1007,11 @@ namespace WinAGI.Editor {
             MinimizeBox = false;
             Name = "frmPreview";
             ShowInTaskbar = false;
+            StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             Text = "Preview";
             Activated += frmPreview_Activated;
             Deactivate += frmPreview_Deactivate;
             FormClosing += frmPreview_FormClosing;
-            VisibleChanged += frmPreview_VisibleChanged;
             KeyDown += frmPreview_KeyDown;
             KeyPress += frmPreview_KeyPress;
             PreviewKeyDown += frmPreview_PreviewKeyDown;

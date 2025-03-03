@@ -197,10 +197,10 @@ namespace WinAGI.Engine {
             // copy base properties
             CloneTo(CopyView);
             // copy view properties
-            CopyView.mViewChanged = mViewChanged;
             CopyView.mViewDesc = mViewDesc;
             CopyView.mLoopCol = mLoopCol.Clone(CopyView);
             CopyView.ErrLevel = ErrLevel;
+            CopyView.mViewChanged = mViewChanged;
             CopyView.ErrData = ErrData;
             if (parent != null) {
                 // copy parent colors

@@ -61,7 +61,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agBlack.
+        ///   Looks up a localized string similar to Black.
         /// </summary>
         internal static string _1000 {
             get {
@@ -70,7 +70,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agBlue.
+        ///   Looks up a localized string similar to Blue.
         /// </summary>
         internal static string _1001 {
             get {
@@ -79,7 +79,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agGreen.
+        ///   Looks up a localized string similar to Green.
         /// </summary>
         internal static string _1002 {
             get {
@@ -88,7 +88,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agCyan.
+        ///   Looks up a localized string similar to Cyan.
         /// </summary>
         internal static string _1003 {
             get {
@@ -97,7 +97,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agRed.
+        ///   Looks up a localized string similar to Red.
         /// </summary>
         internal static string _1004 {
             get {
@@ -106,7 +106,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agMagenta.
+        ///   Looks up a localized string similar to Magenta.
         /// </summary>
         internal static string _1005 {
             get {
@@ -115,7 +115,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agBrown.
+        ///   Looks up a localized string similar to Brown.
         /// </summary>
         internal static string _1006 {
             get {
@@ -124,7 +124,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agLtGray.
+        ///   Looks up a localized string similar to LtGray.
         /// </summary>
         internal static string _1007 {
             get {
@@ -133,7 +133,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agDkGray.
+        ///   Looks up a localized string similar to DkGray.
         /// </summary>
         internal static string _1008 {
             get {
@@ -142,7 +142,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agLtBlue.
+        ///   Looks up a localized string similar to LtBlue.
         /// </summary>
         internal static string _1009 {
             get {
@@ -160,7 +160,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agLtGreen.
+        ///   Looks up a localized string similar to LtGreen.
         /// </summary>
         internal static string _1010 {
             get {
@@ -169,7 +169,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agLtCyan.
+        ///   Looks up a localized string similar to LtCyan.
         /// </summary>
         internal static string _1011 {
             get {
@@ -178,7 +178,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agLtRed.
+        ///   Looks up a localized string similar to LtRed.
         /// </summary>
         internal static string _1012 {
             get {
@@ -187,7 +187,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agLtMagenta.
+        ///   Looks up a localized string similar to LtMagenta.
         /// </summary>
         internal static string _1013 {
             get {
@@ -196,7 +196,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agYellow.
+        ///   Looks up a localized string similar to Yellow.
         /// </summary>
         internal static string _1014 {
             get {
@@ -205,7 +205,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to agWhite.
+        ///   Looks up a localized string similar to White.
         /// </summary>
         internal static string _1015 {
             get {
@@ -1035,15 +1035,6 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Clear.
-        /// </summary>
-        internal static string _1514 {
-            get {
-                return ResourceManager.GetString("1514", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Add Item.
         /// </summary>
         internal static string _1600 {
@@ -1080,7 +1071,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Change Description.
+        ///   Looks up a localized string similar to Edit Max Objects.
         /// </summary>
         internal static string _1604 {
             get {
@@ -1089,7 +1080,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit Max Objects.
+        ///   Looks up a localized string similar to Toggle Encryption.
         /// </summary>
         internal static string _1605 {
             get {
@@ -1098,7 +1089,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Toggle Encryption.
+        ///   Looks up a localized string similar to Clear.
         /// </summary>
         internal static string _1606 {
             get {
@@ -1107,7 +1098,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Clear.
+        ///   Looks up a localized string similar to Replace.
         /// </summary>
         internal static string _1607 {
             get {
@@ -1116,20 +1107,11 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Replace.
+        ///   Looks up a localized string similar to Replace All.
         /// </summary>
         internal static string _1608 {
             get {
                 return ResourceManager.GetString("1608", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace All.
-        /// </summary>
-        internal static string _1609 {
-            get {
-                return ResourceManager.GetString("1609", resourceCulture);
             }
         }
         

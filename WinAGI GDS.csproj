@@ -15,7 +15,7 @@
     <PackageIcon>winagi.jpg</PackageIcon>
     <PackageId>WinAGI_GDS</PackageId>
     <VersionPrefix>3.0.0</VersionPrefix>
-    <VersionSuffix>alpha14.0</VersionSuffix>
+    <VersionSuffix>alpha15.0</VersionSuffix>
     <ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>

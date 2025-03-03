@@ -55,6 +55,8 @@ WinAGI is a full featured game development system, that includes editors which p
   
 ### History:
 
+**alpha15.0** Palette editor is complete.
+
 **alpha14.0** WORDS.TOK editor search functions done, WORDS.TOK editor is now complete
 
 **alpha13.3** all words.tok editing functions done, working on search/replace functions

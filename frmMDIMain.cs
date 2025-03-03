@@ -113,8 +113,6 @@ namespace WinAGI.Editor {
             fgWarnings.RowTemplate.Height = szText.Height + 2;
             // initialize the basic app functionality
             InitializeResMan();
-            // background color for previewing views is set to default
-            PrevWinBColor = SystemColors.Control;
 
             ProgramDir = FullDir(JustPath(Application.ExecutablePath));
             DefaultResDir = ProgramDir;
@@ -1081,10 +1079,28 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTPalette_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: palette editor");
-            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
-                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
+
+            frmPalette frm = new(0);
+            if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                // refresh all picture, view  editors and the preview window (if visible)
+                foreach (frmPicEdit editfrm in PictureEditors) {
+                    editfrm.RefreshPic();
+                }
+                foreach (frmViewEdit editfrm in ViewEditors) {
+                    editfrm.RefreshCel();
+                }
+                if (PreviewWin.Visible) {
+                    switch (SelResType) {
+                        case AGIResType.Picture:
+                        PreviewWin.RefreshPic();
+                        break;
+                    case AGIResType.View:
+                        PreviewWin.RefreshView();
+                        break;
+                    }
+                }
             }
+            frm.Dispose();
         }
 
         private void mnuTWarning_Click(object sender, EventArgs e) {

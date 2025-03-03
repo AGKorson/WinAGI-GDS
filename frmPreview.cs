@@ -201,20 +201,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void frmPreview_VisibleChanged(object sender, EventArgs e) {
-            // position is set when form is loaded, and saved when form
-            // is disposed; no need to do it here is there????
-            
-            
-            // if now visible, need to force position to correct value
-            if (Visible) {
-                //PositionPreview();
-            }
-            else {
-                //SavePreviewPos();
-            }
-        }
-
         private void frmPreview_FormClosing(object sender, FormClosingEventArgs e) {
             //ensure preview resources are cleared,
             if (agLogic is not null) {
@@ -848,7 +834,7 @@ namespace WinAGI.Editor {
         }
 
         private void picCel_DoubleClick(object sender, EventArgs e) {
-            //open view for editing
+            // open view for editing
             OpenGameView((byte)SelResNum);
         }
 
@@ -895,12 +881,13 @@ namespace WinAGI.Editor {
             MainStatusBar.Items["spStatus"].Text = "";
         }
 
-        void pnlView_DoubleClick(object sender, EventArgs e) {
-            //let user change background color
-            frmPalette NewPallete = new(1);
-            NewPallete.ShowDialog(MDIMain);
-            pnlView.BackColor = PrevWinBColor;
-            picCel.BackColor = PrevWinBColor;
+        void pnlCel_DoubleClick(object sender, EventArgs e) {
+            // let user change background color
+            frmPalette NewPalette = new(1);
+            if (NewPalette.ShowDialog(MDIMain) == DialogResult.OK) {
+                pnlCel.BackColor = NewPalette.SelColor;
+            }
+            NewPalette.Dispose();
             //toolbars stay default gray, but that's OK
 
             //force redraw of cel
@@ -1527,6 +1514,15 @@ namespace WinAGI.Editor {
             vsbPic.Visible = blnPicVSB;
         }
 
+        public void RefreshPic() {
+            if (agPic == null) {
+                return;
+            }
+            // unload, reload, redraw
+            agPic.Unload();
+            agPic.Load();
+            DisplayPicture();
+        }
         #endregion
 
         #region PreviewSound Methods
@@ -1792,7 +1788,7 @@ namespace WinAGI.Editor {
             */
 
             /*------------------------------------------------------------*/
-            /* this method works with no flicker at all: */
+            /* this method works with no flicker at all:                  */
             /*------------------------------------------------------------*/
             // create new image in the picture box that is desired size
             picCel.Image = new Bitmap(picCel.Width, picCel.Height);
@@ -1811,6 +1807,15 @@ namespace WinAGI.Editor {
             }
             /*------------------------------------------------------------*/
             return true;
+        }
+        public void RefreshView() {
+            if (agView == null) {
+                return;
+            }
+            // unload and reload and redraw
+            agView.Unload();
+            agView.Load();
+            DisplayCel();
         }
         #endregion
 

@@ -11,7 +11,9 @@ using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
+using WinAGI.Common;
 
 namespace WinAGI.Editor {
     public partial class frmViewEdit : Form {
@@ -153,14 +155,8 @@ namespace WinAGI.Editor {
 
         private void cmbCel_SelectedIndexChanged(object sender, EventArgs e) {
             CurCel = cmbCel.SelectedIndex;
-            // clear the picture box
-            //using Graphics = picCel.Image.    Graphics.FromImage(pic.Image);
-            picCel.CreateGraphics().Clear(BackColor);
-            picCel.Refresh();
-            // set transparency
-            EditView[CurLoop][CurCel].Transparency = chkTrans.Checked;
-            // show the cel
-            ShowAGIBitmap(picCel, EditView[CurLoop][CurCel].CelBMP, zoom);
+
+            DisplayCel();
         }
 
         private void timer1_Tick(object sender, EventArgs e) {
@@ -7554,6 +7550,8 @@ namespace WinAGI.Editor {
             }
             mnuRSave.Enabled = !IsChanged;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+
+
             // TODO: set up form for editing
             cmbLoop.Items.Clear();
             for (int i = 0; i < EditView.Loops.Count; i++) {
@@ -7786,6 +7784,34 @@ namespace WinAGI.Editor {
                 }
             }
         }
+
+        private void DisplayCel() {
+            // clear the picture box
+            picCel.CreateGraphics().Clear(BackColor);
+            picCel.Refresh();
+            // set transparency
+            EditView[CurLoop][CurCel].Transparency = chkTrans.Checked;
+            // show the cel
+            ShowAGIBitmap(picCel, EditView[CurLoop][CurCel].CelBMP, zoom);
+        }
+
+        private void DisplayPrevCel() {
+            // TODO: implement
+        }
+
+        public void RefreshCel() {
+            // update palette, force view reset then redraw cel
+            if (InGame) {
+                EditView.Palette = EditGame.Palette.CopyPalette();
+            }
+            else {
+                EditView.Palette = DefaultPalette.CopyPalette();
+            }
+            EditView.ResetView();
+            DisplayCel();
+            DisplayPrevCel();
+        }
+
 
         private bool AskClose() {
             if (EditView.ErrLevel < 0) {

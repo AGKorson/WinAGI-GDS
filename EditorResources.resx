@@ -118,55 +118,55 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="1000" xml:space="preserve">
-    <value>agBlack</value>
+    <value>Black</value>
   </data>
   <data name="1001" xml:space="preserve">
-    <value>agBlue</value>
+    <value>Blue</value>
   </data>
   <data name="1002" xml:space="preserve">
-    <value>agGreen</value>
+    <value>Green</value>
   </data>
   <data name="1003" xml:space="preserve">
-    <value>agCyan</value>
+    <value>Cyan</value>
   </data>
   <data name="1004" xml:space="preserve">
-    <value>agRed</value>
+    <value>Red</value>
   </data>
   <data name="1005" xml:space="preserve">
-    <value>agMagenta</value>
+    <value>Magenta</value>
   </data>
   <data name="1006" xml:space="preserve">
-    <value>agBrown</value>
+    <value>Brown</value>
   </data>
   <data name="1007" xml:space="preserve">
-    <value>agLtGray</value>
+    <value>LtGray</value>
   </data>
   <data name="1008" xml:space="preserve">
-    <value>agDkGray</value>
+    <value>DkGray</value>
   </data>
   <data name="1009" xml:space="preserve">
-    <value>agLtBlue</value>
+    <value>LtBlue</value>
   </data>
   <data name="101" xml:space="preserve">
     <value>[|[ %id|[||[ in first cycle through this room only|if(f5) |~{|~[ |~[ load, draw and discard the picture for the current room|~load.pic(v0);|~draw.pic(v0);|~discard.pic(v0);|~|~[ the horizon defines the upper limit of ego's movement|~set.horizon(%h);|~|~[ add additional room initialization here|~|~[ load ego view, animate and draw ego|~[ this is sometimes handled in logic 0|~[ instead of in each individual logic|~|~[ display the picture on screen|~show.pic();|~[ in most cases, no need to execute any other|~[ commands during first cycle|~return();|~}||[ *************************************************|:handleInput         [ check for input from player|[ *************************************************|if(f2 &amp;&amp; !f4 &amp;&amp; v9 == 0) |~{|~[ place said tests here|~}||[ *************************************************|:noInput    [ all non-input related code goes here |[ *************************************************||[ add other room specific statements here|||[ *************************************************|:exit              [  test for leaving the room|[ *************************************************||[ add exit checks here (or use layout editor)|return();||[ *************************************************|[ messages             [ declared messages go here|[ *************************************************||</value>
   </data>
   <data name="1010" xml:space="preserve">
-    <value>agLtGreen</value>
+    <value>LtGreen</value>
   </data>
   <data name="1011" xml:space="preserve">
-    <value>agLtCyan</value>
+    <value>LtCyan</value>
   </data>
   <data name="1012" xml:space="preserve">
-    <value>agLtRed</value>
+    <value>LtRed</value>
   </data>
   <data name="1013" xml:space="preserve">
-    <value>agLtMagenta</value>
+    <value>LtMagenta</value>
   </data>
   <data name="1014" xml:space="preserve">
-    <value>agYellow</value>
+    <value>Yellow</value>
   </data>
   <data name="1015" xml:space="preserve">
-    <value>agWhite</value>
+    <value>White</value>
   </data>
   <data name="102" xml:space="preserve">
     <value>[

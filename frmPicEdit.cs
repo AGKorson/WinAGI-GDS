@@ -15,6 +15,7 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Editor.Base;
 using System.IO;
+using WinAGI.Common;
 
 namespace WinAGI.Editor {
     public partial class frmPicEdit : Form {
@@ -11325,9 +11326,8 @@ End Sub
             */
             // load the picture
             EditPicture.Load();
-            thisBMP = EditPicture.VisualBMP;
-            // show it with NO transparency
-            ShowAGIBitmap(picVisual, thisBMP);
+
+            DrawPicture();
             return true;
         }
 
@@ -11534,6 +11534,26 @@ End Sub
                     }
                 }
             }
+        }
+
+        private void DrawPicture() {
+            // TODO: replace this temp method
+
+            thisBMP = EditPicture.VisualBMP;
+            // show it with NO transparency
+            ShowAGIBitmap(picVisual, thisBMP);
+        }
+
+        public void RefreshPic() {
+            // update palette and redraw
+            if (InGame) {
+                EditPicture.Palette = EditGame.Palette.CopyPalette();
+            }
+            else {
+                EditPicture.Palette = DefaultPalette.CopyPalette();
+            }
+            EditPicture.ResetPicture();
+            DrawPicture();
         }
 
         private bool AskClose() {
