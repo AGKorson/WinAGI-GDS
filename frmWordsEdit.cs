@@ -19,23 +19,24 @@ using EnvDTE;
 
 namespace WinAGI.Editor {
     public partial class frmWordsEdit : Form {
+        private bool GroupMode = true;
         public bool InGame;
         public bool IsChanged;
         public WordList EditWordList;
         private bool closing = false;
         private string EditWordListFilename;
         private bool blnRefreshLogics = false;
-        private bool GroupMode = true;
         private int EditGroupIndex, EditGroupNumber;
         private int EditWordIndex, EditWordGroupIndex;
         private string EditWordText;
         private bool EditingWord = false, EditingGroup = false;
+        private bool AddNewWord = false;
+        private bool AddNewGroup = false;
+        private bool FirstFind = false;
+        private bool blnRecurse = false;
         private Font defaultfont;
         private Font boldfont;
         private Stack<WordsUndo> UndoCol = new();
-        private bool FirstFind = false;
-        private bool AddNewWord = false;
-        private bool AddNewGroup = false;
         public static frmWordsEdit DragSourceForm { get; private set; }
 
         public frmWordsEdit() {
@@ -53,14 +54,14 @@ namespace WinAGI.Editor {
         private void frmWordsEdit_Activated(object sender, EventArgs e) {
             if (FindingForm.Visible) {
                 if (FindingForm.rtfReplace.Visible) {
-                    FindingForm.SetForm(FindFormFunction.ReplaceObject, InGame);
+                    FindingForm.SetForm(FindFormFunction.ReplaceWord, InGame);
                 }
                 else {
-                    FindingForm.SetForm(FindFormFunction.FindObject, InGame);
+                    FindingForm.SetForm(FindFormFunction.FindWord, InGame);
                 }
             }
-            spGroupCount.Text = "Group Count: " + EditWordList.GroupCount;
-            spWordCount.Text = "Word Count: " + EditWordList.WordCount;
+            //spGroupCount.Text = "Group Count: " + EditWordList.GroupCount;
+            //spWordCount.Text = "Word Count: " + EditWordList.WordCount;
         }
 
         private void frmWordsEdit_FormClosing(object sender, FormClosingEventArgs e) {
@@ -626,53 +627,19 @@ namespace WinAGI.Editor {
                 UpdateSelection(NextUndo.OldWord, true);
                 break;
             case WordsUndo.ActionType.ReplaceAll:
-                //// description field true if only one word
-                //if (NextUndo.Description != "0") {
-                //    // restore a single word
-
-                //    // remove existing word
-                //    EditWordList.RemoveWord(NextUndo.Word);
-                //    // restore previous word
-                //    EditWordList.AddWord(NextUndo.OldWord, NextUndo.GroupNo);
-                //    // ensure group name is correct
-                //    UpdateGroupName(NextUndo.GroupNo);
-                //    // if the existing word was in a different group
-                //    if (NextUndo.OldGroupNo != -1) {
-                //        // add word back to its old group
-                //        EditWordList.AddWord(NextUndo.Word, NextUndo.OldGroupNo);
-                //        // ensure groupname is correct
-                //        UpdateGroupName(NextUndo.OldGroupNo);
-                //    }
-                //    UpdateSelection(NextUndo.OldGroupNo, 0);
-                //}
-                //else {
-                //    // show wait cursor
-                //    MDIMain.UseWaitCursor = true;
-                //    // restore a bunch of words
-                //    string[] strWords = NextUndo.Word.Split("|");
-                //    for (int i = 0; i < strWords.Length; i += 4) {
-                //        // first element is group where word will be restored
-                //        // second element is old group (if the new word was in a different group)
-                //        // third element is old word being restored
-                //        // fourth element is new word being 'undone'
-                //        int group = int.Parse(strWords[i]);
-                //        // remove new word
-                //        EditWordList.RemoveWord(strWords[i + 3]);
-                //        // add old word to this group
-                //        EditWordList.AddWord(strWords[i + 2], group);
-                //        // update groupname
-                //        UpdateGroupName(group);
-                //        // if oldgroup is valid
-                //        int oldgroup = int.Parse(strWords[i + 1]);
-                //        if (oldgroup != -1) {
-                //            // restore word to original group
-                //            EditWordList.AddWord(strWords[i + 3], oldgroup);
-                //            // update the originalgroup name
-                //            UpdateGroupName(oldgroup);
-                //        }
-                //    }
-                //    MDIMain.UseWaitCursor = false;
-                //}
+                // the number of replaced words is stored in the GroupNo field
+                int count = NextUndo.GroupNo;
+                for (int i = 0; i < count; i++) {
+                    NextUndo = UndoCol.Pop();
+                    EditWord(NextUndo.Word, NextUndo.OldWord, NextUndo.GroupNo, true);
+                    if (NextUndo.OldGroupNo != -1) {
+                        if (!EditWordList.GroupExists(NextUndo.OldGroupNo)) {
+                            AddGroup(NextUndo.OldGroupNo, true);
+                        }
+                        AddWord(NextUndo.OldGroupNo, NextUndo.Word, true);
+                    }
+                }
+                UpdateSelection(0, true);
                 break;
             case WordsUndo.ActionType.Clear:
                 EditWordList.Clear();
@@ -1077,20 +1044,45 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEFind_Click(object sender, EventArgs e) {
-
+            StartSearch(FindFormFunction.FindWord);
         }
 
         private void mnuEFindAgain_Click(object sender, EventArgs e) {
-
+            if (GFindText.Length == 0) {
+                StartSearch(FindFormFunction.FindWord);
+            }
+            else {
+                FindInWords(GFindText, GFindDir, GMatchWord);
+            }
         }
 
         private void mnuEReplace_Click(object sender, EventArgs e) {
+            StartSearch(FindFormFunction.ReplaceWord);
+        }
 
+        private void mnuEFindLogic_Click(object sender, EventArgs e) {
+            if (!InGame || EditWordText.Length == 0) {
+                return;
+            }
+            GMatchWord = true;
+            GFindSynonym = lstGroups.Focused;
+            GFindGrpNum = EditGroupNumber;
+            FindingForm.SetForm(FindFormFunction.FindWordsLogic, true);
+            GFindText = '"' + EditWordText + '"';
+            // to avoid unwanted change in form function, don't assign text
+            // cmbFind directly
+            FindingForm.SetFindText(GFindText);
+            if (!FindingForm.Visible) {
+                FindingForm.Visible = true;
+            }
+            FindingForm.Select();
         }
 
         private void mnuEMode_Click(object sender, EventArgs e) {
             byte[] buttonicon;
-            // only if not editing a word
+
+            FindingForm.ResetSearch();
+            FirstFind = false;
             GroupMode = !GroupMode;
             if (GroupMode) {
                 //string curword = lstWords.Text;
@@ -1132,10 +1124,6 @@ namespace WinAGI.Editor {
             Stream stream = new MemoryStream(buttonicon);
             tbbMode.Image = (Bitmap)Image.FromStream(stream);
             label1.Left = 5 + (lstGroups.Width - label1.Width) / 2;
-        }
-
-        private void mnuEFindLogic_Click(object sender, EventArgs e) {
-
         }
 
         private void cmUndo_Click(object sender, EventArgs e) {
@@ -1264,18 +1252,12 @@ namespace WinAGI.Editor {
         }
 
         private void lstGroups_Enter(object sender, EventArgs e) {
-            //int top = lstGroups.TopIndex;
-            //lstGroups.BorderStyle = BorderStyle.Fixed3D;
-            //lstGroups.TopIndex = top;
             label1.Font = boldfont;
             SetToolbarStatus();
         }
 
         private void lstGroups_Leave(object sender, EventArgs e) {
             if (lstWords.Focused) {
-                //int top = lstGroups.TopIndex;
-                //lstGroups.BorderStyle = BorderStyle.FixedSingle;
-                //lstGroups.TopIndex = top;
                 label1.Font = defaultfont;
             }
         }
@@ -1288,6 +1270,9 @@ namespace WinAGI.Editor {
                 }
                 if (EditGroupIndex != selitem) {
                     UpdateSelection(EditWordList.GroupByIndex(selitem).GroupNum, 0, true);
+                    // always reset search
+                    StartWord = -1;
+                    StartGrp = -1;
                 }
             }
             if (e.Button == MouseButtons.Right) {
@@ -1296,7 +1281,7 @@ namespace WinAGI.Editor {
         }
 
         private void lstGroups_MouseUp(object sender, MouseEventArgs e) {
-            if (lstGroups.SelectedIndex != EditGroupIndex) {
+            if (GroupMode && lstGroups.SelectedIndex != EditGroupIndex) {
                 UpdateSelection(EditWordList.GroupByIndex(lstGroups.SelectedIndex).GroupNum, 0, true);
             }
         }
@@ -1452,10 +1437,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void lstWords_SelectedIndexChanged(object sender, EventArgs e) {
-
-        }
-
         private void lstWords_DoubleClick(object sender, EventArgs e) {
             if (EditingGroup || EditingWord) {
                 return;
@@ -1499,18 +1480,12 @@ namespace WinAGI.Editor {
         }
 
         private void lstWords_Enter(object sender, EventArgs e) {
-            //int top = lstWords.TopIndex;
-            //lstWords.BorderStyle = BorderStyle.Fixed3D;
-            //lstWords.TopIndex = top;
             label2.Font = boldfont;
             SetToolbarStatus();
         }
 
         private void lstWords_Leave(object sender, EventArgs e) {
             if (lstGroups.Focused) {
-                //int top = lstWords.TopIndex;
-                //lstWords.BorderStyle = BorderStyle.FixedSingle;
-                //lstWords.TopIndex = top;
                 label2.Font = defaultfont;
             }
         }
@@ -1529,11 +1504,17 @@ namespace WinAGI.Editor {
             if (GroupMode) {
                 if (EditWordGroupIndex != selitem) {
                     UpdateSelection((string)lstWords.Items[selitem]);
+                    // always reset search
+                    StartWord = -1;
+                    StartGrp = -1;
                 }
             }
             else {
                 if (EditWordIndex != selitem) {
                     UpdateSelection((string)lstWords.Items[selitem]);
+                    // always reset search
+                    StartWord = -1;
+                    StartGrp = -1;
                 }
             }
             if (e.Button == MouseButtons.Right) {
@@ -1565,11 +1546,9 @@ namespace WinAGI.Editor {
 
         private void lstWords_QueryContinueDrag(object sender, QueryContinueDragEventArgs e) {
             if (e.Action == DragAction.Drop) {
-                Debug.Print("stop drag");
                 DragWord = false;
             }
             if (e.Action == DragAction.Cancel) {
-                Debug.Print("cancel... ");
             }
         }
 
@@ -1692,956 +1671,6 @@ namespace WinAGI.Editor {
                 break;
             }
         }
-
-        private void txtWordEdit_TextChanged(object sender, EventArgs e) {
-            // if not valid, reset to default??????
-        }
-        #endregion
-
-        #region temp code
-        void findstuff() {
-            /*
-private void FindWordInLogic(ByVal SearchWord As String, ByVal FindSynonyms As Boolean)
-
-  // call findinlogic with current word
-  // or word group
-  
-  // find synonym option currently does nothing
-  
-  // reset logic search
-  FindingForm.ResetSearch
-    
-  // set global search values
-  GFindText = QUOTECHAR & SearchWord & QUOTECHAR
-  GFindDir = fdAll
-  GMatchWord = true
-  GMatchCase = false
-  GLogFindLoc = flAll
-  GFindSynonym = FindSynonyms
-  GFindGrpNum = EditWordList.Group(lstGroups.ListIndex).GroupNum
-  SearchType = rtWords
-  
-  // set it to match desired search parameters
-    // set find dialog to find textinlogic mode
-    FindingForm.SetForm ffFindWordsLogic, true
-    
-    // show the form
-    FindingForm.Show , frmMDIMain
-  
-  // ensure this form is the search form
-  SearchForm = Me
-  
-return;
-}
-
-private void ReplaceAll(ByVal FindText As String, ByVal MatchWord As Boolean, ByVal ReplaceText As String)
-
-  // replace all occurrences of FindText with ReplaceText
-  
-  Dim i As Long, j As Long
-  Dim lngCount As Long
-  Dim lngGroup As Long, lngOldGrp As Long
-  Dim NextUndo As WordsUndo
-  Dim strFindWord As String, strReplaceWord As String
-  
-  // if replacing and new text is the same
-  if ( StrComp(FindText, ReplaceText, vbTextCompare) = 0 ) {
-    // exit
-    return;
-  }
-  
-  // blank replace text not allowed for words
-  if ( LenB(ReplaceText) = 0 ) {
-    MsgBox "Blank replacement text is not allowed.", vbInformation + vbOKOnly, "Replace All"
-    return;
-  }
-  
-  // validate replace word (no special characters, etc)
-  // what characters are allowed for words????
-  // ####
-  
-  
-  // if nothing in wordlist,
-  if ( EditWordList.WordCount = 0 ) {
-    MsgBox "Word list is empty.", vbOKOnly + vbInformation, "Replace All"
-    return;
-  }
-  
-  // show wait cursor
-  MDIMain.UseWaitCursor = true;
-  
-  // create new undo object
-  NextUndo = new WordsUndo
-  NextUndo.Action = ReplaceAll
-  // use description property to indicate replace mode
-  NextUndo.Description = CStr(MatchWord)
-  
-  if ( MatchWord ) {
-    // does findtext exist?
-    lngGroup = EditWordList(FindText).Group
-    
-    // if no error, then searchword exists
-    if ( Err.Number = 0 ) {
-      // i is group where replacement is occurring
-      Err.Clear
-      // add info to undo object
-      NextUndo.GroupNo = lngGroup
-      NextUndo.OldWord = FindText
-      NextUndo.Word = ReplaceText
-      
-      // assume replacement word does not exist in a different group
-      // validate the assumption by trying to get the groupnumber directly
-      lngOldGrp = EditWordList(ReplaceText).Group
-      // if no error,
-      if ( Err.Number = 0 ) {
-        // remove the replacement word
-        EditWordList.RemoveWord ReplaceText
-      } else {
-        // not found; reset old group num
-        lngOldGrp = -1
-      }
-      
-      // save oldgroup in undo object
-      NextUndo.OldGroupNo = lngOldGrp
-      
-      // change word in this group by deleting findword
-      EditWordList.RemoveWord FindText
-      // and adding replaceword
-      EditWordList.AddWord ReplaceText, lngGroup
-      // ensure group lngGroup has correct name
-      UpdateGroupName lngGroup
-      // if word was removed from another group
-      // (by checking if lngOldGrp is a valid group index)
-      if ( lngOldGrp != -1 ) {
-        // ensure group lngOldGrp has correct name
-        UpdateGroupName lngOldGrp
-      }
-      
-      // update list boxes
-      if ( Val(lstGroups.Text) = lngGroup Or (Val(lstGroups.Text) = lngOldGrp And lngOldGrp != -1) ) {
-        UpdateWordList true
-      }
-      // set Count to one
-      lngCount = 1
-    }
-  } else {
-    // need to step through all groups and all words
-    // remove old words if the replace creates duplicates,
-    // and create undo object that holds all this...
-  
-  
-    // step through all groups
-    for ( i = 0 To EditWordList.GroupCount - 1) {
-      // step through all words
-      for ( j = 0 To EditWordList.Group(i).WordCount - 1) {
-        // need to manually check for end of group Count
-        // because wordcount may change dynamically as words
-        // are added and removed based on the changes
-        if ( j > EditWordList.Group(i).WordCount - 1 ) {
-          break;
-        }
-        
-        // if there is a match
-        if ( InStr(1, EditWordList.Group(i).Word[j], FindText, vbTextCompare) != 0 ) {
-          strFindWord = EditWordList.Group(i).Word[j]
-          strReplaceWord = Replace(EditWordList.Group(i).Word[j], FindText, ReplaceText)
-          
-          // i is the group INDEX not the group NUMBER;
-          // get group number
-          lngGroup = EditWordList.Group(i).GroupNum
-          
-          // assume replacement word does not exist in another group
-          // validate assumption by trying to get the groupnumber directly
-          lngOldGrp = EditWordList(strReplaceWord).Group
-          // if no error,
-          if ( Err.Number = 0 ) {
-            // remove the replacement word
-            EditWordList.RemoveWord strReplaceWord
-          } else {
-            // not found; reset old group num
-            lngOldGrp = -1
-          }
-          Err.Clear
-          
-          // change word in this group by deleting findword
-          EditWordList.RemoveWord strFindWord
-          // and adding replaceword
-          EditWordList.AddWord strReplaceWord, lngGroup
-          // ensure group i has correct name
-          UpdateGroupName lngGroup
-          
-          // if word came from a different group
-          if ( lngOldGrp != -1 ) {
-            // update that groupname too
-            UpdateGroupName lngOldGrp
-          }
-          
-          // add to undo
-          if ( lngCount = 0 ) {
-            // add group, oldgroup, word, oldword
-            NextUndo.Word = CStr(lngGroup) & "|" & CStr(lngOldGrp) & "|" & strFindWord & "|" & strReplaceWord
-          } else {
-             NextUndo.Word = NextUndo.Word & "|" & CStr(lngGroup) & "|" & CStr(lngOldGrp) & "|" & strFindWord & "|" & strReplaceWord
-          }
-          // increment counter
-          lngCount = lngCount + 1
-          // need to restart search at beginning of word
-          // because changes in words will affect the
-          // order;
-          // set j to -1 so the next j statement
-          // resets it to 0
-          j = -1
-        }
-      }
-    }
-    
-    // if something found,
-    if ( lngCount != 0 ) {
-      // force update
-      UpdateWordList true
-    }
-  }
-  
-  // if nothing found,
-  if ( lngCount = 0 ) {
-    MsgBox "Search text not found.", vbInformation, "Replace All"
-  } else {
-    // add undo
-    AddUndo NextUndo
-    
-    // show how many replacements made
-    MsgBox "The specified region has been searched. " & CStr(lngCount) & " replacements were made.", vbInformation, "Replace All"
-  }
-  
-  // restore mousepointer
-  Screen.MousePointer = vbDefault
-return;
-}
-
-public void BeginFind()
-
-  // each form has slightly different search parameters
-  // and procedure; so each form will get what it needs
-  // from the form, and update the global search parameters
-  // as needed
-  // 
-  // that's why each search form cheks for changes, and
-  // sets the global values, instead of doing it once inside
-  // the FindingForm code
-  
-  // when searching for a word in a logic, the first time the
-  // user presses the 'find' button, the SearchForm is the
-  // Words Editor; so we need to send this search request
-  // to the FindInLogics function; after that, if found,
-  // the SearchForm will switch to the LogicEditor, and
-  // future presses of the Find button will search logics
-  // as expected
-  
-    // if searching in logics
-    if ( FindingForm.FormFunction = ffFindWordsLogic ) {
-      // begin a logic search
-      FindInLogic GFindText, fdAll, true, false, flAll, false, vbNullString
-      return;
-    }
-        
-    switch ( FindingForm.FormAction) {
-    case faFind:
-      FindInWords GFindText, GMatchWord, GFindDir
-    case faReplace:
-      FindInWords GFindText, GMatchWord, GFindDir, true, GReplaceText
-    case faReplaceAll:
-      ReplaceAll GFindText, GMatchWord, GReplaceText
-    case faCancel:
-      // don't do anything
-    }
-}
-
-public void MenuClickReplace()
-
- // replace text
- // use menuclickfind in replace mode
-  MenuClickFind ffReplaceWord
-}
-
-public void MenuClickFind(Optional ByVal ffValue As FindFormFunction = ffFindWord)
-
- // set form defaults
-    if ( !FindingForm.Visible ) {
-      if ( Len(GFindText) > 0 ) {
-       // if it has quotes, remove them
-        if ( Asc(GFindText) = 34 ) {
-          GFindText = Right$(GFindText, Len(GFindText) - 1)
-        }
-        if ( Right$(GFindText, 1) = QUOTECHAR ) {
-          GFindText = Left$(GFindText, Len(GFindText) - 1)
-        }
-      }
-    }
-    
-   // set find dialog to word mode
-    FindingForm.SetForm ffValue, false
-    
-   // show the form
-    FindingForm.Show , frmMDIMain
-  
-   // always highlight search text
-    FindingForm.rtfFindText.Selection.Range.StartPos = 0
-    FindingForm.rtfFindText.Selection.Range.EndPos = Len(.rtfFindText.Text)
-    FindingForm.rtfFindText.SetFocus
-    
-   // ensure this form is the search form
-    SearchForm = Me
-return;
-}
-
-private void FindInWords(ByVal FindText As String, ByVal MatchWord As Boolean, ByVal FindDir As FindDirection, Optional ByVal Replacing As Boolean = false, Optional ByVal ReplaceText As String = vbNullString)
-
-  Dim SearchWord As Long, FoundWord As Long
-  Dim SearchGrp As Long, FoundGrp As Long
-  Dim rtn As VbMsgBoxResult, strFullWord As String
-  
-  switch ( Mode) {
-  case wtByGroup:
-   // if editor mode is none (no group/word selected)
-    if ( SelMode = smNone ) {
-      return;
-    }
-    
-   // if replacing and new text is the same
-    if ( Replacing And (StrComp(FindText, ReplaceText, vbTextCompare) = 0) ) {
-     // exit
-      return;
-    }
-    
-   // blank replace text not allowed for words
-    if ( Replacing And LenB(ReplaceText) = 0 ) {
-      MsgBox "Blank replacement text is not allowed.", vbInformation + vbOKOnly, "Replace in Word List"
-      return;
-    }
-    
-   // if no words in the list
-    if ( EditWordList.WordCount = 0 ) {
-      MsgBox "There are no words in this list.", vbOKOnly + vbInformation, "Find in Word List"
-      return;
-    }
-    
-   // show wait cursor
-    MDIMain.UseWaitCursor = true;
-    
-   // if replacing and searching up,  start at next word
-   // if replacing and searching down start at current word
-   // if not repl  and searching up   start at current word
-   // if not repl  and searching down start at next word
-    
-   // set searchwd and searchgrp to current word
-    SearchGrp = lstGroups.ListIndex
-    SearchWord = lstWords.ListIndex
-   // if no word selected, start with first word
-    if ( SearchWord = -1 ) {
-      SearchWord = 0
-    }
-    
-   // adjust to next word per replace/direction selections
-    if ( (Replacing And FindDir = fdUp) Or (!Replacing And FindDir != fdUp) ) {
-     // if at end;
-      if ( SearchWord >= lstWords.ListCount - 1 ) {
-       // use first word
-        SearchWord = 0
-       // of next group
-        SearchGrp = SearchGrp + 1
-        if ( SearchGrp >= lstGroups.ListCount ) {
-          SearchGrp = 0
-        }
-      } else {
-        SearchWord = SearchWord + 1
-      }
-    } else {
-     // if already AT beginning of search, the replace function will mistakenly
-     // think the find operation is complete and stop
-      if ( Replacing And (SearchWord = StartWord And SearchGrp = StartGrp) ) {
-       // reset search
-        FindingForm.ResetSearch
-      }
-    }
-    
-   // main search loop
-    do {
-     // if direction is up
-      if ( FindDir = fdUp ) {
-       // iterate backwards until word found or GrpFound=-1
-        FoundWord = SearchWord - 1
-        FoundGrp = SearchGrp
-       // if at top of this group,
-       // get the last word of previous group
-        if ( FoundWord < 0 ) {
-          FoundGrp = FoundGrp - 1
-          if ( FoundGrp != -1 ) {
-            FoundWord = EditWordList.Group(FoundGrp).WordCount - 1
-          }
-        }
-        
-        while (FoundGrp != -1) {
-         // skip groups with no words
-          if ( EditWordList.Group(FoundGrp).WordCount != 0 ) {
-            if ( MatchWord ) {
-              if ( StrComp(EditWordList.Group(FoundGrp).Word(FoundWord), FindText, vbTextCompare) = 0 ) {
-               // found
-                break; // exit do
-              }
-            } else {
-              if ( InStr(1, EditWordList.Group(FoundGrp).Word(FoundWord), FindText, vbTextCompare) != 0 ) {
-               // found
-                break; // exit do
-              }
-            }
-          }
-         // decrement word
-          FoundWord = FoundWord - 1
-          if ( FoundWord < 0 ) {
-            FoundGrp = FoundGrp - 1
-            if ( FoundGrp != -1 ) {
-              FoundWord = EditWordList.Group(FoundGrp).WordCount - 1
-            }
-          }
-        }
-        
-       // reset search to last group/last word+1
-        SearchGrp = EditWordList.GroupCount - 1
-        SearchWord = EditWordList.Group(SearchGrp).WordCount //  - 1
-      } else {
-       // iterate forward until word found or foundgrp=groupcount
-        FoundWord = SearchWord
-        FoundGrp = SearchGrp
-        
-        do {
-         // skip groups with no words
-          if ( EditWordList.Group(FoundGrp).WordCount != 0 ) {
-            if ( MatchWord ) {
-              if ( StrComp(EditWordList.Group(FoundGrp).Word(FoundWord), UnicodeToCP(FindText, SessionCodePage), vbTextCompare) = 0 ) {
-               // found
-                break; // exit do
-              }
-            } else {
-              if ( InStr(1, EditWordList.Group(FoundGrp).Word(FoundWord), UnicodeToCP(FindText, SessionCodePage), vbTextCompare) != 0 ) {
-               // found
-                break; // exit do
-              }
-            }
-          }
-         // increment word
-          FoundWord = FoundWord + 1
-          if ( FoundWord >= EditWordList.Group(FoundGrp).WordCount ) {
-            FoundWord = 0
-            FoundGrp = FoundGrp + 1
-          }
-          
-        } while (FoundGrp != EditWordList.GroupCount);
-       // reset search
-        SearchGrp = 0
-        SearchWord = 0
-      }
-      
-     // if found, group will be valid
-      if ( FoundGrp >= 0 And FoundGrp < EditWordList.GroupCount ) {
-       // if back at start (grp and word same as start)
-        if ( FoundWord = StartWord And FoundGrp = StartGrp ) {
-         // rest found position so search will end
-          FoundWord = -1
-          FoundGrp = -1
-        }
-        break; // exit do
-      }
-      
-     // if not found, action depends on search mode
-      switch ( FindDir) {
-      case fdUp:
-       // if not reset yet
-        if ( !RestartSearch ) {
-         // if recursing,
-          if ( blnRecurse ) {
-           // just say no
-            rtn = vbNo
-          } else {
-            rtn = MsgBox("Beginning of search scope reached. Do you want to continue from the end?", vbQuestion + vbYesNo, "Find in Word List")
-          }
-          if ( rtn = vbNo ) {
-           // reset search
-            FindingForm.ResetSearch
-            Me.MousePointer = vbDefault
-            return;
-          }
-        } else {
-         // entire scope already searched; exit
-          break; // exit do
-        }
-        
-      case fdDown:
-       // if not reset yet
-        if ( !RestartSearch ) {
-         // if recursing
-          if ( blnRecurse ) {
-           // just say no
-            rtn = vbNo
-          } else {
-            rtn = MsgBox("End of search scope reached. Do you want to continue from the beginning?", vbQuestion + vbYesNo, "Find in Word List")
-          }
-          if ( rtn = vbNo ) {
-           // reset search
-            FindingForm.ResetSearch
-            Me.MousePointer = vbDefault
-            return;
-          }
-        } else {
-         // entire scope already searched; exit
-          break; // exit do
-        }
-        
-      case fdAll:
-        if ( RestartSearch ) {
-          break; // exit do
-        }
-        
-      }
-      
-     // reset search so when we get back to start, search will end
-      RestartSearch = true
-    
-   // loop is exited by finding the searchtext or reaching end of search area
-    } while (true);
-    
-   // if search string found
-    if ( FoundGrp >= 0 And FoundGrp < EditWordList.GroupCount ) {
-     // if this is first occurrence
-      if ( !FirstFind ) {
-       // save this position
-        FirstFind = true
-        StartWord = FoundWord
-        StartGrp = FoundGrp
-      }
-      
-     // highlight Word
-      lstGroups.ListIndex = FoundGrp
-      lstWords.ListIndex = FoundWord
-      
-     // if replacing
-      if ( Replacing ) {
-       // if not replacing entire word
-        if ( !MatchWord ) {
-         // calculate new findtext and replacetext
-          ReplaceText = Replace(EditWordList.Group(FoundGrp).Word(FoundWord), FindText, ReplaceText)
-          strFullWord = EditWordList.Group(FoundGrp).Word(FoundWord)
-        } else {
-          strFullWord = FindText
-        }
-        
-       // now try to edit the word
-        if ( EditWord(strFullWord, ReplaceText) ) {
-         // change undo
-          UndoCol(UndoCol.Count).Action = Replace
-          frmMDIMain.mnuEUndo.Text = "&Undo Replace" & vbTab & "Ctrl+Z"
-         // select the word
-          UpdateWordList true
-          switch ( Mode) {
-          case wtByGroup:
-            lstWords.Text = ReplaceText
-          }
-         // always reset search when replacing, because
-         // word index almost always changes
-          FindingForm.ResetSearch
-          
-         // recurse the find method to get the next occurence
-          blnRecurse = true
-          FindInWords FindText, MatchWord, FindDir, false
-          blnRecurse = false
-        }
-      }
-    
-   // if search string NOT found
-    } else {
-     // if not recursing, show a msg
-      if ( !blnRecurse ) {
-       // if something was previously found
-        if ( FirstFind ) {
-         // search complete; no new instances found
-          MsgBox "The specified region has been searched.", vbInformation, "Find in Word List"
-        } else {
-         // show not found msg
-          MsgBox "Search text not found.", vbInformation, "Find in Word List"
-        }
-      }
-      
-     // reset search flags
-      FindingForm.ResetSearch
-    }
-    
-   // need to always make sure right form has focus; if finding a word
-   // causes the group list to change, VB puts the wordeditor form in focus
-   //  but we want focus to match the starting form
-    if ( SearchStartDlg ) {
-      FindingForm.SetFocus
-    } else {
-      Me.SetFocus
-    }
-    
-   // reset cursor
-    Screen.MousePointer = vbDefault
-    
-  case wtByWord:
-   // edit mode is n/a, and never replacing
-    
-   // if no words in the list
-    if ( EditWordList.WordCount = 0 ) {
-      MsgBox "There are no words in this list.", vbOKOnly + vbInformation, "Find in Word List"
-      return;
-    }
-    
-   // show wait cursor
-    MDIMain.UseWaitCursor = true;
-    
-   // if searching up   start at current word
-   // if searching down start at next word
-    
-   // set searchwd to current word
-    SearchWord = lstWords.ListIndex
-   // if no word selected, start with first word
-    if ( SearchWord = -1 ) {
-      SearchWord = 0
-    }
-    
-   // adjust to next word per direction selection
-    if ( FindDir != fdUp ) {
-     // if at end;
-      if ( SearchWord >= lstWords.ListCount - 1 ) {
-        if ( FindDir = fdDown ) {
-         // done
-          SearchWord = EditWordList.WordCount
-        } else {
-         // use first word
-          SearchWord = 0
-        }
-      } else {
-        SearchWord = SearchWord + 1
-      }
-    }
-    
-   // main search loop
-    do {
-     // if direction is up
-      if ( FindDir = fdUp ) {
-       // iterate backwards until word found or back to start
-        FoundWord = SearchWord - 1
-        
-        while  ( FoundWord >= 0) {
-         // search all words
-          if ( MatchWord ) {
-            if ( StrComp(EditWordList(FoundWord).WordText, FindText, vbTextCompare) = 0 ) {
-             // found
-              break; // exit do
-            }
-          } else {
-            if ( InStr(1, EditWordList(FoundWord).WordText, FindText, vbTextCompare) != 0 ) {
-             // found
-              break; // exit do
-            }
-          }
-         // decrement word
-          FoundWord = FoundWord - 1
-          if ( FoundWord < 0 ) {
-            break; // exit do
-          }
-        }
-        
-       // reset search
-        SearchWord = EditWordList.WordCount
-      } else {
-       // iterate forward until word found or foundword=wordcount
-        FoundWord = SearchWord
-        
-        while (FoundWord != EditWordList.WordCount) {
-          if ( MatchWord ) {
-            if ( StrComp(EditWordList(FoundWord).WordText, UnicodeToCP(FindText, SessionCodePage), vbTextCompare) = 0 ) {
-             // found
-              break; // exit do
-            }
-          } else {
-            if ( InStr(1, EditWordList(FoundWord).WordText, UnicodeToCP(FindText, SessionCodePage), vbTextCompare) != 0 ) {
-             // found
-              break; // exit do
-            }
-          }
-         // increment word
-          FoundWord = FoundWord + 1
-        }
-       // reset search
-        SearchWord = 0
-      }
-      
-     // if found, word will be valid
-      if ( FoundWord >= 0 And FoundWord < EditWordList.WordCount ) {
-       // if back at start (word same as start)
-        if ( FoundWord = StartWord ) {
-         // rest found position to force search to end
-          FoundWord = -1
-        }
-        break; // exit do
-      }
-      
-     // if not found, action depends on search mode
-      switch ( FindDir) {
-      case fdUp:
-       // if not reset yet
-        if ( !RestartSearch ) {
-         // if recursing,
-          if ( blnRecurse ) {
-           // just say no
-            rtn = vbNo
-          } else {
-            rtn = MsgBox("Beginning of search scope reached. Do you want to continue from the end?", vbQuestion + vbYesNo, "Find in Word List")
-          }
-          if ( rtn = vbNo ) {
-           // reset search
-            FindingForm.ResetSearch
-            Me.MousePointer = vbDefault
-            return;
-          }
-        } else {
-         // entire scope already searched; exit
-          break; // exit do
-        }
-        
-      case fdDown:
-       // if not reset yet
-        if ( !RestartSearch ) {
-         // if recursing
-          if ( blnRecurse ) {
-           // just say no
-            rtn = vbNo
-          } else {
-            rtn = MsgBox("End of search scope reached. Do you want to continue from the beginning?", vbQuestion + vbYesNo, "Find in Word List")
-          }
-          if ( rtn = vbNo ) {
-           // reset search
-            FindingForm.ResetSearch
-            Me.MousePointer = vbDefault
-            return;
-          }
-        } else {
-         // entire scope already searched; exit
-          break; // exit do
-        }
-        
-      case fdAll:
-        if ( RestartSearch ) {
-          break; // exit do
-        }
-        
-      }
-      
-     // reset search so when we get back to start, search will end
-      RestartSearch = true
-    
-   // loop is exited by finding the searchtext or reaching end of search area
-    } while (true);
-    
-   // if search string found
-    if ( FoundWord >= 0 And FoundWord < EditWordList.WordCount ) {
-     // if this is first occurrence
-      if ( !FirstFind ) {
-       // save this position
-        FirstFind = true
-        StartWord = FoundWord
-      }
-      
-     // highlight Word
-      lstWords.ListIndex = FoundWord
-      
-   // if search string NOT found
-    } else {
-     // if not recursing, show a msg
-      if ( !blnRecurse ) {
-       // if something was previously found
-        if ( FirstFind ) {
-         // search complete; no new instances found
-          MsgBox "The specified region has been searched.", vbInformation, "Find in Word List"
-        } else {
-         // show not found msg
-          MsgBox "Search text not found.", vbInformation, "Find in Word List"
-        }
-      }
-      
-     // reset search flags
-      FindingForm.ResetSearch
-    }
-    
-   // need to always make sure right form has focus; if finding a word
-   // causes the group list to change, VB puts the wordeditor form in focus
-   //  but we want focus to match the starting form
-    if ( SearchStartDlg ) {
-      FindingForm.SetFocus
-    } else {
-      Me.SetFocus
-    }
-    
-   // reset cursor
-    Screen.MousePointer = vbDefault
-  }
-return;
-}
-
-public void MenuClickFindAgain()
-
- // if nothing in find form textbox
-  if ( LenB(GFindText) != 0 ) {
-    FindInWords GFindText, GMatchWord, GFindDir
-  } else {
-   // show find form
-    MenuClickFind
-  }
-return;
-}
-
-public void findinlogic()
-
- // if a word is selected
-  if ( lstWords.ListIndex != -1 ) {
-   // use this word; assume not looking for synonyms
-    FindWordInLogic CPToUnicode(EditWordText, SessionCodePage), false
- // if a group is selected
-  } else if ( lstGroups.ListIndex != -1 ) {
-   // use groupname; assume looking for synonyms
-    FindWordInLogic CPToUnicode(EditWordList.Group(lstGroups.ListIndex).GroupName, SessionCodePage), true
-  }
-}
-
-            */
-
-        }
-        void wordsfrmcode() {
-            /*
-
-  
-  private DraggingWord As Boolean
-  
-  private blnRecurse As Boolean
-  // YES refresh all logics:
-  //  x deleting words/groups
-  //  x renumber group
-  //  x move word
-  //  x edit word
-  // NO don't refresh:
-  //   adding new words
-  //   adding new groups
-  //   updating description
-  private blnRefreshLogics As Boolean
-  
-public void MenuClickHelp()
-  
-  // help
-  HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Words_Editor.htm"
-return;
-
-}
-
-// private void AutoUpdate()
-//   // build array of changed words
-//   // then step through all logics; find
-//   // all commands with word arguments;
-//   // compare arguments against changed word list and
-//   // make changes in sourcecode as necessary, then save the source
-// 
-//   Dim tmpLogic As AGILogic, i As Long, j As Long
-//   Dim strOld() As String, strNew() As String
-//   Dim blnUnloadRes As Boolean
-//   Dim lngPos1 As Long, lngPos2 As Long
-// 
-//   // hide find form
-//   FindingForm.Visible = false
-// 
-//   // show wait cursor
-//   MDIMain.UseWaitCursor = true;
-//   // show progress form
-//   frmProgress.Text = "Updating Words in Logics"
-//   frmProgress.lblProgress.Text = "Searching..."
-//   frmProgress.pgbStatus.Max = Logics.Count
-//   frmProgress.pgbStatus.Value = 0
-//   frmProgress.Show vbModeless, frmMDIMain
-//   frmProgress.Refresh
-// 
-//   for ( i = 0 To VocabularyWords.GroupCount - 1) {
-//     // get group number
-//     lngGrp = VocabularyWords.Group(i).GroupNum
-// 
-//     // check if this group exists in new list
-//     if ( EditWordList.GroupN(lngGrp)  == null ) {
-//       // group is deleted
-//       blnDeleted = true
-//       Err.Clear
-//     // OR if group has no name
-//     } else if ( LenB(EditWordList.GroupN(lngGrp).GroupName) = 0 ) {
-//       blnDeleted = true
-//     }
-// 
-//     // if an error,
-//     if ( Err.Number != 0 ) {
-// 
-//     }
-// 
-//     // if deleted
-//     if ( blnDeleted ) {
-//       // add to update list
-//       ReDim Preserve strOld[j]
-//       ReDim Preserve strNew[j]
-//       strOld[j] = QUOTECHAR & VocabularyWords.Group(i).GroupName & QUOTECHAR
-//       strNew[j] = CStr(lngGroup)
-//       j = j + 1
-//     // if group name as changed
-//     } else if ( EditWordList.GroupN(lngGrp).GroupName != VocabularyWords.GroupN(lngGrp).GroupName ) {
-//       // add to update list
-//       ReDim Preserve strOld[j]
-//       ReDim Preserve strNew[j]
-//       // change to new word group name
-//       strOld[j] = QUOTECHAR & VocabularyWords.GroupN(lngGrp).GroupName & QUOTECHAR
-//       strNew[j] = QUOTECHAR & EditWordList.GroupN(lngGrp).GroupName & QUOTECHAR
-//       j = j + 1
-//     }
-// 
-//     // reset deleted flag
-//     blnDeleted = false
-//   }
-// 
-//   // step through all logics
-//   foreach (tmpLogic In Logics) {
-//     // open if necessary
-//     blnUnloadRes = !tmpLogic.Loaded
-//     if ( blnUnloadRes ) {
-//       tmpLogic.Load
-//     }
-// 
-//     // step through code, looking for 'said' and 'word.to.string' commands
-//     lngPos2 = FindNextToken(tmpLogic.SourceText, lngPos1, "said", true, true)
-// 
-//     while (lngPos != 0) {
-//       // said' syntax is : said(word1, word2, word3,...)
-//       // words can be numeric word values OR string values
-//     }
-// 
-//     // unload if necessary
-//     if ( blnUnloadRes ) {
-//       tmpLogic.Unload
-//     }
-//  }
-//   // close the progress form
-//   Unload frmProgress
-// 
-//   // re-enable form
-//   frmMDIMain.Enabled = true
-//   Screen.MousePointer = vbDefault
-//   frmMDIMain.SetFocus
-// }
-// 
-            */
-        }
-
         #endregion
 
         internal void InitFonts() {
@@ -3080,7 +2109,7 @@ return;
             return strNewWord;
         }
 
-        private string ValidateWord(string CheckWord) {
+        private string ValidateWord(string CheckWord, bool Quiet = false) {
             string retval = CheckWord.SingleSpace().Trim().LowerAGI();
             if (retval.Length == 0) {
                 // ok; it will be deleted
@@ -3089,23 +2118,27 @@ return;
             // need to check for invalid characters (in case something 
             // was pasted)
             if ("!\"'(),-.:;?[]`{}".Any(retval.Contains)) {
-                MessageBox.Show(MDIMain,
-                    "This word contains one or more invalid characters.",
-                    "Invalid Word",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error, 0, 0,
-                    WinAGIHelp, "htm\\agi\\words.htm#charlimits");
+                if (!Quiet) {
+                    MessageBox.Show(MDIMain,
+                        "This word contains one or more invalid characters.",
+                        "Invalid Word",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\agi\\words.htm#charlimits");
+                }
                 return "!";
             }
             if ("#$%&*+/0123456789<=>@\\^_|~".Contains(retval[0])) {
                 // not allowed unless supporting power pack
                 if (EditGame == null || !EditGame.PowerPack) {
-                    MessageBox.Show(MDIMain,
+                    if (!Quiet) {
+                        MessageBox.Show(MDIMain,
                         "This word begins with invalid characters.",
                         "Invalid Word",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error, 0, 0,
                         WinAGIHelp, "htm\\agi\\words.htm#charlimits");
+                    }
                     return "!";
                 }
             }
@@ -3113,34 +2146,93 @@ return;
             if (retval.Any(c => c > 127)) {
                 // not allowed unless supporting power pack
                 if (EditGame == null || !EditGame.PowerPack) {
-                    MessageBox.Show(MDIMain,
+                    if (!Quiet) {
+                        MessageBox.Show(MDIMain,
                         "This word contains one or more extended characters (> 128).",
                         "Invalid Word",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error, 0, 0,
                         WinAGIHelp, "htm\\agi\\words.htm#charlimits");
+                    }
                     return "!";
                 }
             }
             bool exists = EditWordList.WordExists(retval);
             if (exists) {
                 if (EditWordList[retval].Group == EditGroupNumber) {
-                    MessageBox.Show(MDIMain,
+                    if (!Quiet) {
+                        MessageBox.Show(MDIMain,
                         "The word '" + retval + "' already exists in this group.",
                         "Duplicate Word",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);
+                    }
                     return "!";
                 }
                 else {
+                    if (!Quiet) {
+                        // special checks for 'a', 'i', 'anyword', 'rol'
+                        switch (retval) {
+                        case "a" or "i":
+                            if (EditGroupNumber != 0) {
+                                if (MessageBox.Show(MDIMain,
+                                    "The word '" + retval + "' is usually assigned to group 0. " +
+                                    "Do you want to move it to this group?",
+                                    "Move Word",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Question) == DialogResult.No) {
+                                    return "!";
+                                }
+                            }
+                            break;
+                        case "anyword":
+                            if (EditGroupNumber != 1) {
+                                if (MessageBox.Show(MDIMain,
+                                    "The word 'anyword' is the Sierra default placeholder for group 1. " +
+                                    "Do you want to move it to this group?",
+                                    "Move Word",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Question) == DialogResult.No) {
+                                    return "!";
+                                }
+                            }
+                            break;
+                        case "rol":
+                            if (EditGroupNumber != 1) {
+                                if (MessageBox.Show(MDIMain,
+                                    "The word 'rol' is the Sierra default placeholder for group 9999. " +
+                                    "Do you want to move it to this group?",
+                                    "Move Word",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Question) == DialogResult.No) {
+                                    return "!";
+                                }
+                            }
+                            break;
+                        default:
+                            if (MessageBox.Show(MDIMain,
+                                "The word '" + retval + "' already exists in another group. " +
+                                "Do you want to move it to this group?",
+                                "Move Word",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question) == DialogResult.No) {
+                                return "!";
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                if (!Quiet) {
                     // special checks for 'a', 'i', 'anyword', 'rol'
                     switch (retval) {
                     case "a" or "i":
                         if (EditGroupNumber != 0) {
                             if (MessageBox.Show(MDIMain,
                                 "The word '" + retval + "' is usually assigned to group 0. " +
-                                "Do you want to move it to this group?",
-                                "Move Word",
+                                "Do you want to add it to this group?",
+                                "Change Word",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question) == DialogResult.No) {
                                 return "!";
@@ -3151,8 +2243,8 @@ return;
                         if (EditGroupNumber != 1) {
                             if (MessageBox.Show(MDIMain,
                                 "The word 'anyword' is the Sierra default placeholder for group 1. " +
-                                "Do you want to move it to this group?",
-                                "Move Word",
+                                "Do you want to add it to this group?",
+                                "Change Word",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question) == DialogResult.No) {
                                 return "!";
@@ -3160,69 +2252,18 @@ return;
                         }
                         break;
                     case "rol":
-                        if (EditGroupNumber != 1) {
+                        if (EditGroupNumber != 9999) {
                             if (MessageBox.Show(MDIMain,
                                 "The word 'rol' is the Sierra default placeholder for group 9999. " +
-                                "Do you want to move it to this group?",
-                                "Move Word",
+                                "Do you want to add it to this group?",
+                                "Change Word",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question) == DialogResult.No) {
                                 return "!";
                             }
                         }
                         break;
-                    default:
-                        if (MessageBox.Show(MDIMain,
-                            "The word '" + retval + "' already exists in another group. " +
-                            "Do you want to move it to this group?",
-                            "Move Word",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question) == DialogResult.No) {
-                            return "!";
-                        }
-                        break;
                     }
-                }
-            }
-            else {
-                // special checks for 'a', 'i', 'anyword', 'rol'
-                switch (retval) {
-                case "a" or "i":
-                    if (EditGroupNumber != 0) {
-                        if (MessageBox.Show(MDIMain,
-                            "The word '" + retval + "' is usually assigned to group 0. " +
-                            "Do you want to add it to this group?",
-                            "Change Word",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question) == DialogResult.No) {
-                            return "!";
-                        }
-                    }
-                    break;
-                case "anyword":
-                    if (EditGroupNumber != 1) {
-                        if (MessageBox.Show(MDIMain,
-                            "The word 'anyword' is the Sierra default placeholder for group 1. " +
-                            "Do you want to add it to this group?",
-                            "Change Word",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question) == DialogResult.No) {
-                            return "!";
-                        }
-                    }
-                    break;
-                case "rol":
-                    if (EditGroupNumber != 9999) {
-                        if (MessageBox.Show(MDIMain,
-                            "The word 'rol' is the Sierra default placeholder for group 9999. " +
-                            "Do you want to add it to this group?",
-                            "Change Word",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question) == DialogResult.No) {
-                            return "!";
-                        }
-                    }
-                    break;
                 }
             }
             // new word is ok
@@ -3491,6 +2532,523 @@ return;
             }
             // if still not found, means user has 64K words! IMPOSSIBLE I SAY!
             return -1;
+        }
+
+        private void StartSearch(FindFormFunction formFunction) {
+            string searchtext = GFindText;
+            if (searchtext.Length > 1) {
+                if (searchtext[0] == '"') {
+                    searchtext = searchtext[1..];
+                }
+                if (searchtext[^1] == '"') {
+                    searchtext = searchtext[..^1];
+                }
+            }
+            FindingForm.SetForm(formFunction, InGame);
+            FindingForm.SetFindText(searchtext);
+            if (!FindingForm.Visible) {
+                FindingForm.Visible = true;
+            }
+            FindingForm.Select();
+            FindingForm.cmbFind.Select();
+        }
+
+        public void FindInWords(string FindText, FindDirection FindDir, bool MatchWord, bool Replacing = false, string ReplaceText = "") {
+            int FoundWord, FoundGrp;
+
+            if (Replacing  && FindText.Equals(ReplaceText, StringComparison.OrdinalIgnoreCase)) {
+                return;
+            }
+            if (Replacing && (ReplaceText.Length == 0 )) {
+                return;
+            }
+            if (Replacing && ReplaceText.Length == 0) {
+                MessageBox.Show(MDIMain,
+                    "Blank replacement text is not allowed in word replacement.",
+                    "Replace in Word List",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+            if (EditWordList.WordCount == 0) {
+                MessageBox.Show(MDIMain,
+                    "There are no words in this list.",
+                    "Find in Word List",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            // if replacing and searching up        start at next word
+            // if replacing and searching down      start at current word
+            // if not replacing and searching up    start at current word
+            // if not replacing and searching down  start at next word
+
+            MDIMain.UseWaitCursor = true;
+            int SearchGrp = EditGroupIndex;
+            int SearchWord;
+            if (GroupMode) {
+                SearchWord = EditWordGroupIndex;
+            }
+            else {
+                SearchWord = EditWordIndex;
+            }
+            if (SearchWord == -1) {
+                SearchWord = 0;
+            }
+            if ((Replacing && FindDir == FindDirection.Up) || (!Replacing && FindDir != FindDirection.Up)) {
+                SearchWord++;
+                if (GroupMode) {
+                    if (SearchWord == EditWordList.GroupByIndex(SearchGrp).WordCount) {
+                        // use first word
+                        SearchWord = 0;
+                        // of next group
+                        SearchGrp++;
+                        if (SearchGrp == EditWordList.GroupCount) {
+                            SearchGrp = 0;
+                        }
+                    }
+                }
+                else {
+                    if (SearchWord == EditWordList.WordCount) {
+                        // use first word of list
+                        SearchWord = 0;
+                        SearchGrp = EditWordList[0].Group;
+                    }
+                }
+            }
+            else {
+                // if already AT beginning of search, the replace function will mistakenly
+                // think the find operation is complete and stop
+                if (Replacing && (SearchWord == StartWord && SearchGrp == StartGrp)) {
+                    // reset search
+                    FindingForm.ResetSearch();
+                }
+            }
+
+            // main search loop
+            do {
+                if (FindDir == FindDirection.Up) {
+                    if (GroupMode) {
+                        // iterate backwards until word found or GrpFound=-1
+                        FoundWord = SearchWord - 1;
+                        FoundGrp = SearchGrp;
+                        // if at top of this group,get the last word of previous group
+                        if (FoundWord < 0) {
+                            FoundGrp--;
+                            if (FoundGrp != -1) {
+                                FoundWord = EditWordList.GroupByIndex(FoundGrp).WordCount - 1;
+                            }
+                        }
+                        while (FoundGrp != -1) {
+                            // skip groups with no words
+                            if (EditWordList.GroupByIndex(FoundGrp).WordCount != 0) {
+                                if (MatchWord) {
+                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Equals(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                        // found
+                                        break; // exit do
+                                    }
+                                }
+                                else {
+                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Contains(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                        // found
+                                        break; // exit do
+                                    }
+                                }
+                            }
+                            // not found, move to previous word
+                            FoundWord--;
+                            if (GroupMode) {
+                                if (FoundWord < 0) {
+                                    FoundGrp--;
+                                    if (FoundGrp != -1) {
+                                        FoundWord = EditWordList.GroupByIndex(FoundGrp).WordCount - 1;
+                                    }
+                                }
+                            }
+                            else {
+                                if (FoundWord < 0) {
+                                    FoundGrp = -1;
+                                }
+                                else {
+                                    FoundGrp = EditWordList.GroupIndexFromNumber(EditWordList[FoundWord].Group);
+                                }
+                            }
+                        }
+                        // reset search to last group/last word + 1
+                        SearchGrp = EditWordList.GroupCount - 1;
+                        SearchWord = EditWordList.GroupByIndex(SearchGrp).WordCount;
+                    }
+                    else {
+                        // iterate backwards until word found or start of wordlist reached
+                        FoundWord = SearchWord - 1;
+                        if (FoundWord < 0) {
+                            FoundGrp = -1;
+                        }
+                        else {
+                            FoundGrp = EditWordList[FoundWord].Group;
+                        }
+                        while (FoundGrp != -1) {
+                            if (MatchWord) {
+                                if (EditWordList[FoundWord].WordText.Equals(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                    // found
+                                    break; // exit do
+                                }
+                            }
+                            else {
+                                if (EditWordList[FoundWord].WordText.Contains(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                    // found
+                                    break; // exit do
+                                }
+                            }
+                            // not found, move to previous word
+                            FoundWord--;
+                            if (FoundWord < 0) {
+                                FoundGrp = -1;
+                            }
+                            else {
+                                FoundGrp = EditWordList.GroupIndexFromNumber(EditWordList[FoundWord].Group);
+                            }
+                        }
+                        // reset to last word + 1
+                        SearchWord = EditWordList.WordCount;
+                        // (set group to match last word)
+                        SearchGrp = EditWordList.GroupIndexFromNumber(EditWordList[SearchWord - 1].Group);
+                    }
+                }
+                else {
+                    if (GroupMode) {
+                        // iterate forward until word found or foundgrp=groupcount
+                        FoundGrp = SearchGrp;
+                        FoundWord = SearchWord;
+                        do {
+                            // skip groups with no words
+                            if (EditWordList.GroupByIndex(FoundGrp).WordCount != 0) {
+                                if (MatchWord) {
+                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Equals(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                        // found
+                                        break; // exit do
+                                    }
+                                }
+                                else {
+                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Contains(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                        // found
+                                        break; // exit do
+                                    }
+                                }
+                            }
+                            FoundWord++;
+                            if (GroupMode) {
+                                if (FoundWord >= EditWordList.GroupByIndex(FoundGrp).WordCount) {
+                                    FoundWord = 0;
+                                    FoundGrp++;
+                                }
+                            }
+                            else {
+                                if (FoundWord == EditWordList.WordCount) {
+                                    FoundGrp = EditWordList.GroupCount;
+                                }
+                                else {
+                                    FoundGrp = EditWordList.GroupIndexFromNumber(EditWordList[FoundWord].Group);
+                                }
+                            }
+                        } while (FoundGrp != EditWordList.GroupCount);
+                        // reset search to first word of first group
+                        SearchGrp = 0;
+                        SearchWord = 0;
+                    }
+                    else {
+                        // iterate forward until word found or foundgrp=groupcount
+                        FoundWord = SearchWord;
+                        FoundGrp = SearchGrp;
+                        do {
+                            if (MatchWord) {
+                                if (EditWordList[FoundWord].WordText.Equals(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                    // found
+                                    break; // exit do
+                                }
+                            }
+                            else {
+                                if (EditWordList[FoundWord].WordText.Contains(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                    // found
+                                    break; // exit do
+                                }
+                            }
+                            FoundWord++;
+                            if (GroupMode) {
+                                if (FoundWord >= EditWordList.GroupByIndex(FoundGrp).WordCount) {
+                                    FoundWord = 0;
+                                    FoundGrp++;
+                                }
+                            }
+                            else {
+                                if (FoundWord == EditWordList.WordCount) {
+                                    FoundGrp = EditWordList.GroupCount;
+                                }
+                                else {
+                                    FoundGrp = EditWordList.GroupIndexFromNumber(EditWordList[FoundWord].Group);
+                                }
+                            }
+                        } while (FoundGrp != EditWordList.GroupCount);
+                        // reset search to first word of list
+                        SearchWord = 0;
+                        SearchGrp = EditWordList.GroupIndexFromNumber(EditWordList[SearchWord].Group);
+                    }
+                }
+                // if found, group will be valid
+                if (FoundGrp >= 0 && FoundGrp < EditWordList.GroupCount) {
+                    // if back at start (grp and word same as start)
+                    if (FoundWord == StartWord && FoundGrp == StartGrp) {
+                        // rest found position so search will end
+                        FoundWord = -1;
+                        FoundGrp = -1;
+                    }
+                    break;
+                }
+                // if not found, action depends on search mode
+                if (FindDir == FindDirection.Up) {
+                    if (!RestartSearch) {
+                        DialogResult rtn;
+                        if (blnRecurse) {
+                            rtn = DialogResult.No;
+                        }
+                        else {
+                            rtn = MessageBox.Show(MDIMain,
+                                "Beginning of search scope reached. Do you want to continue from the end?",
+                                "Find in Word List",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question);
+                        }
+                        if (rtn == DialogResult.No) {
+                            // reset search
+                            FindingForm.ResetSearch();
+                            MDIMain.UseWaitCursor = false;
+                            return;
+                        }
+                    }
+                    else {
+                        // entire scope already searched; exit
+                        break; // exit do
+                    }
+                }
+                else if (FindDir == FindDirection.Down) {
+                    if (!RestartSearch) {
+                        DialogResult rtn;
+                        if (blnRecurse) {
+                            // just say no
+                            rtn = DialogResult.No;
+                        }
+                        else {
+                            rtn = MessageBox.Show(MDIMain,
+                                "End of search scope reached. Do you want to continue from the beginning?",
+                                "Find in Word List",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question);
+                        }
+                        if (rtn == DialogResult.No) {
+                            // reset search
+                            FindingForm.ResetSearch();
+                            MDIMain.UseWaitCursor = false;
+                            return;
+                        }
+                    }
+                    else {
+                        // entire scope already searched; exit
+                        break; // exit do
+                    }
+                }
+                else {
+                    //search direction is All
+                    if (RestartSearch) {
+                        break; // exit do
+                    }
+                }
+                // reset search so when we get back to start, search will end
+                RestartSearch = true;
+                // loop is exited by finding the searchtext or reaching end of search area
+            } while (true);
+            if (FoundGrp >= 0 && FoundGrp < EditWordList.GroupCount) {
+                if (!FirstFind) {
+                    // save this position
+                    FirstFind = true;
+                    StartWord = FoundWord;
+                    StartGrp = FoundGrp;
+                }
+                if (GroupMode) {
+                    UpdateSelection(EditWordList.GroupByIndex(FoundGrp).GroupNum, FoundWord, true);
+                }
+                else {
+                    UpdateSelection(EditWordList[FoundWord].WordText, true);
+                }
+                if (Replacing) {
+                    string strFullWord;
+                    if (!MatchWord) {
+                        // update replacetext to include the full word with the replaced section
+                        if (GroupMode) {
+                            ReplaceText = EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Replace(FindText, ReplaceText);
+                            strFullWord = EditWordList.GroupByIndex(FoundGrp).Words[FoundWord];
+                        }
+                        else {
+                            ReplaceText = EditWordList[FoundWord].WordText.Replace(FindText, ReplaceText);
+                            strFullWord = EditWordList[FoundWord].WordText;
+                        }
+                    }
+                    else {
+                        strFullWord = FindText;
+                    }
+                    // now try to edit the word
+                    if (EditWord(strFullWord, ReplaceText, EditWordList.GroupByNumber(FoundGrp).GroupNum)) {
+                        // change undo
+                        UndoCol.Peek().Action = WordsUndo.ActionType.Replace;
+                        UpdateSelection(ReplaceText, true);
+                        // always reset search when replacing, because
+                        // word index almost always changes
+                        FindingForm.ResetSearch();
+
+                        // recurse the find method to get the next occurence
+                        blnRecurse = true;
+                        FindInWords(FindText, FindDir, MatchWord, false);
+                        blnRecurse = false;
+                    }
+                }
+            }
+            else {
+                // not found - if not recursing, show a msg
+                if (!blnRecurse) {
+                    if (FirstFind) {
+                        MessageBox.Show(MDIMain,
+                            "The specified region has been searched.",
+                            "Find in Word List",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        FirstFind = false;
+                    }
+                    else {
+                        MessageBox.Show(MDIMain,
+                            "Search text not found.",
+                            "Find in Word List",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    }
+                }
+                // reset search flags
+                FindingForm.ResetSearch();
+            }
+            MDIMain.UseWaitCursor = false;
+        }
+
+        public void ReplaceAll(string FindText, string ReplaceText, bool MatchWord) {
+            
+            if (FindText == ReplaceText) {
+                return;
+            }
+            if (ReplaceText.Length == 0) {
+                // blank replace text not allowed for words
+                MessageBox.Show(MDIMain,
+                    "Blank replacement text is not allowed.",
+                    "Replace All",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+              return;
+            }
+            if (EditWordList.WordCount == 0) {
+                // nothing in wordlist,
+                MessageBox.Show(MDIMain,
+                    "Word list is empty.",
+                    "Replace All",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+              return;
+            }
+            if (MatchWord) {
+                // words are unique, so if replacing entire word, 
+                // ReplaceAll is the same as Replace
+                FindInWords(FindText, FindDirection.All, true, true, ReplaceText);
+                return;
+            }
+
+            // replace all occurrences of FindText with ReplaceText
+            MDIMain.UseWaitCursor = true;
+
+            int replacecount = 0;
+            string findWord, replaceWord;
+            int badcount = 0;
+
+            int i = 0;
+            do {
+                if (EditWordList[i].WordText.Contains(FindText)) {
+                    findWord = EditWordList[i].WordText;
+                    replaceWord = EditWordList[i].WordText.Replace(FindText, ReplaceText);
+                    if (ValidateWord(replaceWord, true) != "!") {
+                        if (EditWordList.WordExists(replaceWord)) {
+                            EditWord(findWord, replaceWord, EditWordList[i].Group);
+                            //only advance if the replaced word is now the current word
+                            if (EditWordList.WordIndex(replaceWord) == i) {
+                                i++;
+                            }
+                        }
+                        else {
+                            EditWord(findWord, replaceWord, EditWordList[i].Group);
+                            // only advance if replaced word is current word or
+                            // replaced word precedes current word
+                            if (EditWordList.WordIndex(replaceWord) <= i) {
+                                i++;
+                            }
+                        }
+                        replacecount++;
+                    }
+                    else {
+                        badcount++;
+                        i++;
+                    }
+                }
+                else {
+                    i++;
+                }
+            } while (i < EditWordList.WordCount);
+
+            if (replacecount == 0) {
+                if (badcount > 0) {
+                    MessageBox.Show(MDIMain,
+                        "Search text found, but no valid replacements could be made.",
+                        "Replace All",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                else {
+                    MessageBox.Show(MDIMain,
+                        "Search text not found.",
+                        "Replace All",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+            }
+            else {
+                // create new undo object
+                WordsUndo NextUndo = new() {
+                    Action = WordsUndo.ActionType.ReplaceAll,
+                    GroupNo = replacecount
+                };
+                // add undo
+                AddUndo(NextUndo);
+                string msg = "The specified region has been searched. " + replacecount + " replacements were made.";
+                switch (badcount) {
+                case 0:
+                    break;
+                case 1:
+                    msg += " One replacement which would have caused an invalid word was skipped.";
+                    break;
+                default:
+                    msg += badcount + "replacements which would have caused invalid words were skipped.";
+                    break;
+                }
+                MessageBox.Show(MDIMain,
+                 msg,
+                "Replace All",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            }
+            MDIMain.UseWaitCursor = false;
         }
 
         private void AddUndo(WordsUndo NextUndo) {

@@ -59,8 +59,8 @@ namespace WinAGI.Editor {
                     FindingForm.SetForm(FindFormFunction.FindObject, InGame);
                 }
             }
-            spCount.Text = "Object Count: " + EditInvList.Count;
-            spEncrypt.Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
+            //spCount.Text = "Object Count: " + EditInvList.Count;
+            //spEncrypt.Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
         }
 
         private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
@@ -992,6 +992,7 @@ namespace WinAGI.Editor {
             GMatchCase = true;
             GMatchWord = true;
             FindingForm.SetForm(formfunction, InGame);
+            //FindingForm.SetFindText(searchtext);
             FindingForm.cmbFind.Text = searchtext;
             if (!FindingForm.Visible) {
                 FindingForm.Visible = true;
@@ -1761,8 +1762,8 @@ namespace WinAGI.Editor {
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
                 Text = sDM + Text;
             }
-            statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
-            statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
+            spCount.Text = "Object Count: " + EditInvList.Count;
+            spEncrypt.Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
         }
 
         private void MarkAsSaved() {
@@ -1791,7 +1792,6 @@ namespace WinAGI.Editor {
             DeleteItem,   // store object number, text, and room that was deleted
             ModifyItem,   // store old object number, text
             ModifyRoom,   // store old object number, room
-            ChangeDesc,     // store old description
             ChangeMaxObj,   // store old maxobjects
             TglEncrypt,     // store old encryption Value
             Clear,          // store old Objects object

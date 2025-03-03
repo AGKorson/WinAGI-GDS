@@ -423,7 +423,6 @@ namespace WinAGI.Editor {
             lstWords.Name = "lstWords";
             lstWords.Size = new System.Drawing.Size(337, 266);
             lstWords.TabIndex = 8;
-            lstWords.SelectedIndexChanged += lstWords_SelectedIndexChanged;
             lstWords.QueryContinueDrag += lstWords_QueryContinueDrag;
             lstWords.DoubleClick += lstWords_DoubleClick;
             lstWords.Enter += lstWords_Enter;
@@ -716,7 +715,6 @@ namespace WinAGI.Editor {
             txtWordEdit.Size = new System.Drawing.Size(221, 16);
             txtWordEdit.TabIndex = 17;
             txtWordEdit.Visible = false;
-            txtWordEdit.TextChanged += txtWordEdit_TextChanged;
             txtWordEdit.KeyDown += txtWordEdit_KeyDown;
             txtWordEdit.KeyPress += txtWordEdit_KeyPress;
             txtWordEdit.Validating += txtWordEdit_Validating;

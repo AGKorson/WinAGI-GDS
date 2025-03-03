@@ -423,27 +423,24 @@
     <value>Edit Word</value>
   </data>
   <data name="1507" xml:space="preserve">
-    <value>Change Description</value>
-  </data>
-  <data name="1508" xml:space="preserve">
     <value>Cut Word</value>
   </data>
-  <data name="1509" xml:space="preserve">
+  <data name="1508" xml:space="preserve">
     <value>Cut Group</value>
   </data>
-  <data name="1510" xml:space="preserve">
+  <data name="1509" xml:space="preserve">
     <value>Paste Word</value>
   </data>
-  <data name="1511" xml:space="preserve">
+  <data name="1510" xml:space="preserve">
     <value>Paste Group</value>
   </data>
-  <data name="1512" xml:space="preserve">
+  <data name="1511" xml:space="preserve">
     <value>Replace</value>
   </data>
-  <data name="1513" xml:space="preserve">
+  <data name="1512" xml:space="preserve">
     <value>Replace All</value>
   </data>
-  <data name="1514" xml:space="preserve">
+  <data name="1513" xml:space="preserve">
     <value>Clear</value>
   </data>
   <data name="1600" xml:space="preserve">
@@ -459,21 +456,18 @@
     <value>Edit Room</value>
   </data>
   <data name="1604" xml:space="preserve">
-    <value>Change Description</value>
-  </data>
-  <data name="1605" xml:space="preserve">
     <value>Edit Max Objects</value>
   </data>
-  <data name="1606" xml:space="preserve">
+  <data name="1605" xml:space="preserve">
     <value>Toggle Encryption</value>
   </data>
-  <data name="1607" xml:space="preserve">
+  <data name="1606" xml:space="preserve">
     <value>Clear</value>
   </data>
-  <data name="1608" xml:space="preserve">
+  <data name="1607" xml:space="preserve">
     <value>Replace</value>
   </data>
-  <data name="1609" xml:space="preserve">
+  <data name="1608" xml:space="preserve">
     <value>Replace All</value>
   </data>
   <data name="1700" xml:space="preserve">

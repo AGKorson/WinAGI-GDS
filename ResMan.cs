@@ -225,8 +225,8 @@ namespace WinAGI.Editor {
             ReplaceText,
             FindWordsLogic, //used when searching for words or synonyms
             FindObjsLogic,  //used when searching for inv objects
-            FindNone,      // used to temporarily disable find form
-                             // when active form is not searchable
+            FindNone,       // used to temporarily disable find form
+                            // when active form is not searchable
         }
         public enum FindFormAction {
             Find,
@@ -6748,9 +6748,9 @@ namespace WinAGI.Editor {
                     else {
                         // Matchword is always true; but since words are surrounded by quotes, it wont matter
                         // so use Instr
-                        // step through each word in the word group; if the word is found in this logic,
+                        // step through each word in the word group; if any word is found in this logic,
                         // then stop
-                        bool found = true;
+                        bool found = false;
                         for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
                             if (EditGame.Logics[LogNum].SourceText.IndexOf(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR, vbcComp) != -1) {
                                 found = true;

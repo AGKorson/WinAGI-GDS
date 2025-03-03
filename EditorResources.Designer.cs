@@ -972,7 +972,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Change Description.
+        ///   Looks up a localized string similar to Cut Word.
         /// </summary>
         internal static string _1507 {
             get {
@@ -981,7 +981,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cut Word.
+        ///   Looks up a localized string similar to Cut Group.
         /// </summary>
         internal static string _1508 {
             get {
@@ -990,7 +990,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cut Group.
+        ///   Looks up a localized string similar to Paste Word.
         /// </summary>
         internal static string _1509 {
             get {
@@ -999,7 +999,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Paste Word.
+        ///   Looks up a localized string similar to Paste Group.
         /// </summary>
         internal static string _1510 {
             get {
@@ -1008,7 +1008,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Paste Group.
+        ///   Looks up a localized string similar to Replace.
         /// </summary>
         internal static string _1511 {
             get {
@@ -1017,7 +1017,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Replace.
+        ///   Looks up a localized string similar to Replace All.
         /// </summary>
         internal static string _1512 {
             get {
@@ -1026,7 +1026,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Replace All.
+        ///   Looks up a localized string similar to Clear.
         /// </summary>
         internal static string _1513 {
             get {

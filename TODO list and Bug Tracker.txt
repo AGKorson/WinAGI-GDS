@@ -12,7 +12,7 @@ X   10. Snippets Editor
 X   11. Global Defines Editor
 X   12. Reserved Defines Editor
 X   13. Object Editor
-    14. Word Editor
+X   14. Word Editor
     15. Palette Editor
     16. Picture Editor
     17. View Editor

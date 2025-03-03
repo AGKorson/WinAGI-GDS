@@ -121,7 +121,7 @@ namespace WinAGI.Editor {
         #region Form Event Handlers
         private void frmLogicEdit_Activated(object sender, EventArgs e) {
 
-            if (FindingForm.Visible) {
+            if (FindingForm.Visible && FindingForm.FormFunction != FindFormFunction.FindWordsLogic) {
                 if (FindingForm.rtfReplace.Visible) {
                     FindingForm.SetForm(FindFormFunction.ReplaceLogic, InGame);
                 }
@@ -512,6 +512,7 @@ namespace WinAGI.Editor {
         private void mnuEFind_Click(object sender, EventArgs e) {
             FindingForm.SetForm(FormMode == LogicFormMode.Logic ? FindFormFunction.FindLogic : FindFormFunction.FindText, InGame);
             if (fctb.SelectionLength > 0) {
+                //FindingForm.SetFindText(fctb.SelectedText);
                 FindingForm.cmbFind.Text = fctb.SelectedText;
             }
             if (!FindingForm.Visible) {

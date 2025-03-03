@@ -39,7 +39,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X 11. Global Defines Editor
     X 12. Reserved Defines Editor
     X 13. Object Editor
-    O 14. Word Editor
+    X 14. Word Editor
       15. Palette Editor
       16. Picture Editor
       17. View Editor
@@ -54,6 +54,8 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+
+**alpha14.0** WORDS.TOK editor search functions done, WORDS.TOK editor is now complete
 
 **alpha13.3** all words.tok editing functions done, working on search/replace functions
 

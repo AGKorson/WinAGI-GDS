@@ -1,14 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using WinAGI.Common;
 using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
@@ -18,6 +10,7 @@ namespace WinAGI.Editor {
         // the form action is used by the editors
         // to take the correct action when starting a search
         public FindFormAction FormAction;
+        private bool codechange = false;
 
         public frmFind() {
             InitializeComponent();
@@ -25,8 +18,19 @@ namespace WinAGI.Editor {
             MDIMain.AddOwnedForm(this);
             this.Owner = MDIMain;
         }
+
         #region Event Handlers
+        private void frmFind_FormClosing(object sender, FormClosingEventArgs e) {
+            // never close the form, just hide it
+            e.Cancel = true;
+            Hide();
+        }
+
         private void chkMatchWord_CheckedChanged(object sender, EventArgs e) {
+            if (FormFunction == FindFormFunction.FindWordsLogic) {
+            }
+            else {
+            }
             // always update form value
             if (GMatchWord != chkMatchWord.Checked) {
                 ResetSearch();
@@ -34,27 +38,23 @@ namespace WinAGI.Editor {
             GMatchWord = chkMatchWord.Checked;
         }
 
+
+        private void chkSynonyms_CheckedChanged(object sender, EventArgs e) {
+            if (GFindSynonym != chkSynonyms.Checked) {
+                ResetSearch();
+            }
+            // save synonym search value
+            GFindSynonym = chkSynonyms.Checked;
+        }
         private void chkMatchCase_CheckedChanged(object sender, EventArgs e) {
-            // if searching for words in logics, chkMatchCase is used
-            // to look for synonyms
-            if (FormFunction == FindFormFunction.FindWordsLogic) {
-                // never match case when searching for words
-                if (GFindSynonym != chkMatchCase.Checked) {
-                    ResetSearch();
-                }
-                // save synonym search value
-                GFindSynonym = chkMatchCase.Checked;
+            // always update form value
+            if (GMatchCase != chkMatchCase.Checked) {
+                ResetSearch();
             }
-            else {
-                // always update form value
-                if (GMatchCase != chkMatchCase.Checked) {
-                    ResetSearch();
-                }
-                // save form matchcase value
-                GMatchCase = chkMatchCase.Checked;
-                // always reset synonym search
-                GFindSynonym = false;
-            }
+            // save form matchcase value
+            GMatchCase = chkMatchCase.Checked;
+            // always reset synonym search
+            GFindSynonym = false;
         }
 
         private void cmbDirection_SelectedIndexChanged(object sender, EventArgs e) {
@@ -62,6 +62,10 @@ namespace WinAGI.Editor {
             if ((int)GFindDir != cmbDirection.SelectedIndex) {
                 ResetSearch();
                 GFindDir = (FindDirection)cmbDirection.SelectedIndex;
+            }
+            // if editing a word search, reset form
+            if (this.FormFunction == FindFormFunction.FindWordsLogic) {
+                SetForm(FindFormFunction.FindLogic, true);
             }
         }
 
@@ -135,10 +139,6 @@ namespace WinAGI.Editor {
             Visible = false;
         }
 
-        private void rtfReplace_KeyPress(object sender, KeyPressEventArgs e) {
-
-        }
-
         private void rtfReplace_TextChanged(object sender, EventArgs e) {
             if (GReplaceText != rtfReplace.Text) {
                 ResetSearch();
@@ -151,6 +151,10 @@ namespace WinAGI.Editor {
         }
 
         private void cmbFind_TextChanged(object sender, EventArgs e) {
+            if (codechange) {
+                codechange = false;
+                return;
+            }
             cmdFind.Enabled = cmbFind.Text.Length > 0;
             cmdReplace.Enabled = cmdFind.Enabled || FormFunction == FindFormFunction.FindLogic;
             cmdReplaceAll.Enabled = cmdFind.Enabled;
@@ -159,14 +163,14 @@ namespace WinAGI.Editor {
                 ResetSearch();
             }
             GFindText = cmbFind.Text;
+            // if editing a word search, reset form
+            if (this.FormFunction == FindFormFunction.FindWordsLogic) {
+                SetForm(FindFormFunction.FindLogic, true);
+            }
         }
 
         private void cmbFind_Enter(object sender, EventArgs e) {
             cmbFind.SelectAll();
-        }
-
-        private void cmbFind_KeyPress(object sender, KeyPressEventArgs e) {
-
         }
 
         #endregion
@@ -178,15 +182,14 @@ namespace WinAGI.Editor {
             optAllOpenLogics.Enabled = true;
             cmbFind.Enabled = true;
             cmbDirection.Enabled = false;
-            chkMatchWord.Enabled = true;
-            chkMatchCase.Text = "Match Case";
-            //if (!Visible) {
-                cmbDirection.SelectedIndex = (int)GFindDir;
-                chkMatchWord.Checked = GMatchWord;
-                rtfReplace.Text = GReplaceText;
-                chkMatchCase.Checked = GMatchCase;
-            //}
-            cmbFind.Text = GFindText;
+            chkMatchWord.Visible = true;
+            chkMatchWord.Checked = GMatchWord;
+            chkSynonyms.Visible = false;
+            cmbDirection.SelectedIndex = (int)GFindDir;
+            rtfReplace.Text = GReplaceText;
+            chkMatchCase.Enabled = true;
+            chkMatchCase.Checked = GMatchCase;
+            SetFindText(GFindText);
 
             switch (FormFunction) {
             case FindFormFunction.FindLogic or FindFormFunction.FindText:
@@ -262,7 +265,8 @@ namespace WinAGI.Editor {
                 lblReplace.Visible = false;
                 Text = "Find in WORDS.TOK File";
                 fraLogic.Visible = false;
-                chkMatchCase.Visible = false;
+                chkMatchCase.Checked = false;
+                chkMatchCase.Enabled = false;
                 cmbDirection.Enabled = true;
                 // never search for synonyms
                 GFindSynonym = false;
@@ -336,26 +340,29 @@ namespace WinAGI.Editor {
                 GFindSynonym = false;
                 break;
             case FindFormFunction.FindWordsLogic:
+                cmbDirection.SelectedIndex = 0;
+                cmbDirection.Enabled = false;
+                chkMatchCase.Checked = true;
                 cmdReplace.Visible = false;
                 cmdReplace.Enabled = false;
-                cmdReplaceAll.Visible = false;
                 rtfReplace.Visible = false;
+                cmdReplaceAll.Visible = false;
                 lblReplace.Visible = false;
                 // show logic frame, but disable everything
                 fraLogic.Visible = true;
                 optAllGameLogics.Checked = true;
                 optCurrentLogic.Enabled = false;
                 optAllOpenLogics.Enabled = false;
+                cmbFind.SelectionLength = 0;
                 cmbFind.Enabled = false;
-                cmbDirection.Enabled = false;
-                chkMatchWord.Enabled = false;
+                chkMatchCase.Enabled = false;
                 Text = "Find Word in Logics";
-                chkMatchCase.Visible = true;
-                chkMatchCase.Text = "Include Synonyms";
-                chkMatchCase.Checked = GFindSynonym;
+                chkMatchWord.Visible = false;
+                chkSynonyms.Visible = true;
+                chkSynonyms.Checked = GFindSynonym;
+                cmdFind.Enabled = true;
                 break;
                 // currently, 'find objs in logic' mode is not coded
-                // object search uses the normal 'find in logic' mode
                 //case ffFindObjsLogic:
                 //    break;
             }
@@ -365,8 +372,10 @@ namespace WinAGI.Editor {
             case FindFormFunction.FindObject:
             case FindFormFunction.FindWord:
             case FindFormFunction.FindText:
+            case FindFormFunction.FindWordsLogic:
                 cmdCancel.Top = 144 - 33;
                 chkMatchWord.Top = 121 - 33;
+                chkSynonyms.Top = 121 - 33;
                 chkMatchCase.Top = 146 - 33;
                 lblDirection.Top = 87 - 33;
                 cmbDirection.Top = 84 - 33;
@@ -376,6 +385,7 @@ namespace WinAGI.Editor {
             default:
                 cmdCancel.Top = 144;
                 chkMatchWord.Top = 121;
+                chkSynonyms.Top = 121;
                 chkMatchCase.Top = 146;
                 lblDirection.Top = 87;
                 cmbDirection.Top = 84;
@@ -415,9 +425,19 @@ namespace WinAGI.Editor {
             switch (FormFunction) {
             case FindFormFunction.FindLogic:
             case FindFormFunction.ReplaceLogic:
+            case FindFormFunction.FindText:
+            case FindFormFunction.ReplaceText:
+            case FindFormFunction.FindWordsLogic:
                 Form startsearchform;
-                // always reset the synonym search
-                GFindSynonym = false;
+                if (FormFunction != FindFormFunction.FindWordsLogic) {
+                    // always reset the synonym search
+                    GFindSynonym = false;
+                }
+                else {
+                    // if starting a word search, re-enable cmbFind
+                    cmbFind.Enabled = true;
+                    cmbDirection.Enabled = true;
+                }
                 // confirm starting frm a logic
                 if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
                     startsearchform = MDIMain.ActiveMdiChild;
@@ -437,12 +457,23 @@ namespace WinAGI.Editor {
                     break;
                 }
                 break;
-            case FindFormFunction.FindWordsLogic:
-                break;
             case FindFormFunction.FindObjsLogic:
                 break;
             case FindFormFunction.FindWord:
             case FindFormFunction.ReplaceWord:
+                if (MDIMain.ActiveMdiChild is frmWordsEdit) {
+                    switch (FindingForm.FormAction) {
+                    case FindFormAction.Find:
+                        ((frmWordsEdit)(MDIMain.ActiveMdiChild)).FindInWords(GFindText, GFindDir, GMatchWord);
+                        break;
+                    case FindFormAction.Replace:
+                        ((frmWordsEdit)(MDIMain.ActiveMdiChild)).FindInWords(GFindText, GFindDir, GMatchWord, true, GReplaceText);
+                        break;
+                    case FindFormAction.ReplaceAll:
+                        ((frmWordsEdit)(MDIMain.ActiveMdiChild)).ReplaceAll(GFindText, GReplaceText, GMatchWord);
+                        break;
+                    }
+                }
                 break;
             case FindFormFunction.FindObject:
             case FindFormFunction.ReplaceObject:
@@ -459,9 +490,6 @@ namespace WinAGI.Editor {
                         break;
                     }
                 }
-                break;
-            case FindFormFunction.FindText:
-            case FindFormFunction.ReplaceText:
                 break;
             case FindFormFunction.FindNone:
                 break;
@@ -480,30 +508,11 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void frmFind_FormClosing(object sender, FormClosingEventArgs e) {
-            // never close the form, just hide it
-            e.Cancel = true;
-            Hide();
+        public void SetFindText(string text) {
+            if (cmbFind.Text != text) {
+                codechange = true;
+                cmbFind.Text = text;
+            }
         }
-
-        /*
-Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
-  
-  'check for help key
-  If Shift = 0 And KeyCode = vbKeyF1 Then
-    frmMDIMain.mnuHContents_Click
-    KeyCode = 0
-  End If
-  
-  'check for 'find next key
-  If Shift = 0 And KeyCode = vbKeyF3 Then
-    'assume logic or text editor has focus
-    If frmMDIMain.ActiveForm.Name = "frmLogicEdit" Or frmMDIMain.ActiveForm.Name = "frmTextEdit" Then
-      frmMDIMain.ActiveForm.MenuClickFindAgain
-    End If
-  End If
-End Sub
-
-*/
     }
 }

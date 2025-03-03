@@ -257,7 +257,7 @@ namespace WinAGI.Engine {
 
         /// <summary>
         /// Forces view loops to rebuild. Use when the calling
-        /// program needs the sound to be refreshed.
+        /// program needs the view to be refreshed.
         /// </summary>
         public void ResetView() {
             ErrLevel = LoadLoops();

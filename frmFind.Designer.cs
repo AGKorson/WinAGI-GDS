@@ -40,6 +40,7 @@ namespace WinAGI.Editor {
             cmdReplaceAll = new System.Windows.Forms.Button();
             cmdCancel = new System.Windows.Forms.Button();
             cmbFind = new System.Windows.Forms.ComboBox();
+            chkSynonyms = new System.Windows.Forms.CheckBox();
             fraLogic.SuspendLayout();
             SuspendLayout();
             // 
@@ -69,7 +70,6 @@ namespace WinAGI.Editor {
             rtfReplace.TabIndex = 3;
             rtfReplace.TextChanged += rtfReplace_TextChanged;
             rtfReplace.Enter += rtfReplace_Enter;
-            rtfReplace.KeyPress += rtfReplace_KeyPress;
             // 
             // fraLogic
             // 
@@ -210,7 +210,18 @@ namespace WinAGI.Editor {
             cmbFind.TabIndex = 1;
             cmbFind.TextChanged += cmbFind_TextChanged;
             cmbFind.Enter += cmbFind_Enter;
-            cmbFind.KeyPress += cmbFind_KeyPress;
+            // 
+            // chkSynonyms
+            // 
+            chkSynonyms.AutoSize = true;
+            chkSynonyms.Location = new System.Drawing.Point(206, 121);
+            chkSynonyms.Name = "chkSynonyms";
+            chkSynonyms.Size = new System.Drawing.Size(123, 19);
+            chkSynonyms.TabIndex = 13;
+            chkSynonyms.Text = "Include Synonyms";
+            chkSynonyms.UseVisualStyleBackColor = true;
+            chkSynonyms.Visible = false;
+            chkSynonyms.CheckedChanged += chkSynonyms_CheckedChanged;
             // 
             // frmFind
             // 
@@ -219,6 +230,7 @@ namespace WinAGI.Editor {
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             CancelButton = cmdCancel;
             ClientSize = new System.Drawing.Size(493, 176);
+            Controls.Add(chkSynonyms);
             Controls.Add(cmbFind);
             Controls.Add(cmdCancel);
             Controls.Add(cmdReplaceAll);
@@ -265,5 +277,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.Button cmdCancel;
         public System.Windows.Forms.ComboBox cmbFind;
         public System.Windows.Forms.TextBox rtfReplace;
+        private System.Windows.Forms.CheckBox chkSynonyms;
     }
 }
