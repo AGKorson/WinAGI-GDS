@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using WinAGI.Common;
 using WinAGI.Engine;
+using static WinAGI.Common.API;
 using static WinAGI.Common.Base;
 using static WinAGI.Common.BkgdTasks;
 using static WinAGI.Engine.AGIResType;
@@ -258,7 +259,8 @@ namespace WinAGI.Editor {
         }
         public enum EPicMode {
             pmEdit,
-            pmTest,
+            pmViewTest,
+            pmPrintTest
         }
         public enum EPicCur {
             pcEdit,
@@ -271,6 +273,17 @@ namespace WinAGI.Editor {
             pcSelect,
             pcNormal,
             pcEditSel,
+        }
+
+        public enum EPicStatusMode {
+            psPixel,
+            psCoord,
+            psText,
+        }
+
+        public enum EPicCursorMode {
+            pcmWinAGI,
+            pcmXMode,
         }
         public enum NoteTone {
             None,
@@ -664,11 +677,11 @@ namespace WinAGI.Editor {
             // SplitWindow: 
             public SettingBool SplitWindow = new(nameof(SplitWindow), true, sPICTURES);
             // PicScalePreview: 
-            public SettingInt PicScalePreview = new("PreviewScale", 1, sPICTURES);
+            public SettingDouble PicScalePreview = new("PreviewScale", 1, sPICTURES);
             // PicScaleEdit: 
             public SettingInt PicScaleEdit = new("EditorScale", 2, sPICTURES);
-            //// CursorMode: 
-            //public EPicCursorMode CursorMode;
+            // CursorMode (as int; conert to enum as needed): 
+            public SettingInt CursorMode = new("CursorMode", 0, sPICTURES);
 
             // ************************************************
             // PICTURETEST SETTINGS
@@ -722,7 +735,7 @@ namespace WinAGI.Editor {
             // DefCelW: 
             public SettingByte DefCelW = new(nameof(DefCelW), 16, sVIEWS);
             // ViewScalePreview: 
-            public SettingInt ViewScalePreview = new("PreviewScale", 3, sVIEWS);
+            public SettingDouble ViewScalePreview = new("PreviewScale", 3, sVIEWS);
             // ViewScaleEdit: 
             public SettingInt ViewScaleEdit = new("EditScale", 6, sVIEWS);
             // DefVColor1: 
@@ -897,7 +910,7 @@ namespace WinAGI.Editor {
                 clonesettings.SplitWindow = new(SplitWindow);
                 clonesettings.PicScalePreview = new(PicScalePreview);
                 clonesettings.PicScaleEdit = new(PicScaleEdit);
-                //clonesettings.CursorMode = new(CursorMode);
+                clonesettings.CursorMode = new(CursorMode);
                 // PICTEST 
                 clonesettings.PTObjSpeed = new(PTObjSpeed);
                 clonesettings.PTObjPriority = new(PTObjPriority);
@@ -967,11 +980,6 @@ namespace WinAGI.Editor {
             public double Y;
         }
 
-        public struct PT {
-            public byte X;
-            public byte Y;
-        }
-
         public struct NewGameResults {
             public string NewID;
             public string Version;
@@ -998,6 +1006,14 @@ namespace WinAGI.Editor {
             public CompileStatus Status;
             public Exception CompExc;
             public string parm;
+        }
+
+        public struct MakeGifParams {
+            public int Mode; // 0=picture, 1=loop
+            public Picture Picture;
+            public Loop Loop;
+            public GifOptions GifOptions;
+            public string Filename;
         }
 
         public struct AGIToken {
@@ -1109,7 +1125,7 @@ namespace WinAGI.Editor {
         public static int SoundCBMode;
         public static Loop ClipViewLoop;
         public static Cel ClipViewCel;
-        //public static PictureUndo PicClipBoardObj;
+        public static PictureUndo PicClipBoardObj;
         public static ViewEditMode ViewCBMode;
         //public static PictureBox ViewClipboard;
         //public static WordsUndo WordsClipboard;
@@ -1257,14 +1273,14 @@ namespace WinAGI.Editor {
             bgwCompGame.WorkerReportsProgress = true;
         }
 
-        public static void ExportLoop(Engine.View view, int loopnum) {
+        public static void ExportLoopGIF(Engine.View view, int loopnum) {
             // export a loop as a gif
 
-            using frmExportViewLoopOptions frmVGO = new(view, loopnum);
-            if (frmVGO.ShowDialog(MDIMain) == DialogResult.Cancel) {
+            using frmExportAnimatedGIF frmExportGIF = new(view, loopnum);
+            if (frmExportGIF.ShowDialog(MDIMain) == DialogResult.Cancel) {
                 return;
             }
-            GifOptions options = frmVGO.SelectedGifOptions;
+            GifOptions options = frmExportGIF.SelectedGifOptions;
 
             MDIMain.SaveDlg.Title = "Export Loop GIF";
             MDIMain.SaveDlg.DefaultExt = "gif";
@@ -1281,18 +1297,28 @@ namespace WinAGI.Editor {
                 return;
             }
             DefaultResDir = JustPath(MDIMain.SaveDlg.FileName);
-            ProgressWin = new () {
+            ProgressWin = new (MDIMain) {
                 Text = "Exporting Loop as GIF"
             };
             ProgressWin.lblProgress.Text = "Depending on size of loop, this may take awhile. Please wait...";
             ProgressWin.pgbStatus.Visible = false;
-            ProgressWin.Show(MDIMain);
+            // the build method can be very time consuming so use
+            // a background worker
+            bgwMakePicGif = new BackgroundWorker();
+            bgwMakePicGif.DoWork += new DoWorkEventHandler(BuildPicGifDoWork);
+            bgwMakePicGif.ProgressChanged += new ProgressChangedEventHandler(BuildPicGifProgressChanged);
+            bgwMakePicGif.RunWorkerCompleted += new RunWorkerCompletedEventHandler(BuildPicGifWorkerCompleted);
+            bgwMakePicGif.WorkerReportsProgress = true;
+            MakeGifParams gifparams = new() {
+                Mode = 1,
+                Loop = view[loopnum],
+                GifOptions = options,
+                Filename = MDIMain.SaveDlg.FileName
+            };
+            bgwMakePicGif.RunWorkerAsync(gifparams);
             MDIMain.UseWaitCursor = true;
-            MakeLoopGif(view[loopnum], options, MDIMain.SaveDlg.FileName);
-            ProgressWin.Close();
-            ProgressWin.Dispose();
-            MessageBox.Show(MDIMain, "Success!", "Export Loop as GIF", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            MDIMain.UseWaitCursor = false;
+            MDIMain.Refresh();
+            ProgressWin.ShowDialog();
         }
 
         public static bool MakeLoopGif(Loop GifLoop, GifOptions GifOps, string ExportFile) {
@@ -1393,27 +1419,19 @@ namespace WinAGI.Editor {
             //add each cel
             for (i = 0; i < GifLoop.Cels.Count; i++) {
                 //add graphic control extension for this cel
-                bytData[lngPos] = 0x21;
-                lngPos++;
-                bytData[lngPos] = 0xF9;
-                lngPos++;
-                bytData[lngPos] = 4;
-                lngPos++;
-                bytData[lngPos] = (byte)(GifOps.Transparency ? 13 : 12);  //000-011-0-x = reserved-restore-no user input-transparency included
-                lngPos++;
-                bytData[lngPos] = (byte)(GifOps.Delay & 0xFF);
-                lngPos++;
-                bytData[lngPos] = (byte)((GifOps.Delay & 0xFF) >> 8);
-                lngPos++;
+                bytData[lngPos++] = 0x21;
+                bytData[lngPos++] = 0xF9;
+                bytData[lngPos++] = 4;
+                bytData[lngPos++] = (byte)(GifOps.Transparency ? 13 : 12);  //000-011-0-x = reserved-restore-no user input-transparency included
+                bytData[lngPos++] = (byte)(GifOps.Delay & 0xFF);
+                bytData[lngPos++] = (byte)((GifOps.Delay & 0xFF) >> 8);
                 if (GifOps.Transparency) {
-                    bytData[lngPos] = (byte)GifLoop.Cels[i].TransColor;
+                    bytData[lngPos++] = (byte)GifLoop.Cels[i].TransColor;
                 }
                 else {
-                    bytData[lngPos] = 0;
+                    bytData[lngPos++] = 0;
                 }
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
+                bytData[lngPos++] = 0;
                 //add the cel data (first create cel data in separate array
                 //then compress the cell data, break it into 255 byte chunks,
                 //and add the chunks to the output
@@ -1435,12 +1453,12 @@ namespace WinAGI.Editor {
                                 //depending on alignment, may need to pad:
                                 if (((hVal < hPad) && (GifOps.VAlign == 1)) || ((hVal > celH - 1) && (GifOps.VAlign == 0))) {
                                     //use a transparent pixel
-                                    bytCelData[lngCelPos] = bytTrans;
+                                    bytCelData[lngCelPos++] = bytTrans;
                                 }
                                 else {
                                     if (((wVal < wPad) && (GifOps.HAlign == 1)) || ((wVal > celW - 1) && (GifOps.HAlign == 0))) {
                                         //use a transparent pixel
-                                        bytCelData[lngCelPos] = bytTrans;
+                                        bytCelData[lngCelPos++] = bytTrans;
                                     }
                                     else {
                                         if (GifOps.HAlign == 1) {
@@ -1456,40 +1474,29 @@ namespace WinAGI.Editor {
                                             pY = hVal;
                                         }
                                         //use the actual pixel (adjusted for padding, if aligned to bottom or left)
-                                        bytCelData[lngCelPos] = (byte)GifLoop.Cels[i][pX, pY];
+                                        bytCelData[lngCelPos++] = (byte)GifLoop.Cels[i][pX, pY];
                                     }
                                 }
-                                lngCelPos++;
-                            }// zFacW
-                        }// wVal
-                    }// zFacH
-                }// hVal
+                            }
+                        }
+                    }
+                }
                 // now compress the cel data
                 bytCmpData = LZW.GifLZW(bytCelData);
+
                 //add Image descriptor
-                bytData[lngPos] = 0x2C;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = (byte)((byte)(MaxW * GifOps.Zoom * 2) & 0xFF);
-                lngPos++;
-                bytData[lngPos] = (byte)((byte)(MaxW * GifOps.Zoom * 2) >> 8);
-                lngPos++;
-                bytData[lngPos] = (byte)((byte)(MaxH * GifOps.Zoom) & 0xFF);
-                lngPos++;
-                bytData[lngPos] = (byte)((byte)(MaxH * GifOps.Zoom) >> 8);
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
+                bytData[lngPos++] = 0x2C;
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = (byte)((byte)(MaxW * GifOps.Zoom * 2) & 0xFF);
+                bytData[lngPos++] = (byte)((byte)(MaxW * GifOps.Zoom * 2) >> 8);
+                bytData[lngPos++] = (byte)((byte)(MaxH * GifOps.Zoom) & 0xFF);
+                bytData[lngPos++] = (byte)((byte)(MaxH * GifOps.Zoom) >> 8);
+                bytData[lngPos++] = 0;
                 //add byte for initial LZW code size
-                bytData[lngPos] = 4; //5
-                lngPos++;
+                bytData[lngPos++] = 4;
                 //add the compressed data to filestream
                 lngInPos = 0;
                 intChunkSize = 0;
@@ -1501,24 +1508,22 @@ namespace WinAGI.Editor {
                         intChunkSize = (short)(bytCmpData.Length - lngInPos);
                     }
                     //write chunksize
-                    bytData[lngPos] = (byte)intChunkSize;
-                    lngPos++;
+                    bytData[lngPos++] = (byte)intChunkSize;
                     //add this chunk of data
                     for (j = 1; j <= intChunkSize; j++) {
-                        bytData[lngPos] = bytCmpData[lngInPos];
-                        lngPos++;
-                        lngInPos++;
+                        bytData[lngPos++] = bytCmpData[lngInPos++];
                     }
                 }
-                while (lngInPos < bytCmpData.Length);// Until lngInPos >= UBound(bytCmpData())
+                while (lngInPos < bytCmpData.Length);
                 //end with a zero-length block
-                bytData[lngPos] = 0;
-                lngPos++;
+                bytData[lngPos++] = 0;
+                // update progress
+                bgwMakePicGif.ReportProgress(i);
             }
             // add trailer
-            bytData[lngPos] = 0x3B;
+            bytData[lngPos++] = 0x3B;
             // resize 
-            Array.Resize(ref bytData, lngPos + 1);
+            Array.Resize(ref bytData, lngPos);
 
             //get temporary file
             strTempFile = Path.GetTempFileName();
@@ -1531,18 +1536,19 @@ namespace WinAGI.Editor {
                 // move tempfile to savefile
                 File.Move(strTempFile, ExportFile, true);
             }
-            catch (Exception) {
-                throw;
+            catch (Exception e) {
+                bgwMakePicGif.ReportProgress(-2, e);
+                return false;
             }
             return true;
         }
 
         public static void ExportPicAsGif(Picture picture) {
-            using frmExportViewLoopOptions frmVGO = new(picture);
-            if (frmVGO.ShowDialog(MDIMain) == DialogResult.Cancel) {
+            using frmExportAnimatedGIF frmExportGIF = new(picture);
+            if (frmExportGIF.ShowDialog(MDIMain) == DialogResult.Cancel) {
                 return;
             }
-            GifOptions options = frmVGO.SelectedGifOptions;
+            GifOptions options = frmExportGIF.SelectedGifOptions;
             MDIMain.SaveDlg.Title = "Export Picture GIF";
             MDIMain.SaveDlg.DefaultExt = "gif";
             MDIMain.SaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*";
@@ -1558,21 +1564,30 @@ namespace WinAGI.Editor {
                 return;
             }
             DefaultResDir = JustPath(MDIMain.SaveDlg.FileName);
-            ProgressWin = new () {
-                Text = "Exporting Loop as GIF"
+            ProgressWin = new (MDIMain) {
+                Text = "Exporting Picture as GIF"
             };
             ProgressWin.lblProgress.Text = "Depending on size of picture, this may take awhile. Please wait...";
             ProgressWin.pgbStatus.Visible = true;
             ProgressWin.pgbStatus.Maximum = picture.Size;
-            ProgressWin.Show(MDIMain);
-            ProgressWin.Refresh();
+
+            // the build method can be very time consuming so use
+            // a background worker
+            bgwMakePicGif = new BackgroundWorker();
+            bgwMakePicGif.DoWork += new DoWorkEventHandler(BuildPicGifDoWork);
+            bgwMakePicGif.ProgressChanged += new ProgressChangedEventHandler(BuildPicGifProgressChanged);
+            bgwMakePicGif.RunWorkerCompleted += new RunWorkerCompletedEventHandler(BuildPicGifWorkerCompleted);
+            bgwMakePicGif.WorkerReportsProgress = true;
+            MakeGifParams gifparams = new() {
+                Mode = 0,
+                Picture = picture,
+                GifOptions = options,
+                Filename = MDIMain.SaveDlg.FileName
+            };
+            bgwMakePicGif.RunWorkerAsync(gifparams);
             MDIMain.UseWaitCursor = true;
             MDIMain.Refresh();
-            MakePicGif(picture, options, MDIMain.SaveDlg.FileName);
-            ProgressWin.Close();
-            ProgressWin.Dispose();
-            MessageBox.Show(MDIMain, "Success!", "Export Picture as GIF", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            MDIMain.UseWaitCursor = false;
+            ProgressWin.ShowDialog();
         }
 
         public static bool MakePicGif(Picture picture, GifOptions options, string filename) {
@@ -1721,22 +1736,14 @@ namespace WinAGI.Editor {
                     Array.Resize(ref bytData, (int)(lngPos + (53760 * Math.Pow(options.Zoom, 2)) + 256));
                 }
                 // add graphic control extension for this frame
-                bytData[lngPos] = 0x21;
-                lngPos++;
-                bytData[lngPos] = 0xF9;
-                lngPos++;
-                bytData[lngPos] = 4;
-                lngPos++;
-                bytData[lngPos] = 12;   // 000-011-0-0 = reserved-restore-no user input-no transparency
-                lngPos++;
-                bytData[lngPos] = (byte)(options.Delay & 0xFF);
-                lngPos++;
-                bytData[lngPos] = (byte)((options.Delay & 0xFF) >> 8);
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
+                bytData[lngPos++] = 0x21;
+                bytData[lngPos++] = 0xF9;
+                bytData[lngPos++] = 4;
+                bytData[lngPos++] = 12;   // 000-011-0-0 = reserved-restore-no user input-no transparency
+                bytData[lngPos++] = (byte)(options.Delay & 0xFF);
+                bytData[lngPos++] = (byte)((options.Delay & 0xFF) >> 8);
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = 0;
                 // add the frame data (first create frame data in separate array
                 // then compress the frame data, break it into 255 byte chunks,
                 // and add the chunks to the output
@@ -1756,30 +1763,20 @@ namespace WinAGI.Editor {
                 }
                 // compress the pic data
                 bytCmpData = LZW.GifLZW(bytPicData);
-                //add Image descriptor
-                bytData[lngPos] = 0x2C;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                bytData[lngPos] = (byte)((MaxW * options.Zoom * 2) & 0xFF);
-                lngPos++;
-                bytData[lngPos] = (byte)((MaxW * options.Zoom * 2) >> 8);
-                lngPos++;
-                bytData[lngPos] = (byte)((MaxH * options.Zoom) & 0xFF);
-                lngPos++;
-                bytData[lngPos] = (byte)((MaxH * options.Zoom) >> 8);
-                lngPos++;
-                bytData[lngPos] = 0;
-                lngPos++;
-                //add byte for initial LZW code size
-                bytData[lngPos] = 4; //5
-                lngPos++;
+
+                // add Image descriptor
+                bytData[lngPos++] = 0x2C;
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = 0;
+                bytData[lngPos++] = (byte)((MaxW * options.Zoom * 2) & 0xFF);
+                bytData[lngPos++] = (byte)((MaxW * options.Zoom * 2) >> 8);
+                bytData[lngPos++] = (byte)((MaxH * options.Zoom) & 0xFF);
+                bytData[lngPos++] = (byte)((MaxH * options.Zoom) >> 8);
+                bytData[lngPos++] = 0;
+                // add byte for initial LZW code size
+                bytData[lngPos++] = 4;
                 //add the compressed data to filestream
                 lngInPos = 0;
                 intChunkSize = 0;
@@ -1791,28 +1788,23 @@ namespace WinAGI.Editor {
                         intChunkSize = (short)(bytCmpData.Length - lngInPos);
                     }
                     //write chunksize
-                    bytData[lngPos] = (byte)intChunkSize;
-                    lngPos++;
+                    bytData[lngPos++] = (byte)intChunkSize;
                     //add this chunk of data
                     for (int j = 1; j <= intChunkSize; j++) {
-                        bytData[lngPos] = bytCmpData[lngInPos];
-                        lngPos++;
-                        lngInPos++;
+                        bytData[lngPos++] = bytCmpData[lngInPos++];
                     }
                 }
-                while (lngInPos < bytCmpData.Length);// Until lngInPos >= UBound(bytCmpData())
+                while (lngInPos < bytCmpData.Length);
                 //end with a zero-length block
-                bytData[lngPos] = 0;
-                lngPos++;
+                bytData[lngPos++] = 0;
                 // update progress
-                ProgressWin.pgbStatus.Value = lngPicPos;
-                ProgressWin.Refresh();
+                bgwMakePicGif.ReportProgress(lngPicPos);
             }
             while (lngPicPos < picture.Size);
             // add trailer
-            bytData[lngPos] = 0x3B;
+            bytData[lngPos++] = 0x3B;
             // resize 
-            Array.Resize(ref bytData, lngPos + 1);
+            Array.Resize(ref bytData, lngPos);
             //get temporary file
             strTempFile = Path.GetTempFileName();
             try {
@@ -1824,11 +1816,14 @@ namespace WinAGI.Editor {
                 // move tempfile to savefile
                 File.Move(strTempFile, filename, true);
             }
-            catch (Exception) {
-                throw;
+            catch (Exception e) {
+                bgwMakePicGif.ReportProgress(-1, e);
+                return false;
             }
-            if (!loaded) {
-                picture.Unload();
+            finally {
+                if (!loaded) {
+                    picture.Unload();
+                }
             }
             return true;
         }
@@ -1942,14 +1937,14 @@ namespace WinAGI.Editor {
             MDIMain.UseWaitCursor = true;
             MDIMain.Refresh();
             // show the progress window
-            ProgressWin = new () {
+            ProgressWin = new (MDIMain) {
                 Text = "Loading Game"
             };
             ProgressWin.lblProgress.Text = "Checking WinAGI Game file ...";
             ProgressWin.StartPosition = FormStartPosition.CenterParent;
             ProgressWin.pgbStatus.Visible = false;
             // show loading msg in status bar
-            MainStatusBar.Items["spStatus"].Text = (mode == 0 ? "Loading" : "Importing") + " game; please wait...";
+            MDIMain.spStatus.Text = (mode == 0 ? "Loading" : "Importing") + " game; please wait...";
             // pass mode and source
             LoadResults = new() {
                 Mode = mode,
@@ -1959,8 +1954,8 @@ namespace WinAGI.Editor {
                 Warnings = false
             };
             bgwOpenGame.RunWorkerAsync(LoadResults);
-            // now show progress form
-            ProgressWin.ShowDialog(MDIMain);
+            // idle until the worker is done;
+            ProgressWin.ShowDialog();
             // reset cursor
             MDIMain.UseWaitCursor = false;
 
@@ -1991,7 +1986,7 @@ namespace WinAGI.Editor {
                 }
             }
             UpdateTBGameBtns();
-            MainStatusBar.Items["spStatus"].Text = "";
+            MDIMain.spStatus.Text = "";
             return !LoadResults.Failed;
         }
 
@@ -3085,7 +3080,7 @@ namespace WinAGI.Editor {
             CompStatusWin = new frmCompStatus(RebuildOnly ? CompileMode.RebuildOnly : CompileMode.Full);
             CompStatusWin.StartPosition = FormStartPosition.CenterParent;
             // update status bar to show game is being rebuilt
-            MainStatusBar.Items["spStatus"].Text = RebuildOnly ? "Rebuilding game files, please wait..." : "Compiling game, please wait...";
+            MDIMain.spStatus.Text = RebuildOnly ? "Rebuilding game files, please wait..." : "Compiling game, please wait...";
             // pass mode & source
             CompGameResults = new CompileGameResults() {
                 Mode = RebuildOnly ? CompileMode.RebuildOnly : CompileMode.Full,
@@ -3102,7 +3097,7 @@ namespace WinAGI.Editor {
             CompStatusWin = null;
             // reset cursor
             MDIMain.UseWaitCursor = false;
-            MainStatusBar.Items["spStatus"].Text = "";
+            MDIMain.spStatus.Text = "";
         }
 
         internal static bool CompileLogic(frmLogicEdit editor, byte logicnum) {
@@ -3199,7 +3194,7 @@ namespace WinAGI.Editor {
             }
             // no error
             if (editor != null) {
-                MainStatusBar.Items["spStatus"].Text = ResourceName(EditGame.Logics[logicnum], true, true) + " successfully compiled.";
+                MDIMain.spStatus.Text = ResourceName(EditGame.Logics[logicnum], true, true) + " successfully compiled.";
             }
             // hmm, currently no easy way to tell if there are warnings; 
             //if (warnings) {
@@ -3311,7 +3306,7 @@ namespace WinAGI.Editor {
             CompStatusWin = new frmCompStatus(CompileMode.ChangedLogics);
             CompStatusWin.StartPosition = FormStartPosition.CenterParent;
             // update status bar to show game is being rebuilt
-            MainStatusBar.Items["spStatus"].Text = "Compiling changed logics, please wait...";
+            MDIMain.spStatus.Text = "Compiling changed logics, please wait...";
             // pass mode & source
             CompGameResults = new CompileGameResults() {
                 Mode = CompileMode.ChangedLogics,
@@ -3328,7 +3323,7 @@ namespace WinAGI.Editor {
             CompStatusWin = null;
             // reset cursor
             MDIMain.UseWaitCursor = false;
-            MainStatusBar.Items["spStatus"].Text = "";
+            MDIMain.spStatus.Text = "";
             return CompGameResults.Status == CompileStatus.OK;
         }
 
@@ -3390,14 +3385,14 @@ namespace WinAGI.Editor {
                 MDIMain.UseWaitCursor = true;
                 MDIMain.Refresh();
                 // show the progress window
-                ProgressWin = new () {
+                ProgressWin = new (MDIMain) {
                     Text = "Creating New Game"
                 };
                 ProgressWin.lblProgress.Text = "Creating new game resources ...";
                 ProgressWin.StartPosition = FormStartPosition.CenterParent;
                 ProgressWin.pgbStatus.Visible = false;
                 // show newgame msg in status bar
-                MainStatusBar.Items["spStatus"].Text = "Creating new game" + (UseTemplate ? " from template" : "") + "; please wait...";
+                MDIMain.spStatus.Text = "Creating new game" + (UseTemplate ? " from template" : "") + "; please wait...";
                 // pass game info and template info
                 NewResults = new() {
                     NewID = propform.txtGameID.Text,
@@ -3413,7 +3408,7 @@ namespace WinAGI.Editor {
                 // run the worker to create the new game
                 bgwNewGame.RunWorkerAsync(NewResults);
                 // idle until the worker is done;
-                ProgressWin.ShowDialog(MDIMain);
+                ProgressWin.ShowDialog();
                 // reset cursor
                 MDIMain.UseWaitCursor = false;
                 // add wag file to mru, if opened successfully
@@ -3478,7 +3473,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 UpdateTBGameBtns();
-                MainStatusBar.Items["spStatus"].Text = "";
+                MDIMain.spStatus.Text = "";
                 MDIMain.UseWaitCursor = false;
             }
             propform.Dispose();
@@ -3678,7 +3673,7 @@ namespace WinAGI.Editor {
                 CompStatusWin = new frmCompStatus(CompileMode.RebuildOnly); // rebuild only
                 CompStatusWin.StartPosition = FormStartPosition.CenterParent;
                 // update status bar to show game is being rebuilt
-                MainStatusBar.Items["spStatus"].Text = "Rebuilding game with new game ID, please wait...";
+                MDIMain.spStatus.Text = "Rebuilding game with new game ID, please wait...";
                 // pass mode & source
                 CompGameResults = new CompileGameResults() {
                     Mode = CompileMode.RebuildOnly,
@@ -3692,7 +3687,7 @@ namespace WinAGI.Editor {
                 CompStatusWin = null;
                 // reset cursor
                 MDIMain.UseWaitCursor = false;
-                MainStatusBar.Items["spStatus"].Text = "";
+                MDIMain.spStatus.Text = "";
             }
             else {
                 // ask for confirmation
@@ -5610,6 +5605,8 @@ namespace WinAGI.Editor {
             frmPicEdit frmOpen = new();
             if (frmOpen.LoadPicture(EditGame.Pictures[ResNum])) {
                 frmOpen.Show();
+                frmOpen.Refresh();
+                frmOpen.ForceRefresh();
                 PictureEditors.Add(frmOpen);
             }
             else {
@@ -6266,7 +6263,7 @@ namespace WinAGI.Editor {
             bool blnSkipEd;
             WinAGIFCTB searchFCTB = null;
 
-            MainStatusBar.Items["spStatus"].Text = "";
+            MDIMain.spStatus.Text = "";
 
             StringComparison strComp = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             if (Replacing && FindText.Equals(ReplaceText, strComp)) {
@@ -6627,7 +6624,7 @@ namespace WinAGI.Editor {
                 //if a synonym was found, note it on status bar
                 if (GFindSynonym) {
                     if (FindText != QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum).GroupName + QUOTECHAR) {
-                        MainStatusBar.Items["spStatus"].Text = FindText + " is a synonym for " + QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum).GroupName + QUOTECHAR;
+                        MDIMain.spStatus.Text = FindText + " is a synonym for " + QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum).GroupName + QUOTECHAR;
                         // TODO: flash the status bar
                         //MDIMain.tmrFlash.Enabled = true;
                     }
@@ -6692,13 +6689,13 @@ namespace WinAGI.Editor {
                 // first time through - start with first logic (which sets ClosedLogics flag)
                 LogNum = NextClosedLogic(-1);
                 if (LogNum != -1) {
-                    ProgressWin = new () {
+                    ProgressWin = new (MDIMain) {
                         Text = "Find in Logic"
                     };
                     ProgressWin.lblProgress.Text = "Searching " + EditGame.Logics[LogNum].ID + "...";
                     ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + 1;
                     ProgressWin.pgbStatus.Value = LogicEditors.Count;
-                    ProgressWin.Show(MDIMain);
+                    ProgressWin.Show();
                     ProgressWin.Refresh();
                 }
                 else {
@@ -6707,7 +6704,7 @@ namespace WinAGI.Editor {
                 }
             }
             else {
-                ProgressWin.Show(MDIMain);
+                ProgressWin.Show();
                 ProgressWin.Refresh();
                 LogNum = NextClosedLogic(LogNum);
             }
@@ -6852,7 +6849,7 @@ namespace WinAGI.Editor {
                 MDIMain.UseWaitCursor = false;
                 return;
             }
-            ProgressWin = new();
+            ProgressWin = new(startform);
             // not all searches use the progress bar
             switch (SearchType) {
             case AGIResType.None:
@@ -6873,7 +6870,7 @@ namespace WinAGI.Editor {
                 ProgressWin.lblProgress.Text = "Searching...";
                 ProgressWin.pgbStatus.Maximum = LogicEditors.Count;
                 ProgressWin.pgbStatus.Value = 0;
-                ProgressWin.Show(MDIMain);
+                ProgressWin.Show();
                 ProgressWin.Refresh();
                 for (int i = 0; i < LogicEditors.Count; i++) {
                     ProgressWin.pgbStatus.Value = i - 1;
@@ -6904,7 +6901,7 @@ namespace WinAGI.Editor {
                     }
                     ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count;
                     ProgressWin.pgbStatus.Value = 0;
-                    ProgressWin.Show(MDIMain);
+                    ProgressWin.Show();
                     ProgressWin.Refresh();
                 }
                 // first replace in all open editors
@@ -7222,6 +7219,8 @@ namespace WinAGI.Editor {
         /// <param name="scale"></param>
         /// <param name="mode"></param>
         public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor) {
+
+            _ = SendMessage(pic.Handle, WM_SETREDRAW, false, 0);
             Debug.Assert(scale > 0);
             if (agiBMP is null) {
                 // clear the pic
@@ -7241,6 +7240,7 @@ namespace WinAGI.Editor {
             g.InterpolationMode = mode;
             g.PixelOffsetMode = PixelOffsetMode.Half;
             g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
+            _ = SendMessage(pic.Handle, WM_SETREDRAW, true, 0);
         }
 
         static Bitmap ResizeAGIBitmap(Bitmap agiBmp, int scale = 1, InterpolationMode mode = InterpolationMode.NearestNeighbor) {
@@ -7754,7 +7754,7 @@ namespace WinAGI.Editor {
                 exportdir = EditGame.ResDir;
             }
             MDIMain.UseWaitCursor = true;
-            ProgressWin = new() {
+            ProgressWin = new(MDIMain) {
                 Text = "Exporting All Resources"
             };
             ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + EditGame.Pictures.Count + EditGame.Sounds.Count + EditGame.Views.Count;
@@ -7947,7 +7947,7 @@ namespace WinAGI.Editor {
                     filename = MDIMain.SaveDlg.FileName;
                     DefaultResDir = JustPath(MDIMain.SaveDlg.FileName);
                     MDIMain.UseWaitCursor = true;
-                    ProgressWin = new () {
+                    ProgressWin = new (MDIMain) {
                         Text = "Exporting Picture Image"
                     };
                     ProgressWin.lblProgress.Text = "Depending on export size, this may take awhile. Please wait...";
@@ -8274,7 +8274,7 @@ namespace WinAGI.Editor {
             }
             //if not canceled, export them all
             //setup ProgressWin form
-            ProgressWin = new () {
+            ProgressWin = new (MDIMain) {
                 Text = "Exporting All Picture Images"
             };
             ProgressWin.pgbStatus.Maximum = EditGame.Pictures.Count;

@@ -121,47 +121,46 @@
     <value>17, 17</value>
   </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="tbAlignHorizontal.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABFSURBVDhPY2CAgP9QTDagqgEwNi6MFaAbgAvglBs1ANMA
+        fBgrwCtJDEAz4D/JhiEZANJMtgEwzYQwJqCWC+BcSg0gHgAAOelZp/rfHygAAAAASUVORK5CYII=
+</value>
+  </data>
   <data name="tbAlignLeft.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vAAADrwBlbxySQAAAEpJREFUOE/tjNEKADAERf3/T9sUpQ3D9rhTt+RygEFOm6cCmb2Y6NI9mnxBQRDF
-        JCwzLAIsy5SAntsCeT5lh5Zc+EcRSkBcC7IADDnpWacYfUsLAAAAAElFTkSuQmCC
+        vAAADrwBlbxySQAAAEVJREFUOE9jYICA/1BMNqCqATA2LowVoBuAC+CUGzUA0wB8GCvAK0kMQDPgP8mG
+        IRkA0ky2ATDNhDAmoJYL4FxKDSAeAAA56Vmn+t8fKAAAAABJRU5ErkJggg==
 </value>
   </data>
   <data name="tbAlignRight.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vAAADrwBlbxySQAAAElJREFUOE/tjtEKACAIA/3/n7YEFSNcNOitg4EwPRQS9dBAQZRdjDpvtMXkCy4E
-        KEadKRiB1gNWkJJOEEunvPsAkccGI1hwgcgAMJBZp3qYskkAAAAASUVORK5CYII=
-</value>
-  </data>
-  <data name="tbAlignHorizontal.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABKSURBVDhP7YzRCgAwBEX9/0/bFKUNw/a4U7fkcoBBTpun
-        Apm9mOjSPZp8QUEQxSQsMywCLMuUgJ7bAnk+ZYeWXPhHEUpAXAuyAAw56VmnGH1LCwAAAABJRU5ErkJg
-        gg==
-</value>
-  </data>
-  <data name="tbAlignTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vAAADrwBlbxySQAAAEhJREFUOE9joAb4TyHGKkgKph7AZjoMI4H/aHwEwCWBJA7SDMOYgIAByJqxG4Ih
-        AAVo4pgaYWCYGIALIwHcBhAJBt4AqgIGBgCKHFmnFvlTgQAAAABJRU5ErkJggg==
-</value>
-  </data>
-  <data name="tbAlignBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
-        vAAADrwBlbxySQAAADpJREFUOE9jGJHg/38oAwOAJHBhJIDfAGxg1ADqGQDSiI5RAUgAF4YC3JpJAKTZ
-        TAzGKkgKpgQwMAAASopZp59dt24AAAAASUVORK5CYII=
+        vAAADrwBlbxySQAAAEdJREFUOE/tkNEKACAIA/3/nzaIFIO2ZL12sCfnIZpp+IoMFcQQpXaOwMEXTNoC
+        ltqRUQReF1RBSpAgSrdAAaN1AeP5BxspGDCQWafhobyXAAAAAElFTkSuQmCC
 </value>
   </data>
   <data name="tbAlignVertical.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA6SURBVDhPYxiR4P9/KAMDgCRwYSSA3wBsYNQA6hkA0oiO
-        UQFIABeGAtyaSQCk2UwMxipICqYEMDAAAEqKWaefXbduAAAAAElFTkSuQmCC
+        YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAA8SURBVDhPY2AYieD/f3QRGABJ4MLIyvAagA2MGoAhTrYB
+        II3oGFMhLgxTglMzCQBTM7ptpGIMAVIxZQAASopZpyiKWz4AAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="tbAlignTop.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        vAAADrwBlbxySQAAAExJREFUOE9jYKAC+E8hxhAgFVMPoJuMw5b/OG3FJYEkDtIMw5gAqyBCHFkzdkMw
+        BKCAml4Ac3GpQ1cIB/Q1ABdGVobTACLBwBtAZQAAihxZp51J2Z0AAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="tbAlignBottom.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        vAAADrwBlbxySQAAADxJREFUOE9jYBiJ4P9/dBEYAEngwsjK8BqADYwagCFOtgEgjegYUyEuDFOCUzMJ
+        AFMzum2kYgwBUjFlAABKilmnKIpbPgAAAABJRU5ErkJggg==
 </value>
   </data>
   <metadata name="timer1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

@@ -1,6 +1,6 @@
 ﻿
 namespace WinAGI.Editor {
-    partial class frmExportViewLoopOptions {
+    partial class frmExportAnimatedGIF {
         /// <summary>
         /// Required designer variable.
         /// </summary>
@@ -25,7 +25,7 @@ namespace WinAGI.Editor {
         /// </summary>
         private void InitializeComponent() {
             components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmExportViewLoopOptions));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmExportAnimatedGIF));
             picGrid = new System.Windows.Forms.PictureBox();
             picCel = new System.Windows.Forms.PictureBox();
             cmdOK = new System.Windows.Forms.Button();
@@ -81,7 +81,7 @@ namespace WinAGI.Editor {
             cmdOK.Location = new System.Drawing.Point(371, 297);
             cmdOK.Name = "cmdOK";
             cmdOK.Size = new System.Drawing.Size(64, 24);
-            cmdOK.TabIndex = 1;
+            cmdOK.TabIndex = 13;
             cmdOK.Text = "OK";
             cmdOK.UseVisualStyleBackColor = true;
             cmdOK.Click += cmdOK_Click;
@@ -91,7 +91,7 @@ namespace WinAGI.Editor {
             cmdCancel.Location = new System.Drawing.Point(482, 298);
             cmdCancel.Name = "cmdCancel";
             cmdCancel.Size = new System.Drawing.Size(61, 23);
-            cmdCancel.TabIndex = 2;
+            cmdCancel.TabIndex = 14;
             cmdCancel.Text = "Cancel";
             cmdCancel.UseVisualStyleBackColor = true;
             cmdCancel.Click += cmdCancel_Click;
@@ -104,8 +104,8 @@ namespace WinAGI.Editor {
             HScroll1.Name = "HScroll1";
             HScroll1.Size = new System.Drawing.Size(320, 23);
             HScroll1.SmallChange = 64;
-            HScroll1.TabIndex = 1;
-            HScroll1.ValueChanged += HScroll1_ValueChanged;
+            HScroll1.TabIndex = 2;
+            HScroll1.Scroll += HScroll1_Scroll;
             // 
             // VScroll1
             // 
@@ -114,15 +114,15 @@ namespace WinAGI.Editor {
             VScroll1.Name = "VScroll1";
             VScroll1.Size = new System.Drawing.Size(21, 265);
             VScroll1.TabIndex = 3;
-            VScroll1.ValueChanged += VScroll1_ValueChanged;
+            VScroll1.Scroll += VScroll1_Scroll;
             // 
             // chkTrans
             // 
             chkTrans.AutoSize = true;
             chkTrans.Location = new System.Drawing.Point(393, 97);
             chkTrans.Name = "chkTrans";
-            chkTrans.Size = new System.Drawing.Size(95, 19);
-            chkTrans.TabIndex = 4;
+            chkTrans.Size = new System.Drawing.Size(96, 19);
+            chkTrans.TabIndex = 6;
             chkTrans.Text = "Transparency";
             chkTrans.UseVisualStyleBackColor = true;
             chkTrans.CheckedChanged += chkTrans_CheckedChanged;
@@ -133,7 +133,7 @@ namespace WinAGI.Editor {
             chkLoop.Location = new System.Drawing.Point(393, 122);
             chkLoop.Name = "chkLoop";
             chkLoop.Size = new System.Drawing.Size(118, 19);
-            chkLoop.TabIndex = 5;
+            chkLoop.TabIndex = 7;
             chkLoop.Text = "Continuous Loop";
             chkLoop.UseVisualStyleBackColor = true;
             chkLoop.CheckedChanged += chkLoop_CheckedChanged;
@@ -143,10 +143,12 @@ namespace WinAGI.Editor {
             udScale.Location = new System.Drawing.Point(425, 167);
             udScale.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             udScale.Name = "udScale";
+            udScale.ReadOnly = true;
             udScale.Size = new System.Drawing.Size(52, 23);
-            udScale.TabIndex = 1;
+            udScale.TabIndex = 9;
             udScale.Value = new decimal(new int[] { 1, 0, 0, 0 });
             udScale.ValueChanged += udScale_ValueChanged;
+            udScale.Enter += udScale_Enter;
             // 
             // lblScale
             // 
@@ -154,7 +156,7 @@ namespace WinAGI.Editor {
             lblScale.Location = new System.Drawing.Point(371, 169);
             lblScale.Name = "lblScale";
             lblScale.Size = new System.Drawing.Size(37, 15);
-            lblScale.TabIndex = 6;
+            lblScale.TabIndex = 8;
             lblScale.Text = "Scale:";
             // 
             // udDelay
@@ -162,10 +164,12 @@ namespace WinAGI.Editor {
             udDelay.Location = new System.Drawing.Point(425, 215);
             udDelay.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             udDelay.Name = "udDelay";
+            udDelay.ReadOnly = true;
             udDelay.Size = new System.Drawing.Size(51, 23);
-            udDelay.TabIndex = 7;
+            udDelay.TabIndex = 11;
             udDelay.Value = new decimal(new int[] { 1, 0, 0, 0 });
             udDelay.ValueChanged += udDelay_ValueChanged;
+            udDelay.Enter += udDelay_Enter;
             // 
             // label1
             // 
@@ -173,7 +177,7 @@ namespace WinAGI.Editor {
             label1.Location = new System.Drawing.Point(379, 220);
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(39, 15);
-            label1.TabIndex = 8;
+            label1.TabIndex = 10;
             label1.Text = "Delay:";
             // 
             // label2
@@ -181,7 +185,7 @@ namespace WinAGI.Editor {
             label2.Location = new System.Drawing.Point(482, 215);
             label2.Name = "label2";
             label2.Size = new System.Drawing.Size(66, 36);
-            label2.TabIndex = 9;
+            label2.TabIndex = 12;
             label2.Text = "0.01 sec increments";
             // 
             // toolStrip1
@@ -190,7 +194,7 @@ namespace WinAGI.Editor {
             toolStrip1.Location = new System.Drawing.Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new System.Drawing.Size(557, 25);
-            toolStrip1.TabIndex = 10;
+            toolStrip1.TabIndex = 0;
             toolStrip1.Text = "toolStrip1";
             // 
             // tbAlignHorizontal
@@ -251,7 +255,7 @@ namespace WinAGI.Editor {
             lblAlign.Location = new System.Drawing.Point(220, 9);
             lblAlign.Name = "lblAlign";
             lblAlign.Size = new System.Drawing.Size(115, 15);
-            lblAlign.TabIndex = 11;
+            lblAlign.TabIndex = 1;
             lblAlign.Text = "Align: Bottom, Right";
             // 
             // timer1
@@ -265,7 +269,7 @@ namespace WinAGI.Editor {
             cmbLoop.Location = new System.Drawing.Point(393, 50);
             cmbLoop.Name = "cmbLoop";
             cmbLoop.Size = new System.Drawing.Size(150, 23);
-            cmbLoop.TabIndex = 12;
+            cmbLoop.TabIndex = 5;
             cmbLoop.SelectedIndexChanged += cmbLoop_SelectedIndexChanged;
             // 
             // label3
@@ -273,11 +277,11 @@ namespace WinAGI.Editor {
             label3.AutoSize = true;
             label3.Location = new System.Drawing.Point(393, 32);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(88, 15);
-            label3.TabIndex = 13;
+            label3.Size = new System.Drawing.Size(87, 15);
+            label3.TabIndex = 4;
             label3.Text = "Loop to Export:";
             // 
-            // frmExportViewLoopOptions
+            // frmExportAnimatedGIF
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -299,9 +303,10 @@ namespace WinAGI.Editor {
             Controls.Add(cmdOK);
             Controls.Add(picGrid);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            Name = "frmExportViewLoopOptions";
+            Name = "frmExportAnimatedGIF";
+            ShowInTaskbar = false;
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            Text = "frmViewGifOptions";
+            Text = "Export Loop As GIF";
             FormClosing += frmExportViewLoopOptions_FormClosing;
             ((System.ComponentModel.ISupportInitialize)picGrid).EndInit();
             picGrid.ResumeLayout(false);

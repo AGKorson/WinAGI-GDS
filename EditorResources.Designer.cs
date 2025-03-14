@@ -5759,6 +5759,56 @@ namespace WinAGI.Editor {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] EPC_BRUSH {
+            get {
+                object obj = ResourceManager.GetObject("EPC_BRUSH", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EPC_EDIT {
+            get {
+                object obj = ResourceManager.GetObject("EPC_EDIT", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EPC_EDITSEL {
+            get {
+                object obj = ResourceManager.GetObject("EPC_EDITSEL", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EPC_PAINT {
+            get {
+                object obj = ResourceManager.GetObject("EPC_PAINT", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EPC_SELECT {
+            get {
+                object obj = ResourceManager.GetObject("EPC_SELECT", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] ewi_bygroup {
             get {
                 object obj = ResourceManager.GetObject("ewi_bygroup", resourceCulture);

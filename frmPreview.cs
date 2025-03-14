@@ -31,23 +31,22 @@ namespace WinAGI.Editor {
 
         Logic agLogic;
         Picture agPic;
-        int PicScale;
+        double PicScale;
         bool blnDraggingPic;
         Sound agSound;
         long lngStart;
         Engine.View agView;
         int CurLoop, CurCel;
-        int ViewScale, VTopMargin;
+        int CelFrameW, CelFrameH;
+        double ViewScale;
         bool blnDraggingView;
         int lngVAlign, lngHAlign;
-        bool blnTrans = false, DontDraw;
+        bool blnTrans = false;
 
         //use local variables to hold visible status for scrollbars
         //because their visible property remains false as long as
         //the picturebox that holds them is false, even though they
         //are set to true
-        bool blnViewHSB, blnViewVSB;
-        bool blnPicVSB, blnPicHSB;
         const int PW_MARGIN = 4;
 
         public frmPreview() {
@@ -69,7 +68,22 @@ namespace WinAGI.Editor {
             fraPCorner.Height = hsbPic.Height;
             fraPCorner.Top = hsbPic.Top;
             PicScale = WinAGISettings.PicScalePreview.Value;
-            udPZoom.Value = PicScale;
+            double scale = PicScale * 100;
+            if (scale <= 3) {
+                scale = (int)(scale * 4) / 4;
+            }
+            else {
+                scale = (int)(scale * 2) / 2;
+            }
+            for (int i = 0; i < udPZoom.Items.Count; i++) {
+                if (scale.ToString() == udPZoom.Items[i].ToString()) {
+                    udPZoom.SelectedIndex = i;
+                    break;
+                }
+                if (udPZoom.SelectedIndex == -1) {
+                    udPZoom.SelectedIndex = 0;
+                }
+            }
             // sound controls
             cmbInst[0] = cmbInst0;
             cmbInst[1] = cmbInst1;
@@ -97,9 +111,16 @@ namespace WinAGI.Editor {
             fraVCorner.Left = vsbView.Left;
             fraVCorner.Height = hsbView.Height;
             fraVCorner.Top = hsbView.Top;
-            VTopMargin = 50;
             lngVAlign = 2;
             ViewScale = WinAGISettings.ViewScalePreview.Value;
+            scale = ViewScale * 100;
+            if (scale <= 3) {
+                scale = (int)(scale * 4) / 4;
+            }
+            else {
+                scale = (int)(scale * 2) / 2;
+            }
+            tsbViewScale.Text = (scale * 100).ToString() + "%";
             cmbMotion.SelectedIndex = 0;
             sldSpeed.Value = 5;
             hsbView.Minimum = -PW_MARGIN;
@@ -232,18 +253,44 @@ namespace WinAGI.Editor {
 
         internal void SetResourceMenu() {
             mnuRExportAll.Visible = (SelResType == AGIResType.Game);
-            if (SelResType == AGIResType.View && SelResNum != -1) {
+            if (SelResNum == -1) {
+                mnuRExportGIF.Visible = false;
+                return;
+            }
+            switch (SelResType) {
+            case AGIResType.View:
                 bool err = EditGame.Views[SelResNum].ErrLevel < 0;
                 mnuRExportGIF.Visible = true;
                 mnuRExportGIF.Enabled = !err;
-            }
-            else {
+                break;
+            case AGIResType.Picture:
+                err = EditGame.Pictures[SelResNum].ErrLevel < 0;
+                mnuRExportGIF.Visible = true;
+                mnuRExportGIF.Enabled = !err;
+                break;
+            default:
                 mnuRExportGIF.Visible = false;
+                break;
             }
         }
 
+        private void mnuRExportAll_Click(object sender, EventArgs e) {
+            ExportAll(false);
+        }
+
         private void mnuRExportGIF_Click(object sender, EventArgs e) {
-            ExportLoop(EditGame.Views[SelResNum], CurLoop);
+            switch (SelResType) {
+            case AGIResType.Picture:
+                if (EditGame.Pictures[SelResNum].ErrLevel >= 0) {
+                    ExportPicAsGif(EditGame.Pictures[SelResNum]);
+                }
+                break;
+            case AGIResType.View:
+                if (EditGame.Views[SelResNum].ErrLevel >= 0) {
+                    ExportLoopGIF(EditGame.Views[SelResNum], CurLoop);
+                }
+                break;
+            }
         }
         #endregion
 
@@ -321,11 +368,18 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Preview Picture Event Handlers
-        private void udPZoom_ValueChanged(object sender, EventArgs e) {
-            //set zoom
-            PicScale = (int)udPZoom.Value;
-            //force update
-            DisplayPicture();
+        private void udPZoom_SelectedItemChanged(object sender, EventArgs e) {
+            if (imgPicture.Visible) {
+                double oldscale = 0;
+                Point cp = Cursor.Position;
+                if (pnlPicImage.ClientRectangle.Contains(pnlPicImage.PointToClient(cp))) {
+                    oldscale = PicScale;
+                }
+                //set zoom
+                PicScale = double.Parse((string)udPZoom.SelectedItem) / 100;
+                //force update
+                DisplayPicture(oldscale);
+            }
         }
 
         private void optVisual_CheckedChanged(object sender, EventArgs e) {
@@ -363,14 +417,14 @@ namespace WinAGI.Editor {
             switch (e.Delta) {
             case < 0:
                 // wheel down
-                if (udPZoom.Value > udPZoom.Minimum) {
-                    udPZoom.Value--;
+                if (udPZoom.SelectedIndex > 0) {
+                    udPZoom.SelectedIndex--;
                 }
                 break;
             case > 0:
                 // wheel up
-                if (udPZoom.Value < udPZoom.Maximum) {
-                    udPZoom.Value++;
+                if (udPZoom.SelectedIndex < udPZoom.Items.Count - 1) {
+                    udPZoom.SelectedIndex++;
                 }
                 break;
             }
@@ -473,7 +527,7 @@ namespace WinAGI.Editor {
 
             }
             else if (e.Button == MouseButtons.None) {
-                MainStatusBar.Items[nameof(spStatus)].Text = $"X: {e.X / 2 / PicScale}    Y: {e.Y / PicScale}";
+                MainStatusBar.Items[nameof(spStatus)].Text = $"X: {(int)(e.X / 2 / PicScale)}    Y: {(int)(e.Y / PicScale)}";
             }
         }
 
@@ -865,11 +919,11 @@ namespace WinAGI.Editor {
             switch (e.Delta) {
             case < 0:
                 // wheel down
-                ZoomPrev(-1);
+                ZoomPrev(-1, true);
                 break;
             case > 0:
                 // wheel up
-                ZoomPrev(1);
+                ZoomPrev(1, true);
                 break;
             }
         }
@@ -878,7 +932,7 @@ namespace WinAGI.Editor {
             if (this != MDIMain.ActiveMdiChild) {
                 return;
             }
-            MainStatusBar.Items["spStatus"].Text = "";
+            spStatus.Text = "";
         }
 
         void pnlCel_DoubleClick(object sender, EventArgs e) {
@@ -964,7 +1018,7 @@ namespace WinAGI.Editor {
             }
             else if (e.Button == MouseButtons.None) {
                 // show coordinates in statusbar
-                MainStatusBar.Items[nameof(spStatus)].Text = $"X: {e.X / 2 / ViewScale}    Y: {e.Y / ViewScale}";
+                spStatus.Text = $"X: {(int)(e.X / 2 / ViewScale)}    Y: {(int)(e.Y / ViewScale)}";
             }
         }
 
@@ -1309,19 +1363,26 @@ namespace WinAGI.Editor {
         }
 
         public void KeyHandler(KeyPressEventArgs e) {
+
+            // supress the ding...
+            e.Handled = true;
+
+            if (SelResNum < 0) {
+                return;
+            }
             switch (SelResType) {
             case AGIResType.Picture:
                 switch ((int)e.KeyChar) {
                 case 43: //+//
                          //zoom in
-                    if (udPZoom.Value < 4) {
-                        udPZoom.Value++;
+                    if (udPZoom.SelectedIndex < udPZoom.Items.Count - 1) {
+                        udPZoom.SelectedIndex++;
                     }
                     break;
                 case 45: //-//
                          //zoom out
-                    if (udPZoom.Value > 1) {
-                        udPZoom.Value--;
+                    if (udPZoom.SelectedIndex > 0) {
+                        udPZoom.SelectedIndex--;
                     }
                     break;
                 }
@@ -1440,10 +1501,10 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        void DisplayPicture() {
+        void DisplayPicture(double oldscale = 0) {
             //resize picture Image holder
-            imgPicture.Width = 320 * PicScale;
-            imgPicture.Height = 168 * PicScale;
+            imgPicture.Width = (int)(320 * PicScale);
+            imgPicture.Height = (int)(168 * PicScale);
 
             //if visual picture is being displayed
             if (optVisual.Checked == true) {
@@ -1454,61 +1515,121 @@ namespace WinAGI.Editor {
                 // load priority Image
                 ShowAGIBitmap(imgPicture, agPic.PriorityBMP, PicScale);
             }
+            imgPicture.Refresh();
             //set scrollbars if necessary
-            SetPScrollbars();
+            SetPScrollbars(oldscale);
         }
 
-        void SetPScrollbars() {
-            //// if panel is not visible, no need to adjust scrollbars
-            //if (!panel2.Visible) {
-            //  return;
-            //}
-            //determine if scrollbars are necessary
-            blnPicHSB = (imgPicture.Width > (pnlPicImage.Width - 2 * PW_MARGIN));
-            blnPicVSB = (imgPicture.Height > (pnlPicImage.Height - 2 * PW_MARGIN - (blnPicHSB ? hsbPic.Height : 0)));
-            //check horizontal again(incase addition of vert scrollbar forces it to be shown)
+        void SetPScrollbars(double oldscale = 0) {
+            bool blnPicVSB, blnPicHSB;
+            // Scrollbar math:
+            // ACT_SZ = size of the area being scrolled; usually the image size + margins
+            // WIN_SZ = size of the window area; the container's client size
+            // SV_MAX = maximum value that scrollbar can have; this puts the scroll bar
+            //          and scrolled image at farthest position
+            // LG_CHG = LargeChange property of the scrollbar
+            // SB_MAX = actual Maximum property of the scrollbar, to avoid out-of-bounds errors
+            //
+            //      SV_MAX = ACT_SZ - WIN_SZ 
+            //      SB_MAX = SV_MAX + LG_CHG + 1
+            //
+            // when including margins, the calculations are modified to:
+            //      ACT_SZ = MGN + IMG_SZ + MGN
+            //      SB_MIN = -MGN
+            //      SV_MAX = ACT_SZ - WIN_SZ + SB_MIN
+            //             = MGN + IMG_SZ + MGN + SB_MIN - WIN_SZ
+            //             = MGN + IMG_SZ + MGN - MGN - WIN_SZ
+            //      SV_MAX = IMG_SZ - WIN_SZ + MGN
+
+            // determine if scrollbars are necessary
+            blnPicHSB = imgPicture.Width > (pnlPicImage.Width - 2 * PW_MARGIN);
+            blnPicVSB = imgPicture.Height > (pnlPicImage.Height - 2 * PW_MARGIN - (blnPicHSB ? hsbPic.Height : 0));
+            // check horizontal again(incase addition of vert scrollbar forces it to be shown)
             blnPicHSB = (imgPicture.Width > (pnlPicImage.Width - 2 * PW_MARGIN - (blnPicVSB ? vsbPic.Width : 0)));
-            //if both are visibile
             if (blnPicHSB && blnPicVSB) {
-                //move back from corner
+                // move back from corner
+
                 hsbPic.Width = pnlPicImage.Width - vsbPic.Width;
                 vsbPic.Height = pnlPicImage.Height - hsbPic.Height;
-                //show corner
+                // show corner
                 fraPCorner.Visible = true;
             }
             else {
                 fraPCorner.Visible = false;
             }
-            // if visible, set large/small change values, then max values
-            // note that in .NET, the actual highest value attainable in a
-            // scrollbar is NOT the Maximum value; it's Maximum - LargeChange + 1!!
-            // that seems really dumb, but it's what happens...
-
-            //set change and Max values for horizontal bar
             if (blnPicHSB) {
-                // changes are based on size of the visible panel
-                //(LargeChange value can't exceed Max value, so force Max to high enough value;
-                // it will be calculated correctly later)
+                // (LargeChange value can't exceed Max value, so set Max to high enough
+                // value so it can be calculated correctly later)
                 hsbPic.Maximum = pnlPicImage.Width;
                 hsbPic.LargeChange = (int)(pnlPicImage.Width * LG_SCROLL);
                 hsbPic.SmallChange = (int)(pnlPicImage.Width * SM_SCROLL);
-                // calculate control MAX value - equals desired actual Max + LargeChange - 1
-                hsbPic.Maximum = imgPicture.Width - (pnlPicImage.Width - (blnPicVSB ? vsbPic.Width : 0)) + PW_MARGIN + hsbPic.LargeChange - 1;
-
-                //always reposition picture holder back to default
-                imgPicture.Left = PW_MARGIN;
-                // set value to current 
-                hsbPic.Value = -imgPicture.Left;
+                // calculate actual max (when image is fully scrolled to right)
+                int SV_MAX = imgPicture.Width - (pnlPicImage.Width - (blnPicVSB ? vsbPic.Width : 0)) + PW_MARGIN;
+                // control MAX value equals actual Max + LargeChange - 1
+                hsbPic.Maximum = SV_MAX + hsbPic.LargeChange - 1;
+                int newscroll;
+                if (oldscale > 0) {
+                    // if cursor is over the image, use cursor pos as anchor point
+                    // the correct algebra to make this work is:
+                    //         SB1 = SB0 + (SB0 + WAN - MGN) * (SF1 / SF0 - 1)
+                    // SB = scrollbar value
+                    // WAN = panel client window anchor point (get from cursor pos)
+                    // MGN is the left/top margin
+                    // SF = scale factor (as calculated above)
+                    // -0 = previous values
+                    // -1 = new (desired) values
+                    int anchor = pnlPicImage.PointToClient(Cursor.Position).X;
+                    newscroll = (int)(hsbPic.Value + (hsbPic.Value + anchor - PW_MARGIN) * (PicScale / oldscale - 1));
+                }
+                else {
+                    newscroll = hsbPic.Value;
+                }
+                if (newscroll < -PW_MARGIN) {
+                    hsbPic.Value = -PW_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    hsbPic.Value = SV_MAX;
+                }
+                else {
+                    hsbPic.Value = newscroll;
+                }
             }
+            else {
+                // reset to default
+                hsbPic.Value = -PW_MARGIN;
+            }
+            // readjust picture position
+            imgPicture.Left = -hsbPic.Value;
+
             // repeat for vertical bar
             if (blnPicVSB) {
                 vsbPic.Maximum = pnlPicImage.Height;
                 vsbPic.LargeChange = (int)(pnlPicImage.Height * LG_SCROLL); //90% for big jump
                 vsbPic.SmallChange = (int)(pnlPicImage.Height * SM_SCROLL); //22.5% for small jump
-                vsbPic.Maximum = imgPicture.Height - (pnlPicImage.Bounds.Height - (blnPicHSB ? hsbPic.Height : 0)) + PW_MARGIN + vsbPic.LargeChange - 1;
-                imgPicture.Top = PW_MARGIN;
-                vsbPic.Value = -imgPicture.Top;
+                int SV_MAX = imgPicture.Height - (pnlPicImage.Height - (blnPicHSB ? hsbPic.Height : 0)) + PW_MARGIN;
+                vsbPic.Maximum = SV_MAX + vsbPic.LargeChange - 1;
+                int newscroll;
+                if (oldscale > 0) {
+                    int anchor = pnlPicImage.PointToClient(Cursor.Position).Y;
+                    newscroll = (int)(vsbPic.Value + (vsbPic.Value + anchor - PW_MARGIN) * (PicScale / oldscale - 1));
+                }
+                else {
+                    newscroll = vsbPic.Value;
+                }
+                if (newscroll < -PW_MARGIN) {
+                    vsbPic.Value = -PW_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    vsbPic.Value = SV_MAX;
+                }
+                else {
+                    vsbPic.Value = newscroll;
+                }
             }
+            else {
+                vsbPic.Value = -PW_MARGIN;
+            }
+            imgPicture.Top = -vsbPic.Value;
             //set visible properties for scrollbars
             hsbPic.Visible = blnPicHSB;
             vsbPic.Visible = blnPicVSB;
@@ -1623,37 +1744,50 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        void ZoomPrev(int Dir) {
-            int mW, mH;
-            //get current maxH and maxW (by de-calculating)
-            mW = picCel.Width / ViewScale / 2;
-            mH = picCel.Height / ViewScale;
+        void ZoomPrev(int Dir, bool useanchor = false) {
+            double oldscale = useanchor ? ViewScale : 0;
 
             if (Dir == 1) {
-                ViewScale++;
-                if (ViewScale == 17) {
-                    ViewScale = 16;
+                if (ViewScale < 3) {
+                    ViewScale += 0.25;
+                }
+                else if (ViewScale < 8) {
+                    ViewScale += 0.5;
+                }
+                else if (ViewScale < 15) {
+                    ViewScale += 1;
+                }
+                else {
+                    // at max
                     return;
                 }
             }
             else {
-                ViewScale--;
-                if (ViewScale == 0) {
-                    ViewScale = 1;
+                if (ViewScale > 8) {
+                    ViewScale -= 1;
+                }
+                else if (ViewScale > 3) {
+                    ViewScale -= 0.5;
+                }
+                else if (ViewScale > 1) {
+                    ViewScale -= 0.25;
+                }
+                else {
+                    // at minimum
                     return;
                 }
             }
+            tsbViewScale.Text = (ViewScale * 100).ToString() + "%";
             //now rezize cel
-            picCel.Width = mW * 2 * ViewScale;
-            picCel.Height = mH * ViewScale;
+            picCel.Width = (int)(CelFrameW * 2 * ViewScale);
+            picCel.Height = (int)(CelFrameH * ViewScale);
             //set scrollbars
-            SetVScrollbars();
+            SetVScrollbars(oldscale);
             //then redraw the cel
             DisplayCel();
         }
 
         void DisplayLoop() {
-            int i, mW, mH;
             // update loop label
             udLoop.Text = $"Loop {CurLoop} / {agView.Loops.Count - 1}";
             // reset cel
@@ -1663,22 +1797,22 @@ namespace WinAGI.Editor {
             cmdVPlay.Enabled = (agView[CurLoop].Cels.Count > 1);
             cmdVPlay.BackgroundImage = imageList1.Images[8];
             // determine size of holding pic
-            mW = 0;
-            mH = 0;
-            for (i = 0; i <= agView[CurLoop].Cels.Count - 1; i++) {
-                if (agView[CurLoop].Cels[i].Width > mW) {
-                    mW = agView.Loops[CurLoop].Cels[i].Width;
+            CelFrameW = 0;
+            CelFrameH = 0;
+            for (int i = 0; i <= agView[CurLoop].Cels.Count - 1; i++) {
+                if (agView[CurLoop].Cels[i].Width > CelFrameW) {
+                    CelFrameW = agView.Loops[CurLoop].Cels[i].Width;
                 }
-                if (agView.Loops[CurLoop].Cels[i].Height > mH) {
-                    mH = agView.Loops[CurLoop].Cels[i].Height;
+                if (agView.Loops[CurLoop].Cels[i].Height > CelFrameH) {
+                    CelFrameH = agView.Loops[CurLoop].Cels[i].Height;
                 }
             }
             // old image needs to be cleared to avoid ghost images
             // when resizing the cel image
             picCel.Image = new Bitmap(picCel.Width, picCel.Height);
             picCel.Refresh();
-            picCel.Width = mW * 2 * ViewScale;
-            picCel.Height = mH * ViewScale;
+            picCel.Width = (int)(CelFrameW * 2 * ViewScale);
+            picCel.Height = (int)(CelFrameH * ViewScale);
             //force back to upper, left
             picCel.Top = PW_MARGIN;
             picCel.Left = PW_MARGIN;
@@ -1689,12 +1823,17 @@ namespace WinAGI.Editor {
         }
 
         void SetVScrollbars() {
-            // determine if scrollbars are necessary
+            SetVScrollbars(0);
+        }
+
+        void SetVScrollbars(double oldscale) {
+            // similar to picture scrollbar method; see SetPScrollbars for 
+            // more detailed comments
+            bool blnViewHSB, blnViewVSB;
+
             blnViewHSB = (picCel.Width > (pnlCel.Width - 2 * PW_MARGIN));
             blnViewVSB = (picCel.Height > (pnlCel.Height - 2 * PW_MARGIN - (blnViewHSB ? hsbView.Height : 0)));
-            //check horizontal again(in case addition of vert scrollbar forces it to be shown)
             blnViewHSB = (picCel.Width > (pnlCel.Width - 2 * PW_MARGIN - (blnViewVSB ? vsbView.Width : 0)));
-            // if both are visibile
             if (blnViewHSB && blnViewVSB) {
                 //move back from corner
                 hsbView.Width = pnlCel.Width - vsbView.Width;
@@ -1705,34 +1844,66 @@ namespace WinAGI.Editor {
             else {
                 fraVCorner.Visible = false;
             }
-
-            // if visible, set large/small change values, then max values
-            // note that in .NET, the actual highest value attainable in a
-            // scrollbar is NOT the Maximum value; it's Maximum - LargeChange + 1!!
-            // that seems really dumb, but it's what happens...
-
             if (blnViewHSB) {
-                // set change and Max values for horizontal bar
-                //(LargeChange value can't exceed Max value, so force Max to high enough value;
                 hsbView.Maximum = pnlCel.Width;
-                // it will be calculated correctly later)
                 hsbView.LargeChange = (int)(pnlCel.Width * LG_SCROLL);
                 hsbView.SmallChange = (int)(pnlCel.Width * SM_SCROLL);
-                // Max value: = desired actual Max + LargeChange - 1
-                hsbView.Maximum = picCel.Width - (pnlCel.Width - (blnViewVSB ? vsbView.Width : 0)) + PW_MARGIN + hsbView.LargeChange - 1;
+                int SV_MAX = picCel.Width - (pnlCel.Width - (blnViewVSB ? vsbView.Width : 0)) + PW_MARGIN;
+                hsbView.Maximum = SV_MAX + hsbView.LargeChange - 1;
+                int newscroll;
+                if (oldscale > 0) {
+                    int anchor = pnlCel.PointToClient(Cursor.Position).X;
+                    newscroll = (int)(hsbView.Value + (hsbView.Value + anchor - PW_MARGIN) * (ViewScale / oldscale - 1));
+                }
+                else {
+                    newscroll = hsbView.Value;
+                }
+                if (newscroll < -PW_MARGIN) {
+                    hsbView.Value = -PW_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    hsbView.Value = SV_MAX;
+                }
+                else {
+                    hsbView.Value = newscroll;
+                }
             }
+            else {
+                hsbView.Value = -PW_MARGIN;
+            }
+            picCel.Left = -hsbView.Value;
             // repeeat for vertical scrollbar
             if (blnViewVSB) {
                 vsbView.Maximum = pnlCel.Height;
                 vsbView.LargeChange = (int)(pnlCel.Height * LG_SCROLL);
                 vsbView.SmallChange = (int)(pnlCel.Height * SM_SCROLL);
-                vsbView.Maximum = picCel.Height - (pnlCel.Height - (blnViewHSB ? hsbView.Height : 0)) + PW_MARGIN + vsbView.LargeChange - 1;
+                int SV_MAX = picCel.Height - (pnlCel.Height - (blnViewHSB ? hsbView.Height : 0)) + PW_MARGIN;
+                vsbView.Maximum = SV_MAX + vsbView.LargeChange - 1;
+                int newscroll;
+                if (oldscale > 0) {
+                    int anchor = pnlCel.PointToClient(Cursor.Position).Y;
+                    newscroll = (int)(vsbView.Value + (vsbView.Value + anchor - PW_MARGIN) * (ViewScale * oldscale - 1));
+                }
+                else {
+                    newscroll = vsbView.Value;
+                }
+                if (newscroll < -PW_MARGIN) {
+                    vsbView.Value = -PW_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    vsbView.Value = SV_MAX;
+                }
+                else {
+                    vsbView.Value = newscroll;
+                }
             }
+            else {
+                vsbView.Value = -PW_MARGIN;
+            }
+            picCel.Top = -vsbView.Value;
             // set visible properties
             hsbView.Visible = blnViewHSB;
             vsbView.Visible = blnViewVSB;
-            DontDraw = false;
-            return;
         }
 
         public bool DisplayCel() {
@@ -1743,12 +1914,13 @@ namespace WinAGI.Editor {
             // update ud caption
             udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
             //set transparent color for the toolbox image
-            picTrans.Image = new Bitmap(picTrans.Width, picTrans.Height);
-            Graphics.FromImage(picTrans.Image).Clear(EditGame.Palette[(int)agView[CurLoop][CurCel].TransColor]);
+            picTrans.BackColor = EditGame.Palette[(int)agView[CurLoop][CurCel].TransColor];
+            //picTrans.Image = new Bitmap(picTrans.Width, picTrans.Height);
+            //Graphics.FromImage(picTrans.Image).Clear(EditGame.Palette[(int)agView[CurLoop][CurCel].TransColor]);
 
             //copy view Image
-            tgtW = agView[CurLoop][CurCel].Width * 2 * ViewScale;
-            tgtH = agView[CurLoop][CurCel].Height * ViewScale;
+            tgtW = (int)(agView[CurLoop][CurCel].Width * 2 * ViewScale);
+            tgtH = (int)(agView[CurLoop][CurCel].Height * ViewScale);
             switch (lngHAlign) {
             case 0:
                 tgtX = 0;
@@ -1794,6 +1966,9 @@ namespace WinAGI.Editor {
             picCel.Image = new Bitmap(picCel.Width, picCel.Height);
             ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
             if (blnTrans) {
+                // TODO: there's a reference to drawing a grid somewhere
+                // in the custom control used on the InsertChar form...
+                //
                 // draw single pixel dots spaced 10 pixels apart over transparent pixels only
                 using Graphics gc = Graphics.FromImage(picCel.Image);
                 Bitmap b = new(picCel.Image);
@@ -1818,9 +1993,5 @@ namespace WinAGI.Editor {
             DisplayCel();
         }
         #endregion
-
-        private void mnuRExportAll_Click(object sender, EventArgs e) {
-            ExportAll(false);
-        }
     }
 }

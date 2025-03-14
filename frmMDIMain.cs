@@ -290,14 +290,32 @@ namespace WinAGI.Editor {
             if (MDIMain.ActiveMdiChild == null) {
                 UpdateTBResourceBtns(AGIResType.None, false, false);
                 ToolStripManager.RevertMerge(statusStrip1);
-                MainStatusBar.Items["spStatus"].Text = "";
+                spStatus.Text = "";
             }
             else {
                 dynamic form = MDIMain.ActiveMdiChild;
                 dynamic statusbar = form.statusStrip1;
+                //frmPicEdit f;
+                //f.statusStrip1.Items.Contains()
                 ToolStripManager.RevertMerge(statusStrip1);
-                MainStatusBar.Items["spStatus"].Text = "";
+                spStatus.Text = "";
                 if (statusbar != null) {
+                    // !!!
+                    // when MergeAction is Remove, Replace or MatchOnly
+                    // the items are matched based on Text property, not
+                    // Name!!! so make sure Text values are set correctly
+                    // before attmpting to merge
+                    // !!!
+                    if (statusbar.Items.ContainsKey("spStatus")) {
+                        // always clear status?
+                        spStatus.Text = statusbar.Items["spStatus"].Text;
+                    }
+                    if (statusbar.Items.ContainsKey("spCapsLock")) {
+                        // make sure new items match current items
+                         statusbar.Items["spCapsLock"].Text = spCapsLock.Text;
+                         statusbar.Items["spNumLock"].Text = spNumLock.Text;
+                         statusbar.Items["spInsLock"].Text = spInsLock.Text;
+                    }
                     ToolStripManager.Merge(statusbar, nameof(statusStrip1));
                 }
                 bool ingame = false;
@@ -463,19 +481,19 @@ namespace WinAGI.Editor {
                 if (newCapsLock != CapsLock) {
                     CapsLock = newCapsLock;
                     if (spCapsLock is not null) {
-                        spCapsLock.Text = CapsLock ? "CAP" : "";
+                        spCapsLock.Text = CapsLock ? "CAP" : "\t";
                     }
                 }
                 if (newNumLock != NumLock) {
                     NumLock = newNumLock;
                     if (spNumLock is not null) {
-                        spNumLock.Text = NumLock ? "NUM" : "";
+                        spNumLock.Text = NumLock ? "NUM" : "\t";
                     }
                 }
                 if (newInsertLock != InsertLock) {
                     InsertLock = newInsertLock;
                     if (spInsLock is not null) {
-                        spInsLock.Text = InsertLock ? "INS" : "";
+                        spInsLock.Text = InsertLock ? "INS" : "\t";
                     }
                 }
             }
@@ -728,7 +746,9 @@ namespace WinAGI.Editor {
                 mnuRSavePicImage.Visible = true;
                 mnuRSavePicImage.Enabled = !err;
                 mnuRSavePicImage.Text = "Save Picture Image As...";
-                mnuRExportGIF.Visible = false;
+                mnuRExportGIF.Text = "Export Picture As Animated GIF...";
+                mnuRExportGIF.Visible = true;
+                mnuRExportGIF.Enabled = !err;
                 break;
             case AGIResType.Sound:
                 err = EditGame.Sounds[SelResNum].ErrLevel < 0;
@@ -742,6 +762,7 @@ namespace WinAGI.Editor {
                 mnuRSep3.Visible = true;
                 mnuRCompileLogic.Visible = false;
                 mnuRSavePicImage.Visible = false;
+                mnuRExportGIF.Text = "Export Loop As Animated GIF...";
                 mnuRExportGIF.Visible = true;
                 mnuRExportGIF.Enabled = !err;
                 break;
@@ -1023,7 +1044,18 @@ namespace WinAGI.Editor {
         }
 
         private void mnuRExportGIF_Click(object sender, EventArgs e) {
-            ExportLoop(EditGame.Views[SelResNum], 0);
+            switch (SelResType) {
+            case AGIResType.Picture:
+                if (EditGame.Pictures[SelResNum].ErrLevel >= 0) {
+                    ExportPicAsGif(EditGame.Pictures[SelResNum]);
+                }
+                break;
+            case AGIResType.View:
+                if (EditGame.Views[SelResNum].ErrLevel >= 0) {
+                    ExportLoopGIF(EditGame.Views[SelResNum], 0);
+                }
+                break;
+            }
         }
 
         #endregion
@@ -1273,7 +1305,7 @@ namespace WinAGI.Editor {
                 cmRSep2.Visible = false;
                 cmRCompileLogic.Visible = false;
                 cmRSavePicImage.Visible = false;
-                cmRExportLoopGIF.Visible = false;
+                cmRExportGIF.Visible = false;
                 return;
             }
             // WORDS.TOK
@@ -1296,7 +1328,7 @@ namespace WinAGI.Editor {
                 cmRSep2.Visible = false;
                 cmRCompileLogic.Visible = false;
                 cmRSavePicImage.Visible = false;
-                cmRExportLoopGIF.Visible = false;
+                cmRExportGIF.Visible = false;
                 return;
             }
             // game or resource header 
@@ -1329,7 +1361,7 @@ namespace WinAGI.Editor {
                     cmRSep2.Visible = false;
                     cmRSavePicImage.Visible = false;
                 }
-                cmRExportLoopGIF.Visible = false;
+                cmRExportGIF.Visible = false;
                 return;
             }
             // must be a logic/picture/sound/view resource
@@ -1356,7 +1388,7 @@ namespace WinAGI.Editor {
                 cmRCompileLogic.Visible = !EditGame.Logics[SelResNum].Compiled;
                 cmRCompileLogic.Enabled = true;
                 cmRSavePicImage.Visible = false;
-                cmRExportLoopGIF.Visible = false;
+                cmRExportGIF.Visible = false;
                 break;
             case AGIResType.Picture:
                 err = EditGame.Pictures[SelResNum].ErrLevel < 0;
@@ -1365,22 +1397,25 @@ namespace WinAGI.Editor {
                 cmRSavePicImage.Visible = true;
                 cmRSavePicImage.Enabled = !err;
                 cmRSavePicImage.Text = "Save Picture Image As...";
-                cmRExportLoopGIF.Visible = false;
+                cmRExportGIF.Text = "Export Picture As Animated GIF...";
+                cmRExportGIF.Visible = true;
+                cmRExportGIF.Enabled = !err;
                 break;
             case AGIResType.Sound:
                 err = EditGame.Sounds[SelResNum].ErrLevel < 0;
                 cmRSep2.Visible = false;
                 cmRCompileLogic.Visible = false;
                 cmRSavePicImage.Visible = false;
-                cmRExportLoopGIF.Visible = false;
+                cmRExportGIF.Visible = false;
                 break;
             case AGIResType.View:
                 err = EditGame.Views[SelResNum].ErrLevel < 0;
                 cmRSep2.Visible = true;
                 cmRCompileLogic.Visible = false;
                 cmRSavePicImage.Visible = false;
-                cmRExportLoopGIF.Visible = true;
-                cmRExportLoopGIF.Enabled = !err;
+                cmRExportGIF.Text = "Export Loop As Animated GIF...";
+                cmRExportGIF.Visible = true;
+                cmRExportGIF.Enabled = !err;
                 break;
             }
             // if resource has an error, only add/remove is enabled
@@ -3427,8 +3462,13 @@ namespace WinAGI.Editor {
             if (WinAGISettings.PicScaleEdit.Value > 4) {
                 WinAGISettings.PicScaleEdit.Value = 4;
             }
-            //WinAGISettings.CursorMode = (EPicCursorMode)WinAGISettingsFile.GetSetting(sPICTURES, "CursorMode", (int)DEFAULT_CURSORMODE, typeof(EPicCursorMode));
-
+            WinAGISettings.CursorMode.ReadSetting(WinAGISettingsFile);
+            if (WinAGISettings.CursorMode.Value < 0) {
+                WinAGISettings.CursorMode.Value = 0;
+            }
+            if (WinAGISettings.CursorMode.Value > 1) {
+                WinAGISettings.CursorMode.Value = 1;
+            }
 
             // PICTEST
             WinAGISettings.PTObjSpeed.ReadSetting(WinAGISettingsFile);

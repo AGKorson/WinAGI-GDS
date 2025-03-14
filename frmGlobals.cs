@@ -1636,13 +1636,13 @@ namespace WinAGI.Editor {
                 if (rtn == DialogResult.Yes) {
                     // step through all defines; if the current name is different than
                     // the original name, change it in all logics
-                    ProgressWin = new() {
+                    ProgressWin = new(this) {
                         Text = "Updating Global Defines",
                     };
                     ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + LogicEditors.Count + 1;
                     ProgressWin.pgbStatus.Value = 0;
                     ProgressWin.lblProgress.Text = "Locating modified define names...";
-                    ProgressWin.Show(MDIMain);
+                    ProgressWin.Show();
                     ProgressWin.Refresh();
                     foreach (frmLogicEdit loged in LogicEditors) {
                         if (loged.FormMode == LogicFormMode.Logic && loged.InGame) {
@@ -1814,18 +1814,18 @@ namespace WinAGI.Editor {
                     ProgressWin.Text = "Save Defines List";
                 }
                 else {
-                    ProgressWin = new() {
+                    ProgressWin = new(this) {
                         Text = "Save Defines List",
                     };
-                    ProgressWin.Show(MDIMain);
+                    ProgressWin.Show();
                 }
             }
             else {
                 // not in a game; just save it
-                ProgressWin = new() {
+                ProgressWin = new(this) {
                     Text = "Save Defines List",
                 };
-                ProgressWin.Show(MDIMain);
+                ProgressWin.Show();
             }
             // done updating logics, now save the list
             //ProgressWin.Text = "Save Defines List";

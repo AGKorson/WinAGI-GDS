@@ -15,7 +15,7 @@ namespace WinAGI.Editor {
         string HelpFile = "";
         string HelpTopic = "";
 
-        internal frmDialog(IWin32Window owner, string Prompt, string Title, MessageBoxButtons Buttons, MessageBoxIcon Icon, string CheckString, ref bool Checked, string HelpFile, string HelpTopic) {
+        internal frmDialog(Form owner, string Prompt, string Title, MessageBoxButtons Buttons, MessageBoxIcon Icon, string CheckString, ref bool Checked, string HelpFile, string HelpTopic) {
             // show a custom msgbox
             // OKOnly =              0 1
             // OKCancel =            1 1-2
@@ -197,7 +197,7 @@ namespace WinAGI.Editor {
                 cmdHelp.Visible = true;
                 lngButtonCount++;
                 // identify owner form for help
-                HelpOwner = (Form)owner;
+                HelpOwner = owner;
             }
             // width needs to be wide enough for the message, all buttons, and the checkbox text
             // save width based on msg size so it can be compared to button size
@@ -226,36 +226,42 @@ namespace WinAGI.Editor {
             else {
                 StartPosition = FormStartPosition.Manual;
                 Point offset = new() {
-                    X = ((Form)owner).Width / 2 - Width / 2,
-                    Y = ((Form)owner).Height / 2 - Height / 2
+                    X = owner.Width / 2 - Width / 2,
+                    Y = owner.Height / 2 - Height / 2
                 };
                 Point pos = new();
                 // child form?
-                if (((Form)owner).IsMdiChild) {
+                if (owner.IsMdiChild) {
                     // extracting actual position of form is not easy- 
                     // PointToScreen on the form gives the position of the client area
                     // not the form, so we have to account for the left and top borders
                     // BUT there is no way to get that easily; we use the difference
                     // between client size and form size and make some assumptions...
+
+                    // if we assume bottom border is same as right/left; then
+                    // rightborder = leftborder = (frm.Width - client.Width) / 2
+                    // topborder = frm.Width - client.Width - rightborder
+                    //
+                    // this doesn't work though - instead, rightborder needs to be
+                    // frm.Width - client.Width (full amount, not halved)
+                    // and topborder = 1/2 of rightborder
+                    //
+                    // NO IDEA why this is so- but it works.
+                    // 
                     Point childoffset = new() {
-                        X = -(((Form)owner).Width - ((Form)owner).ClientSize.Width)
+                        X = -(owner.Width - owner.ClientSize.Width), // / 2
                     };
-                    childoffset.Y = -(((Form)owner).Height - ((Form)owner).ClientSize.Height + childoffset.X / 2);
-                    // calculate childpos in screen coordinates by applying the child offset
-                    // value to the pointtoscreen function
-                    pos = ((Form)owner).PointToScreen(childoffset);
+                    childoffset.Y = -(owner.Height - owner.ClientSize.Height + childoffset.X / 2);
+                    pos = owner.PointToScreen(childoffset);
                 }
                 else {
-                    pos.X = ((Form)owner).Left;
-                    pos.Y = ((Form)owner).Top;
+                    pos.X = owner.Left;
+                    pos.Y = owner.Top;
                 }
                 // adjust pos by offset to center the form
-                // (after all that, it still doesn't work quite right- the size of the dialog
-                // seems to be several pixels smaller than what's reported by the Height/Width
-                // properties, so it appears slightly to right/top of center- no idea why it
-                // does this, but we'll call it close enough...
                 pos.Offset(offset);
                 Location = pos;
+
             }
         }
 

@@ -40,7 +40,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X 12. Reserved Defines Editor
     X 13. Object Editor
     X 14. Word Editor
-      15. Palette Editor
+    O 15. Palette Editor
       16. Picture Editor
       17. View Editor
       18. Sound Editor
@@ -54,6 +54,10 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+
+**alpha15.1** picture editor framework is set, basic image drawing/scaling functions working. Still lot of work to do to get the editor working. 
+The export as gif functions now work correctly and performance significantly improved (after fixing the LZW compression functions). 
+Lots of other minor bug fixes across many other files.
 
 **alpha15.0** Palette editor is complete.
 

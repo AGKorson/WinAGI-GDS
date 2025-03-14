@@ -13,28 +13,29 @@ using static WinAGI.Engine.Base;
 using static WinAGI.Engine.AGIGame;
 
 namespace WinAGI.Editor {
-    public partial class frmExportViewLoopOptions : Form {
+    public partial class frmExportAnimatedGIF : Form {
         int formMode;
         Engine.View exportview;
         Loop exportloop;
         Picture exportpic;
         public GifOptions SelectedGifOptions;
-        bool DontDraw, loaded = false;
+        bool loaded = false;
         bool blnVisOn, blnXYDraw;
         byte bytCel;
         int lngPos;
         int MaxW, MaxH;
         const int VG_MARGIN = 4;
 
-        public frmExportViewLoopOptions(Engine.View gifview, int loopnum) {
+        public frmExportAnimatedGIF(Engine.View gifview, int loopnum) {
             InitializeComponent();
             InitForm(gifview, loopnum);
         }
 
-        public frmExportViewLoopOptions(Picture picture) {
+        public frmExportAnimatedGIF(Picture picture) {
             InitializeComponent();
             InitForm(picture);
         }
+
         #region Event Handlers
         private void frmExportViewLoopOptions_FormClosing(object sender, FormClosingEventArgs e) {
             if (formMode == 0) {
@@ -57,10 +58,12 @@ namespace WinAGI.Editor {
         }
 
         private void cmdOK_Click(object sender, EventArgs e) {
-            // copy new options back to global options
-            // (the global variable is used as starting point for the 
-            // next export action)
-            DefaultVGOptions = SelectedGifOptions;
+            if (formMode == 0) {
+                // copy new options back to global options
+                // (the global variable is used as starting point for the 
+                // next export action)
+                DefaultVGOptions = SelectedGifOptions;
+            }
             DialogResult = DialogResult.OK;
             Hide();
         }
@@ -114,13 +117,6 @@ namespace WinAGI.Editor {
             }
             //force update
             DisplayCel();
-            //// show or hide panel grid as needed
-            //if (blnTrans) {
-            //    DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
-            //}
-            //else {
-            //    pnlCel.CreateGraphics().Clear(BackColor);
-            //}
         }
 
         private void chkLoop_CheckedChanged(object sender, EventArgs e) {
@@ -137,21 +133,25 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void udScale_Enter(object sender, EventArgs e) {
+            cmdOK.Focus();
+        }
+
         private void udDelay_ValueChanged(object sender, EventArgs e) {
             SelectedGifOptions.Delay = (int)udDelay.Value;
             timer1.Interval = 10 * (int)udDelay.Value;
         }
 
-        private void HScroll1_ValueChanged(object sender, EventArgs e) {
-            if (!DontDraw) {
-                picCel.Left = -HScroll1.Value;
-            }
+        private void udDelay_Enter(object sender, EventArgs e) {
+            cmdOK.Focus();
         }
 
-        private void VScroll1_ValueChanged(object sender, EventArgs e) {
-            if (!DontDraw) {
-                picCel.Top = -VScroll1.Value;
-            }
+        private void VScroll1_Scroll(object sender, ScrollEventArgs e) {
+            picCel.Top = -VScroll1.Value;
+        }
+
+        private void HScroll1_Scroll(object sender, ScrollEventArgs e) {
+            picCel.Left = -HScroll1.Value;
         }
 
         private void timer1_Tick(object sender, EventArgs e) {
@@ -229,6 +229,7 @@ namespace WinAGI.Editor {
                 //show pic drawn up to this point
                 exportpic.DrawPos = lngPos;
                 ShowAGIBitmap(picGrid, exportpic.VisualBMP, 1);
+                picGrid.Refresh();
                 break;
             }
         }
@@ -247,6 +248,7 @@ namespace WinAGI.Editor {
         private void InitForm(Engine.View view, int startloop) {
             // display the loop, and set preview using default export settings
 
+            Text = "Export Loop As Animated GIF";
             formMode = 0;
             exportview = view;
             loaded = exportview.Loaded;
@@ -317,12 +319,11 @@ namespace WinAGI.Editor {
             picCel.Left = VG_MARGIN;
             cmbLoop.SelectedIndex = startloop;
             CheckScrollbars();
-            // TODO: to prevent changes due to controls changing move the
-            // event attachment code from the form designer to this method
-            // AFTER all setup code is done
         }
 
         private void InitForm(Picture picture) {
+
+            Text = "Export Picture As Animated GIF";
             formMode = 1;
             exportpic = picture;
             loaded = exportpic.Loaded;
@@ -342,7 +343,10 @@ namespace WinAGI.Editor {
             cmbLoop.Visible = false;
             chkLoop.Checked = true;
             lngPos = -1;
-            SelectedGifOptions = DefaultVGOptions;
+            SelectedGifOptions = new();
+            SelectedGifOptions.Zoom = 1;
+            SelectedGifOptions.Delay = 1;
+            SelectedGifOptions.Cycle = true;
             if (SelectedGifOptions.Cycle) {
                 chkLoop.Checked = true;
             }
@@ -351,6 +355,18 @@ namespace WinAGI.Editor {
             }
             udScale.Text = SelectedGifOptions.Zoom.ToString();
             udDelay.Text = SelectedGifOptions.Delay.ToString();
+            picGrid.Top -= 13;
+            picGrid.Height -= 95;
+            chkLoop.Top -= 95;
+            lblScale.Top -= 95;
+            label1.Top -= 95;
+            udScale.Top -= 95;
+            udDelay.Top -= 95;
+            label2.Top -= 95;
+            cmdCancel.Top -= 125;
+            cmdOK.Top -= 125;
+            Height -= 125;
+
             timer1.Interval = 10 * SelectedGifOptions.Delay;
             timer1.Enabled = true;
         }
@@ -370,63 +386,69 @@ namespace WinAGI.Editor {
                 picGrid.Height = 265;
             }
 
-            //Set the following scrollbar properties:
+            // Scrollbar math:
+            // ACT_SZ = size of the area being scrolled; usually the image size + margins
+            // WIN_SZ = size of the window area; the container's client size
+            // SV_MAX = maximum value that scrollbar can have; this puts the scroll bar
+            //          and scrolled image at farthest position
+            // LG_CHG = LargeChange property of the scrollbar
+            // SB_MAX = actual Maximum property of the scrollbar, to avoid out-of-bounds errors
+            //
+            //      SV_MAX = ACT_SZ - WIN_SZ 
+            //      SB_MAX = SV_MAX + LG_CHG + 1
+            //
+            // when including margins, the calculations are modified to:
+            //      ACT_SZ = MGN + IMG_SZ + MGN
+            //      SB_MIN = -MGN
+            //      SV_MAX = ACT_SZ - WIN_SZ + SB_MIN
+            //             = MGN + IMG_SZ + MGN + SB_MIN - WIN_SZ
+            //             = MGN + IMG_SZ + MGN - MGN - WIN_SZ
+            //      SV_MAX = IMG_SZ - WIN_SZ + MGN
 
-            //Minimum: Set to 0 (or -margin)
-
-            //SmallChange and LargeChange: Per UI guidelines, these must be set
-            //    relative to the size of the view that the user sees, not to
-            //    the total size including the unseen part.  In this example,
-            //    these must be set relative to the picture box, not to the image.
-
-            //Maximum: Calculate in steps:
-            //Step 1: The maximum to scroll is the size of the unseen part.
-            //Step 2: Add the size of visible scrollbars if necessary. (n/a if the bar don't extend past other scrollbars)
-            //Step 3: Add an adjustment factor of ScrollBar.LargeChange.
-            //(optional)step 4: add 2 * margin
-
-            // note that in .NET, the actual highest value attainable in a
-            // scrollbar is NOT the Maximum value; it's Maximum - LargeChange + 1!!
-            // that seems really dumb, but it's what happens...
-            DontDraw = true;
             HScroll1.Visible = picCel.Width > picGrid.Width - 2 * VG_MARGIN;
             VScroll1.Visible = picCel.Height > picGrid.Height - 2 * VG_MARGIN;
             if (HScroll1.Visible) {
-                HScroll1.Maximum = picGrid.Width + VG_MARGIN;
-                HScroll1.SmallChange = 64;
-                HScroll1.LargeChange = 256;
+                // (LargeChange value can't exceed Max value, so set Max to high enough
+                // value so it can be calculated correctly later)
+                HScroll1.Maximum = picGrid.Width;
+                HScroll1.SmallChange = (int)(picGrid.Width * LG_SCROLL);
+                HScroll1.LargeChange = (int)(picGrid.Width * SM_SCROLL);
+                int SV_MAX = picCel.Width - picGrid.Width + VG_MARGIN;
                 // Max value: = desired actual Max + LargeChange - 1
-                HScroll1.Maximum = picCel.Width - picGrid.Width + VG_MARGIN + HScroll1.LargeChange - 1;
-                if (-picCel.Left <= HScroll1.Maximum) {
-                    HScroll1.Value = -picCel.Left;
+                HScroll1.Maximum = SV_MAX + HScroll1.LargeChange - 1;
+                int newscroll = HScroll1.Value;
+                if (newscroll < -VG_MARGIN) {
+                    HScroll1.Value = -VG_MARGIN;
                 }
-                else {
-                    HScroll1.Value = HScroll1.Maximum;
+                else if (newscroll > SV_MAX) {
+                    HScroll1.Value = SV_MAX;
                 }
+                picCel.Left = -HScroll1.Value;
             }
             else {
-                HScroll1.Value = -VG_MARGIN;
                 picCel.Left = VG_MARGIN;
+                HScroll1.Value = -VG_MARGIN;
             }
 
             if (VScroll1.Visible) {
-                VScroll1.Maximum = picGrid.Height + VG_MARGIN;
-                VScroll1.SmallChange = 53;
-                VScroll1.LargeChange = 212;
-                // Max value: = desired actual Max + LargeChange - 1
-                VScroll1.Maximum = picCel.Height - picGrid.Height + VG_MARGIN + VScroll1.LargeChange - 1;
-                if (-picCel.Top <= VScroll1.Maximum) {
-                    VScroll1.Value = -picCel.Top;
+                VScroll1.Maximum = picGrid.Height;
+                VScroll1.SmallChange = (int)(picGrid.Height * LG_SCROLL);
+                VScroll1.LargeChange = (int)(picGrid.Height * SM_SCROLL);
+                int SV_MAX = picCel.Height - picGrid.Height + VG_MARGIN;
+                VScroll1.Maximum = SV_MAX + VScroll1.LargeChange - 1;
+                int newscroll = VScroll1.Value;
+                if (newscroll < -VG_MARGIN) {
+                    VScroll1.Value = -VG_MARGIN;
                 }
-                else {
-                    VScroll1.Value = VScroll1.Maximum;
+                else if (newscroll > SV_MAX) {
+                    VScroll1.Value = SV_MAX;
                 }
+                picCel.Top = -VScroll1.Value;
             }
             else {
                 VScroll1.Value = -VG_MARGIN;
                 picCel.Top = VG_MARGIN;
             }
-            DontDraw = false;
             return;
         }
 

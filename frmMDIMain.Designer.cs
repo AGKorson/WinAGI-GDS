@@ -190,7 +190,7 @@
             cmRSep2 = new ToolStripSeparator();
             cmRCompileLogic = new ToolStripMenuItem();
             cmRSavePicImage = new ToolStripMenuItem();
-            cmRExportLoopGIF = new ToolStripMenuItem();
+            cmRExportGIF = new ToolStripMenuItem();
             cmbResType = new ComboBox();
             lstResources = new ListView();
             columnHeader1 = new ColumnHeader();
@@ -435,7 +435,7 @@
             mnuRNew.DropDownItems.AddRange(new ToolStripItem[] { mnuRNLogic, mnuRNPicture, mnuRNSound, mnuRNView, mnuRNSep1, mnuRNObjects, mnuRNWords, mnuRNSep2, mnuRNText });
             mnuRNew.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuRNew.Name = "mnuRNew";
-            mnuRNew.Size = new System.Drawing.Size(305, 22);
+            mnuRNew.Size = new System.Drawing.Size(311, 22);
             mnuRNew.Text = "&New Resource";
             // 
             // mnuRNLogic
@@ -511,7 +511,7 @@
             mnuROpen.ImageScaling = ToolStripItemImageScaling.None;
             mnuROpen.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuROpen.Name = "mnuROpen";
-            mnuROpen.Size = new System.Drawing.Size(305, 22);
+            mnuROpen.Size = new System.Drawing.Size(311, 22);
             mnuROpen.Text = "&Open Resource";
             // 
             // mnuROLogic
@@ -584,7 +584,7 @@
             // 
             mnuRImport.DropDownItems.AddRange(new ToolStripItem[] { mnuRILogic, mnuRIPicture, mnuRISound, mnuRIView, mnuRISep, mnuRIObjects, mnuRIWords });
             mnuRImport.Name = "mnuRImport";
-            mnuRImport.Size = new System.Drawing.Size(305, 22);
+            mnuRImport.Size = new System.Drawing.Size(311, 22);
             mnuRImport.Text = "&Import Resource";
             // 
             // mnuRILogic
@@ -643,13 +643,13 @@
             // mnuRSep1
             // 
             mnuRSep1.Name = "mnuRSep1";
-            mnuRSep1.Size = new System.Drawing.Size(302, 6);
+            mnuRSep1.Size = new System.Drawing.Size(308, 6);
             // 
             // mnuROpenRes
             // 
             mnuROpenRes.Name = "mnuROpenRes";
             mnuROpenRes.ShortcutKeys = Keys.Control | Keys.Alt | Keys.O;
-            mnuROpenRes.Size = new System.Drawing.Size(305, 22);
+            mnuROpenRes.Size = new System.Drawing.Size(311, 22);
             mnuROpenRes.Text = "O&pen Resource";
             mnuROpenRes.Click += mnuROpenRes_Click;
             // 
@@ -660,7 +660,7 @@
             mnuRSave.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuRSave.Name = "mnuRSave";
             mnuRSave.ShortcutKeys = Keys.Control | Keys.S;
-            mnuRSave.Size = new System.Drawing.Size(305, 22);
+            mnuRSave.Size = new System.Drawing.Size(311, 22);
             mnuRSave.Text = "&Save Resource";
             mnuRSave.Click += mnuRSave_Click;
             // 
@@ -668,20 +668,20 @@
             // 
             mnuRExport.Name = "mnuRExport";
             mnuRExport.ShortcutKeys = Keys.Control | Keys.E;
-            mnuRExport.Size = new System.Drawing.Size(305, 22);
+            mnuRExport.Size = new System.Drawing.Size(311, 22);
             mnuRExport.Text = "&Export Resource";
             mnuRExport.Click += mnuRExport_Click;
             // 
             // mnuRSep2
             // 
             mnuRSep2.Name = "mnuRSep2";
-            mnuRSep2.Size = new System.Drawing.Size(302, 6);
+            mnuRSep2.Size = new System.Drawing.Size(308, 6);
             // 
             // mnuRRemove
             // 
             mnuRRemove.Name = "mnuRRemove";
             mnuRRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
-            mnuRRemove.Size = new System.Drawing.Size(305, 22);
+            mnuRRemove.Size = new System.Drawing.Size(311, 22);
             mnuRRemove.Text = "Remove Resource from &Game";
             mnuRRemove.Click += mnuRRemove_Click;
             // 
@@ -689,30 +689,29 @@
             // 
             mnuRRenumber.Name = "mnuRRenumber";
             mnuRRenumber.ShortcutKeys = Keys.Alt | Keys.N;
-            mnuRRenumber.Size = new System.Drawing.Size(305, 22);
+            mnuRRenumber.Size = new System.Drawing.Size(311, 22);
             mnuRRenumber.Text = "&Renumber Resource";
             mnuRRenumber.Click += mnuRRenumber_Click;
             // 
             // mnuRProperties
             // 
-            mnuRProperties.Image = (System.Drawing.Image)resources.GetObject("mnuRProperties.Image");
             mnuRProperties.ImageScaling = ToolStripItemImageScaling.None;
             mnuRProperties.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuRProperties.Name = "mnuRProperties";
             mnuRProperties.ShortcutKeys = Keys.Control | Keys.D;
-            mnuRProperties.Size = new System.Drawing.Size(305, 22);
+            mnuRProperties.Size = new System.Drawing.Size(311, 22);
             mnuRProperties.Text = "I&D/Description ...";
             mnuRProperties.Click += mnuRProperties_Click;
             // 
             // mnuRSep3
             // 
             mnuRSep3.Name = "mnuRSep3";
-            mnuRSep3.Size = new System.Drawing.Size(302, 6);
+            mnuRSep3.Size = new System.Drawing.Size(308, 6);
             // 
             // mnuRCompileLogic
             // 
             mnuRCompileLogic.Name = "mnuRCompileLogic";
-            mnuRCompileLogic.Size = new System.Drawing.Size(305, 22);
+            mnuRCompileLogic.Size = new System.Drawing.Size(311, 22);
             mnuRCompileLogic.Text = "&Compile This Logic";
             mnuRCompileLogic.Click += mnuRCompileLogic_Click;
             // 
@@ -720,15 +719,16 @@
             // 
             mnuRSavePicImage.Name = "mnuRSavePicImage";
             mnuRSavePicImage.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
-            mnuRSavePicImage.Size = new System.Drawing.Size(305, 22);
+            mnuRSavePicImage.Size = new System.Drawing.Size(311, 22);
             mnuRSavePicImage.Text = "S&ave Picture Image As...";
             mnuRSavePicImage.Click += mnuRSavePicImage_Click;
             // 
             // mnuRExportGIF
             // 
             mnuRExportGIF.Name = "mnuRExportGIF";
-            mnuRExportGIF.Size = new System.Drawing.Size(305, 22);
-            mnuRExportGIF.Text = "E&xport Loop As GIF...";
+            mnuRExportGIF.ShortcutKeys = Keys.Control | Keys.Shift | Keys.G;
+            mnuRExportGIF.Size = new System.Drawing.Size(311, 22);
+            mnuRExportGIF.Text = "E&xport Loop As Animated GIF...";
             mnuRExportGIF.Click += mnuRExportGIF_Click;
             // 
             // mnuTools
@@ -1046,7 +1046,6 @@
             spStatus.Name = "spStatus";
             spStatus.Size = new System.Drawing.Size(584, 18);
             spStatus.Spring = true;
-            spStatus.Text = "";
             spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // spCapsLock
@@ -1056,7 +1055,7 @@
             spCapsLock.BorderStyle = Border3DStyle.SunkenInner;
             spCapsLock.Name = "spCapsLock";
             spCapsLock.Size = new System.Drawing.Size(74, 18);
-            spCapsLock.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spCapsLock.Text = "\t";
             // 
             // spNumLock
             // 
@@ -1065,7 +1064,7 @@
             spNumLock.BorderStyle = Border3DStyle.SunkenInner;
             spNumLock.Name = "spNumLock";
             spNumLock.Size = new System.Drawing.Size(74, 18);
-            spNumLock.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spNumLock.Text = "\t";
             // 
             // spInsLock
             // 
@@ -1074,6 +1073,7 @@
             spInsLock.BorderStyle = Border3DStyle.SunkenInner;
             spInsLock.Name = "spInsLock";
             spInsLock.Size = new System.Drawing.Size(74, 18);
+            spInsLock.Text = "\t";
             // 
             // toolStrip1
             // 
@@ -1430,7 +1430,7 @@
             // 
             // cmsResource
             // 
-            cmsResource.Items.AddRange(new ToolStripItem[] { cmROpenRes, cmRSave, cmRExport, cmRSep1, cmRRemove, cmRRenumber, cmRProperties, cmRSep2, cmRCompileLogic, cmRSavePicImage, cmRExportLoopGIF });
+            cmsResource.Items.AddRange(new ToolStripItem[] { cmROpenRes, cmRSave, cmRExport, cmRSep1, cmRRemove, cmRRenumber, cmRProperties, cmRSep2, cmRCompileLogic, cmRSavePicImage, cmRExportGIF });
             cmsResource.Name = "cmsResource";
             cmsResource.Size = new System.Drawing.Size(308, 214);
             cmsResource.Opening += cmsResource_Opening;
@@ -1507,12 +1507,12 @@
             cmRSavePicImage.Text = "S&ave Picture Image As ...";
             cmRSavePicImage.Click += mnuRSavePicImage_Click;
             // 
-            // cmRExportLoopGIF
+            // cmRExportGIF
             // 
-            cmRExportLoopGIF.Name = "cmRExportLoopGIF";
-            cmRExportLoopGIF.Size = new System.Drawing.Size(307, 22);
-            cmRExportLoopGIF.Text = "E&xport Loop As GIF ...";
-            cmRExportLoopGIF.Click += mnuRExportGIF_Click;
+            cmRExportGIF.Name = "cmRExportGIF";
+            cmRExportGIF.Size = new System.Drawing.Size(307, 22);
+            cmRExportGIF.Text = "E&xport Loop As Animated GIF ...";
+            cmRExportGIF.Click += mnuRExportGIF_Click;
             // 
             // cmbResType
             // 
@@ -2036,12 +2036,8 @@
         private ToolStripSeparator cmRSep2;
         private ToolStripMenuItem cmRCompileLogic;
         private ToolStripMenuItem cmRSavePicImage;
-        private ToolStripMenuItem cmRExportLoopGIF;
+        private ToolStripMenuItem cmRExportGIF;
         public StatusStrip statusStrip1;
-        private ToolStripStatusLabel spStatus;
-        private ToolStripStatusLabel spCapsLock;
-        private ToolStripStatusLabel spNumLock;
-        private ToolStripStatusLabel spInsLock;
         public Splitter splitResource;
         private SplitContainer splResource;
         internal Panel pnlResources;
@@ -2076,6 +2072,10 @@
         public FolderBrowserDialog FolderDlg;
         public HelpProvider hlpWinAGI;
         public ImageList imageList1;
+        public ToolStripStatusLabel spStatus;
+        public ToolStripStatusLabel spCapsLock;
+        public ToolStripStatusLabel spNumLock;
+        public ToolStripStatusLabel spInsLock;
     }
 }
 

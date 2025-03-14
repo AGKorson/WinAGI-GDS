@@ -1437,13 +1437,13 @@ namespace WinAGI.Editor {
                     //   get, drop, put
                     FindingForm.Visible = false;
                     MDIMain.UseWaitCursor = true;
-                    ProgressWin = new() {
+                    ProgressWin = new(this) {
                         Text = "Updating Inventory Objects in Logics"
                     };
                     ProgressWin.lblProgress.Text = "Locating modified item entries...";
                     ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + LogicEditors.Count + 1;
                     ProgressWin.pgbStatus.Value = 0;
-                    ProgressWin.Show(MDIMain);
+                    ProgressWin.Show();
                     ProgressWin.Refresh();
 
                     string FindText = "", replacetext = "", pattern;
@@ -1779,28 +1779,5 @@ namespace WinAGI.Editor {
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
 #endregion
-    }
-
-    public class ObjectsUndo {
-        public ActionType UDAction;
-        public byte UDObjectRoom; // also used for Max objects & encryption
-        public int UDObjectNo;
-        public string UDObjectText = "";
-
-        public enum ActionType {
-            AddItem,      // store object number that was added
-            DeleteItem,   // store object number, text, and room that was deleted
-            ModifyItem,   // store old object number, text
-            ModifyRoom,   // store old object number, room
-            ChangeMaxObj,   // store old maxobjects
-            TglEncrypt,     // store old encryption Value
-            Clear,          // store old Objects object
-            Replace,    // store old object number, text
-            ReplaceAll, // store all old numbers and text
-        }
-
-        public ObjectsUndo() {
-
-        }
     }
 }

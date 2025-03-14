@@ -191,7 +191,7 @@ namespace WinAGI.Editor {
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += CancelButton_Click;
             // 
-            // frmPicExpOptions
+            // frmExportPictureOptions
             // 
             AcceptButton = btnOK;
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -212,7 +212,8 @@ namespace WinAGI.Editor {
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             MinimizeBox = false;
-            Name = "frmPicExpOptions";
+            Name = "frmExportPictureOptions";
+            ShowInTaskbar = false;
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "Export Picture Format";
             fraChoice.ResumeLayout(false);

@@ -1,29 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.Commands;
 using static WinAGI.Editor.Base;
 using System.IO;
 using System.Linq;
 using FastColoredTextBoxNS;
 using System.Text.RegularExpressions;
-using System.Net.Http.Headers;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using EnvDTE;
-using System.Runtime.Serialization;
-using System.Collections.ObjectModel;
 using WinAGI.Common;
 using static WinAGI.Common.API;
-using System.Runtime.InteropServices;
 
 namespace WinAGI.Editor {
     public partial class frmLogicEdit : Form {
@@ -899,19 +890,19 @@ namespace WinAGI.Editor {
             if (fctb == null) {
                 return;
             }
-            if (MainStatusBar.Items.ContainsKey("spLine")) {
-                MainStatusBar.Items["spStatus"].Text = "";
-                try {
-                    MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
-                    MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
-                }
-                catch (Exception ex) {
-                    Debug.Print(ex.ToString());
-                }
-            }
-            else {
-                Debug.Print("no status bar");
-            }
+            //if (MainStatusBar.Items.ContainsKey("spLine")) {
+            //    MainStatusBar.Items["spStatus"].Text = "";
+            //    try {
+            spLine.Text = "Line: " + fctb.Selection.End.iLine;
+            spColumn.Text = "Col: " + fctb.Selection.End.iChar;
+            //    }
+            //    catch (Exception ex) {
+            //        Debug.Print(ex.ToString());
+            //    }
+            //}
+            //else {
+            //    Debug.Print("no status bar");
+            //}
         }
 
         private void fctb_TextChanged(object sender, TextChangedEventArgs e) {
@@ -921,11 +912,11 @@ namespace WinAGI.Editor {
             }
             DefDirty = true;
             MarkAsChanged();
-            if (MainStatusBar.Items.ContainsKey("spLine")) {
-                MainStatusBar.Items["spStatus"].Text = "";
-                MainStatusBar.Items[nameof(spLine)].Text = "Line: " + fctb.Selection.End.iLine;
-                MainStatusBar.Items[nameof(spColumn)].Text = "Col: " + fctb.Selection.End.iChar;
-            }
+            //if (MainStatusBar.Items.ContainsKey("spLine")) {
+            spStatus.Text = "";
+            spLine.Text = "Line: " + fctb.Selection.End.iLine;
+            spColumn.Text = "Col: " + fctb.Selection.End.iChar;
+            //}
         }
 
         private void fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e) {

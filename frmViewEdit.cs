@@ -116,7 +116,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuRExportLoopGIF_Click(object sender, EventArgs e) {
-            ExportLoop(EditView, CurLoop);
+            ExportLoopGIF(EditView, CurLoop);
         }
         #endregion
 

@@ -14,7 +14,7 @@ X   12. Reserved Defines Editor
 X   13. Object Editor
 X   14. Word Editor
 X   15. Palette Editor
-    16. Picture Editor
+O   16. Picture Editor
     17. View Editor
     18. Sound Editor
     19. Layout Editor
@@ -28,17 +28,6 @@ X   15. Palette Editor
 Miscellaneous Notes
 ===========================================================================================================
       
-      to print text:
-            Font font = new Font(NAME, SIZE, STYLE);
-            Point startPoint = new Point(TOP, LEFT);  
-            // Set TextFormatFlags to no padding if strings are to be drawn together.
-            TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
-            // Declare a proposed size with dimensions set to the maximum integer value.
-            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
-            // get size (to adjust position if drawing strings in order)
-            Size szText = TextRenderer.MeasureText(graphics, TEXT, font, proposedSize, flags);
-            TextRenderer.DrawText(graphics, TEXT, font, startPoint, Color.Black, flags);
-
 
 early AGI versions don't support loop mirroring- changing int version needs to deal with that
 
@@ -778,7 +767,7 @@ frmPicEdit
           mnuRSeparator3 
         - mnuRCompileLogic
         o mnuRSavePicImage
-        - mnuRExportGIF
+        o mnuRExportGIF
         + mnuBackground
 
 frmPreview
@@ -830,7 +819,7 @@ frmViewEdit
 frmWordEdit
 -----------
 
-events that should update toolbar buttons:
+events that should update main toolbar buttons:
   open game/new game:
     close game btn
     run btn
@@ -1053,7 +1042,7 @@ WinAGI settings and warnings:
 // SplitWindow
 // PicScalePreview
 // PicScaleEdit
-//// CursorMode
+// CursorMode
 
 // ************************************************
 // PICTURETEST SETTINGS
@@ -1300,7 +1289,7 @@ Unused compiler errors (4001 - 4166)
 4158
 4161 - 4162
 4165
-
+(~128 unused!)
 
 Unused compiler warnings (5001 - 5117):
 5012

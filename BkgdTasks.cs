@@ -19,6 +19,9 @@ namespace WinAGI.Common {
         private static CompileMode mode = CompileMode.Full;
         private static bool replace = true;
 
+        internal static BackgroundWorker bgwMakePicGif = null;
+
+        #region NewGame
         public static void NewGameDoWork(object sender, DoWorkEventArgs e) {
             string strError = "";
             bool blnWarnings = false;
@@ -191,7 +194,9 @@ namespace WinAGI.Common {
                 }
             }
         }
+        #endregion
 
+        #region OpenGame
         public static void OpenGameDoWork(object sender, DoWorkEventArgs e) {
             string strError = "";
             bool blnWarnings = false;
@@ -416,7 +421,9 @@ namespace WinAGI.Common {
                 }
             }
         }
+        #endregion
 
+        #region CompileGame
         public static void CompileGameDoWork(object sender, DoWorkEventArgs e) {
             CompileGameResults argval = (CompileGameResults)e.Argument;
             CompileStatus results = CompileStatus.OK;
@@ -692,5 +699,51 @@ namespace WinAGI.Common {
                 break;
             }
         }
+        #endregion
+
+        #region MakeGif
+        public static void BuildPicGifDoWork(object sender, DoWorkEventArgs e) {
+            MakeGifParams args = (MakeGifParams)e.Argument;
+            if (args.Mode == 0) {
+                if (MakePicGif(args.Picture, args.GifOptions, args.Filename)) {
+                    e.Result = 1;
+                    return;
+                }
+            }
+            else {
+                if (MakeLoopGif(args.Loop, args.GifOptions, args.Filename)) {
+                    e.Result = 2;
+                    return;
+                }
+            }
+            e.Result = 0;
+        }
+
+        public static void BuildPicGifProgressChanged(object sender, ProgressChangedEventArgs e) {
+            if (e.ProgressPercentage >= 0) {
+                ProgressWin.pgbStatus.Value = e.ProgressPercentage;
+                ProgressWin.Refresh();
+            }
+            else {
+                ErrMsgBox((Exception)e.UserState,
+                    "Unable to create gif file.",
+                    "", 
+                    $"Make {((int)e.ProgressPercentage == -1 ? "Picture" : "Loop")} Gif Failure");
+            }
+        }
+
+        public static void BuildPicGifWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
+            ProgressWin.Hide();
+            ProgressWin.Dispose();
+            MDIMain.UseWaitCursor = false;
+            if ((int)e.Result > 0) {
+                MessageBox.Show(MDIMain,
+                    "Success!",
+                    $"Export {((int)e.Result ==1 ? "Picture" : "Loop")} as GIF",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+        }
+        #endregion
     }
 }

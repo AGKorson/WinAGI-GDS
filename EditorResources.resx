@@ -2031,4 +2031,19 @@
   <data name="ewi_byword" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\ewi_byword.ico;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="EPC_EDITSEL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\EPC_EDITSEL.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="EPC_BRUSH" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\epc_brush.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="EPC_EDIT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\EPC_EDIT.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="EPC_PAINT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\EPC_PAINT.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="EPC_SELECT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\EPC_SELECT.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

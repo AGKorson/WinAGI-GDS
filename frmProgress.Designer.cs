@@ -63,7 +63,7 @@ namespace WinAGI.Editor {
             ShowIcon = false;
             ShowInTaskbar = false;
             SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             Text = "progress";
             TopMost = true;
             UseWaitCursor = true;

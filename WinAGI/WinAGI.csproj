@@ -13,6 +13,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\epc_brush.cur" />
+    <None Remove="Resources\EPC_MOVE.cur" />
+    <None Remove="Resources\epc_sel.cur" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="fWinAGI32.ico" />
   </ItemGroup>
 

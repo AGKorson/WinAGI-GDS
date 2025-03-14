@@ -98,13 +98,13 @@ namespace WinAGI.Editor {
                     MDIMain.UseWaitCursor = true;
                     // step through all defines; if the current name is different than
                     // the original name, use replaceall to make the change
-                    ProgressWin = new() {
+                    ProgressWin = new(this) {
                         Text = "Updating Reserved Defines",
                     };
                     ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + LogicEditors.Count + 1;
                     ProgressWin.pgbStatus.Value = 0;
                     ProgressWin.lblProgress.Text = "Locating modified define names...";
-                    ProgressWin.Show(MDIMain);
+                    ProgressWin.Show();
                     ProgressWin.Refresh();
                     foreach (frmLogicEdit loged in LogicEditors) {
                         if (loged.FormMode == LogicFormMode.Logic && loged.InGame) {

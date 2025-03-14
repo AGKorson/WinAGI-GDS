@@ -198,7 +198,7 @@ namespace WinAGI.Editor {
             NewSettings.SplitWindow.Reset();
             NewSettings.PicScalePreview.Reset();
             NewSettings.PicScaleEdit.Reset();
-            //NewSettings.CursorMode.Reset();
+            NewSettings.CursorMode.Reset();
             // Pic Test
             NewSettings.PTObjSpeed.Reset();
             NewSettings.PTObjPriority.Reset();
@@ -497,6 +497,7 @@ namespace WinAGI.Editor {
             // PICTURES
             foreach (frmPicEdit frm in PictureEditors) {
                 //frm.CursorMode = WinAGISettings.CursorMode;
+                frm.InitFonts();
             }
 
             // SOUNDS
@@ -510,6 +511,20 @@ namespace WinAGI.Editor {
 
             // VIEWS
             // no updates needed
+
+            // WORDS
+            foreach (Form frm in MDIMain.MdiChildren) {
+                if (frm.GetType() == typeof(frmWordsEdit)) {
+                    ((frmWordsEdit)frm).InitFonts();
+                }
+            }
+
+            // OBJECTS
+            foreach (Form frm in MDIMain.MdiChildren) {
+                if (frm.GetType() == typeof(frmObjectEdit)) {
+                    ((frmObjectEdit)frm).InitFonts();
+                }
+            }
 
             // LAYOUT
             // no updates needed
@@ -2400,7 +2415,7 @@ namespace WinAGI.Editor {
             WinAGISettings.SplitWindow.WriteSetting(WinAGISettingsFile);
             WinAGISettings.PicScalePreview.WriteSetting(WinAGISettingsFile);
             WinAGISettings.PicScaleEdit.WriteSetting(WinAGISettingsFile);
-            //WinAGISettings.CursorMode.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.CursorMode.WriteSetting(WinAGISettingsFile);
 
             // pictest
             WinAGISettings.PTObjSpeed.WriteSetting(WinAGISettingsFile);
