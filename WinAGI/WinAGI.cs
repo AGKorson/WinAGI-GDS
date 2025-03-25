@@ -6,6 +6,7 @@ using static WinAGI.Common.Base;
 using System.Diagnostics;
 using WinAGI.Common;
 using System.Diagnostics.Eventing.Reader;
+using System.Drawing;
 
 namespace WinAGI.Engine {
     /***************************************************************
@@ -77,7 +78,7 @@ namespace WinAGI.Engine {
 
     public enum PlotShape {
         Circle,
-        Rectangle
+        Square
     };
 
     public enum PlotStyle {
@@ -305,6 +306,27 @@ namespace WinAGI.Engine {
     public struct CommandStruct {
         public string Name;
         public ArgType[] ArgType;
+    }
+    public struct PictureBackgroundSettings {
+        public string FileName;
+        public bool Visible;
+        public bool ShowVis;
+        public bool ShowPri;
+        public byte Transparency;
+        public bool DefaultAlwaysTransparent;
+        public RectangleF SourceRegion;
+        public Size SourceSize;
+        public Point TargetPos;
+        public PictureBackgroundSettings() {
+            FileName = "";
+            Transparency = 50;
+            DefaultAlwaysTransparent = true;
+            SourceRegion = new(0, 0, 0, 0);
+            TargetPos = new(0, 0);
+            Visible = false;
+            ShowVis = true;
+            ShowPri = false;
+        }
     }
     #endregion
 

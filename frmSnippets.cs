@@ -108,7 +108,7 @@ namespace WinAGI.Editor {
                 lstSnippets.Items.RemoveAt(lstSnippets.SelectedIndex);
                 lstSnippets.SelectedIndex = -1;
                 lstSnippets.Enabled = true;
-                lstSnippets.Focus();
+                lstSnippets.Select();
                 btnAdd.Enabled = true;
                 btnClose.Enabled = true;
                 blnAddSnip = false;
@@ -131,7 +131,7 @@ namespace WinAGI.Editor {
             lblArgTips.Enabled = false;
             txtArgTips.ReadOnly = true;
             lstSnippets.Enabled = true;
-            lstSnippets.Focus();
+            lstSnippets.Select();
         }
 
         private void lstSnippets_DoubleClick(object sender, EventArgs e) {
@@ -197,14 +197,14 @@ namespace WinAGI.Editor {
         private void txtSnipName_KeyPress(object sender, KeyPressEventArgs e) {
             if (e.KeyChar == (char)Keys.Return) {
                 e.Handled = true;
-                rtfSnipValue.Focus();
+                rtfSnipValue.Select();
             }
         }
 
         private void txtArgTips_KeyPress(object sender, KeyPressEventArgs e) {
             if (e.KeyChar == (char)Keys.Return) {
                 e.Handled = true;
-                rtfSnipValue.Focus();
+                rtfSnipValue.Select();
             }
         }
 
@@ -415,7 +415,7 @@ namespace WinAGI.Editor {
             txtSnipName.ReadOnly = false;
             rtfSnipValue.ReadOnly = false;
             rtfSnipValue.ClearUndo();
-            ((Control)sender).Focus();
+            ((Control)sender).Select();
         }
 
         private bool SaveEdit() {
@@ -466,7 +466,7 @@ namespace WinAGI.Editor {
             txtArgTips.Visible = lblArgTips.Visible;
             lblArgTips.Enabled = false;
             txtArgTips.ReadOnly = true;
-            lstSnippets.Focus();
+            lstSnippets.Select();
             lstSnippets.Sorted = false;
             lstSnippets.Sorted = true;
             blnAddSnip = false;

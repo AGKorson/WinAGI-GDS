@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha13.2
+        Version 3.0.0alpha15.2
     ==============================
 
 
@@ -54,6 +54,7 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+**alpha15.2** added picture background support to the editor.
 
 **alpha15.1** picture editor framework is set, basic image drawing/scaling functions working. Still lot of work to do to get the editor working. 
 The export as gif functions now work correctly and performance significantly improved (after fixing the LZW compression functions). 

@@ -284,8 +284,6 @@ namespace WinAGI.Editor {
         }
 
         private void frmMDIMain_MdiChildActivate(object sender, EventArgs e) {
-            Debug.Print($"MdiChildActivate: activeform is {(MDIMain.ActiveMdiChild == null ? "none" : MDIMain.ActiveMdiChild.Name)}");
-
             // update toolbar
             if (MDIMain.ActiveMdiChild == null) {
                 UpdateTBResourceBtns(AGIResType.None, false, false);
@@ -2346,7 +2344,7 @@ namespace WinAGI.Editor {
         private void btnWords_Click(object sender, EventArgs e) {
             if (EditGame != null) {
                 if (WEInUse) {
-                    WordEditor.Focus();
+                    WordEditor.Select();
                 }
                 else {
                     OpenGameWORDSTOK();
@@ -2360,7 +2358,7 @@ namespace WinAGI.Editor {
         private void btnOjects_Click(object sender, EventArgs e) {
             if (EditGame != null) {
                 if (OEInUse) {
-                    ObjectEditor.Focus();
+                    ObjectEditor.Select();
                 }
                 else {
                     OpenGameOBJECT();

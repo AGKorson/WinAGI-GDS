@@ -128,7 +128,7 @@ namespace WinAGI.Editor {
                 picPalette.Invalidate();
                 picColChange.Invalidate();
             }
-            picPalette.Focus();
+            picPalette.Select();
         }
 
         private void cmdOK_Click(object sender, EventArgs e) {

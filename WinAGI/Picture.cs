@@ -13,111 +13,10 @@ namespace WinAGI.Engine {
     /// </summary>
     public class Picture : AGIResource {
         #region Structs
-        /// <summary>
-        /// Encapsulates the position information for a background picture that
-        /// can be overlaid on an AGI Picture resource while it is being edited.
-        /// </summary>
-        public struct PicBkgdPos () {
-            public float srcX;
-            public float srcY;
-            public float tgtX;
-            public float tgtY;
-
-            /// <summary>
-            /// Returns a string representation of the background position data
-            /// in a single string format that can be stored in a settings file.
-            /// </summary>
-            /// <returns></returns>
-            public override readonly string ToString() {
-                return srcX.ToString() + "|" + srcY.ToString() + "|" + tgtX.ToString() + "|" + tgtY.ToString();
-            }
-
-            /// <summary>
-            /// Converts a string representation of background position data
-            /// information into its individual values.
-            /// </summary>
-            /// <param name="value"></param>
-            public void FromString(string value) {
-                string[] strings = value.Split('|');
-                if (strings.Length == 4) {
-                    if (!float.TryParse(strings[0], out srcX)) {
-                        srcX = 0;
-                    }
-                    if (!float.TryParse(strings[0], out srcY)) {
-                        srcY = 0;
-                    }
-                    if (!float.TryParse(strings[0], out tgtX)) {
-                        tgtX = 0;
-                    }
-                    if (!float.TryParse(strings[0], out tgtY)) {
-                        tgtY = 0;
-                    }
-                }
-                else {
-                    srcX = 0;
-                    srcY = 0;
-                    tgtX = 0;
-                    tgtY = 0;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Encapsulates the size information for a background picture that can
-        /// be overlaid on an AGI Picture resource while it is being edited.
-        /// </summary>
-        public struct PicBkgdSize {
-            public float srcW;
-            public float srcH;
-            public float tgtW;
-            public float tgtH;
-
-            /// <summary>
-            /// Returns a string representation of background size data in a
-            /// single string format that can be stored in a settings file.
-            /// </summary>
-            /// <returns></returns>
-            public override readonly string ToString() {
-                return srcW.ToString() + "|" + srcH.ToString() + "|" + tgtW.ToString() + "|" + tgtH.ToString();
-            }
-
-            /// <summary>
-            /// Converts a string representation of background size data information
-            /// into its individual values.
-            /// </summary>
-            /// <param name="value"></param>
-            public void FromString(string value) {
-                string[] strings = value.Split('|');
-                if (strings.Length == 4) {
-                    if (!float.TryParse(strings[0], out srcW)) {
-                        srcW = 0;
-                    }
-                    if (!float.TryParse(strings[0], out srcH)) {
-                        srcH = 0;
-                    }
-                    if (!float.TryParse(strings[0], out tgtW)) {
-                        tgtW = 0;
-                    }
-                    if (!float.TryParse(strings[0], out tgtH)) {
-                        tgtH = 0;
-                    }
-                }
-                else {
-                    srcW = 0;
-                    srcH = 0;
-                    tgtW = 0;
-                    tgtH = 0;
-                }
-            }
-        }
+        // none
         #endregion
 
         #region Members
-        string mBkImgFile;
-        bool mBkShow;
-        int mBkTrans;
-        PicBkgdPos mBkPos;
-        PicBkgdSize mBkSize;
         byte mPriBase;
         bool mPicBMPSet;
         int mDrawPos;
@@ -128,6 +27,7 @@ namespace WinAGI.Engine {
         Bitmap bmpVis;
         Bitmap bmpPri;
         private EGAColors mPalette;
+        private PictureBackgroundSettings mBkgdSettings;
         #endregion
 
         #region Constructors
@@ -225,72 +125,87 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets or sets the filename of a background image to use when editing the
-        /// picture in the WinAGI Editor.
+        /// Gets or sets the background settings used in picture editors.
         /// </summary>
-        public string BkgdImgFile {
-            get {
-                return mBkImgFile;
-            }
+        public PictureBackgroundSettings BackgroundSettings {
+            get => mBkgdSettings;
             set {
-                mBkImgFile = value;
+                bool oldvis = mBkgdSettings.Visible;
+                mBkgdSettings = value;
                 PropsChanged = true;
+                if (!InGame && (mBkgdSettings.Visible != oldvis || mBkgdSettings.Visible)) {
+                    mPicBMPSet = false;
+                }
             }
         }
 
-        /// <summary>
-        /// Gets or sets the position information for a background image to use when
-        /// editing the picture in the WinAGI Editor.
-        /// </summary>
-        public PicBkgdPos BkgdPosition {
+        public string BkgdFileName {
             get {
-                return mBkPos;
+                return mBkgdSettings.FileName;
             }
             set {
-                mBkPos = value;
+                mBkgdSettings.FileName = value;
                 PropsChanged = true;
             }
         }
-
-        /// <summary>
-        /// Gets or sets the background size information for a background image to
-        /// use when editing the picture in the WinAGI Editor.
-        /// </summary>
-        public PicBkgdSize BkgdSize {
+        public bool BkgdVisible {
             get {
-                return mBkSize;
+                return mBkgdSettings.Visible;
             }
             set {
-                mBkSize = value;
+                mBkgdSettings.Visible = value;
                 PropsChanged = true;
+                if (!InGame) {
+                    mPicBMPSet = false;
+                }
             }
         }
-
-        /// <summary>
-        /// Gets or sets transparency setting for a background image when editing
-        /// the picture in the WinAGI Editor.
-        /// </summary>
-        public int BkgdTrans {
+        public bool BkgdShowVis {
             get {
-                return mBkTrans;
+                return mBkgdSettings.ShowVis;
             }
             set {
-                mBkTrans = value;
+                mBkgdSettings.ShowVis = value;
                 PropsChanged = true;
+                if (!InGame && mBkgdSettings.Visible) {
+                    mPicBMPSet = false;
+                }
             }
         }
-
-        /// <summary>
-        /// Gets or sets a value to indicate if the background image should be visible when
-        /// editing the picture in the WinAGI Editor.
-        /// </summary>
-        public bool BkgdShow {
+        public bool BkgdShowPri {
             get {
-                return mBkShow;
+                return mBkgdSettings.ShowPri;
             }
             set {
-                mBkShow = value;
+                mBkgdSettings.ShowPri = value;
                 PropsChanged = true;
+                if (!InGame && mBkgdSettings.Visible) {
+                    mPicBMPSet = false;
+                }
+            }
+        }
+        public byte BkgdTransparency {
+            get {
+                return mBkgdSettings.Transparency;
+            }
+            set {
+                mBkgdSettings.Transparency = value;
+                PropsChanged = true;
+                if (!InGame && mBkgdSettings.Visible) {
+                    mPicBMPSet = false;
+                }
+            }
+        }
+        public bool BkgdDefaultTransparency {
+            get {
+                return mBkgdSettings.DefaultAlwaysTransparent;
+            }
+            set {
+                mBkgdSettings.DefaultAlwaysTransparent = value;
+                PropsChanged = true;
+                if (!InGame && mBkgdSettings.Visible) {
+                    mPicBMPSet = false;
+                }
             }
         }
 
@@ -415,11 +330,7 @@ namespace WinAGI.Engine {
                 mData[0] = 0xff;
                 mDrawPos = -1;
                 mPriBase = 48;
-                mBkImgFile = "";
-                mBkShow = false;
-                mBkTrans = 0;
-                mBkPos = new();
-                mBkSize = new();
+                mBkgdSettings = new();
                 mPicBMPSet = false;
                 mStepDraw = false;
                 mCurrentPen = new PenStatus();
@@ -430,11 +341,7 @@ namespace WinAGI.Engine {
                 // copy picture properties
                 mDrawPos = NewPicture.mDrawPos;
                 mPriBase = NewPicture.mPriBase;
-                mBkImgFile = NewPicture.mBkImgFile;
-                mBkShow = NewPicture.mBkShow;
-                mBkTrans = NewPicture.mBkTrans;
-                mBkPos = NewPicture.mBkPos;
-                mBkSize = NewPicture.mBkSize;
+                mBkgdSettings = NewPicture.mBkgdSettings;
                 mStepDraw = NewPicture.mStepDraw;
                 mCurrentPen = NewPicture.mCurrentPen;
                 mVisData = NewPicture.mVisData;
@@ -457,11 +364,7 @@ namespace WinAGI.Engine {
             // copy base properties
             base.CloneTo(CopyPicture);
             // copy picture properties
-            CopyPicture.mBkImgFile = mBkImgFile;
-            CopyPicture.mBkShow = mBkShow;
-            CopyPicture.mBkTrans = mBkTrans;
-            CopyPicture.mBkPos = mBkPos;
-            CopyPicture.mBkSize = mBkSize;
+            CopyPicture.mBkgdSettings = mBkgdSettings;
             CopyPicture.mPriBase = mPriBase;
             CopyPicture.mDrawPos = mDrawPos;
             CopyPicture.mStepDraw = mStepDraw;
@@ -494,11 +397,7 @@ namespace WinAGI.Engine {
             // copy base properties
             base.CloneFrom(SourcePicture);
             // copy picture properties
-            mBkImgFile = SourcePicture.mBkImgFile;
-            mBkShow = SourcePicture.mBkShow;
-            mBkTrans = SourcePicture.mBkTrans;
-            mBkPos = SourcePicture.mBkPos;
-            mBkSize = SourcePicture.mBkSize;
+            mBkgdSettings = SourcePicture.mBkgdSettings;
             mPriBase = SourcePicture.mPriBase;
             mDrawPos = SourcePicture.mDrawPos;
             mStepDraw = SourcePicture.mStepDraw;
@@ -681,11 +580,7 @@ namespace WinAGI.Engine {
             mData = [0xff];
             mDrawPos = -1;
             mStepDraw = false;
-            mBkImgFile = "";
-            mBkPos = new();
-            mBkSize = new();
-            mBkTrans = 0;
-            mBkShow = false;
+            mBkgdSettings = new();
             mPriBase = 48;
             mCurrentPen = new();
             BuildBMPs();
@@ -706,12 +601,22 @@ namespace WinAGI.Engine {
                 return;
             }
             // load bkgd info, if there is such
-            mBkImgFile = parent.agGameProps.GetSetting("Picture" + Number, "BkgdImg", "");
-            if (mBkImgFile.Length != 0) {
-                mBkShow = parent.agGameProps.GetSetting("Picture" + Number, "BkgdShow", false);
-                mBkTrans = parent.agGameProps.GetSetting("Picture" + Number, "BkgdTrans", 0);
-                mBkPos.FromString(parent.agGameProps.GetSetting("Picture" + Number, "BkgdPosn", ""));
-                mBkSize.FromString(parent.agGameProps.GetSetting("Picture" + Number, "BkgdSize", ""));
+            string picturekey = "Picture" + Number;
+            mBkgdSettings.FileName = parent.agGameProps.GetSetting(picturekey, "BkgdImgFile", "");
+            if (mBkgdSettings.FileName.Length != 0) {
+                mBkgdSettings.Visible = parent.agGameProps.GetSetting(picturekey, "BkgdVisible", false);
+                mBkgdSettings.ShowVis = parent.agGameProps.GetSetting(picturekey, "BkgdShowVis", false);
+                mBkgdSettings.ShowPri = parent.agGameProps.GetSetting(picturekey, "BkgdShowPri", false);
+                mBkgdSettings.DefaultAlwaysTransparent = parent.agGameProps.GetSetting(picturekey, "BkgdDefaultTrans", true);
+                mBkgdSettings.Transparency = (byte)parent.agGameProps.GetSetting(picturekey, "BkgdTrans", 50);
+                mBkgdSettings.SourceRegion.X = parent.agGameProps.GetSetting(picturekey, "BkgdSrcX", 0f);
+                mBkgdSettings.SourceRegion.Y = parent.agGameProps.GetSetting(picturekey, "BkgdSrcY", 0f);
+                mBkgdSettings.SourceRegion.Width = parent.agGameProps.GetSetting(picturekey, "BkgdSrcW", 0f);
+                mBkgdSettings.SourceRegion.Height = parent.agGameProps.GetSetting(picturekey, "BkgdSrcH", 0f);
+                mBkgdSettings.SourceSize.Width = parent.agGameProps.GetSetting(picturekey, "BkgdSizeW", 0);
+                mBkgdSettings.SourceSize.Height = parent.agGameProps.GetSetting(picturekey, "BkgdSizeH", 0);
+                mBkgdSettings.TargetPos.X = parent.agGameProps.GetSetting(picturekey, "BkgdTgtX", 0);
+                mBkgdSettings.TargetPos.Y = parent.agGameProps.GetSetting(picturekey, "BkgdTgtY", 0);
             }
             BuildBMPs();
         }
@@ -729,11 +634,7 @@ namespace WinAGI.Engine {
                 throw;
             }
             BuildBMPs();
-            mBkImgFile = "";
-            mBkShow = false;
-            mBkTrans = 0;
-            mBkPos.FromString("");
-            mBkSize.FromString("");
+            mBkgdSettings = new();
         }
 
         /// <summary>
@@ -759,20 +660,39 @@ namespace WinAGI.Engine {
                     parent.agGameProps.DeleteKey(strPicKey, "PriBase");
                 }
                 // if no bkgdfile, delete other settings
-                if (mBkImgFile.Length == 0) {
-                    mBkShow = false;
-                    parent.agGameProps.DeleteKey(strPicKey, "BkgdImg");
-                    parent.agGameProps.DeleteKey(strPicKey, "BkgdShow");
+                if (mBkgdSettings.FileName.Length == 0) {
+                    mBkgdSettings = new();
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdImgFile");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdVisible");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdShowVis");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdShowPri");
                     parent.agGameProps.DeleteKey(strPicKey, "BkgdTrans");
-                    parent.agGameProps.DeleteKey(strPicKey, "BkgdPosn");
-                    parent.agGameProps.DeleteKey(strPicKey, "BkgdSize");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdDefaultTrans");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdSrcX");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdSrcY");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdSrcW");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdSrcH");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdSizeW");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdSizeH");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdTgtX");
+                    parent.agGameProps.DeleteKey(strPicKey, "BkgdTgtY");
+
                 }
                 else {
-                    parent.WriteGameSetting(strPicKey, "BkgdImg", mBkImgFile);
-                    parent.WriteGameSetting(strPicKey, "BkgdShow", mBkShow.ToString());
-                    parent.WriteGameSetting(strPicKey, "BkgdTrans", mBkTrans.ToString());
-                    parent.WriteGameSetting(strPicKey, "BkgdPosn", mBkPos.ToString());
-                    parent.WriteGameSetting(strPicKey, "BkgdSize", mBkSize.ToString());
+                    parent.WriteGameSetting(strPicKey, "BkgdImgFile", mBkgdSettings.FileName);
+                    parent.WriteGameSetting(strPicKey, "BkgdVisible", mBkgdSettings.Visible);
+                    parent.WriteGameSetting(strPicKey, "BkgdShowVis", mBkgdSettings.ShowVis);
+                    parent.WriteGameSetting(strPicKey, "BkgdShowPri", mBkgdSettings.ShowPri);
+                    parent.WriteGameSetting(strPicKey, "BkgdTrans", mBkgdSettings.Transparency);
+                    parent.WriteGameSetting(strPicKey, "BkgdDefaultTrans", mBkgdSettings.DefaultAlwaysTransparent);
+                    parent.WriteGameSetting(strPicKey, "BkgdSrcX", mBkgdSettings.SourceRegion.X);
+                    parent.WriteGameSetting(strPicKey, "BkgdSrcY", mBkgdSettings.SourceRegion.Y);
+                    parent.WriteGameSetting(strPicKey, "BkgdSrcW", mBkgdSettings.SourceRegion.Width);
+                    parent.WriteGameSetting(strPicKey, "BkgdSrcH", mBkgdSettings.SourceRegion.Height);
+                    parent.WriteGameSetting(strPicKey, "BkgdTgtX", mBkgdSettings.TargetPos.X);
+                    parent.WriteGameSetting(strPicKey, "BkgdTgtY", mBkgdSettings.TargetPos.Y);
+                    parent.WriteGameSetting(strPicKey, "BkgdSizeW", mBkgdSettings.SourceSize.Width);
+                    parent.WriteGameSetting(strPicKey, "BkgdSizeH", mBkgdSettings.SourceSize.Height);
                 }
                 PropsChanged = false;
             }
@@ -810,24 +730,6 @@ namespace WinAGI.Engine {
             bmpVis = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
             bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
             // update color palette
-            ColorPalette ncp = bmpVis.Palette;
-            for (int i = 0; i < 16; i++) {
-                if (parent != null) {
-                    ncp.Entries[i] = Color.FromArgb(255,
-                    parent.Palette[i].R,
-                    parent.Palette[i].G,
-                    parent.Palette[i].B);
-                }
-                else {
-                    ncp.Entries[i] = Color.FromArgb(255,
-                    mPalette[i].R,
-                    mPalette[i].G,
-                    mPalette[i].B);
-                }
-            }
-            // both bitmaps use same palette
-            bmpVis.Palette = ncp;
-            bmpPri.Palette = ncp;
             // setup bitmap data variables
             var BoundsRect = new Rectangle(0, 0, 160, 168);
             BitmapData bmpVisData = bmpVis.LockBits(BoundsRect, ImageLockMode.WriteOnly, bmpVis.PixelFormat);
@@ -838,6 +740,59 @@ namespace WinAGI.Engine {
             mPriData = new byte[26880];
             // build arrays of bitmap data, set error level
             ErrLevel = CompilePicData(ref mVisData, ref mPriData, mData, mStepDraw ? mDrawPos : -1, mDrawPos);
+            ColorPalette ncp = bmpVis.Palette;
+            for (int i = 0; i < 16; i++) {
+                int a = 255;
+                if (!InGame && mBkgdSettings.Visible && mBkgdSettings.ShowVis) {
+                    if (mBkgdSettings.DefaultAlwaysTransparent && i == 15) {
+                        a = 0;
+                    }
+                    else {
+                        a = (byte)(255 * (100d - mBkgdSettings.Transparency) / 100d);
+                    }
+                }
+                if (parent != null) {
+                    ncp.Entries[i] = Color.FromArgb(a,
+                    parent.Palette[i].R,
+                    parent.Palette[i].G,
+                    parent.Palette[i].B);
+                }
+                else {
+                    ncp.Entries[i] = Color.FromArgb(a,
+                    mPalette[i].R,
+                    mPalette[i].G,
+                    mPalette[i].B);
+                }
+            }
+            bmpVis.Palette = ncp;
+            // if visual has transparency OR
+            // priority needs it, adjust the palette for priority screen
+            if (!InGame && mBkgdSettings.Visible && (mBkgdSettings.ShowVis || mBkgdSettings.ShowPri)) {
+                for (int i = 0; i < 16; i++) {
+                    int a = 255;
+                    if (!InGame && mBkgdSettings.Visible && mBkgdSettings.ShowPri) {
+                        if (mBkgdSettings.DefaultAlwaysTransparent && i == 4) {
+                            a = 0;
+                        }
+                        else {
+                            a = (byte)(255 * (100d - mBkgdSettings.Transparency) / 100d);
+                        }
+                    }
+                    if (parent != null) {
+                        ncp.Entries[i] = Color.FromArgb(a,
+                        parent.Palette[i].R,
+                        parent.Palette[i].G,
+                        parent.Palette[i].B);
+                    }
+                    else {
+                        ncp.Entries[i] = Color.FromArgb(a,
+                        mPalette[i].R,
+                        mPalette[i].G,
+                        mPalette[i].B);
+                    }
+                }
+            }
+            bmpPri.Palette = ncp;
             // copy the picture data to the bitmaps
             Marshal.Copy(mVisData, 0, ptrVis, 26880);
             bmpVis.UnlockBits(bmpVisData);

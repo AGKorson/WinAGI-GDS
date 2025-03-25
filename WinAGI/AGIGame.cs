@@ -2245,6 +2245,18 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
+        /// Writes a float value to this game's WinAGI Game File. File is automatically 
+        /// saved after writing.
+        /// </summary>
+        /// <param name="Section"></param>
+        /// <param name="Key"></param>
+        /// <param name="Value"></param>
+        /// <param name="Group"></param>
+        internal void WriteGameSetting(string Section, string Key, float Value, string Group = "") {
+            WriteGameSetting(Section, Key, Value.ToString(), Group);
+        }
+
+        /// <summary>
         /// Provides calling programs a way to write property values to the WinAGI
         /// Game File.</summary>
         /// <param name="Section"></param>

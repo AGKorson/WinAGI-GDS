@@ -253,7 +253,7 @@
             mnuGame.DropDownItems.AddRange(new ToolStripItem[] { mnuGNew, mnuGOpen, mnuGImport, mnuGClose, mnuGSep1, mnuGCompile, mnuGCompileTo, mnuGRebuild, mnuGCompileChanged, mnuGSep2, mnuGRun, mnuGSep3, mnuGProperties, mnuGMRUBar, mnuGMRU0, mnuGMRU1, mnuGMRU2, mnuGMRU3, mnuGSep5, mnuGExit });
             mnuGame.Name = "mnuGame";
             mnuGame.Size = new System.Drawing.Size(50, 20);
-            mnuGame.Text = "&Game";
+            mnuGame.Text = "Game";
             mnuGame.DropDownOpening += mnuGame_DropDownOpening;
             // 
             // mnuGNew
@@ -261,14 +261,14 @@
             mnuGNew.DropDownItems.AddRange(new ToolStripItem[] { mnuGNewTemplate, mnuGNewBlank });
             mnuGNew.Name = "mnuGNew";
             mnuGNew.Size = new System.Drawing.Size(284, 22);
-            mnuGNew.Text = "&New Game";
+            mnuGNew.Text = "New Game";
             // 
             // mnuGNewTemplate
             // 
             mnuGNewTemplate.Name = "mnuGNewTemplate";
             mnuGNewTemplate.ShortcutKeys = Keys.Control | Keys.N;
             mnuGNewTemplate.Size = new System.Drawing.Size(197, 22);
-            mnuGNewTemplate.Text = "From &Template";
+            mnuGNewTemplate.Text = "From Template";
             mnuGNewTemplate.Click += mnuGNewTemplate_Click;
             // 
             // mnuGNewBlank
@@ -276,7 +276,7 @@
             mnuGNewBlank.Name = "mnuGNewBlank";
             mnuGNewBlank.ShortcutKeys = Keys.Control | Keys.Shift | Keys.N;
             mnuGNewBlank.Size = new System.Drawing.Size(197, 22);
-            mnuGNewBlank.Text = "&Blank";
+            mnuGNewBlank.Text = "Blank";
             mnuGNewBlank.Click += mnuGNewBlank_Click;
             // 
             // mnuGOpen
@@ -284,7 +284,7 @@
             mnuGOpen.Name = "mnuGOpen";
             mnuGOpen.ShortcutKeys = Keys.Control | Keys.O;
             mnuGOpen.Size = new System.Drawing.Size(284, 22);
-            mnuGOpen.Text = "&Open Game";
+            mnuGOpen.Text = "Open Game";
             mnuGOpen.Click += mnuGOpen_Click;
             // 
             // mnuGImport
@@ -292,7 +292,7 @@
             mnuGImport.Name = "mnuGImport";
             mnuGImport.ShortcutKeys = Keys.Control | Keys.I;
             mnuGImport.Size = new System.Drawing.Size(284, 22);
-            mnuGImport.Text = "&Import Game";
+            mnuGImport.Text = "Import Game";
             mnuGImport.Click += mnuGImport_Click;
             // 
             // mnuGClose
@@ -300,7 +300,7 @@
             mnuGClose.Name = "mnuGClose";
             mnuGClose.ShortcutKeys = Keys.Alt | Keys.X;
             mnuGClose.Size = new System.Drawing.Size(284, 22);
-            mnuGClose.Text = "C&lose Game";
+            mnuGClose.Text = "Close Game";
             mnuGClose.Click += mnuGClose_Click;
             // 
             // mnuGSep1
@@ -313,7 +313,7 @@
             mnuGCompile.Name = "mnuGCompile";
             mnuGCompile.ShortcutKeys = Keys.Control | Keys.B;
             mnuGCompile.Size = new System.Drawing.Size(284, 22);
-            mnuGCompile.Text = "&Compile Game";
+            mnuGCompile.Text = "Compile Game";
             mnuGCompile.Click += mnuGCompile_Click;
             // 
             // mnuGCompileTo
@@ -321,7 +321,7 @@
             mnuGCompileTo.Name = "mnuGCompileTo";
             mnuGCompileTo.ShortcutKeys = Keys.Control | Keys.Shift | Keys.B;
             mnuGCompileTo.Size = new System.Drawing.Size(284, 22);
-            mnuGCompileTo.Text = "Compile &To ...";
+            mnuGCompileTo.Text = "Compile To ...";
             mnuGCompileTo.Click += mnuGCompileTo_Click;
             // 
             // mnuGRebuild
@@ -329,7 +329,7 @@
             mnuGRebuild.Name = "mnuGRebuild";
             mnuGRebuild.ShortcutKeys = Keys.Control | Keys.Shift | Keys.R;
             mnuGRebuild.Size = new System.Drawing.Size(284, 22);
-            mnuGRebuild.Text = "Rebuild &VOL Files";
+            mnuGRebuild.Text = "Rebuild VOL Files";
             mnuGRebuild.Click += mnuGRebuild_Click;
             // 
             // mnuGCompileChanged
@@ -350,7 +350,7 @@
             mnuGRun.Name = "mnuGRun";
             mnuGRun.ShortcutKeys = Keys.Control | Keys.R;
             mnuGRun.Size = new System.Drawing.Size(284, 22);
-            mnuGRun.Text = "&Run";
+            mnuGRun.Text = "Run";
             mnuGRun.Click += mnuGRun_Click;
             // 
             // mnuGSep3
@@ -363,7 +363,7 @@
             mnuGProperties.Name = "mnuGProperties";
             mnuGProperties.ShortcutKeys = Keys.F4;
             mnuGProperties.Size = new System.Drawing.Size(284, 22);
-            mnuGProperties.Text = "&Properties ...";
+            mnuGProperties.Text = "Properties ...";
             mnuGProperties.Click += mnuGProperties_Click;
             // 
             // mnuGMRUBar
@@ -418,7 +418,7 @@
             mnuGExit.Name = "mnuGExit";
             mnuGExit.ShortcutKeyDisplayString = "Alt+F4";
             mnuGExit.Size = new System.Drawing.Size(284, 22);
-            mnuGExit.Text = "E&xit";
+            mnuGExit.Text = "Exit";
             mnuGExit.Click += mnuGExit_Click;
             // 
             // mnuResources
@@ -427,7 +427,7 @@
             mnuResources.ImageScaling = ToolStripItemImageScaling.None;
             mnuResources.Name = "mnuResources";
             mnuResources.Size = new System.Drawing.Size(72, 20);
-            mnuResources.Text = "&Resources";
+            mnuResources.Text = "Resources";
             mnuResources.DropDownOpening += mnuResources_DropDownOpening;
             // 
             // mnuRNew
@@ -436,14 +436,14 @@
             mnuRNew.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuRNew.Name = "mnuRNew";
             mnuRNew.Size = new System.Drawing.Size(311, 22);
-            mnuRNew.Text = "&New Resource";
+            mnuRNew.Text = "New Resource";
             // 
             // mnuRNLogic
             // 
             mnuRNLogic.Name = "mnuRNLogic";
             mnuRNLogic.ShortcutKeys = Keys.Control | Keys.D1;
             mnuRNLogic.Size = new System.Drawing.Size(201, 22);
-            mnuRNLogic.Text = "&Logic";
+            mnuRNLogic.Text = "Logic";
             mnuRNLogic.Click += mnuRNLogic_Click;
             // 
             // mnuRNPicture
@@ -451,7 +451,7 @@
             mnuRNPicture.Name = "mnuRNPicture";
             mnuRNPicture.ShortcutKeys = Keys.Control | Keys.D2;
             mnuRNPicture.Size = new System.Drawing.Size(201, 22);
-            mnuRNPicture.Text = "&Picture";
+            mnuRNPicture.Text = "Picture";
             mnuRNPicture.Click += mnuRNPicture_Click;
             // 
             // mnuRNSound
@@ -459,7 +459,7 @@
             mnuRNSound.Name = "mnuRNSound";
             mnuRNSound.ShortcutKeys = Keys.Control | Keys.D3;
             mnuRNSound.Size = new System.Drawing.Size(201, 22);
-            mnuRNSound.Text = "&Sound";
+            mnuRNSound.Text = "Sound";
             mnuRNSound.Click += mnuRNSound_Click;
             // 
             // mnuRNView
@@ -467,7 +467,7 @@
             mnuRNView.Name = "mnuRNView";
             mnuRNView.ShortcutKeys = Keys.Control | Keys.D4;
             mnuRNView.Size = new System.Drawing.Size(201, 22);
-            mnuRNView.Text = "&View";
+            mnuRNView.Text = "View";
             mnuRNView.Click += mnuRNView_Click;
             // 
             // mnuRNSep1
@@ -480,7 +480,7 @@
             mnuRNObjects.Name = "mnuRNObjects";
             mnuRNObjects.ShortcutKeys = Keys.Control | Keys.D5;
             mnuRNObjects.Size = new System.Drawing.Size(201, 22);
-            mnuRNObjects.Text = "&OBJECT File";
+            mnuRNObjects.Text = "OBJECT File";
             mnuRNObjects.Click += mnuRNObjects_Click;
             // 
             // mnuRNWords
@@ -488,7 +488,7 @@
             mnuRNWords.Name = "mnuRNWords";
             mnuRNWords.ShortcutKeys = Keys.Control | Keys.D6;
             mnuRNWords.Size = new System.Drawing.Size(201, 22);
-            mnuRNWords.Text = "&WORDS.TOK File";
+            mnuRNWords.Text = "WORDS.TOK File";
             mnuRNWords.Click += mnuRNWords_Click;
             // 
             // mnuRNSep2
@@ -501,7 +501,7 @@
             mnuRNText.Name = "mnuRNText";
             mnuRNText.ShortcutKeys = Keys.Control | Keys.D7;
             mnuRNText.Size = new System.Drawing.Size(201, 22);
-            mnuRNText.Text = "&Text File";
+            mnuRNText.Text = "Text File";
             mnuRNText.Click += mnuRNText_Click;
             // 
             // mnuROpen
@@ -512,14 +512,14 @@
             mnuROpen.ImageTransparentColor = System.Drawing.Color.Magenta;
             mnuROpen.Name = "mnuROpen";
             mnuROpen.Size = new System.Drawing.Size(311, 22);
-            mnuROpen.Text = "&Open Resource";
+            mnuROpen.Text = "Open Resource";
             // 
             // mnuROLogic
             // 
             mnuROLogic.Name = "mnuROLogic";
             mnuROLogic.ShortcutKeys = Keys.Alt | Keys.D1;
             mnuROLogic.Size = new System.Drawing.Size(197, 22);
-            mnuROLogic.Text = "&Logic";
+            mnuROLogic.Text = "Logic";
             mnuROLogic.Click += mnuROLogic_Click;
             // 
             // mnuROPicture
@@ -527,7 +527,7 @@
             mnuROPicture.Name = "mnuROPicture";
             mnuROPicture.ShortcutKeys = Keys.Alt | Keys.D2;
             mnuROPicture.Size = new System.Drawing.Size(197, 22);
-            mnuROPicture.Text = "&Picture";
+            mnuROPicture.Text = "Picture";
             mnuROPicture.Click += mnuROPicture_Click;
             // 
             // mnuROSound
@@ -535,7 +535,7 @@
             mnuROSound.Name = "mnuROSound";
             mnuROSound.ShortcutKeys = Keys.Alt | Keys.D3;
             mnuROSound.Size = new System.Drawing.Size(197, 22);
-            mnuROSound.Text = "&Sound";
+            mnuROSound.Text = "Sound";
             mnuROSound.Click += mnuROSound_Click;
             // 
             // mnuROView
@@ -543,7 +543,7 @@
             mnuROView.Name = "mnuROView";
             mnuROView.ShortcutKeys = Keys.Alt | Keys.D4;
             mnuROView.Size = new System.Drawing.Size(197, 22);
-            mnuROView.Text = "&View";
+            mnuROView.Text = "View";
             mnuROView.Click += mnuROView_Click;
             // 
             // mnuROSep1
@@ -556,7 +556,7 @@
             mnuROObjects.Name = "mnuROObjects";
             mnuROObjects.ShortcutKeys = Keys.Alt | Keys.D5;
             mnuROObjects.Size = new System.Drawing.Size(197, 22);
-            mnuROObjects.Text = "&OBJECT File";
+            mnuROObjects.Text = "OBJECT File";
             mnuROObjects.Click += mnuROObjects_Click;
             // 
             // mnuROWords
@@ -564,7 +564,7 @@
             mnuROWords.Name = "mnuROWords";
             mnuROWords.ShortcutKeys = Keys.Alt | Keys.D6;
             mnuROWords.Size = new System.Drawing.Size(197, 22);
-            mnuROWords.Text = "&WORDS.TOK File";
+            mnuROWords.Text = "WORDS.TOK File";
             mnuROWords.Click += mnuROWords_Click;
             // 
             // mnuROSep2
@@ -577,7 +577,7 @@
             mnuROText.Name = "mnuROText";
             mnuROText.ShortcutKeys = Keys.Alt | Keys.D7;
             mnuROText.Size = new System.Drawing.Size(197, 22);
-            mnuROText.Text = "&Text File";
+            mnuROText.Text = "Text File";
             mnuROText.Click += mnuROText_Click;
             // 
             // mnuRImport
@@ -585,14 +585,14 @@
             mnuRImport.DropDownItems.AddRange(new ToolStripItem[] { mnuRILogic, mnuRIPicture, mnuRISound, mnuRIView, mnuRISep, mnuRIObjects, mnuRIWords });
             mnuRImport.Name = "mnuRImport";
             mnuRImport.Size = new System.Drawing.Size(311, 22);
-            mnuRImport.Text = "&Import Resource";
+            mnuRImport.Text = "Import Resource";
             // 
             // mnuRILogic
             // 
             mnuRILogic.Name = "mnuRILogic";
             mnuRILogic.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D1;
             mnuRILogic.Size = new System.Drawing.Size(224, 22);
-            mnuRILogic.Text = "&Logic";
+            mnuRILogic.Text = "Logic";
             mnuRILogic.Click += mnuRILogic_Click;
             // 
             // mnuRIPicture
@@ -600,7 +600,7 @@
             mnuRIPicture.Name = "mnuRIPicture";
             mnuRIPicture.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D2;
             mnuRIPicture.Size = new System.Drawing.Size(224, 22);
-            mnuRIPicture.Text = "&Picture";
+            mnuRIPicture.Text = "Picture";
             mnuRIPicture.Click += mnuRIPicture_Click;
             // 
             // mnuRISound
@@ -608,7 +608,7 @@
             mnuRISound.Name = "mnuRISound";
             mnuRISound.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D3;
             mnuRISound.Size = new System.Drawing.Size(224, 22);
-            mnuRISound.Text = "&Sound";
+            mnuRISound.Text = "Sound";
             mnuRISound.Click += mnuRISound_Click;
             // 
             // mnuRIView
@@ -616,7 +616,7 @@
             mnuRIView.Name = "mnuRIView";
             mnuRIView.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D4;
             mnuRIView.Size = new System.Drawing.Size(224, 22);
-            mnuRIView.Text = "&View";
+            mnuRIView.Text = "View";
             mnuRIView.Click += mnuRIView_Click;
             // 
             // mnuRISep
@@ -629,7 +629,7 @@
             mnuRIObjects.Name = "mnuRIObjects";
             mnuRIObjects.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D5;
             mnuRIObjects.Size = new System.Drawing.Size(224, 22);
-            mnuRIObjects.Text = "&OBJECT File";
+            mnuRIObjects.Text = "OBJECT File";
             mnuRIObjects.Click += mnuRIObjects_Click;
             // 
             // mnuRIWords
@@ -637,7 +637,7 @@
             mnuRIWords.Name = "mnuRIWords";
             mnuRIWords.ShortcutKeys = Keys.Control | Keys.Alt | Keys.D6;
             mnuRIWords.Size = new System.Drawing.Size(224, 22);
-            mnuRIWords.Text = "&WORDS.TOK File";
+            mnuRIWords.Text = "WORDS.TOK File";
             mnuRIWords.Click += mnuRIWords_Click;
             // 
             // mnuRSep1
@@ -650,7 +650,7 @@
             mnuROpenRes.Name = "mnuROpenRes";
             mnuROpenRes.ShortcutKeys = Keys.Control | Keys.Alt | Keys.O;
             mnuROpenRes.Size = new System.Drawing.Size(311, 22);
-            mnuROpenRes.Text = "O&pen Resource";
+            mnuROpenRes.Text = "Open Resource";
             mnuROpenRes.Click += mnuROpenRes_Click;
             // 
             // mnuRSave
@@ -661,7 +661,7 @@
             mnuRSave.Name = "mnuRSave";
             mnuRSave.ShortcutKeys = Keys.Control | Keys.S;
             mnuRSave.Size = new System.Drawing.Size(311, 22);
-            mnuRSave.Text = "&Save Resource";
+            mnuRSave.Text = "Save Resource";
             mnuRSave.Click += mnuRSave_Click;
             // 
             // mnuRExport
@@ -669,7 +669,7 @@
             mnuRExport.Name = "mnuRExport";
             mnuRExport.ShortcutKeys = Keys.Control | Keys.E;
             mnuRExport.Size = new System.Drawing.Size(311, 22);
-            mnuRExport.Text = "&Export Resource";
+            mnuRExport.Text = "Export Resource";
             mnuRExport.Click += mnuRExport_Click;
             // 
             // mnuRSep2
@@ -682,7 +682,7 @@
             mnuRRemove.Name = "mnuRRemove";
             mnuRRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
             mnuRRemove.Size = new System.Drawing.Size(311, 22);
-            mnuRRemove.Text = "Remove Resource from &Game";
+            mnuRRemove.Text = "Remove Resource from Game";
             mnuRRemove.Click += mnuRRemove_Click;
             // 
             // mnuRRenumber
@@ -690,7 +690,7 @@
             mnuRRenumber.Name = "mnuRRenumber";
             mnuRRenumber.ShortcutKeys = Keys.Alt | Keys.N;
             mnuRRenumber.Size = new System.Drawing.Size(311, 22);
-            mnuRRenumber.Text = "&Renumber Resource";
+            mnuRRenumber.Text = "Renumber Resource";
             mnuRRenumber.Click += mnuRRenumber_Click;
             // 
             // mnuRProperties
@@ -700,7 +700,7 @@
             mnuRProperties.Name = "mnuRProperties";
             mnuRProperties.ShortcutKeys = Keys.Control | Keys.D;
             mnuRProperties.Size = new System.Drawing.Size(311, 22);
-            mnuRProperties.Text = "I&D/Description ...";
+            mnuRProperties.Text = "ID/Description ...";
             mnuRProperties.Click += mnuRProperties_Click;
             // 
             // mnuRSep3
@@ -712,7 +712,7 @@
             // 
             mnuRCompileLogic.Name = "mnuRCompileLogic";
             mnuRCompileLogic.Size = new System.Drawing.Size(311, 22);
-            mnuRCompileLogic.Text = "&Compile This Logic";
+            mnuRCompileLogic.Text = "Compile This Logic";
             mnuRCompileLogic.Click += mnuRCompileLogic_Click;
             // 
             // mnuRSavePicImage
@@ -720,7 +720,7 @@
             mnuRSavePicImage.Name = "mnuRSavePicImage";
             mnuRSavePicImage.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
             mnuRSavePicImage.Size = new System.Drawing.Size(311, 22);
-            mnuRSavePicImage.Text = "S&ave Picture Image As...";
+            mnuRSavePicImage.Text = "Save Picture Image As...";
             mnuRSavePicImage.Click += mnuRSavePicImage_Click;
             // 
             // mnuRExportGIF
@@ -728,7 +728,7 @@
             mnuRExportGIF.Name = "mnuRExportGIF";
             mnuRExportGIF.ShortcutKeys = Keys.Control | Keys.Shift | Keys.G;
             mnuRExportGIF.Size = new System.Drawing.Size(311, 22);
-            mnuRExportGIF.Text = "E&xport Loop As Animated GIF...";
+            mnuRExportGIF.Text = "Export Loop As Animated GIF...";
             mnuRExportGIF.Click += mnuRExportGIF_Click;
             // 
             // mnuTools
@@ -737,7 +737,7 @@
             mnuTools.MergeIndex = 1;
             mnuTools.Name = "mnuTools";
             mnuTools.Size = new System.Drawing.Size(47, 20);
-            mnuTools.Text = "&Tools";
+            mnuTools.Text = "Tools";
             mnuTools.DropDownOpening += mnuTools_DropDownOpening;
             // 
             // mnuTSettings
@@ -745,7 +745,7 @@
             mnuTSettings.Name = "mnuTSettings";
             mnuTSettings.ShortcutKeys = Keys.F2;
             mnuTSettings.Size = new System.Drawing.Size(249, 22);
-            mnuTSettings.Text = "&Settings";
+            mnuTSettings.Text = "Settings";
             mnuTSettings.Click += mnuTSettings_Click;
             // 
             // mnuTSep1
@@ -758,7 +758,7 @@
             mnuTLayout.Name = "mnuTLayout";
             mnuTLayout.ShortcutKeys = Keys.Control | Keys.L;
             mnuTLayout.Size = new System.Drawing.Size(249, 22);
-            mnuTLayout.Text = "Room &Layout Editor";
+            mnuTLayout.Text = "Room Layout Editor";
             mnuTLayout.Click += mnuTLayout_Click;
             // 
             // mnuTMenuEditor
@@ -766,7 +766,7 @@
             mnuTMenuEditor.Name = "mnuTMenuEditor";
             mnuTMenuEditor.ShortcutKeys = Keys.Control | Keys.M;
             mnuTMenuEditor.Size = new System.Drawing.Size(249, 22);
-            mnuTMenuEditor.Text = "&Menu Editor";
+            mnuTMenuEditor.Text = "Menu Editor";
             mnuTMenuEditor.Click += mnuTMenuEditor_Click;
             // 
             // mnuTGlobals
@@ -774,7 +774,7 @@
             mnuTGlobals.Name = "mnuTGlobals";
             mnuTGlobals.ShortcutKeys = Keys.Control | Keys.G;
             mnuTGlobals.Size = new System.Drawing.Size(249, 22);
-            mnuTGlobals.Text = "&Global Defines ...";
+            mnuTGlobals.Text = "Global Defines ...";
             mnuTGlobals.Click += mnuTGlobals_Click;
             // 
             // mnuTReserved
@@ -782,7 +782,7 @@
             mnuTReserved.Name = "mnuTReserved";
             mnuTReserved.ShortcutKeys = Keys.Control | Keys.W;
             mnuTReserved.Size = new System.Drawing.Size(249, 22);
-            mnuTReserved.Text = "&Reserved Defines ...";
+            mnuTReserved.Text = "Reserved Defines ...";
             mnuTReserved.Click += mnuTReserved_Click;
             // 
             // mnuTSnippets
@@ -790,7 +790,7 @@
             mnuTSnippets.Name = "mnuTSnippets";
             mnuTSnippets.ShortcutKeys = Keys.Control | Keys.Shift | Keys.T;
             mnuTSnippets.Size = new System.Drawing.Size(249, 22);
-            mnuTSnippets.Text = "Code &Snippets ...";
+            mnuTSnippets.Text = "Code Snippets ...";
             mnuTSnippets.Click += mnuTSnippets_Click;
             // 
             // mnuTPalette
@@ -798,7 +798,7 @@
             mnuTPalette.Name = "mnuTPalette";
             mnuTPalette.ShortcutKeys = Keys.Control | Keys.Shift | Keys.P;
             mnuTPalette.Size = new System.Drawing.Size(249, 22);
-            mnuTPalette.Text = "Color &Palette ...";
+            mnuTPalette.Text = "Color Palette ...";
             mnuTPalette.Click += mnuTPalette_Click;
             // 
             // mnuTWarning
@@ -873,7 +873,7 @@
             mnuTCustomize.Name = "mnuTCustomize";
             mnuTCustomize.ShortcutKeys = Keys.F6;
             mnuTCustomize.Size = new System.Drawing.Size(249, 22);
-            mnuTCustomize.Text = "&Customize Tool Menu ...";
+            mnuTCustomize.Text = "Customize Tool Menu ...";
             mnuTCustomize.Click += mnuTCustomize_Click;
             // 
             // mnuWindow
@@ -882,7 +882,7 @@
             mnuWindow.ImageScaling = ToolStripItemImageScaling.None;
             mnuWindow.Name = "mnuWindow";
             mnuWindow.Size = new System.Drawing.Size(63, 20);
-            mnuWindow.Text = "&Window";
+            mnuWindow.Text = "Window";
             mnuWindow.DropDownOpening += mnuWindow_DropDownOpening;
             // 
             // mnuWCascade
@@ -937,21 +937,21 @@
             mnuHelp.DropDownItems.AddRange(new ToolStripItem[] { mnuHContents, mnuHIndex, mnuHSep1, mnuHCommands, mnuHReference, mnuHSep2, mnuHAbout });
             mnuHelp.Name = "mnuHelp";
             mnuHelp.Size = new System.Drawing.Size(44, 20);
-            mnuHelp.Text = "&Help";
+            mnuHelp.Text = "Help";
             // 
             // mnuHContents
             // 
             mnuHContents.Name = "mnuHContents";
             mnuHContents.ShortcutKeys = Keys.F1;
             mnuHContents.Size = new System.Drawing.Size(238, 22);
-            mnuHContents.Text = "&Contents";
+            mnuHContents.Text = "Contents";
             mnuHContents.Click += mnuHContents_Click;
             // 
             // mnuHIndex
             // 
             mnuHIndex.Name = "mnuHIndex";
             mnuHIndex.Size = new System.Drawing.Size(238, 22);
-            mnuHIndex.Text = "&Index";
+            mnuHIndex.Text = "Index";
             mnuHIndex.Click += mnuHIndex_Click;
             // 
             // mnuHSep1
@@ -964,7 +964,7 @@
             mnuHCommands.Name = "mnuHCommands";
             mnuHCommands.ShortcutKeys = Keys.Alt | Keys.F1;
             mnuHCommands.Size = new System.Drawing.Size(238, 22);
-            mnuHCommands.Text = "&Logic Commands Help";
+            mnuHCommands.Text = "Logic Commands Help";
             mnuHCommands.Click += mnuHCommands_Click;
             // 
             // mnuHReference
@@ -972,7 +972,7 @@
             mnuHReference.Name = "mnuHReference";
             mnuHReference.ShortcutKeys = Keys.F11;
             mnuHReference.Size = new System.Drawing.Size(238, 22);
-            mnuHReference.Text = "AGI &Reference";
+            mnuHReference.Text = "AGI Reference";
             mnuHReference.Click += mnuHReference_Click;
             // 
             // mnuHSep2
@@ -984,7 +984,7 @@
             // 
             mnuHAbout.Name = "mnuHAbout";
             mnuHAbout.Size = new System.Drawing.Size(238, 22);
-            mnuHAbout.Text = "&About WinAGI GDS...";
+            mnuHAbout.Text = "About WinAGI GDS...";
             mnuHAbout.Click += mnuHAbout_Click;
             // 
             // btnNewRes
@@ -996,7 +996,7 @@
             btnNewRes.Margin = new Padding(2, 2, 2, 4);
             btnNewRes.Name = "btnNewRes";
             btnNewRes.Size = new System.Drawing.Size(40, 28);
-            btnNewRes.Text = "&New Resource";
+            btnNewRes.Text = "New Resource";
             // 
             // btnNewLogic
             // 
@@ -1094,7 +1094,7 @@
             btnOpenGame.Margin = new Padding(2, 2, 2, 4);
             btnOpenGame.Name = "btnOpenGame";
             btnOpenGame.Size = new System.Drawing.Size(28, 28);
-            btnOpenGame.Text = "&Open";
+            btnOpenGame.Text = "Open";
             btnOpenGame.Click += btnOpenGame_Click;
             // 
             // btnCloseGame
@@ -1106,7 +1106,7 @@
             btnCloseGame.Margin = new Padding(2, 2, 2, 4);
             btnCloseGame.Name = "btnCloseGame";
             btnCloseGame.Size = new System.Drawing.Size(28, 28);
-            btnCloseGame.Text = "&Close";
+            btnCloseGame.Text = "Close";
             btnCloseGame.Click += btnCloseGame_Click;
             // 
             // btnRun
@@ -1118,7 +1118,7 @@
             btnRun.Margin = new Padding(2, 2, 2, 4);
             btnRun.Name = "btnRun";
             btnRun.Size = new System.Drawing.Size(28, 28);
-            btnRun.Text = "&Run";
+            btnRun.Text = "Run";
             btnRun.Click += btnRun_Click;
             // 
             // btnSep1
@@ -1440,7 +1440,7 @@
             cmROpenRes.Name = "cmROpenRes";
             cmROpenRes.ShortcutKeys = Keys.Control | Keys.Alt | Keys.O;
             cmROpenRes.Size = new System.Drawing.Size(307, 22);
-            cmROpenRes.Text = "O&pen Resource";
+            cmROpenRes.Text = "Open Resource";
             cmROpenRes.Click += mnuROpenRes_Click;
             // 
             // cmRSave
@@ -1448,7 +1448,7 @@
             cmRSave.Name = "cmRSave";
             cmRSave.ShortcutKeys = Keys.Control | Keys.S;
             cmRSave.Size = new System.Drawing.Size(307, 22);
-            cmRSave.Text = "&Save Resource";
+            cmRSave.Text = "Save Resource";
             cmRSave.Click += mnuRSave_Click;
             // 
             // cmRExport
@@ -1456,7 +1456,7 @@
             cmRExport.Name = "cmRExport";
             cmRExport.ShortcutKeys = Keys.Control | Keys.E;
             cmRExport.Size = new System.Drawing.Size(307, 22);
-            cmRExport.Text = "&Export Resource";
+            cmRExport.Text = "Export Resource";
             cmRExport.Click += mnuRExport_Click;
             // 
             // cmRSep1
@@ -1469,7 +1469,7 @@
             cmRRemove.Name = "cmRRemove";
             cmRRemove.ShortcutKeys = Keys.Control | Keys.Shift | Keys.A;
             cmRRemove.Size = new System.Drawing.Size(307, 22);
-            cmRRemove.Text = "Remove Resource From &Game";
+            cmRRemove.Text = "Remove Resource From Game";
             cmRRemove.Click += mnuRRemove_Click;
             // 
             // cmRRenumber
@@ -1477,7 +1477,7 @@
             cmRRenumber.Name = "cmRRenumber";
             cmRRenumber.ShortcutKeys = Keys.Alt | Keys.N;
             cmRRenumber.Size = new System.Drawing.Size(307, 22);
-            cmRRenumber.Text = "&Renumber Resource";
+            cmRRenumber.Text = "Renumber Resource";
             cmRRenumber.Click += mnuRRenumber_Click;
             // 
             // cmRProperties
@@ -1485,7 +1485,7 @@
             cmRProperties.Name = "cmRProperties";
             cmRProperties.ShortcutKeys = Keys.Control | Keys.D;
             cmRProperties.Size = new System.Drawing.Size(307, 22);
-            cmRProperties.Text = "I&D/Description ...";
+            cmRProperties.Text = "ID/Description ...";
             cmRProperties.Click += mnuRProperties_Click;
             // 
             // cmRSep2
@@ -1497,21 +1497,21 @@
             // 
             cmRCompileLogic.Name = "cmRCompileLogic";
             cmRCompileLogic.Size = new System.Drawing.Size(307, 22);
-            cmRCompileLogic.Text = "&Compile This Logic";
+            cmRCompileLogic.Text = "Compile This Logic";
             cmRCompileLogic.Click += mnuRCompileLogic_Click;
             // 
             // cmRSavePicImage
             // 
             cmRSavePicImage.Name = "cmRSavePicImage";
             cmRSavePicImage.Size = new System.Drawing.Size(307, 22);
-            cmRSavePicImage.Text = "S&ave Picture Image As ...";
+            cmRSavePicImage.Text = "Save Picture Image As ...";
             cmRSavePicImage.Click += mnuRSavePicImage_Click;
             // 
             // cmRExportGIF
             // 
             cmRExportGIF.Name = "cmRExportGIF";
             cmRExportGIF.Size = new System.Drawing.Size(307, 22);
-            cmRExportGIF.Text = "E&xport Loop As Animated GIF ...";
+            cmRExportGIF.Text = "Export Loop As Animated GIF ...";
             cmRExportGIF.Click += mnuRExportGIF_Click;
             // 
             // cmbResType

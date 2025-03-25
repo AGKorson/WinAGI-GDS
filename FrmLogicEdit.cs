@@ -578,7 +578,7 @@ namespace WinAGI.Editor {
                         return;
 
                     }
-                    // relatve to the source dir
+                    // relative to the source dir
                     filename = Path.GetFullPath(EditGame.ResDir + filename);
                 }
                 else {

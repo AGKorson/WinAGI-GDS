@@ -87,6 +87,8 @@
             groupBox5 = new System.Windows.Forms.GroupBox();
             chkShowComment = new System.Windows.Forms.CheckBox();
             groupBox4 = new System.Windows.Forms.GroupBox();
+            chkIncludeGlobals = new System.Windows.Forms.CheckBox();
+            chkIncludeResDefs = new System.Windows.Forms.CheckBox();
             chkIncludeIDs = new System.Windows.Forms.CheckBox();
             chkAutoWarn = new System.Windows.Forms.CheckBox();
             cmbErrorLevel = new System.Windows.Forms.ComboBox();
@@ -101,12 +103,35 @@
             chkShowMsg = new System.Windows.Forms.CheckBox();
             chkSpecialSyntax = new System.Windows.Forms.CheckBox();
             Pictures = new System.Windows.Forms.TabPage();
+            groupBox9 = new System.Windows.Forms.GroupBox();
+            optCoordX = new System.Windows.Forms.RadioButton();
+            optCoordW = new System.Windows.Forms.RadioButton();
+            groupBox8 = new System.Windows.Forms.GroupBox();
+            chkBands = new System.Windows.Forms.CheckBox();
+            optPicFull = new System.Windows.Forms.RadioButton();
+            optPicSplit = new System.Windows.Forms.RadioButton();
+            groupBox7 = new System.Windows.Forms.GroupBox();
+            cmbSpeed = new System.Windows.Forms.ComboBox();
+            label17 = new System.Windows.Forms.Label();
+            cmbPriority = new System.Windows.Forms.ComboBox();
+            label16 = new System.Windows.Forms.Label();
+            txtHorizon = new System.Windows.Forms.TextBox();
+            label15 = new System.Windows.Forms.Label();
+            chkCycleAtRest = new System.Windows.Forms.CheckBox();
+            optWater = new System.Windows.Forms.RadioButton();
+            optLand = new System.Windows.Forms.RadioButton();
+            optAnything = new System.Windows.Forms.RadioButton();
+            chkIgnoreBlocks = new System.Windows.Forms.CheckBox();
+            chkIgnoreHorizon = new System.Windows.Forms.CheckBox();
+            groupBox6 = new System.Windows.Forms.GroupBox();
+            udPEZoom = new System.Windows.Forms.DomainUpDown();
+            udPPZoom = new System.Windows.Forms.DomainUpDown();
+            label14 = new System.Windows.Forms.Label();
+            label13 = new System.Windows.Forms.Label();
             Sounds = new System.Windows.Forms.TabPage();
             Views = new System.Windows.Forms.TabPage();
             LayoutTab = new System.Windows.Forms.TabPage();
             cdColors = new System.Windows.Forms.ColorDialog();
-            chkIncludeResDefs = new System.Windows.Forms.CheckBox();
-            chkIncludeGlobals = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)rtfPreview).BeginInit();
             tabControl1.SuspendLayout();
             General.SuspendLayout();
@@ -121,6 +146,11 @@
             groupBox5.SuspendLayout();
             groupBox4.SuspendLayout();
             groupBox3.SuspendLayout();
+            Pictures.SuspendLayout();
+            groupBox9.SuspendLayout();
+            groupBox8.SuspendLayout();
+            groupBox7.SuspendLayout();
+            groupBox6.SuspendLayout();
             SuspendLayout();
             // 
             // btnCancel
@@ -843,6 +873,28 @@
             groupBox4.TabStop = false;
             groupBox4.Text = "Compiler Settings";
             // 
+            // chkIncludeGlobals
+            // 
+            chkIncludeGlobals.AutoSize = true;
+            chkIncludeGlobals.Location = new System.Drawing.Point(230, 72);
+            chkIncludeGlobals.Name = "chkIncludeGlobals";
+            chkIncludeGlobals.Size = new System.Drawing.Size(182, 19);
+            chkIncludeGlobals.TabIndex = 5;
+            chkIncludeGlobals.Text = "Always include global defines";
+            chkIncludeGlobals.UseVisualStyleBackColor = true;
+            chkIncludeGlobals.CheckedChanged += chkIncludeGlobals_CheckedChanged;
+            // 
+            // chkIncludeResDefs
+            // 
+            chkIncludeResDefs.AutoSize = true;
+            chkIncludeResDefs.Location = new System.Drawing.Point(230, 47);
+            chkIncludeResDefs.Name = "chkIncludeResDefs";
+            chkIncludeResDefs.Size = new System.Drawing.Size(193, 19);
+            chkIncludeResDefs.TabIndex = 4;
+            chkIncludeResDefs.Text = "Always include reserved defines";
+            chkIncludeResDefs.UseVisualStyleBackColor = true;
+            chkIncludeResDefs.CheckedChanged += chkIncludeResDefs_CheckedChanged;
+            // 
             // chkIncludeIDs
             // 
             chkIncludeIDs.AutoSize = true;
@@ -990,12 +1042,349 @@
             // 
             // Pictures
             // 
+            Pictures.Controls.Add(groupBox9);
+            Pictures.Controls.Add(groupBox8);
+            Pictures.Controls.Add(groupBox7);
+            Pictures.Controls.Add(groupBox6);
             Pictures.Location = new System.Drawing.Point(4, 24);
             Pictures.Name = "Pictures";
             Pictures.Size = new System.Drawing.Size(468, 371);
             Pictures.TabIndex = 3;
             Pictures.Text = "Pictures";
             Pictures.UseVisualStyleBackColor = true;
+            // 
+            // groupBox9
+            // 
+            groupBox9.Controls.Add(optCoordX);
+            groupBox9.Controls.Add(optCoordW);
+            groupBox9.Location = new System.Drawing.Point(10, 274);
+            groupBox9.Name = "groupBox9";
+            groupBox9.Size = new System.Drawing.Size(203, 88);
+            groupBox9.TabIndex = 2;
+            groupBox9.TabStop = false;
+            groupBox9.Text = "Coordinate Cursor Style";
+            // 
+            // optCoordX
+            // 
+            optCoordX.AutoSize = true;
+            optCoordX.Location = new System.Drawing.Point(28, 58);
+            optCoordX.Name = "optCoordX";
+            optCoordX.Size = new System.Drawing.Size(78, 19);
+            optCoordX.TabIndex = 1;
+            optCoordX.TabStop = true;
+            optCoordX.Text = "'X' Marker";
+            optCoordX.UseVisualStyleBackColor = true;
+            optCoordX.CheckedChanged += optCoordX_CheckedChanged;
+            // 
+            // optCoordW
+            // 
+            optCoordW.AutoSize = true;
+            optCoordW.Location = new System.Drawing.Point(28, 33);
+            optCoordW.Name = "optCoordW";
+            optCoordW.Size = new System.Drawing.Size(110, 19);
+            optCoordW.TabIndex = 0;
+            optCoordW.TabStop = true;
+            optCoordW.Text = "Original WinAGI";
+            optCoordW.UseVisualStyleBackColor = true;
+            optCoordW.CheckedChanged += optCoordW_CheckedChanged;
+            // 
+            // groupBox8
+            // 
+            groupBox8.Controls.Add(chkBands);
+            groupBox8.Controls.Add(optPicFull);
+            groupBox8.Controls.Add(optPicSplit);
+            groupBox8.Location = new System.Drawing.Point(10, 119);
+            groupBox8.Name = "groupBox8";
+            groupBox8.Size = new System.Drawing.Size(203, 149);
+            groupBox8.TabIndex = 1;
+            groupBox8.TabStop = false;
+            groupBox8.Text = "Drawing Surface Defaults";
+            // 
+            // chkBands
+            // 
+            chkBands.AutoSize = true;
+            chkBands.Location = new System.Drawing.Point(21, 108);
+            chkBands.Name = "chkBands";
+            chkBands.Size = new System.Drawing.Size(131, 19);
+            chkBands.TabIndex = 2;
+            chkBands.Text = "Show Priority Bands";
+            chkBands.UseVisualStyleBackColor = true;
+            chkBands.Click += chkBands_Click;
+            // 
+            // optPicFull
+            // 
+            optPicFull.AutoSize = true;
+            optPicFull.Location = new System.Drawing.Point(21, 62);
+            optPicFull.Name = "optPicFull";
+            optPicFull.Size = new System.Drawing.Size(91, 19);
+            optPicFull.TabIndex = 1;
+            optPicFull.TabStop = true;
+            optPicFull.Text = "Full Window";
+            optPicFull.UseVisualStyleBackColor = true;
+            optPicFull.CheckedChanged += optPicFull_CheckedChanged;
+            // 
+            // optPicSplit
+            // 
+            optPicSplit.AutoSize = true;
+            optPicSplit.Location = new System.Drawing.Point(21, 37);
+            optPicSplit.Name = "optPicSplit";
+            optPicSplit.Size = new System.Drawing.Size(95, 19);
+            optPicSplit.TabIndex = 0;
+            optPicSplit.TabStop = true;
+            optPicSplit.Text = "Split Window";
+            optPicSplit.UseVisualStyleBackColor = true;
+            optPicSplit.CheckedChanged += optPicSplit_CheckedChanged;
+            // 
+            // groupBox7
+            // 
+            groupBox7.Controls.Add(cmbSpeed);
+            groupBox7.Controls.Add(label17);
+            groupBox7.Controls.Add(cmbPriority);
+            groupBox7.Controls.Add(label16);
+            groupBox7.Controls.Add(txtHorizon);
+            groupBox7.Controls.Add(label15);
+            groupBox7.Controls.Add(chkCycleAtRest);
+            groupBox7.Controls.Add(optWater);
+            groupBox7.Controls.Add(optLand);
+            groupBox7.Controls.Add(optAnything);
+            groupBox7.Controls.Add(chkIgnoreBlocks);
+            groupBox7.Controls.Add(chkIgnoreHorizon);
+            groupBox7.Location = new System.Drawing.Point(228, 12);
+            groupBox7.Name = "groupBox7";
+            groupBox7.Size = new System.Drawing.Size(221, 350);
+            groupBox7.TabIndex = 3;
+            groupBox7.TabStop = false;
+            groupBox7.Text = "Default Picture Test Options";
+            // 
+            // cmbSpeed
+            // 
+            cmbSpeed.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbSpeed.Items.AddRange(new object[] { "Slow", "Normal", "Fast", "Fastest" });
+            cmbSpeed.Location = new System.Drawing.Point(34, 294);
+            cmbSpeed.Name = "cmbSpeed";
+            cmbSpeed.Size = new System.Drawing.Size(157, 23);
+            cmbSpeed.TabIndex = 11;
+            cmbSpeed.SelectedIndexChanged += cmbSpeed_SelectionIndexChanged;
+            // 
+            // label17
+            // 
+            label17.AutoSize = true;
+            label17.Location = new System.Drawing.Point(34, 276);
+            label17.Name = "label17";
+            label17.Size = new System.Drawing.Size(39, 15);
+            label17.TabIndex = 10;
+            label17.Text = "Speed";
+            // 
+            // cmbPriority
+            // 
+            cmbPriority.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbPriority.Items.AddRange(new object[] { "Automatic", "15", "14", "13", "12", "11", "10", "9", "8", "7", "6", "5", "4" });
+            cmbPriority.Location = new System.Drawing.Point(34, 237);
+            cmbPriority.Name = "cmbPriority";
+            cmbPriority.Size = new System.Drawing.Size(157, 23);
+            cmbPriority.TabIndex = 9;
+            cmbPriority.SelectedIndexChanged += cmbPriority_SelectionIndexChanged;
+            // 
+            // label16
+            // 
+            label16.AutoSize = true;
+            label16.Location = new System.Drawing.Point(34, 219);
+            label16.Name = "label16";
+            label16.Size = new System.Drawing.Size(83, 15);
+            label16.TabIndex = 8;
+            label16.Text = "Object Priority";
+            // 
+            // txtHorizon
+            // 
+            txtHorizon.Location = new System.Drawing.Point(100, 184);
+            txtHorizon.Name = "txtHorizon";
+            txtHorizon.Size = new System.Drawing.Size(43, 23);
+            txtHorizon.TabIndex = 7;
+            txtHorizon.KeyPress += txtHorizon_KeyPress;
+            txtHorizon.Validating += txtHorizon_Validating;
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new System.Drawing.Point(34, 188);
+            label15.Name = "label15";
+            label15.Size = new System.Drawing.Size(49, 15);
+            label15.TabIndex = 6;
+            label15.Text = "Horizon";
+            // 
+            // chkCycleAtRest
+            // 
+            chkCycleAtRest.AutoSize = true;
+            chkCycleAtRest.Location = new System.Drawing.Point(34, 156);
+            chkCycleAtRest.Name = "chkCycleAtRest";
+            chkCycleAtRest.Size = new System.Drawing.Size(93, 19);
+            chkCycleAtRest.TabIndex = 5;
+            chkCycleAtRest.Text = "Cycle at Rest";
+            chkCycleAtRest.UseVisualStyleBackColor = true;
+            chkCycleAtRest.Click += chkCycleAtRest_Click;
+            // 
+            // optWater
+            // 
+            optWater.AutoSize = true;
+            optWater.Location = new System.Drawing.Point(68, 122);
+            optWater.Name = "optWater";
+            optWater.Size = new System.Drawing.Size(111, 19);
+            optWater.TabIndex = 4;
+            optWater.TabStop = true;
+            optWater.Text = "Object on Water";
+            optWater.UseVisualStyleBackColor = true;
+            optWater.CheckedChanged += optWater_CheckedChanged;
+            // 
+            // optLand
+            // 
+            optLand.AutoSize = true;
+            optLand.Location = new System.Drawing.Point(68, 97);
+            optLand.Name = "optLand";
+            optLand.Size = new System.Drawing.Size(106, 19);
+            optLand.TabIndex = 3;
+            optLand.TabStop = true;
+            optLand.Text = "Object on Land";
+            optLand.UseVisualStyleBackColor = true;
+            optLand.CheckedChanged += optLand_CheckedChanged;
+            // 
+            // optAnything
+            // 
+            optAnything.AutoSize = true;
+            optAnything.Location = new System.Drawing.Point(68, 72);
+            optAnything.Name = "optAnything";
+            optAnything.Size = new System.Drawing.Size(129, 19);
+            optAnything.TabIndex = 2;
+            optAnything.TabStop = true;
+            optAnything.Text = "Object on Anything";
+            optAnything.UseVisualStyleBackColor = true;
+            optAnything.CheckedChanged += optAnything_CheckedChanged;
+            // 
+            // chkIgnoreBlocks
+            // 
+            chkIgnoreBlocks.AutoSize = true;
+            chkIgnoreBlocks.Location = new System.Drawing.Point(34, 47);
+            chkIgnoreBlocks.Name = "chkIgnoreBlocks";
+            chkIgnoreBlocks.Size = new System.Drawing.Size(97, 19);
+            chkIgnoreBlocks.TabIndex = 1;
+            chkIgnoreBlocks.Text = "Ignore Blocks";
+            chkIgnoreBlocks.UseVisualStyleBackColor = true;
+            chkIgnoreBlocks.Click += chkIgnoreBlocks_Click;
+            // 
+            // chkIgnoreHorizon
+            // 
+            chkIgnoreHorizon.AutoSize = true;
+            chkIgnoreHorizon.Location = new System.Drawing.Point(34, 22);
+            chkIgnoreHorizon.Name = "chkIgnoreHorizon";
+            chkIgnoreHorizon.Size = new System.Drawing.Size(105, 19);
+            chkIgnoreHorizon.TabIndex = 0;
+            chkIgnoreHorizon.Text = "Ignore Horizon";
+            chkIgnoreHorizon.UseVisualStyleBackColor = true;
+            chkIgnoreHorizon.Click += chkIgnoreHorizon_Click;
+            // 
+            // groupBox6
+            // 
+            groupBox6.Controls.Add(udPEZoom);
+            groupBox6.Controls.Add(udPPZoom);
+            groupBox6.Controls.Add(label14);
+            groupBox6.Controls.Add(label13);
+            groupBox6.Location = new System.Drawing.Point(15, 12);
+            groupBox6.Name = "groupBox6";
+            groupBox6.Size = new System.Drawing.Size(198, 101);
+            groupBox6.TabIndex = 0;
+            groupBox6.TabStop = false;
+            groupBox6.Text = "Default Zoom";
+            // 
+            // udPEZoom
+            // 
+            udPEZoom.Items.Add("2000%");
+            udPEZoom.Items.Add("1900%");
+            udPEZoom.Items.Add("1800%");
+            udPEZoom.Items.Add("1700%");
+            udPEZoom.Items.Add("1600%");
+            udPEZoom.Items.Add("1500%");
+            udPEZoom.Items.Add("1400%");
+            udPEZoom.Items.Add("1300%");
+            udPEZoom.Items.Add("1200%");
+            udPEZoom.Items.Add("1100%");
+            udPEZoom.Items.Add("1000%");
+            udPEZoom.Items.Add("900%");
+            udPEZoom.Items.Add("800%");
+            udPEZoom.Items.Add("750%");
+            udPEZoom.Items.Add("700%");
+            udPEZoom.Items.Add("650%");
+            udPEZoom.Items.Add("600%");
+            udPEZoom.Items.Add("550%");
+            udPEZoom.Items.Add("500%");
+            udPEZoom.Items.Add("450%");
+            udPEZoom.Items.Add("400%");
+            udPEZoom.Items.Add("350%");
+            udPEZoom.Items.Add("300%");
+            udPEZoom.Items.Add("275%");
+            udPEZoom.Items.Add("250%");
+            udPEZoom.Items.Add("225%");
+            udPEZoom.Items.Add("200%");
+            udPEZoom.Items.Add("175%");
+            udPEZoom.Items.Add("150%");
+            udPEZoom.Items.Add("125%");
+            udPEZoom.Items.Add("100%");
+            udPEZoom.Location = new System.Drawing.Point(91, 60);
+            udPEZoom.Name = "udPEZoom";
+            udPEZoom.ReadOnly = true;
+            udPEZoom.Size = new System.Drawing.Size(64, 23);
+            udPEZoom.TabIndex = 11;
+            udPEZoom.Text = "200%";
+            udPEZoom.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            udPEZoom.SelectedItemChanged += udPEZoom_SelectedItemChanged;
+            // 
+            // udPPZoom
+            // 
+            udPPZoom.Items.Add("1000%");
+            udPPZoom.Items.Add("900%");
+            udPPZoom.Items.Add("800%");
+            udPPZoom.Items.Add("750%");
+            udPPZoom.Items.Add("700%");
+            udPPZoom.Items.Add("650%");
+            udPPZoom.Items.Add("600%");
+            udPPZoom.Items.Add("550%");
+            udPPZoom.Items.Add("500%");
+            udPPZoom.Items.Add("450%");
+            udPPZoom.Items.Add("400%");
+            udPPZoom.Items.Add("350%");
+            udPPZoom.Items.Add("300%");
+            udPPZoom.Items.Add("275%");
+            udPPZoom.Items.Add("250%");
+            udPPZoom.Items.Add("225%");
+            udPPZoom.Items.Add("200%");
+            udPPZoom.Items.Add("175%");
+            udPPZoom.Items.Add("150%");
+            udPPZoom.Items.Add("125%");
+            udPPZoom.Items.Add("100%");
+            udPPZoom.Location = new System.Drawing.Point(91, 31);
+            udPPZoom.Name = "udPPZoom";
+            udPPZoom.ReadOnly = true;
+            udPPZoom.Size = new System.Drawing.Size(64, 23);
+            udPPZoom.TabIndex = 10;
+            udPPZoom.Text = "100%";
+            udPPZoom.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            udPPZoom.SelectedItemChanged += udPPZoom_SelectedItemChanged;
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new System.Drawing.Point(27, 63);
+            label14.Name = "label14";
+            label14.Size = new System.Drawing.Size(41, 15);
+            label14.TabIndex = 1;
+            label14.Text = "Editor:";
+            // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new System.Drawing.Point(27, 34);
+            label13.Name = "label13";
+            label13.Size = new System.Drawing.Size(51, 15);
+            label13.TabIndex = 0;
+            label13.Text = "Preview:";
             // 
             // Sounds
             // 
@@ -1028,28 +1417,6 @@
             // 
             cdColors.AnyColor = true;
             cdColors.SolidColorOnly = true;
-            // 
-            // chkIncludeResDefs
-            // 
-            chkIncludeResDefs.AutoSize = true;
-            chkIncludeResDefs.Location = new System.Drawing.Point(230, 47);
-            chkIncludeResDefs.Name = "chkIncludeResDefs";
-            chkIncludeResDefs.Size = new System.Drawing.Size(193, 19);
-            chkIncludeResDefs.TabIndex = 4;
-            chkIncludeResDefs.Text = "Always include reserved defines";
-            chkIncludeResDefs.UseVisualStyleBackColor = true;
-            chkIncludeResDefs.CheckedChanged += chkIncludeResDefs_CheckedChanged;
-            // 
-            // chkIncludeGlobals
-            // 
-            chkIncludeGlobals.AutoSize = true;
-            chkIncludeGlobals.Location = new System.Drawing.Point(230, 72);
-            chkIncludeGlobals.Name = "chkIncludeGlobals";
-            chkIncludeGlobals.Size = new System.Drawing.Size(182, 19);
-            chkIncludeGlobals.TabIndex = 5;
-            chkIncludeGlobals.Text = "Always include global defines";
-            chkIncludeGlobals.UseVisualStyleBackColor = true;
-            chkIncludeGlobals.CheckedChanged += chkIncludeGlobals_CheckedChanged;
             // 
             // frmSettings
             // 
@@ -1094,6 +1461,15 @@
             groupBox4.PerformLayout();
             groupBox3.ResumeLayout(false);
             groupBox3.PerformLayout();
+            Pictures.ResumeLayout(false);
+            groupBox9.ResumeLayout(false);
+            groupBox9.PerformLayout();
+            groupBox8.ResumeLayout(false);
+            groupBox8.PerformLayout();
+            groupBox7.ResumeLayout(false);
+            groupBox7.PerformLayout();
+            groupBox6.ResumeLayout(false);
+            groupBox6.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -1181,5 +1557,30 @@
         private System.Windows.Forms.CheckBox chkLineNumbers;
         private System.Windows.Forms.CheckBox chkIncludeGlobals;
         private System.Windows.Forms.CheckBox chkIncludeResDefs;
+        private System.Windows.Forms.GroupBox groupBox9;
+        private System.Windows.Forms.GroupBox groupBox8;
+        private System.Windows.Forms.GroupBox groupBox7;
+        private System.Windows.Forms.GroupBox groupBox6;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.RadioButton optCoordX;
+        private System.Windows.Forms.RadioButton optCoordW;
+        private System.Windows.Forms.CheckBox chkBands;
+        private System.Windows.Forms.RadioButton optPicFull;
+        private System.Windows.Forms.RadioButton optPicSplit;
+        private System.Windows.Forms.ComboBox cmbSpeed;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.ComboBox cmbPriority;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.TextBox txtHorizon;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.CheckBox chkCycleAtRest;
+        private System.Windows.Forms.RadioButton optWater;
+        private System.Windows.Forms.RadioButton optLand;
+        private System.Windows.Forms.RadioButton optAnything;
+        private System.Windows.Forms.CheckBox chkIgnoreBlocks;
+        private System.Windows.Forms.CheckBox chkIgnoreHorizon;
+        private System.Windows.Forms.DomainUpDown udPEZoom;
+        private System.Windows.Forms.DomainUpDown udPPZoom;
     }
 }

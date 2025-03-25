@@ -706,7 +706,8 @@ namespace WinAGI.Editor {
         }
 
         protected override void OnMouseDown(MouseEventArgs e) {
-            this.Focus();
+            //this.Focus();
+            this.Select();
             base.OnMouseDown(e);
         }
 

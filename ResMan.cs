@@ -235,18 +235,18 @@ namespace WinAGI.Editor {
             ReplaceAll,
             Cancel,
         }
-        public enum TPicToolTypeEnum {
-            ttEdit = 0,      //indicates edit tool is selected; mouse ops move coords and commands
-            ttSetPen = 1,    //not used, but included for possible updated capabilities
-            ttLine = 2,      //line drawing tool; mouse ops set start/end points
-            ttRelLine = 3,   //short line tool; mouse ops set start/end points
-            ttCorner = 4,    //corner line tool; mouse ops set start/end points
-            ttFill = 5,      //fill tool; mouse ops set starting point of fill operations
-            ttPlot = 6,      //plot tool
-            ttRectangle = 7, //for drawing rectangles
-            ttTrapezoid = 8, //for drawing trapezoids
-            ttEllipse = 9,   //for drawing ellipses
-            ttSelectArea = 10, //for selecting bitmap areas of the Image
+        public enum PicToolType {
+            Edit = 0,      //indicates edit tool is selected; mouse ops move coords and commands
+            SetPen = 1,    //not used, but included for possible updated capabilities
+            Line = 2,      //line drawing tool; mouse ops set start/end points
+            ShortLine = 3,   //short line tool; mouse ops set start/end points
+            StepLine = 4,    //corner line tool; mouse ops set start/end points
+            Fill = 5,      //fill tool; mouse ops set starting point of fill operations
+            Plot = 6,      //plot tool
+            Rectangle = 7, //for drawing rectangles
+            Trapezoid = 8, //for drawing trapezoids
+            Ellipse = 9,   //for drawing ellipses
+            SelectArea = 10, //for selecting bitmap areas of the Image
         }
         public enum TPicDrawOpEnum {
             doNone = 0,          //indicates no drawing op is in progress; mouse operations generally don't do anything
@@ -450,11 +450,6 @@ namespace WinAGI.Editor {
             public SettingColor Color;
             public SettingFontStyle FontStyle;
         }
-        //public enum EPicCursorMode {
-        //    pcmWinAGI,
-        //    pcmXMode,
-        //}
-
         public struct agiSettings {
             public agiSettings() {
                 // initialize settings arrays and defaults
@@ -679,7 +674,7 @@ namespace WinAGI.Editor {
             // PicScalePreview: 
             public SettingDouble PicScalePreview = new("PreviewScale", 1, sPICTURES);
             // PicScaleEdit: 
-            public SettingInt PicScaleEdit = new("EditorScale", 2, sPICTURES);
+            public SettingDouble PicScaleEdit = new("EditorScale", 2, sPICTURES);
             // CursorMode (as int; conert to enum as needed): 
             public SettingInt CursorMode = new("CursorMode", 0, sPICTURES);
 
@@ -7200,7 +7195,7 @@ namespace WinAGI.Editor {
             pic.Image = new Bitmap(bWidth, bHeight);
             // intialize a graphics object for the image just created
             using Graphics g = Graphics.FromImage(pic.Image);
-            //always clear the background first
+            // always clear the background first
             g.Clear(pic.BackColor);
             /*------------------------------------------------------------*/
 
@@ -7936,6 +7931,13 @@ namespace WinAGI.Editor {
                 MDIMain.SaveDlg.DefaultExt = "bmp";
                 MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
                 MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*";
+                //MDIMain.SaveDlg.Filter = "Image Files(*.bmp; *.jpg; *.jpeg *.gif; *.tif; *.png)|*.bmp;*.jpg;*.jpeg;*.gif;*.tif;*.png|" +
+                //    "BMP files (*.bmp)|*.bmp|" +
+                //    "JPEG files (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+                //    "GIF files (*.gif)|*.gif|" +
+                //    "TIFF files (*.tif)|*.tif|" +
+                //    "PNG files (*.PNG)|*.png|" +
+                //    "All files (*.*)|*.*";
                 MDIMain.SaveDlg.CheckPathExists = true;
                 MDIMain.SaveDlg.CheckWriteAccess = true;
                 MDIMain.SaveDlg.FilterIndex = lngFormat;
@@ -8386,6 +8388,13 @@ namespace WinAGI.Editor {
             MDIMain.SaveDlg.Title = "Save Picture Image As";
             MDIMain.SaveDlg.DefaultExt = "bmp";
             MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*";
+            //MDIMain.SaveDlg.Filter = "Image Files(*.bmp; *.jpg; *.jpeg *.gif; *.tif; *.png)|*.bmp;*.jpg;*.jpeg;*.gif;*.tif;*.png|" +
+            //    "BMP files (*.bmp)|*.bmp|" +
+            //    "JPEG files (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
+            //    "GIF files (*.gif)|*.gif|" +
+            //    "TIFF files (*.tif)|*.tif|" +
+            //    "PNG files (*.PNG)|*.png|" +
+            //    "All files (*.*)|*.*";
             MDIMain.SaveDlg.OverwritePrompt = true;
             MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
             MDIMain.SaveDlg.FilterIndex = lngFormat;

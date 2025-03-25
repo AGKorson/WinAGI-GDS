@@ -723,12 +723,12 @@ namespace WinAGI.Editor {
             // ignore everything except numbers, backspace, delete, enter, tab, and escape
             switch (e.KeyCode) {
             case Keys.Enter:
-                fgObjects.Focus();
+                fgObjects.Select();
                 e.SuppressKeyPress = true;
                 break;
             case Keys.Escape:
                 txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
-                fgObjects.Focus();
+                fgObjects.Select();
                 e.SuppressKeyPress = true;
                 break;
             }
@@ -1206,7 +1206,7 @@ namespace WinAGI.Editor {
                 FindingForm.ResetSearch();
                 FirstFind = false;
             }
-            fgObjects.Focus();
+            fgObjects.Select();
             MDIMain.UseWaitCursor = false;
         }
 

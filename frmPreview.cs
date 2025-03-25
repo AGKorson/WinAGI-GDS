@@ -68,21 +68,21 @@ namespace WinAGI.Editor {
             fraPCorner.Height = hsbPic.Height;
             fraPCorner.Top = hsbPic.Top;
             PicScale = WinAGISettings.PicScalePreview.Value;
-            double scale = PicScale * 100;
+            double scale = PicScale;
             if (scale <= 3) {
-                scale = (int)(scale * 4) / 4;
+                scale = (int)(scale * 4) / 0.04;
             }
             else {
-                scale = (int)(scale * 2) / 2;
+                scale = (int)(scale * 2) / 0.02;
             }
             for (int i = 0; i < udPZoom.Items.Count; i++) {
-                if (scale.ToString() == udPZoom.Items[i].ToString()) {
+                if (scale.ToString() == ((string)udPZoom.Items[i])[..^1]) {
                     udPZoom.SelectedIndex = i;
                     break;
                 }
-                if (udPZoom.SelectedIndex == -1) {
-                    udPZoom.SelectedIndex = 0;
-                }
+            }
+            if (udPZoom.SelectedIndex == -1) {
+                udPZoom.SelectedIndex = 0;
             }
             // sound controls
             cmbInst[0] = cmbInst0;
@@ -376,7 +376,7 @@ namespace WinAGI.Editor {
                     oldscale = PicScale;
                 }
                 //set zoom
-                PicScale = double.Parse((string)udPZoom.SelectedItem) / 100;
+                PicScale = double.Parse(((string)udPZoom.SelectedItem)[..^1]) / 100;
                 //force update
                 DisplayPicture(oldscale);
             }
@@ -811,11 +811,11 @@ namespace WinAGI.Editor {
         }
 
         private void tbbZoomIn_Click(object sender, EventArgs e) {
-            ZoomPrev(1);
+            AdjustViewCelScale(1);
         }
 
         private void tbbZoomOut_Click(object sender, EventArgs e) {
-            ZoomPrev(-1);
+            AdjustViewCelScale(-1);
         }
 
         private void tbbAlignLeft_Click(object sender, EventArgs e) {
@@ -919,11 +919,11 @@ namespace WinAGI.Editor {
             switch (e.Delta) {
             case < 0:
                 // wheel down
-                ZoomPrev(-1, true);
+                AdjustViewCelScale(-1, true);
                 break;
             case > 0:
                 // wheel up
-                ZoomPrev(1, true);
+                AdjustViewCelScale(1, true);
                 break;
             }
         }
@@ -1395,11 +1395,11 @@ namespace WinAGI.Editor {
                     break;
                 case 43: //+//
                          //zoom in
-                    ZoomPrev(1);
+                    AdjustViewCelScale(1);
                     break;
                 case 45: //-//
                          //zoom out
-                    ZoomPrev(-1);
+                    AdjustViewCelScale(-1);
                     break;
                 case 65:
                 case 97: //a//
@@ -1744,7 +1744,7 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        void ZoomPrev(int Dir, bool useanchor = false) {
+        void AdjustViewCelScale(int Dir, bool useanchor = false) {
             double oldscale = useanchor ? ViewScale : 0;
 
             if (Dir == 1) {
@@ -1915,8 +1915,6 @@ namespace WinAGI.Editor {
             udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
             //set transparent color for the toolbox image
             picTrans.BackColor = EditGame.Palette[(int)agView[CurLoop][CurCel].TransColor];
-            //picTrans.Image = new Bitmap(picTrans.Width, picTrans.Height);
-            //Graphics.FromImage(picTrans.Image).Clear(EditGame.Palette[(int)agView[CurLoop][CurCel].TransColor]);
 
             //copy view Image
             tgtW = (int)(agView[CurLoop][CurCel].Width * 2 * ViewScale);

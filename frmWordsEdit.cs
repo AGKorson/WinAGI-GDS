@@ -303,7 +303,7 @@ namespace WinAGI.Editor {
                         case DialogResult.Cancel:
                             return;
                         case DialogResult.Yes:
-                            frm.Focus();
+                            frm.Select();
                             frm.SaveLogicSource();
                             break;
                         }
@@ -1248,7 +1248,7 @@ namespace WinAGI.Editor {
             txtGroupEdit.Location = location;
             txtGroupEdit.Size = lstGroups.GetItemRectangle(index).Size;
             txtGroupEdit.Visible = true;
-            txtGroupEdit.Focus();
+            txtGroupEdit.Select();
         }
 
         private void lstGroups_Enter(object sender, EventArgs e) {
@@ -1276,7 +1276,7 @@ namespace WinAGI.Editor {
                 }
             }
             if (e.Button == MouseButtons.Right) {
-                lstGroups.Focus();
+                lstGroups.Select();
             }
         }
 
@@ -1289,7 +1289,7 @@ namespace WinAGI.Editor {
         private void lstGroups_DragEnter(object sender, DragEventArgs e) {
             if (GroupMode && DragWord) {
                 if (!this.Focused) {
-                    this.Focus();
+                    this.Select();
                 }
                 e.Effect = DragDropEffects.Move;
             }
@@ -1414,7 +1414,7 @@ namespace WinAGI.Editor {
                     txtGroupEdit.SelectAll();
                     return;
                 }
-                lstGroups.Focus();
+                lstGroups.Select();
                 return;
             case Keys.Escape:
                 FinishGroupEdit();
@@ -1518,7 +1518,7 @@ namespace WinAGI.Editor {
                 }
             }
             if (e.Button == MouseButtons.Right) {
-                lstWords.Focus();
+                lstWords.Select();
             }
         }
 
@@ -1606,7 +1606,7 @@ namespace WinAGI.Editor {
                     txtWordEdit.SelectAll();
                     return;
                 }
-                lstWords.Focus();
+                lstWords.Select();
                 return;
             case Keys.Escape:
                 FinishWordEdit();
@@ -2067,7 +2067,7 @@ namespace WinAGI.Editor {
             txtWordEdit.Location = location;
             txtWordEdit.Size = lstWords.GetItemRectangle(index).Size;
             txtWordEdit.Visible = true;
-            txtWordEdit.Focus();
+            txtWordEdit.Select();
         }
 
         public void NewWord(int group) {
@@ -3106,13 +3106,13 @@ namespace WinAGI.Editor {
         private void FinishGroupEdit() {
             EditingGroup = false;
             txtGroupEdit.Visible = false;
-            lstGroups.Focus();
+            lstGroups.Select();
         }
 
         private void FinishWordEdit() {
             EditingWord = false;
             txtWordEdit.Visible = false;
-            lstWords.Focus();
+            lstWords.Select();
         }
 
         private bool AskClose() {

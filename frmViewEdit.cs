@@ -268,8 +268,8 @@ namespace WinAGI.Editor {
           ttEdit
           ttSelect
           ttDraw
-          ttLine
-          ttRectangle
+          Line
+          Rectangle
           ttBoxFill
           ttPaint
           ttErase
@@ -5760,13 +5760,13 @@ namespace WinAGI.Editor {
             End With
           End If
 
-        Case ttLine
+        Case Line
           'draw the new pixel (at correct scale)
           picCel.Line (CelAnchorX * ScaleFactor * 2, CelAnchorY * ScaleFactor)-((CelAnchorX + 1) * ScaleFactor * 2 - 1, (CelAnchorY + 1) * ScaleFactor - 1), EGAColor(CInt(DrawCol)), BF
           'set operation to draw
           CurrentOperation = opDraw
 
-        Case ttRectangle
+        Case Rectangle
           'draw the new pixel (at correct scale)
           picCel.Line (CelAnchorX * ScaleFactor * 2, CelAnchorY * ScaleFactor)-((CelAnchorX + 1) * ScaleFactor * 2 - 1, (CelAnchorY + 1) * ScaleFactor - 1), EGAColor(CInt(DrawCol)), BF
           'set operation to draw
@@ -5944,10 +5944,10 @@ namespace WinAGI.Editor {
             CelAnchorX = ViewX
             CelAnchorY = ViewY
 
-          Case ttLine
+          Case Line
             DrawLineOnSurface ViewX, ViewY
 
-          Case ttRectangle
+          Case Rectangle
             DrawBoxOnSurface ViewX, ViewY, False
 
           Case ttBoxFill
@@ -6197,7 +6197,7 @@ namespace WinAGI.Editor {
           NextUndo.UDCelNo = SelectedCel
 
           'if line or box
-          If SelectedTool = ttRectangle Or SelectedTool = ttBoxFill Then
+          If SelectedTool = Rectangle Or SelectedTool = ttBoxFill Then
             'swap so first variable is always lowest
             If CelAnchorX > ViewX Then
               tmpSwap = CelAnchorX
@@ -6225,13 +6225,13 @@ namespace WinAGI.Editor {
             'add pixel data
             NextUndo.CelData = PixelData
 
-          Case ttLine
+          Case Line
             NextUndo.UDAction = udvLine
 
             'draw the line
             DrawLineOnCel CelAnchorX, CelAnchorY, ViewX, ViewY, NextUndo
 
-          Case ttRectangle
+          Case Rectangle
 
             NextUndo.UDAction = udvBox
 
@@ -6465,11 +6465,11 @@ namespace WinAGI.Editor {
           picCel.MouseIcon = LoadResPicture("EVC_DRAW", vbResCursor)
 
         Case "line"
-          SelectedTool = ttLine
+          SelectedTool = Line
           picCel.MouseIcon = LoadResPicture("EVC_SELECT", vbResCursor)
 
         Case "box"
-          SelectedTool = ttRectangle
+          SelectedTool = Rectangle
           picCel.MouseIcon = LoadResPicture("EVC_SELECT", vbResCursor)
 
         Case "boxfill"

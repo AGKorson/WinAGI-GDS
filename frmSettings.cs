@@ -496,7 +496,7 @@ namespace WinAGI.Editor {
 
             // PICTURES
             foreach (frmPicEdit frm in PictureEditors) {
-                //frm.CursorMode = WinAGISettings.CursorMode;
+                frm.CursorMode = (EPicCursorMode)WinAGISettings.CursorMode.Value;
                 frm.InitFonts();
             }
 
@@ -705,9 +705,14 @@ namespace WinAGI.Editor {
                 txtMaxVol0.Select();
             }
             // only backspace, delete, numbers
-            if (e.KeyChar >= 32 && (e.KeyChar < 48 || e.KeyChar > 57)) {
+            switch ((int)e.KeyChar) {
+            case < 32:
+            case >= 48 and <= 57:
+                break;
+            default:
                 e.KeyChar = '\0';
                 e.Handled = true;
+                break;
             }
         }
 
@@ -734,9 +739,14 @@ namespace WinAGI.Editor {
                 chkResetWarnings.Select();
             }
             // only backspace, delete, numbers
-            if (e.KeyChar >= 32 && (e.KeyChar < 48 || e.KeyChar > 57)) {
+            switch ((int)e.KeyChar) {
+            case < 32:
+            case >= 48 and <= 57:
+                break;
+            default:
                 e.KeyChar = '\0';
                 e.Handled = true;
+                break;
             }
         }
 
@@ -807,19 +817,6 @@ namespace WinAGI.Editor {
                 fraHighlighting.Text = "Text and Background Colors";
             }
             else {
-                /*
-               0 Normal Text
-               1 Comments
-               2 Strings
-               3 Keywords
-               4 Test Commands
-               5 Action Commands
-               6 Invalid Commands
-               7 Numbers
-               8 Argument Identifiers
-               9 Defined Names
-              10 Background
-                */
                 lstColors.Items.Insert(1, "Comments");
                 lstColors.Items.Insert(2, "Strings");
                 lstColors.Items.Insert(3, "Keywords");
@@ -995,9 +992,14 @@ namespace WinAGI.Editor {
                 btnOK.Select();
             }
             // only backspace, delete, numbers
-            if (e.KeyChar >= 32 && (e.KeyChar < 48 || e.KeyChar > 57)) {
+            switch ((int)e.KeyChar) {
+            case < 32:
+            case >= 48 and <= 57:
+                break;
+            default:
                 e.KeyChar = '\0';
                 e.Handled = true;
+                break;
             }
         }
 
@@ -1027,7 +1029,6 @@ namespace WinAGI.Editor {
                 e.Handled = true;
                 chkSnippets.Select();
             }
-            // only four characters
             // only backspace, delete, letters, numbers
             switch ((int)e.KeyChar) {
             case < 32:
@@ -1167,287 +1168,802 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Pictures Tab Event Handlers
+        private void udPPZoom_SelectedItemChanged(object sender, EventArgs e) {
+            NewSettings.PicScalePreview.Value = double.Parse(((string)udPPZoom.SelectedItem)[..^1]) / 100;
+        }
+
+        private void udPEZoom_SelectedItemChanged(object sender, EventArgs e) {
+            NewSettings.PicScaleEdit.Value = double.Parse(((string)udPEZoom.SelectedItem)[..^1]) / 100;
+        }
+
+        private void optPicSplit_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.SplitWindow.Value = optPicSplit.Checked;
+        }
+
+        private void optPicFull_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.SplitWindow.Value = !optPicFull.Checked;
+        }
+
+        private void chkBands_Click(object sender, EventArgs e) {
+            NewSettings.ShowBands.Value = chkBands.Checked;
+        }
+
+        private void optCoordW_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.CursorMode.Value = 0;
+        }
+
+        private void optCoordX_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.CursorMode.Value = 1;
+        }
+
+        private void chkIgnoreBlocks_Click(object sender, EventArgs e) {
+            // save changed Value
+            NewSettings.PTIgnoreBlocks.Value = chkIgnoreBlocks.Checked;
+        }
+
+        private void chkIgnoreHorizon_Click(object sender, EventArgs e) {
+            // save changed Value
+            NewSettings.PTIgnoreHorizon.Value = chkIgnoreHorizon.Checked;
+        }
+
+        private void optAnything_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.PTObjRestriction.Value = 0;
+        }
+
+        private void optLand_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.PTObjRestriction.Value = 1;
+        }
+
+        private void optWater_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.PTObjRestriction.Value = 2;
+        }
+
+        private void chkCycleAtRest_Click(object sender, EventArgs e) {
+            // save changed Value
+            NewSettings.PTCycleAtRest.Value = chkCycleAtRest.Checked;
+        }
+
+        private void txtHorizon_Validating(object sender, CancelEventArgs e) {
+            if (!double.TryParse(txtHorizon.Text, out double var) || var < 1) {
+                txtHorizon.Text = "1";
+            }
+            else if (var > 167) {
+                txtHorizon.Text = "167";
+            }
+            else {
+                txtHorizon.Text = ((int)var).ToString();
+            }
+            NewSettings.PTHorizon.Value = (int)var;
+        }
+
+        private void txtHorizon_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.KeyChar = '\0';
+                e.Handled = true;
+                cmbPriority.Select();
+                return;
+            }
+            // only numbers or control keys
+            switch ((int)e.KeyChar) {
+            case < 32:
+            case >= 48 and <= 57:
+                break;
+            default:
+                e.KeyChar = '\0';
+                e.Handled = true;
+                break;
+            }
+        }
+
+        private void cmbPriority_SelectionIndexChanged(object sender, EventArgs e) {
+            NewSettings.PTObjPriority.Value = 16 - cmbPriority.SelectedIndex;
+        }
+
+        private void cmbSpeed_SelectionIndexChanged(object sender, EventArgs e) {
+            NewSettings.PTObjSpeed.Value = cmbSpeed.SelectedIndex;
+        }
         #endregion
 
         #region Sounds Tab Event Handlers
+        /*
+        private void chkKeybd_Click(object sender, EventArgs e) {
+            NewSettings.ShowKybd.Value = chkKeybd.Checked;
+        }
+
+        private void chkNotes_Click(object sender, EventArgs e) {
+            NewSettings.ShowNotes.Value = chkNotes.Checked;
+        }
+
+        private void chkOneTrack_Click(object sender, EventArgs e) {
+            NewSettings.OneTrack.Value = chkOneTrack.Checked;
+        }
+
+        private void chkNoMIDI_Click(object sender, EventArgs e) {
+            NewSettings.NoMIDI.Value = chkNoMIDI.Checked;
+        }
+
+        private void chkTrack_Click(int Index) {
+            switch (Index) {
+            case 0:
+                NewSettings.DefMute0.Value = chkTrack[Index].Checked;
+                break;
+            case 1:
+                NewSettings.DefMute1.Value = chkTrack[Index].Checked;
+                break;
+            case 2:
+                NewSettings.DefMute2.Value = chkTrack[Index].Checked;
+                break;
+            case 3:
+                NewSettings.DefMute3.Value = chkTrack[Index].Checked;
+                break;
+            }
+        }
+
+        private void cmbInst_Click(int Index) {
+            switch (Index) {
+            case 0:
+                NewSettings.DefInst0.Value = cmbInst[Index].SelectedIndex;
+                break;
+            case 1:
+                NewSettings.DefInst1.Value = cmbInst[Index].SelectedIndex;
+                break;
+            case 2:
+                NewSettings.DefInst2.Value = cmbInst[Index].SelectedIndex;
+                break;
+            }
+        }
+
+    private void cmdResetInst_Click() {
+      // resets all instruments to current default values
+
+      foreach (SoundtmpSound in EditGame.Sounds) {
+        bool blnLoaded = tmpSound.Loaded;
+        if (!blnLoaded) {
+          tmpSound.Load();
+        }
+          tmpSound.Track[0].Instrument = NewSettings.DefInst0;
+          tmpSound.Track[1].Instrument = NewSettings.DefInst1;
+          tmpSound.Track[2].Instrument = NewSettings.DefInst2;
+          tmpSound.Track[0].Muted = NewSettings.DefMute0;
+          tmpSound.Track[1].Muted = NewSettings.DefMute1;
+          tmpSound.Track[2].Muted = NewSettings.DefMute2;
+          tmpSound.Track[3].Muted = NewSettings.DefMute3;
+          tmpSound.Save();
+        if (!blnLoaded) {
+          tmpSound.Unload();
+        }
+      }
+      if (SelResType == AGIResType.Sound && PreviewWin.Visible) {
+        // adjust instrument settings
+          PreviewWin.cmbInst0.SelectedIndex = NewSettings.DefInst0;
+          PreviewWin.cmbInst1.SelectedIndex = NewSettings.DefInst1;
+          PreviewWin.cmbInst2.SelectedIndex = NewSettings.DefInst2;
+          PreviewWin.chkTrack0.Checked = !NewSettings.DefMute0;
+          PreviewWin.chkTrack1.Checked = !NewSettings.DefMute1;
+          PreviewWin.chkTrack2.Checked = !NewSettings.DefMute2;
+          PreviewWin.chkTrack3.Checked = !NewSettings.DefMute3;
+      }
+    }
+
+    private void txtSndZoom_Validating(object sender, CancelEventArgs e) {
+
+      if (!double.TryParse(txtSndZoom.Text, out double var) || var < 1) {
+        txtSndZoom.Text = "1";
+      }
+            else if (var > 3) {
+        txtSndZoom.Text = "3";
+      }
+else {
+            txtSndZoom.Text = ((int)var).ToString();
+      }
+      NewSettings.SndZoom = (int)var;
+    }
+
+    private void txtSndZoom_KeyPress(object sender, KeyPressEventArgs e) {
+      // enter is same as tabbing to next control
+      if ( e.KeyChar == 13) {
+         e.KeyChar = '\0';
+            e.Handled = true;
+        chkNoMIDI.Select();
+            return;
+      }
+      // only numbers or control keys
+      switch ( e.KeyChar) {
+      case  < 32:
+            case >=48 and <= 57:
+            break;
+      default:
+         e.KeyChar = '\0';
+            e.Handled = true;
+            break;
+      }
+    }
+
+        */
         #endregion
 
         #region Views Tab Event Handlers
+        /*
+        private void chkShowPrev_Click(object sender, EventArgs e) {
+            NewSettings.ShowVEPrev.Value = chkShowPrev.Checked;
+        }
+
+        private void chkDefPrevPlay_Click(object sender, EventArgs e) {
+            NewSettings.DefPrevPlay.Value = chkDefPrevPlay.Checked;
+        }
+
+        private void cmbHAlign_Click() {
+            NewSettings.ViewAlignH.Value = cmbHAlign.SelectedIndex;
+        }
+
+        private void cmbVAlign_Click() {
+            NewSettings.ViewAlignV.Value = cmbVAlign.SelectedIndex;
+        }
+
+        private void cmbViewDefCol1_Click() {
+            NewSettings.DefVColor1.Value = cmbViewDefCol1.SelectedIndex
+        }
+
+        private void cmbViewDefCol2_Click() {
+            NewSettings.DefVColor2.Value = cmbViewDefCol2.SelectedIndex
+        }
+
+    private void txtZoomVP_Validating(object sender, CancelEventArgs e) {
+      if (!double.TryParse(txtZoomVP.Text, out double val) || val < 1) {
+        txtZoomVP.Text = "1";
+      }
+            else if (val > 10) {
+        txtZoomVP.Text = "10";
+      }
+        else {
+            txtZoomVP.Text = ((int)val).ToString();
+        }
+      NewSettings.ViewScale.Preview = (int)val);
+    }
+
+    private void txtZoomVE_Validating(object sender, CancelEventArgs e) {
+      if (!double.TryParse(txtZoomVE.Text, out double val) || val < 1) {
+        txtZoomVE.Text = "1";
+      }
+            else if (val > 15) {
+        txtZoomVE.Text = "15";
+      }
+        else {
+            txtZoomVE.Text = ((int)val).ToString();
+            }
+      NewSettings.ViewScale.Edit = (int)val;
+    }
+
+    private void txtZoomVP_KeyPress(object sender, KeyPressEventArgs e) {
+      // enter is same as tabbing to next control
+      if ( e.KeyChar == 13) {
+        e.Handeled = true;
+             e.KeyChar = '\0';
+        txtZoomPE.Select();
+      }
+      // only numbers or control keys (DEL?)
+      switch (KeyValue) {
+      case  < 32:
+            case  >= 48 and <= 57:
+            break;
+      default:
+            e.Handled = true;
+         e.KeyChar = '\0';
+        break;
+      }
+    }
+
+    private void txtZoomVE_KeyPress(object sender, KeyPressEventArgs e) {
+      // enter is same as tabbing to next control
+      if ( e.KeyChar == 13) {
+         e.KeyChar = '\0';
+            e.Handled = true;
+        cmbVAlign.Select();
+        return;
+      }
+      // only numbers or control keys (DEL?)
+      switch ( e.KeyChar) {
+      case < 32:
+      case >= 48 and <= 57:
+            break;
+      default:
+         e.KeyChar = '\0';
+            e.Handled = true;
+            break;
+      }
+    }
+
+    private void txtDefCelH_KeyPress(object sender, KeyPressEventArgs e) {
+      // enter is same as tabbing to next control
+      if ( e.KeyChar == 13) {
+         e.KeyChar = '\0';
+            e.Handled = true;
+        txtDefCelW.Select();
+                        return;
+      }
+      // only numbers or control keys
+      switch ( e.KeyChar) {
+      case  < 32:
+            case >=48 and <= 57:
+        brek;
+      default:
+         e.KeyChar = '\0';
+            e.Handled = true;
+            break;
+      }
+    }
+
+    private void txtDefCelH_Validating(object sender, CancelEventArgs e) {
+      if (!double.TryParse(txtDefCelH.Text, out double var) || var < 1) {
+        txtDefCelH.Text = "1";
+      }
+            else if (var > 168) {
+        txtDefCelH.Text = "168";
+      }
+            else {
+            txtDefCelH.Text = ((int)var).ToString();
+            }
+    }
+
+    private void txtDefCelW_KeyPress(object sender, KeyPressEventArgs e) {
+      // enter is same as tabbing to next control
+      if ( e.KeyChar == 13) {
+         e.KeyChar = '\0';
+            e.Handled = true;
+        cmbViewDefCol1.Select();
+            return;
+      }
+      // only numbers or control keys
+      switch ( e.KeyChar) {
+      case  < 32:
+            case >=48 and <= 57:
+            break;
+      default:
+         e.KeyChar = '\0';
+            e.Handled = true;
+            break;
+      }
+    }
+
+    private void txtDefCelW_Validating(object sender, CancelEventArgs e) {
+      if (!double.TryParse(txtDefCelW.Text, out double var) || var < 1) {
+        txtDefCelW.Text = "1";
+      }
+            else if (var > 160) {
+        txtDefCelW.Text = "160"
+      }
+            else {
+            txtDefCelW.Text = ((int)var).ToString();
+            }
+      // save Value
+      NewSettings.DefCelW = (int)var;
+    }
+
+        */
         #endregion
 
         #region Layout Tab Event Handlers
+        /*
+        private void chkDisplayPics_Click(object sender, EventArgs e) {
+            NewSettings.LEShowPics.Value = chkDisplayPics.Checked;
+        }
+
+        private void chkLEGrid_Click(object sender, EventArgs e) {
+            NewSettings.LEUseGrid = chkLEGrid.Checked;
+            txtGrid.Enabled = NewSettings.LEUseGrid;
+        }
+
+        private void chkPages_Click(object sender, EventArgs e) {
+            NewSettings.LEPages.Value = chkPages.Checked;
+        }
+
+        private void chkShowGrid_Click(object sender, EventArgs e) {
+            NewSettings.ShowGrid.Value = chkShowGrid.Checked;
+        }
+
+        private void chkSynchronize_Click(object sender, EventArgs e) {
+            NewSettings.LESync.Value = chkSynchronize.Checked;
+        }
+
+        private void chkUseLE_Click(object sender, EventArgs e) {
+          NewSettings.DefUseLE.Value = chkUseLE.Checked;
+        }
+
+    private void cmdLEColor_Click() {
+        NewSettings.DialogTitle = "Choose Layout Editor Colors"
+        switch (lstLEColors.SelectedIndex) {
+        case 0:
+            // room edge
+          cdColors.Color = NewSettings.RoomEdgeColor.Value;
+            break;
+        case 1:
+            // room fill
+          cdColors.Color = NewSettings.RoomFillColor.Value;
+            break;
+        case 2:
+            // top edge
+          cdColors.Color = NewSettings.TransPtEdgeColor.Value;
+            break;
+        case 3:
+            // tp fill
+          cdColors.Color = NewSettings.TransPtFillColor.Value;
+            break;
+        case 4:
+            // cmt edge
+          cdColors.Color = NewSettings.CmtEdgeColor.Value;
+            break;
+        case 5:
+            // cmt fill
+          cdColors.Color = NewSettings.CmtFillColor.Value;
+            break; 
+        case 6:
+            // errpt edge
+          cdColors.Color = NewSettings.ErrPtEdgeColor.Value;
+            break;
+        case 7:
+            // errpt fill
+          cdColors.Color = NewSettings.ErrPtFillColor.Value;
+            break;
+        case 8:
+            // exit edge
+          cdColors.Color = NewSettings.ExitEdgeColor.Value;
+            break;
+        case 9:
+            // exit other
+          cdColors.Color = NewSettings.ExitOtherColor.Value;
+        default:
+          return;
+        }
+        cdColors.Flags = cdlCCRGBInit Or cdlCCFullOpen;
+        if (cdColors.ShowColor() == DialogResult.Cancel) {
+            return;
+        }
+
+        // special case: color vbWhite-1 is the background color
+        // so it can't be chosen; it's close to white, so just
+        // change it
+        if (cdColors.Color == Color.White - 1) {
+          cdColors.Color = Color.White;
+        }
+        switch (lstLEColors.SelectedIndex) {
+        case 0:
+            // room edge
+          NewSettings.RoomEdgeColor = cdColors.Color;
+            break;
+        case 1:
+            // room fill
+          NewSettings.RoomFillColor = cdColors.Color;
+            break;
+        case 2:
+            // tp edge
+          NewSettings.TransPtEdgeColor = cdColors.Color;
+            break;
+        case 3:
+            // tp fill
+          NewSettings.TransPtFillColor = cdColors.Color;
+            break;
+        case 4:
+            // cmt edge
+          NewSettings.CmtEdgeColor = cdColors.Color;
+            break;
+        case 5:
+            // cmt fill
+          NewSettings.CmtFillColor = cdColors.Color;
+            break;
+        case 6:
+            // errpt edge
+          NewSettings.ErrPtEdgeColor = cdColors.Color;
+            break;
+        case 7;
+            // errpt fill
+          NewSettings.ErrPtFillColor = cdColors.Color;
+            break;
+        case 8:
+            // exit edge
+          NewSettings.ExitEdgeColor = cdColors.Color;
+            break;
+        case 9:
+            // exit other
+          NewSettings.ExitOtherColor = cdColors.Color;
+        }
+        // update picture
+        //lstLEColors_Click
+        picLESample.Invalidate();
+      picLEColor.Select();
+    }
+
+    private void txtLEZoom_Validating(object sender, CancelEventArgs e) {
+      if (!double.TryParse(txtLEZoom.Text, out double var) || var < 1) {
+        txtLEZoom.Text = "1";
+      }
+            else if (var > 8) {
+        txtLEZoom.Text = "8";
+      }
+else {
+            txtLEZoom.Text = ((int)var).ToString();
+      }
+      NewSettings.LEZoom = (int)var;
+    }
+
+    private void txtLEZoom_KeyPress(object sender, KeyPressEventArgs e) {
+      // enter is same as tabbing to next control
+      if ( e.KeyChar == 13) {
+         e.KeyChar = '\0';
+            e.Handled = true;
+        lstLEColors.Select();
+            return;
+      }
+      // only numbers or control keys
+      switch ( e.KeyChar) {
+      case  < 32:
+            case >=48 and <= 57:
+            break;
+      default:
+         e.KeyChar = '\0';
+            e.Handled = true;
+            break;
+      }
+    }
+
+    private void txtGrid_Validating(object sender, CancelEventArgs e) {
+      // >=.05; <=1; increments of 0.05
+      if (!double.TryParse(txtGrid.Text, out double var) || var < 0.05) {
+            var = 0.05;
+        txtGrid.Text = "0.05";
+      }
+            else if (var > 1) {
+        txtGrid.Text = "1.00";
+            var = 1;
+      }
+else {
+
+       var = ((double)((int)(val * 20)) / 20);
+            }
+      txtGrid.Text = var.ToString("0.00");
+            NewSettings.LEGrid = var;
+    }
+
+    private void txtGrid_KeyPress(object sender, KeyPressEventArgs e) {
+      // enter is same as tabbing to next control
+      if ( e.KeyChar == 13) {
+         e.KeyChar = '\0';
+            e.Handled = true;
+        txtLEZoom.Select();
+            return;
+      }
+      // only numbers, period,  or control keys
+      switch ( e.KeyChar) {
+      case  < 32:
+            case >=48 and <= 57:
+            case 46:
+            break;
+      default:
+         e.KeyChar = '\0';
+                        e.Handled = true;
+            break;
+      }
+    }
+
+    private void picLESample_Paint() {
+////      Dim rtn As Long, v(2) As POINTAPI
+//      Dim hBrush As Long, hRgn As Long
+
+//      // sets the sample objects to match current color selections
+//      picLESample.Cls
+//      picLESample.DrawWidth = 1
+//      picLESample.FillColor = vbWhite
+//      picLESample.Line (5, 5)-Step(picLESample.ScaleWidth - 10, picLESample.ScaleHeight - 10), vbBlack, B
+//      picLESample.DrawWidth = 2
+
+//        // rooms
+//        picLESample.FillColor = NewSettings.RoomFillColor
+//        picLESample.ForeColor = NewSettings.RoomEdgeColor
+//        picLESample.Line (38, 60)-Step(33, 33), NewSettings.RoomEdgeColor, B
+//        picLESample.Line (94, 60)-Step(33, 33), NewSettings.RoomEdgeColor, B
+//        picLESample.CurrentX = 42
+//        picLESample.CurrentY = 73
+//        picLESample.Print "Rm 1"
+//        picLESample.CurrentX = 97
+//        picLESample.CurrentY = 73
+//        picLESample.Print "Rm 2"
+
+//       // transfer points
+//        picLESample.FillColor = NewSettings.TransPtFillColor
+//        picLESample.ForeColor = NewSettings.TransPtEdgeColor
+//        picLESample.Circle (148.5, 37.5), 8.5, NewSettings.TransPtEdgeColor
+//        picLESample.Circle (54.5, 118.5), 8.5, NewSettings.TransPtEdgeColor
+//        picLESample.CurrentX = 146
+//        picLESample.CurrentY = 31
+//        picLESample.Print "1"
+//        picLESample.CurrentX = 51
+//        picLESample.CurrentY = 112
+//        picLESample.Print "1"
+
+//        // comments
+//        // create region
+//        hRgn = CreateRoundRectRgn(16, 16, 97, 41, 3, 3)
+
+//        // create brush
+//        hBrush = CreateSolidBrush(.CmtFillColor)
+
+//        // fill region
+//        rtn = FillRgn(picLESample.hDC, hRgn, hBrush)
+
+//        // delete fill brush; create edge brush
+//        rtn = DeleteObject(hBrush)
+//        hBrush = CreateSolidBrush(.CmtEdgeColor)
+
+//        // draw outline
+//        rtn = FrameRgn(picLESample.hDC, hRgn, hBrush, 2, 2)
+
+//        // delete brush and region
+//        rtn = DeleteObject(hBrush)
+//        rtn = DeleteObject(hRgn)
+//        picLESample.ForeColor = NewSettings.CmtEdgeColor
+//        picLESample.CurrentX = 30
+//        picLESample.CurrentY = 21
+//        picLESample.Print "Comment"
+
+//        // exit lines
+//        picLESample.Line (70, 76)-(94, 76), NewSettings.ExitEdgeColor
+//        picLESample.Line (110, 92)-(110, 116), NewSettings.ExitEdgeColor
+//        picLESample.Line (54, 92)-(54, 110), NewSettings.ExitOtherColor
+//        picLESample.Line (126, 60)-(142, 44), NewSettings.ExitOtherColor
+
+
+//        // errpoints
+//        // use polygon drawing function
+//        picLESample.FillColor = NewSettings.ErrPtFillColor
+//        picLESample.ForeColor = NewSettings.ErrPtEdgeColor
+//        v(0).X = 110
+//        v(0).Y = 108
+//        v(1).X = 100
+//        v(1).Y = 124
+//        v(2).X = 120
+//        v(2).Y = 124
+//        rtn = Polygon(picLESample.hDC, v(0), 3)
+////
+    }
+
+    private void picLESample_MouseDown() {
+        switch (picLESample.Point(X, Y)) {
+        case NewSettings.RoomEdgeColor
+          lstLEColors.SelectedIndex = 0;
+            break;
+        case NewSettings.RoomFillColor:
+          lstLEColors.SelectedIndex = 1;
+            break;
+        case NewSettings.TransPtEdgeColor:
+          lstLEColors.SelectedIndex = 2;
+                        break;
+        case NewSettings.TransPtFillColor:
+          lstLEColors.SelectedIndex = 3;
+            break;
+        case NewSettings.CmtEdgeColor:
+          lstLEColors.SelectedIndex = 4;
+            break;
+        case NewSettings.CmtFillColor:
+          lstLEColors.SelectedIndex = 5;
+            break;
+        case NewSettings.ErrPtEdgeColor:
+          lstLEColors.SelectedIndex = 6;
+            break;
+        case NewSettings.ErrPtFillColor:
+          lstLEColors.SelectedIndex = 7;
+            break;
+        case NewSettings.ExitEdgeColor:
+          lstLEColors.SelectedIndex = 8;
+            break;
+        case NewSettings.ExitOtherColor:
+          lstLEColors.SelectedIndex = 9;
+            break;
+        }
+    }
+
+    private void picColor_DblClick() {
+      // same as clicking on the color button
+      cmdColor.DoClick();
+    }
+
+    private void picLEColor_DblClick() {
+      // same as clicking on LEColor button
+      cmdLEColor.DoClick();
+    }
+
+    private void picLEColor_Paint() {
+      Color lngColor = Color.Black;
+
+      switch (lstLEColors.SelectedIndex) {
+      case 0:
+        lngColor = NewSettings.RoomEdgeColor;
+            break;
+      case 1:
+        lngColor = NewSettings.RoomFillColor;
+            break;
+      case 2:
+        lngColor = NewSettings.TransPtEdgeColor;
+            break;
+      case 3:
+        lngColor = NewSettings.TransPtFillColor;
+            break;
+      case 4:
+        lngColor = NewSettings.CmtEdgeColor;
+            break;
+      case 5:
+        lngColor = NewSettings.CmtFillColor;
+            break;
+      case 6:
+        lngColor = NewSettings.ErrPtEdgeColor;
+            break;
+      case 7:
+        lngColor = NewSettings.ErrPtFillColor;
+            break;
+      case 8:
+        lngColor = NewSettings.ExitEdgeColor;
+            break;
+      case 9:
+        lngColor = NewSettings.ExitOtherColor;
+            break;
+      }
+      picLEColor.Line(); // (30, 30)-Step(1320, 180), lngColor, BF
+    }
+
+    private void picLESample_DblClick() {
+      // same as clicking the cmdLEColor button
+      cmdLEColor.DoClick();
+    }
+
+    private void lstLEColors_Click() {
+      Color lngColor = Color.Black;
+
+      picLEColor.Clear();
+      switch (lstLEColors.SelectedIndex) {
+      case 0:
+        lngColor = NewSettings.RoomEdgeColor;
+            break;
+      case 1:
+        lngColor = NewSettings.RoomFillColor;
+            break;
+      case 2:
+        lngColor = NewSettings.TransPtEdgeColor;
+            break;
+      case 3:
+        lngColor = NewSettings.TransPtFillColor;
+            break;
+      case 4:
+        lngColor = NewSettings.CmtEdgeColor;
+            break;
+      case 5:
+        lngColor = NewSettings.CmtFillColor;
+            break;
+      case 6:
+        lngColor = NewSettings.ErrPtEdgeColor;
+            break;
+      case 7:
+        lngColor = NewSettings.ErrPtFillColor;
+            break;
+      case 8:
+        lngColor = NewSettings.ExitEdgeColor;
+            break;
+      case 9:
+        lngColor = NewSettings.ExitOtherColor;
+            break;
+      }
+      picLEColor.Line(); // (30, 30)-Step(1320, 180), lngColor, BF
+    }
+
+    private void lstLEColors_DblClick() {
+      // same as clicking on button
+      cmdLEColor.DoClick();
+    }
+
+        */
         #endregion
 
         #region temp code
         void temp() {
             /*
-
-    private void chkBands_Click() {
-
-      NewSettings.ShowBands = (chkBands.Checked)
-    }
-
-    private void chkCycleAtRest_Click() {
-
-      // save changed Value
-      NewSettings.PicTest.CycleAtRest = (chkCycleAtRest.Checked)
-    }
-
-    private void chkDisplayPics_Click() {
-
-      NewSettings.LEShowPics = (chkDisplayPics.Checked)
-    }
-
-    private void chkIgnoreBlocks_Click() {
-
-      // save changed Value
-      NewSettings.PicTest.IgnoreBlocks = (chkIgnoreBlocks.Checked)
-    }
-
-    private void chkIgnoreHorizon_Click() {
-
-      // save changed Value
-      NewSettings.PicTest.IgnoreHorizon = (chkIgnoreHorizon.Checked)
-    }
-
-    private void chkKeybd_Click() {
-
-      NewSettings.ShowKybd = (chkKeybd.Checked)
-    }
-
-    private void chkLEGrid_Click() {
-
-      NewSettings.LEUseGrid = (chkLEGrid.Checked)
-
-      txtGrid.Enabled = NewSettings.LEUseGrid
-    }
-
-    private void chkNoMIDI_Click() {
-
-      NewSettings.NoMIDI = (chkNoMIDI.Checked)
-    }
-
-    private void chkNotes_Click() {
-
-      NewSettings.ShowNotes = (chkNotes.Checked)
-    }
-
-    private void chkOneTrack_Click() {
-
-      NewSettings.OneTrack = (chkOneTrack.Checked)
-    }
-
-    private void chkPages_Click() {
-
-      NewSettings.LEPages = (chkPages.Checked)
-    }
-
-    private void chkShowGrid_Click() {
-
-      NewSettings.ShowGrid = (chkShowGrid.Checked)
-    }
-
-    private void chkShowPrev_Click() {
-
-      NewSettings.ShowVEPrev = (chkShowPrev.Checked)
-    }
-
-    private void chkDefPrevPlay_Click() {
-
-      NewSettings.DefPrevPlay = (chkDefPrevPlay.Checked)
-    }
-
-    private void chkSynchronize_Click() {
-
-      NewSettings.LESync = (chkSynchronize.Checked)
-    }
-
-    private void chkTrack_Click(Index As Integer)
-
-      switch (Index) {
-      case 0
-        NewSettings.DefMute0 = Not (chkTrack(Index) = vbChecked)
-      case 1
-        NewSettings.DefMute1 = Not (chkTrack(Index) = vbChecked)
-      case 2
-        NewSettings.DefMute2 = Not (chkTrack(Index) = vbChecked)
-      case 3
-        NewSettings.DefMute3 = Not (chkTrack(Index) = vbChecked)
-      }
-    }
-    private void chkUseLE_Click() {
-
-      NewSettings.DefUseLE = (chkUseLE.Checked)
-    }
-
-    private void cmbHAlign_Click() {
-
-      // save Value
-      NewSettings.ViewAlignH = cmbHAlign.SelectedIndex
-    }
-
-
-    private void cmbInst_Click(Index As Integer)
-
-      switch (Index) {
-      case 0
-        NewSettings.DefInst0 = cmbInst(Index).SelectedIndex
-      case 1
-        NewSettings.DefInst1 = cmbInst(Index).SelectedIndex
-      case 2
-        NewSettings.DefInst2 = cmbInst(Index).SelectedIndex
-      }
-    }
-
-    private void cmbPriority_Click() {
-
-      // save changed Value
-      NewSettings.PicTest.ObjPriority = 16 - cmbPriority.SelectedIndex
-    }
-
-    private void cmbSpeed_Click() {
-
-      // save changed Value
-      NewSettings.PicTest.ObjSpeed = cmbSpeed.SelectedIndex
-    }
-
-
-    private void cmbVAlign_Click() {
-
-      // save Value
-      NewSettings.ViewAlignV = cmbVAlign.SelectedIndex
-    }
-
-
-    private void cmbViewDefCol1_Click() {
-
-      NewSettings.DefVColor1 = cmbViewDefCol1.SelectedIndex
-    }
-
-
-    private void cmbViewDefCol2_Click() {
-
-      NewSettings.DefVColor2 = cmbViewDefCol2.SelectedIndex
-    }
-
-    private void cmdLEColor_Click() {
-
-      // show color dialog
-
-      
-
-      With cdColors
-        NewSettings.DialogTitle = "Choose Layout Editor Colors"
-        switch (lstLEColors.SelectedIndex) {
-        case 0  // room edge
-          cdColors.Color = NewSettings.RoomEdgeColor
-        case 1  // room fill
-          cdColors.Color = NewSettings.RoomFillColor
-        case 2 // tp edge
-          cdColors.Color = NewSettings.TransPtEdgeColor
-        case 3 // tp fill
-          cdColors.Color = NewSettings.TransPtFillColor
-        case 4 // cmt edge
-          cdColors.Color = NewSettings.CmtEdgeColor
-        case 5 // cmt fill
-          cdColors.Color = NewSettings.CmtFillColor
-        case 6 // errpt edge
-          cdColors.Color = NewSettings.ErrPtEdgeColor
-        case 7 // errpt fill
-          cdColors.Color = NewSettings.ErrPtFillColor
-        case 8 // exit edge
-          cdColors.Color = NewSettings.ExitEdgeColor
-        case 9 // exit other
-          cdColors.Color = NewSettings.ExitOtherColor
-        default:
-          return;
-        }
-
-        cdColors.Flags = cdlCCRGBInit Or cdlCCFullOpen
-        cdColors.ShowColor
-
-        // special case: color vbWhite-1 is the background color
-        // so it can't be chosen; it's close to white, so just
-        // change it
-        if (cdColors.Color = vbWhite - 1) {
-          cdColors.Color = vbWhite
-        }
-
-        switch (lstLEColors.SelectedIndex) {
-        case 0  // room edge
-          NewSettings.RoomEdgeColor = cdColors.Color
-        case 1  // room fill
-          NewSettings.RoomFillColor = cdColors.Color
-        case 2 // tp edge
-          NewSettings.TransPtEdgeColor = cdColors.Color
-        case 3 // tp fill
-          NewSettings.TransPtFillColor = cdColors.Color
-        case 4 // cmt edge
-          NewSettings.CmtEdgeColor = cdColors.Color
-        case 5 // cmt fill
-          NewSettings.CmtFillColor = cdColors.Color
-        case 6 // errpt edge
-          NewSettings.ErrPtEdgeColor = cdColors.Color
-        case 7 // errpt fill
-          NewSettings.ErrPtFillColor = cdColors.Color
-        case 8 // exit edge
-          NewSettings.ExitEdgeColor = cdColors.Color
-        case 9 // exit other
-          NewSettings.ExitOtherColor = cdColors.Color
-        }
-
-        // update picture
-        lstLEColors_Click
-        picLESample_Paint
-
-      picLEColor.SetFocus
-    }
-
-
-    private void cmdResetInst_Click() {
-
-      // resets all instruments to current default values
-
-      Dim tmpSound As AGISound
-      Dim blnLoaded As Boolean
-
-      for (Each tmpSound In Sounds
-        blnLoaded = tmpSound.Loaded
-
-        if (Not blnLoaded) {
-          tmpSound.Load
-        }
-
-        With tmpSound
-          tmpSound.Track(0).Instrument = NewSettings.DefInst0
-          tmpSound.Track(1).Instrument = NewSettings.DefInst1
-          tmpSound.Track(2).Instrument = NewSettings.DefInst2
-          tmpSound.Track(0).Muted = NewSettings.DefMute0
-          tmpSound.Track(1).Muted = NewSettings.DefMute1
-          tmpSound.Track(2).Muted = NewSettings.DefMute2
-          tmpSound.Track(3).Muted = NewSettings.DefMute3
-          tmpSound.Save
-
-        if (Not blnLoaded) {
-          tmpSound.Unload
-        }
-      }
-
-      // if a sound is being previewed
-      if (SelResType = rtSound And PreviewWin.Visible) {
-        // adjust instrument settings
-        With PreviewWin
-          PreviewWin.cmbInst(0).SelectedIndex = NewSettings.DefInst0
-          PreviewWin.cmbInst(1).SelectedIndex = NewSettings.DefInst1
-          PreviewWin.cmbInst(2).SelectedIndex = NewSettings.DefInst2
-          PreviewWin.chkTrack(0).Value = (Not NewSettings.DefMute0 And vbChecked)
-          PreviewWin.chkTrack(1).Value = (Not NewSettings.DefMute1 And vbChecked)
-          PreviewWin.chkTrack(2).Value = (Not NewSettings.DefMute2 And vbChecked)
-          PreviewWin.chkTrack(3).Value = (Not NewSettings.DefMute3 And vbChecked)
-      }
-    }
-
-
     private void Form_KeyDown(KeyCode As Integer, Shift As Integer)
 
       Dim strHelp As String
@@ -1478,687 +1994,6 @@ namespace WinAGI.Editor {
         KeyCode = 0
       }
 
-    }
-
-    private void lstLEColors_Click() {
-
-      Dim lngColor As Long
-
-      picLEColor.Cls
-
-      switch (lstLEColors.SelectedIndex) {
-      case 0  // room edge
-        lngColor = NewSettings.RoomEdgeColor
-      case 1  // room fill
-        lngColor = NewSettings.RoomFillColor
-      case 2 // tp edge
-        lngColor = NewSettings.TransPtEdgeColor
-      case 3 // tp fill
-        lngColor = NewSettings.TransPtFillColor
-      case 4 // cmt edge
-        lngColor = NewSettings.CmtEdgeColor
-      case 5 // cmt fill
-        lngColor = NewSettings.CmtFillColor
-      case 6 // errpt edge
-        lngColor = NewSettings.ErrPtEdgeColor
-      case 7 // errpt fill
-        lngColor = NewSettings.ErrPtFillColor
-      case 8 // exit edge
-        lngColor = NewSettings.ExitEdgeColor
-      case 9 // exit other
-        lngColor = NewSettings.ExitOtherColor
-      }
-
-      picLEColor.Line (30, 30)-Step(1320, 180), lngColor, BF
-    }
-
-    private void lstLEColors_DblClick() {
-
-      // same as clicking on button
-      cmdLEColor_Click
-    }
-
-    private void optAnything_Click() {
-
-      // save changed Value
-      NewSettings.PicTest.ObjRestriction = 0
-    }
-
-    private void optCoordW_Click() {
-
-      NewSettings.CursorMode = pcmWinAGI
-    }
-
-    private void optCoordX_Click() {
-
-      NewSettings.CursorMode = pcmXMode
-    }
-
-    private void optLand_Click() {
-
-      // save changed Value
-      NewSettings.PicTest.ObjRestriction = 2
-    }
-
-
-    private void optPicFull_Click() {
-
-      NewSettings.SplitWindow = false
-    }
-
-    private void optPicSplit_Click() {
-
-      NewSettings.SplitWindow = true
-    }
-    private void optWater_Click() {
-
-      // save changed Value
-      NewSettings.PicTest.ObjRestriction = 1
-    }
-
-    private void picColor_DblClick() {
-
-      // same as clicking on the color button
-      cmdColor_Click
-    }
-
-    private void picLEColor_DblClick() {
-
-      // same as clicking on LEColor button
-      cmdLEColor_Click
-    }
-
-    private void picLEColor_Paint() {
-
-      Dim lngColor As Long
-
-      switch (lstLEColors.SelectedIndex) {
-      case 0  // room edge
-        lngColor = NewSettings.RoomEdgeColor
-      case 1  // room fill
-        lngColor = NewSettings.RoomFillColor
-      case 2 // tp edge
-        lngColor = NewSettings.TransPtEdgeColor
-      case 3 // tp fill
-        lngColor = NewSettings.TransPtFillColor
-      case 4 // cmt edge
-        lngColor = NewSettings.CmtEdgeColor
-      case 5 // cmt fill
-        lngColor = NewSettings.CmtFillColor
-      case 6 // errpt edge
-        lngColor = NewSettings.ErrPtEdgeColor
-      case 7 // errpt fill
-        lngColor = NewSettings.ErrPtFillColor
-      case 8 // exit edge
-        lngColor = NewSettings.ExitEdgeColor
-      case 9 // exit other
-        lngColor = NewSettings.ExitOtherColor
-      }
-
-      picLEColor.Line (30, 30)-Step(1320, 180), lngColor, BF
-    }
-
-
-    private void picLESample_DblClick() {
-
-      // same as clicking the cmdLEColor button
-      cmdLEColor_Click
-    }
-
-    private void picLESample_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-      // if a color is selected,
-
-        switch (picLESample.Point(X, Y)) {
-        case NewSettings.RoomEdgeColor
-          lstLEColors.SelectedIndex = 0
-        case NewSettings.RoomFillColor
-          lstLEColors.SelectedIndex = 1
-        case NewSettings.TransPtEdgeColor
-          lstLEColors.SelectedIndex = 2
-        case NewSettings.TransPtFillColor
-          lstLEColors.SelectedIndex = 3
-        case NewSettings.CmtEdgeColor
-          lstLEColors.SelectedIndex = 4  // cmt edge
-        case NewSettings.CmtFillColor
-          lstLEColors.SelectedIndex = 5  // cmt fill
-        case NewSettings.ErrPtEdgeColor
-          lstLEColors.SelectedIndex = 6  // errpt edge
-        case NewSettings.ErrPtFillColor
-          lstLEColors.SelectedIndex = 7  // errpt fill
-        case NewSettings.ExitEdgeColor
-          lstLEColors.SelectedIndex = 8  // exit edge
-        case NewSettings.ExitOtherColor
-          lstLEColors.SelectedIndex = 9  // exit other
-        }
-    }
-
-    private void picLESample_Paint() {
-
-      Dim rtn As Long, v(2) As POINTAPI
-      Dim hBrush As Long, hRgn As Long
-
-      // sets the sample objects to match current color selections
-      picLESample.Cls
-      picLESample.DrawWidth = 1
-      picLESample.FillColor = vbWhite
-      picLESample.Line (5, 5)-Step(picLESample.ScaleWidth - 10, picLESample.ScaleHeight - 10), vbBlack, B
-      picLESample.DrawWidth = 2
-
-        // rooms
-        picLESample.FillColor = NewSettings.RoomFillColor
-        picLESample.ForeColor = NewSettings.RoomEdgeColor
-        picLESample.Line (38, 60)-Step(33, 33), NewSettings.RoomEdgeColor, B
-        picLESample.Line (94, 60)-Step(33, 33), NewSettings.RoomEdgeColor, B
-        picLESample.CurrentX = 42
-        picLESample.CurrentY = 73
-        picLESample.Print "Rm 1"
-        picLESample.CurrentX = 97
-        picLESample.CurrentY = 73
-        picLESample.Print "Rm 2"
-
-       // transfer points
-        picLESample.FillColor = NewSettings.TransPtFillColor
-        picLESample.ForeColor = NewSettings.TransPtEdgeColor
-        picLESample.Circle (148.5, 37.5), 8.5, NewSettings.TransPtEdgeColor
-        picLESample.Circle (54.5, 118.5), 8.5, NewSettings.TransPtEdgeColor
-        picLESample.CurrentX = 146
-        picLESample.CurrentY = 31
-        picLESample.Print "1"
-        picLESample.CurrentX = 51
-        picLESample.CurrentY = 112
-        picLESample.Print "1"
-
-        // comments
-        // create region
-        hRgn = CreateRoundRectRgn(16, 16, 97, 41, 3, 3)
-
-        // create brush
-        hBrush = CreateSolidBrush(.CmtFillColor)
-
-        // fill region
-        rtn = FillRgn(picLESample.hDC, hRgn, hBrush)
-
-        // delete fill brush; create edge brush
-        rtn = DeleteObject(hBrush)
-        hBrush = CreateSolidBrush(.CmtEdgeColor)
-
-        // draw outline
-        rtn = FrameRgn(picLESample.hDC, hRgn, hBrush, 2, 2)
-
-        // delete brush and region
-        rtn = DeleteObject(hBrush)
-        rtn = DeleteObject(hRgn)
-        picLESample.ForeColor = NewSettings.CmtEdgeColor
-        picLESample.CurrentX = 30
-        picLESample.CurrentY = 21
-        picLESample.Print "Comment"
-
-        // exit lines
-        picLESample.Line (70, 76)-(94, 76), NewSettings.ExitEdgeColor
-        picLESample.Line (110, 92)-(110, 116), NewSettings.ExitEdgeColor
-        picLESample.Line (54, 92)-(54, 110), NewSettings.ExitOtherColor
-        picLESample.Line (126, 60)-(142, 44), NewSettings.ExitOtherColor
-
-
-        // errpoints
-        // use polygon drawing function
-        picLESample.FillColor = NewSettings.ErrPtFillColor
-        picLESample.ForeColor = NewSettings.ErrPtEdgeColor
-        v(0).X = 110
-        v(0).Y = 108
-        v(1).X = 100
-        v(1).Y = 124
-        v(2).X = 120
-        v(2).Y = 124
-        rtn = Polygon(picLESample.hDC, v(0), 3)
-    }
-
-
-    private void TabStrip1_Click() {
-
-      Dim i As Long
-      // MAKE SURE all pics are positioned in right spot
-      // before compiling (sometimes they get moved during
-      // tests and checks)
-
-      // picSettings(TabStrip1.SelectedItem.Index).Move 240, 720
-
-      for (i = 1 To TabStrip1.Tabs.Count
-        picSettings(i).Visible = (i = TabStrip1.SelectedItem.Index)
-      }
-    }
-
-    private void txtDefCelH_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        txtDefCelW.SetFocus
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtDefCelH_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtDefCelH.Text)) < 1) {
-        txtDefCelH.Text = "1"
-      } else if (CLng(Val(txtDefCelH.Text)) > 168) {
-        txtDefCelH.Text = "168"
-      }
-    }
-
-
-    private void txtDefCelW_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        cmbViewDefCol1.SetFocus
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtDefCelW_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtDefCelW.Text)) < 1) {
-        txtDefCelW.Text = "1"
-      } else if (CLng(Val(txtDefCelW.Text)) > 168) {
-        txtDefCelW.Text = "160"
-      }
-
-      // save Value
-      NewSettings.DefCelW = CLng(Val(txtDefCelW.Text))
-    }
-
-    private void txtGlobalUndo_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        cmdOK.SetFocus
-      }
-
-      // only numbers, minus sign or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57, 45
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtGlobalUndo_Validate(Cancel As Boolean)
-
-      if (Val(txtGlobalUndo.Text) < -1) {
-        txtGlobalUndo.Text = "-1"
-      }
-
-      NewSettings.GlobalUndo = CLng(txtGlobalUndo.Text)
-    }
-
-
-    private void txtGrid_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        txtLEZoom.SetFocus
-      }
-
-      // only numbers, period,  or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57, 46
-      default:
-        KeyAscii = 0
-      }
-    }
-
-    private void txtGrid_Validate(Cancel As Boolean)
-
-      // >=.05; <=1; increments of 0.05
-
-      if (Val(txtGrid.Text) < 0.05) {
-        txtGrid.Text = "0.05"
-      } else if (Val(txtGrid.Text) > 1) {
-        txtGrid.Text = "1.00"
-      }
-
-      txtGrid.Text = format$(CInt(Val(txtGrid.Text) * 20) / 20, "0.00")
-      // save Value
-      NewSettings.LEGrid = txtGrid.Text
-    }
-
-
-    private void txtHorizon_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        // // *'Debug.Print "can i send a tab?" no...
-    //     SendMessage txtHorizon.hWnd, WM_KEYDOWN, 9, 1
-    //     SendMessage txtHorizon.hWnd, WM_CHAR, 9, 1
-    //     SendMessage txtHorizon.hWnd, WM_KEYUP, 9, 1
-        cmbPriority.SetFocus
-        return;
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-
-    // Msg:  &H8        &H20F38        0
-    // Msg:  &H281      0            &HC000000F
-    // Msg:  &H100E     &HA            0
-
-
-
-
-
-
-    }
-
-
-    private void txtHorizon_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtHorizon.Text)) < 1) {
-        txtHorizon.Text = "1"
-      } else if (CLng(Val(txtHorizon.Text)) > 167) {
-        txtHorizon.Text = "167"
-      }
-
-      NewSettings.PicTest.Horizon = CLng(txtHorizon.Text)
-    }
-
-    private void txtLEZoom_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        Me.lstLEColors.SetFocus
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtLEZoom_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtLEZoom.Text)) < 1) {
-        txtLEZoom.Text = "1"
-      } else if (CLng(Val(txtLEZoom.Text)) > 8) {
-        txtLEZoom.Text = "8"
-      }
-
-      // save Value
-      NewSettings.LEZoom = CLng(Val(txtLEZoom.Text))
-    }
-
-    private void txtPicUndo_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        optPicSplit.SetFocus
-      }
-
-      // only numbers, minus sign or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57, 45
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtPicUndo_Validate(Cancel As Boolean)
-
-      if (Val(txtPicUndo.Text) < -1) {
-        txtPicUndo.Text = "-1"
-      }
-      NewSettings.PicUndo = CLng(txtPicUndo.Text)
-    }
-
-
-    private void txtResDirName_KeyPress(KeyAscii As Integer)
-
-      // dont allow these keys:
-      //   \/:*?"<>|
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        chkSplash.SetFocus
-        return;
-      }
-
-      switch (KeyAscii) {
-      case 32, 92, 47, 58, 42, 63, 34, 60, 62, 124
-        KeyAscii = 0
-      }
-    }
-
-
-
-    private void txtSndUndo_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        chkTrack(0).SetFocus
-      }
-
-      // only numbers, minus sign or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57, 45
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtSndUndo_Validate(Cancel As Boolean)
-
-      if (Val(txtSndUndo.Text) < -1) {
-        txtSndUndo.Text = "-1"
-      }
-      NewSettings.SndUndo = CLng(txtSndUndo.Text)
-    }
-
-
-    private void txtSndZoom_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        chkNoMIDI.SetFocus
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtSndZoom_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtSndZoom.Text)) < 1) {
-        txtSndZoom.Text = "1"
-      } else if (CLng(Val(txtSndZoom.Text)) > 3) {
-        txtSndZoom.Text = "3"
-      }
-
-      // save Value
-      NewSettings.SndZoom = CLng(Val(txtSndZoom.Text))
-    }
-
-
-    private void txtViewUndo_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        cmdOK.SetFocus
-      }
-
-      // only numbers, minus sign or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57, 45
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtViewUndo_Validate(Cancel As Boolean)
-
-      if (Val(txtViewUndo.Text) < -1) {
-        txtViewUndo.Text = "-1"
-      }
-
-      NewSettings.ViewUndo = CLng(txtViewUndo.Text)
-    }
-    private void txtZoomPE_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        txtPicUndo.SetFocus
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-    }
-
-    private void txtZoomPE_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtZoomPE.Text)) < 1) {
-        txtZoomPE.Text = "1"
-      } else if (CLng(Val(txtZoomPE.Text)) > 4) {
-        txtZoomPE.Text = "4"
-      }
-
-      // save Value
-      NewSettings.PicScale.Edit = CLng(Val(txtZoomPE.Text))
-    }
-
-
-    private void txtZoomPP_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        txtZoomPE.SetFocus
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtZoomPP_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtZoomPP.Text)) < 1) {
-        txtZoomPP.Text = "1"
-      } else if (CLng(Val(txtZoomPP.Text)) > 4) {
-        txtZoomPP.Text = "4"
-      }
-
-      // save Value
-      NewSettings.PicScale.Preview = CLng(Val(txtZoomPP.Text))
-    }
-
-
-    private void txtZoomVE_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        Me.cmbVAlign.SetFocus
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtZoomVE_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtZoomVE.Text)) < 1) {
-        txtZoomVE.Text = "1"
-      } else if (CLng(Val(txtZoomVE.Text)) > 15) {
-        txtZoomVE.Text = "15"
-      }
-
-      // save Value
-      NewSettings.ViewScale.Edit = CLng(Val(txtZoomVE.Text))
-    }
-
-
-    private void txtZoomVP_KeyPress(KeyAscii As Integer)
-
-      // enter is same as tabbing to next control
-      if (KeyAscii = 13) {
-        KeyAscii = 0
-        txtZoomPE.SetFocus
-      }
-
-      // only numbers or control keys
-      switch (KeyAscii) {
-      case Is < 32, 48 To 57
-      default:
-        KeyAscii = 0
-      }
-    }
-
-
-    private void txtZoomVP_Validate(Cancel As Boolean)
-
-      if (CLng(Val(txtZoomVP.Text)) < 1) {
-        txtZoomVP.Text = "1"
-      } else if (CLng(Val(txtZoomVP.Text)) > 10) {
-        txtZoomVP.Text = "10"
-      }
-
-      // save Value
-      NewSettings.ViewScale.Preview = CLng(Val(txtZoomVP.Text))
     }
             */
         }
@@ -2240,46 +2075,43 @@ namespace WinAGI.Editor {
             chkIncludeResDefs.Checked = NewSettings.DefIncludeReserved.Value;
             chkIncludeGlobals.Checked = NewSettings.DefIncludeGlobals.Value;
 
-            /*
             // pictures
             // re-check pictest settings as they may have been modified by the user
-            NewSettings.PicTest.ObjSpeed = WinAGISettingsList.ReadSetting(sPICTEST, "Speed", DEFAULT_PICTEST_OBJSPEED);
-            if (NewSettings.PicTest.ObjSpeed < 0) {
-                NewSettings.PicTest.ObjSpeed = 0;
+            NewSettings.PTObjSpeed.Value = WinAGISettingsFile.GetSetting(sPICTEST, "Speed", WinAGISettings.PTObjSpeed.DefaultValue);
+            if (NewSettings.PTObjSpeed.Value < 0) {
+                NewSettings.PTObjSpeed.Value = 0;
             }
-            if (NewSettings.PicTest.ObjSpeed > 3) {
-                NewSettings.PicTest.ObjSpeed = 3;
+            if (NewSettings.PTObjSpeed.Value > 3) {
+                NewSettings.PTObjSpeed.Value = 3;
             }
-            NewSettings.PicTest.ObjPriority = WinAGISettingsList.ReadSetting(sPICTEST, "Priority", DEFAULT_PICTEST_OBJPRIORITY);
-            if (NewSettings.PicTest.ObjPriority < 4) {
-                NewSettings.PicTest.ObjPriority = 4;
+            NewSettings.PTObjPriority.Value = WinAGISettingsFile.GetSetting(sPICTEST, "Priority", WinAGISettings.PTObjPriority.DefaultValue);
+            if (NewSettings.PTObjPriority.Value < 4) {
+                NewSettings.PTObjPriority.Value = 4;
             }
-            if (NewSettings.PicTest.PicTest.ObjPriority > 16) {
-                NewSettings.PicTest.ObjPriority = 16;
+            if (NewSettings.PTObjPriority.Value > 16) {
+                NewSettings.PTObjPriority.Value = 16;
             }
-            NewSettings.PicTest.ObjRestriction = WinAGISettingsList.ReadSetting(sPICTEST, "Restriction", DEFAULT_PICTEST_OBJRESTRICTION);
-            if (NewSettings.PicTest.ObjRestriction < 0) {
-                NewSettings.PicTest.ObjRestriction = 0;
+            NewSettings.PTObjRestriction.Value = WinAGISettingsFile.GetSetting(sPICTEST, "Restriction", WinAGISettings.PTObjRestriction.DefaultValue);
+            if (NewSettings.PTObjRestriction.Value < 0) {
+                NewSettings.PTObjRestriction.Value = 0;
             }
-            if (NewSettings.PicTest.ObjRestriction > 2) {
-                NewSettings.PicTest.ObjRestriction = 2;
+            if (NewSettings.PTObjRestriction.Value > 2) {
+                NewSettings.PTObjRestriction.Value = 2;
             }
-            NewSettings.PicTest.Horizon = WinAGISettingsList.ReadSetting(sPICTEST, "Horizon", DEFAULT_PICTEST_HORIZON);
-            if (NewSettings.PicTest.Horizon < 0) {
-                NewSettings.PicTest.Horizon = 0;
+            NewSettings.PTHorizon.Value = WinAGISettingsFile.GetSetting(sPICTEST, "Horizon", WinAGISettings.PTHorizon.Value);
+            if (NewSettings.PTHorizon.Value < 0) {
+                NewSettings.PTHorizon.Value = 0;
             }
-            if (NewSettings.PicTest.Horizon > 167) {
-                NewSettings.PicTest.Horizon = 167;
+            if (NewSettings.PTHorizon.Value > 167) {
+                NewSettings.PTHorizon.Value = 167;
             }
-            NewSettings.PicTest.IgnoreHorizon = WinAGISettingsList.ReadSetting(sPICTEST, "IgnoreHorizon", DEFAULT_PICTEST_IGNOREHORIZON);
-            NewSettings.PicTest.IgnoreBlocks = WinAGISettingsList.ReadSetting(sPICTEST, "IgnoreBlocks", DEFAULT_PICTEST_IGNOREBLOCKS);
-            NewSettings.PicTest.CycleAtRest = WinAGISettingsList.ReadSetting(sPICTEST, "CycleAtRest", DEFAULT_PICTEST_CYCLEATREST);
-            NewSettings.PicTest.TestCel = -1;
-            NewSettings.PicTest.TestLoop = -1;
-            txtHorizon.Text = NewSettings.PicTest.Horizon.Value.ToString();
-            cmbSpeed.SelectedIndex = NewSettings.PicTest.PicTest.ObjSpeed;
-            cmbPriority.SelectedIndex = 16 - NewSettings.PicTest.ObjPriority;
-            switch (NewSettings.PicTest.ObjRestriction) {
+            NewSettings.PTIgnoreHorizon.Value = WinAGISettingsFile.GetSetting(sPICTEST, "IgnoreHorizon", WinAGISettings.PTIgnoreHorizon.DefaultValue);
+            NewSettings.PTIgnoreBlocks.Value = WinAGISettingsFile.GetSetting(sPICTEST, "IgnoreBlocks", WinAGISettings.PTIgnoreBlocks.DefaultValue);
+            NewSettings.PTCycleAtRest.Value = WinAGISettingsFile.GetSetting(sPICTEST, "CycleAtRest", WinAGISettings.PTCycleAtRest.DefaultValue);
+            txtHorizon.Text = NewSettings.PTHorizon.Value.ToString();
+            cmbSpeed.SelectedIndex = NewSettings.PTObjSpeed.Value;
+            cmbPriority.SelectedIndex = 16 - NewSettings.PTObjPriority.Value;
+            switch (NewSettings.PTObjRestriction.Value) {
             case 0:
                 optAnything.Checked = true;
                 break;
@@ -2290,27 +2122,80 @@ namespace WinAGI.Editor {
                 optLand.Checked = true;
                 break;
             }
-            chkIgnoreBlocks.Checked = (NewSettings.PicTest.IgnoreBlocks);
-            chkIgnoreHorizon.Checked = (NewSettings.PicTest.IgnoreHorizon);
-            chkCycleAtRest.Checked = (NewSettings.PicTest.CycleAtRest);
-            txtZoomPE.Text = NewSettings.PicScale.Edit;
-            txtZoomPP.Text = NewSettings.PicScale.Preview;
-            txtHorizon.Text = NewSettings.PicTest.Horizon.Value.ToString();
-            chkBands.Checked = (NewSettings.ShowBands);
-            if (NewSettings.SplitWindow) {
+            chkIgnoreBlocks.Checked = (NewSettings.PTIgnoreBlocks.Value);
+            chkIgnoreHorizon.Checked = (NewSettings.PTIgnoreHorizon.Value);
+            chkCycleAtRest.Checked = (NewSettings.PTCycleAtRest.Value);
+            // convert to percentage vlues
+            double scale = NewSettings.PicScaleEdit.Value;
+            if (scale < 1) {
+                scale = 100;
+            }
+            else if (scale <= 3) {
+                scale = (int)(scale * 4) / 0.04;
+            }
+            else if (scale < 8) {
+                scale = (int)(scale * 2) / 0.02;
+            }
+            else if (scale < 20) {
+                scale = (int)(scale) / 0.01;
+            }
+            else {
+                scale = 2000;
+            }
+            for (int i = 0; i < udPEZoom.Items.Count; i++) {
+                if (scale.ToString() == ((string)udPEZoom.Items[i])[..^1]) {
+                    udPEZoom.SelectedIndex = i;
+                    break;
+                }
+            }
+            if (udPEZoom.SelectedIndex == -1) {
+                udPEZoom.SelectedIndex = 0;
+            }
+            scale = NewSettings.PicScalePreview.Value;
+            // convert to percentage vlues
+            if (scale < 1) {
+                scale = 100;
+            }
+            else if (scale <= 3) {
+                scale = (int)(scale * 4) / 0.04;
+            }
+            else if (scale < 8) {
+                scale = (int)(scale * 2) / 0.02;
+            }
+            else if (scale < 10) {
+                scale = (int)(scale) / 0.01;
+            }
+            else {
+                scale = 1000;
+            }
+            for (int i = 0; i < udPPZoom.Items.Count; i++) {
+                if (scale.ToString() == ((string)udPPZoom.Items[i])[..^1]) {
+                    udPPZoom.SelectedIndex = i;
+                    break;
+                }
+            }
+            if (udPPZoom.SelectedIndex == -1) {
+                udPPZoom.SelectedIndex = 0;
+            }
+
+
+
+            txtHorizon.Text = NewSettings.PTHorizon.Value.ToString();
+            chkBands.Checked = (NewSettings.ShowBands.Value);
+            if (NewSettings.SplitWindow.Value) {
                 optPicSplit.Checked = true;
             }
             else {
                 optPicFull.Checked = true;
             }
-            txtPicUndo.Text = NewSettings.PicUndo;
-            if (NewSettings.CursorMode == pcmWinAGI) {
+            if (NewSettings.CursorMode.Value == (int)EPicCursorMode.pcmWinAGI) {
                 optCoordW.Checked = true;
             }
             else {
                 optCoordX.Checked = true;
             }
 
+            /*
             // sounds
             chkKeybd.Checked = NewSettings.ShowKybd;
             chkNotes.Checked = NewSettings.ShowNotes;

@@ -170,10 +170,10 @@ namespace WinAGI.Editor {
             // 
             pnlPicture.Controls.Add(tableLayoutPanel1);
             pnlPicture.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlPicture.Location = new System.Drawing.Point(0, 24);
+            pnlPicture.Location = new System.Drawing.Point(0, 0);
             pnlPicture.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             pnlPicture.Name = "pnlPicture";
-            pnlPicture.Size = new System.Drawing.Size(541, 368);
+            pnlPicture.Size = new System.Drawing.Size(541, 392);
             pnlPicture.TabIndex = 1;
             pnlPicture.Visible = false;
             // 
@@ -189,7 +189,7 @@ namespace WinAGI.Editor {
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 37F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new System.Drawing.Size(541, 368);
+            tableLayoutPanel1.Size = new System.Drawing.Size(541, 392);
             tableLayoutPanel1.TabIndex = 5;
             // 
             // pnlPicHeader
@@ -205,33 +205,33 @@ namespace WinAGI.Editor {
             // 
             // udPZoom
             // 
-            udPZoom.Items.Add("1000");
-            udPZoom.Items.Add("900");
-            udPZoom.Items.Add("800");
-            udPZoom.Items.Add("750");
-            udPZoom.Items.Add("700");
-            udPZoom.Items.Add("650");
-            udPZoom.Items.Add("600");
-            udPZoom.Items.Add("550");
-            udPZoom.Items.Add("500");
-            udPZoom.Items.Add("450");
-            udPZoom.Items.Add("400");
-            udPZoom.Items.Add("350");
-            udPZoom.Items.Add("300");
-            udPZoom.Items.Add("275");
-            udPZoom.Items.Add("250");
-            udPZoom.Items.Add("225");
-            udPZoom.Items.Add("200");
-            udPZoom.Items.Add("175");
-            udPZoom.Items.Add("150");
-            udPZoom.Items.Add("125");
-            udPZoom.Items.Add("100");
+            udPZoom.Items.Add("1000%");
+            udPZoom.Items.Add("900%");
+            udPZoom.Items.Add("800%");
+            udPZoom.Items.Add("750%");
+            udPZoom.Items.Add("700%");
+            udPZoom.Items.Add("650%");
+            udPZoom.Items.Add("600%");
+            udPZoom.Items.Add("550%");
+            udPZoom.Items.Add("500%");
+            udPZoom.Items.Add("450%");
+            udPZoom.Items.Add("400%");
+            udPZoom.Items.Add("350%");
+            udPZoom.Items.Add("300%");
+            udPZoom.Items.Add("275%");
+            udPZoom.Items.Add("250%");
+            udPZoom.Items.Add("225%");
+            udPZoom.Items.Add("200%");
+            udPZoom.Items.Add("175%");
+            udPZoom.Items.Add("150%");
+            udPZoom.Items.Add("125%");
+            udPZoom.Items.Add("100%");
             udPZoom.Location = new System.Drawing.Point(50, 5);
             udPZoom.Name = "udPZoom";
             udPZoom.ReadOnly = true;
             udPZoom.Size = new System.Drawing.Size(64, 23);
             udPZoom.TabIndex = 9;
-            udPZoom.Text = "100";
+            udPZoom.Text = "100%";
             udPZoom.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             udPZoom.SelectedItemChanged += udPZoom_SelectedItemChanged;
             // 
@@ -277,14 +277,14 @@ namespace WinAGI.Editor {
             pnlPicImage.Dock = System.Windows.Forms.DockStyle.Fill;
             pnlPicImage.Location = new System.Drawing.Point(3, 40);
             pnlPicImage.Name = "pnlPicImage";
-            pnlPicImage.Size = new System.Drawing.Size(535, 325);
+            pnlPicImage.Size = new System.Drawing.Size(535, 349);
             pnlPicImage.TabIndex = 1;
             pnlPicImage.Resize += pnlPicImage_Resize;
             // 
             // fraPCorner
             // 
             fraPCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            fraPCorner.Location = new System.Drawing.Point(522, 315);
+            fraPCorner.Location = new System.Drawing.Point(522, 339);
             fraPCorner.Name = "fraPCorner";
             fraPCorner.Size = new System.Drawing.Size(11, 9);
             fraPCorner.TabIndex = 8;
@@ -304,7 +304,7 @@ namespace WinAGI.Editor {
             // hsbPic
             // 
             hsbPic.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            hsbPic.Location = new System.Drawing.Point(0, 315);
+            hsbPic.Location = new System.Drawing.Point(0, 339);
             hsbPic.Minimum = -4;
             hsbPic.Name = "hsbPic";
             hsbPic.Size = new System.Drawing.Size(485, 20);
@@ -344,10 +344,10 @@ namespace WinAGI.Editor {
             pnlSound.Controls.Add(chkTrack1);
             pnlSound.Controls.Add(chkTrack0);
             pnlSound.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlSound.Location = new System.Drawing.Point(0, 24);
+            pnlSound.Location = new System.Drawing.Point(0, 0);
             pnlSound.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             pnlSound.Name = "pnlSound";
-            pnlSound.Size = new System.Drawing.Size(541, 368);
+            pnlSound.Size = new System.Drawing.Size(541, 392);
             pnlSound.TabIndex = 2;
             pnlSound.Visible = false;
             pnlSound.DoubleClick += pnlSound_DoubleClick;
@@ -548,10 +548,10 @@ namespace WinAGI.Editor {
             pnlView.Controls.Add(tableLayoutPanel2);
             pnlView.Controls.Add(tsViewPrev);
             pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlView.Location = new System.Drawing.Point(0, 24);
+            pnlView.Location = new System.Drawing.Point(0, 0);
             pnlView.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             pnlView.Name = "pnlView";
-            pnlView.Size = new System.Drawing.Size(541, 368);
+            pnlView.Size = new System.Drawing.Size(541, 392);
             pnlView.TabIndex = 3;
             pnlView.Visible = false;
             // 
@@ -590,7 +590,7 @@ namespace WinAGI.Editor {
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            tableLayoutPanel2.Size = new System.Drawing.Size(541, 343);
+            tableLayoutPanel2.Size = new System.Drawing.Size(541, 367);
             tableLayoutPanel2.TabIndex = 13;
             // 
             // pnlViewHdr
@@ -681,7 +681,7 @@ namespace WinAGI.Editor {
             pnlViewFtr.Controls.Add(sldSpeed);
             pnlViewFtr.Controls.Add(cmbMotion);
             pnlViewFtr.Controls.Add(cmdVPlay);
-            pnlViewFtr.Location = new System.Drawing.Point(3, 307);
+            pnlViewFtr.Location = new System.Drawing.Point(3, 331);
             pnlViewFtr.Name = "pnlViewFtr";
             pnlViewFtr.Size = new System.Drawing.Size(276, 33);
             pnlViewFtr.TabIndex = 10;
@@ -725,7 +725,7 @@ namespace WinAGI.Editor {
             pnlCel.Dock = System.Windows.Forms.DockStyle.Fill;
             pnlCel.Location = new System.Drawing.Point(3, 28);
             pnlCel.Name = "pnlCel";
-            pnlCel.Size = new System.Drawing.Size(535, 273);
+            pnlCel.Size = new System.Drawing.Size(535, 297);
             pnlCel.TabIndex = 11;
             pnlCel.Paint += pnlCel_Paint;
             pnlCel.DoubleClick += pnlCel_DoubleClick;
@@ -734,7 +734,7 @@ namespace WinAGI.Editor {
             // fraVCorner
             // 
             fraVCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            fraVCorner.Location = new System.Drawing.Point(526, 265);
+            fraVCorner.Location = new System.Drawing.Point(526, 289);
             fraVCorner.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             fraVCorner.Name = "fraVCorner";
             fraVCorner.Size = new System.Drawing.Size(20, 20);
@@ -756,7 +756,7 @@ namespace WinAGI.Editor {
             // hsbView
             // 
             hsbView.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            hsbView.Location = new System.Drawing.Point(0, 265);
+            hsbView.Location = new System.Drawing.Point(0, 289);
             hsbView.Minimum = -4;
             hsbView.Name = "hsbView";
             hsbView.Size = new System.Drawing.Size(157, 16);
@@ -952,10 +952,10 @@ namespace WinAGI.Editor {
             // 
             pnlLogic.Controls.Add(rtfLogPrev);
             pnlLogic.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlLogic.Location = new System.Drawing.Point(0, 24);
+            pnlLogic.Location = new System.Drawing.Point(0, 0);
             pnlLogic.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             pnlLogic.Name = "pnlLogic";
-            pnlLogic.Size = new System.Drawing.Size(541, 368);
+            pnlLogic.Size = new System.Drawing.Size(541, 392);
             pnlLogic.TabIndex = 0;
             pnlLogic.Visible = false;
             // 
@@ -978,7 +978,6 @@ namespace WinAGI.Editor {
             rtfLogPrev.CharWidth = 8;
             rtfLogPrev.ContextMenuStrip = cmsLogic;
             rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
-            rtfLogPrev.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogPrev.Hotkeys = resources.GetString("rtfLogPrev.Hotkeys");
             rtfLogPrev.IsReplaceMode = false;
             rtfLogPrev.LineNumberStartValue = 0U;
@@ -989,7 +988,7 @@ namespace WinAGI.Editor {
             rtfLogPrev.ReadOnly = true;
             rtfLogPrev.SelectionColor = System.Drawing.Color.FromArgb(60, 0, 0, 255);
             rtfLogPrev.ServiceColors = (ServiceColors)resources.GetObject("rtfLogPrev.ServiceColors");
-            rtfLogPrev.Size = new System.Drawing.Size(537, 365);
+            rtfLogPrev.Size = new System.Drawing.Size(537, 389);
             rtfLogPrev.TabIndex = 0;
             rtfLogPrev.Zoom = 100;
             rtfLogPrev.DoubleClick += rtfLogPrev_DoubleClick;
@@ -1023,8 +1022,8 @@ namespace WinAGI.Editor {
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(541, 392);
             ControlBox = false;
-            Controls.Add(pnlView);
             Controls.Add(pnlPicture);
+            Controls.Add(pnlView);
             Controls.Add(statusStrip1);
             Controls.Add(pnlLogic);
             Controls.Add(pnlSound);

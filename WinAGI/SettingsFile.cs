@@ -858,6 +858,32 @@ namespace WinAGI.Common {
         }
 
         /// <summary>
+        /// Retrieves a value from the list of type float.
+        /// </summary>
+        /// <param name="Section"></param>
+        /// <param name="Key"></param>
+        /// <param name="Default"></param>
+        /// <param name="DontAdd"></param>
+        /// <returns></returns>
+        public float GetSetting(string Section, string Key, float Default = 0, bool DontAdd = false) {
+            // get the setting value; if it converts to single value, use it;
+            // if any kind of error, return the default value
+            string strValue = GetSetting(Section, Key, Default.ToString(), DontAdd);
+
+            if (strValue.Length == 0) {
+                return Default;
+            }
+            else {
+                if (float.TryParse(strValue, out float sResult)) {
+                    return sResult;
+                }
+                else {
+                    return Default;
+                }
+            }
+        }
+
+        /// <summary>
         /// Retrieves a value from the list of type bool.
         /// </summary>
         /// <param name="Section"></param>

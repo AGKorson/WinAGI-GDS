@@ -20,6 +20,8 @@ using WinAGI.Common;
 using static WinAGI.Common.API;
 using EnvDTE;
 using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
+using System.Drawing.Drawing2D;
 
 namespace WinAGI.Editor {
     public partial class frmPicEdit : Form, IMessageFilter {
@@ -30,13 +32,12 @@ namespace WinAGI.Editor {
         public EPicCursorMode CursorMode;
         private bool closing = false;
         private EPicMode PicMode;
-        private bool VisVisible, PriVisible;
 
         private Stack<PictureUndo> UndoCol = [];
 
         // variables to support tool selection/manipulation/use
         private TPicDrawOpEnum PicDrawMode; //used to indicate what current drawing op is happening (determines what mouse ops mean)
-        private TPicToolTypeEnum SelectedTool;  // used to indicate what tool is currently selected
+        private PicToolType SelectedTool;  // used to indicate what tool is currently selected
         private PenStatus SelectedPen;
         private PenStatus CurrentPen;
         private bool CurCmdIsLine = false;
@@ -49,9 +50,11 @@ namespace WinAGI.Editor {
         private Point[] CoordPT = new Point[100];
         private Point CurPt = new(255, 255);
 
-        private EGAColors EditPalette = DefaultPalette.CopyPalette();
+        internal EGAColors EditPalette = DefaultPalette.CopyPalette();
 
         // variables to support graphics/display
+        private int OneWindow; // 0=both; 1=vis only; 2=pri only
+        private bool TooSmall = false;
         private Color VCColor; //color of 'x's in 'x' cursor mode for visual
         private Color PCColor; // color of 'x's in 'x' cursor mode for priority
         public double ScaleFactor;
@@ -59,8 +62,8 @@ namespace WinAGI.Editor {
         public int OldPri;
         public bool ShowTextMarks = false;
         private const int PE_MARGIN = 5;
+        //public PictureBackgroundSettings bkgdSettings = new();
         public Bitmap BkgdImage;
-        public byte BkgdTrans;
         private EPicCur CurCursor;
 
         // view testing
@@ -80,11 +83,10 @@ namespace WinAGI.Editor {
         private int MaxCol, CharWidth;
 
         // toolbar dropdowns
+        ToolStripDropDown tdMode;
         ToolStripDropDown tdTools;
         ToolStripDropDown tdPlotStyle;
         ToolStripDropDown tdPlotSize;
-
-
 
         /*
         // variables to support tool selection/manipulation/use
@@ -97,15 +99,11 @@ namespace WinAGI.Editor {
         private bool Activating;
 
         // variables to support graphics/display
-        public double tgtX, tgtY, tgtW, tgtH;
-        public double srcX, srcY, srcW, srcH;
 
         private bool blnDragging, blnInPri;
         private double sngOffsetX;
         private double sngOffsetY;
 
-        private int OneWindow; // 0=both; 1=vis only; 2=pri only
-        private int PrevState;
 
         // variables to support testing
         private int TestViewNum;
@@ -123,161 +121,6 @@ namespace WinAGI.Editor {
         #region temp code
         void tmpPicForm() {
             /*
-
-private bool ConfigureBackground() {
-
-  // shows background configuration form (which will automatically show
-  // the loadimage dialog if no Image loaded yet)
-  
-  Set frmConfigureBkgd.PicEditForm = Me
-  // initialize the form (will get a bkgd Image if there isn't one yet)
-  frmConfigureBkgd.InitForm EditPicture.VisualBMP
-  
-  // if no bkgd Image (i.e. user canceled), just exit
-  if (frmConfigureBkgd.Canceled) {
-    Unload frmConfigureBkgd
-    return false;
-  }
-  
-  // now set canceled flag (it's the default)
-  frmConfigureBkgd.Canceled = true
-  
-  // show the form
-  frmConfigureBkgd.Show vbModal, frmMDIMain
-  
-  // do something with it...
-  if (!frmConfigureBkgd.Canceled) {
-    // copy bkgd Image and filename
-    Set BkgdImage = frmConfigureBkgd.BkgdImage
-    
-    // save the bkgd parameters
-      // local values used in draw functions
-      tgtX = frmConfigureBkgd.tgtX
-      tgtY = frmConfigureBkgd.tgtY
-      tgtW = frmConfigureBkgd.tgtW
-      tgtH = frmConfigureBkgd.tgtH
-      srcX = frmConfigureBkgd.srcX
-      srcY = frmConfigureBkgd.srcY
-      srcW = frmConfigureBkgd.srcW
-      srcH = frmConfigureBkgd.srcH
-      BkgdTrans = frmConfigureBkgd.BkgdTrans
-      //  now update the picture resource properties
-      EditPicture.BkgdImgFile = RelativeFileName(GameDir, frmConfigureBkgd.BkgdImgFile)
-      EditPicture.BkgdTrans = CLng(BkgdTrans)
-      EditPicture.BkgdSize = tgtW & "|" & tgtH & "|" & srcW & "|" & srcH
-      EditPicture.BkgdPosition = tgtX & "|" & tgtY & "|" & srcX & "|" & srcY
-
-    // if in game
-    if (InGame) {
-      // copy properties back to actual picture resource
-        Pictures(EditPicture.Number).BkgdImgFile = EditPicture.BkgdImgFile
-        Pictures(EditPicture.Number).BkgdPosition = EditPicture.BkgdPosition
-        Pictures(EditPicture.Number).BkgdShow = EditPicture.BkgdShow
-        Pictures(EditPicture.Number).BkgdSize = EditPicture.BkgdSize
-        Pictures(EditPicture.Number).BkgdTrans = EditPicture.BkgdTrans
-        //  save it (this will only write the properties
-        //  since the real picture is not being edited
-        //  in this piceditor)
-        Pictures(EditPicture.Number).Save
-    }
-    
-    // return true
-    ConfigureBackground = true
-  } else {
-    // return false
-    ConfigureBackground = false
-  }
-  
-  // unload the form
-  Unload frmConfigureBkgd
-}
-
-private void ExportPicAsGif() {
-
-  // export a loop as a gif
-  
-  Dim blnCanceled As Boolean, rtn As Long
-  Dim PGOptions As GifOptions
-  
-  // show options form
-  Load frmViewGifOptions
-    // set up form to export this picture
-    frmViewGifOptions.InitForm 1, EditPicture
-    frmViewGifOptions.Show vbModal, frmMDIMain
-    blnCanceled = frmViewGifOptions.Canceled
-    
-    // if not canceled, get a filename
-    if (!blnCanceled) {
-    
-      // set up commondialog
-        MainSaveDlg.DialogTitle = "Export Picture GIF"
-        MainSaveDlg.DefaultExt = "gif"
-        MainSaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*"
-        MainSaveDlg.Flags = cdlOFNHideReadOnly | cdlOFNPathMustExist | cdlOFNExplorer
-        MainSaveDlg.FilterIndex = 1
-        MainSaveDlg.InitDir = DefaultResDir
-        MainSaveDlg.FullName = ""
-        MainSaveDlg.hWndOwner = frmMDIMain.hWnd
-      
-      do {
-        MainSaveDlg.ShowSaveAs
-        // if canceled,
-        if (Err.Number = cdlCancel) {
-          // cancel the export
-          blnCanceled = true
-          break; // exit do
-        }
-        
-        DefaultResDir = JustPath(MainSaveDlg.FileName)
-        // if file exists,
-        if (FileExists(MainSaveDlg.FullName)) {
-          // verify replacement
-          rtn = MsgBox(MainSaveDlg.FileName & " already exists. Do you want to overwrite it?", vbYesNoCancel + vbQuestion, "Overwrite file?")
-          
-          if (rtn = vbYes) {
-            break; // exit do
-          } else if (rtn = vbCancel) {
-            blnCanceled = true
-            break; // exit do
-          }
-        } else {
-          break; // exit do
-        }
-      } while(true);
-    }
-    
-    // if NOT canceled after getting filename, then export!
-    if (!blnCanceled) {
-      // show progress form
-      Load frmProgress
-        frmProgress.Text = "Exporting Picture as GIF"
-        frmProgress.lblProgress = "Depending in size of picture, this may take awhile. Please wait..."
-        frmProgress.pgbStatus.Max = EditPicture.Resource.Size
-        frmProgress.pgbStatus.Value = 0
-        frmProgress.pgbStatus.Visible = true
-        frmProgress.Show
-        frmProgress.Refresh
-      
-      // show wait cursor
-      WaitCursor
-      
-      PGOptions.Cycle = (frmViewGifOptions.chkLoop.Value = vbChecked)
-      PGOptions.Delay = Val(frmViewGifOptions.txtDelay.Text)
-      PGOptions.Zoom = Val(frmViewGifOptions.txtZoom.Text)
-      
-      // set options
-      MakePicGif EditPicture, PGOptions, MainSaveDlg.FullName
-      
-      // all done!
-      Unload frmProgress
-      MsgBox "Success!", vbInformation + vbOKOnly, "Export Picture as GIF"
-      
-      Screen.MousePointer = vbDefault
-    }
-    
-    // done with the options form
-    Unload frmViewGifOptions
-}
 
 public void MenuClickInsert() {
 
@@ -922,7 +765,7 @@ private void GetTestView() {
 public void MenuClickCustom2() {
 
   // toggles background Image
-  ToggleBkgd !EditPicture.BkgdShow
+  UpdateBkgd !EditPicture.BkgdVisible
 }
 
 public void MenuClickSelectAll() {
@@ -939,7 +782,7 @@ public void MenuClickSelectAll() {
   
   // if editselect tool is chosen, change selection to cover entire area
   switch (SelectedTool) {
-  case ttSelectArea:
+  case SelectArea:
     Selection.X = 0
     Selection.Y = 0
     Selection.Width = 160
@@ -947,15 +790,15 @@ public void MenuClickSelectAll() {
     // now show the selection
     ShowCmdSelection
     
-  // case ttSetPen:
+  // case SetPen:
     // not used
-  case ttLine or ttRelLine or ttCorner:
+  case Line or ShortLine or StepLine:
     // not sure what I should do if this is case?
-  case ttPlot or ttFill:
+  case Plot or Fill:
     // not sure what I should do if this is case?
-  case ttRectangle or ttTrapezoid or ttEllipse:
+  case Rectangle or Trapezoid or Ellipse:
     // not sure what I should do if this is case?
-  case ttEdit:
+  case Edit:
     // if nothing to select
     if (lstCommands.ListCount = 1) {
       return;
@@ -1285,27 +1128,6 @@ public void MenuClickFindAgain() (
   MarkAsChanged();
 }
 
-public void MenuClickRedo() {
-
-  // when showing full visual or full priority,
-  // this menu item swaps between the two
-  
-  Dim sngSplit As Single
-  
-  //  if currently showing visual
-  if (OneWindow = 1) {
-    // switch to priority
-    OneWindow = 2
-    sngSplit = 0
-  } else if (OneWindow = 2) {
-    // otherwise switch to visual
-    OneWindow = 1
-  }
-  
-  // redraw
-  DrawPicture
-}
-
 private void AddPatternData(int tmpIndex, byte[] bytPatDat, bool DontUndo = false) {
 
   // add pattern bytes to tmpIndex command coordinates
@@ -1362,14 +1184,14 @@ private void AddPatternData(int tmpIndex, byte[] bytPatDat, bool DontUndo = fals
   }
 }
 
-private void BeginDraw(TPicToolTypeEnum CurrentTool, Point PicPt) {
+private void BeginDraw(PicToolType CurrentTool, Point PicPt) {
   // initiates draw operation based on selected tool
   
   Dim bytData() As Byte
   
   // begin drawing using selected tool
   switch (CurrentTool) {
-  case ttLine:
+  case Line:
     // set anchor
     Anchor = PicPt
     // set data to draw command and first point
@@ -1388,7 +1210,7 @@ private void BeginDraw(TPicToolTypeEnum CurrentTool, Point PicPt) {
     NoSelect = true
     lstCoords.ListIndex = 0
     
-  case ttRelLine:
+  case ShortLine:
     // insert rel line cmd
     
     // set anchor
@@ -1409,7 +1231,7 @@ private void BeginDraw(TPicToolTypeEnum CurrentTool, Point PicPt) {
     NoSelect = true
     lstCoords.ListIndex = 0
     
-  case ttCorner:
+  case StepLine:
     // set anchor
     Anchor = PicPt
     // set data to draw command and first point
@@ -2071,7 +1893,7 @@ private void EndEditCoord(DrawFunction CmdType, int CoordNum, Point PicPt, int l
   
   // begin highlighting selected coord again
   tmrSelect.Enabled = true
-  if (CursorMode = pcmWinAGI) {
+  if (CursorMode == EPicCursorMode.pcmWinAGI) {
     // save area under cursor
     BitBlt Me.hDC, 0, 0, 6 * ScaleFactor, 3 * ScaleFactor, picVisual.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
     BitBlt Me.hDC, 0, 12, 6 * ScaleFactor, 3 * ScaleFactor, picPriority.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
@@ -2215,13 +2037,13 @@ private void EndDraw(Point PicPt) {
     // (note that we don't end the draw mode; this let's us continue adding more
     // line segments to this command)
     switch (SelectedTool) {
-    case ttLine:
+    case Line:
       // set data to add this point
       ReDim bytData(1)
       bytData(0) = PicPt.X
       bytData(1) = PicPt.Y
       
-    case ttRelLine:
+    case ShortLine:
       // validate x and y
       // (note that delta x is limited to -6 to avoid
       // values above 0xF0, which would mistakenly be interpreted
@@ -2243,7 +2065,7 @@ private void EndDraw(Point PicPt) {
       
       // '*'Debug.Assert EditCoordNum = lstCoords.ListCount - 1
       
-    case ttCorner:
+    case StepLine:
       // draw next line coordinate
       ReDim bytData(0)
      // get insert pos
@@ -2303,7 +2125,7 @@ private void EndDraw(Point PicPt) {
     // each shape is drawn as a separate action)
     
     switch (SelectedTool) {
-    case ttRectangle:
+    case Rectangle:
       // finish drawing box
       ReDim bytData(6)
       bytData(0) = dfXCorner
@@ -2324,7 +2146,7 @@ private void EndDraw(Point PicPt) {
       UndoCol(UndoCol.Count).UDAction = Rectangle
       UndoCol(UndoCol.Count).UDCmd = vbNullString
       
-    case ttTrapezoid:
+    case Trapezoid:
       // finish drawing trapezoid
       ReDim bytData(10)
       bytData(0) = dfAbsLine
@@ -2356,7 +2178,7 @@ private void EndDraw(Point PicPt) {
       UndoCol(UndoCol.Count).UDAction = Trapezoid
       UndoCol(UndoCol.Count).UDCmd = vbNullString
       
-    case ttEllipse:
+    case Ellipse:
       // finish drawing ellipse
       
       // if both height and width are one pixel
@@ -2815,73 +2637,6 @@ private void StopDrawing() {
   CodeClick = true
   lstCommands_Click
 }
-private void ToggleBkgd(bool NewVal As Boolean, bool ShowConfig = false) {
-
-  // sets background Image display to match newval
-  // loads a background if one is needed
-  
-  Dim OldVal As Boolean
-  
-  // note curent value
-  OldVal = EditPicture.BkgdShow
-  
-  EditPicture.BkgdShow = NewVal
-
-  // if showing background AND there is not a picture (OR if forcing re-configure)
-  if ((EditPicture.BkgdShow && (BkgdImage == null)) || ShowConfig) {
-    // use configure screen, which will load a background
-    if (!ConfigureBackground()) {
-      // if user cancels, and still no background, force flag to false
-      if ((BkgdImage == null)) {
-        EditPicture.BkgdShow = false
-// ''      }
-// ''      else {
-// ''        // there is a bkgd, but no change made
-      }
-    }
-  }
-  
-  // set button status, and set value for stored image in picresource
-  if (EditPicture.BkgdShow) {
-    Toolbar1.Buttons("bkgd").Value = tbrPressed
-  } else {
-    Toolbar1.Buttons("bkgd").Value = tbrUnpressed
-  }
-  
-  // update menu caption
-    // toggle bkgd visible only if a bkgd Image is loaded
-    frmMDIMain.mnuRCustom2.Visible = !(BkgdImage == null)
-    if (frmMDIMain.mnuRCustom2.Visible) {
-      frmMDIMain.mnuRCustom2.Enabled = true
-      if (EditPicture.BkgdShow && frmMDIMain.mnuRCustom2.Visible) {
-        frmMDIMain.mnuRCustom2.Text = "Hide Background" & vbTab & "Alt+B"
-      } else {
-        frmMDIMain.mnuRCustom2.Text = "Show Background" & vbTab & "Alt+B"
-      }
-    }
-    //  allow removal if an image is loaded
-    frmMDIMain.mnuRCustom3.Visible = frmMDIMain.mnuRCustom2.Visible
-    if (frmMDIMain.mnuRCustom3.Visible) {
-      frmMDIMain.mnuRCustom3.Enabled = true
-      frmMDIMain.mnuRCustom3.Text = "Remove Background Image" & vbTab & "Shift+Alt+B"
-    }
-  
-  // if current command has coordinates, do more than just redraw picture
-  if (lstCoords.ListCount > 0) {
-    if (lstCoords.ListIndex != -1) {
-      // use coordinate click method if a coordinate is currently selected
-      lstCoords_Click
-    } else {
-      // use command click method if no coordinates selected
-      CodeClick = true
-      lstCommands_Click
-    }
-  } else {
-    // if selected command doesn't have any coordinates
-    // redrawing is sufficient to set correct state of editor
-    DrawPicture
-  }
-}
 
 private void UpdatePosValues(int CmdPos, int PosOffset) {
   // updates the command list so itemtag values have correct position Value
@@ -3177,12 +2932,12 @@ public void MenuClickSave() {
       // export using default name
       EditPicture.Export ResDir & EditPicture.ID & ".agp"
       // reset ID (cuz
-      EditPicture.ID = Pictures(EditPicture.Number).ID
+      EditPicture.ID = Pictures(PictureNumber).ID
     }
     
     // if no more errors, clear entry from warning grid
     if (EditPicture.BMPErrLevel = 0) {
-      frmMDIMain.ClearWarningList EditPicture.Number, rtPicture
+      frmMDIMain.ClearWarningList PictureNumber, rtPicture
     }
     
     // restore cursor
@@ -3432,7 +3187,7 @@ public void MenuClickECustom2() {
 public void MenuClickCustom1() {
 
   // show bkgd configuration options
-  ToggleBkgd true, true
+  UpdateBkgd true, true
 }
 
 public void MenuClickCustom3(bool Toggle = false) {
@@ -3440,8 +3195,8 @@ public void MenuClickCustom3(bool Toggle = false) {
   // remove the background
   
   // if currently showing background,
-  if (EditPicture.BkgdShow) {
-    ToggleBkgd false
+  if (EditPicture.BkgdVisible) {
+    UpdateBkgd false
   }
   
   // set image to nothing
@@ -3455,15 +3210,15 @@ public void MenuClickCustom3(bool Toggle = false) {
   // if in game
   if (InGame) {
     // update the ingame pic
-      Pictures(EditPicture.Number).BkgdImgFile = ""
-      Pictures(EditPicture.Number).BkgdShow = false
-      Pictures(EditPicture.Number).BkgdPosition = ""
-      Pictures(EditPicture.Number).BkgdSize = ""
-      Pictures(EditPicture.Number).BkgdTrans = 0
+      Pictures(PictureNumber).BkgdImgFile = ""
+      Pictures(PictureNumber).BkgdVisible = false
+      Pictures(PictureNumber).BkgdPosition = ""
+      Pictures(PictureNumber).BkgdSize = ""
+      Pictures(PictureNumber).BkgdTrans = 0
       //  save it (this will only write the properties
       //  since the real picture is not being edited
       //  in this piceditor)
-      Pictures(EditPicture.Number).Save
+      Pictures(PictureNumber).Save
   }
 }
 
@@ -3979,7 +3734,7 @@ private void Form_KeyDown() {
     case vbKeyB:
       // toggle background
       if (frmMDIMain.mnuRCustom3.Enabled) {
-        ToggleBkgd !EditPicture.BkgdShow
+        UpdateBkgd !EditPicture.BkgdVisible
         KeyCode = 0
       }
     
@@ -4076,7 +3831,7 @@ private void Form_KeyDown() {
     switch (KeyCode) {
     case vbKeyB:
       // show background options dialog
-      ToggleBkgd true, true
+      UpdateBkgd true, true
   
     case vbKeyC:
       // copy commands to clipboard as text
@@ -4205,7 +3960,7 @@ private void lstCoords_Click() {
   CurCmdIsLine = false
   
   // if NOT in select mode (i.e. selected tool = none)
-  if (SelectedTool != ttEdit) {
+  if (SelectedTool != Edit) {
     // change edit mode by clicking toolbar
     // (this will reset ListIndex to -1, so need to hold on to it, and restore after this call)
     i = lstCoords.ListIndex
@@ -4224,10 +3979,10 @@ private void lstCoords_Click() {
   CurPt = ExtractCoordinates(lstCoords.Text)
   
   // enable cursor highlighting if edit tool selected
-  tmrSelect.Enabled = (SelectedTool = ttEdit)
+  tmrSelect.Enabled = (SelectedTool = Edit)
   
   // if original wingagi cursor mode AND timer is enabled,
-  if (CursorMode = pcmWinAGI && tmrSelect.Enabled) {
+  if (CursorMode = EPicCursorMode.pcmWinAGI && tmrSelect.Enabled) {
     // save area under cursor
     BitBlt Me.hDC, 0, 0, 6 * ScaleFactor, 3 * ScaleFactor, picVisual.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
     BitBlt Me.hDC, 0, 12, 6 * ScaleFactor, 3 * ScaleFactor, picPriority.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
@@ -4635,7 +4390,7 @@ public void MenuClickCopy() {
   
   // if editing, tool is editselect, and a selection is visible
   // which means selwidth/height != 0)
-  if ((PicMode = pmEdit) && (SelectedTool = ttSelectArea) && (Selection.Width != 0) && (Selection.Height != 0)) {
+  if ((PicMode = pmEdit) && (SelectedTool = SelectArea) && (Selection.Width != 0) && (Selection.Height != 0)) {
     // set copy picture height/width
     picCopy.Height = Selection.Height
     picCopy.Width = Selection.Width
@@ -4769,7 +4524,7 @@ public void MenuClickPaste() {
   
   
   // always set cmd to select
-  if (SelectedTool != ttEdit) {
+  if (SelectedTool != Edit) {
     Toolbar1.Buttons("select").Value = tbrPressed
     Toolbar1_ButtonClick Toolbar1.Buttons("select")
   }
@@ -5469,7 +5224,7 @@ public void SetEditMenu() {
     frmMDIMain.mnuRCustom2.Visible = !(BkgdImage == null)
     if (frmMDIMain.mnuRCustom2.Visible) {
       frmMDIMain.mnuRCustom2.Enabled = true
-      if (EditPicture.BkgdShow && frmMDIMain.mnuRCustom2.Visible) {
+      if (EditPicture.BkgdVisible && frmMDIMain.mnuRCustom2.Visible) {
         frmMDIMain.mnuRCustom2.Text = "Hide Background" & vbTab & "Alt+B"
       } else {
         frmMDIMain.mnuRCustom2.Text = "Show Background" & vbTab & "Alt+B"
@@ -5557,7 +5312,7 @@ public void SetEditMenu() {
       }
       
       // if tool is editselect
-      if ((SelectedTool = ttSelectArea)) {
+      if ((SelectedTool = SelectArea)) {
         // always disable cut, delete, insert, paste
         frmMDIMain.mnuEDelete.Enabled = false
         frmMDIMain.mnuEDelete.Text = "Delete" & vbTab & "Del"
@@ -5737,7 +5492,7 @@ public void SetEditMenu() {
     Toolbar1.Buttons("paste").Enabled = frmMDIMain.mnuEPaste.Enabled
     Toolbar1.Buttons("delete").Enabled = frmMDIMain.mnuEDelete.Enabled
     // if only one cmd selected
-    if (lstCommands.SelCount = 1 && SelectedTool != ttSelectArea) {
+    if (lstCommands.SelCount = 1 && SelectedTool != SelectArea) {
       // cant flip end cmd
       if (SelectedCmd != lstCommands.ListCount - 1) {
         switch (Left$(lstCommands.List(SelectedCmd), 3)) {
@@ -5755,7 +5510,7 @@ public void SetEditMenu() {
       }
       
     // if more than one cmd selected
-    } else if (lstCommands.SelCount > 1 && SelectedTool != ttSelectArea) {
+    } else if (lstCommands.SelCount > 1 && SelectedTool != SelectArea) {
       // if the selection shapes are visible, then cmds with coords
       // are in the selection
       Toolbar1.Buttons(13).Enabled = ((Selection.Width > 0) && (Selection.Height > 0))
@@ -5974,7 +5729,7 @@ private void picVisual_MouseDown() {
   
     // what to do depends mostly on what the selected tool is:
     switch (SelectedTool) {
-    case ttEdit:
+    case Edit:
       // no tool selected; check for a coordinate being moved or group of commands being moved
       // if none of those apply, drag the drawing surface
       
@@ -6076,11 +5831,11 @@ private void picVisual_MouseDown() {
         return;
       }
       
-    case ttLine or ttRelLine or ttCorner:
+    case Line or ShortLine or StepLine:
       // begin draw operation based on selected tool
       BeginDraw SelectedTool, PicPt
     
-    case ttFill:
+    case Fill:
       // if on a Fill cmd
       if (lstCommands.Text = "Fill") {
         // if cursor hasn't moved, just exit
@@ -6116,7 +5871,7 @@ private void picVisual_MouseDown() {
       // redraw
       DrawPicture
       
-    case ttPlot:
+    case Plot:
       // need to bound the x value (AGI has a bug which actually allows
       // X values to be +1 more than they should; WinAGI enforces the
       // the actual boundary
@@ -6190,13 +5945,13 @@ private void picVisual_MouseDown() {
       // redraw
       DrawPicture
       
-    case ttRectangle or ttTrapezoid or ttEllipse:
+    case Rectangle or Trapezoid or Ellipse:
       // set anchor
       Anchor = PicPt
       // set mode
       PicDrawMode = doShape
       
-    case ttSelectArea:
+    case SelectArea:
       // if shift key, drag the picture
       switch (Shift) {
       case 0:
@@ -6285,7 +6040,7 @@ private void picVisual_MouseMove() {
       // mouse position and selected tool
 
       switch (SelectedTool) {
-      case ttEdit:
+      case Edit:
         // not drawing anything, but there could be a highlighted coordinate
         // or a selected group of commands- cursor will depend on which of
         // those states exist
@@ -6306,7 +6061,7 @@ private void picVisual_MouseMove() {
           if ((CurPt.X = PicPt.X) && (CurPt.Y = PicPt.Y)) {
             SetCursors pcCross
             OnPoint = true
-            if (CursorMode = pcmWinAGI) {
+            if (CursorMode = EPicCursorMode.pcmWinAGI) {
               // reset area under cursor
               BitBlt picVisual.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, 6 * ScaleFactor, 3 * ScaleFactor, Me.hDC, 0, 0, SRCCOPY
               BitBlt picPriority.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, 6 * ScaleFactor, 3 * ScaleFactor, Me.hDC, 0, 12, SRCCOPY
@@ -6343,16 +6098,16 @@ private void picVisual_MouseMove() {
       // is active while no draw ops are in progress;
       // cursor should already be set, with no need to change cursor
       // while mouse is moving
-      case ttSetPen:
-      case ttLine:
-      case ttRelLine:
-      case ttCorner:
-      case ttFill:
-      case ttPlot:
-      case ttRectangle:
-      case ttTrapezoid:
-      case ttEllipse:
-      case ttSelectArea:
+      case SetPen:
+      case Line:
+      case ShortLine:
+      case StepLine:
+      case Fill:
+      case Plot:
+      case Rectangle:
+      case Trapezoid:
+      case Ellipse:
+      case SelectArea:
 
 
       }
@@ -6389,13 +6144,13 @@ private void picVisual_MouseMove() {
         case doLine:
           // action to take depends on what Type of line is being drawn
           switch (SelectedTool) {
-          case ttLine:
+          case Line:
             // draw current line up to anchor point
             DrawTempLine false, 0, 0
             // now draw line from anchor to cursor position
             DrawLine Anchor.X, Anchor.Y, PicPt.X, PicPt.Y
 
-          case ttRelLine:
+          case ShortLine:
             // draw current line up to anchor point
             DrawTempLine false, 0, 0
             // validate x and Y
@@ -6416,7 +6171,7 @@ private void picVisual_MouseMove() {
             // now draw line from anchor to cursor position
             DrawLine Anchor.X, Anchor.Y, PicPt.X, PicPt.Y
 
-          case ttCorner:
+          case StepLine:
             // draw up to this coordinate
             DrawTempLine false, 0, 0
             // if drawing second point
@@ -6462,13 +6217,13 @@ private void picVisual_MouseMove() {
         case doShape:
           // action to take depends on what Type of line is being drawn
           switch (SelectedTool) {
-          case ttRectangle:
+          case Rectangle:
             // simulate rectangle
             CurPt.X = PicPt.X
             CurPt.Y = PicPt.Y
             DrawBox Anchor.X, Anchor.Y, CurPt.X, CurPt.Y
 
-          case ttTrapezoid:
+          case Trapezoid:
             // simulate a trapezoid
             CurPt.X = PicPt.X
             CurPt.Y = PicPt.Y
@@ -6484,7 +6239,7 @@ private void picVisual_MouseMove() {
               DrawLine 159 - CurPt.X, CurPt.Y, Anchor.X, Anchor.Y
             }
 
-          case ttEllipse:
+          case Ellipse:
             // simulate circle
             CurPt.X = PicPt.X
             CurPt.Y = PicPt.Y
@@ -6581,7 +6336,7 @@ private void picVisual_MouseMove() {
         spCurY").Text = "Y: " & CStr(PicPt.Y)
         NewPri = GetPriBand(PicPt.Y, EditPicture.PriBase)
         spPriBand").Text = "Band: " & NewPri
-        if (SelectedTool = ttSelectArea) {
+        if (SelectedTool = SelectArea) {
           if (shpVis.Visible) {
             if (Button = vbLeftButton) {
             spAnchor").Visible = true
@@ -7466,7 +7221,7 @@ private void tmrSelect_Timer() {
     VCColor = IIf(VCColor < 15, VCColor + 1, 0)
     
     // if using original WinAGI flashing cursor
-    if (CursorMode = pcmWinAGI) {
+    if (CursorMode = EPicCursorMode.pcmWinAGI) {
       // if cursor is on the selected point
       if (OnPoint) {
         // size is always 0
@@ -7503,7 +7258,7 @@ private void tmrSelect_Timer() {
 private void Toolbar1_ButtonClick() {
 
   Dim blnCursor As Boolean, blnClearCmdList As Boolean
-  Dim PrevTool As TPicToolTypeEnum
+  Dim PrevTool As PicToolType
   
 //      button parameters:
 //   Index  Tip               Key
@@ -7550,7 +7305,7 @@ private void Toolbar1_ButtonClick() {
   
     // if current tool is Edit-Area then ALWAYS reset selection
     // whenever a toolbar button other than zoomin or zoomout is pressed
-    if (SelectedTool = ttSelectArea && (Button.Index != 8 && Button.Index != 9)) {
+    if (SelectedTool = SelectArea && (Button.Index != 8 && Button.Index != 9)) {
       // reset selection
       Selection.X = 0
       Selection.Y = 0
@@ -7567,7 +7322,7 @@ private void Toolbar1_ButtonClick() {
     
   case "select":
             // Select Command tool
-    SelectedTool = ttEdit
+    SelectedTool = Edit
     // normal cursor
     SetCursors pcEdit
     // reset selection
@@ -7582,14 +7337,14 @@ private void Toolbar1_ButtonClick() {
   
   case "editsel":
             // Select Area tool
-    SelectedTool = ttSelectArea
+    SelectedTool = SelectArea
     // area select cursor
     SetCursors pcEditSel
     
     // if current point is highlighted,
     if (tmrSelect.Enabled) {
       // in original mode, need to reset area under cursor
-      if (CursorMode = pcmWinAGI) {
+      if (CursorMode = EPicCursorMode.pcmWinAGI) {
         // reset area under cursor
         BitBlt picVisual.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, 6 * ScaleFactor, 3 * ScaleFactor, Me.hDC, 0, 0, SRCCOPY
         BitBlt picPriority.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, 6 * ScaleFactor, 3 * ScaleFactor, Me.hDC, 0, 12, SRCCOPY
@@ -7612,48 +7367,48 @@ private void Toolbar1_ButtonClick() {
     
   case "absline":
             // Draw Line tool
-    SelectedTool = ttLine
+    SelectedTool = Line
     SetCursors pcSelect
     blnClearCmdList = true
     
   case "relline":
             // Draw Relative Line tool
-    SelectedTool = ttRelLine
+    SelectedTool = ShortLine
     SetCursors pcSelect
     blnClearCmdList = true
     
   case "corner":
             // Draw Corner Line tool
-    SelectedTool = ttCorner
+    SelectedTool = StepLine
     SetCursors pcSelect
     blnClearCmdList = true
     
   case "rectangle":
             // Draw Rectangle tool
-    SelectedTool = ttRectangle
+    SelectedTool = Rectangle
     SetCursors pcSelect
     blnClearCmdList = true
     
   case "floor":
             // Draw Trapezoid tool
-    SelectedTool = ttTrapezoid
+    SelectedTool = Trapezoid
     SetCursors pcSelect
     blnClearCmdList = true
     
   case "ellipse" // Draw Ellipse tool
-    SelectedTool = ttEllipse
+    SelectedTool = Ellipse
     SetCursors pcSelect
     blnClearCmdList = true
     
   case "fill":
             // Fill tool
-    SelectedTool = ttFill
+    SelectedTool = Fill
     SetCursors pcPaint
     blnClearCmdList = true
     
   case "plot":
             // Plot Pen tool
-    SelectedTool = ttPlot
+    SelectedTool = Plot
     // should select a cursor that matches current brush style, shape, size
     SetCursors pcBrush
     blnClearCmdList = true
@@ -7692,7 +7447,7 @@ private void Toolbar1_ButtonClick() {
   case "bkgd":
             // Toggle Background Image
     // turn background on or off
-    ToggleBkgd !EditPicture.BkgdShow
+    UpdateBkgd !EditPicture.BkgdVisible
     
     // if current command has coordinates, do more than just redraw picture
     if (lstCoords.ListCount > 0) {
@@ -7782,12 +7537,12 @@ private void Toolbar1_ButtonClick() {
   }
   
   // show/hide anchor and block status panels
-  spAnchor").Visible = (SelectedTool = ttSelectArea)
-  if ((SelectedTool = ttSelectArea)) {
+  spAnchor").Visible = (SelectedTool = SelectArea)
+  if ((SelectedTool = SelectArea)) {
     spAnchor").Text = "Anchor:"
   }
-  spBlock").Visible = (SelectedTool = ttSelectArea)
-  if ((SelectedTool = ttSelectArea)) {
+  spBlock").Visible = (SelectedTool = SelectArea)
+  if ((SelectedTool = SelectArea)) {
     spBlock").Text = "Block:"
   }
   
@@ -7814,7 +7569,7 @@ private void Toolbar1_ButtonClick() {
       lstCommands.SetFocus
       // if previous tool was 'none', then
       // cursor x's need to be hidden
-      if (PrevTool = ttEdit) {
+      if (PrevTool = Edit) {
         // draw picture to eliminate cursor
         DrawPicture
       }
@@ -7822,7 +7577,7 @@ private void Toolbar1_ButtonClick() {
     // if using 'x' marker cursor mode, still
     // need to enable/disable the'x's based on selected tool
     } else if (CursorMode = pcmXMode) {
-      if (SelectedTool = ttEdit) {
+      if (SelectedTool = Edit) {
         // only if in edit mode
         if (PicMode = pmEdit) {
           HighlightCoords
@@ -7830,7 +7585,7 @@ private void Toolbar1_ButtonClick() {
       } else {
         // if previous tool was 'none', then
         // cursor x's need to be hidden
-        if (PrevTool = ttEdit) {
+        if (PrevTool = Edit) {
           // draw picture to eliminate cursor
           DrawPicture
         }
@@ -7844,8 +7599,8 @@ private void Toolbar1_ButtonClick() {
     blnCursor = tmrSelect.Enabled
 
     // enable cursor highlighting if edit tool selected
-    tmrSelect.Enabled = (SelectedTool = ttEdit) && lstCoords.ListIndex != -1
-    if (tmrSelect.Enabled && CursorMode = pcmWinAGI) {
+    tmrSelect.Enabled = (SelectedTool = Edit) && lstCoords.ListIndex != -1
+    if (tmrSelect.Enabled && CursorMode = EPicCursorMode.pcmWinAGI) {
       // save area under cursor
       BitBlt Me.hDC, 0, 0, 6 * ScaleFactor, 3 * ScaleFactor, picVisual.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
       BitBlt Me.hDC, 0, 12, 6 * ScaleFactor, 3 * ScaleFactor, picPriority.hDC, (CurPt.X - 1) * ScaleFactor * 2, (CurPt.Y - 1) * ScaleFactor, SRCCOPY
@@ -7878,32 +7633,34 @@ private void Toolbar1_ButtonClick() {
 
             MdiParent = MDIMain;
             // re-build toolstrips to show only buttons
-            ToolStripDropDown tddMode = new();
-            tddMode.ImageScalingSize = new Size(24, 24);
-            tddMode.Items.Add(tsbEditMode);
-            tddMode.Items.Add(tsbViewTest);
-            tddMode.Items.Add(tsbPrintTest);
-            tddMode.ItemClicked += tsbModeItemClicked;
-            tsbMode.DropDown = tddMode;
+            tdMode = new();
+            tdMode.ImageScalingSize = new Size(24, 24);
+            tdMode.Items.Add(tsbEditMode);
+            tdMode.Items.Add(tsbViewTest);
+            tdMode.Items.Add(tsbPrintTest);
+            tdMode.Opening += tdMode_Opening;
+            tsbMode.DropDown = tdMode;
             tdTools = new();
             tdTools.ImageScalingSize = new Size(24, 24);
-            tdTools.Items.Add(tsbSelect);
-            tdTools.Items.Add(tsbEditSelect);
+            tdTools.Items.Add(tsbEditTool);
+            tdTools.Items.Add(tsbSelectArea);
             tdTools.Items.Add(tsbLine);
-            tdTools.Items.Add(tsbRelLine);
+            tdTools.Items.Add(tsbShortLine);
             tdTools.Items.Add(tsbStepLine);
-            tdTools.Items.Add(tsbBox);
+            tdTools.Items.Add(tsbRectangle);
             tdTools.Items.Add(tsbTrapezoid);
             tdTools.Items.Add(tsbEllipse);
             tdTools.Items.Add(tsbFill);
             tdTools.Items.Add(tsbPlot);
+            tdTools.Opening += tdTools_Opening;
             tsbTool.DropDown = tdTools;
             tdPlotStyle = new();
             tdPlotStyle.ImageScalingSize = new Size(24, 24);
-            tdPlotStyle.Items.Add(tsbCircleFull);
-            tdPlotStyle.Items.Add(tsbSquareFull);
+            tdPlotStyle.Items.Add(tsbCircleSolid);
+            tdPlotStyle.Items.Add(tsbSquareSolid);
             tdPlotStyle.Items.Add(tsbCircleSplat);
             tdPlotStyle.Items.Add(tsbSquareSplat);
+            tdPlotStyle.Opening += tdPlotStyle_Opening;
             tsbPlotStyle.DropDown = tdPlotStyle;
             tdPlotSize = new();
             tdPlotSize.ImageScalingSize = new Size(24, 24);
@@ -7915,6 +7672,7 @@ private void Toolbar1_ButtonClick() {
             tdPlotSize.Items.Add(tsbSize5);
             tdPlotSize.Items.Add(tsbSize6);
             tdPlotSize.Items.Add(tsbSize7);
+            tdPlotSize.Opening += tdPlotSize_Opening;
             tsbPlotSize.DropDown = tdPlotSize;
 
             // other initializations:
@@ -7928,15 +7686,37 @@ private void Toolbar1_ButtonClick() {
             hsbVisual.BringToFront();
             vsbVisual.BringToFront();
 
-            // defaults
             ScaleFactor = WinAGISettings.PicScaleEdit.Value;
+            // validate
+            if (ScaleFactor < 1) {
+                ScaleFactor = 1;
+            }
+            else if (ScaleFactor <= 3) {
+                ScaleFactor = (int)(ScaleFactor * 4) / 4d;
+            }
+            else if (ScaleFactor < 8) {
+                ScaleFactor = (int)(ScaleFactor * 2) / 2d;
+            }
+            else if (ScaleFactor < 20) {
+                ScaleFactor = (int)(ScaleFactor);
+            }
+            else {
+                ScaleFactor = 20;
+            }
+            spScale.Text = "Scale: " + (ScaleFactor * 100) + "%";
             picVisual.Width = picPriority.Width = (int)(ScaleFactor * 320);
             picVisual.Height = picPriority.Height = (int)(ScaleFactor * 168);
             ShowBands = WinAGISettings.ShowBands.Value;
+            if (WinAGISettings.SplitWindow.Value) {
+                splitImages.SplitterDistance = splitImages.Height / 2;
+            }
+            else {
+                OneWindow = 1;
+                splitImages.SplitterDistance = splitImages.Height - splitImages.SplitterWidth;
+            }
             CursorMode = (EPicCursorMode)WinAGISettings.CursorMode.Value;
-
             PicMode = EPicMode.pmEdit;
-            SelectedTool = TPicToolTypeEnum.ttEdit;
+            SelectedTool = PicToolType.Edit;
 
             // set undo collection
             PictureUndo[] UndoCol = [];
@@ -7998,14 +7778,14 @@ private void Toolbar1_ButtonClick() {
                 MaxCol = 39;
                 CharWidth = 8;
             }
-  /*
-  if (ValidCodePages.Contains(SessionCodePage)) {
-    Set picFont.Picture = LoadResPicture("CP" & CStr(SessionCodePage), vbResBitmap)
-  } else {
-    // should never happen, but just in case
-    Set picFont.Picture = LoadResPicture("CP437", vbResBitmap)
-  }
-            */
+            /*
+            if (ValidCodePages.Contains(SessionCodePage)) {
+              Set picFont.Picture = LoadResPicture("CP" & CStr(SessionCodePage), vbResBitmap)
+            } else {
+              // should never happen, but just in case
+              Set picFont.Picture = LoadResPicture("CP437", vbResBitmap)
+            }
+                      */
 
         }
 
@@ -8065,6 +7845,12 @@ private void Toolbar1_ButtonClick() {
         }
 
         private void frmPicEdit_FormClosed(object sender, FormClosedEventArgs e) {
+            // update background settings
+            if (InGame) {
+                // copy properties back to actual picture resource
+                EditGame.Pictures[PictureNumber].BackgroundSettings = EditPicture.BackgroundSettings;
+                EditGame.Pictures[PictureNumber].SaveProps();
+            }
             // dereference picture
             EditPicture?.Unload();
             EditPicture = null;
@@ -8083,13 +7869,36 @@ private void Toolbar1_ButtonClick() {
             //    TestView = null;
             //}
 
-            //// destroy background picture
-            //BkgdImage = null;
+            // destroy background picture
+            BkgdImage = null;
+            tdMode.Opening -= tdMode_Opening;
+            tdTools.Opening -= tdTools_Opening;
+            tdPlotStyle.Opening -= tdPlotStyle_Opening;
+            tdPlotSize.Opening -= tdPlotSize_Opening;
         }
 
         private void frmPicEdit_Resize(object sender, EventArgs e) {
             if (picPalette.Visible) {
                 picPalette.Refresh();
+            }
+            if (Height < 220) {
+                if (!TooSmall) {
+                    TooSmall = true;
+                    // force to just one window- whichever is larger
+                    if (splitImages.Panel1.Height >= splitImages.Panel2.Height) {
+                        splitImages.Panel2Collapsed = true;
+                    }
+                    else {
+                        splitImages.Panel1Collapsed = true;
+                    }
+                }
+            }
+            else {
+                if (TooSmall) {
+                    TooSmall = false;
+                    splitImages.Panel1Collapsed = false;
+                    splitImages.Panel2Collapsed = false;
+                }
             }
         }
         #endregion
@@ -8149,9 +7958,6 @@ private void Toolbar1_ButtonClick() {
             ExportOnePicImg(EditPicture);
         }
 
-        private void mnuRBackground_Click(object sender, EventArgs e) {
-            MessageBox.Show("TODO: background");
-        }
         private void mnuRExportGIF_Click(object sender, EventArgs e) {
             ExportPicAsGif(EditPicture);
         }
@@ -8199,7 +8005,7 @@ private void Toolbar1_ButtonClick() {
             else {
                 mnuEditBackground.Text = "Background Settings...";
                 mnuToggleBackground.Visible = true;
-                if (EditPicture.BkgdShow) {
+                if (EditPicture.BkgdVisible) {
                     mnuToggleBackground.Text = "Hide Background";
                 }
                 else {
@@ -8224,9 +8030,8 @@ private void Toolbar1_ButtonClick() {
                 mnuToggleTextMarks.Text = "Show Text Marks";
             }
             // screen toggle
-            if (VisVisible ^ PriVisible) {
-                mnuToggleScreen.Visible = true;
-                if (VisVisible) {
+            if (TooSmall) {
+                if (splitImages.Panel1Collapsed) {
                     mnuToggleScreen.Text = "Show Priority Screen";
                 }
                 else {
@@ -8234,7 +8039,18 @@ private void Toolbar1_ButtonClick() {
                 }
             }
             else {
-                mnuToggleScreen.Visible = false;
+                if (OneWindow > 0) {
+                    mnuToggleScreen.Visible = true;
+                    if (OneWindow == 1) {
+                        mnuToggleScreen.Text = "Show Priority Screen";
+                    }
+                    else {
+                        mnuToggleScreen.Text = "Show Visual Screen";
+                    }
+                }
+                else {
+                    mnuToggleScreen.Visible = false;
+                }
             }
             // mode dependent items
             switch (PicMode) {
@@ -8278,7 +8094,7 @@ private void Toolbar1_ButtonClick() {
                 mnuDelete.Visible = true;
                 mnuInsertCoord.Visible = true;
                 mnuClearPicture.Visible = true;
-                if (SelectedTool == TPicToolTypeEnum.ttSelectArea) {
+                if (SelectedTool == PicToolType.SelectArea) {
                     // area selection - no editing commands are enabled,
                     // only copy is available
                     mnuCut.Enabled = false;
@@ -8513,7 +8329,26 @@ private void Toolbar1_ButtonClick() {
         }
 
         private void mnuToggleScreen_Click(object sender, EventArgs e) {
-
+            if (TooSmall) {
+                if (splitImages.Panel2Collapsed) {
+                    splitImages.Panel1Collapsed = true;
+                    splitImages.Panel2Collapsed = false;
+                }
+                else {
+                    splitImages.Panel2Collapsed = true;
+                    splitImages.Panel1Collapsed = false;
+                }
+            }
+            else {
+                if (OneWindow == 1) {
+                    OneWindow = 2;
+                    splitImages.SplitterDistance = 0;
+                }
+                else if (OneWindow == 2) {
+                    OneWindow = 1;
+                    splitImages.SplitterDistance = splitImages.Height - splitImages.SplitterWidth;
+                }
+            }
         }
 
         private void mnuToggleBands_Click(object sender, EventArgs e) {
@@ -8533,11 +8368,11 @@ private void Toolbar1_ButtonClick() {
         }
 
         private void mnuToggleBackground_Click(object sender, EventArgs e) {
-
+            UpdateBkgd(!EditPicture.BkgdVisible);
         }
 
         private void mnuEditBackground_Click(object sender, EventArgs e) {
-
+            UpdateBkgd(true, true);
         }
 
         private void mnuRemoveBackground_Click(object sender, EventArgs e) {
@@ -8546,9 +8381,42 @@ private void Toolbar1_ButtonClick() {
         #endregion
 
         #region Toolbar Event Handlers
-        //tsbEditMode_Click
-        //tsbViewTest_Click
-        //tsbPrintTest_Click
+        private void tdMode_Opening(object sender, EventArgs e) {
+            tsbEditMode.Checked = PicMode == EPicMode.pmEdit;
+            tsbViewTest.Checked = PicMode == EPicMode.pmViewTest;
+            tsbPrintTest.Checked = PicMode == EPicMode.pmPrintTest;
+        }
+
+        private void tdTools_Opening(object sender, CancelEventArgs e) {
+            tsbEditTool.Checked = SelectedTool == PicToolType.Edit;
+            tsbSelectArea.Checked = SelectedTool == PicToolType.SelectArea;
+            tsbLine.Checked = SelectedTool == PicToolType.Line;
+            tsbShortLine.Checked = SelectedTool == PicToolType.ShortLine;
+            tsbStepLine.Checked = SelectedTool == PicToolType.StepLine;
+            tsbRectangle.Checked = SelectedTool == PicToolType.Rectangle;
+            tsbTrapezoid.Checked = SelectedTool == PicToolType.Trapezoid;
+            tsbEllipse.Checked = SelectedTool == PicToolType.Ellipse;
+            tsbFill.Checked = SelectedTool == PicToolType.Fill;
+            tsbPlot.Checked = SelectedTool == PicToolType.Plot;
+        }
+
+        private void tdPlotStyle_Opening(object sender, CancelEventArgs e) {
+            tsbCircleSolid.Checked = SelectedPen.PlotShape == PlotShape.Circle && SelectedPen.PlotStyle == PlotStyle.Solid;
+            tsbSquareSolid.Checked = SelectedPen.PlotShape == PlotShape.Square && SelectedPen.PlotStyle == PlotStyle.Solid;
+            tsbCircleSplat.Checked = SelectedPen.PlotShape == PlotShape.Circle && SelectedPen.PlotStyle == PlotStyle.Splatter;
+            tsbSquareSplat.Checked = SelectedPen.PlotShape == PlotShape.Square && SelectedPen.PlotStyle == PlotStyle.Splatter;
+        }
+
+        private void tdPlotSize_Opening(object sender, CancelEventArgs e) {
+            tsbSize0.Checked = SelectedPen.PlotSize == 0;
+            tsbSize1.Checked = SelectedPen.PlotSize == 1;
+            tsbSize2.Checked = SelectedPen.PlotSize == 2;
+            tsbSize3.Checked = SelectedPen.PlotSize == 3;
+            tsbSize4.Checked = SelectedPen.PlotSize == 4;
+            tsbSize5.Checked = SelectedPen.PlotSize == 5;
+            tsbSize6.Checked = SelectedPen.PlotSize == 6;
+            tsbSize7.Checked = SelectedPen.PlotSize == 7;
+        }
 
         private void tsbZoomIn_Click(object sender, EventArgs e) {
             ChangeScale(1);
@@ -8622,7 +8490,6 @@ private void Toolbar1_ButtonClick() {
         }
 
         private void lstCommands_MouseClick(object sender, MouseEventArgs e) {
-            Debug.Print("mouse click");
             int clickeditem = (int)(lstCommands.HitTest(new(e.X, e.Y)).Item?.Index);
 
             // multiple selections must always be sequential;
@@ -8898,7 +8765,7 @@ private void Toolbar1_ButtonClick() {
                     }
                     // if showing the cursors (in 'xmode', selected tool is 'none'
                     // and only one cmd is selected
-                    if (CursorMode == EPicCursorMode.pcmXMode && SelectedTool == TPicToolTypeEnum.ttEdit &&
+                    if (CursorMode == EPicCursorMode.pcmXMode && SelectedTool == PicToolType.Edit &&
                                       lstCommands.SelectedItems.Count == 1) {
                         //only in edit mode
                         if (PicMode == EPicMode.pmEdit) {
@@ -8960,19 +8827,40 @@ private void Toolbar1_ButtonClick() {
 
         private void splitForm_SplitterMoved(object sender, SplitterEventArgs e) {
             Cursor.Current = Cursors.Default;
-            lstCommands.Focus();
+            lstCommands.Select();
+        }
+
+        private void splitForm_MouseUp(object sender, MouseEventArgs e) {
+            lstCommands.Select();
         }
 
         private void splitImages_SplitterMoving(object sender, SplitterCancelEventArgs e) {
             if (Cursor.Current != Cursors.HSplit) {
                 Cursor.Current = Cursors.HSplit;
             }
+            if (e.MouseCursorY < 45) {
+                e.SplitY = 45;
+            }
         }
 
         private void splitImages_SplitterMoved(object sender, SplitterEventArgs e) {
             Cursor.Current = Cursors.Default;
-            lstCommands.Focus();
+            if (!TooSmall && OneWindow == 0) {
+                if (splitImages.SplitterDistance < 45) {
+                    splitImages.SplitterDistance = 0;
+                    OneWindow = 2;
+                }
+                if (splitImages.Panel2.Height < 45) {
+                    splitImages.SplitterDistance = splitImages.ClientSize.Height - splitImages.SplitterWidth; ;
+                    OneWindow = 1;
+                }
+            }
+            lstCommands.Select();
             SetScrollbars();
+        }
+
+        private void splitImages_MouseUp(object sender, MouseEventArgs e) {
+            lstCommands.Select();
         }
 
         private void splitLists_SplitterMoving(object sender, SplitterCancelEventArgs e) {
@@ -8983,11 +8871,14 @@ private void Toolbar1_ButtonClick() {
 
         private void splitLists_SplitterMoved(object sender, SplitterEventArgs e) {
             Cursor.Current = Cursors.Default;
-            lstCommands.Focus();
+            lstCommands.Select();
+        }
+
+        private void splitLists_MouseUp(object sender, MouseEventArgs e) {
+            lstCommands.Select();
         }
         #endregion
         #endregion
-
 
         public bool LoadPicture(Picture loadpic) {
             InGame = loadpic.InGame;
@@ -9012,6 +8903,8 @@ private void Toolbar1_ButtonClick() {
             EditPalette = loadpic.Palette.CopyPalette();
             VCColor = EditPalette[4]; // red
             PCColor = EditPalette[3]; // cyan
+            picVisual.BackColor = EditPalette[15];
+            picPriority.BackColor = EditPalette[4];
             if (!InGame && EditPicture.ID == "NewPicture") {
                 PicCount++;
                 EditPicture.ID = "NewPicture" + PicCount;
@@ -9047,38 +8940,17 @@ private void Toolbar1_ButtonClick() {
             EditPicture.StepDraw = true;
             // enable editing
             PicMode = EPicMode.pmEdit;
-            /*
             // check for a saved background image
-            if (EditPicture.BkgdImgFile.Length != 0) {
+            if (EditPicture.BkgdFileName.Length != 0) {
                 try {
-                    BkgdImage = LoadImage(Path.GetFullPath(EditGame.GameDir + EditPicture.BkgdImgFile));
-                    // get rest of parameters
-                    BkgdTrans = EditPicture.BkgdTrans;
-                    string[] strTemp = EditPicture.BkgdSize.ToString().Split("|");
-                    tgtW = strTemp[0];
-                    tgtH = strTemp[1];
-                    srcW = strTemp[2];
-                    srcH = strTemp[3];
-                    strTemp = EditPicture.BkgdPosition.ToString().Split("|");
-                    tgtX = strTemp[0];
-                    tgtY = strTemp[1];
-                    srcX = strTemp[2];
-                    srcY = strTemp[3];
                     // validate a few things...
-                    if (srcW <= 0 || srcH <= 0) {
-                        // reset
-                        srcW = MetsToPix(BkgdImage.Width);
-                        srcH = MetsToPix(BkgdImage.Height);
-                    }
-                    if (tgtW <= 0 || tgtH <= 0) {
-                        // reset
-                        tgtW = 320;
-                        tgtH = 168;
-                    }
-                    if (EditPicture.BkgdShow) {
-                        Toolbar1.Buttons["bkgd"].Value = tbrPressed;
-                        // turn background on
-                        ToggleBkgd(true);
+                    //if (EditPicture.BkgdSourceSize.Width <= 0 || EditPicture.BkgdSourceSize.Height <= 0) {
+                    //    EditPicture.BkgdSourceSize.Width = BkgdImage.Width;
+                    //    EditPicture.BkgdSourceSize.Height = BkgdImage.Height;
+                    //}
+                    BkgdImage = new(Path.GetFullPath(EditPicture.BkgdFileName, EditGame.ResDir));
+                    if (EditPicture.BkgdVisible) {
+                        tsbBackground.Checked = true;
                     }
                 }
                 catch (Exception ex) {
@@ -9092,38 +8964,20 @@ private void Toolbar1_ButtonClick() {
                     }
                     // inform user
                     MessageBox.Show(MDIMain,
-                        strMsg + "\n\nThe 'BkgdImg' property for this picture will be cleared.",
+                        strMsg + "\n\nThe background settings for this picture will be cleared.",
                         "Picture Background Image Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
                     // clear picedit background properties
-                    EditPicture.BkgdImgFile = "";
-                    EditPicture.BkgdPosition = new Picture.PicBkgdPos();
-                    EditPicture.BkgdShow = false;
-                    EditPicture.BkgdSize = new Picture.PicBkgdSize();
-                    EditPicture.BkgdTrans = 0;
+                    EditPicture.BackgroundSettings = new();
                     // clear ingame resource background properties
-                    EditGame.Pictures[PicNumber].BkgdImgFile = "";
-                    EditGame.Pictures[PicNumber].BkgdPosition = new Picture.PicBkgdPos(); ;
-                    EditGame.Pictures[PicNumber].BkgdShow = false;
-                    EditGame.Pictures[PicNumber].BkgdSize = new Picture.PicBkgdSize();
-                    EditGame.Pictures[PicNumber].BkgdTrans = 0;
-                    // update the game wag file
-                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdImg", "", "Pictures");
-                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdPosn", "");
-                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdShow", "");
-                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdSize", "");
-                    WinAGISettingsList.WriteSetting("Picture" + PicNumber, "BkgdTrans", "");
-                    WinAGISettingsList.Save();
-                    // make sure image is nothing
+                    EditGame.Pictures[PictureNumber].BackgroundSettings = new();
+                    EditGame.Pictures[PictureNumber].SaveProps();
                     BkgdImage = null;
-                    // force background off
-                    EditPicture.BkgdShow = false;
                 }
             }
-            */
             DrawPicture();
-            UpdateToolBar();
+            UpdateToolbar();
 
             return true;
         }
@@ -9557,18 +9411,18 @@ private void Toolbar1_ButtonClick() {
                 }
                 // reset cursor to match selected tool
                 switch (SelectedTool) {
-                case TPicToolTypeEnum.ttEdit:
+                case PicToolType.Edit:
                     // arrow cursor
                     SetCursors(EPicCur.pcEdit);
                     break;
-                case TPicToolTypeEnum.ttFill:
-                    SetCursors (EPicCur.pcPaint);
+                case PicToolType.Fill:
+                    SetCursors(EPicCur.pcPaint);
                     break;
-                case TPicToolTypeEnum.ttPlot:
-                    SetCursors (EPicCur.pcBrush);
+                case PicToolType.Plot:
+                    SetCursors(EPicCur.pcBrush);
                     break;
                 default:
-                    SetCursors (EPicCur.pcSelect);
+                    SetCursors(EPicCur.pcSelect);
                     break;
                 }
                 // set status bar depending on grid mode
@@ -9634,12 +9488,12 @@ private void Toolbar1_ButtonClick() {
                 }
                 // if showing normal pixel, go to row/col mode
                 if (StatusMode == EPicStatusMode.psPixel) {
-                  StatusMode = EPicStatusMode.psText;
+                    StatusMode = EPicStatusMode.psText;
                 }
                 GetTextOptions();
                 break;
             }
-            UpdateToolBar();
+            UpdateToolbar();
             UpdateStatusBar();
             /*
             // update status bar on all mode changes
@@ -9649,7 +9503,7 @@ private void Toolbar1_ButtonClick() {
             */
         }
 
-        private void UpdateToolBar() {
+        private void UpdateToolbar() {
             // enable/disable other editing buttons
             // based on mode, and if drawing is selected
 
@@ -9659,10 +9513,10 @@ private void Toolbar1_ButtonClick() {
                 tsbPlotStyle.Enabled = true;
                 tsbPlotSize.Enabled = true;
                 // if neither draw color is selected and using a drawing tool
-                if ((SelectedPen.VisColor == AGIColorIndex.None) && (SelectedPen.PriColor == AGIColorIndex.None) && SelectedTool != TPicToolTypeEnum.ttEdit && SelectedTool != TPicToolTypeEnum.ttSelectArea) {
+                if ((SelectedPen.VisColor == AGIColorIndex.None) && (SelectedPen.PriColor == AGIColorIndex.None) && SelectedTool != PicToolType.Edit && SelectedTool != PicToolType.SelectArea) {
                     // switch to select tool
-                    SelectedTool = TPicToolTypeEnum.ttEdit;
-                    tsbTool.Image = tsbSelect.Image;
+                    SelectedTool = PicToolType.Edit;
+                    tsbTool.Image = tsbEditTool.Image;
                     SetCursors(EPicCur.pcEdit);
                 }
                 if (tsbPlotSize.Image != tdPlotSize.Items[SelectedPen.PlotSize].Image) {
@@ -9672,11 +9526,11 @@ private void Toolbar1_ButtonClick() {
                     tsbPlotStyle.Image = tdPlotStyle.Items[(int)SelectedPen.PlotShape + 2 * (int)SelectedPen.PlotStyle].Image;
                 }
                 tsbUndo.Enabled = UndoCol.Count > 0;
-                tsbPaste.Enabled = (PicMode == EPicMode.pmEdit) && SelectedTool == TPicToolTypeEnum.ttSelectArea && PicClipBoardObj != null;
+                tsbPaste.Enabled = (PicMode == EPicMode.pmEdit) && SelectedTool == PicToolType.SelectArea && PicClipBoardObj != null;
                 tsbCut.Enabled = true;
 
 
-                if (SelectedTool == TPicToolTypeEnum.ttSelectArea) {
+                if (SelectedTool == PicToolType.SelectArea) {
                     // area selection - no editing commands are enabled,
                     // only copy is available
                     tsbCut.Enabled = false;
@@ -9740,7 +9594,6 @@ private void Toolbar1_ButtonClick() {
             //UpdateStatusBar();
         }
 
-
         private void UpdateStatusBar() {
             // set status bar indicators based on current state of game
 
@@ -9777,9 +9630,9 @@ private void Toolbar1_ButtonClick() {
             case EPicMode.pmEdit:
                 spMode.Text = "Edit";
                 spTool.Text = Editor.Base.LoadResString(PICTOOLTYPETEXT + (int)SelectedTool);
-                spAnchor.Visible = (SelectedTool == TPicToolTypeEnum.ttSelectArea);
-                spBlock.Visible = (SelectedTool == TPicToolTypeEnum.ttSelectArea);
-                if (SelectedTool == TPicToolTypeEnum.ttSelectArea && StatusMode == EPicStatusMode.psPixel) {
+                spAnchor.Visible = (SelectedTool == PicToolType.SelectArea);
+                spBlock.Visible = (SelectedTool == PicToolType.SelectArea);
+                if (SelectedTool == PicToolType.SelectArea && StatusMode == EPicStatusMode.psPixel) {
                     if (Selection.Width > 0 || Selection.Height > 0) {
                         spAnchor.Text = "Anchor: " + Selection.X + ", " + Selection.Y;
                         spBlock.Text = "Block: " + Selection.X + ", " + Selection.Y + ", " + (Selection.X + Selection.Width - 1) + ", " + (Selection.Y + Selection.Height - 1);
@@ -9934,28 +9787,87 @@ private void Toolbar1_ButtonClick() {
                     }
                 }
             }
-            if (EditPicture.BkgdShow) {
-                // first, draw the background on visual
-                //// (remember that IPicture objects are upside-down DIBs, so we need to flip BkgdImage vertically-
-                //BkgdImage.Render picVisual.hDC, tgtX * picVisual.Width / 320, tgtY * picVisual.Height / 168, tgtW * picVisual.Width / 320, tgtH * picVisual.Height / 168, PixToMets(srcX), BkgdImage.Height - PixToMets(srcY, true), PixToMets(srcW), -PixToMets(srcH, true), 0&
-                // then add visual/priority images with appropriate transparency
+            if (OneWindow == 0 || OneWindow == 1) {
+                //_ = SendMessage(picVisual.Handle, WM_SETREDRAW, false, 0);
+                int bWidth = (int)(320 * ScaleFactor), bHeight = (int)(168 * ScaleFactor);
+                picVisual.Image = new Bitmap(bWidth, bHeight);
+                using Graphics g = Graphics.FromImage(picVisual.Image);
+                g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = PixelOffsetMode.Half;
 
-                /* TEMP */
-                ShowAGIBitmap(picVisual, EditPicture.VisualBMP, ScaleFactor);
-                ShowAGIBitmap(picPriority, EditPicture.PriorityBMP, ScaleFactor);
-                /* TEMP */
+                if (EditPicture.BkgdVisible && EditPicture.BkgdShowVis) {
+                    //always clear the background first
+                    g.Clear(picVisual.BackColor);
+                    // draw the background on visual
+                    Rectangle dest = new(0, 0, picVisual.Width, picVisual.Height);
+                    RectangleF src = EditPicture.BackgroundSettings.SourceRegion;
+                    double HScale = src.Width / 320.0;
+                    double VScale = src.Height / 168.0;
+                    if (src.X < 0) {
+                        dest.X = (int)(-EditPicture.BackgroundSettings.TargetPos.X * ScaleFactor);
+                        src.X = 0;
+                    }
+                    if (src.Y < 0) {
+                        dest.Y = (int)(-EditPicture.BackgroundSettings.TargetPos.Y * ScaleFactor);
+                        src.Y = 0;
+                    }
+                    if (src.Right > BkgdImage.Width) {
+                        dest.Width = (int)((320 - (src.Right - BkgdImage.Width) / HScale) * ScaleFactor);
+                        src.Width = BkgdImage.Width - src.X;
+                    }
+                    if (src.Bottom > BkgdImage.Height) {
+                        dest.Height = (int)((168 - (src.Bottom - BkgdImage.Height) / VScale) * ScaleFactor);
+                        src.Height = BkgdImage.Height - src.Y;
+                    }
+                    g.DrawImage(BkgdImage, dest, src, GraphicsUnit.Pixel);
+                }
+                g.DrawImage(EditPicture.VisualBMP, 0, 0, bWidth, bHeight);
+                //_ = SendMessage(picVisual.Handle, WM_SETREDRAW, true, 0);
             }
-            else {
-                ShowAGIBitmap(picVisual, EditPicture.VisualBMP, ScaleFactor);
-                ShowAGIBitmap(picPriority, EditPicture.PriorityBMP, ScaleFactor);
+            if (OneWindow == 0 || OneWindow == 2) {
+                //_ = SendMessage(picPriority.Handle, WM_SETREDRAW, false, 0);
+                int bWidth = (int)(320 * ScaleFactor), bHeight = (int)(168 * ScaleFactor);
+                picPriority.Image = new Bitmap(bWidth, bHeight);
+                using Graphics g = Graphics.FromImage(picPriority.Image);
+                g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = PixelOffsetMode.Half;
+                if (EditPicture.BkgdVisible && EditPicture.BkgdShowPri) {
+                    //always clear the background first
+                    g.Clear(picPriority.BackColor);
+                    // draw the background on priority
+                    Rectangle dest = new(0, 0, picPriority.Width, picPriority.Height);
+                    RectangleF src = EditPicture.BackgroundSettings.SourceRegion;
+                    double HScale = src.Width / 320.0;
+                    double VScale = src.Height / 168.0;
+                    if (src.X < 0) {
+                        dest.X = (int)(-EditPicture.BackgroundSettings.TargetPos.X * ScaleFactor);
+                        src.X = 0;
+                    }
+                    if (src.Y < 0) {
+                        dest.Y = (int)(-EditPicture.BackgroundSettings.TargetPos.Y * ScaleFactor);
+                        src.Y = 0;
+                    }
+                    if (src.Right > BkgdImage.Width) {
+                        dest.Width = (int)((320 - src.X * HScale) * ScaleFactor);
+                        src.Width = BkgdImage.Width - src.X;
+                    }
+                    if (src.Top > BkgdImage.Height) {
+                        dest.Height = (int)((168 - src.Y * VScale) * ScaleFactor);
+                        src.Height = BkgdImage.Height - src.Y;
+                    }
+                    g.DrawImage(BkgdImage, dest, src, GraphicsUnit.Pixel);
+                }
+                g.DrawImage(EditPicture.PriorityBMP, 0, 0, bWidth, bHeight);
+                //_ = SendMessage(picVisual.Handle, WM_SETREDRAW, true, 0);
             }
-
             // add test cel if in preview mode, and a test view is loaded
             bool DrawCel = (PicMode == EPicMode.pmViewTest && TestView != null && ShowTestCel);
             if (DrawCel) {
                 // with appropriate transparency if Bkgd is being used
                 //AddCelToPic();
             }
+            picVisual.Refresh();
+            picPriority.Refresh();
         }
 
         public void RefreshPic() {
@@ -9994,7 +9906,7 @@ private void Toolbar1_ButtonClick() {
                 SelectedCmdIndex = CmdPos;
                 SelectedCmdType = (DrawFunction)EditPicture.Data[(int)lstCommands.SelectedItems[0].Tag];
             }
-            lstCommands.Focus();
+            lstCommands.Select();
         }
 
         private void HighlightCoords() {
@@ -10004,7 +9916,7 @@ private void Toolbar1_ButtonClick() {
       Dim cOfX As Single, cOfY As Single, cSzX As Single, cSzY As Single
 
       // if using original highlight mode OR if not in edit mode, just exit
-      if (CursorMode = pcmWinAGI || SelectedTool != ttEdit) {
+      if (CursorMode = EPicCursorMode.pcmWinAGI || SelectedTool != Edit) {
         return;
       }
 
@@ -10744,6 +10656,10 @@ private void Toolbar1_ButtonClick() {
         }
 
         public void ChangeScale(int Dir, bool useanchor = false) {
+            // valid scale factors are:
+            // 100%, 125%, 150%, 175%, 200%, 225%, 250%, 275%, 300%,
+            // 350%, 400%, 450%, 500%, 550%, 600%, 650%, 700%, 750%, 800%,
+            // 900%, 1000%, 1100%, 1200%, 1300%, 1400%, 1500%, 1600%, 1700%, 1800%, 1900%, 2000%
             double oldscale = 0;
             if (useanchor) {
                 oldscale = ScaleFactor;
@@ -10803,7 +10719,7 @@ private void Toolbar1_ButtonClick() {
             // if only one selected command AND it has coords AND tool is 'none' AND in edit mode
             if (lstCommands.SelectedItems.Count == 1 &&
                   lstCoords.Items.Count > 0 &&
-                  SelectedTool == TPicToolTypeEnum.ttEdit &&
+                  SelectedTool == PicToolType.Edit &&
                   PicMode == EPicMode.pmEdit) {
                 HighlightCoords();
             }
@@ -10847,6 +10763,10 @@ private void Toolbar1_ButtonClick() {
                 hsbVisual.Visible = showHSB;
                 vsbVisual.Visible = showVSB;
             }
+            else {
+                hsbVisual.Visible = false;
+                vsbVisual.Visible = false;
+            }
 
             if (splitImages.Panel2.Height > 16) {
                 // determine if scrollbars are necessary
@@ -10872,6 +10792,10 @@ private void Toolbar1_ButtonClick() {
                 }
                 hsbPriority.Visible = showHSB;
                 vsbPriority.Visible = showVSB;
+            }
+            else {
+                hsbPriority.Visible = false;
+                vsbPriority.Visible = false;
             }
 
             Point anchorpt = new(-1, -1);
@@ -11204,6 +11128,62 @@ private void Toolbar1_ButtonClick() {
             */
         }
 
+        private void UpdateBkgd(bool NewVal, bool ShowConfig = false) {
+            // sets background Image display to match newval
+            // loads a background if one is needed
+
+            // if switching to ON AND there is not a picture OR if forcing config
+            if ((NewVal && BkgdImage == null) || ShowConfig) {
+                // use configure screen, which will load a background
+                if (!ConfigureBackground()) {
+                    return;
+                }
+            }
+            EditPicture.BkgdVisible = NewVal;
+            tsbBackground.Checked = NewVal;
+            DrawPicture();
+            //if (lstCoords.Items.Count > 0) {
+            //    if (lstCoords.SelectedItems.Count > 0) {
+            //        //SelectCoord();
+            //        DrawPicture();
+            //    }
+            //    else {
+            //        // looks like SelectCmd doesn't always force redraw...
+            //        // why not just redraw anyway- no need to re-select
+            //        //SelectCmd(SelectedCmdIndex);
+            //        DrawPicture();
+            //    }
+            //}
+            //else {
+            //    // if selected command doesn't have any coordinates
+            //    // redrawing is sufficient to set correct state of editor
+            //    DrawPicture();
+            //}
+        }
+        
+        private bool ConfigureBackground() {
+            // shows background configuration form (which will automatically show
+            // the loadimage dialog if no Image loaded yet)
+
+            frmConfigureBackground frm = new(this);
+            if (frm.DialogResult == DialogResult.Cancel) {
+                frm.Dispose();
+                return false;
+            }
+            if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                frm.Dispose();
+                return false;
+            }
+            BkgdImage = frm.BkgdImage;
+            EditPicture.BackgroundSettings = frm.bkgdSettings;
+            if (InGame) {
+                // copy properties back to actual picture resource
+                EditGame.Pictures[PictureNumber].BackgroundSettings = frm.bkgdSettings;
+                EditGame.Pictures[PictureNumber].SaveProps();
+            }
+            return true;
+        }
+
         private void ClearCmdSelection() {
 
             Selection.X = 0;
@@ -11257,9 +11237,9 @@ private void Toolbar1_ButtonClick() {
 
         // force tool to select if drawing something
         // (if  tool is selectArea, let it be)
-        if (SelectedTool != ttEdit && SelectedTool != ttSelectArea) {
+        if (SelectedTool != Edit && SelectedTool != SelectArea) {
           // select it
-          SelectedTool = ttEdit;
+          SelectedTool = Edit;
           Toolbar1.Buttons("select").Value = tbrPressed;
         }
 
@@ -11271,7 +11251,7 @@ private void Toolbar1_ButtonClick() {
       }
 
       // if tool is select edit, update menu if necessary
-      if (SelectedTool = ttSelectArea) {
+      if (SelectedTool = SelectArea) {
         // enable copy command if selection is >0
         frmMDIMain.mnuECopy.Enabled = (Selection.Width > 0 && Selection.Height > 0)
       }
@@ -11339,12 +11319,12 @@ private void Toolbar1_ButtonClick() {
                 }
                 // redraw picture
                 DrawPicture();
-                picVisual.Refresh();
-                picPriority.Refresh();
+                //picVisual.Refresh();
+                //picPriority.Refresh();
             }
 
             // update toolbar
-            UpdateToolBar();
+            UpdateToolbar();
         }
 
         public bool MatchPoints(int ListPos) {
@@ -11543,6 +11523,13 @@ private void Toolbar1_ButtonClick() {
                         g.DrawLine(new(Color.FromArgb(170, 170, 0)), x, y, x, (int)(y - ScaleFactor));
                     }
                 }
+            }
+        }
+
+        private void frmPicEdit_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Alt && e.KeyCode == Keys.S) {
+                mnuToggleScreen.PerformClick();
+                e.Handled = true;
             }
         }
     }

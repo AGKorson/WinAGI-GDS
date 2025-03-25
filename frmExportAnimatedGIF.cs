@@ -134,7 +134,7 @@ namespace WinAGI.Editor {
         }
 
         private void udScale_Enter(object sender, EventArgs e) {
-            cmdOK.Focus();
+            cmdOK.Select();
         }
 
         private void udDelay_ValueChanged(object sender, EventArgs e) {
@@ -143,7 +143,7 @@ namespace WinAGI.Editor {
         }
 
         private void udDelay_Enter(object sender, EventArgs e) {
-            cmdOK.Focus();
+            cmdOK.Select();
         }
 
         private void VScroll1_Scroll(object sender, ScrollEventArgs e) {
