@@ -247,9 +247,7 @@ namespace WinAGI.Engine {
         private void InitSound(Sound NewSound = null) {
             if (NewSound is null) {
                 // create default PC/PCjr sound with no notes in any tracks
-                mData = [ 0x08, 0x00, 0x08, 0x00,
-                                    0x08, 0x00, 0x08, 0x00,
-                                    0xff, 0xff];
+                mData = [0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0xff, 0xff];
                 // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
                 // byte 8/9 are end of track markers
                 mFormat = SoundFormat.AGI;
@@ -564,7 +562,7 @@ namespace WinAGI.Engine {
             int i;
             WinAGIException.ThrowIfNotLoaded(this);
             base.Clear();
-            mData = [ 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0xff, 0xff];
+            mData = [0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0xff, 0xff];
             // byte 0/1, 2/2, 4/5, 6/7 = offset to track data
             // byte 8/9 are end of track markers
 

@@ -963,6 +963,7 @@ WinAGI settings and warnings:
 // WarnMsgs
 // WarnEncrypt
 // LEDelPicToo
+// //WarnPlotPaste
 
 // ************************************************
 // GENERAL SETTINGS
@@ -1162,7 +1163,18 @@ if (test()) {
     action();
 }
 
-Status Bar:
+Status Bars:
+=========================================================================
+
+Statusbar merging in C# SUCKS!
+    - it's not automatic,
+    - and MOST ANNOYINGLY, it merges based on text, not on name so items
+      often get mixed up due to text being the same on different forms
+
+after many failed attempts to manage merging, I'm giving up. So only one
+statusstrip on MdiMain form, and all status items will be added to that 
+panel as needed based on which form is active
+
 MDIMain:
   spStatus    [0] (spring, flat)
   spCapsLock  [1] (SunkenInside)
@@ -1170,7 +1182,10 @@ MDIMain:
   spInsLock   [3] (SunkenInside)
 
 frmGlobalEdit:
-    spStatus -> Replace[0]
+    spStatus -> Inherit[0]
+    spCapsLock -> Inherit[1]
+    spNumLock -> Inherit[2]
+    spInsLock -> Inherit[3]
 
 frmLayout:
     spScale -> Insert[0]
@@ -1179,25 +1194,34 @@ frmLayout:
     spType -> Insert[3]
     spRoom1 -> Insert[4]
     spRoom2 -> Insert[5]
-    spStatus -> Replace[6]
+    spStatus -> Inherit[6]
     spCurX -> Insert[7]
     spCurY -> Insert[8]
-    spCapsLock -> Remove[9]
-    spNumLock -> Remove[9]
-    spInsLock -> Remove[9]
+    spCapsLock -> Hide
+    spNumLock -> Hide
+    spInsLock -> Hide
 
 frmLogicEdit:
-    spStatus(spring, flat) -> Replace
+    spStatus -> Inherit[0]
     spLine (SunkenInside) -> Insert[1]
     spColumn (SunkenInside) -> Insert[2]
+    spCapsLock Inherit [3]
+    spNumLock  Inherit [4]
+    spInsLock  Inherit [5]
 
 frmMenuEdit:
-    spStatus -> Replace[0]
+    spStatus -> Inherit[0]
+    spCapsLock -> Inherit[1]
+    spNumLock -> Inherit[2]
+    spInsLock -> Inherit[3]
 
 frmObjectEdit:
     spCount -> Insert[0]
     spEncrypt -> Insert[1]
-    spStatus -> Replace[2]
+    spStatus -> Inherit[2]
+    spCapsLock -> Inherit[3]
+    spNumLock -> Inherit[4]
+    spInsLock -> Inherit[5]
 
 frmPicEdit:
     spScale -> Insert[0]
@@ -1205,37 +1229,53 @@ frmPicEdit:
     spTool -> Insert[2]
     spAnchor -> Insert[3]
     spBlock -> Insert[4]
-    spStatus -> Replace[5]
+    spStatus -> Inherit[5]
     spCurX -> Insert[6]
     spCurY -> Insert[7]
     spPriBand -> Insert[8]
-    spCapsLock -> Remove[9]
-    spNumLock -> Remove[9]
-    spInsLock -> Remove[9]
+    spCapsLock -> Hide
+    spNumLock -> Hide
+    spInsLock -> Hide
 
 frmPreview:
-    spStatus -> Replace[0]
+    spStatus -> Inherit[0]
+    spCapsLock -> Inherit[1]
+    spNumLock -> Inherit[2]
+    spInsLock -> Inherit[3]
 
 frmSoundEdit:
     spScale -> Insert[0]
     spTime -> Insert[1]
-    spStatus -> Replace[2]
+    spStatus -> Inherit[2]
+    spCapsLock -> Hide
+    spNumLock -> Hide
+    spInsLock -> Hide
 
 frmTextScreenEdit:
     spScale -> Insert[0]
     spMode -> Insert[1]
     spTool -> Insert[2]
-    spStatus -> Replace[3]
+    spStatus -> Inherit[3]
+    ? row/col ?
+    spCapsLock -> Inherit[4]
+    spNumLock -> Inherit[5]
+    spInsLock -> Inherit[6]
 
 frmViewEdit:
     spScale -> Insert[0]
     spTool -> Insert[1]
-    spStatus -> Replace[2]
+    spStatus -> Inherit[2]
+    spCapsLock -> Hide
+    spNumLock -> Hide
+    spInsLock -> Hide
 
 frmWordsEdit:
     spGroupCount -> Insert[0]
     spWordCount -> Insert[1]
-    spStatus -> Replace[2]
+    spStatus -> Inherit[2]
+    spCapsLock -> Inherit[3]
+    spNumLock -> Inherit[4]
+    spInsLock -> Inherit[5]
 
 
 
@@ -1303,3 +1343,5 @@ public void SetResourceMenu()
 public void mnuRSave_Click(object sender, EventArgs e)
 public void mnuRExport_Click(object sender, EventArgs e)
 public void mnuRInGame_Click(object sender, EventArgs e)
+
+

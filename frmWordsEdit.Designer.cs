@@ -63,10 +63,6 @@ namespace WinAGI.Editor {
             mnuEFindInLogic = new System.Windows.Forms.ToolStripMenuItem();
             mnuEditMode = new System.Windows.Forms.ToolStripMenuItem();
             lstWords = new System.Windows.Forms.ListBox();
-            statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spGroupCount = new System.Windows.Forms.ToolStripStatusLabel();
-            spWordCount = new System.Windows.Forms.ToolStripStatusLabel();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             toolStrip1 = new System.Windows.Forms.ToolStrip();
             tbbUndo = new System.Windows.Forms.ToolStripButton();
             tbbMode = new System.Windows.Forms.ToolStripButton();
@@ -109,7 +105,6 @@ namespace WinAGI.Editor {
             cmwCancel = new System.Windows.Forms.ToolStripMenuItem();
             menuStrip1.SuspendLayout();
             cmLists.SuspendLayout();
-            statusStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             cmGroupEdit.SuspendLayout();
             cmWordEdit.SuspendLayout();
@@ -430,49 +425,6 @@ namespace WinAGI.Editor {
             lstWords.MouseDown += lstWords_MouseDown;
             lstWords.MouseMove += lstWords_MouseMove;
             lstWords.MouseUp += lstWords_MouseUp;
-            // 
-            // statusStrip1
-            // 
-            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spGroupCount, spWordCount, spStatus });
-            statusStrip1.Location = new System.Drawing.Point(-3, 144);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(719, 23);
-            statusStrip1.TabIndex = 12;
-            statusStrip1.Text = "statusStrip1";
-            statusStrip1.Visible = false;
-            // 
-            // spGroupCount
-            // 
-            spGroupCount.AutoSize = false;
-            spGroupCount.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spGroupCount.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spGroupCount.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spGroupCount.MergeIndex = 0;
-            spGroupCount.Name = "spGroupCount";
-            spGroupCount.Size = new System.Drawing.Size(140, 18);
-            spGroupCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spWordCount
-            // 
-            spWordCount.AutoSize = false;
-            spWordCount.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spWordCount.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spWordCount.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spWordCount.MergeIndex = 1;
-            spWordCount.Name = "spWordCount";
-            spWordCount.Size = new System.Drawing.Size(140, 18);
-            spWordCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 2;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(425, 18);
-            spStatus.Spring = true;
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // toolStrip1
             // 
@@ -815,7 +767,6 @@ namespace WinAGI.Editor {
             Controls.Add(lstWords);
             Controls.Add(lstGroups);
             Controls.Add(menuStrip1);
-            Controls.Add(statusStrip1);
             Controls.Add(label1);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Name = "frmWordsEdit";
@@ -828,8 +779,6 @@ namespace WinAGI.Editor {
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             cmLists.ResumeLayout(false);
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             toolStrip1.ResumeLayout(false);
             toolStrip1.PerformLayout();
             cmGroupEdit.ResumeLayout(false);
@@ -857,10 +806,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuRGroupCheck;
         private System.Windows.Forms.ListBox lstGroups;
         private System.Windows.Forms.ListBox lstWords;
-        public System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel spStatus;
-        private System.Windows.Forms.ToolStripStatusLabel spGroupCount;
-        private System.Windows.Forms.ToolStripStatusLabel spWordCount;
         private System.Windows.Forms.ContextMenuStrip cmLists;
         private System.Windows.Forms.ToolStripMenuItem mnuEUndo;
         private System.Windows.Forms.ToolStripSeparator mnESep0;

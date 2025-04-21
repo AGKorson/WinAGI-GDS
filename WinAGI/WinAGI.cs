@@ -86,21 +86,6 @@ namespace WinAGI.Engine {
         Splatter
     };
 
-    public enum DrawFunction {
-        EnableVis = 0xf0,    // Change picture color and enable picture draw.
-        DisableVis = 0xF1,   // Disable picture draw.
-        EnablePri = 0xF2,    // Change priority color and enable priority draw.
-        DisablePri = 0xF3,   // Disable priority draw.
-        YCorner = 0xF4,      // Draw a Y corner.
-        XCorner = 0xF5,      // Draw an X corner.
-        AbsLine = 0xF6,      // Absolute line (long lines).
-        RelLine = 0xF7,      // Relative line (short lines).
-        Fill = 0xF8,         // Fill.
-        ChangePen = 0xF9,    // Change pen size and style.
-        PlotPen = 0xFA,      // Plot with pen.
-        End = 0xFF           // end of drawing
-    };
-
     public enum LogicErrorLevel {
         Low,       // errors that prevent compilation/decompiliation
                    // are passed; minimal warnings are given
@@ -252,13 +237,19 @@ namespace WinAGI.Engine {
 
     #endregion
 
-    #region Structures  
+    #region Structures 
+    [Serializable]
     public struct PenStatus {
-        public AGIColorIndex VisColor;
-        public AGIColorIndex PriColor;
-        public PlotShape PlotShape;
-        public PlotStyle PlotStyle;
-        public int PlotSize;
+        public AGIColorIndex VisColor = AGIColorIndex.None;
+        public AGIColorIndex PriColor = AGIColorIndex.None;
+        public PlotShape PlotShape = PlotShape.Circle;
+        public PlotStyle PlotStyle = PlotStyle.Solid;
+        public int PlotSize = 0;
+        public PenStatus() {
+        }
+        public readonly byte PlotData => (byte)((int)PlotStyle * 0x20 +
+                                (int)PlotShape * 0x10 +
+                                PlotSize);
     }
 
     public struct AGIWord {

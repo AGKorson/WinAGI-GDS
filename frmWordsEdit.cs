@@ -37,6 +37,14 @@ namespace WinAGI.Editor {
         private Font defaultfont;
         private Font boldfont;
         private Stack<WordsUndo> UndoCol = new();
+        // StatusStrip Items
+        internal ToolStripStatusLabel spGroupCount;
+        internal ToolStripStatusLabel spWordCount;
+        internal ToolStripStatusLabel spStatus;
+        internal ToolStripStatusLabel spCapsLock;
+        internal ToolStripStatusLabel spNumLock;
+        internal ToolStripStatusLabel spInsLock;
+
         public static frmWordsEdit DragSourceForm { get; private set; }
 
         public frmWordsEdit() {
@@ -45,7 +53,7 @@ namespace WinAGI.Editor {
                           ControlStyles.UserPaint, true);
             this.UpdateStyles();
             InitializeComponent();
-
+            InitStatusStrip();
             InitFonts();
             MdiParent = MDIMain;
         }
@@ -1673,6 +1681,33 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Methods
+        private void InitStatusStrip() {
+            spGroupCount = new ToolStripStatusLabel();
+            spWordCount = new ToolStripStatusLabel();
+            spStatus = MDIMain.spStatus;
+            spCapsLock = MDIMain.spCapsLock;
+            spNumLock = MDIMain.spNumLock;
+            spInsLock = MDIMain.spInsLock;
+            // 
+            // spGroupCount
+            // 
+            spGroupCount.AutoSize = false;
+            spGroupCount.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spGroupCount.BorderStyle = Border3DStyle.SunkenInner;
+            spGroupCount.Name = "spGroupCount";
+            spGroupCount.Size = new System.Drawing.Size(140, 18);
+            spGroupCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // spWordCount
+            // 
+            spWordCount.AutoSize = false;
+            spWordCount.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spWordCount.BorderStyle = Border3DStyle.SunkenInner;
+            spWordCount.Name = "spWordCount";
+            spWordCount.Size = new System.Drawing.Size(140, 18);
+            spWordCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+        }
         internal void InitFonts() {
             defaultfont = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
             boldfont = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, FontStyle.Bold);
@@ -3175,5 +3210,6 @@ namespace WinAGI.Editor {
             mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
+        #endregion
     }
 }

@@ -31,8 +31,17 @@ namespace WinAGI.Editor {
         private Font formFont;
         private Font dupFont;
 
+        // statusstrip items
+        internal ToolStripStatusLabel spCount;
+        internal ToolStripStatusLabel spEncrypt;
+        internal ToolStripStatusLabel spStatus;
+        internal ToolStripStatusLabel spCapsLock;
+        internal ToolStripStatusLabel spNumLock;
+        internal ToolStripStatusLabel spInsLock;
+
         public frmObjectEdit() {
             InitializeComponent();
+            InitStatusStrip();
             // set default row style
             fgObjects.Columns[0].ValueType = typeof(int);
             fgObjects.Columns[1].ValueType = typeof(string);
@@ -977,6 +986,28 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Methods
+        private void InitStatusStrip() {
+            spCount = new ToolStripStatusLabel();
+            spEncrypt = new ToolStripStatusLabel();
+            spStatus = MDIMain.spStatus;
+            spCapsLock = MDIMain.spCapsLock;
+            spNumLock = MDIMain.spNumLock;
+            spInsLock = MDIMain.spInsLock;
+            // 
+            // spCount
+            // 
+            spCount.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spCount.BorderStyle = Border3DStyle.SunkenInner;
+            spCount.Name = "spCount";
+            spCount.Size = new System.Drawing.Size(4, 18);
+            // 
+            // spEncrypt
+            // 
+            spEncrypt.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spEncrypt.BorderStyle = Border3DStyle.SunkenInner;
+            spEncrypt.Name = "spEncrypt";
+            spEncrypt.Size = new System.Drawing.Size(4, 18);
+        }
         private void StartSearch(FindFormFunction formfunction) {
             string searchtext;
             if (fgObjects.CurrentCell == null || fgObjects.CurrentCell.RowIndex < 0 ||

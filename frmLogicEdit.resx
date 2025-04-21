@@ -262,7 +262,7 @@
         AAEAAAD/////AQAAAAAAAAAMAgAAAEZTeXN0ZW0uV2luZG93cy5Gb3JtcywgQ3VsdHVyZT1uZXV0cmFs
         LCBQdWJsaWNLZXlUb2tlbj1iNzdhNWM1NjE5MzRlMDg5BQEAAAAmU3lzdGVtLldpbmRvd3MuRm9ybXMu
         SW1hZ2VMaXN0U3RyZWFtZXIBAAAABERhdGEHAgIAAAAJAwAAAA8DAAAAijIAAAJNU0Z0AUkBTAIBASUB
-        AAHwAQEB8AEBARABAAEQAQAE/wEhAQAI/wFCAU0BNgcAATYDAAEoAwABQAMAAaADAAEBAQABIAYAAaA9
+        AAH4AQEB+AEBARABAAEQAQAE/wEhAQAI/wFCAU0BNgcAATYDAAEoAwABQAMAAaADAAEBAQABIAYAAaA9
         AAH//wAB/wMAAf/7AAX/AwAB/+MAAf8DAAH/AwAB/wMAAf8DAAH/AwAJ/wMAAf/bACX/AwAB/9MACf8D
         AAH/AwAB/wMAAf8DAAH/AwAB/wMAAf8DAAn/AwAB/88ALf8DAAH/zwAJ/wMAAf8DAAH/AwAB/wMAAf8D
         AAH/AwAB/wMACf8DAAH/zwAt/wMAAf/TACX/AwAB/84AAv8CAAL/AgAC/wMAAf8DAAH/AwAB/wMAAf8D
@@ -480,9 +480,6 @@
         /wH4AQAB/wHPBP8B+AEAAf8B7wf/AfcK/ws=
 </value>
   </data>
-  <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>497, 17</value>
-  </metadata>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>52</value>
   </metadata>

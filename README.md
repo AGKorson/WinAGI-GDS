@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha15.2
+        Version 3.0.0alpha15.3
     ==============================
 
 
@@ -54,6 +54,10 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+**alpha15.3** Drawing/edit features of picture editor are complete. Added support for scaling pictures non-integer values.
+Reworked statusbar support in all editors to deal with WinForm's unworkable merging behavior.
+Fixed some bugs in AGIResource object.
+
 **alpha15.2** added picture background support to the editor.
 
 **alpha15.1** picture editor framework is set, basic image drawing/scaling functions working. Still lot of work to do to get the editor working. 

@@ -28,8 +28,6 @@ namespace WinAGI.Editor {
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmGlobals));
-            statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             globalsgrid = new System.Windows.Forms.DataGridView();
             colType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             colDefault = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -76,34 +74,11 @@ namespace WinAGI.Editor {
             mnuCelSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelSep2 = new System.Windows.Forms.ToolStripSeparator();
             mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
-            statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)globalsgrid).BeginInit();
             cmGrid.SuspendLayout();
             menuStrip1.SuspendLayout();
             cmCel.SuspendLayout();
             SuspendLayout();
-            // 
-            // statusStrip1
-            // 
-            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spStatus });
-            statusStrip1.Location = new System.Drawing.Point(41, 214);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(719, 23);
-            statusStrip1.TabIndex = 8;
-            statusStrip1.Text = "statusStrip1";
-            statusStrip1.Visible = false;
-            // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 0;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(705, 18);
-            spStatus.Spring = true;
-            spStatus.Text = "globals edit status";
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // globalsgrid
             // 
@@ -501,7 +476,6 @@ namespace WinAGI.Editor {
             ClientSize = new System.Drawing.Size(765, 359);
             Controls.Add(menuStrip1);
             Controls.Add(globalsgrid);
-            Controls.Add(statusStrip1);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Name = "frmGlobals";
             StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
@@ -510,8 +484,6 @@ namespace WinAGI.Editor {
             FormClosing += frmGlobals_FormClosing;
             FormClosed += frmGlobals_FormClosed;
             Leave += frmGlobals_Leave;
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)globalsgrid).EndInit();
             cmGrid.ResumeLayout(false);
             menuStrip1.ResumeLayout(false);
@@ -522,8 +494,6 @@ namespace WinAGI.Editor {
         }
 
         #endregion
-        public System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel spStatus;
         private System.Windows.Forms.DataGridView globalsgrid;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem mnuResource;

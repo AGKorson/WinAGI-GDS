@@ -15,15 +15,6 @@ namespace WinAGI.Engine {
     /// classes can expose the resource in the proper formats.
     /// </summary>
     public class AGIResource {
-        //protected class ResByte {
-        //    internal AGIResource mParent = null;
-        //    public byte[] Data = [];
-
-        //    public ResByte(AGIResource parent) {
-        //        mParent = parent;
-        //    }
-        //}
-
         #region Local Members
         protected bool mLoaded = false;
         /// <summary>
@@ -47,7 +38,6 @@ namespace WinAGI.Engine {
         /// Byte array with raw resource data as stored in the VOL files
         /// </summary>      
         protected byte[] mData = [];
-//        protected ResByte mResData = null;
         protected bool mInGame;
         internal AGIGame parent = null;
         internal bool mIsChanged;
@@ -286,9 +276,18 @@ namespace WinAGI.Engine {
                 }
             }
             internal set {
-                // DEBUG: should only change if resource is loaded
+                // should only change if resource is loaded
                 Debug.Assert(mLoaded);
                 mIsChanged = value;
+                // picture resources interact directly with the resource data
+                // so any change must invalidate the bitmaps
+                if (value) {
+                    switch (mResType) {
+                    case AGIResType.Picture:
+                        ((Picture)this).mPicBMPSet = false;
+                        break;
+                    }
+                }
             }
         }
 
@@ -333,10 +332,11 @@ namespace WinAGI.Engine {
         /// </summary>
         public byte[] Data {
             get {
-                // TODO: accessing data using the byte array allows 
-                // for changes that can't be captured. Fix will be to
-                // mimic VB where a method is used for reading/writing
-                // data
+                // Accessing data using the byte array allows 
+                // for changes that can't be captured. Rather than use
+                // a event-aware collection, it's easier to just
+                // manually deal with it by adding a 'force-changed'
+                // method that editors can use as needed
                 WinAGIException.ThrowIfNotLoaded(this);
                 return mData;
             }
@@ -346,10 +346,10 @@ namespace WinAGI.Engine {
             internal set {
                 // can only set the data object internally
                 mData = value;
-                mIsChanged = true;
+                IsChanged = true;
             }
         }
-
+        
         /// <summary>
         /// Replaces the data array in this resource with a new set of
         /// data.
@@ -359,7 +359,7 @@ namespace WinAGI.Engine {
             WinAGIException.ThrowIfNotLoaded(this);
             mData = [.. newdata];
             mSize = mData.Length;
-            mIsChanged = true;
+            IsChanged = true;
         }
 
         /// <summary>
@@ -570,7 +570,9 @@ namespace WinAGI.Engine {
             NewRes.mDescription = mDescription;
             NewRes.mResFile = mResFile;
             NewRes.mLoaded = mLoaded;
-            NewRes.Data = mData;
+            byte[] tmp = new byte[mData.Length];
+            Array.Copy(mData, tmp, mData.Length);
+            NewRes.Data = tmp;
             NewRes.mIsChanged = mIsChanged;
             NewRes.mSize = mSize;
             NewRes.mSizeInVol = mSizeInVol;
@@ -601,7 +603,8 @@ namespace WinAGI.Engine {
             mDescription = SourceRes.mDescription;
             mResFile = SourceRes.mResFile;
             mLoaded = SourceRes.mLoaded;
-            mData = SourceRes.mData;
+            mData = new byte[SourceRes.mData.Length];
+            Array.Copy(SourceRes.mData, mData, SourceRes.mData.Length);
             mIsChanged = SourceRes.mIsChanged;
             mSize = SourceRes.mSize;
             mSizeInVol = SourceRes.mSizeInVol;
@@ -609,7 +612,8 @@ namespace WinAGI.Engine {
             mlngCurPos = SourceRes.mlngCurPos;
             ErrLevel = SourceRes.ErrLevel;
             ErrData = SourceRes.ErrData;
-            // force prop status to changed 
+            // force status to changed
+            mIsChanged = true;
             PropsChanged = true;
         }
 
@@ -723,7 +727,7 @@ namespace WinAGI.Engine {
                 diskSize = fullSize;
             }
             // get resource data
-            mData = new byte[diskSize];
+            //mData = new byte[diskSize];
             mData = brVOL.ReadBytes(diskSize);
             fsVOL.Dispose();
             brVOL.Dispose();
@@ -995,7 +999,7 @@ namespace WinAGI.Engine {
             mData[Pos] = InputByte;
             mlngCurPos = Pos + 1;
             mblnEORes = (mlngCurPos == mData.Length);
-            mIsChanged = true;
+            IsChanged = true;
             return;
         }
 
@@ -1044,7 +1048,7 @@ namespace WinAGI.Engine {
             }
             mlngCurPos = Pos + 2;
             mblnEORes = (mlngCurPos == mData.Length);
-            mIsChanged = true;
+            IsChanged = true;
         }
 
         /// <summary>
@@ -1170,7 +1174,7 @@ namespace WinAGI.Engine {
                     mData[lngResEnd + i] = bNewData[i];
                 }
             }
-            mIsChanged = true;
+            IsChanged = true;
         }
 
         /// <summary>
@@ -1193,10 +1197,11 @@ namespace WinAGI.Engine {
             if (RemovePos + RemoveCount > mData.Length) {
                 RemoveCount = mData.Length - RemovePos;
             }
-            for (i = RemovePos; i >= (mData.Length - RemoveCount); i++) {
+            for (i = RemovePos; i < (mData.Length - RemoveCount); i++) {
                 mData[i] = mData[i + RemoveCount];
             }
             Array.Resize(ref mData, mData.Length - RemoveCount);
+            IsChanged = true;
         }
 
         /// <summary>
@@ -1226,7 +1231,7 @@ namespace WinAGI.Engine {
             // mSizeInVol is undefined
             mSizeInVol = -1;
             mblnEORes = false;
-            mIsChanged = true;
+            IsChanged = true;
             ErrLevel = 0;
             mErrData = ["", "", "", "", ""];
         }

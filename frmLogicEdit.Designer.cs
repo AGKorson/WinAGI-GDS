@@ -87,10 +87,6 @@
             lstDefines = new System.Windows.Forms.ListView();
             columnHeader1 = new System.Windows.Forms.ColumnHeader();
             imageList1 = new System.Windows.Forms.ImageList(components);
-            statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            spLine = new System.Windows.Forms.ToolStripStatusLabel();
-            spColumn = new System.Windows.Forms.ToolStripStatusLabel();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
@@ -105,7 +101,6 @@
             contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)rtfLogic1).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picTip).BeginInit();
-            statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // menuStrip1
@@ -614,7 +609,6 @@
             rtfLogic2.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic2.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic2.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
-            rtfLogic2.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic2.Hotkeys = resources.GetString("rtfLogic2.Hotkeys");
             rtfLogic2.IsReplaceMode = false;
             rtfLogic2.LineNumberStartValue = 0U;
@@ -672,7 +666,6 @@
             rtfLogic1.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic1.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic1.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
-            rtfLogic1.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic1.Hotkeys = resources.GetString("rtfLogic1.Hotkeys");
             rtfLogic1.IsReplaceMode = false;
             rtfLogic1.LineNumberStartValue = 0U;
@@ -790,55 +783,11 @@
             imageList1.Images.SetKeyName(35, "def_rdefstr.ico");
             imageList1.Images.SetKeyName(36, "def_rvocwrd.ico");
             // 
-            // statusStrip1
-            // 
-            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spStatus, spLine, spColumn });
-            statusStrip1.Location = new System.Drawing.Point(0, 320);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(719, 23);
-            statusStrip1.TabIndex = 7;
-            statusStrip1.Text = "statusStrip1";
-            statusStrip1.Visible = false;
-            // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 0;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(565, 18);
-            spStatus.Spring = true;
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spLine
-            // 
-            spLine.AutoSize = false;
-            spLine.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spLine.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spLine.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spLine.MergeIndex = 1;
-            spLine.Name = "spLine";
-            spLine.Size = new System.Drawing.Size(70, 18);
-            spLine.Text = "Line: --";
-            // 
-            // spColumn
-            // 
-            spColumn.AutoSize = false;
-            spColumn.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spColumn.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spColumn.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spColumn.MergeIndex = 2;
-            spColumn.Name = "spColumn";
-            spColumn.Size = new System.Drawing.Size(70, 18);
-            spColumn.Text = "Col: --";
-            // 
             // frmLogicEdit
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             ClientSize = new System.Drawing.Size(719, 342);
-            Controls.Add(statusStrip1);
             Controls.Add(lstDefines);
             Controls.Add(picTip);
             Controls.Add(splitContainer1);
@@ -869,8 +818,6 @@
             contextMenuStrip1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)rtfLogic1).EndInit();
             ((System.ComponentModel.ISupportInitialize)picTip).EndInit();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -939,9 +886,5 @@
         private System.Windows.Forms.ListView lstDefines;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.ColumnHeader columnHeader1;
-        public System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel spStatus;
-        private System.Windows.Forms.ToolStripStatusLabel spLine;
-        private System.Windows.Forms.ToolStripStatusLabel spColumn;
     }
 }

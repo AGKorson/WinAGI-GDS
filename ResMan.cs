@@ -19,6 +19,7 @@ using WinAGI.Engine;
 using static WinAGI.Common.API;
 using static WinAGI.Common.Base;
 using static WinAGI.Common.BkgdTasks;
+using static WinAGI.Editor.frmPicEdit;
 using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.ArgType;
 using static WinAGI.Engine.Base;
@@ -235,56 +236,6 @@ namespace WinAGI.Editor {
             ReplaceAll,
             Cancel,
         }
-        public enum PicToolType {
-            Edit = 0,      //indicates edit tool is selected; mouse ops move coords and commands
-            SetPen = 1,    //not used, but included for possible updated capabilities
-            Line = 2,      //line drawing tool; mouse ops set start/end points
-            ShortLine = 3,   //short line tool; mouse ops set start/end points
-            StepLine = 4,    //corner line tool; mouse ops set start/end points
-            Fill = 5,      //fill tool; mouse ops set starting point of fill operations
-            Plot = 6,      //plot tool
-            Rectangle = 7, //for drawing rectangles
-            Trapezoid = 8, //for drawing trapezoids
-            Ellipse = 9,   //for drawing ellipses
-            SelectArea = 10, //for selecting bitmap areas of the Image
-        }
-        public enum TPicDrawOpEnum {
-            doNone = 0,          //indicates no drawing op is in progress; mouse operations generally don't do anything
-            doLine = 1,          //lines being drawn; mouse ops set start/end points
-            doFill = 2,          //fill or plot commands being drawn; mouse ops set starting point of fill operations
-            doShape = 3,         //shape being drawn; mouse ops set bounds of the shape
-            doSelectArea = 4,    //to select an area of the graphic
-            doMoveCmds = 5,      //to move a set of commands
-            doMovePt = 6,        //to move a single coordinate point
-        }
-        public enum EPicMode {
-            pmEdit,
-            pmViewTest,
-            pmPrintTest
-        }
-        public enum EPicCur {
-            pcEdit,
-            pcCross,
-            pcMove,
-            pcNO,
-            pcDefault,
-            pcPaint,
-            pcBrush,
-            pcSelect,
-            pcNormal,
-            pcEditSel,
-        }
-
-        public enum EPicStatusMode {
-            psPixel,
-            psCoord,
-            psText,
-        }
-
-        public enum EPicCursorMode {
-            pcmWinAGI,
-            pcmXMode,
-        }
         public enum NoteTone {
             None,
             Natural,
@@ -413,23 +364,12 @@ namespace WinAGI.Editor {
             public int Pos;
             public NoteTone Tone;
         }
-        public struct TPicTest {
-            public int ObjSpeed;
-            public int ObjPriority;  //16 means auto; 4-15 correspond to priority bands
-            public int ObjRestriction;  //0 = no restriction
-                                        //1 = restrict to water
-                                        //2 = restrict to land
-            public int Horizon;
-            public bool IgnoreHorizon;
-            public bool IgnoreBlocks;
-            public int TestLoop;
-            public int TestCel;
-            public bool CycleAtRest;
-        }
+
         public struct LEObjColor {
             public Color Edge;
             public Color Fill;
         }
+        
         public struct TLEColors {
             public LEObjColor Room;
             public LEObjColor ErrPt;
@@ -446,10 +386,20 @@ namespace WinAGI.Editor {
             public int VAlign;
             public int HAlign;
         }
+
+        public struct MakeGifParams {
+            public int Mode; // 0=picture, 1=loop
+            public Picture Picture;
+            public Loop Loop;
+            public GifOptions GifOptions;
+            public string Filename;
+        }
+
         public struct SyntaxStyleType {
             public SettingColor Color;
             public SettingFontStyle FontStyle;
         }
+
         public struct agiSettings {
             public agiSettings() {
                 // initialize settings arrays and defaults
@@ -549,7 +499,8 @@ namespace WinAGI.Editor {
             public SettingBool WarnEncrypt = new(nameof(WarnEncrypt), true, "Warnings");
             // LEDelPicToo: 
             public SettingAskOption LEDelPicToo = new(nameof(LEDelPicToo), AskOption.Ask, "Warnings");
-
+            //// WarnPlotPaste
+            //public SettingBool WarnPlotPaste = new(nameof(WarnPlotPaste), true, "Warnings");
             // ************************************************
             // GENERAL SETTINGS:
             // ************************************************
@@ -674,7 +625,7 @@ namespace WinAGI.Editor {
             // PicScalePreview: 
             public SettingDouble PicScalePreview = new("PreviewScale", 1, sPICTURES);
             // PicScaleEdit: 
-            public SettingDouble PicScaleEdit = new("EditorScale", 2, sPICTURES);
+            public SettingFloat PicScaleEdit = new("EditorScale", 2, sPICTURES);
             // CursorMode (as int; conert to enum as needed): 
             public SettingInt CursorMode = new("CursorMode", 0, sPICTURES);
 
@@ -848,6 +799,7 @@ namespace WinAGI.Editor {
                 clonesettings.WarnMsgs = new(WarnMsgs);
                 clonesettings.WarnEncrypt = new(WarnEncrypt);
                 clonesettings.LEDelPicToo = new(LEDelPicToo);
+                //clonesettings.WarnPlotPaste = new(WarnPlotPaste);
                 // GENERAL SETTINGS
                 clonesettings.ShowSplashScreen = new(ShowSplashScreen);
                 clonesettings.ShowPreview = new(ShowPreview);
@@ -1003,14 +955,6 @@ namespace WinAGI.Editor {
             public string parm;
         }
 
-        public struct MakeGifParams {
-            public int Mode; // 0=picture, 1=loop
-            public Picture Picture;
-            public Loop Loop;
-            public GifOptions GifOptions;
-            public string Filename;
-        }
-
         public struct AGIToken {
             public AGITokenType Type;
             public int Line;
@@ -1120,8 +1064,8 @@ namespace WinAGI.Editor {
         public static int SoundCBMode;
         public static Loop ClipViewLoop;
         public static Cel ClipViewCel;
-        public static PictureUndo PicClipBoardObj;
         public static ViewEditMode ViewCBMode;
+        public const string PICTURE_CB_FMT = "WinAGIPictureData";
         //public static PictureBox ViewClipboard;
         //public static WordsUndo WordsClipboard;
         public static bool DroppingWord;
@@ -1170,15 +1114,13 @@ namespace WinAGI.Editor {
         public static int GWState;
         public static bool GWShowComment;
         public static double GWNameFrac, GWValFrac;
-        //// graphics variables
-        //public static bool NoGDIPlus = false;
 
         #endregion
 
+        #region Global Static Methods
         //***************************************************
-        // GLOBAL STATIC FUNCTIONS
+        // GLOBAL STATIC METHODS
         //***************************************************
-
         public static void AddToQueue(AGIResType ResType, int ResNum) {
             //adds this resource to the navigation queue
             // ResNum is 256 for non-collection types (game, objects, words)
@@ -8441,7 +8383,7 @@ namespace WinAGI.Editor {
             inputBox.Controls.Add(textBox);
 
             Button okButton = new() {
-                DialogResult = System.Windows.Forms.DialogResult.OK,
+                DialogResult = DialogResult.OK,
                 Name = "okButton",
                 Size = new System.Drawing.Size(75, 23),
                 Text = "&OK",
@@ -8450,7 +8392,7 @@ namespace WinAGI.Editor {
             inputBox.Controls.Add(okButton);
 
             Button cancelButton = new() {
-                DialogResult = System.Windows.Forms.DialogResult.Cancel,
+                DialogResult = DialogResult.Cancel,
                 Name = "cancelButton",
                 Size = new System.Drawing.Size(75, 23),
                 Text = "&Cancel",
@@ -8464,6 +8406,26 @@ namespace WinAGI.Editor {
             DialogResult result = inputBox.ShowDialog(owner);
             input = textBox.Text;
             return result;
+        }
+        #endregion
+        #endregion
+        #region Editor Extension Methods
+        public static string CommandName(this DrawFunction drawfunction) {
+            return drawfunction switch {
+                DrawFunction.EnableVis => "Vis: ON",    // Change picture color and enable picture draw.
+                DrawFunction.DisableVis => "Vis: OFF",   // Disable picture draw.
+                DrawFunction.EnablePri => "Pri: ON",    // Change priority color and enable priority draw.
+                DrawFunction.DisablePri => "Pri: OFF",   // Disable priority draw.
+                DrawFunction.YCorner => "Y Corner",      // Draw a Y corner.
+                DrawFunction.XCorner => "X Corner",      // Draw an X corner.
+                DrawFunction.AbsLine => "Line",      // Absolute line (long lines).
+                DrawFunction.RelLine => "Short Line",      // Relative line (short lines).
+                DrawFunction.Fill => "Fill",         // Fill.
+                DrawFunction.ChangePen => "Set Plot Pen",    // Change pen size and style.
+                DrawFunction.PlotPen => "Plot",      // Plot with pen.
+                DrawFunction.End => "End",           // end of drawing
+                _ => "undefined"
+            };
         }
         #endregion
     }

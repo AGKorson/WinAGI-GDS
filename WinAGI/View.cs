@@ -170,8 +170,7 @@ namespace WinAGI.Engine {
             if (NewView is null) {
                 // single loop, single cel, one pixel
                 mLoopCol = new Loops(this);
-                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01,
-                         0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
+                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01, 0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
                 mViewChanged = false;
                 mViewDesc = "";
             }
@@ -275,7 +274,6 @@ namespace WinAGI.Engine {
             byte[] bytCelData;
             bool blnMirrorAdded;
             mData = [];
-
             // header
             WriteByte(1, 0);
             WriteByte(1);
@@ -621,8 +619,7 @@ namespace WinAGI.Engine {
             if (ErrLevel < 0) {
                 // return empty view, with one loop, one cel, one pixel
                 ErrClear();
-                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01,
-                         0x01, 0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
+                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01, 0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
                 mViewChanged = false;
                 return;
             }

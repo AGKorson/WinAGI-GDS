@@ -54,7 +54,7 @@ namespace WinAGI.Engine {
             // picture resource variables
             byte[] VisBuildData, PriBuildData;
             int lngPos;
-            short bytIn;
+            byte bytIn;
             PenStatus CurrentPen;
             Queue<int> paintqueue = new();
             byte[] CircleData = [
@@ -320,26 +320,46 @@ namespace WinAGI.Engine {
                 }
             }
 
+            bool GetNextLocation(ref byte x, ref byte y) {
+                x = picdata[lngPos++];
+                if (x > 239) {
+                    bytIn = x;
+                    return false;
+                }
+                if (lngPos > endpos) {
+                    //return false;
+                }
+                if (x > 159) {
+                    x = 159;
+                }
+                y = picdata[lngPos++];
+                if (y > 239) {
+                    bytIn = y;
+                    return false;
+                }
+                if (y > 167) {
+                    y = 167;
+                }
+                if (lngPos > endpos) {
+                    //return false;
+                }
+                return true;
+            }
+
             /// <summary>
             /// Draws a series of absolute lines.
             /// </summary>
             void DrawAbsLine() {
-                byte X1, Y1, X2, Y2;
-
-                X1 = picdata[lngPos++];
-                Y1 = picdata[lngPos++];
+                byte X1 = 0, Y1 = 0, X2 = 0, Y2 = 0;
+                if (!GetNextLocation(ref X1, ref Y1)) return;
                 DrawPixel(X1, Y1);
-                // get next potential coordinate
-                bytIn = picdata[lngPos++];
-
-                while (bytIn < 0xF0 && lngPos <= endpos) {
-                    X2 = (byte)bytIn;
-                    Y2 = picdata[lngPos++];
+                if (lngPos > endpos) return;
+                do {
+                    if (!GetNextLocation(ref X2, ref Y2)) return;
                     DrawLine(X1, Y1, X2, Y2);
                     X1 = X2;
                     Y1 = Y2;
-                    bytIn = picdata[lngPos++];
-                }
+                } while (lngPos <= endpos);
             }
 
             /// <summary>
@@ -347,12 +367,13 @@ namespace WinAGI.Engine {
             /// </summary>
             void DrawRelLine() {
                 short xdisp, ydisp;
-
-                byte X1 = picdata[lngPos++];
-                byte Y1 = picdata[lngPos++];
+                byte X1 = 0, Y1 = 0;
+                if (!GetNextLocation(ref X1, ref Y1)) return;
                 DrawPixel(X1, Y1);
-                bytIn = picdata[lngPos++];
-                while (bytIn < 0xF0 && lngPos <= endpos) {
+                if (lngPos > endpos) return;
+                do {
+                    bytIn = picdata[lngPos++];
+                    if (bytIn >= 0xF0) return;
                     // check x sign bit
                     if ((bytIn & 0x80) == 0x80) {
                         // displacement is negative
@@ -372,8 +393,7 @@ namespace WinAGI.Engine {
                     DrawLine(X1, Y1, X1 + xdisp, Y1 + ydisp);
                     X1 += (byte)xdisp;
                     Y1 += (byte)ydisp;
-                    bytIn = picdata[lngPos++];
-                }
+                } while (lngPos <= endpos);
             }
 
             /// <summary>
@@ -381,12 +401,10 @@ namespace WinAGI.Engine {
             /// </summary>
             void PicFloodFill() {
                 int lngOffset;
-                byte X, Y;
+                byte X = 0, Y = 0;
 
-                bytIn = picdata[lngPos++];
-                while (bytIn < 0xF0 && lngPos <= endpos) {
-                    X = (byte)bytIn;
-                    Y = picdata[lngPos++];
+                do {
+                    if (!GetNextLocation(ref X, ref Y)) return;
                     // if visual OR priority but not both
                     if ((CurrentPen.VisColor < AGIColorIndex.None) ^ (CurrentPen.PriColor < AGIColorIndex.None)) {
                         if (CurrentPen.VisColor < AGIColorIndex.None) {
@@ -534,8 +552,7 @@ namespace WinAGI.Engine {
                             while (paintqueue.Count > 0);
                         }
                     }
-                    bytIn = picdata[lngPos++];
-                }
+                } while (lngPos <= endpos) ;
             }
 
             /// <summary>
@@ -543,62 +560,62 @@ namespace WinAGI.Engine {
             /// </summary>
             /// <param name="CurAxis"></param>
             void DrawCorner(CornerDirection CurAxis) {
-                byte X1, Y1, X2, Y2;
+                byte X1 = 0, Y1 = 0, X2, Y2;
 
-                X1 = picdata[lngPos++];
-                Y1 = picdata[lngPos++];
+                if (!GetNextLocation(ref X1, ref Y1)) return;
                 DrawPixel(X1, Y1);
-                bytIn = picdata[lngPos++];
-                while (bytIn < 0xF0 && lngPos <= endpos) {
+                if (lngPos > endpos) return;
+
+                do {
                     if (CurAxis == CornerDirection.cdX) {
-                        X2 = (byte)bytIn;
+                        X2 = picdata[lngPos++];
+                        if (X2 > 239) {
+                            bytIn = X2;
+                            return;
+                        }
+                        if (X2 > 159) {
+                            X2 = 159;
+                        }
                         Y2 = Y1;
                         DrawLine(X1, Y1, X2, Y2);
                         CurAxis = CornerDirection.cdY;
                         X1 = X2;
                     }
                     else {
-                        Y2 = (byte)bytIn;
+                        Y2 = picdata[lngPos++];
+                        if (Y2 > 239) {
+                            bytIn = Y2;
+                            return;
+                        }
+                        if (Y2 > 167) {
+                            Y2 = 167;
+                        }
                         X2 = X1;
                         DrawLine(X1, Y1, X2, Y2);
                         CurAxis = CornerDirection.cdX;
                         Y1 = Y2;
                     }
-                    bytIn = picdata[lngPos++];
-                }
+                } while (lngPos <= endpos);
             }
 
             /// <summary>
             /// Draws a series of plot patterns using current pen settings. 
             /// </summary>
             void BrushPlot() {
-                int PlotX, PlotY;
-                byte PatternNum = 0;
+                int PlotX = 0, PlotY = 0;
+                byte pX = 0, pY = 0, PatternNum = 0;
                 int X, Y;
 
-                // get next value (Xpos or splatter code)
-                bytIn = picdata[lngPos++];
-
-                while (bytIn < 0xF0 && lngPos <= endpos) {
+                do {
                     if (CurrentPen.PlotStyle == PlotStyle.Splatter) {
-                        PatternNum = (byte)(bytIn | 1);
-                        // next byte is Xpos
                         bytIn = picdata[lngPos++];
-                        if (bytIn >= 0xF0) {
-                            // exit if a draw command is found
-                            break;
-                        }
+                        if (bytIn >= 0xF0) return;
+                        PatternNum = (byte)(bytIn | 1);
                     }
-                    PlotX = bytIn;
-                    bytIn = picdata[lngPos++];
-                    if (bytIn >= 0xF0) {
-                        // exit if a draw command is found
-                        break;
-                    }
-                    PlotY = bytIn;
+                    if (!GetNextLocation(ref pX, ref pY)) return;
                     // adjust coordinates to upper/left values
                     // needed based on pen size
-                    PlotX -= (CurrentPen.PlotSize + 1) / 2;
+                    PlotX = pX - (CurrentPen.PlotSize + 1) / 2;
                     if (PlotX < 0) {
                         PlotX = 0;
                     }
@@ -611,7 +628,7 @@ namespace WinAGI.Engine {
                         // exactly the same
                         PlotX = 160 - CurrentPen.PlotSize;
                     }
-                    PlotY -= CurrentPen.PlotSize;
+                    PlotY = pY - CurrentPen.PlotSize;
                     if (PlotY < 0) {
                         PlotY = 0;
                     }
@@ -665,9 +682,7 @@ namespace WinAGI.Engine {
                             }
                         }
                     }
-                    // get next byte
-                    bytIn = picdata[lngPos++];
-                }
+                } while (lngPos <= endpos);
             }
         }
         #endregion

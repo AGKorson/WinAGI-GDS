@@ -5789,6 +5789,16 @@ namespace WinAGI.Editor {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] EPC_MOVE {
+            get {
+                object obj = ResourceManager.GetObject("EPC_MOVE", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] EPC_PAINT {
             get {
                 object obj = ResourceManager.GetObject("EPC_PAINT", resourceCulture);

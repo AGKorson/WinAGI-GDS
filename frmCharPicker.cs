@@ -61,9 +61,7 @@ namespace WinAGI.Editor {
             byte[] obj = (byte[])EditorResources.ResourceManager.GetObject("CP" + codepage);
             Stream stream = new MemoryStream(obj);
             chargrid = (Bitmap)Image.FromStream(stream);
-            //invchargrid = new Bitmap(chargrid);
             invchargrid = new Bitmap(chargrid.Width, chargrid.Height);
-
             for (int x = 0; x < chargrid.Width; x++) {
                 for (int y = 0; y < chargrid.Height; y++) {
                     Color clrPixel = chargrid.GetPixel(x, y);

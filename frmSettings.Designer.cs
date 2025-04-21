@@ -1084,7 +1084,7 @@
             optCoordW.Size = new System.Drawing.Size(110, 19);
             optCoordW.TabIndex = 0;
             optCoordW.TabStop = true;
-            optCoordW.Text = "Original WinAGI";
+            optCoordW.Text = "Flashing Box";
             optCoordW.UseVisualStyleBackColor = true;
             optCoordW.CheckedChanged += optCoordW_CheckedChanged;
             // 

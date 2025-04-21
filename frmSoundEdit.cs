@@ -23,8 +23,14 @@ namespace WinAGI.Editor {
         internal bool IsChanged;
         private bool closing = false;
 
+        // StatusStrip Items
+        internal ToolStripStatusLabel spScale;
+        internal ToolStripStatusLabel spTime;
+        internal ToolStripStatusLabel spStatus;
+
         public frmSoundEdit() {
             InitializeComponent();
+            InitStatusStrip();
             MdiParent = MDIMain;
         }
 
@@ -6613,6 +6619,30 @@ namespace WinAGI.Editor {
 
         #endregion
 
+        #region Methods
+        private void InitStatusStrip() {
+            spScale = new ToolStripStatusLabel();
+            spTime = new ToolStripStatusLabel();
+            spStatus = MDIMain.spStatus;
+            // 
+            // spScale
+            // 
+            spScale.AutoSize = false;
+            spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spScale.BorderStyle = Border3DStyle.SunkenInner;
+            spScale.Name = "spScale";
+            spScale.Size = new System.Drawing.Size(70, 18);
+            spScale.Text = "soundscale";
+            // 
+            // spTime
+            // 
+            spTime.AutoSize = false;
+            spTime.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spTime.BorderStyle = Border3DStyle.SunkenInner;
+            spTime.Name = "spTime";
+            spTime.Size = new System.Drawing.Size(70, 18);
+            spTime.Text = "soundtime";
+        }
         public bool LoadSound(Sound loadsound) {
             InGame = loadsound.InGame;
             if (InGame) {
@@ -6920,6 +6950,10 @@ namespace WinAGI.Editor {
             //mnuEPlaySound.Text = "Play Sound";
         }
 
+        internal void DrawStaff(int v) {
+            throw new NotImplementedException();
+        }
+
         private bool AskClose() {
             if (EditSound.ErrLevel < 0) {
                 // if exiting due to error on form load
@@ -6975,9 +7009,6 @@ namespace WinAGI.Editor {
             mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
-
-        internal void DrawStaff(int v) {
-            throw new NotImplementedException();
-        }
+        #endregion
     }
 }

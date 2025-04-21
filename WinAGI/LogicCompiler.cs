@@ -2511,7 +2511,7 @@ namespace WinAGI.Engine {
                                 break;
                             }
                         } while (retval.Length - (lngSlashCount + 1) >= 0);
-                        if (lngSlashCount % 2 == 1) {
+                        if (lngSlashCount.IsOdd()) {
                             // it's embedded, and doesn't count - 
                             // bad end quote (set end quote marker, overriding error
                             // that might happen on a previous line)
@@ -3254,7 +3254,7 @@ namespace WinAGI.Engine {
                                 }
                             } while (strToken.Length - (lngSlashCount + 1) >= 0);
                             // if it is odd, then it's not a valid quote
-                            if (lngSlashCount % 2 == 1) {
+                            if (lngSlashCount.IsOdd()) {
                                 lngQuotesOK &= 2;
                             }
                         }

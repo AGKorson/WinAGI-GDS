@@ -104,8 +104,6 @@ namespace WinAGI.Editor {
             mnuRExportGIF = new System.Windows.Forms.ToolStripMenuItem();
             pnlLogic = new System.Windows.Forms.Panel();
             rtfLogPrev = new FastColoredTextBox();
-            statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             cmsLogic.SuspendLayout();
             pnlPicture.SuspendLayout();
             tableLayoutPanel1.SuspendLayout();
@@ -129,7 +127,6 @@ namespace WinAGI.Editor {
             menuStrip1.SuspendLayout();
             pnlLogic.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)rtfLogPrev).BeginInit();
-            statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // cmsLogic
@@ -978,6 +975,7 @@ namespace WinAGI.Editor {
             rtfLogPrev.CharWidth = 8;
             rtfLogPrev.ContextMenuStrip = cmsLogic;
             rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            rtfLogPrev.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogPrev.Hotkeys = resources.GetString("rtfLogPrev.Hotkeys");
             rtfLogPrev.IsReplaceMode = false;
             rtfLogPrev.LineNumberStartValue = 0U;
@@ -995,27 +993,6 @@ namespace WinAGI.Editor {
             rtfLogPrev.KeyDown += rtfLogPrev_KeyDown;
             rtfLogPrev.MouseDown += rtfLogPrev_MouseDown;
             // 
-            // statusStrip1
-            // 
-            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spStatus });
-            statusStrip1.Location = new System.Drawing.Point(-89, 185);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(719, 23);
-            statusStrip1.TabIndex = 14;
-            statusStrip1.Visible = false;
-            // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 0;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(705, 18);
-            spStatus.Spring = true;
-            spStatus.Text = "preview status";
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
             // frmPreview
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -1024,7 +1001,6 @@ namespace WinAGI.Editor {
             ControlBox = false;
             Controls.Add(pnlPicture);
             Controls.Add(pnlView);
-            Controls.Add(statusStrip1);
             Controls.Add(pnlLogic);
             Controls.Add(pnlSound);
             Controls.Add(menuStrip1);
@@ -1073,8 +1049,6 @@ namespace WinAGI.Editor {
             menuStrip1.PerformLayout();
             pnlLogic.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)rtfLogPrev).EndInit();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1154,8 +1128,6 @@ namespace WinAGI.Editor {
         public System.Windows.Forms.Timer tmrSound;
         public FastColoredTextBox rtfLogPrev;
         private System.Windows.Forms.ToolStripMenuItem mnuRExportAll;
-        public System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel spStatus;
         private System.Windows.Forms.DomainUpDown udPZoom;
         private System.Windows.Forms.ToolStripTextBox tsbViewScale;
     }

@@ -2069,6 +2069,102 @@ namespace WinAGI.Common {
         #endregion
     }
 
+    public class SettingFloat : SettingItem {
+        #region Members
+        private float itemValue;
+        private readonly float defaultValue;
+        #endregion
+
+        #region Constructors
+        public SettingFloat(string name, float itemvalue, string section, string group, float defaultvalue) {
+            base.Type = typeof(float);
+            itemName = name;
+            itemSection = section;
+            itemGroup = group;
+            itemValue = itemvalue;
+            defaultValue = defaultvalue;
+        }
+
+        public SettingFloat(string name, float itemvalue, string section, string group) {
+            base.Type = typeof(float);
+            itemName = name;
+            itemSection = section;
+            itemGroup = group;
+            itemValue = itemvalue;
+            defaultValue = itemvalue;
+        }
+
+        public SettingFloat(string name, float itemvalue, string section, float defaultvalue) {
+            base.Type = typeof(float);
+            itemName = name;
+            itemSection = section;
+            itemGroup = "";
+            itemValue = itemvalue;
+            defaultValue = defaultvalue;
+        }
+
+        public SettingFloat(string name, float itemvalue, string section) {
+            base.Type = typeof(float);
+            itemName = name;
+            itemSection = section;
+            itemGroup = "";
+            itemValue = itemvalue;
+            defaultValue = itemvalue;
+        }
+
+        public SettingFloat(SettingFloat clone) {
+            base.Type = typeof(float);
+            itemName = clone.itemName;
+            itemSection = clone.Section;
+            itemGroup = clone.Group;
+            itemValue = clone.itemValue;
+            defaultValue = clone.defaultValue;
+        }
+        #endregion
+
+        #region Properties
+        public float Value {
+            get => itemValue;
+            set => itemValue = value;
+
+        }
+
+        public float DefaultValue {
+            get => defaultValue;
+        }
+        #endregion
+
+        #region Methods
+        public void Reset(SettingsFile savefile = null) {
+            itemValue = defaultValue;
+            if (savefile != null) {
+                WriteSetting(savefile);
+            }
+        }
+
+        public double ReadSetting(SettingsFile file) {
+            ArgumentNullException.ThrowIfNull(file);
+            itemValue = file.GetSetting(Section, Name, defaultValue, false);
+            return itemValue;
+        }
+        public float ReadSetting(SettingsFile file, float defaultvalue) {
+            ArgumentNullException.ThrowIfNull(file);
+            itemValue = file.GetSetting(Section, Name, defaultvalue, false);
+            return itemValue;
+        }
+        public float ReadSetting(SettingsFile file, float defaultvalue, bool dontadd) {
+            ArgumentNullException.ThrowIfNull(file);
+            itemValue = file.GetSetting(Section, Name, defaultvalue, dontadd);
+            return itemValue;
+        }
+
+        public void WriteSetting(SettingsFile file) {
+            ArgumentNullException.ThrowIfNull(file);
+            file.WriteSetting(Section, Name, itemValue.ToString(), Group);
+        }
+        #endregion
+    }
+
     public class SettingEResListType : SettingItem {
         #region Members
         private EResListType itemValue;

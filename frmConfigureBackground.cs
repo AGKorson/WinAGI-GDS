@@ -908,7 +908,9 @@ namespace WinAGI.Editor {
         private const int WS_EX_TRANSPARENT = 0x20;
         private int opacity = 50;
         bool dont = false;
-        private int dashdistance = 0; 
+        private Pen dash1 = new(Color.Black);
+        private Pen dash2 = new(Color.White);
+        private int dashdistance = 6; 
         private Timer tmrDash = new();
         public TransparentPictureBox() {
             SetStyle(ControlStyles.Opaque, true);
@@ -916,66 +918,26 @@ namespace WinAGI.Editor {
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.ResizeRedraw, true);
             SetStyle(ControlStyles.UserPaint, true);
-            tmrDash.Interval = 250;
+            dash1.DashPattern = [3, 3];
+            dash2.DashPattern = [3, 3];
+            dash2.DashOffset = 3;
+            tmrDash.Interval = 100;
             tmrDash.Tick += tmrDash_Tick;
             tmrDash.Start();
         }
 
         private void tmrDash_Tick(object sender, EventArgs e) {
-            dashdistance += 1;
-            if (dashdistance == 6) {
-                dashdistance = 0;
-            }
-            using (var pen = new Pen(Color.FromArgb(255, Color.Black))) {
-                //pen.DashStyle = DashStyle.Dash;
-                pen.DashPattern = new float[] { 3, 3 };
-                // 0 BBBxxxBBBxxxBBB      0b
-                // 1 xxWWWxxxWWWxxxW      2w
-                //   BBWWWxBBWWWxBBW  
-                // 2 BxxxBBBxxxBBBxx      4b
-                //   BBWWBBBBWWBBBBW 
-                // 3 WWWxxxWWWxxxWWW      0w
-                //   WWWWBBWWWWBBWWW 
-                // 4 xxBBBxxxBBBxxxB      2b
-                //   WWBBBBWWBBBBWWB
-                // 5 WxxxWWWxxxWWWxx      4w
-                //   WWBBWWWWBBWWWWB
-                // 0 BBBxxxBBBxxxBBB      0b
-                //   BBBBWWBBBBWWBBB
-
-                switch (dashdistance) {
-                case 0:
-                    pen.Color = Color.Black;
-                    pen.DashOffset = 0;
-                    break;
-                case 2:
-                    pen.Color = Color.Black;
-                    pen.DashOffset = 4;
-                    break;
-                case 4:
-                    pen.Color = Color.Black;
-                    pen.DashOffset = 2;
-                    break;
-                case 1:
-                    pen.Color = Color.White;
-                    pen.DashOffset = 2;
-                    break;
-                case 3:
-                    pen.Color = Color.White;
-                    pen.DashOffset = 0;
-                    break;
-                case 5:
-                    pen.Color = Color.White;
-                    pen.DashOffset = 4;
-                    break;
-                }
-                Rectangle r = ClientRectangle;
+            dashdistance -= 1;
+            if (dashdistance == 0) dashdistance = 6;
+            dash1.DashOffset = dashdistance;
+            dash2.DashOffset = dashdistance - 3;
+            Rectangle r = ClientRectangle;
                 r.Width -= 1;
                 r.Height -= 1;
-                //_ = SendMessage(this.Handle, WM_SETREDRAW, false, 0);
-                this.CreateGraphics().DrawRectangle(pen, r);
-                //_ = SendMessage(this.Handle, WM_SETREDRAW, true, 0);
-            }
+            //_ = SendMessage(this.Handle, WM_SETREDRAW, false, 0);
+            CreateGraphics().DrawRectangle(dash1, r);
+            CreateGraphics().DrawRectangle(dash2, r);
+            //_ = SendMessage(this.Handle, WM_SETREDRAW, true, 0);
         }
 
         [DefaultValue(50)]
@@ -990,6 +952,12 @@ namespace WinAGI.Editor {
             }
         }
 
+        [DefaultValue(100)]
+        public int DashInterval {
+            get { return tmrDash.Interval; }
+            set { tmrDash.Interval = value; Invalidate(); }
+        }
+
         protected override CreateParams CreateParams {
             get {
                 CreateParams cpar = base.CreateParams;
@@ -999,13 +967,17 @@ namespace WinAGI.Editor {
         }
 
         protected override void Dispose(bool disposing) {
-            tmrDash.Stop();
-            tmrDash.Dispose();
+            tmrDash?.Stop();
+            tmrDash?.Dispose();
+            dash1?.Dispose();
+            dash2?.Dispose();
             base.Dispose(disposing);    
         }
 
         protected override void OnPaint(PaintEventArgs e) {
             SendMessage(this.Handle, WM_SETREDRAW, false, 0);
+            // this method recurses several times before finishing for
+            // some reason; to prevent it, use a flag
             if (Parent != null && !dont) {
                 dont = true;
                 // Draw the parent control's background onto this control
@@ -1013,25 +985,21 @@ namespace WinAGI.Editor {
                     Parent.DrawToBitmap(bmp, Parent.ClientRectangle);
                     e.Graphics.DrawImage(bmp, -Left, -Top);
                 }
-                    dont = false;
+                dont = false;
             }
             //else {
             //    Debug.Print("DONT!");
             //}
             // Draw the control's background with the specified opacity
             using (var brush = new SolidBrush(Color.FromArgb(this.opacity * 255 / 100, this.BackColor))) {
-            //using (var brush = new SolidBrush(Color.FromArgb(255, this.BackColor))) {
-                    e.Graphics.FillRectangle(brush, this.ClientRectangle);
+                //using (var brush = new SolidBrush(Color.FromArgb(255, this.BackColor))) {
+                e.Graphics.FillRectangle(brush, this.ClientRectangle);
             }
-            using (var pen = new Pen(Color.FromArgb(255, Color.Black))) {
-                pen.DashStyle = DashStyle.DashDotDot;
-                pen.DashOffset = dashdistance;
-                //pen.Width = 2;
-                Rectangle r = ClientRectangle;
-                r.Width -= 1;
-                r.Height -= 1;
-                e.Graphics.DrawRectangle(pen, r);
-            }
+            Rectangle r = ClientRectangle;
+            r.Width -= 1;
+            r.Height -= 1;
+            CreateGraphics().DrawRectangle(dash1, r);
+            CreateGraphics().DrawRectangle(dash2, r);
             base.OnPaint(e);
             SendMessage(this.Handle, WM_SETREDRAW, true, 0);
         }

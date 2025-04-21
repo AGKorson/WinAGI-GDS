@@ -1,18 +1,27 @@
-﻿namespace WinAGI.Editor {
+﻿using System;
+using System.Drawing;
+using WinAGI.Engine;
+using static WinAGI.Editor.frmPicEdit;
+
+namespace WinAGI.Editor {
+    [Serializable]
     public class PictureUndo {
-        public ActionType UDAction;
-        public string UDCmd;
-        public string UDText;
-        public int UDPicPos;
-        public int UDCmdIndex;
-        public int UDCoordIndex;
-        private byte[] mUDData;
+        public ActionType Action = (ActionType)(-1);
+        public DrawFunction DrawCommand = (DrawFunction)(-1);
+        public string Text = "";
+        public int PicPos = -1;
+        public int CmdIndex = -1;
+        public int CoordIndex = -1;
+        public int CmdCount = -1;
+        public int ByteCount = -1;
+        public PlotStyle PenStyle = PlotStyle.Solid;
+        private byte[] mUDData = [];
         
         public PictureUndo() {
-            mUDData = [];
+
         }
 
-        public byte[] UDData {
+        public byte[] Data {
             get {
                 return mUDData;
             }
@@ -20,6 +29,8 @@
                 mUDData = value;
             }
         }
+
+        public Point Coord { get; internal set; }
 
         public enum ActionType {
             ChangeColor,
@@ -29,7 +40,7 @@
             AddCmd,
             AddCoord,
             InsertCoord,
-            EditCoord,
+            MoveCoord,
             Rectangle,
             Trapezoid,
             Ellipse,
@@ -42,8 +53,9 @@
             FlipV,
             AddPlotPattern,
             DelPlotPattern,
-            EditPlotCoord,
+            EditCoord,
             SetPriBase,
+            Clear,
         }
     }
 }

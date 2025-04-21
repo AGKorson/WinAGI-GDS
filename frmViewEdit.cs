@@ -26,8 +26,15 @@ namespace WinAGI.Editor {
         internal bool IsChanged;
         private bool closing = false;
 
+
+        // StatusStrip Items
+        internal ToolStripStatusLabel spScale;
+        internal ToolStripStatusLabel spTool;
+        internal ToolStripStatusLabel spStatus;
+
         public frmViewEdit() {
             InitializeComponent();
+            InitStatusStrip();
             MdiParent = MDIMain;
         }
 
@@ -7516,6 +7523,30 @@ namespace WinAGI.Editor {
 
         #endregion
 
+        #region Methods
+        private void InitStatusStrip() {
+            spScale = new ToolStripStatusLabel();
+            spTool = new ToolStripStatusLabel();
+            spStatus = MDIMain.spStatus;
+            // 
+            // spScale
+            // 
+            spScale.AutoSize = false;
+            spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spScale.BorderStyle = Border3DStyle.SunkenInner;
+            spScale.Name = "spScale";
+            spScale.Size = new System.Drawing.Size(70, 18);
+            spScale.Text = "viewscale";
+            // 
+            // spTool
+            // 
+            spTool.AutoSize = false;
+            spTool.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spTool.BorderStyle = Border3DStyle.SunkenInner;
+            spTool.Name = "spTool";
+            spTool.Size = new System.Drawing.Size(70, 18);
+            spTool.Text = "viewtool";
+        }
         public bool LoadView(Engine.View loadview) {
             InGame = loadview.InGame;
             if (InGame) {
@@ -7868,5 +7899,6 @@ namespace WinAGI.Editor {
             mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
+        #endregion
     }
 }

@@ -50,12 +50,7 @@ namespace WinAGI.Editor {
             btnWAV = new System.Windows.Forms.RadioButton();
             btnMIDI = new System.Windows.Forms.RadioButton();
             btnStop = new System.Windows.Forms.Button();
-            statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            spScale = new System.Windows.Forms.ToolStripStatusLabel();
-            spTime = new System.Windows.Forms.ToolStripStatusLabel();
             menuStrip1.SuspendLayout();
-            statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // btnPlay
@@ -286,56 +281,11 @@ namespace WinAGI.Editor {
             btnStop.UseVisualStyleBackColor = true;
             btnStop.Click += button3_Click;
             // 
-            // statusStrip1
-            // 
-            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spScale, spTime, spStatus });
-            statusStrip1.Location = new System.Drawing.Point(-144, 94);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(719, 23);
-            statusStrip1.TabIndex = 14;
-            statusStrip1.Text = "statusStrip1";
-            statusStrip1.Visible = false;
-            // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 2;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(565, 18);
-            spStatus.Spring = true;
-            spStatus.Text = "logic status panel";
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spScale
-            // 
-            spScale.AutoSize = false;
-            spScale.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spScale.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spScale.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spScale.MergeIndex = 0;
-            spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(70, 18);
-            spScale.Text = "soundscale";
-            // 
-            // spTime
-            // 
-            spTime.AutoSize = false;
-            spTime.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spTime.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spTime.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spTime.MergeIndex = 1;
-            spTime.Name = "spTime";
-            spTime.Size = new System.Drawing.Size(70, 18);
-            spTime.Text = "soundtime";
-            // 
             // frmSoundEdit
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(431, 211);
-            Controls.Add(statusStrip1);
             Controls.Add(btnStop);
             Controls.Add(btnMIDI);
             Controls.Add(btnWAV);
@@ -355,8 +305,6 @@ namespace WinAGI.Editor {
             FormClosed += frmSoundEdit_FormClosed;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -388,9 +336,5 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.RadioButton btnWAV;
         private System.Windows.Forms.RadioButton btnMIDI;
         private System.Windows.Forms.Button btnStop;
-        public System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel spStatus;
-        private System.Windows.Forms.ToolStripStatusLabel spScale;
-        private System.Windows.Forms.ToolStripStatusLabel spTime;
     }
 }

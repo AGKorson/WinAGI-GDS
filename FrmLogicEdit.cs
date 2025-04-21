@@ -62,8 +62,17 @@ namespace WinAGI.Editor {
         int TipCurArg = 0;
         int SnipIndent = 0;
 
+        // StatusStrip Items
+        internal ToolStripStatusLabel spLine;
+        internal ToolStripStatusLabel spColumn;
+        internal ToolStripStatusLabel spStatus;
+        internal ToolStripStatusLabel spCapsLock;
+        internal ToolStripStatusLabel spNumLock;
+        internal ToolStripStatusLabel spInsLock;
+
         public frmLogicEdit(LogicFormMode mode) {
             InitializeComponent();
+            InitStatusStrip();
             FormMode = mode;
             rtfLogic1.Select();
             fctb = rtfLogic1;
@@ -1077,6 +1086,33 @@ namespace WinAGI.Editor {
             fctb.NoMouse = lstDefines.Visible;
         }
         #endregion
+
+        private void InitStatusStrip() {
+            spLine = new ToolStripStatusLabel();
+            spColumn = new ToolStripStatusLabel();
+            spStatus = MDIMain.spStatus;
+            spCapsLock = MDIMain.spCapsLock;
+            spNumLock = MDIMain.spNumLock;
+            spInsLock = MDIMain.spInsLock;
+            // 
+            // spLine
+            // 
+            spLine.AutoSize = false;
+            spLine.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spLine.BorderStyle = Border3DStyle.SunkenInner;
+            spLine.Name = "spLine";
+            spLine.Size = new System.Drawing.Size(70, 18);
+            spLine.Text = "Line: --";
+            // 
+            // spColumn
+            // 
+            spColumn.AutoSize = false;
+            spColumn.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spColumn.BorderStyle = Border3DStyle.SunkenInner;
+            spColumn.Name = "spColumn";
+            spColumn.Size = new System.Drawing.Size(70, 18);
+            spColumn.Text = "Col: --";
+        }
 
         private bool ReadMsgs(ref MessageData[] Messages) {
             // all valid message declarations in strText are

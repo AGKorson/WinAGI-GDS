@@ -15,9 +15,88 @@ namespace WinAGI.Editor {
         // other variables
         public bool IsChanged = false;
 
+        // StatusStrip Items
+        internal ToolStripStatusLabel spCurX;
+        internal ToolStripStatusLabel spCurY;
+        internal ToolStripStatusLabel spScale;
+        internal ToolStripStatusLabel spTool;
+        internal ToolStripStatusLabel spID;
+        internal ToolStripStatusLabel spType;
+        internal ToolStripStatusLabel spRoom1;
+        internal ToolStripStatusLabel spRoom2;
+        internal ToolStripStatusLabel spStatus;
+
         public frmLayout() {
             InitializeComponent();
             MdiParent = MDIMain;
+            InitStatusStrip();
+        }
+
+        private void InitStatusStrip() {
+            spCurX = new ToolStripStatusLabel();
+            spCurY = new ToolStripStatusLabel();
+            spScale = new ToolStripStatusLabel();
+            spTool = new ToolStripStatusLabel();
+            spID = new ToolStripStatusLabel();
+            spType = new ToolStripStatusLabel();
+            spRoom1 = new ToolStripStatusLabel();
+            spRoom2 = new ToolStripStatusLabel();
+            spStatus = MDIMain.spStatus;
+            // 
+            // spCurX
+            // 
+            spCurX.AutoSize = false;
+            spCurX.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spCurX.BorderStyle = Border3DStyle.SunkenInner;
+            spCurX.Name = "spCurX";
+            spCurX.Size = new System.Drawing.Size(70, 18);
+            spCurX.Text = "layoutX";
+            // 
+            // spCurY
+            // 
+            spCurY.AutoSize = false;
+            spCurY.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spCurY.BorderStyle = Border3DStyle.SunkenInner;
+            spCurY.Name = "spCurY";
+            spCurY.Size = new System.Drawing.Size(70, 18);
+            spCurY.Text = "layoutY";
+            // 
+            // spScale
+            // 
+            spScale.Name = "spScale";
+            spScale.Size = new System.Drawing.Size(66, 18);
+            spScale.Text = "layoutscale";
+            // 
+            // spTool
+            // 
+            spTool.Name = "spTool";
+            spTool.Size = new System.Drawing.Size(61, 18);
+            spTool.Text = "layouttool";
+            // 
+            // spID
+            // 
+            spID.Name = "spID";
+            spID.Size = new System.Drawing.Size(51, 18);
+            spID.Text = "layoutID";
+            // 
+            // spType
+            // 
+            spType.Name = "spType";
+            spType.Size = new System.Drawing.Size(63, 18);
+            spType.Text = "layouttype";
+            // 
+            // spRoom1
+            // 
+            spRoom1.Name = "spRoom1";
+            spRoom1.Size = new System.Drawing.Size(78, 18);
+            spRoom1.Text = "layoutRoom1";
+            // 
+            // spRoom2
+            // 
+            spRoom2.Name = "spRoom2";
+            spRoom2.Size = new System.Drawing.Size(78, 18);
+            spRoom2.Text = "layoutRoom2";
+            spStatus = MDIMain.spStatus;
         }
 
         #region Event Handlers

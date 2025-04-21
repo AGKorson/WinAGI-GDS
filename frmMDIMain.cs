@@ -125,6 +125,7 @@ namespace WinAGI.Editor {
             SoundEditors = [];
         }
 
+        #region Event Handlers
         #region Form Event Handlers
         private void frmMDIMain_Load(object sender, EventArgs e) {
             bool blnLastLoad;
@@ -284,38 +285,20 @@ namespace WinAGI.Editor {
         }
 
         private void frmMDIMain_MdiChildActivate(object sender, EventArgs e) {
+            // update statusbar
+            ResetStatusStrip();
+            if (this.ActiveMdiChild != null) {
+                // !!!
+                // statusstrip merging SUCKS... so we do it manually
+                // !!!
+                MergeStatusStrip(statusStrip1, this.ActiveMdiChild);
+            }
             // update toolbar
             if (MDIMain.ActiveMdiChild == null) {
                 UpdateTBResourceBtns(AGIResType.None, false, false);
-                ToolStripManager.RevertMerge(statusStrip1);
-                spStatus.Text = "";
             }
             else {
                 dynamic form = MDIMain.ActiveMdiChild;
-                dynamic statusbar = form.statusStrip1;
-                //frmPicEdit f;
-                //f.statusStrip1.Items.Contains()
-                ToolStripManager.RevertMerge(statusStrip1);
-                spStatus.Text = "";
-                if (statusbar != null) {
-                    // !!!
-                    // when MergeAction is Remove, Replace or MatchOnly
-                    // the items are matched based on Text property, not
-                    // Name!!! so make sure Text values are set correctly
-                    // before attmpting to merge
-                    // !!!
-                    if (statusbar.Items.ContainsKey("spStatus")) {
-                        // always clear status?
-                        spStatus.Text = statusbar.Items["spStatus"].Text;
-                    }
-                    if (statusbar.Items.ContainsKey("spCapsLock")) {
-                        // make sure new items match current items
-                         statusbar.Items["spCapsLock"].Text = spCapsLock.Text;
-                         statusbar.Items["spNumLock"].Text = spNumLock.Text;
-                         statusbar.Items["spInsLock"].Text = spInsLock.Text;
-                    }
-                    ToolStripManager.Merge(statusbar, nameof(statusStrip1));
-                }
                 bool ingame = false;
                 bool changed = false;
                 AGIResType restype = AGIResType.None;
@@ -1066,11 +1049,31 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTSettings_Click(object sender, EventArgs e) {
-            // the settings form handles all mods and updates based
-            // on settings changes
-            frmSettings frm = new frmSettings();
+            // starting page depends on currently active form
+            int startpage = 0;
+            if (ActiveMdiChild != null) {
+                switch (ActiveMdiChild.Name) {
+                case "frmLogicEdit":
+                    startpage = 1;
+                    break;
+                case "frmGlobals":
+                    startpage = 2;
+                    break;
+                case "frmPicEdit":
+                    startpage = 3;
+                    break;
+                case "frmSoundEdit":
+                    startpage = 4;
+                    break;
+                case "frmViewEdit":
+                    startpage = 5;
+                    break;
+                }
+            }
+            frmSettings frm = new frmSettings(startpage);
             frm.ShowDialog(MDIMain);
             frm.Dispose();
+            // the settings form handles all mods and updates based on settings changes
         }
 
         private void mnuTLayout_Click(object sender, EventArgs e) {
@@ -2611,7 +2614,117 @@ namespace WinAGI.Editor {
             }
         }
         #endregion
+        #endregion
 
+        private void ResetStatusStrip() {
+            spStatus.Text = "";
+            for (int i = statusStrip1.Items.Count -1; i >= 0; i--) {
+                var item = statusStrip1.Items[i];
+                if (item != spStatus && item != spCapsLock && item != spNumLock && item != spInsLock) {
+                    statusStrip1.Items.Remove(item);
+                }
+            }
+        }
+
+        private void MergeStatusStrip(StatusStrip statusstrip, Form form) {
+            switch (form) {
+            case frmGlobals frmGE:
+                // status
+                spCapsLock.Visible = true;
+                spNumLock.Visible = true;
+                spInsLock.Visible = true;
+                break;
+            case frmLayout frmLO:
+                statusStrip1.Items.Insert(0, frmLO.spScale);
+                statusStrip1.Items.Insert(1, frmLO.spTool);
+                statusStrip1.Items.Insert(2, frmLO.spID);
+                statusStrip1.Items.Insert(3, frmLO.spType);
+                statusStrip1.Items.Insert(4, frmLO.spRoom1);
+                statusStrip1.Items.Insert(5, frmLO.spRoom2);
+                //status
+                statusStrip1.Items.Insert(7, frmLO.spCurX);
+                statusStrip1.Items.Insert(8, frmLO.spCurY);
+                spCapsLock.Visible = false;
+                spNumLock.Visible = false;
+                spInsLock.Visible = false;
+                break;
+            case frmLogicEdit frmLE:
+                // status
+                statusStrip1.Items.Insert(1, frmLE.spLine);
+                statusStrip1.Items.Insert(2, frmLE.spColumn);
+                spCapsLock.Visible = true;
+                spNumLock.Visible = true;
+                spInsLock.Visible = true;
+                break;
+            case frmMenuEdit frmME:
+                // status
+                spCapsLock.Visible = true;
+                spNumLock.Visible = true;
+                spInsLock.Visible = true;
+                break;
+            case frmObjectEdit frmOE:
+                statusStrip1.Items.Insert(0, frmOE.spCount);
+                statusStrip1.Items.Insert(1, frmOE.spEncrypt);
+                // status
+                spCapsLock.Visible = true;
+                spNumLock.Visible = true;
+                spInsLock.Visible = true;
+                break;
+            case frmPicEdit frmPE:
+                statusStrip1.Items.Insert(0, frmPE.spScale);
+                statusStrip1.Items.Insert(1, frmPE.spMode);
+                statusStrip1.Items.Insert(2, frmPE.spTool);
+                statusStrip1.Items.Insert(3, frmPE.spAnchor);
+                statusStrip1.Items.Insert(4, frmPE.spBlock);
+                // status
+                statusStrip1.Items.Insert(6, frmPE.spCurX);
+                statusStrip1.Items.Insert(7, frmPE.spCurY);
+                statusStrip1.Items.Insert(8, frmPE.spPriBand);
+                spCapsLock.Visible = false;
+                spNumLock.Visible = false;
+                spInsLock.Visible = false;
+                break;
+            case frmPreview frmPR:
+                // status
+                spCapsLock.Visible = true;
+                spNumLock.Visible = true;
+                spInsLock.Visible = true;
+                break;
+            case frmSoundEdit frmSE:
+                statusStrip1.Items.Insert(0, frmSE.spScale);
+                statusStrip1.Items.Insert(1, frmSE.spTime);
+                // status
+                spCapsLock.Visible = false;
+                spNumLock.Visible = false;
+                spInsLock.Visible = false;
+                break;
+            case frmTextScreenEdit frmTE:
+                statusStrip1.Items.Insert(0, frmTE.spScale);
+                statusStrip1.Items.Insert(1, frmTE.spMode);
+                statusStrip1.Items.Insert(2, frmTE.spTool);
+                // status
+                spCapsLock.Visible = true;
+                spNumLock.Visible = true;
+                spInsLock.Visible = true;
+                break;
+            case frmViewEdit frmVE:
+                statusStrip1.Items.Insert(0, frmVE.spScale);
+                statusStrip1.Items.Insert(1, frmVE.spTool);
+                // status
+                spCapsLock.Visible = false;
+                spNumLock.Visible = false;
+                spInsLock.Visible = false;
+                break;
+            case frmWordsEdit frmWE:
+                statusStrip1.Items.Insert(0, frmWE.spGroupCount);
+                statusStrip1.Items.Insert(1, frmWE.spWordCount);
+                // status
+                spCapsLock.Visible = true;
+                spNumLock.Visible = true;
+                spInsLock.Visible = true;
+                break;
+            }
+        }
         private void SplashTimer(object sender, EventArgs e) {
             // used by splash screen
             splashDone = true;
@@ -3308,7 +3421,7 @@ namespace WinAGI.Editor {
             }
             WinAGISettings.WarnEncrypt.ReadSetting(WinAGISettingsFile);
             WinAGISettings.LEDelPicToo.ReadSetting(WinAGISettingsFile);
-
+            //WinAGISettings.WarnPlotPaste.ReadSetting(WinAGISettingsFile);
             // GENERAL
             WinAGISettings.ShowSplashScreen.ReadSetting(WinAGISettingsFile);
             WinAGISettings.ShowPreview.ReadSetting(WinAGISettingsFile);

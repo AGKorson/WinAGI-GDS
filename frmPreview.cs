@@ -49,8 +49,15 @@ namespace WinAGI.Editor {
         //are set to true
         const int PW_MARGIN = 4;
 
+        // StatusStrip Items
+        internal ToolStripStatusLabel spStatus;
+        internal ToolStripStatusLabel spCapsLock;
+        internal ToolStripStatusLabel spNumLock;
+        internal ToolStripStatusLabel spInsLock;
+
         public frmPreview() {
             InitializeComponent();
+            InitStatusStrip();
             // logic controls
             rtfLogPrev.ShowLineNumbers = WinAGISettings.ShowLineNumbers.Value;
             rtfLogPrev.Font = new Font(WinAGISettings.PreviewFontName.Value, WinAGISettings.PreviewFontSize.Value);
@@ -415,13 +422,13 @@ namespace WinAGI.Editor {
 
         private void imgPicture_MouseWheel(object sender, MouseEventArgs e) {
             switch (e.Delta) {
-            case < 0:
+            case > 0:
                 // wheel down
                 if (udPZoom.SelectedIndex > 0) {
                     udPZoom.SelectedIndex--;
                 }
                 break;
-            case > 0:
+            case < 0:
                 // wheel up
                 if (udPZoom.SelectedIndex < udPZoom.Items.Count - 1) {
                     udPZoom.SelectedIndex++;
@@ -1063,6 +1070,12 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Form Methods
+        private void InitStatusStrip() {
+            spStatus = MDIMain.spStatus;
+            spCapsLock = MDIMain.spCapsLock;
+            spNumLock = MDIMain.spNumLock;
+            spInsLock = MDIMain.spInsLock;
+        }
         private void PositionPreview() {
             int sngLeft, sngTop;
             int sngWidth, sngHeight;

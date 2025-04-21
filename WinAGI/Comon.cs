@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -814,6 +815,10 @@ namespace WinAGI.Common {
             return DefineNameCheck.OK;
         }
 
+        public static byte GetRandomByte(byte lower, byte upper) {
+            Random random = new Random();
+            return (byte)random.Next(lower, upper + 1);
+        }
         #endregion
 
     }
@@ -1002,6 +1007,60 @@ namespace WinAGI.Common {
             }
             // Use regular expression to replace all whitespace sequences with a single space
             return Regex.Replace(input, @"\s+", " ");
+        }
+
+        public static bool IsEven(this int input) {
+            return (input % 2 == 0);
+        }
+
+        public static bool IsOdd(this int input) {
+            return (input % 2 != 0);
+        }
+
+        public static bool IsEven(this byte input) {
+            return (input % 2 == 0);
+        }
+
+        public static bool IsOdd(this byte input) {
+            return (input % 2 != 0);
+        }
+
+        /// <summary>
+        /// Expands the rectangle to include the given point defined by location.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public static Rectangle Expand(this Rectangle rect, Point location) {
+            if (rect.X == 0 && rect.Y == 0 && rect.Width == 0 && rect.Height == 0) {
+                // initial point
+                rect.Location = location;
+            }
+            else if (!rect.Contains(location)) {
+                rect = Rectangle.Union(rect, new(location, new(0, 0)));
+            }
+            return rect;
+        }
+        
+        /// <summary>
+        /// Expands the rectangle to include the given point defined by x an y.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        public static Rectangle Expand(this Rectangle rect, int x, int y) {
+            Point p = new Point(x, y);
+            if (rect.Width < 0 || rect.Height < 0) {
+                // initial point
+                rect.Location = new(x, y);
+                rect.Width = 0;
+                rect.Height = 0;
+            }
+            else if (!rect.Contains(p)) {
+                rect = Rectangle.Union(rect, new(p, new(0, 0)));
+            }
+            return rect;
         }
     }
 

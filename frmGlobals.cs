@@ -45,6 +45,12 @@ namespace WinAGI.Editor {
         private const int NameCheckCol = 5;
         private const int ValueCheckCol = 6;
 
+        // StatusStrip Items
+        internal ToolStripStatusLabel spStatus;
+        internal ToolStripStatusLabel spCapsLock;
+        internal ToolStripStatusLabel spNumLock;
+        internal ToolStripStatusLabel spInsLock;
+
         public struct DelDefine {
             public string Name;
             public string Value;
@@ -54,6 +60,7 @@ namespace WinAGI.Editor {
         // a blank, default globals editor
         public frmGlobals() {
             InitializeComponent();
+            InitStatusStrip();
             MdiParent = MDIMain;
             InitFonts();
             if (EditGame == null || !EditGame.SierraSyntax) {
@@ -294,13 +301,13 @@ namespace WinAGI.Editor {
 
         private void mnuEdit_DropDownOpening(object sender, EventArgs e) {
             // move menu items to edit menu
-            mnuEdit.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics, mnuEditItem });
+            mnuEdit.DropDownItems.AddRange(new ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics, mnuEditItem });
             SetEditMenu();
         }
 
         private void mnuEdit_DropDownClosed(object sender, EventArgs e) {
             // return menu items to context menu
-            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics, mnuEditItem });
+            cmGrid.Items.AddRange(new ToolStripItem[] { mnuEUndo, mnuESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsert, mnuESelectAll, mnuESep1, mnuEFindInLogics, mnuEditItem });
             ResetEditMenu();
 
         }
@@ -1481,6 +1488,13 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Methods
+        private void InitStatusStrip() {
+            spStatus = MDIMain.spStatus;
+            spCapsLock = MDIMain.spCapsLock;
+            spNumLock = MDIMain.spNumLock;
+            spInsLock = MDIMain.spInsLock;
+        }
+
         /// <summary>
         /// Dynamic function to handle changes in displayed fonts used 
         /// by the editor.

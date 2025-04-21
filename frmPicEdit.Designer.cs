@@ -28,18 +28,6 @@ namespace WinAGI.Editor {
         private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmPicEdit));
-            spScale = new ToolStripStatusLabel();
-            spMode = new ToolStripStatusLabel();
-            spTool = new ToolStripStatusLabel();
-            spAnchor = new ToolStripStatusLabel();
-            spBlock = new ToolStripStatusLabel();
-            spStatus = new ToolStripStatusLabel();
-            spCurX = new ToolStripStatusLabel();
-            spCurY = new ToolStripStatusLabel();
-            spPriBand = new ToolStripStatusLabel();
-            spCapsLock = new ToolStripStatusLabel();
-            spNumLock = new ToolStripStatusLabel();
-            spInsLock = new ToolStripStatusLabel();
             menuStrip1 = new MenuStrip();
             mnuResource = new ToolStripMenuItem();
             mnuROpenRes = new ToolStripMenuItem();
@@ -55,7 +43,6 @@ namespace WinAGI.Editor {
             mnuCut = new ToolStripMenuItem();
             mnuCopy = new ToolStripMenuItem();
             mnuPaste = new ToolStripMenuItem();
-            statusStrip1 = new StatusStrip();
             toolStrip1 = new ToolStrip();
             tsbMode = new ToolStripDropDownButton();
             tsbEditMode = new ToolStripMenuItem();
@@ -63,7 +50,7 @@ namespace WinAGI.Editor {
             tsbPrintTest = new ToolStripMenuItem();
             tsbTool = new ToolStripDropDownButton();
             tsbEditTool = new ToolStripMenuItem();
-            tsbSelectArea = new ToolStripMenuItem();
+            tsbImageSelect = new ToolStripMenuItem();
             tsbLine = new ToolStripMenuItem();
             tsbShortLine = new ToolStripMenuItem();
             tsbStepLine = new ToolStripMenuItem();
@@ -106,6 +93,38 @@ namespace WinAGI.Editor {
             label2 = new Label();
             lstCommands = new ListView();
             CmdColumnHeader = new ColumnHeader();
+            cmEdit = new ContextMenuStrip(components);
+            mnuUndo = new ToolStripMenuItem();
+            mnuESep0 = new ToolStripSeparator();
+            mnuPastePen = new ToolStripMenuItem();
+            mnuDelete = new ToolStripMenuItem();
+            mnuClearPicture = new ToolStripMenuItem();
+            mnuSelectAll = new ToolStripMenuItem();
+            mnuESep1 = new ToolStripSeparator();
+            mnuInsertCoord = new ToolStripMenuItem();
+            mnuSplitCommand = new ToolStripMenuItem();
+            mnuJoinCommands = new ToolStripMenuItem();
+            mnuFlipV = new ToolStripMenuItem();
+            mnuFlipH = new ToolStripMenuItem();
+            mnuESep2 = new ToolStripSeparator();
+            mnuEditMode = new ToolStripMenuItem();
+            mnuViewTestMode = new ToolStripMenuItem();
+            mnuTextTestMode = new ToolStripMenuItem();
+            mnuESep3 = new ToolStripSeparator();
+            mnuSetTestView = new ToolStripMenuItem();
+            mnuTestViewOptions = new ToolStripMenuItem();
+            mnuTestTextOptions = new ToolStripMenuItem();
+            mnuTestPrintCommand = new ToolStripMenuItem();
+            mnuTextScreenSize = new ToolStripMenuItem();
+            mnuESep4 = new ToolStripSeparator();
+            mnuToggleScreen = new ToolStripMenuItem();
+            mnuToggleBands = new ToolStripMenuItem();
+            mnuEditPriBase = new ToolStripMenuItem();
+            mnuToggleTextMarks = new ToolStripMenuItem();
+            mnuESep5 = new ToolStripSeparator();
+            mnuToggleBackground = new ToolStripMenuItem();
+            mnuEditBackground = new ToolStripMenuItem();
+            mnuRemoveBackground = new ToolStripMenuItem();
             lblCoords = new Label();
             lstCoords = new ListView();
             CoordColumnHeader = new ColumnHeader();
@@ -122,39 +141,9 @@ namespace WinAGI.Editor {
             toolStripMenuItem10 = new ToolStripMenuItem();
             toolStripMenuItem11 = new ToolStripMenuItem();
             toolStripMenuItem12 = new ToolStripMenuItem();
-            mnuUndo = new ToolStripMenuItem();
-            mnuESep0 = new ToolStripSeparator();
-            mnuESep1 = new ToolStripSeparator();
-            mnuESep2 = new ToolStripSeparator();
-            mnuESep3 = new ToolStripSeparator();
-            mnuESep4 = new ToolStripSeparator();
-            mnuESep5 = new ToolStripSeparator();
-            mnuDelete = new ToolStripMenuItem();
-            mnuClearPicture = new ToolStripMenuItem();
-            mnuSelectAll = new ToolStripMenuItem();
-            mnuInsertCoord = new ToolStripMenuItem();
-            mnuSplitCommand = new ToolStripMenuItem();
-            mnuJoinCommands = new ToolStripMenuItem();
-            mnuEditMode = new ToolStripMenuItem();
-            mnuViewTestMode = new ToolStripMenuItem();
-            mnuTextTestMode = new ToolStripMenuItem();
-            mnuSetTestView = new ToolStripMenuItem();
-            mnuTestViewOptions = new ToolStripMenuItem();
-            mnuTestTextOptions = new ToolStripMenuItem();
-            mnuTextScreenSize = new ToolStripMenuItem();
-            mnuToggleScreen = new ToolStripMenuItem();
-            mnuToggleBands = new ToolStripMenuItem();
-            mnuEditPriBase = new ToolStripMenuItem();
-            mnuToggleTextMarks = new ToolStripMenuItem();
-            mnuToggleBackground = new ToolStripMenuItem();
-            mnuEditBackground = new ToolStripMenuItem();
-            mnuRemoveBackground = new ToolStripMenuItem();
-            mnuTestPrintCommand = new ToolStripMenuItem();
-            cmEdit = new ContextMenuStrip(components);
-            mnuFlipV = new ToolStripMenuItem();
-            mnuFlipH = new ToolStripMenuItem();
+            tmrTest = new Timer(components);
+            tmrSelect = new Timer(components);
             menuStrip1.SuspendLayout();
-            statusStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picPalette).BeginInit();
             ((System.ComponentModel.ISupportInitialize)splitForm).BeginInit();
@@ -165,6 +154,7 @@ namespace WinAGI.Editor {
             splitLists.Panel1.SuspendLayout();
             splitLists.Panel2.SuspendLayout();
             splitLists.SuspendLayout();
+            cmEdit.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitImages).BeginInit();
             splitImages.Panel1.SuspendLayout();
             splitImages.Panel2.SuspendLayout();
@@ -173,134 +163,7 @@ namespace WinAGI.Editor {
             ((System.ComponentModel.ISupportInitialize)picVisual).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picCornerPri).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picPriority).BeginInit();
-            cmEdit.SuspendLayout();
             SuspendLayout();
-            // 
-            // spScale
-            // 
-            spScale.AutoSize = false;
-            spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            spScale.BorderStyle = Border3DStyle.SunkenInner;
-            spScale.MergeAction = MergeAction.Insert;
-            spScale.MergeIndex = 0;
-            spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(75, 18);
-            spScale.Text = "Scale: 100%";
-            spScale.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spMode
-            // 
-            spMode.AutoSize = false;
-            spMode.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            spMode.BorderStyle = Border3DStyle.SunkenInner;
-            spMode.MergeAction = MergeAction.Insert;
-            spMode.MergeIndex = 1;
-            spMode.Name = "spMode";
-            spMode.Size = new System.Drawing.Size(45, 18);
-            spMode.Text = "Edit";
-            spMode.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spTool
-            // 
-            spTool.AutoSize = false;
-            spTool.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            spTool.BorderStyle = Border3DStyle.SunkenInner;
-            spTool.MergeAction = MergeAction.Insert;
-            spTool.MergeIndex = 2;
-            spTool.Name = "spTool";
-            spTool.Size = new System.Drawing.Size(70, 18);
-            spTool.Text = "Edit Select";
-            spTool.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spAnchor
-            // 
-            spAnchor.AutoSize = false;
-            spAnchor.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            spAnchor.BorderStyle = Border3DStyle.SunkenInner;
-            spAnchor.MergeAction = MergeAction.Insert;
-            spAnchor.MergeIndex = 3;
-            spAnchor.Name = "spAnchor";
-            spAnchor.Size = new System.Drawing.Size(120, 18);
-            spAnchor.Text = "Anchor: (159, 167)";
-            spAnchor.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spBlock
-            // 
-            spBlock.AutoSize = false;
-            spBlock.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            spBlock.BorderStyle = Border3DStyle.SunkenInner;
-            spBlock.MergeAction = MergeAction.Insert;
-            spBlock.MergeIndex = 4;
-            spBlock.Name = "spBlock";
-            spBlock.Size = new System.Drawing.Size(160, 18);
-            spBlock.Text = "Block: (159, 167) - (159, 167)";
-            spBlock.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spStatus
-            // 
-            spStatus.MergeAction = MergeAction.Replace;
-            spStatus.MergeIndex = 5;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(109, 18);
-            spStatus.Spring = true;
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spCurX
-            // 
-            spCurX.AutoSize = false;
-            spCurX.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            spCurX.BorderStyle = Border3DStyle.SunkenInner;
-            spCurX.MergeAction = MergeAction.Insert;
-            spCurX.MergeIndex = 6;
-            spCurX.Name = "spCurX";
-            spCurX.Size = new System.Drawing.Size(70, 18);
-            spCurX.Text = "vX: 159";
-            // 
-            // spCurY
-            // 
-            spCurY.AutoSize = false;
-            spCurY.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            spCurY.BorderStyle = Border3DStyle.SunkenInner;
-            spCurY.MergeAction = MergeAction.Insert;
-            spCurY.MergeIndex = 7;
-            spCurY.Name = "spCurY";
-            spCurY.Size = new System.Drawing.Size(70, 18);
-            spCurY.Text = "vY: 167";
-            // 
-            // spPriBand
-            // 
-            spPriBand.AutoSize = false;
-            spPriBand.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
-            spPriBand.BorderStyle = Border3DStyle.SunkenInner;
-            spPriBand.MergeAction = MergeAction.Insert;
-            spPriBand.MergeIndex = 8;
-            spPriBand.Name = "spPriBand";
-            spPriBand.Size = new System.Drawing.Size(67, 18);
-            spPriBand.Text = "Band: 14 XX";
-            // 
-            // spCapsLock
-            // 
-            spCapsLock.MergeAction = MergeAction.Remove;
-            spCapsLock.MergeIndex = 9;
-            spCapsLock.Name = "spCapsLock";
-            spCapsLock.Size = new System.Drawing.Size(0, 18);
-            spCapsLock.Visible = false;
-            // 
-            // spNumLock
-            // 
-            spNumLock.MergeAction = MergeAction.Remove;
-            spNumLock.MergeIndex = 9;
-            spNumLock.Name = "spNumLock";
-            spNumLock.Size = new System.Drawing.Size(0, 18);
-            spNumLock.Visible = false;
-            // 
-            // spInsLock
-            // 
-            spInsLock.MergeAction = MergeAction.Remove;
-            spInsLock.MergeIndex = 9;
-            spInsLock.Name = "spInsLock";
-            spInsLock.Size = new System.Drawing.Size(0, 18);
-            spInsLock.Visible = false;
             // 
             // menuStrip1
             // 
@@ -444,18 +307,6 @@ namespace WinAGI.Editor {
             mnuPaste.Text = "Paste";
             mnuPaste.Click += mnuPaste_Click;
             // 
-            // statusStrip1
-            // 
-            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new ToolStripItem[] { spScale, spMode, spTool, spAnchor, spBlock, spStatus, spCurX, spCurY, spPriBand, spCapsLock, spNumLock, spInsLock });
-            statusStrip1.Location = new System.Drawing.Point(0, 449);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(800, 23);
-            statusStrip1.TabIndex = 8;
-            statusStrip1.Text = "statusStrip1";
-            statusStrip1.Visible = false;
-            // 
             // toolStrip1
             // 
             toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
@@ -467,6 +318,7 @@ namespace WinAGI.Editor {
             // 
             // tsbMode
             // 
+            tsbMode.AutoSize = false;
             tsbMode.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbMode.DropDownItems.AddRange(new ToolStripItem[] { tsbEditMode, tsbViewTest, tsbPrintTest });
             tsbMode.Image = (System.Drawing.Image)resources.GetObject("tsbMode.Image");
@@ -474,135 +326,160 @@ namespace WinAGI.Editor {
             tsbMode.Name = "tsbMode";
             tsbMode.Size = new System.Drawing.Size(37, 28);
             tsbMode.Text = "Mode";
+            tsbMode.DropDownOpening += tsbMode_DropDownOpening;
             // 
             // tsbEditMode
             // 
+            tsbEditMode.AutoSize = false;
             tsbEditMode.Checked = true;
             tsbEditMode.CheckState = CheckState.Checked;
             tsbEditMode.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbEditMode.Image = (System.Drawing.Image)resources.GetObject("tsbEditMode.Image");
             tsbEditMode.Name = "tsbEditMode";
-            tsbEditMode.Size = new System.Drawing.Size(144, 22);
+            tsbEditMode.Size = new System.Drawing.Size(30, 30);
             tsbEditMode.Text = "Edit";
             tsbEditMode.Click += mnuEditMode_Click;
             // 
             // tsbViewTest
             // 
+            tsbViewTest.AutoSize = false;
             tsbViewTest.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbViewTest.Image = (System.Drawing.Image)resources.GetObject("tsbViewTest.Image");
             tsbViewTest.Name = "tsbViewTest";
-            tsbViewTest.Size = new System.Drawing.Size(144, 22);
+            tsbViewTest.Size = new System.Drawing.Size(30, 30);
             tsbViewTest.Text = "View Test";
             tsbViewTest.Click += mnuViewTestMode_Click;
             // 
             // tsbPrintTest
             // 
+            tsbPrintTest.AutoSize = false;
             tsbPrintTest.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbPrintTest.Image = (System.Drawing.Image)resources.GetObject("tsbPrintTest.Image");
             tsbPrintTest.Name = "tsbPrintTest";
-            tsbPrintTest.Size = new System.Drawing.Size(144, 22);
+            tsbPrintTest.Size = new System.Drawing.Size(30, 30);
             tsbPrintTest.Text = "Message Test";
             tsbPrintTest.Click += mnuTextTestMode_Click;
             // 
             // tsbTool
             // 
             tsbTool.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            tsbTool.DropDownItems.AddRange(new ToolStripItem[] { tsbEditTool, tsbSelectArea, tsbLine, tsbShortLine, tsbStepLine, tsbRectangle, tsbTrapezoid, tsbEllipse, tsbFill, tsbPlot });
+            tsbTool.DropDownItems.AddRange(new ToolStripItem[] { tsbEditTool, tsbImageSelect, tsbLine, tsbShortLine, tsbStepLine, tsbRectangle, tsbTrapezoid, tsbEllipse, tsbFill, tsbPlot });
             tsbTool.Image = (System.Drawing.Image)resources.GetObject("tsbTool.Image");
             tsbTool.ImageTransparentColor = System.Drawing.Color.Magenta;
             tsbTool.Name = "tsbTool";
             tsbTool.Size = new System.Drawing.Size(37, 28);
             tsbTool.Text = "Draw Tool";
+            tsbTool.DropDownOpening += tsbTool_DropDownOpening;
             // 
             // tsbEditTool
             // 
+            tsbEditTool.AutoSize = false;
             tsbEditTool.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbEditTool.Image = (System.Drawing.Image)resources.GetObject("tsbEditTool.Image");
             tsbEditTool.Name = "tsbEditTool";
-            tsbEditTool.Size = new System.Drawing.Size(186, 22);
+            tsbEditTool.Size = new System.Drawing.Size(34, 30);
             tsbEditTool.Text = "toolStripMenuItem12";
-            tsbEditTool.ToolTipText = "Select";
+            tsbEditTool.ToolTipText = "Edit";
+            tsbEditTool.Click += tsbEditTool_Click;
             // 
-            // tsbSelectArea
+            // tsbImageSelect
             // 
-            tsbSelectArea.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            tsbSelectArea.Image = (System.Drawing.Image)resources.GetObject("tsbSelectArea.Image");
-            tsbSelectArea.Name = "tsbSelectArea";
-            tsbSelectArea.Size = new System.Drawing.Size(186, 22);
-            tsbSelectArea.Text = "toolStripMenuItem13";
-            tsbSelectArea.ToolTipText = "Edit Select";
+            tsbImageSelect.AutoSize = false;
+            tsbImageSelect.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsbImageSelect.Image = (System.Drawing.Image)resources.GetObject("tsbImageSelect.Image");
+            tsbImageSelect.Name = "tsbImageSelect";
+            tsbImageSelect.Size = new System.Drawing.Size(34, 30);
+            tsbImageSelect.Text = "toolStripMenuItem13";
+            tsbImageSelect.ToolTipText = "Image Select";
+            tsbImageSelect.Click += tsbImageSelect_Click;
             // 
             // tsbLine
             // 
+            tsbLine.AutoSize = false;
             tsbLine.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbLine.Image = (System.Drawing.Image)resources.GetObject("tsbLine.Image");
             tsbLine.Name = "tsbLine";
-            tsbLine.Size = new System.Drawing.Size(186, 22);
+            tsbLine.Size = new System.Drawing.Size(34, 30);
             tsbLine.Text = "toolStripMenuItem14";
             tsbLine.ToolTipText = "Line";
+            tsbLine.Click += tsbLine_Click;
             // 
             // tsbShortLine
             // 
+            tsbShortLine.AutoSize = false;
             tsbShortLine.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbShortLine.Image = (System.Drawing.Image)resources.GetObject("tsbShortLine.Image");
             tsbShortLine.Name = "tsbShortLine";
-            tsbShortLine.Size = new System.Drawing.Size(186, 22);
+            tsbShortLine.Size = new System.Drawing.Size(34, 30);
             tsbShortLine.Text = "toolStripMenuItem15";
             tsbShortLine.ToolTipText = "Short Line";
+            tsbShortLine.Click += tsbShortLine_Click;
             // 
             // tsbStepLine
             // 
+            tsbStepLine.AutoSize = false;
             tsbStepLine.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbStepLine.Image = (System.Drawing.Image)resources.GetObject("tsbStepLine.Image");
             tsbStepLine.Name = "tsbStepLine";
-            tsbStepLine.Size = new System.Drawing.Size(186, 22);
+            tsbStepLine.Size = new System.Drawing.Size(34, 30);
             tsbStepLine.Text = "toolStripMenuItem16";
             tsbStepLine.ToolTipText = "Step Line";
+            tsbStepLine.Click += tsbStepLine_Click;
             // 
             // tsbRectangle
             // 
+            tsbRectangle.AutoSize = false;
             tsbRectangle.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbRectangle.Image = (System.Drawing.Image)resources.GetObject("tsbRectangle.Image");
             tsbRectangle.Name = "tsbRectangle";
-            tsbRectangle.Size = new System.Drawing.Size(186, 22);
+            tsbRectangle.Size = new System.Drawing.Size(34, 30);
             tsbRectangle.Text = "toolStripMenuItem17";
             tsbRectangle.ToolTipText = "Rectangle";
+            tsbRectangle.Click += tsbRectangle_Click;
             // 
             // tsbTrapezoid
             // 
+            tsbTrapezoid.AutoSize = false;
             tsbTrapezoid.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbTrapezoid.Image = (System.Drawing.Image)resources.GetObject("tsbTrapezoid.Image");
             tsbTrapezoid.Name = "tsbTrapezoid";
-            tsbTrapezoid.Size = new System.Drawing.Size(186, 22);
+            tsbTrapezoid.Size = new System.Drawing.Size(34, 30);
             tsbTrapezoid.Text = "toolStripMenuItem18";
             tsbTrapezoid.ToolTipText = "Trapezoid";
+            tsbTrapezoid.Click += tsbTrapezoid_Click;
             // 
             // tsbEllipse
             // 
+            tsbEllipse.AutoSize = false;
             tsbEllipse.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbEllipse.Image = (System.Drawing.Image)resources.GetObject("tsbEllipse.Image");
             tsbEllipse.Name = "tsbEllipse";
-            tsbEllipse.Size = new System.Drawing.Size(186, 22);
+            tsbEllipse.Size = new System.Drawing.Size(34, 30);
             tsbEllipse.Text = "toolStripMenuItem19";
             tsbEllipse.ToolTipText = "Ellipse";
+            tsbEllipse.Click += tsbEllipse_Click;
             // 
             // tsbFill
             // 
+            tsbFill.AutoSize = false;
             tsbFill.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbFill.Image = (System.Drawing.Image)resources.GetObject("tsbFill.Image");
             tsbFill.Name = "tsbFill";
-            tsbFill.Size = new System.Drawing.Size(186, 22);
+            tsbFill.Size = new System.Drawing.Size(34, 30);
             tsbFill.Text = "toolStripMenuItem20";
             tsbFill.ToolTipText = "Fill";
+            tsbFill.Click += tsbFill_Click;
             // 
             // tsbPlot
             // 
+            tsbPlot.AutoSize = false;
             tsbPlot.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbPlot.Image = (System.Drawing.Image)resources.GetObject("tsbPlot.Image");
             tsbPlot.Name = "tsbPlot";
-            tsbPlot.Size = new System.Drawing.Size(186, 22);
+            tsbPlot.Size = new System.Drawing.Size(34, 30);
             tsbPlot.Text = "toolStripMenuItem21";
             tsbPlot.ToolTipText = "Plot";
+            tsbPlot.Click += tsbPlot_Click;
             // 
             // tsbSep0
             // 
@@ -618,6 +495,7 @@ namespace WinAGI.Editor {
             tsbFullDraw.Name = "tsbFullDraw";
             tsbFullDraw.Size = new System.Drawing.Size(28, 28);
             tsbFullDraw.Text = "Full Draw: Off";
+            tsbFullDraw.Click += tsbFullDraw_Click;
             // 
             // tsbBackground
             // 
@@ -662,6 +540,7 @@ namespace WinAGI.Editor {
             tsbUndo.Name = "tsbUndo";
             tsbUndo.Size = new System.Drawing.Size(28, 28);
             tsbUndo.Text = "Undo";
+            tsbUndo.Click += mnuUndo_Click;
             // 
             // tsbCut
             // 
@@ -671,6 +550,7 @@ namespace WinAGI.Editor {
             tsbCut.Name = "tsbCut";
             tsbCut.Size = new System.Drawing.Size(28, 28);
             tsbCut.Text = "Cut";
+            tsbCut.Click += mnuCut_Click;
             // 
             // tsbCopy
             // 
@@ -680,6 +560,7 @@ namespace WinAGI.Editor {
             tsbCopy.Name = "tsbCopy";
             tsbCopy.Size = new System.Drawing.Size(28, 28);
             tsbCopy.Text = "Copy";
+            tsbCopy.Click += mnuCopy_Click;
             // 
             // tsbPaste
             // 
@@ -689,6 +570,7 @@ namespace WinAGI.Editor {
             tsbPaste.Name = "tsbPaste";
             tsbPaste.Size = new System.Drawing.Size(28, 28);
             tsbPaste.Text = "Paste";
+            tsbPaste.Click += mnuPaste_Click;
             // 
             // tsbDelete
             // 
@@ -698,6 +580,7 @@ namespace WinAGI.Editor {
             tsbDelete.Name = "tsbDelete";
             tsbDelete.Size = new System.Drawing.Size(28, 28);
             tsbDelete.Text = "Delete";
+            tsbDelete.Click += mnuDelete_Click;
             // 
             // tsbFlipH
             // 
@@ -707,6 +590,7 @@ namespace WinAGI.Editor {
             tsbFlipH.Name = "tsbFlipH";
             tsbFlipH.Size = new System.Drawing.Size(28, 28);
             tsbFlipH.Text = "Flip Horizontal";
+            tsbFlipH.Click += mnuFlipH_Click;
             // 
             // tsbFlipV
             // 
@@ -716,6 +600,7 @@ namespace WinAGI.Editor {
             tsbFlipV.Name = "tsbFlipV";
             tsbFlipV.Size = new System.Drawing.Size(28, 28);
             tsbFlipV.Text = "Flip Vertical";
+            tsbFlipV.Click += mnuFlipV_Click;
             // 
             // toolStripSeparator3
             // 
@@ -731,38 +616,47 @@ namespace WinAGI.Editor {
             tsbPlotStyle.Name = "tsbPlotStyle";
             tsbPlotStyle.Size = new System.Drawing.Size(37, 28);
             tsbPlotStyle.Text = "Plot Style";
+            tsbPlotStyle.DropDownOpening += tsbPlotStyle_DropDownOpening;
             // 
             // tsbCircleSolid
             // 
+            tsbCircleSolid.AutoSize = false;
             tsbCircleSolid.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbCircleSolid.Image = (System.Drawing.Image)resources.GetObject("tsbCircleSolid.Image");
             tsbCircleSolid.Name = "tsbCircleSolid";
-            tsbCircleSolid.Size = new System.Drawing.Size(153, 22);
+            tsbCircleSolid.Size = new System.Drawing.Size(34, 30);
             tsbCircleSolid.Text = "Circle Fill";
+            tsbCircleSolid.Click += tsbPlotStyle_Click;
             // 
             // tsbSquareSolid
             // 
+            tsbSquareSolid.AutoSize = false;
             tsbSquareSolid.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSquareSolid.Image = (System.Drawing.Image)resources.GetObject("tsbSquareSolid.Image");
             tsbSquareSolid.Name = "tsbSquareSolid";
-            tsbSquareSolid.Size = new System.Drawing.Size(153, 22);
+            tsbSquareSolid.Size = new System.Drawing.Size(34, 30);
             tsbSquareSolid.Text = "Square Fill";
+            tsbSquareSolid.Click += tsbPlotStyle_Click;
             // 
             // tsbCircleSplat
             // 
+            tsbCircleSplat.AutoSize = false;
             tsbCircleSplat.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbCircleSplat.Image = (System.Drawing.Image)resources.GetObject("tsbCircleSplat.Image");
             tsbCircleSplat.Name = "tsbCircleSplat";
-            tsbCircleSplat.Size = new System.Drawing.Size(153, 22);
+            tsbCircleSplat.Size = new System.Drawing.Size(34, 30);
             tsbCircleSplat.Text = "Circle Splatter";
+            tsbCircleSplat.Click += tsbPlotStyle_Click;
             // 
             // tsbSquareSplat
             // 
+            tsbSquareSplat.AutoSize = false;
             tsbSquareSplat.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSquareSplat.Image = (System.Drawing.Image)resources.GetObject("tsbSquareSplat.Image");
             tsbSquareSplat.Name = "tsbSquareSplat";
-            tsbSquareSplat.Size = new System.Drawing.Size(153, 22);
+            tsbSquareSplat.Size = new System.Drawing.Size(34, 30);
             tsbSquareSplat.Text = "Square Splatter";
+            tsbSquareSplat.Click += tsbPlotStyle_Click;
             // 
             // tsbPlotSize
             // 
@@ -773,70 +667,87 @@ namespace WinAGI.Editor {
             tsbPlotSize.Name = "tsbPlotSize";
             tsbPlotSize.Size = new System.Drawing.Size(37, 28);
             tsbPlotSize.Text = "Plot Size";
+            tsbPlotSize.DropDownOpening += tsbPlotSize_DropDownOpening;
             // 
             // tsbSize0
             // 
+            tsbSize0.AutoSize = false;
             tsbSize0.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSize0.Image = (System.Drawing.Image)resources.GetObject("tsbSize0.Image");
             tsbSize0.Name = "tsbSize0";
-            tsbSize0.Size = new System.Drawing.Size(80, 22);
-            tsbSize0.Text = "0";
+            tsbSize0.Size = new System.Drawing.Size(34, 30);
+            tsbSize0.Tag = 0;
+            tsbSize0.Click += tsbPlotSize_Click;
             // 
             // tsbSize1
             // 
+            tsbSize1.AutoSize = false;
             tsbSize1.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSize1.Image = (System.Drawing.Image)resources.GetObject("tsbSize1.Image");
             tsbSize1.Name = "tsbSize1";
-            tsbSize1.Size = new System.Drawing.Size(80, 22);
-            tsbSize1.Text = "1";
+            tsbSize1.Size = new System.Drawing.Size(34, 30);
+            tsbSize1.Tag = 1;
+            tsbSize1.Click += tsbPlotSize_Click;
             // 
             // tsbSize2
             // 
+            tsbSize2.AutoSize = false;
             tsbSize2.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSize2.Image = (System.Drawing.Image)resources.GetObject("tsbSize2.Image");
             tsbSize2.Name = "tsbSize2";
-            tsbSize2.Size = new System.Drawing.Size(80, 22);
-            tsbSize2.Text = "2";
+            tsbSize2.Size = new System.Drawing.Size(34, 30);
+            tsbSize2.Tag = 2;
+            tsbSize2.Click += tsbPlotSize_Click;
             // 
             // tsbSize3
             // 
+            tsbSize3.AutoSize = false;
             tsbSize3.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSize3.Image = (System.Drawing.Image)resources.GetObject("tsbSize3.Image");
             tsbSize3.Name = "tsbSize3";
-            tsbSize3.Size = new System.Drawing.Size(80, 22);
-            tsbSize3.Text = "3";
+            tsbSize3.Size = new System.Drawing.Size(34, 30);
+            tsbSize3.Tag = 3;
+            tsbSize3.Click += tsbPlotSize_Click;
             // 
             // tsbSize4
             // 
+            tsbSize4.AutoSize = false;
             tsbSize4.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSize4.Image = (System.Drawing.Image)resources.GetObject("tsbSize4.Image");
             tsbSize4.Name = "tsbSize4";
-            tsbSize4.Size = new System.Drawing.Size(80, 22);
-            tsbSize4.Text = "4";
+            tsbSize4.Size = new System.Drawing.Size(34, 30);
+            tsbSize4.Tag = 4;
+            tsbSize4.Click += tsbPlotSize_Click;
             // 
             // tsbSize5
             // 
+            tsbSize5.AutoSize = false;
             tsbSize5.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSize5.Image = (System.Drawing.Image)resources.GetObject("tsbSize5.Image");
             tsbSize5.Name = "tsbSize5";
-            tsbSize5.Size = new System.Drawing.Size(80, 22);
-            tsbSize5.Text = "5";
+            tsbSize5.Size = new System.Drawing.Size(34, 30);
+            tsbSize5.Tag = 5;
+            tsbSize5.Click += tsbPlotSize_Click;
             // 
             // tsbSize6
             // 
+            tsbSize6.AutoSize = false;
             tsbSize6.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSize6.Image = (System.Drawing.Image)resources.GetObject("tsbSize6.Image");
             tsbSize6.Name = "tsbSize6";
-            tsbSize6.Size = new System.Drawing.Size(80, 22);
-            tsbSize6.Text = "6";
+            tsbSize6.Size = new System.Drawing.Size(34, 30);
+            tsbSize6.Tag = 6;
+            tsbSize6.Click += tsbPlotSize_Click;
             // 
             // tsbSize7
             // 
+            tsbSize7.AutoSize = false;
             tsbSize7.DisplayStyle = ToolStripItemDisplayStyle.Image;
             tsbSize7.Image = (System.Drawing.Image)resources.GetObject("tsbSize7.Image");
             tsbSize7.Name = "tsbSize7";
-            tsbSize7.Size = new System.Drawing.Size(80, 22);
-            tsbSize7.Text = "7";
+            tsbSize7.Size = new System.Drawing.Size(34, 30);
+            tsbSize7.Tag = 7;
+            tsbSize7.Click += tsbPlotSize_Click;
             // 
             // picPalette
             // 
@@ -848,7 +759,7 @@ namespace WinAGI.Editor {
             picPalette.TabStop = false;
             picPalette.Paint += picPalette_Paint;
             picPalette.MouseDown += picPalette_MouseDown;
-            picPalette.MouseMove += picPalette_MouseMove;
+            picPalette.MouseEnter += picPalette_MouseEnter;
             // 
             // splitForm
             // 
@@ -888,7 +799,7 @@ namespace WinAGI.Editor {
             splitLists.Panel2.Controls.Add(lblCoords);
             splitLists.Panel2.Controls.Add(lstCoords);
             splitLists.Size = new System.Drawing.Size(132, 409);
-            splitLists.SplitterDistance = 280;
+            splitLists.SplitterDistance = 279;
             splitLists.SplitterWidth = 5;
             splitLists.TabIndex = 0;
             splitLists.SplitterMoving += splitLists_SplitterMoving;
@@ -911,13 +822,14 @@ namespace WinAGI.Editor {
             lstCommands.AutoArrange = false;
             lstCommands.BorderStyle = BorderStyle.FixedSingle;
             lstCommands.Columns.AddRange(new ColumnHeader[] { CmdColumnHeader });
+            lstCommands.ContextMenuStrip = cmEdit;
             lstCommands.FullRowSelect = true;
             lstCommands.HeaderStyle = ColumnHeaderStyle.None;
             lstCommands.Location = new System.Drawing.Point(0, 24);
             lstCommands.Name = "lstCommands";
             lstCommands.ShowGroups = false;
             lstCommands.ShowItemToolTips = true;
-            lstCommands.Size = new System.Drawing.Size(132, 256);
+            lstCommands.Size = new System.Drawing.Size(132, 255);
             lstCommands.TabIndex = 0;
             lstCommands.UseCompatibleStateImageBehavior = false;
             lstCommands.View = View.Details;
@@ -925,198 +837,18 @@ namespace WinAGI.Editor {
             lstCommands.KeyUp += lstCommands_KeyUp;
             lstCommands.MouseClick += lstCommands_MouseClick;
             lstCommands.MouseDoubleClick += lstCommands_MouseDoubleClick;
-            lstCommands.MouseCaptureChanged += lstCommands_MouseCaptureChanged;
-            lstCommands.MouseDown += lstCommands_MouseDown;
-            lstCommands.MouseMove += lstCommands_MouseMove;
             lstCommands.MouseUp += lstCommands_MouseUp;
-            lstCommands.Resize += lstCommands_Resize;
             // 
             // CmdColumnHeader
             // 
             CmdColumnHeader.Width = 233;
             // 
-            // lblCoords
+            // cmEdit
             // 
-            lblCoords.AutoSize = true;
-            lblCoords.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            lblCoords.Location = new System.Drawing.Point(5, 5);
-            lblCoords.Name = "lblCoords";
-            lblCoords.Size = new System.Drawing.Size(73, 15);
-            lblCoords.TabIndex = 1;
-            lblCoords.Text = "Coordinates";
-            // 
-            // lstCoords
-            // 
-            lstCoords.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            lstCoords.AutoArrange = false;
-            lstCoords.BorderStyle = BorderStyle.FixedSingle;
-            lstCoords.Columns.AddRange(new ColumnHeader[] { CoordColumnHeader });
-            lstCoords.FullRowSelect = true;
-            lstCoords.HeaderStyle = ColumnHeaderStyle.None;
-            lstCoords.Location = new System.Drawing.Point(0, 23);
-            lstCoords.MultiSelect = false;
-            lstCoords.Name = "lstCoords";
-            lstCoords.ShowGroups = false;
-            lstCoords.ShowItemToolTips = true;
-            lstCoords.Size = new System.Drawing.Size(132, 93);
-            lstCoords.TabIndex = 0;
-            lstCoords.UseCompatibleStateImageBehavior = false;
-            lstCoords.View = View.Details;
-            lstCoords.KeyPress += lstCoords_KeyPress;
-            lstCoords.KeyUp += lstCoords_KeyUp;
-            lstCoords.MouseClick += lstCoords_MouseClick;
-            lstCoords.MouseDoubleClick += lstCoords_MouseDoubleClick;
-            lstCoords.Resize += lstCoords_Resize;
-            // 
-            // CoordColumnHeader
-            // 
-            CoordColumnHeader.Width = 233;
-            // 
-            // splitImages
-            // 
-            splitImages.BorderStyle = BorderStyle.Fixed3D;
-            splitImages.Dock = DockStyle.Fill;
-            splitImages.Location = new System.Drawing.Point(0, 0);
-            splitImages.Name = "splitImages";
-            splitImages.Orientation = Orientation.Horizontal;
-            // 
-            // splitImages.Panel1
-            // 
-            splitImages.Panel1.Controls.Add(picCornerVis);
-            splitImages.Panel1.Controls.Add(vsbVisual);
-            splitImages.Panel1.Controls.Add(hsbVisual);
-            splitImages.Panel1.Controls.Add(picVisual);
-            splitImages.Panel1MinSize = 0;
-            // 
-            // splitImages.Panel2
-            // 
-            splitImages.Panel2.Controls.Add(picCornerPri);
-            splitImages.Panel2.Controls.Add(vsbPriority);
-            splitImages.Panel2.Controls.Add(hsbPriority);
-            splitImages.Panel2.Controls.Add(picPriority);
-            splitImages.Panel2MinSize = 0;
-            splitImages.Size = new System.Drawing.Size(663, 409);
-            splitImages.SplitterDistance = 166;
-            splitImages.SplitterWidth = 5;
-            splitImages.TabIndex = 2;
-            splitImages.SplitterMoving += splitImages_SplitterMoving;
-            splitImages.SplitterMoved += splitImages_SplitterMoved;
-            splitImages.MouseUp += splitImages_MouseUp;
-            splitImages.Resize += splitImages_Resize;
-            // 
-            // picCornerVis
-            // 
-            picCornerVis.Anchor = AnchorStyles.None;
-            picCornerVis.Location = new System.Drawing.Point(643, 148);
-            picCornerVis.Name = "picCornerVis";
-            picCornerVis.Size = new System.Drawing.Size(16, 16);
-            picCornerVis.TabIndex = 5;
-            picCornerVis.TabStop = false;
-            // 
-            // vsbVisual
-            // 
-            vsbVisual.Anchor = AnchorStyles.Top;
-            vsbVisual.Location = new System.Drawing.Point(643, 0);
-            vsbVisual.Margin = new Padding(0, 0, 0, 16);
-            vsbVisual.Minimum = -5;
-            vsbVisual.Name = "vsbVisual";
-            vsbVisual.Size = new System.Drawing.Size(16, 100);
-            vsbVisual.TabIndex = 4;
-            vsbVisual.Value = -5;
-            vsbVisual.Scroll += vsbVisual_Scroll;
-            // 
-            // hsbVisual
-            // 
-            hsbVisual.Anchor = AnchorStyles.Left;
-            hsbVisual.Location = new System.Drawing.Point(0, 148);
-            hsbVisual.Minimum = -5;
-            hsbVisual.Name = "hsbVisual";
-            hsbVisual.Size = new System.Drawing.Size(600, 16);
-            hsbVisual.TabIndex = 3;
-            hsbVisual.Value = -5;
-            hsbVisual.Scroll += hsbVisual_Scroll;
-            // 
-            // picVisual
-            // 
-            picVisual.Location = new System.Drawing.Point(5, 5);
-            picVisual.Name = "picVisual";
-            picVisual.Size = new System.Drawing.Size(320, 168);
-            picVisual.TabIndex = 2;
-            picVisual.TabStop = false;
-            picVisual.Click += picVisual_Click;
-            picVisual.Paint += picVisual_Paint;
-            picVisual.MouseDown += picVisual_MouseDown;
-            // 
-            // picCornerPri
-            // 
-            picCornerPri.Location = new System.Drawing.Point(624, 163);
-            picCornerPri.Name = "picCornerPri";
-            picCornerPri.Size = new System.Drawing.Size(16, 16);
-            picCornerPri.TabIndex = 8;
-            picCornerPri.TabStop = false;
-            // 
-            // vsbPriority
-            // 
-            vsbPriority.Anchor = AnchorStyles.Top;
-            vsbPriority.Location = new System.Drawing.Point(590, 0);
-            vsbPriority.Minimum = -5;
-            vsbPriority.Name = "vsbPriority";
-            vsbPriority.Size = new System.Drawing.Size(16, 111);
-            vsbPriority.TabIndex = 7;
-            vsbPriority.Value = -5;
-            vsbPriority.Scroll += vsbPriority_Scroll;
-            // 
-            // hsbPriority
-            // 
-            hsbPriority.Anchor = AnchorStyles.Left;
-            hsbPriority.Location = new System.Drawing.Point(0, 146);
-            hsbPriority.Minimum = -5;
-            hsbPriority.Name = "hsbPriority";
-            hsbPriority.Size = new System.Drawing.Size(176, 16);
-            hsbPriority.TabIndex = 6;
-            hsbPriority.Value = -5;
-            hsbPriority.Scroll += hsbPriority_Scroll;
-            // 
-            // picPriority
-            // 
-            picPriority.Location = new System.Drawing.Point(5, 5);
-            picPriority.Name = "picPriority";
-            picPriority.Size = new System.Drawing.Size(320, 168);
-            picPriority.TabIndex = 2;
-            picPriority.TabStop = false;
-            picPriority.Paint += picPriority_Paint;
-            // 
-            // toolStripMenuItem9
-            // 
-            toolStripMenuItem9.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            toolStripMenuItem9.Image = (System.Drawing.Image)resources.GetObject("toolStripMenuItem9.Image");
-            toolStripMenuItem9.Name = "toolStripMenuItem9";
-            toolStripMenuItem9.Size = new System.Drawing.Size(186, 22);
-            toolStripMenuItem9.Text = "toolStripMenuItem9";
-            // 
-            // toolStripMenuItem10
-            // 
-            toolStripMenuItem10.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            toolStripMenuItem10.Image = (System.Drawing.Image)resources.GetObject("toolStripMenuItem10.Image");
-            toolStripMenuItem10.Name = "toolStripMenuItem10";
-            toolStripMenuItem10.Size = new System.Drawing.Size(186, 22);
-            toolStripMenuItem10.Text = "toolStripMenuItem10";
-            // 
-            // toolStripMenuItem11
-            // 
-            toolStripMenuItem11.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            toolStripMenuItem11.Image = (System.Drawing.Image)resources.GetObject("toolStripMenuItem11.Image");
-            toolStripMenuItem11.Name = "toolStripMenuItem11";
-            toolStripMenuItem11.Size = new System.Drawing.Size(186, 22);
-            toolStripMenuItem11.Text = "toolStripMenuItem11";
-            // 
-            // toolStripMenuItem12
-            // 
-            toolStripMenuItem12.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            toolStripMenuItem12.Image = (System.Drawing.Image)resources.GetObject("toolStripMenuItem12.Image");
-            toolStripMenuItem12.Name = "toolStripMenuItem12";
-            toolStripMenuItem12.Size = new System.Drawing.Size(186, 22);
-            toolStripMenuItem12.Text = "toolStripMenuItem12";
+            cmEdit.Items.AddRange(new ToolStripItem[] { mnuUndo, mnuESep0, mnuCut, mnuCopy, mnuPaste, mnuPastePen, mnuDelete, mnuClearPicture, mnuSelectAll, mnuESep1, mnuInsertCoord, mnuSplitCommand, mnuJoinCommands, mnuFlipV, mnuFlipH, mnuESep2, mnuEditMode, mnuViewTestMode, mnuTextTestMode, mnuESep3, mnuSetTestView, mnuTestViewOptions, mnuTestTextOptions, mnuTestPrintCommand, mnuTextScreenSize, mnuESep4, mnuToggleScreen, mnuToggleBands, mnuEditPriBase, mnuToggleTextMarks, mnuESep5, mnuToggleBackground, mnuEditBackground, mnuRemoveBackground });
+            cmEdit.Name = "cmEdit";
+            cmEdit.Size = new System.Drawing.Size(249, 656);
+            cmEdit.Opening += cmEdit_Opening;
             // 
             // mnuUndo
             // 
@@ -1131,30 +863,13 @@ namespace WinAGI.Editor {
             mnuESep0.Name = "mnuESep0";
             mnuESep0.Size = new System.Drawing.Size(245, 6);
             // 
-            // mnuESep1
+            // mnuPastePen
             // 
-            mnuESep1.Name = "mnuESep1";
-            mnuESep1.Size = new System.Drawing.Size(245, 6);
-            // 
-            // mnuESep2
-            // 
-            mnuESep2.Name = "mnuESep2";
-            mnuESep2.Size = new System.Drawing.Size(245, 6);
-            // 
-            // mnuESep3
-            // 
-            mnuESep3.Name = "mnuESep3";
-            mnuESep3.Size = new System.Drawing.Size(245, 6);
-            // 
-            // mnuESep4
-            // 
-            mnuESep4.Name = "mnuESep4";
-            mnuESep4.Size = new System.Drawing.Size(245, 6);
-            // 
-            // mnuESep5
-            // 
-            mnuESep5.Name = "mnuESep5";
-            mnuESep5.Size = new System.Drawing.Size(245, 6);
+            mnuPastePen.Name = "mnuPastePen";
+            mnuPastePen.ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
+            mnuPastePen.Size = new System.Drawing.Size(248, 22);
+            mnuPastePen.Text = "Pen Aware Paste";
+            mnuPastePen.Click += mnuPastePen_Click;
             // 
             // mnuDelete
             // 
@@ -1180,6 +895,11 @@ namespace WinAGI.Editor {
             mnuSelectAll.Text = "Select All";
             mnuSelectAll.Click += mnuSelectAll_Click;
             // 
+            // mnuESep1
+            // 
+            mnuESep1.Name = "mnuESep1";
+            mnuESep1.Size = new System.Drawing.Size(245, 6);
+            // 
             // mnuInsertCoord
             // 
             mnuInsertCoord.Name = "mnuInsertCoord";
@@ -1203,6 +923,25 @@ namespace WinAGI.Editor {
             mnuJoinCommands.Size = new System.Drawing.Size(248, 22);
             mnuJoinCommands.Text = "Join Commands";
             mnuJoinCommands.Click += mnuJoinCommands_Click;
+            // 
+            // mnuFlipV
+            // 
+            mnuFlipV.Name = "mnuFlipV";
+            mnuFlipV.Size = new System.Drawing.Size(248, 22);
+            mnuFlipV.Text = "Flip Vertical";
+            mnuFlipV.Click += mnuFlipV_Click;
+            // 
+            // mnuFlipH
+            // 
+            mnuFlipH.Name = "mnuFlipH";
+            mnuFlipH.Size = new System.Drawing.Size(248, 22);
+            mnuFlipH.Text = "Flip Horizontal";
+            mnuFlipH.Click += mnuFlipH_Click;
+            // 
+            // mnuESep2
+            // 
+            mnuESep2.Name = "mnuESep2";
+            mnuESep2.Size = new System.Drawing.Size(245, 6);
             // 
             // mnuEditMode
             // 
@@ -1230,6 +969,11 @@ namespace WinAGI.Editor {
             mnuTextTestMode.Text = "Text Test Mode";
             mnuTextTestMode.Click += mnuTextTestMode_Click;
             // 
+            // mnuESep3
+            // 
+            mnuESep3.Name = "mnuESep3";
+            mnuESep3.Size = new System.Drawing.Size(245, 6);
+            // 
             // mnuSetTestView
             // 
             mnuSetTestView.Name = "mnuSetTestView";
@@ -1254,6 +998,13 @@ namespace WinAGI.Editor {
             mnuTestTextOptions.Text = "Text Test Options...";
             mnuTestTextOptions.Click += mnuTestTextOptions_Click;
             // 
+            // mnuTestPrintCommand
+            // 
+            mnuTestPrintCommand.Name = "mnuTestPrintCommand";
+            mnuTestPrintCommand.Size = new System.Drawing.Size(248, 22);
+            mnuTestPrintCommand.Text = "Test print() Command...";
+            mnuTestPrintCommand.Click += mnuTestPrintCommand_Click;
+            // 
             // mnuTextScreenSize
             // 
             mnuTextScreenSize.Name = "mnuTextScreenSize";
@@ -1261,6 +1012,11 @@ namespace WinAGI.Editor {
             mnuTextScreenSize.Size = new System.Drawing.Size(248, 22);
             mnuTextScreenSize.Text = "Text Screen Size: 40";
             mnuTextScreenSize.Click += mnuTextScreenSize_Click;
+            // 
+            // mnuESep4
+            // 
+            mnuESep4.Name = "mnuESep4";
+            mnuESep4.Size = new System.Drawing.Size(245, 6);
             // 
             // mnuToggleScreen
             // 
@@ -1294,6 +1050,11 @@ namespace WinAGI.Editor {
             mnuToggleTextMarks.Text = "Show Text Marks";
             mnuToggleTextMarks.Click += mnuToggleTextMarks_Click;
             // 
+            // mnuESep5
+            // 
+            mnuESep5.Name = "mnuESep5";
+            mnuESep5.Size = new System.Drawing.Size(245, 6);
+            // 
             // mnuToggleBackground
             // 
             mnuToggleBackground.Name = "mnuToggleBackground";
@@ -1317,31 +1078,206 @@ namespace WinAGI.Editor {
             mnuRemoveBackground.Text = "Remove Background";
             mnuRemoveBackground.Click += mnuRemoveBackground_Click;
             // 
-            // mnuTestPrintCommand
+            // lblCoords
             // 
-            mnuTestPrintCommand.Name = "mnuTestPrintCommand";
-            mnuTestPrintCommand.Size = new System.Drawing.Size(248, 22);
-            mnuTestPrintCommand.Text = "Test print() Command...";
-            mnuTestPrintCommand.Click += mnuTestPrintCommand_Click;
+            lblCoords.AutoSize = true;
+            lblCoords.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            lblCoords.Location = new System.Drawing.Point(5, 5);
+            lblCoords.Name = "lblCoords";
+            lblCoords.Size = new System.Drawing.Size(73, 15);
+            lblCoords.TabIndex = 1;
+            lblCoords.Text = "Coordinates";
             // 
-            // cmEdit
+            // lstCoords
             // 
-            cmEdit.Items.AddRange(new ToolStripItem[] { mnuUndo, mnuESep0, mnuCut, mnuCopy, mnuPaste, mnuDelete, mnuClearPicture, mnuSelectAll, mnuESep1, mnuInsertCoord, mnuSplitCommand, mnuJoinCommands, mnuFlipV, mnuFlipH, mnuESep2, mnuEditMode, mnuViewTestMode, mnuTextTestMode, mnuESep3, mnuSetTestView, mnuTestViewOptions, mnuTestTextOptions, mnuTestPrintCommand, mnuTextScreenSize, mnuESep4, mnuToggleScreen, mnuToggleBands, mnuEditPriBase, mnuToggleTextMarks, mnuESep5, mnuToggleBackground, mnuEditBackground, mnuRemoveBackground });
-            cmEdit.Name = "cmEdit";
-            cmEdit.Size = new System.Drawing.Size(249, 634);
-            cmEdit.Opening += cmEdit_Opening;
+            lstCoords.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            lstCoords.AutoArrange = false;
+            lstCoords.BorderStyle = BorderStyle.FixedSingle;
+            lstCoords.Columns.AddRange(new ColumnHeader[] { CoordColumnHeader });
+            lstCoords.ContextMenuStrip = cmEdit;
+            lstCoords.FullRowSelect = true;
+            lstCoords.HeaderStyle = ColumnHeaderStyle.None;
+            lstCoords.Location = new System.Drawing.Point(0, 23);
+            lstCoords.MultiSelect = false;
+            lstCoords.Name = "lstCoords";
+            lstCoords.ShowGroups = false;
+            lstCoords.ShowItemToolTips = true;
+            lstCoords.Size = new System.Drawing.Size(132, 90);
+            lstCoords.TabIndex = 0;
+            lstCoords.UseCompatibleStateImageBehavior = false;
+            lstCoords.View = View.Details;
+            lstCoords.KeyPress += lstCoords_KeyPress;
+            lstCoords.KeyUp += lstCoords_KeyUp;
+            lstCoords.MouseClick += lstCoords_MouseClick;
+            lstCoords.MouseDoubleClick += lstCoords_MouseDoubleClick;
+            lstCoords.MouseEnter += lstCoords_MouseEnter;
+            lstCoords.MouseUp += lstCoords_MouseUp;
             // 
-            // mnuFlipV
+            // CoordColumnHeader
             // 
-            mnuFlipV.Name = "mnuFlipV";
-            mnuFlipV.Size = new System.Drawing.Size(248, 22);
-            mnuFlipV.Text = "Flip Vertical";
+            CoordColumnHeader.Width = 233;
             // 
-            // mnuFlipH
+            // splitImages
             // 
-            mnuFlipH.Name = "mnuFlipH";
-            mnuFlipH.Size = new System.Drawing.Size(248, 22);
-            mnuFlipH.Text = "Flip Horizontal";
+            splitImages.BorderStyle = BorderStyle.Fixed3D;
+            splitImages.Dock = DockStyle.Fill;
+            splitImages.Location = new System.Drawing.Point(0, 0);
+            splitImages.Name = "splitImages";
+            splitImages.Orientation = Orientation.Horizontal;
+            // 
+            // splitImages.Panel1
+            // 
+            splitImages.Panel1.Controls.Add(picCornerVis);
+            splitImages.Panel1.Controls.Add(vsbVisual);
+            splitImages.Panel1.Controls.Add(hsbVisual);
+            splitImages.Panel1.Controls.Add(picVisual);
+            splitImages.Panel1MinSize = 0;
+            // 
+            // splitImages.Panel2
+            // 
+            splitImages.Panel2.Controls.Add(picCornerPri);
+            splitImages.Panel2.Controls.Add(vsbPriority);
+            splitImages.Panel2.Controls.Add(hsbPriority);
+            splitImages.Panel2.Controls.Add(picPriority);
+            splitImages.Panel2MinSize = 0;
+            splitImages.Size = new System.Drawing.Size(663, 409);
+            splitImages.SplitterDistance = 165;
+            splitImages.SplitterWidth = 5;
+            splitImages.TabIndex = 2;
+            splitImages.SplitterMoving += splitImages_SplitterMoving;
+            splitImages.SplitterMoved += splitImages_SplitterMoved;
+            splitImages.MouseUp += splitImages_MouseUp;
+            splitImages.Resize += splitImages_Resize;
+            // 
+            // picCornerVis
+            // 
+            picCornerVis.Anchor = AnchorStyles.None;
+            picCornerVis.Location = new System.Drawing.Point(643, 147);
+            picCornerVis.Name = "picCornerVis";
+            picCornerVis.Size = new System.Drawing.Size(16, 16);
+            picCornerVis.TabIndex = 5;
+            picCornerVis.TabStop = false;
+            // 
+            // vsbVisual
+            // 
+            vsbVisual.Anchor = AnchorStyles.Top;
+            vsbVisual.Location = new System.Drawing.Point(643, 0);
+            vsbVisual.Margin = new Padding(0, 0, 0, 16);
+            vsbVisual.Minimum = -5;
+            vsbVisual.Name = "vsbVisual";
+            vsbVisual.Size = new System.Drawing.Size(16, 100);
+            vsbVisual.TabIndex = 4;
+            vsbVisual.Value = -5;
+            vsbVisual.Scroll += vsbVisual_Scroll;
+            // 
+            // hsbVisual
+            // 
+            hsbVisual.Anchor = AnchorStyles.Left;
+            hsbVisual.Location = new System.Drawing.Point(0, 147);
+            hsbVisual.Minimum = -5;
+            hsbVisual.Name = "hsbVisual";
+            hsbVisual.Size = new System.Drawing.Size(600, 16);
+            hsbVisual.TabIndex = 3;
+            hsbVisual.Value = -5;
+            hsbVisual.Scroll += hsbVisual_Scroll;
+            // 
+            // picVisual
+            // 
+            picVisual.ContextMenuStrip = cmEdit;
+            picVisual.Location = new System.Drawing.Point(5, 5);
+            picVisual.Name = "picVisual";
+            picVisual.Size = new System.Drawing.Size(320, 168);
+            picVisual.TabIndex = 2;
+            picVisual.TabStop = false;
+            picVisual.Paint += picVisual_Paint;
+            picVisual.MouseDown += DrawSurface_MouseDown;
+            picVisual.MouseLeave += DrawSurface_MouseLeave;
+            picVisual.MouseMove += DrawSurface_MouseMove;
+            picVisual.MouseUp += DrawSurface_MouseUp;
+            // 
+            // picCornerPri
+            // 
+            picCornerPri.Location = new System.Drawing.Point(624, 163);
+            picCornerPri.Name = "picCornerPri";
+            picCornerPri.Size = new System.Drawing.Size(16, 16);
+            picCornerPri.TabIndex = 8;
+            picCornerPri.TabStop = false;
+            // 
+            // vsbPriority
+            // 
+            vsbPriority.Anchor = AnchorStyles.Top;
+            vsbPriority.Location = new System.Drawing.Point(590, 0);
+            vsbPriority.Minimum = -5;
+            vsbPriority.Name = "vsbPriority";
+            vsbPriority.Size = new System.Drawing.Size(16, 111);
+            vsbPriority.TabIndex = 7;
+            vsbPriority.Value = -5;
+            vsbPriority.Scroll += vsbPriority_Scroll;
+            // 
+            // hsbPriority
+            // 
+            hsbPriority.Anchor = AnchorStyles.Left;
+            hsbPriority.Location = new System.Drawing.Point(0, 132);
+            hsbPriority.Minimum = -5;
+            hsbPriority.Name = "hsbPriority";
+            hsbPriority.Size = new System.Drawing.Size(176, 16);
+            hsbPriority.TabIndex = 6;
+            hsbPriority.Value = -5;
+            hsbPriority.Scroll += hsbPriority_Scroll;
+            // 
+            // picPriority
+            // 
+            picPriority.ContextMenuStrip = cmEdit;
+            picPriority.Location = new System.Drawing.Point(5, 5);
+            picPriority.Name = "picPriority";
+            picPriority.Size = new System.Drawing.Size(320, 168);
+            picPriority.TabIndex = 2;
+            picPriority.TabStop = false;
+            picPriority.Paint += picPriority_Paint;
+            picPriority.MouseDown += DrawSurface_MouseDown;
+            picPriority.MouseLeave += DrawSurface_MouseLeave;
+            picPriority.MouseMove += DrawSurface_MouseMove;
+            picPriority.MouseUp += DrawSurface_MouseUp;
+            // 
+            // toolStripMenuItem9
+            // 
+            toolStripMenuItem9.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripMenuItem9.Image = (System.Drawing.Image)resources.GetObject("toolStripMenuItem9.Image");
+            toolStripMenuItem9.Name = "toolStripMenuItem9";
+            toolStripMenuItem9.Size = new System.Drawing.Size(186, 22);
+            toolStripMenuItem9.Text = "toolStripMenuItem9";
+            // 
+            // toolStripMenuItem10
+            // 
+            toolStripMenuItem10.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripMenuItem10.Image = (System.Drawing.Image)resources.GetObject("toolStripMenuItem10.Image");
+            toolStripMenuItem10.Name = "toolStripMenuItem10";
+            toolStripMenuItem10.Size = new System.Drawing.Size(186, 22);
+            toolStripMenuItem10.Text = "toolStripMenuItem10";
+            // 
+            // toolStripMenuItem11
+            // 
+            toolStripMenuItem11.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripMenuItem11.Image = (System.Drawing.Image)resources.GetObject("toolStripMenuItem11.Image");
+            toolStripMenuItem11.Name = "toolStripMenuItem11";
+            toolStripMenuItem11.Size = new System.Drawing.Size(186, 22);
+            toolStripMenuItem11.Text = "toolStripMenuItem11";
+            // 
+            // toolStripMenuItem12
+            // 
+            toolStripMenuItem12.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            toolStripMenuItem12.Image = (System.Drawing.Image)resources.GetObject("toolStripMenuItem12.Image");
+            toolStripMenuItem12.Name = "toolStripMenuItem12";
+            toolStripMenuItem12.Size = new System.Drawing.Size(186, 22);
+            toolStripMenuItem12.Text = "toolStripMenuItem12";
+            // 
+            // tmrTest
+            // 
+            tmrTest.Tick += tmrTest_Tick;
+            // 
+            // tmrSelect
+            // 
+            tmrSelect.Tick += tmrSelect_Tick;
             // 
             // frmPicEdit
             // 
@@ -1351,7 +1287,6 @@ namespace WinAGI.Editor {
             Controls.Add(splitForm);
             Controls.Add(picPalette);
             Controls.Add(toolStrip1);
-            Controls.Add(statusStrip1);
             Controls.Add(menuStrip1);
             DoubleBuffered = true;
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
@@ -1361,13 +1296,10 @@ namespace WinAGI.Editor {
             Text = "frmPicEdit";
             FormClosing += frmPicEdit_FormClosing;
             FormClosed += frmPicEdit_FormClosed;
-            Load += frmPicEdit_Load;
             KeyDown += frmPicEdit_KeyDown;
             Resize += frmPicEdit_Resize;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             toolStrip1.ResumeLayout(false);
             toolStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picPalette).EndInit();
@@ -1381,6 +1313,7 @@ namespace WinAGI.Editor {
             splitLists.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)splitLists).EndInit();
             splitLists.ResumeLayout(false);
+            cmEdit.ResumeLayout(false);
             splitImages.Panel1.ResumeLayout(false);
             splitImages.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)splitImages).EndInit();
@@ -1389,7 +1322,6 @@ namespace WinAGI.Editor {
             ((System.ComponentModel.ISupportInitialize)picVisual).EndInit();
             ((System.ComponentModel.ISupportInitialize)picCornerPri).EndInit();
             ((System.ComponentModel.ISupportInitialize)picPriority).EndInit();
-            cmEdit.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -1410,19 +1342,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuCut;
         private System.Windows.Forms.ToolStripMenuItem mnuCopy;
         private System.Windows.Forms.ToolStripMenuItem mnuPaste;
-        public System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel spStatus;
-        private System.Windows.Forms.ToolStripStatusLabel spCurX;
-        private System.Windows.Forms.ToolStripStatusLabel spCurY;
-        private System.Windows.Forms.ToolStripStatusLabel spScale;
-        private System.Windows.Forms.ToolStripStatusLabel spMode;
-        private System.Windows.Forms.ToolStripStatusLabel spTool;
-        private System.Windows.Forms.ToolStripStatusLabel spAnchor;
-        private System.Windows.Forms.ToolStripStatusLabel spBlock;
-        private System.Windows.Forms.ToolStripStatusLabel spPriBand;
-        private System.Windows.Forms.ToolStripStatusLabel spCapsLock;
-        private System.Windows.Forms.ToolStripStatusLabel spNumLock;
-        private System.Windows.Forms.ToolStripStatusLabel spInsLock;
         private ToolStripContainer toolStripContainer1;
         private ToolStrip toolStrip1;
         private ToolStripDropDownButton tsbMode;
@@ -1459,7 +1378,7 @@ namespace WinAGI.Editor {
         private ToolStripMenuItem tsbViewTest;
         private ToolStripMenuItem tsbPrintTest;
         private ToolStripMenuItem tsbEditTool;
-        private ToolStripMenuItem tsbSelectArea;
+        private ToolStripMenuItem tsbImageSelect;
         private ToolStripMenuItem tsbLine;
         private ToolStripMenuItem tsbShortLine;
         private ToolStripMenuItem tsbStepLine;
@@ -1521,5 +1440,8 @@ namespace WinAGI.Editor {
         private ContextMenuStrip cmEdit;
         private ToolStripMenuItem mnuFlipV;
         private ToolStripMenuItem mnuFlipH;
+        private Timer tmrTest;
+        private Timer tmrSelect;
+        private ToolStripMenuItem mnuPastePen;
     }
 }

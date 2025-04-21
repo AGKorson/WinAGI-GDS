@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Editor.Base;
+using static WinAGI.Editor.frmPicEdit;
 
 namespace WinAGI.Editor {
     public partial class frmSettings : Form {
@@ -30,7 +31,7 @@ namespace WinAGI.Editor {
         private TextStyle prevArgIdentifierStyle;
         private TextStyle prevDefIdentifierStyle;
 
-        public frmSettings(string starttab = "", string startprop = "") {
+        public frmSettings(int starttab = 0, string startprop = "") {
             InitializeComponent();
             MDIMain.UseWaitCursor = true;
             // I don't like doing this, but for now, it's needed- without calling
@@ -117,15 +118,7 @@ namespace WinAGI.Editor {
             prevDefIdentifierStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[9].Color.Value), null, WinAGISettings.SyntaxStyle[9].FontStyle.Value);
 
             InitForm();
-            if (starttab.Length > 0) {
-                try {
-                    tabControl1.SelectedTab = tabControl1.TabPages[starttab];
-                }
-                catch {
-                    // ignore errors
-                    Debug.Assert(false);
-                }
-            }
+            tabControl1.SelectedTab = tabControl1.TabPages[starttab];
             if (startprop.Length > 0) {
                 try {
                     tabControl1.SelectedTab.Controls[startprop].Select();
@@ -496,7 +489,7 @@ namespace WinAGI.Editor {
 
             // PICTURES
             foreach (frmPicEdit frm in PictureEditors) {
-                frm.CursorMode = (EPicCursorMode)WinAGISettings.CursorMode.Value;
+                frm.CursorMode = (CoordinateHighlightType)WinAGISettings.CursorMode.Value;
                 frm.InitFonts();
             }
 
@@ -557,6 +550,7 @@ namespace WinAGI.Editor {
                 WinAGISettings.WarnMsgs.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnEncrypt.Reset(WinAGISettingsFile);
                 WinAGISettings.LEDelPicToo.Reset(WinAGISettingsFile);
+                //WinAGISettings.WarnPlotPaste.Reset(WinAGISettingsFile);
                 for (int i = 1; i <= LogicCompiler.WARNCOUNT; i++) {
                     LogicCompiler.SetIgnoreWarning(5000 + i, false);
                 }
@@ -1173,7 +1167,7 @@ namespace WinAGI.Editor {
         }
 
         private void udPEZoom_SelectedItemChanged(object sender, EventArgs e) {
-            NewSettings.PicScaleEdit.Value = double.Parse(((string)udPEZoom.SelectedItem)[..^1]) / 100;
+            NewSettings.PicScaleEdit.Value = float.Parse(((string)udPEZoom.SelectedItem)[..^1]) / 100;
         }
 
         private void optPicSplit_CheckedChanged(object sender, EventArgs e) {
@@ -2188,7 +2182,7 @@ else {
             else {
                 optPicFull.Checked = true;
             }
-            if (NewSettings.CursorMode.Value == (int)EPicCursorMode.pcmWinAGI) {
+            if (NewSettings.CursorMode.Value == (int)CoordinateHighlightType.FlashBox) {
                 optCoordW.Checked = true;
             }
             else {

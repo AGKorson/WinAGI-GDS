@@ -18,10 +18,11 @@ namespace WinAGI.Engine {
 
         #region Members
         byte mPriBase;
-        bool mPicBMPSet;
+        internal bool mPicBMPSet;
         int mDrawPos;
         bool mStepDraw;
         PenStatus mCurrentPen;
+        bool mPenSet;
         byte[] mVisData;
         byte[] mPriData;
         Bitmap bmpVis;
@@ -242,9 +243,13 @@ namespace WinAGI.Engine {
         /// Gets the pen color and status, and brush style/size/shape base on the current
         /// drawing position in the picture.
         /// </summary>
-        public PenStatus CurrentToolStatus {
+        public PenStatus CurrentPenStatus {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
+                if (!mPenSet) {
+                    mCurrentPen = GetPenStatus(mDrawPos);
+                    mPenSet = true;
+                }
                 return mCurrentPen;
             }
         }
@@ -257,10 +262,18 @@ namespace WinAGI.Engine {
         public int DrawPos {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                return mDrawPos;
+                if (mInGame) {
+                    return -1;
+                }
+                else {
+                    return mDrawPos;
+                }
             }
             set {
                 WinAGIException.ThrowIfNotLoaded(this);
+                if (mInGame) {
+                    return;
+                }
                 if (value == mDrawPos) {
                     return;
                 }
@@ -274,6 +287,7 @@ namespace WinAGI.Engine {
                     mDrawPos = value;
                 }
                 mPicBMPSet = false;
+                mPenSet = false;
             }
         }
 
@@ -284,15 +298,31 @@ namespace WinAGI.Engine {
         public bool StepDraw {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                return mStepDraw;
+                if (mInGame) {
+                    return false;
+                }
+                else {
+                    return mStepDraw;
+                }
             }
             set {
                 WinAGIException.ThrowIfNotLoaded(this);
+                if (mInGame) {
+                    return;
+                }
                 if (mStepDraw != value) {
                     mStepDraw = value;
                     mPicBMPSet = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the current state of picture bmps. Used to determine if calling
+        /// program needs to redraw bitmaps.
+        /// </summary>
+        public bool BMPSet {
+            get => mPicBMPSet;
         }
 
         /// <summary>
@@ -399,9 +429,11 @@ namespace WinAGI.Engine {
             // copy picture properties
             mBkgdSettings = SourcePicture.mBkgdSettings;
             mPriBase = SourcePicture.mPriBase;
-            mDrawPos = SourcePicture.mDrawPos;
-            mStepDraw = SourcePicture.mStepDraw;
-            mCurrentPen = SourcePicture.mCurrentPen;
+            if (!mInGame) {
+                mDrawPos = SourcePicture.mDrawPos;
+                mStepDraw = SourcePicture.mStepDraw;
+                mCurrentPen = SourcePicture.mCurrentPen;
+            }
             mVisData = SourcePicture.mVisData;
             mPriData = SourcePicture.mPriData;
             if (SourcePicture.parent != null) {
@@ -418,6 +450,14 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
+        /// Forces the bitmaps to rebuild. Useful when the picture data are changed
+        /// since the resource doesn't raise a DataChanged event.
+        /// </summary>
+        public void ForceRefresh() {
+            mPicBMPSet = false;
+        }
+
+        /// <summary>
         /// Returns true if the specified paramters represent a cel baseline that is
         /// entirely on water.
         /// </summary>
@@ -426,27 +466,26 @@ namespace WinAGI.Engine {
         /// <param name="Length"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public bool ObjOnWater(byte X, byte Y, byte Length) {
-            byte i;
+        public bool ObjOnWater(Point location, byte Length) {
             AGIColorIndex CurPri;
             byte EndX;
 
             WinAGIException.ThrowIfNotLoaded(this);
-            if (X > 159) {
-                throw new ArgumentOutOfRangeException(nameof(X));
+            if (location.X < 0 || location.X > 159) {
+                throw new ArgumentOutOfRangeException(nameof(location.X));
             }
-            if (Y > 167) {
-                throw new ArgumentOutOfRangeException(nameof(Y));
+            if (location.Y < 0 || location.Y > 167) {
+                throw new ArgumentOutOfRangeException(nameof(location.Y));
             }
             if (!mPicBMPSet) {
                 BuildBMPs();
             }
-            if (X + Length > 159) {
-                Length = (byte)(160 - X);
+            EndX = (byte)(location.X + Length - 1);
+            if (EndX > 159) {
+                EndX = 159;
             }
-            EndX = (byte)(X + Length - 1);
-            for (i = X; i <= EndX; i++) {
-                CurPri = (AGIColorIndex)mPriData[i + 160 * Y];
+            for (int i = location.X; i <= EndX; i++) {
+                CurPri = (AGIColorIndex)mPriData[i + 160 * location.Y];
                 if (CurPri != AGIColorIndex.Cyan) {
                     return false;
                 }
@@ -740,6 +779,7 @@ namespace WinAGI.Engine {
             mPriData = new byte[26880];
             // build arrays of bitmap data, set error level
             ErrLevel = CompilePicData(ref mVisData, ref mPriData, mData, mStepDraw ? mDrawPos : -1, mDrawPos);
+            // build palette, adding transparency info if not in a game
             ColorPalette ncp = bmpVis.Palette;
             for (int i = 0; i < 16; i++) {
                 int a = 255;
@@ -765,8 +805,7 @@ namespace WinAGI.Engine {
                 }
             }
             bmpVis.Palette = ncp;
-            // if visual has transparency OR
-            // priority needs it, adjust the palette for priority screen
+            // adjust the palette for priority screen if necessary
             if (!InGame && mBkgdSettings.Visible && (mBkgdSettings.ShowVis || mBkgdSettings.ShowPri)) {
                 for (int i = 0; i < 16; i++) {
                     int a = 255;
@@ -800,7 +839,94 @@ namespace WinAGI.Engine {
             bmpPri.UnlockBits(bmpPriData);
             // update pen status
             mCurrentPen = SavePen;
+            mPenSet = true;
             mPicBMPSet = true;
+        }
+
+        public PenStatus GetPenStatus(int statuspos) {
+            int lngPos;
+            short bytIn;
+            PenStatus CurrentPen = new();
+            byte[] picdata = mData;
+            if (statuspos < 0 || statuspos > mData.Length - 1) {
+                // use end pos
+                statuspos = mData.Length - 1;
+            }
+            lngPos = 0;
+            bytIn = mData[lngPos++];
+            try {
+                while (lngPos <= statuspos) 
+                {
+                    switch (bytIn) {
+                    case 0xF4:
+                    case 0xF5:
+                    case 0xF6:
+                    case 0xF7:
+                    case 0xF8:
+                    case 0xFA:
+                        // skip to next command
+                         while (mData[lngPos] < 0xF0) {
+                            lngPos++;
+                        }
+                        bytIn = mData[lngPos++];
+                        break;
+                    case 0xF9:
+                        // Change pen size and style
+                        bytIn = mData[lngPos++];
+                        CurrentPen.PlotStyle = (PlotStyle)((bytIn & 0x20) / 0x20);
+                        CurrentPen.PlotShape = (PlotShape)((bytIn & 0x10) / 0x10);
+                        CurrentPen.PlotSize = bytIn & 0x7;
+                        bytIn = mData[lngPos++];
+                        break;
+                    case 0xF0:
+                        // Change picture color and enable picture draw
+                        bytIn = mData[lngPos++];
+                        CurrentPen.VisColor = (AGIColorIndex)(bytIn & 0xF);
+                        // AGI has a slight bug - if color is > 15, the
+                        // upper nibble will overwrite the priority color
+                        if (bytIn > 15) {
+                            // pass upper nibble to priority
+                            CurrentPen.PriColor |= (AGIColorIndex)(bytIn / 16);
+                        }
+                        bytIn = mData[lngPos++];
+                        break;
+                    case 0xF1:
+                        // Disable visual draw
+                        CurrentPen.VisColor = AGIColorIndex.None;
+                        bytIn = mData[lngPos++];
+                        break;
+                    case 0xF2:
+                        // Change priority color and enable priority draw
+                        bytIn = mData[lngPos++];
+                        // AGI uses ONLY priority color; if the passed value is
+                        // greater than 15, the upper nibble gets ignored
+                        CurrentPen.PriColor = ((AGIColorIndex)(bytIn & 0xF));
+                        bytIn = mData[lngPos++];
+                        break;
+                    case 0xF3:
+                        // Disable priority draw
+                        CurrentPen.PriColor = AGIColorIndex.None;
+                        bytIn = mData[lngPos];
+                        lngPos++;
+                        break;
+                    case 0xFF:
+                        // end of drawing
+                        break;
+                    default:
+                        // if expecting a command, and byte is <240 but >250 (not 255)
+                        // just ignore it
+                        bytIn = mData[lngPos++];
+                        break;
+                    }
+                    if (bytIn == 0xFF) {
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex) {
+                // ignore errors
+            }
+            return CurrentPen;
         }
 
         /// <summary>

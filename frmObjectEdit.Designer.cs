@@ -68,10 +68,6 @@ namespace WinAGI.Editor {
             mnuCelSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelSep2 = new System.Windows.Forms.ToolStripSeparator();
             mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
-            statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spCount = new System.Windows.Forms.ToolStripStatusLabel();
-            spEncrypt = new System.Windows.Forms.ToolStripStatusLabel();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
             txtMaxScreenObjs = new System.Windows.Forms.TextBox();
             fgObjects = new System.Windows.Forms.DataGridView();
             colIndex = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -80,7 +76,6 @@ namespace WinAGI.Editor {
             menuStrip1.SuspendLayout();
             cmGrid.SuspendLayout();
             cmCel.SuspendLayout();
-            statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)fgObjects).BeginInit();
             SuspendLayout();
             // 
@@ -404,44 +399,6 @@ namespace WinAGI.Editor {
             mnuCelCancel.Text = "Cancel";
             mnuCelCancel.Click += mnuCelCancel_Click;
             // 
-            // statusStrip1
-            // 
-            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spCount, spEncrypt, spStatus });
-            statusStrip1.Location = new System.Drawing.Point(41, 214);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(719, 23);
-            statusStrip1.TabIndex = 9;
-            statusStrip1.Text = "statusStrip1";
-            statusStrip1.Visible = false;
-            // 
-            // spCount
-            // 
-            spCount.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spCount.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spCount.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spCount.MergeIndex = 0;
-            spCount.Name = "spCount";
-            spCount.Size = new System.Drawing.Size(4, 18);
-            // 
-            // spEncrypt
-            // 
-            spEncrypt.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spEncrypt.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spEncrypt.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spEncrypt.MergeIndex = 1;
-            spEncrypt.Name = "spEncrypt";
-            spEncrypt.Size = new System.Drawing.Size(4, 18);
-            // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 2;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(697, 18);
-            spStatus.Spring = true;
-            // 
             // txtMaxScreenObjs
             // 
             txtMaxScreenObjs.BackColor = System.Drawing.SystemColors.Control;
@@ -526,7 +483,6 @@ namespace WinAGI.Editor {
             ClientSize = new System.Drawing.Size(736, 192);
             Controls.Add(Label1);
             Controls.Add(menuStrip1);
-            Controls.Add(statusStrip1);
             Controls.Add(txtMaxScreenObjs);
             Controls.Add(fgObjects);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
@@ -542,8 +498,6 @@ namespace WinAGI.Editor {
             menuStrip1.PerformLayout();
             cmGrid.ResumeLayout(false);
             cmCel.ResumeLayout(false);
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)fgObjects).EndInit();
             ResumeLayout(false);
             PerformLayout();
@@ -591,10 +545,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuCelSelectAll;
         private System.Windows.Forms.ToolStripSeparator mnuCelSep2;
         private System.Windows.Forms.ToolStripMenuItem mnuCelCancel;
-        public System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel spStatus;
-        private System.Windows.Forms.ToolStripStatusLabel spCount;
-        private System.Windows.Forms.ToolStripStatusLabel spEncrypt;
         private System.Windows.Forms.TextBox txtMaxScreenObjs;
         private System.Windows.Forms.DataGridView fgObjects;
         private System.Windows.Forms.DataGridViewTextBoxColumn colIndex;

@@ -50,13 +50,8 @@ namespace WinAGI.Editor {
             mnuECopy = new System.Windows.Forms.ToolStripMenuItem();
             mnuEPaste = new System.Windows.Forms.ToolStripMenuItem();
             button2 = new System.Windows.Forms.Button();
-            statusStrip1 = new System.Windows.Forms.StatusStrip();
-            spStatus = new System.Windows.Forms.ToolStripStatusLabel();
-            spScale = new System.Windows.Forms.ToolStripStatusLabel();
-            spTool = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)picCel).BeginInit();
             menuStrip1.SuspendLayout();
-            statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
             // picCel
@@ -274,56 +269,11 @@ namespace WinAGI.Editor {
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
-            // statusStrip1
-            // 
-            statusStrip1.ImageScalingSize = new System.Drawing.Size(32, 32);
-            statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { spScale, spTool, spStatus });
-            statusStrip1.Location = new System.Drawing.Point(41, 214);
-            statusStrip1.Name = "statusStrip1";
-            statusStrip1.Padding = new System.Windows.Forms.Padding(1, 0, 13, 0);
-            statusStrip1.Size = new System.Drawing.Size(719, 23);
-            statusStrip1.TabIndex = 11;
-            statusStrip1.Text = "statusStrip1";
-            statusStrip1.Visible = false;
-            // 
-            // spStatus
-            // 
-            spStatus.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            spStatus.MergeIndex = 2;
-            spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(565, 18);
-            spStatus.Spring = true;
-            spStatus.Text = "view edit status";
-            spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
-            // spScale
-            // 
-            spScale.AutoSize = false;
-            spScale.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spScale.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spScale.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spScale.MergeIndex = 0;
-            spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(70, 18);
-            spScale.Text = "viewscale";
-            // 
-            // spTool
-            // 
-            spTool.AutoSize = false;
-            spTool.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Left | System.Windows.Forms.ToolStripStatusLabelBorderSides.Top | System.Windows.Forms.ToolStripStatusLabelBorderSides.Right | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom;
-            spTool.BorderStyle = System.Windows.Forms.Border3DStyle.SunkenInner;
-            spTool.MergeAction = System.Windows.Forms.MergeAction.Insert;
-            spTool.MergeIndex = 1;
-            spTool.Name = "spTool";
-            spTool.Size = new System.Drawing.Size(70, 18);
-            spTool.Text = "viewtool";
-            // 
             // frmViewEdit
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(800, 450);
-            Controls.Add(statusStrip1);
             Controls.Add(button2);
             Controls.Add(menuStrip1);
             Controls.Add(button1);
@@ -343,8 +293,6 @@ namespace WinAGI.Editor {
             ((System.ComponentModel.ISupportInitialize)picCel).EndInit();
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
-            statusStrip1.ResumeLayout(false);
-            statusStrip1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -375,9 +323,5 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuECopy;
         private System.Windows.Forms.ToolStripMenuItem mnuEPaste;
         private System.Windows.Forms.Button button2;
-        public System.Windows.Forms.StatusStrip statusStrip1;
-        private System.Windows.Forms.ToolStripStatusLabel spStatus;
-        private System.Windows.Forms.ToolStripStatusLabel spScale;
-        private System.Windows.Forms.ToolStripStatusLabel spTool;
     }
 }
