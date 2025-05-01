@@ -19,6 +19,7 @@ using static WinAGI.Editor.frmPicEdit;
 namespace WinAGI.Editor {
     public partial class frmSettings : Form {
         private agiSettings NewSettings = WinAGISettings.Clone();
+        private PicTestInfo NewPicTestSettings = PicEditTestSettings.Clone();
         private bool blnChangeCmtCol;
         private bool blnResetWarnings;
         private TextStyle prevCommentStyle;
@@ -193,13 +194,13 @@ namespace WinAGI.Editor {
             NewSettings.PicScaleEdit.Reset();
             NewSettings.CursorMode.Reset();
             // Pic Test
-            NewSettings.PTObjSpeed.Reset();
-            NewSettings.PTObjPriority.Reset();
-            NewSettings.PTObjRestriction.Reset();
-            NewSettings.PTHorizon.Reset();
-            NewSettings.PTIgnoreHorizon.Reset();
-            NewSettings.PTIgnoreBlocks.Reset();
-            NewSettings.PTCycleAtRest.Reset();
+            NewPicTestSettings.ObjSpeed.Reset();
+            NewPicTestSettings.ObjPriority.Reset();
+            NewPicTestSettings.ObjRestriction.Reset();
+            NewPicTestSettings.Horizon.Reset();
+            NewPicTestSettings.IgnoreHorizon.Reset();
+            NewPicTestSettings.IgnoreBlocks.Reset();
+            NewPicTestSettings.CycleAtRest.Reset();
             // Sounds
             NewSettings.ShowKeyboard.Reset();
             NewSettings.ShowNotes.Reset();
@@ -294,6 +295,7 @@ namespace WinAGI.Editor {
             // copy new settings back to game settings (this does NOT save them to
             // the settings list; that is done in the save new settings function)
             WinAGISettings = NewSettings.Clone();
+            PicEditTestSettings = NewPicTestSettings.Clone();
 
             // for each section, handle any unique issues associated with the change
 
@@ -458,16 +460,13 @@ namespace WinAGI.Editor {
                 }
             }
 
-            // LOGICS
-            //foreach (frmLogicEdit frm in LogicEditors) {
-            //    frm.InitFonts();
-            //}
             foreach (Form frm in MDIMain.MdiChildren) {
                 switch (frm.Name) {
                 case "frmLogicEdit":
                 case "frmGlobals":
                 case "frmLayout":
                 case "frmObjectEdit":
+                case "frmViewEdit":
                 case "frmWordsEdit":
                     dynamic dfrm = frm;
                     dfrm.InitFonts();
@@ -691,75 +690,18 @@ namespace WinAGI.Editor {
 
         }
 
-        private void txtMaxSO_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == (char)13) {
-                e.KeyChar = '\0';
-                e.Handled = true;
-                txtMaxVol0.Select();
-            }
-            // only backspace, delete, numbers
-            switch ((int)e.KeyChar) {
-            case < 32:
-            case >= 48 and <= 57:
-                break;
-            default:
-                e.KeyChar = '\0';
-                e.Handled = true;
-                break;
-            }
-        }
-
         private void txtMaxSO_Validating(object sender, CancelEventArgs e) {
-            byte val;
-            if (byte.TryParse(txtMaxSO.Text, out val)) {
-                if (val < 1) {
-                    val = 1;
-                }
+            if (txtMaxSO.Text.Length == 0) {
+                txtMaxSO.Value = txtMaxSO.MinValue;
             }
-            else {
-                // invalid
-                val = NewSettings.DefMaxSO.Value;
-            }
-            txtMaxSO.Text = val.ToString();
-            NewSettings.DefMaxSO.Reset();
-        }
-
-        private void txtMaxVol0_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == (char)13) {
-                e.KeyChar = '\0';
-                e.Handled = true;
-                chkResetWarnings.Select();
-            }
-            // only backspace, delete, numbers
-            switch ((int)e.KeyChar) {
-            case < 32:
-            case >= 48 and <= 57:
-                break;
-            default:
-                e.KeyChar = '\0';
-                e.Handled = true;
-                break;
-            }
+            NewSettings.DefMaxSO.Value = (byte)txtMaxSO.Value;
         }
 
         private void txtMaxVol0_Validating(object sender, CancelEventArgs e) {
-            int val;
-            if (int.TryParse(txtMaxVol0.Text, out val)) {
-                if (val < 32) {
-                    val = 32;
-                }
-                else if (val > 1023) {
-                    val = 1023;
-                }
+            if (txtMaxVol0.Text.Length == 0) {
+                txtMaxVol0.Value = txtMaxVol0.MinValue;
             }
-            else {
-                // invalid
-                val = NewSettings.DefMaxVol0.Value / 1024;
-            }
-            txtMaxVol0.Text = val.ToString();
-            NewSettings.DefMaxVol0.Value = val * 1024;
+            NewSettings.DefMaxVol0.Value = txtMaxVol0.Value * 1024;
         }
 
         #endregion
@@ -978,41 +920,11 @@ namespace WinAGI.Editor {
             cmdColor_Click(null, null);
         }
 
-        private void txtTabWidth_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == (char)13) {
-                e.KeyChar = '\0';
-                e.Handled = true;
-                btnOK.Select();
-            }
-            // only backspace, delete, numbers
-            switch ((int)e.KeyChar) {
-            case < 32:
-            case >= 48 and <= 57:
-                break;
-            default:
-                e.KeyChar = '\0';
-                e.Handled = true;
-                break;
-            }
-        }
-
         private void txtTabWidth_Validating(object sender, CancelEventArgs e) {
-            int val;
-            if (int.TryParse(txtTabWidth.Text, out val)) {
-                if (val < 1) {
-                    val = 1;
-                }
-                else if (val > 32) {
-                    val = 32;
-                }
+            if (txtTabWidth.Text.Length == 0) {
+                txtTabWidth.Value = txtTabWidth.MinValue;
             }
-            else {
-                // invalid
-                val = NewSettings.LogicTabWidth.Value;
-            }
-            txtTabWidth.Text = val.ToString();
-            NewSettings.LogicTabWidth.Value = val;
+            NewSettings.LogicTabWidth.Value = txtTabWidth.Value;
             RefreshCodeExample();
         }
 
@@ -1192,70 +1104,45 @@ namespace WinAGI.Editor {
 
         private void chkIgnoreBlocks_Click(object sender, EventArgs e) {
             // save changed Value
-            NewSettings.PTIgnoreBlocks.Value = chkIgnoreBlocks.Checked;
+            NewPicTestSettings.IgnoreBlocks.Value = chkIgnoreBlocks.Checked;
         }
 
         private void chkIgnoreHorizon_Click(object sender, EventArgs e) {
             // save changed Value
-            NewSettings.PTIgnoreHorizon.Value = chkIgnoreHorizon.Checked;
+            NewPicTestSettings.IgnoreHorizon.Value = chkIgnoreHorizon.Checked;
         }
 
         private void optAnything_CheckedChanged(object sender, EventArgs e) {
-            NewSettings.PTObjRestriction.Value = 0;
+            NewPicTestSettings.ObjRestriction.Value = 0;
         }
 
         private void optLand_CheckedChanged(object sender, EventArgs e) {
-            NewSettings.PTObjRestriction.Value = 1;
+            // PicTest.ObjRestriction: 0 = no restriction, 1 = restrict to water, 2 = restrict to land
+            NewPicTestSettings.ObjRestriction.Value = 2;
         }
 
         private void optWater_CheckedChanged(object sender, EventArgs e) {
-            NewSettings.PTObjRestriction.Value = 2;
+            NewPicTestSettings.ObjRestriction.Value = 1;
         }
 
         private void chkCycleAtRest_Click(object sender, EventArgs e) {
             // save changed Value
-            NewSettings.PTCycleAtRest.Value = chkCycleAtRest.Checked;
+            NewPicTestSettings.CycleAtRest.Value = chkCycleAtRest.Checked;
         }
 
         private void txtHorizon_Validating(object sender, CancelEventArgs e) {
-            if (!double.TryParse(txtHorizon.Text, out double var) || var < 1) {
-                txtHorizon.Text = "1";
+            if (txtHorizon.Text.Length == 0) {
+                txtHorizon.Value = txtHorizon.MinValue;
             }
-            else if (var > 167) {
-                txtHorizon.Text = "167";
-            }
-            else {
-                txtHorizon.Text = ((int)var).ToString();
-            }
-            NewSettings.PTHorizon.Value = (int)var;
-        }
-
-        private void txtHorizon_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == 13) {
-                e.KeyChar = '\0';
-                e.Handled = true;
-                cmbPriority.Select();
-                return;
-            }
-            // only numbers or control keys
-            switch ((int)e.KeyChar) {
-            case < 32:
-            case >= 48 and <= 57:
-                break;
-            default:
-                e.KeyChar = '\0';
-                e.Handled = true;
-                break;
-            }
+            NewPicTestSettings.Horizon.Value = txtHorizon.Value;
         }
 
         private void cmbPriority_SelectionIndexChanged(object sender, EventArgs e) {
-            NewSettings.PTObjPriority.Value = 16 - cmbPriority.SelectedIndex;
+            NewPicTestSettings.ObjPriority.Value = 16 - cmbPriority.SelectedIndex;
         }
 
         private void cmbSpeed_SelectionIndexChanged(object sender, EventArgs e) {
-            NewSettings.PTObjSpeed.Value = cmbSpeed.SelectedIndex;
+            NewPicTestSettings.ObjSpeed.Value = cmbSpeed.SelectedIndex;
         }
         #endregion
 
@@ -1984,7 +1871,7 @@ else {
           strHelp = "Settings.htm"
         }
 
-        HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\" & strHelp
+        Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\" + strHelp);
         KeyCode = 0
       }
 
@@ -2070,57 +1957,8 @@ else {
             chkIncludeGlobals.Checked = NewSettings.DefIncludeGlobals.Value;
 
             // pictures
-            // re-check pictest settings as they may have been modified by the user
-            NewSettings.PTObjSpeed.Value = WinAGISettingsFile.GetSetting(sPICTEST, "Speed", WinAGISettings.PTObjSpeed.DefaultValue);
-            if (NewSettings.PTObjSpeed.Value < 0) {
-                NewSettings.PTObjSpeed.Value = 0;
-            }
-            if (NewSettings.PTObjSpeed.Value > 3) {
-                NewSettings.PTObjSpeed.Value = 3;
-            }
-            NewSettings.PTObjPriority.Value = WinAGISettingsFile.GetSetting(sPICTEST, "Priority", WinAGISettings.PTObjPriority.DefaultValue);
-            if (NewSettings.PTObjPriority.Value < 4) {
-                NewSettings.PTObjPriority.Value = 4;
-            }
-            if (NewSettings.PTObjPriority.Value > 16) {
-                NewSettings.PTObjPriority.Value = 16;
-            }
-            NewSettings.PTObjRestriction.Value = WinAGISettingsFile.GetSetting(sPICTEST, "Restriction", WinAGISettings.PTObjRestriction.DefaultValue);
-            if (NewSettings.PTObjRestriction.Value < 0) {
-                NewSettings.PTObjRestriction.Value = 0;
-            }
-            if (NewSettings.PTObjRestriction.Value > 2) {
-                NewSettings.PTObjRestriction.Value = 2;
-            }
-            NewSettings.PTHorizon.Value = WinAGISettingsFile.GetSetting(sPICTEST, "Horizon", WinAGISettings.PTHorizon.Value);
-            if (NewSettings.PTHorizon.Value < 0) {
-                NewSettings.PTHorizon.Value = 0;
-            }
-            if (NewSettings.PTHorizon.Value > 167) {
-                NewSettings.PTHorizon.Value = 167;
-            }
-            NewSettings.PTIgnoreHorizon.Value = WinAGISettingsFile.GetSetting(sPICTEST, "IgnoreHorizon", WinAGISettings.PTIgnoreHorizon.DefaultValue);
-            NewSettings.PTIgnoreBlocks.Value = WinAGISettingsFile.GetSetting(sPICTEST, "IgnoreBlocks", WinAGISettings.PTIgnoreBlocks.DefaultValue);
-            NewSettings.PTCycleAtRest.Value = WinAGISettingsFile.GetSetting(sPICTEST, "CycleAtRest", WinAGISettings.PTCycleAtRest.DefaultValue);
-            txtHorizon.Text = NewSettings.PTHorizon.Value.ToString();
-            cmbSpeed.SelectedIndex = NewSettings.PTObjSpeed.Value;
-            cmbPriority.SelectedIndex = 16 - NewSettings.PTObjPriority.Value;
-            switch (NewSettings.PTObjRestriction.Value) {
-            case 0:
-                optAnything.Checked = true;
-                break;
-            case 1:
-                optWater.Checked = true;
-                break;
-            case 2:
-                optLand.Checked = true;
-                break;
-            }
-            chkIgnoreBlocks.Checked = (NewSettings.PTIgnoreBlocks.Value);
-            chkIgnoreHorizon.Checked = (NewSettings.PTIgnoreHorizon.Value);
-            chkCycleAtRest.Checked = (NewSettings.PTCycleAtRest.Value);
-            // convert to percentage vlues
             double scale = NewSettings.PicScaleEdit.Value;
+            // convert scale to percentage vlues
             if (scale < 1) {
                 scale = 100;
             }
@@ -2171,10 +2009,6 @@ else {
             if (udPPZoom.SelectedIndex == -1) {
                 udPPZoom.SelectedIndex = 0;
             }
-
-
-
-            txtHorizon.Text = NewSettings.PTHorizon.Value.ToString();
             chkBands.Checked = (NewSettings.ShowBands.Value);
             if (NewSettings.SplitWindow.Value) {
                 optPicSplit.Checked = true;
@@ -2188,6 +2022,56 @@ else {
             else {
                 optCoordX.Checked = true;
             }
+
+            // re-check pictest settings as they may have been modified by the user
+            NewPicTestSettings.ObjSpeed.ReadSetting(WinAGISettingsFile);
+            if (NewPicTestSettings.ObjSpeed.Value < 0) {
+                NewPicTestSettings.ObjSpeed.Value = 0;
+            }
+            if (NewPicTestSettings.ObjSpeed.Value > 3) {
+                NewPicTestSettings.ObjSpeed.Value = 3;
+            }
+            NewPicTestSettings.ObjPriority.ReadSetting(WinAGISettingsFile);
+            if (NewPicTestSettings.ObjPriority.Value < 4) {
+                NewPicTestSettings.ObjPriority.Value = 4;
+            }
+            if (NewPicTestSettings.ObjPriority.Value > 16) {
+                NewPicTestSettings.ObjPriority.Value = 16;
+            }
+            NewPicTestSettings.ObjRestriction.ReadSetting(WinAGISettingsFile);
+            if (NewPicTestSettings.ObjRestriction.Value < 0) {
+                NewPicTestSettings.ObjRestriction.Value = 0;
+            }
+            if (NewPicTestSettings.ObjRestriction.Value > 2) {
+                NewPicTestSettings.ObjRestriction.Value = 2;
+            }
+            NewPicTestSettings.Horizon.ReadSetting(WinAGISettingsFile);
+            if (NewPicTestSettings.Horizon.Value < 0) {
+                NewPicTestSettings.Horizon.Value = 0;
+            }
+            if (NewPicTestSettings.Horizon.Value > 166) {
+                NewPicTestSettings.Horizon.Value = 166;
+            }
+            NewPicTestSettings.IgnoreHorizon.ReadSetting(WinAGISettingsFile);
+            NewPicTestSettings.IgnoreBlocks.ReadSetting(WinAGISettingsFile);
+            NewPicTestSettings.CycleAtRest.ReadSetting(WinAGISettingsFile);
+            txtHorizon.Text = NewPicTestSettings.Horizon.Value.ToString();
+            cmbSpeed.SelectedIndex = NewPicTestSettings.ObjSpeed.Value;
+            cmbPriority.SelectedIndex = 16 - NewPicTestSettings.ObjPriority.Value;
+            switch (NewPicTestSettings.ObjRestriction.Value) {
+            case 0:
+                optAnything.Checked = true;
+                break;
+            case 1:
+                optWater.Checked = true;
+                break;
+            case 2:
+                optLand.Checked = true;
+                break;
+            }
+            chkIgnoreBlocks.Checked = NewPicTestSettings.IgnoreBlocks.Value;
+            chkIgnoreHorizon.Checked = NewPicTestSettings.IgnoreHorizon.Value;
+            chkCycleAtRest.Checked = NewPicTestSettings.CycleAtRest.Value;
 
             /*
             // sounds
@@ -2296,15 +2180,6 @@ else {
             WinAGISettings.PicScaleEdit.WriteSetting(WinAGISettingsFile);
             WinAGISettings.CursorMode.WriteSetting(WinAGISettingsFile);
 
-            // pictest
-            WinAGISettings.PTObjSpeed.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.PTObjPriority.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.PTObjRestriction.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.PTHorizon.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.PTIgnoreHorizon.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.PTIgnoreBlocks.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.PTCycleAtRest.WriteSetting(WinAGISettingsFile);
-
             // sounds
             WinAGISettings.ShowKeyboard.WriteSetting(WinAGISettingsFile);
             WinAGISettings.ShowNotes.WriteSetting(WinAGISettingsFile);
@@ -2368,7 +2243,16 @@ else {
             WinAGISettings.DOSExec.WriteSetting(WinAGISettingsFile);
             WinAGISettings.PlatformOpts.WriteSetting(WinAGISettingsFile);
 
-            // save the file
+            // pictest
+            PicEditTestSettings.ObjSpeed.WriteSetting(WinAGISettingsFile);
+            PicEditTestSettings.ObjPriority.WriteSetting(WinAGISettingsFile);
+            PicEditTestSettings.ObjRestriction.WriteSetting(WinAGISettingsFile);
+            PicEditTestSettings.Horizon.WriteSetting(WinAGISettingsFile);
+            PicEditTestSettings.IgnoreHorizon.WriteSetting(WinAGISettingsFile);
+            PicEditTestSettings.IgnoreBlocks.WriteSetting(WinAGISettingsFile);
+            PicEditTestSettings.CycleAtRest.WriteSetting(WinAGISettingsFile);
+
+            // save settings to file
             WinAGISettingsFile.Save();
         }
 

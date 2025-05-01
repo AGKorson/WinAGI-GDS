@@ -428,6 +428,7 @@
             mnuResources.Name = "mnuResources";
             mnuResources.Size = new System.Drawing.Size(72, 20);
             mnuResources.Text = "Resources";
+            mnuResources.DropDownClosed += mnuResources_DropDownClosed;
             mnuResources.DropDownOpening += mnuResources_DropDownOpening;
             // 
             // mnuRNew
@@ -1044,7 +1045,7 @@
             // spStatus
             // 
             spStatus.Name = "spStatus";
-            spStatus.Size = new System.Drawing.Size(584, 18);
+            spStatus.Size = new System.Drawing.Size(615, 18);
             spStatus.Spring = true;
             spStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 

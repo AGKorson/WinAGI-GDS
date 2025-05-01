@@ -784,7 +784,7 @@ Case "cmbCodePage"
   strTopic = strTopic & "#codepage"
 End Select
 
-HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, strTopic
+Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
 KeyCode = 0
 End If
 End Sub

@@ -57,7 +57,7 @@ namespace WinAGI.Editor {
             chkRoom.Location = new System.Drawing.Point(257, 157);
             chkRoom.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             chkRoom.Name = "chkRoom";
-            chkRoom.Size = new System.Drawing.Size(182, 19);
+            chkRoom.Size = new System.Drawing.Size(183, 19);
             chkRoom.TabIndex = 1;
             chkRoom.Text = "Include Room Template Code";
             chkRoom.UseVisualStyleBackColor = true;
@@ -108,6 +108,7 @@ namespace WinAGI.Editor {
             lstResNum.Size = new System.Drawing.Size(205, 79);
             lstResNum.TabIndex = 5;
             lstResNum.SelectedIndexChanged += lstResNum_SelectedIndexChanged;
+            lstResNum.MouseDoubleClick += lstResNum_MouseDoubleClick;
             // 
             // lblID
             // 
@@ -149,7 +150,7 @@ namespace WinAGI.Editor {
             btnOK.Click += btnOK_Click;
             // 
             // btnDont
-            //
+            // 
             btnDont.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
             btnDont.Location = new System.Drawing.Point(92, 180);
             btnDont.Margin = new System.Windows.Forms.Padding(0);

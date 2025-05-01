@@ -17,7 +17,7 @@ using System.Text.RegularExpressions;
 
 namespace WinAGI.Editor {
     public partial class frmSnippets : Form {
-        bool blnAddSnip, IsChanged = false, PickChar;
+        bool blnAddSnip, IsChanged = false;
         // editor syntax styles
         public TextStyle CommentStyle;
         public TextStyle StringStyle;
@@ -233,14 +233,12 @@ namespace WinAGI.Editor {
         private void mnuEDelete_Click(object sender, EventArgs e) {
             if (rtfSnipValue.SelectionLength > 0) {
                 rtfSnipValue.SelectedText = "";
-                WordsClipboard = new();
             }
         }
 
         private void mnuECopy_Click(object sender, EventArgs e) {
             if (rtfSnipValue.SelectionLength > 0) {
                 rtfSnipValue.Copy();
-                WordsClipboard = new();
             }
         }
 
@@ -543,7 +541,7 @@ rivate Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
 
   'always check for help first
   If Shift = 0 And KeyCode = vbKeyF1 Then
-    HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\snippets.htm"
+    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\snippets.htm");
     KeyCode = 0
     Exit Sub
   End If

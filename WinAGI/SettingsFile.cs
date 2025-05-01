@@ -1281,14 +1281,6 @@ namespace WinAGI.Common {
             defaultValue = defaultvalue;
         }
 
-        //public SettingsListString(string name, string itemvalue, string section, string group) {
-        //    itemName = name;
-        //    itemSection = section;
-        //    itemGroup = group;
-        //    itemValue = itemvalue;
-        //    defaultValue = itemvalue;
-        //}
-
         public SettingString(string name, string itemvalue, string section, string defaultvalue) {
             itemName = name;
             itemSection = section;

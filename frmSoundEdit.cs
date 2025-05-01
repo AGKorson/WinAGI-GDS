@@ -93,8 +93,22 @@ namespace WinAGI.Editor {
             }
         }
 
+        /// <summary>
+        /// Dynamic function to reset the resource menu.
+        /// </summary>
+        public void ResetResourceMenu() {
+            mnuRSave.Enabled = true;
+            mnuRExport.Enabled = true;
+            mnuRInGame.Enabled = true;
+            mnuRRenumber.Enabled = true;
+            mnuRProperties.Enabled = true;
+            mnuRShowTrack.Enabled = true;
+        }
+
         public void mnuRSave_Click(object sender, EventArgs e) {
-            SaveSound();
+            if (IsChanged) {
+                SaveSound();
+            }
         }
 
         public void mnuRExport_Click(object sender, EventArgs e) {
@@ -102,11 +116,15 @@ namespace WinAGI.Editor {
         }
 
         public void mnuRInGame_Click(object sender, EventArgs e) {
-            ToggleInGame();
+            if (EditGame != null) {
+                ToggleInGame();
+            }
         }
 
         private void mnuRRenumber_Click(object sender, EventArgs e) {
-            RenumberSound();
+            if (InGame) {
+                RenumberSound();
+            }
         }
 
         private void mnuRProperties_Click(object sender, EventArgs e) {
@@ -1841,7 +1859,7 @@ namespace WinAGI.Editor {
         On Error Resume Next
 
         'help
-        HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Sound_Editor.htm"
+        Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\Sound_Editor.htm");
       Exit Sub
 
       ErrHandler:

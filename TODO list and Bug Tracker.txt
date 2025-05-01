@@ -14,7 +14,7 @@ X   12. Reserved Defines Editor
 X   13. Object Editor
 X   14. Word Editor
 X   15. Palette Editor
-O   16. Picture Editor
+X   16. Picture Editor
     17. View Editor
     18. Sound Editor
     19. Layout Editor
@@ -718,10 +718,11 @@ frmGlobals
       9 - mnuRCompileLogic
       9 - mnuRSavePicImage
       9 - mnuRExportGIF
-     -1 + mnuAddFromFile
+     -1 + mnuAddFile
  
 frmLayout
 ---------
+      tbd
 
 frmLogicEdit
 ------------
@@ -741,14 +742,33 @@ frmLogicEdit
      11 r mnuRCompileLogic -> mnuCompile
      12 - mnuRSavePicImage
      12 - mnuRExportGIF
-     -1 + mnuMsgCleanup
-     -1 + mnuIsRoom 
+     -1 + mnuRMsgCleanup
+     -1 + mnuRIsRoom 
 
 frmMenuEdit
 -----------
+    tbd
 
 frmObjectEdit
 -------------
+      mnuResources
+          mnuRNew ...
+          mnuROpen ...
+          mnuRImport ...
+          mnuRSeparator1 
+        - mnuROpenRes
+        r mnuRSave
+        r mnuRExport
+          mnuRSeparator2 
+        - mnuRRemove
+        - mnuRRenumber
+        r mnuRIDDesc
+          mnuRSeparator3 
+        - mnuRCompileLogic
+        - mnuRSavePicImage
+        - mnuRExportGIF
+        + mnuRToggleEncrypt
+        + mnuRAmigaOBJ
 
 frmPicEdit
 ----------
@@ -758,21 +778,20 @@ frmPicEdit
           mnuRImport ...
           mnuRSeparator1 
         - mnuROpenRes
-        o mnuRSave
-        o mnuRExport
+        r mnuRSave
+        r mnuRExport
           mnuRSeparator2 
-        o mnuRRemove -> mnuRInGame
-        o mnuRRenumber
-        o mnuRIDDesc
+        r mnuRRemove -> mnuRInGame
+        r mnuRRenumber
+        r mnuRIDDesc
           mnuRSeparator3 
         - mnuRCompileLogic
-        o mnuRSavePicImage
-        o mnuRExportGIF
-        + mnuBackground
+        r mnuRSavePicImage
+        r mnuRExportGIF
 
 frmPreview
 ----------
-  ssme as main form
+  same as main form
 
 frmSoundEdit
 ------------
@@ -782,12 +801,12 @@ frmSoundEdit
           mnuRImport ...
           mnuRSeparator1 
         - mnuROpenRes
-        o mnuRSave
-        o mnuRExport
+        r mnuRSave
+        r mnuRExport
           mnuRSeparator2 
-        o mnuRRemove -> mnuRInGame
-        o mnuRRenumber
-        o mnuRIDDesc
+        r mnuRRemove -> mnuRInGame
+        r mnuRRenumber
+        r mnuRIDDesc
           mnuRSeparator3 
         - mnuRCompileLogic
         - mnuRSavePicImage
@@ -796,6 +815,7 @@ frmSoundEdit
 
 frmTextScreenEdit
 -----------------
+      tbd
 
 frmViewEdit
 -----------
@@ -805,19 +825,39 @@ frmViewEdit
           mnuRImport ...
           mnuRSeparator1 
         - mnuROpenRes
-        o mnuRSave
-        o mnuRExport
+        r mnuRSave
+        r mnuRExport
           mnuRSeparator2 
-        o mnuRRemove -> mnuRInGame
-        o mnuRRenumber
-        o mnuRIDDesc
+        r mnuRRemove -> mnuRInGame
+        r mnuRRenumber
+        r mnuRIDDesc
           mnuRSeparator3 
         - mnuRCompileLogic
         - mnuRSavePicImage
-        o mnuRExportGIF
+        r mnuRExportGIF =>mnuRExportLoopGIF
 
 frmWordEdit
 -----------
+      mnuResources
+          mnuRNew ...
+          mnuROpen ...
+          mnuRImport ...
+          mnuRSeparator1 
+        - mnuROpenRes
+        r mnuRSave
+        r mnuRExport
+          mnuRSeparator2 
+        - mnuRRemove
+        - mnuRRenumber
+        r mnuRIDDesc
+          mnuRSeparator3 
+        - mnuRCompileLogic
+        - mnuRSavePicImage
+        - mnuRExportGIF
+        + mnuRMerge
+        + mnuRGroupCheck
+
+
 
 events that should update main toolbar buttons:
   open game/new game:

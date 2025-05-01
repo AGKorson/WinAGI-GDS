@@ -609,6 +609,7 @@
             rtfLogic2.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic2.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic2.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
+            rtfLogic2.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic2.Hotkeys = resources.GetString("rtfLogic2.Hotkeys");
             rtfLogic2.IsReplaceMode = false;
             rtfLogic2.LineNumberStartValue = 0U;
@@ -666,6 +667,7 @@
             rtfLogic1.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic1.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic1.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
+            rtfLogic1.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic1.Hotkeys = resources.GetString("rtfLogic1.Hotkeys");
             rtfLogic1.IsReplaceMode = false;
             rtfLogic1.LineNumberStartValue = 0U;

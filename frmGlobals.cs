@@ -142,12 +142,24 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
+        /// Dynamic function to reset the resource menu.
+        /// </summary>
+        public void ResetResourceMenu() {
+            mnuRSave.Enabled = true;
+            mnuRSaveAs.Enabled = true;
+            mnuRInGame.Enabled = true;
+            mnuRAddFile.Enabled = true;
+        }
+
+        /// <summary>
         /// Dynamic function to handle the menu-save click event
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         public void mnuRSave_Click(object sender, EventArgs e) {
-            MenuClickSave();
+            if (IsChanged) {
+                MenuClickSave();
+            }
         }
 
         /// <summary>
@@ -156,7 +168,7 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void mnuRExport_Click(object sender, EventArgs e) {
+        private void mnuRSaveAs_Click(object sender, EventArgs e) {
             string filename = NewSaveFileName();
             if (filename.Length != 0) {
                 MenuClickSave(filename);
@@ -248,8 +260,8 @@ namespace WinAGI.Editor {
             else {
                 mnuEPaste.Enabled = false;
             }
-            //mnuEInsert.Enabled = true; // always available
-            //mnuESelectAll.Enabled = true; // always available
+            mnuEInsert.Enabled = true;
+            mnuESelectAll.Enabled = true; // always available
             mnuEFindInLogics.Visible = mnuESep1.Visible = EditGame != null;
             if (mnuESep1.Visible) {
                 if (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect) {
@@ -259,6 +271,7 @@ namespace WinAGI.Editor {
                     mnuEFindInLogics.Enabled = (globalsgrid.SelectedRows.Count == 1 && globalsgrid.CurrentRow.Index != globalsgrid.NewRowIndex);
                 }
             }
+            mnuEditItem.Enabled = true;
             mnuEditItem.Text = "Edit ";
             switch (globalsgrid.CurrentCell.ColumnIndex) {
             case NameCol:
@@ -461,7 +474,6 @@ namespace WinAGI.Editor {
             // put selected text on clipboard
             Clipboard.Clear();
             Clipboard.SetText(strData);
-            WordsClipboard = new();
         }
 
         private void mnuEPaste_Click(object sender, EventArgs e) {
@@ -615,26 +627,31 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEditItem_Click(object sender, EventArgs e) {
+            if (globalsgrid.IsCurrentCellInEditMode) {
+                return;
+            }
             EditCell(globalsgrid.CurrentCell.ColumnIndex);
         }
 
         private void mnuEFindInLogics_Click(object sender, EventArgs e) {
+
             if (globalsgrid.IsCurrentCellInEditMode ||
             (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect && globalsgrid.CurrentCell.ColumnIndex != NameCol) ||
             (globalsgrid.SelectionMode != DataGridViewSelectionMode.CellSelect && (globalsgrid.SelectedRows.Count == 0 || globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex))
             ) {
                 return;
             }
-            GFindDir = FindDirection.All;
-            GMatchWord = true;
-            GMatchCase = true;
-            GLogFindLoc = FindLocation.All;
-            GFindSynonym = false;
-            FindingForm.ResetSearch();
-            string searchtext = (string)globalsgrid[NameCol, globalsgrid.CurrentRow.Index].Value;
-            FindInLogic(this, searchtext, FindDirection.All, true, true, FindLocation.All);
+            if (InGame) {
+                GFindDir = FindDirection.All;
+                GMatchWord = true;
+                GMatchCase = true;
+                GLogFindLoc = FindLocation.All;
+                GFindSynonym = false;
+                FindingForm.ResetSearch();
+                string searchtext = (string)globalsgrid[NameCol, globalsgrid.CurrentRow.Index].Value;
+                FindInLogic(this, searchtext, FindDirection.All, true, true, FindLocation.All);
+            }
         }
-
         private void cmCel_Opening(object sender, CancelEventArgs e) {
             mnuCelUndo.Enabled = EditTextBox.CanUndo;
             mnuCelCut.Enabled = EditTextBox.SelectionLength > 0;
@@ -662,14 +679,12 @@ namespace WinAGI.Editor {
 
         private void mnuCelCut_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
-                WordsClipboard = new();
                 EditTextBox.Cut();
             }
         }
 
         private void mnuCelCopy_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
-                WordsClipboard = new();
                 EditTextBox.Copy();
             }
         }
@@ -2525,10 +2540,7 @@ namespace WinAGI.Editor {
     #region temp code
     /*
 public void MenuClickHelp() {
-
-On Error GoTo ErrHandler
-
-HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\editingdefines.htm"
+  Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\editingdefines.htm");
 }
     */
     #endregion

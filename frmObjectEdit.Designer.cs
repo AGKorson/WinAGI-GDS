@@ -68,7 +68,7 @@ namespace WinAGI.Editor {
             mnuCelSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelSep2 = new System.Windows.Forms.ToolStripSeparator();
             mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
-            txtMaxScreenObjs = new System.Windows.Forms.TextBox();
+            txtMaxScreenObjs = new NumericTextBox();
             fgObjects = new System.Windows.Forms.DataGridView();
             colIndex = new System.Windows.Forms.DataGridViewTextBoxColumn();
             colDescription = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -317,7 +317,7 @@ namespace WinAGI.Editor {
             // 
             cmCel.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuCelUndo, mnuCelSep0, mnuCelCut, mnuCelCopy, mnuCelPaste, mnuCelDelete, mnuCelCharMap, mnuCelSep1, mnuCelSelectAll, mnuCelSep2, mnuCelCancel });
             cmCel.Name = "cmCel";
-            cmCel.Size = new System.Drawing.Size(216, 198);
+            cmCel.Size = new System.Drawing.Size(202, 198);
             cmCel.Closed += cmCel_Closed;
             cmCel.Opening += cmCel_Opening;
             // 
@@ -325,20 +325,20 @@ namespace WinAGI.Editor {
             // 
             mnuCelUndo.Name = "mnuCelUndo";
             mnuCelUndo.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Z;
-            mnuCelUndo.Size = new System.Drawing.Size(215, 22);
+            mnuCelUndo.Size = new System.Drawing.Size(201, 22);
             mnuCelUndo.Text = "Undo";
             mnuCelUndo.Click += mnuCelUndo_Click;
             // 
             // mnuCelSep0
             // 
             mnuCelSep0.Name = "mnuCelSep0";
-            mnuCelSep0.Size = new System.Drawing.Size(212, 6);
+            mnuCelSep0.Size = new System.Drawing.Size(198, 6);
             // 
             // mnuCelCut
             // 
             mnuCelCut.Name = "mnuCelCut";
             mnuCelCut.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.X;
-            mnuCelCut.Size = new System.Drawing.Size(215, 22);
+            mnuCelCut.Size = new System.Drawing.Size(201, 22);
             mnuCelCut.Text = "Cut";
             mnuCelCut.Click += mnuCelCut_Click;
             // 
@@ -346,7 +346,7 @@ namespace WinAGI.Editor {
             // 
             mnuCelCopy.Name = "mnuCelCopy";
             mnuCelCopy.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.C;
-            mnuCelCopy.Size = new System.Drawing.Size(215, 22);
+            mnuCelCopy.Size = new System.Drawing.Size(201, 22);
             mnuCelCopy.Text = "Copy";
             mnuCelCopy.Click += mnuCelCopy_Click;
             // 
@@ -354,7 +354,7 @@ namespace WinAGI.Editor {
             // 
             mnuCelPaste.Name = "mnuCelPaste";
             mnuCelPaste.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.V;
-            mnuCelPaste.Size = new System.Drawing.Size(215, 22);
+            mnuCelPaste.Size = new System.Drawing.Size(201, 22);
             mnuCelPaste.Text = "Paste";
             mnuCelPaste.Click += mnuCelPaste_Click;
             // 
@@ -362,40 +362,41 @@ namespace WinAGI.Editor {
             // 
             mnuCelDelete.Name = "mnuCelDelete";
             mnuCelDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            mnuCelDelete.Size = new System.Drawing.Size(215, 22);
+            mnuCelDelete.Size = new System.Drawing.Size(201, 22);
             mnuCelDelete.Text = "Delete";
             mnuCelDelete.Click += mnuCelDelete_Click;
             // 
             // mnuCelCharMap
             // 
             mnuCelCharMap.Name = "mnuCelCharMap";
+            mnuCelCharMap.ShortcutKeyDisplayString = "Ctrl+Ins";
             mnuCelCharMap.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Insert;
-            mnuCelCharMap.Size = new System.Drawing.Size(215, 22);
+            mnuCelCharMap.Size = new System.Drawing.Size(201, 22);
             mnuCelCharMap.Text = "Character Map";
             mnuCelCharMap.Click += mnuCelCharMap_Click;
             // 
             // mnuCelSep1
             // 
             mnuCelSep1.Name = "mnuCelSep1";
-            mnuCelSep1.Size = new System.Drawing.Size(212, 6);
+            mnuCelSep1.Size = new System.Drawing.Size(198, 6);
             // 
             // mnuCelSelectAll
             // 
             mnuCelSelectAll.Name = "mnuCelSelectAll";
             mnuCelSelectAll.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A;
-            mnuCelSelectAll.Size = new System.Drawing.Size(215, 22);
+            mnuCelSelectAll.Size = new System.Drawing.Size(201, 22);
             mnuCelSelectAll.Text = "Select All";
             mnuCelSelectAll.Click += mnuCelSelectAll_Click;
             // 
             // mnuCelSep2
             // 
             mnuCelSep2.Name = "mnuCelSep2";
-            mnuCelSep2.Size = new System.Drawing.Size(212, 6);
+            mnuCelSep2.Size = new System.Drawing.Size(198, 6);
             // 
             // mnuCelCancel
             // 
             mnuCelCancel.Name = "mnuCelCancel";
-            mnuCelCancel.Size = new System.Drawing.Size(215, 22);
+            mnuCelCancel.Size = new System.Drawing.Size(201, 22);
             mnuCelCancel.Text = "Cancel";
             mnuCelCancel.Click += mnuCelCancel_Click;
             // 
@@ -406,14 +407,15 @@ namespace WinAGI.Editor {
             txtMaxScreenObjs.Dock = System.Windows.Forms.DockStyle.Right;
             txtMaxScreenObjs.Location = new System.Drawing.Point(691, 0);
             txtMaxScreenObjs.MaxLength = 3;
+            txtMaxScreenObjs.MaxValue = 255;
+            txtMaxScreenObjs.MinValue = 0;
             txtMaxScreenObjs.Name = "txtMaxScreenObjs";
             txtMaxScreenObjs.Size = new System.Drawing.Size(45, 23);
             txtMaxScreenObjs.TabIndex = 2;
+            txtMaxScreenObjs.Text = "0";
             txtMaxScreenObjs.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            txtMaxScreenObjs.TextChanged += txtMaxScreenObjs_TextChanged;
+            txtMaxScreenObjs.Value = 0;
             txtMaxScreenObjs.Enter += txtMaxScreenObjs_Enter;
-            txtMaxScreenObjs.KeyDown += txtMaxScreenObjs_KeyDown;
-            txtMaxScreenObjs.KeyPress += txtMaxScreenObjs_KeyPress;
             txtMaxScreenObjs.Leave += txtMaxScreenObjs_Leave;
             txtMaxScreenObjs.Validating += txtMaxScreenObjs_Validating;
             // 
@@ -545,7 +547,7 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuCelSelectAll;
         private System.Windows.Forms.ToolStripSeparator mnuCelSep2;
         private System.Windows.Forms.ToolStripMenuItem mnuCelCancel;
-        private System.Windows.Forms.TextBox txtMaxScreenObjs;
+        private WinAGI.Editor.NumericTextBox txtMaxScreenObjs;
         private System.Windows.Forms.DataGridView fgObjects;
         private System.Windows.Forms.DataGridViewTextBoxColumn colIndex;
         private System.Windows.Forms.DataGridViewTextBoxColumn colDescription;

@@ -314,6 +314,7 @@ namespace WinAGI.Engine {
             DefaultAlwaysTransparent = true;
             SourceRegion = new(0, 0, 0, 0);
             TargetPos = new(0, 0);
+            SourceSize = new(320, 168);
             Visible = false;
             ShowVis = true;
             ShowPri = false;

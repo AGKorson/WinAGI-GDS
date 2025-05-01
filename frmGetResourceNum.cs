@@ -7,6 +7,7 @@ using static WinAGI.Editor.Base.GetRes;
 using static WinAGI.Common.Base;
 using System.Windows.Forms.Design;
 using WinAGI.Common;
+using System.Diagnostics;
 
 namespace WinAGI.Editor {
     public partial class frmGetResourceNum : Form {
@@ -103,6 +104,10 @@ namespace WinAGI.Editor {
                     DialogResult = DialogResult.OK;
                 }
                 break;
+            case TestView:
+                // OK to exit
+                DialogResult = DialogResult.OK;
+                break;
             default:
                 // TODO: hmm, what would get us here?
                 DialogResult = DialogResult.Cancel;
@@ -171,16 +176,36 @@ namespace WinAGI.Editor {
                 }
                 break;
             default:
-            //case grRenumber:
-            //case grOpen:
-            //case grTestView:
-            //case grShowRoom:
-            //case grMenu:
-            //case grMenuBkgd:
-            //case grRenumberRoom:
+                //case grRenumber:
+                //case grOpen:
+                //case grTestView:
+                //case grShowRoom:
+                //case grMenu:
+                //case grMenuBkgd:
+                //case grRenumberRoom:
                 btnOK.Enabled = lstResNum.SelectedIndex != -1;
                 break;
             }
+        }
+
+        private void lstResNum_MouseDoubleClick(object sender, MouseEventArgs e) {
+            switch (WindowFunction) {
+            case TestView:
+                btnOK.PerformClick();
+                break;
+            case AddLayout:
+            case AddNew:
+            case AddInGame:
+            case Import:
+            case Renumber:
+            case Open:
+            case ShowRoom:
+            case GetRes.Menu:
+            case MenuBkgd:
+            case GetRes.RenumberRoom:
+                break;
+            }
+
         }
 
         private void chkRoom_CheckedChanged(object sender, EventArgs e) {
@@ -215,6 +240,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Methods
         public void FormSetup(GetRes function) {
             int i;
             ListItemData tmpItem;
@@ -552,6 +578,6 @@ namespace WinAGI.Editor {
                 break;
             }
         }
-
+        #endregion
     }
 }

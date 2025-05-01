@@ -539,7 +539,7 @@ namespace WinAGI.Engine {
         /// <param name="Y"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public AGIColorIndex VisPixel(byte X, byte Y) {
+        public AGIColorIndex VisPixelColor(byte X, byte Y) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (X > 159) {
                 throw new ArgumentOutOfRangeException(nameof(X));
@@ -554,13 +554,13 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Returns the priority color of the pixel at the specified  location.
+        /// Returns the priority color of the pixel at the specified location.
         /// </summary>
         /// <param name="X"></param>
         /// <param name="Y"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public AGIColorIndex PriPixel(byte X, byte Y) {
+        public AGIColorIndex PriPixelColor(byte X, byte Y) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (X > 159) {
                 throw new ArgumentOutOfRangeException(nameof(X));
@@ -582,7 +582,7 @@ namespace WinAGI.Engine {
         /// <param name="Y"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public AGIColorIndex PixelPri(byte X, byte Y) {
+        public AGIColorIndex PixelPriority(byte X, byte Y) {
             AGIColorIndex retval;
 
             WinAGIException.ThrowIfNotLoaded(this);
@@ -678,7 +678,7 @@ namespace WinAGI.Engine {
 
         /// <summary>
         /// Forces bitmap to reload. Use when palette changes (or any other reason
-        /// that the calling program needs the cel to be refreshed).
+        /// that the calling program needs the picture images to be refreshed).
         /// </summary>
         public void ResetPicture() {
             mPicBMPSet = false;
@@ -843,6 +843,15 @@ namespace WinAGI.Engine {
             mPicBMPSet = true;
         }
 
+        /// <summary>
+        /// Returns the pen status at the specified position in the picture. The
+        /// status is returned as a PenStatus structure. The statuspos parameter
+        /// is the position in the picture data to check. If the value is less than
+        /// 0 or greater than the size of the picture data, the end of the data
+        /// is used.
+        /// </summary>
+        /// <param name="statuspos"></param>
+        /// <returns></returns>
         public PenStatus GetPenStatus(int statuspos) {
             int lngPos;
             short bytIn;

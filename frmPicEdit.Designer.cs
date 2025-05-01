@@ -114,7 +114,6 @@ namespace WinAGI.Editor {
             mnuSetTestView = new ToolStripMenuItem();
             mnuTestViewOptions = new ToolStripMenuItem();
             mnuTestTextOptions = new ToolStripMenuItem();
-            mnuTestPrintCommand = new ToolStripMenuItem();
             mnuTextScreenSize = new ToolStripMenuItem();
             mnuESep4 = new ToolStripSeparator();
             mnuToggleScreen = new ToolStripMenuItem();
@@ -287,7 +286,7 @@ namespace WinAGI.Editor {
             // 
             mnuCut.Name = "mnuCut";
             mnuCut.ShortcutKeys = Keys.Control | Keys.X;
-            mnuCut.Size = new System.Drawing.Size(248, 22);
+            mnuCut.Size = new System.Drawing.Size(257, 22);
             mnuCut.Text = "Cut";
             mnuCut.Click += mnuCut_Click;
             // 
@@ -295,7 +294,7 @@ namespace WinAGI.Editor {
             // 
             mnuCopy.Name = "mnuCopy";
             mnuCopy.ShortcutKeys = Keys.Control | Keys.C;
-            mnuCopy.Size = new System.Drawing.Size(248, 22);
+            mnuCopy.Size = new System.Drawing.Size(257, 22);
             mnuCopy.Text = "Copy";
             mnuCopy.Click += mnuCopy_Click;
             // 
@@ -303,7 +302,7 @@ namespace WinAGI.Editor {
             // 
             mnuPaste.Name = "mnuPaste";
             mnuPaste.ShortcutKeys = Keys.Control | Keys.V;
-            mnuPaste.Size = new System.Drawing.Size(248, 22);
+            mnuPaste.Size = new System.Drawing.Size(257, 22);
             mnuPaste.Text = "Paste";
             mnuPaste.Click += mnuPaste_Click;
             // 
@@ -799,7 +798,7 @@ namespace WinAGI.Editor {
             splitLists.Panel2.Controls.Add(lblCoords);
             splitLists.Panel2.Controls.Add(lstCoords);
             splitLists.Size = new System.Drawing.Size(132, 409);
-            splitLists.SplitterDistance = 279;
+            splitLists.SplitterDistance = 278;
             splitLists.SplitterWidth = 5;
             splitLists.TabIndex = 0;
             splitLists.SplitterMoving += splitLists_SplitterMoving;
@@ -829,7 +828,7 @@ namespace WinAGI.Editor {
             lstCommands.Name = "lstCommands";
             lstCommands.ShowGroups = false;
             lstCommands.ShowItemToolTips = true;
-            lstCommands.Size = new System.Drawing.Size(132, 255);
+            lstCommands.Size = new System.Drawing.Size(132, 254);
             lstCommands.TabIndex = 0;
             lstCommands.UseCompatibleStateImageBehavior = false;
             lstCommands.View = View.Details;
@@ -845,29 +844,29 @@ namespace WinAGI.Editor {
             // 
             // cmEdit
             // 
-            cmEdit.Items.AddRange(new ToolStripItem[] { mnuUndo, mnuESep0, mnuCut, mnuCopy, mnuPaste, mnuPastePen, mnuDelete, mnuClearPicture, mnuSelectAll, mnuESep1, mnuInsertCoord, mnuSplitCommand, mnuJoinCommands, mnuFlipV, mnuFlipH, mnuESep2, mnuEditMode, mnuViewTestMode, mnuTextTestMode, mnuESep3, mnuSetTestView, mnuTestViewOptions, mnuTestTextOptions, mnuTestPrintCommand, mnuTextScreenSize, mnuESep4, mnuToggleScreen, mnuToggleBands, mnuEditPriBase, mnuToggleTextMarks, mnuESep5, mnuToggleBackground, mnuEditBackground, mnuRemoveBackground });
+            cmEdit.Items.AddRange(new ToolStripItem[] { mnuUndo, mnuESep0, mnuCut, mnuCopy, mnuPaste, mnuPastePen, mnuDelete, mnuClearPicture, mnuSelectAll, mnuESep1, mnuInsertCoord, mnuSplitCommand, mnuJoinCommands, mnuFlipV, mnuFlipH, mnuESep2, mnuEditMode, mnuViewTestMode, mnuTextTestMode, mnuESep3, mnuSetTestView, mnuTestViewOptions, mnuTestTextOptions, mnuTextScreenSize, mnuESep4, mnuToggleScreen, mnuToggleBands, mnuEditPriBase, mnuToggleTextMarks, mnuESep5, mnuToggleBackground, mnuEditBackground, mnuRemoveBackground });
             cmEdit.Name = "cmEdit";
-            cmEdit.Size = new System.Drawing.Size(249, 656);
+            cmEdit.Size = new System.Drawing.Size(258, 634);
             cmEdit.Opening += cmEdit_Opening;
             // 
             // mnuUndo
             // 
             mnuUndo.Name = "mnuUndo";
             mnuUndo.ShortcutKeys = Keys.Control | Keys.Z;
-            mnuUndo.Size = new System.Drawing.Size(248, 22);
+            mnuUndo.Size = new System.Drawing.Size(257, 22);
             mnuUndo.Text = "Undo";
             mnuUndo.Click += mnuUndo_Click;
             // 
             // mnuESep0
             // 
             mnuESep0.Name = "mnuESep0";
-            mnuESep0.Size = new System.Drawing.Size(245, 6);
+            mnuESep0.Size = new System.Drawing.Size(254, 6);
             // 
             // mnuPastePen
             // 
             mnuPastePen.Name = "mnuPastePen";
             mnuPastePen.ShortcutKeys = Keys.Control | Keys.Shift | Keys.V;
-            mnuPastePen.Size = new System.Drawing.Size(248, 22);
+            mnuPastePen.Size = new System.Drawing.Size(257, 22);
             mnuPastePen.Text = "Pen Aware Paste";
             mnuPastePen.Click += mnuPastePen_Click;
             // 
@@ -875,7 +874,7 @@ namespace WinAGI.Editor {
             // 
             mnuDelete.Name = "mnuDelete";
             mnuDelete.ShortcutKeys = Keys.Delete;
-            mnuDelete.Size = new System.Drawing.Size(248, 22);
+            mnuDelete.Size = new System.Drawing.Size(257, 22);
             mnuDelete.Text = "Delete";
             mnuDelete.Click += mnuDelete_Click;
             // 
@@ -883,7 +882,7 @@ namespace WinAGI.Editor {
             // 
             mnuClearPicture.Name = "mnuClearPicture";
             mnuClearPicture.ShortcutKeys = Keys.Shift | Keys.Delete;
-            mnuClearPicture.Size = new System.Drawing.Size(248, 22);
+            mnuClearPicture.Size = new System.Drawing.Size(257, 22);
             mnuClearPicture.Text = "Clear Picture";
             mnuClearPicture.Click += mnuClearPicture_Click;
             // 
@@ -891,20 +890,20 @@ namespace WinAGI.Editor {
             // 
             mnuSelectAll.Name = "mnuSelectAll";
             mnuSelectAll.ShortcutKeys = Keys.Control | Keys.A;
-            mnuSelectAll.Size = new System.Drawing.Size(248, 22);
+            mnuSelectAll.Size = new System.Drawing.Size(257, 22);
             mnuSelectAll.Text = "Select All";
             mnuSelectAll.Click += mnuSelectAll_Click;
             // 
             // mnuESep1
             // 
             mnuESep1.Name = "mnuESep1";
-            mnuESep1.Size = new System.Drawing.Size(245, 6);
+            mnuESep1.Size = new System.Drawing.Size(254, 6);
             // 
             // mnuInsertCoord
             // 
             mnuInsertCoord.Name = "mnuInsertCoord";
             mnuInsertCoord.ShortcutKeys = Keys.Shift | Keys.Insert;
-            mnuInsertCoord.Size = new System.Drawing.Size(248, 22);
+            mnuInsertCoord.Size = new System.Drawing.Size(257, 22);
             mnuInsertCoord.Text = "Insert Coordinate";
             mnuInsertCoord.Click += mnuInsertCoord_Click;
             // 
@@ -912,7 +911,7 @@ namespace WinAGI.Editor {
             // 
             mnuSplitCommand.Name = "mnuSplitCommand";
             mnuSplitCommand.ShortcutKeys = Keys.Control | Keys.Shift | Keys.T;
-            mnuSplitCommand.Size = new System.Drawing.Size(248, 22);
+            mnuSplitCommand.Size = new System.Drawing.Size(257, 22);
             mnuSplitCommand.Text = "Split Command";
             mnuSplitCommand.Click += mnuSplitCommand_Click;
             // 
@@ -920,28 +919,28 @@ namespace WinAGI.Editor {
             // 
             mnuJoinCommands.Name = "mnuJoinCommands";
             mnuJoinCommands.ShortcutKeys = Keys.Control | Keys.Shift | Keys.J;
-            mnuJoinCommands.Size = new System.Drawing.Size(248, 22);
+            mnuJoinCommands.Size = new System.Drawing.Size(257, 22);
             mnuJoinCommands.Text = "Join Commands";
             mnuJoinCommands.Click += mnuJoinCommands_Click;
             // 
             // mnuFlipV
             // 
             mnuFlipV.Name = "mnuFlipV";
-            mnuFlipV.Size = new System.Drawing.Size(248, 22);
+            mnuFlipV.Size = new System.Drawing.Size(257, 22);
             mnuFlipV.Text = "Flip Vertical";
             mnuFlipV.Click += mnuFlipV_Click;
             // 
             // mnuFlipH
             // 
             mnuFlipH.Name = "mnuFlipH";
-            mnuFlipH.Size = new System.Drawing.Size(248, 22);
+            mnuFlipH.Size = new System.Drawing.Size(257, 22);
             mnuFlipH.Text = "Flip Horizontal";
             mnuFlipH.Click += mnuFlipH_Click;
             // 
             // mnuESep2
             // 
             mnuESep2.Name = "mnuESep2";
-            mnuESep2.Size = new System.Drawing.Size(245, 6);
+            mnuESep2.Size = new System.Drawing.Size(254, 6);
             // 
             // mnuEditMode
             // 
@@ -949,7 +948,7 @@ namespace WinAGI.Editor {
             mnuEditMode.CheckState = CheckState.Checked;
             mnuEditMode.ImageScaling = ToolStripItemImageScaling.None;
             mnuEditMode.Name = "mnuEditMode";
-            mnuEditMode.Size = new System.Drawing.Size(248, 22);
+            mnuEditMode.Size = new System.Drawing.Size(257, 22);
             mnuEditMode.Text = "Edit Mode";
             mnuEditMode.Click += mnuEditMode_Click;
             // 
@@ -957,7 +956,7 @@ namespace WinAGI.Editor {
             // 
             mnuViewTestMode.ImageScaling = ToolStripItemImageScaling.None;
             mnuViewTestMode.Name = "mnuViewTestMode";
-            mnuViewTestMode.Size = new System.Drawing.Size(248, 22);
+            mnuViewTestMode.Size = new System.Drawing.Size(257, 22);
             mnuViewTestMode.Text = "View Test Mode";
             mnuViewTestMode.Click += mnuViewTestMode_Click;
             // 
@@ -965,20 +964,20 @@ namespace WinAGI.Editor {
             // 
             mnuTextTestMode.ImageScaling = ToolStripItemImageScaling.None;
             mnuTextTestMode.Name = "mnuTextTestMode";
-            mnuTextTestMode.Size = new System.Drawing.Size(248, 22);
+            mnuTextTestMode.Size = new System.Drawing.Size(257, 22);
             mnuTextTestMode.Text = "Text Test Mode";
             mnuTextTestMode.Click += mnuTextTestMode_Click;
             // 
             // mnuESep3
             // 
             mnuESep3.Name = "mnuESep3";
-            mnuESep3.Size = new System.Drawing.Size(245, 6);
+            mnuESep3.Size = new System.Drawing.Size(254, 6);
             // 
             // mnuSetTestView
             // 
             mnuSetTestView.Name = "mnuSetTestView";
             mnuSetTestView.ShortcutKeys = Keys.Alt | Keys.V;
-            mnuSetTestView.Size = new System.Drawing.Size(248, 22);
+            mnuSetTestView.Size = new System.Drawing.Size(257, 22);
             mnuSetTestView.Text = "Change Test View...";
             mnuSetTestView.Click += mnuSetTestView_Click;
             // 
@@ -986,7 +985,7 @@ namespace WinAGI.Editor {
             // 
             mnuTestViewOptions.Name = "mnuTestViewOptions";
             mnuTestViewOptions.ShortcutKeys = Keys.Alt | Keys.O;
-            mnuTestViewOptions.Size = new System.Drawing.Size(248, 22);
+            mnuTestViewOptions.Size = new System.Drawing.Size(257, 22);
             mnuTestViewOptions.Text = "Test View Options...";
             mnuTestViewOptions.Click += mnuTestViewOptions_Click;
             // 
@@ -994,35 +993,28 @@ namespace WinAGI.Editor {
             // 
             mnuTestTextOptions.Name = "mnuTestTextOptions";
             mnuTestTextOptions.ShortcutKeys = Keys.Alt | Keys.D;
-            mnuTestTextOptions.Size = new System.Drawing.Size(248, 22);
+            mnuTestTextOptions.Size = new System.Drawing.Size(257, 22);
             mnuTestTextOptions.Text = "Text Test Options...";
             mnuTestTextOptions.Click += mnuTestTextOptions_Click;
-            // 
-            // mnuTestPrintCommand
-            // 
-            mnuTestPrintCommand.Name = "mnuTestPrintCommand";
-            mnuTestPrintCommand.Size = new System.Drawing.Size(248, 22);
-            mnuTestPrintCommand.Text = "Test print() Command...";
-            mnuTestPrintCommand.Click += mnuTestPrintCommand_Click;
             // 
             // mnuTextScreenSize
             // 
             mnuTextScreenSize.Name = "mnuTextScreenSize";
             mnuTextScreenSize.ShortcutKeys = Keys.Alt | Keys.W;
-            mnuTextScreenSize.Size = new System.Drawing.Size(248, 22);
+            mnuTextScreenSize.Size = new System.Drawing.Size(257, 22);
             mnuTextScreenSize.Text = "Text Screen Size: 40";
             mnuTextScreenSize.Click += mnuTextScreenSize_Click;
             // 
             // mnuESep4
             // 
             mnuESep4.Name = "mnuESep4";
-            mnuESep4.Size = new System.Drawing.Size(245, 6);
+            mnuESep4.Size = new System.Drawing.Size(254, 6);
             // 
             // mnuToggleScreen
             // 
             mnuToggleScreen.Name = "mnuToggleScreen";
             mnuToggleScreen.ShortcutKeys = Keys.Alt | Keys.S;
-            mnuToggleScreen.Size = new System.Drawing.Size(248, 22);
+            mnuToggleScreen.Size = new System.Drawing.Size(257, 22);
             mnuToggleScreen.Text = "Show Priority Screen";
             mnuToggleScreen.Click += mnuToggleScreen_Click;
             // 
@@ -1030,7 +1022,7 @@ namespace WinAGI.Editor {
             // 
             mnuToggleBands.Name = "mnuToggleBands";
             mnuToggleBands.ShortcutKeys = Keys.Alt | Keys.P;
-            mnuToggleBands.Size = new System.Drawing.Size(248, 22);
+            mnuToggleBands.Size = new System.Drawing.Size(257, 22);
             mnuToggleBands.Text = "Show Priority Bands";
             mnuToggleBands.Click += mnuToggleBands_Click;
             // 
@@ -1038,43 +1030,44 @@ namespace WinAGI.Editor {
             // 
             mnuEditPriBase.Name = "mnuEditPriBase";
             mnuEditPriBase.ShortcutKeys = Keys.Control | Keys.Alt | Keys.P;
-            mnuEditPriBase.Size = new System.Drawing.Size(248, 22);
-            mnuEditPriBase.Text = "Edit Priority Base";
+            mnuEditPriBase.Size = new System.Drawing.Size(257, 22);
+            mnuEditPriBase.Text = "Adjust Priority Base";
             mnuEditPriBase.Click += mnuEditPriBase_Click;
             // 
             // mnuToggleTextMarks
             // 
             mnuToggleTextMarks.Name = "mnuToggleTextMarks";
             mnuToggleTextMarks.ShortcutKeys = Keys.Alt | Keys.T;
-            mnuToggleTextMarks.Size = new System.Drawing.Size(248, 22);
+            mnuToggleTextMarks.Size = new System.Drawing.Size(257, 22);
             mnuToggleTextMarks.Text = "Show Text Marks";
             mnuToggleTextMarks.Click += mnuToggleTextMarks_Click;
             // 
             // mnuESep5
             // 
             mnuESep5.Name = "mnuESep5";
-            mnuESep5.Size = new System.Drawing.Size(245, 6);
+            mnuESep5.Size = new System.Drawing.Size(254, 6);
             // 
             // mnuToggleBackground
             // 
             mnuToggleBackground.Name = "mnuToggleBackground";
             mnuToggleBackground.ShortcutKeys = Keys.Alt | Keys.B;
-            mnuToggleBackground.Size = new System.Drawing.Size(248, 22);
+            mnuToggleBackground.Size = new System.Drawing.Size(257, 22);
             mnuToggleBackground.Text = "Show Background";
             mnuToggleBackground.Click += mnuToggleBackground_Click;
             // 
             // mnuEditBackground
             // 
             mnuEditBackground.Name = "mnuEditBackground";
-            mnuEditBackground.Size = new System.Drawing.Size(248, 22);
+            mnuEditBackground.ShortcutKeys = Keys.Control | Keys.Alt | Keys.B;
+            mnuEditBackground.Size = new System.Drawing.Size(257, 22);
             mnuEditBackground.Text = "Background Settings...";
             mnuEditBackground.Click += mnuEditBackground_Click;
             // 
             // mnuRemoveBackground
             // 
             mnuRemoveBackground.Name = "mnuRemoveBackground";
-            mnuRemoveBackground.ShortcutKeys = Keys.Control | Keys.Alt | Keys.P;
-            mnuRemoveBackground.Size = new System.Drawing.Size(248, 22);
+            mnuRemoveBackground.ShortcutKeys = Keys.Control | Keys.Shift | Keys.B;
+            mnuRemoveBackground.Size = new System.Drawing.Size(257, 22);
             mnuRemoveBackground.Text = "Remove Background";
             mnuRemoveBackground.Click += mnuRemoveBackground_Click;
             // 
@@ -1102,7 +1095,7 @@ namespace WinAGI.Editor {
             lstCoords.Name = "lstCoords";
             lstCoords.ShowGroups = false;
             lstCoords.ShowItemToolTips = true;
-            lstCoords.Size = new System.Drawing.Size(132, 90);
+            lstCoords.Size = new System.Drawing.Size(132, 81);
             lstCoords.TabIndex = 0;
             lstCoords.UseCompatibleStateImageBehavior = false;
             lstCoords.View = View.Details;
@@ -1110,7 +1103,6 @@ namespace WinAGI.Editor {
             lstCoords.KeyUp += lstCoords_KeyUp;
             lstCoords.MouseClick += lstCoords_MouseClick;
             lstCoords.MouseDoubleClick += lstCoords_MouseDoubleClick;
-            lstCoords.MouseEnter += lstCoords_MouseEnter;
             lstCoords.MouseUp += lstCoords_MouseUp;
             // 
             // CoordColumnHeader
@@ -1141,7 +1133,7 @@ namespace WinAGI.Editor {
             splitImages.Panel2.Controls.Add(picPriority);
             splitImages.Panel2MinSize = 0;
             splitImages.Size = new System.Drawing.Size(663, 409);
-            splitImages.SplitterDistance = 165;
+            splitImages.SplitterDistance = 164;
             splitImages.SplitterWidth = 5;
             splitImages.TabIndex = 2;
             splitImages.SplitterMoving += splitImages_SplitterMoving;
@@ -1190,6 +1182,7 @@ namespace WinAGI.Editor {
             picVisual.TabIndex = 2;
             picVisual.TabStop = false;
             picVisual.Paint += picVisual_Paint;
+            picVisual.DoubleClick += picVisual_DoubleClick;
             picVisual.MouseDown += DrawSurface_MouseDown;
             picVisual.MouseLeave += DrawSurface_MouseLeave;
             picVisual.MouseMove += DrawSurface_MouseMove;
@@ -1217,7 +1210,7 @@ namespace WinAGI.Editor {
             // hsbPriority
             // 
             hsbPriority.Anchor = AnchorStyles.Left;
-            hsbPriority.Location = new System.Drawing.Point(0, 132);
+            hsbPriority.Location = new System.Drawing.Point(0, 123);
             hsbPriority.Minimum = -5;
             hsbPriority.Name = "hsbPriority";
             hsbPriority.Size = new System.Drawing.Size(176, 16);
@@ -1342,7 +1335,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuCut;
         private System.Windows.Forms.ToolStripMenuItem mnuCopy;
         private System.Windows.Forms.ToolStripMenuItem mnuPaste;
-        private ToolStripContainer toolStripContainer1;
         private ToolStrip toolStrip1;
         private ToolStripDropDownButton tsbMode;
         private ToolStripDropDownButton tsbTool;
@@ -1436,7 +1428,6 @@ namespace WinAGI.Editor {
         private ToolStripMenuItem mnuToggleBackground;
         private ToolStripMenuItem mnuEditBackground;
         private ToolStripMenuItem mnuRemoveBackground;
-        private ToolStripMenuItem mnuTestPrintCommand;
         private ContextMenuStrip cmEdit;
         private ToolStripMenuItem mnuFlipV;
         private ToolStripMenuItem mnuFlipH;

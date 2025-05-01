@@ -5759,6 +5759,16 @@ namespace WinAGI.Editor {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] downarrow {
+            get {
+                object obj = ResourceManager.GetObject("downarrow", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] EPC_BRUSH {
             get {
                 object obj = ResourceManager.GetObject("EPC_BRUSH", resourceCulture);

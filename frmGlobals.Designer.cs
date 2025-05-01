@@ -313,7 +313,7 @@ namespace WinAGI.Editor {
             mnuRSaveAs.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E;
             mnuRSaveAs.Size = new System.Drawing.Size(193, 22);
             mnuRSaveAs.Text = "Save As...";
-            mnuRSaveAs.Click += mnuRExport_Click;
+            mnuRSaveAs.Click += mnuRSaveAs_Click;
             // 
             // mnuRInGame
             // 

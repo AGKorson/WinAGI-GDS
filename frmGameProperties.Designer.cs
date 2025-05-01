@@ -28,6 +28,8 @@
             btnCancel = new System.Windows.Forms.Button();
             tabControl1 = new System.Windows.Forms.TabControl();
             General = new System.Windows.Forms.TabPage();
+            chkResourceIDs = new System.Windows.Forms.CheckBox();
+            chkResDefs = new System.Windows.Forms.CheckBox();
             btnGameDir = new System.Windows.Forms.Button();
             chkUseLE = new System.Windows.Forms.CheckBox();
             chkGlobals = new System.Windows.Forms.CheckBox();
@@ -69,8 +71,6 @@
             cmbCodePage = new System.Windows.Forms.ComboBox();
             lblSierraSyntax = new System.Windows.Forms.Label();
             lblCodePage = new System.Windows.Forms.Label();
-            chkResDefs = new System.Windows.Forms.CheckBox();
-            chkResourceIDs = new System.Windows.Forms.CheckBox();
             tabControl1.SuspendLayout();
             General.SuspendLayout();
             Version.SuspendLayout();
@@ -137,6 +137,34 @@
             General.TabIndex = 0;
             General.Text = "General";
             General.UseVisualStyleBackColor = true;
+            // 
+            // chkResourceIDs
+            // 
+            chkResourceIDs.AutoSize = true;
+            chkResourceIDs.Checked = true;
+            chkResourceIDs.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkResourceIDs.Location = new System.Drawing.Point(19, 242);
+            chkResourceIDs.Name = "chkResourceIDs";
+            chkResourceIDs.Size = new System.Drawing.Size(215, 19);
+            chkResourceIDs.TabIndex = 11;
+            chkResourceIDs.Tag = "#useresnames";
+            chkResourceIDs.Text = "Automatically Include Resource IDs ";
+            chkResourceIDs.UseVisualStyleBackColor = true;
+            chkResourceIDs.CheckedChanged += chkResourceIDs_CheckedChanged;
+            // 
+            // chkResDefs
+            // 
+            chkResDefs.AutoSize = true;
+            chkResDefs.Checked = true;
+            chkResDefs.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkResDefs.Location = new System.Drawing.Point(19, 262);
+            chkResDefs.Name = "chkResDefs";
+            chkResDefs.Size = new System.Drawing.Size(269, 19);
+            chkResDefs.TabIndex = 12;
+            chkResDefs.Tag = "#useresnames";
+            chkResDefs.Text = "Automatically Include Reserved Define Names";
+            chkResDefs.UseVisualStyleBackColor = true;
+            chkResDefs.CheckedChanged += chkUseReserved_CheckedChanged;
             // 
             // btnGameDir
             // 
@@ -245,6 +273,7 @@
             // 
             // cmbVersion
             // 
+            cmbVersion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbVersion.FormattingEnabled = true;
             cmbVersion.Location = new System.Drawing.Point(220, 37);
             cmbVersion.Name = "cmbVersion";
@@ -620,34 +649,6 @@
             lblCodePage.Size = new System.Drawing.Size(378, 143);
             lblCodePage.TabIndex = 0;
             lblCodePage.Text = resources.GetString("lblCodePage.Text");
-            // 
-            // chkResDefs
-            // 
-            chkResDefs.AutoSize = true;
-            chkResDefs.Checked = true;
-            chkResDefs.CheckState = System.Windows.Forms.CheckState.Checked;
-            chkResDefs.Location = new System.Drawing.Point(19, 262);
-            chkResDefs.Name = "chkResDefs";
-            chkResDefs.Size = new System.Drawing.Size(269, 19);
-            chkResDefs.TabIndex = 12;
-            chkResDefs.Tag = "#useresnames";
-            chkResDefs.Text = "Automatically Include Reserved Define Names";
-            chkResDefs.UseVisualStyleBackColor = true;
-            chkResDefs.CheckedChanged += chkUseReserved_CheckedChanged;
-            // 
-            // chkResourceIDs
-            // 
-            chkResourceIDs.AutoSize = true;
-            chkResourceIDs.Checked = true;
-            chkResourceIDs.CheckState = System.Windows.Forms.CheckState.Checked;
-            chkResourceIDs.Location = new System.Drawing.Point(19, 242);
-            chkResourceIDs.Name = "chkResourceIDs";
-            chkResourceIDs.Size = new System.Drawing.Size(215, 19);
-            chkResourceIDs.TabIndex = 11;
-            chkResourceIDs.Tag = "#useresnames";
-            chkResourceIDs.Text = "Automatically Include Resource IDs ";
-            chkResourceIDs.UseVisualStyleBackColor = true;
-            chkResourceIDs.CheckedChanged += chkResourceIDs_CheckedChanged;
             // 
             // frmGameProperties
             // 

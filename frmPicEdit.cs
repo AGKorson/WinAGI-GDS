@@ -1,47 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using WinAGI.Engine;
-using static WinAGI.Common.Base;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
-using static WinAGI.Editor.Base;
-using static WinAGI.Editor.PictureUndo.ActionType;
-using static WinAGI.Editor.frmPicEdit.DrawFunction;
-using System.IO;
-using WinAGI.Common;
-using static WinAGI.Common.API;
-using EnvDTE;
 using System.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
+using System.Drawing;
 using System.Drawing.Drawing2D;
-using FastColoredTextBoxNS;
-using System.Text.Json.Serialization;
-using System.Security.Cryptography;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using WinAGI.Common;
+using WinAGI.Engine;
+using static WinAGI.Common.API;
+using static WinAGI.Common.Base;
+using static WinAGI.Editor.Base;
+using static WinAGI.Editor.frmPicEdit.DrawFunction;
+using static WinAGI.Editor.PictureUndo.ActionType;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor {
     public partial class frmPicEdit : Form, IMessageFilter {
         #region Picture Editor Structs
-        public struct PicTestInfo {
-            public int ObjSpeed;
-            public int ObjPriority;  //16 means auto; 4-15 correspond to priority bands
-            public int ObjRestriction;  //0 = no restriction, 1 = restrict to , 2 = restrict to land
-            public int Horizon;
-            public bool IgnoreHorizon;
-            public bool IgnoreBlocks;
-            public int TestLoop;
-            public int TestCel;
-            public bool CycleAtRest;
-        }
-
+        /// <summary>
+        /// Struct to hold information about the current command being edited.
+        /// </summary>
         public struct CommandInfo {
             public int Index;
             public int Position;
@@ -117,69 +99,487 @@ namespace WinAGI.Editor {
                 SelectedCoordIndex = -1;
             }
         }
+
+        /// <summary>
+        /// Struct to hold information about the current print/display test settings.
+        /// </summary>
+        public struct PrintTestInfo {
+            // read-only (calculated) properties
+            private bool isChanged = false;
+
+            private int tErrLevel = 0;
+            public int ErrLevel {
+                get {
+                    if (isChanged) {
+                        if (tMode == PrintTestMode.Display) {
+                            tData = CompileMsg(tText);
+                        }
+                        else {
+                            tData = FormatMsg(tText);
+                        }
+                        isChanged = false;
+                    }
+                    return tErrLevel;
+                }
+            }
+
+            private byte[] tData = [];
+            public byte[] Data {
+                get {
+                    if (isChanged) {
+                        if (tMode == PrintTestMode.Display) {
+                            tData = CompileMsg(tText);
+                        }
+                        else {
+                            tData = FormatMsg(tText);
+                        }
+                        isChanged = false;
+                    }
+                    return tData;
+                }
+            }
+
+            private int tTop = 0;
+            public int Top {
+                get {
+                    if (isChanged) {
+                        if (tMode == PrintTestMode.Display) {
+                            tData = CompileMsg(tText);
+                        }
+                        else {
+                            tData = FormatMsg(tText);
+                        }
+                        isChanged = false;
+                    }
+                    return tTop;
+                }
+            }
+
+            private int tLeft = 0;
+            public int Left {
+                get {
+                    if (isChanged) {
+                        if (tMode == PrintTestMode.Display) {
+                            tData = CompileMsg(tText);
+                        }
+                        else {
+                            tData = FormatMsg(tText);
+                        }
+                        isChanged = false;
+                    }
+                    return tLeft;
+                }
+            }
+
+            private int tWidth = 0;
+            public int Width {
+                get {
+                    if (isChanged) {
+                        if (tMode == PrintTestMode.Display) {
+                            tData = CompileMsg(tText);
+                        }
+                        else {
+                            tData = FormatMsg(tText);
+                        }
+                        isChanged = false;
+                    }
+                    return tWidth;
+                }
+            }
+
+            private int tHeight = 0;
+            public int Height {
+                get {
+                    if (isChanged) {
+                        if (tMode == PrintTestMode.Display) {
+                            tData = CompileMsg(tText);
+                        }
+                        else {
+                            tData = FormatMsg(tText);
+                        }
+                        isChanged = false;
+                    }
+                    return tHeight;
+                }
+            }
+
+            // user-adjustable properties
+            public int CodePage = 437;
+
+            private PrintTestMode tMode = PrintTestMode.Print;
+            public PrintTestMode Mode {
+                get => tMode;
+                set {
+                    tMode = value;
+                    isChanged = true;
+                }
+            }
+
+            private int tPicOffset = 1;
+            public int PicOffset {
+                get => tPicOffset;
+                set {
+                    tPicOffset = value;
+                    isChanged = true;
+                }
+            }
+
+            private int tMaxWidth = 30;
+            public int MaxWidth {
+                get => tMaxWidth;
+                set {
+                    tMaxWidth = value;
+                    isChanged = true;
+                }
+            }
+
+            private string tText = "";
+            public string Text {
+                get => tText;
+                set {
+                    tText = value;
+                    isChanged = true;
+                }
+            }
+
+            private int tStartCol = 0;
+            public int StartCol {
+                get => tStartCol;
+                set {
+                    tStartCol = value;
+                    isChanged = true;
+                }
+            }
+
+            private int tStartRow = 0;
+            public int StartRow {
+                get => tStartRow;
+                set {
+                    tStartRow = value;
+                    isChanged = true;
+                }
+            }
+
+            private int tBGColor = 0;
+            public int BGColor {
+                get => tBGColor;
+                set {
+                    tBGColor = value;
+                    isChanged = true;
+                }
+            }
+
+            private int tFGColor = 15;
+            public int FGColor {
+                get => tFGColor;
+                set {
+                    tFGColor = value;
+                    isChanged = true;
+                }
+            }
+
+            private int tMaxCol = 39;
+            public int MaxCol {
+                get => tMaxCol;
+                set {
+                    tMaxCol = value;
+                    isChanged = true;
+                }
+            }
+
+            private int tCharWidth = 8;
+            public int CharWidth {
+                get => tCharWidth;
+                set {
+                    tCharWidth = value;
+                    isChanged = true;
+                }
+            }
+
+            // constructors
+            public PrintTestInfo() {
+            }
+
+            public PrintTestInfo(int codepage) {
+                CodePage = codepage;
+            }
+
+            public PrintTestInfo(PrintTestInfo source) {
+                // copy all non-calculated properties and  
+                // mark as changed
+                CodePage = source.CodePage;
+                tMode = source.tMode;
+                tPicOffset = source.tPicOffset;
+                tMaxWidth = source.tMaxWidth;
+                tText = source.tText;
+                tStartRow = source.tStartRow;
+                tStartCol = source.tStartCol;
+                tBGColor = source.BGColor;
+                tFGColor = source.FGColor;
+                tMaxCol = source.tMaxCol;
+                tCharWidth = source.tCharWidth;
+                isChanged = true;
+            }
+
+            // methods
+            private byte[] FormatMsg(string msg) {
+                // formats a message string to fit in a print box
+
+                int lineWidth = 0, brk = 0, NewMax = 0;
+                bool blnESC = false;
+
+                int intMode = 0;
+                //  0= normal text
+                //  1= % format code
+
+                // first, replace compiler format codes
+                tData = CompileMsg(msg);
+
+                // then, format to fit width
+                List<byte> output = [];
+                int rowcount = 1;
+                for (int i = 0; i < tData.Length; i++) {
+                    byte intChar = tData[i];
+                    switch (intMode) {
+                    case 0:
+                        // normal
+                        if (blnESC) {
+                            blnESC = false;
+                            // always add the char
+                            output.Add(intChar);
+                            // increment width
+                            lineWidth++;
+                            if (intChar == 32) {
+                                // update the break
+                                brk = lineWidth;
+                            }
+                        }
+                        else {
+                            switch (intChar) {
+                            case 10:
+                                // newline
+                                // add the char
+                                output.Add(intChar);
+                                // increment row
+                                rowcount++;
+                                // update actual max
+                                if (lineWidth > NewMax) {
+                                    NewMax = lineWidth;
+                                }
+                                // reset width
+                                lineWidth = 0;
+                                // reset break
+                                brk = 0;
+                                break;
+                            case 32:
+                                // space
+                                // add the char
+                                output.Add(intChar);
+                                // increment width
+                                lineWidth++;
+                                // update the break
+                                brk = lineWidth;
+                                break;
+
+                            case 37:
+                                // %
+                                // check for percent format code
+                                intMode = 1;
+                                break; // exit do
+                            case 92:
+                                // \
+                                // esc code
+                                blnESC = true;
+                                break; // exit do
+                            default:
+                                // add the char
+                                output.Add(intChar);
+                                // increment width
+                                lineWidth++;
+                                break;
+                            }
+                        }
+                        break;
+                    case 1:
+                        // % format code
+                        intMode = 0;
+                        // TODO: need to add support for format codes
+                        break;
+                    }
+                    if (lineWidth == tMaxWidth) {
+                        if (brk == 0) {
+                            // add break here
+                            output.Add(10);
+                            rowcount++;
+                            // update actual max
+                            if (lineWidth > NewMax) {
+                                NewMax = lineWidth;
+                            }
+                            // reset width
+                            lineWidth = 0;
+                        }
+                        else {
+                            // insert cr at break, clearing ending space
+                            output.Insert(output.Count - lineWidth + brk - 1, 10);
+                            rowcount++;
+                            // update actual max
+                            if (brk - 1 > NewMax) {
+                                NewMax = brk - 1;
+                            }
+                            // reset width
+                            lineWidth = lineWidth - brk;
+                            // reset break
+                            brk = 0;
+                        }
+                    }
+                }
+                // update actual max on last row
+                if (lineWidth > NewMax) {
+                    NewMax = lineWidth;
+                }
+                // save height/width
+                tHeight = (byte)rowcount;
+                tWidth = (byte)NewMax;
+                if (tMode == PrintTestMode.Print) {
+                    // calculate msgbox top/left
+                    // texttop=(maxH-1-height)/2+1
+                    tTop = (byte)(((20 - 1 - rowcount) / 2) + 1);
+                    // textleft=(screenwidth-textwidth)/2
+                    tLeft = (byte)((tMaxCol + 1 - NewMax) / 2);
+                }
+                else {
+                    // use starting values
+                    tTop = tStartRow;
+                    tLeft = tStartCol;
+                }
+                isChanged = false;
+                tErrLevel = 0;
+                // validate position
+                if (tLeft < 2) {
+                    tErrLevel = 1;
+                }
+                if (tLeft + tWidth > (tMaxCol - 1)) {
+                    tErrLevel += 2;
+                }
+                if (tTop < 1) {
+                    tErrLevel += 4;
+                }
+                if (tTop + tHeight > 20) {
+                    tErrLevel += 8;
+                }
+                // return formatted string
+                return output.ToArray();
+            }
+
+            private byte[] CompileMsg(string msg) {
+                List<byte> output = [];
+                int intMode = 0;
+                byte[] msginput;
+                msginput = Encoding.GetEncoding(CodePage).GetBytes(msg);
+                for (int i = 0; i < msginput.Length; i++) {
+                    int intChar = msginput[i];
+                    switch (intMode) {
+                    case 0:
+                        // normal
+                        if (intChar == 92) {
+                            intMode = 1;
+                        }
+                        else {
+                            // add the char
+                            output.Add((byte)intChar);
+                        }
+                        break;
+                    case 1:
+                        // back slash
+                        intMode = 0;
+                        switch (intChar) {
+                        case 78 or 110:
+                            //  \n
+                            // add cr
+                            output.Add(10);
+                            break;
+                        default:
+                            // includes \\, \"
+                            // add the char
+                            output.Add((byte)intChar);
+
+                            // TODO: need to add support for \x codes
+                            // and others...
+                            break;
+                        }
+                        break;
+                    }
+                }
+                isChanged = false;
+                tErrLevel = 0;
+                if (tMode == PrintTestMode.Display) {
+                    tTop = tStartRow;
+                    tLeft = tStartRow;
+                    // validate position
+                    if (tTop < tPicOffset) {
+                        tErrLevel |= 0x100;
+                    }
+                    if (tTop > 20 + tPicOffset) {
+                        tErrLevel |= 0x200;
+                    }
+                    // only concerned about height if picoffset
+                    // is less than 4 and ending row is greater
+                    // than last row of pic image
+                    if (tPicOffset < 4) {
+                        // find end row
+                        int endcol = tLeft, endrow = tTop;
+                        for (int i = 0; i < output.Count; i++) {
+                            if (output[i] == 10) {
+                                // cr
+                                endrow++;
+                                endcol = 0;
+                            }
+                            else {
+                                endcol++;
+                                // check for overflow
+                                if (endcol > tMaxCol) {
+                                    endrow++;
+                                    endcol = 0;
+                                }
+                            }
+                        }
+                        // now check end row
+                        if (endrow > 20 + tPicOffset) {
+                            tErrLevel |= 0x400;
+                        }
+                    }
+                }
+                return output.ToArray();
+            }
+        }
         #endregion
 
         #region Picture Editor Enums
+        /// <summary>
+        /// Enum to indicate the current mode of the picture editor.
+        /// </summary>
         public enum PicEditorMode {
             Edit,
             ViewTest,
             PrintTest
         }
 
-        private enum PicToolType {
-            Edit = 0,      //indicates edit tool is selected; mouse ops move coords and commands
-            SetPen = 1,    //not used, but included for possible updated capabilities
-            Line = 2,      //line drawing tool; mouse ops set start/end points
-            ShortLine = 3,   //short line tool; mouse ops set start/end points
-            StepLine = 4,    //corner line tool; mouse ops set start/end points
-            Fill = 5,      //fill tool; mouse ops set starting point of fill operations
-            Plot = 6,      //plot tool
-            Rectangle = 7, //for drawing rectangles
-            Trapezoid = 8, //for drawing trapezoids
-            Ellipse = 9,   //for drawing ellipses
-            SelectArea = 10, //for selecting bitmap areas of the Image
-        }
-
+        /// <summary>
+        /// Enum to indicate the current drawing operation.
+        /// </summary>
         public enum PicDrawOp {
-            None = 0,          //indicates no drawing op is in progress; mouse operations generally don't do anything
-            Line = 1,          //lines being drawn; mouse ops set start/end points
-            Fill = 2,          //fill or plot commands being drawn; mouse ops set starting point of fill operations
-            Shape = 3,         //shape being drawn; mouse ops set bounds of the shape
-            SelectArea = 4,    //to select an area of the graphic
-            MoveCmds = 5,      //to move a set of commands
-            MovePoint = 6,        //to move a single coordinate point
+            None = 0,          // indicates no drawing op is in progress; mouse operations generally don't do anything
+            Line = 1,          // lines being drawn; mouse ops set start/end points
+            Fill = 2,          // fill or plot commands being drawn; mouse ops set starting point of fill operations
+            Shape = 3,         // shape being drawn; mouse ops set bounds of the shape
+            SelectArea = 4,    // to select an area of the graphic
+            MoveCmds = 5,      // to move a set of commands
+            MovePoint = 6,     // to move a single coordinate point
         }
 
-        private enum PicCursor {
-            Edit,
-            Cross,
-            Move,
-            NoOp,
-            Default,
-            Paint,
-            Brush,
-            Select,
-            DragSurface,
-            SelectImage,
-        }
-
-        private enum PicStatusMode {
-            Pixel,
-            Coord,
-            Text,
-        }
-
-        public enum CoordinateHighlightType {
-            FlashBox,
-            XMode,
-        }
-
-        private enum WindowMode {
-            Visual = 0x1,
-            Priority = 0x2,
-            Both = 0x3,
-        }
-
+        /// <summary>
+        /// Enum that includes all valid AGI picture drawing function command codes.
+        /// </summary>
         public enum DrawFunction {
             EnableVis = 0xf0,    // Change picture color and enable picture draw.
             DisableVis = 0xF1,   // Disable picture draw.
@@ -194,6 +594,74 @@ namespace WinAGI.Editor {
             PlotPen = 0xFA,      // Plot with pen.
             End = 0xFF           // end of drawing
         }
+
+        /// <summary>
+        /// Enum to indicate the current drawing tool.
+        /// </summary>
+        private enum PicToolType {
+            Edit = 0,       //indicates edit tool is selected; mouse ops move coords and commands
+            SetPen = 1,     //not used, but included for possible updated capabilities
+            Line = 2,       //line drawing tool; mouse ops set start/end points
+            ShortLine = 3,  //short line tool; mouse ops set start/end points
+            StepLine = 4,   //corner line tool; mouse ops set start/end points
+            Fill = 5,       //fill tool; mouse ops set starting point of fill operations
+            Plot = 6,       //plot tool
+            Rectangle = 7,  //for drawing rectangles
+            Trapezoid = 8,  //for drawing trapezoids
+            Ellipse = 9,    //for drawing ellipses
+            SelectArea = 10, //for selecting bitmap areas of the Image
+        }
+
+        /// <summary>
+        /// Enum to indicate the current style used for highlighting selected coordinates.
+        /// </summary>
+        public enum CoordinateHighlightType {
+            FlashBox,
+            XMode,
+        }
+
+        /// <summary>
+        /// Enum to indicate the cursor currently in use. It tracks with the selected tool.
+        /// </summary>
+        private enum PicCursor {
+            Edit,
+            Cross,
+            Move,
+            NoOp,
+            Default,
+            Paint,
+            Brush,
+            Select,
+            DragSurface,
+            SelectImage,
+        }
+
+        /// <summary>
+        /// Enum to indicate the display mode of the status bar.
+        /// </summary>
+        private enum PicStatusMode {
+            Pixel,
+            Coord,
+            Text,
+        }
+
+        /// <summary>
+        /// Enum to indicate which draw surface windows are currently active.
+        /// </summary>
+        private enum WindowMode {
+            Visual = 0x1,
+            Priority = 0x2,
+            Both = 0x3,
+        }
+
+        /// <summary>
+        /// Enum to indicate the type of print test being performed.
+        /// </summary>
+        public enum PrintTestMode {
+            Print,
+            PrintAt,
+            Display,
+        }
         #endregion
 
         #region Picture Editor Members
@@ -206,22 +674,22 @@ namespace WinAGI.Editor {
         internal EGAColors EditPalette = DefaultPalette.CopyPalette();
         private Stack<PictureUndo> UndoCol = [];
         private bool priorityActive = false;
-        // variables to support tool selection/manipulation/use
-        private PicDrawOp PicDrawMode; //used to indicate what current drawing op is happening (determines what mouse ops mean)
-        private PicToolType SelectedTool;  // used to indicate what tool is currently selected
+
+        // tool selection/manipulation/use
+        private PicDrawOp PicDrawMode;
+        private PicToolType SelectedTool;
         private Rectangle SelectedRegion = new(0, 0, 0, 0);
-        private Point AnchorPT, Delta;
+        private Point DragPT, AnchorPT, Delta;
         private Point PicPt; // the current mouse location in agi coordinates
         private Point EditPt = new(-1, -1), CoordPt = new(-1, -1);
         private bool Inserting = false; // used to indicate if a coordinate is being inserted
         private bool CancelContextMenu = false;
         private CommandInfo SelectedCmd;
         private int SelectedCmdCount;
-
         private DrawFunction EditCmd;
         private Point[] ArcPts;
 
-        // variables to support graphics/display
+        // graphics/display
         private WindowMode OneWindow;
         private bool TooSmall = false;
         private Color VCColor; //color of 'x's in 'x' cursor mode for visual
@@ -239,8 +707,7 @@ namespace WinAGI.Editor {
         private PicCursor CurCursor;
         private bool blnDragging;
         private int dashdistance = 6;
-        Pen dash1 = new(Color.Black);
-        Pen dash2 = new(Color.White);
+        readonly Pen dash1 = new(Color.Black), dash2 = new(Color.White);
 
         // view testing
         private Engine.View TestView;
@@ -249,21 +716,17 @@ namespace WinAGI.Editor {
         private Point TestCelPos;
         private bool ShowTestCel;
         private ObjDirection TestDir;
-        private int TestViewNum;
+        private byte TestViewNum = 0;
         private string TestViewFile;
         private byte CurTestLoop, CurTestCel, CurTestLoopCount;
-        private EGAColors[] TestCelData;
+        private byte[,] TestCelData;
         private byte CelHeight, CelWidth;
         private AGIColorIndex CelTrans;
-        private PicTestInfo TestSettings;
+        private PicTestInfo TestSettings = new();
 
         // text screen testing
-        private byte PicOffset, TextMode, MsgMaxW;
-        private string MsgText;
-        private byte MsgTop, MsgLeft;
-        private byte MsgWidth, MsgHeight;
-        private byte MsgBG, MsgFG;
-        private int MaxCol, CharWidth;
+        private bool ShowPrintTest = false;
+        private PrintTestInfo PTInfo;
         private readonly Bitmap chargrid;
 
         // StatusStrip Items
@@ -284,1422 +747,21 @@ namespace WinAGI.Editor {
 public void MenuClickHelp() {
   
   switch (PicMode) {
-  case pmEdit:
-    HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Picture_Editor.htm"
-  case pmPrintTest:
-    HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\pictestmode.htm#textprint"
-  case pmViewTest:
-    HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\pictestmode.htm"
-  }
-}
-
-private void GetTestView() {
-  
-  // get a test view to use in test mode
-  
-  // if game is loaded
-  if (GameLoaded) {
-    // use the get resource form
-      frmGetResourceNum.WindowFunction = grTestView
-      frmGetResourceNum.ResType = rtView
-      frmGetResourceNum.OldResNum = TestViewNum
-      // setup before loading so ghosts don't show up
-      frmGetResourceNum.FormSetup
-      // show the form
-      frmGetResourceNum.Show vbModal, frmMDIMain
-    
-      // if canceled, unload and exit
-      if (frmGetResourceNum.Canceled) {
-        Unload frmGetResourceNum
-        return;
-      }
-    
-      // set testview id
-      TestViewNum = frmGetResourceNum.NewResNum
-    Unload frmGetResourceNum
-    
-  } else {
-    // get test view from file
-      MainDialog.DialogTitle = "Choose Test View"
-      MainDialog.Filter = "AGI View Resource (*.agv)|*.agv|All files (*.*)|*.*"
-      MainDialog.FilterIndex = ReadSettingLong(SettingsList, sVIEWS, sOPENFILTER, 1)
-      MainDialog.DefaultExt = vbNullString
-      MainDialog.FileName = vbNullString
-      MainDialog.InitDir = DefaultResDir
-      
-      MainDialog.ShowOpen
-      if (Err.Number = cdlCancel) {
-        // exit
-        return;
-      }
-      TestViewFile = MainDialog.FileName
-      
-      WriteAppSetting SettingsList, sVIEWS, sOPENFILTER, MainDialog.FilterIndex
-      DefaultResDir = JustPath(MainDialog.FileName)
-  }
-  
-  // reload testview
-  LoadTestView
-  
-  // if in motion
-  if (TestDir != odStopped) {
-    // stop motion
-    TestDir = odStopped
-    tmrTest.Enabled = TestSettings.CycleAtRest
-  }
-}
-
-public void ChangeDir(int ByVal KeyCode) {
-  
-  // should ONLY be called when in test mode
-  // *'Debug.Assert PicMode = pmViewTest
-  
-  // if view is not on picture
-  if (!ShowTestCel) {
-    return;
-  }
-  
-  // takes a keycode as the input, and changes direction if appropriate
-  switch (KeyCode) {
-  case vbKeyUp or vbKeyNumpad8:
-    // if direction is currently up
-    if (TestDir = odUp) {
-      // stop movement
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    } else {
-      // set direction to up
-      TestDir = odUp
-      // set loop to 3, if there are four AND loop is not 3 AND in auto
-      if (TestView.Loops.Count >= 4 && CurTestLoop != 3 && (TestSettings.TestLoop = -1)) {
-        CurTestLoop = 3
-        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-        CurTestCel = 0
-        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-      }
-      // enable timer
-      tmrTest.Enabled = true
-    }
-    
-  case vbKeyPageUp or vbKeyNumpad9:
-    // if direction is currently UpRight
-    if (TestDir = odUpRight) {
-      // stop movement
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    } else {
-      // set direction to upright
-      TestDir = odUpRight
-      // set loop to 0, if not already 0 AND in auto
-      if (CurTestLoop != 0 && (TestSettings.TestLoop = -1)) {
-        CurTestLoop = 0
-        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-        CurTestCel = 0
-        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-      }
-      // enable timer
-      tmrTest.Enabled = true
-    }
-    
-  case vbKeyRight or vbKeyNumpad6:
-    // if direction is currently Right
-    if (TestDir = odRight) {
-      // stop movement
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    } else {
-      // set direction to right
-      TestDir = odRight
-      // set loop to 0, if not already 0 AND in auto
-      if (CurTestLoop != 0 && (TestSettings.TestLoop = -1)) {
-        CurTestLoop = 0
-        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-        CurTestCel = 0
-        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-      }
-      // enable timer
-      tmrTest.Enabled = true
-    }
-    
-  case vbKeyPageDown or vbKeyNumpad3:
-    // if direction is currently DownRight
-    if (TestDir = odDownRight) {
-      // stop movement
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    } else {
-      // set direction to downright
-      TestDir = odDownRight
-      // set loop to 0, if not already 0 AND in auto
-      if (CurTestLoop != 0 && (TestSettings.TestLoop = -1)) {
-        CurTestLoop = 0
-        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-        CurTestCel = 0
-        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-      }
-      // enable timer
-      tmrTest.Enabled = true
-    }
-    
-  case vbKeyDown or vbKeyNumpad2:
-    // if direction is currently down
-    if (TestDir = odDown) {
-      // stop movement
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    } else {
-      // set direction to down
-      TestDir = odDown
-      // set loop to 2, if there are four AND loop is not 2 AND in auto
-      if (TestView.Loops.Count >= 4 && CurTestLoop != 2 && (TestSettings.TestLoop = -1)) {
-        CurTestLoop = 2
-        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-        CurTestCel = 0
-        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-      }
-      // enable timer
-      tmrTest.Enabled = true
-    }
-    
-  case vbKeyEnd or vbKeyNumpad1:
-    // if direction is currently DownLeft
-    if (TestDir = odDownLeft) {
-      // stop movement
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    } else {
-      // set direction to downLeft
-      TestDir = odDownLeft
-      // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
-      if ((TestView.Loops.Count >= 2) && (CurTestLoop != 1) && (TestSettings.TestLoop = -1)) {
-        CurTestLoop = 1
-        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-        CurTestCel = 0
-        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-      }
-      // enable timer
-      tmrTest.Enabled = true
-    }
-    
-  case vbKeyLeft or vbKeyNumpad4:
-    // if direction is currently Left
-    if (TestDir = odLeft) {
-      // stop movement
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    } else {
-      // set direction to Left
-      TestDir = odLeft
-      // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
-      if ((TestView.Loops.Count >= 2) && (CurTestLoop != 1) && (TestSettings.TestLoop = -1)) {
-        CurTestLoop = 1
-        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-        CurTestCel = 0
-        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-      }
-      // enable timer
-      tmrTest.Enabled = true
-    }
-    
-  case vbKeyHome or vbKeyNumpad7:
-    // if direction is currently UpLeft
-    if (TestDir = odUpLeft) {
-      // stop movement
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    } else {
-      // set direction to UpLeft
-      TestDir = odUpLeft
-      // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
-      if ((TestView.Loops.Count >= 2) && (CurTestLoop != 1) && (TestSettings.TestLoop = -1)) {
-        CurTestLoop = 1
-        CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-        CurTestCel = 0
-        TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-      }
-      // enable timer
-      tmrTest.Enabled = true
-    }
-    
-  case vbKeyNumpad5:
-    // always stop
-    TestDir = 0
-    tmrTest.Enabled = TestSettings.CycleAtRest
-  }
-}
-
-private void LoadTestView() {
-    
-  // if a test view is currently loaded,
-  if (!(TestView == null)) {
-    // unload it and release it
-    TestView.Unload
-    Set TestView = Nothing
-    //  disable test cel drawing
-    ShowTestCel = false
-  }
-  
-  Set TestView = New AGIView
-  // if in a game
-  if (GameLoaded) {
-    // copy from game
-    if (!Views(TestViewNum).Loaded) {
-      Views(TestViewNum).Load
-      TestView.SetView Views(TestViewNum)
-      Views(TestViewNum).Unload
-    } else {
-      TestView.SetView Views(TestViewNum)
-    }
-  } else {
-    // load from file
-    TestView.Import TestViewFile
-  }
-  
-  // if error
-  if (Err.Number != 0) {
-    ErrMsgBox "Unable to load view resource due to error:", "Test view not set.", "Test View Error"
-    Set TestView = Nothing
-    return;
-  }
-  // reset loop and cel and direction, and motion
-  CurTestLoop = 0
-  TestSettings.TestLoop = -1 // 0
-  CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-  CurTestCel = 0
-  TestSettings.TestCel = -1 //  0
-  TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-  TestDir = 0
-  // set cel height/width/transcolor
-  CelWidth = TestView.Loops(CurTestLoop).Cels(CurTestCel).Width
-  CelHeight = TestView.Loops(CurTestLoop).Cels(CurTestCel).Height
-  CelTrans = TestView.Loops(CurTestLoop).Cels(CurTestCel).TransColor
-  
-  // disable drawing until user actually places the cel
-  ShowTestCel = false
-  
-  // if already in test mode (and we're changing
-  // the view being used)
-  if (PicMode = pmViewTest) {
-    // redraw picture to clear old testview
-    DrawPicture
-  }
-}
-
-private void SelectTestView() {
-  
-    // get a test view
-    GetTestView
-    
-    // redraw
-    DrawPicture
-}
-
-private void GetPrintTest() {
-    // show print options dialog
-    Load frmPicPrintPrev
-      frmPicPrintPrev.SetForm TextMode, MaxCol
-      frmPicPrintPrev.txtCol.Text = MsgLeft
-      frmPicPrintPrev.txtRow.Text = MsgTop
-      frmPicPrintPrev.txtMW.Text = MsgMaxW
-      frmPicPrintPrev.cmbBG.ListIndex = MsgBG
-      frmPicPrintPrev.cmbFG.ListIndex = MsgFG
-      frmPicPrintPrev.txtMessage.Text = MsgText
-      frmPicPrintPrev.Show vbModal
-    
-    if (!frmPicPrintPrev.Canceled) {
-      // display the preview text
-      ShowTextPreview
-    }
-    Unload frmPicPrintPrev
-}
-
-private void SetViewTestOptions() {
-  
-    // if in test mode, and in motion
-    if (TestDir != odStopped) {
-      // stop motion and stop cycling
-      TestDir = odStopped
-    }
-    
-    // if cycling, stop; doesn't matter if
-    // at rest or in motion
-    tmrTest.Enabled = false
-    
-    // if testview not loaded,
-    if (TestView == null) {
-      // load one first
-      MenuClickECustom1
-      // if still no testview
-      if (TestView == null) {
-        // exit
-        return;
-      }
-    }
-  
-    Load frmPicTestOptions
-      // set global testpic settings
-      Settings.PicTest = TestSettings
-      // set form properties
-      frmPicTestOptions.SetOptions TestView
-      
-      // show options form
-      frmPicTestOptions.Show vbModal, frmMDIMain
-      
-      // if not canceled
-      if (!frmPicTestOptions.Canceled) {
-        // retreive option values
-        TestSettings = Settings.PicTest
-        // if test loop and/or cel are NOT auto, force current loop/cel
-        if (TestSettings.TestLoop != -1) {
-          CurTestLoop = TestSettings.TestLoop
-          CurTestLoopCount = TestView.Loops(CurTestLoop).Cels.Count
-          // just in case, check current cel; if it exceeds
-          // loop count, reset it to zero
-          if (CurTestCel > CurTestLoopCount - 1) {
-            CurTestCel = CurTestLoopCount - 1
-          }
-          if (TestSettings.TestCel != -1) {
-            CurTestCel = TestSettings.TestCel
-          }
-          // if either loop or cel is forced, we
-          // have to update cel data
-          TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-        }
-        
-        // update cel height/width/transcolor
-        CelWidth = TestView.Loops(CurTestLoop).Cels(CurTestCel).Width
-        CelHeight = TestView.Loops(CurTestLoop).Cels(CurTestCel).Height
-        CelTrans = TestView.Loops(CurTestLoop).Cels(CurTestCel).TransColor
-        
-        // set timer based on speed
-        switch (TestSettings.ObjSpeed) {
-        case 0:
-            // slow
-          tmrTest.Interval = 200
-        case 1:
-            // normal
-          tmrTest.Interval = 50
-        case 2:
-            // fast
-          tmrTest.Interval = 13
-        case 3:
-            // fastest
-          tmrTest.Interval = 1
-        }
-      }
-      
-      // redraw cel at current position
-      DrawPicture
-      
-      // now enable cycling
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    
-    // unload options form
-    Unload frmPicTestOptions
-}
-
-private void ToggleTextScreenSize() {
-    // toggle width (if powerpack is enabled)
-    // always confirm
-    if (MsgBox("Change screen size to " & IIf(MaxCol = 39, "80", "40") & " columns?", vbQuestion + vbYesNo, "Toggle Screen Size") = vbYes) {
-      if (MaxCol = 39) {
-        MaxCol = 79
-        CharWidth = 4
-      } else {
-        MaxCol = 39
-        CharWidth = 8
-      }
-      if (ShowTextMarks) {
-        // redraw
-        DrawPicture
-      }
-    }
-  }
-}
-
-private void Form_KeyDown() {
-
- // check for global shortcut keys
-  CheckShortcuts KeyCode, Shift
-  if (KeyCode = 0) {
-    return;
-  }
-  
-  switch (Shift) {
-  case vbCtrlMask:
-    switch (KeyCode) {
-    case vbKeyZ:
-      // undo
-      if (frmMDIMain.mnuEUndo.Enabled) {
-        MenuClickUndo
-      }
-    
-    case vbKeyX:
-      if (frmMDIMain.mnuECut.Enabled) {
-        MenuClickCut
-        KeyCode = 0
-      }
-    
-    case vbKeyC:
-      if (frmMDIMain.mnuECopy.Enabled) {
-        MenuClickCopy
-        KeyCode = 0
-      }
-      
-    case vbKeyV:
-        MenuClickPaste
-        KeyCode = 0
-    
-    case vbKeyA:
-            // select all
-      if (frmMDIMain.mnuESelectAll.Enabled) {
-        MenuClickSelectAll
-        KeyCode = 0
-      }
-    }
-    
-  case 0:
-    // no shift, ctrl, alt
-    switch (KeyCode) {
-    case vbKeyEscape:
-      // if a coord is selected, unselect it
-      if (lstCoords.ListIndex != -1) {
-        CodeClick = true
-        lstCommands_Click
-      }
-    
-    case vbKeyDelete:
-      if (frmMDIMain.mnuEDelete.Enabled) {
-        // same as menuclickdelete
-        MenuClickDelete
-      }
-      
-    case vbKeyUp or vbKeyLeft:
-      if (PicMode = pmEdit) {
-        // if a coord is selected
-        if (lstCoords.ListIndex != -1) {
-          // if not on first coord,
-          if (lstCoords.ListIndex > 0) {
-            // move up one coord pt
-            lstCoords.ListIndex = lstCoords.ListIndex - 1
-          }
-        } else {
-          // if not on first cmd
-          if (SelectedCmd > 0) {
-            // move up one cmd
-            SelectCmd SelectedCmd - 1, false
-          }
-        }
-        // reset keycode to prevent double movement of cursor
-        KeyCode = 0
-      }
-      
-    case vbKeyDown or vbKeyRight:
-      if (PicMode = pmEdit) {
-        // if a coord is selected
-        if (lstCoords.ListIndex != -1) {
-          // if not on last coord,
-          if (lstCoords.ListIndex < lstCoords.ListCount - 1) {
-            // move down one coord pt
-            lstCoords.ListIndex = lstCoords.ListIndex + 1
-          }
-        } else {
-          // if not on last cmd
-          if (SelectedCmd != lstCommands.ListCount - 1) {
-            // move down one cmd
-            SelectCmd SelectedCmd + 1, false
-          }
-        }
-        // reset keycode to prevent double-movement of cursor
-        KeyCode = 0
-      }
-    
-    case vbKeySpace:
-      // toggle status bar coordinate display -
-      //  normal -- text row/col in draw mode
-      //  normal -- test coords in test mode
-      
-      // toggle status bar display if in test mode
-      if (PicMode = pmViewTest) {
-        // toggle status bar source
-        if (StatusMode = psPixel) {
-          tmpStatusMode = psCoord // to test coords
-        } else {
-          tmpStatusMode = psPixel // to normal
-        }
-      } else {
-        // only if text markers are visible
-        if (ShowTextMarks) {
-          if (StatusMode = psPixel) {
-            tmpStatusMode = psText // to text row/col
-          } else {
-            tmpStatusMode = psPixel // to normal
-          }
-        } else {
-          tmpStatusMode = StatusMode
-        }
-      }
-      
-      if (tmpStatusMode != StatusMode) {
-        StatusMode = tmpStatusMode
-        // force update of statusbar
-          switch (StatusMode) {
-          case psPixel:
-            //  normal
-            // use cusor position
-            spCurX").Text = "X: " & CStr(PicPt.X)
-            spCurY").Text = "Y: " & CStr(PicPt.Y)
-            spPriBand").Text = "Band: "
-            SendMessage MainStatusBar.hWnd, WM_SETREDRAW, 0, 0
-            spPriBand").Picture = imlPriBand.ListImages(GetPriBand(PicPt.Y, EditPicture.PriBase) - 3).Picture
-            SendMessage MainStatusBar.hWnd, WM_SETREDRAW, 1, 0
-          case psCoord:
-            //  test coords
-            // use test object position
-            spCurX").Text = "vX: " & CStr(TestCelPos.X)
-            spCurY").Text = "vY: " & CStr(TestCelPos.Y)
-            spPriBand").Text = "vBand: " & GetPriBand(TestCelPos.Y, EditPicture.PriBase)
-            SendMessage MainStatusBar.hWnd, WM_SETREDRAW, 0, 0
-            spPriBand").Picture = imlPriBand.ListImages(GetPriBand(TestCelPos.Y, EditPicture.PriBase) - 3).Picture
-            SendMessage MainStatusBar.hWnd, WM_SETREDRAW, 1, 0
-          case psText:
-            //  text row/col (note row/col swap 'x/y')
-            spCurX").Text = "R: " & CStr(Int(PicPt.Y / 8))
-            spCurY").Text = "C: " & CStr(Int(PicPt.X / (CharWidth / 2)))
-            spPriBand").Text = "Band: "
-            SendMessage MainStatusBar.hWnd, WM_SETREDRAW, 0, 0
-            spPriBand").Picture = imlPriBand.ListImages(GetPriBand(PicPt.Y, EditPicture.PriBase) - 3).Picture
-            SendMessage MainStatusBar.hWnd, WM_SETREDRAW, 1, 0
-          }
-      }
-    }
-    
-    // if in test mode
-    if (PicMode = pmViewTest) {
-      ChangeDir KeyCode
-    }
-  
-  case vbShiftMask:
-    switch (KeyCode) {
-    case vbKeyDelete:
-      if (frmMDIMain.mnuEClear.Enabled) {
-        MenuClickClear
-        KeyCode = 0
-      }
-    
-    case vbKeyInsert:
-      if (frmMDIMain.mnuEInsert.Enabled) {
-        MenuClickInsert
-        KeyCode = 0
-      }
-    }
-    
-  case vbAltMask:
-    switch (KeyCode) {
-    case vbKeyB:
-      // toggle background
-      if (frmMDIMain.mnuRCustom3.Enabled) {
-        UpdateBkgd !EditPicture.BkgdVisible
-        KeyCode = 0
-      }
-    
-    case vbKeyD:
-      // display text test options
-      if (PicMode = pmPrintTest) {
-        GetTextOptions
-        KeyCode = 0
-      }
-      
-    case vbKeyM:
-      // toggle mode
-      MenuClickReplace
-      
-    case vbKeyS:
-      // toggle visual/priority surfaces if
-      // in single pane mode
-      if (frmMDIMain.mnuERedo.Visible) {
-        MenuClickRedo
-      }
-      
-    case vbKeyP:
-      // toggle priority bands
-      if (frmMDIMain.mnuEFind.Enabled) {
-        MenuClickFind
-        KeyCode = 0
-      }
-    
-    case vbKeyT:
-      // toggle text marks
-      if (frmMDIMain.mnuEReplace.Enabled) {
-        MenuClickReplace
-        KeyCode = 0
-      }
-    
-    case vbKeyV:
-      // in test mode only, choose a test view
-      if (frmMDIMain.mnuECustom1.Enabled && PicMode = pmViewTest) {
-        MenuClickECustom1
-        KeyCode = 0
-      }
-    
-    case vbKeyO:
-      // in test mode only display test view options
-      if (frmMDIMain.mnuECustom2.Enabled && PicMode = pmViewTest) {
-        MenuClickECustom2
-        KeyCode = 0
-      }
-      
-    case vbKeyW:
-      // toggle screen width
-      if (PicMode = pmPrintTest) {
-        MenuClickECustom2
-        KeyCode = 0
-      }
-    }
-    
-  case vbShiftMask + vbCtrlMask:
-    switch (KeyCode) {
-    case vbKeyT:
-            // split = custom1
-      if (frmMDIMain.mnuECustom1.Enabled && PicMode = pmEdit) {
-        MenuClickECustom1
-        KeyCode = 0
-      }
-    
-    case vbKeyJ:
-            // join = custom2
-      if (frmMDIMain.mnuECustom2.Enabled && PicMode = pmEdit) {
-        MenuClickECustom2
-        KeyCode = 0
-      }
-    
-    case vbKeyS:
-      // save Image as
-      MenuClickCustom1
-    
-    case vbKeyG:
-      // export as gif
-      ExportPicAsGif
-    }
-  
-  case vbAltMask + vbShiftMask:
-    switch (KeyCode) {
-    case vbKeyB:
-      if (frmMDIMain.mnuRCustom3.Enabled) {
-        // remove bkgd image
-        MenuClickCustom3
-        KeyCode = 0
-      }
-    }
-  
-  case vbCtrlMask + vbAltMask:
-    switch (KeyCode) {
-    case vbKeyB:
-      // show background options dialog
-      UpdateBkgd true, true
-  
-    case vbKeyC:
-      // copy commands to clipboard as text
-      if (PicMode = pmEdit && lstCommands.SelCount >= 1) {
-        MenuClickECustom4
-      }
-
-    case vbKeyP:
-      // adjust priority base
-      if (frmMDIMain.mnuEFindAgain.Enabled) {
-        MenuClickFindAgain
-        KeyCode = 0
-      }
-    }
-  }
-  KeyCode = 0
-  Shift = 0
-  
-}
-
-private void ShowTextPreview() {
-
-  Dim i As Long, j As Long
-  Dim charval As Long, Pos As Long
-  Dim FmtText As String
-  Dim tmpRow As Long, tmpCol As Long
-  
-  // get info from msg preview form
-    MsgText = frmPicPrintPrev.txtMessage.Text
-    MsgTop = CByte(frmPicPrintPrev.txtRow.Text)
-    MsgLeft = CByte(frmPicPrintPrev.txtCol.Text)
-    MsgMaxW = CByte(frmPicPrintPrev.txtMW.Text)
-    if (PowerPack) {
-      MsgBG = CByte(frmPicPrintPrev.cmbBG.ListIndex)
-    } else {
-      if (frmPicPrintPrev.cmbBG.ListIndex = 0) {
-        MsgBG = 0
-      } else {
-        MsgBG = 15
-      }
-    }
-    MsgFG = CByte(frmPicPrintPrev.cmbFG.ListIndex)
-    if (frmPicPrintPrev.optPrint.Value = true) {
-      TextMode = 0
-      MsgMaxW = 30
-    } else if (frmPicPrintPrev.optPrintAt.Value = true) {
-      TextMode = 1
-      MsgMaxW = CByte(frmPicPrintPrev.txtMW.Text)
-    } else if (frmPicPrintPrev.optDisplay.Value = true) {
-     TextMode = 2
-    }
-  
-  // ''if priority only, won't work!!!
-  
-  // display
-  if (TextMode = 2) {
-    // compile the message
-    FmtText = CompileMsg(MsgText)
-    
-    // validate starting pos
-    if (MsgTop < PicOffset) {
-      MsgBox "Text would appear above the picture image.", vbInformation + vbOKOnly, "Invalid Position"
-      return;
-    }
-    if (MsgTop > 20 + PicOffset) {
-      MsgBox "Text would appear below the picture image.", vbInformation + vbOKOnly, "Invalid Position"
-      return;
-    }
-    
-    // use picCopy to help manage fg/bg
-    picCopy.Width = ScaleFactor * CharWidth
-    picCopy.Height = ScaleFactor * 8
-    picChar.Width = ScaleFactor * CharWidth
-    picChar.Height = ScaleFactor * 8
-    
-    i = (MsgTop - PicOffset) * ScaleFactor * 8
-    j = MsgLeft * ScaleFactor * CharWidth
-    for (int Pos = 0; i < FmtText.Length; i++) {
-      charval = Asc(Mid$(FmtText, Pos))
-      if (charval = 10) {
-        j = 0
-        i = i + ScaleFactor * 8
-      } else {
-        // draw the character on vis
-        StretchBlt picVisual.hDC, j, i, ScaleFactor * CharWidth, ScaleFactor * 8, chargrid, (charval Mod 16) * 16, (charval \ 16) * 16, 16, 16, SRCCOPY
-        // copy/invert it to picChar
-        picChar.Cls
-        BitBlt picChar.hDC, 0, 0, ScaleFactor * CharWidth, ScaleFactor * 8, picVisual.hDC, j, i, SRCINVERT
-        // add bg to vis
-        picCopy.BackColor = lngEGACol(MsgBG)
-        BitBlt picVisual.hDC, j, i, ScaleFactor * CharWidth, ScaleFactor * 8, picCopy.hDC, 0, 0, SRCAND
-        // add fg to surf
-        picCopy.BackColor = lngEGACol(MsgFG)
-        BitBlt picChar.hDC, 0, 0, ScaleFactor * CharWidth, ScaleFactor * 8, picCopy.hDC, 0, 0, SRCAND
-        // combine them
-        BitBlt picVisual.hDC, j, i, ScaleFactor * CharWidth, ScaleFactor * 8, picChar.hDC, 0, 0, SRCPAINT
-        // advance cursor
-        j = j + ScaleFactor * CharWidth
-        if (j >= 320 * ScaleFactor) {
-          j = 0
-          i = i + ScaleFactor * 8
-        }
-      }
-    }
-    picVisual.Refresh
-  
-  // print/print.at
-  } else {
-    // format the message
-    FmtText = FormatMsg(MsgText)
-    
-    // validate position
-    if (MsgLeft < 2) {
-      MsgBox "Message box would be off left edge of picture", vbInformation + vbOKOnly, "Invalid Position"
-      return;
-    }
-    if (MsgLeft + MsgWidth > (MaxCol - 1)) {
-      MsgBox "Message box would be off right edge of picture", vbInformation + vbOKOnly, "Invalid Position"
-      return;
-    }
-    if (MsgTop < 1) {
-      MsgBox "Message box would be off top edge of picture", vbInformation + vbOKOnly, "Invalid Position"
-      return;
-    }
-    if (MsgTop + MsgHeight > 20) {
-      MsgBox "Message box would be off bottom edge of picture", vbInformation + vbOKOnly, "Invalid Position"
-      return;
-    }
-    
-    // draw the white bounding box (convert row/col to pixels,add border)
-    picVisual.Line ((MsgLeft * CharWidth - 10) * ScaleFactor, ((MsgTop) * 8 - 5) * ScaleFactor)-Step((MsgWidth * CharWidth + 20) * ScaleFactor, (MsgHeight * 8 + 10) * ScaleFactor), lngEGACol(15), BF
-    // draw red border
-    picVisual.Line ((MsgLeft * CharWidth - 8) * ScaleFactor, ((MsgTop) * 8 - 4) * ScaleFactor)-Step((MsgWidth * CharWidth + 15) * ScaleFactor, ScaleFactor), lngEGACol(4), BF
-    picVisual.Line ((MsgLeft * CharWidth - 8) * ScaleFactor, ((MsgTop + MsgHeight) * 8 + 3) * ScaleFactor)-Step((MsgWidth * CharWidth + 15) * ScaleFactor, ScaleFactor), lngEGACol(4), BF
-    picVisual.Line ((MsgLeft * CharWidth - 8) * ScaleFactor, ((MsgTop) * 8 - 4) * ScaleFactor)-Step(ScaleFactor * 2, (MsgHeight * 8 + 8) * ScaleFactor), lngEGACol(4), BF
-    picVisual.Line (((MsgLeft + MsgWidth) * CharWidth + 6) * ScaleFactor, ((MsgTop) * 8 - 4) * ScaleFactor)-Step(ScaleFactor * 2, (MsgHeight * 8 + 8) * ScaleFactor), lngEGACol(4), BF
-    
-    // draw text
-    tmpRow = MsgTop
-    tmpCol = MsgLeft
-    
-    for (int i = 0; i < FmtText.Length; i++) {
-      
-      charval = Asc(Mid$(FmtText, i))
-      if (charval = 10) {
-        // move to next line
-        tmpRow = tmpRow + 1
-        tmpCol = MsgLeft
-      } else {
-        // draw the character on vis
-        StretchBlt picVisual.hDC, tmpCol * CharWidth * ScaleFactor, tmpRow * 8 * ScaleFactor, ScaleFactor * CharWidth, ScaleFactor * 8, chargrid, (charval Mod 16) * 16, (charval \ 16) * 16, 16, 16, SRCCOPY
-        tmpCol = tmpCol + 1
-      }
-    }
-  }
-}
-
-private string CompileMsg(ByVal msg As String) {
-
-  Dim i As Long
-  Dim output As String, intChar As Integer
-  Dim intMode As Long
-  
-  for (int i = 0; i < msg.Length; i++) {
-    intChar = Asc(Mid$(msg, i))
-    switch (intMode) {
-    case 0:
-            // normal
-      if (intChar = 92) {
-        intMode = 1
-      } else {
-        // add the char
-        output = output & Chr$(intChar)
-      }
-      
-    case 1:
-            // back slash
-      intMode = 0
-      switch (intChar) {
-      case 78 or 110:
-            //  \n
-        // add cr
-        output = output & Chr$(10)
-      default:
-            // includes \\, \"
-        // add the char
-        output = output & Chr$(intChar)
-      }
-    }
-  }
-  
-  CompileMsg = output
-}
-
-private string FormatMsg(ByVal msg As String) {
-  
-  Dim i As Long, lineWidth As Long
-  Dim output As String, intChar As Integer
-  Dim brk As Long, NewMax As Long, rowcount As Long
-  Dim intMode As Long, blnESC As Boolean
-  //  0=normal
-  //  1=format
-  
-  // first, replace compiler format codes
-  msg = CompileMsg(msg)
-  
-  // then, format to fit width
-  intMode = 0
-  output = ""
-  rowcount = 1
-  
-  for (int i = 0; i < msg.Length; i++) {
-    do {
-      intChar = Asc(Mid$(msg, i))
-      switch (intMode) {
-      case 0:
-            // normal
-        if (blnESC) {
-          blnESC = false
-          // always add the char
-          output = output & Chr$(intChar)
-          // increment width
-          lineWidth = lineWidth + 1
-          if (intChar = 32) {
-            // update the break
-            brk = lineWidth
-          }
-        } else {
-          switch (intChar) {
-          case 10:
-            // newline
-            // add the char
-            output = output & Chr$(intChar)
-            // increment row
-            rowcount = rowcount + 1
-            // update actual max
-            if (lineWidth > NewMax) {
-              NewMax = lineWidth
-            }
-            // reset width
-            lineWidth = 0
-            // reset break
-            brk = 0
-            
-          case 32:
-            // space
-            // add the char
-            output = output & Chr$(intChar)
-            // increment width
-            lineWidth = lineWidth + 1
-            // update the break
-            brk = lineWidth
-            
-          case 37:
-            // %
-            // check for percent format code
-            intMode = 2
-            break; // exit do
-          case 92:
-            // \
-            // esc code
-            blnESC = true
-            break; // exit do
-          default:
-            // add the char
-            output = output & Chr$(intChar)
-            // increment width
-            lineWidth = lineWidth + 1
-          }
-        }
-        
-      case 1:
-            // % format code
-        intMode = 0
-      // agiTODO
-      
-      }
-      
-      if (lineWidth = MsgMaxW) {
-        if (brk = 0) {
-          // add break here
-          output = output & Chr$(10)
-          rowcount = rowcount + 1
-          // update actual max
-          if (lineWidth > NewMax) {
-            NewMax = lineWidth
-          }
-          // reset width
-          lineWidth = 0
-        } else {
-          // insert cr at break, clearing ending space
-          output = Left$(output, Len(output) - lineWidth + brk - 1) & Chr$(10) & Right$(output, lineWidth - brk)
-          rowcount = rowcount + 1
-          // update actual max
-          if (brk - 1 > NewMax) {
-            NewMax = brk - 1
-          }
-          // reset width
-          lineWidth = lineWidth - brk
-          // reset break
-          brk = 0
-        }
-      }
-    } while (false);
-  }
-  // update actual max on last row
-  if (lineWidth > NewMax) {
-    NewMax = lineWidth
-  }
-  
-  // save height/width
-  MsgHeight = rowcount
-  MsgWidth = NewMax
-  
-  if (TextMode = 0) {
-    // calculate msgbox top/left
-    
-    // texttop=(maxH-1-height)/2+1
-    MsgTop = Int((20 - 1 - rowcount) / 2) + 1
-    // textleft=(screenwidth-textwidth)/2
-    MsgLeft = Int(((MaxCol + 1) - NewMax) / 2)
-    // textbottom=texttop+rowcount-1
-    // textright=textleft+textwidth
-  }
-  
-  // return formatted string
-  FormatMsg = output
-}
-
-private void AddCelToPic() {
-  // mask copies the test Image onto the visual screen
-  // 
-  // also adds the test Image to the priority screen, if visible
-  Dim i As Long, j As Long, X As Byte, Y As Byte
-  Dim CelPri As Long
-  Dim PixelPri As Long // PixelPri is pixel priority, determined by finding non-control line priority closest to this pixel
-  Dim PriPixel As Long // PriPixel is actual pixel Value of priority screen
-  Dim CelPixel As Long
-  Dim TestCel As AGICel
-  
-  // set testcel
-  Set TestCel = TestView.Loops(CurTestLoop).Cels(CurTestCel)
-  
-  // we are using picVisSurface and picPriSurface to temporarily hold bmps
-  // while we add the cels; (remember they're offset by 5 pixels in both directions
-  // so the temp bitmaps don't show through)
-  
-  // set priority (if in auto, get priority from current band)
-  if (TestSettings.ObjPriority < 16) {
-    CelPri = TestSettings.ObjPriority
-  } else {
-    // calculate band incode, for speed
-    //     (y - base) / (168 - base) * 10 + 5
-    if (TestCelPos.Y < EditPicture.PriBase) {
-      CelPri = 4
-    } else {
-      CelPri = Int((CLng(TestCelPos.Y) - EditPicture.PriBase) / (168 - EditPicture.PriBase) * 10) + 5
-    }
-// *'Debug.Assert CelPri >= 4
-  }
-
-  // reposition just in case any portion of view is off screen
-  if (TestCelPos.Y - (CelHeight - 1) < 0) {
-    TestCelPos.Y = CelHeight - 1
-  }
-  if (TestCelPos.X + CelWidth > 160) {
-    TestCelPos.X = 160 - CelWidth
-  }
-  
-  for (int i = 0; i < CelWidth; i++) {
-    for (int j = 0; j < CelHeight; j++) {
-      X = TestCelPos.X + i
-      Y = TestCelPos.Y - (CelHeight - 1) + j
-      // get cel pixel color
-      CelPixel = TestCelData(i, j)
-      // if not a transparent cel
-      if (CelPixel != CelTrans) {
-        // get pixelpri
-        PixelPri = EditPicture.PixelPriority(X, Y)
-        PriPixel = EditPicture.PriPixel(X, Y)
-        if (VisVisible) {
-          // if priority of cel is equal to or higher than priority of pixel
-          if (CelPri >= PixelPri) {
-            // set this pixel on visual screen
-            SetPixelV picVisDraw.hDC, CLng(X), CLng(Y), EGAColor(CelPixel)
-          }
-        }
-        if (PriVisible) {
-          if (CelPri >= PixelPri && PriPixel >= 3) {
-            // set this pixel on priority screen
-            SetPixelV picPriDraw.hDC, CLng(X), CLng(Y), EGAColor(CelPri)
-          }
-        }
-      }
-    }
-  }
-  
-  
-  // if status bar is showing object info
-  if (StatusMode = psCoord && PicMode = pmViewTest) {
-    //  update status bar ONLY if this editor is active
-    if (frmMDIMain.ActiveForm Is Me) {
-        if (MainStatusBar.Tag != CStr(rtPicture)) {
-          AdjustMenus rtPicture, InGame, true, IsChanged
-        }
-        // use test object position
-        spCurX").Text = "vX: " & CStr(TestCelPos.X)
-        spCurY").Text = "vY: " & CStr(TestCelPos.Y)
-        spPriBand").Text = "vBand: " & GetPriBand(TestCelPos.Y, EditPicture.PriBase)
-        SendMessage MainStatusBar.hWnd, WM_SETREDRAW, 0, 0
-        spPriBand").Picture = imlPriBand.ListImages(GetPriBand(TestCelPos.Y, EditPicture.PriBase) - 3).Picture
-        SendMessage MainStatusBar.hWnd, WM_SETREDRAW, 1, 0
-    }
-  }
-}
-
-private void tmrTest_Timer() {
-  // timer1 controls test view movement
-  
-  Dim rtn As Long
-    
-  Dim ControlLine As AGIColors, OnWater As Boolean
-  Dim NewX As Byte, NewY As Byte
-  Dim DX As Long, DY As Long
-  
-  Dim TestCel As AGICel
-  
-  rtn = GetTickCount()
-  // *'Debug.Assert CurTestLoopCount != 0
-  
-  // if cel not set
-  if (TestSettings.TestCel = -1) {
-    // increment cel
-    CurTestCel = CurTestCel + 1
-    // if at loopcount, reset back to zero
-    if (CurTestCel = CurTestLoopCount) {
-      CurTestCel = 0
-    }
-    TestCelData() = TestView.Loops(CurTestLoop).Cels(CurTestCel).AllCelData
-  }
-  
-  Set TestCel = TestView.Loops(CurTestLoop).Cels(CurTestCel)
-  
-  // set cel height/width/transcolor
-  CelWidth = TestCel.Width
-  CelHeight = TestCel.Height
-  CelTrans = TestCel.TransColor
-  
-  // use do loop to control flow
-  // (need to remember to exit do after setting NewX, NewY, TestDir and StopReason)
-  while (true) {
-    // assume no movement
-    NewX = TestCelPos.X
-    NewY = TestCelPos.Y
-    
-    // check for special case of no motion
-    if (TestDir = odStopped) {
-      // cycle in place
-      break; // exit do
-    }
-    
-    // calculate dX and dY based on direction
-    // (these are empirical formulas based on relationship between direction and change in x/Y)
-    DX = Sgn(5 - TestDir) * Sgn(TestDir - 1)
-    DY = Sgn(3 - TestDir) * Sgn(TestDir - 7)
-  
-    // test for edges
-    switch (TestDir) {
-    case odUp:
-      // if on horizon and not ignoring,
-      if ((NewY = TestSettings.Horizon) && !TestSettings.IgnoreHorizon) {
-        // dont go
-        StopReason = 7
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // if at top
-      if (NewY - (CelHeight - 1) <= 0) {
-        // dont go
-        StopReason = 8
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // get controlline status
-      ControlLine = EditPicture.PixelControl(NewX, NewY - 1, CelWidth)
-    
-    case odUpRight:
-      // if on horizon and not ignoring,
-      if ((NewY = TestSettings.Horizon) && !TestSettings.IgnoreHorizon) {
-        // dont go
-        StopReason = 7
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // if at top
-      if (NewY - (CelHeight - 1) <= 0) {
-        // dont go
-        StopReason = 8
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // if at right edge,
-      if (NewX + CelWidth - 1 >= 159) {
-        // dont go
-        StopReason = 9
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // get controlline status
-      ControlLine = EditPicture.PixelControl(NewX + 1, NewY - 1, CelWidth)
-      
-    case odRight:
-      // if at right edge
-      if (NewX + CelWidth - 1 >= 159) {
-        // dont go
-        StopReason = 9
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // get controlline status
-      ControlLine = EditPicture.PixelControl(NewX + CelWidth, NewY)
-      
-    case odDownRight:
-      // if at bottom edge
-      if (NewY = 167) {
-        // dont go
-        StopReason = 10
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-        
-      // if at right edge
-      if (NewX + CelWidth - 1 = 159) {
-        // dont go
-        StopReason = 9
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // get controlline status
-      ControlLine = EditPicture.PixelControl(NewX + 1, NewY + 1, CelWidth)
-        
-    case odDown:
-      // if at bottom
-      if (NewY = 167) {
-        // dont go
-        StopReason = 10
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // get controlline status
-      ControlLine = EditPicture.PixelControl(NewX, NewY + 1, CelWidth)
-        
-    case odDownLeft:
-      // if at bottom
-      if (NewY = 167) {
-        // dont go
-        StopReason = 10
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      
-      // if at left edge
-      if (NewX = 0) {
-        // stop motion
-        StopReason = 11
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // get controlline status
-      ControlLine = EditPicture.PixelControl(NewX - 1, NewY + 1, CelWidth)
-        
-     
-    case odLeft:
-      // if at left edge
-      if (NewX = 0) {
-        // dont go
-        StopReason = 11
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      // get controlline status
-      ControlLine = EditPicture.PixelControl(NewX - 1, NewY)
-        
-      
-    case odUpLeft:
-      // if on horizon or at left edge,
-      if (((NewY = TestSettings.Horizon) && !TestSettings.IgnoreHorizon) || NewX = 0) {
-        // dont go
-        StopReason = 7
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      
-      // if at top
-      if (NewY - (CelHeight - 1) <= 0) {
-        // dont go
-        StopReason = 8
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      
-      // if at left edge
-      if (NewX = 0) {
-        // dont go
-        StopReason = 11
-        TestDir = odStopped
-        tmrTest.Enabled = TestSettings.CycleAtRest
-        break; // exit do
-      }
-      
-      // get controlline status
-      ControlLine = EditPicture.PixelControl(NewX - 1, NewY - 1, CelWidth)
-    }
-    
-    // get control line and onwater status
-    OnWater = EditPicture.ObjOnWater(NewX + DX, NewY + DY, CelWidth)
-
-    // if at an obstacle line OR (at a conditional obstacle line AND NOT blocking)
-    if ((ControlLine <= 1) && !TestSettings.IgnoreBlocks) {
-      // don't go
-      StopReason = ControlLine + 1
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-      break; // exit do
-    }
-    
-    // if restricting access to land AND at water edge*****no, on water!
-    if ((TestSettings.ObjRestriction = 2) && OnWater) { // (ControlLine = 3)) {
-      // need to go back!
-      // don't go
-      StopReason = 5
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-      break; // exit do
-    }
-    
-    // if restricting access to water AND at land edge
-    if ((TestSettings.ObjRestriction = 1) && !OnWater) {
-      // don't go
-      StopReason = 6
-      TestDir = odStopped
-      tmrTest.Enabled = TestSettings.CycleAtRest
-      break; // exit do
-    }
-      
-    // ok to move
-    NewX = NewX + DX
-    NewY = NewY + DY
-    
-    // if on water, set status
-    StopReason = IIf(OnWater, 4, 0)
-    
-    // if at an alarm line
-    if (ControlLine = 2) {
-      // stop motion
-      StopReason = 3
-      TestDir = 0
-      tmrTest.Enabled = TestSettings.CycleAtRest
-    }
-    // exit to draw the cel
-    break; // exit do
-  }
-  
-  // update current position
-  TestCelPos.X = NewX
-  TestCelPos.Y = NewY
-  
-  // draw cel
-  DrawPicture
-  
-  // manage status bar - if stopped, show reason why
-  // if moving, clear status bar
-  
-  if (StopReason != 0) {
-    // update status bar
-    UpdateStatusBar
-  } else {
-    // if testdir is anything but stopped, clear the panel
-    if (TestDir != odStopped) {
-      if (frmMDIMain.ActiveForm Is Me) {
-        spTool").Text = vbNullString
-      }
-    }
+  case PicEditorMode.Edit:
+    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\Picture_Editor.htm");
+  case PicEditorMode.PrintTest:
+    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\pictestmode.htm#textprint");
+  case PicEditorMode.ViewTest:
+    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\pictestmode.htm");
   }
 }
             */
         }
         #endregion
 
+        /// <summary>
+        /// Constructor for the picture editor form.
+        /// </summary>
         public frmPicEdit() {
             InitializeComponent();
 
@@ -1777,41 +839,41 @@ private void tmrTest_Timer() {
             SelectedTool = PicToolType.Edit;
 
             // get default pic test settings
-            TestSettings.ObjSpeed = WinAGISettings.PTObjSpeed.ReadSetting(WinAGISettingsFile);
-            if (TestSettings.ObjSpeed < 0) {
-                TestSettings.ObjSpeed = 0;
+            TestSettings.ObjSpeed.ReadSetting(WinAGISettingsFile);
+            if (TestSettings.ObjSpeed.Value < 0) {
+                TestSettings.ObjSpeed.Value = 0;
             }
-            else if (TestSettings.ObjSpeed > 3) {
-                TestSettings.ObjSpeed = 3;
+            else if (TestSettings.ObjSpeed.Value > 3) {
+                TestSettings.ObjSpeed.Value = 3;
             }
-            TestSettings.ObjPriority = WinAGISettings.PTObjPriority.ReadSetting(WinAGISettingsFile);
-            if (TestSettings.ObjPriority < 4) {
-                TestSettings.ObjPriority = 4;
+            TestSettings.ObjPriority.ReadSetting(WinAGISettingsFile);
+            if (TestSettings.ObjPriority.Value < 4) {
+                TestSettings.ObjPriority.Value = 4;
             }
-            else if (TestSettings.ObjPriority > 16) {
-                TestSettings.ObjPriority = 16;
+            else if (TestSettings.ObjPriority.Value > 16) {
+                TestSettings.ObjPriority.Value = 16;
             }
-            TestSettings.ObjRestriction = WinAGISettings.PTObjRestriction.ReadSetting(WinAGISettingsFile);
-            if (TestSettings.ObjRestriction < 0) {
-                TestSettings.ObjRestriction = 0;
+            TestSettings.ObjRestriction.ReadSetting(WinAGISettingsFile);
+            if (TestSettings.ObjRestriction.Value < 0) {
+                TestSettings.ObjRestriction.Value = 0;
             }
-            else if (TestSettings.ObjRestriction > 2) {
-                TestSettings.ObjRestriction = 2;
+            else if (TestSettings.ObjRestriction.Value > 2) {
+                TestSettings.ObjRestriction.Value = 2;
             }
-            TestSettings.Horizon = WinAGISettings.PTHorizon.ReadSetting(WinAGISettingsFile);
-            if (TestSettings.Horizon < 0) {
-                TestSettings.Horizon = 0;
+            TestSettings.Horizon.ReadSetting(WinAGISettingsFile);
+            if (TestSettings.Horizon.Value < 0) {
+                TestSettings.Horizon.Value = 0;
             }
-            if (TestSettings.Horizon > 167) {
-                TestSettings.Horizon = 167;
+            if (TestSettings.Horizon.Value > 167) {
+                TestSettings.Horizon.Value = 167;
             }
-            TestSettings.IgnoreHorizon = WinAGISettings.PTIgnoreHorizon.ReadSetting(WinAGISettingsFile);
-            TestSettings.IgnoreBlocks = WinAGISettings.PTIgnoreBlocks.ReadSetting(WinAGISettingsFile);
-            TestSettings.CycleAtRest = WinAGISettings.PTCycleAtRest.ReadSetting(WinAGISettingsFile);
+            TestSettings.IgnoreHorizon.ReadSetting(WinAGISettingsFile);
+            TestSettings.IgnoreBlocks.ReadSetting(WinAGISettingsFile);
+            TestSettings.CycleAtRest.ReadSetting(WinAGISettingsFile);
             TestSettings.TestCel = -1;
             TestSettings.TestLoop = -1;
             // set timer based on speed
-            switch (TestSettings.ObjSpeed) {
+            switch (TestSettings.ObjSpeed.Value) {
             case 0:
                 // slow
                 tmrTest.Interval = 200;
@@ -1822,32 +884,13 @@ private void tmrTest_Timer() {
                 break;
             case 2:
                 // fast
-                tmrTest.Interval = 13;
+                tmrTest.Interval = 20;
                 break;
             case 3:
                 // fastest
                 tmrTest.Interval = 1;
                 break;
             }
-            // default message test settings
-            TextMode = 0;
-            MsgText = "";
-            MsgTop = 0;
-            MsgLeft = 0;
-            MsgMaxW = 30;
-            MsgBG = 0;
-            MsgFG = 15;
-            PicOffset = 1;
-            if (InGame && EditGame.PowerPack) {
-                // default to 80 in powerpack mode
-                MaxCol = 79;
-                CharWidth = 4;
-            }
-            else {
-                MaxCol = 39;
-                CharWidth = 8;
-            }
-
             int codepage;
             if (InGame) {
                 codepage = EditGame.CodePage.CodePage;
@@ -1855,14 +898,30 @@ private void tmrTest_Timer() {
             else {
                 codepage = WinAGISettings.DefCP.Value;
             }
+            PTInfo = new(codepage);
+            if (InGame && EditGame.PowerPack) {
+                // default to 80 in powerpack mode
+                PTInfo.MaxCol = 79;
+                PTInfo.CharWidth = 4;
+            }
+            else {
+                PTInfo.MaxCol = 39;
+                PTInfo.CharWidth = 8;
+            }
+
+            // create a bitmap for the character grid
             byte[] obj = (byte[])EditorResources.ResourceManager.GetObject("CP" + codepage);
             Stream stream = new MemoryStream(obj);
-            chargrid = (Bitmap)Image.FromStream(stream);
+            chargrid = new Bitmap(256, 256, PixelFormat.Format32bppArgb);
+            using (Graphics g = Graphics.FromImage(chargrid)) {
+                g.DrawImage((Bitmap)Image.FromStream(stream), 0, 0, 256, 256);
+            }
         }
 
         #region Event Handlers
         #region Form Event Handlers
         private void frmPicEdit_FormClosing(object sender, FormClosingEventArgs e) {
+            // if the form is closing because the MDI parent is closing, don't ask to close
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
             }
@@ -1888,17 +947,18 @@ private void tmrTest_Timer() {
                 }
             }
 
-            //// if a test view is currently loaded,
-            //if (TestView != null) {
-            //    // unload it and release it
-            //    TestView.Unload();
-            //    TestView = null;
-            //}
+            // if a test view is currently loaded,
+            if (TestView != null) {
+                // unload it and release it
+                TestView.Unload();
+                TestView = null;
+            }
 
             // dispose of graphics objects
             BkgdImage?.Dispose();
             dash1?.Dispose();
             dash2?.Dispose();
+            chargrid?.Dispose();
         }
 
         private void frmPicEdit_Resize(object sender, EventArgs e) {
@@ -1906,10 +966,13 @@ private void tmrTest_Timer() {
                 picPalette.Refresh();
             }
             if (Height < 220) {
+                // if the form is too small, collapse the split windows
                 if (!TooSmall) {
                     TooSmall = true;
-                    // force to just one window- whichever is larger
-                    if (splitImages.Panel1.Height >= splitImages.Panel2.Height) {
+                    // force to just one window- whichever is larger (or visual, if in
+                    // printtest mode)
+                    if (splitImages.Panel1.Height >= splitImages.Panel2.Height ||
+                        PicMode == PicEditorMode.PrintTest) {
                         splitImages.Panel2Collapsed = true;
                     }
                     else {
@@ -1918,6 +981,7 @@ private void tmrTest_Timer() {
                 }
             }
             else {
+                // if the form is large enough, expand the split windows
                 if (TooSmall) {
                     TooSmall = false;
                     splitImages.Panel1Collapsed = false;
@@ -1931,10 +995,141 @@ private void tmrTest_Timer() {
                 mnuToggleScreen.PerformClick();
                 e.Handled = true;
             }
+            switch (PicMode) {
+            case PicEditorMode.Edit:
+                switch (e.KeyData) {
+                case Keys.Escape:
+                    // if a coord is selected, unselect it
+                    if (lstCoords.SelectedItems.Count != 0) {
+                        SelectCommand(SelectedCmd.Index, 1, true);
+                    }
+                    break;
+                case Keys.Space:
+                    if (ShowTextMarks) {
+                        // toggle status mode  between pixel and text row/col
+                        if (StatusMode == PicStatusMode.Pixel) {
+                            StatusMode = PicStatusMode.Text;
+                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
+                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                                // text row/col (note row/col swap 'x/y')
+                                spCurX.Text = "R: " + (PicPt.Y / 8).ToString();
+                                spCurY.Text = "C: " + (PicPt.X / (PTInfo.CharWidth / 2)).ToString();
+                            }
+                        }
+                        else {
+                            StatusMode = PicStatusMode.Pixel;
+                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
+                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                                spCurX.Text = "X: " + PicPt.X.ToString();
+                                spCurY.Text = "Y: " + PicPt.Y.ToString();
+                            }
+                        }
+                    }
+                    break;
+                }
+                break;
+            case PicEditorMode.ViewTest:
+                switch (e.KeyData) {
+                case Keys.Escape:
+                    // hide the test cel
+                    if (ShowTestCel) {
+                        ShowTestCel = false;
+                        picVisual.Refresh();
+                        picPriority.Refresh();
+                    }
+                    break;
+                case Keys.Space:
+                    // toggle status mode between edit(pixel) and test location(coord)
+                    if (StatusMode == PicStatusMode.Pixel) {
+                        StatusMode = PicStatusMode.Coord;
+                        spCurX.Text = "vX: " + TestCelPos.X;
+                        spCurY.Text = "vY: " + TestCelPos.Y;
+                        int CelPriority;
+                        // set priority (if in auto, get priority from current band)
+                        if (TestSettings.ObjPriority.Value < 16) {
+                            CelPriority = TestSettings.ObjPriority.Value;
+                        }
+                        else {
+                            CelPriority = GetPriBand((byte)TestCelPos.Y, EditPicture.PriBase);
+                        }
+                        spPriBand.Text = "vBand: " + CelPriority;
+                        Bitmap bitmap = new(12, 12);
+                        using Graphics sg = Graphics.FromImage(bitmap);
+                        sg.Clear(EditPalette[CelPriority]);
+                        spPriBand.Image = bitmap;
+                    }
+                    else {
+                        StatusMode = PicStatusMode.Pixel;
+                        if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
+                            picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                            spCurX.Text = "X: " + PicPt.X.ToString();
+                            spCurY.Text = "Y: " + PicPt.Y.ToString();
+                            int NewPri = GetPriBand((byte)PicPt.Y, EditPicture.PriBase);
+                            spPriBand.Text = "Band: " + NewPri;
+                            Bitmap bitmap = new(12, 12);
+                            using Graphics g = Graphics.FromImage(bitmap);
+                            g.Clear(EditPalette[NewPri]);
+                            spPriBand.Image = bitmap;
+                        }
+                        else {
+                            spCurX.Text = "";
+                            spCurY.Text = "";
+                            spPriBand.Text = "";
+                            spPriBand.Image = null;
+                            OldPri = -1;
+                        }
+                    }
+                    break;
+                default:
+                    // in test mode, handle key events to move the test cel
+                    if (ChangeDir(e.KeyData)) {
+                        e.Handled = true;
+                        e.SuppressKeyPress = true;
+                    }
+                    break;
+                }
+                break;
+            case PicEditorMode.PrintTest:
+                switch (e.KeyData) {
+                case Keys.Escape:
+                    // hide the test display text
+                    if (ShowPrintTest) {
+                        ShowPrintTest = false;
+                        picVisual.Refresh();
+                    }
+                    break;
+                case Keys.Space:
+                    if (ShowTextMarks) {
+                        // toggle status mode  between pixel and text row/col
+                        if (StatusMode == PicStatusMode.Pixel) {
+                            StatusMode = PicStatusMode.Text;
+                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
+                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                                // text row/col (note row/col swap 'x/y')
+                                spCurX.Text = "R: " + (PicPt.Y / 8).ToString();
+                                spCurY.Text = "C: " + (PicPt.X / (PTInfo.CharWidth / 2)).ToString();
+                            }
+                        }
+                        else {
+                            StatusMode = PicStatusMode.Pixel;
+                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
+                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                                spCurX.Text = "X: " + PicPt.X.ToString();
+                                spCurY.Text = "Y: " + PicPt.Y.ToString();
+                            }
+                        }
+                    }
+                    break;
+                }
+                break;
+            }
         }
         #endregion
 
         #region Menu Event Handlers
+        /// <summary>
+        /// Dynamic function to enable/disable resource menu items before they are displayed.
+        /// </summary>
         internal void SetResourceMenu() {
 
             mnuRSave.Enabled = IsChanged;
@@ -1949,7 +1144,6 @@ private void tmrTest_Timer() {
                 // mnuRProperties no change
                 // mnuRSavePicImage no change
                 // mnuRExportGIF no change
-                // mnuRBackground no change
             }
             else {
                 // if a game is loaded, base import is also always available
@@ -1961,12 +1155,27 @@ private void tmrTest_Timer() {
                 // mnuRProperties no change
                 // mnuRSavePicImage no change
                 // mnuRExportGIF no change
-                // mnuRBackground no change
             }
         }
 
+        /// <summary>
+        /// Dynamic function to reset the resource menu.
+        /// </summary>
+        public void ResetResourceMenu() {
+            // always reenable all items so shortcuts work
+            mnuRSave.Enabled = true;
+            mnuRExport.Enabled = true;
+            mnuRInGame.Enabled = true;
+            mnuRRenumber.Enabled = true;
+            mnuRProperties.Enabled = true;
+            mnuRSavePicImage.Enabled = true;
+            mnuRExportGIF.Enabled = true;
+        }
+
         public void mnuRSave_Click(object sender, EventArgs e) {
-            SavePicture();
+            if (IsChanged) {
+                SavePicture();
+            }
         }
 
         public void mnuRExport_Click(object sender, EventArgs e) {
@@ -1974,11 +1183,15 @@ private void tmrTest_Timer() {
         }
 
         public void mnuRInGame_Click(object sender, EventArgs e) {
-            ToggleInGame();
+            if (EditGame != null) {
+                ToggleInGame();
+            }
         }
 
         private void mnuRRenumber_Click(object sender, EventArgs e) {
-            RenumberPicture();
+            if (InGame) {
+                RenumberPicture();
+            }
         }
 
         private void mnuRProperties_Click(object sender, EventArgs e) {
@@ -2003,20 +1216,20 @@ private void tmrTest_Timer() {
         }
 
         private void mnuEdit_DropDownOpening(object sender, EventArgs e) {
+            // move edit menu items  to the form's edit menu
             mnuEdit.DropDownItems.AddRange([mnuUndo, mnuESep0, mnuCut, mnuCopy,
                 mnuPaste, mnuPastePen, mnuDelete, mnuClearPicture, mnuSelectAll, mnuESep1,
                 mnuInsertCoord, mnuSplitCommand, mnuJoinCommands, mnuFlipH, mnuFlipV, mnuESep2,
                 mnuEditMode, mnuViewTestMode, mnuTextTestMode, mnuESep3,
                 mnuSetTestView, mnuTestViewOptions, mnuTestTextOptions,
-                mnuTestPrintCommand, mnuTextScreenSize, mnuESep4,
-                mnuToggleScreen, mnuToggleBands, mnuEditPriBase,
-                mnuToggleTextMarks, mnuESep5,
-                mnuToggleBackground, mnuEditBackground, mnuRemoveBackground]);
+                mnuTextScreenSize, mnuESep4,mnuToggleScreen, mnuToggleBands,
+                mnuEditPriBase,mnuToggleTextMarks, mnuESep5, mnuToggleBackground,
+                mnuEditBackground, mnuRemoveBackground]);
             SetEditMenu();
         }
 
         private void SetEditMenu() {
-            // mode
+            // enable/disable edit menu items before displaying
             mnuEditMode.Checked = PicMode == PicEditorMode.Edit;
             mnuESep3.Visible = !(PicMode == PicEditorMode.Edit);
             mnuViewTestMode.Checked = PicMode == PicEditorMode.ViewTest;
@@ -2025,12 +1238,11 @@ private void tmrTest_Timer() {
                 mnuTestViewOptions.Visible =
                 PicMode == PicEditorMode.ViewTest;
             mnuTestTextOptions.Visible =
-                mnuTestPrintCommand.Visible =
                 mnuTextScreenSize.Visible =
                 PicMode == PicEditorMode.PrintTest;
-            mnuTextScreenSize.Visible = InGame && PicMode == PicEditorMode.PrintTest && EditGame.PowerPack;
+            mnuTextScreenSize.Visible = PicMode == PicEditorMode.PrintTest && InGame && EditGame.PowerPack;
             if (mnuTextScreenSize.Visible) {
-                mnuTextScreenSize.Text = "Text Screen Size: " + (MaxCol + 1).ToString();
+                mnuTextScreenSize.Text = "Text Screen Size: " + (PTInfo.MaxCol + 1).ToString();
             }
             // background and overlays
             if (BkgdImage == null) {
@@ -2055,10 +1267,7 @@ private void tmrTest_Timer() {
             else {
                 mnuToggleBands.Text = "Show Priority Bands";
             }
-            mnuEditPriBase.Visible = (!InGame || EditGame.InterpreterVersion[0] == '3' || int.Parse(EditGame.InterpreterVersion) >= 2.936);
-            if (mnuEditPriBase.Visible) {
-                mnuEditPriBase.Text = "Adjust Priority Base";
-            }
+            mnuEditPriBase.Visible = !InGame || EditGame.InterpreterVersion[0] == '3' || int.Parse(EditGame.InterpreterVersion) >= 2.936;
             if (ShowTextMarks) {
                 mnuToggleTextMarks.Text = "Hide Text Marks";
             }
@@ -2088,6 +1297,8 @@ private void tmrTest_Timer() {
                     mnuToggleScreen.Visible = false;
                 }
             }
+            mnuToggleScreen.Enabled = PicMode != PicEditorMode.PrintTest;
+
             // mode dependent items
             switch (PicMode) {
             case PicEditorMode.PrintTest or PicEditorMode.ViewTest:
@@ -2100,15 +1311,16 @@ private void tmrTest_Timer() {
                 mnuCopy.Text = "&Copy";
                 mnuPaste.Enabled = mnuPastePen.Visible = false;
                 mnuPaste.Text = "Paste";
+                mnuClearPicture.Visible = false;
                 mnuSelectAll.Enabled = false;
                 mnuSelectAll.Text = "Select All";
                 mnuDelete.Visible = false;
                 mnuInsertCoord.Visible = false;
-                mnuClearPicture.Visible = false;
                 mnuSplitCommand.Visible = false;
                 mnuJoinCommands.Visible = false;
                 mnuFlipH.Visible = false;
                 mnuFlipV.Visible = false;
+                mnuESep2.Visible = false;
                 break;
             case PicEditorMode.Edit:
                 if (UndoCol.Count != 0) {
@@ -2129,7 +1341,6 @@ private void tmrTest_Timer() {
                 }
                 mnuDelete.Visible = true;
                 mnuInsertCoord.Visible = true;
-                mnuClearPicture.Visible = true;
                 if (SelectedTool == PicToolType.SelectArea) {
                     // area selection - no editing commands are enabled,
                     // only copy is available
@@ -2148,9 +1359,6 @@ private void tmrTest_Timer() {
                     // copy is enabled if something selected
                     mnuCopy.Enabled = (SelectedRegion.Width > 0) && (SelectedRegion.Height > 0);
                     mnuCopy.Text = "Copy Selection";
-                }
-                else if (SelectedCmdCount == 0) {
-                    Debug.Assert(false);
                 }
                 else if (SelectedCmd.SelectedCoordIndex < 0 ||
                     SelectedCmd.IsPen) {
@@ -2181,12 +1389,22 @@ private void tmrTest_Timer() {
                             mnuPaste.Text += " " + ((DrawFunction)pastedata.Data[0]).CommandName();
                         }
                     }
-                    mnuInsertCoord.Enabled = false;
+                    if (SelectedTool == PicToolType.Edit && SelectedCmd.Type == PlotPen || SelectedCmd.Type == Fill) {
+                        mnuInsertCoord.Enabled = true;
+                    }
+                    else if ((SelectedTool == PicToolType.Plot && SelectedCmd.Type == PlotPen) ||
+                             (SelectedTool == PicToolType.Fill && SelectedCmd.Type == Fill)) {
+                        mnuInsertCoord.Enabled = true;
+                    }
+                    else {
+                        mnuInsertCoord.Enabled = false;
+                    }
                     mnuInsertCoord.Text = "Insert Coordinate";
                     mnuSplitCommand.Visible = false;
-                    mnuJoinCommands.Visible = CanJoin(SelectedCmd.Index);
+                    mnuJoinCommands.Visible = CanJoinCommands(SelectedCmd.Index);
                     mnuFlipH.Visible = (SelectedRegion.Width > 1);
                     mnuFlipV.Visible = (SelectedRegion.Height > 1);
+                    mnuESep2.Visible = true;
                 }
                 else {
                     // a coordinate is selected, set editing commands to
@@ -2242,32 +1460,35 @@ private void tmrTest_Timer() {
                     mnuFlipH.Visible = false;
                     mnuFlipV.Visible = false;
                 }
-                mnuClearPicture.Enabled = true;
+                mnuClearPicture.Visible = true;
+                mnuClearPicture.Enabled = lstCommands.Items.Count > 1;
                 mnuSelectAll.Enabled = lstCommands.Items.Count > 1;
                 break;
             }
         }
 
         private void mnuEdit_DropDownClosed(object sender, EventArgs e) {
+            // move the edit menu items back to the context menu
             cmEdit.Items.AddRange([mnuUndo, mnuESep0, mnuCut, mnuCopy,
                 mnuPaste, mnuPastePen, mnuDelete, mnuClearPicture, mnuSelectAll, mnuESep1,
                 mnuInsertCoord, mnuSplitCommand, mnuJoinCommands, mnuFlipH, mnuFlipV, mnuESep2,
                 mnuEditMode, mnuViewTestMode, mnuTextTestMode, mnuESep3,
                 mnuSetTestView, mnuTestViewOptions, mnuTestTextOptions,
-                mnuTestPrintCommand, mnuTextScreenSize, mnuESep4,
-                mnuToggleScreen, mnuToggleBands, mnuEditPriBase,
-                mnuToggleTextMarks, mnuESep5,
-                mnuToggleBackground, mnuEditBackground, mnuRemoveBackground]);
+                mnuTextScreenSize, mnuESep4, mnuToggleScreen, mnuToggleBands,
+                mnuEditPriBase, mnuToggleTextMarks, mnuESep5, mnuToggleBackground,
+                mnuEditBackground, mnuRemoveBackground]);
             ResetEditMenu();
         }
 
         private void ResetEditMenu() {
+            // always reenable all items so shortcuts work
             foreach (ToolStripItem itm in cmEdit.Items) {
                 itm.Enabled = true;
             }
         }
 
         private void mnuEditMode_Click(object sender, EventArgs e) {
+
             if (PicMode != PicEditorMode.Edit) {
                 SetMode(PicEditorMode.Edit);
             }
@@ -2286,411 +1507,468 @@ private void tmrTest_Timer() {
         }
 
         private void mnuUndo_Click(object sender, EventArgs e) {
-
-            if (UndoCol.Count == 0) {
-                return;
-            }
-            PictureUndo NextUndo = UndoCol.Pop();
-
-            if (PicDrawMode != PicDrawOp.None) {
-                PicDrawMode = PicDrawOp.None;
-            }
-            if (SelectedTool != PicToolType.Edit) {
-                SelectTool(PicToolType.Edit);
-            }
-            // undo the action
-            switch (NextUndo.Action) {
-            case ChangeColor:
-                ChangePenColor(NextUndo.CmdIndex, (AGIColorIndex)NextUndo.Data[0], true);
-                SelectCommand(NextUndo.CmdIndex, 1, true);
-                break;
-            case PictureUndo.ActionType.ChangePlotPen:
-                ChangePenSettings(NextUndo.CmdIndex, NextUndo.Data[0], true);
-                // check for any pattern changes
-                UndoPlotAdjust();
-                // force update
-                SelectCommand(NextUndo.CmdIndex, 1, true);
-                break;
-            case DelCmd or CutCmds:
-                // insert the data
-                EditPicture.InsertData(NextUndo.Data, NextUndo.PicPos);
-                int insertindex = NextUndo.CmdIndex - NextUndo.CmdCount + 1;
-                // adjust positions
-                UpdatePosValues(insertindex, NextUndo.Data.Length);
-                // update command list
-                bool blnSetPen = false;
-                for (int i = 0; i < NextUndo.Data.Length; i++) {
-                    if (NextUndo.Data[i] >= 0xF0) {
-                        lstCommands.Items.Insert(insertindex++, ((DrawFunction)NextUndo.Data[i]).CommandName()).Tag = NextUndo.PicPos + i;
-                        if (NextUndo.Data[i] == (byte)ChangePen) {
-                            blnSetPen = true;
-                        }
-                    }
+            if (CanUndo()) {
+                PictureUndo NextUndo = UndoCol.Pop();
+                // always cancel draw operations and shift to
+                // edit tool when undoing
+                if (PicDrawMode != PicDrawOp.None) {
+                    PicDrawMode = PicDrawOp.None;
                 }
-                if (blnSetPen) {
-                    UndoPlotAdjust();
+                if (SelectedTool != PicToolType.Edit) {
+                    SelectTool(PicToolType.Edit);
                 }
-                // now select the added commands
-                SelectCommand(NextUndo.CmdIndex, NextUndo.CmdCount, true);
-                break;
-            case Clear:
-                // insert the data
-                EditPicture.InsertData(NextUndo.Data, NextUndo.PicPos);
-                // build command list
-                insertindex = 0;
-                for (int i = 0; i < NextUndo.Data.Length; i++) {
-                    if (NextUndo.Data[i] >= 0xF0) {
-                        lstCommands.Items.Insert(insertindex++, ((DrawFunction)NextUndo.Data[i]).CommandName()).Tag = NextUndo.PicPos + i;
-                    }
-                }
-                // update and select End cmd
-                lstCommands.Items[^1].Tag = EditPicture.Data.Length - 1;
-                SelectCommand(insertindex, 1, true);
-                break;
-            case PasteCmds:
-                // remove the pasted data from the resource
-                EditPicture.RemoveData(NextUndo.PicPos, NextUndo.ByteCount);
-                // remove the cmds from the cmd list
-                for (int i = 0; i < NextUndo.CmdCount; i++) {
-                    lstCommands.Items.RemoveAt(NextUndo.CmdIndex);
-                }
-                UpdatePosValues(NextUndo.CmdIndex, -NextUndo.ByteCount);
-                UndoPlotAdjust();
-                // select the cmd after the deleted data
-                SelectCommand(NextUndo.CmdIndex, 1, true);
-                break;
-            case AddCmd or PictureUndo.ActionType.Rectangle or Trapezoid:
-                // delete the command
-                DeleteCommands(NextUndo.CmdIndex, 1, true);
-                if (NextUndo.DrawCommand == ChangePen) {
+                // undo the action
+                switch (NextUndo.Action) {
+                case ChangeColor:
+                    ChangePenColor(NextUndo.CmdIndex, (AGIColorIndex)NextUndo.Data[0], true);
+                    SelectCommand(NextUndo.CmdIndex, 1, true);
+                    break;
+                case ChangePlotPen:
+                    ChangePenSettings(NextUndo.CmdIndex, NextUndo.Data[0], true);
                     // check for any pattern changes
                     UndoPlotAdjust();
-                }
-                // force update
-                SelectCommand(NextUndo.CmdIndex, 1, true);
-                break;
-            case Ellipse:
-                // delete this command, and next three commands
-                DeleteCommands(NextUndo.CmdIndex + 3, 4, true);
-                // force update
-                SelectCommand(NextUndo.CmdIndex, 1, false);
-                break;
-            case AddCoord:
-                // select cmd first (without redrawing)
-                SelectedCmd = GetCommand(NextUndo.CmdIndex);
-                if (SelectedCmd.Type == XCorner || SelectedCmd.Type == YCorner) {
-                    if (NextUndo.CoordIndex != SelectedCmd.Coords.Count - 1) {
-                        // need to flip the type
-                        if (SelectedCmd.Type == XCorner) {
-                            //SelectedCmd.Type = ;
-                            lstCommands.Items[SelectedCmd.Index].Text = YCorner.CommandName();
-                            //    EditPicture.Data[SelectedCmd.Position] = (byte)YCorner;
+                    // force update
+                    SelectCommand(NextUndo.CmdIndex, 1, true);
+                    break;
+                case DelCmd or CutCmds:
+                    // insert the data
+                    EditPicture.InsertData(NextUndo.Data, NextUndo.PicPos);
+                    int insertindex = NextUndo.CmdIndex - NextUndo.CmdCount + 1;
+                    // adjust positions
+                    UpdatePosValues(insertindex, NextUndo.Data.Length);
+                    // update command list
+                    bool blnSetPen = false;
+                    for (int i = 0; i < NextUndo.Data.Length; i++) {
+                        if (NextUndo.Data[i] >= 0xF0) {
+                            lstCommands.Items.Insert(insertindex++, ((DrawFunction)NextUndo.Data[i]).CommandName()).Tag = NextUndo.PicPos + i;
+                            CmdColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                            if (NextUndo.Data[i] == (byte)ChangePen) {
+                                blnSetPen = true;
+                            }
                         }
-                        else {
-                            //SelectedCmd.Type = XCorner;
-                            //    EditPicture.Data[SelectedCmd.Position] = (byte)XCorner;
-                            lstCommands.Items[SelectedCmd.Index].Text = XCorner.CommandName();
-                        }
-                        // delete first coord instead of coord 1
-                        NextUndo.CoordIndex--;
                     }
-                }
-                // delete the coordinate
-                DeleteCoordinate(NextUndo.CoordIndex, true);
-                // force update
-                SelectCommand(NextUndo.CmdIndex, 1, true);
-                break;
-            case DelCoord:
-                // select the cmd
-                SelectCommand(NextUndo.CmdIndex, 1, false);
-                // reinsert the data
-                EditPicture.InsertData(NextUndo.Data, NextUndo.PicPos);
-                if (NextUndo.CoordIndex == 0) {
-                    switch (NextUndo.DrawCommand) {
-                    case RelLine:
-                        // need to restore Y0 and D1
-                        // reminder: X0 is NextUndo.Coord.X
-                        //           Y0 is NextUndo.Coord.Y
-                        //           X1 is at data offset[1]
-                        //           Y1 is at data offset[2]
-                        int d1 = 0;
-                        if (EditPicture.Data[NextUndo.PicPos + 1] - NextUndo.Coord.X < 0) {
-                            d1 = 0x80;
-                        }
-                        d1 += Math.Abs(EditPicture.Data[NextUndo.PicPos + 1] - NextUndo.Coord.X) * 0x10;
-                        if (EditPicture.Data[NextUndo.PicPos + 2] - NextUndo.Coord.Y < 0) {
-                            d1 += 0x08;
-                        }
-                        d1 += Math.Abs(EditPicture.Data[NextUndo.PicPos + 2] - NextUndo.Coord.Y);
-                        EditPicture.Data[NextUndo.PicPos + 1] = (byte)NextUndo.Coord.Y;
-                        EditPicture.Data[NextUndo.PicPos + 2] = (byte)d1;
-                        break;
-                    case XCorner:
-                        // need to swap Y0 and X1 back and change type to XCorner
-                        EditPicture.Data[NextUndo.PicPos - 1] = (byte)XCorner;
-                        EditPicture.Data[NextUndo.PicPos + 2] = EditPicture.Data[NextUndo.PicPos + 1];
-                        EditPicture.Data[NextUndo.PicPos + 1] = (byte)NextUndo.Coord.Y;
-                        SelectedCmd.Type = XCorner;
-                        lstCommands.Items[SelectedCmd.Index].Text = XCorner.CommandName();
-                        break;
-                    case YCorner:
-                        // need to change type to YCorner (remember PicPos is offset by 1)
-                        SelectedCmd.Type = YCorner;
-                        EditPicture.Data[NextUndo.PicPos - 2] = (byte)YCorner;
-                        lstCommands.Items[SelectedCmd.Index].Text = YCorner.CommandName();
-                        break;
+                    if (blnSetPen) {
+                        UndoPlotAdjust();
                     }
-                }
-                UpdatePosValues(SelectedCmd.Index + 1, NextUndo.Data.Length);
-                SelectedCmd.Coords.Insert(NextUndo.CoordIndex, NextUndo.Coord);
-                lstCoords.Items.Insert(NextUndo.CoordIndex, CoordText(NextUndo.Coord));
-
-                // force reselection
-                SelectCoordinate(NextUndo.CoordIndex, true);
-                break;
-            case MoveCoord:
-            case InsertCoord:
-                // restore pic data
-                for (int i = 0; i < NextUndo.Data.Length; i++) {
-                    EditPicture.Data[NextUndo.PicPos + i] = NextUndo.Data[i];
-                }
-                // if undoing an insert, also delete current coordinate
-                if (NextUndo.Action == InsertCoord) {
+                    // now select the added commands
+                    SelectCommand(NextUndo.CmdIndex, NextUndo.CmdCount, true);
+                    break;
+                case Clear:
+                    // insert the data
+                    EditPicture.InsertData(NextUndo.Data, NextUndo.PicPos);
+                    // build command list
+                    insertindex = 0;
+                    for (int i = 0; i < NextUndo.Data.Length; i++) {
+                        if (NextUndo.Data[i] >= 0xF0) {
+                            lstCommands.Items.Insert(insertindex++, ((DrawFunction)NextUndo.Data[i]).CommandName()).Tag = NextUndo.PicPos + i;
+                        }
+                    }
+                    // update and select End cmd
+                    lstCommands.Items[^1].Tag = EditPicture.Data.Length - 1;
+                    CmdColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+                    SelectCommand(insertindex, 1, true);
+                    break;
+                case PasteCmds:
+                    // remove the pasted data from the resource
+                    EditPicture.RemoveData(NextUndo.PicPos, NextUndo.ByteCount);
+                    // remove the cmds from the cmd list
+                    for (int i = 0; i < NextUndo.CmdCount; i++) {
+                        lstCommands.Items.RemoveAt(NextUndo.CmdIndex);
+                    }
+                    UpdatePosValues(NextUndo.CmdIndex, -NextUndo.ByteCount);
+                    UndoPlotAdjust();
+                    // select the cmd after the deleted data
+                    SelectCommand(NextUndo.CmdIndex, 1, true);
+                    break;
+                case AddCmd or PictureUndo.ActionType.Rectangle or Trapezoid:
+                    // delete the command
+                    DeleteCommands(NextUndo.CmdIndex, 1, true);
+                    if (NextUndo.DrawCommand == ChangePen) {
+                        // check for any pattern changes
+                        UndoPlotAdjust();
+                    }
+                    // force update
+                    SelectCommand(NextUndo.CmdIndex, 1, true);
+                    break;
+                case Ellipse:
+                    // delete this command, and next three commands
+                    DeleteCommands(NextUndo.CmdIndex + 3, 4, true);
+                    // force update
+                    SelectCommand(NextUndo.CmdIndex, 1, false);
+                    break;
+                case AddCoord:
                     // select cmd first (without redrawing)
                     SelectedCmd = GetCommand(NextUndo.CmdIndex);
+                    if (SelectedCmd.Type == XCorner || SelectedCmd.Type == YCorner) {
+                        if (NextUndo.CoordIndex != SelectedCmd.Coords.Count - 1) {
+                            // need to flip the type
+                            if (SelectedCmd.Type == XCorner) {
+                                //SelectedCmd.Type = ;
+                                lstCommands.Items[SelectedCmd.Index].Text = YCorner.CommandName();
+                                //    EditPicture.Data[SelectedCmd.Position] = (byte)YCorner;
+                            }
+                            else {
+                                //SelectedCmd.Type = XCorner;
+                                //    EditPicture.Data[SelectedCmd.Position] = (byte)XCorner;
+                                lstCommands.Items[SelectedCmd.Index].Text = XCorner.CommandName();
+                            }
+                            // delete first coord instead of coord 1
+                            NextUndo.CoordIndex--;
+                        }
+                    }
+                    // delete the coordinate
                     DeleteCoordinate(NextUndo.CoordIndex, true);
                     // force update
                     SelectCommand(NextUndo.CmdIndex, 1, true);
-                }
-                else {
-                    // force update
-                    SelectCommand(NextUndo.CmdIndex, 1, true);
-                    SelectCoordinate(NextUndo.CoordIndex);
-                }
-                lstCoords.Focus();
-                break;
-            case EditCoord:
-                for (int i = 0; i < NextUndo.Data.Length; i++) {
-                    EditPicture.Data[NextUndo.PicPos + i] = NextUndo.Data[i];
-                }
-                SelectCommand(NextUndo.CmdIndex, 1, true);
-                SelectCoordinate(NextUndo.CoordIndex);
-                break;
-            case SplitCmd:
-                // select the cmd
-                SelectCommand(NextUndo.CmdIndex);
-                // now rejoin the commands
-                JoinCommands(true);
-                break;
-            case JoinCmds:
-                // select the cmd and coord
-                SelectCommand(NextUndo.CmdIndex);
-                SelectedCmd.SelectedCoordIndex = NextUndo.CoordIndex;
-                // now split it
-                SplitCommand(true);
-                // check for (rare) case where X/YCorner type changed
-                if (NextUndo.DrawCommand == XCorner || NextUndo.DrawCommand == YCorner) {
-                    // force the previous command to match
-                    EditPicture.Data[NextUndo.PicPos] = (byte)NextUndo.DrawCommand;
-                    lstCommands.Items[NextUndo.CmdIndex].Text = NextUndo.DrawCommand.CommandName();
-                }
-                if (NextUndo.Data.Length > 0) {
-                    // need to repair a split x/ycorner that had an extended line joined
-                    EditPicture.Data[NextUndo.PicPos] = NextUndo.Data[0];
-                    if (SelectedCmd.Type == XCorner) {
-                        EditPicture.Data[SelectedCmd.Position] = (byte)YCorner;
-                        lstCommands.Items[SelectedCmd.Index].Text = YCorner.CommandName();
-                        EditPicture.InsertData(NextUndo.Data[0], NextUndo.PicPos + 3);
-                        UpdatePosValues(SelectedCmd.Index + 1, 1);
+                    break;
+                case DelCoord:
+                    // select the cmd
+                    SelectCommand(NextUndo.CmdIndex, 1, false);
+                    // reinsert the data
+                    EditPicture.InsertData(NextUndo.Data, NextUndo.PicPos);
+                    if (NextUndo.CoordIndex == 0) {
+                        switch (NextUndo.DrawCommand) {
+                        case RelLine:
+                            // need to restore Y0 and D1
+                            // reminder: X0 is NextUndo.Coord.X
+                            //           Y0 is NextUndo.Coord.Y
+                            //           X1 is at data offset[1]
+                            //           Y1 is at data offset[2]
+                            int d1 = 0;
+                            if (EditPicture.Data[NextUndo.PicPos + 1] - NextUndo.Coord.X < 0) {
+                                d1 = 0x80;
+                            }
+                            d1 += Math.Abs(EditPicture.Data[NextUndo.PicPos + 1] - NextUndo.Coord.X) * 0x10;
+                            if (EditPicture.Data[NextUndo.PicPos + 2] - NextUndo.Coord.Y < 0) {
+                                d1 += 0x08;
+                            }
+                            d1 += Math.Abs(EditPicture.Data[NextUndo.PicPos + 2] - NextUndo.Coord.Y);
+                            EditPicture.Data[NextUndo.PicPos + 1] = (byte)NextUndo.Coord.Y;
+                            EditPicture.Data[NextUndo.PicPos + 2] = (byte)d1;
+                            break;
+                        case XCorner:
+                            // need to swap Y0 and X1 back and change type to XCorner
+                            EditPicture.Data[NextUndo.PicPos - 1] = (byte)XCorner;
+                            EditPicture.Data[NextUndo.PicPos + 2] = EditPicture.Data[NextUndo.PicPos + 1];
+                            EditPicture.Data[NextUndo.PicPos + 1] = (byte)NextUndo.Coord.Y;
+                            SelectedCmd.Type = XCorner;
+                            lstCommands.Items[SelectedCmd.Index].Text = XCorner.CommandName();
+                            break;
+                        case YCorner:
+                            // need to change type to YCorner (remember PicPos is offset by 1)
+                            SelectedCmd.Type = YCorner;
+                            EditPicture.Data[NextUndo.PicPos - 2] = (byte)YCorner;
+                            lstCommands.Items[SelectedCmd.Index].Text = YCorner.CommandName();
+                            break;
+                        }
+                    }
+                    UpdatePosValues(SelectedCmd.Index + 1, NextUndo.Data.Length);
+                    SelectedCmd.Coords.Insert(NextUndo.CoordIndex, NextUndo.Coord);
+                    lstCoords.Items.Insert(NextUndo.CoordIndex, CoordText(NextUndo.Coord));
+                    CoordColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+
+                    // force reselection
+                    SelectCoordinate(NextUndo.CoordIndex, true);
+                    break;
+                case MoveCoord:
+                case InsertCoord:
+                    // restore pic data
+                    for (int i = 0; i < NextUndo.Data.Length; i++) {
+                        EditPicture.Data[NextUndo.PicPos + i] = NextUndo.Data[i];
+                    }
+                    // if undoing an insert, also delete current coordinate
+                    if (NextUndo.Action == InsertCoord) {
+                        // select cmd first (without redrawing)
+                        SelectedCmd = GetCommand(NextUndo.CmdIndex);
+                        DeleteCoordinate(NextUndo.CoordIndex, true);
+                        // force update
+                        SelectCommand(NextUndo.CmdIndex, 1, true);
                     }
                     else {
-                        EditPicture.Data[SelectedCmd.Position] = (byte)XCorner;
-                        lstCommands.Items[SelectedCmd.Index].Text = XCorner.CommandName();
-                        EditPicture.InsertData(EditPicture.Data[SelectedCmd.Position + 1], NextUndo.PicPos + 4);
-                        EditPicture.Data[SelectedCmd.Position + 1] = NextUndo.Data[0];
-                        UpdatePosValues(SelectedCmd.Index + 1, 1);
+                        // force update
+                        SelectCommand(NextUndo.CmdIndex, 1, true);
+                        SelectCoordinate(NextUndo.CoordIndex);
                     }
-                    // force selection
-                    SelectCommand(SelectedCmd.Index, 1, true);
-                }
-                break;
-            case MoveCmds:
-                SelectCommand(NextUndo.CmdIndex, NextUndo.CoordIndex);
-                byte dX = NextUndo.Data[0];
-                byte dY = NextUndo.Data[1];
-
-                // move cmds back
-                MoveCommands(NextUndo.CmdIndex, NextUndo.CoordIndex, -dX, -dY, true);
-
-                SelectCommand(NextUndo.CmdIndex, NextUndo.CoordIndex, true);
-                if (NextUndo.CoordIndex == 1) {
-                    ClearSelectionBounds();
-                }
-                break;
-            case FlipH:
-                FlipHorizontal(NextUndo.CmdIndex, NextUndo.CmdCount, true);
-                // force re-selection
-                SelectCommand(SelectedCmd.Index, SelectedCmdCount, true);
-                SetSelectionBounds(true);
-                picVisual.Refresh();
-                picPriority.Refresh();
-                break;
-            case FlipV:
-                FlipVertical(NextUndo.CmdIndex, NextUndo.CmdCount, true);
-                // force re-selection
-                SelectCommand(SelectedCmd.Index, SelectedCmdCount, true);
-                SetSelectionBounds(true);
-                picVisual.Refresh();
-                picPriority.Refresh();
-                break;
-            case SetPriBase:
-                // change pribase back
-                EditPicture.PriBase = (byte)NextUndo.CmdIndex;
-                // if showing priority lines
-                if (ShowBands) {
-                    switch (OneWindow) {
-                    case 0:
-                        picVisual.Invalidate();
-                        picPriority.Invalidate();
-                        break;
-                    case WindowMode.Visual:
-                        picVisual.Invalidate();
-                        break;
-                    case WindowMode.Priority:
-                        picPriority.Invalidate();
-                        break;
+                    lstCoords.Focus();
+                    break;
+                case EditCoord:
+                    for (int i = 0; i < NextUndo.Data.Length; i++) {
+                        EditPicture.Data[NextUndo.PicPos + i] = NextUndo.Data[i];
                     }
+                    SelectCommand(NextUndo.CmdIndex, 1, true);
+                    SelectCoordinate(NextUndo.CoordIndex);
+                    break;
+                case SplitCmd:
+                    // select the cmd
+                    SelectCommand(NextUndo.CmdIndex);
+                    // now rejoin the commands
+                    JoinCommands(true);
+                    break;
+                case JoinCmds:
+                    // select the cmd and coord
+                    SelectCommand(NextUndo.CmdIndex);
+                    SelectedCmd.SelectedCoordIndex = NextUndo.CoordIndex;
+                    // now split it
+                    SplitCommand(true);
+                    // check for (rare) case where X/YCorner type changed
+                    if (NextUndo.DrawCommand == XCorner || NextUndo.DrawCommand == YCorner) {
+                        // force the previous command to match
+                        EditPicture.Data[NextUndo.PicPos] = (byte)NextUndo.DrawCommand;
+                        lstCommands.Items[NextUndo.CmdIndex].Text = NextUndo.DrawCommand.CommandName();
+                    }
+                    if (NextUndo.Data.Length > 0) {
+                        // need to repair a split x/ycorner that had an extended line joined
+                        EditPicture.Data[NextUndo.PicPos] = NextUndo.Data[0];
+                        if (SelectedCmd.Type == XCorner) {
+                            EditPicture.Data[SelectedCmd.Position] = (byte)YCorner;
+                            lstCommands.Items[SelectedCmd.Index].Text = YCorner.CommandName();
+                            EditPicture.InsertData(NextUndo.Data[0], NextUndo.PicPos + 3);
+                            UpdatePosValues(SelectedCmd.Index + 1, 1);
+                        }
+                        else {
+                            EditPicture.Data[SelectedCmd.Position] = (byte)XCorner;
+                            lstCommands.Items[SelectedCmd.Index].Text = XCorner.CommandName();
+                            EditPicture.InsertData(EditPicture.Data[SelectedCmd.Position + 1], NextUndo.PicPos + 4);
+                            EditPicture.Data[SelectedCmd.Position + 1] = NextUndo.Data[0];
+                            UpdatePosValues(SelectedCmd.Index + 1, 1);
+                        }
+                        // force selection
+                        SelectCommand(SelectedCmd.Index, 1, true);
+                    }
+                    break;
+                case MoveCmds:
+                    SelectCommand(NextUndo.CmdIndex, NextUndo.CoordIndex);
+                    byte dX = NextUndo.Data[0];
+                    byte dY = NextUndo.Data[1];
+
+                    // move cmds back
+                    MoveCommands(NextUndo.CmdIndex, NextUndo.CoordIndex, -dX, -dY, true);
+
+                    SelectCommand(NextUndo.CmdIndex, NextUndo.CoordIndex, true);
+                    if (NextUndo.CoordIndex == 1) {
+                        ClearSelectionBounds();
+                    }
+                    break;
+                case FlipH:
+                    FlipHorizontal(NextUndo.CmdIndex, NextUndo.CmdCount, true);
+                    // force re-selection
+                    SelectCommand(SelectedCmd.Index, SelectedCmdCount, true);
+                    SetSelectionBounds(true);
+                    picVisual.Refresh();
+                    picPriority.Refresh();
+                    break;
+                case FlipV:
+                    FlipVertical(NextUndo.CmdIndex, NextUndo.CmdCount, true);
+                    // force re-selection
+                    SelectCommand(SelectedCmd.Index, SelectedCmdCount, true);
+                    SetSelectionBounds(true);
+                    picVisual.Refresh();
+                    picPriority.Refresh();
+                    break;
+                case SetPriBase:
+                    // change pribase back
+                    EditPicture.PriBase = (byte)NextUndo.CmdIndex;
+                    // if showing priority lines
+                    if (ShowBands) {
+                        switch (OneWindow) {
+                        case 0:
+                            picVisual.Invalidate();
+                            picPriority.Invalidate();
+                            break;
+                        case WindowMode.Visual:
+                            picVisual.Invalidate();
+                            break;
+                        case WindowMode.Priority:
+                            picPriority.Invalidate();
+                            break;
+                        }
+                    }
+                    break;
                 }
-                break;
+                MarkAsChanged();
             }
-            MarkAsChanged();
+        }
+
+        private bool CanUndo() {
+            if (PicMode == PicEditorMode.Edit) {
+                return UndoCol.Count != 0;
+            }
+            else {
+                return false;
+            }
         }
 
         private void mnuCut_Click(object sender, EventArgs e) {
-            int oldundocount = UndoCol.Count;
-            // copy, then delete
-            mnuCopy_Click(sender, e);
-            mnuDelete_Click(sender, e);
-            // update undo only if something deleted
-            if (UndoCol.Count > oldundocount) {
-                UndoCol.Peek().Action = PictureUndo.ActionType.CutCmds;
+            if (CanCut()) {
+                int oldundocount = UndoCol.Count;
+                // copy, then delete
+                mnuCopy_Click(sender, e);
+                mnuDelete_Click(sender, e);
+                // update undo only if something deleted
+                if (UndoCol.Count > oldundocount) {
+                    UndoCol.Peek().Action = CutCmds;
+                }
+            }
+        }
+
+        private bool CanCut() {
+            if (PicMode == PicEditorMode.Edit) {
+                if (SelectedTool == PicToolType.SelectArea) {
+                    return false;
+                }
+                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                    return SelectedCmd.Type != End;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return false;
             }
         }
 
         private void mnuCopy_Click(object sender, EventArgs e) {
-            // if editing, tool is editselect, and a selection is visible
-            // which means selwidth/height != 0)
-            if ((PicMode == PicEditorMode.Edit) && (SelectedTool == PicToolType.SelectArea) && (SelectedRegion.Width != 0) && (SelectedRegion.Height != 0)) {
-                // Get the bounds of the selected region
-                // Create a bitmap with the size of the selected region
-                Bitmap bitmap = new Bitmap(SelectedRegion.Width, SelectedRegion.Height);
-                // Create a graphics object from the bitmap
-                using Graphics g = Graphics.FromImage(bitmap);
-                // Draw the specified region of the PictureBox onto the bitmap
-                g.DrawImage(priorityActive ? EditPicture.PriorityBMP : EditPicture.VisualBMP, new Rectangle(0, 0, bitmap.Width, bitmap.Height), SelectedRegion, GraphicsUnit.Pixel);
-                // Set the bitmap to the clipboard
-                Clipboard.SetImage(bitmap);
-                priorityActive = false;
-                return;
-            }
+            if (CanCopy()) {
+                // if editing, tool is editselect, and a selection is visible
+                // which means selwidth/height != 0)
+                if ((PicMode == PicEditorMode.Edit) && (SelectedTool == PicToolType.SelectArea) && (SelectedRegion.Width != 0) && (SelectedRegion.Height != 0)) {
+                    // Get the bounds of the selected region
+                    // Create a bitmap with the size of the selected region
+                    Bitmap bitmap = new Bitmap(SelectedRegion.Width, SelectedRegion.Height);
+                    // Create a graphics object from the bitmap
+                    using Graphics g = Graphics.FromImage(bitmap);
+                    // Draw the specified region of the PictureBox onto the bitmap
+                    g.DrawImage(priorityActive ? EditPicture.PriorityBMP : EditPicture.VisualBMP, new Rectangle(0, 0, bitmap.Width, bitmap.Height), SelectedRegion, GraphicsUnit.Pixel);
+                    // Set the bitmap to the clipboard
+                    Clipboard.SetImage(bitmap);
+                    priorityActive = false;
+                    return;
+                }
 
-            // if one or more commands selected
-            if (lstCommands.SelectedItems.Count >= 1 && lstCoords.SelectedItems.Count == 0 && !lstCommands.Items[^1].Selected) {
-                PictureClipboardData picCB = new();
-                picCB.CmdCount = SelectedCmdCount;
-                // get starting position of resource data
-                int startPos = (int)lstCommands.Items[SelectedCmd.Index - SelectedCmdCount + 1].Tag;
-                int endPos = ((int)lstCommands.Items[SelectedCmd.Index + 1].Tag);
-                byte[] bytData = EditPicture.Data[startPos..endPos];
-                picCB.Data = bytData;
-                picCB.StartPen = EditPicture.GetPenStatus(startPos);
-                picCB.EndPen = EditPicture.GetPenStatus(endPos - 1);
-                // Check for pen settings that need to be enforced. If the 
-                // group of commands begins with any pen settings, then those
-                // pen types (vis, pri, plot) don't need to be included. Any
-                // pens that are not set before first draw command must be
-                // included. Also, if there are no plot commands, plot pen
-                // settings don't need to be included.
-                picCB.IncludeVisPen = true;
-                picCB.IncludePriPen = true;
-                picCB.IncludePlotPen = true;
-                bool hasPlot = false;
-                int cmdStart = -1, cmdEnd = -1;
-                for (int i = 0; i < SelectedCmdCount; i++) {
-                    DrawFunction cmd = (DrawFunction)EditPicture.Data[(int)lstCommands.Items[SelectedCmd.Index - SelectedCmdCount + 1 + i].Tag];
-                    switch (cmd) {
-                    case EnableVis or DisableVis:
-                        if (cmdStart == -1) {
-                            // pen set before first command, so it doesn't need
-                            // to be included
-                            picCB.IncludeVisPen = false;
+                // if one or more commands selected
+                if (lstCommands.SelectedItems.Count >= 1 && lstCoords.SelectedItems.Count == 0 && !lstCommands.Items[^1].Selected) {
+                    PictureClipboardData picCB = new();
+                    picCB.CmdCount = SelectedCmdCount;
+                    // get starting position of resource data
+                    int startPos = (int)lstCommands.Items[SelectedCmd.Index - SelectedCmdCount + 1].Tag;
+                    int endPos = ((int)lstCommands.Items[SelectedCmd.Index + 1].Tag);
+                    byte[] bytData = EditPicture.Data[startPos..endPos];
+                    picCB.Data = bytData;
+                    picCB.StartPen = EditPicture.GetPenStatus(startPos);
+                    picCB.EndPen = EditPicture.GetPenStatus(endPos - 1);
+                    // Check for pen settings that need to be enforced. If the 
+                    // group of commands begins with any pen settings, then those
+                    // pen types (vis, pri, plot) don't need to be included. Any
+                    // pens that are not set before first draw command must be
+                    // included. Also, if there are no plot commands, plot pen
+                    // settings don't need to be included.
+                    picCB.IncludeVisPen = true;
+                    picCB.IncludePriPen = true;
+                    picCB.IncludePlotPen = true;
+                    bool hasPlot = false;
+                    int cmdStart = -1, cmdEnd = -1;
+                    for (int i = 0; i < SelectedCmdCount; i++) {
+                        DrawFunction cmd = (DrawFunction)EditPicture.Data[(int)lstCommands.Items[SelectedCmd.Index - SelectedCmdCount + 1 + i].Tag];
+                        switch (cmd) {
+                        case EnableVis or DisableVis:
+                            if (cmdStart == -1) {
+                                // pen set before first command, so it doesn't need
+                                // to be included
+                                picCB.IncludeVisPen = false;
+                            }
+                            break;
+                        case EnablePri or DisablePri:
+                            if (cmdStart == -1) {
+                                // pen set before first command, so it doesn't need
+                                // to be included
+                                picCB.IncludePriPen = false;
+                            }
+                            break;
+                        case ChangePen:
+                            if (!hasPlot) {
+                                // pen set before first plot command, so it doesn't need
+                                // to be included
+                                picCB.IncludePlotPen = false;
+                                picCB.HasPenChange = true;
+                            }
+                            break;
+                        default:
+                            // draw command found
+                            if (cmdStart == -1) {
+                                cmdStart = i;
+                            }
+                            cmdEnd = i + 1;
+                            if (cmd == PlotPen) {
+                                hasPlot = true;
+                            }
+                            break;
                         }
-                        break;
-                    case EnablePri or DisablePri:
-                        if (cmdStart == -1) {
-                            // pen set before first command, so it doesn't need
-                            // to be included
-                            picCB.IncludePriPen = false;
-                        }
-                        break;
-                    case ChangePen:
-                        if (!hasPlot) {
-                            // pen set before first plot command, so it doesn't need
-                            // to be included
-                            picCB.IncludePlotPen = false;
-                            picCB.HasPenChange = true;
-                        }
-                        break;
-                    default:
-                        // draw command found
-                        if (cmdStart == -1) {
-                            cmdStart = i;
-                        }
-                        cmdEnd = i + 1;
-                        if (cmd == PlotPen) {
-                            hasPlot = true;
-                        }
-                        break;
                     }
-                }
-                // if no plot commmand plot pen does not need to be included
-                picCB.HasPlotCmds = hasPlot;
-                if (!hasPlot) {
-                    picCB.IncludePlotPen = false;
-                }
-                int sp = (int)lstCommands.Items[SelectedCmd.Index - SelectedCmdCount + 1 + cmdStart].Tag;
-                int ep = (int)lstCommands.Items[SelectedCmd.Index - SelectedCmdCount + 1 + cmdEnd].Tag - 1;
-                picCB.DrawCmdStartPen = EditPicture.GetPenStatus(sp);
-                picCB.DrawCmdEndPen = EditPicture.GetPenStatus(ep);
-                picCB.DrawCmdStart = cmdStart;
-                picCB.DrawCmdCount = cmdEnd - cmdStart;
-                picCB.DrawByteStart = sp - startPos;
-                picCB.DrawByteCount = ep - sp + 1;
-                DataObject dataObject = new();
-                dataObject.SetData(PICTURE_CB_FMT, picCB);
-                // add data as CSV list of bytes
-                string csvData = bytData[0].ToString();
-                // add line returns for each change in cmd
-                for (int i = 1; i < bytData.Length; i++) {
-                    // if this is a new command
-                    if (bytData[i] >= 240) {
-                        csvData += "\r\n" + bytData[i];
+                    // if no plot commmand plot pen does not need to be included
+                    picCB.HasPlotCmds = hasPlot;
+                    if (!hasPlot) {
+                        picCB.IncludePlotPen = false;
                     }
-                    else {
-                        csvData += ", " + bytData[i];
+                    int sp = (int)lstCommands.Items[SelectedCmd.Index - SelectedCmdCount + 1 + cmdStart].Tag;
+                    int ep = (int)lstCommands.Items[SelectedCmd.Index - SelectedCmdCount + 1 + cmdEnd].Tag - 1;
+                    picCB.DrawCmdStartPen = EditPicture.GetPenStatus(sp);
+                    picCB.DrawCmdEndPen = EditPicture.GetPenStatus(ep);
+                    picCB.DrawCmdStart = cmdStart;
+                    picCB.DrawCmdCount = cmdEnd - cmdStart;
+                    picCB.DrawByteStart = sp - startPos;
+                    picCB.DrawByteCount = ep - sp + 1;
+                    DataObject dataObject = new();
+                    dataObject.SetData(PICTURE_CB_FMT, picCB);
+                    // add data as CSV list of bytes
+                    string csvData = bytData[0].ToString();
+                    // add line returns for each change in cmd
+                    for (int i = 1; i < bytData.Length; i++) {
+                        // if this is a new command
+                        if (bytData[i] >= 240) {
+                            csvData += "\r\n" + bytData[i];
+                        }
+                        else {
+                            csvData += ", " + bytData[i];
+                        }
                     }
+                    // Convert the CSV text to a UTF-8 byte stream before adding it to the container object.
+                    var bytes = System.Text.Encoding.UTF8.GetBytes(csvData);
+                    var stream = new System.IO.MemoryStream(bytes);
+                    dataObject.SetData(DataFormats.CommaSeparatedValue, stream);
+                    Clipboard.SetDataObject(dataObject, true);
                 }
-                // Convert the CSV text to a UTF-8 byte stream before adding it to the container object.
-                var bytes = System.Text.Encoding.UTF8.GetBytes(csvData);
-                var stream = new System.IO.MemoryStream(bytes);
-                dataObject.SetData(DataFormats.CommaSeparatedValue, stream);
-                Clipboard.SetDataObject(dataObject, true);
+            }
+        }
+
+        private bool CanCopy() {
+            if (PicMode == PicEditorMode.Edit) {
+                if (SelectedTool == PicToolType.SelectArea) {
+                    // copy is enabled if something selected
+                    return (SelectedRegion.Width > 0) && (SelectedRegion.Height > 0);
+                }
+                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                    return SelectedCmd.Type != End;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return false;
             }
         }
 
         private void mnuPaste_Click(object sender, EventArgs e) {
-            int InsertIndex = 0, InsertPos = 0;
+            int InsertIndex, InsertPos;
 
+            if (PicMode != PicEditorMode.Edit) {
+                // not in edit mode
+                return;
+            }
+            if (SelectedTool == PicToolType.SelectArea) {
+                return;
+            }
             if (!Clipboard.ContainsData(PICTURE_CB_FMT)) {
                 return;
             }
@@ -2698,8 +1976,8 @@ private void tmrTest_Timer() {
             if (picCBData == null) {
                 return;
             }
-            // always set tool to select
             if (SelectedTool != PicToolType.Edit) {
+                // always set tool to select
                 SelectTool(PicToolType.Edit);
             }
             // if more than one command selected
@@ -2906,9 +2184,15 @@ private void tmrTest_Timer() {
         }
 
         private void mnuPastePen_Click(object sender, EventArgs e) {
-            int InsertIndex = 0, InsertPos = 0;
-            PictureUndo NextUndo = new();
+            int InsertIndex, InsertPos;
 
+            if (PicMode != PicEditorMode.Edit) {
+                // not in edit mode
+                return;
+            }
+            if (SelectedTool == PicToolType.SelectArea) {
+                return;
+            }
             if (!Clipboard.ContainsData(PICTURE_CB_FMT)) {
                 return;
             }
@@ -2916,12 +2200,10 @@ private void tmrTest_Timer() {
             if (picCBData == null) {
                 return;
             }
-            // always set tool to select
             if (SelectedTool != PicToolType.Edit) {
-                tsbTool.Image = tsbEditTool.Image;
+                // always set tool to select
                 SelectTool(PicToolType.Edit);
             }
-
             // if more than one command selected
             if (SelectedCmdCount > 1) {
                 // paste after the last selected item
@@ -2932,6 +2214,7 @@ private void tmrTest_Timer() {
                 InsertIndex = SelectedCmd.Index;
             }
             InsertPos = (int)lstCommands.Items[InsertIndex].Tag;
+            PictureUndo NextUndo = new();
             NextUndo.Action = PasteCmds;
             NextUndo.PicPos = InsertPos;
             NextUndo.CmdIndex = InsertIndex;
@@ -3032,42 +2315,73 @@ private void tmrTest_Timer() {
 
         private void mnuDelete_Click(object sender, EventArgs e) {
             // delete a coordinate or command
-
-            if (SelectedCmd.SelectedCoordIndex == -1) {
-                DeleteCommands(SelectedCmd.Index, SelectedCmdCount);
-                // select the cmd that is just after the deleted items
-                SelectCommand(SelectedCmd.Index - SelectedCmdCount + 1, 1, true);
-            }
-            else {
-                // fill, plot and absolute lines allow deleting of any coordinate
-                // only last coordinate of other commands can be deleted
-                switch (SelectedCmd.Type) {
-                case AbsLine:
-                case Fill:
-                case PlotPen:
-                    DeleteCoordinate(SelectedCmd.SelectedCoordIndex);
-                    Debug.Assert(SelectedCmd.Coords.Count != 0);
-                    if (SelectedCmd.SelectedCoordIndex > SelectedCmd.Coords.Count - 1) {
-                        SelectedCmd.SelectedCoordIndex = SelectedCmd.Coords.Count - 1;
-                    }
-                    SelectCoordinate(SelectedCmd.SelectedCoordIndex, true);
-                    break;
-                default:
-                    if (SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1) {
+            if (CanDelete()) {
+                if (SelectedCmd.SelectedCoordIndex == -1) {
+                    DeleteCommands(SelectedCmd.Index, SelectedCmdCount);
+                    // select the cmd that is just after the deleted items
+                    SelectCommand(SelectedCmd.Index - SelectedCmdCount + 1, 1, true);
+                }
+                else {
+                    // fill, plot and absolute lines allow deleting of any coordinate
+                    // only last coordinate of other commands can be deleted
+                    switch (SelectedCmd.Type) {
+                    case AbsLine:
+                    case Fill:
+                    case PlotPen:
                         DeleteCoordinate(SelectedCmd.SelectedCoordIndex);
                         Debug.Assert(SelectedCmd.Coords.Count != 0);
                         if (SelectedCmd.SelectedCoordIndex > SelectedCmd.Coords.Count - 1) {
                             SelectedCmd.SelectedCoordIndex = SelectedCmd.Coords.Count - 1;
                         }
                         SelectCoordinate(SelectedCmd.SelectedCoordIndex, true);
+                        break;
+                    default:
+                        if (SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1) {
+                            DeleteCoordinate(SelectedCmd.SelectedCoordIndex);
+                            Debug.Assert(SelectedCmd.Coords.Count != 0);
+                            if (SelectedCmd.SelectedCoordIndex > SelectedCmd.Coords.Count - 1) {
+                                SelectedCmd.SelectedCoordIndex = SelectedCmd.Coords.Count - 1;
+                            }
+                            SelectCoordinate(SelectedCmd.SelectedCoordIndex, true);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
 
+        private bool CanDelete() {
+
+            // mode dependent items
+            if (PicMode == PicEditorMode.Edit) {
+                if (SelectedTool == PicToolType.SelectArea) {
+                    return false;
+                }
+                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                    return SelectedCmd.Type != End;
+                }
+                else {
+                    // a coordinate is selected
+                    // delete always available for absline, fill, plot
+                    // delete only available for other commands if on last coord
+                    switch (SelectedCmd.Type) {
+                    case AbsLine:
+                    case Fill:
+                    case PlotPen:
+                        return true;
+                    default:
+                        // Corner lines or relative lines
+                        return SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1;
+                    }
+                }
+            }
+            else {
+                return false;
+            }
+        }
+
         private void mnuClearPicture_Click(object sender, EventArgs e) {
-            if (lstCommands.Items.Count == 1) {
+            if (PicMode != PicEditorMode.Edit || lstCommands.Items.Count == 1) {
                 return;
             }
             // clears the entire picture (don't forget to leave the 'End' command)
@@ -3079,9 +2393,9 @@ private void tmrTest_Timer() {
 
         private void mnuSelectAll_Click(object sender, EventArgs e) {
             // selects all commands if in edit mode,
-            // or select entire picture if in edit-select mode
+            // or select entire picture if tool is select-area
 
-            if (PicMode != PicEditorMode.Edit) {
+            if (PicMode != PicEditorMode.Edit || lstCommands.Items.Count == 1) {
                 return;
             }
 
@@ -3114,104 +2428,287 @@ private void tmrTest_Timer() {
                     SetSelectionBounds(true);
                 }
                 break;
-            default:
-                // not allowed, should never get here
-                Debug.Assert(false);
-                break;
             }
         }
 
         private void mnuInsertCoord_Click(object sender, EventArgs e) {
-            InsertCoordinate();
+            if (CanInsertCoord()) {
+                InsertCoordinate();
+            }
+        }
+
+        private bool CanInsertCoord() {
+            if (PicMode == PicEditorMode.Edit) {
+                if (SelectedTool == PicToolType.SelectArea) {
+                    // area selection - no editing commands are enabled,
+                    // only copy is available
+                    return false;
+                }
+                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                    // no coordinate is selected
+                    if (SelectedTool == PicToolType.Edit && SelectedCmd.Type == PlotPen || SelectedCmd.Type == Fill) {
+                        return true;
+                    }
+                    else if ((SelectedTool == PicToolType.Plot && SelectedCmd.Type == PlotPen) ||
+                             (SelectedTool == PicToolType.Fill && SelectedCmd.Type == Fill)) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else {
+                    switch (SelectedCmd.Type) {
+                    case AbsLine:
+                    case Fill:
+                    case PlotPen:
+                        return true;
+                    default:
+                        // Corner lines or relative lines
+                        return SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1;
+                    }
+                }
+            }
+            else {
+                return false;
+            }
         }
 
         private void mnuSplitCommand_Click(object sender, EventArgs e) {
             // splits a command into two separate commands of the same Type
-
-            // confirm command and coordinate are split-eligible
-            if (SelectedCmd.IsPen) {
-                // pens commands can't be split
-                return;
+            if (CanSplit()) {
+                SplitCommand();
             }
-            // fill and plot can be split on any coord > 0
-            // all other commands can only be split on coord > 0 and < count-1
-            if (SelectedCmd.Type == PlotPen || SelectedCmd.Type == Fill) {
-                if (SelectedCmd.SelectedCoordIndex <= 0) {
-                    return;
+        }
+
+        private bool CanSplit() {
+            if (PicMode == PicEditorMode.Edit) {
+                if (SelectedTool == PicToolType.SelectArea) {
+                    // area selection - no editing commands are enabled,
+                    return false;
+                }
+                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                    return false;
+                }
+                else {
+                    // a coordinate is selected
+                    // disable split if not just one cmd selected OR
+                    // cmd is set color pen or set plot pen OR
+                    // only one coordinate OR
+                    // no coord selected
+                    if (SelectedCmdCount != 1 ||
+                        SelectedCmd.IsPen ||
+                        SelectedCmd.SelectedCoordIndex < 0) {
+                        return false;
+                    }
+                    else {
+                        // if on a line, fill, or plot cmd
+                        switch (SelectedCmd.Type) {
+                        case AbsLine or RelLine or XCorner or YCorner:
+                            // only if three or more, and not on either end
+                            if (SelectedCmd.Coords.Count < 3 || SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1) {
+                                return false;
+                            }
+                            else {
+                                return true;
+                            }
+                        case Fill or PlotPen:
+                            // only if not on first coordinate
+                            return SelectedCmd.SelectedCoordIndex != 0;
+                        }
+                        return false;
+                    }
                 }
             }
             else {
-                if (SelectedCmd.SelectedCoordIndex <= 0 || SelectedCmd.SelectedCoordIndex >= SelectedCmd.Coords.Count - 1) {
-                    return;
-                }
+                return false;
             }
-
-            SplitCommand();
         }
 
         private void mnuJoinCommands_Click(object sender, EventArgs e) {
-            // joins two commands that are adjacent, where first coord of SecondCmdIndex is same point as end of previous command
+            // joins two commands that are adjacent, where first coord of
+            // second command is same point as end of previous command
             // or if both cmds are plots or fills
-
-            if (!CanJoin(SelectedCmd.Index)) {
-                return;
+            if (CanJoin()) {
+                JoinCommands();
             }
-            JoinCommands();
+        }
+
+        private bool CanJoin() {
+            if (PicMode == PicEditorMode.Edit) {
+                if (SelectedTool == PicToolType.SelectArea) {
+                    return false;
+                }
+                else if (SelectedCmd.SelectedCoordIndex < 0 && !SelectedCmd.IsPen) {
+                    // no coordinate is selected
+                    return CanJoinCommands(SelectedCmd.Index);
+                }
+                else {
+                    // a coordinate is selected or it's a pen
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
         }
 
         private void mnuFlipH_Click(object sender, EventArgs e) {
-            // Edit-Flip Horizontal
-            Debug.Assert(SelectedCmdCount >= 1);
-            // must have width > 1
-            Debug.Assert(SelectedRegion.Width >= 2);
-            if (SelectedRegion.Width < 2) {
-                return;
+            // flip Horizontal
+            if (CanFlipH()) {
+                FlipHorizontal(SelectedCmd.Index, SelectedCmdCount);
+                // force re-selection
+                SelectCommand(SelectedCmd.Index, SelectedCmdCount, true);
+                SetSelectionBounds(true);
+                picVisual.Refresh();
+                picPriority.Refresh();
             }
-            FlipHorizontal(SelectedCmd.Index, SelectedCmdCount);
-            // force re-selection
-            SelectCommand(SelectedCmd.Index, SelectedCmdCount, true);
-            SetSelectionBounds(true);
-            picVisual.Refresh();
-            picPriority.Refresh();
+        }
+
+        private bool CanFlipH() {
+            if (PicMode == PicEditorMode.Edit) {
+                if (SelectedTool == PicToolType.SelectArea) {
+                    return false;
+                }
+                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                    return (SelectedRegion.Width > 1);
+                }
+                else {
+                    // a coordinate is selected
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
         }
 
         private void mnuFlipV_Click(object sender, EventArgs e) {
-            // Edit-Flip Vertical
-            Debug.Assert(SelectedCmdCount >= 1);
-            // must have nonzero height
-            Debug.Assert(SelectedRegion.Height >= 2);
-            if (SelectedRegion.Height < 2) {
-                return;
+            // flip Vertical
+            if (CanFlipV()) {
+                FlipVertical(SelectedCmd.Index, SelectedCmdCount);
+                // force re-selection
+                SelectCommand(SelectedCmd.Index, SelectedCmdCount, true);
+                SetSelectionBounds(true);
+                picVisual.Refresh();
+                picPriority.Refresh();
             }
-            FlipVertical(SelectedCmd.Index, SelectedCmdCount);
-            // force re-selection
-            SelectCommand(SelectedCmd.Index, SelectedCmdCount, true);
-            SetSelectionBounds(true);
-            picVisual.Refresh();
-            picPriority.Refresh();
+        }
+
+        private bool CanFlipV() {
+            if (PicMode == PicEditorMode.Edit) {
+                if (SelectedTool == PicToolType.SelectArea) {
+                    return false;
+                }
+                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                    return (SelectedRegion.Height > 1);
+                }
+                else {
+                    // a coordinate is selected
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
         }
 
         private void mnuSetTestView_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: menu Set Test View");
+            if (PicMode == PicEditorMode.ViewTest) {
+                GetTestView();
+                DrawPicture();
+            }
         }
 
         private void mnuTestViewOptions_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: menu Test View Options");
+            if (PicMode == PicEditorMode.ViewTest) {
+                // stop motion and stop cycling
+                if (TestDir != ObjDirection.odStopped) {
+                    TestDir = ObjDirection.odStopped;
+                }
+                tmrTest.Enabled = false;
+                if (TestView == null) {
+                    // load one first
+                    GetTestView();
+                    // if still no testview
+                    if (TestView == null) {
+                        // exit
+                        return;
+                    }
+                }
+                frmPicTestOptions frmTest = new(TestView, TestSettings);
+
+                // if not canceled
+                if (frmTest.ShowDialog(this) == DialogResult.OK) {
+                    // Retrieve option values safely by copying TestInfo to a local variable
+                    var testInfoCopy = frmTest.TestInfo.Clone();
+                    TestSettings = testInfoCopy;
+
+                    // if test loop and/or cel are NOT auto, force current loop/cel
+                    if (TestSettings.TestLoop != -1) {
+                        CurTestLoop = (byte)TestSettings.TestLoop;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        // just in case, check current cel; if it exceeds
+                        // loop count, reset it to zero
+                        if (CurTestCel > CurTestLoopCount - 1) {
+                            CurTestCel = (byte)(CurTestLoopCount - 1);
+                        }
+                        if (TestSettings.TestCel != -1) {
+                            CurTestCel = (byte)TestSettings.TestCel;
+                        }
+                        // if either loop or cel is forced, update cel data
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    // update cel height/width/transcolor
+                    CelWidth = TestView.Loops[CurTestLoop].Cels[CurTestCel].Width;
+                    CelHeight = TestView.Loops[CurTestLoop].Cels[CurTestCel].Height;
+                    CelTrans = TestView.Loops[CurTestLoop].Cels[CurTestCel].TransColor;
+                    // set timer based on speed
+                    switch (TestSettings.ObjSpeed.Value) {
+                    case 0:
+                        // slow
+                        tmrTest.Interval = 200;
+                        break;
+                    case 1:
+                        // normal
+                        tmrTest.Interval = 50;
+                        break;
+                    case 2:
+                        // fast
+                        tmrTest.Interval = 20;
+                        break;
+                    case 3:
+                        // fastest
+                        tmrTest.Interval = 1;
+                        break;
+                    }
+                    // redraw cel at current position
+                    DrawPicture();
+                }
+                frmTest.Dispose();
+                // set timer as needed
+                tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+            }
         }
 
         private void mnuTestTextOptions_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: menu Test Text Options");
-        }
-
-        private void mnuTestPrintCommand_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: menu Test Print Command");
+            if (PicMode == PicEditorMode.PrintTest) {
+                GetTextOptions();
+            }
         }
 
         private void mnuTextScreenSize_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: Text Screen Size");
+            if (PicMode == PicEditorMode.PrintTest && InGame && EditGame.PowerPack) {
+                ToggleTextScreenSize();
+            }
         }
 
         private void mnuToggleScreen_Click(object sender, EventArgs e) {
+            // not available if text testing, or if both are visible
+            if (OneWindow == WindowMode.Both || PicMode == PicEditorMode.PrintTest) {
+                return;
+            }
+
             if (TooSmall) {
                 if (splitImages.Panel2Collapsed) {
                     splitImages.Panel1Collapsed = true;
@@ -3235,68 +2732,77 @@ private void tmrTest_Timer() {
         }
 
         private void mnuToggleBands_Click(object sender, EventArgs e) {
+            // toggles the priority bands
             ShowBands = !ShowBands;
             picVisual.Invalidate();
             picPriority.Invalidate();
         }
 
         private void mnuEditPriBase_Click(object sender, EventArgs e) {
-            byte oldBase = EditPicture.PriBase;
-            string newBaseText = oldBase.ToString();
-            byte newBase;
-            do {
-                bool cancel = ShowInputDialog(this, "Set Priority Base", "Enter new priority base value: ", ref newBaseText) != DialogResult.OK;
+            // allows user to set the priority base value
+            // only available for v2.936 or greater game pictures (or if not in game)
+            if (!InGame || EditGame.InterpreterVersion[0] == '3' || int.Parse(EditGame.InterpreterVersion) >= 2.936) {
+                byte oldBase = EditPicture.PriBase;
+                string newBaseText = oldBase.ToString();
+                byte newBase;
+                do {
+                    bool cancel = ShowInputDialog(this, "Set Priority Base", "Enter new priority base value: ", ref newBaseText) != DialogResult.OK;
 
-                if (cancel || newBaseText.Length == 0) {
-                    // canceled, or if empty string
-                    return;
-                }
-                // validate
-                if (!byte.TryParse(newBaseText, out newBase)) {
-                    MessageBox.Show(MDIMain,
-                        "You must enter an integer number between 0 and 158",
-                        "Invalid Base Value",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#pribands");
-                }
-                else if (newBase < 0 || newBase > 158) {
-                    // invalid
-                    MessageBox.Show(MDIMain,
-                        "You must enter a value between 0 and 158",
-                        "Invalid Base Value",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#pribands");
-                }
-                else {
-                    // OK!
-                    break;
-                }
-            } while (true);
+                    if (cancel || newBaseText.Length == 0) {
+                        // canceled, or if empty string
+                        return;
+                    }
+                    // validate
+                    if (!byte.TryParse(newBaseText, out newBase)) {
+                        MessageBox.Show(MDIMain,
+                            "You must enter an integer number between 0 and 158",
+                            "Invalid Base Value",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#pribands");
+                    }
+                    else if (newBase < 0 || newBase > 158) {
+                        // invalid
+                        MessageBox.Show(MDIMain,
+                            "You must enter a value between 0 and 158",
+                            "Invalid Base Value",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#pribands");
+                    }
+                    else {
+                        // OK!
+                        break;
+                    }
+                } while (true);
 
-            // set new pri base
-            EditPicture.PriBase = newBase;
-            if (ShowBands) {
-                // redraw bands
-                picVisual.Invalidate();
-                picPriority.Invalidate();
+                // set new pri base
+                EditPicture.PriBase = newBase;
+                if (ShowBands) {
+                    // redraw bands
+                    picVisual.Invalidate();
+                    picPriority.Invalidate();
+                }
+                PictureUndo NextUndo = new();
+                NextUndo.Action = SetPriBase;
+                // use cmdIndex for old base
+                NextUndo.CmdIndex = oldBase;
+                AddUndo(NextUndo);
             }
-            PictureUndo NextUndo = new();
-            NextUndo.Action = SetPriBase;
-            // use cmdIndex for old base
-            NextUndo.CmdIndex = oldBase;
-            AddUndo(NextUndo);
         }
 
         private void mnuToggleTextMarks_Click(object sender, EventArgs e) {
+            // toggles the text marks
             ShowTextMarks = !ShowTextMarks;
             picVisual.Invalidate();
             picPriority.Invalidate();
         }
 
         private void mnuToggleBackground_Click(object sender, EventArgs e) {
-            UpdateBkgd(!EditPicture.BkgdVisible);
+            // toggles the background image if one is set
+            if (BkgdImage != null) {
+                UpdateBkgd(!EditPicture.BkgdVisible);
+            }
         }
 
         private void mnuEditBackground_Click(object sender, EventArgs e) {
@@ -3304,7 +2810,8 @@ private void tmrTest_Timer() {
         }
 
         private void mnuRemoveBackground_Click(object sender, EventArgs e) {
-            if (EditPicture.BkgdVisible) {
+            // removes the background image and clears background settings
+            if (BkgdImage != null) {
                 UpdateBkgd(false);
             }
             BkgdImage = null;
@@ -3449,7 +2956,9 @@ private void tmrTest_Timer() {
             byte[] bytData;
             byte bytPattern;
 
-            if ((e.Button == MouseButtons.Right)) {
+            // right-click cancels drawing, or displays context menu if not
+            // currently drawing
+            if (e.Button == MouseButtons.Right) {
                 // if currently drawing something, right-click ends it
                 if (PicDrawMode != PicDrawOp.None) {
                     StopDrawing();
@@ -3458,7 +2967,7 @@ private void tmrTest_Timer() {
                 }
                 return;
             }
-            // calculate position in agi units
+            // calculate cursor position in agi units
             PicPt = new((int)(e.X / (2 * ScaleFactor)), (int)(e.Y / ScaleFactor));
             if (PicPt.X < 0) {
                 PicPt.X = 0;
@@ -3472,14 +2981,23 @@ private void tmrTest_Timer() {
             else if (PicPt.Y > 167) {
                 PicPt.Y = 167;
             }
+
+            // take action based on mode/tool
             switch (PicMode) {
             case PicEditorMode.Edit:
-                if ((PicDrawMode != PicDrawOp.None)) {
+                if (SelectedTool != PicToolType.Edit) {
+                    if (ModifierKeys == Keys.Shift) {
+                        // shift-click to drag the picture
+                        StartDrag((PictureBox)sender, e.Location);
+                        return;
+                    }
+                }
+                if (PicDrawMode != PicDrawOp.None) {
                     // finish drawing function
                     EndDraw(PicPt);
                     return;
                 }
-                // what to do depends mostly on what the selected tool is:
+                // what to do depends primarily on what the selected tool is:
                 switch (SelectedTool) {
                 case PicToolType.Edit:
                     // no tool selected; check for a coordinate being moved or group of commands being moved
@@ -3493,7 +3011,7 @@ private void tmrTest_Timer() {
                             for (int i = 0; i < SelectedCmd.Coords.Count; i++) {
                                 if (SelectedCmd.Coords[i] == PicPt) {
                                     SelectCoordinate(i);
-                                    break; // exit for
+                                    break;
                                 }
                             }
                         }
@@ -3503,7 +3021,7 @@ private void tmrTest_Timer() {
                         //              if on any coord and CTRL key is pressed, add a new coord, then begin moving it
                         //              if on any coord and no key is pressed, begin moving just the coord
                         //              (if combo of keys pressed, just ignore)
-                        switch (Control.ModifierKeys) {
+                        switch (ModifierKeys) {
                         case Keys.None:
                             // begin editing the coordinate
                             PicDrawMode = PicDrawOp.MovePoint;
@@ -3701,7 +3219,6 @@ private void tmrTest_Timer() {
                     // set mode
                     PicDrawMode = PicDrawOp.Shape;
                     break;
-
                 case PicToolType.Ellipse:
                     // set anchor
                     AnchorPT = PicPt;
@@ -3712,7 +3229,7 @@ private void tmrTest_Timer() {
                     break;
                 case PicToolType.SelectArea:
                     // if shift key, drag the picture
-                    switch (Control.ModifierKeys) {
+                    switch (ModifierKeys) {
                     case Keys.None:
                         // begin selecting an area
                         PicDrawMode = PicDrawOp.SelectArea;
@@ -3738,25 +3255,40 @@ private void tmrTest_Timer() {
                 }
                 break;
             case PicEditorMode.ViewTest:
+                // if shift key is down, start drag
+                if (ModifierKeys == Keys.Shift) {
+                    StartDrag((PictureBox)sender, e.Location);
+                    return;
+                }
                 // stop testview object motion
                 TestDir = 0;
-                tmrTest.Enabled = TestSettings.CycleAtRest;
+                tmrTest.Enabled = TestSettings.CycleAtRest.Value;
                 // if above top edge OR
                 //    (NOT ignoring horizon AND above horizon ) OR
                 //    (on water AND restricting to land) OR
                 //    (NOT on water AND restricting to water)
-                if ((PicPt.Y - (CelHeight - 1) < 0) || (PicPt.Y < TestSettings.Horizon && !TestSettings.IgnoreHorizon) ||
-                   (TestSettings.ObjRestriction == 2 && EditPicture.ObjOnWater(PicPt, CelWidth)) ||
-                  (TestSettings.ObjRestriction == 1 && !EditPicture.ObjOnWater(PicPt, CelWidth))) {
+                // PicTest.ObjRestriction: 0 = no restriction, 1 = restrict to water, 2 = restrict to land
+                if ((PicPt.Y - (CelHeight - 1) < 0) || (PicPt.Y < TestSettings.Horizon.Value && !TestSettings.IgnoreHorizon.Value) ||
+                   (TestSettings.ObjRestriction.Value == 2 && EditPicture.ObjOnWater(PicPt, CelWidth)) ||
+                  (TestSettings.ObjRestriction.Value == 1 && !EditPicture.ObjOnWater(PicPt, CelWidth))) {
                     return;
                 }
                 // draw testview in new location
                 TestCelPos = PicPt;
                 ShowTestCel = true;
-                //DrawPicture();
+                picVisual.Refresh();
+                picPriority.Refresh();
                 break;
             case PicEditorMode.PrintTest:
-                // if print preview, ignore any other mouse-clicks
+                // if shift key is down, start drag
+                if (ModifierKeys == Keys.Shift) {
+                    StartDrag((PictureBox)sender, e.Location);
+                    return;
+                }
+                if (ShowPrintTest) {
+                    ShowPrintTest = false;
+                    picVisual.Refresh();
+                }
                 break;
             }
         }
@@ -3766,7 +3298,7 @@ private void tmrTest_Timer() {
             if (blnDragging) {
                 switch (((PictureBox)sender).Name) {
                 case "picVisual":
-                    int newL = picVisual.Left + e.X - AnchorPT.X;
+                    int newL = picVisual.Left + e.X - DragPT.X;
                     if (hsbVisual.Visible) {
                         if (newL < -(hsbVisual.Maximum - hsbVisual.LargeChange + 1)) {
                             newL = -(hsbVisual.Maximum - hsbVisual.LargeChange + 1);
@@ -3777,7 +3309,7 @@ private void tmrTest_Timer() {
                         picVisual.Left = newL;
                         hsbVisual.Value = -newL;
                     }
-                    int newT = picVisual.Top + e.Y - AnchorPT.Y;
+                    int newT = picVisual.Top + e.Y - DragPT.Y;
                     if (vsbVisual.Visible) {
                         if (newT < -(vsbVisual.Maximum - vsbVisual.LargeChange + 1)) {
                             newT = -(vsbVisual.Maximum - vsbVisual.LargeChange + 1);
@@ -3790,7 +3322,7 @@ private void tmrTest_Timer() {
                     }
                     return;
                 case "picPriority":
-                    newL = picPriority.Left + e.X - AnchorPT.X;
+                    newL = picPriority.Left + e.X - DragPT.X;
                     if (hsbPriority.Visible) {
                         if (newL < -(hsbPriority.Maximum - hsbPriority.LargeChange + 1)) {
                             newL = -(hsbPriority.Maximum - hsbPriority.LargeChange + 1);
@@ -3801,7 +3333,7 @@ private void tmrTest_Timer() {
                         picPriority.Left = newL;
                         hsbPriority.Value = -newL;
                     }
-                    newT = picPriority.Top + e.Y - AnchorPT.Y;
+                    newT = picPriority.Top + e.Y - DragPT.Y;
                     if (vsbPriority.Visible) {
                         if (newT < -(vsbPriority.Maximum - vsbPriority.LargeChange + 1)) {
                             newT = -(vsbPriority.Maximum - vsbPriority.LargeChange + 1);
@@ -3838,13 +3370,12 @@ private void tmrTest_Timer() {
             PicPt = tmpPt;
 
             switch (PicMode) {
-            // in edit mode, action taken depends primarily on
-            // current draw operation mode
             case PicEditorMode.Edit:
+                // in edit mode, action taken depends primarily on
+                // current draw operation mode
                 switch (PicDrawMode) {
                 case PicDrawOp.None:
-                    // not drawing anything- need to determine correct mousepointer based on current
-                    // mouse position and selected tool
+                    // not drawing anything
                     switch (SelectedTool) {
                     case PicToolType.Edit:
                         // not drawing anything, but there could be a highlighted coordinate
@@ -3903,21 +3434,6 @@ private void tmrTest_Timer() {
                             }
                         }
                         break;
-                        //// hmmm, don't think we need to do ANYTHING when one of these tools
-                        //// is active while no draw ops are in progress;
-                        //// cursor should already be set, with no need to change cursor
-                        //// while mouse is moving
-                        //case PicToolType.SetPen:
-                        //case PicToolType.Line:
-                        //case PicToolType.ShortLine:
-                        //case PicToolType.StepLine:
-                        //case PicToolType.Fill:
-                        //case PicToolType.Plot:
-                        //case PicToolType.Rectangle:
-                        //case PicToolType.Trapezoid:
-                        //case PicToolType.Ellipse:
-                        //case PicToolType.SelectArea:
-                        //    break;
                     }
                     break;
                 case PicDrawOp.SelectArea:
@@ -4098,7 +3614,7 @@ private void tmrTest_Timer() {
                     }
                     break;
                 case PicDrawOp.Fill:
-                    // should never get here
+                    // no action required
                     break;
                 }
                 break;
@@ -4110,9 +3626,9 @@ private void tmrTest_Timer() {
                 //    (NOT ignoring horizon AND above horizon ) OR
                 //    (on water AND restricting to land) OR
                 //    (NOT on water AND restricting to water)
-                if ((EditPt.Y - (CelHeight - 1) < 0) || (EditPt.Y < TestSettings.Horizon && !TestSettings.IgnoreHorizon) ||
-                   (EditPicture.ObjOnWater(EditPt, CelWidth) && TestSettings.ObjRestriction == 2) ||
-                  (!EditPicture.ObjOnWater(EditPt, CelWidth) && TestSettings.ObjRestriction == 1)) {
+                if ((PicPt.Y - (CelHeight - 1) < 0) || (PicPt.Y < TestSettings.Horizon.Value && !TestSettings.IgnoreHorizon.Value) ||
+                   (EditPicture.ObjOnWater(PicPt, CelWidth) && TestSettings.ObjRestriction.Value == 2) ||
+                  (!EditPicture.ObjOnWater(PicPt, CelWidth) && TestSettings.ObjRestriction.Value == 1)) {
                     // set cursor to NO
                     SetCursors(PicCursor.NoOp);
                 }
@@ -4124,7 +3640,7 @@ private void tmrTest_Timer() {
             }
 
             // when moving mouse, we always need to update the status bar
-            // if NOT in test mode OR statussrc is NOT testcoord mode
+            // if NOT in test mode OR status bar is NOT testcoord mode
             if (PicMode == PicEditorMode.Edit || StatusMode != PicStatusMode.Coord) {
                 int NewPri = 0;
                 switch (StatusMode) {
@@ -4149,7 +3665,7 @@ private void tmrTest_Timer() {
                 case PicStatusMode.Text:
                     //  text row/col mode
                     spCurX.Text = "R: " + (PicPt.Y / 8).ToString();
-                    spCurY.Text = "C: " + (PicPt.X / (CharWidth / 2)).ToString();
+                    spCurY.Text = "C: " + (PicPt.X / (PTInfo.CharWidth / 2)).ToString();
                     NewPri = GetPriBand((byte)PicPt.Y, EditPicture.PriBase);
                     spPriBand.Text = "Band: " + NewPri;
                     break;
@@ -4157,7 +3673,7 @@ private void tmrTest_Timer() {
 
                 // if priority has changed, update the color box
                 if (NewPri != OldPri) {
-                    Bitmap bitmap = new(16, 16);
+                    Bitmap bitmap = new(12, 12);
                     using Graphics g = Graphics.FromImage(bitmap);
                     g.Clear(EditPalette[NewPri]);
                     spPriBand.Image = bitmap;
@@ -4195,16 +3711,15 @@ private void tmrTest_Timer() {
             }
             // how to handle mouseup event depends primarily on what was being drawn (or not)
             switch (PicDrawMode) {
-            case PicDrawOp.None:
-                // will occasionally get this case
-                // such as when right-clicking or...
-
-                // case Line or Fill or Shape:
+            //case PicDrawOp.None:
+                // no action required
+                //break;
+            //case Line or Fill or Shape:
                 // lines and shapes are not completed on mouse_up actions; they
                 // are done by clicking to start, then clicking again to end
                 // so it's the mouse-down action that both starts and ends the operation
                 // that's why we don't need to check for them here in the MouseUp event
-                break;
+                //break;
             case PicDrawOp.SelectArea:
                 // reset the draw mode
                 PicDrawMode = PicDrawOp.None;
@@ -4266,49 +3781,77 @@ private void tmrTest_Timer() {
         }
 
         private void DrawSurface_MouseLeave(object sender, EventArgs e) {
-            spPriBand.Text = "";
-            spPriBand.Image = null;
-            spCurX.Text = "";
-            spCurY.Text = "";
+            // hide cursor location information when mouse is not over
+            // the draw surface
+            if (StatusMode != PicStatusMode.Coord) {
+                spPriBand.Text = "";
+                spPriBand.Image = null;
+                spCurX.Text = "";
+                spCurY.Text = "";
+            }
+        }
+
+        private void picVisual_DoubleClick(object sender, EventArgs e) {
+            // in print-test mode, double-click to show the options dialog
+            if (PicMode == PicEditorMode.PrintTest) {
+                GetTextOptions();
+            }
         }
 
         private void picVisual_Paint(object sender, PaintEventArgs e) {
-            // only if being displayed
+            // add supporting information to the visual picture (priority 
+            // bands, text marks, temporary lines, etc
+
+            // but only if being displayed
             if ((OneWindow & WindowMode.Visual) != WindowMode.Visual) {
                 return;
             }
             Graphics g = e.Graphics;
-            if (PicMode == PicEditorMode.Edit &&
-                SelectedCmd.Pen.VisColor < AGIColorIndex.None) {
-                if (SelectedCmd.SelectedCoordIndex >= 0 && SelectedCmd.IsLine) {
-                    DrawTempSegments(g, EditPalette[(int)SelectedCmd.Pen.VisColor]);
-                }
-                else {
-                    switch (PicDrawMode) {
-                    case PicDrawOp.Line:
-                        DrawLineOnImage(g, EditPalette[(int)SelectedCmd.Pen.VisColor], SelectedCmd.Coords[^1], PicPt);
-                        break;
-                    case PicDrawOp.Shape:
-                        switch (SelectedTool) {
-                        case PicToolType.Rectangle:
-                            // simulate a rectangle
-                            DrawBox(g, EditPalette[(int)SelectedCmd.Pen.VisColor], AnchorPT, EditPt);
+            switch (PicMode) {
+            case PicEditorMode.Edit:
+                // first, draw temporary lines to support current edit mode/tool
+                if (SelectedCmd.Pen.VisColor < AGIColorIndex.None) {
+                    if (SelectedCmd.SelectedCoordIndex >= 0 && SelectedCmd.IsLine) {
+                        DrawTempSegments(g, EditPalette[(int)SelectedCmd.Pen.VisColor]);
+                    }
+                    else {
+                        switch (PicDrawMode) {
+                        case PicDrawOp.Line:
+                            DrawLineOnImage(g, EditPalette[(int)SelectedCmd.Pen.VisColor], SelectedCmd.Coords[^1], PicPt);
                             break;
-                        case PicToolType.Trapezoid:
-                            // simulate a trapezoid
-                            DrawTrapezoid(g, EditPalette[(int)SelectedCmd.Pen.VisColor], AnchorPT, EditPt);
-                            break;
-                        case PicToolType.Ellipse:
-                            // simulate circle
-                            DrawCircle(g, EditPalette[(int)SelectedCmd.Pen.VisColor], AnchorPT, EditPt);
+                        case PicDrawOp.Shape:
+                            switch (SelectedTool) {
+                            case PicToolType.Rectangle:
+                                // simulate a rectangle
+                                DrawBox(g, EditPalette[(int)SelectedCmd.Pen.VisColor], AnchorPT, EditPt);
+                                break;
+                            case PicToolType.Trapezoid:
+                                // simulate a trapezoid
+                                DrawTrapezoid(g, EditPalette[(int)SelectedCmd.Pen.VisColor], AnchorPT, EditPt);
+                                break;
+                            case PicToolType.Ellipse:
+                                // simulate circle
+                                DrawCircle(g, EditPalette[(int)SelectedCmd.Pen.VisColor], AnchorPT, EditPt);
+                                break;
+                            }
                             break;
                         }
-                        break;
                     }
                 }
+                break;
+            case PicEditorMode.ViewTest:
+                // add test cel if in preview mode, and a test view is loaded
+                if (TestView != null && ShowTestCel) {
+                    AddCelToPic(g, true);
+                }
+                break;
+            case PicEditorMode.PrintTest:
+                // add print tests after bands and text marks
+                break;
             }
+
+            // priority bands are added next
             if (ShowBands) {
-                // draw bands in matching priority color one pixel high
                 for (int rtn = 5; rtn <= 14; rtn++) {
                     int yp = (int)((int)(Math.Ceiling((rtn - 5) / 10.0 * (168 - EditPicture.PriBase)) + EditPicture.PriBase) * ScaleFactor - 1);
                     g.DrawLine(new(EditPalette[rtn]), 0, yp, picVisual.Width, yp);
@@ -4318,8 +3861,8 @@ private void tmrTest_Timer() {
             // text marks indicate where text characters are drawn
             if (ShowTextMarks) {
                 for (int j = 1; j <= 21; j++) {
-                    for (int i = 0; i <= MaxCol; i++) {
-                        int x = (int)(i * CharWidth * ScaleFactor);
+                    for (int i = 0; i <= PTInfo.MaxCol; i++) {
+                        int x = (int)(i * PTInfo.CharWidth * ScaleFactor);
                         int y = (int)(j * 8 * ScaleFactor - 1);
                         g.DrawLine(new(Color.FromArgb(170, 170, 0)), x, y, (int)(x + ScaleFactor), y);
                         g.DrawLine(new(Color.FromArgb(170, 170, 0)), x, y, x, (int)(y - ScaleFactor));
@@ -4327,7 +3870,9 @@ private void tmrTest_Timer() {
                 }
             }
 
-            // if selection region is non-zero, show it
+            // if selection region is non-zero, show an animated border around
+            // the selection; or if coordinates need to be highlighted,
+            // then highlight them
             if (SelectedRegion.Width > 0 && SelectedRegion.Height > 0) {
                 Rectangle rgn = new((int)(SelectedRegion.X * ScaleFactor * 2),
                     (int)(SelectedRegion.Y * ScaleFactor),
@@ -4337,7 +3882,8 @@ private void tmrTest_Timer() {
                 g.DrawRectangle(dash2, rgn);
             }
             else {
-                // if only one selected command AND it has coords AND tool is 'none' AND in edit mode
+                // if only one selected command AND it has coords AND tool is
+                // 'none' AND in edit mode
                 if (
                     PicMode == PicEditorMode.Edit &&
                     PicDrawMode == PicDrawOp.None &&
@@ -4350,46 +3896,69 @@ private void tmrTest_Timer() {
                     HighlightCoords(g, VCColor);
                 }
             }
+            // finally, if displaying any preview text, add it over all
+            // other graphics elements
+            if (PicMode == PicEditorMode.PrintTest) {
+                if (ShowPrintTest) {
+                    DrawPrintTest(g);
+                }
+            }
         }
 
         private void picPriority_Paint(object sender, PaintEventArgs e) {
-            // only if being displayed
+            // add supporting information to the priority picture (priority 
+            // bands, text marks, temporary lines, etc
+
+            // but only if being displayed
             if ((OneWindow & WindowMode.Priority) != WindowMode.Priority) {
                 return;
             }
             Graphics g = e.Graphics;
-            if (PicMode == PicEditorMode.Edit &&
-                SelectedCmd.Pen.PriColor < AGIColorIndex.None) {
-                if (SelectedCmd.SelectedCoordIndex >= 0 && SelectedCmd.IsLine) {
-                    DrawTempSegments(g, EditPalette[(int)SelectedCmd.Pen.PriColor]);
-                }
-                else {
-                    switch (PicDrawMode) {
-                    case PicDrawOp.Line:
-                        DrawLineOnImage(g, EditPalette[(int)SelectedCmd.Pen.PriColor], SelectedCmd.Coords[^1], PicPt);
-                        break;
-                    case PicDrawOp.Shape:
-                        switch (SelectedTool) {
-                        case PicToolType.Rectangle:
-                            // simulate a rectangle
-                            DrawBox(g, EditPalette[(int)SelectedCmd.Pen.PriColor], AnchorPT, EditPt);
+            switch (PicMode) {
+            case PicEditorMode.Edit:
+                // first, draw temporary lines to support current edit mode/tool
+                if (SelectedCmd.Pen.PriColor < AGIColorIndex.None) {
+                    if (SelectedCmd.SelectedCoordIndex >= 0 && SelectedCmd.IsLine) {
+                        DrawTempSegments(g, EditPalette[(int)SelectedCmd.Pen.PriColor]);
+                    }
+                    else {
+                        switch (PicDrawMode) {
+                        case PicDrawOp.Line:
+                            DrawLineOnImage(g, EditPalette[(int)SelectedCmd.Pen.PriColor], SelectedCmd.Coords[^1], PicPt);
                             break;
-                        case PicToolType.Trapezoid:
-                            // simulate a trapezoid
-                            DrawTrapezoid(g, EditPalette[(int)SelectedCmd.Pen.PriColor], AnchorPT, EditPt);
-                            break;
-                        case PicToolType.Ellipse:
-                            // simulate circle
-                            DrawCircle(g, EditPalette[(int)SelectedCmd.Pen.PriColor], AnchorPT, EditPt);
+                        case PicDrawOp.Shape:
+                            switch (SelectedTool) {
+                            case PicToolType.Rectangle:
+                                // simulate a rectangle
+                                DrawBox(g, EditPalette[(int)SelectedCmd.Pen.PriColor], AnchorPT, EditPt);
+                                break;
+                            case PicToolType.Trapezoid:
+                                // simulate a trapezoid
+                                DrawTrapezoid(g, EditPalette[(int)SelectedCmd.Pen.PriColor], AnchorPT, EditPt);
+                                break;
+                            case PicToolType.Ellipse:
+                                // simulate circle
+                                DrawCircle(g, EditPalette[(int)SelectedCmd.Pen.PriColor], AnchorPT, EditPt);
+                                break;
+                            }
                             break;
                         }
-                        break;
                     }
                 }
+                break;
+            case PicEditorMode.ViewTest:
+                // add test cel if in preview mode, and a test view is loaded
+                if (TestView != null && ShowTestCel) {
+                    AddCelToPic(g, false);
+                }
+                break;
+            case PicEditorMode.PrintTest:
+                // no action required
+                break;
             }
-            // if showing bands
+
+            // priority bands are added next
             if (ShowBands) {
-                // draw bands in matching priority color one pixel high
                 for (int rtn = 5; rtn <= 14; rtn++) {
                     int yp = (int)((int)(Math.Ceiling((rtn - 5) / 10.0 * (168 - EditPicture.PriBase)) + EditPicture.PriBase) * ScaleFactor - 1);
                     g.DrawLine(new(EditPalette[rtn]), 0, yp, picPriority.Width, yp);
@@ -4399,8 +3968,8 @@ private void tmrTest_Timer() {
             // text marks indicate where text characters are drawn
             if (ShowTextMarks) {
                 for (int j = 1; j <= 21; j++) {
-                    for (int i = 0; i <= MaxCol; i++) {
-                        int x = (int)(i * CharWidth * ScaleFactor);
+                    for (int i = 0; i <= PTInfo.MaxCol; i++) {
+                        int x = (int)(i * PTInfo.CharWidth * ScaleFactor);
                         int y = (int)(j * 8 * ScaleFactor - 1);
                         g.DrawLine(new(Color.FromArgb(170, 170, 0)), x, y, (int)(x + ScaleFactor), y);
                         g.DrawLine(new(Color.FromArgb(170, 170, 0)), x, y, x, (int)(y - ScaleFactor));
@@ -4408,7 +3977,9 @@ private void tmrTest_Timer() {
                 }
             }
 
-            // if selection region is non-zero, show it
+            // if selection region is non-zero, show an animated border around
+            // the selection; or if coordinates need to be highlighted,
+            // then highlight them
             if (SelectedRegion.Width > 0 && SelectedRegion.Height > 0) {
                 Rectangle rgn = new((int)(SelectedRegion.X * ScaleFactor * 2),
                     (int)(SelectedRegion.Y * ScaleFactor),
@@ -4418,7 +3989,8 @@ private void tmrTest_Timer() {
                 g.DrawRectangle(dash2, rgn);
             }
             else {
-                // if only one selected command AND it has coords AND tool is 'none' AND in edit mode
+                // if only one selected command AND it has coords AND tool is
+                // 'none' AND in edit mode
                 if (
                       PicMode == PicEditorMode.Edit &&
                       PicDrawMode == PicDrawOp.None &&
@@ -4431,6 +4003,7 @@ private void tmrTest_Timer() {
                     HighlightCoords(g, PCColor);
                 }
             }
+            // preview text is never displayed on priority screen
         }
 
         private void lstCommands_MouseClick(object sender, MouseEventArgs e) {
@@ -4456,7 +4029,7 @@ private void tmrTest_Timer() {
             if (lstCommands.SelectedItems.Count > 1 && lstCommands.Items[^1].Selected) {
                 lstCommands.Items[^1].Selected = false;
             }
-            Debug.Assert(lstCommands.SelectedItems.Count > 0);
+
             // plots and fills need to force selection if respective tool is active
             bool force = false;
             if (SelectedCmdCount == 1) {
@@ -4465,7 +4038,10 @@ private void tmrTest_Timer() {
                     force = true;
                 }
             }
+            // update draw surfaces to reflect selected commands
             UpdateCmdSelection(lstCommands.SelectedItems[^1].Index, force);
+            // always clear the coordinate list when a command is selected from
+            // the command list
             if (SelectedCmd.SelectedCoordIndex >= 0) {
                 SelectedCmd.SelectedCoordIndex = -1;
                 lstCoords.SelectedItems.Clear();
@@ -4473,8 +4049,9 @@ private void tmrTest_Timer() {
         }
 
         private void lstCommands_MouseUp(object sender, MouseEventArgs e) {
-            // re-select whatever was selected
-            // can we do that?
+            // if user clicks outside the boundary of the control's column
+            // the selection gets cleared, so we need to force the control
+            // to re-select the currently focused item
             if (lstCommands.SelectedItems.Count == 0) {
                 lstCommands.FocusedItem.Selected = true;
                 UpdateCmdSelection(lstCommands.SelectedItems[^1].Index);
@@ -4482,11 +4059,8 @@ private void tmrTest_Timer() {
         }
 
         private void lstCommands_MouseDoubleClick(object sender, MouseEventArgs e) {
-            Debug.Assert(lstCommands.SelectedItems.Count == 1);
-            Debug.Assert(lstCommands.SelectedItems[0].Index == SelectedCmd.Index);
-            Debug.Assert(lstCommands.HitTest(e.Location).Item != null);
-            Debug.Assert(lstCommands.HitTest(e.Location).Item.Index == SelectedCmd.Index);
-            // force selection
+            // on double-click, draw the selection rectangle around the entire
+            // command
             SetSelectionBounds(true);
             picVisual.Refresh();
             picPriority.Refresh();
@@ -4498,6 +4072,8 @@ private void tmrTest_Timer() {
         }
 
         private void lstCommands_KeyUp(object sender, KeyEventArgs e) {
+            // when using keyboard to move the selection, the 
+            // draw surfaces also need to be updated
             switch (e.KeyCode) {
             case Keys.Down:
             case Keys.Up:
@@ -4508,13 +4084,14 @@ private void tmrTest_Timer() {
                 UpdateCmdSelection(lstCommands.SelectedIndices[^1]);
                 break;
             }
-        }
-
-        private void lstCoords_MouseEnter(object sender, EventArgs e) {
-            CoordColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+            e.SuppressKeyPress = true;
+            e.Handled = true;
         }
 
         private void lstCoords_MouseUp(object sender, MouseEventArgs e) {
+            // if user clicks outside the boundary of the control's column
+            // the selection gets cleared, so we need to force the control
+            // to re-select the currently focused item
             if (lstCoords.SelectedItems.Count == 0) {
                 if (lstCoords.FocusedItem != null) {
                     lstCoords.FocusedItem.Selected = true;
@@ -4526,15 +4103,16 @@ private void tmrTest_Timer() {
         }
 
         private void lstCoords_MouseClick(object sender, MouseEventArgs e) {
-            if (SelectedCmd.IsPen || lstCoords.SelectedItems.Count == 0) {
-                return;
+            // if a coordinate is clicked (which can only happen on 
+            // non-pen commands) select it
+            if (!SelectedCmd.IsPen && lstCoords.SelectedItems.Count != 0) {
+                SelectCoordinate(lstCoords.SelectedItems[0].Index);
             }
-            SelectCoordinate(lstCoords.SelectedItems[0].Index);
         }
 
         private void lstCoords_MouseDoubleClick(object sender, MouseEventArgs e) {
-            // if dblclicking a non-relative coordinate, display
-            // coordinate edit form so user can set values
+            // double-clicking a coordinate will display the coordinate edit form
+            // so user can set values manually
 
             byte[] bytOldCoord = [];
             byte bytNewPattern = 0;
@@ -4542,7 +4120,6 @@ private void tmrTest_Timer() {
             if (lstCoords.SelectedItems.Count != 1) {
                 return;
             }
-            Debug.Assert(SelectedCmd.SelectedCoordIndex == lstCoords.SelectedIndices[0]);
 
             // editable coords include Plot, Abs Line, X Corner, Y Corner, Fill
             switch (SelectedCmd.Type) {
@@ -4678,11 +4255,28 @@ private void tmrTest_Timer() {
         }
 
         private void lstCoords_KeyUp(object sender, KeyEventArgs e) {
+            // when using keyboard to move the selection, the 
+            // draw surfaces also need to be updated
+            switch (e.KeyCode) {
+            case Keys.Down:
+            case Keys.Up:
+            case Keys.PageDown:
+            case Keys.PageUp:
+            case Keys.Home:
+            case Keys.End:
+                if (!SelectedCmd.IsPen && lstCoords.SelectedItems.Count != 0) {
+                    SelectCoordinate(lstCoords.SelectedItems[0].Index);
+                }
+                break;
+            }
             e.SuppressKeyPress = true;
             e.Handled = true;
         }
 
         private void picPalette_Paint(object sender, PaintEventArgs e) {
+            // update the palette to show available colors, as well as the current
+            // visual and priority pen colors
+
             float dblWidth = picPalette.Width / 9;
             float dblHeight = picPalette.Height / 2;
             Graphics g = e.Graphics;
@@ -4738,10 +4332,10 @@ private void tmrTest_Timer() {
         }
 
         private void picPalette_MouseDown(object sender, MouseEventArgs e) {
+            // determine the selected color from X,Y position
             int dblWidth = picPalette.Width / 9;
-
-            // determine color from x,Y position
             int bytNewCol = (9 * (e.Y / 16)) + (e.X / dblWidth);
+
             // adjust to account for the disabled block
             if (bytNewCol == 0 || bytNewCol == 9) {
                 //color disable was chosen
@@ -4755,7 +4349,7 @@ private void tmrTest_Timer() {
                     bytNewCol -= 2;
                 }
             }
-            switch (Control.ModifierKeys) {
+            switch (ModifierKeys) {
             case Keys.None:
             case Keys.Shift:
                 if (PicMode != PicEditorMode.Edit) {
@@ -4766,10 +4360,10 @@ private void tmrTest_Timer() {
                 }
                 switch (e.Button) {
                 case MouseButtons.Left:
-                    UpdateVisPen((AGIColorIndex)bytNewCol, Control.ModifierKeys == Keys.Shift);
+                    UpdateVisPen((AGIColorIndex)bytNewCol, ModifierKeys == Keys.Shift);
                     break;
                 case MouseButtons.Right:
-                    UpdatePriPen((AGIColorIndex)bytNewCol, Control.ModifierKeys == Keys.Shift);
+                    UpdatePriPen((AGIColorIndex)bytNewCol, ModifierKeys == Keys.Shift);
                     break;
                 }
                 picPalette.Invalidate();
@@ -4796,6 +4390,7 @@ private void tmrTest_Timer() {
 
         private void picPalette_MouseEnter(object sender, EventArgs e) {
             // set cursor depending on mode
+
             if (PicMode == PicEditorMode.Edit) {
                 picPalette.Cursor = Cursors.Default;
             }
@@ -4811,13 +4406,10 @@ private void tmrTest_Timer() {
             if (e.Button != MouseButtons.None) {
                 return;
             }
-
-            // !!!!!! mouse coordinates appear to be in screen coordinate, NOT
-            // relatve to the control!
-            // need position relative to the panel, so take scroll & margin into account
-            Point anchor = new(e.X, e.Y);
-            anchor.X -= splitImages.Panel1.HorizontalScroll.Value;
-            anchor.Y -= splitImages.Panel1.VerticalScroll.Value;
+            Point panelPt = splitImages.Panel1.PointToClient(Cursor.Position);
+            if (!splitImages.Panel1.ClientRectangle.Contains(panelPt)) {
+                return;
+            }
             ChangeScale(e.Delta, true);
         }
 
@@ -4828,7 +4420,6 @@ private void tmrTest_Timer() {
             if (e.Button != MouseButtons.None) {
                 return;
             }
-            // if not over the picture surface (or it's not visible)
             Point panelPt = splitImages.Panel2.PointToClient(Cursor.Position);
             if (!splitImages.Panel2.ClientRectangle.Contains(panelPt)) {
                 return;
@@ -4852,23 +4443,44 @@ private void tmrTest_Timer() {
         }
 
         private void splitImages_SplitterMoving(object sender, SplitterCancelEventArgs e) {
-            if (Cursor.Current != Cursors.HSplit) {
-                Cursor.Current = Cursors.HSplit;
-            }
             if (e.MouseCursorY < 45) {
-                e.SplitY = 45;
+                if (splitImages.Cursor != Cursors.UpArrow) {
+                    splitImages.Cursor = Cursors.UpArrow;
+                    e.SplitX = 0;
+                }
+            }
+            else if (e.MouseCursorY > splitImages.Height - 45) {
+                if (splitImages.Cursor.Tag == null) {
+                    MemoryStream msCursor;
+                    msCursor = new(EditorResources.downarrow);
+                    splitImages.Cursor = new Cursor(msCursor);
+                    splitImages.Cursor.Tag = "down";
+                }
+            }
+            else {
+                if (splitImages.Cursor != Cursors.HSplit) {
+                    splitImages.Cursor = Cursors.HSplit;
+                }
             }
         }
 
         private void splitImages_SplitterMoved(object sender, SplitterEventArgs e) {
             if (!Visible) {
+                // avoid issues when splitter is set during form setup;
+                // (the form will not be visible then)
                 return;
             }
-            Cursor.Current = Cursors.Default;
+            splitImages.Cursor = Cursors.Default;
             if (!TooSmall) {
                 if (splitImages.SplitterDistance < 45) {
-                    splitImages.SplitterDistance = 0;
-                    OneWindow = WindowMode.Priority;
+                    // don't allow visual to disappear if in print test mode
+                    if (PicMode == PicEditorMode.PrintTest) {
+                        splitImages.SplitterDistance = 45;
+                    }
+                    else {
+                        splitImages.SplitterDistance = 0;
+                        OneWindow = WindowMode.Priority;
+                    }
                 }
                 else if (splitImages.Panel2.Height < 45) {
                     splitImages.SplitterDistance = splitImages.ClientSize.Height - splitImages.SplitterWidth; ;
@@ -4878,14 +4490,13 @@ private void tmrTest_Timer() {
                     OneWindow = WindowMode.Both;
                     DrawPicture();
                 }
-                //if (OneWindow == WindowMode.Both) {
-                //}
             }
             lstCommands.Select();
             SetScrollbars();
         }
 
         private void splitImages_MouseUp(object sender, MouseEventArgs e) {
+            // always make sure the command list has focus (is selected)
             lstCommands.Select();
         }
 
@@ -4901,19 +4512,249 @@ private void tmrTest_Timer() {
         }
 
         private void splitLists_MouseUp(object sender, MouseEventArgs e) {
+            // always make sure command list has focus (is selected)
             lstCommands.Select();
         }
 
         private void tmrTest_Tick(object sender, EventArgs e) {
+            // controls test view movement and cycling
+            AGIColorIndex ControlLine = 0;
+            byte NewX = (byte)TestCelPos.X;
+            byte NewY = (byte)TestCelPos.Y;
+            int DX = 0;
+            int DY = 0;
+            bool OnWater = false;
+            bool skipmove = false;
 
+            if (TestSettings.TestCel == -1) {
+                CurTestCel++;
+                // if at loopcount, reset back to zero
+                if (CurTestCel == CurTestLoopCount) {
+                    CurTestCel = 0;
+                }
+                TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+            }
+            // set cel height/width/transcolor
+            CelWidth = TestView.Loops[CurTestLoop].Cels[CurTestCel].Width;
+            CelHeight = TestView.Loops[CurTestLoop].Cels[CurTestCel].Height;
+            CelTrans = TestView.Loops[CurTestLoop].Cels[CurTestCel].TransColor;
+
+            // check for special case of no motion
+            if (TestDir == ObjDirection.odStopped) {
+                // cycle in place
+                skipmove = true;
+            }
+
+            // not stopped, check for hitting an edge
+            if (!skipmove) {
+                // calculate dX and dY based on direction
+                // (these are empirical formulas based on relationship between direction and change in X/Y)
+                DX = Math.Sign(5 - (int)TestDir) * Math.Sign((int)TestDir - 1);
+                DY = Math.Sign(3 - (int)TestDir) * Math.Sign((int)TestDir - 7);
+
+                // test for edges
+                switch (TestDir) {
+                case ObjDirection.odUp:
+                    if ((NewY == TestSettings.Horizon.Value) && !TestSettings.IgnoreHorizon.Value) {
+                        StopReason = 7;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    if (NewY - (CelHeight - 1) <= 0) {
+                        StopReason = 8;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    ControlLine = EditPicture.ControlPixel(NewX, (byte)(NewY - 1), CelWidth);
+                    break;
+                case ObjDirection.odUpRight:
+                    if ((NewY == TestSettings.Horizon.Value) && !TestSettings.IgnoreHorizon.Value) {
+                        // dont go
+                        StopReason = 7;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    if (NewY - (CelHeight - 1) <= 0) {
+                        StopReason = 8;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    if (NewX + CelWidth - 1 >= 159) {
+                        StopReason = 9;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    // get controlline status
+                    ControlLine = EditPicture.ControlPixel((byte)(NewX + 1), (byte)(NewY - 1), CelWidth);
+                    break;
+                case ObjDirection.odRight:
+                    if (NewX + CelWidth - 1 >= 159) {
+                        StopReason = 9;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    // get controlline status
+                    ControlLine = EditPicture.ControlPixel((byte)(NewX + CelWidth), (byte)NewY);
+                    break;
+                case ObjDirection.odDownRight:
+                    if (NewY == 167) {
+                        StopReason = 10;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    if (NewX + CelWidth - 1 == 159) {
+                        StopReason = 9;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    ControlLine = EditPicture.ControlPixel((byte)(NewX + 1), (byte)(NewY + 1), CelWidth);
+                    break;
+                case ObjDirection.odDown:
+                    if (NewY == 167) {
+                        StopReason = 10;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    ControlLine = EditPicture.ControlPixel(NewX, (byte)(NewY + 1), CelWidth);
+                    break;
+                case ObjDirection.odDownLeft:
+                    if (NewY == 167) {
+                        StopReason = 10;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    if (NewX == 0) {
+                        StopReason = 11;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    ControlLine = EditPicture.ControlPixel((byte)(NewX - 1), (byte)(NewY + 1), CelWidth);
+                    break;
+                case ObjDirection.odLeft:
+                    if (NewX == 0) {
+                        StopReason = 11;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    ControlLine = EditPicture.ControlPixel((byte)(NewX - 1), NewY);
+                    break;
+                case ObjDirection.odUpLeft:
+                    if (((NewY == TestSettings.Horizon.Value) && !TestSettings.IgnoreHorizon.Value)) {
+                        StopReason = 7;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    if (NewY - (CelHeight - 1) <= 0) {
+                        StopReason = 8;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    if (NewX == 0) {
+                        StopReason = 11;
+                        TestDir = ObjDirection.odStopped;
+                        tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                        skipmove = true;
+                        break;
+                    }
+                    ControlLine = EditPicture.ControlPixel((byte)(NewX - 1), (byte)(NewY - 1), CelWidth);
+                    break;
+                }
+            }
+
+            // if not on an edge, check for restrictions
+            if (!skipmove) {
+                OnWater = EditPicture.ObjOnWater(new(NewX + DX, NewY + DY), CelWidth);
+                // if at an obstacle line OR (at a conditional obstacle line AND NOT blocking)
+                if (((int)ControlLine <= 1) && !TestSettings.IgnoreBlocks.Value) {
+                    StopReason = (int)ControlLine + 1;
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                    skipmove = true;
+                }
+                // if restricting access to land AND on water!
+                if ((TestSettings.ObjRestriction.Value == 2) && OnWater) {
+                    StopReason = 5;
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                    skipmove = true;
+                }
+                // if restricting access to water AND at land edge
+                if ((TestSettings.ObjRestriction.Value == 1) && !OnWater) {
+                    StopReason = 6;
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                    skipmove = true;
+                }
+            }
+
+            // all checks complete- OK to move?
+            if (!skipmove) {
+                TestCelPos.X = (byte)(NewX + DX);
+                TestCelPos.Y = (byte)(NewY + DY);
+
+                // if at an alarm line
+                if (ControlLine == AGIColorIndex.Green) {
+                    StopReason = 3;
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    // if on water, set status
+                    StopReason = OnWater ? 4 : 0;
+                }
+            }
+
+            // force update
+            picVisual.Refresh();
+            picPriority.Refresh();
+
+            if (StopReason != 0) {
+                spStatus.Text = Editor.Base.LoadResString(STOPREASONTEXT + StopReason);
+                StopReason = 0;
+            }
+            else {
+                if (TestDir != ObjDirection.odStopped) {
+                    // clear tool panel
+                    spStatus.Text = "";
+                }
+            }
         }
 
         private void tmrSelect_Tick(object sender, EventArgs e) {
             // cursor and selection timer
+            // if a selection is visible, the selection boundary is cycled to show a
+            // moving dashed line
+            // if no selection, the current pixel is cycled through all AGI colors
+            // to make it more visible
 
-            // cycle current pixel through all colors
-
-            // if selection shape is visible
             if (SelectedRegion.Width > 0 && SelectedRegion.Height > 0 || SelectedTool == PicToolType.SelectArea) {
                 // decrement for clockwise movement, increment for 
                 // counterclockwise movement
@@ -4989,6 +4830,9 @@ private void tmrTest_Timer() {
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Initializes the status strip with the appropriate labels.
+        /// </summary>
         private void InitStatusStrip() {
             spScale = new ToolStripStatusLabel();
             spMode = new ToolStripStatusLabel();
@@ -4999,14 +4843,15 @@ private void tmrTest_Timer() {
             spCurY = new ToolStripStatusLabel();
             spPriBand = new ToolStripStatusLabel();
             spStatus = MDIMain.spStatus;
+            //
             // spScale
             // 
             spScale.AutoSize = false;
             spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spScale.BorderStyle = Border3DStyle.SunkenInner;
             spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(75, 18);
-            spScale.Text = "Scale: 100%";
+            spScale.Size = new System.Drawing.Size(80, 18);
+            spScale.Text = "Scale: " + (ScaleFactor * 100) + "%";
             spScale.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // spMode
@@ -5015,7 +4860,7 @@ private void tmrTest_Timer() {
             spMode.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spMode.BorderStyle = Border3DStyle.SunkenInner;
             spMode.Name = "spMode";
-            spMode.Size = new System.Drawing.Size(45, 18);
+            spMode.Size = new System.Drawing.Size(60, 18);
             spMode.Text = "Edit";
             spMode.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
@@ -5025,8 +4870,8 @@ private void tmrTest_Timer() {
             spTool.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spTool.BorderStyle = Border3DStyle.SunkenInner;
             spTool.Name = "spTool";
-            spTool.Size = new System.Drawing.Size(70, 18);
-            spTool.Text = "Edit Select";
+            spTool.Size = new System.Drawing.Size(120, 18);
+            spTool.Text = "";
             spTool.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // spAnchor
@@ -5036,8 +4881,9 @@ private void tmrTest_Timer() {
             spAnchor.BorderStyle = Border3DStyle.SunkenInner;
             spAnchor.Name = "spAnchor";
             spAnchor.Size = new System.Drawing.Size(120, 18);
-            spAnchor.Text = "Anchor: (159, 167)";
+            spAnchor.Text = "";
             spAnchor.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spAnchor.Visible = false;
             // 
             // spBlock
             // 
@@ -5046,8 +4892,9 @@ private void tmrTest_Timer() {
             spBlock.BorderStyle = Border3DStyle.SunkenInner;
             spBlock.Name = "spBlock";
             spBlock.Size = new System.Drawing.Size(160, 18);
-            spBlock.Text = "Block: (159, 167) - (159, 167)";
             spBlock.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spBlock.Text = "";
+            spBlock.Visible = false;
             // 
             // spCurX
             // 
@@ -5056,7 +4903,7 @@ private void tmrTest_Timer() {
             spCurX.BorderStyle = Border3DStyle.SunkenInner;
             spCurX.Name = "spCurX";
             spCurX.Size = new System.Drawing.Size(70, 18);
-            spCurX.Text = "vX: 159";
+            spCurX.Text = "";
             // 
             // spCurY
             // 
@@ -5065,7 +4912,7 @@ private void tmrTest_Timer() {
             spCurY.BorderStyle = Border3DStyle.SunkenInner;
             spCurY.Name = "spCurY";
             spCurY.Size = new System.Drawing.Size(70, 18);
-            spCurY.Text = "vY: 167";
+            spCurY.Text = "";
             // 
             // spPriBand
             // 
@@ -5074,29 +4921,31 @@ private void tmrTest_Timer() {
             spPriBand.BorderStyle = Border3DStyle.SunkenInner;
             spPriBand.Name = "spPriBand";
             spPriBand.Size = new System.Drawing.Size(67, 18);
-            spPriBand.Text = "Band: 14 XX";
+            spPriBand.Text = "";
+            spPriBand.Image = new Bitmap(12, 12);
+            spPriBand.ImageAlign = ContentAlignment.MiddleCenter;
+            spPriBand.ImageScaling = ToolStripItemImageScaling.None;
 
-
+            //
+            // spStatus
+            //
             spStatus.Text = "";
 
-            spScale.Text = "Scale: " + (ScaleFactor * 100) + "%";
-            spPriBand.Text = "";
-            spPriBand.Image = null;
-            spCurX.Text = "";
-            spCurY.Text = "";
-            spAnchor.Text = "";
-            spBlock.Text = "";
-            spAnchor.Visible = false;
-            spBlock.Visible = false;
-            spPriBand.Image = new Bitmap(16, 16);
-            spPriBand.ImageAlign = ContentAlignment.MiddleRight;
         }
 
+        /// <summary>
+        /// Initializes the fonts for the command and coordinate lists.
+        /// </summary>
         internal void InitFonts() {
             lstCommands.Font = new Font(WinAGISettings.PreviewFontName.Value, WinAGISettings.PreviewFontSize.Value);
             lstCoords.Font = new Font(WinAGISettings.PreviewFontName.Value, WinAGISettings.PreviewFontSize.Value);
         }
 
+        /// <summary>
+        /// Pre-filters the message to catch mouse wheel events.
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
         public bool PreFilterMessage(ref Message m) {
             // in splitcontainers, mousewheel auto-scrolls the vertical scrollbar
             // only way to stop it is to catch the mousewheel message
@@ -5129,6 +4978,12 @@ private void tmrTest_Timer() {
             return false;
         }
 
+        /// <summary>
+        /// Loads the specified picture resource into the editor.  
+        /// </summary>
+        /// <param name="loadpic"></param>
+        /// <returns>True if picture loads successfully. False if unable to load 
+        /// due to error.</returns>
         public bool LoadPicture(Picture loadpic) {
             InGame = loadpic.InGame;
             if (InGame) {
@@ -5160,8 +5015,9 @@ private void tmrTest_Timer() {
                 IsChanged = true;
             }
             else {
-                // unlike views/sounds, if picture has errors in it don't force a save
-                // because user has to manually edit the bad data to repair it
+                // unlike views/sounds, if picture has errors in it don't
+                // force a save because user has to manually edit the bad
+                // data to repair it
                 IsChanged = EditPicture.IsChanged;
             }
             Text = sPICED + ResourceName(EditPicture, InGame, true);
@@ -5171,20 +5027,6 @@ private void tmrTest_Timer() {
             mnuRSave.Enabled = !IsChanged;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
 
-            // populate cmd list with commands (this also draws the picture  on edit surface)
-            if (!LoadCmdList()) {
-                // error- stop the form loading process
-                MessageBox.Show(MDIMain,
-                    "This picture has corrupt or invalid data. Unable to open it for editing.",
-                    "Picture Data Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Exclamation);
-                EditPicture.Unload();
-                EditPicture = null;
-                return false;
-            }
-            CmdColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
-
             // enable stepdrawing
             EditPicture.StepDraw = true;
             // enable editing
@@ -5192,11 +5034,6 @@ private void tmrTest_Timer() {
             // check for a saved background image
             if (EditPicture.BkgdFileName.Length != 0) {
                 try {
-                    // validate a few things...
-                    //if (EditPicture.BkgdSourceSize.Width <= 0 || EditPicture.BkgdSourceSize.Height <= 0) {
-                    //    EditPicture.BkgdSourceSize.Width = BkgdImage.Width;
-                    //    EditPicture.BkgdSourceSize.Height = BkgdImage.Height;
-                    //}
                     BkgdImage = new(Path.GetFullPath(EditPicture.BkgdFileName, EditGame.ResDir));
                     if (EditPicture.BkgdVisible) {
                         tsbBackground.Checked = true;
@@ -5225,11 +5062,26 @@ private void tmrTest_Timer() {
                     BkgdImage = null;
                 }
             }
-            DrawPicture();
-
+            // populate cmd list with commands (which updates the draw images)
+            if (!LoadCmdList()) {
+                // error- stop the form loading process
+                MessageBox.Show(MDIMain,
+                    "This picture has corrupt or invalid data. Unable to open it for editing.",
+                    "Picture Data Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation);
+                EditPicture.Unload();
+                EditPicture = null;
+                return false;
+            }
             return true;
         }
 
+        /// <summary>
+        /// Imports the picture from the specified file and replaces the current
+        /// picture resource in the editor.
+        /// </summary>
+        /// <param name="importfile"></param>
         public void ImportPicture(string importfile) {
             MDIMain.UseWaitCursor = true;
             Picture tmpPicture = new();
@@ -5251,17 +5103,17 @@ private void tmrTest_Timer() {
                 return;
             }
             // copy only the resource data
-            //EditPicture.ReplaceData(tmpPicture.Data);
             EditPicture.ReplaceData(tmpPicture.Data.ToArray());
             EditPicture.ResetPicture();
             MarkAsChanged();
-            // TODO: redraw
-
-            ShowAGIBitmap(picVisual, EditPicture.VisualBMP);
-            ShowAGIBitmap(picPriority, EditPicture.PriorityBMP);
+            // redraw by selecting the end coordinate
+            SelectCommand(lstCommands.Items.Count - 1, 1, true);
             MDIMain.UseWaitCursor = false;
         }
 
+        /// <summary>
+        /// Save the current picture resource.
+        /// </summary>
         public void SavePicture() {
             if (InGame) {
                 MDIMain.UseWaitCursor = true;
@@ -5299,6 +5151,9 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Exports the current picture resource to a file.
+        /// </summary>
         private void ExportPicture() {
             int retval = Base.ExportPicture(EditPicture, InGame);
             if (InGame) {
@@ -5313,9 +5168,10 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Toggles the InGame state of the picture resource currently being edited.
+        /// </summary>
         public void ToggleInGame() {
-            //toggles the game state of an object
-
             DialogResult rtn;
             string strExportName;
             bool blnDontAsk = false;
@@ -5399,6 +5255,10 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Renumbers the picture resource currently being edited, if it is an
+        /// ingame resource.
+        /// </summary>
         public void RenumberPicture() {
             if (!InGame) {
                 return;
@@ -5422,6 +5282,11 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Displays the picture resource property dialog for the picture resource
+        /// currently being edited.
+        /// </summary>
+        /// <param name="FirstProp"></param>
         public void EditPictureProperties(int FirstProp) {
             string id = EditPicture.ID;
             string description = EditPicture.Description;
@@ -5439,16 +5304,17 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Loads the picture data into the command list.
+        /// </summary>
+        /// <returns></returns>
         private bool LoadCmdList() {
-            // loads the picture info into the command list
-            // assumes there are no errors, since
-            // a picture must successfully load before this routine is called
-
             byte bytCmd = 0;
             int lngPos = 0;
             bool blnErrors = false;
             bool exitdo = false;
-            // clear the tree
+
+            // clear the listbox
             lstCommands.Items.Clear();
             while (lngPos < EditPicture.Data.Length && !exitdo) {
                 bytCmd = EditPicture.Data[lngPos];
@@ -5460,13 +5326,11 @@ private void tmrTest_Timer() {
                     exitdo = true;
                     break;
                 case >= 0xF0 and <= 0xFA:
-                    // add command node
-                    // store position for this command
+                    // pen color commands
                     lstCommands.Items[^1].Tag = lngPos;
-
-                    // add command parameters
                     switch (bytCmd) {
                     case 0xF0:
+                        // enable visual
                         lngPos += 2;
                         if (lngPos >= EditPicture.Data.Length) {
                             break;
@@ -5475,6 +5339,7 @@ private void tmrTest_Timer() {
                         bytCmd = EditPicture.Data[lngPos];
                         break;
                     case 0xF2:
+                        // enable priority
                         lngPos += 2;
                         if (lngPos >= EditPicture.Data.Length) {
                             break;
@@ -5563,15 +5428,22 @@ private void tmrTest_Timer() {
                     MessageBoxIcon.Information, 0, 0,
                     WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#picerrors");
             }
-
-            // select end cmd, and update listbox
-            SelectCommand(lstCommands.Items.Count - 1);
+            CmdColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+            // select end cmd
+            SelectCommand(lstCommands.Items.Count - 1, 1, true);
             return true;
         }
 
+        /// <summary>
+        /// Updates the command listbox when new commands are added to
+        /// the picture resource.
+        /// </summary>
+        /// <param name="insertindex"></param>
+        /// <param name="bytecount"></param>
         private void AdjustCommandList(int insertindex, int bytecount) {
             int startPos = (int)lstCommands.Items[insertindex].Tag;
             int endPos = startPos + bytecount;
+
             // first adjust commands from insertpos to end to new pos values
             UpdatePosValues(insertindex, bytecount);
             // then add new commands based on inserted data
@@ -5582,12 +5454,23 @@ private void tmrTest_Timer() {
                     lstCommands.Items.Insert(insertindex++, ((DrawFunction)EditPicture.Data[i]).CommandName()).Tag = i;
                 }
             }
+            CmdColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
         }
 
+        /// <summary>
+        /// When opening editor, the selected command doesn't move into view unless
+        /// the EnsureVisible method is called after the form is mde visible and
+        /// refreshed.
+        /// </summary>
         public void ForceRefresh() {
-            lstCommands.SelectedItems[0].EnsureVisible();
+           lstCommands.SelectedItems[0].EnsureVisible();
         }
 
+        /// <summary>
+        /// This method changes the editor mode between edit, view test 
+        /// and print/displat test mode.
+        /// </summary>
+        /// <param name="newMode"></param>
         public void SetMode(PicEditorMode newMode) {
             // always cancel any drawing operation
             PicDrawMode = PicDrawOp.None;
@@ -5596,7 +5479,7 @@ private void tmrTest_Timer() {
                 PicMode = newMode;
                 tsbMode.Image = tsbEditMode.Image;
 
-                // disable view movement
+                // disable any view movement
                 TestDir = 0;
                 tmrTest.Enabled = false;
                 // reset cursor to match selected tool
@@ -5624,17 +5507,21 @@ private void tmrTest_Timer() {
                     // force normal pixel coordinates
                     StatusMode = PicStatusMode.Pixel;
                 }
+                // reset status bar panels
+                spMode.Text = "Edit";
+                spStatus.Text = "";
+                spTool.Text = "Tool: " + SelectedTool.ToString();
                 break;
-
             case PicEditorMode.ViewTest:
+                // get a test view if not yet assigned
                 if (TestView == null) {
-                    //GetTestView();
+                    GetTestView();
                 }
                 // if still no view
-                if (TestView != null) {
+                if (TestView == null) {
+                    // cancel the mode change
                     return;
                 }
-
                 PicMode = newMode;
                 tsbMode.Image = tsbViewTest.Image;
                 // no multiple selections
@@ -5649,12 +5536,12 @@ private void tmrTest_Timer() {
                 if (StatusMode == PicStatusMode.Coord) {
                     StatusMode = PicStatusMode.Pixel;
                 }
+                spMode.Text = "View Test";
                 break;
-
             case PicEditorMode.PrintTest:
                 PicMode = newMode;
                 tsbMode.Image = tsbPrintTest.Image;
-                // if doing anything, cancel it
+                // clear coordinates list 
                 if (lstCoords.SelectedItems.Count != 0) {
                     lstCoords.SelectedItems.Clear();
                 }
@@ -5668,28 +5555,34 @@ private void tmrTest_Timer() {
                 if (StatusMode == PicStatusMode.Pixel) {
                     StatusMode = PicStatusMode.Text;
                 }
+                spMode.Text = "Print Test";
+                // if single-window, only show the visual window
+                if (TooSmall) {
+                    if (splitImages.Panel1Collapsed) {
+                        splitImages.Panel2Collapsed = true;
+                        splitImages.Panel1Collapsed = false;
+                    }
+                }
+                else {
+                    if (OneWindow == WindowMode.Priority) {
+                        OneWindow = WindowMode.Visual;
+                        splitImages.SplitterDistance = splitImages.Height - splitImages.SplitterWidth;
+                    }
+                }
                 GetTextOptions();
                 break;
             }
             UpdateToolbar();
             EnableCoordList();
-            switch (PicMode) {
-            case PicEditorMode.Edit:
-                spMode.Text = "Edit";
-                break;
-            case PicEditorMode.ViewTest:
-                spMode.Text = "View Test";
-                break;
-            case PicEditorMode.PrintTest:
-                spMode.Text = "Print Test";
-                break;
-            }
+            picVisual.Refresh();
+            picPriority.Refresh();
         }
 
+        /// <summary>
+        /// Enables or disables all toolbar items based on current
+        /// state of the editor.
+        /// </summary>
         private void UpdateToolbar() {
-            // enable/disable other editing buttons
-            // based on mode, and if drawing is selected
-
             // drawing tools
             if (PicMode == PicEditorMode.Edit) {
                 tsbTool.Enabled = true;
@@ -5745,7 +5638,6 @@ private void tmrTest_Timer() {
                 tsbTool.Enabled = false;
                 tsbPlotStyle.Enabled = false;
                 tsbPlotSize.Enabled = false;
-                //tsbUndo.Enabled = false;
                 tsbCut.Enabled = false;
                 tsbCopy.Enabled = false;
                 tsbPaste.Enabled = false;
@@ -5755,79 +5647,13 @@ private void tmrTest_Timer() {
             }
         }
 
-        private void UpdateStatusBar(Point cursorpos) {
-            // set status bar indicators based on current state of editor
-
-            int priband = 0;
-
-            // scale
-            spScale.Text = "Scale: " + (ScaleFactor * 100) + "%";
-            //  coordinates (test object coords only)
-            switch (StatusMode) {
-            case PicStatusMode.Pixel:
-                //  normal pixel mode
-                // use cusor position
-                spCurX.Text = "X: " + cursorpos.X;
-                spCurY.Text = "Y: " + cursorpos.Y;
-                priband = GetPriBand((byte)cursorpos.Y, EditPicture.PriBase);
-                spPriBand.Text = "Band: " + priband;
-                break;
-            case PicStatusMode.Coord: {
-                //  test object coordinates
-                // use test object position
-                spCurX.Text = "vX: " + TestCelPos.X;
-                spCurY.Text = "vY: " + TestCelPos.Y;
-                priband = GetPriBand((byte)TestCelPos.Y, EditPicture.PriBase);
-                spPriBand.Text = "vBand: " + priband;
-                break;
-            }
-            case PicStatusMode.Text:
-                //  text row/col
-                spCurX.Text = "R: " + (cursorpos.Y / 8);
-                spCurY.Text = "C: " + (cursorpos.X / (CharWidth / 2));
-                priband = GetPriBand((byte)cursorpos.Y, EditPicture.PriBase);
-                spPriBand.Text = "Band: " + priband;
-                break;
-            }
-            Bitmap bitmap = new(16, 16);
-            using Graphics g = Graphics.FromImage(bitmap);
-            g.Clear(EditPalette[priband]);
-            spPriBand.Image = bitmap;
-
-            switch (PicMode) {
-            case PicEditorMode.Edit:
-                spMode.Text = "Edit";
-                spTool.Text = Editor.Base.LoadResString(PICTOOLTYPETEXT + (int)SelectedTool);
-                spAnchor.Visible = (SelectedTool == PicToolType.SelectArea);
-                spBlock.Visible = (SelectedTool == PicToolType.SelectArea);
-                if (SelectedTool == PicToolType.SelectArea && StatusMode == PicStatusMode.Pixel) {
-                    if (SelectedRegion.Width > 0 || SelectedRegion.Height > 0) {
-                        spAnchor.Text = "Anchor: " + SelectedRegion.X + ", " + SelectedRegion.Y;
-                        spBlock.Text = "Block: " + SelectedRegion.X + ", " + SelectedRegion.Y + ", " + (SelectedRegion.Right - 1) + ", " + (SelectedRegion.Bottom - 1);
-                    }
-                    else {
-                        spAnchor.Text = "Anchor: " + cursorpos.X + ", " + cursorpos.Y;
-                        spBlock.Text = "Block: " + cursorpos.X + ", " + cursorpos.Y;
-                    }
-                }
-                break;
-            case PicEditorMode.ViewTest:
-                spMode.Text = "Test";
-                if (StopReason > 0) {
-                    spTool.Text = Editor.Base.LoadResString(STOPREASONTEXT + StopReason);
-                    StopReason = 0;
-                }
-                else {
-                    // clear tool panel
-                    spTool.Text = "";
-                }
-                break;
-            }
-        }
-
+        /// <summary>
+        /// Converts a picture's Y coordinate into the appropriate priority band.
+        /// </summary>
+        /// <param name="y"></param>
+        /// <param name="priBase"></param>
+        /// <returns></returns>
         private byte GetPriBand(byte y, byte priBase = 48) {
-            // convert Y Value into appropriate priority band
-
             if (y < priBase) {
                 return 4;
             }
@@ -5836,6 +5662,10 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Sets the cursors for the draw surfaces based on current mode and tool.
+        /// </summary>
+        /// <param name="NewCursor"></param>
         private void SetCursors(PicCursor NewCursor) {
             MemoryStream msCursor;
 
@@ -5889,14 +5719,18 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// This draws the static image and background representing current
+        /// draw state. If in full draw mode, then no need to determine draw
+        /// point, but in step draw mode, the draw point is determined by
+        /// the currently selected command and coordinate.
+        /// </summary>
         private void DrawPicture() {
-            // This draws the static image and background representing current draw state.
-            // If in full draw mode, then no need to determine draw point, but in step 
-            // draw mode, the draw point is determined by the selected command and
-            // coordinate.
-
             if (EditPicture.StepDraw) {
+                // determine the draw position for the current
+                // command, coordinate and selected tool
                 if (SelectedCmd.SelectedCoordIndex == -1) {
+                    // no coordinat is selected
                     switch (PicMode) {
                     case PicEditorMode.ViewTest or PicEditorMode.PrintTest:
                         EditPicture.DrawPos = SelectedCmd.EndPos;
@@ -5934,7 +5768,7 @@ private void tmrTest_Timer() {
                             }
                             break;
                         default:
-                            // shapes
+                            // rectangle, trapezoid, ellipse
                             EditPicture.DrawPos = SelectedCmd.Position;
                             break;
                         }
@@ -5942,6 +5776,8 @@ private void tmrTest_Timer() {
                     }
                 }
                 else {
+                    // when a coordinate is selected, draw position
+                    // is calculated differently
                     switch (PicMode) {
                     case PicEditorMode.ViewTest:
                     case PicEditorMode.PrintTest:
@@ -5977,20 +5813,18 @@ private void tmrTest_Timer() {
                     }
                 }
             }
+            // draw the visual image
             Graphics gv = null;
             if ((OneWindow & WindowMode.Visual) == WindowMode.Visual) {
-                //_ = SendMessage(picVisual.Handle, WM_SETREDRAW, false, 0);
                 int bWidth = (int)(320 * ScaleFactor), bHeight = (int)(168 * ScaleFactor);
                 picVisual.Image = new Bitmap(bWidth, bHeight);
                 gv = Graphics.FromImage(picVisual.Image);
-                // TODO: should these prameters be set AFTER background is drawn?
-                gv.InterpolationMode = InterpolationMode.NearestNeighbor;
-                gv.PixelOffsetMode = PixelOffsetMode.Half;
-
+                // draw background first, if it is visible
                 if (EditPicture.BkgdVisible && EditPicture.BkgdShowVis) {
-                    //always clear the background first
+                    // start with clear background
                     gv.Clear(picVisual.BackColor);
-                    // draw the background on visual
+                    // draw the background on visual surface, positioning it
+                    // based on background settings
                     Rectangle dest = new(0, 0, picVisual.Width, picVisual.Height);
                     RectangleF src = EditPicture.BackgroundSettings.SourceRegion;
                     double HScale = src.Width / 320.0;
@@ -6013,21 +5847,24 @@ private void tmrTest_Timer() {
                     }
                     gv.DrawImage(BkgdImage, dest, src, GraphicsUnit.Pixel);
                 }
+                // now draw the visual image, with scaling mode set to
+                // give crisp pixel edges
+                gv.InterpolationMode = InterpolationMode.NearestNeighbor;
+                gv.PixelOffsetMode = PixelOffsetMode.Half;
                 gv.DrawImage(EditPicture.VisualBMP, 0, 0, bWidth, bHeight);
-                //_ = SendMessage(picVisual.Handle, WM_SETREDRAW, true, 0);
             }
+            // next draw the priority image
             Graphics gp = null;
             if ((OneWindow & WindowMode.Priority) == WindowMode.Priority) {
-                //_ = SendMessage(picPriority.Handle, WM_SETREDRAW, false, 0);
                 int bWidth = (int)(320 * ScaleFactor), bHeight = (int)(168 * ScaleFactor);
                 picPriority.Image = new Bitmap(bWidth, bHeight);
                 gp = Graphics.FromImage(picPriority.Image);
-                gp.InterpolationMode = InterpolationMode.NearestNeighbor;
-                gp.PixelOffsetMode = PixelOffsetMode.Half;
+                // draw background first, if it is visible
                 if (EditPicture.BkgdVisible && EditPicture.BkgdShowPri) {
-                    //always clear the background first
+                    // start with clear background
                     gp.Clear(picPriority.BackColor);
-                    // draw the background on priority
+                    // draw the background on priority surface, positioning it
+                    // based on background settings
                     Rectangle dest = new(0, 0, picPriority.Width, picPriority.Height);
                     RectangleF src = EditPicture.BackgroundSettings.SourceRegion;
                     double HScale = src.Width / 320.0;
@@ -6050,9 +5887,15 @@ private void tmrTest_Timer() {
                     }
                     gp.DrawImage(BkgdImage, dest, src, GraphicsUnit.Pixel);
                 }
+                // now draw the priority image, with scaling mode set to
+                // give crisp pixel edges
+                gp.InterpolationMode = InterpolationMode.NearestNeighbor;
+                gp.PixelOffsetMode = PixelOffsetMode.Half;
                 gp.DrawImage(EditPicture.PriorityBMP, 0, 0, bWidth, bHeight);
-                //_ = SendMessage(picVisual.Handle, WM_SETREDRAW, true, 0);
             }
+            // in edit mode and a coordinate is selected, line segments around
+            // the selected coordinate that won't change when the coordinate is
+            // edited are also added to the draw surface
             if (SelectedCmd.IsLine && EditPicture.StepDraw && SelectedCmd.SelectedCoordIndex >= 0) {
                 int next = 1;
                 if (SelectedCmd.Type == XCorner || SelectedCmd.Type == YCorner) {
@@ -6069,17 +5912,14 @@ private void tmrTest_Timer() {
             }
             gv?.Dispose();
             gp?.Dispose();
-
-            //// add test cel if in preview mode, and a test view is loaded
-            //bool DrawCel = (PicMode == PicEditorMode.ViewTest && TestView != null && ShowTestCel);
-            //if (DrawCel) {
-            //    // with appropriate transparency if Bkgd is being used
-            //    //AddCelToPic();
-            //}
+            // refresh so temporary elements get added to the images
             picVisual.Refresh();
             picPriority.Refresh();
         }
 
+        /// <summary>
+        /// Refreshes the palette for this editor and redraws the images.
+        /// </summary>
         public void RefreshPic() {
             // update palette and redraw
             if (InGame) {
@@ -6093,6 +5933,12 @@ private void tmrTest_Timer() {
             DrawPicture();
         }
 
+        /// <summary>
+        /// Populates a CommandInfo object with the command data corresponding
+        /// to the passed command index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private CommandInfo GetCommand(int index) {
             CommandInfo retval = new();
             if (index < 0 || index >= lstCommands.Items.Count) {
@@ -6214,10 +6060,18 @@ private void tmrTest_Timer() {
             return retval;
         }
 
+        /// <summary>
+        /// Draws highlight indicators on the given graphics obect over
+        /// current commands unselected coordinates in the format specified
+        /// by the form's CursorMode property.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="coordcolor"></param>
         private void HighlightCoords(Graphics g, Color coordcolor) {
-
             switch (CursorMode) {
             case CoordinateHighlightType.FlashBox:
+                // currently, only the selected coordinate is highlighted in
+                // FlashBox mode
                 return;
             case CoordinateHighlightType.XMode:
                 float cOfX = (float)(1.5 / Math.Sqrt(ScaleFactor));
@@ -6269,11 +6123,23 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Updates the picture resource with the passed plot pen setting
+        /// by either modifying an existing set-plot command at the current
+        /// position, or adding a new set-plot command.
+        /// </summary>
+        /// <param name="newpendata"></param>
+        /// <param name="Force"></param>
         private void UpdatePlotPen(byte newpendata, bool Force = false) {
-            // adds a new setplotpen command, or edits an existing setplotpen command
-            // (currently nothing ever forces pen for plot settings,
-            // but leave the check in anyway to allow for potential enhancements)
-
+            //  if tool is edit or select area:
+            //      if no intervening draw commands, edit the existing cmd or prior
+            //      or following, otherwise insert a new cmd
+            //  if tool is anything else:
+            //      if no intervening draw commands, edit only prior (not current or
+            //      following), otherwise insert a new cmd
+            //  if a new cmd is added, select next cmd
+            //  if cmd is edited and tool is edit or select area, select the edited
+            //  cmd; if tool is anything else, select original cmd
             byte currentpendata = SelectedCmd.Pen.PlotData;
             PlotStyle newstyle = (PlotStyle)(newpendata & 0x20);
             int selectedindex = SelectedCmd.Index;
@@ -6286,7 +6152,8 @@ private void tmrTest_Timer() {
                     // command as the vis pen command
                     // check here first
                     int checkindex = SelectedCmd.Index - 1;
-                    if (SelectedCmd.Type == ChangePen) {
+                    if (SelectedCmd.Type == ChangePen &&
+                        (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea)) {
                         PenCmdIndex = SelectedCmd.Index;
                     }
                     else {
@@ -6309,25 +6176,27 @@ private void tmrTest_Timer() {
                             checkindex--;
                         }
                         if (PenCmdIndex == -1 && SelectedCmd.IsPen) {
-                            // not found above and selected cmd is not a draw cmd
-                            // so check below
-                            checkindex = SelectedCmd.Index + 1;
-                            while (checkindex < lstCommands.Items.Count) {
-                                switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
-                                case ChangePen:
-                                    PenCmdIndex = checkindex;
-                                    checkindex = lstCommands.Items.Count;
-                                    break;
-                                case EnableVis:
-                                case DisableVis:
-                                case EnablePri:
-                                case DisablePri:
-                                    break;
-                                default:
-                                    checkindex = lstCommands.Items.Count;
-                                    break;
+                            if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
+                                // not found above and selected cmd is not a draw cmd
+                                // so check below
+                                checkindex = SelectedCmd.Index + 1;
+                                while (checkindex < lstCommands.Items.Count) {
+                                    switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
+                                    case ChangePen:
+                                        PenCmdIndex = checkindex;
+                                        checkindex = lstCommands.Items.Count;
+                                        break;
+                                    case EnableVis:
+                                    case DisableVis:
+                                    case EnablePri:
+                                    case DisablePri:
+                                        break;
+                                    default:
+                                        checkindex = lstCommands.Items.Count;
+                                        break;
+                                    }
+                                    checkindex++;
                                 }
-                                checkindex++;
                             }
                         }
                     }
@@ -6344,13 +6213,33 @@ private void tmrTest_Timer() {
                 else {
                     // update existing pen command
                     ChangePenSettings(PenCmdIndex, newpendata);
-                    SelectCommand(selectedindex, 1, true);
+                    if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
+                        SelectCommand(PenCmdIndex, 1, true);
+                    }
+                    else {
+                        SelectCommand(selectedindex + 1, 1, true);
+                    }
                 }
             }
         }
 
+        /// <summary>
+        /// Updates the picture resource with the passed visual pen 
+        /// setting by either modifying an existing visual pen command
+        /// at the current position, or adding a new visual pen command.
+        /// </summary>
+        /// <param name="newcolor"></param>
+        /// <param name="Force"></param>
         private void UpdateVisPen(AGIColorIndex newcolor, bool Force = false) {
-            // adds a new vis pen command, or edits an existing vis pen command
+            //  if tool is edit or select area:
+            //      if no intervening draw commands, edit the existing cmd or prior
+            //      or following, otherwise insert a new cmd
+            //  if tool is anything else:
+            //      if no intervening draw commands, edit only prior (not current or
+            //      following), otherwise insert a new cmd
+            //  if a new cmd is added, select next cmd
+            //  if cmd is edited and tool is edit or select area, select the edited
+            //  cmd; if tool is anything else, select original cmd
             int selectedindex = SelectedCmd.Index;
 
             if (SelectedCmd.Pen.VisColor != newcolor || Force) {
@@ -6361,7 +6250,8 @@ private void tmrTest_Timer() {
                     // command as the vis pen command
                     // check here first
                     int checkindex = SelectedCmd.Index - 1;
-                    if (SelectedCmd.Type == EnableVis || SelectedCmd.Type == DisableVis) {
+                    if (SelectedCmd.Type == EnableVis || SelectedCmd.Type == DisableVis &&
+                        (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea)) {
                         VisCmdIndex = SelectedCmd.Index;
                     }
                     else {
@@ -6384,25 +6274,27 @@ private void tmrTest_Timer() {
                             checkindex--;
                         }
                         if (VisCmdIndex == -1 && SelectedCmd.IsPen) {
-                            // not found above and selected cmd is not a draw cmd
-                            // so check below
-                            checkindex = SelectedCmd.Index + 1;
-                            while (checkindex < lstCommands.Items.Count) {
-                                switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
-                                case EnableVis:
-                                case DisableVis:
-                                    VisCmdIndex = checkindex;
-                                    checkindex = lstCommands.Items.Count;
-                                    break;
-                                case EnablePri:
-                                case DisablePri:
-                                case ChangePen:
-                                    break;
-                                default:
-                                    checkindex = lstCommands.Items.Count;
-                                    break;
+                            if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
+                                // not found above and selected cmd is not a draw cmd
+                                // so check below
+                                checkindex = SelectedCmd.Index + 1;
+                                while (checkindex < lstCommands.Items.Count) {
+                                    switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
+                                    case EnableVis:
+                                    case DisableVis:
+                                        VisCmdIndex = checkindex;
+                                        checkindex = lstCommands.Items.Count;
+                                        break;
+                                    case EnablePri:
+                                    case DisablePri:
+                                    case ChangePen:
+                                        break;
+                                    default:
+                                        checkindex = lstCommands.Items.Count;
+                                        break;
+                                    }
+                                    checkindex++;
                                 }
-                                checkindex++;
                             }
                         }
                     }
@@ -6422,25 +6314,47 @@ private void tmrTest_Timer() {
                 else {
                     // update existing vis cmd
                     ChangePenColor(VisCmdIndex, newcolor);
-                    SelectCommand(selectedindex, 1, true);
+                    if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
+                        SelectCommand(VisCmdIndex, 1, true);
+                    }
+                    else {
+                        SelectCommand(selectedindex + 1, 1, true);
+                    }
                 }
                 picPalette.Refresh();
             }
         }
 
+        /// <summary>
+        /// Updates the picture resource with the passed priority pen 
+        /// setting by either modifying an existing priority pen command
+        /// at the current position, or adding a new priority pen command.
+        /// </summary>
+        /// <param name="newcolor"></param>
+        /// <param name="Force"></param>
         private void UpdatePriPen(AGIColorIndex newcolor, bool Force = false) {
-            // adds a new pri pen command, or edits an existing pri pen command
+            //  if tool is edit or select area:
+            //      if no intervening draw commands, edit the existing cmd or prior
+            //      or following, otherwise insert a new cmd
+            //  if tool is anything else:
+            //      if no intervening draw commands, edit only prior (not current or
+            //      following), otherwise insert a new cmd
+            //  if a new cmd is added, select next cmd
+            //  if cmd is edited and tool is edit or select area, select the edited
+            //  cmd; if tool is anything else, select original cmd
+
             int selectedindex = SelectedCmd.Index;
 
             if (SelectedCmd.Pen.PriColor != newcolor || Force) {
                 int PriCmdIndex = -1;
                 if (!Force) {
-                    // if command is a vis pen command, or if a command nearby is
-                    // a vis pen command with no intervening draw commands, use that
-                    // command as the vis pen command
+                    // if command is a pri pen command, or if a command nearby is
+                    // a pri pen command with no intervening draw commands, use that
+                    // command as the pri pen command
                     // check here first
                     int checkindex = SelectedCmd.Index - 1;
-                    if (SelectedCmd.Type == EnablePri || SelectedCmd.Type == DisablePri) {
+                    if (SelectedCmd.Type == EnablePri || SelectedCmd.Type == DisablePri &&
+                        (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea)) {
                         PriCmdIndex = SelectedCmd.Index;
                     }
                     else {
@@ -6463,25 +6377,27 @@ private void tmrTest_Timer() {
                             checkindex--;
                         }
                         if (PriCmdIndex == -1 && SelectedCmd.IsPen) {
-                            // not found above and selected cmd is not a draw cmd
-                            // so check below
-                            checkindex = SelectedCmd.Index + 1;
-                            while (checkindex < lstCommands.Items.Count) {
-                                switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
-                                case EnablePri:
-                                case DisablePri:
-                                    PriCmdIndex = checkindex;
-                                    checkindex = lstCommands.Items.Count;
-                                    break;
-                                case EnableVis:
-                                case DisableVis:
-                                case ChangePen:
-                                    break;
-                                default:
-                                    checkindex = lstCommands.Items.Count;
-                                    break;
+                            if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
+                                // not found above and selected cmd is not a draw cmd
+                                // so check below
+                                checkindex = SelectedCmd.Index + 1;
+                                while (checkindex < lstCommands.Items.Count) {
+                                    switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
+                                    case EnablePri:
+                                    case DisablePri:
+                                        PriCmdIndex = checkindex;
+                                        checkindex = lstCommands.Items.Count;
+                                        break;
+                                    case EnableVis:
+                                    case DisableVis:
+                                    case ChangePen:
+                                        break;
+                                    default:
+                                        checkindex = lstCommands.Items.Count;
+                                        break;
+                                    }
+                                    checkindex++;
                                 }
-                                checkindex++;
                             }
                         }
                     }
@@ -6501,14 +6417,24 @@ private void tmrTest_Timer() {
                 else {
                     // update existing pri cmd
                     ChangePenColor(PriCmdIndex, newcolor);
-                    SelectCommand(selectedindex, 1, true);
+                    if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
+                        SelectCommand(PriCmdIndex, 1, true);
+                    }
+                    else {
+                        SelectCommand(selectedindex + 1, 1, true);
+                    }
                 }
             }
         }
 
+        /// <summary>
+        /// Modifies an existing visual or priority pen command to a new color
+        /// value and updates the drawing surfaces.
+        /// </summary>
+        /// <param name="CmdIndex"></param>
+        /// <param name="NewColor"></param>
+        /// <param name="DontUndo"></param>
         private void ChangePenColor(int CmdIndex, AGIColorIndex NewColor, bool DontUndo = false) {
-            // changes the color for this command
-
             AGIColorIndex OldColor;
             int lngPos = (int)lstCommands.Items[CmdIndex].Tag;
 
@@ -6526,7 +6452,6 @@ private void tmrTest_Timer() {
                 return;
             }
 
-            // if not skipping undo
             if (!DontUndo) {
                 PictureUndo NextUndo = new();
                 NextUndo.Action = ChangeColor;
@@ -6561,6 +6486,13 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Modifies an existing change-pen command to a new settings value
+        /// and updates the drawing surfaces.
+        /// </summary>
+        /// <param name="CmdIndex"></param>
+        /// <param name="NewPenData"></param>
+        /// <param name="DontUndo"></param>
         private void ChangePenSettings(int CmdIndex, byte NewPenData, bool DontUndo = false) {
             // changes the pen settings for this command
 
@@ -6571,7 +6503,6 @@ private void tmrTest_Timer() {
                 // just exit
                 return;
             }
-            // if not skipping undo
             if (!DontUndo) {
                 PictureUndo NextUndo = new();
                 NextUndo.Action = PictureUndo.ActionType.ChangePlotPen;
@@ -6585,11 +6516,15 @@ private void tmrTest_Timer() {
 
         }
 
+        /// <summary>
+        /// Determines the starting (upper left corner) and the size of
+        /// the region bounded by the coordinates of currently selected
+        /// commands, and sets selection box to match. Optionally draws
+        /// a selection box on the drawing surfaces to highlight the
+        /// selection.
+        /// </summary>
+        /// <param name="ShowBox"></param>
         private void SetSelectionBounds(bool ShowBox = false) {
-            // determines the starting (upper left corner) and the
-            // size of selected cmds, and sets selection box to match
-            // optionally draws a selection box around the commands
-
             int lngPos;
             byte bytX, bytY, bytCmd;
             int xdisp, ydisp;
@@ -6736,8 +6671,11 @@ private void tmrTest_Timer() {
             tsbFlipV.Enabled = SelectedRegion.Height > 1;
         }
 
+        /// <summary>
+        /// Builds the coordinate list for the currently selected command
+        /// and adds the coordinates to the coordinate listbox.
+        /// </summary>
         private void BuildCoordList() {
-            // build coord list, based on selected cmd
             lstCoords.Items.Clear();
             switch (SelectedCmd.Type) {
             case DisableVis:
@@ -6792,6 +6730,10 @@ private void tmrTest_Timer() {
             CoordColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
         }
 
+        /// <summary>
+        /// Enables or disables the coordinate listbox based on the currently
+        /// selected command and tool.
+        /// </summary>
         private void EnableCoordList() {
             switch (PicMode) {
             case PicEditorMode.Edit:
@@ -6827,18 +6769,35 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Converts an x/y coordinate pair into a text string in the
+        /// format '(x, y)'
+        /// </summary>
+        /// <param name="X"></param>
+        /// <param name="Y"></param>
+        /// <returns></returns>
         public string CoordText(byte X, byte Y) {
-            // this function creates the coordinate text in the form
-            //     (X, Y)
             return "(" + X + ", " + Y + ")";
         }
 
+        /// <summary>
+        /// Converts a Point object into a text string in the format
+        /// '(x, y)'.
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <returns></returns>
         public string CoordText(Point pos) {
             // this function creates the coordinate text in the form
             //     (X, Y)
             return "(" + pos.X + ", " + pos.Y + ")";
         }
 
+        /// <summary>
+        /// Adjusts the scale factor of the draw images up or down one 
+        /// level and redraws the images.
+        /// </summary>
+        /// <param name="Dir"></param>
+        /// <param name="useanchor"></param>
         public void ChangeScale(int Dir, bool useanchor = false) {
             // valid scale factors are:
             // 100%, 125%, 150%, 175%, 200%, 225%, 250%, 275%, 300%,
@@ -6896,10 +6855,17 @@ private void tmrTest_Timer() {
             splitImages.Refresh();
         }
 
+        /// <summary>
+        /// Shows or hides scrollbars for the draw surfaces when the form
+        /// is resized, split fraction changes or image scale is changed.
+        /// </summary>
+        /// <param name="oldscale"></param>
         private void SetScrollbars(double oldscale = 0) {
             bool showHSB = false, showVSB = false;
 
             if (!splitImages.Visible) {
+                // skip during form load to avoid errors
+                // (the form is not visible at that point)
                 return;
             }
             if (splitImages.Panel1.Height > 16) {
@@ -6988,6 +6954,17 @@ private void tmrTest_Timer() {
             AdjustScrollbars(oldscale, anchorpt, hsbPriority, vsbPriority, picPriority, splitImages.Panel2);
         }
 
+        /// <summary>
+        /// Sets the scrollbar properties for the passed draw surface so
+        /// the image can be properly scrolled by dragging and/or using
+        /// the scrollbar buttons.
+        /// </summary>
+        /// <param name="oldscale"></param>
+        /// <param name="anchor"></param>
+        /// <param name="hsb"></param>
+        /// <param name="vsb"></param>
+        /// <param name="image"></param>
+        /// <param name="panel"></param>
         private void AdjustScrollbars(double oldscale, Point anchor, HScrollBar hsb, VScrollBar vsb, PictureBox image, SplitterPanel panel) {
             // Scrollbar math:
             // ACT_SZ = size of the area being scrolled; usually the image size + margins
@@ -7081,6 +7058,16 @@ private void tmrTest_Timer() {
             image.Top = -vsb.Value;
         }
 
+        /// <summary>
+        /// Draws the line defined by start and end x/y coordinate pairs
+        /// on the passed draw surface using AGI's line drawing algorithm. 
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="linecolor"></param>
+        /// <param name="x1"></param>
+        /// <param name="y1"></param>
+        /// <param name="x2"></param>
+        /// <param name="y2"></param>
         private void DrawLineOnImage(Graphics g, Color linecolor, int x1, int y1, int x2, int y2) {
             // draw a line on the image
             // this function is used to draw the lines for the
@@ -7089,6 +7076,15 @@ private void tmrTest_Timer() {
             Point p2 = new(x2, y2);
             DrawLineOnImage(g, linecolor, p1, p2);
         }
+        
+        /// <summary>
+        /// Draws the line defined by start and end Point values on the
+        /// passed draw surface using AGI's line drawing algorithm.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="linecolor"></param>
+        /// <param name="p1"></param>
+        /// <param name="p2"></param>
         private void DrawLineOnImage(Graphics g, Color linecolor, Point p1, Point p2) {
             int xPos, yPos, XC, YC, MaxDelta;
             Pen lc = new(linecolor);
@@ -7175,9 +7171,13 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Draws tempoary line segments based around the currently selected 
+        /// coordinate as it gets moved during editing or drawing operations.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="linecolor"></param>
         private void DrawTempSegments(Graphics g, Color linecolor) {
-            // draw AGI lines around current edit point
-            //linecolor = Color.Pink;
             Point coord;
             if (PicDrawMode == PicDrawOp.MovePoint) {
                 coord = EditPt;
@@ -7250,13 +7250,18 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Creates the arc segment lines needed to draw an ellipse that
+        /// is bounded by the passed coordinates.
+        /// </summary>
+        /// <param name="beginpt"></param>
+        /// <param name="endpt"></param>
+        /// <returns></returns>
         private Point[] BuildCircleArcs(Point beginpt, Point endpt) {
-            // creates the arc segments needed to draw  a circle/ellipse
             int segmentcount = 0;
             Point[] arcpts;
             int DX, DY;
             double a, b, a2b2, cy, cx, s1, s2;
-            int pX, pY;
             bool DelPt;
 
             // ensure we are in a upperleft-lower right configuration
@@ -7275,12 +7280,10 @@ private void tmrTest_Timer() {
             if (DX == 0 || DY == 0) {
                 // no arcs, just a line
                 segmentcount = 0;
-                return new Point[0];
+                return [];
             }
             if (DX == 1 || DY == 1) {
-                // no arcs, draw a simple box?
-
-                // set segment data
+                // no arcs, draw a simple box
                 segmentcount = 2;
                 arcpts = new Point[2];
                 arcpts[0].X = DX / 2;
@@ -7289,7 +7292,8 @@ private void tmrTest_Timer() {
                 arcpts[1].Y = DY / 2;
                 return arcpts;
             }
-            // get ellipse parameters
+            // set array size large enough to ensure
+            // no out of bounds errors
             arcpts = new Point[DX + DY];
             a = (int)(DX / 2);
             b = (int)(DY / 2);
@@ -7330,9 +7334,6 @@ private void tmrTest_Timer() {
             } while (j >= 0);
 
             segmentcount = i;
-            //// zero out next point to avoid conflict
-            //arcpts[i + 1].X = 0;
-            //arcpts[i + 1].Y = 0;
             // strip out any zero delta points
             // and any points that match slope on both sides
             i = 1;
@@ -7370,7 +7371,7 @@ private void tmrTest_Timer() {
                 i++;
             } while (i < segmentcount - 1);
 
-            // if more than one segment (> two?)
+            // if more than two segments
             if (segmentcount > 2) {
                 // strip out any points that create uneven slopes
                 i = 1;
@@ -7404,21 +7405,23 @@ private void tmrTest_Timer() {
             return arcpts;
         }
 
+        /// <summary>
+        /// Draws a circle/ellipse that is bounded by start/end points
+        /// using the arc segments in ArcPts array.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="pencolor"></param>
+        /// <param name="beginpt"></param>
+        /// <param name="endpt"></param>
         private void DrawCircle(Graphics g, Color pencolor, Point beginpt, Point endpt) {
-            // draws a circle/ellipse that is bounded by start/end points
-            // using the arcsegments in ArcPts array
-
             int DX, DY;
+
             // ensure we are in a upperleft-lower right configuration
             if (beginpt.X > endpt.X) {
-                int tmp = beginpt.X;
-                beginpt.X = endpt.X;
-                endpt.X = tmp;
+                (endpt.X, beginpt.X) = (beginpt.X, endpt.X);
             }
             if (beginpt.Y > endpt.Y) {
-                int tmp = beginpt.Y;
-                beginpt.Y = endpt.Y;
-                endpt.Y = tmp;
+                (endpt.Y, beginpt.Y) = (beginpt.Y, endpt.Y);
             }
             DX = endpt.X - beginpt.X;
             DY = endpt.Y - beginpt.Y;
@@ -7435,7 +7438,8 @@ private void tmrTest_Timer() {
                 DrawLineOnImage(g, pencolor, beginpt.X, endpt.Y, beginpt.X, beginpt.Y);
                 return;
             }
-            // now draw the arc segments
+            // draw the ellipse as four 90 degree arcs, using the arc segments
+            // that have been previously calculated
             int pX = beginpt.X;
             int pY = beginpt.Y + ArcPts[^1].Y;
             for (int i = 1; i < ArcPts.Length; i++) {
@@ -7460,6 +7464,13 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Draws a rectangular box on the draw surfaces.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="pencolor"></param>
+        /// <param name="anchorpt"></param>
+        /// <param name="endpt"></param>
         private void DrawBox(Graphics g, Color pencolor, Point anchorpt, Point endpt) {
             DrawLineOnImage(g, pencolor, anchorpt.X, anchorpt.Y, endpt.X, anchorpt.Y);
             DrawLineOnImage(g, pencolor, endpt.X, anchorpt.Y, endpt.X, endpt.Y);
@@ -7467,6 +7478,13 @@ private void tmrTest_Timer() {
             DrawLineOnImage(g, pencolor, anchorpt.X, endpt.Y, endpt.X, endpt.Y);
         }
 
+        /// <summary>
+        /// Draws a trapezoid shape on the draw surfaces.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="pencolor"></param>
+        /// <param name="anchorpt"></param>
+        /// <param name="endpt"></param>
         private void DrawTrapezoid(Graphics g, Color pencolor, Point anchorpt, Point endpt) {
             Point tp = endpt;
             DrawLineOnImage(g, pencolor, anchorpt.X, anchorpt.Y, 159 - anchorpt.X, anchorpt.Y);
@@ -7493,10 +7511,13 @@ private void tmrTest_Timer() {
             DrawPicture();
         }
 
+        /// <summary>
+        /// Sets the background visible property to match newval and
+        /// loads a background if one is needed.
+        /// </summary>
+        /// <param name="NewVal"></param>
+        /// <param name="ShowConfig"></param>
         private void UpdateBkgd(bool NewVal, bool ShowConfig = false) {
-            // sets background Image display to match newval
-            // loads a background if one is needed
-
             // if switching to ON AND there is not a picture OR if forcing config
             if ((NewVal && BkgdImage == null) || ShowConfig) {
                 // use configure screen, which will load a background
@@ -7509,10 +7530,12 @@ private void tmrTest_Timer() {
             DrawPicture();
         }
 
+        /// <summary>
+        /// Shows background configuration dialog (which will automatically
+        /// get a background image if no image is loaded yet)
+        /// </summary>
+        /// <returns></returns>
         private bool ConfigureBackground() {
-            // shows background configuration form (which will automatically show
-            // the loadimage dialog if no Image loaded yet)
-
             frmConfigureBackground frm = new(this);
             if (frm.DialogResult == DialogResult.Cancel) {
                 frm.Dispose();
@@ -7532,19 +7555,25 @@ private void tmrTest_Timer() {
             return true;
         }
 
+        /// <summary>
+        /// Clears the selection region and removes it from the draw surfaces.
+        /// </summary>
         private void ClearSelectionBounds() {
             SelectedRegion = new();
+            tmrSelect.Enabled = false;
+            // anchor and block status items not used when 
+            // selection region is cleared
             spAnchor.Visible = false;
             spBlock.Visible = false;
-            tmrSelect.Enabled = false;
         }
 
         /// <summary>
-        /// Updates the form to show the currently selected command in the
-        /// command list. Note that the commands are already selected in lstCommands.
+        /// Updates the draw surfaces and toolbars to show the currently selected
+        /// command in the command list. Note that the commands are already
+        /// selected in lstCommands.
         /// </summary>
         private void UpdateCmdSelection(int cmdpos, bool force = false) {
-
+            // only if forcing, OR if selection has changed
             if (force || SelectedCmd.Index != cmdpos || SelectedCmdCount != lstCommands.SelectedItems.Count) {
                 SelectedCmd = GetCommand(cmdpos);
                 SelectedCmdCount = lstCommands.SelectedItems.Count;
@@ -7633,16 +7662,20 @@ private void tmrTest_Timer() {
             UpdateToolbar();
         }
 
+        /// <summary>
+        /// Returns true if the first coordinate of the command at the
+        /// passed index location matches the last coordinate of the 
+        /// command immediately preceding.
+        /// </summary>
+        /// <param name="ListPos"></param>
+        /// <returns></returns>
         public bool MatchPoints(int ListPos) {
-            // returns true if coord data for previous command's last coord equals this commands first coord
 
             byte bytCmd;
-            byte[] bytData;
             byte bytX = 0, bytY = 0;
             int xdisp, ydisp;
+            byte[] bytData = EditPicture.Data;
 
-            //bytData = EditPicture.Data;
-            bytData = EditPicture.Data.ToArray();
             // set starting pos for the previous cmd
             int lngPos = (int)lstCommands.Items[ListPos - 1].Tag;
 
@@ -7739,6 +7772,12 @@ private void tmrTest_Timer() {
             UpdateCmdSelection(cmdpos, force);
         }
 
+        /// <summary>
+        /// Selects the specified coordinate of the passed command.
+        /// </summary>
+        /// <param name="cmdindex"></param>
+        /// <param name="coordindex"></param>
+        /// <param name="force"></param>
         private void SelectCoordinate(int cmdindex, int coordindex, bool force = false) {
             SelectedCmd = GetCommand(cmdindex);
             if (SelectedCmdCount != 1 || lstCommands.SelectedItems[0].Index != cmdindex) {
@@ -7752,6 +7791,11 @@ private void tmrTest_Timer() {
             SelectCoordinate(coordindex, force);
         }
 
+        /// <summary>
+        /// Selects the specified coordinate of the current command.
+        /// </summary>
+        /// <param name="coordindex"></param>
+        /// <param name="force"></param>
         private void SelectCoordinate(int coordindex, bool force = false) {
             // always cancel any drawing operation
             PicDrawMode = PicDrawOp.None;
@@ -7759,11 +7803,6 @@ private void tmrTest_Timer() {
             if (force || SelectedCmd.SelectedCoordIndex != coordindex) {
                 // set selection to nothing
                 ClearSelectionBounds();
-                // if NOT in select mode (i.e. selected tool = none)
-                //if (SelectedTool != PicToolType.Edit) {
-                //    // change to select mode
-                //    SelectTool(PicToolType.Edit);
-                //}
                 // enable cursor highlighting if edit tool selected
                 tmrSelect.Enabled = (SelectedTool == PicToolType.Edit);
                 // get coordinate number
@@ -7782,6 +7821,11 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Selects the specified tool and configures the editor for the 
+        /// asscocated drawing operation.
+        /// </summary>
+        /// <param name="newtool"></param>
         private void SelectTool(PicToolType newtool) {
 
             if (SelectedTool == newtool) {
@@ -7895,18 +7939,23 @@ private void tmrTest_Timer() {
                 }
                 break;
             }
+            spTool.Text = "Tool: " + SelectedTool.ToString();
             EnableCoordList();
             UpdateToolbar();
             lstCommands.Focus();
         }
 
+        /// <summary>
+        /// Finishes a draw command using the passed cursor position,
+        /// updating the picture resource and redrawing the draw surfaces
+        /// if needed.
+        /// </summary>
+        /// <param name="PicPt"></param>
         private void EndDraw(Point PicPt) {
-            // finish drawing command
-            // for lines and shapes, add the correct commands to complete the draw;
             byte[] bytData = [];
 
             // if cursor hasn't moved, just exit
-            if (AnchorPT == PicPt) {
+            if (PicPt == AnchorPT) {
                 return;
             }
 
@@ -8127,6 +8176,13 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Finishes an edit coordinate operation, updating the picture
+        /// resources and draw surfaces as necessary.
+        /// </summary>
+        /// <param name="CmdType"></param>
+        /// <param name="CoordIndex"></param>
+        /// <param name="newPt"></param>
         private void EndEditCoord(DrawFunction CmdType, int CoordIndex, Point newPt) {
             int lngPos = SelectedCmd.CoordPos(SelectedCmd.SelectedCoordIndex);
             byte[] bytData = [];
@@ -8333,6 +8389,15 @@ private void tmrTest_Timer() {
             tmrSelect.Enabled = true;
         }
 
+        /// <summary>
+        /// Moves the specified commands to new position based on delta values,
+        /// updating the picture resource and draw surfaces as needed.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <param name="dX"></param>
+        /// <param name="dY"></param>
+        /// <param name="DontUndo"></param>
         private void MoveCommands(int index, int count, int dX, int dY, bool DontUndo = false) {
             if (dX == 0 && dY == 0) {
                 return;
@@ -8450,19 +8515,23 @@ private void tmrTest_Timer() {
             EditPicture.ForceRefresh();
         }
 
+        /// <summary>
+        /// Flips the selected commands horizontally, updating the picture resource
+        /// and draw surfaces. Note that FlipCmd is the index of the last command 
+        /// (largest index value) in the selection. 
+        /// </summary>
+        /// <param name="FlipCmd"></param>
+        /// <param name="Count"></param>
+        /// <param name="DontUndo"></param>
         private void FlipHorizontal(int FlipCmd, int Count, bool DontUndo = false) {
 
-            // flips the selected commands horizontally
-            // FlipCmd is the index of the last command(largest index value) in the selection
-
-            // select the cmds ???why isn't this already done????
-            // maybe if a single cmd that hasn't been dbl-clicked?
+            // update selected region bounds
             SetSelectionBounds(true);
 
             // get current pen status for first command
             PenStatus tmpStyle = EditPicture.GetPenStatus((int)lstCommands.Items[FlipCmd - Count + 1].Tag);
 
-            // do some geometry, you get:
+            // to calculate the new X values, do some geometry - we get:
             // pX' = 2*rX + rW - pX - 1
             //    pX = coord pt
             //    pX' = reflected point
@@ -8625,19 +8694,23 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Flips the selected commands vertically, updating the picture resource
+        /// and draw surfaces. Note that FlipCmd is the index of the last command 
+        /// (largest index value) in the selection. 
+        /// </summary>
+        /// <param name="FlipCmd"></param>
+        /// <param name="Count"></param>
+        /// <param name="DontUndo"></param>
         private void FlipVertical(int FlipCmd, int Count, bool DontUndo = false) {
 
-            // flips the selected commands verticaly
-            // FlipCmd is the index of the last command(largest index value) in the selection
-
-            // select the cmds ???why isn't this already done????
-            // maybe if a single cmd that hasn't been dbl-clicked?
+            // update selected region bounds
             SetSelectionBounds(true);
 
             // get current pen status for first command
             PenStatus tmpStyle = EditPicture.GetPenStatus((int)lstCommands.Items[FlipCmd - Count + 1].Tag);
 
-            // do some geometry, you get:
+            // to calculate the new X values, do some geometry - we get:
             // pY' = 2*rY + rH - pY - 1
             //    pY = coord pt
             //    pY' = reflected point
@@ -8766,6 +8839,12 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Joins the currently selected command with the previous command into
+        /// a single command. This method assumes the two commands have already
+        /// been checked to make sure they can be joined.
+        /// </summary>
+        /// <param name="DontUndo"></param>
         private void JoinCommands(bool DontUndo = false) {
             int index1 = SelectedCmd.Index - 1;
             int index2 = SelectedCmd.Index;
@@ -8880,6 +8959,11 @@ private void tmrTest_Timer() {
             SelectCommand(index1, 1, true);
         }
 
+        /// <summary>
+        /// Splits the currently selected command into two commands at the 
+        /// current coordinate position.
+        /// </summary>
+        /// <param name="DontUndo"></param>
         private void SplitCommand(bool DontUndo = false) {
             int lngPos, lngCount = 0;
             byte[] bytData;
@@ -8897,6 +8981,7 @@ private void tmrTest_Timer() {
             }
             // insert a new command in listbox
             lstCommands.Items.Insert(lngCmdIndex + 1, CmdType.CommandName()).Tag = lngPos;
+            CmdColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
 
             // add picture data based on command type
             switch (CmdType) {
@@ -8962,6 +9047,13 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Deletes the specified commands from the picture resource and updates
+        /// the draw surfaces.
+        /// </summary>
+        /// <param name="endcmdindex"></param>
+        /// <param name="cmdcount"></param>
+        /// <param name="DontUndo"></param>
         private void DeleteCommands(int endcmdindex, int cmdcount, bool DontUndo = false) {
             PenStatus startPen = EditPicture.GetPenStatus((int)lstCommands.Items[endcmdindex - cmdcount + 1].Tag);
             PenStatus endPen = EditPicture.GetPenStatus((int)lstCommands.Items[endcmdindex + 1].Tag - 1);
@@ -8998,6 +9090,13 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// When pen commands are added or changed, all plot commands following
+        /// the change must be adjusted to match the new plot style (by adding or
+        /// removing splatter data). This method makes the necessary adjustments.
+        /// </summary>
+        /// <param name="StartIndex"></param>
+        /// <param name="NewPlotStyle"></param>
         private void ReadjustPlotCoordinates(int StartIndex, PlotStyle NewPlotStyle) {
             // starting at command in list at StartIndex, step through all
             // commands until another setplotpen command or end is reached;
@@ -9038,13 +9137,17 @@ private void tmrTest_Timer() {
             } while (i <= StopIndex);
         }
 
+        /// <summary>
+        /// Adds new splatter data to the plot command at the specified index
+        /// location. If skipping undo, pattern values will be passed in
+        /// bytPatDat; if not skipping undo generate random pattern data.
+        /// </summary>
+        /// <param name="tmpIndex"></param>
+        /// <param name="bytPatDat"></param>
+        /// <param name="DontUndo"></param>
         private void AddPatternData(int tmpIndex, byte[] bytPatDat, bool DontUndo = false) {
             byte bytPattern;
             int count = 0;
-            // add pattern bytes to tmpIndex command coordinates
-            // if skipping undo, pattern values will be
-            // passed in bytPatDat; if not skipping undo
-            // generate random pattern data
 
             // set insertpos so first iteration will add
             // pattern data in front of first coord x Value
@@ -9088,9 +9191,12 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Removes splatter data from the speicfied plot command.
+        /// </summary>
+        /// <param name="tmpIndex"></param>
+        /// <param name="DontUndo"></param>
         private void DelPatternData(int tmpIndex, bool DontUndo = false) {
-            // remove pattern bytes
-
             byte bytPattern;
             int count = 0;
             List<byte> bytPatDat = new();
@@ -9127,6 +9233,11 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// This method scans the undo collection and adds or removes plot
+        /// splatter data as needed until all plot pattern adjustments are 
+        /// undone.
+        /// </summary>
         private void UndoPlotAdjust() {
             if (UndoCol.Count > 0) {
                 while (UndoCol.Peek().Action == AddPlotPattern || UndoCol.Peek().Action == DelPlotPattern) {
@@ -9146,12 +9257,24 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Updates the tag values in the command list to point to the correct
+        /// data position in the picture resource when commands are added or
+        /// removed.
+        /// </summary>
+        /// <param name="cmdindex"></param>
+        /// <param name="offset"></param>
         private void UpdatePosValues(int cmdindex, int offset) {
             for (int i = cmdindex; i < lstCommands.Items.Count; i++) {
                 lstCommands.Items[i].Tag = (int)lstCommands.Items[i].Tag + offset;
             }
         }
 
+        /// <summary>
+        /// Deletes the specified coordinate from the current command.
+        /// </summary>
+        /// <param name="delcoordindex"></param>
+        /// <param name="DontUndo"></param>
         public void DeleteCoordinate(int delcoordindex, bool DontUndo = false) {
 
             int DelCount;
@@ -9250,11 +9373,48 @@ private void tmrTest_Timer() {
             MarkAsChanged();
         }
 
+        /// <summary>
+        /// Inserts a new coordinate in the current command at the current
+        /// coordinate position.
+        /// </summary>
         private void InsertCoordinate() {
-            // inserts a new coord
-
             byte[] coorddata = [];
-            int newindex = SelectedCmd.SelectedCoordIndex + 1;
+            int newindex;
+            if (PicMode != PicEditorMode.Edit || SelectedTool == PicToolType.SelectArea) {
+                return;
+            }
+
+            if (SelectedCmd.SelectedCoordIndex == -1) {
+                if (SelectedTool == PicToolType.Edit && SelectedCmd.Type == PlotPen || SelectedCmd.Type == Fill) {
+                    SelectedCmd.SelectedCoordIndex = SelectedCmd.Coords.Count - 1;
+                }
+                else if ((SelectedTool == PicToolType.Plot && SelectedCmd.Type == PlotPen) ||
+                         (SelectedTool == PicToolType.Fill && SelectedCmd.Type == Fill)) {
+                    SelectedCmd.SelectedCoordIndex = SelectedCmd.Coords.Count - 1;
+                }
+                else {
+                    // no coord selected
+                    return;
+                }
+            }
+            else {
+                switch (SelectedCmd.Type) {
+                case AbsLine:
+                case Fill:
+                case PlotPen:
+                    // ok
+                    break;
+                default:
+                    // Corner lines or relative lines
+                    if (SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1) {
+                        // ok
+                        break;
+                    }
+                    // otherwise not ok
+                    return;
+                }
+            }
+            newindex = SelectedCmd.SelectedCoordIndex + 1;
 
             // add a new coordinate after this coordinate
             switch (SelectedCmd.Type) {
@@ -9328,7 +9488,14 @@ private void tmrTest_Timer() {
             SelectCoordinate(newindex, true);
         }
 
-        private bool CanJoin(int secondCmdIndex) {
+        /// <summary>
+        /// Returns true if the passed command is eligible to be joined
+        /// to the preceding command (i.e. both are the same command,
+        /// and ending coordinates match if the command is a line).
+        /// </summary>
+        /// <param name="secondCmdIndex"></param>
+        /// <returns></returns>
+        private bool CanJoinCommands(int secondCmdIndex) {
             if (SelectedCmd.IsPen || SelectedCmdCount != 2) {
                 return false;
             }
@@ -9384,11 +9551,14 @@ private void tmrTest_Timer() {
             return false;
         }
 
+        /// <summary>
+        /// Initiates a draw operation using the specified tool.
+        /// </summary>
+        /// <param name="CurrentTool"></param>
+        /// <param name="PicPt"></param>
         private void BeginDraw(PicToolType CurrentTool, Point PicPt) {
-            // initiates draw operation based on selected tool
             byte[] bytData = [];
 
-            // begin drawing using selected tool
             AnchorPT = PicPt;
             switch (CurrentTool) {
             case PicToolType.Line:
@@ -9411,9 +9581,15 @@ private void tmrTest_Timer() {
             PicDrawMode = PicDrawOp.Line;
         }
 
+        /// <summary>
+        /// Inserts a new command into the picture resource and updates
+        /// the command listbox.
+        /// </summary>
+        /// <param name="newdata"></param>
+        /// <param name="insertindex"></param>
+        /// <param name="DontUndo"></param>
+        /// <returns></returns>
         private int InsertCommand(byte[] newdata, int insertindex, bool DontUndo = false) {
-            // inserts NewData into EditPicture and associated cmd into cmd list at insertindex
-
             int insertpos = (int)lstCommands.Items[insertindex].Tag;
 
             // if not skipping undo
@@ -9432,18 +9608,24 @@ private void tmrTest_Timer() {
             EditPicture.InsertData(newdata, insertpos);
             // insert into cmd list
             lstCommands.Items.Insert(insertindex, ((DrawFunction)newdata[0]).CommandName()).Tag = insertpos;
+            CmdColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             // update position values in rest of tree
             UpdatePosValues(insertindex + 1, newdata.Length);
             return insertindex;
         }
 
+        /// <summary>
+        ///  Updates the picture resource with the new coordinate data and
+        ///  refreshes the command and coordinate listboxes.
+        /// </summary>
+        /// <param name="NewData"></param>
+        /// <param name="location"></param>
+        /// <param name="insertindex"></param>
+        /// <param name="DontUndo"></param>
+        /// <returns></returns>
         public int AddCoordToPic(byte[] NewData, Point location, int insertindex, bool DontUndo = false) {
-            // inserts coordinate data into EditPicture
-            int insertpos = 0;
-            //int insertindex;
+            int insertpos;
 
-            Debug.Assert(SelectedCmd.Coords.Count != 0);
-            //if (SelectedCmd.SelectedCoordIndex == -1) {
             if (insertindex == -1) {
                 // insert at end
                 insertpos = SelectedCmd.EndPos + 1;
@@ -9452,7 +9634,6 @@ private void tmrTest_Timer() {
             else {
                 // insert at current coord index
                 insertpos = SelectedCmd.CoordPos(insertindex);
-                //insertindex = SelectedCmd.SelectedCoordIndex;
             }
 
             // if not skipping undo
@@ -9470,30 +9651,38 @@ private void tmrTest_Timer() {
             // insert data
             EditPicture.InsertData(NewData, insertpos);
             SelectedCmd.Coords.Insert(insertindex, location);
-            // insert coord text
-            if (SelectedCmd.Type == PlotPen && SelectedCmd.Pen.PlotStyle == PlotStyle.Splatter) {
-                lstCoords.Items.Insert(insertindex, (EditPicture.Data[SelectedCmd.CoordPos(insertindex)] / 2).ToString() + " -- " + CoordText(location));
-            }
-            else {
-                lstCoords.Items.Insert(insertindex, CoordText(location));
+            // insert coord text (if selected cmd matches lstCommand.SelectedIndex)
+            if (lstCommands.SelectedIndices[^1] == SelectedCmd.Index) {
+                if (SelectedCmd.Type == PlotPen && SelectedCmd.Pen.PlotStyle == PlotStyle.Splatter) {
+                    lstCoords.Items.Insert(insertindex, (EditPicture.Data[SelectedCmd.CoordPos(insertindex)] / 2).ToString() + " -- " + CoordText(location));
+                }
+                else {
+                    lstCoords.Items.Insert(insertindex, CoordText(location));
+                }
+                CoordColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             }
             // update position values in rest of cmd list
             UpdatePosValues(SelectedCmd.Index + 1, NewData.Length);
             return insertindex + 1 < lstCoords.Items.Count ? insertindex + 1 : -1;
         }
 
+        /// <summary>
+        /// Begins a drag operation for the specified draw surface.
+        /// </summary>
+        /// <param name="pic"></param>
+        /// <param name="startpos"></param>
         private void StartDrag(PictureBox pic, Point startpos) {
             switch (pic.Name) {
             case "picVisual":
                 if (hsbVisual.Visible || vsbVisual.Visible) {
-                    AnchorPT = startpos;
+                    DragPT = startpos;
                     blnDragging = true;
                     SetCursors(PicCursor.DragSurface);
                 }
                 break;
             case "picPriority":
                 if (hsbPriority.Visible || vsbPriority.Visible) {
-                    AnchorPT = startpos;
+                    DragPT = startpos;
                     blnDragging = true;
                     SetCursors(PicCursor.DragSurface);
                 }
@@ -9501,37 +9690,530 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Gets a test view from the current game (if a game is loaded) or
+        /// from a file (if no game is loaded) for use as the test view for
+        /// this editor.
+        /// </summary>
+        private void GetTestView() {
+            // get a test view to use in test mode
+
+            // if game is loaded
+            if (EditGame != null) {
+                // use the get resource form
+                frmGetResourceNum frmNew = new frmGetResourceNum(GetRes.TestView, AGIResType.View);
+                frmNew.OldResNum = TestViewNum;
+                // if canceled, unload and exit
+                DialogResult result = frmNew.ShowDialog(this);
+                byte num = frmNew.NewResNum;
+                frmNew.Dispose();
+                if (result == DialogResult.OK) {
+                    // set testview id
+                    TestViewNum = num;
+                }
+                else {
+                    return;
+                }
+            }
+            else {
+                // get test view from file
+                MDIMain.OpenDlg.FileName = "";
+                MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
+                MDIMain.OpenDlg.Title = "Choose Test Vie";
+                MDIMain.OpenDlg.Filter = "WinAGI View Resource files (*.agv)|*.agv|All files (*.*)|*.*";
+                MDIMain.OpenDlg.DefaultExt = "";
+                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Views", sOPENFILTER, 1);
+                if (MDIMain.OpenDlg.ShowDialog() == DialogResult.Cancel) {
+                    // user canceled
+                    return;
+                }
+                else {
+                    string section = "";
+                    section = "Views";
+                    WinAGISettingsFile.WriteSetting(section, sOPENFILTER, MDIMain.OpenDlg.FilterIndex);
+                    DefaultResDir = JustPath(MDIMain.OpenDlg.FileName);
+                }
+                TestViewFile = MDIMain.OpenDlg.FileName;
+            }
+
+            // reload testview
+            if (LoadTestView(TestViewNum)) {
+                if (TestDir != ObjDirection.odStopped) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Loads the specified view, then clones it for use as the
+        /// test view for this editor.
+        /// </summary>
+        /// <returns></returns>
+        private bool LoadTestView(byte loadviewnum) {
+            if (TestView != null) {
+                // unload it and release it
+                TestView.Unload();
+                TestView = null;
+                //  disable test cel drawing
+                ShowTestCel = false;
+            }
+
+            TestView = new Engine.View();
+
+            try {
+                if (EditGame != null) {
+                    // copy from game
+                    bool loaded = EditGame.Views[loadviewnum].Loaded;
+                    if (!loaded) {
+                        EditGame.Views[loadviewnum].Load();
+                    }
+                    TestView.CloneFrom(EditGame.Views[loadviewnum]);
+                    if (!loaded) {
+                        EditGame.Views[loadviewnum].Unload();
+                    }
+                }
+                else {
+                    // load from file
+                    TestView.Import(TestViewFile);
+                }
+            }
+            catch (Exception ex) {
+                ErrMsgBox(ex, "Unable to load view resource due to error:", "Test view not set.", "Test View Error");
+                TestView = null;
+                return false;
+            }
+            // reset to defaults
+            CurTestLoop = 0;
+            TestSettings.TestLoop = -1;
+            CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+            CurTestCel = 0;
+            TestSettings.TestCel = -1;
+            TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+            TestDir = 0;
+            // set cel height/width/transcolor
+            CelWidth = TestView.Loops[CurTestLoop].Cels[CurTestCel].Width;
+            CelHeight = TestView.Loops[CurTestLoop].Cels[CurTestCel].Height;
+            CelTrans = TestView.Loops[CurTestLoop].Cels[CurTestCel].TransColor;
+            // disable drawing until user actually places the cel
+            ShowTestCel = false;
+
+            // if already in test mode (and changing the view being used)
+            if (PicMode == PicEditorMode.ViewTest) {
+                // redraw picture to clear old testview
+                DrawPicture();
+            }
+            return true;
+        }
+
+        /// <summary>
+        ///  Draws the current test view cel onto the specified draw surface.
+        /// </summary>
+        /// <param name="g"></param>
+        /// <param name="onVis"></param>
+        private void AddCelToPic(Graphics g, bool onVis) {
+            int CelPriority;
+            Cel TestCel = TestView.Loops[CurTestLoop].Cels[CurTestCel];
+
+            // set priority (if in auto, get priority from current band)
+            if (TestSettings.ObjPriority.Value < 16) {
+                CelPriority = TestSettings.ObjPriority.Value;
+            }
+            else {
+                CelPriority = GetPriBand((byte)TestCelPos.Y, EditPicture.PriBase);
+            }
+            // verify position
+            if (TestCelPos.Y - (CelHeight - 1) < 0) {
+                TestCelPos.Y = CelHeight - 1;
+            }
+            if (TestCelPos.X + CelWidth > 160) {
+                TestCelPos.X = 160 - CelWidth;
+            }
+
+            for (int i = 0; i < CelWidth; i++) {
+                for (int j = 0; j < CelHeight; j++) {
+                    byte cX = (byte)(TestCelPos.X + i);
+                    byte cY = (byte)(TestCelPos.Y - (CelHeight - 1) + j);
+                    // get cel pixel color
+                    int CelPixelColor = TestCelData[i, j];
+                    // if not a transparent cel
+                    if (CelPixelColor != (byte)CelTrans) {
+                        // get pixelpriority of the cel
+                        int PixelPriority = (int)EditPicture.PixelPriority(cX, cY);
+                        if (onVis) {
+                            // if priority of cel is equal to or higher than priority of pixel
+                            if (CelPriority >= PixelPriority) {
+                                // set this pixel on visual screen
+                                if (ScaleFactor == 1) {
+                                    Pen lc = new(EditPalette[CelPixelColor]);
+                                    g.DrawLine(lc, cX * 2, cY, cX * 2, cY);
+                                }
+                                else {
+                                    SolidBrush lb = new(EditPalette[CelPixelColor]);
+                                    g.FillRectangle(lb, cX * ScaleFactor * 2, cY * ScaleFactor, ScaleFactor * 2, ScaleFactor);
+                                }
+                            }
+                        }
+                        else {
+                            int PriPixelColor = (int)EditPicture.PriPixelColor(cX, cY);
+                            if (CelPriority >= PixelPriority && PriPixelColor >= 3) {
+                                // set this pixel on priority screen
+                                if (ScaleFactor == 1) {
+                                    Pen lc = new(EditPalette[CelPriority]);
+                                    g.DrawLine(lc, cX * 2, cY, cX * 2, cY);
+                                }
+                                else {
+                                    SolidBrush lb = new(EditPalette[CelPriority]);
+                                    g.FillRectangle(lb, cX * ScaleFactor * 2, cY * ScaleFactor, ScaleFactor * 2, ScaleFactor);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // if status bar is showing object info
+            if (StatusMode == PicStatusMode.Coord) {
+                // use test object position
+                spCurX.Text = "vX: " + TestCelPos.X;
+                spCurY.Text = "vY: " + TestCelPos.Y;
+                spPriBand.Text = "vBand: " + CelPriority;
+                Bitmap bitmap = new(12, 12);
+                using Graphics sg = Graphics.FromImage(bitmap);
+                sg.Clear(EditPalette[CelPriority]);
+                spPriBand.Image = bitmap;
+            }
+        }
+
+        /// <summary>
+        /// Update the test view object's direction based on the passed
+        /// keycode.
+        /// </summary>
+        /// <param name="KeyCode"></param>
+        /// <returns></returns>
+        public bool ChangeDir(Keys KeyCode) {
+
+            // if view is not on picture
+            if (!ShowTestCel) {
+                return false;
+            }
+
+            // takes a keycode as the input, and changes direction if appropriate
+            switch (KeyCode) {
+            case Keys.Up:
+            case Keys.NumPad8:
+                if (TestDir == ObjDirection.odUp) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    TestDir = ObjDirection.odUp;
+                    // set loop to 3, if there are four AND loop is not 3 AND in auto
+                    if (TestView.Loops.Count >= 4 && CurTestLoop != 3 && (TestSettings.TestLoop == -1)) {
+                        CurTestLoop = 3;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestCel = 0;
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    tmrTest.Enabled = true;
+                }
+                break;
+            case Keys.PageUp:
+            case Keys.NumPad9:
+                if (TestDir == ObjDirection.odUpRight) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    TestDir = ObjDirection.odUpRight;
+                    // set loop to 0, if not already 0 AND in auto
+                    if (CurTestLoop != 0 && (TestSettings.TestLoop == -1)) {
+                        CurTestLoop = 0;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestCel = 0;
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    tmrTest.Enabled = true;
+                }
+                break;
+            case Keys.Right:
+            case Keys.NumPad6:
+                if (TestDir == ObjDirection.odRight) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    TestDir = ObjDirection.odRight;
+                    // set loop to 0, if not already 0 AND in auto
+                    if (CurTestLoop != 0 && (TestSettings.TestLoop == -1)) {
+                        CurTestLoop = 0;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestCel = 0;
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    tmrTest.Enabled = true;
+                }
+                break;
+            case Keys.PageDown:
+            case Keys.NumPad3:
+                if (TestDir == ObjDirection.odDownRight) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    TestDir = ObjDirection.odDownRight;
+                    // set loop to 0, if not already 0 AND in auto
+                    if (CurTestLoop != 0 && (TestSettings.TestLoop == -1)) {
+                        CurTestLoop = 0;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestCel = 0;
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    tmrTest.Enabled = true;
+                }
+                break;
+            case Keys.Down:
+            case Keys.NumPad2:
+                if (TestDir == ObjDirection.odDown) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    TestDir = ObjDirection.odDown;
+                    // set loop to 2, if there are four AND loop is not 2 AND in auto
+                    if (CurTestLoop != 2 && TestView.Loops.Count >= 4 && (TestSettings.TestLoop == -1)) {
+                        CurTestLoop = 2;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestCel = 0;
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    tmrTest.Enabled = true;
+                }
+                break;
+            case Keys.End:
+            case Keys.NumPad1:
+                if (TestDir == ObjDirection.odDownLeft) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    TestDir = ObjDirection.odDownLeft;
+                    // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
+                    if ((CurTestLoop != 1) && (TestView.Loops.Count >= 2) && (TestSettings.TestLoop == -1)) {
+                        CurTestLoop = 1;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestCel = 0;
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    tmrTest.Enabled = true;
+                }
+                break;
+            case Keys.Left:
+            case Keys.NumPad4:
+                if (TestDir == ObjDirection.odLeft) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    TestDir = ObjDirection.odLeft;
+                    // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
+                    if ((CurTestLoop != 1) && (TestView.Loops.Count >= 2) && (TestSettings.TestLoop == -1)) {
+                        CurTestLoop = 1;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestCel = 0;
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    tmrTest.Enabled = true;
+                }
+                break;
+            case Keys.Home:
+            case Keys.NumPad7:
+                if (TestDir == ObjDirection.odUpLeft) {
+                    TestDir = ObjDirection.odStopped;
+                    tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                }
+                else {
+                    TestDir = ObjDirection.odUpLeft;
+                    // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
+                    if ((CurTestLoop != 1) && (TestView.Loops.Count >= 2) && (TestSettings.TestLoop == -1)) {
+                        CurTestLoop = 1;
+                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestCel = 0;
+                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                    }
+                    tmrTest.Enabled = true;
+                }
+                break;
+            case Keys.NumPad5:
+                // always stop
+                TestDir = 0;
+                tmrTest.Enabled = TestSettings.CycleAtRest.Value;
+                break;
+            default:
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Displays the Print/Display Preview options dialog.
+        /// </summary>
         private void GetTextOptions() {
-            /*
+            // show print options dialog
+            frmPicPrintPrev frm = new(PTInfo, InGame);
 
-      // show print options dialog
-      Load frmPicPrintPrev
-        frmPicPrintPrev.SetForm TextMode, MaxCol
-        frmPicPrintPrev.txtCol.Text = MsgLeft
-        frmPicPrintPrev.txtRow.Text = MsgTop
-        frmPicPrintPrev.txtMW.Text = MsgMaxW
-        if (PowerPack) {
-          frmPicPrintPrev.cmbBG.ListIndex = MsgBG
-        } else {
-          if (MsgBG = 0) {
-            frmPicPrintPrev.cmbBG.ListIndex = 0
-          } else {
-            frmPicPrintPrev.cmbBG.ListIndex = 1
-          }
-        }
-        frmPicPrintPrev.cmbFG.ListIndex = MsgFG
-        frmPicPrintPrev.cmbFG.Enabled = PowerPack || MsgBG = 0
-        frmPicPrintPrev.txtMessage.Text = MsgText
-        frmPicPrintPrev.Show vbModal
-
-      if (!frmPicPrintPrev.Canceled) {
-        // display the preview text
-        ShowTextPreview
-      }
-      Unload frmPicPrintPrev
-            */
+            if (frm.ShowDialog(this) == DialogResult.OK) {
+                PTInfo = new(frm.PTInfo);
+                // show the print/display text on screen if there
+                // are no errors in the display text options
+                ShowPrintTest = PTInfo.ErrLevel == 0;
+                if (ShowPrintTest) {
+                    picVisual.Refresh();
+                }
+            }
+            frm.Dispose();
         }
 
+        /// <summary>
+        /// Displays the current print/display message text on the 
+        /// visual screen to mimic AGI behavior.
+        /// </summary>
+        /// <param name="g"></param>
+        private void DrawPrintTest(Graphics g) {
+
+            g.InterpolationMode = InterpolationMode.NearestNeighbor;
+            g.PixelOffsetMode = PixelOffsetMode.Half;
+
+            switch (PTInfo.Mode) {
+            case PrintTestMode.Print:
+            case PrintTestMode.PrintAt:
+                // draw the white bounding box
+                Brush white = new SolidBrush(EditPalette[15]);
+                g.FillRectangle(white, (PTInfo.Left * PTInfo.CharWidth - 10) * ScaleFactor, (PTInfo.Top * 8 - 5) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 20) * ScaleFactor, (PTInfo.Height * 8 + 10) * ScaleFactor);
+
+                // draw the red border
+                Brush red = new SolidBrush(EditPalette[4]);
+                g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, (PTInfo.Top * 8 - 4) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 15) * ScaleFactor, ScaleFactor);
+                g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, ((PTInfo.Top + PTInfo.Height) * 8 + 3) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 15) * ScaleFactor, ScaleFactor);
+                g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, ((PTInfo.Top) * 8 - 4) * ScaleFactor, ScaleFactor * 2, (PTInfo.Height * 8 + 8) * ScaleFactor);
+                g.FillRectangle(red, ((PTInfo.Left + PTInfo.Width) * PTInfo.CharWidth + 6) * ScaleFactor, (PTInfo.Top * 8 - 4) * ScaleFactor, ScaleFactor * 2, (PTInfo.Height * 8 + 8) * ScaleFactor);
+
+                // draw text
+                int tmpRow = PTInfo.Top;
+                int tmpCol = PTInfo.Left;
+                for (int i = 0; i < PTInfo.Data.Length; i++) {
+                    byte charval = PTInfo.Data[i];
+                    if (charval == 10) {
+                        // move to next line
+                        tmpRow++;
+                        tmpCol = PTInfo.Left;
+                    }
+                    else {
+                        // draw the character on vis only
+                        Rectangle charsource = new((charval % 16) * 16, (int)(charval / 16) * 16, 16, 16);
+                        Rectangle chardest = new((int)(tmpCol * ScaleFactor * PTInfo.CharWidth), (int)(tmpRow * ScaleFactor * 8), (int)(PTInfo.CharWidth * ScaleFactor), (int)(8 * ScaleFactor));
+                        g.DrawImage(chargrid, chardest, charsource, GraphicsUnit.Pixel);
+                        tmpCol++;
+                    }
+                }
+                break;
+            case PrintTestMode.Display:
+                // display
+                Rectangle srcRect;
+                int destX = (int)(PTInfo.Left * ScaleFactor * PTInfo.CharWidth);
+                int destY = (int)((PTInfo.Top - PTInfo.PicOffset) * ScaleFactor * 8);
+
+                for (int Pos = 0; Pos < PTInfo.Data.Length; Pos++) {
+                    byte charval = PTInfo.Data[Pos];
+                    if (charval == 10) {
+                        destX = 0;
+                        destY += (int)(ScaleFactor * 8);
+                    }
+                    else {
+                        // draw the character on vis
+                        srcRect = new Rectangle((charval % 16) * 16, (charval / 16) * 16, 16, 16);
+                        // Create a new bitmap for the character glyph
+                        using (Bitmap glyph = chargrid.Clone(srcRect, chargrid.PixelFormat)) {
+                            // Recolor the glyph
+                            RecolorGlyph(glyph, EditPalette[PTInfo.FGColor], EditPalette[PTInfo.BGColor]);
+                            // Calculate the destination rectangle for the scaled glyph
+                            Rectangle destRect = new Rectangle(destX, destY, (int)(PTInfo.CharWidth * ScaleFactor), (int)(8 * ScaleFactor));
+                            // Draw the recolored and scaled glyph
+                            g.DrawImage(glyph, destRect);
+                        }
+                        // advance cursor
+                        destX += (int)(ScaleFactor * PTInfo.CharWidth);
+                        if (destX >= 320 * ScaleFactor) {
+                            destX = 0;
+                            destY += (int)(ScaleFactor * 8);
+                        }
+                    }
+                    // if on actual bottom row (when offset is at max, and picture
+                    // row is 20) don't advance (this mimics AGI behavior)
+                    if (destY > (24 - PTInfo.PicOffset) * 8 * ScaleFactor) {
+                        destY = (int)((24 - PTInfo.PicOffset) * ScaleFactor * 8);
+                    }
+                }
+                break;
+            }
+        }
+
+        /// <summary>
+        /// Converts a black and white character glyph into the desired 
+        /// background and foreground colors.
+        /// </summary>
+        /// <param name="glyph"></param>
+        /// <param name="fgColor"></param>
+        /// <param name="bgColor"></param>
+        private void RecolorGlyph(Bitmap glyph, Color fgColor, Color bgColor) {
+            for (int y = 0; y < glyph.Height; y++) {
+                for (int x = 0; x < glyph.Width; x++) {
+                    Color pixelColor = glyph.GetPixel(x, y);
+
+                    // Replace black pixels with the foreground color
+                    if (pixelColor.R == 0 && pixelColor.G == 0 && pixelColor.B == 0) {
+                        glyph.SetPixel(x, y, fgColor);
+                    }
+                    // Replace white pixels with the background color
+                    else if (pixelColor.R == 255 && pixelColor.G == 255 && pixelColor.B == 255) {
+                        glyph.SetPixel(x, y, bgColor);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// If using the AGI Power Pack, this method will toggle the text
+        /// screen size between 40 and 80 columns, and redraw the text 
+        /// marks if they are currently visible.
+        /// </summary>
+        private void ToggleTextScreenSize() {
+            // toggle width (if powerpack is enabled)
+            // always confirm
+            if (MessageBox.Show(MDIMain,
+                "Change screen size to " + (PTInfo.MaxCol == 39, "80", "40") + " columns?",
+                "Toggle Screen Size",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question) == DialogResult.Yes) {
+                if (PTInfo.MaxCol == 39) {
+                    PTInfo.MaxCol = 79;
+                    PTInfo.CharWidth = 4;
+                }
+                else {
+                    PTInfo.MaxCol = 39;
+                    PTInfo.CharWidth = 8;
+                }
+                if (ShowTextMarks) {
+                    // redraw
+                    picVisual.Refresh();
+                    picPriority.Refresh();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds an undo object to the undo collection.
+        /// </summary>
+        /// <param name="NextUndo"></param>
         private void AddUndo(PictureUndo NextUndo) {
             if (!IsChanged) {
                 MarkAsChanged();
@@ -9541,13 +10223,20 @@ private void tmrTest_Timer() {
             tsbUndo.Enabled = true;
         }
 
+        /// <summary>
+        /// When closing the picture editor, this method gives the user
+        /// an opportunity to save the resource before closing, or to 
+        /// cancel the close operation.
+        /// </summary>
+        /// <returns></returns>
         private bool AskClose() {
             if (EditPicture.ErrLevel < 0) {
-                // if exiting due to error on form load
+                // if an error occurs on form load, always close
                 return true;
             }
             if (PictureNumber == -1) {
-                // force shutdown
+                // if forcing close (indicated by setting number to -1,
+                // force close
                 return true;
             }
             if (IsChanged) {
@@ -9577,9 +10266,15 @@ private void tmrTest_Timer() {
             return true;
         }
 
+        /// <summary>
+        /// When changes are made to the picture resource, this method can
+        /// be called to update the form caption and save-game toolbar
+        /// button to indicate as such.
+        /// </summary>
         void MarkAsChanged() {
-            // ignore when loading (not visible yet)
             if (!Visible) {
+                // ignore if the form is still loading (it will not be
+                // visible yet)
                 return;
             }
             if (!IsChanged) {
@@ -9590,39 +10285,15 @@ private void tmrTest_Timer() {
             }
         }
 
+        /// <summary>
+        /// Resets the form caption and save-game toolbar button to indicate
+        /// the resource being edited has been saved to its normal location.
+        /// </summary>
         private void MarkAsSaved() {
             IsChanged = false;
             Text = sPICED + ResourceName(EditPicture, InGame, true);
-            mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
         #endregion
-    }
-
-    [Serializable]
-    public class PictureClipboardData {
-        private byte[] mData = [];
-        public byte[] Data {
-            get {
-                return mData;
-            }
-            set {
-                mData = value;
-            }
-        }
-        public int CmdCount { get; internal set; }
-        public bool IncludeVisPen { get; internal set; }
-        public bool IncludePriPen { get; internal set; }
-        public bool IncludePlotPen { get; internal set; }
-        public bool HasPlotCmds { get; internal set; }
-        public bool HasPenChange { get; internal set; }
-        public PenStatus StartPen { get; internal set; }
-        public PenStatus EndPen { get; internal set; }
-        public PenStatus DrawCmdStartPen { get; internal set; }
-        public PenStatus DrawCmdEndPen { get; internal set; }
-        public int DrawCmdStart { get; internal set; }
-        public int DrawCmdCount { get; internal set; }
-        public int DrawByteStart { get; internal set; }
-        public int DrawByteCount { get; internal set; }
     }
 }

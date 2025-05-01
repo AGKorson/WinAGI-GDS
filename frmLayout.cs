@@ -916,16 +916,8 @@ namespace WinAGI.Editor {
       End Sub
 
       Public Sub MenuClickHelp()
-
-      On Error Resume Next
-
         'help with layout
-        HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Layout_Editor.htm"
-      Exit Sub
-
-      ErrHandler:
-        '*'Debug.Assert False
-        Resume Next
+        Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\Layout_Editor.htm");
       End Sub
 
       Private Function OverExit(ByVal X As Single, ByVal Y As Single) As Boolean

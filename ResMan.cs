@@ -501,6 +501,7 @@ namespace WinAGI.Editor {
             public SettingAskOption LEDelPicToo = new(nameof(LEDelPicToo), AskOption.Ask, "Warnings");
             //// WarnPlotPaste
             //public SettingBool WarnPlotPaste = new(nameof(WarnPlotPaste), true, "Warnings");
+            
             // ************************************************
             // GENERAL SETTINGS:
             // ************************************************
@@ -630,24 +631,6 @@ namespace WinAGI.Editor {
             public SettingInt CursorMode = new("CursorMode", 0, sPICTURES);
 
             // ************************************************
-            // PICTURETEST SETTINGS
-            // ************************************************
-            // PicTest.ObjSpeed: 
-            public SettingInt PTObjSpeed = new("Speed", 1, sPICTEST);
-            // PicTest.ObjPriority: 16 means auto; 4-15 correspond to priority bands
-            public SettingInt PTObjPriority = new("Priority", 16, sPICTEST);
-            // PicTest.ObjRestriction: 0 = no restriction, 1 = restrict to water, 2 = restrict to land
-            public SettingInt PTObjRestriction = new("Restriction", 0, sPICTEST);
-            // PicTest.Horizon:
-            public SettingInt PTHorizon = new("Horizon", 36, sPICTEST);
-            // PicTest.IgnoreHorizon
-            public SettingBool PTIgnoreHorizon = new("IgnoreHorizon", false, sPICTEST);
-            // PicTest.IgnoreBlocks
-            public SettingBool PTIgnoreBlocks = new("IgnoreBlocks", false, sPICTEST);
-            // PicTest.CycleAtRest
-            public SettingBool PTCycleAtRest = new("CycleAtRest", false, sPICTEST);
-
-            // ************************************************
             // SOUND SETTINGS
             // ************************************************
             // ShowKybd
@@ -737,7 +720,6 @@ namespace WinAGI.Editor {
             // ExitOtherColor: 
             public SettingColor ExitOtherColor = new SettingColor(nameof(ExitOtherColor), Color.FromArgb(0xFF, 0x55, 0xFF), sLAYOUT);
 
-
             // ************************************************
             // GLOBALS EDITOR SETTINGS
             // ************************************************
@@ -748,13 +730,11 @@ namespace WinAGI.Editor {
             // GEValFrac: 
             public SettingDouble GEValFrac = new(nameof(GEValFrac), 0, "Globals");
 
-
             // ************************************************
             // MENU EDITOR SETTINGS (store in GENERAL)
             // ************************************************
             // AutoAlignHotKey: 
             public SettingBool AutoAlignHotKey = new(nameof(AutoAlignHotKey), true, "MenuEditor");
-
 
             // ************************************************
             // PLATFORM SETTINGS
@@ -858,14 +838,6 @@ namespace WinAGI.Editor {
                 clonesettings.PicScalePreview = new(PicScalePreview);
                 clonesettings.PicScaleEdit = new(PicScaleEdit);
                 clonesettings.CursorMode = new(CursorMode);
-                // PICTEST 
-                clonesettings.PTObjSpeed = new(PTObjSpeed);
-                clonesettings.PTObjPriority = new(PTObjPriority);
-                clonesettings.PTObjRestriction = new(PTObjRestriction);
-                clonesettings.PTHorizon = new(PTHorizon);
-                clonesettings.PTIgnoreHorizon = new(PTIgnoreHorizon);
-                clonesettings.PTIgnoreBlocks = new(PTIgnoreBlocks);
-                clonesettings.PTCycleAtRest = new(PTCycleAtRest);
                 // SOUNDS
                 clonesettings.ShowKeyboard = new(ShowKeyboard);
                 clonesettings.ShowNotes = new(ShowNotes);
@@ -918,6 +890,46 @@ namespace WinAGI.Editor {
                 clonesettings.PlatformFile = new(PlatformFile);
                 clonesettings.DOSExec = new(DOSExec);
                 clonesettings.PlatformOpts = new(PlatformOpts);
+                return clonesettings;
+            }
+        }
+
+        public struct PicTestInfo {
+            // ************************************************
+            // PICTURETEST SETTINGS
+            // ************************************************
+            // PicTest.ObjSpeed: 
+            public SettingInt ObjSpeed = new("Speed", 1, sPICTEST);
+            // PicTest.ObjPriority: 16 means auto; 4-15 correspond to priority bands
+            public SettingInt ObjPriority = new("Priority", 16, sPICTEST);
+            // PicTest.ObjRestriction: 0 = no restriction, 1 = restrict to water, 2 = restrict to land
+            public SettingInt ObjRestriction = new("Restriction", 0, sPICTEST);
+            // PicTest.Horizon:
+            public SettingInt Horizon = new("Horizon", 36, sPICTEST);
+            // PicTest.IgnoreHorizon
+            public SettingBool IgnoreHorizon = new("IgnoreHorizon", false, sPICTEST);
+            // PicTest.IgnoreBlocks
+            public SettingBool IgnoreBlocks = new("IgnoreBlocks", false, sPICTEST);
+            // PicTest.CycleAtRest
+            public SettingBool CycleAtRest = new("CycleAtRest", false, sPICTEST);
+            public int TestLoop;
+            public int TestCel;
+
+            public PicTestInfo() {
+            }
+
+            internal PicTestInfo Clone() {
+                PicTestInfo clonesettings = new();
+                // PICTEST 
+                clonesettings.ObjSpeed = new(ObjSpeed);
+                clonesettings.ObjPriority = new(ObjPriority);
+                clonesettings.ObjRestriction = new(ObjRestriction);
+                clonesettings.Horizon = new(Horizon);
+                clonesettings.IgnoreHorizon = new(IgnoreHorizon);
+                clonesettings.IgnoreBlocks = new(IgnoreBlocks);
+                clonesettings.CycleAtRest = new(CycleAtRest);
+                clonesettings.TestLoop = TestLoop;
+                clonesettings.TestCel = TestCel;
                 return clonesettings;
             }
         }
@@ -999,6 +1011,7 @@ namespace WinAGI.Editor {
         public static CompileGameResults CompGameResults;
         public static AGIResType CurResType;
         public static agiSettings WinAGISettings = new();
+        public static PicTestInfo PicEditTestSettings = new();
         public static SettingsFile WinAGISettingsFile;
         public static frmPreview PreviewWin;
         public static frmProgress ProgressWin;
@@ -1037,7 +1050,6 @@ namespace WinAGI.Editor {
         public static bool WEInUse = false;
         public static bool DragWord = false;
         public static int WrdCount;
-        public static WordsUndo WordsClipboard = new();
         public static frmGlobals GlobalsEditor;
         public static bool GEInUse;
         public static int TextCount;
@@ -1066,8 +1078,9 @@ namespace WinAGI.Editor {
         public static Cel ClipViewCel;
         public static ViewEditMode ViewCBMode;
         public const string PICTURE_CB_FMT = "WinAGIPictureData";
-        //public static PictureBox ViewClipboard;
-        //public static WordsUndo WordsClipboard;
+        public const string SOUND_CB_FMT = "WinAGISoundData";
+        public const string VIEW_CB_FMT = "WinAGIViewData";
+        public const string WORDSTOK_CB_FMT = "WinAGIWordData";
         public static bool DroppingWord;
         public static bool DroppingObj;
         public static bool DroppingGlobal;
@@ -6157,7 +6170,7 @@ namespace WinAGI.Editor {
                 strLogic = strLogic.Replace("%desc", NewDescription);
 
                 //horizon
-                strLogic = strLogic.Replace("%h", WinAGISettings.PTHorizon.Value.ToString());
+                strLogic = strLogic.Replace("%h", PicEditTestSettings.Horizon.Value.ToString());
 
                 //if using reserved names, insert them
                 if (EditGame.IncludeReserved) {

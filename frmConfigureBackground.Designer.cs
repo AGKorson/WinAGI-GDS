@@ -38,7 +38,7 @@
             label1 = new System.Windows.Forms.Label();
             chkVisual = new System.Windows.Forms.CheckBox();
             chkPriority = new System.Windows.Forms.CheckBox();
-            txtTransparency = new System.Windows.Forms.TextBox();
+            txtTransparency = new NumericTextBox();
             cmdLoad = new System.Windows.Forms.Button();
             chkDefaultVis = new System.Windows.Forms.CheckBox();
             udScale = new System.Windows.Forms.DomainUpDown();
@@ -215,14 +215,15 @@
             // txtTransparency
             // 
             txtTransparency.Location = new System.Drawing.Point(545, 270);
+            txtTransparency.MaxValue = 100;
+            txtTransparency.MinValue = 0;
             txtTransparency.Name = "txtTransparency";
             txtTransparency.Size = new System.Drawing.Size(45, 23);
             txtTransparency.TabIndex = 9;
             txtTransparency.Text = "50";
             txtTransparency.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            txtTransparency.Value = 50;
             txtTransparency.Enter += txtTransparency_Enter;
-            txtTransparency.KeyDown += txtTransparency_KeyDown;
-            txtTransparency.KeyPress += txtTransparency_KeyPress;
             txtTransparency.Leave += txtTransparency_Leave;
             txtTransparency.Validating += txtTransparency_Validating;
             // 
@@ -315,7 +316,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox chkVisual;
         private System.Windows.Forms.CheckBox chkPriority;
-        private System.Windows.Forms.TextBox txtTransparency;
+        private WinAGI.Editor.NumericTextBox txtTransparency;
         private System.Windows.Forms.Button cmdLoad;
         private TransparentPictureBox picExample;
         private System.Windows.Forms.CheckBox chkDefaultVis;

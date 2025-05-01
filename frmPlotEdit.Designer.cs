@@ -29,8 +29,8 @@
             picPlot = new System.Windows.Forms.PictureBox();
             lblX = new System.Windows.Forms.Label();
             lblY = new System.Windows.Forms.Label();
-            txtX = new System.Windows.Forms.TextBox();
-            txtY = new System.Windows.Forms.TextBox();
+            txtX = new NumericTextBox();
+            txtY = new NumericTextBox();
             udPattern = new System.Windows.Forms.NumericUpDown();
             lblPattern = new System.Windows.Forms.Label();
             timer1 = new System.Windows.Forms.Timer(components);
@@ -92,30 +92,32 @@
             // 
             txtX.Font = new System.Drawing.Font("Segoe UI", 14F);
             txtX.Location = new System.Drawing.Point(26, 19);
+            txtX.MaxValue = 159;
+            txtX.MinValue = 0;
             txtX.Name = "txtX";
             txtX.Size = new System.Drawing.Size(55, 32);
             txtX.TabIndex = 1;
             txtX.Text = "159";
             txtX.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            txtX.TextChanged += txtX_TextChanged;
-            txtX.Enter += txtX_Enter;
-            txtX.KeyPress += txtX_KeyPress;
-            txtX.Leave += txtX_Leave;
+            txtX.Value = 159;
+            txtX.Enter += Control_Enter;
+            txtX.Leave += Control_Leave;
             txtX.Validating += txtX_Validating;
             // 
             // txtY
             // 
             txtY.Font = new System.Drawing.Font("Segoe UI", 14F);
             txtY.Location = new System.Drawing.Point(119, 19);
+            txtY.MaxValue = 167;
+            txtY.MinValue = 0;
             txtY.Name = "txtY";
             txtY.Size = new System.Drawing.Size(55, 32);
             txtY.TabIndex = 3;
             txtY.Text = "159";
             txtY.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            txtY.TextChanged += txtY_TextChanged;
-            txtY.Enter += txtY_Enter;
-            txtY.KeyPress += txtY_KeyPress;
-            txtY.Leave += txtY_Leave;
+            txtY.Value = 159;
+            txtY.Enter += Control_Enter;
+            txtY.Leave += Control_Leave;
             txtY.Validating += txtY_Validating;
             // 
             // udPattern
@@ -129,8 +131,8 @@
             udPattern.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             udPattern.Value = new decimal(new int[] { 119, 0, 0, 0 });
             udPattern.ValueChanged += udPattern_ValueChanged;
-            udPattern.Enter += udPattern_Enter;
-            udPattern.Leave += udPattern_Leave;
+            udPattern.Enter += Control_Enter;
+            udPattern.Leave += Control_Leave;
             // 
             // lblPattern
             // 
@@ -196,8 +198,8 @@
         private System.Windows.Forms.PictureBox picPlot;
         private System.Windows.Forms.Label lblX;
         private System.Windows.Forms.Label lblY;
-        private System.Windows.Forms.TextBox txtX;
-        private System.Windows.Forms.TextBox txtY;
+        private WinAGI.Editor.NumericTextBox txtX;
+        private WinAGI.Editor.NumericTextBox txtY;
         private System.Windows.Forms.NumericUpDown udPattern;
         private System.Windows.Forms.Label lblPattern;
         private System.Windows.Forms.Timer timer1;

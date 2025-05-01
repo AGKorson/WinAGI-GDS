@@ -281,6 +281,13 @@ namespace WinAGI.Editor {
             }
         }
 
+        /// <summary>
+        /// Dynamic function to reset the resource menu.
+        /// </summary>
+        public void ResetResourceMenu() {
+            // currently, nothing to rest
+        }
+
         private void mnuRExportAll_Click(object sender, EventArgs e) {
             ExportAll(false);
         }

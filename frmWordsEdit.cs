@@ -137,11 +137,24 @@ namespace WinAGI.Editor {
             }
         }
 
+        /// <summary>
+        /// Dynamic function to reset the resource menu.
+        /// </summary>
+        public void ResetResourceMenu() {
+            mnuRSave.Enabled = true;
+            mnuRExport.Enabled = true;
+            mnuRProperties.Enabled = true;
+            mnuRMerge.Enabled = true;
+            mnuRGroupCheck.Enabled = true;
+        }
+
         public void mnuRSave_Click(object sender, EventArgs e) {
             if (EditingGroup || EditingWord) {
                 return;
             }
-            SaveWords();
+            if (IsChanged) {
+                SaveWords();
+            }
         }
 
         public void mnuRExport_Click(object sender, EventArgs e) {
@@ -271,15 +284,16 @@ namespace WinAGI.Editor {
             if (EditingGroup || EditingWord) {
                 return;
             }
+            if (!InGame) {
+                return;
+            }
+
             bool blnDontAsk = false;
             AskOption RepeatAnswer = AskOption.Ask;
             DialogResult rtn = DialogResult.No;
             bool[] GroupUsed = [];
             int UnusedCount = 0;
 
-            if (!InGame) {
-                return;
-            }
             foreach (frmLogicEdit frm in LogicEditors) {
                 if (frm.FormMode == LogicFormMode.Logic) {
                     if (frm.IsChanged) {
@@ -421,7 +435,7 @@ namespace WinAGI.Editor {
 
         private void SetEditMenu() {
             mnuEUndo.Visible = true;
-            this.mnuESep1.Visible = true;
+            mnuESep1.Visible = true;
             if (UndoCol.Count > 0) {
                 mnuEUndo.Enabled = true;
                 mnuEUndo.Text = "Undo " + LoadResString(WORDSUNDOTEXT + (int)UndoCol.Peek().Action);
@@ -435,10 +449,10 @@ namespace WinAGI.Editor {
             mnuECut.Visible = true;
             if (lstGroups.Focused) {
                 mnuECut.Text = "Cut Group";
-                mnuECut.Enabled = (EditGroupNumber != -1 &&
+                mnuECut.Enabled = EditGroupNumber != -1 &&
                     EditGroupNumber != 0 &&
                     EditGroupNumber != 1 &&
-                    EditGroupNumber != 9999);
+                    EditGroupNumber != 9999;
                 mnuECopy.Text = "Copy Group";
                 mnuECopy.Enabled = (EditGroupNumber != -1);
                 mnuEDelete.Enabled = mnuECut.Enabled;
@@ -454,17 +468,32 @@ namespace WinAGI.Editor {
                     }
                 }
                 mnuECopy.Text = "Copy Word";
-                mnuECopy.Enabled = (EditWordIndex != 0);
+                mnuECopy.Enabled = EditWordIndex != -1;
                 mnuEDelete.Text = "Delete Word";
-                mnuEDelete.Enabled = (EditWordIndex != 0);
+                mnuEDelete.Enabled = mnuECut.Enabled;
             }
             // paste if something on clipboard
-            mnuEPaste.Enabled = Clipboard.ContainsText(TextDataFormat.Text);
-            if (lstGroups.Focused) {
-                mnuEPaste.Text = "Paste As Group";
+            if (EditingGroup || EditingWord) {
+                mnuEPaste.Enabled = false;
+                mnuEPaste.Text = "Paste";
+            }
+            else if (lstGroups.Focused) {
+                mnuEPaste.Enabled = Clipboard.ContainsData(WORDSTOK_CB_FMT);
+                mnuEPaste.Text = "Paste Group";
             }
             else {
-                mnuEPaste.Text = "Paste As Word";
+                if (Clipboard.ContainsData(WORDSTOK_CB_FMT)) {
+                    mnuEPaste.Enabled =  true;
+                    mnuEPaste.Text = "Paste Word";
+                }
+                else if (Clipboard.ContainsText()) {
+                    mnuEPaste.Enabled =  true;
+                    mnuEPaste.Text = "Paste As Word";
+                }
+                else {
+                    mnuEPaste.Enabled =  false;
+                    mnuEPaste.Text = "Paste Word";
+                }
                 // EXCEPT no pasting to group 1 or 9999 if already one word
                 if (EditGroupNumber == 1 || EditGroupNumber == 9999) {
                     if (EditWordList.GroupByNumber(EditGroupNumber).WordCount >= 1) {
@@ -678,17 +707,38 @@ namespace WinAGI.Editor {
         }
 
         private void mnuECut_Click(object sender, EventArgs e) {
-            if (EditingGroup || EditingWord ||
-                EditGroupNumber == -1 || EditWordIndex == -1) {
-                return;
+            if (CanCut()) {
+                mnuECopy_Click(sender, e);
+                mnuEDelete_Click(sender, e);
+                if (UndoCol.Peek().Action == WordsUndo.ActionType.DelGroup) {
+                    UndoCol.Peek().Action = WordsUndo.ActionType.CutGroup;
+                }
+                else if (UndoCol.Peek().Action == WordsUndo.ActionType.DelWord) {
+                    UndoCol.Peek().Action = WordsUndo.ActionType.CutWord;
+                }
             }
-            mnuECopy_Click(sender, e);
-            mnuEDelete_Click(sender, e);
-            if (UndoCol.Peek().Action == WordsUndo.ActionType.DelGroup) {
-                UndoCol.Peek().Action = WordsUndo.ActionType.CutGroup;
+        }
+
+        private bool CanCut() {
+            // cut(delete) is enabled if mode is group or word, and a group or word is selected
+            //   NOT grp 0, 1, 1999
+            if (EditingGroup || EditingWord) {
+                return false;
             }
-            else if (UndoCol.Peek().Action == WordsUndo.ActionType.DelWord) {
-                UndoCol.Peek().Action = WordsUndo.ActionType.CutWord;
+            if (lstGroups.Focused) {
+                return EditGroupNumber != -1 &&
+                    EditGroupNumber != 0 &&
+                    EditGroupNumber != 1 &&
+                    EditGroupNumber != 9999;
+            }
+            else {
+                // for group 0, 1, 9999 disable if no words in group
+                if (EditGroupNumber == 0 || EditGroupNumber == 1 || EditGroupNumber == 9999) {
+                    if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0) {
+                        return false;
+                    }
+                }
+                return true;
             }
         }
 
@@ -698,59 +748,98 @@ namespace WinAGI.Editor {
                 return;
             }
             if (lstGroups.Focused) {
-                string copytext = EditGroupNumber.ToString();
-                Clipboard.SetText(copytext);
-                WordsClipboard.Action = WordsUndo.ActionType.DelGroup;
-                WordsClipboard.GroupNo = EditGroupNumber;
-                WordsClipboard.Group = new string[EditWordList.GroupByNumber(EditGroupNumber).WordCount];
+                // add a word group as custom data
+                WordClipboardData groupdata = new();
+                groupdata.IsGroup = true;
+                groupdata.GroupNumber = EditGroupNumber;
+                groupdata.Words = new string[EditWordList.GroupByNumber(EditGroupNumber).WordCount];
                 if (EditWordList.GroupByNumber(EditGroupNumber).WordCount > 0) {
                     int i;
                     for (i = 0; i < EditWordList.GroupByNumber(EditGroupNumber).WordCount; i++) {
-                        copytext += "|" + EditWordList.GroupByNumber(EditGroupNumber).Words[i];
-                        WordsClipboard.Group[i] = EditWordList.GroupByNumber(EditGroupNumber).Words[i];
+                        groupdata.Words[i] = EditWordList.GroupByNumber(EditGroupNumber).Words[i];
                     }
                 }
+                // add custom data to clipboard
+                DataObject dataObject = new();
+
+                // add group number as text
+                dataObject.SetData(DataFormats.Text, EditGroupNumber.ToString());
+
+                // add group and words as a csv list
+                string grpdata = EditGroupNumber.ToString();
+                // add line returns for each word
+                for (int i = 0; i < groupdata.Words.Length; i++) {
+                    grpdata += "\r\n" + groupdata.Words[i];
+                }
+                // Convert the CSV text to a UTF-8 byte stream before adding it to the container object.
+                var bytes = System.Text.Encoding.UTF8.GetBytes(grpdata);
+                var stream = new System.IO.MemoryStream(bytes);
+                dataObject.SetData(DataFormats.CommaSeparatedValue, stream);
+
+                // add group data as custom format
+                dataObject.SetData(WORDSTOK_CB_FMT, groupdata);
+
+                // now add the combined clipboard data object
+                Clipboard.SetDataObject(dataObject, true);
             }
             else if (lstWords.Focused) {
-                Clipboard.SetText('"' + EditWordText + '"');
-                WordsClipboard.Action = WordsUndo.ActionType.DelWord;
-                WordsClipboard.Word = EditWordText;
+                // add word as  custom data to clipboard
+                DataObject dataObject = new();
+                WordClipboardData worddata = new();
+                worddata.IsGroup = false;
+                worddata.WordText = EditWordText;
+                dataObject.SetData(DataFormats.Text, '"' + EditWordText + '"');
+                dataObject.SetData(WORDSTOK_CB_FMT, worddata);
+                Clipboard.SetDataObject(dataObject, true);
             }
         }
 
         private void mnuEPaste_Click(object sender, EventArgs e) {
             string strMsg = "";
-
-            if (lstGroups.Focused) {
-                // only allow pasting if the custom clipboard is set OR if a valid word is on the clipboard
-                if (WordsClipboard.Action == WordsUndo.ActionType.DelGroup) {
-                    // clipboard contains a single group
-                    WordsUndo NextUndo = new();
-                    NextUndo.Action = WordsUndo.ActionType.PasteGroup;
-                    NextUndo.Group = [];
-                    for (int i = 0; i < WordsClipboard.Group.Length; i++) {
-                        if (EditWordList.WordExists(WordsClipboard.Group[i])) {
-                            // word is in use
-                            strMsg += "\r\t" + WordsClipboard.Group[i] + " (in group " + EditWordList[WordsClipboard.Group[i]].Group + ")";
-                        }
-                        else {
-                            // add it to undo object
-                            Array.Resize(ref NextUndo.Group, NextUndo.Group.Length + 1);
-                            NextUndo.Group[^1] = WordsClipboard.Group[i];
-                        }
-                    }
-                    if (NextUndo.Group.Length == 0) {
-                        // nothing to add
+            if (CanPaste()) {
+                if (lstGroups.Focused) {
+                    WordClipboardData groupdata = Clipboard.GetData(WORDSTOK_CB_FMT) as WordClipboardData;
+                    if (groupdata == null) {
+                        // no custom clipboard data
                         MessageBox.Show(MDIMain,
-                            "No words on the clipboard could be pasted; all of them are already in this word list.",
+                            "The clipboard doesn't contain a valid group.",
                             "Nothing to Paste",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
-                        return;
                     }
-                    if (lstGroups.Focused) {
-                        // add a new group (without undo)
-                        int lngNewGrpNo = NextGrpNum();
+                    else {
+                        // clipboard contains a single group
+                        WordsUndo NextUndo = new();
+                        NextUndo.Action = WordsUndo.ActionType.PasteGroup;
+                        NextUndo.Group = [];
+                        for (int i = 0; i < groupdata.Words.Length; i++) {
+                            if (EditWordList.WordExists(groupdata.Words[i])) {
+                                // word is in use
+                                strMsg += "\r\t" + groupdata.Words[i] + " (in group " + EditWordList[groupdata.Words[i]].Group + ")";
+                            }
+                            else {
+                                // add it to undo object
+                                Array.Resize(ref NextUndo.Group, NextUndo.Group.Length + 1);
+                                NextUndo.Group[^1] = groupdata.Words[i];
+                            }
+                        }
+                        if (NextUndo.Group.Length == 0) {
+                            // nothing to add
+                            MessageBox.Show(MDIMain,
+                                "No words on the clipboard could be pasted; all of them are already in this word list.",
+                                "Nothing to Paste",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Information);
+                            return;
+                        }
+                        int lngNewGrpNo;
+                        if (EditWordList.GroupExists(groupdata.GroupNumber)) {
+                            lngNewGrpNo = NextGrpNum();
+                        }
+                        else {
+                            lngNewGrpNo = groupdata.GroupNumber;
+                        }
+                        // add group without undo
                         AddGroup(lngNewGrpNo, true);
                         for (int i = 0; i < NextUndo.Group.Length; i++) {
                             // add word (without undo)
@@ -767,99 +856,85 @@ namespace WinAGI.Editor {
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Information);
                         }
-                    }
-                    else {
-                        // add to selected group?
-                        Debug.Assert(false);
+                        // select the pasted group
+                        UpdateSelection(lngNewGrpNo, 0);
                     }
                     return;
                 }
-                else {
-                    MessageBox.Show(MDIMain,
-                        "There are no valid words on the clipboard to paste as a new group.",
-                        "Nothing to Paste",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-                }
-                return;
-            }
-            if (lstWords.Focused) {
-                // check regular clipboard for a word
-                string strWord = "";
-                if (Clipboard.ContainsText(TextDataFormat.Text)) {
-                    strWord = Clipboard.GetText(TextDataFormat.Text).ToLower();
-                    if (strWord.Contains('\n') || strWord.Contains("\r")) {
-                        strWord = "";
+                if (lstWords.Focused) {
+                    string strWord = "";
+                    // check clipboard for custom data
+                    WordClipboardData worddata = Clipboard.GetData(WORDSTOK_CB_FMT) as WordClipboardData;
+                    string clipboardword = "";
+                    if (worddata != null && !worddata.IsGroup) {
+                        // clipboard contains a single word
+                        clipboardword = worddata.WordText;
                     }
-                    if (strWord.Length > 0 && strWord[0] == '"') {
-                        strWord = strWord[1..];
-                    }
-                    if (strWord.Length > 0 && strWord[^1] == '"') {
-                        strWord = strWord[..^1];
-                    }
-                    if (strWord.Length > 0) {
-                        strWord = CheckWord(strWord);
-                    }
-                    if (strWord.Length > 0) {
-                        // this word is acceptable; put it on custom clipboard
-                        WordsClipboard.Word = strWord;
-                        WordsClipboard.Action = WordsUndo.ActionType.DelWord;
-                        Clipboard.SetText('"' + strWord + '"');
-                    }
-                    else {
-                        MessageBox.Show(MDIMain,
-                            "The clipboard doesn't contain a valid word.",
-                            "Nothing to Paste",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                    }
-                }
-
-                // check custom clipboard
-                if (WordsClipboard.Action == WordsUndo.ActionType.DelWord) {
-                    // clipboard contains a single word
-                    int lngOldGroupNo;
-                    if (EditWordList.WordExists(WordsClipboard.Word)) {
-                        lngOldGroupNo = EditWordList[WordsClipboard.Word].Group;
-                        if (lngOldGroupNo == EditGroupNumber) {
+                    else if (Clipboard.ContainsText(TextDataFormat.Text)) {
+                        strWord = Clipboard.GetText(TextDataFormat.Text).ToLower();
+                        if (strWord.Contains('\n') || strWord.Contains("\r")) {
+                            strWord = "";
+                        }
+                        if (strWord.Length > 0 && strWord[0] == '"') {
+                            strWord = strWord[1..];
+                        }
+                        if (strWord.Length > 0 && strWord[^1] == '"') {
+                            strWord = strWord[..^1];
+                        }
+                        if (strWord.Length > 0) {
+                            strWord = CheckWord(strWord);
+                        }
+                        if (strWord.Length > 0) {
+                            // this word is acceptable
+                            clipboardword = strWord;
+                        }
+                        else {
                             MessageBox.Show(MDIMain,
-                                "'" + WordsClipboard.Word + "' already exists in this group.",
-                                "Unable to Paste",
+                                "The clipboard doesn't contain a valid word.",
+                                "Nothing to Paste",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Information);
-                            return;
                         }
-                        // word is in another group- ask if word should be moved
-                        if (MessageBox.Show("'" + WordsClipboard.Word + "' already exists (in group " + lngOldGroupNo + "). Do you want to move it to this group?",
-                            "Move Word",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question) == DialogResult.No) {
-                            return;
+                    }
+                    if (clipboardword.Length > 0) {
+                        int lngOldGroupNo;
+                        if (EditWordList.WordExists(clipboardword)) {
+                            lngOldGroupNo = EditWordList[clipboardword].Group;
+                            if (lngOldGroupNo == EditGroupNumber) {
+                                MessageBox.Show(MDIMain,
+                                    "'" + clipboardword + "' already exists in this group.",
+                                    "Unable to Paste",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                                return;
+                            }
+                            // word is in another group- ask if word should be moved
+                            if (MessageBox.Show("'" + clipboardword + "' already exists (in group " + lngOldGroupNo + "). Do you want to move it to this group?",
+                                "Move Word",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question) == DialogResult.No) {
+                                return;
+                            }
+                            // delete word from other group
+                            DeleteWord(clipboardword, true);
                         }
-                        // delete word from other group
-                        DeleteWord(WordsClipboard.Word, true);
-                    }
-                    else {
-                        lngOldGroupNo = -1;
-                    }
-                    // add word to this group
-                    AddWord((EditGroupNumber), WordsClipboard.Word, true);
+                        else {
+                            lngOldGroupNo = -1;
+                        }
+                        // add word to this group
+                        AddWord(EditGroupNumber, clipboardword, true);
 
-                    // add undo
-                    WordsUndo NextUndo = new();
-                    NextUndo.Action = WordsUndo.ActionType.PasteWord;
-                    NextUndo.GroupNo = EditGroupNumber;
-                    //if (lngOldGroupNo == -1) {
-                    //    NextUndo.OldGroupNo = NextUndo.GroupNo;
-                    //}
-                    //else {
-                    NextUndo.OldGroupNo = lngOldGroupNo;
-                    //}
-                    NextUndo.Word = WordsClipboard.Word;
-                    AddUndo(NextUndo);
+                        // add undo
+                        WordsUndo NextUndo = new();
+                        NextUndo.Action = WordsUndo.ActionType.PasteWord;
+                        NextUndo.GroupNo = EditGroupNumber;
+                        NextUndo.OldGroupNo = lngOldGroupNo;
+                        NextUndo.Word = clipboardword;
+                        AddUndo(NextUndo);
 
-                    //select the pasted word
-                    UpdateSelection(WordsClipboard.Word);
+                        //select the pasted word
+                        UpdateSelection(clipboardword);
+                    }
                 }
             }
 
@@ -886,136 +961,146 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void mnuEDelete_Click(object sender, EventArgs e) {
-            if (EditingGroup || EditingWord ||
-                EditGroupNumber == -1 || EditWordIndex == -1) {
-                return;
+        private bool CanPaste() {
+            if (EditingGroup || EditingWord) {
+                return false;
             }
             if (lstGroups.Focused) {
-                if (EditGroupNumber != -1) {
-                    int groupindex = EditGroupIndex;
-                    int wordindex = EditWordIndex;
-                    DeleteGroup(EditGroupNumber);
-                    if (GroupMode) {
-                        if (groupindex == lstGroups.Items.Count) {
-                            groupindex--;
-                        }
-                        UpdateSelection(EditWordList.GroupByIndex(groupindex).GroupNum, 0, true);
-                    }
-                    else {
-                        if (wordindex == lstWords.Items.Count) {
-                            wordindex--;
-                        }
-                        UpdateSelection(wordindex, true);
-                    }
-                }
+                return Clipboard.ContainsData(WORDSTOK_CB_FMT);
             }
-            if (lstWords.Focused) {
-                if (EditGroupNumber == -1) {
-                    return;
-                }
-                switch (EditGroupNumber) {
-                case 0:
-                    //'a' and 'i' are special
-                    if (EditWordText == "a" || EditWordText == "i") {
-                        if (MessageBox.Show(MDIMain,
-                            $"The word '{EditWordText}' is usually associated with group 0. Are " +
-                            "you sure you want to delete it?",
-                            "Delete Group 0 Word",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question, 0, 0,
-                            WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                            DeleteWord(EditWordText);
+            else {
+                return Clipboard.ContainsText() || Clipboard.ContainsData(WORDSTOK_CB_FMT);
+            }
+        }
+
+        private void mnuEDelete_Click(object sender, EventArgs e) {
+            if (CanCut()) {
+                if (lstGroups.Focused) {
+                    if (EditGroupNumber != -1) {
+                        int groupindex = EditGroupIndex;
+                        int wordindex = EditWordIndex;
+                        DeleteGroup(EditGroupNumber);
+                        if (GroupMode) {
+                            if (groupindex == lstGroups.Items.Count) {
+                                groupindex--;
+                            }
+                            UpdateSelection(EditWordList.GroupByIndex(groupindex).GroupNum, 0, true);
                         }
-                    }
-                    else {
-                        // more than one, allow it
-                        DeleteWord(EditWordText);
-                    }
-                    break;
-                case 1:
-                    // 'anyword' is special
-                    if (EditWordText == "anyword") {
-                        if (MessageBox.Show(MDIMain,
-                            $"The word 'anyword' is the Sierra default placeholder word for reserved group 1. " +
-                            "Deleting it is not advised.\n\nAre you sure you want to delete it?",
-                            "Delete Group 1 Placeholder",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question, 0, 0,
-                            WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                            DeleteWord(EditWordText);
+                        else {
+                            if (wordindex == lstWords.Items.Count) {
+                                wordindex--;
+                            }
+                            UpdateSelection(wordindex, true);
                         }
-                    }
-                    else if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 1) {
-                        if (MessageBox.Show(MDIMain,
-                            $"Group '1' is a reserved group. Deleting its placeholder is not " +
-                            "advised.\n\nAre you sure you want to delete it?",
-                            "Delete Group 1 Placeholder",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question, 0, 0,
-                            WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                            DeleteWord(EditWordText);
-                        }
-                    }
-                    else {
-                        // more than one?? allow it
-                        DeleteWord(EditWordText);
-                    }
-                    break;
-                case 9999:
-                    // 'rol' is special
-                    if (EditWordText == "rol") {
-                        if (MessageBox.Show(MDIMain,
-                            $"The word 'rol' is the Sierra default placeholder word for reserved group 9999. " +
-                            "Deleting it is not advised.\n\nAre you sure you want to delete it?",
-                            "Delete Group 9999 Placeholder",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question, 0, 0,
-                            WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                            DeleteWord(EditWordText);
-                        }
-                    }
-                    else if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 1) {
-                        if (MessageBox.Show(MDIMain,
-                            $"Group '9999' is a reserved group. Deleting its placeholder is not " +
-                            "advised.\n\nAre you sure you want to delete it?",
-                            "Delete Group 9999 Placeholder",
-                            MessageBoxButtons.YesNo,
-                            MessageBoxIcon.Question, 0, 0,
-                            WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                            DeleteWord(EditWordText);
-                        }
-                    }
-                    else {
-                        // more than one?? allow it
-                        DeleteWord(EditWordText);
-                    }
-                    break;
-                default:
-                    DeleteWord(EditWordText);
-                    break;
-                }
-                // select next word, or if the grp is
-                // gone select next group
-                if (!GroupMode || EditWordList.GroupExists(EditGroupNumber)) {
-                    if (GroupMode) {
-                        if (EditWordGroupIndex == lstWords.Items.Count) {
-                            EditWordGroupIndex--;
-                        }
-                        UpdateSelection(EditGroupNumber, EditWordGroupIndex, true);
-                    }
-                    else {
-                        if (EditWordIndex == lstWords.Items.Count) {
-                            EditWordIndex--;
-                        }
-                        UpdateSelection(EditWordIndex, true);
                     }
                 }
-                else {
-                    if (EditGroupIndex == lstGroups.Items.Count) {
-                        EditGroupIndex--;
+                if (lstWords.Focused) {
+                    if (EditGroupNumber == -1) {
+                        return;
                     }
-                    UpdateSelection(EditWordList.GroupByIndex(EditGroupIndex).GroupNum, 0, true);
+                    switch (EditGroupNumber) {
+                    case 0:
+                        //'a' and 'i' are special
+                        if (EditWordText == "a" || EditWordText == "i") {
+                            if (MessageBox.Show(MDIMain,
+                                $"The word '{EditWordText}' is usually associated with group 0. Are " +
+                                "you sure you want to delete it?",
+                                "Delete Group 0 Word",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
+                                DeleteWord(EditWordText);
+                            }
+                        }
+                        else {
+                            // more than one, allow it
+                            DeleteWord(EditWordText);
+                        }
+                        break;
+                    case 1:
+                        // 'anyword' is special
+                        if (EditWordText == "anyword") {
+                            if (MessageBox.Show(MDIMain,
+                                $"The word 'anyword' is the Sierra default placeholder word for reserved group 1. " +
+                                "Deleting it is not advised.\n\nAre you sure you want to delete it?",
+                                "Delete Group 1 Placeholder",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
+                                DeleteWord(EditWordText);
+                            }
+                        }
+                        else if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 1) {
+                            if (MessageBox.Show(MDIMain,
+                                $"Group '1' is a reserved group. Deleting its placeholder is not " +
+                                "advised.\n\nAre you sure you want to delete it?",
+                                "Delete Group 1 Placeholder",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
+                                DeleteWord(EditWordText);
+                            }
+                        }
+                        else {
+                            // more than one?? allow it
+                            DeleteWord(EditWordText);
+                        }
+                        break;
+                    case 9999:
+                        // 'rol' is special
+                        if (EditWordText == "rol") {
+                            if (MessageBox.Show(MDIMain,
+                                $"The word 'rol' is the Sierra default placeholder word for reserved group 9999. " +
+                                "Deleting it is not advised.\n\nAre you sure you want to delete it?",
+                                "Delete Group 9999 Placeholder",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
+                                DeleteWord(EditWordText);
+                            }
+                        }
+                        else if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 1) {
+                            if (MessageBox.Show(MDIMain,
+                                $"Group '9999' is a reserved group. Deleting its placeholder is not " +
+                                "advised.\n\nAre you sure you want to delete it?",
+                                "Delete Group 9999 Placeholder",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
+                                DeleteWord(EditWordText);
+                            }
+                        }
+                        else {
+                            // more than one?? allow it
+                            DeleteWord(EditWordText);
+                        }
+                        break;
+                    default:
+                        DeleteWord(EditWordText);
+                        break;
+                    }
+                    // select next word, or if the grp is
+                    // gone select next group
+                    if (!GroupMode || EditWordList.GroupExists(EditGroupNumber)) {
+                        if (GroupMode) {
+                            if (EditWordGroupIndex == lstWords.Items.Count) {
+                                EditWordGroupIndex--;
+                            }
+                            UpdateSelection(EditGroupNumber, EditWordGroupIndex, true);
+                        }
+                        else {
+                            if (EditWordIndex == lstWords.Items.Count) {
+                                EditWordIndex--;
+                            }
+                            UpdateSelection(EditWordIndex, true);
+                        }
+                    }
+                    else {
+                        if (EditGroupIndex == lstGroups.Items.Count) {
+                            EditGroupIndex--;
+                        }
+                        UpdateSelection(EditWordList.GroupByIndex(EditGroupIndex).GroupNum, 0, true);
+                    }
                 }
             }
         }
@@ -1883,7 +1968,7 @@ namespace WinAGI.Editor {
             if (!InGame && retval) {
                 EditWordListFilename = EditWordList.ResFile;
                 MarkAsSaved();
-            };
+            }
         }
 
         public void EditProperties() {
@@ -2589,10 +2674,10 @@ namespace WinAGI.Editor {
         public void FindInWords(string FindText, FindDirection FindDir, bool MatchWord, bool Replacing = false, string ReplaceText = "") {
             int FoundWord, FoundGrp;
 
-            if (Replacing  && FindText.Equals(ReplaceText, StringComparison.OrdinalIgnoreCase)) {
+            if (Replacing && FindText.Equals(ReplaceText, StringComparison.OrdinalIgnoreCase)) {
                 return;
             }
-            if (Replacing && (ReplaceText.Length == 0 )) {
+            if (Replacing && (ReplaceText.Length == 0)) {
                 return;
             }
             if (Replacing && ReplaceText.Length == 0) {
@@ -2971,7 +3056,7 @@ namespace WinAGI.Editor {
         }
 
         public void ReplaceAll(string FindText, string ReplaceText, bool MatchWord) {
-            
+
             if (FindText == ReplaceText) {
                 return;
             }
@@ -2982,7 +3067,7 @@ namespace WinAGI.Editor {
                     "Replace All",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
-              return;
+                return;
             }
             if (EditWordList.WordCount == 0) {
                 // nothing in wordlist,
@@ -2991,7 +3076,7 @@ namespace WinAGI.Editor {
                     "Replace All",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
-              return;
+                return;
             }
             if (MatchWord) {
                 // words are unique, so if replacing entire word, 
@@ -3211,5 +3296,13 @@ namespace WinAGI.Editor {
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
         #endregion
+    }
+
+    [Serializable]
+    public class WordClipboardData {
+        public string WordText { get; set; } = "";
+        public string[] Words { get; set; } = [];
+        public int GroupNumber { get; set; } = -1;
+        public bool IsGroup { get; set; } = false;
     }
 }

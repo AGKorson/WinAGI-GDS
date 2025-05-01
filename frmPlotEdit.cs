@@ -76,6 +76,16 @@ namespace WinAGI.Editor {
         }
 
         #region Event Handlers
+        private void Control_Enter(object sender, EventArgs e) {
+            CancelButton = null;
+            AcceptButton = null;
+        }
+
+        private void Control_Leave(object sender, EventArgs e) {
+            CancelButton = btnCancel;
+            AcceptButton = btnOK;
+        }
+
         private void btnOK_Click(object sender, EventArgs e) {
             if (SelCmd.Pen.PlotStyle == PlotStyle.Splatter) {
                 EditPic.DrawPos += 1;
@@ -104,51 +114,11 @@ namespace WinAGI.Editor {
             AcceptButton = btnOK;
         }
 
-        private void txtX_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == (char)13) {
-                e.KeyChar = '\0';
-                e.Handled = true;
-                txtY.Select();
-            }
-            // only backspace, delete, numbers
-            switch ((int)e.KeyChar) {
-            case < 32:
-            case >= 48 and <= 57:
-                break;
-            default:
-                e.KeyChar = '\0';
-                e.Handled = true;
-                break;
-            }
-        }
-
-        private void txtX_TextChanged(object sender, EventArgs e) {
-            // only numeric entries allowed
-            if (txtX.Text.Length > 0) {
-                int newval = txtX.Text.IntVal();
-                if (newval < 0) {
-                    newval = 0;
-                }
-                if (newval > 159) {
-                    newval = 159;
-                }
-                txtX.Text = newval.ToString();
-            }
-            else {
-                // ignore blanks; validation will reset the text
-            }
-        }
-
         private void txtX_Validating(object sender, CancelEventArgs e) {
-            int newval;
             if (txtX.Text.Length == 0) {
-                newval = 0;
+                txtX.Value = txtX.MinValue;
             }
-            else {
-                newval = txtX.Text.IntVal();
-            }
-            // only numeric entries allowed
+            int newval = txtX.Value;
             if (SelCmd.Type == DrawFunction.PlotPen) {
                 if (newval < (SelCmd.Pen.PlotSize + 1) / 2) {
                     newval = (SelCmd.Pen.PlotSize + 1) / 2;
@@ -159,16 +129,8 @@ namespace WinAGI.Editor {
                     newval = 159 - SelCmd.Pen.PlotSize / 2;
                 }
                 //lblWarning.Visible = newval == 160 - SelCmd.Pen.PlotSize / 2;
+                txtX.Value = newval;
             }
-            else {
-                if (newval < 0) {
-                    newval = 0;
-                }
-                if (newval > 159) {
-                    newval = 159;
-                }
-            }
-            txtX.Text = newval.ToString();
             if (newval != NewCoord.X) {
                 NewCoord.X = newval;
                 if (SelCmd.Pen.PlotStyle == PlotStyle.Splatter) {
@@ -187,51 +149,12 @@ namespace WinAGI.Editor {
             AcceptButton = btnOK;
         }
 
-        private void txtY_KeyPress(object sender, KeyPressEventArgs e) {
-            // enter is same as tabbing to next control
-            if (e.KeyChar == (char)13) {
-                e.KeyChar = '\0';
-                e.Handled = true;
-                btnOK.Select();
-            }
-            // only backspace, delete, numbers
-            switch ((int)e.KeyChar) {
-            case < 32:
-            case >= 48 and <= 57:
-                break;
-            default:
-                e.KeyChar = '\0';
-                e.Handled = true;
-                break;
-            }
-        }
-
-        private void txtY_TextChanged(object sender, EventArgs e) {
-            // only numeric entries allowed
-            if (txtY.Text.Length > 0) {
-                int newval = txtY.Text.IntVal();
-                if (newval < 0) {
-                    newval = 0;
-                }
-                if (newval > 167) {
-                    newval = 167;
-                }
-                txtY.Text = newval.ToString();
-            }
-            else {
-                // ignore blanks; validation will reset the text
-            }
-        }
-
         private void txtY_Validating(object sender, CancelEventArgs e) {
-            int newval;
             // only numeric entries allowed
             if (txtY.Text.Length == 0) {
-                newval = 0;
+                txtY.Value = txtY.MinValue;
             }
-            else {
-                newval = txtY.Text.IntVal();
-            }
+            int newval = txtY.Value;
             if (SelCmd.Type == DrawFunction.PlotPen) {
                 if (newval < SelCmd.Pen.PlotSize) {
                     newval = SelCmd.Pen.PlotSize;
@@ -239,32 +162,14 @@ namespace WinAGI.Editor {
                 if (newval > 167 - SelCmd.Pen.PlotSize) {
                     newval = 167 - SelCmd.Pen.PlotSize;
                 }
+                txtY.Value = newval;
             }
-            else {
-                if (newval < 0) {
-                    newval = 0;
-                }
-                if (newval > 167) {
-                    newval = 167;
-                }
-            }
-            txtY.Text = newval.ToString();
             if (newval != NewCoord.Y) {
                 NewCoord.Y = newval;
                 if (SelCmd.Pen.PlotStyle == PlotStyle.Splatter) {
                     SetImage();
                 }
             }
-        }
-
-        private void udPattern_Enter(object sender, EventArgs e) {
-            CancelButton = null;
-            AcceptButton = null;
-        }
-
-        private void udPattern_Leave(object sender, EventArgs e) {
-            CancelButton = btnCancel;
-            AcceptButton = btnOK;
         }
 
         private void udPattern_ValueChanged(object sender, EventArgs e) {

@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha15.3
+        Version 3.0.0alpha16.0
     ==============================
 
 
@@ -40,8 +40,8 @@ WinAGI is a full featured game development system, that includes editors which p
     X 12. Reserved Defines Editor
     X 13. Object Editor
     X 14. Word Editor
-    O 15. Palette Editor
-      16. Picture Editor
+    X 15. Palette Editor
+    X 16. Picture Editor
       17. View Editor
       18. Sound Editor
       19. Layout Editor
@@ -54,6 +54,8 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+**alpha16.0** Picture Editor is complete, including all editing and testing features. Refactored a bunch of code to streamline editors. Lots of bug fixes in previous editors and functions.
+
 **alpha15.3** Drawing/edit features of picture editor are complete. Added support for scaling pictures non-integer values.
 Reworked statusbar support in all editors to deal with WinForm's unworkable merging behavior.
 Fixed some bugs in AGIResource object.

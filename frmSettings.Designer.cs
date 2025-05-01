@@ -35,10 +35,10 @@
             chkSplash = new System.Windows.Forms.CheckBox();
             label5 = new System.Windows.Forms.Label();
             label4 = new System.Windows.Forms.Label();
-            txtMaxVol0 = new System.Windows.Forms.TextBox();
+            txtMaxVol0 = new NumericTextBox();
             chkBackupRes = new System.Windows.Forms.CheckBox();
             chkAutoExport = new System.Windows.Forms.CheckBox();
-            txtMaxSO = new System.Windows.Forms.TextBox();
+            txtMaxSO = new NumericTextBox();
             label3 = new System.Windows.Forms.Label();
             txtResDirName = new System.Windows.Forms.TextBox();
             label2 = new System.Windows.Forms.Label();
@@ -61,7 +61,7 @@
             label7 = new System.Windows.Forms.Label();
             cmbEditSize = new System.Windows.Forms.ComboBox();
             cmbEditFont = new System.Windows.Forms.ComboBox();
-            txtTabWidth = new System.Windows.Forms.TextBox();
+            txtTabWidth = new NumericTextBox();
             txtExtension = new System.Windows.Forms.TextBox();
             label9 = new System.Windows.Forms.Label();
             label8 = new System.Windows.Forms.Label();
@@ -115,7 +115,7 @@
             label17 = new System.Windows.Forms.Label();
             cmbPriority = new System.Windows.Forms.ComboBox();
             label16 = new System.Windows.Forms.Label();
-            txtHorizon = new System.Windows.Forms.TextBox();
+            txtHorizon = new NumericTextBox();
             label15 = new System.Windows.Forms.Label();
             chkCycleAtRest = new System.Windows.Forms.CheckBox();
             optWater = new System.Windows.Forms.RadioButton();
@@ -310,11 +310,14 @@
             // txtMaxVol0
             // 
             txtMaxVol0.Location = new System.Drawing.Point(146, 265);
+            txtMaxVol0.MaxValue = 1023;
+            txtMaxVol0.MinValue = 32;
             txtMaxVol0.Name = "txtMaxVol0";
             txtMaxVol0.Size = new System.Drawing.Size(62, 23);
             txtMaxVol0.TabIndex = 6;
+            txtMaxVol0.Text = "1023";
             txtMaxVol0.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            txtMaxVol0.KeyPress += txtMaxVol0_KeyPress;
+            txtMaxVol0.Value = 1023;
             txtMaxVol0.Validating += txtMaxVol0_Validating;
             // 
             // chkBackupRes
@@ -341,11 +344,14 @@
             // txtMaxSO
             // 
             txtMaxSO.Location = new System.Drawing.Point(171, 231);
+            txtMaxSO.MaxValue = 255;
+            txtMaxSO.MinValue = 1;
             txtMaxSO.Name = "txtMaxSO";
             txtMaxSO.Size = new System.Drawing.Size(49, 23);
             txtMaxSO.TabIndex = 4;
+            txtMaxSO.Text = "1";
             txtMaxSO.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            txtMaxSO.KeyPress += txtMaxSO_KeyPress;
+            txtMaxSO.Value = 1;
             txtMaxSO.Validating += txtMaxSO_Validating;
             // 
             // label3
@@ -595,10 +601,14 @@
             // txtTabWidth
             // 
             txtTabWidth.Location = new System.Drawing.Point(407, 331);
+            txtTabWidth.MaxValue = 32;
+            txtTabWidth.MinValue = 1;
             txtTabWidth.Name = "txtTabWidth";
             txtTabWidth.Size = new System.Drawing.Size(48, 23);
             txtTabWidth.TabIndex = 13;
-            txtTabWidth.KeyPress += txtTabWidth_KeyPress;
+            txtTabWidth.Text = "1";
+            txtTabWidth.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            txtTabWidth.Value = 1;
             txtTabWidth.Validating += txtTabWidth_Validating;
             // 
             // txtExtension
@@ -1081,7 +1091,7 @@
             optCoordW.AutoSize = true;
             optCoordW.Location = new System.Drawing.Point(28, 33);
             optCoordW.Name = "optCoordW";
-            optCoordW.Size = new System.Drawing.Size(110, 19);
+            optCoordW.Size = new System.Drawing.Size(91, 19);
             optCoordW.TabIndex = 0;
             optCoordW.TabStop = true;
             optCoordW.Text = "Flashing Box";
@@ -1197,10 +1207,14 @@
             // txtHorizon
             // 
             txtHorizon.Location = new System.Drawing.Point(100, 184);
+            txtHorizon.MaxValue = 166;
+            txtHorizon.MinValue = 1;
             txtHorizon.Name = "txtHorizon";
             txtHorizon.Size = new System.Drawing.Size(43, 23);
             txtHorizon.TabIndex = 7;
-            txtHorizon.KeyPress += txtHorizon_KeyPress;
+            txtHorizon.Text = "36";
+            txtHorizon.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            txtHorizon.Value = 36;
             txtHorizon.Validating += txtHorizon_Validating;
             // 
             // label15
@@ -1499,12 +1513,12 @@
         private System.Windows.Forms.CheckBox chkShiftPreview;
         private System.Windows.Forms.CheckBox chkPreview;
         private System.Windows.Forms.CheckBox chkResetWarnings;
-        private System.Windows.Forms.TextBox txtMaxSO;
+        private WinAGI.Editor.NumericTextBox txtMaxSO;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtResDirName;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox txtMaxVol0;
+        private WinAGI.Editor.NumericTextBox txtMaxVol0;
         private System.Windows.Forms.CheckBox chkBackupRes;
         private System.Windows.Forms.CheckBox chkAutoExport;
         private System.Windows.Forms.CheckBox chkAutoOpen;
@@ -1528,7 +1542,7 @@
         private System.Windows.Forms.TextBox txtExtension;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TextBox txtTabWidth;
+        private WinAGI.Editor.NumericTextBox txtTabWidth;
         private System.Windows.Forms.ListBox lstColors;
         private System.Windows.Forms.CheckBox chkItalic;
         private System.Windows.Forms.CheckBox chkBold;
@@ -1572,7 +1586,7 @@
         private System.Windows.Forms.Label label17;
         private System.Windows.Forms.ComboBox cmbPriority;
         private System.Windows.Forms.Label label16;
-        private System.Windows.Forms.TextBox txtHorizon;
+        private WinAGI.Editor.NumericTextBox txtHorizon;
         private System.Windows.Forms.Label label15;
         private System.Windows.Forms.CheckBox chkCycleAtRest;
         private System.Windows.Forms.RadioButton optWater;

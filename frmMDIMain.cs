@@ -97,10 +97,6 @@ namespace WinAGI.Editor {
             btnOpenRes.DefaultItem = btnOpenLogic;
             btnImportRes.DefaultItem = btnImportLogic;
             MainStatusBar = statusStrip1;
-            //ViewClipboard = picViewCB;
-            //SoundClipboard = [];
-            //NotePictures = picNotes;
-            //WordsClipboard = new WordsUndo();
             FindingForm = new frmFind();
 
             //set property window split location based on longest word
@@ -259,7 +255,7 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
-        
+
             // TODO: need to supress ctrl+ keycodes that aren't valid menu calls to stop the ding
             // but... only on forms where those keys aren't required for that form 
             if (ActiveMdiChild == null) {
@@ -659,7 +655,6 @@ namespace WinAGI.Editor {
                 mnuRExportGIF.Visible = false;
                 return;
             }
-            // game
 
             // resource header or game
             if (SelResNum == -1) {
@@ -753,6 +748,33 @@ namespace WinAGI.Editor {
             mnuRExport.Enabled = !err;
             mnuRRenumber.Enabled = !err;
             mnuRProperties.Enabled = !err;
+        }
+
+        private void mnuResources_DropDownClosed(object sender, EventArgs e) {
+            // re-enable so shortcut keys will work
+            // (make sure all menu items that use shortcuts have appropriate checks 
+            // to make sure they're supposed to be enabled)
+            if (ActiveMdiChild != null) {
+                // configure for the current editor
+                dynamic form = ActiveMdiChild;
+                form.ResetResourceMenu();
+                // preview only- use the main form menu setup
+                if (ActiveMdiChild != PreviewWin) {
+                    return;
+                }
+            }
+
+            mnuROpenRes.Enabled = true;    //ctrl+alt+s
+            mnuRExport.Enabled = true;  //ctrl+e
+            mnuRSave.Enabled = true;    //ctrl+s
+
+            mnuRRemove.Enabled = true;     //ctrl+shift+a
+            mnuRRenumber.Enabled = true;   //alt+n
+            mnuRProperties.Enabled = true; //ctrl+d
+
+            mnuRCompileLogic.Enabled = true;
+            mnuRSavePicImage.Enabled = true; //ctrl+alt+s
+            mnuRExportGIF.Enabled = true; //ctrl+alt+g
         }
 
         internal void mnuRNLogic_Click(object sender, EventArgs e) {
@@ -1124,7 +1146,7 @@ namespace WinAGI.Editor {
                 }
                 if (PreviewWin.Visible) {
                     switch (SelResType) {
-                        case AGIResType.Picture:
+                    case AGIResType.Picture:
                         PreviewWin.RefreshPic();
                         break;
                     case AGIResType.View:
@@ -2618,7 +2640,7 @@ namespace WinAGI.Editor {
 
         private void ResetStatusStrip() {
             spStatus.Text = "";
-            for (int i = statusStrip1.Items.Count -1; i >= 0; i--) {
+            for (int i = statusStrip1.Items.Count - 1; i >= 0; i--) {
                 var item = statusStrip1.Items[i];
                 if (item != spStatus && item != spCapsLock && item != spNumLock && item != spInsLock) {
                     statusStrip1.Items.Remove(item);
@@ -3582,13 +3604,13 @@ namespace WinAGI.Editor {
             }
 
             // PICTEST
-            WinAGISettings.PTObjSpeed.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.PTObjPriority.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.PTObjRestriction.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.PTHorizon.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.PTIgnoreHorizon.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.PTIgnoreBlocks.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.PTCycleAtRest.ReadSetting(WinAGISettingsFile);
+            PicEditTestSettings.ObjSpeed.ReadSetting(WinAGISettingsFile);
+            PicEditTestSettings.ObjPriority.ReadSetting(WinAGISettingsFile);
+            PicEditTestSettings.ObjRestriction.ReadSetting(WinAGISettingsFile);
+            PicEditTestSettings.Horizon.ReadSetting(WinAGISettingsFile);
+            PicEditTestSettings.IgnoreHorizon.ReadSetting(WinAGISettingsFile);
+            PicEditTestSettings.IgnoreBlocks.ReadSetting(WinAGISettingsFile);
+            PicEditTestSettings.CycleAtRest.ReadSetting(WinAGISettingsFile);
 
             // SOUNDS
             WinAGISettings.ShowKeyboard.ReadSetting(WinAGISettingsFile);
@@ -3894,7 +3916,7 @@ namespace WinAGI.Editor {
                     }
                 } while (true);
                 WinAGISettingsFile.Lines.InsertRange(0, [
-                    "#", 
+                    "#",
                     "# WinAGI GDS Configuration File",
                     "#",
                     "# These settings should normally be adjusted from within WinAGI",

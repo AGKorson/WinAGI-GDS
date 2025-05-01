@@ -121,8 +121,21 @@ namespace WinAGI.Editor {
             }
         }
 
+        /// <summary>
+        /// Dynamic function to reset the resource menu.
+        /// </summary>
+        public void ResetResourceMenu() {
+            mnuRSave.Enabled = true;
+            mnuRExport.Enabled = true;
+            mnuRProperties.Enabled = true;
+            mnuRToggleEncrypt.Enabled = true;
+            mnuRAmigaOBJ.Enabled = true;
+        }
+
         public void mnuRSave_Click(object sender, EventArgs e) {
-            SaveObjects();
+            if (IsChanged) {
+                SaveObjects();
+            }
         }
 
         public void mnuRExport_Click(object sender, EventArgs e) {
@@ -329,7 +342,7 @@ namespace WinAGI.Editor {
 
         private void mnuEDelete_Click(object sender, EventArgs e) {
             if (fgObjects.CurrentRow.Index == fgObjects.NewRowIndex ||
-                fgObjects.CurrentRow.Index < 0) {
+                fgObjects.CurrentRow.Index <= 0) {
                 return;
             }
             ObjectsUndo NextUndo = new() {
@@ -353,6 +366,9 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEClear_Click(object sender, EventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                return;
+            }
             ObjectsUndo NextUndo = new();
             NextUndo.UDAction = Clear;
             NextUndo.UDObjectRoom = EditInvList.MaxScreenObjects;
@@ -369,7 +385,7 @@ namespace WinAGI.Editor {
             EditInvList.Clear();
             EditInvList.MaxScreenObjects = WinAGISettings.DefMaxSO.Value;
             EditInvList.Encrypted = false;
-            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            txtMaxScreenObjs.Value = EditInvList.MaxScreenObjects;
             MarkAsChanged();
         }
 
@@ -388,10 +404,16 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEFind_Click(object sender, EventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                return;
+            }
             StartSearch(FindFormFunction.FindObject);
         }
 
         private void mnuEFindAgain_Click(object sender, EventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                return;
+            }
             if (GFindText.Length == 0) {
                 StartSearch(FindFormFunction.FindObject);
             }
@@ -401,10 +423,16 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEReplace_Click(object sender, EventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                return;
+            }
             StartSearch(FindFormFunction.ReplaceObject);
         }
 
         private void mnuEditItem_Click(object sender, EventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                return;
+            }
             if (fgObjects.CurrentRow.Index == fgObjects.NewRowIndex) {
                 EditItem.ItemName = "";
                 EditItem.Room = 0;
@@ -419,6 +447,9 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEFindInLogic_Click(object sender, EventArgs e) {
+            if (fgObjects.IsCurrentCellInEditMode) {
+                return;
+            }
             string strObj = (string)fgObjects[1, fgObjects.CurrentCell.RowIndex].Value;
             if (strObj == "?") {
                 return;
@@ -466,7 +497,6 @@ namespace WinAGI.Editor {
 
         private void mnuCelCut_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
-                WordsClipboard = new();
                 EditTextBox.Cut();
             }
         }
@@ -474,7 +504,6 @@ namespace WinAGI.Editor {
         private void mnuCelCopy_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
                 EditTextBox.Copy();
-                WordsClipboard = new();
             }
         }
 
@@ -727,43 +756,9 @@ namespace WinAGI.Editor {
                 fgObjects[2, e.RowIndex - 1].Value = (byte)0;
             }
         }
-
-        private void txtMaxScreenObjs_KeyDown(object sender, KeyEventArgs e) {
-            // ignore everything except numbers, backspace, delete, enter, tab, and escape
-            switch (e.KeyCode) {
-            case Keys.Enter:
-                fgObjects.Select();
-                e.SuppressKeyPress = true;
-                break;
-            case Keys.Escape:
-                txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
-                fgObjects.Select();
-                e.SuppressKeyPress = true;
-                break;
-            }
-        }
         #endregion
 
         #region Control Events
-        private void txtMaxScreenObjs_KeyPress(object sender, KeyPressEventArgs e) {
-            // ignore everything except numbers, backspace, delete, enter, tab, and escape
-            switch (e.KeyChar) {
-            case '\x08':
-            case '\x09':
-                break;
-            case < '0':
-            case > '9':
-                e.Handled = true;
-                break;
-            }
-        }
-
-        private void txtMaxScreenObjs_TextChanged(object sender, EventArgs e) {
-            if (txtMaxScreenObjs.Text.Length > 0 && !txtMaxScreenObjs.Text.IsNumeric()) {
-                txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
-            }
-        }
-
         private void txtMaxScreenObjs_Leave(object sender, EventArgs e) {
             txtMaxScreenObjs.BackColor = SystemColors.Control;
         }
@@ -774,7 +769,10 @@ namespace WinAGI.Editor {
 
         private void txtMaxScreenObjs_Validating(object sender, CancelEventArgs e) {
 
-            if (int.TryParse(txtMaxScreenObjs.Text, out int newMax)) {
+            // if blank, reset to current, othrwise, process the new value
+
+            if (txtMaxScreenObjs.Text.Length > 0 ) {
+                int newMax = int.Parse(txtMaxScreenObjs.Text);
                 if (newMax != EditInvList.MaxScreenObjects) {
                     if (newMax == 0) {
                         if (MessageBox.Show(MDIMain,
@@ -799,9 +797,6 @@ namespace WinAGI.Editor {
                         }
                     }
                     else if (newMax > 32) {
-                        if (newMax > 255) {
-                            newMax = 255;
-                        }
                         if (MessageBox.Show(MDIMain,
                         "More than 32 screen objects is unusually high, and can affect graphics and memory performance.\n\nAre you sure you want to set this value?",
                         "High Max Screen Objects Count",
@@ -1375,7 +1370,7 @@ namespace WinAGI.Editor {
                 fgObjects[1, currentrow].Value = EditInvList[i].ItemName;
                 fgObjects[2, currentrow].Value = EditInvList[i].Room;
             }
-            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            txtMaxScreenObjs.Value = EditInvList.MaxScreenObjects;
 
             // statusbar has not been merged yet
             //statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
@@ -1425,7 +1420,7 @@ namespace WinAGI.Editor {
                 fgObjects[1, currentrow].Value = EditInvList[i].ItemName;
                 fgObjects[2, currentrow].Value = EditInvList[i].Room;
             }
-            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            txtMaxScreenObjs.Value = EditInvList.MaxScreenObjects;
             UndoCol = new();
             MarkAsChanged();
             MDIMain.UseWaitCursor = false;
@@ -1709,7 +1704,7 @@ namespace WinAGI.Editor {
                 AddUndo(NextUndo);
             }
             EditInvList.MaxScreenObjects = NewMax;
-            txtMaxScreenObjs.Text = EditInvList.MaxScreenObjects.ToString();
+            txtMaxScreenObjs.Value = EditInvList.MaxScreenObjects;
             MarkAsChanged();
         }
 
@@ -1732,20 +1727,22 @@ namespace WinAGI.Editor {
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
             // Enter key is usually captured by the grid, but we want it to go to the textbox
-            switch (keyData) {
-            case Keys.Enter:
-                if (EditTextBox.Focused) {
-                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
-                    return true;
+            if (EditTextBox != null) {
+                switch (keyData) {
+                case Keys.Enter:
+                    if (EditTextBox.Focused) {
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                        return true;
+                    }
+                    break;
+                case Keys.Tab:
+                    if (EditTextBox.Focused) {
+                        //if (fgObjects.IsCurrentCellInEditMode) {
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Tab));
+                        return true;
+                    }
+                    break;
                 }
-                break;
-            case Keys.Tab:
-                if (EditTextBox.Focused) {
-                    //if (fgObjects.IsCurrentCellInEditMode) {
-                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Tab));
-                    return true;
-                }
-                break;
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
@@ -1809,6 +1806,6 @@ namespace WinAGI.Editor {
             mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
-#endregion
+        #endregion
     }
 }
