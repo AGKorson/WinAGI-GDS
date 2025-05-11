@@ -57,7 +57,7 @@ namespace WinAGI.Engine {
         internal bool agIncludeIDs = true;
         internal bool agIncludeReserved = true;
         internal bool agIncludeGlobals = true;
-        internal Encoding agCodePage = Encoding.GetEncoding(437);
+        internal int agCodePage = 437;
         internal bool agPowerPack = false;
         internal string agSrcFileExt = "";
         internal bool agSierraSyntax = false;
@@ -86,10 +86,16 @@ namespace WinAGI.Engine {
             if (retval.Type == EventType.GameLoadError) {
                 // release compGame
                 compGame = null;
-                WinAGIException wex = new(retval.Text) {
-                    HResult = WINAGI_ERR + int.Parse(retval.ID),
+                // error info is in the Data property; copy that info
+                // into the pass-through error object
+                WinAGIException wex = new(((Exception)retval.Data).Message) {
+                    HResult = ((Exception)retval.Data).HResult,
                 };
-                wex.Data["retval"] = retval;
+                var keys = ((Exception)retval.Data).Data.Keys.Cast<string>().ToList();
+                var values = ((Exception)retval.Data).Data.Values.Cast<string>().ToList();
+                for (int i = 0; i < keys.Count; i++) {
+                    wex.Data[keys[i]] = values[i];
+                }
 
                 throw wex;
             }
@@ -622,12 +628,12 @@ namespace WinAGI.Engine {
         /// Gets or sets the character encoding used in this game. Changing from the
         /// default encoding is only needed if providing support for other languages.
         /// </summary>
-        public Encoding CodePage {
+        public int CodePage {
             get { return agCodePage; }
             set {
-                if (validcodepages.Contains(value.CodePage)) {
-                    agCodePage = Encoding.GetEncoding(value.CodePage);
-                    WriteGameSetting("General", "CodePage", agCodePage.CodePage);
+                if (validcodepages.Contains(value)) {
+                    agCodePage = value;
+                    WriteGameSetting("General", "CodePage", agCodePage);
                 }
                 else {
                     throw new ArgumentOutOfRangeException(nameof(value), "Unsupported or invalid CodePage value");
@@ -1629,8 +1635,8 @@ namespace WinAGI.Engine {
                 TWinAGIEventInfo retval = new() {
                     Type = EventType.GameLoadError,
                     ID = "648",
-                    Module = ex.StackTrace,
-                    Text = ex.Message
+                    Text = "Open game from directory error",
+                    Data = ex
                 };
                 return retval;
             }
@@ -1771,8 +1777,8 @@ namespace WinAGI.Engine {
                 TWinAGIEventInfo retval = new() {
                     Type = EventType.GameLoadError,
                     ID = "650",
-                    Module = ex.StackTrace,
-                    Text = ex.Message
+                    Text = "Open game from file error",
+                    Data = ex
                 };
                 return retval;
             }
@@ -2302,7 +2308,7 @@ namespace WinAGI.Engine {
             for (int i = 0; i < 16; i++) {
                 Palette[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultPalette[i]);
             }
-            agCodePage = Encoding.GetEncoding(agGameProps.GetSetting("General", "CodePage", 437));
+            agCodePage = agGameProps.GetSetting("General", "CodePage", 437);
             agDescription = agGameProps.GetSetting("General", "Description", "");
             agAuthor = agGameProps.GetSetting("General", "Author", "");
             agGameAbout = agGameProps.GetSetting("General", "About", "").Replace("\n", "\\n");

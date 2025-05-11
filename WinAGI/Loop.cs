@@ -6,11 +6,13 @@ namespace WinAGI.Engine {
     /// <summary>
     /// A class that represents a single loop in an AGI View resource.
     /// </summary>
+    [Serializable]
     public class Loop {
         #region Members
         internal Cels mCelCol;
         int mMirrorPair;
         internal int mIndex;
+        [NonSerialized]
         readonly View mParent;
         #endregion
 
@@ -45,7 +47,7 @@ namespace WinAGI.Engine {
             }
             set {
                 int i;
-                mCelCol = value;
+                mCelCol = value.Clone(mParent);
                 if (mMirrorPair != 0) {
                     // make sure mirror pair references the same cels
                     for (i = 0; i < mParent.mLoopCol.Count; i++) {
@@ -54,7 +56,7 @@ namespace WinAGI.Engine {
                             if (mParent.mLoopCol[(byte)i].Cels == value) {
                                 return;
                             }
-                            mParent.mLoopCol[(byte)i].Cels = value;
+                            mParent.mLoopCol[(byte)i].mCelCol = value;
                             return;
                         }
                     }
@@ -93,15 +95,13 @@ namespace WinAGI.Engine {
         /// Gets a value indicating whether or not this loop is part of a
         /// mirror pair.
         /// </summary>
-        /// <returns>Positive mirror pair number if this is the original
-        /// loop, negative mirror pair number if this is the mirrored loop
-        /// or zero if loop is not mirrored.</returns>
-        public int Mirrored {
+        /// <returns>True if loop is mirrored, otherwise false.</returns>
+        public bool Mirrored {
             get {
                 // if this loop is part of a mirror pair then it is mirrored
                 // return sign so calling function can tell if this is
                 // original loop, or the mirrored loop
-                return Math.Sign(mMirrorPair);
+                return mMirrorPair != 0;
             }
         }
 
@@ -150,7 +150,7 @@ namespace WinAGI.Engine {
         /// elements.
         /// </summary>
         /// <param name="SourceLoop"></param>
-        public void SetLoop(Loop SourceLoop) {
+        public void CloneFrom(Loop SourceLoop) {
             if (mMirrorPair > 0) {
                 // call unmirror for the secondary loop
                 // so it will get a correct copy of cels
@@ -164,8 +164,9 @@ namespace WinAGI.Engine {
                 mMirrorPair = 0;
             }
             // copy source loop cels
-            this.mCelCol = SourceLoop.Cels.Clone(mParent);
+            mCelCol = SourceLoop.Cels.Clone(mParent);
             if (mParent is not null) {
+                mParent.mViewChanged = true;
                 mParent.IsChanged = true;
             }
         }
@@ -195,12 +196,13 @@ namespace WinAGI.Engine {
             for (i = 0; i < mCelCol.Count; i++) {
                 tmpCels.Add(i, mCelCol[i].Width, mCelCol[i].Height, mCelCol[i].TransColor);
                 // access cels through parent so mirror status is set properly
-                tmpCels[i].AllCelData = mParent.mLoopCol[mIndex].Cels[i].AllCelData;
+                tmpCels[i].AllCelData = mParent.mLoopCol[mIndex][i].AllCelData;
             }
             mCelCol = tmpCels;
             mParent.mLoopCol[MirrorLoop].MirrorPair = 0;
             mMirrorPair = 0;
             if (mParent is not null) {
+                mParent.mViewChanged = true;
                 mParent.IsChanged = true;
             }
         }
@@ -209,8 +211,8 @@ namespace WinAGI.Engine {
         /// Creates an exact copy of this Loop.
         /// </summary>
         /// <param name="cloneparent"></param>
-        /// <returns>The Loop this method creates.</returns>
-        internal Loop Clone(View cloneparent) {
+        /// <returns>Copy of this loop.</returns>
+        public Loop Clone(View cloneparent = null) {
             Loop CopyLoop = new(cloneparent) {
                 mMirrorPair = mMirrorPair,
                 mIndex = mIndex,
@@ -223,7 +225,7 @@ namespace WinAGI.Engine {
         /// Copies properties from SourceLoop into this loop.
         /// </summary>
         /// <param name="SourceLoop"></param>
-        internal void CloneFrom(Loop SourceLoop) {
+        internal void SetLoop(Loop SourceLoop) {
             mMirrorPair = SourceLoop.mMirrorPair;
             mIndex = SourceLoop.mIndex;
             mCelCol.CloneFrom(SourceLoop.mCelCol);

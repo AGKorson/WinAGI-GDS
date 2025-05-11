@@ -89,11 +89,11 @@ namespace WinAGI.Editor {
                 cmbEditSize.Items.Add(i);
                 cmbPrevSize.Items.Add(i);
             }
-            /*
-            for (int i = 0; i <= 15; i++) {
-                cmbViewDefCol1.Items.Add(LoadResString(COLORNAME + i));
-                cmbViewDefCol2.Items.Add(LoadResString(COLORNAME + i));
+            for (int i = 0; i < 16; i++) {
+                cmbViewDefCol1.Items.Add((AGIColorIndex)i);
+                cmbViewDefCol2.Items.Add((AGIColorIndex)i);
             }
+            /*
             for (int i = 0; i <= 127; i++) {
                 cmbInst0.Items.Add(InstrumentName[i]);
                 cmbInst1.Items.Add(InstrumentName[i]);
@@ -212,9 +212,9 @@ namespace WinAGI.Editor {
             NewSettings.DefMute[3].Reset();
             NewSettings.SndZoom.Reset();
             // Views
+            NewSettings.ShowGrid.Reset();
             NewSettings.ShowVEPreview.Reset();
             NewSettings.DefPrevPlay.Reset();
-            NewSettings.ShowGrid.Reset();
             NewSettings.ViewAlignH.Reset();
             NewSettings.ViewAlignV.Reset();
             NewSettings.DefCelH.Reset();
@@ -281,15 +281,18 @@ namespace WinAGI.Editor {
             //  some of the settings changes can take awhile
             MDIMain.UseWaitCursor = true;
 
-            // check for change in sound note display status and ResID name status
-            bool blnChangeNotes = (NewSettings.ShowNotes != WinAGISettings.ShowNotes) || (WinAGISettings.OneTrack != NewSettings.OneTrack);
-            bool blnChangeResName = (NewSettings.IncludeResNum != WinAGISettings.IncludeResNum && !NewSettings.ShowResNum.Value) ||
-                               (NewSettings.ShowResNum != WinAGISettings.ShowResNum) ||
-                               NewSettings.ShowResNum.Value && (NewSettings.ResFormatNameCase != WinAGISettings.ResFormatNameCase ||
-                               NewSettings.ResFormatNumFormat != WinAGISettings.ResFormatNumFormat ||
-                               NewSettings.ResFormatSeparator != WinAGISettings.ResFormatSeparator);
-            bool blnChangeShowPics = NewSettings.LEShowPics != WinAGISettings.LEShowPics;
-            blnChangeCmtCol = NewSettings.GEShowComment != WinAGISettings.GEShowComment;
+            // several settings ned to track changes 
+            bool blnChangeNotes = (NewSettings.ShowNotes.Value != WinAGISettings.ShowNotes.Value) || (WinAGISettings.OneTrack.Value != NewSettings.OneTrack.Value);
+            bool blnChangeResName = (NewSettings.IncludeResNum.Value != WinAGISettings.IncludeResNum.Value && !NewSettings.ShowResNum.Value) ||
+                               (NewSettings.ShowResNum.Value != WinAGISettings.ShowResNum.Value) ||
+                               NewSettings.ShowResNum.Value && (NewSettings.ResFormatNameCase.Value != WinAGISettings.ResFormatNameCase.Value ||
+                               NewSettings.ResFormatNumFormat.Value != WinAGISettings.ResFormatNumFormat.Value ||
+                               NewSettings.ResFormatSeparator.Value != WinAGISettings.ResFormatSeparator.Value);
+            bool blnChangeShowPics = NewSettings.LEShowPics.Value != WinAGISettings.LEShowPics.Value;
+            bool changePicPrevZoom = NewSettings.PicScalePreview.Value != WinAGISettings.PicScalePreview.Value;
+            bool changeViewPrevZoom = NewSettings.ViewScalePreview.Value != WinAGISettings.ViewScalePreview.Value;
+
+            blnChangeCmtCol = NewSettings.GEShowComment.Value != WinAGISettings.GEShowComment.Value;
             EResListType lngResList = WinAGISettings.ResListType.Value;
 
             // copy new settings back to game settings (this does NOT save them to
@@ -458,8 +461,15 @@ namespace WinAGI.Editor {
                         LayoutEditor.DrawLayout(true);
                     }
                 }
+                if (changePicPrevZoom) {
+                    PreviewWin.SetPictureScale();
+                    PreviewWin.RefreshPic();
+                }
+                if (changeViewPrevZoom) {
+                    PreviewWin.SetViewScale();
+                    PreviewWin.RefreshView();
+                }
             }
-
             foreach (Form frm in MDIMain.MdiChildren) {
                 switch (frm.Name) {
                 case "frmLogicEdit":
@@ -1075,7 +1085,7 @@ namespace WinAGI.Editor {
 
         #region Pictures Tab Event Handlers
         private void udPPZoom_SelectedItemChanged(object sender, EventArgs e) {
-            NewSettings.PicScalePreview.Value = double.Parse(((string)udPPZoom.SelectedItem)[..^1]) / 100;
+            NewSettings.PicScalePreview.Value = float.Parse(((string)udPPZoom.SelectedItem)[..^1]) / 100;
         }
 
         private void udPEZoom_SelectedItemChanged(object sender, EventArgs e) {
@@ -1265,163 +1275,55 @@ else {
         #endregion
 
         #region Views Tab Event Handlers
-        /*
-        private void chkShowPrev_Click(object sender, EventArgs e) {
-            NewSettings.ShowVEPrev.Value = chkShowPrev.Checked;
+        private void chkShowGrid_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.ShowGrid.Value = chkShowGrid.Checked;
         }
 
-        private void chkDefPrevPlay_Click(object sender, EventArgs e) {
+        private void chkShowPrev_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.ShowVEPreview.Value = chkShowPrev.Checked;
+        }
+
+        private void chkDefPrevPlay_CheckedChanged(object sender, EventArgs e) {
             NewSettings.DefPrevPlay.Value = chkDefPrevPlay.Checked;
         }
 
-        private void cmbHAlign_Click() {
+        private void cmbHAlign_SelectedIndexChanged(object sender, EventArgs e) {
             NewSettings.ViewAlignH.Value = cmbHAlign.SelectedIndex;
         }
 
-        private void cmbVAlign_Click() {
+        private void cmbVAlign_SelectedIndexChanged(object sender, EventArgs e) {
             NewSettings.ViewAlignV.Value = cmbVAlign.SelectedIndex;
         }
 
-        private void cmbViewDefCol1_Click() {
-            NewSettings.DefVColor1.Value = cmbViewDefCol1.SelectedIndex
+        private void cmbViewDefCol1_SelectedIndexChanged(object sender, EventArgs e) {
+            NewSettings.DefVColor1.Value = cmbViewDefCol1.SelectedIndex;
         }
 
-        private void cmbViewDefCol2_Click() {
-            NewSettings.DefVColor2.Value = cmbViewDefCol2.SelectedIndex
+        private void cmbViewDefCol2_SelectedIndexChanged(object sender, EventArgs e) {
+            NewSettings.DefVColor2.Value = cmbViewDefCol2.SelectedIndex;
         }
 
-    private void txtZoomVP_Validating(object sender, CancelEventArgs e) {
-      if (!double.TryParse(txtZoomVP.Text, out double val) || val < 1) {
-        txtZoomVP.Text = "1";
-      }
-            else if (val > 10) {
-        txtZoomVP.Text = "10";
-      }
-        else {
-            txtZoomVP.Text = ((int)val).ToString();
+        private void udVPZoom_SelectedItemChanged(object sender, EventArgs e) {
+            NewSettings.ViewScalePreview.Value = float.Parse(((string)udVPZoom.SelectedItem)[..^1]) / 100;
         }
-      NewSettings.ViewScale.Preview = (int)val);
-    }
 
-    private void txtZoomVE_Validating(object sender, CancelEventArgs e) {
-      if (!double.TryParse(txtZoomVE.Text, out double val) || val < 1) {
-        txtZoomVE.Text = "1";
-      }
-            else if (val > 15) {
-        txtZoomVE.Text = "15";
-      }
-        else {
-            txtZoomVE.Text = ((int)val).ToString();
+        private void udVEZoom_SelectedItemChanged(object sender, EventArgs e) {
+            NewSettings.ViewScaleEdit.Value = float.Parse(((string)udVEZoom.SelectedItem)[..^1]) / 100;
+        }
+
+        private void txtDefCelH_Validating(object sender, CancelEventArgs e) {
+            if (txtDefCelH.Text.Length == 0) {
+                txtDefCelH.Value = txtDefCelH.MinValue;
             }
-      NewSettings.ViewScale.Edit = (int)val;
-    }
+            NewSettings.DefCelH.Value = (byte)txtDefCelH.Value;
+        }
 
-    private void txtZoomVP_KeyPress(object sender, KeyPressEventArgs e) {
-      // enter is same as tabbing to next control
-      if ( e.KeyChar == 13) {
-        e.Handeled = true;
-             e.KeyChar = '\0';
-        txtZoomPE.Select();
-      }
-      // only numbers or control keys (DEL?)
-      switch (KeyValue) {
-      case  < 32:
-            case  >= 48 and <= 57:
-            break;
-      default:
-            e.Handled = true;
-         e.KeyChar = '\0';
-        break;
-      }
-    }
-
-    private void txtZoomVE_KeyPress(object sender, KeyPressEventArgs e) {
-      // enter is same as tabbing to next control
-      if ( e.KeyChar == 13) {
-         e.KeyChar = '\0';
-            e.Handled = true;
-        cmbVAlign.Select();
-        return;
-      }
-      // only numbers or control keys (DEL?)
-      switch ( e.KeyChar) {
-      case < 32:
-      case >= 48 and <= 57:
-            break;
-      default:
-         e.KeyChar = '\0';
-            e.Handled = true;
-            break;
-      }
-    }
-
-    private void txtDefCelH_KeyPress(object sender, KeyPressEventArgs e) {
-      // enter is same as tabbing to next control
-      if ( e.KeyChar == 13) {
-         e.KeyChar = '\0';
-            e.Handled = true;
-        txtDefCelW.Select();
-                        return;
-      }
-      // only numbers or control keys
-      switch ( e.KeyChar) {
-      case  < 32:
-            case >=48 and <= 57:
-        brek;
-      default:
-         e.KeyChar = '\0';
-            e.Handled = true;
-            break;
-      }
-    }
-
-    private void txtDefCelH_Validating(object sender, CancelEventArgs e) {
-      if (!double.TryParse(txtDefCelH.Text, out double var) || var < 1) {
-        txtDefCelH.Text = "1";
-      }
-            else if (var > 168) {
-        txtDefCelH.Text = "168";
-      }
-            else {
-            txtDefCelH.Text = ((int)var).ToString();
+        private void txtDefCelW_Validating(object sender, CancelEventArgs e) {
+            if (txtDefCelH.Text.Length == 0) {
+                txtDefCelH.Value = txtDefCelH.MinValue;
             }
-    }
-
-    private void txtDefCelW_KeyPress(object sender, KeyPressEventArgs e) {
-      // enter is same as tabbing to next control
-      if ( e.KeyChar == 13) {
-         e.KeyChar = '\0';
-            e.Handled = true;
-        cmbViewDefCol1.Select();
-            return;
-      }
-      // only numbers or control keys
-      switch ( e.KeyChar) {
-      case  < 32:
-            case >=48 and <= 57:
-            break;
-      default:
-         e.KeyChar = '\0';
-            e.Handled = true;
-            break;
-      }
-    }
-
-    private void txtDefCelW_Validating(object sender, CancelEventArgs e) {
-      if (!double.TryParse(txtDefCelW.Text, out double var) || var < 1) {
-        txtDefCelW.Text = "1";
-      }
-            else if (var > 160) {
-        txtDefCelW.Text = "160"
-      }
-            else {
-            txtDefCelW.Text = ((int)var).ToString();
-            }
-      // save Value
-      NewSettings.DefCelW = (int)var;
-    }
-
-        */
+            NewSettings.DefCelH.Value = (byte)txtDefCelH.Value;
+        }
         #endregion
 
         #region Layout Tab Event Handlers
@@ -2086,20 +1988,38 @@ else {
             chkTrack(1).Checked = !NewSettings.DefMute1;
             chkTrack(2).Checked = !NewSettings.DefMute2;
             chkTrack(3).Checked = !NewSettings.DefMute3;
+            */
 
             // views
-            txtZoomVE.Text = NewSettings.ViewScale.Edit;
-            txtZoomVP.Text = NewSettings.ViewScale.Preview;
-            txtDefCelH.Text = NewSettings.DefCelH;
-            txtDefCelW.Text = NewSettings.DefCelW;
-            cmbHAlign.SelectedIndex = NewSettings.ViewAlignH;
-            cmbVAlign.SelectedIndex = NewSettings.ViewAlignV;
-            cmbViewDefCol1.SelectedIndex = NewSettings.DefVColor1;
-            cmbViewDefCol2.SelectedIndex = NewSettings.DefVColor2;
-            chkShowPrev.Checked = (NewSettings.ShowVEPrev);
-            chkDefPrevPlay.Checked = (NewSettings.DefPrevPlay);
-            chkShowGrid.Checked = (NewSettings.ShowGrid);
+            for (int i = 0; i < udVPZoom.Items.Count; i++) {
+                if (NewSettings.ViewScalePreview.Value * 100 >= float.Parse(((string)udVPZoom.Items[i])[..^1])) {
+                    udVPZoom.SelectedIndex = i;
+                    break;
+                }
+            }
+            if (udVPZoom.SelectedIndex == -1) {
+                udVPZoom.SelectedIndex = 0;
+            }
+            for (int i = 0; i < udVEZoom.Items.Count; i++) {
+                if (NewSettings.ViewScaleEdit.Value * 100 >= float.Parse(((string)udVEZoom.Items[i])[..^1])) {
+                    udVEZoom.SelectedIndex = i;
+                    break;
+                }
+            }
+            if (udVEZoom.SelectedIndex == -1) {
+                udVEZoom.SelectedIndex = 0;
+            }
+            txtDefCelH.Value = NewSettings.DefCelH.Value;
+            txtDefCelW.Value = NewSettings.DefCelW.Value;
+            cmbHAlign.SelectedIndex = NewSettings.ViewAlignH.Value;
+            cmbVAlign.SelectedIndex = NewSettings.ViewAlignV.Value;
+            cmbViewDefCol1.SelectedIndex = NewSettings.DefVColor1.Value;
+            cmbViewDefCol2.SelectedIndex = NewSettings.DefVColor2.Value;
+            chkShowPrev.Checked = NewSettings.ShowVEPreview.Value;
+            chkDefPrevPlay.Checked = NewSettings.DefPrevPlay.Value;
+            chkShowGrid.Checked = NewSettings.ShowGrid.Value;
 
+            /*
             // layout
             chkUseLE.Checked = NewSettings.DefUseLE;
             chkPages.Checked = NewSettings.LEPages;
@@ -2128,7 +2048,7 @@ else {
             WinAGISettings.DefMaxSO.WriteSetting(WinAGISettingsFile);
             WinAGISettings.DefMaxVol0.WriteSetting(WinAGISettingsFile);
             WinAGISettings.DefCP.WriteSetting(WinAGISettingsFile);
-            WinAGI.Engine.Base.CodePage = Encoding.GetEncoding(WinAGISettings.DefCP.Value);
+            Engine.Base.CodePage = WinAGISettings.DefCP.Value;
             WinAGISettings.DefResDir.WriteSetting(WinAGISettingsFile);
 
             // resource format
@@ -2192,9 +2112,9 @@ else {
             WinAGISettings.SndZoom.WriteSetting(WinAGISettingsFile);
 
             // view settings
+            WinAGISettings.ShowGrid.WriteSetting(WinAGISettingsFile);
             WinAGISettings.ShowVEPreview.WriteSetting(WinAGISettingsFile);
             WinAGISettings.DefPrevPlay.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.ShowGrid.WriteSetting(WinAGISettingsFile);
             WinAGISettings.ViewAlignH.WriteSetting(WinAGISettingsFile);
             WinAGISettings.ViewAlignV.WriteSetting(WinAGISettingsFile);
             WinAGISettings.DefCelH.WriteSetting(WinAGISettingsFile);

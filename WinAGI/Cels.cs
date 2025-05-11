@@ -10,9 +10,11 @@ namespace WinAGI.Engine {
     /// A class that represents a collection of cels, usually as part of
     /// a loop object.
     /// </summary>
+    [Serializable]
     public class Cels : IEnumerable<Cel> {
         #region Local Members
         internal readonly List<Cel> mCelCol;
+        [NonSerialized]
         View mParent;
         bool mSetMirror;
         #endregion
@@ -43,6 +45,10 @@ namespace WinAGI.Engine {
         /// <returns>The specified cel.</returns>
         public Cel this[int index] {
             get {
+                if (mCelCol.Count == 0) {
+                    // no cels is abnormal
+                    return null;
+                }
                 ArgumentOutOfRangeException.ThrowIfNegative(index);
                 ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, mCelCol.Count);
                 // mirror status is already set; just pass the desired cel

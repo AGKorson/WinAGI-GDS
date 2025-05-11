@@ -4347,15 +4347,6 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error accessing RichEd Text (%1).
-        /// </summary>
-        internal static string _502 {
-            get {
-                return ResourceManager.GetString("502", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to obj oA, var vB.
         /// </summary>
         internal static string _5020 {
@@ -5609,6 +5600,46 @@ namespace WinAGI.Editor {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] btn_addcel {
+            get {
+                object obj = ResourceManager.GetObject("btn_addcel", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] btn_addloop {
+            get {
+                object obj = ResourceManager.GetObject("btn_addloop", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] btn_play {
+            get {
+                object obj = ResourceManager.GetObject("btn_play", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] btn_stop {
+            get {
+                object obj = ResourceManager.GetObject("btn_stop", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] CP437 {
             get {
                 object obj = ResourceManager.GetObject("CP437", resourceCulture);
@@ -5822,6 +5853,66 @@ namespace WinAGI.Editor {
         internal static byte[] EPC_SELECT {
             get {
                 object obj = ResourceManager.GetObject("EPC_SELECT", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EVC_DRAW {
+            get {
+                object obj = ResourceManager.GetObject("EVC_DRAW", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EVC_DRAW32 {
+            get {
+                object obj = ResourceManager.GetObject("EVC_DRAW32", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EVC_EDITSEL {
+            get {
+                object obj = ResourceManager.GetObject("EVC_EDITSEL", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EVC_ERASE {
+            get {
+                object obj = ResourceManager.GetObject("EVC_ERASE", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EVC_FILL {
+            get {
+                object obj = ResourceManager.GetObject("EVC_FILL", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] EVC_FILL32 {
+            get {
+                object obj = ResourceManager.GetObject("EVC_FILL32", resourceCulture);
                 return ((byte[])(obj));
             }
         }

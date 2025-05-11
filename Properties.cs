@@ -396,7 +396,6 @@ namespace WinAGI.Editor {
 
         public string ViewDesc {
             get => pView.ViewDescription;
-            set { }
         }
 
         public int Volume {

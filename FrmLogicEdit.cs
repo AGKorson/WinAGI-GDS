@@ -666,7 +666,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuECharMap_Click(object sender, EventArgs e) {
-            frmCharPicker CharPicker = new(EditLogic.CodePage.CodePage);
+            frmCharPicker CharPicker = new(CodePage);
             CharPicker.ShowDialog(MDIMain);
             if (!CharPicker.Cancel) {
                 if (CharPicker.InsertString.Length > 0) {
@@ -2104,7 +2104,7 @@ namespace WinAGI.Editor {
 
         public bool LoadLogic(Logic loadlogic) {
             InGame = loadlogic.InGame;
-            Encoding codepage;
+            int codepage;
             if (InGame) {
                 LogicNumber = (int)loadlogic.Number;
                 codepage = EditLogic.CodePage;
@@ -2113,7 +2113,8 @@ namespace WinAGI.Editor {
                 // use a number that can never match
                 // when searches for open logics are made
                 LogicNumber = 256;
-                codepage = Encoding.Default;
+                // and WinAGI default codepage
+                codepage = CodePage;
             }
             try {
                 loadlogic.Load();
@@ -2129,7 +2130,10 @@ namespace WinAGI.Editor {
             if (EditLogic.SourceFile.Length > 0) {
                 if (File.Exists(EditLogic.SourceFile)) {
                     try {
-                        rtfLogic1.Text = codepage.GetString(codepage.GetBytes(File.ReadAllText(EditLogic.SourceFile)));
+                        // to ensure any non-supported characters for the current codepage
+                        // are converted to '?', we need to convert the text to bytes, then 
+                        // back to text
+                        rtfLogic1.Text = Encoding.GetEncoding(codepage).GetString(Encoding.GetEncoding(codepage).GetBytes(File.ReadAllText(EditLogic.SourceFile)));
                     }
                     catch {
                         return false;
@@ -2140,7 +2144,10 @@ namespace WinAGI.Editor {
                 }
             }
             else {
-                rtfLogic1.Text = codepage.GetString(codepage.GetBytes(EditLogic.SourceText));
+                // to ensure any non-supported characters for the current codepage
+                // are converted to '?', we need to convert the text to bytes, then 
+                // back to text
+                rtfLogic1.Text = Encoding.GetEncoding(codepage).GetString(Encoding.GetEncoding(codepage).GetBytes(EditLogic.SourceText));
             }
             // TODO: set up form for editing, add error handling
 

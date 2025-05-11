@@ -19,7 +19,7 @@ using static WinAGI.Editor.PictureUndo.ActionType;
 using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor {
-    public partial class frmPicEdit : Form, IMessageFilter {
+    public partial class frmPicEdit : ClipboardMonitor, IMessageFilter {
         #region Picture Editor Structs
         /// <summary>
         /// Struct to hold information about the current command being edited.
@@ -671,7 +671,7 @@ namespace WinAGI.Editor {
         public bool IsChanged;
         private bool closing = false;
         private PicEditorMode PicMode;
-        internal EGAColors EditPalette = DefaultPalette.CopyPalette();
+        internal EGAColors EditPalette = DefaultPalette.Clone();
         private Stack<PictureUndo> UndoCol = [];
         private bool priorityActive = false;
 
@@ -795,11 +795,6 @@ public void MenuClickHelp() {
             picVisual.MouseWheel += picVisual_MouseWheel;
             picPriority.MouseWheel += picPriority_MouseWheel;
 
-            hsbVisual.Visible = false;
-            vsbVisual.Visible = false;
-            hsbVisual.BringToFront();
-            vsbVisual.BringToFront();
-
             dash1.DashPattern = [3, 3];
             dash2.DashPattern = [3, 3];
             dash2.DashOffset = 3;
@@ -893,7 +888,7 @@ public void MenuClickHelp() {
             }
             int codepage;
             if (InGame) {
-                codepage = EditGame.CodePage.CodePage;
+                codepage = EditGame.CodePage;
             }
             else {
                 codepage = WinAGISettings.DefCP.Value;
@@ -918,8 +913,62 @@ public void MenuClickHelp() {
             }
         }
 
+        protected override void OnClipboardChanged() {
+            base.OnClipboardChanged();
+            if (PicMode == PicEditorMode.Edit) {
+                if (lstCommands.SelectedItems.Count == 0 ||
+                    lstCoords.SelectedItems.Count == 0 ||
+                    lstCommands.SelectedItems[0].Text[..3] == "Set") {
+                    tsbPaste.Enabled = Clipboard.ContainsData(PICTURE_CB_FMT);
+                }
+                else {
+                    tsbPaste.Enabled = false;
+                }
+            }
+            else {
+                tsbPaste.Enabled = false;
+            }
+        }
+
         #region Event Handlers
         #region Form Event Handlers
+        /// <summary>
+        /// Pre-filters the message to catch mouse wheel events.
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        public bool PreFilterMessage(ref Message m) {
+            // in splitcontainers, mousewheel auto-scrolls the vertical scrollbar
+            // only way to stop it is to catch the mousewheel message
+            // and handle it manually
+            const int WM_MOUSEWHEEL = 0x020A;
+            if (m.Msg == WM_MOUSEWHEEL) {
+                //if (Control.FromHandle(m.HWnd) is Control control && InSplitContainer(control)) {
+                if (Control.FromHandle(m.HWnd) is Control control) {
+                    if (control == picVisual) {
+                        int fwKeys = (int)m.WParam & 0xffff;
+                        int zDelta = (int)((int)m.WParam & 0xffff0000) >> 16;
+                        int xPos = (int)m.LParam & 0xffff;
+                        int yPos = (int)((int)m.LParam & 0xffff0000) >> 16;
+                        picVisual_MouseWheel(control, new MouseEventArgs(MouseButtons.None, 0, xPos, yPos, zDelta));
+                    }
+                    else if (control == picPriority) {
+                        int fwKeys = (int)m.WParam & 0xffff;
+                        int zDelta = (int)((int)m.WParam & 0xffff0000);
+                        int xPos = (int)m.LParam & 0xffff;
+                        int yPos = (int)((int)m.LParam & 0xffff0000);
+                        picPriority_MouseWheel(control, new MouseEventArgs(MouseButtons.None, 0, xPos, yPos, zDelta));
+                    }
+                    else {
+                        return false;
+                    }
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+
         private void frmPicEdit_FormClosing(object sender, FormClosingEventArgs e) {
             // if the form is closing because the MDI parent is closing, don't ask to close
             if (e.CloseReason == CloseReason.MdiFormClosing) {
@@ -1267,7 +1316,7 @@ public void MenuClickHelp() {
             else {
                 mnuToggleBands.Text = "Show Priority Bands";
             }
-            mnuEditPriBase.Visible = !InGame || EditGame.InterpreterVersion[0] == '3' || int.Parse(EditGame.InterpreterVersion) >= 2.936;
+            mnuEditPriBase.Visible = !InGame || Array.IndexOf(IntVersions, EditGame.InterpreterVersion) >= 13;
             if (ShowTextMarks) {
                 mnuToggleTextMarks.Text = "Hide Text Marks";
             }
@@ -2647,7 +2696,7 @@ public void MenuClickHelp() {
                     // if test loop and/or cel are NOT auto, force current loop/cel
                     if (TestSettings.TestLoop != -1) {
                         CurTestLoop = (byte)TestSettings.TestLoop;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         // just in case, check current cel; if it exceeds
                         // loop count, reset it to zero
                         if (CurTestCel > CurTestLoopCount - 1) {
@@ -2657,12 +2706,12 @@ public void MenuClickHelp() {
                             CurTestCel = (byte)TestSettings.TestCel;
                         }
                         // if either loop or cel is forced, update cel data
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     // update cel height/width/transcolor
-                    CelWidth = TestView.Loops[CurTestLoop].Cels[CurTestCel].Width;
-                    CelHeight = TestView.Loops[CurTestLoop].Cels[CurTestCel].Height;
-                    CelTrans = TestView.Loops[CurTestLoop].Cels[CurTestCel].TransColor;
+                    CelWidth = TestView[CurTestLoop][CurTestCel].Width;
+                    CelHeight = TestView[CurTestLoop][CurTestCel].Height;
+                    CelTrans = TestView[CurTestLoop][CurTestCel].TransColor;
                     // set timer based on speed
                     switch (TestSettings.ObjSpeed.Value) {
                     case 0:
@@ -2741,7 +2790,7 @@ public void MenuClickHelp() {
         private void mnuEditPriBase_Click(object sender, EventArgs e) {
             // allows user to set the priority base value
             // only available for v2.936 or greater game pictures (or if not in game)
-            if (!InGame || EditGame.InterpreterVersion[0] == '3' || int.Parse(EditGame.InterpreterVersion) >= 2.936) {
+            if (!InGame || Array.IndexOf(IntVersions, EditGame.InterpreterVersion) >= 13) {
                 byte oldBase = EditPicture.PriBase;
                 string newBaseText = oldBase.ToString();
                 byte newBase;
@@ -4532,12 +4581,12 @@ public void MenuClickHelp() {
                 if (CurTestCel == CurTestLoopCount) {
                     CurTestCel = 0;
                 }
-                TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
             }
             // set cel height/width/transcolor
-            CelWidth = TestView.Loops[CurTestLoop].Cels[CurTestCel].Width;
-            CelHeight = TestView.Loops[CurTestLoop].Cels[CurTestCel].Height;
-            CelTrans = TestView.Loops[CurTestLoop].Cels[CurTestCel].TransColor;
+            CelWidth = TestView[CurTestLoop][CurTestCel].Width;
+            CelHeight = TestView[CurTestLoop][CurTestCel].Height;
+            CelTrans = TestView[CurTestLoop][CurTestCel].TransColor;
 
             // check for special case of no motion
             if (TestDir == ObjDirection.odStopped) {
@@ -4942,43 +4991,6 @@ public void MenuClickHelp() {
         }
 
         /// <summary>
-        /// Pre-filters the message to catch mouse wheel events.
-        /// </summary>
-        /// <param name="m"></param>
-        /// <returns></returns>
-        public bool PreFilterMessage(ref Message m) {
-            // in splitcontainers, mousewheel auto-scrolls the vertical scrollbar
-            // only way to stop it is to catch the mousewheel message
-            // and handle it manually
-            const int WM_MOUSEWHEEL = 0x020A;
-            if (m.Msg == WM_MOUSEWHEEL) {
-                //if (Control.FromHandle(m.HWnd) is Control control && InSplitContainer(control)) {
-                if (Control.FromHandle(m.HWnd) is Control control) {
-                    if (control == picVisual) {
-                        int fwKeys = (int)m.WParam & 0xffff;
-                        int zDelta = (int)((int)m.WParam & 0xffff0000) >> 16;
-                        int xPos = (int)m.LParam & 0xffff;
-                        int yPos = (int)((int)m.LParam & 0xffff0000) >> 16;
-                        picVisual_MouseWheel(control, new MouseEventArgs(MouseButtons.None, 0, xPos, yPos, zDelta));
-                    }
-                    else if (control == picPriority) {
-                        int fwKeys = (int)m.WParam & 0xffff;
-                        int zDelta = (int)((int)m.WParam & 0xffff0000);
-                        int xPos = (int)m.LParam & 0xffff;
-                        int yPos = (int)((int)m.LParam & 0xffff0000);
-                        picPriority_MouseWheel(control, new MouseEventArgs(MouseButtons.None, 0, xPos, yPos, zDelta));
-                    }
-                    else {
-                        return false;
-                    }
-                    return true;
-                }
-                return false;
-            }
-            return false;
-        }
-
-        /// <summary>
         /// Loads the specified picture resource into the editor.  
         /// </summary>
         /// <param name="loadpic"></param>
@@ -5004,7 +5016,7 @@ public void MenuClickHelp() {
                 return false;
             }
             EditPicture = loadpic.Clone();
-            EditPalette = loadpic.Palette.CopyPalette();
+            EditPalette = loadpic.Palette.Clone();
             VCColor = EditPalette[4]; // red
             PCColor = EditPalette[3]; // cyan
             picVisual.BackColor = EditPalette[15];
@@ -5244,7 +5256,7 @@ public void MenuClickHelp() {
                     EditGame.Pictures[PictureNumber].Load();
                     // copy the picture back (to ensure internal variables are copied)
                     EditPicture.CloneFrom(EditGame.Pictures[PictureNumber]);
-                    EditPalette = EditPicture.Palette.CopyPalette();
+                    EditPalette = EditPicture.Palette.Clone();
                     // now we can unload the newly added picture;
                     EditGame.Pictures[PictureNumber].Unload();
                     MarkAsSaved();
@@ -5923,12 +5935,12 @@ public void MenuClickHelp() {
         public void RefreshPic() {
             // update palette and redraw
             if (InGame) {
-                EditPicture.Palette = EditGame.Palette.CopyPalette();
+                EditPicture.Palette = EditGame.Palette.Clone();
             }
             else {
-                EditPicture.Palette = DefaultPalette.CopyPalette();
+                EditPicture.Palette = DefaultPalette.Clone();
             }
-            EditPalette = EditPicture.Palette.CopyPalette();
+            EditPalette = EditPicture.Palette.Clone();
             EditPicture.ResetPicture();
             DrawPicture();
         }
@@ -6803,7 +6815,7 @@ public void MenuClickHelp() {
             // 100%, 125%, 150%, 175%, 200%, 225%, 250%, 275%, 300%,
             // 350%, 400%, 450%, 500%, 550%, 600%, 650%, 700%, 750%, 800%,
             // 900%, 1000%, 1100%, 1200%, 1300%, 1400%, 1500%, 1600%, 1700%, 1800%, 1900%, 2000%
-            double oldscale = 0;
+            float oldscale = 0;
             if (useanchor) {
                 oldscale = ScaleFactor;
             }
@@ -6844,10 +6856,6 @@ public void MenuClickHelp() {
             SetScrollbars(oldscale);
             // redraw pictures at new scale
             DrawPicture();
-            _ = SendMessage(splitImages.Panel1.Handle, WM_SETREDRAW, false, 0);
-            _ = SendMessage(picVisual.Handle, WM_SETREDRAW, false, 0);
-            _ = SendMessage(picPriority.Handle, WM_SETREDRAW, false, 0);
-
             spScale.Text = "Scale: " + (ScaleFactor * 100) + "%";
             _ = SendMessage(picPriority.Handle, WM_SETREDRAW, true, 0);
             _ = SendMessage(picVisual.Handle, WM_SETREDRAW, true, 0);
@@ -6860,7 +6868,7 @@ public void MenuClickHelp() {
         /// is resized, split fraction changes or image scale is changed.
         /// </summary>
         /// <param name="oldscale"></param>
-        private void SetScrollbars(double oldscale = 0) {
+        private void SetScrollbars(float oldscale = 0) {
             bool showHSB = false, showVSB = false;
 
             if (!splitImages.Visible) {
@@ -9786,15 +9794,15 @@ public void MenuClickHelp() {
             // reset to defaults
             CurTestLoop = 0;
             TestSettings.TestLoop = -1;
-            CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+            CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
             CurTestCel = 0;
             TestSettings.TestCel = -1;
-            TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+            TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
             TestDir = 0;
             // set cel height/width/transcolor
-            CelWidth = TestView.Loops[CurTestLoop].Cels[CurTestCel].Width;
-            CelHeight = TestView.Loops[CurTestLoop].Cels[CurTestCel].Height;
-            CelTrans = TestView.Loops[CurTestLoop].Cels[CurTestCel].TransColor;
+            CelWidth = TestView[CurTestLoop][CurTestCel].Width;
+            CelHeight = TestView[CurTestLoop][CurTestCel].Height;
+            CelTrans = TestView[CurTestLoop][CurTestCel].TransColor;
             // disable drawing until user actually places the cel
             ShowTestCel = false;
 
@@ -9813,7 +9821,7 @@ public void MenuClickHelp() {
         /// <param name="onVis"></param>
         private void AddCelToPic(Graphics g, bool onVis) {
             int CelPriority;
-            Cel TestCel = TestView.Loops[CurTestLoop].Cels[CurTestCel];
+            Cel TestCel = TestView[CurTestLoop][CurTestCel];
 
             // set priority (if in auto, get priority from current band)
             if (TestSettings.ObjPriority.Value < 16) {
@@ -9910,9 +9918,9 @@ public void MenuClickHelp() {
                     // set loop to 3, if there are four AND loop is not 3 AND in auto
                     if (TestView.Loops.Count >= 4 && CurTestLoop != 3 && (TestSettings.TestLoop == -1)) {
                         CurTestLoop = 3;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         CurTestCel = 0;
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     tmrTest.Enabled = true;
                 }
@@ -9928,9 +9936,9 @@ public void MenuClickHelp() {
                     // set loop to 0, if not already 0 AND in auto
                     if (CurTestLoop != 0 && (TestSettings.TestLoop == -1)) {
                         CurTestLoop = 0;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         CurTestCel = 0;
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     tmrTest.Enabled = true;
                 }
@@ -9946,9 +9954,9 @@ public void MenuClickHelp() {
                     // set loop to 0, if not already 0 AND in auto
                     if (CurTestLoop != 0 && (TestSettings.TestLoop == -1)) {
                         CurTestLoop = 0;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         CurTestCel = 0;
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     tmrTest.Enabled = true;
                 }
@@ -9964,9 +9972,9 @@ public void MenuClickHelp() {
                     // set loop to 0, if not already 0 AND in auto
                     if (CurTestLoop != 0 && (TestSettings.TestLoop == -1)) {
                         CurTestLoop = 0;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         CurTestCel = 0;
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     tmrTest.Enabled = true;
                 }
@@ -9982,9 +9990,9 @@ public void MenuClickHelp() {
                     // set loop to 2, if there are four AND loop is not 2 AND in auto
                     if (CurTestLoop != 2 && TestView.Loops.Count >= 4 && (TestSettings.TestLoop == -1)) {
                         CurTestLoop = 2;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         CurTestCel = 0;
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     tmrTest.Enabled = true;
                 }
@@ -10000,9 +10008,9 @@ public void MenuClickHelp() {
                     // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
                     if ((CurTestLoop != 1) && (TestView.Loops.Count >= 2) && (TestSettings.TestLoop == -1)) {
                         CurTestLoop = 1;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         CurTestCel = 0;
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     tmrTest.Enabled = true;
                 }
@@ -10018,9 +10026,9 @@ public void MenuClickHelp() {
                     // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
                     if ((CurTestLoop != 1) && (TestView.Loops.Count >= 2) && (TestSettings.TestLoop == -1)) {
                         CurTestLoop = 1;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         CurTestCel = 0;
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     tmrTest.Enabled = true;
                 }
@@ -10036,9 +10044,9 @@ public void MenuClickHelp() {
                     // set loop to 1, if  at least 2 loops, and not already 1 AND in auto
                     if ((CurTestLoop != 1) && (TestView.Loops.Count >= 2) && (TestSettings.TestLoop == -1)) {
                         CurTestLoop = 1;
-                        CurTestLoopCount = (byte)TestView.Loops[CurTestLoop].Cels.Count;
+                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
                         CurTestCel = 0;
-                        TestCelData = TestView.Loops[CurTestLoop].Cels[CurTestCel].AllCelData;
+                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                     }
                     tmrTest.Enabled = true;
                 }
@@ -10218,7 +10226,6 @@ public void MenuClickHelp() {
             if (!IsChanged) {
                 MarkAsChanged();
             }
-            // adds the next undo object
             UndoCol.Push(NextUndo);
             tsbUndo.Enabled = true;
         }

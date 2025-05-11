@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics.Tracing;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
@@ -9,17 +11,18 @@ namespace WinAGI.Engine {
     /// <summary>
     /// A class that represents an AGI View resource, with WinAGI extensions.
     /// </summary>
+    [Serializable]
     public class View : AGIResource {
         #region Members
+        internal Loops mLoopCol;
+        internal string mViewDesc;
+        internal EGAColors mPalette;
+        internal int mCodePage = 437; // default code page
         /// <summary>
         /// True if the view resource data does not match the current view
         /// loop/cel/description objects.
         /// </summary>
         internal bool mViewChanged;
-        internal Loops mLoopCol;
-        internal string mViewDesc;
-        internal EGAColors mPalette;
-        Encoding mCodePage = Encoding.GetEncoding(Base.CodePage.CodePage);
         #endregion
 
         #region Constructors
@@ -45,7 +48,7 @@ namespace WinAGI.Engine {
         internal View(AGIGame parent, byte ResNum, View NewView = null) : base(AGIResType.View) {
             InitView(NewView);
             base.InitInGame(parent, ResNum);
-            mCodePage = Encoding.GetEncoding(parent.agCodePage.CodePage);
+            mCodePage = parent.agCodePage;
         }
 
         /// <summary>
@@ -129,7 +132,7 @@ namespace WinAGI.Engine {
             }
             set {
                 if (!mInGame) {
-                    mPalette = value.CopyPalette();
+                    mPalette = value.Clone();
                 }
             }
         }
@@ -138,17 +141,15 @@ namespace WinAGI.Engine {
         /// Gets or sets the character code page to use when converting 
         /// characters to or from a byte stream.
         /// </summary>
-        public Encoding CodePage {
+        public int CodePage {
             get => mCodePage;
             set {
                 if (parent is null) {
                     // confirm new codepage is supported; error if it is not
-                    switch (value.CodePage) {
-                    case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
-                         861 or 862 or 863 or 865 or 866 or 869 or 858:
-                        mCodePage = Encoding.GetEncoding(value.CodePage);
-                        break;
-                    default:
+                    if (validcodepages.Contains(value)) {
+                        mCodePage = value;
+                    }
+                    else {
                         throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
                     }
                 }
@@ -181,7 +182,7 @@ namespace WinAGI.Engine {
                 mViewDesc = NewView.mViewDesc;
                 mLoopCol = NewView.mLoopCol.Clone(this);
             }
-            mPalette = defaultPalette.CopyPalette();
+            mPalette = defaultPalette.Clone();
         }
 
         /// <summary>
@@ -203,13 +204,13 @@ namespace WinAGI.Engine {
             CopyView.ErrData = ErrData;
             if (parent != null) {
                 // copy parent colors
-                CopyView.mPalette = parent.Palette.CopyPalette();
+                CopyView.mPalette = parent.Palette.Clone();
             }
             else {
                 // copy view colors
-                CopyView.mPalette = mPalette.CopyPalette();
+                CopyView.mPalette = mPalette.Clone();
             }
-            CopyView.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
+            CopyView.mCodePage = mCodePage;
             return CopyView;
         }
 
@@ -232,13 +233,13 @@ namespace WinAGI.Engine {
             ErrData = SourceView.ErrData;
             if (SourceView.parent != null) {
                 // copy parent colors
-                mPalette = SourceView.parent.Palette.CopyPalette();
+                mPalette = SourceView.parent.Palette.Clone();
             }
             else {
                 // copy view colors
-                mPalette = SourceView.mPalette.CopyPalette();
+                mPalette = SourceView.mPalette.Clone();
             }
-            mCodePage = Encoding.GetEncoding(SourceView.mCodePage.CodePage);
+            mCodePage = SourceView.mCodePage;
         }
         /// <summary>
         /// Resets the view to a single loop with a single cel of height and width of 1
@@ -292,7 +293,7 @@ namespace WinAGI.Engine {
                 // if loop is mirrored AND already added
                 // (can tell if not added by comparing the mirror loop
                 // property against current loop being added)
-                if (mLoopCol[i].Mirrored != 0) {
+                if (mLoopCol[i].Mirrored) {
                     blnMirrorAdded = (mLoopCol[i].MirrorLoop < i);
                 }
                 else {
@@ -313,20 +314,20 @@ namespace WinAGI.Engine {
                     // step through all cels to add them
                     for (j = 0; j < mLoopCol[i].Cels.Count; j++) {
                         lngCelOffset[j] = Pos - lngLoopOffset[i];
-                        WriteByte(mLoopCol[i].Cels[j].Width);
-                        WriteByte(mLoopCol[i].Cels[j].Height);
-                        if (mLoopCol[i].Mirrored != 0) {
+                        WriteByte(mLoopCol[i][j].Width);
+                        WriteByte(mLoopCol[i][j].Height);
+                        if (mLoopCol[i].Mirrored) {
                             // set bit 7 for mirror flag and include loop number
                             // in bits 6-5-4 for transparent color
-                            bytTransCol = (byte)(0x80 + i * 0x10 + mLoopCol[i].Cels[j].TransColor);
+                            bytTransCol = (byte)(0x80 + i * 0x10 + mLoopCol[i][j].TransColor);
                         }
                         else {
                             // just use transparent color
-                            bytTransCol = (byte)mLoopCol[i].Cels[j].TransColor;
+                            bytTransCol = (byte)mLoopCol[i][j].TransColor;
                         }
                         WriteByte(bytTransCol);
                         // cel data
-                        bytCelData = CompressedCel(mLoopCol[i].Cels[j], (mLoopCol[i].Mirrored != 0));
+                        bytCelData = CompressedCel(mLoopCol[i][j], mLoopCol[i].Mirrored);
                         for (k = 0; k < bytCelData.Length; k++) {
                             WriteByte(bytCelData[k]);
                         }
@@ -350,7 +351,7 @@ namespace WinAGI.Engine {
                 Pos = mData.Length;
                 // add view description
                 byte[] desc;
-                desc = CodePage.GetBytes(mViewDesc);
+                desc = Encoding.GetEncoding(CodePage).GetBytes(mViewDesc);
                 for (i = 0; i < desc.Length; i++) {
                     WriteByte(desc[i]);
                 }
@@ -489,7 +490,7 @@ namespace WinAGI.Engine {
             // get loop offset data for each loop
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
                 lngLoopStart[bytLoop] = ReadWord();
-                if ((lngLoopStart[bytLoop] > mSize)) {
+                if (lngLoopStart[bytLoop] > mSize) {
                     // invalid loop; let any that are alreay loaded stay loaded
                     ErrData[0] = mResID;
                     ErrData[1] = bytLoop.ToString();
@@ -523,7 +524,7 @@ namespace WinAGI.Engine {
                         }
                     }
                 }
-                if (mLoopCol[bytLoop].Mirrored == 0) {
+                if (!mLoopCol[bytLoop].Mirrored) {
                     if (lngLoopStart[bytLoop] < mSize) {
                         Pos = lngLoopStart[bytLoop];
                         bytNumCels = ReadByte();
@@ -538,7 +539,7 @@ namespace WinAGI.Engine {
                                 // add the cel
                                 mLoopCol[bytLoop].Cels.Add(bytCel, bytWidth, bytHeight, (AGIColorIndex)bytTransCol);
                                 // extract bitmap data from RLE data
-                                if (!ExpandCelData(lngCelStart + 3, mLoopCol[bytLoop].Cels[bytCel])) {
+                                if (!ExpandCelData(lngCelStart + 3, mLoopCol[bytLoop][bytCel])) {
                                     retval |= 32;
                                 }
                             }
@@ -559,7 +560,7 @@ namespace WinAGI.Engine {
                         bytInput[0] = ReadByte();
                         //if not zero, and string not yet up to 255 characters,
                         if ((bytInput[0] > 0) && (mViewDesc.Length < 255)) {
-                            mViewDesc += CodePage.GetString(bytInput);
+                            mViewDesc += Encoding.GetEncoding(CodePage).GetString(bytInput);
                         }
                     }
                     while (!EORes && bytInput[0] != 0 && mViewDesc.Length < 255);
@@ -706,11 +707,11 @@ namespace WinAGI.Engine {
                 return -4;
             }
             // the target loop can't be already mirrored
-            if (mLoopCol[TargetLoop].Mirrored != 0) {
+            if (mLoopCol[TargetLoop].Mirrored) {
                 return -5;
             }
             // the source loop can't already have a mirror
-            if (mLoopCol[SourceLoop].Mirrored != 0) {
+            if (mLoopCol[SourceLoop].Mirrored) {
                 return -6;
             }
             // get a new mirror pair number
@@ -719,7 +720,8 @@ namespace WinAGI.Engine {
             mLoopCol[SourceLoop].MirrorPair = mp;
             // set the mirror loop mirrorloop property
             mLoopCol[TargetLoop].MirrorPair = -mp;
-            mLoopCol[TargetLoop].Cels = mLoopCol[SourceLoop].Cels;
+            mLoopCol[TargetLoop].mCelCol = mLoopCol[SourceLoop].mCelCol;
+            mViewChanged = true;
             mIsChanged = true;
             return 0;
         }

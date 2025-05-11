@@ -825,19 +825,6 @@ namespace WinAGI.Common {
 
     public static class ExtensionMethods {
         /// <summary>
-        /// Copies the source palette to an identical new palette.
-        /// </summary>
-        /// <param name="palette"></param>
-        /// <returns></returns>
-        public static EGAColors CopyPalette(this EGAColors palette) {
-            EGAColors retval = new();
-            for (int i = 0; i < 16; i++) {
-                retval[i] = palette[i];
-            }
-            return retval;
-        }
-
-        /// <summary>
         /// Converts only ascii characters in a string to lower case. Extended
         /// characters are not adjusted.
         /// </summary>

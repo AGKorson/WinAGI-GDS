@@ -33,6 +33,7 @@ namespace WinAGI.Editor {
 
         //property box height
         int PropPanelSplit;
+        int PropPanelMaxSize;
         private bool splashDone;
         //tracks status of caps/num/ins
         static bool CapsLock = false;
@@ -99,12 +100,12 @@ namespace WinAGI.Editor {
             MainStatusBar = statusStrip1;
             FindingForm = new frmFind();
 
-            //set property window split location based on longest word
+            // set property window split location based on longest word
             Size szText = TextRenderer.MeasureText(" Use Res Names ", propertyGrid1.Font);
             // set height based on text (assume padding of 3 pixels above/below)
-            PropRowHeight = szText.Height + 6;
-            splResource.Panel2MinSize = 3 * PropRowHeight;
-            PropPanelMaxSize = 10 * PropRowHeight;
+            int propRowHeight = szText.Height + 6;
+            splResource.Panel2MinSize = 3 * propRowHeight;
+            PropPanelMaxSize = 10 * propRowHeight;
             // set grid row height
             fgWarnings.RowTemplate.Height = szText.Height + 2;
             // initialize the basic app functionality
@@ -1483,16 +1484,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void tvwResources_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e) {
-            // select it first
-            //          tvwResources.SelectedNode = e.Node;
-        }
-
-        private void tvwResources_AfterCollapse(object sender, TreeViewEventArgs e) {
-            //when collapsing, select the collapsed node
-            tvwResources_NodeMouseClick(sender, new TreeNodeMouseClickEventArgs(e.Node, MouseButtons.None, 0, 0, 0));
-        }
-
         private void tvwResources_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e) {
             if (e.Node != tvwResources.SelectedNode) {
                 // this seems to only happen if the tree is collapsing or expanding;
@@ -2733,6 +2724,9 @@ namespace WinAGI.Editor {
                 statusStrip1.Items.Insert(0, frmVE.spScale);
                 statusStrip1.Items.Insert(1, frmVE.spTool);
                 // status
+                // status
+                statusStrip1.Items.Insert(3, frmVE.spCurX);
+                statusStrip1.Items.Insert(4, frmVE.spCurY);
                 spCapsLock.Visible = false;
                 spNumLock.Visible = false;
                 spInsLock.Visible = false;
@@ -2946,8 +2940,6 @@ namespace WinAGI.Editor {
                     else {
                         tvwResources.SelectedNode = HdrNode[(int)ResType];
                     }
-                    // call the node click to finish selection
-                    tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
                     break;
                 case EResListType.ComboList:
                     // listbox
@@ -3002,7 +2994,6 @@ namespace WinAGI.Editor {
                     case EResListType.TreeList:
                         // treelist
                         tvwResources.SelectedNode = HdrNode[(int)ResType];
-                        tvwResources_NodeMouseClick(null, new TreeNodeMouseClickEventArgs(tvwResources.SelectedNode, MouseButtons.None, 0, 0, 0));
                         break;
                     case EResListType.ComboList:
                         //(restype+1 matches desired combobox index)
@@ -3473,7 +3464,7 @@ namespace WinAGI.Editor {
                 WinAGISettings.DefCP.Reset();
                 break;
             }
-            CodePage = Encoding.GetEncoding(WinAGISettings.DefCP.Value);
+            CodePage = WinAGISettings.DefCP.Value;
             WinAGISettings.DefResDir.ReadSetting(WinAGISettingsFile);
             WinAGISettings.DefResDir.Value = WinAGISettings.DefResDir.Value.Trim();
             if (WinAGISettings.DefResDir.Value.Length == 0) {
@@ -3631,9 +3622,9 @@ namespace WinAGI.Editor {
             }
 
             // VIEWS
+            WinAGISettings.ShowGrid.ReadSetting(WinAGISettingsFile);
             WinAGISettings.ShowVEPreview.ReadSetting(WinAGISettingsFile);
             WinAGISettings.DefPrevPlay.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.ShowGrid.ReadSetting(WinAGISettingsFile);
             WinAGISettings.ViewAlignH.ReadSetting(WinAGISettingsFile);
             if (WinAGISettings.ViewAlignH.Value < 0) {
                 WinAGISettings.ViewAlignH.Value = 0;
@@ -4453,7 +4444,7 @@ namespace WinAGI.Editor {
             EditGame.UseLE = propForm.chkUseLE.Checked;
             // update menu/toolbar, and hide LE if not in use anymore
             UpdateLEStatus();
-            EditGame.CodePage = Encoding.GetEncoding(propForm.NewCodePage);
+            EditGame.CodePage = propForm.NewCodePage;
             WinAGISettingsFile.Save();
             propForm.Dispose();
         }
@@ -4690,114 +4681,4 @@ namespace WinAGI.Editor {
         public string Module { get; set; } //6
         public string Filename { get; set; } //7
     }
-
-    //public class SortableBindingList<T> : BindingList<T> {
-    //    List<T> originalList;
-    //    ListSortDirection sortDirection;
-    //    PropertyDescriptor sortProperty;
-
-    //    // function that refereshes the contents of the base classes collection of elements
-    //    Action<SortableBindingList<T>, List<T>> populateBaseList = (a, b) => a.ResetItems(b);
-
-    //    static Dictionary<string, Func<List<T>, IEnumerable<T>>> cachedOrderByExpressions = new Dictionary<string, Func<List<T>, IEnumerable<T>>>();
-
-    //    public SortableBindingList() {
-    //        originalList = new List<T>();
-    //    }
-
-    //    public SortableBindingList(IEnumerable<T> enumerable) {
-    //        originalList = enumerable.ToList();
-    //        populateBaseList(this, originalList);
-    //    }
-
-    //    public SortableBindingList(List<T> list) {
-    //        originalList = list;
-    //        populateBaseList(this, originalList);
-    //    }
-
-    //    protected override void ApplySortCore(PropertyDescriptor prop,
-    //                            ListSortDirection direction) {
-    //        /*
-    //         Look for an appropriate sort method in the cache if not found .
-    //         Call CreateOrderByMethod to create one. 
-    //         Apply it to the original list.
-    //         Notify any bound controls that the sort has been applied.
-    //         */
-    //        sortProperty = prop;
-
-    //        var orderByMethodName = sortDirection ==
-    //            ListSortDirection.Ascending ? "OrderBy" : "OrderByDescending";
-    //        var cacheKey = typeof(T).GUID + prop.Name + orderByMethodName;
-
-    //        if (!cachedOrderByExpressions.ContainsKey(cacheKey)) {
-    //            CreateOrderByMethod(prop, orderByMethodName, cacheKey);
-    //        }
-
-    //        ResetItems(cachedOrderByExpressions[cacheKey](originalList).ToList());
-    //        ResetBindings();
-    //        sortDirection = sortDirection == ListSortDirection.Ascending ?
-    //                        ListSortDirection.Descending : ListSortDirection.Ascending;
-    //    }
-
-    //    private void CreateOrderByMethod(PropertyDescriptor prop,
-    //                 string orderByMethodName, string cacheKey) {
-    //        /*
-    //         Create a generic method implementation for IEnumerable<T>.
-    //         Cache it.
-    //        */
-
-    //        var sourceParameter = Expression.Parameter(typeof(List<T>), "source");
-    //        var lambdaParameter = Expression.Parameter(typeof(T), "lambdaParameter");
-    //        var accesedMember = typeof(T).GetProperty(prop.Name);
-    //        var propertySelectorLambda =
-    //            Expression.Lambda(Expression.MakeMemberAccess(lambdaParameter,
-    //                              accesedMember), lambdaParameter);
-    //        var orderByMethod = typeof(Enumerable).GetMethods()
-    //                                      .Where(a => a.Name == orderByMethodName &&
-    //                                                   a.GetParameters().Length == 2)
-    //                                      .Single()
-    //                                      .MakeGenericMethod(typeof(T), prop.PropertyType);
-
-    //        var orderByExpression = Expression.Lambda<Func<List<T>, IEnumerable<T>>>(
-    //                                    Expression.Call(orderByMethod,
-    //                                            new Expression[] { sourceParameter,
-    //                                                           propertySelectorLambda }),
-    //                                            sourceParameter);
-
-    //        cachedOrderByExpressions.Add(cacheKey, orderByExpression.Compile());
-    //    }
-
-    //    protected override void RemoveSortCore() {
-    //        ResetItems(originalList);
-    //    }
-
-    //    private void ResetItems(List<T> items) {
-    //        base.ClearItems();
-    //        for (int i = 0; i < items.Count; i++) {
-    //            base.InsertItem(i, items[i]);
-    //        }
-    //    }
-
-    //    protected override bool SupportsSortingCore {
-    //        get {
-    //            return true;
-    //        }
-    //    }
-
-    //    protected override ListSortDirection SortDirectionCore {
-    //        get {
-    //            return sortDirection;
-    //        }
-    //    }
-
-    //    protected override PropertyDescriptor SortPropertyCore {
-    //        get {
-    //            return sortProperty;
-    //        }
-    //    }
-
-    //    protected override void OnListChanged(ListChangedEventArgs e) {
-    //        originalList = base.Items.ToList();
-    //    }
-    //}
 }

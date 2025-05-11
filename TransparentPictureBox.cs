@@ -13,6 +13,7 @@ namespace WinAGI.Editor {
         private Pen dash2 = new(Color.White);
         private int dashdistance = 6; 
         private Timer tmrDash = new();
+
         public TransparentPictureBox() {
             SetStyle(ControlStyles.Opaque, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);

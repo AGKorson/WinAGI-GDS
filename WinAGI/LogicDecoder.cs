@@ -935,7 +935,7 @@ namespace WinAGI.Engine {
                         }
                         else {
                             // convert to correct codepage
-                            stlMsgs.Add(QUOTECHAR + compLogic.CodePage.GetString(bMsgText.ToArray()) + QUOTECHAR);
+                            stlMsgs.Add(QUOTECHAR + Encoding.GetEncoding(compLogic.CodePage).GetString(bMsgText.ToArray()) + QUOTECHAR);
                         }
                         blnMsgExists[intCurMsg] = true;
                     }

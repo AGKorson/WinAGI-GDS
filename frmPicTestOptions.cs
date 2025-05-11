@@ -31,7 +31,7 @@ namespace WinAGI.Editor {
             TestInfo = testinfo.Clone();
 
             for (int i = 0; i < LoopCount; i++) {
-                CelCount[i] = testview.Loops[i].Cels.Count;
+                CelCount[i] = testview[i].Cels.Count;
             }
             // build loop and cel dropdown lists
             cmbLoop.Items.Add("Auto");

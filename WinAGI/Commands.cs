@@ -1005,9 +1005,9 @@ namespace WinAGI.Engine {
             if (!IntVersions.Contains(Version)) {
                 throw new ArgumentOutOfRangeException(nameof(Version));
             }
-            double verNum = double.Parse(Version);
+            int verIndex = Array.IndexOf(IntVersions, Version);
             // quit command
-            if (verNum <= 2.089) {
+            if (verIndex == 0) {
                 agCmds[134].ArgType = [];
             }
             else {
@@ -1016,21 +1016,36 @@ namespace WinAGI.Engine {
             }
 
             // adjust number of available commands
-            if (verNum <= 2.089)
+            switch (verIndex) {
+            case 0:
+                // 2.089
                 agNumCmds = 156;
-            else if (verNum <= 2.272)
+                break;
+            case 1:
+                // 2.272
                 agNumCmds = 162;
-            else if (verNum <= 2.44)
+                break;
+            case >= 2 and <= 7:
+                // 2.411, 2.425, 2.426, 2.435, 2.439, 2.440
                 agNumCmds = 170;
-            else if (verNum <= 2.917)
+                break;
+            case >= 8 and <= 12:
+                // 2.903, 2.911, 2.912, 2.915, 2.917
                 agNumCmds = 174;
-            else if (verNum <= 2.936)
+                break;
+            case 13:
+                // 2.936
                 agNumCmds = 176;
-            else if (verNum <= 3.002086)
+                break;
+            case 14:
+                // 3.002086
                 agNumCmds = 178;
-            else
+                break;
+            default:
                 // all are available
                 agNumCmds = MAX_CMDS;
+                break;
+            }
         }
         #endregion
     }

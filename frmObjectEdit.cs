@@ -541,7 +541,7 @@ namespace WinAGI.Editor {
             }
             frmCharPicker CharPicker;
             if (EditGame != null) {
-                CharPicker = new(EditGame.CodePage.CodePage);
+                CharPicker = new(EditGame.CodePage);
             }
             else {
                 CharPicker = new(WinAGISettings.DefCP.Value);

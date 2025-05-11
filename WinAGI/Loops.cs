@@ -10,9 +10,11 @@ namespace WinAGI.Engine {
     /// A class that represents a collection of loops, usually as part
     /// of an AGI View resource.
     /// </summary>
+    [Serializable]
     public class Loops : IEnumerable<Loop> {
         #region Members
         List<Loop> mLoopCol;
+        [NonSerialized]
         View mParent;
         #endregion
 
@@ -92,7 +94,7 @@ namespace WinAGI.Engine {
             // if adding a loop in position 0-7
             // (which could push a mirror loop out of position
             if (Pos < 7 && mLoopCol.Count >= 7) {
-                if (mLoopCol[6].Mirrored != 0) {
+                if (mLoopCol[6].Mirrored) {
                     // unmirror loops that get pushed out of position
                     mLoopCol[6].UnMirror();
                 }
@@ -133,16 +135,9 @@ namespace WinAGI.Engine {
             if (Index >= mLoopCol.Count) {
                 throw new IndexOutOfRangeException("index out of bounds");
             }
-            if (mLoopCol[Index].Mirrored != 0) {
-                // unmirror the match for this loop
-                mLoopCol[mLoopCol[Index].MirrorLoop].MirrorPair = 0;
-                // if that loop was the primary loop
-                if (mLoopCol[mLoopCol[Index].MirrorLoop].MirrorPair > 0) {
-                    // permanently flip that loop's cel data
-                    for (int i = 0; i < mLoopCol[mLoopCol[Index].MirrorLoop].Cels.Count; i++) {
-                        mLoopCol[mLoopCol[Index].MirrorLoop].Cels[i].FlipCel();
-                    }
-                }
+            if (mLoopCol[Index].Mirrored) {
+                // unmirror the loop
+                mLoopCol[Index].UnMirror();
             }
             mLoopCol.RemoveAt(Index);
             // update all loop indices
@@ -166,8 +161,16 @@ namespace WinAGI.Engine {
             foreach (Loop tmpLoop in mLoopCol) {
                 CopyLoops.mLoopCol.Add(tmpLoop.Clone(cloneparent));
             }
+            // check for mirror pairs; the cel collections in pairs
+            // need to be set to same object so mirroring works correctly
+            for (int i = 0; i < CopyLoops.Count; i++) {
+                if (CopyLoops[i].MirrorPair < 0) {
+                    // if this is a secondary loop, cel collection has to 
+                    // be set to same as primary
+                    CopyLoops[i].mCelCol = CopyLoops[CopyLoops[i].MirrorLoop].mCelCol;
+                }
+            }
             return CopyLoops;
-            // TODO: need to confirm loops and cels clone correctly
         }
 
         /// <summary>
@@ -178,7 +181,7 @@ namespace WinAGI.Engine {
             mLoopCol = [];
             for (int i = 0; i < SourceLoops.mLoopCol.Count; i++) {
                 mLoopCol.Add(new Loop(mParent));
-                mLoopCol[i].CloneFrom(SourceLoops[i]);
+                mLoopCol[i].SetLoop(SourceLoops[i]);
             }
         }
         #endregion

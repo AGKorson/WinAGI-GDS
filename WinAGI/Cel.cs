@@ -11,6 +11,7 @@ namespace WinAGI.Engine {
     /// <summary>
     /// A class that represents a single cel in an AGI View resource.
     /// </summary>
+    [Serializable]
     public class Cel {
         #region Local Members
         internal byte mWidth;
@@ -31,12 +32,13 @@ namespace WinAGI.Engine {
         /// <summary>
         /// mSetMirror is true if cel is supposed to show the mirror.
         /// </summary>
-        bool mSetMirror;
+        internal bool mSetMirror;
         /// <summary>
         /// mMirrored is true if the cel IS showing the mirror.
         /// </summary>
-        bool mMirrored;
-        readonly View parentview;
+        internal bool mMirrored;
+        [NonSerialized]
+        internal readonly View parentview;
         internal EGAColors mPalette;
         #endregion
 
@@ -51,7 +53,7 @@ namespace WinAGI.Engine {
             mCelData[0,0] = (byte)Black;
             mWidth = 1;
             mHeight = 1;
-            mPalette = defaultPalette.CopyPalette();
+            mPalette = defaultPalette.Clone();
         }
 
         /// <summary>
@@ -68,7 +70,7 @@ namespace WinAGI.Engine {
             parentview = parent;
             // assign default palette (for cels not attached to
             // a view)
-            mPalette = defaultPalette.CopyPalette();
+            mPalette = defaultPalette.Clone();
         }
         #endregion
 
@@ -108,13 +110,14 @@ namespace WinAGI.Engine {
                 }
                 // check mirror state
                 if (mSetMirror) {
-                    // if mirrored, reverse x direction
+                    // if this is the mirrored cel, reverse x direction
                     mCelData[mWidth - 1 - xPos, yPos] = value;
                 }
                 else {
                     mCelData[xPos, yPos] = value;
                 }
                 mCelChanged = true;
+                // if loop is mirrored, let other loop know about the change
                 if (parentview is not null) {
                     parentview.mViewChanged = true;
                 }
@@ -196,7 +199,7 @@ namespace WinAGI.Engine {
                     // can't easily resize multidimensional arrays, so 
                     // make a new array, copy desired data over
                     tmpData = new byte[value, mHeight];
-                    for (i = 0; i < mWidth; i++) {
+                    for (i = 0; i < value; i++) {
                         for (j = 0; j < mHeight; j++) {
                             if (i >= mWidth) {
                                 tmpData[i, j] = (byte)mTransColor;
@@ -370,7 +373,7 @@ namespace WinAGI.Engine {
             }
             set {
                 if (parentview == null) {
-                    mPalette = value.CopyPalette();
+                    mPalette = value.Clone();
                 }
             }
         }
@@ -380,17 +383,19 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Clears the bitmap for this cel to a null value.
         /// </summary>
-        void ClearBMP() {
+        private void ClearBMP() {
             mCelBMP = null;
             blnCelBMPSet = false;
         }
 
         /// <summary>
-        /// Creates an exact copy of this Cel.
+        /// Creates an exact copy of this Cel with the specified
+        /// view parent. Use null for parent if the cloned cel
+        /// will not be part of a view.
         /// </summary>
         /// <param name="cloneparent"></param>
         /// <returns>The Cel this method creates.</returns>
-        public Cel Clone(View cloneparent) {
+        public Cel Clone(View cloneparent = null) {
             Cel CopyCel = new(cloneparent) {
                 mWidth = mWidth,
                 mHeight = mHeight,
@@ -405,11 +410,11 @@ namespace WinAGI.Engine {
             };
             if (parentview != null) {
                 // copy parent colors
-                CopyCel.mPalette = parentview.Palette.CopyPalette();
+                CopyCel.mPalette = parentview.Palette.Clone();
             }
             else {
                 // copy view colors
-                CopyCel.mPalette = mPalette.CopyPalette();
+                CopyCel.mPalette = mPalette.Clone();
             }
             if (mCelBMP is null) {
                 CopyCel.mCelBMP = null;
@@ -435,7 +440,7 @@ namespace WinAGI.Engine {
             blnCelBMPSet = SourceCel.blnCelBMPSet;
             mTransparency = SourceCel.mTransparency;
             mCelChanged = SourceCel.mCelChanged;
-            mPalette = SourceCel.mPalette.CopyPalette();
+            mPalette = SourceCel.mPalette.Clone();
             if (SourceCel.mCelBMP is null) {
                 mCelBMP = null;
             }
@@ -451,36 +456,6 @@ namespace WinAGI.Engine {
         public void ResetBMP() {
             blnCelBMPSet = false;
         }
-
-        ///// <summary>
-        ///// This cel is set to a copy of the specified cel by copying all its data
-        ///// elements.
-        ///// </summary>
-        ///// <param name="SourceCel"></param>
-        //public void SetCel(Cel SourceCel) {
-        //    int i, j;
-        //    AGIColorIndex tmpColor;
-
-        //    mWidth = SourceCel.Width;
-        //    mHeight = SourceCel.Height;
-        //    mTransColor = SourceCel.TransColor;
-        //    AllCelData = SourceCel.AllCelData;
-        //    if (mSetMirror) {
-        //        // need to transpose data
-        //        for (i = 0; i < mWidth / 2; i++) {
-        //            for (j = 0; j < mHeight; j++) {
-        //                // swap horizontally
-        //                tmpColor = (AGIColorIndex)mCelData[mWidth - 1 - i, j];
-        //                mCelData[mWidth - 1 - i, j] = mCelData[i, j];
-        //                mCelData[i, j] = (byte)tmpColor;
-        //            }
-        //        }
-        //    }
-        //    if (mParent is not null) {
-        //        mParent.IsChanged = true;
-        //    }
-        //    mCelChanged = true;
-        //}
 
         /// <summary>
         /// This method flips the cel data in this cel horizontally.

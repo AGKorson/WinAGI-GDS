@@ -260,7 +260,6 @@ namespace WinAGI.Editor {
             lstGroups.Name = "lstGroups";
             lstGroups.Size = new System.Drawing.Size(331, 266);
             lstGroups.TabIndex = 7;
-            lstGroups.SelectedIndexChanged += lstGroups_SelectedIndexChanged;
             lstGroups.DragDrop += lstGroups_DragDrop;
             lstGroups.DragEnter += lstGroups_DragEnter;
             lstGroups.DragOver += lstGroups_DragOver;
@@ -442,7 +441,7 @@ namespace WinAGI.Editor {
             tbbUndo.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             tbbUndo.Enabled = false;
             tbbUndo.Image = (System.Drawing.Image)resources.GetObject("tbbUndo.Image");
-            tbbUndo.ImageTransparentColor = System.Drawing.Color.Magenta;
+            tbbUndo.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
             tbbUndo.Name = "tbbUndo";
             tbbUndo.Size = new System.Drawing.Size(23, 22);
             tbbUndo.ToolTipText = "Undo";
@@ -462,7 +461,7 @@ namespace WinAGI.Editor {
             // 
             tbbCut.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             tbbCut.Image = (System.Drawing.Image)resources.GetObject("tbbCut.Image");
-            tbbCut.ImageTransparentColor = System.Drawing.Color.Magenta;
+            tbbCut.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
             tbbCut.Name = "tbbCut";
             tbbCut.Size = new System.Drawing.Size(23, 22);
             tbbCut.ToolTipText = "Cut";
@@ -472,7 +471,7 @@ namespace WinAGI.Editor {
             // 
             tbbCopy.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             tbbCopy.Image = (System.Drawing.Image)resources.GetObject("tbbCopy.Image");
-            tbbCopy.ImageTransparentColor = System.Drawing.Color.Magenta;
+            tbbCopy.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
             tbbCopy.Name = "tbbCopy";
             tbbCopy.Size = new System.Drawing.Size(23, 22);
             tbbCopy.ToolTipText = "Copy";
@@ -482,7 +481,7 @@ namespace WinAGI.Editor {
             // 
             tbbPaste.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             tbbPaste.Image = (System.Drawing.Image)resources.GetObject("tbbPaste.Image");
-            tbbPaste.ImageTransparentColor = System.Drawing.Color.Magenta;
+            tbbPaste.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
             tbbPaste.Name = "tbbPaste";
             tbbPaste.Size = new System.Drawing.Size(23, 22);
             tbbPaste.ToolTipText = "Paste";
@@ -492,7 +491,7 @@ namespace WinAGI.Editor {
             // 
             tbbDelete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             tbbDelete.Image = (System.Drawing.Image)resources.GetObject("tbbDelete.Image");
-            tbbDelete.ImageTransparentColor = System.Drawing.Color.Magenta;
+            tbbDelete.ImageTransparentColor = System.Drawing.SystemColors.ButtonFace;
             tbbDelete.Name = "tbbDelete";
             tbbDelete.Size = new System.Drawing.Size(23, 22);
             tbbDelete.ToolTipText = "Delete";

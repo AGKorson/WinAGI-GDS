@@ -38,7 +38,7 @@ namespace WinAGI.Editor {
         Engine.View agView;
         int CurLoop, CurCel;
         int CelFrameW, CelFrameH;
-        double ViewScale;
+        public double ViewScale;
         bool blnDraggingView;
         int lngVAlign, lngHAlign;
         bool blnTrans = false;
@@ -74,23 +74,7 @@ namespace WinAGI.Editor {
             fraPCorner.Left = vsbPic.Left;
             fraPCorner.Height = hsbPic.Height;
             fraPCorner.Top = hsbPic.Top;
-            PicScale = WinAGISettings.PicScalePreview.Value;
-            double scale = PicScale;
-            if (scale <= 3) {
-                scale = (int)(scale * 4) / 0.04;
-            }
-            else {
-                scale = (int)(scale * 2) / 0.02;
-            }
-            for (int i = 0; i < udPZoom.Items.Count; i++) {
-                if (scale.ToString() == ((string)udPZoom.Items[i])[..^1]) {
-                    udPZoom.SelectedIndex = i;
-                    break;
-                }
-            }
-            if (udPZoom.SelectedIndex == -1) {
-                udPZoom.SelectedIndex = 0;
-            }
+            SetPictureScale();
             // sound controls
             cmbInst[0] = cmbInst0;
             cmbInst[1] = cmbInst1;
@@ -119,15 +103,8 @@ namespace WinAGI.Editor {
             fraVCorner.Height = hsbView.Height;
             fraVCorner.Top = hsbView.Top;
             lngVAlign = 2;
-            ViewScale = WinAGISettings.ViewScalePreview.Value;
-            scale = ViewScale * 100;
-            if (scale <= 3) {
-                scale = (int)(scale * 4) / 4;
-            }
-            else {
-                scale = (int)(scale * 2) / 2;
-            }
-            tsbViewScale.Text = (scale * 100).ToString() + "%";
+            SetViewScale();
+
             cmbMotion.SelectedIndex = 0;
             sldSpeed.Value = 5;
             hsbView.Minimum = -PW_MARGIN;
@@ -903,7 +880,7 @@ namespace WinAGI.Editor {
 
         private void picCel_DoubleClick(object sender, EventArgs e) {
             // open view for editing
-            OpenGameView((byte)SelResNum);
+            OpenGameView((byte)SelResNum, false, CurLoop, CurCel);
         }
 
         private void picCel_MouseDown(object sender, MouseEventArgs e) {
@@ -1073,7 +1050,6 @@ namespace WinAGI.Editor {
         }
 
         #endregion
-
         #endregion
 
         #region Form Methods
@@ -1083,6 +1059,7 @@ namespace WinAGI.Editor {
             spNumLock = MDIMain.spNumLock;
             spInsLock = MDIMain.spInsLock;
         }
+
         private void PositionPreview() {
             int sngLeft, sngTop;
             int sngWidth, sngHeight;
@@ -1489,7 +1466,9 @@ namespace WinAGI.Editor {
         #region Preview Logic Methods
         bool PreviewLogic(byte LogNum) {
             agLogic = EditGame.Logics[LogNum];
-            agLogic.Load();
+            if (!agLogic.Loaded) {
+                agLogic.Load();
+            }
             // check for errors
             if (agLogic.SrcErrLevel < 0) {
                 // logics are different - only source error will
@@ -1497,7 +1476,10 @@ namespace WinAGI.Editor {
                 return false;
             }
             // get the source code
-            rtfLogPrev.Text = agLogic.CodePage.GetString(agLogic.CodePage.GetBytes(agLogic.SourceText));
+            // to ensure any non-supported characters for the current codepage
+            // are converted to '?', we need to convert the text to bytes, then 
+            // back to text
+            rtfLogPrev.Text = Encoding.GetEncoding(agLogic.CodePage).GetString(Encoding.GetEncoding(agLogic.CodePage).GetBytes(agLogic.SourceText));
             //rtfLogPrev.Text = agLogic.SourceText;
             rtfLogPrev.DoCaretVisible();
             // set background
@@ -1509,9 +1491,10 @@ namespace WinAGI.Editor {
 
         #region Preview Picture Methods
         bool PreviewPic(byte PicNum) {
-            //get the picture
             agPic = EditGame.Pictures[PicNum];
-            agPic.Load();
+            if (!agPic.Loaded) {
+                agPic.Load();
+            }
             // check for errors
             if (agPic.ErrLevel < 0) {
                 agPic.Unload();
@@ -1664,16 +1647,36 @@ namespace WinAGI.Editor {
             agPic.Load();
             DisplayPicture();
         }
+
+        public void SetPictureScale() {
+            PicScale = WinAGISettings.PicScalePreview.Value;
+            double scale = PicScale;
+            if (scale <= 3) {
+                scale = (int)(scale * 4) / 0.04;
+            }
+            else {
+                scale = (int)(scale * 2) / 0.02;
+            }
+            for (int i = 0; i < udPZoom.Items.Count; i++) {
+                if (scale.ToString() == ((string)udPZoom.Items[i])[..^1]) {
+                    udPZoom.SelectedIndex = i;
+                    break;
+                }
+            }
+            if (udPZoom.SelectedIndex == -1) {
+                udPZoom.SelectedIndex = 0;
+            }
+        }
         #endregion
 
         #region PreviewSound Methods
         bool PreviewSound(byte SndNum) {
             int i;
 
-            //get new sound
             agSound = EditGame.Sounds[SndNum];
-            // load the resource
-            agSound.Load();
+            if (!agSound.Loaded) {
+                agSound.Load();
+            }
             // check for errors
             if (agSound.ErrLevel < 0) {
                 agSound.Unload();
@@ -1746,9 +1749,10 @@ namespace WinAGI.Editor {
 
         #region Preview View Methods
         bool PreviewView(byte ViewNum) {
-            //load resource for this view
             agView = EditGame.Views[ViewNum];
-            agView.Load();
+            if (!agView.Loaded) {
+                agView.Load();
+            }
             // check for errors
             if (agView.ErrLevel < 0) {
                 agView.Unload();
@@ -1812,34 +1816,41 @@ namespace WinAGI.Editor {
             udLoop.Text = $"Loop {CurLoop} / {agView.Loops.Count - 1}";
             // reset cel
             CurCel = 0;
-            udCel.Text = "Cel 0 / " + (agView[CurLoop].Cels.Count - 1);
+            if (agView[CurLoop].Cels.Count > 0) {
+                udCel.Text = "Cel 0 / " + (agView[CurLoop].Cels.Count - 1);
+            }
+            else {
+                udCel.Text = "Cel - / -";
+            }
             // enable play/stop if more than one cel
-            cmdVPlay.Enabled = (agView[CurLoop].Cels.Count > 1);
+            cmdVPlay.Enabled = agView[CurLoop].Cels.Count > 1;
             cmdVPlay.BackgroundImage = imageList1.Images[8];
             // determine size of holding pic
             CelFrameW = 0;
             CelFrameH = 0;
             for (int i = 0; i <= agView[CurLoop].Cels.Count - 1; i++) {
-                if (agView[CurLoop].Cels[i].Width > CelFrameW) {
-                    CelFrameW = agView.Loops[CurLoop].Cels[i].Width;
+                if (agView[CurLoop][i].Width > CelFrameW) {
+                    CelFrameW = agView[CurLoop][i].Width;
                 }
-                if (agView.Loops[CurLoop].Cels[i].Height > CelFrameH) {
-                    CelFrameH = agView.Loops[CurLoop].Cels[i].Height;
+                if (agView[CurLoop][i].Height > CelFrameH) {
+                    CelFrameH = agView[CurLoop][i].Height;
                 }
             }
             // old image needs to be cleared to avoid ghost images
             // when resizing the cel image
             picCel.Image = new Bitmap(picCel.Width, picCel.Height);
             picCel.Refresh();
-            picCel.Width = (int)(CelFrameW * 2 * ViewScale);
-            picCel.Height = (int)(CelFrameH * ViewScale);
-            //force back to upper, left
-            picCel.Top = PW_MARGIN;
-            picCel.Left = PW_MARGIN;
+            if (CelFrameW > 0 && CelFrameH > 0) {
+                picCel.Width = (int)(CelFrameW * 2 * ViewScale);
+                picCel.Height = (int)(CelFrameH * ViewScale);
+                //force back to upper, left
+                picCel.Top = PW_MARGIN;
+                picCel.Left = PW_MARGIN;
 
-            //set scroll bars everytime loop is changed
-            SetVScrollbars();
-            DisplayCel();
+                //set scroll bars everytime loop is changed
+                SetVScrollbars();
+                DisplayCel();
+            }
         }
 
         void SetVScrollbars() {
@@ -1931,69 +1942,78 @@ namespace WinAGI.Editor {
             //from CurLoop.CurCel into the view Image box,
             //and resizes it to be correct size
             int tgtX = 0, tgtY = 0, tgtH, tgtW;
-            // update ud caption
-            udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
-            //set transparent color for the toolbox image
-            picTrans.BackColor = EditGame.Palette[(int)agView[CurLoop][CurCel].TransColor];
 
-            //copy view Image
-            tgtW = (int)(agView[CurLoop][CurCel].Width * 2 * ViewScale);
-            tgtH = (int)(agView[CurLoop][CurCel].Height * ViewScale);
-            switch (lngHAlign) {
-            case 0:
-                tgtX = 0;
-                break;
-            case 1:
-                tgtX = (picCel.Width - tgtW) / 2;
-                break;
-            case 2:
-                tgtX = picCel.Width - tgtW;
-                break;
+            // rare, but check for case of no cels in this loop
+            if (agView[CurLoop][CurCel] == null) {
+                udCel.Text = "Cel - / -";
+                picTrans.BackColor = Color.Transparent;
+                picCel.Visible = false;
             }
-            switch (lngVAlign) {
-            case 0:
-                tgtY = 0;
-                break;
-            case 1:
-                tgtY = (picCel.Height - tgtH) / 2;
-                break;
-            case 2:
-                tgtY = picCel.Height - tgtH;
-                break;
-            }
-            // set transparency
-            agView[CurLoop][CurCel].Transparency = blnTrans;
+            else {
+                // update ud caption
+                udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
+                //set transparent color for the toolbox image
+                picTrans.BackColor = EditGame.Palette[(int)agView[CurLoop][CurCel].TransColor];
+                picCel.Visible = true;
+                //copy view Image
+                tgtW = (int)(agView[CurLoop][CurCel].Width * 2 * ViewScale);
+                tgtH = (int)(agView[CurLoop][CurCel].Height * ViewScale);
+                switch (lngHAlign) {
+                case 0:
+                    tgtX = 0;
+                    break;
+                case 1:
+                    tgtX = (picCel.Width - tgtW) / 2;
+                    break;
+                case 2:
+                    tgtX = picCel.Width - tgtW;
+                    break;
+                }
+                switch (lngVAlign) {
+                case 0:
+                    tgtY = 0;
+                    break;
+                case 1:
+                    tgtY = (picCel.Height - tgtH) / 2;
+                    break;
+                case 2:
+                    tgtY = picCel.Height - tgtH;
+                    break;
+                }
+                // set transparency
+                agView[CurLoop][CurCel].Transparency = blnTrans;
 
-            /*------------------------------------------------------------*/
-            // this, along with related mod to ShowAGIBitmap, does not work
-            // right-it creates very bad flicker - I can't find a way to
-            // stop the flickering
-            /*------------------------------------------------------------*/
-            /*
-            picCel.CreateGraphics().Clear(picCel.BackColor);
-            if (blnTrans) {
-                DrawTransGrid(picCel, 0, 0);
-            }
-            ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
-            */
+                /*------------------------------------------------------------*/
+                // this, along with related mod to ShowAGIBitmap, does not work
+                // right-it creates very bad flicker - I can't find a way to
+                // stop the flickering
+                /*------------------------------------------------------------*/
+                /*
+                picCel.CreateGraphics().Clear(picCel.BackColor);
+                if (blnTrans) {
+                    DrawTransGrid(picCel, 0, 0);
+                }
+                ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
+                */
 
-            /*------------------------------------------------------------*/
-            /* this method works with no flicker at all:                  */
-            /*------------------------------------------------------------*/
-            // create new image in the picture box that is desired size
-            picCel.Image = new Bitmap(picCel.Width, picCel.Height);
-            ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
-            if (blnTrans) {
-                // TODO: there's a reference to drawing a grid somewhere
-                // in the custom control used on the InsertChar form...
-                //
-                // draw single pixel dots spaced 10 pixels apart over transparent pixels only
-                using Graphics gc = Graphics.FromImage(picCel.Image);
-                Bitmap b = new(picCel.Image);
-                for (int i = 0; i < picCel.Width; i += 10) {
-                    for (int j = 0; j < picCel.Height; j += 10) {
-                        if (b.GetPixel(i, j).ToArgb() == picCel.BackColor.ToArgb()) {
-                            gc.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
+                /*------------------------------------------------------------*/
+                /* this method works with no flicker at all:                  */
+                /*------------------------------------------------------------*/
+                // create new image in the picture box that is desired size
+                picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+                ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
+                if (blnTrans) {
+                    // TODO: there's a reference to drawing a grid somewhere
+                    // in the custom control used on the InsertChar form...
+                    //
+                    // draw single pixel dots spaced 10 pixels apart over transparent pixels only
+                    using Graphics gc = Graphics.FromImage(picCel.Image);
+                    Bitmap b = new(picCel.Image);
+                    for (int i = 0; i < picCel.Width; i += 10) {
+                        for (int j = 0; j < picCel.Height; j += 10) {
+                            if (b.GetPixel(i, j).ToArgb() == picCel.BackColor.ToArgb()) {
+                                gc.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
+                            }
                         }
                     }
                 }
@@ -2001,6 +2021,7 @@ namespace WinAGI.Editor {
             /*------------------------------------------------------------*/
             return true;
         }
+        
         public void RefreshView() {
             if (agView == null) {
                 return;
@@ -2009,6 +2030,18 @@ namespace WinAGI.Editor {
             agView.Unload();
             agView.Load();
             DisplayCel();
+        }
+
+        public void SetViewScale() {
+            ViewScale = WinAGISettings.ViewScalePreview.Value;
+            double scale = ViewScale * 100;
+            if (scale <= 3) {
+                scale = (int)(scale * 4) / 4;
+            }
+            else {
+                scale = (int)(scale * 2) / 2;
+            }
+            tsbViewScale.Text = scale.ToString() + "%";
         }
         #endregion
     }

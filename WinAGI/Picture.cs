@@ -218,14 +218,14 @@ namespace WinAGI.Engine {
         public byte PriBase {
             get {
                 // if before v2.936, always return value of 48
-                if (parent is not null && int.Parse(parent.agIntVersion) < 2.936) {
+                if (parent is not null && Array.IndexOf(IntVersions, parent.InterpreterVersion) < 13) {
                     mPriBase = 48;
                 }
                 return mPriBase;
             }
             set {
                 // if before v2.936, it's always 48
-                if (parent is not null && int.Parse(parent.agIntVersion) < 2.936) {
+                if (parent is not null && Array.IndexOf(IntVersions, parent.InterpreterVersion) < 13) {
                     mPriBase = 48;
                 }
                 //max value is 158
@@ -340,7 +340,7 @@ namespace WinAGI.Engine {
             }
             set {
                 if (!mInGame) {
-                    mPalette = value.CopyPalette();
+                    mPalette = value.Clone();
                 }
             }
         }
@@ -379,7 +379,7 @@ namespace WinAGI.Engine {
                 // bitmaps always need to be rebuilt
                 mPicBMPSet = false;
             }
-            mPalette = defaultPalette.CopyPalette();
+            mPalette = defaultPalette.Clone();
         }
 
         /// <summary>
@@ -403,11 +403,11 @@ namespace WinAGI.Engine {
             CopyPicture.mPriData = mPriData;
             if (parent != null) {
                 // copy parent colors
-                CopyPicture.mPalette = parent.Palette.CopyPalette();
+                CopyPicture.mPalette = parent.Palette.Clone();
             }
             else {
                 // copy picture colors
-                CopyPicture.mPalette = mPalette.CopyPalette();
+                CopyPicture.mPalette = mPalette.Clone();
             }
             CopyPicture.ErrLevel = ErrLevel;
             // bitmaps always need to be rebuilt
@@ -438,11 +438,11 @@ namespace WinAGI.Engine {
             mPriData = SourcePicture.mPriData;
             if (SourcePicture.parent != null) {
                 // copy parent colors
-                mPalette = SourcePicture.parent.Palette.CopyPalette();
+                mPalette = SourcePicture.parent.Palette.Clone();
             }
             else {
                 // copy picture colors
-                mPalette = SourcePicture.mPalette.CopyPalette();
+                mPalette = SourcePicture.mPalette.Clone();
             }
             ErrLevel = SourcePicture.ErrLevel;
             // bitmaps always need to be rebuilt

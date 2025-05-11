@@ -288,7 +288,7 @@ namespace WinAGI.Engine {
         public string Line = "";                 // line number for comp/decomp errors and warnings
         public string Module = "";               // module filename, if comp error occurs in an #include file or resID
         public string Filename = "";             // full name of file, including path, if an include file
-        public int Data = 0;                    // number field used for various data purposes
+        public object Data;                      // generic field used for various data purposes
         public TWinAGIEventInfo() {
 
         }
@@ -355,7 +355,7 @@ namespace WinAGI.Engine {
         internal static string agDefResDir = DEFRESDIR;
         internal static int defMaxVol0 = MAX_VOLSIZE;
         internal static byte defMaxSO = 16;
-        internal static Encoding defCodePage;
+        internal static int defCodePage = 437;
         internal static readonly int[] validcodepages = [437, 737, 775, 850, 852, 855, 857, 858, 860, 861, 862, 863, 865, 866, 869];
         public static ReservedDefineList DefaultReservedDefines;
         #endregion
@@ -369,7 +369,6 @@ namespace WinAGI.Engine {
             // TODO: why aren't these in InitWinAGI?
             // this makes the codepages used in WinAGI available
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            defCodePage = Encoding.GetEncoding(437);
             bytEncryptKey = Encoding.GetEncoding(437).GetBytes("Avis Durgan");
             InitWinAGI();
         }
@@ -381,7 +380,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public static EGAColors DefaultPalette {
             get { return defaultPalette; }
-            internal set { defaultPalette = value.CopyPalette(); }
+            internal set { defaultPalette = value.Clone(); }
         }
 
         /// <summary>
@@ -437,12 +436,12 @@ namespace WinAGI.Engine {
             }
         }
 
-        public static Encoding CodePage {
+        public static int CodePage {
             get => defCodePage;
             set {
                 // confirm new codepage is supported; error if it is not
-                if (validcodepages.Contains(value.CodePage)) {
-                    defCodePage = Encoding.GetEncoding(value.CodePage);
+                if (validcodepages.Contains(value)) {
+                    defCodePage = value;
                 }
                 else {
                     throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");

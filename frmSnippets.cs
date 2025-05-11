@@ -263,10 +263,10 @@ namespace WinAGI.Editor {
         private void mnuECharMap_Click(object sender, EventArgs e) {
             int codepage;
             if (EditGame != null) {
-                codepage = EditGame.CodePage.CodePage;
+                codepage = EditGame.CodePage;
             }
             else {
-                codepage = CodePage.CodePage;
+                codepage = CodePage;
             }
             frmCharPicker CharPicker = new(codepage);
             CharPicker.ShowDialog(MDIMain);

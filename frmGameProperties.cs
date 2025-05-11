@@ -41,25 +41,9 @@ namespace WinAGI.Editor {
             cmbCodePage.Items.Add("869 - Greek");
 
             // load versions
-            cmbVersion.Items.Add("2.089");
-            cmbVersion.Items.Add("2.272");
-            cmbVersion.Items.Add("2.411");
-            cmbVersion.Items.Add("2.425");
-            cmbVersion.Items.Add("2.426");
-            cmbVersion.Items.Add("2.435");
-            cmbVersion.Items.Add("2.439");
-            cmbVersion.Items.Add("2.440");
-            cmbVersion.Items.Add("2.903");
-            cmbVersion.Items.Add("2.911");
-            cmbVersion.Items.Add("2.912");
-            cmbVersion.Items.Add("2.915");
-            cmbVersion.Items.Add("2.917");
-            cmbVersion.Items.Add("2.936");
-            cmbVersion.Items.Add("3.002086");
-            cmbVersion.Items.Add("3.002098");
-            cmbVersion.Items.Add("3.002102");
-            cmbVersion.Items.Add("3.002107");
-            cmbVersion.Items.Add("3.002149");
+            for (int i = 0; i < Engine.Base.IntVersions.Length; i++) {
+                cmbVersion.Items.Add(Engine.Base.IntVersions[i]);
+            }
 
             // make sure form uses same font settings as the text boxes
             this.Font = txtGameDir.Font;
@@ -602,12 +586,12 @@ namespace WinAGI.Editor {
 
                 // code page
                 for (int i = 0; i < cmbCodePage.Items.Count; i++) {
-                    if (((string)cmbCodePage.Items[i])[..3] == EditGame.CodePage.CodePage.ToString()) {
+                    if (((string)cmbCodePage.Items[i])[..3] == EditGame.CodePage.ToString()) {
                         cmbCodePage.SelectedIndex = i;
                         break;
                     }
                 }
-                NewCodePage = EditGame.CodePage.CodePage;
+                NewCodePage = EditGame.CodePage;
 
                 // sierra syntax option
                 if (EditGame.SierraSyntax) {
@@ -664,12 +648,12 @@ namespace WinAGI.Editor {
                 }
                 // code page starts at default
                 for (int i = 0; i < cmbCodePage.Items.Count; i++) {
-                    if (int.Parse(((string)cmbCodePage.Items[i])[..3]) == Engine.Base.CodePage.CodePage) {
+                    if (int.Parse(((string)cmbCodePage.Items[i])[..3]) == Engine.Base.CodePage) {
                         cmbCodePage.SelectedIndex = i;
                         break;
                     }
                 }
-                NewCodePage = Engine.Base.CodePage.CodePage;
+                NewCodePage = Engine.Base.CodePage;
                 // sierra syntax is off by default
                 chkSierraSyntax.Checked = false;
 
@@ -685,11 +669,16 @@ namespace WinAGI.Editor {
             // get a platform executable that will run a game
             if (NewPlatformFile.Length == 0) {
                 MDIMain.OpenDlg.FileName = "";
-                MDIMain.OpenDlg.InitialDirectory = EditGame.GameDir;
+                if (EditGame != null) {
+                    MDIMain.OpenDlg.InitialDirectory = EditGame.GameDir;
+                }
+                else {
+                    MDIMain.OpenDlg.InitialDirectory = BrowserStartDir;
+                }
             }
             else {
                 MDIMain.OpenDlg.FileName = Path.GetFileName(NewPlatformFile);
-                MDIMain.OpenDlg.InitialDirectory = Path.GetDirectoryName(EditGame.GameDir);
+                MDIMain.OpenDlg.InitialDirectory = Path.GetDirectoryName(NewPlatformFile);
             }
             MDIMain.OpenDlg.Title = "Choose Platform Application";
             MDIMain.OpenDlg.ShowReadOnly = false;

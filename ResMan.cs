@@ -78,12 +78,6 @@ namespace WinAGI.Editor {
         public const string sEXPFILTER = "ExportFilter";
 
         //other app level constants
-        internal static int PropRowHeight;
-        internal static int PropPanelMaxSize;
-        public static Color LtGray = Color.FromArgb(0xC0, 0xC0, 0xC0);
-        public static Color DkGray = Color.FromArgb(0x80, 0x80, 0x80);
-        public static Color PropGray = Color.FromArgb(0xEC, 0xE9, 0xD8);
-        public static Color SelBlue = Color.FromArgb(0x31, 0x6A, 0xC5);
         public const double LG_SCROLL = 0.9; //0.8
         public const double SM_SCROLL = 0.225; //0.2
 
@@ -197,10 +191,12 @@ namespace WinAGI.Editor {
             New,
         }
         public enum ViewEditMode {
-            Bitmap,
             View,
             Loop,
+            EndLoop,
             Cel,
+            EndCel,
+            Selection,
         }
         public enum LogicFormMode {
             Logic,
@@ -624,7 +620,7 @@ namespace WinAGI.Editor {
             // SplitWindow: 
             public SettingBool SplitWindow = new(nameof(SplitWindow), true, sPICTURES);
             // PicScalePreview: 
-            public SettingDouble PicScalePreview = new("PreviewScale", 1, sPICTURES);
+            public SettingFloat PicScalePreview = new("PreviewScale", 1, sPICTURES);
             // PicScaleEdit: 
             public SettingFloat PicScaleEdit = new("EditorScale", 2, sPICTURES);
             // CursorMode (as int; conert to enum as needed): 
@@ -658,15 +654,15 @@ namespace WinAGI.Editor {
             // ViewAlignH: 
             public SettingInt ViewAlignH = new(nameof(ViewAlignH), 0, sVIEWS);
             // ViewAlignV: 
-            public SettingInt ViewAlignV = new(nameof(ViewAlignV), 0, sVIEWS);
+            public SettingInt ViewAlignV = new(nameof(ViewAlignV), 2, sVIEWS);
             // DefCelH: 
             public SettingByte DefCelH = new(nameof(DefCelH), 32, sVIEWS);
             // DefCelW: 
             public SettingByte DefCelW = new(nameof(DefCelW), 16, sVIEWS);
             // ViewScalePreview: 
-            public SettingDouble ViewScalePreview = new("PreviewScale", 3, sVIEWS);
+            public SettingFloat ViewScalePreview = new("PreviewScale", 3, sVIEWS);
             // ViewScaleEdit: 
-            public SettingInt ViewScaleEdit = new("EditScale", 6, sVIEWS);
+            public SettingFloat ViewScaleEdit = new("EditScale", 6, sVIEWS);
             // DefVColor1: 
             public SettingInt DefVColor1 = new("Color1", 0, sVIEWS);
             // DefVColor2: 
@@ -1072,11 +1068,6 @@ namespace WinAGI.Editor {
         //mru variables
         public static string[] strMRU = ["", "", "", ""];
         //clipboard variables
-        public static Notes SoundClipboard;
-        public static int SoundCBMode;
-        public static Loop ClipViewLoop;
-        public static Cel ClipViewCel;
-        public static ViewEditMode ViewCBMode;
         public const string PICTURE_CB_FMT = "WinAGIPictureData";
         public const string SOUND_CB_FMT = "WinAGISoundData";
         public const string VIEW_CB_FMT = "WinAGIViewData";
@@ -1296,11 +1287,11 @@ namespace WinAGI.Editor {
             bytData[5] = 97;
             //determine size of logical screen by checking size of each cel in loop, and using Max of h/w
             for (i = 0; i < GifLoop.Cels.Count; i++) {
-                if (GifLoop.Cels[i].Height > MaxH) {
-                    MaxH = GifLoop.Cels[i].Height;
+                if (GifLoop[i].Height > MaxH) {
+                    MaxH = GifLoop[i].Height;
                 }
-                if (GifLoop.Cels[i].Width > MaxW) {
-                    MaxW = GifLoop.Cels[i].Width;
+                if (GifLoop[i].Width > MaxW) {
+                    MaxW = GifLoop[i].Width;
                 }
             }
             //add logical screen size info
@@ -1376,7 +1367,7 @@ namespace WinAGI.Editor {
                 bytData[lngPos++] = (byte)(GifOps.Delay & 0xFF);
                 bytData[lngPos++] = (byte)((GifOps.Delay & 0xFF) >> 8);
                 if (GifOps.Transparency) {
-                    bytData[lngPos++] = (byte)GifLoop.Cels[i].TransColor;
+                    bytData[lngPos++] = (byte)GifLoop[i].TransColor;
                 }
                 else {
                     bytData[lngPos++] = 0;
@@ -1386,11 +1377,11 @@ namespace WinAGI.Editor {
                 //then compress the cell data, break it into 255 byte chunks,
                 //and add the chunks to the output
                 //determine pad values
-                celH = GifLoop.Cels[i].Height;
-                celW = GifLoop.Cels[i].Width;
+                celH = GifLoop[i].Height;
+                celW = GifLoop[i].Width;
                 hPad = (byte)(MaxH - celH);
                 wPad = (byte)(MaxW - celW);
-                bytTrans = (byte)GifLoop.Cels[i].TransColor;
+                bytTrans = (byte)GifLoop[i].TransColor;
                 lngCelPos = 0;
 
                 for (hVal = 0; hVal < MaxH; hVal++) {
@@ -1424,7 +1415,7 @@ namespace WinAGI.Editor {
                                             pY = hVal;
                                         }
                                         //use the actual pixel (adjusted for padding, if aligned to bottom or left)
-                                        bytCelData[lngCelPos++] = (byte)GifLoop.Cels[i][pX, pY];
+                                        bytCelData[lngCelPos++] = (byte)GifLoop[i][pX, pY];
                                     }
                                 }
                             }
@@ -4006,13 +3997,13 @@ namespace WinAGI.Editor {
                             strErrMsg = "Resource ID cannot be numeric.";
                             break;
                         case DefineNameCheck.ActionCommand:
-                            strErrMsg = "'" + frmeditprop.txtID.Text + "' is an AGI command, and cannot be used as a resource ID.";
+                            strErrMsg = "'" + frmeditprop.NewID + "' is an AGI command, and cannot be used as a resource ID.";
                             break;
                         case DefineNameCheck.TestCommand:
-                            strErrMsg = "'" + frmeditprop.txtID.Text + "' is an AGI test command, and cannot be used as a resource ID.";
+                            strErrMsg = "'" + frmeditprop.NewID + "' is an AGI test command, and cannot be used as a resource ID.";
                             break;
                         case DefineNameCheck.KeyWord:
-                            strErrMsg = "'" + frmeditprop.txtID.Text + "' is a compiler reserved word, and cannot be used as a resource ID.";
+                            strErrMsg = "'" + frmeditprop.NewID + "' is a compiler reserved word, and cannot be used as a resource ID.";
                             break;
                         case DefineNameCheck.ArgMarker:
                             strErrMsg = "Resource IDs cannot be argument markers";
@@ -4023,7 +4014,7 @@ namespace WinAGI.Editor {
                         case DefineNameCheck.ResourceID:
                             // only enforce if in a game
                             if (InGame) {
-                                strErrMsg = "'" + frmeditprop.txtID.Text + "' is already in use as a resource ID.";
+                                strErrMsg = "'" + frmeditprop.NewID + "' is already in use as a resource ID.";
                             }
                             else {
                                 rtn = DefineNameCheck.OK;
@@ -4094,64 +4085,7 @@ namespace WinAGI.Editor {
                 blnReplace = DefUpdateVal = frmeditprop.chkUpdate.Checked;
                 // for ingame resources, update resource files, preview, treelist
                 if (InGame) {
-                    // update the logic tooltip lookup table for log/pic/view/snd
-                    switch (ResType) {
-                    case AGIResType.Logic:
-                    case AGIResType.Picture:
-                    case AGIResType.Sound:
-                    case AGIResType.View:
-                        IDefLookup[(int)ResType, ResNum].Name = ResID;
-
-                        // if not just a change in text case
-                        if (!strOldID.Equals(ResID, StringComparison.OrdinalIgnoreCase)) {
-                            //update resource file if ID has changed
-                            UpdateResFile(ResType, (byte)ResNum, strOldResFile);
-                            // logic ID change may result in an import so refresh preview if active
-                            if (SelResType == AGIResType.Logic && SelResNum == ResNum) {
-                                if (WinAGISettings.ShowPreview.Value) {
-                                    PreviewWin.LoadPreview(AGIResType.Logic, ResNum);
-                                }
-                            }
-                        }
-                        else {
-                            // just change the filename
-                            switch (ResType) {
-                            case AGIResType.Logic:
-                                SafeFileMove(strOldResFile, EditGame.ResDir + ResID + "." + EditGame.SourceExt, true);
-                                break;
-                            case AGIResType.Picture:
-                                SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".agp", true);
-                                break;
-                            case AGIResType.Sound:
-                                SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".ags", true);
-                                break;
-                            case AGIResType.View:
-                                SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".agv", true);
-                                break;
-                            }
-                        }
-                        // then update resource list
-                        RefreshTree(ResType, ResNum);
-                        // set any open logics deflist flag to force a rebuild
-                        foreach (frmLogicEdit frm in LogicEditors) {
-                            if (frm.Name == "frmLogicEdit") {
-                                if (frm.InGame) {
-                                    frm.ListChanged = true;
-                                }
-                            }
-                        }
-                        // if OK to update in all logics, do so
-                        if (blnReplace) {
-                            // TODO: add find/replace
-                            FindingForm.ResetSearch();
-                            ReplaceAll(MDIMain, strOldID, ResID, FindDirection.All, true, true, FindLocation.All, ResType);
-                        }
-                        break;
-                    }
-                    // refresh the property page if visible
-                    if (MDIMain.propertyGrid1.Visible) {
-                        MDIMain.propertyGrid1.Refresh();
-                    }
+                    UpdateGameResID(ResType, ResNum, ResID, strOldResFile, strOldID, blnReplace);
                 }
             }
             // if description changed, update it
@@ -4183,6 +4117,77 @@ namespace WinAGI.Editor {
             }
             frmeditprop.Dispose();
             return true;
+        }
+
+        /// <summary>
+        /// For ingame resources, update resource files, preview,
+        /// treelist.
+        /// </summary>
+        /// <param name="ResType"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="ResID"></param>
+        /// <param name="strOldResFile"></param>
+        /// <param name="strOldID"></param>
+        /// <param name="blnReplace"></param>
+        public static void UpdateGameResID(AGIResType ResType, int ResNum, string ResID, string strOldResFile, string strOldID, bool blnReplace) {
+            // update the logic tooltip lookup table for log/pic/view/snd
+            switch (ResType) {
+            case AGIResType.Logic:
+            case AGIResType.Picture:
+            case AGIResType.Sound:
+            case AGIResType.View:
+                IDefLookup[(int)ResType, ResNum].Name = ResID;
+
+                // if not just a change in text case
+                if (!strOldID.Equals(ResID, StringComparison.OrdinalIgnoreCase)) {
+                    //update resource file if ID has changed
+                    UpdateResFile(ResType, (byte)ResNum, strOldResFile);
+                    // logic ID change may result in an import so refresh preview if active
+                    if (SelResType == AGIResType.Logic && SelResNum == ResNum) {
+                        if (WinAGISettings.ShowPreview.Value) {
+                            PreviewWin.LoadPreview(AGIResType.Logic, ResNum);
+                        }
+                    }
+                }
+                else {
+                    // just change the filename
+                    switch (ResType) {
+                    case AGIResType.Logic:
+                        SafeFileMove(strOldResFile, EditGame.ResDir + ResID + "." + EditGame.SourceExt, true);
+                        break;
+                    case AGIResType.Picture:
+                        SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".agp", true);
+                        break;
+                    case AGIResType.Sound:
+                        SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".ags", true);
+                        break;
+                    case AGIResType.View:
+                        SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".agv", true);
+                        break;
+                    }
+                }
+                // then update resource list
+                RefreshTree(ResType, ResNum);
+                // set any open logics deflist flag to force a rebuild
+                foreach (frmLogicEdit frm in LogicEditors) {
+                    if (frm.Name == "frmLogicEdit") {
+                        if (frm.InGame) {
+                            frm.ListChanged = true;
+                        }
+                    }
+                }
+                // if OK to update in all logics, do so
+                if (blnReplace) {
+                    // TODO: add find/replace
+                    FindingForm.ResetSearch();
+                    ReplaceAll(MDIMain, strOldID, ResID, FindDirection.All, true, true, FindLocation.All, ResType);
+                }
+                break;
+            }
+            // refresh the property page if visible
+            if (MDIMain.propertyGrid1.Visible) {
+                MDIMain.propertyGrid1.Refresh();
+            }
         }
 
         public static string NewSourceName(Logic ThisLogic, bool InGame) {
@@ -5672,7 +5677,7 @@ namespace WinAGI.Editor {
             getresnum.Dispose();
         }
 
-        public static void OpenGameView(byte ResNum, bool Quiet = false) {
+        public static void OpenGameView(byte ResNum, bool Quiet = false, int StartLoop = 0, int StartCel = 0) {
             MDIMain.UseWaitCursor = true;
             // check for existing editor
             foreach (frmViewEdit frm in ViewEditors) {
@@ -5687,7 +5692,7 @@ namespace WinAGI.Editor {
                 }
             }
             frmViewEdit frmOpen = new();
-            if (frmOpen.LoadView(EditGame.Views[ResNum])) {
+            if (frmOpen.LoadView(EditGame.Views[ResNum], StartLoop, StartCel)) {
                 frmOpen.Show();
                 ViewEditors.Add(frmOpen);
             }

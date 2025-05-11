@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using WinAGI.Common;
@@ -21,7 +22,7 @@ namespace WinAGI.Engine {
         int mCodeSize;
         bool mSourceChanged;
         bool mIsRoom;
-        Encoding mCodePage = Encoding.GetEncoding(Base.CodePage.CodePage);
+        int mCodePage = Base.CodePage;
         #endregion
 
         #region Constructors
@@ -49,7 +50,7 @@ namespace WinAGI.Engine {
                 // make sure isroom flag is false
                 mIsRoom = false;
             }
-            mCodePage = Encoding.GetEncoding(parent.agCodePage.CodePage);
+            mCodePage = parent.agCodePage;
         }
 
         /// <summary>
@@ -254,17 +255,15 @@ namespace WinAGI.Engine {
         /// Gets or sets the character code page to use when converting 
         /// characters to or from a byte stream.
         /// </summary>
-        public Encoding CodePage {
+        public int CodePage {
             get => parent is null ? mCodePage : parent.agCodePage;
             set {
                 if (parent is null) {
                     // confirm new codepage is supported; error if it is not
-                    switch (value.CodePage) {
-                    case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
-                         861 or 862 or 863 or 865 or 866 or 869 or 858:
-                        mCodePage = Encoding.GetEncoding(value.CodePage);
-                        break;
-                    default:
+                    if (validcodepages.Contains(value)) {
+                        mCodePage = value;
+                    }
+                    else {
                         throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
                     }
                 }
@@ -379,7 +378,7 @@ namespace WinAGI.Engine {
             CopyLogic.mSourceText = mSourceText;
             CopyLogic.mSourceChanged = mSourceChanged;
             CopyLogic.SourceFile = SourceFile;
-            CopyLogic.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
+            CopyLogic.mCodePage = mCodePage;
             return CopyLogic;
         }
 
@@ -402,7 +401,7 @@ namespace WinAGI.Engine {
             mSourceText = SourceLogic.mSourceText;
             mSourceChanged = SourceLogic.mSourceChanged;
             SourceFile = SourceLogic.SourceFile;
-            mCodePage = Encoding.GetEncoding(SourceLogic.mCodePage.CodePage);
+            mCodePage = SourceLogic.mCodePage;
             return;
         }
 

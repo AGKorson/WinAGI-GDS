@@ -1423,9 +1423,7 @@
             hlpWinAGI.SetShowHelp(tvwResources, true);
             tvwResources.Size = new System.Drawing.Size(157, 118);
             tvwResources.TabIndex = 25;
-            tvwResources.AfterCollapse += tvwResources_AfterCollapse;
             tvwResources.AfterSelect += tvwResources_AfterSelect;
-            tvwResources.NodeMouseClick += tvwResources_NodeMouseClick;
             tvwResources.NodeMouseDoubleClick += tvwResources_NodeMouseDoubleClick;
             tvwResources.MouseDown += tvwResources_MouseDown;
             // 

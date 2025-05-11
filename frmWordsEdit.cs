@@ -18,7 +18,7 @@ using System.Collections;
 using EnvDTE;
 
 namespace WinAGI.Editor {
-    public partial class frmWordsEdit : Form {
+    public partial class frmWordsEdit : ClipboardMonitor {
         private bool GroupMode = true;
         public bool InGame;
         public bool IsChanged;
@@ -59,6 +59,11 @@ namespace WinAGI.Editor {
         }
 
         #region Form Event Handlers
+        protected override void OnClipboardChanged() {
+            base.OnClipboardChanged();
+            tbbPaste.Enabled = CanPaste();
+        }
+
         private void frmWordsEdit_Activated(object sender, EventArgs e) {
             if (FindingForm.Visible) {
                 if (FindingForm.rtfReplace.Visible) {
@@ -1278,7 +1283,7 @@ namespace WinAGI.Editor {
         private void cmCharMap_Click(object sender, EventArgs e) {
             frmCharPicker CharPicker;
             if (EditGame != null) {
-                CharPicker = new(EditGame.CodePage.CodePage);
+                CharPicker = new(EditGame.CodePage);
             }
             else {
                 CharPicker = new(WinAGISettings.DefCP.Value);
@@ -1314,10 +1319,6 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Control Event Handlers
-        private void lstGroups_SelectedIndexChanged(object sender, EventArgs e) {
-
-        }
-
         private void lstGroups_DoubleClick(object sender, EventArgs e) {
             if (EditingGroup || EditingWord) {
                 return;

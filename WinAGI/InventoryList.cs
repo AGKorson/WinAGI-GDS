@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
@@ -29,7 +30,7 @@ namespace WinAGI.Engine {
         // 4 = invalid data (invalid text pointer)
         // 5 = first object is not '?'
         AGIGame parent = null;
-        Encoding mCodePage = Encoding.GetEncoding(Base.CodePage.CodePage);
+        int mCodePage = Base.CodePage;
         #endregion
 
         #region Constructors
@@ -43,7 +44,7 @@ namespace WinAGI.Engine {
             this.parent = parent;
             mInGame = true;
             mResFile = parent.agGameDir + "OBJECT";
-            mCodePage = Encoding.GetEncoding(parent.agCodePage.CodePage);
+            mCodePage = parent.agCodePage;
             InitInvObj();
             mLoaded = Loaded;
         }
@@ -256,17 +257,15 @@ namespace WinAGI.Engine {
         /// Gets or sets the character code page to use when converting 
         /// characters to or from a byte stream.
         /// </summary>
-        public Encoding CodePage {
+        public int CodePage {
             get => parent is null ? mCodePage : parent.agCodePage;
             set {
                 if (parent is null) {
                     // confirm new codepage is supported; error if it is not
-                    switch (value.CodePage) {
-                    case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
-                         861 or 862 or 863 or 865 or 866 or 869 or 858:
-                        mCodePage = Encoding.GetEncoding(value.CodePage);
-                        break;
-                    default:
+                    if (validcodepages.Contains(value)) {
+                        mCodePage = value;
+                    }
+                    else {
                         throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
                     }
                 }
@@ -470,7 +469,7 @@ namespace WinAGI.Engine {
                         break;
                     }
                     bytChar[0] = bytData[lngPos];
-                    sbItem.Append(CodePage.GetString(bytChar));
+                    sbItem.Append(Encoding.GetEncoding(CodePage).GetString(bytChar));
                     lngPos++;
                 }
                 sItem = sbItem.ToString();
@@ -633,7 +632,7 @@ namespace WinAGI.Engine {
                     bytTemp[3 + i * Dwidth + 1] = (byte)((lngPos - Dwidth) / 256);
                     bytTemp[3 + i * Dwidth + 2] = mItems[i].Room;
                     // write all characters of this object
-                    byte[] tmpItemBytes = CodePage.GetBytes(mItems[i].ItemName);
+                    byte[] tmpItemBytes = Encoding.GetEncoding(CodePage).GetBytes(mItems[i].ItemName);
                     for (CurrentChar = 0; CurrentChar < tmpItemBytes.Length; CurrentChar++) {
                         bytTemp[lngPos++] = tmpItemBytes[CurrentChar];
                     }
@@ -792,7 +791,7 @@ namespace WinAGI.Engine {
             // copy all items and properties except ingame status and parent
             // related properties
             clonelist.mAmigaOBJ = mAmigaOBJ;
-            clonelist.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
+            clonelist.mCodePage = mCodePage;
             clonelist.mDescription = mDescription;
             clonelist.mEncrypted = mEncrypted;
             clonelist.mErrLevel = mErrLevel;
@@ -818,7 +817,7 @@ namespace WinAGI.Engine {
             WinAGIException.ThrowIfNotLoaded(srcList);
 
             mAmigaOBJ = srcList.mAmigaOBJ;
-            mCodePage = Encoding.GetEncoding(srcList.mCodePage.CodePage);
+            mCodePage = srcList.mCodePage;
             mDescription = srcList.mDescription;
             mEncrypted = srcList.mEncrypted;
             mErrLevel = srcList.mErrLevel;

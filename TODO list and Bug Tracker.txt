@@ -15,7 +15,7 @@ X   13. Object Editor
 X   14. Word Editor
 X   15. Palette Editor
 X   16. Picture Editor
-    17. View Editor
+O   17. View Editor
     18. Sound Editor
     19. Layout Editor
     20. Menu Editor

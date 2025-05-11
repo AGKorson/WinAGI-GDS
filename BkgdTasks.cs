@@ -8,6 +8,7 @@ using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
 using static WinAGI.Common.Base;
+using System.Text;
 
 namespace WinAGI.Common {
 
@@ -125,7 +126,7 @@ namespace WinAGI.Common {
                             if (File.Exists(logic.SourceFile)) {
                                 try {
                                     byte[] strdat = File.ReadAllBytes(logic.SourceFile);
-                                    string srcText = EditGame.CodePage.GetString(strdat);
+                                    string srcText = Encoding.GetEncoding(EditGame.CodePage).GetString(strdat);
                                     File.WriteAllText(logic.SourceFile, srcText);
                                 }
                                 catch {
@@ -276,22 +277,23 @@ namespace WinAGI.Common {
                     case 699:
                         // Unable to backup existing wag file
                         // ["exception"] = Exception ex
-                        strError = $"Unable to backup existing WAG file - {ex.HResult}: {ex.Message}";
+                        strError = $"Unable to backup existing WAG file - {((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
                         break;
                     case 700:
                         // game file is readonly
+                        // ["badfile"] = string filename
                         strError = $"Game file ({Path.GetFileName((string)ex.Data["badfile"])}) is readonly";
                         break;
                     case 701:
                         //file error accessing WAG
                         // ["exception"] = Exception ex
-                        strError = $"File access error when reading WAG file - {ex.HResult}: {ex.Message}";
+                        strError = $"File access error when reading WAG file - {((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
                         break;
                     case 703:
                         // file access error in DIR file
                         // ["exception"] Exception = ex
                         // ["dirfile"] = string dirfile
-                        strError = $"File access error when reading {Path.GetFileName(ex.Data["dirfile"].ToString())} file - {ex.HResult}: {ex.Message}";
+                        strError = $"File access error when reading {Path.GetFileName(ex.Data["dirfile"].ToString())} file - {((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
                         break;
                     default:
                         // unknown error
@@ -379,7 +381,7 @@ namespace WinAGI.Common {
                             try {
                                 byte[] strdat = File.ReadAllBytes(logic.SourceFile);
                                 bool _ = false;
-                                string srcText = CheckIncludes(EditGame.CodePage.GetString(strdat),EditGame, ref _);
+                                string srcText = CheckIncludes(Encoding.GetEncoding(EditGame.CodePage).GetString(strdat),EditGame, ref _);
                                 File.WriteAllText(logic.SourceFile, srcText);
                             }
                             catch {

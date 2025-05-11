@@ -15,6 +15,7 @@ using System.Net.Quic;
 using WinAGI.Common;
 using System.Windows.Forms;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -1397,7 +1398,7 @@ namespace WinAGI.Engine {
             }
             // now open the include file, and get the text
             try {
-                strIncludeText = compLogic.CodePage.GetString(File.ReadAllBytes(strIncludeFilename));
+                strIncludeText = Encoding.GetEncoding(compLogic.CodePage).GetString(File.ReadAllBytes(strIncludeFilename));
             }
             catch (Exception) {
                 AddError(4055, LoadResString(4055).Replace(ARG1, strIncludeFilename), true);
@@ -4238,12 +4239,12 @@ namespace WinAGI.Engine {
                         }
                         // if loop is valid, check cel
                         if (!blnWarned) {
-                            if (ArgVal[2] >= compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels.Count) {
+                            if (ArgVal[2] >= compGame.agViews[ArgVal[0]][ArgVal[1]].Cels.Count) {
                                 if (ErrorLevel == Medium) {
                                     AddWarning(5086);
                                 }
                             }
-                            if (compGame.agViews[ArgVal[0]].Loops[ArgVal[1]].Cels[ArgVal[2]].Width < 3 && ArgVal[6] < 4) {
+                            if (compGame.agViews[ArgVal[0]][ArgVal[1]][ArgVal[2]].Width < 3 && ArgVal[6] < 4) {
                                 // CEL width must be >=3
                                 if (ErrorLevel == Medium) {
                                     AddWarning(5115);
@@ -4569,7 +4570,7 @@ namespace WinAGI.Engine {
                 }
                 if (lngMsgLen > 0) {
                     // convert to byte array based on codepage
-                    bMessage = compLogic.CodePage.GetBytes(strMsg[lngMsg]);
+                    bMessage = Encoding.GetEncoding(compLogic.CodePage).GetBytes(strMsg[lngMsg]);
                     Debug.Assert(bMessage.Length == strMsg[lngMsg].Length);
                     // step through all characters in this msg
                     intCharPos = 0;

@@ -4,9 +4,21 @@ using System.Windows.Forms;
 
 namespace WinAGI.Editor {
     public class SelectablePictureBox : PictureBox {
+        private bool showfocus = true;
+
         public SelectablePictureBox() {
-            this.SetStyle(ControlStyles.Selectable, true);
-            this.TabStop = true;
+            SetStyle(ControlStyles.Selectable, true);
+            TabStop = true;
+        }
+
+        [Browsable(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+        [Category("Appearance")]
+        [Description("Indicates whether the focus rectangle is shown when the control is focused.")]
+        [DefaultValue(true)]
+        public bool ShowFocusRectangle {
+            get { return showfocus; }
+            set { showfocus = value; }
         }
 
         protected override bool IsInputKey(Keys keyData) {
@@ -16,19 +28,18 @@ namespace WinAGI.Editor {
         }
 
         protected override void OnEnter(EventArgs e) {
-            this.Invalidate();
+            Invalidate();
             base.OnEnter(e);
             Enter?.Invoke(this, e);
         }
 
         protected override void OnMouseDown(MouseEventArgs e) {
-            //this.Focus();
-            this.Select();
+            Select();
             base.OnMouseDown(e);
         }
 
         protected override void OnLeave(EventArgs e) {
-            this.Invalidate();
+            Invalidate();
             base.OnLeave(e);
             Leave?.Invoke(this, e);
         }
@@ -50,8 +61,8 @@ namespace WinAGI.Editor {
 
         protected override void OnPaint(PaintEventArgs pe) {
             base.OnPaint(pe);
-            if (this.Focused) {
-                var rc = this.ClientRectangle;
+            if (showfocus && Focused) {
+                System.Drawing.Rectangle rc = ClientRectangle;
                 rc.Inflate(-2, -2);
                 ControlPaint.DrawFocusRectangle(pe.Graphics, rc);
             }

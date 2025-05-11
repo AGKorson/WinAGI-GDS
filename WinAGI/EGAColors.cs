@@ -7,6 +7,7 @@ namespace WinAGI.Engine {
     /// Represents the sixteen EGA colors used in AGI as ARGB equivalent Color
     /// values. 
     /// </summary>
+    [Serializable]
     public class EGAColors {
         #region Local Members
         Color[] colorList = new Color[16];
@@ -84,6 +85,18 @@ namespace WinAGI.Engine {
                 throw new IndexOutOfRangeException("bad color");
             }
             return ColorText(colorList[index]);
+        }
+        /// <summary>
+        /// Copies the source palette to an identical new palette.
+        /// </summary>
+        /// <param name="palette"></param>
+        /// <returns></returns>
+        public EGAColors Clone() {
+            EGAColors retval = new();
+            for (int i = 0; i < 16; i++) {
+                retval[i] = colorList[i];
+            }
+            return retval;
         }
         #endregion
     }

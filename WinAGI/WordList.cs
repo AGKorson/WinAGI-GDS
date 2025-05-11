@@ -21,7 +21,7 @@ namespace WinAGI.Engine {
         string mDescription = "";
         bool mInGame;
         AGIGame parent;
-        Encoding mCodePage = Encoding.GetEncoding(Base.CodePage.CodePage);
+        int mCodePage = Base.CodePage;
         bool mIsChanged;
         bool mLoaded;
         int mErrLevel = 0;
@@ -49,7 +49,7 @@ namespace WinAGI.Engine {
             mLoaded = Loaded;
             // also sets the default name to 'WORDS.TOK'
             mResFile = this.parent.agGameDir + "WORDS.TOK";
-            mCodePage = Encoding.GetEncoding(parent.agCodePage.CodePage);
+            mCodePage = parent.agCodePage;
         }
 
         /// <summary>
@@ -168,17 +168,15 @@ namespace WinAGI.Engine {
         /// Gets or sets the code page to use when displaying extended
         /// characters in word text.
         /// </summary>
-        public Encoding CodePage {
+        public int CodePage {
             get => parent is null ? mCodePage : parent.agCodePage;
             set {
                 if (parent is null) {
                     // confirm new codepage is supported
-                    switch (value.CodePage) {
-                    case 437 or 737 or 775 or 850 or 852 or 855 or 857 or 860 or
-                         861 or 862 or 863 or 865 or 866 or 869 or 858:
-                        mCodePage = Encoding.GetEncoding(value.CodePage);
-                        break;
-                    default:
+                    if (validcodepages.Contains(value)) {
+                        mCodePage = value;
+                    }
+                    else {
                         throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
                     }
                 }
@@ -412,7 +410,7 @@ namespace WinAGI.Engine {
                     }
                     if (bytVal[0] < 0x80) {
                         byte[] charbyte = [(byte)(bytVal[0] ^ 0x7F + bytExt)];
-                        sbThisWord.Append(CodePage.GetString(charbyte));
+                        sbThisWord.Append(Encoding.GetEncoding(CodePage).GetString(charbyte));
                     }
                     lngPos++;
                     // continue until last character (indicated by flag) or
@@ -428,7 +426,7 @@ namespace WinAGI.Engine {
                 // add last character (after stripping off flag)
                 bytVal[0] ^= 0xFF;
                 bytVal[0] += bytExt;
-                sbThisWord.Append(CodePage.GetString(bytVal));
+                sbThisWord.Append(Encoding.GetEncoding(CodePage).GetString(bytVal));
                 sThisWord = sbThisWord.ToString();
                 // check for ascii upper case (allowed, but not useful)
                 if (sThisWord.Any(ch => (ch >= 65 && ch <= 90))) {
@@ -553,7 +551,7 @@ namespace WinAGI.Engine {
                 intLetterIndex[0] = 52;
                 foreach (AGIWord tmpWord in mWordCol.Values) {
                     // get next word
-                    strCurWord = CodePage.GetBytes(tmpWord.WordText);
+                    strCurWord = Encoding.GetEncoding(CodePage).GetBytes(tmpWord.WordText);
                     // if first letter is not current first letter, AND it is 'b' through 'z'
                     // (this ensures non letter words (such as numbers) are included in the 'a' section)
                     if ((strCurWord[0] != strFirstLetter) && (strCurWord[0] >= 97) && (strCurWord[0] <= 122)) {
@@ -756,7 +754,7 @@ namespace WinAGI.Engine {
             clonelist.mDescription = mDescription;
             clonelist.mResFile = mResFile;
             clonelist.mIsChanged = mIsChanged;
-            clonelist.mCodePage = Encoding.GetEncoding(mCodePage.CodePage);
+            clonelist.mCodePage = mCodePage;
             return clonelist;
         }
 
@@ -787,7 +785,7 @@ namespace WinAGI.Engine {
             mDescription = clonelist.Description;
             mResFile = clonelist.ResFile;
             mIsChanged = clonelist.mIsChanged;
-            mCodePage = Encoding.GetEncoding(clonelist.mCodePage.CodePage);
+            mCodePage = clonelist.mCodePage;
             mLoaded = true;
         }
         
