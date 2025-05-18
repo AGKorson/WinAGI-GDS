@@ -6,6 +6,7 @@ using static WinAGI.Engine.AGIColorIndex;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Data.Common;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -23,12 +24,13 @@ namespace WinAGI.Engine {
         /// When blnCelBMPSet is false, it means cel bitmap needs to be rebuilt.
         /// </summary>
         internal bool blnCelBMPSet;
-        internal bool mTransparency;
+        //internal bool mTransparency;
         /// <summary>
         /// When mCelChanged is true, it means cel data has changed.
         /// </summary>
         internal bool mCelChanged;
         internal Bitmap mCelBMP;
+        internal Bitmap mTransBMP;
         /// <summary>
         /// mSetMirror is true if cel is supposed to show the mirror.
         /// </summary>
@@ -82,12 +84,12 @@ namespace WinAGI.Engine {
         /// <param name="yPos"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public byte this[byte xPos, byte yPos] {
+        public byte this[int xPos, int yPos] {
             get {
-                if (xPos > mWidth - 1) {
+                if (xPos < 0 || xPos > mWidth - 1) {
                     throw new ArgumentOutOfRangeException(nameof(xPos));
                 }
-                if (yPos > mHeight - 1) {
+                if (yPos < 0 || yPos > mHeight - 1) {
                     throw new ArgumentOutOfRangeException(nameof(yPos));
                 }
                 if (mSetMirror) {
@@ -105,7 +107,7 @@ namespace WinAGI.Engine {
                 if (yPos >= mHeight) {
                     throw new ArgumentOutOfRangeException(nameof(yPos));
                 }
-                if (value >= 15) {
+                if (value > 15) {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
                 // check mirror state
@@ -122,6 +124,18 @@ namespace WinAGI.Engine {
                     parentview.mViewChanged = true;
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets or sets the pixel color for this cel at the specified location.
+        /// </summary>
+        /// <param name="xPos"></param>
+        /// <param name="yPos"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public byte this[Point pos] {
+            get => this[pos.X, pos.Y];
+            set => this[pos.X, pos.Y] = value;
         }
 
         /// <summary>
@@ -280,87 +294,55 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the bitmap representation of this cel.
+        /// Gets the bitmap representation of this cel, with the 
+        /// transparent color showing as its normal color.
         /// </summary>
-        public Bitmap CelBMP {
+        public Bitmap CelImage {
             get {
-                int i, j;
-                byte[] mCelBData;
                 if (blnCelBMPSet) {
                     if ((mSetMirror == mMirrored) && (!mCelChanged)) {
                         return mCelBMP;
                     }
                 }
-                // create new visual picture bitmap
-                mCelBMP = new Bitmap(mWidth, mHeight, PixelFormat.Format8bppIndexed);
-                // set color palette to match current AGI palette
-                ColorPalette ncp = mCelBMP.Palette;
-                for (i = 0; i < 16; i++) {
-                    if (parentview == null) {
-                        ncp.Entries[i] = Color.FromArgb(
-                            (mTransparency && i == (int)mTransColor) ? 0 : 255,
-                            mPalette[i].R,
-                            mPalette[i].G,
-                            mPalette[i].B
-                        );
-                    }
-                    else {
-                        ncp.Entries[i] = Color.FromArgb(
-                            (mTransparency && i == (int)mTransColor) ? 0 : 255,
-                            parentview.Palette[i].R,
-                            parentview.Palette[i].G,
-                            parentview.Palette[i].B
-                        );
-                    }
-                }
-                mCelBMP.Palette = ncp;
-                var BoundsRect = new Rectangle(0, 0, mWidth, mHeight);
-                // create access point for bitmap data
-                BitmapData bmpCelData = mCelBMP.LockBits(BoundsRect, ImageLockMode.WriteOnly, mCelBMP.PixelFormat);
-                IntPtr ptrVis = bmpCelData.Scan0;
-                // now we can create the custom data arrays
-                // array size is determined by stride (bytes per row) and height
-                mCelBData = new byte[bmpCelData.Stride * mHeight];
-                // set cel mirror state to desired Value (determined by mSetMirror)
-                mMirrored = mSetMirror;
-                for (i = 0; i < mWidth; i++) {
-                    for (j = 0; j < mHeight; j++) {
-                        if (mMirrored) {
-                            // set cel data backwards
-                            mCelBData[mWidth - i - 1 + j * bmpCelData.Stride] = (byte)mCelData[i, j];
-                        }
-                        else {
-                            // set cel data forwards
-                            mCelBData[i + j * bmpCelData.Stride] = (byte)mCelData[i, j];
-                        }
-                    }
-                }
-                // copy the picture data to the bitmaps
-                Marshal.Copy(mCelBData, 0, ptrVis, bmpCelData.Stride * mHeight);
-                mCelBMP.UnlockBits(bmpCelData);
-                blnCelBMPSet = true;
+                BuildBMPs();
                 return mCelBMP;
             }
         }
 
         /// <summary>
-        /// Gets or sets the transparency value for this cel. Transparency determines
-        /// how the transparent color in the cel will be displayed when the bitmap is
-        /// generated. When true, the transparent pixels are made transparent in the
-        /// bitmap. When false, the transparent pixels show as the transparent color.
+        /// Gets the bitmap representation of this cel, with the
+        /// transparent color showing as transparent.
         /// </summary>
-        public bool Transparency {
-            get { return mTransparency; }
-            set {
-                if (mTransparency != value) {
-                    mTransparency = value;
-                    mCelChanged = true;
-                    if (parentview is not null) {
-                        parentview.PropsChanged = true;
+        public Bitmap TransImage {
+            get {
+                if (blnCelBMPSet) {
+                    if ((mSetMirror == mMirrored) && (!mCelChanged)) {
+                        return mTransBMP;
                     }
                 }
+                BuildBMPs();
+                return mTransBMP;
             }
         }
+
+        ///// <summary>
+        ///// Gets or sets the transparency value for this cel. Transparency determines
+        ///// how the transparent color in the cel will be displayed when the bitmap is
+        ///// generated. When true, the transparent pixels are made transparent in the
+        ///// bitmap. When false, the transparent pixels show as the transparent color.
+        ///// </summary>
+        //public bool Transparency {
+        //    get { return mTransparency; }
+        //    set {
+        //        if (mTransparency != value) {
+        //            mTransparency = value;
+        //            mCelChanged = true;
+        //            if (parentview is not null) {
+        //                parentview.PropsChanged = true;
+        //            }
+        //        }
+        //    }
+        //}
 
         public EGAColors Palette {
             get {
@@ -400,12 +382,12 @@ namespace WinAGI.Engine {
                 mWidth = mWidth,
                 mHeight = mHeight,
                 mTransColor = mTransColor,
-                mCelData = mCelData,
+                mCelData = CloneCelData(mCelData),
                 mIndex = mIndex,
                 mSetMirror = mSetMirror,
                 mMirrored = mMirrored,
                 blnCelBMPSet = blnCelBMPSet,
-                mTransparency = mTransparency,
+                //mTransparency = mTransparency,
                 mCelChanged = mCelChanged,
             };
             if (parentview != null) {
@@ -438,7 +420,7 @@ namespace WinAGI.Engine {
             mSetMirror = SourceCel.mSetMirror;
             mMirrored = SourceCel.mMirrored;
             blnCelBMPSet = SourceCel.blnCelBMPSet;
-            mTransparency = SourceCel.mTransparency;
+            //mTransparency = SourceCel.mTransparency;
             mCelChanged = SourceCel.mCelChanged;
             mPalette = SourceCel.mPalette.Clone();
             if (SourceCel.mCelBMP is null) {
@@ -455,6 +437,83 @@ namespace WinAGI.Engine {
         /// </summary>
         public void ResetBMP() {
             blnCelBMPSet = false;
+        }
+
+        private void BuildBMPs() {
+            int i, j;
+            byte[] mCelBData;
+            byte[] mCelTData;
+
+            // create new visual picture bitmap
+            mCelBMP = new Bitmap(mWidth, mHeight, PixelFormat.Format8bppIndexed);
+            mTransBMP = new Bitmap(mWidth, mHeight, PixelFormat.Format8bppIndexed);
+            // set color palettes to match current AGI palette
+            ColorPalette ncp = mCelBMP.Palette;
+            ColorPalette ncpT = mTransBMP.Palette;
+            for (i = 0; i < 16; i++) {
+                if (parentview == null) {
+                    ncp.Entries[i] = Color.FromArgb(
+                        255,
+                        mPalette[i].R,
+                        mPalette[i].G,
+                        mPalette[i].B
+                    );
+                    ncpT.Entries[i] = Color.FromArgb(
+                        (i == (int)mTransColor) ? 0 : 255,
+                        mPalette[i].R,
+                        mPalette[i].G,
+                        mPalette[i].B
+                    );
+                }
+                else {
+                    ncp.Entries[i] = Color.FromArgb(
+                        255,
+                        parentview.Palette[i].R,
+                        parentview.Palette[i].G,
+                        parentview.Palette[i].B
+                    );
+                    ncpT.Entries[i] = Color.FromArgb(
+                        (i == (int)mTransColor) ? 0 : 255,
+                        parentview.Palette[i].R,
+                        parentview.Palette[i].G,
+                        parentview.Palette[i].B
+                    );
+                }
+            }
+            mCelBMP.Palette = ncp;
+            mTransBMP.Palette = ncpT;
+            var BoundsRect = new Rectangle(0, 0, mWidth, mHeight);
+            // create access point for bitmap datas
+            BitmapData bmpCelData = mCelBMP.LockBits(BoundsRect, ImageLockMode.WriteOnly, mCelBMP.PixelFormat);
+            BitmapData bmpCelTData = mTransBMP.LockBits(BoundsRect, ImageLockMode.WriteOnly, mTransBMP.PixelFormat);
+            IntPtr ptrVis = bmpCelData.Scan0;
+            IntPtr ptrVisT = bmpCelTData.Scan0;
+            // now we can create the custom data arrays
+            // array size is determined by stride (bytes per row) and height
+            mCelBData = new byte[bmpCelData.Stride * mHeight];
+            mCelTData = new byte[bmpCelTData.Stride * mHeight];
+            // set cel mirror state to desired Value (determined by mSetMirror)
+            mMirrored = mSetMirror;
+            for (i = 0; i < mWidth; i++) {
+                for (j = 0; j < mHeight; j++) {
+                    if (mMirrored) {
+                        // set cel data backwards
+                        mCelBData[mWidth - i - 1 + j * bmpCelData.Stride] = mCelData[i, j];
+                        mCelTData[mWidth - i - 1 + j * bmpCelTData.Stride] = mCelData[i, j];
+                    }
+                    else {
+                        // set cel data forwards
+                        mCelBData[i + j * bmpCelData.Stride] = mCelData[i, j];
+                        mCelTData[i + j * bmpCelTData.Stride] = mCelData[i, j];
+                    }
+                }
+            }
+            // copy the picture data to the bitmaps
+            Marshal.Copy(mCelBData, 0, ptrVis, bmpCelData.Stride * mHeight);
+            Marshal.Copy(mCelTData, 0, ptrVisT, bmpCelTData.Stride * mHeight);
+            mCelBMP.UnlockBits(bmpCelData);
+            mTransBMP.UnlockBits(bmpCelTData);
+            blnCelBMPSet = true;
         }
 
         /// <summary>
@@ -512,7 +571,19 @@ namespace WinAGI.Engine {
         internal void SetMirror(bool blnNew) {
             mSetMirror = blnNew;
         }
+        private byte[,] CloneCelData(byte[,] source) {
+            int width = source.GetLength(0);
+            int height = source.GetLength(1);
+            byte[,] clone = new byte[width, height];
 
+            for (int i = 0; i < width; i++) {
+                for (int j = 0; j < height; j++) {
+                    clone[i, j] = source[i, j];
+                }
+            }
+
+            return clone;
+        }
         #endregion
     }
 }

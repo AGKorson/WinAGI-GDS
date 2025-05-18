@@ -869,12 +869,7 @@ namespace WinAGI.Editor {
             SetVScrollbars();
             if (blnTrans) {
                 DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
-            }
-        }
-
-        private void pnlCel_Paint(object sender, PaintEventArgs e) {
-            if (chkTrans.Checked) {
-                DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
+                pnlCel.Refresh();
             }
         }
 
@@ -939,6 +934,7 @@ namespace WinAGI.Editor {
             DisplayCel();
             if (blnTrans) {
                 DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
+                pnlCel.Refresh();
             }
         }
 
@@ -1980,8 +1976,6 @@ namespace WinAGI.Editor {
                     tgtY = picCel.Height - tgtH;
                     break;
                 }
-                // set transparency
-                agView[CurLoop][CurCel].Transparency = blnTrans;
 
                 /*------------------------------------------------------------*/
                 // this, along with related mod to ShowAGIBitmap, does not work
@@ -2001,7 +1995,7 @@ namespace WinAGI.Editor {
                 /*------------------------------------------------------------*/
                 // create new image in the picture box that is desired size
                 picCel.Image = new Bitmap(picCel.Width, picCel.Height);
-                ShowAGIBitmap(picCel, agView[CurLoop][CurCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
+                ShowAGIBitmap(picCel, blnTrans ? agView[CurLoop][CurCel].TransImage : agView[CurLoop][CurCel].CelImage, tgtX, tgtY, tgtW, tgtH);
                 if (blnTrans) {
                     // TODO: there's a reference to drawing a grid somewhere
                     // in the custom control used on the InsertChar form...

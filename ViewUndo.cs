@@ -53,10 +53,11 @@ namespace WinAGI.Editor {
         public string OldText;
         public int[] UndoData;
         public byte[,] CelData;
-
+        public List<frmViewEdit.PixelInfo> PixelData;
+        public frmViewEdit.SelectionInfo UDSelection;
         public ViewUndo() {
             // Initialize the arrays with a size of 0
-            UndoData = new int[0];
+            UndoData = [];
             CelData = new byte[0, 0];
         }
     }

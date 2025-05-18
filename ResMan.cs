@@ -196,7 +196,6 @@ namespace WinAGI.Editor {
             EndLoop,
             Cel,
             EndCel,
-            Selection,
         }
         public enum LogicFormMode {
             Logic,
@@ -7117,13 +7116,15 @@ namespace WinAGI.Editor {
         }
 
         public static void DrawTransGrid(Control surface, int offsetX, int offsetY) {
-            using Graphics gp = surface.CreateGraphics();
+            surface.BackgroundImage = new Bitmap(surface.Width, surface.Height);
+            using Graphics gs = Graphics.FromImage(surface.BackgroundImage);
 
-            for (int i = 0; i <= surface.Width + 1; i += 10) {
-                for (int j = 0; j < surface.Height + 1; j += 10) {
-                    gp.FillRectangle(Brushes.Black, new Rectangle(i + offsetX, j + offsetY, 1, 1));
+            for (int i = 0; i <= gs.VisibleClipBounds.Width + 1; i += 10) {
+                for (int j = 0; j < gs.VisibleClipBounds.Height + 1; j += 10) {
+                    gs.FillRectangle(Brushes.Black, new Rectangle(i + offsetX, j + offsetY, 1, 1));
                 }
             }
+            surface.Refresh();
         }
 
         public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, int tgtX, int tgtY, int tgtW, int tgtH, InterpolationMode mode = InterpolationMode.NearestNeighbor) {

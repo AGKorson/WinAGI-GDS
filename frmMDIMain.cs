@@ -3664,10 +3664,13 @@ namespace WinAGI.Editor {
             if (WinAGISettings.ViewScaleEdit.Value < 1) {
                 WinAGISettings.ViewScaleEdit.Value = 1;
             }
-            if (WinAGISettings.ViewScaleEdit.Value > 10) {
+            else if (WinAGISettings.ViewScaleEdit.Value > 10) {
                 WinAGISettings.ViewScaleEdit.Value = 10;
             }
-            WinAGISettings.DefVColor1.ReadSetting(WinAGISettingsFile);
+            else {
+                WinAGISettings.ViewScaleEdit.Value = (int)WinAGISettings.ViewScaleEdit.Value;
+            }
+                WinAGISettings.DefVColor1.ReadSetting(WinAGISettingsFile);
             if (WinAGISettings.DefVColor1.Value < 0) {
                 WinAGISettings.DefVColor1.Value = 0;
             }

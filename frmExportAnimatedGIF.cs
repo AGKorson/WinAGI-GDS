@@ -112,9 +112,6 @@ namespace WinAGI.Editor {
             else {
                 picCel.BackColor = exportloop[bytCel].Palette[(int)exportloop[bytCel].TransColor];
             }
-            foreach (Cel cel in exportloop.Cels) {
-                cel.Transparency = SelectedGifOptions.Transparency;
-            }
             //force update
             DisplayCel();
         }
@@ -236,9 +233,6 @@ namespace WinAGI.Editor {
 
         private void cmbLoop_SelectedIndexChanged(object sender, EventArgs e) {
             exportloop = exportview[cmbLoop.SelectedIndex];
-            foreach (Cel cel in exportloop.Cels) {
-                cel.Transparency = SelectedGifOptions.Transparency;
-            }
             DisplayCel();
             timer1.Stop();
             timer1.Start();
@@ -472,7 +466,7 @@ namespace WinAGI.Editor {
             else {
                 tgtY = picCel.Height - tgtH;
             }
-            ShowAGIBitmap(picCel, exportloop[bytCel].CelBMP, tgtX, tgtY, tgtW, tgtH);
+            ShowAGIBitmap(picCel, chkTrans.Checked ? exportloop[bytCel].TransImage : exportloop[bytCel].CelImage, tgtX, tgtY, tgtW, tgtH);
             if (chkTrans.Checked) {
                 // draws single pixel dots spaced 10 pixels apart over transparent pixels only
                 using Graphics gc = Graphics.FromImage(picCel.Image);

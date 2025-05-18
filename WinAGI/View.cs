@@ -467,7 +467,6 @@ namespace WinAGI.Engine {
         /// 64 = invalid description offset
         /// </returns>
         internal int LoadLoops() {
-            // 
             byte bytNumLoops, bytNumCels;
             int[] lngLoopStart = new int[MAX_LOOPS];
             ushort lngCelStart, lngDescLoc;
@@ -501,8 +500,8 @@ namespace WinAGI.Engine {
             for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
                 mLoopCol.Add(bytLoop);
                 //  loop zero NEVER mirrors another loop (but others can 
-                // mirror it)
-                if (bytLoop > 0) {
+                // mirror it); also, v2.089 views are never mirrored
+                if (bytLoop > 0 && mInGame && parent.InterpreterVersion != "2.089") {
                     // for all other loops, check to see if it mirrors an earlier loop
                     for (tmpLoopNo = 0; tmpLoopNo < bytLoop; tmpLoopNo++) {
                         if (lngLoopStart[bytLoop] == lngLoopStart[tmpLoopNo]) {
@@ -713,6 +712,10 @@ namespace WinAGI.Engine {
             // the source loop can't already have a mirror
             if (mLoopCol[SourceLoop].Mirrored) {
                 return -6;
+            }
+            // if ingame, can't be v2.089
+            if (mInGame && parent.InterpreterVersion == "2.089") {
+                return -7;
             }
             // get a new mirror pair number
             int mp = GetMirrorPair();

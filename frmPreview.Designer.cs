@@ -724,7 +724,6 @@ namespace WinAGI.Editor {
             pnlCel.Name = "pnlCel";
             pnlCel.Size = new System.Drawing.Size(535, 297);
             pnlCel.TabIndex = 11;
-            pnlCel.Paint += pnlCel_Paint;
             pnlCel.DoubleClick += pnlCel_DoubleClick;
             pnlCel.Resize += pnlCel_Resize;
             // 
