@@ -4,6 +4,7 @@ namespace WinAGI.Engine {
     /// <summary>
     /// A class that represents an individual AGI sound track note.
     /// </summary>
+    /// [Serializable]
     public class Note {
         #region Members
         internal int mFreqDiv;
@@ -71,7 +72,7 @@ namespace WinAGI.Engine {
                 return mAttenuation;
             }
             set {
-                ArgumentOutOfRangeException.ThrowIfGreaterThan(15, value);
+                ArgumentOutOfRangeException.ThrowIfGreaterThan(value ,15);
                 mAttenuation = value;
                 mSndParent?.NoteChanged();
             }

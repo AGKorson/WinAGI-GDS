@@ -129,6 +129,32 @@
             label14 = new System.Windows.Forms.Label();
             label13 = new System.Windows.Forms.Label();
             Sounds = new System.Windows.Forms.TabPage();
+            chkNotes = new System.Windows.Forms.CheckBox();
+            chkOneTrack = new System.Windows.Forms.CheckBox();
+            chkKeybd = new System.Windows.Forms.CheckBox();
+            groupBox16 = new System.Windows.Forms.GroupBox();
+            optMIDI = new System.Windows.Forms.RadioButton();
+            optPCSpeaker = new System.Windows.Forms.RadioButton();
+            optPCjr = new System.Windows.Forms.RadioButton();
+            groupBox15 = new System.Windows.Forms.GroupBox();
+            label33 = new System.Windows.Forms.Label();
+            chkMute3 = new System.Windows.Forms.CheckBox();
+            chkMute2 = new System.Windows.Forms.CheckBox();
+            chkMute1 = new System.Windows.Forms.CheckBox();
+            chkMute0 = new System.Windows.Forms.CheckBox();
+            label32 = new System.Windows.Forms.Label();
+            label31 = new System.Windows.Forms.Label();
+            label30 = new System.Windows.Forms.Label();
+            cmdInstReset = new System.Windows.Forms.Button();
+            cmbInst2 = new System.Windows.Forms.ComboBox();
+            cmbInst1 = new System.Windows.Forms.ComboBox();
+            cmbInst0 = new System.Windows.Forms.ComboBox();
+            label29 = new System.Windows.Forms.Label();
+            label28 = new System.Windows.Forms.Label();
+            label27 = new System.Windows.Forms.Label();
+            groupBox14 = new System.Windows.Forms.GroupBox();
+            txtSoundZoom = new NumericTextBox();
+            label26 = new System.Windows.Forms.Label();
             Views = new System.Windows.Forms.TabPage();
             chkDefPrevPlay = new System.Windows.Forms.CheckBox();
             chkShowPrev = new System.Windows.Forms.CheckBox();
@@ -155,6 +181,8 @@
             label19 = new System.Windows.Forms.Label();
             LayoutTab = new System.Windows.Forms.TabPage();
             cdColors = new System.Windows.Forms.ColorDialog();
+            colorDialog1 = new System.Windows.Forms.ColorDialog();
+            chkNoKybdSound = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)rtfPreview).BeginInit();
             tabControl1.SuspendLayout();
             General.SuspendLayout();
@@ -174,6 +202,10 @@
             groupBox8.SuspendLayout();
             groupBox7.SuspendLayout();
             groupBox6.SuspendLayout();
+            Sounds.SuspendLayout();
+            groupBox16.SuspendLayout();
+            groupBox15.SuspendLayout();
+            groupBox14.SuspendLayout();
             Views.SuspendLayout();
             groupBox13.SuspendLayout();
             groupBox12.SuspendLayout();
@@ -1430,12 +1462,300 @@
             // 
             // Sounds
             // 
+            Sounds.Controls.Add(chkNoKybdSound);
+            Sounds.Controls.Add(chkNotes);
+            Sounds.Controls.Add(chkOneTrack);
+            Sounds.Controls.Add(chkKeybd);
+            Sounds.Controls.Add(groupBox16);
+            Sounds.Controls.Add(groupBox15);
+            Sounds.Controls.Add(groupBox14);
             Sounds.Location = new System.Drawing.Point(4, 24);
             Sounds.Name = "Sounds";
             Sounds.Size = new System.Drawing.Size(468, 371);
             Sounds.TabIndex = 4;
             Sounds.Text = "Sounds";
             Sounds.UseVisualStyleBackColor = true;
+            // 
+            // chkNotes
+            // 
+            chkNotes.AutoSize = true;
+            chkNotes.Location = new System.Drawing.Point(212, 314);
+            chkNotes.Name = "chkNotes";
+            chkNotes.Size = new System.Drawing.Size(203, 19);
+            chkNotes.TabIndex = 5;
+            chkNotes.Text = "Display Standard Notes as Images";
+            chkNotes.UseVisualStyleBackColor = true;
+            chkNotes.CheckedChanged += chkNotes_CheckedChanged;
+            // 
+            // chkOneTrack
+            // 
+            chkOneTrack.AutoSize = true;
+            chkOneTrack.Location = new System.Drawing.Point(212, 339);
+            chkOneTrack.Name = "chkOneTrack";
+            chkOneTrack.Size = new System.Drawing.Size(154, 19);
+            chkOneTrack.TabIndex = 4;
+            chkOneTrack.Text = "Maximize Selected Track";
+            chkOneTrack.UseVisualStyleBackColor = true;
+            chkOneTrack.CheckedChanged += chkOneTrack_CheckedChanged;
+            // 
+            // chkKeybd
+            // 
+            chkKeybd.AutoSize = true;
+            chkKeybd.Location = new System.Drawing.Point(24, 314);
+            chkKeybd.Name = "chkKeybd";
+            chkKeybd.Size = new System.Drawing.Size(108, 19);
+            chkKeybd.TabIndex = 3;
+            chkKeybd.Text = "Show Keyboard";
+            chkKeybd.UseVisualStyleBackColor = true;
+            chkKeybd.CheckedChanged += chkKeybd_CheckedChanged;
+            // 
+            // groupBox16
+            // 
+            groupBox16.Controls.Add(optMIDI);
+            groupBox16.Controls.Add(optPCSpeaker);
+            groupBox16.Controls.Add(optPCjr);
+            groupBox16.Location = new System.Drawing.Point(183, 13);
+            groupBox16.Name = "groupBox16";
+            groupBox16.Size = new System.Drawing.Size(261, 99);
+            groupBox16.TabIndex = 2;
+            groupBox16.TabStop = false;
+            groupBox16.Text = "Default Playback Mode";
+            // 
+            // optMIDI
+            // 
+            optMIDI.AutoSize = true;
+            optMIDI.Location = new System.Drawing.Point(46, 75);
+            optMIDI.Name = "optMIDI";
+            optMIDI.Size = new System.Drawing.Size(113, 19);
+            optMIDI.TabIndex = 2;
+            optMIDI.TabStop = true;
+            optMIDI.Text = "MIDI Conversion";
+            optMIDI.UseVisualStyleBackColor = true;
+            optMIDI.CheckedChanged += optPlaybackMode_CheckedChanged;
+            // 
+            // optPCSpeaker
+            // 
+            optPCSpeaker.AutoSize = true;
+            optPCSpeaker.Enabled = false;
+            optPCSpeaker.Location = new System.Drawing.Point(46, 25);
+            optPCSpeaker.Name = "optPCSpeaker";
+            optPCSpeaker.Size = new System.Drawing.Size(135, 19);
+            optPCSpeaker.TabIndex = 1;
+            optPCSpeaker.TabStop = true;
+            optPCSpeaker.Text = "PC Speaker Emulator";
+            optPCSpeaker.UseVisualStyleBackColor = true;
+            optPCSpeaker.CheckedChanged += optPlaybackMode_CheckedChanged;
+            // 
+            // optPCjr
+            // 
+            optPCjr.AutoSize = true;
+            optPCjr.Location = new System.Drawing.Point(46, 50);
+            optPCjr.Name = "optPCjr";
+            optPCjr.Size = new System.Drawing.Size(98, 19);
+            optPCjr.TabIndex = 0;
+            optPCjr.TabStop = true;
+            optPCjr.Text = "PCjr Emulator";
+            optPCjr.UseVisualStyleBackColor = true;
+            optPCjr.CheckedChanged += optPlaybackMode_CheckedChanged;
+            // 
+            // groupBox15
+            // 
+            groupBox15.Controls.Add(label33);
+            groupBox15.Controls.Add(chkMute3);
+            groupBox15.Controls.Add(chkMute2);
+            groupBox15.Controls.Add(chkMute1);
+            groupBox15.Controls.Add(chkMute0);
+            groupBox15.Controls.Add(label32);
+            groupBox15.Controls.Add(label31);
+            groupBox15.Controls.Add(label30);
+            groupBox15.Controls.Add(cmdInstReset);
+            groupBox15.Controls.Add(cmbInst2);
+            groupBox15.Controls.Add(cmbInst1);
+            groupBox15.Controls.Add(cmbInst0);
+            groupBox15.Controls.Add(label29);
+            groupBox15.Controls.Add(label28);
+            groupBox15.Controls.Add(label27);
+            groupBox15.Location = new System.Drawing.Point(19, 118);
+            groupBox15.Name = "groupBox15";
+            groupBox15.Size = new System.Drawing.Size(425, 190);
+            groupBox15.TabIndex = 1;
+            groupBox15.TabStop = false;
+            groupBox15.Text = "Default Track Settings";
+            // 
+            // label33
+            // 
+            label33.AutoSize = true;
+            label33.Location = new System.Drawing.Point(77, 135);
+            label33.Name = "label33";
+            label33.Size = new System.Drawing.Size(184, 15);
+            label33.TabIndex = 14;
+            label33.Text = "(no instrument for noise channel)";
+            // 
+            // chkMute3
+            // 
+            chkMute3.AutoSize = true;
+            chkMute3.Location = new System.Drawing.Point(375, 134);
+            chkMute3.Name = "chkMute3";
+            chkMute3.Size = new System.Drawing.Size(15, 14);
+            chkMute3.TabIndex = 13;
+            chkMute3.UseVisualStyleBackColor = true;
+            chkMute3.CheckedChanged += chkMute_CheckedChanged;
+            // 
+            // chkMute2
+            // 
+            chkMute2.AutoSize = true;
+            chkMute2.Location = new System.Drawing.Point(375, 105);
+            chkMute2.Name = "chkMute2";
+            chkMute2.Size = new System.Drawing.Size(15, 14);
+            chkMute2.TabIndex = 12;
+            chkMute2.UseVisualStyleBackColor = true;
+            chkMute2.CheckedChanged += chkMute_CheckedChanged;
+            // 
+            // chkMute1
+            // 
+            chkMute1.AutoSize = true;
+            chkMute1.Location = new System.Drawing.Point(375, 76);
+            chkMute1.Name = "chkMute1";
+            chkMute1.Size = new System.Drawing.Size(15, 14);
+            chkMute1.TabIndex = 11;
+            chkMute1.UseVisualStyleBackColor = true;
+            chkMute1.CheckedChanged += chkMute_CheckedChanged;
+            // 
+            // chkMute0
+            // 
+            chkMute0.AutoSize = true;
+            chkMute0.Location = new System.Drawing.Point(375, 47);
+            chkMute0.Name = "chkMute0";
+            chkMute0.Size = new System.Drawing.Size(15, 14);
+            chkMute0.TabIndex = 10;
+            chkMute0.UseVisualStyleBackColor = true;
+            chkMute0.CheckedChanged += chkMute_CheckedChanged;
+            // 
+            // label32
+            // 
+            label32.AutoSize = true;
+            label32.Location = new System.Drawing.Point(362, 25);
+            label32.Name = "label32";
+            label32.Size = new System.Drawing.Size(42, 15);
+            label32.TabIndex = 9;
+            label32.Text = "Muted";
+            // 
+            // label31
+            // 
+            label31.AutoSize = true;
+            label31.Location = new System.Drawing.Point(70, 25);
+            label31.Name = "label31";
+            label31.Size = new System.Drawing.Size(92, 15);
+            label31.TabIndex = 8;
+            label31.Text = "Midi Instrument";
+            // 
+            // label30
+            // 
+            label30.AutoSize = true;
+            label30.Location = new System.Drawing.Point(14, 135);
+            label30.Name = "label30";
+            label30.Size = new System.Drawing.Size(47, 15);
+            label30.TabIndex = 7;
+            label30.Text = "Track 3:";
+            // 
+            // cmdInstReset
+            // 
+            cmdInstReset.Location = new System.Drawing.Point(15, 159);
+            cmdInstReset.Name = "cmdInstReset";
+            cmdInstReset.Size = new System.Drawing.Size(137, 25);
+            cmdInstReset.TabIndex = 6;
+            cmdInstReset.Text = "Reset All Tracks";
+            cmdInstReset.UseVisualStyleBackColor = true;
+            cmdInstReset.Click += cmdInstReset_Click;
+            // 
+            // cmbInst2
+            // 
+            cmbInst2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbInst2.FormattingEnabled = true;
+            cmbInst2.Location = new System.Drawing.Point(67, 101);
+            cmbInst2.Name = "cmbInst2";
+            cmbInst2.Size = new System.Drawing.Size(290, 23);
+            cmbInst2.TabIndex = 5;
+            cmbInst2.SelectedIndexChanged += cmbInst_SelectedIndexChanged;
+            // 
+            // cmbInst1
+            // 
+            cmbInst1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbInst1.FormattingEnabled = true;
+            cmbInst1.Location = new System.Drawing.Point(67, 72);
+            cmbInst1.Name = "cmbInst1";
+            cmbInst1.Size = new System.Drawing.Size(290, 23);
+            cmbInst1.TabIndex = 4;
+            cmbInst1.SelectedIndexChanged += cmbInst_SelectedIndexChanged;
+            // 
+            // cmbInst0
+            // 
+            cmbInst0.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbInst0.FormattingEnabled = true;
+            cmbInst0.Location = new System.Drawing.Point(67, 43);
+            cmbInst0.Name = "cmbInst0";
+            cmbInst0.Size = new System.Drawing.Size(290, 23);
+            cmbInst0.TabIndex = 3;
+            cmbInst0.SelectedIndexChanged += cmbInst_SelectedIndexChanged;
+            // 
+            // label29
+            // 
+            label29.AutoSize = true;
+            label29.Location = new System.Drawing.Point(13, 104);
+            label29.Name = "label29";
+            label29.Size = new System.Drawing.Size(47, 15);
+            label29.TabIndex = 2;
+            label29.Text = "Track 2:";
+            // 
+            // label28
+            // 
+            label28.AutoSize = true;
+            label28.Location = new System.Drawing.Point(13, 75);
+            label28.Name = "label28";
+            label28.Size = new System.Drawing.Size(47, 15);
+            label28.TabIndex = 1;
+            label28.Text = "Track 1:";
+            // 
+            // label27
+            // 
+            label27.AutoSize = true;
+            label27.Location = new System.Drawing.Point(14, 46);
+            label27.Name = "label27";
+            label27.Size = new System.Drawing.Size(47, 15);
+            label27.TabIndex = 0;
+            label27.Text = "Track 0:";
+            // 
+            // groupBox14
+            // 
+            groupBox14.Controls.Add(txtSoundZoom);
+            groupBox14.Controls.Add(label26);
+            groupBox14.Location = new System.Drawing.Point(19, 13);
+            groupBox14.Name = "groupBox14";
+            groupBox14.Size = new System.Drawing.Size(152, 99);
+            groupBox14.TabIndex = 0;
+            groupBox14.TabStop = false;
+            groupBox14.Text = "Default Zoom";
+            // 
+            // txtSoundZoom
+            // 
+            txtSoundZoom.Location = new System.Drawing.Point(76, 25);
+            txtSoundZoom.MaxValue = 3;
+            txtSoundZoom.MinValue = 1;
+            txtSoundZoom.Name = "txtSoundZoom";
+            txtSoundZoom.Size = new System.Drawing.Size(43, 23);
+            txtSoundZoom.TabIndex = 1;
+            txtSoundZoom.Text = "1";
+            txtSoundZoom.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            txtSoundZoom.Value = 1;
+            // 
+            // label26
+            // 
+            label26.AutoSize = true;
+            label26.Location = new System.Drawing.Point(19, 26);
+            label26.Name = "label26";
+            label26.Size = new System.Drawing.Size(41, 15);
+            label26.TabIndex = 0;
+            label26.Text = "Editor:";
             // 
             // Views
             // 
@@ -1755,6 +2075,17 @@
             cdColors.AnyColor = true;
             cdColors.SolidColorOnly = true;
             // 
+            // chkKeyboardSound
+            // 
+            chkNoKybdSound.AutoSize = true;
+            chkNoKybdSound.Location = new System.Drawing.Point(24, 339);
+            chkNoKybdSound.Name = "chkKeyboardSound";
+            chkNoKybdSound.Size = new System.Drawing.Size(154, 19);
+            chkNoKybdSound.TabIndex = 6;
+            chkNoKybdSound.Text = "Disable Keyboard Sound";
+            chkNoKybdSound.UseVisualStyleBackColor = true;
+            chkNoKybdSound.CheckedChanged += chkNoKybdSound_CheckedChanged;
+            // 
             // frmSettings
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -1807,6 +2138,14 @@
             groupBox7.PerformLayout();
             groupBox6.ResumeLayout(false);
             groupBox6.PerformLayout();
+            Sounds.ResumeLayout(false);
+            Sounds.PerformLayout();
+            groupBox16.ResumeLayout(false);
+            groupBox16.PerformLayout();
+            groupBox15.ResumeLayout(false);
+            groupBox15.PerformLayout();
+            groupBox14.ResumeLayout(false);
+            groupBox14.PerformLayout();
             Views.ResumeLayout(false);
             Views.PerformLayout();
             groupBox13.ResumeLayout(false);
@@ -1952,5 +2291,33 @@
         private System.Windows.Forms.CheckBox chkShowPrev;
         private System.Windows.Forms.CheckBox chkShowGrid;
         private NumericTextBox txtDefCelW;
+        private System.Windows.Forms.GroupBox groupBox15;
+        private System.Windows.Forms.GroupBox groupBox14;
+        private System.Windows.Forms.GroupBox groupBox16;
+        private NumericTextBox txtSoundZoom;
+        private System.Windows.Forms.Label label26;
+        private System.Windows.Forms.RadioButton optMIDI;
+        private System.Windows.Forms.RadioButton optPCSpeaker;
+        private System.Windows.Forms.RadioButton optPCjr;
+        private System.Windows.Forms.Label label29;
+        private System.Windows.Forms.Label label28;
+        private System.Windows.Forms.Label label27;
+        private System.Windows.Forms.CheckBox chkOneTrack;
+        private System.Windows.Forms.CheckBox chkKeybd;
+        private System.Windows.Forms.Button cmdInstReset;
+        private System.Windows.Forms.ComboBox cmbInst2;
+        private System.Windows.Forms.ComboBox cmbInst1;
+        private System.Windows.Forms.ComboBox cmbInst0;
+        private System.Windows.Forms.ColorDialog colorDialog1;
+        private System.Windows.Forms.CheckBox chkNotes;
+        private System.Windows.Forms.Label label30;
+        private System.Windows.Forms.CheckBox chkMute3;
+        private System.Windows.Forms.CheckBox chkMute2;
+        private System.Windows.Forms.CheckBox chkMute1;
+        private System.Windows.Forms.CheckBox chkMute0;
+        private System.Windows.Forms.Label label32;
+        private System.Windows.Forms.Label label31;
+        private System.Windows.Forms.Label label33;
+        private System.Windows.Forms.CheckBox chkNoKybdSound;
     }
 }

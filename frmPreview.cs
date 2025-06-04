@@ -236,7 +236,6 @@ namespace WinAGI.Editor {
         }
 
         internal void SetResourceMenu() {
-            mnuRExportAll.Visible = (SelResType == AGIResType.Game);
             if (SelResNum == -1) {
                 mnuRExportGIF.Visible = false;
                 return;
@@ -263,10 +262,6 @@ namespace WinAGI.Editor {
         /// </summary>
         public void ResetResourceMenu() {
             // currently, nothing to rest
-        }
-
-        private void mnuRExportAll_Click(object sender, EventArgs e) {
-            ExportAll(false);
         }
 
         private void mnuRExportGIF_Click(object sender, EventArgs e) {
@@ -662,7 +657,7 @@ namespace WinAGI.Editor {
         }
 
         private void optPCjr_CheckedChanged(object sender, EventArgs e) {
-            SetMIDIControls(false);
+            SetMIDIControls(true);
         }
 
         private void optMIDI_CheckedChanged(object sender, EventArgs e) {
@@ -1734,11 +1729,11 @@ namespace WinAGI.Editor {
 
         void SetMIDIControls(bool enabled) {
             for (int i = 0; i < 3; i++) {
-                chkTrack[i].Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI && !agSound[i].Muted;
-                cmbInst[i].Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI && !agSound[i].Muted;
+                chkTrack[i].Enabled = enabled && agSound.SndFormat == SoundFormat.AGI;
+                cmbInst[i].Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI;
             }
-            chkTrack[3].Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI && !agSound[3].Muted;
-            cmdReset.Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI && !agSound[3].Muted;
+            chkTrack[3].Enabled = enabled && agSound.SndFormat == SoundFormat.AGI;
+            cmdReset.Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI;
         }
 
         #endregion

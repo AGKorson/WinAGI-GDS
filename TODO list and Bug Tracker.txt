@@ -810,7 +810,9 @@ frmSoundEdit
         - mnuRCompileLogic
         - mnuRSavePicImage
         - mnuRExportGIF
-        + mnuRToggleTrackMode
+        + mnuRPlaySound
+        + mnuRPlaybackMode
+        
 
 frmTextScreenEdit
 -----------------
@@ -1098,6 +1100,7 @@ WinAGI settings and warnings:
 // ************************************************
 // SOUND SETTINGS
 // ************************************************
+// PlaybackMode
 // ShowKybd
 // ShowNotes
 // OneTrack
@@ -1384,3 +1387,17 @@ public void mnuRExport_Click(object sender, EventArgs e)
 public void mnuRInGame_Click(object sender, EventArgs e)
 
 
+| GDI Function      | C# Equivalent (System.Drawing)         |
+|-------------------|----------------------------------------| 
+| BitBlt            | Graphics.DrawImage                     | 
+| StretchBlt        | Graphics.DrawImage with scaling        | 
+| TransparentBlt    | Graphics.DrawImage + ImageAttributes.SetColorKey |
+| AlphaBlend        | Graphics.DrawImage + ImageAttributes.SetColorMatrix |
+---
+
+| GDI Classic (BitBlt/ROP) | System.Drawing Equivalent     |
+|--------------------------|-------------------------------|
+| ROP codes (SRCCOPY, etc) | Not supported                 |
+| Alpha blending           | CompositingMode/ImageAttributes |
+| Color key transparency   | ImageAttributes.SetColorKey   |
+| Custom raster ops        | P/Invoke GDI or manual pixels |

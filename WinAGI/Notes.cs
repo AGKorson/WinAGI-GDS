@@ -134,12 +134,16 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="cloneTparent"></param>
         /// <returns>The Notes object this method creates.</returns>
-        internal Notes Clone(Track cloneTparent) {
-            Notes CopyNotes = new(mParent, cloneTparent);
+        internal Notes Clone(Sound cloneparent, Track cloneTparent) {
+            Notes CopyNotes = new(cloneparent, cloneTparent);
             foreach (Note tmpNote in mCol) {
-                CopyNotes.mCol.Add(new Note(tmpNote.mFreqDiv, tmpNote.mDuration, tmpNote.mAttenuation, mParent, mTParent));
+                CopyNotes.mCol.Add(new Note(tmpNote.mFreqDiv, tmpNote.mDuration, tmpNote.mAttenuation, cloneparent, cloneTparent));
             }
             return CopyNotes;
+        }
+
+        public Notes Clone() {
+            return Clone(null, null);
         }
 
         /// <summary>

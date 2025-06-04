@@ -1,6 +1,7 @@
 ﻿using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -114,12 +115,14 @@ namespace WinAGI.Engine {
         }
         #endregion
     }
+
     /// <summary>
     /// A class for playing AGI Sounds as a MIDI stream.
     /// </summary>
-    internal class MIDIPlayer : NativeWindow, IDisposable {
+    public class MIDIPlayer : NativeWindow, IDisposable {
         #region Local Members
         private bool disposed = false;
+        internal nint hMidi = IntPtr.Zero; // handle to the MIDI output device
         internal byte[] mMIDIData;
         #endregion
 
@@ -127,7 +130,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Initializes a MIDIplayer to play AGI sounds.
         /// </summary>
-        internal MIDIPlayer() {
+        public MIDIPlayer() {
             CreateParams cpMIDIPlayer = new() {
                 Caption = "",
             };
@@ -168,7 +171,7 @@ namespace WinAGI.Engine {
         /// or a native IIg MIDI sound.
         /// </summary>
         /// <param name="SndRes"></param>
-        internal void PlayMIDISound(Sound SndRes) {
+        public void PlayMIDISound(Sound SndRes) {
             StringBuilder strError = new(255);
 
             StopAllSound();
@@ -260,7 +263,7 @@ namespace WinAGI.Engine {
     /// <summary>
     /// A class for playing AGI sounds as WAV data streams.
     /// </summary>
-    internal class WAVPlayer {
+    public class WAVPlayer {
         // WAVPlayer code based on prior work by Lance Ewing in 
         // AGILE. Thank you Lance.
 
@@ -348,12 +351,13 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         internal byte[] BuildPCjrWAV(Sound sound) {
             Note[] voiceCurrentNote = new Note[4];
-            bool[] voicePlaying = [true, true, true, true];
+            bool[] voicePlaying = [!sound[0].Muted, !sound[1].Muted, !sound[2].Muted, !sound[3].Muted];
             int[] voiceSampleCount = new int[4];
             int[] voiceNoteNum = new int[4];
             int[] voiceDissolveCount = new int[4];
             int durationUnitCount = 0;
 
+            // TODO: dissolve should depend on a sound property, not on ingame status
             if (sound.parent == null) {
                 dissolveData = dissolveDataV2;
             }
@@ -437,7 +441,7 @@ namespace WinAGI.Engine {
         /// Plays the given AGI Sound using emulated PCjr sound chip.
         /// </summary>
         /// <param name="sound">The AGI Sound to play.</param>
-        internal void PlayWAVSound(Sound sound) {
+        public void PlayWAVSound(Sound sound) {
             soundPlaying = sound;
             soundFormat = sound.SndFormat;
 
@@ -455,8 +459,7 @@ namespace WinAGI.Engine {
         private void PlayWaveStreamAndWait(MemoryStream waveStream) {
             bPlayingWAV = true;
             PlayWithNAudioMix(waveStream);
-            //PlayWithWaveOut(waveStream);
-            // The above call blocks until the sound has finished playing.
+            // The above call does not return until the sound has finished playing.
             bPlayingWAV = false;
             soundPlaying?.OnSoundComplete(true);
         }
@@ -565,7 +568,7 @@ namespace WinAGI.Engine {
                 if (playerThread != null) {
                     // We wait for the thread to stop only if instructed to do so.
                     if (wait) {
-                        while (playerThread.ThreadState != ThreadState.Stopped) {
+                        while (playerThread.ThreadState != System.Threading.ThreadState.Stopped) {
                             bPlayingWAV = false;
                             Thread.Sleep(10);
                         }
@@ -792,6 +795,255 @@ namespace WinAGI.Engine {
             #endregion
         }
         #endregion
+    }
+
+    /// <summary>
+    /// A class for playing MIDI notes using the Windows MIDI API.
+    /// </summary>
+    public class MidiNotePlayer : IDisposable {
+        private nint hMidi = IntPtr.Zero;
+        private bool isPlaying = false;
+        private bool disposed = false;
+        private int playnote = 0;
+
+        public MidiNotePlayer() {
+            // don't initialize MIDI here
+            //InitMidi();
+        }
+
+        public void InitMidi() {
+            // if already initialized, do nothing
+            if (hMidi == IntPtr.Zero) {
+                int rtn = midiOutOpen(ref hMidi, -1, 0, 0, 0);
+                if (rtn == 0) {
+                    _ = midiOutReset(hMidi);
+                }
+            }
+        }
+
+        public void KillMidi() {
+            if (hMidi != IntPtr.Zero) {
+                _ = midiOutClose(hMidi);
+                hMidi = IntPtr.Zero;
+            }
+        }
+
+        public void PlayMIDINote(int instrument, int note) {
+            if (isPlaying) {
+                // If a note is already playing, stop it first.
+                StopMIDINote();
+            }
+            // instrument message:
+            // tone noise: 0x6C0
+            // white noise: 0x7AC0
+            // music note: 0x##C0 (where ## is the instrument number)
+
+            // for noise note, calculate note value as follows:
+            //   midinote = Math.Log10(2330.4296875 / Math.Pow(2, note & 3)) / LOG10_1_12 - 64;
+            
+            // if not enabled, do nothing
+            if (hMidi == IntPtr.Zero) {
+                return;
+            }
+
+            //change instrument
+            midiOutShortMsg(hMidi, instrument);
+            // send note on
+            playnote = note; // 0x7F is the velocity, 0x90 is the note on message
+            midiOutShortMsg(hMidi, note * 0x100 + 0x7F0090);
+            isPlaying = true;
+        }
+
+        public void StopMIDINote() {
+            if (hMidi != 0) {
+                // send note off
+                midiOutShortMsg(hMidi, playnote * 0x100 + 0x80);
+                // reset so other midi actions can be performed
+                midiOutReset(hMidi);
+
+            }
+            isPlaying = false;
+        }
+
+        /// <summary>
+        /// Disposes the MidiNotePlayer when it is no longer needed.
+        /// </summary>
+        public void Dispose() {
+            Dispose(disposing: true);
+            // This object will be cleaned up by the Dispose method.
+            // Therefore, you should call GC.SuppressFinalize to
+            // take this object off the finalization queue
+            // and prevent finalization code for this object
+            // from executing a second time.
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Disposes the MidiNotePlayer when it is no longer needed.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Dispose(bool disposing) {
+            // check to see if Dispose has already been called
+            if (!disposed) {
+                // if disposing is true, dispose all managed and unmanaged resources
+                if (disposing) {
+                    // Close the MIDI output device handle
+                    if (hMidi != IntPtr.Zero) {
+                        int rtn = midiOutClose(hMidi);
+                        if (rtn != 0) {
+                            StringBuilder strError = new(255);
+                            _ = mciGetErrorString(rtn, strError, 255);
+                            WinAGIException wex = new(LoadResString(628)) {
+                                HResult = WINAGI_ERR + 628,
+                            };
+                            wex.Data["error"] = strError;
+                            throw wex;
+                        }
+                        hMidi = IntPtr.Zero;
+                    }
+                }
+                // Call the appropriate methods to clean up
+                // unmanaged resources here.
+                // If disposing is false,
+                // only the following code is executed.
+
+                // Note disposing has been done.
+                disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Use C# finalizer syntax for finalization code.
+        /// This finalizer will run only if the Dispose method
+        /// does not get called.
+        /// It gives your base class the opportunity to finalize.
+        /// Do not provide finalizer in types derived from this class.
+        /// </summary>
+        ~MidiNotePlayer() {
+            // Do not re-create Dispose clean-up code here.
+            // Calling Dispose(disposing: false) is optimal in terms of
+            // readability and maintainability.
+            Dispose(disposing: false);
+        }
+    }
+
+    /// <summary>
+    /// A class for playing AGI notes using the PCjr chip emulator.
+    /// </summary>
+    public class WavNotePlayer : IDisposable {
+        private WaveOutEvent outputDevice;
+        private BufferedWaveProvider waveProvider;
+        private Thread playThread;
+        private bool isPlaying = false;
+        private int currentFreqDivisor = -1;
+        private bool disposed = false;
+
+        private const int SAMPLE_RATE = 44100;
+
+        public WavNotePlayer() {
+            outputDevice = new WaveOutEvent();
+            waveProvider = new BufferedWaveProvider(new WaveFormat(SAMPLE_RATE, 16, 2)) {
+                BufferLength = SAMPLE_RATE * 4, // 2 seconds buffer
+                DiscardOnBufferOverflow = true
+            };
+            outputDevice.Init(waveProvider);
+            outputDevice.Play();
+        }
+
+        /// <summary>
+        /// Starts playing a note with the given FreqDivisor.
+        /// </summary>
+        public void PlayWavNote(int freqDivisor, int channel = 0, int attenuation = 0) {
+            StopWavNote();
+            isPlaying = true;
+            currentFreqDivisor = freqDivisor;
+
+            playThread = new Thread(() => PlaySN76496Tone(freqDivisor, channel, attenuation));
+            playThread.IsBackground = true;
+            playThread.Start();
+
+            outputDevice.Play();
+        }
+
+        /// <summary>
+        /// Stops the currently playing note.
+        /// </summary>
+        public void StopWavNote() {
+            isPlaying = false;
+            if (playThread != null && playThread.IsAlive) {
+                playThread.Join();
+                playThread = null;
+            }
+            waveProvider.ClearBuffer();
+            outputDevice.Stop();
+        }
+
+        /// <summary>
+        /// Generates and streams a tone using the SN76496 emulation.
+        /// </summary>
+        private void PlaySN76496Tone(int freqDivisor, int channel = 0, int attenuation = 0) {
+            // Set up SN76496 for a single note on channel 0, attenuation 0 (loudest)
+            var psg = new WAVPlayer.SN76496();
+
+            if (channel < 3) {
+                // First byte: 1RR0FFFF (R=channel, F=low 4 bits of freqDivisor)
+                int firstByte = 0x80 | ((0 & 0x03) << 5) | (0 << 4) | (freqDivisor & 0x0F);
+                // Second byte: 0XXXXXXX (X=high 6 bits of freqDivisor)
+                int secondByte = (freqDivisor >> 4) & 0x3F;
+                // Write attenuation for channel 0 (0=loudest)
+                int attnByte = 0x90 | (0 & 0x03) << 5 | (attenuation & 0x0F);
+                psg.Write(firstByte);
+                psg.Write(secondByte);
+                psg.Write(attnByte);
+            }
+            else {
+                // Noise channel (3)
+                // freqDivisor: bits 0-1 = frequency, bit 2 = noise type (0=periodic, 1=white)
+                // SN76496 expects: 1 1 0 0 N T F F (N=noise type, T/F=frequency bits)
+                // Command byte: 0xE0 | (freqDivisor & 0x07)
+                int noiseByte = 0xE0 | (freqDivisor & 0x07);
+                int attnByte = 0xF0 | (attenuation & 0x0F);
+
+                psg.Write(noiseByte);
+                psg.Write(attnByte);
+            }
+
+            int samplesPerBuffer = SAMPLE_RATE / 10; // 0.1s buffer
+            short[] buffer = new short[samplesPerBuffer * 2]; // stereo
+
+            while (isPlaying) {
+                for (int i = 0; i < samplesPerBuffer; i++) {
+                    // Render returns a float; scale to 16-bit PCM
+                    float sampleF = psg.Render();
+                    short sample = (short)Math.Clamp(sampleF, short.MinValue, short.MaxValue);
+                    buffer[i * 2] = sample;     // Left
+                    buffer[i * 2 + 1] = sample; // Right
+                }
+                byte[] byteBuffer = new byte[buffer.Length * 2];
+                Buffer.BlockCopy(buffer, 0, byteBuffer, 0, byteBuffer.Length);
+                waveProvider.AddSamples(byteBuffer, 0, byteBuffer.Length);
+                Thread.Sleep(100); // match buffer duration
+            }
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing) {
+            if (!disposed) {
+                if (disposing) {
+                    StopWavNote();
+                    outputDevice.Dispose();
+                }
+                disposed = true;
+            }
+        }
+
+        ~WavNotePlayer() {
+            Dispose(false);
+        }
     }
     #endregion
 

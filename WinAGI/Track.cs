@@ -41,6 +41,33 @@ namespace WinAGI.Engine {
 
         #region Properties
         /// <summary>
+        /// Gets or sets the collection of notes in this track.
+        /// </summary>
+        public Notes Notes {
+            get {
+                return mNotes;
+            }
+            internal set {
+                mNotes = value;
+            }
+        }
+
+        /// <summary>
+        /// Get the specified note from this track. The index is zero-based.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public Note this[int index] {
+            get {
+                if (index < 0 || index > mNotes.Count - 1) {
+                    throw new IndexOutOfRangeException();
+                }
+                return mNotes[index];
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the MIDI instrument value to use when the sound is played as
         /// a MIDI stream. This property is only applicable to PC/PCjr sounds.
         /// </summary>
@@ -92,18 +119,6 @@ namespace WinAGI.Engine {
                 return mLength;
             }
         }
-
-        /// <summary>
-        /// Gets or sets the collection of notes in this track.
-        /// </summary>
-        public Notes Notes {
-            get {
-                return mNotes;
-            }
-            internal set {
-                mNotes = value;
-            }
-        }
         #endregion
 
         #region Methods
@@ -145,8 +160,7 @@ namespace WinAGI.Engine {
                 mLengthChanged = mLengthChanged,
                 mLength = mLength
             };
-            CopyTrack.mNotes = new Notes(cloneparent, CopyTrack);
-            CopyTrack.mNotes = mNotes.Clone(CopyTrack);
+            CopyTrack.mNotes = mNotes.Clone(cloneparent, CopyTrack);
             return CopyTrack;
         }
 

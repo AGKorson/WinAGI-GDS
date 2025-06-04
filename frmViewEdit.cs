@@ -2632,7 +2632,6 @@ namespace WinAGI.Editor {
                 }
                 EditGame.Views[ViewNumber].CloneFrom(EditView);
                 EditGame.Views[ViewNumber].Save();
-                EditView.CloneFrom(EditGame.Views[ViewNumber]);
                 if (!blnLoaded) {
                     EditGame.Views[ViewNumber].Unload();
                 }

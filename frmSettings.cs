@@ -93,13 +93,13 @@ namespace WinAGI.Editor {
                 cmbViewDefCol1.Items.Add((AGIColorIndex)i);
                 cmbViewDefCol2.Items.Add((AGIColorIndex)i);
             }
-            /*
-            for (int i = 0; i <= 127; i++) {
-                cmbInst0.Items.Add(InstrumentName[i]);
-                cmbInst1.Items.Add(InstrumentName[i]);
-                cmbInst2.Items.Add(InstrumentName[i]);
-            }
-            */
+            cmbInst0.Items.Clear();
+            cmbInst0.Items.AddRange(SoundEditMTrack.InstrumentsConverter.CustomNames);
+            cmbInst1.Items.Clear();
+            cmbInst1.Items.AddRange(SoundEditMTrack.InstrumentsConverter.CustomNames);
+            cmbInst2.Items.Clear();
+            cmbInst2.Items.AddRange(SoundEditMTrack.InstrumentsConverter.CustomNames);
+
             RefreshCodeExample();
             if (MDIMain.ActiveMdiChild == PreviewWin) {
                 if (PreviewWin.tmrSound.Enabled) {
@@ -118,6 +118,7 @@ namespace WinAGI.Editor {
             prevArgIdentifierStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[8].Color.Value), null, WinAGISettings.SyntaxStyle[8].FontStyle.Value);
             prevDefIdentifierStyle = new TextStyle(new SolidBrush(WinAGISettings.SyntaxStyle[9].Color.Value), null, WinAGISettings.SyntaxStyle[9].FontStyle.Value);
 
+            // setup form to match current settings
             InitForm();
             tabControl1.SelectedTab = tabControl1.TabPages[starttab];
             if (startprop.Length > 0) {
@@ -203,6 +204,8 @@ namespace WinAGI.Editor {
             NewPicTestSettings.CycleAtRest.Reset();
             // Sounds
             NewSettings.ShowKeyboard.Reset();
+            NewSettings.NoKeyboardSound.Reset();
+            NewSettings.PlaybackMode.Reset();
             NewSettings.ShowNotes.Reset();
             NewSettings.OneTrack.Reset();
             for (int i = 0; i < 2; i++) {
@@ -503,11 +506,12 @@ namespace WinAGI.Editor {
             }
 
             // SOUNDS
+            NewSettings.SndZoom.Value = txtSoundZoom.Value;
             foreach (frmSoundEdit frm in SoundEditors) {
                 // if setting for showing/hiding notes has changed, redraw sound editors
                 if (blnChangeNotes) {
                     // force redraw
-                    frm.DrawStaff(-3);
+                    frm.Invalidate();
                 }
             }
 
@@ -1157,121 +1161,82 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Sounds Tab Event Handlers
-        /*
-        private void chkKeybd_Click(object sender, EventArgs e) {
-            NewSettings.ShowKybd.Value = chkKeybd.Checked;
+
+        private void optPlaybackMode_CheckedChanged(object sender, EventArgs e) {
+            if (optPCSpeaker.Checked) {
+                NewSettings.PlaybackMode.Value = 0;
+            }
+            else if (optPCjr.Checked) {
+                NewSettings.PlaybackMode.Value = 1;
+            }
+            else if (optMIDI.Checked) {
+                NewSettings.PlaybackMode.Value = 2;
+            }
         }
 
-        private void chkNotes_Click(object sender, EventArgs e) {
-            NewSettings.ShowNotes.Value = chkNotes.Checked;
+        private void chkMute_CheckedChanged(object sender, EventArgs e) {
+            bool newval = (sender as CheckBox).Checked;
+            int index = (int)((sender as CheckBox).Tag ?? -1);
+            if (index == -1) {
+                return;
+            }
+            NewSettings.DefMute[index].Value = newval;
         }
 
-        private void chkOneTrack_Click(object sender, EventArgs e) {
+        private void cmbInst_SelectedIndexChanged(object sender, EventArgs e) {
+            byte newval = (byte)(sender as ComboBox).SelectedIndex;
+            int index = (int)((sender as ComboBox).Tag ?? -1);
+            if (index == -1) {
+                return;
+            }
+            NewSettings.DefInst[index].Value = newval;
+        }
+
+        private void cmdInstReset_Click(object sender, EventArgs e) {
+            // resets all instruments to current default values
+
+            foreach (Sound tmpSound in EditGame.Sounds) {
+                bool blnLoaded = tmpSound.Loaded;
+                if (!blnLoaded) {
+                    tmpSound.Load();
+                }
+                for (int i = 0; i < 3; i++) {
+                    tmpSound[0].Instrument = NewSettings.DefInst[0].Value;
+                    tmpSound[0].Muted = NewSettings.DefMute[0].Value;
+                }
+                tmpSound.Save();
+                if (!blnLoaded) {
+                    tmpSound.Unload();
+                }
+            }
+            if (SelResType == AGIResType.Sound && PreviewWin.Visible) {
+                // adjust instrument settings
+                PreviewWin.cmbInst0.SelectedIndex = NewSettings.DefInst[0].Value;
+                PreviewWin.cmbInst1.SelectedIndex = NewSettings.DefInst[1].Value;
+                PreviewWin.cmbInst2.SelectedIndex = NewSettings.DefInst[2].Value;
+                PreviewWin.chkTrack0.Checked = !NewSettings.DefMute[0].Value;
+                PreviewWin.chkTrack1.Checked = !NewSettings.DefMute[1].Value;
+                PreviewWin.chkTrack2.Checked = !NewSettings.DefMute[2].Value;
+                PreviewWin.chkTrack3.Checked = !NewSettings.DefMute[3].Value;
+            }
+        }
+
+        private void chkKeybd_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.ShowKeyboard.Value = chkKeybd.Checked;
+        }
+
+        private void chkOneTrack_CheckedChanged(object sender, EventArgs e) {
             NewSettings.OneTrack.Value = chkOneTrack.Checked;
         }
 
-        private void chkNoMIDI_Click(object sender, EventArgs e) {
-            NewSettings.NoMIDI.Value = chkNoMIDI.Checked;
+        private void chkNoKybdSound_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.NoKeyboardSound.Value = !chkNoKybdSound.Checked;
         }
 
-        private void chkTrack_Click(int Index) {
-            switch (Index) {
-            case 0:
-                NewSettings.DefMute0.Value = chkTrack[Index].Checked;
-                break;
-            case 1:
-                NewSettings.DefMute1.Value = chkTrack[Index].Checked;
-                break;
-            case 2:
-                NewSettings.DefMute2.Value = chkTrack[Index].Checked;
-                break;
-            case 3:
-                NewSettings.DefMute3.Value = chkTrack[Index].Checked;
-                break;
-            }
+
+        private void chkNotes_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.ShowNotes.Value = chkNotes.Checked;
         }
-
-        private void cmbInst_Click(int Index) {
-            switch (Index) {
-            case 0:
-                NewSettings.DefInst0.Value = cmbInst[Index].SelectedIndex;
-                break;
-            case 1:
-                NewSettings.DefInst1.Value = cmbInst[Index].SelectedIndex;
-                break;
-            case 2:
-                NewSettings.DefInst2.Value = cmbInst[Index].SelectedIndex;
-                break;
-            }
-        }
-
-    private void cmdResetInst_Click() {
-      // resets all instruments to current default values
-
-      foreach (SoundtmpSound in EditGame.Sounds) {
-        bool blnLoaded = tmpSound.Loaded;
-        if (!blnLoaded) {
-          tmpSound.Load();
-        }
-          tmpSound.Track[0].Instrument = NewSettings.DefInst0;
-          tmpSound.Track[1].Instrument = NewSettings.DefInst1;
-          tmpSound.Track[2].Instrument = NewSettings.DefInst2;
-          tmpSound.Track[0].Muted = NewSettings.DefMute0;
-          tmpSound.Track[1].Muted = NewSettings.DefMute1;
-          tmpSound.Track[2].Muted = NewSettings.DefMute2;
-          tmpSound.Track[3].Muted = NewSettings.DefMute3;
-          tmpSound.Save();
-        if (!blnLoaded) {
-          tmpSound.Unload();
-        }
-      }
-      if (SelResType == AGIResType.Sound && PreviewWin.Visible) {
-        // adjust instrument settings
-          PreviewWin.cmbInst0.SelectedIndex = NewSettings.DefInst0;
-          PreviewWin.cmbInst1.SelectedIndex = NewSettings.DefInst1;
-          PreviewWin.cmbInst2.SelectedIndex = NewSettings.DefInst2;
-          PreviewWin.chkTrack0.Checked = !NewSettings.DefMute0;
-          PreviewWin.chkTrack1.Checked = !NewSettings.DefMute1;
-          PreviewWin.chkTrack2.Checked = !NewSettings.DefMute2;
-          PreviewWin.chkTrack3.Checked = !NewSettings.DefMute3;
-      }
-    }
-
-    private void txtSndZoom_Validating(object sender, CancelEventArgs e) {
-
-      if (!double.TryParse(txtSndZoom.Text, out double var) || var < 1) {
-        txtSndZoom.Text = "1";
-      }
-            else if (var > 3) {
-        txtSndZoom.Text = "3";
-      }
-else {
-            txtSndZoom.Text = ((int)var).ToString();
-      }
-      NewSettings.SndZoom = (int)var;
-    }
-
-    private void txtSndZoom_KeyPress(object sender, KeyPressEventArgs e) {
-      // enter is same as tabbing to next control
-      if ( e.KeyChar == 13) {
-         e.KeyChar = '\0';
-            e.Handled = true;
-        chkNoMIDI.Select();
-            return;
-      }
-      // only numbers or control keys
-      switch ( e.KeyChar) {
-      case  < 32:
-            case >=48 and <= 57:
-            break;
-      default:
-         e.KeyChar = '\0';
-            e.Handled = true;
-            break;
-      }
-    }
-
-        */
         #endregion
 
         #region Views Tab Event Handlers
@@ -1785,7 +1750,10 @@ else {
         private void InitForm() {
             // move preview rtf to front
             Controls.SetChildIndex(rtfPreview, 0);
-            // general tab
+
+            //***********************
+            // GENERAL SETTINGS
+            //***********************
             chkDisplayByNum.Checked = NewSettings.ShowResNum.Value;
             chkIncludeResNum.Checked = NewSettings.IncludeResNum.Value;
             chkIncludeResNum.Enabled = !NewSettings.ShowResNum.Value;
@@ -1814,7 +1782,9 @@ else {
             txtMaxSO.Text = NewSettings.DefMaxSO.Value.ToString();
             txtMaxVol0.Text = (NewSettings.DefMaxVol0.Value / 1024).ToString();
 
-            // logics tab
+            //***********************
+            // LOGICS SETTINGS TAB 1
+            //***********************
             chkSnippets.Checked = NewSettings.UseSnippets.Value;
             chkAutoQuickInfo.Checked = NewSettings.AutoQuickInfo.Value;
             chkDocMap.Checked = NewSettings.ShowDocMap.Value;
@@ -1831,7 +1801,9 @@ else {
             cmbPrevSize.Text = NewSettings.PreviewFontSize.Value.ToString();
             txtExtension.Text = NewSettings.DefaultExt.Value.ToLower();
 
-            // logics2 tab
+            //***********************
+            // LOGICS SETTINGS TAB 2
+            //***********************
             cmbErrorLevel.SelectedIndex = NewSettings.ErrorLevel.IntValue;
             chkAutoWarn.Checked = NewSettings.AutoWarn.Value;
             chkShowComment.Checked = NewSettings.GEShowComment.Value;
@@ -1858,7 +1830,9 @@ else {
             chkIncludeResDefs.Checked = NewSettings.DefIncludeReserved.Value;
             chkIncludeGlobals.Checked = NewSettings.DefIncludeGlobals.Value;
 
-            // pictures
+            //***********************
+            // PICTURE SETTINGS
+            //***********************
             double scale = NewSettings.PicScaleEdit.Value;
             // convert scale to percentage vlues
             if (scale < 1) {
@@ -1975,20 +1949,37 @@ else {
             chkIgnoreHorizon.Checked = NewPicTestSettings.IgnoreHorizon.Value;
             chkCycleAtRest.Checked = NewPicTestSettings.CycleAtRest.Value;
 
-            /*
-            // sounds
-            chkKeybd.Checked = NewSettings.ShowKybd;
-            chkNotes.Checked = NewSettings.ShowNotes;
-            chkOneTrack.Checked = NewSettings.OneTrack;
-            chkNoMIDI.Checked = NewSettings.NoMIDI;
-            cmbInst(0).SelectedIndex = NewSettings.DefInst0;
-            cmbInst(1).SelectedIndex = NewSettings.DefInst1;
-            cmbInst(2).SelectedIndex = NewSettings.DefInst2;
-            chkTrack(0).Checked = !NewSettings.DefMute0;
-            chkTrack(1).Checked = !NewSettings.DefMute1;
-            chkTrack(2).Checked = !NewSettings.DefMute2;
-            chkTrack(3).Checked = !NewSettings.DefMute3;
-            */
+            //***********************
+            // SOUND SETTINGS
+            //***********************
+            if (NewSettings.PlaybackMode.Value == 2) {
+                optMIDI.Checked = true;
+            }
+            //else if (NewSettings.PlaybackMode.Value == 0) {
+            //    optPCSpeaker.Checked = true;
+            //}
+            else {
+                optPCjr.Checked = true;
+            }
+            txtSoundZoom.Value = NewSettings.SndZoom.Value;
+            chkKeybd.Checked = NewSettings.ShowKeyboard.Value;
+            chkNoKybdSound.Checked = NewSettings.NoKeyboardSound.Value;
+            chkNotes.Checked = NewSettings.ShowNotes.Value;
+            chkOneTrack.Checked = NewSettings.OneTrack.Value;
+            cmbInst0.SelectedIndex = NewSettings.DefInst[0].Value;
+            cmbInst0.Tag = 0;
+            cmbInst1.SelectedIndex = NewSettings.DefInst[1].Value;
+            cmbInst1.Tag = 1;
+            cmbInst2.SelectedIndex = NewSettings.DefInst[2].Value;
+            cmbInst2.Tag = 2;
+            chkMute0.Checked = NewSettings.DefMute[0].Value;
+            chkMute0.Tag = 0;
+            chkMute1.Checked = NewSettings.DefMute[1].Value;
+            chkMute1.Tag = 1;
+            chkMute2.Checked = NewSettings.DefMute[2].Value;
+            chkMute2.Tag = 2;
+            chkMute3.Checked = NewSettings.DefMute[3].Value;
+            chkMute3.Tag = 3;
 
             // views
             for (int i = 0; i < udVPZoom.Items.Count; i++) {
@@ -2101,7 +2092,9 @@ else {
             WinAGISettings.CursorMode.WriteSetting(WinAGISettingsFile);
 
             // sounds
+            WinAGISettings.PlaybackMode.WriteSetting(WinAGISettingsFile);
             WinAGISettings.ShowKeyboard.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.NoKeyboardSound.WriteSetting(WinAGISettingsFile);
             WinAGISettings.ShowNotes.WriteSetting(WinAGISettingsFile);
             WinAGISettings.OneTrack.WriteSetting(WinAGISettingsFile);
             for (int i = 0; i < 3; i++) {

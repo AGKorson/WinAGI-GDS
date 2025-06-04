@@ -1577,6 +1577,7 @@
             // propertyGrid1
             // 
             propertyGrid1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            propertyGrid1.CanShowVisualStyleGlyphs = false;
             propertyGrid1.CommandsVisibleIfAvailable = false;
             propertyGrid1.HelpVisible = false;
             propertyGrid1.Location = new System.Drawing.Point(0, 2);

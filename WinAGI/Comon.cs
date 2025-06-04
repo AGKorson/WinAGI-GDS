@@ -25,12 +25,26 @@ namespace WinAGI.Common {
 
         // APIs for MIDI sound handling
         [DllImport("Winmm.dll", SetLastError = true)]
+        public static extern int midiOutShortMsg(nint hMidiOut, int dwMsg);
+
+        [DllImport("Winmm.dll", SetLastError = true)]
+        public static extern int midiOutOpen(ref nint lphMidiOut, int uDeviceID, int dwCallback, int dwInstance, int dwFlags);
+
+        [DllImport("Winmm.dll", SetLastError = true)]
+        public static extern int midiOutClose(nint hMidiOut);
+
+        [DllImport("Winmm.dll", SetLastError = true)]
+        public static extern int midiOutReset(nint hMidiOut);
+
+        [DllImport("Winmm.dll", SetLastError = true)]
         public static extern int mciSendString(string lpszCommand, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn, IntPtr hwndCallback);
-        public const int MM_MCINOTIFY = 0x3B9;
-        public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
 
         [DllImport("Winmm.dll", SetLastError = true)]
         public static extern int mciGetErrorString(int errNum, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpszReturnString, int cchReturn);
+
+        
+        public const int MM_MCINOTIFY = 0x3B9;
+        public const int MCI_NOTIFY_SUCCESSFUL = 0x1;
 
         [DllImport("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);

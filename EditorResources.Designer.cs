@@ -846,7 +846,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Edit Note.
+        ///   Looks up a localized string similar to Edit Note Frequency.
         /// </summary>
         internal static string _1403 {
             get {
@@ -855,7 +855,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cut.
+        ///   Looks up a localized string similar to Edit Note Duration.
         /// </summary>
         internal static string _1404 {
             get {
@@ -864,7 +864,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Paste.
+        ///   Looks up a localized string similar to Edit Note Attenuation.
         /// </summary>
         internal static string _1405 {
             get {
@@ -873,7 +873,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add Note.
+        ///   Looks up a localized string similar to Cut.
         /// </summary>
         internal static string _1406 {
             get {
@@ -882,7 +882,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Delete.
+        ///   Looks up a localized string similar to Paste.
         /// </summary>
         internal static string _1407 {
             get {
@@ -891,7 +891,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Shift Key.
+        ///   Looks up a localized string similar to Add Note.
         /// </summary>
         internal static string _1408 {
             get {
@@ -900,11 +900,47 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Shift Volume.
+        ///   Looks up a localized string similar to Delete Note.
         /// </summary>
         internal static string _1409 {
             get {
                 return ResourceManager.GetString("1409", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shift Frequency.
+        /// </summary>
+        internal static string _1410 {
+            get {
+                return ResourceManager.GetString("1410", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shift Volume.
+        /// </summary>
+        internal static string _1411 {
+            get {
+                return ResourceManager.GetString("1411", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear Track.
+        /// </summary>
+        internal static string _1412 {
+            get {
+                return ResourceManager.GetString("1412", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear Sound.
+        /// </summary>
+        internal static string _1413 {
+            get {
+                return ResourceManager.GetString("1413", resourceCulture);
             }
         }
         
@@ -5598,6 +5634,16 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap bassclef {
+            get {
+                object obj = ResourceManager.GetObject("bassclef", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] btn_addcel {
@@ -5634,6 +5680,26 @@ namespace WinAGI.Editor {
             get {
                 object obj = ResourceManager.GetObject("btn_stop", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap connectordown {
+            get {
+                object obj = ResourceManager.GetObject("connectordown", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap connectorup {
+            get {
+                object obj = ResourceManager.GetObject("connectorup", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -5858,6 +5924,26 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap esi_muteoff {
+            get {
+                object obj = ResourceManager.GetObject("esi_muteoff", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap esi_muteon {
+            get {
+                object obj = ResourceManager.GetObject("esi_muteon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] EVC_DRAW {
@@ -5934,6 +6020,196 @@ namespace WinAGI.Editor {
             get {
                 object obj = ResourceManager.GetObject("ewi_byword", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note16down {
+            get {
+                object obj = ResourceManager.GetObject("note16down", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note16up {
+            get {
+                object obj = ResourceManager.GetObject("note16up", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note1down {
+            get {
+                object obj = ResourceManager.GetObject("note1down", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note1up {
+            get {
+                object obj = ResourceManager.GetObject("note1up", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note2down {
+            get {
+                object obj = ResourceManager.GetObject("note2down", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note2up {
+            get {
+                object obj = ResourceManager.GetObject("note2up", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note4down {
+            get {
+                object obj = ResourceManager.GetObject("note4down", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note4up {
+            get {
+                object obj = ResourceManager.GetObject("note4up", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note8down {
+            get {
+                object obj = ResourceManager.GetObject("note8down", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap note8up {
+            get {
+                object obj = ResourceManager.GetObject("note8up", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap noteflat {
+            get {
+                object obj = ResourceManager.GetObject("noteflat", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap notenatural {
+            get {
+                object obj = ResourceManager.GetObject("notenatural", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap notesharp {
+            get {
+                object obj = ResourceManager.GetObject("notesharp", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap rest1 {
+            get {
+                object obj = ResourceManager.GetObject("rest1", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap rest16 {
+            get {
+                object obj = ResourceManager.GetObject("rest16", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap rest2 {
+            get {
+                object obj = ResourceManager.GetObject("rest2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap rest4 {
+            get {
+                object obj = ResourceManager.GetObject("rest4", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap rest8 {
+            get {
+                object obj = ResourceManager.GetObject("rest8", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap trebleclef {
+            get {
+                object obj = ResourceManager.GetObject("trebleclef", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         

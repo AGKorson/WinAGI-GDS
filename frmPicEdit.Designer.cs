@@ -310,7 +310,7 @@ namespace WinAGI.Editor {
             // 
             toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             toolStrip1.Items.AddRange(new ToolStripItem[] { tsbMode, tsbTool, tsbSep0, tsbFullDraw, tsbBackground, tsbZoomIn, tsbZoomOut, tsbSep1, tsbUndo, tsbCut, tsbCopy, tsbPaste, tsbDelete, tsbFlipH, tsbFlipV, toolStripSeparator3, tsbPlotStyle, tsbPlotSize });
-            toolStrip1.Location = new System.Drawing.Point(0, 0);
+            toolStrip1.Location = new System.Drawing.Point(0, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new System.Drawing.Size(800, 31);
             toolStrip1.TabIndex = 10;
@@ -763,7 +763,7 @@ namespace WinAGI.Editor {
             // splitForm
             // 
             splitForm.Dock = DockStyle.Fill;
-            splitForm.Location = new System.Drawing.Point(0, 31);
+            splitForm.Location = new System.Drawing.Point(0, 55);
             splitForm.Name = "splitForm";
             // 
             // splitForm.Panel1
@@ -773,7 +773,7 @@ namespace WinAGI.Editor {
             // splitForm.Panel2
             // 
             splitForm.Panel2.Controls.Add(splitImages);
-            splitForm.Size = new System.Drawing.Size(800, 409);
+            splitForm.Size = new System.Drawing.Size(800, 385);
             splitForm.SplitterDistance = 132;
             splitForm.SplitterWidth = 5;
             splitForm.TabIndex = 12;
@@ -797,8 +797,8 @@ namespace WinAGI.Editor {
             // 
             splitLists.Panel2.Controls.Add(lblCoords);
             splitLists.Panel2.Controls.Add(lstCoords);
-            splitLists.Size = new System.Drawing.Size(132, 409);
-            splitLists.SplitterDistance = 278;
+            splitLists.Size = new System.Drawing.Size(132, 385);
+            splitLists.SplitterDistance = 261;
             splitLists.SplitterWidth = 5;
             splitLists.TabIndex = 0;
             splitLists.SplitterMoving += splitLists_SplitterMoving;
@@ -828,7 +828,7 @@ namespace WinAGI.Editor {
             lstCommands.Name = "lstCommands";
             lstCommands.ShowGroups = false;
             lstCommands.ShowItemToolTips = true;
-            lstCommands.Size = new System.Drawing.Size(132, 254);
+            lstCommands.Size = new System.Drawing.Size(132, 237);
             lstCommands.TabIndex = 0;
             lstCommands.UseCompatibleStateImageBehavior = false;
             lstCommands.View = View.Details;
@@ -1095,7 +1095,7 @@ namespace WinAGI.Editor {
             lstCoords.Name = "lstCoords";
             lstCoords.ShowGroups = false;
             lstCoords.ShowItemToolTips = true;
-            lstCoords.Size = new System.Drawing.Size(132, 81);
+            lstCoords.Size = new System.Drawing.Size(132, 71);
             lstCoords.TabIndex = 0;
             lstCoords.UseCompatibleStateImageBehavior = false;
             lstCoords.View = View.Details;
@@ -1132,8 +1132,8 @@ namespace WinAGI.Editor {
             splitImages.Panel2.Controls.Add(hsbPriority);
             splitImages.Panel2.Controls.Add(picPriority);
             splitImages.Panel2MinSize = 0;
-            splitImages.Size = new System.Drawing.Size(663, 409);
-            splitImages.SplitterDistance = 164;
+            splitImages.Size = new System.Drawing.Size(663, 385);
+            splitImages.SplitterDistance = 154;
             splitImages.SplitterWidth = 5;
             splitImages.TabIndex = 2;
             splitImages.SplitterMoving += splitImages_SplitterMoving;
@@ -1144,7 +1144,7 @@ namespace WinAGI.Editor {
             // picCornerVis
             // 
             picCornerVis.Anchor = AnchorStyles.None;
-            picCornerVis.Location = new System.Drawing.Point(643, 147);
+            picCornerVis.Location = new System.Drawing.Point(643, 142);
             picCornerVis.Name = "picCornerVis";
             picCornerVis.Size = new System.Drawing.Size(16, 16);
             picCornerVis.TabIndex = 5;
@@ -1165,7 +1165,7 @@ namespace WinAGI.Editor {
             // hsbVisual
             // 
             hsbVisual.Anchor = AnchorStyles.Left;
-            hsbVisual.Location = new System.Drawing.Point(0, 147);
+            hsbVisual.Location = new System.Drawing.Point(0, 142);
             hsbVisual.Minimum = -5;
             hsbVisual.Name = "hsbVisual";
             hsbVisual.Size = new System.Drawing.Size(600, 16);
@@ -1210,7 +1210,7 @@ namespace WinAGI.Editor {
             // hsbPriority
             // 
             hsbPriority.Anchor = AnchorStyles.Left;
-            hsbPriority.Location = new System.Drawing.Point(0, 123);
+            hsbPriority.Location = new System.Drawing.Point(0, 116);
             hsbPriority.Minimum = -5;
             hsbPriority.Name = "hsbPriority";
             hsbPriority.Size = new System.Drawing.Size(176, 16);

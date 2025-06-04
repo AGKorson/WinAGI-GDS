@@ -100,7 +100,6 @@ namespace WinAGI.Editor {
             tmrSound = new System.Windows.Forms.Timer(components);
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             mnuResources = new System.Windows.Forms.ToolStripMenuItem();
-            mnuRExportAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuRExportGIF = new System.Windows.Forms.ToolStripMenuItem();
             pnlLogic = new System.Windows.Forms.Panel();
             rtfLogPrev = new FastColoredTextBox();
@@ -167,10 +166,10 @@ namespace WinAGI.Editor {
             // 
             pnlPicture.Controls.Add(tableLayoutPanel1);
             pnlPicture.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlPicture.Location = new System.Drawing.Point(0, 0);
+            pnlPicture.Location = new System.Drawing.Point(0, 24);
             pnlPicture.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             pnlPicture.Name = "pnlPicture";
-            pnlPicture.Size = new System.Drawing.Size(541, 392);
+            pnlPicture.Size = new System.Drawing.Size(541, 368);
             pnlPicture.TabIndex = 1;
             pnlPicture.Visible = false;
             // 
@@ -186,7 +185,7 @@ namespace WinAGI.Editor {
             tableLayoutPanel1.RowCount = 2;
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 37F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            tableLayoutPanel1.Size = new System.Drawing.Size(541, 392);
+            tableLayoutPanel1.Size = new System.Drawing.Size(541, 368);
             tableLayoutPanel1.TabIndex = 5;
             // 
             // pnlPicHeader
@@ -274,14 +273,14 @@ namespace WinAGI.Editor {
             pnlPicImage.Dock = System.Windows.Forms.DockStyle.Fill;
             pnlPicImage.Location = new System.Drawing.Point(3, 40);
             pnlPicImage.Name = "pnlPicImage";
-            pnlPicImage.Size = new System.Drawing.Size(535, 349);
+            pnlPicImage.Size = new System.Drawing.Size(535, 325);
             pnlPicImage.TabIndex = 1;
             pnlPicImage.Resize += pnlPicImage_Resize;
             // 
             // fraPCorner
             // 
             fraPCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            fraPCorner.Location = new System.Drawing.Point(522, 339);
+            fraPCorner.Location = new System.Drawing.Point(522, 315);
             fraPCorner.Name = "fraPCorner";
             fraPCorner.Size = new System.Drawing.Size(11, 9);
             fraPCorner.TabIndex = 8;
@@ -301,7 +300,7 @@ namespace WinAGI.Editor {
             // hsbPic
             // 
             hsbPic.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            hsbPic.Location = new System.Drawing.Point(0, 339);
+            hsbPic.Location = new System.Drawing.Point(0, 315);
             hsbPic.Minimum = -4;
             hsbPic.Name = "hsbPic";
             hsbPic.Size = new System.Drawing.Size(485, 20);
@@ -341,10 +340,10 @@ namespace WinAGI.Editor {
             pnlSound.Controls.Add(chkTrack1);
             pnlSound.Controls.Add(chkTrack0);
             pnlSound.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlSound.Location = new System.Drawing.Point(0, 0);
+            pnlSound.Location = new System.Drawing.Point(0, 24);
             pnlSound.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             pnlSound.Name = "pnlSound";
-            pnlSound.Size = new System.Drawing.Size(541, 392);
+            pnlSound.Size = new System.Drawing.Size(541, 368);
             pnlSound.TabIndex = 2;
             pnlSound.Visible = false;
             pnlSound.DoubleClick += pnlSound_DoubleClick;
@@ -545,10 +544,10 @@ namespace WinAGI.Editor {
             pnlView.Controls.Add(tableLayoutPanel2);
             pnlView.Controls.Add(tsViewPrev);
             pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlView.Location = new System.Drawing.Point(0, 0);
+            pnlView.Location = new System.Drawing.Point(0, 24);
             pnlView.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             pnlView.Name = "pnlView";
-            pnlView.Size = new System.Drawing.Size(541, 392);
+            pnlView.Size = new System.Drawing.Size(541, 368);
             pnlView.TabIndex = 3;
             pnlView.Visible = false;
             // 
@@ -587,7 +586,7 @@ namespace WinAGI.Editor {
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 39F));
-            tableLayoutPanel2.Size = new System.Drawing.Size(541, 367);
+            tableLayoutPanel2.Size = new System.Drawing.Size(541, 343);
             tableLayoutPanel2.TabIndex = 13;
             // 
             // pnlViewHdr
@@ -678,7 +677,7 @@ namespace WinAGI.Editor {
             pnlViewFtr.Controls.Add(sldSpeed);
             pnlViewFtr.Controls.Add(cmbMotion);
             pnlViewFtr.Controls.Add(cmdVPlay);
-            pnlViewFtr.Location = new System.Drawing.Point(3, 331);
+            pnlViewFtr.Location = new System.Drawing.Point(3, 307);
             pnlViewFtr.Name = "pnlViewFtr";
             pnlViewFtr.Size = new System.Drawing.Size(276, 33);
             pnlViewFtr.TabIndex = 10;
@@ -722,7 +721,7 @@ namespace WinAGI.Editor {
             pnlCel.Dock = System.Windows.Forms.DockStyle.Fill;
             pnlCel.Location = new System.Drawing.Point(3, 28);
             pnlCel.Name = "pnlCel";
-            pnlCel.Size = new System.Drawing.Size(535, 297);
+            pnlCel.Size = new System.Drawing.Size(535, 273);
             pnlCel.TabIndex = 11;
             pnlCel.DoubleClick += pnlCel_DoubleClick;
             pnlCel.Resize += pnlCel_Resize;
@@ -730,7 +729,7 @@ namespace WinAGI.Editor {
             // fraVCorner
             // 
             fraVCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            fraVCorner.Location = new System.Drawing.Point(526, 289);
+            fraVCorner.Location = new System.Drawing.Point(526, 265);
             fraVCorner.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             fraVCorner.Name = "fraVCorner";
             fraVCorner.Size = new System.Drawing.Size(20, 20);
@@ -752,7 +751,7 @@ namespace WinAGI.Editor {
             // hsbView
             // 
             hsbView.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            hsbView.Location = new System.Drawing.Point(0, 289);
+            hsbView.Location = new System.Drawing.Point(0, 265);
             hsbView.Minimum = -4;
             hsbView.Name = "hsbView";
             hsbView.Size = new System.Drawing.Size(157, 16);
@@ -916,23 +915,12 @@ namespace WinAGI.Editor {
             // 
             // mnuResources
             // 
-            mnuResources.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuRExportAll, mnuRExportGIF });
+            mnuResources.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuRExportGIF });
             mnuResources.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
             mnuResources.MergeIndex = 1;
             mnuResources.Name = "mnuResources";
             mnuResources.Size = new System.Drawing.Size(72, 20);
             mnuResources.Text = "Resources";
-            // 
-            // mnuRExportAll
-            // 
-            mnuRExportAll.MergeAction = System.Windows.Forms.MergeAction.Replace;
-            mnuRExportAll.MergeIndex = 6;
-            mnuRExportAll.Name = "mnuRExportAll";
-            mnuRExportAll.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.E;
-            mnuRExportAll.Size = new System.Drawing.Size(256, 22);
-            mnuRExportAll.Text = "Export All Resources";
-            mnuRExportAll.Visible = false;
-            mnuRExportAll.Click += mnuRExportAll_Click;
             // 
             // mnuRExportGIF
             // 
@@ -948,10 +936,10 @@ namespace WinAGI.Editor {
             // 
             pnlLogic.Controls.Add(rtfLogPrev);
             pnlLogic.Dock = System.Windows.Forms.DockStyle.Fill;
-            pnlLogic.Location = new System.Drawing.Point(0, 0);
+            pnlLogic.Location = new System.Drawing.Point(0, 24);
             pnlLogic.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             pnlLogic.Name = "pnlLogic";
-            pnlLogic.Size = new System.Drawing.Size(541, 392);
+            pnlLogic.Size = new System.Drawing.Size(541, 368);
             pnlLogic.TabIndex = 0;
             pnlLogic.Visible = false;
             // 
@@ -985,7 +973,7 @@ namespace WinAGI.Editor {
             rtfLogPrev.ReadOnly = true;
             rtfLogPrev.SelectionColor = System.Drawing.Color.FromArgb(60, 0, 0, 255);
             rtfLogPrev.ServiceColors = (ServiceColors)resources.GetObject("rtfLogPrev.ServiceColors");
-            rtfLogPrev.Size = new System.Drawing.Size(537, 389);
+            rtfLogPrev.Size = new System.Drawing.Size(537, 365);
             rtfLogPrev.TabIndex = 0;
             rtfLogPrev.Zoom = 100;
             rtfLogPrev.DoubleClick += rtfLogPrev_DoubleClick;
@@ -1081,13 +1069,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.Button btnPlay;
         private System.Windows.Forms.Label lblLength;
         private System.Windows.Forms.Button cmdReset;
-        private System.Windows.Forms.ComboBox cmbInst2;
-        private System.Windows.Forms.ComboBox cmbInst1;
-        private System.Windows.Forms.ComboBox cmbInst0;
-        private System.Windows.Forms.CheckBox chkTrack3;
-        private System.Windows.Forms.CheckBox chkTrack2;
-        private System.Windows.Forms.CheckBox chkTrack1;
-        private System.Windows.Forms.CheckBox chkTrack0;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel2;
         private System.Windows.Forms.Panel pnlViewHdr;
         private System.Windows.Forms.Label udCel;
@@ -1126,8 +1107,14 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.Panel pnlView;
         public System.Windows.Forms.Timer tmrSound;
         public FastColoredTextBox rtfLogPrev;
-        private System.Windows.Forms.ToolStripMenuItem mnuRExportAll;
         private System.Windows.Forms.DomainUpDown udPZoom;
         private System.Windows.Forms.ToolStripTextBox tsbViewScale;
+        internal System.Windows.Forms.ComboBox cmbInst0;
+        internal System.Windows.Forms.ComboBox cmbInst2;
+        internal System.Windows.Forms.ComboBox cmbInst1;
+        internal System.Windows.Forms.CheckBox chkTrack3;
+        internal System.Windows.Forms.CheckBox chkTrack2;
+        internal System.Windows.Forms.CheckBox chkTrack1;
+        internal System.Windows.Forms.CheckBox chkTrack0;
     }
 }

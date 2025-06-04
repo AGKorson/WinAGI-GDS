@@ -628,8 +628,12 @@ namespace WinAGI.Editor {
             // ************************************************
             // SOUND SETTINGS
             // ************************************************
+            // PlaybackMode
+            public SettingInt PlaybackMode = new(nameof(PlaybackMode), 1, sSOUNDS); // 0=PCspeaker, 1=PCjr, 2=Midi
             // ShowKybd
             public SettingBool ShowKeyboard = new(nameof(ShowKeyboard), true, sSOUNDS);
+            // NoKeyboardSound
+            public SettingBool NoKeyboardSound = new(nameof(NoKeyboardSound), false, sSOUNDS);
             // ShowNotes
             public SettingBool ShowNotes = new(nameof(ShowNotes), true, sSOUNDS);
             // OneTrack
@@ -835,6 +839,7 @@ namespace WinAGI.Editor {
                 clonesettings.CursorMode = new(CursorMode);
                 // SOUNDS
                 clonesettings.ShowKeyboard = new(ShowKeyboard);
+                clonesettings.NoKeyboardSound = new(NoKeyboardSound);
                 clonesettings.ShowNotes = new(ShowNotes);
                 clonesettings.OneTrack = new(OneTrack);
                 for (int i = 0; i < 3; i++) {
@@ -4935,7 +4940,7 @@ namespace WinAGI.Editor {
             NewSound("");
         }
 
-        public static void NewSound(string ImportSoundFile) {
+        public static void NewSound(string importfile) {
             // creates a new sound resource and opens an editor
             frmSoundEdit frmNew;
             Sound tmpSound;
@@ -4943,33 +4948,13 @@ namespace WinAGI.Editor {
 
             MDIMain.UseWaitCursor = true;
             tmpSound = new Sound();
-            if (ImportSoundFile.Length != 0) {
+            if (importfile.Length != 0) {
                 blnImporting = true;
-                // determine if sound is a script or an AGI sound resource
-                string filedata = "";
-                bool isAGI = true;
+
+                // for now, base import type on file extension
+                SoundImportFormat format = SoundImport.GetSoundInputFormat(importfile);
                 try {
-                    using FileStream fsSnd = new(ImportSoundFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    using StreamReader srSnd = new(fsSnd);
-                    filedata = srSnd.ReadToEnd();
-                    fsSnd.Dispose();
-                    srSnd.Dispose();
-                }
-                catch (Exception e) {
-                    ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
-                    MDIMain.UseWaitCursor = false;
-                    return;
-                }
-                if (filedata.Contains("tone") && filedata.Contains("noise")) {
-                    isAGI = false;
-                }
-                try {
-                    if (isAGI) {
-                        tmpSound.Import(ImportSoundFile);
-                    }
-                    else {
-                        tmpSound.ImportScript(ImportSoundFile);
-                    }
+                    tmpSound.Import(importfile, format);
                 }
                 catch (Exception e) {
                     ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
@@ -5008,7 +4993,7 @@ namespace WinAGI.Editor {
             if (EditGame != null) {
                 frmGetResourceNum GetResNum = new(blnImporting ? GetRes.Import : GetRes.AddNew, AGIResType.Sound);
                 if (blnImporting) {
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportSoundFile).Replace(" ", "");
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(importfile).Replace(" ", "");
                 }
                 MDIMain.UseWaitCursor = false;
                 if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
@@ -5365,7 +5350,12 @@ namespace WinAGI.Editor {
                 break;
             case AGIResType.Sound:
                 MDIMain.OpenDlg.Title = mode + "Sound Resource File";
-                MDIMain.OpenDlg.Filter = "WinAGI Sound Resource files (*.ags)|*.ags|AGI Sound Script files (*.ass)|*.ass|All files (*.*)|*.*";
+                MDIMain.OpenDlg.Filter = "WinAGI Sound Resource files (*.ags)|*.ags|" + 
+                                         "MIDI files (*.mid)|*.mid|" +
+                                         "Impulse Tracker files (*.it)|*.it|" +
+                                         "Protracker files (*.mod)|*.mod|" +
+                                         "AGI Sound Script files (*.ass)|*.ass|" + 
+                                         "All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
                 MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Sounds", sOPENFILTER, 1);
                 break;
@@ -6989,6 +6979,60 @@ namespace WinAGI.Editor {
             }
         }
 
+        public static string InstrumentName(int instrument) {
+
+            //returns a string Value of an instrument
+            return LoadResString(INSTRUMENTNAMETEXT + instrument);
+        }
+
+        public static byte FreqDivToMidiNote(int freqdiv) {
+            // converts AGI freq offset into a MIDI note
+
+            // middle C is 261.6 HZ; from midi specs,
+            // middle C is a note with a Value of 60
+            // this requires a shift in freq of approx. 36.376
+            // however, this offset results in crappy sounding music;
+            // empirically, 36.5 seems to work best
+
+            // note that since freq divisor is in range of 0 - 1023
+            // resulting midinotes are in range of 45 - 127
+            // and that midinotes of 126, 124, 121 are not possible (no corresponding freq divisor)
+
+            if (freqdiv <= 0) {
+                // set note to Max
+                return 127;
+            }
+            else {
+                byte retval = (byte)Math.Round((Math.Log10(111860 / (double)freqdiv) / LOG10_1_12) - 36.5);
+                // validate
+                if (retval < 0) {
+                    return 0;
+                }
+                if (retval > 127) {
+                    return 127;
+                }
+                return retval;
+            }
+        }
+
+        public static int MidiNoteToFreqDiv(int NoteIn) {
+            // converts a midinote into a freqdivisor Value
+
+            // valid range of NoteIn is 45-127
+            // note that 121, 124, 126 NoteIn values will actually return same freqdivisor
+            // values as 120, 123, 127 respectively (due to loss of resolution in freqdivisor
+            // values at the high end)
+
+            // validate input
+            if (NoteIn < 45) {
+                NoteIn = 45;
+            }
+            else if (NoteIn > 127) {
+                NoteIn = 127;
+            }
+            double sngFreq = 111860D / Math.Pow(10, (NoteIn + 36.5) * LOG10_1_12);
+            return (int)Math.Round(sngFreq, 0);
+        }
 
         /// <summary>
         /// Safely deletes a resource file, and optionally copies it to a backup file
@@ -7107,12 +7151,6 @@ namespace WinAGI.Editor {
                 retval += ThisResource.ID;
             }
             return retval;
-        }
-
-        public static string InstrumentName(int instrument) {
-
-            //returns a string Value of an instrument
-            return LoadResString(INSTRUMENTNAMETEXT + instrument);
         }
 
         public static void DrawTransGrid(Control surface, int offsetX, int offsetY) {

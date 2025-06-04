@@ -300,7 +300,6 @@ namespace WinAGI.Engine {
             // never copy output build status; cloned sound will have to rebuild it
             clonesound.mOutputSet = false;
             // clone the tracks
-            // TODO: cloning tracks needs to be checked- it looks wrong right now
             for (int i = 0; i < 4; i++) {
                 clonesound.mTrack[i] = mTrack[i].Clone(clonesound);
             }
@@ -333,7 +332,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// This method creates midi and wav output data stream for a sound resource.
         /// </summary>
-        void BuildSoundOutput() {
+        private void BuildSoundOutput() {
             try {
                 switch (mFormat) {
                 case SoundFormat.AGI:
@@ -551,7 +550,7 @@ namespace WinAGI.Engine {
         /// </summary>
         internal void NoteChanged() {
             mOutputSet = false;
-            mIsChanged = true;
+            mSoundChanged = true;
             mLength = -1;
         }
 
@@ -938,341 +937,107 @@ namespace WinAGI.Engine {
         /// Imports a sound resource from a file into this sound.
         /// </summary>
         /// <param name="ImportFile"></param>
-        public override void Import(string ImportFile) {
-            try {
-                base.Import(ImportFile);
-            }
-            catch {
-                // pass along any errors
-                throw;
-            }
-            // set defaults
-            mTPQN = 16;
-            mKey = 0;
-            mTrack[0].Instrument = 80;
-            mTrack[1].Instrument = 80;
-            mTrack[2].Instrument = 80;
-            mTrack[0].Muted = false;
-            mTrack[1].Muted = false;
-            mTrack[2].Muted = false;
-            mTrack[3].Muted = false;
-            mTrack[0].Visible = true;
-            mTrack[1].Visible = true;
-            mTrack[0].Visible = true;
-            mTrack[0].Visible = true;
-            // set tracks and wav/midi data
-            FinishLoad();
-        }
-
-        /// <summary>
-        /// Imports a sound resource from a script file into this sound.
-        /// </summary>
-        /// <param name="scriptfile"></param>
-        public void ImportScript(string scriptfile) {
-            string strLine;
-            string[] strLines, strTag;
-            int i, lngTrack, lngDur;
-            int lngNoteType = -1;
-            //         -1 => undefined
-            //   tone:  0 => agi freq index
-            //          1 => raw freq
-            //   noise: 0 => periodic tone
-            //          4 => white noise
-            bool blnError = false;
-            short intFreq;
-            byte bytVol, temp;
-            bool bVal;
-
-            if (scriptfile is null || scriptfile.Length == 0) {
-                WinAGIException wex = new(LoadResString(604)) {
-                    HResult = WINAGI_ERR + 604,
-                };
-                throw wex;
-            }
-            if (!File.Exists(scriptfile)) {
-                WinAGIException wex = new(LoadResString(524).Replace(ARG1, scriptfile)) {
-                    HResult = WINAGI_ERR + 524,
-                };
-                wex.Data["missingfile"] = scriptfile;
-                throw wex;
-            }
-            // clear the resource before importing
-            Clear();
-            // default to no tracks
-            lngTrack = -1;
-            try {
-                using FileStream fsSnd = new(scriptfile, FileMode.Open);
-                using StreamReader srSnd = new(fsSnd);
-                strLine = srSnd.ReadToEnd();
-                fsSnd.Dispose();
-                srSnd.Dispose();
-            }
-            catch (Exception) {
-                // pass along any errors
-                throw;
-            }
-            // standardize end of line markers
-            strLine = strLine.Replace("\r\n", "\r");
-            strLine = strLine.Replace("\n", "\r");
-            strLines = strLine.Split("\r");
-            for (i = 0; i < strLines.Length; i++) {
-                strLine = strLines[i].Trim();
-                if (strLine.Length == 0) {
-                    continue;
+        public void Import(string ImportFile, SoundImportFormat format = SoundImportFormat.AGI) {
+            switch (format) {
+            case SoundImportFormat.AGI:
+                // import as AGI sound
+                try {
+                    base.Import(ImportFile);
+                    // finish loading sound
+                    FinishLoad();
+                    // reset properties
+                    mKey =  0;
+                    mTPQN = 4;
+                    mTrack[0].Instrument = 80;
+                    mTrack[1].Instrument = 80;
+                    mTrack[2].Instrument = 80;
+                    mTrack[0].Muted = false;
+                    mTrack[1].Muted = false;
+                    mTrack[2].Muted = false;
+                    mTrack[3].Muted = false;
+                    mTrack[0].Visible = true;
+                    mTrack[1].Visible = true;
+                    mTrack[2].Visible = true;
+                    mTrack[3].Visible = true;
                 }
-                if (strLine[0] == '#') {
-                    // check for winagi tags
-                    if (strLine.Left(2) == "##") {
-                        // split the line into tag and Value
-                        strTag = strLine.Split("=");
-                        if (strTag.Length == 2) {
-                            // tag
-                            switch (strTag[0].Trim().ToLower()) {
-                            case "##description":
-                                mDescription = strTag[1];
-                                break;
-                            case "##instrument0":
-                                if (byte.TryParse(strTag[1], out temp)) {
-                                    mTrack[0].Instrument = temp;
-                                }
-                                break;
-                            case "##instrument1":
-                                if (byte.TryParse(strTag[1], out temp)) {
-                                    mTrack[1].Instrument = temp;
-                                }
-                                break;
-                            case "##instrument2":
-                                if (byte.TryParse(strTag[1], out temp)) {
-                                    mTrack[2].Instrument = temp;
-                                }
-                                break;
-                            case "##visible0":
-                                if (bool.TryParse(strTag[1], out bVal)) {
-                                    mTrack[0].Visible = bVal;
-                                }
-                                break;
-                            case "##visible1":
-                                if (bool.TryParse(strTag[1], out bVal)) {
-                                    mTrack[1].Visible = bVal;
-                                }
-                                break;
-                            case "##visible2":
-                                if (bool.TryParse(strTag[1], out bVal)) {
-                                    mTrack[2].Visible = bVal;
-                                }
-                                break;
-                            case "##visible3":
-                                if (bool.TryParse(strTag[1], out bVal)) {
-                                    mTrack[3].Visible = bVal;
-                                }
-                                break;
-                            case "##muted0":
-                                if (bool.TryParse(strTag[1], out bVal)) {
-                                    mTrack[0].Muted = bVal;
-                                }
-                                break;
-                            case "##muted1":
-                                if (bool.TryParse(strTag[1], out bVal)) {
-                                    mTrack[1].Muted = bVal;
-                                }
-                                break;
-                            case "##muted2":
-                                if (bool.TryParse(strTag[1], out bVal)) {
-                                    mTrack[2].Muted = bVal;
-                                }
-                                break;
-                            case "##muted3":
-                                if (bool.TryParse(strTag[1], out bVal)) {
-                                    mTrack[3].Muted = bVal;
-                                }
-                                break;
-                            case "##tpqn":
-                                mTPQN = (int)strTag[1].IntVal() / 4 * 4;
-                                if (mTPQN < 4) {
-                                    mTPQN = 4;
-                                }
-                                else if (mTPQN > 64) {
-                                    mTPQN = 64;
-                                }
-                                break;
-                            case "##key":
-                                mKey = strTag[1].IntVal();
-                                if (mKey < -7) {
-                                    mKey = -7;
-                                }
-                                else if (mKey > 7) {
-                                    mKey = 7;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        // any other use of '#' is a comment to be ignored
-                        continue;
-                    }
+                catch {
+                    // pass along any errors
+                    throw;
                 }
-                else if (strLine.Equals("tone", StringComparison.OrdinalIgnoreCase)) {
-                    lngTrack++;
-                    // reset default note type
-                    lngNoteType = -1;
+                // set defaults
+                mTPQN = 16;
+                mKey = 0;
+                mTrack[0].Instrument = 80;
+                mTrack[1].Instrument = 80;
+                mTrack[2].Instrument = 80;
+                mTrack[0].Muted = false;
+                mTrack[1].Muted = false;
+                mTrack[2].Muted = false;
+                mTrack[3].Muted = false;
+                mTrack[0].Visible = true;
+                mTrack[1].Visible = true;
+                mTrack[0].Visible = true;
+                mTrack[0].Visible = true;
+                // set tracks and wav/midi data
+                FinishLoad();
+                break;
+            case SoundImportFormat.MIDI:
+                try {
+                    SoundImport.MIDI2AGI(ImportFile, this);
                 }
-                else if (strLine.Equals("noise", StringComparison.OrdinalIgnoreCase) && lngTrack != 3) {
-                    lngTrack = 3;
-                    // reset default note type
-                    lngNoteType = -1;
-                }
-                else {
-                    if (lngTrack < 0 || lngTrack > 3) {
-                        blnError = true;
-                        break;
-                    }
-                    strTag = strLine.Split(",");
-                    // should only be three or four elements
-                    if (strTag.Length >= 4) {
-                        // check first element for new note type, depending on track
-                        if (lngTrack == 3) {
-                            // 'p' or 'w' only
-                            if (strTag[0].Equals("p", StringComparison.OrdinalIgnoreCase)) {
-                                lngNoteType = 0;
-                            }
-                            else if (strTag[0].Equals("w", StringComparison.OrdinalIgnoreCase)) {
-                                lngNoteType = 4;
-                            }
-                            else {
-                                blnError = true;
-                                break;
-                            }
-                            intFreq = (short)((uint)strTag[1].Val() | (uint)lngNoteType);
-                        }
-                        else {
-                            // for music tracks, 'a' or 'f' only
-                            if (strTag[0] == "a") {
-                                lngNoteType = 0;
-                                // agi freq index is the Value passed
-                                intFreq = (short)strTag[1].Val();
-                            }
-                            else if (strTag[0] == "f") {
-                                lngNoteType = 1;
-                                // a real freq Value was passed
-                                intFreq = (short)strTag[1].Val();
-                                // can't be zero
-                                if (intFreq == 0) {
-                                    blnError = true;
-                                    break;
-                                }
-                                intFreq = (short)((double)intFreq / 111860);
-                            }
-                            else {
-                                blnError = true;
-                                break;
-                            }
-                        }
-                        // get volume and duration
-                        bytVol = (byte)strTag[2].Val();
-                        lngDur = strTag[3].IntVal();
-                    }
-                    else if (strTag.Length == 3) {
-                        // note type must be set
-                        if (lngNoteType == -1) {
-                            blnError = true;
-                            break;
-                        }
-                        if (lngTrack != 3) {
-                            if (lngNoteType == 0) {
-                                intFreq = (short)strTag[0].Val();
-                            }
-                            else {
-                                intFreq = (short)strTag[0].Val();
-                                // can't be zero
-                                if (intFreq == 0) {
-                                    blnError = true;
-                                    break;
-                                }
-                                intFreq = (short)((double)intFreq / 111860);
-                            }
-                        }
-                        else {
-
-                            // track 3: use previous note type
-                            intFreq = (short)((uint)strTag[0].Val() | (uint)lngNoteType);
-                        }
-                        // get volume and duration
-                        bytVol = (byte)strTag[1].Val();
-                        lngDur = strTag[2].IntVal();
-                    }
-                    else {
-                        blnError = true;
-                        break;
-                    }
-                    // validate input
-                    if (intFreq < 0 || intFreq >= 1024 || bytVol < 0 || bytVol >= 16 || lngDur < 0 || lngDur > 65535) {
-                        blnError = true;
-                        break;
-                    }
-                    // duration of zero is not an error, but it is ignored
-                    if (lngDur != 0) {
-                        // add the note to current track
-                        mTrack[lngTrack].Notes.Add(intFreq, lngDur, bytVol);
-                    }
-                }
-
-
-                if (blnError) {
-                    Clear();
-                    mResID = "";
-                    mDescription = "";
-                    WinAGIException wex = new(LoadResString(681)) {
-                        HResult = WINAGI_ERR + 681
+                catch (Exception e) {
+                    WinAGIException wex = new(LoadResString(705)) {
+                        HResult = WINAGI_ERR + 705,
                     };
+                    wex.Data["exception"] = e;
+                    wex.Data["ID"] = mResID;
                     throw wex;
                 }
-            }
-            // compile the sound so the resource matches the tracks
-            try {
+                // rebuild sound data
                 CompileSound();
-            }
-            catch {
-                // pass along any errors
-                throw;
-            }
-            // set ID to the filename without extension
-            string tmpID = Path.GetFileNameWithoutExtension(scriptfile);
-            if (tmpID.Length > 64) {
-                tmpID = tmpID[..64];
-            }
-            if (mInGame) {
-                if (NotUniqueID(tmpID, parent)) {
-                    i = 0;
-                    string baseid = mResID;
-                    do {
-                        mResID = baseid + "_" + i++.ToString();
-                    }
-                    while (NotUniqueID(this));
+                break;
+            case SoundImportFormat.MOD:
+                try {
+                    SoundImport.MOD2AGI(ImportFile, this);
                 }
-            }
-            mResID = tmpID;
-            mFormat = SoundFormat.AGI;
-            ErrLevel = 0;
-
-            // reset changed flags
-            mIsChanged = false;
-            PropsChanged = false;
-            // set tracks and wav/midi data
-            try {
-                // standard pc/pcjr is playable as both WAV and MIDI
-                midiData = BuildMIDI(this);
-                mLength = GetSoundLength();
-                wavData = wavPlayer.BuildPCjrWAV(this);
-                mOutputSet = true;
-            }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(596)) {
-                    HResult = WINAGI_ERR + 596
-                };
-                wex.Data["exception"] = e;
-                wex.Data["ID"] = mResID;
-                throw wex;
+                catch (Exception e) {
+                    WinAGIException wex = new(LoadResString(705)) {
+                        HResult = WINAGI_ERR + 705,
+                    };
+                    wex.Data["exception"] = e;
+                    wex.Data["ID"] = mResID;
+                    throw wex;
+                }
+                CompileSound();
+                break;
+            case SoundImportFormat.IT:
+                try {
+                    SoundImport.IT2AGI(ImportFile, this);
+                }
+                catch (Exception e) {
+                    WinAGIException wex = new(LoadResString(705)) {
+                        HResult = WINAGI_ERR + 705,
+                    };
+                    wex.Data["exception"] = e;
+                    wex.Data["ID"] = mResID;
+                    throw wex;
+                }
+                CompileSound();
+                break;
+            case SoundImportFormat.Script:
+                try {
+                    SoundImport.Script2AGI(ImportFile, this);
+                }
+                catch (Exception e) {
+                    WinAGIException wex = new(LoadResString(705)) {
+                        HResult = WINAGI_ERR + 705,
+                    };
+                    wex.Data["exception"] = e;
+                    wex.Data["ID"] = mResID;
+                    throw wex;
+                }
+                CompileSound();
+                break;
             }
         }
 
@@ -1353,7 +1118,7 @@ namespace WinAGI.Engine {
 
             // initialize tracks
             for (i = 0; i <= 3; i++) {
-                //clear out tracks by assigning to nothing, then new
+                //clear out tracks by assigning new
                 mTrack[i] = new Track(this);
             }
             // check header to determine what type of sound resource;

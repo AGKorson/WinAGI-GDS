@@ -764,7 +764,6 @@ namespace WinAGI.Editor {
                     return;
                 }
             }
-
             mnuROpenRes.Enabled = true;    //ctrl+alt+s
             mnuRExport.Enabled = true;  //ctrl+e
             mnuRSave.Enabled = true;    //ctrl+s
@@ -3604,7 +3603,9 @@ namespace WinAGI.Editor {
             PicEditTestSettings.CycleAtRest.ReadSetting(WinAGISettingsFile);
 
             // SOUNDS
+            WinAGISettings.PlaybackMode.ReadSetting(WinAGISettingsFile);
             WinAGISettings.ShowKeyboard.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.NoKeyboardSound.ReadSetting(WinAGISettingsFile);
             WinAGISettings.ShowNotes.ReadSetting(WinAGISettingsFile);
             WinAGISettings.OneTrack.ReadSetting(WinAGISettingsFile);
             for (i = 0; i < 3; i++) {

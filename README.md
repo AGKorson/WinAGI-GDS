@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha17.0
+        Version 3.0.0alpha17.1
     ==============================
 
 
@@ -43,7 +43,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X 15. Palette Editor
     X 16. Picture Editor
     X 17. View Editor
-      18. Sound Editor
+    O 18. Sound Editor
       19. Layout Editor
       20. Menu Editor
       21. Text Screen Editor
@@ -54,7 +54,10 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+**alpha17.1** Sound editor framework is set. Basic sound editing functions are working. Added support for importing MIDI, IT and MOD files directly, without needing intermediary conversion. Still need to add support for drawing and editing staff notes directly from the staff display.
+
 **alpha17.0** View Editor is complete. 
+
 **alpha16.1** View Editor framework is set. Drawing and scaling features complete. Editing support for non-graphical functions (adding/removing loops/cels, changing cel size, mirroring/unmirroring, etc) complete. 
 Still need to add drawing function and image manipulation support.
 Lots of refactoring of other editors and game objects.
