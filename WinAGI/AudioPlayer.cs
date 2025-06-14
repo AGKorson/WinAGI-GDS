@@ -375,7 +375,7 @@ namespace WinAGI.Engine {
             while (voicePlaying[0] || voicePlaying[1] || voicePlaying[2] || voicePlaying[3]) {
                 for (int voiceNum = 0; voiceNum < 4; voiceNum++) {
                     if (voicePlaying[voiceNum]) {
-                        if (voiceSampleCount[voiceNum]-- <= 0) {
+                        if (--voiceSampleCount[voiceNum] <= 0) {
                             if (voiceNoteNum[voiceNum] < sound.Tracks[voiceNum].Notes.Count) {
                                 voiceCurrentNote[voiceNum] = sound.Tracks[voiceNum].Notes[voiceNoteNum[voiceNum]++];
                                 psg.Write((byte)((voiceCurrentNote[voiceNum].FreqDivisor % 16) + 128 + 32 * voiceNum));
