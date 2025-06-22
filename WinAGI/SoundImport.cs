@@ -7,6 +7,8 @@ using static WinAGI.Engine.Base;
 using WinAGI.Common;
 using System.Diagnostics;
 using System.Linq;
+using System.Diagnostics.Eventing.Reader;
+using NAudio.Midi;
 
 namespace WinAGI.Engine {
     public enum SoundImportFormat {
@@ -15,8 +17,26 @@ namespace WinAGI.Engine {
         MOD,
         MIDI,
         Script,
+        Unknown
     }
 
+
+    public class SoundImportOptions {
+        public int[] Channels = null;
+        public bool TempoExact = false;
+        public int AutoDrumOffs = 0;
+        public Dictionary<int, int> InstrNote = null;
+        public Dictionary<int, int> InstrShift = null;
+        public bool PolyMode = true;
+        public bool MidiRemap = true;
+
+        public SoundImportOptions() {
+        }
+    }
+
+    /// <summary>
+    /// Contains methods 
+    /// </summary>
     public static class SoundImport {
         // Import functions for Impulse Tracker files and Protracker MOD files
         // are based on the it2agi.pl perl script, version 0.2.7, originally
@@ -25,34 +45,65 @@ namespace WinAGI.Engine {
 
         public const double AGI_TICK = 16.66667;
 
-        public static SoundImportFormat GetSoundInputFormat(string filename) {
-            // Determine the file extension and return the corresponding format
+        public static SoundImportFormat GetSoundImportFormat(string filename) {
+            // Determine the file type and return the corresponding format
             string ext = Path.GetExtension(filename).ToLowerInvariant();
-            SoundImportFormat retval;
-            switch (ext) {
-            case    ".it":
-                retval = SoundImportFormat.IT;
-                break;
-            case ".mod":
-                retval = SoundImportFormat.MOD;
-                break;
-            case ".mid":
-            case ".midi":
-                retval = SoundImportFormat.MIDI;
-                break;
-            case ".ass":
-                retval = SoundImportFormat.Script;
-                break;
-            case ".ags":
-                retval = SoundImportFormat.AGI;
-                break;
-            default:
-                // default to AGI for other extensions
-                retval = SoundImportFormat.AGI;
-                break;
+            SoundImportFormat retval, checkval = SoundImportFormat.Unknown;
+
+            using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
+            using var br = new BinaryReader(fs);
+            byte[] header = br.ReadBytes(4);
+            if (header.Length >= 4) {
+                // agi? look for "0x08, 0x00" in the first two bytes
+                if (header[0] == 0x08 && header[1] == 0x00) {
+                    checkval = SoundImportFormat.AGI;
+                }
+                else if (Encoding.ASCII.GetString(header) == "IMPM") {
+                    // IT? look for "IMPM" in the first 4 bytes
+                    checkval = SoundImportFormat.IT;
+                }
+                else if (Encoding.ASCII.GetString(header) == "MThd") {
+                    // MIDI? // look for "MThd" in the first 4 bytes
+                    checkval = SoundImportFormat.MIDI;
+                }
+                else {
+                    // MOD? // look for "M.K." in the 0x438 offset
+                    fs.Seek(0x438, SeekOrigin.Begin);
+                    byte[] modHeader = br.ReadBytes(4);
+                    if (Encoding.ASCII.GetString(modHeader) == "M.K.") {
+                        checkval = SoundImportFormat.MOD;
+                    }
+                }
+            }
+            if (checkval == SoundImportFormat.Unknown) {
+                // use the extension to determine the format
+                switch (ext) {
+                case ".it":
+                    retval = SoundImportFormat.IT;
+                    break;
+                case ".mod":
+                    retval = SoundImportFormat.MOD;
+                    break;
+                case ".mid":
+                case ".midi":
+                    retval = SoundImportFormat.MIDI;
+                    break;
+                case ".ass":
+                    retval = SoundImportFormat.Script;
+                    break;
+                case ".ags":
+                    retval = SoundImportFormat.AGI;
+                    break;
+                default:
+                    // default to AGI for other extensions
+                    retval = SoundImportFormat.AGI;
+                    break;
+                }
+            }
+            else {
+                retval = checkval;
             }
             return retval;
-            // TODO: check file content for more robust detection
         }
 
         /// <summary>
@@ -320,17 +371,17 @@ namespace WinAGI.Engine {
             }
         }
 
-
-        // --- IT2AGI ---
-        public static void IT2AGI(
-            string filename, Sound sound,
-            int[] channels = null,
-            bool tempoExact = false,
-            int autoDrumOffs = 0,
-            Dictionary<int, int> instrNote = null,
-            Dictionary<int, int> instrShift = null) {
-            if (channels == null) channels = new int[] { 1, 2, 3, 4 };
-            int NUMCH = channels.Length;
+        /// <summary>
+        /// Imports a sound resource from an Impulse Tracker file into this sound.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="sound"></param>
+        /// <param name="options"></param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InvalidDataException"></exception>
+        public static void IT2AGI(string filename, Sound sound, SoundImportOptions options) {
+            if (options.Channels == null) options.Channels = [1, 2, 3, 4];
+            int NUMCH = options.Channels.Length;
             if (NUMCH > 4) throw new ArgumentException("IT2AGI only supports up to 4 channels.");
 
             using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
@@ -443,7 +494,7 @@ namespace WinAGI.Engine {
             double rowdur_ms = (2500.0 / itempo) * ispeed;
             double rowdur_agi;
             int mul;
-            if (!tempoExact) {
+            if (!options.TempoExact) {
                 // tempo is even
                 rowdur_agi = 1000.0 / 60.0;
                 mul = (int)Math.Round(rowdur_ms / rowdur_agi);
@@ -453,7 +504,7 @@ namespace WinAGI.Engine {
             var tunedata = new List<TuneNote>[NUMCH];
             for (int outchan = 0; outchan < NUMCH; outchan++) {
                 tunedata[outchan] = new List<TuneNote>();
-                int channel = channels[outchan] - 1;
+                int channel = options.Channels[outchan] - 1;
                 for (int row = 0; row < totalRows; row++) {
                     if (pattern[row].TryGetValue(channel, out var evt) && evt.Note > 0 && evt.Note < 120) {
                         int notelen = totalRows - row;
@@ -467,16 +518,16 @@ namespace WinAGI.Engine {
                         int note = evt.Note;
                         int vol = evt.VolPan;
                         int instr = evt.Instrument;
-                        if (instrShift != null && instrShift.TryGetValue(instr, out int shift)) {
+                        if (options.InstrShift != null && options.InstrShift.TryGetValue(instr, out int shift)) {
                             note += shift;
                         }
-                        if (instrNote != null && instrNote.TryGetValue(instr, out int forcedNote)) {
+                        if (options.InstrNote != null && options.InstrNote.TryGetValue(instr, out int forcedNote)) {
                             note = forcedNote;
                         }
                         double start = row * rowdur_ms;
                         double length = notelen * rowdur_ms;
-                        double drumticks = autoDrumOffs * AGI_TICK;
-                        if (outchan == 3 && autoDrumOffs > 0 && length > drumticks + 1) {
+                        double drumticks = options.AutoDrumOffs * AGI_TICK;
+                        if (outchan == 3 && options.AutoDrumOffs > 0 && length > drumticks + 1) {
                             tunedata[outchan].Add(new TuneNote { Note = note, Vol = vol, Start = start, Length = drumticks });
                             tunedata[outchan].Add(new TuneNote { Note = 0, Vol = 0, Start = start + drumticks, Length = length - drumticks });
                         }
@@ -489,16 +540,18 @@ namespace WinAGI.Engine {
             AGIFromTuneData(sound, tunedata, NUMCH, "IT");
         }
 
-        // --- MOD2AGI ---
-        public static void MOD2AGI(
-            string filename, Sound sound,
-            int[] channels = null,
-            bool tempoExact = false,
-            int autoDrumOffs = 0,
-            Dictionary<int, int> instrNote = null,
-            Dictionary<int, int> instrShift = null) {
-            if (channels == null) channels = new int[] { 1, 2, 3, 4 };
-            int NUMCH = channels.Length;
+        /// <summary>
+        /// Imports a Protracker MOD file into this sound.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="sound"></param>
+        /// <param name="options"></param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InvalidDataException"></exception>
+        public static void MOD2AGI(string filename, Sound sound, SoundImportOptions options) {
+            options.Channels ??= [1, 2, 3, 4];
+
+            int NUMCH = options.Channels.Length;
             if (NUMCH > 4) throw new ArgumentException("MOD2AGI only supports up to 4 channels.");
 
             using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
@@ -526,8 +579,9 @@ namespace WinAGI.Engine {
 
             int[] periods = { 999, 856, 808, 762, 720, 678, 640, 604, 570, 538, 508, 480, 453, 428, 404, 381, 360, 339, 320, 302, 285, 269, 254, 240, 226, 214, 202, 190, 180, 170, 160, 151, 143, 135, 127, 120, 113 };
             var periodtonote = new Dictionary<int, int>();
-            for (int i = 0; i < periods.Length; i++) periodtonote[periods[i]] = 48 + i;
-
+            for (int i = 0; i < periods.Length; i++) {
+                periodtonote[periods[i]] = 48 + i;
+            }
             var pattern = new List<Dictionary<int, NoteEvent>>();
             for (int pos = 0; pos < songlen; pos++) {
                 int pat = songpats[pos];
@@ -540,11 +594,23 @@ namespace WinAGI.Engine {
                         int period = ((b[0] & 0x0F) << 8) | b[1];
                         int command = b[2] & 0x0F;
                         int args = b[3];
-                        int note = periodtonote.TryGetValue(period, out int n) ? n : -1;
-                        if (note > 0 && instrShift != null && instrShift.TryGetValue(samplenum, out int shift)) note += shift;
-                        if (note > 0 && instrNote != null && instrNote.TryGetValue(samplenum, out int forcedNote)) note = forcedNote;
+                        int note = 0;
+                        if (samplenum != 0 || period != 0 || command != 0) {
+                            note = periodtonote.TryGetValue(period, out int n) ? n : -1;
+                            if (note > 0 && options.InstrShift != null && options.InstrShift.TryGetValue(samplenum, out int shift)) {
+                                note += shift;
+                            }
+                            if (note > 0 && options.InstrNote != null && options.InstrNote.TryGetValue(samplenum, out int forcedNote)) {
+                                note = forcedNote;
+                            }
+                        }
+                        else {
+                            // no note
+                        }
                         var noteEvent = new NoteEvent { Note = note };
-                        if (command == 0x0C) noteEvent.VolPan = args;
+                        if (command == 0x0C) {
+                            noteEvent.VolPan = args;
+                        }
                         rowEvents[chan] = noteEvent;
                     }
                     pattern.Add(rowEvents);
@@ -552,39 +618,45 @@ namespace WinAGI.Engine {
                 arow += modpatlen;
             }
             int totalRows = pattern.Count;
-
             // MOD timing: fixed, typically 6 ticks per row at 125 BPM
             double it = 120, ispeed = 6;
             double rowdur_ms = (2500.0 / it) * ispeed;
-            double rowdur_agi = 1000.0 / 60.0;
-            int mul = (int)Math.Round(rowdur_ms / rowdur_agi);
-            if (mul < 1) mul = 1;
-            if (!tempoExact) rowdur_ms = mul * rowdur_agi;
+            if (!options.TempoExact) {
+                double rowdur_agi = 1000.0 / 60.0;
+                int mul = (int)Math.Round(rowdur_ms / rowdur_agi);
+                if (mul < 1) {
+                    mul = 1;
+                }
+                rowdur_ms = mul * rowdur_agi;
+            }
 
             var tunedata = new List<TuneNote>[NUMCH];
             for (int outchan = 0; outchan < NUMCH; outchan++) {
                 tunedata[outchan] = new List<TuneNote>();
-                int channel = channels[outchan] - 1;
+                int channel = options.Channels[outchan] - 1;
                 for (int row = 0; row < totalRows; row++) {
-                    if (pattern[row].TryGetValue(channel, out var evt) && evt.Note > 0 && evt.Note < 120) {
-                        int notelen = totalRows - row;
-                        for (int srchrow = row + 1; srchrow < totalRows; srchrow++) {
-                            if (pattern[srchrow].TryGetValue(channel, out var nextEvt) && nextEvt.Note > 0 && nextEvt.Note < 120) {
-                                notelen = srchrow - row;
-                                break;
+                    if (pattern[row].TryGetValue(channel, out NoteEvent evt)) {
+                        if (evt.Note > 0 && evt.Note < 120) {
+                            int notelen = totalRows - row;
+                            for (int srchrow = row + 1; srchrow < totalRows; srchrow++) {
+                                NoteEvent nextEvt = pattern[srchrow][channel];
+                                if (nextEvt.Note != 0) {
+                                    notelen = srchrow - row;
+                                    break;
+                                }
                             }
-                        }
-                        int note = evt.Note;
-                        int vol = evt.VolPan;
-                        double start = row * rowdur_ms;
-                        double length = notelen * rowdur_ms;
-                        double drumticks = autoDrumOffs * AGI_TICK;
-                        if (outchan == 3 && autoDrumOffs > 0 && length > drumticks + 1) {
-                            tunedata[outchan].Add(new TuneNote { Note = note, Vol = vol, Start = start, Length = drumticks });
-                            tunedata[outchan].Add(new TuneNote { Note = 0, Vol = 0, Start = start + drumticks, Length = length - drumticks });
-                        }
-                        else {
-                            tunedata[outchan].Add(new TuneNote { Note = note, Vol = vol, Start = start, Length = length });
+                            int note = evt.Note;
+                            int vol = evt.VolPan;
+                            double start = row * rowdur_ms;
+                            double length = notelen * rowdur_ms;
+                            double drumticks = options.AutoDrumOffs * AGI_TICK;
+                            if (outchan == 3 && options.AutoDrumOffs > 0 && length > drumticks + 1) {
+                                tunedata[outchan].Add(new TuneNote { Note = note, Vol = vol, Start = start, Length = drumticks });
+                                tunedata[outchan].Add(new TuneNote { Note = 0, Vol = 0, Start = start + drumticks, Length = length - drumticks });
+                            }
+                            else {
+                                tunedata[outchan].Add(new TuneNote { Note = note, Vol = vol, Start = start, Length = length });
+                            }
                         }
                     }
                 }
@@ -592,16 +664,20 @@ namespace WinAGI.Engine {
             AGIFromTuneData(sound, tunedata, NUMCH, "MOD");
         }
 
-        // --- MIDI2AGI ---
-        public static void MIDI2AGI(
-            string filename, Sound sound,
-            int[] channels = null,
-            bool tempoExact = true,
-            int autoDrumOffs = 0,
-            Dictionary<int, int> instrNote = null,
-            Dictionary<int, int> instrShift = null) {
-            if (channels == null) channels = new int[] { 0, 1, 2, 9 };
-            int NUMCH = channels.Length;
+        /// <summary>
+        /// Imports a MIDI file into this sound.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="sound"></param>
+        /// <param name="options"></param>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="InvalidDataException"></exception>
+        public static void MIDI2AGI(string filename, Sound sound, SoundImportOptions options) {
+            double miditempo = 500000; // default tempo (microseconds per quarter note)
+            double miditicksbeat = 192; // default ticks per beat
+            int MIDICH_DRUM = 9; // default drum channel
+            options.Channels ??= [0, 1, 2, 9];
+            int NUMCH = options.Channels.Length;
             if (NUMCH > 4) throw new ArgumentException("MIDI2AGI only supports up to 4 channels.");
 
             using var fs = new FileStream(filename, FileMode.Open, FileAccess.Read);
@@ -615,9 +691,7 @@ namespace WinAGI.Engine {
             int ntrks = ReadBigEndianInt16(br);
             int division = ReadBigEndianInt16(br);
 
-            // Default tempo and ticks per beat
-            double miditempo = 500000; // microseconds per quarter note
-            double miditicksbeat = division;
+            miditicksbeat = division;
             var mididata = new List<TuneNote>[16];
             for (int i = 0; i < 16; i++) mididata[i] = new List<TuneNote>();
 
@@ -629,44 +703,116 @@ namespace WinAGI.Engine {
                 double totalTicks = 0, totalMs = 0;
                 int lastStatus = 0;
                 var lastNote = new Dictionary<int, TuneNote>();
+                int polychans = 0;
+                TuneNote[] midipoly = new TuneNote[3];
                 while (pos < chunk.Length) {
                     double delta = ReadVLQ(chunk, ref pos);
                     totalTicks += delta;
                     double deltaMs = delta / miditicksbeat * miditempo / 1000.0;
                     totalMs += deltaMs;
                     int status = chunk[pos++];
-                    if ((status & 0x80) == 0) { status = lastStatus; pos--; }
+                    if ((status & 0x80) == 0) {
+                        status = lastStatus; pos--;
+                    }
                     int type = (status & 0xF0) >> 4;
                     int chan = status & 0x0F;
                     lastStatus = status;
-                    if (type == 0x9) // Note on
-                    {
+                    if (type == 0x9) {
+                        // Note on
                         int k = chunk[pos++];
                         int v = chunk[pos++];
                         if (v == 0) type = 0x8; // Note off
                         else {
-                            if (lastNote.TryGetValue(chan, out var prev) && prev.Note != k) {
-                                prev.Length = totalMs - prev.Start;
-                                if (prev.Length > 0) mididata[chan].Add(prev);
+                            if (options.PolyMode && chan != MIDICH_DRUM) {
+                                if (polychans < 3) {
+                                    // start note
+                                    midipoly[polychans] = new();
+                                    midipoly[polychans].Channel = chan;
+                                    midipoly[polychans].Poly = polychans;
+                                    midipoly[polychans].Note = k;
+                                    midipoly[polychans].Vol = v >> 1;
+                                    midipoly[polychans].Start = totalMs;
+                                    polychans++;
+                                }
                             }
-                            lastNote[chan] = new TuneNote { Note = k, Vol = v >> 1, Start = totalMs };
+                            else {
+                                if (lastNote.TryGetValue(chan, out var prev) && prev.Note != k) {
+                                    prev.Length = totalMs - prev.Start;
+                                    if (prev.Length > 0) mididata[chan].Add(prev);
+                                }
+                                lastNote[chan] = new TuneNote { Note = k, Vol = v >> 1, Start = totalMs };
+                            }
                         }
                     }
-                    if (type == 0x8) // Note off
-                    {
+                    else if (type == 0x8) {
+                        // Note off
                         int k = chunk[pos++];
                         int v = chunk[pos++];
-                        if (lastNote.TryGetValue(chan, out var prev) && prev.Note == k) {
-                            prev.Length = totalMs - prev.Start;
-                            mididata[chan].Add(prev);
-                            lastNote.Remove(chan);
+                        if (options.PolyMode && chan != MIDICH_DRUM) {
+                            // find the note already playing
+                            for (int poly = 0; poly < polychans; poly++) {
+                                TuneNote pnote = midipoly[poly];
+                                if (midipoly[poly].Channel == chan && midipoly[poly].Note == k) {
+                                    midipoly[poly].Length = totalMs - pnote.Start;
+                                    if (poly < 3) {
+                                        // low 3 midipolys actually play
+                                        mididata[pnote.Poly].Add(pnote);
+                                    }
+                                    // Remove this poly slot (shift down)
+                                    for (int j = poly; j < polychans - 1; j++) {
+                                        midipoly[j] = midipoly[j + 1];
+                                    }
+                                    polychans--;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            if (lastNote.TryGetValue(chan, out var prev) && prev.Note == k) {
+                                // keep the note length for drums
+                                if (chan != 9 || prev.Length == 0) {
+                                    prev.Length = totalMs - prev.Start;
+                                }
+                                mididata[chan].Add(prev);
+                                lastNote.Remove(chan);
+                            }
                         }
                     }
-                    if (type == 0xC) pos++; // Program change
-                    if (type == 0xB || type == 0xA) pos += 2; // Control change, aftertouch
-                    if (type == 0xE) pos += 2; // Pitch wheel
-                    if (status == 0xFF) // Meta
-                    {
+                    else if (type == 0xA || type == 0xB) {
+                        // Control change, aftertouch
+                        pos += 2;
+                    }
+                    else if (type == 0xC || type == 0xD) {
+                        // Program change, AFTC
+                        pos++;
+                    }
+                    else if (type == 0xE) {
+                        // Pitch wheel
+                        pos += 2;
+                    }
+                    if (status == 0xF0 || status == 0xF7) {
+                        // System Exclusive (SysEx)
+                        int len = (int)ReadVLQ(chunk, ref pos);
+                        pos += len;
+                    }
+                    else if (status == 0xF1) {
+                        // MIDI Time Code Quarter Frame
+                        pos += 1;
+                    }
+                    else if (status == 0xF2) {
+                        // Song Position Pointer
+                        pos += 2;
+                    }
+                    else if (status == 0xF3) {
+                        // Song Select
+                        pos += 1;
+                    }
+                    else if (status == 0xF6) {
+                        // Tune Request (no data)
+                        // nothing to skip
+                    }
+                    else if (status == 0xFF) {
+                        // Meta
                         int meta = chunk[pos++];
                         int len = (int)ReadVLQ(chunk, ref pos);
                         if (meta == 0x51 && len == 3) {
@@ -674,13 +820,15 @@ namespace WinAGI.Engine {
                         }
                         pos += len;
                     }
+                    // 0xF4, 0xF5, 0xF9, 0xFD are undefined or reserved, can be ignored
+                    // 0xF8, 0xFA, 0xFB, 0xFC, 0xFE, 0xFF are single-byte real-time messages or handled above
                 }
             }
 
             // Channel mapping and rest insertion
             var tunedata = new List<TuneNote>[NUMCH];
             for (int outchan = 0; outchan < NUMCH; outchan++) {
-                int inchan = channels[outchan];
+                int inchan = options.Channels[outchan];
                 var notes = new List<TuneNote>(mididata[inchan]);
                 notes.Sort((a, b) => a.Start.CompareTo(b.Start));
                 // Prevent overlaps
@@ -691,11 +839,18 @@ namespace WinAGI.Engine {
                 tunedata[outchan] = notes;
             }
 
-            AGIFromTuneData(sound, tunedata, NUMCH, "MIDI");
+            AGIFromTuneData(sound, tunedata, NUMCH, "MIDI", options.MidiRemap);
         }
 
-        // --- AGI Conversion Core ---
-        private static void AGIFromTuneData(Sound sound, List<TuneNote>[] tunedata, int NUMCH, string format) {
+        /// <summary>
+        /// AGI Conversion Core. Used by IT2AGI, MOD2AGI, and MIDI2AGI.
+        /// </summary>
+        /// <param name="sound"></param>
+        /// <param name="tunedata"></param>
+        /// <param name="NUMCH"></param>
+        /// <param name="format"></param>
+        /// <param name="midiRemap"></param>
+        private static void AGIFromTuneData(Sound sound, List<TuneNote>[] tunedata, int NUMCH, string format, bool midiRemap = true) {
             // Insert rests
             var notedata = new List<TuneNote>[NUMCH];
             for (int ch = 0; ch < NUMCH; ch++) {
@@ -742,35 +897,47 @@ namespace WinAGI.Engine {
                     prevDurFrac = duration_f - out_duration;
                     int freqdiv = 0, att = 0;
                     if (ch <= 2) {
-                        int n = note;
-                        while (n >= 0 && n < 45) n += 12;
-                        double freq = (note == -1) ? 0 : 440.0 * Math.Exp((n - 69) * Math.Log(2.0) / 12.0);
-                        freqdiv = (freq == 0) ? 0 : (int)(111860.0 / freq);
+                        if (note > 0) {
+                            int n = note;
+                            while (n >= 0 && n < 45) n += 12;
+                            freqdiv = MidiNoteToFreqDiv(n);
+                            att = 15 - (vol >> 2);
+                        }
+                        else {
+                            freqdiv = 0;
+                            att = 15;
+                        }
                     }
                     else {
                         // Noise channel, drum mapping for MIDI
                         int n = note;
-                        if (format == "MIDI") {
-                            var DRUMNOTES = new Dictionary<int, int> { [35] = 16, [36] = 16, [37] = 14, [38] = 15, [39] = 15, [40] = 15, [41] = 14, [42] = 14, [999] = 16 };
-                            if (DRUMNOTES.TryGetValue(n, out int drumNote)) n = drumNote; else n = DRUMNOTES[999];
+                        if (note != -1) {
+                            // override drums
+                            if (format == "MIDI" && midiRemap) {
+                                var DRUMNOTES = new Dictionary<int, int> { [35] = 16, [36] = 16, [37] = 14, [38] = 15, [39] = 15, [40] = 15, [41] = 14, [42] = 14, [999] = 16 };
+                                if (DRUMNOTES.TryGetValue(n, out int drumNote)) {
+                                    n = drumNote;
+                                }
+                                else {
+                                    n = DRUMNOTES[999];
+                                }
+                            }
+                            int out_noisetype = (n == -1) ? 0 : n / 12 % 2;
+                            int out_noisefreq = (n == -1) ? 0 : n % 4;
+                            freqdiv = out_noisefreq + (out_noisetype << 2);
+                            att = 15 - (vol >> 2);
                         }
-                        int out_noisetype = (n == -1) ? 0 : (n / 12) % 2;
-                        int out_noisefreq = (n == -1) ? 0 : n % 4;
-                        freqdiv = out_noisefreq + out_noisetype << 1;
+                        else {
+                            freqdiv = 0;
+                            att = 15;
+                        }
                     }
-                    if (note == -1) {
-                        att = 15;
-                    }
-                    else {
-                        att = 15 - (vol >> 2);
-                    }
-
                     track.Notes.Add(freqdiv, out_duration, (byte)att);
                 }
             }
         }
 
-        // --- Helper classes and methods ---
+        #region Helper classes and methods
         private class NoteEvent {
             public int Note = 0;
             public int Instrument = 0;
@@ -779,6 +946,8 @@ namespace WinAGI.Engine {
             public int Param = 0;
         }
         private class TuneNote {
+            public int Channel = 0;
+            public int Poly = 0;
             public int Note = -1;
             public int Vol = 63;
             public double Start = 0;
@@ -801,5 +970,6 @@ namespace WinAGI.Engine {
             } while ((b & 0x80) != 0);
             return value;
         }
+        #endregion
     }
 }

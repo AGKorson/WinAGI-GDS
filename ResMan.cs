@@ -4937,10 +4937,10 @@ namespace WinAGI.Editor {
         }
 
         public static void NewSound() {
-            NewSound("");
+            NewSound("", SoundImportFormat.AGI, null);
         }
 
-        public static void NewSound(string importfile) {
+        public static void NewSound(string importfile, SoundImportFormat format, SoundImportOptions options) {
             // creates a new sound resource and opens an editor
             frmSoundEdit frmNew;
             Sound tmpSound;
@@ -4951,10 +4951,8 @@ namespace WinAGI.Editor {
             if (importfile.Length != 0) {
                 blnImporting = true;
 
-                // for now, base import type on file extension
-                SoundImportFormat format = SoundImport.GetSoundInputFormat(importfile);
                 try {
-                    tmpSound.Import(importfile, format);
+                    tmpSound.Import(importfile, format, options);
                 }
                 catch (Exception e) {
                     ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
@@ -5638,9 +5636,32 @@ namespace WinAGI.Editor {
                     return;
                 }
             }
+            SoundImportFormat format = SoundImport.GetSoundImportFormat(filename);
+            SoundImportOptions options;
+            switch (format) {
+            case SoundImportFormat.IT:
+            case SoundImportFormat.MOD:
+            case SoundImportFormat.MIDI:
+                // need to get import options
+                var frm = new frmImportSoundOptions(format);
+                if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                    options = frm.Options;
+                    frm.Dispose();
+                }
+                else {
+                    // canceled
+                    frm.Dispose();
+                    return;
+                }
+                break;
+            default:
+                // no options needed
+                options = null;
+                break;
+            }
             MDIMain.UseWaitCursor = true;
             Sound loadsound = new();
-            loadsound.Import(filename);
+            loadsound.Import(filename, format, options);
             frmSoundEdit frmOpen = new();
             if (frmOpen.LoadSound(loadsound)) {
                 frmOpen.Show();
@@ -6983,55 +7004,6 @@ namespace WinAGI.Editor {
 
             //returns a string Value of an instrument
             return LoadResString(INSTRUMENTNAMETEXT + instrument);
-        }
-
-        public static byte FreqDivToMidiNote(int freqdiv) {
-            // converts AGI freq offset into a MIDI note
-
-            // middle C is 261.6 HZ; from midi specs,
-            // middle C is a note with a Value of 60
-            // this requires a shift in freq of approx. 36.376
-            // however, this offset results in crappy sounding music;
-            // empirically, 36.5 seems to work best
-
-            // note that since freq divisor is in range of 0 - 1023
-            // resulting midinotes are in range of 45 - 127
-            // and that midinotes of 126, 124, 121 are not possible (no corresponding freq divisor)
-
-            if (freqdiv <= 0) {
-                // set note to Max
-                return 127;
-            }
-            else {
-                byte retval = (byte)Math.Round((Math.Log10(111860 / (double)freqdiv) / LOG10_1_12) - 36.5);
-                // validate
-                if (retval < 0) {
-                    return 0;
-                }
-                if (retval > 127) {
-                    return 127;
-                }
-                return retval;
-            }
-        }
-
-        public static int MidiNoteToFreqDiv(int NoteIn) {
-            // converts a midinote into a freqdivisor Value
-
-            // valid range of NoteIn is 45-127
-            // note that 121, 124, 126 NoteIn values will actually return same freqdivisor
-            // values as 120, 123, 127 respectively (due to loss of resolution in freqdivisor
-            // values at the high end)
-
-            // validate input
-            if (NoteIn < 45) {
-                NoteIn = 45;
-            }
-            else if (NoteIn > 127) {
-                NoteIn = 127;
-            }
-            double sngFreq = 111860D / Math.Pow(10, (NoteIn + 36.5) * LOG10_1_12);
-            return (int)Math.Round(sngFreq, 0);
         }
 
         /// <summary>

@@ -224,6 +224,13 @@ namespace WinAGI.Editor {
             btnOK.Enabled = txtID.Text.Length != 0 && lstResNum.SelectedIndex != -1;
         }
 
+        private void txtID_KeyDown(object sender, KeyEventArgs e) {
+            if (e.KeyCode == Keys.Enter) {
+                e.SuppressKeyPress = true; // Prevents the 'ding'
+                btnOK.PerformClick();      // Triggers the OK button
+            }
+        }
+
         private void txtID_KeyPress(object sender, KeyPressEventArgs e) {
             // some characters not allowed:
             // NOT OK  !"   &'()*+,- /          :;<=>?                           [\]^ `                          {|}~

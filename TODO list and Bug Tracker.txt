@@ -16,7 +16,7 @@ X   14. Word Editor
 X   15. Palette Editor
 X   16. Picture Editor
 X   17. View Editor
-    18. Sound Editor
+X   18. Sound Editor
     19. Layout Editor
     20. Menu Editor
     21. Text Screen Editor

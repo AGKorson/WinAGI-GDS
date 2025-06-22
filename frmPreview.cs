@@ -559,7 +559,7 @@ namespace WinAGI.Editor {
             tmrSound.Enabled = true;
         }
 
-        private void Timer1_Tick(object sender, EventArgs e) {
+        private void tmrSound_Tick(object sender, EventArgs e) {
             //update progress bar
 
             long lngNow;
@@ -675,15 +675,12 @@ namespace WinAGI.Editor {
                 tmrSound.Enabled = false;
                 picProgress.Invoke(new Action(() => { picProgress.Width = pnlProgressBar.Width; }));
                 picProgress.Invoke(new Action(() => { picProgress.Refresh(); }));
-                // if playing MIDI sound, re-enable track controls
-                if (optMIDI.Checked) {
-                    for (int i = 0; i < 3; i++) {
-                        chkTrack[i].Invoke(new Action(() => { chkTrack[i].Enabled = optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI && !agSound[i].Muted; }));
-                        cmbInst[i].Invoke(new Action(() => { cmbInst[i].Enabled = optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI && !agSound[i].Muted; }));
-                    }
-                    chkTrack[3].Invoke(new Action(() => { chkTrack[3].Enabled = optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI && !agSound[3].Muted; }));
-                    cmdReset.Invoke(new Action(() => { cmdReset.Enabled = true; }));
+                for (int i = 0; i < 3; i++) {
+                    chkTrack[i].Invoke(new Action(() => { chkTrack[i].Enabled = agSound.SndFormat == SoundFormat.AGI; }));
+                    cmbInst[i].Invoke(new Action(() => { cmbInst[i].Enabled = agSound.SndFormat == SoundFormat.AGI; }));
                 }
+                chkTrack[3].Invoke(new Action(() => { chkTrack[3].Enabled = agSound.SndFormat == SoundFormat.AGI; }));
+                cmdReset.Invoke(new Action(() => { cmdReset.Enabled = true; }));
                 picProgress.Invoke(new Action(() => { picProgress.Width = 0; }));
             }
             else {
@@ -692,10 +689,7 @@ namespace WinAGI.Editor {
                 tmrSound.Enabled = false;
                 picProgress.Width = pnlProgressBar.Width;
                 picProgress.Refresh();
-                // if playing MIDI sound, re-enable track controls
-                if (optMIDI.Checked) {
-                    SetMIDIControls(true);
-                }
+                SetMIDIControls(true);
                 picProgress.Width = 0;
             }
         }
@@ -1680,11 +1674,11 @@ namespace WinAGI.Editor {
                 for (i = 0; i < 3; i++) {
                     cmbInst[i].Enabled = optMIDI.Checked;
                     cmbInst[i].SelectedIndex = agSound.Tracks[i].Instrument;
-                    chkTrack[i].Enabled = optMIDI.Checked;
+                    chkTrack[i].Enabled = true;
                     chkTrack[i].Checked = !agSound.Tracks[i].Muted;
                 }
                 chkTrack[3].Checked = !agSound.Tracks[3].Muted;
-                chkTrack[3].Enabled = optMIDI.Checked;
+                chkTrack[3].Enabled = true;
                 lblFormat.Text = "PC/PCjr Standard Sound";
                 break;
             case SoundFormat.WAV:
@@ -1716,7 +1710,7 @@ namespace WinAGI.Editor {
                 lblFormat.Text = "Apple IIgs MIDI Sound";
                 break;
             }
-            //set length
+            // set length
             lblLength.Text = "Sound clip length: " + agSound.Length.ToString("0.0") + " seconds";
             btnPlay.Enabled = true;
             return true;

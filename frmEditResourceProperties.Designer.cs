@@ -44,7 +44,6 @@
             // 
             // btnOK
             // 
-            btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
             btnOK.Enabled = false;
             btnOK.Location = new System.Drawing.Point(12, 182);
             btnOK.Name = "btnOK";

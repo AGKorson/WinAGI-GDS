@@ -1,4 +1,7 @@
 ﻿
+using System;
+using System.Windows.Forms;
+
 namespace WinAGI.Editor {
     partial class frmGetResourceNum {
         /// <summary>
@@ -50,6 +53,7 @@ namespace WinAGI.Editor {
             txtID.WordWrap = false;
             txtID.TextChanged += txtID_TextChanged;
             txtID.KeyPress += txtID_KeyPress;
+            txtID.KeyDown += txtID_KeyDown;
             // 
             // chkRoom
             // 
@@ -139,7 +143,6 @@ namespace WinAGI.Editor {
             // 
             // btnOK
             // 
-            btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
             btnOK.Enabled = false;
             btnOK.Location = new System.Drawing.Point(11, 180);
             btnOK.Name = "btnOK";

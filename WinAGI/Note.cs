@@ -72,7 +72,7 @@ namespace WinAGI.Engine {
                 return mAttenuation;
             }
             set {
-                ArgumentOutOfRangeException.ThrowIfGreaterThan(value ,15);
+                ArgumentOutOfRangeException.ThrowIfGreaterThan(value, 15);
                 mAttenuation = value;
                 mSndParent?.NoteChanged();
             }

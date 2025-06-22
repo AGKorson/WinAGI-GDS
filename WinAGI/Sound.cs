@@ -306,6 +306,11 @@ namespace WinAGI.Engine {
             return clonesound;
         }
 
+        /// <summary>
+        /// Replaces the contents of this Sound resource with the contents
+        /// of another Sound resource.
+        /// </summary>
+        /// <param name="SourceSound"></param>
         public void CloneFrom(Sound SourceSound) {
             // only loaded sounds can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
@@ -937,7 +942,7 @@ namespace WinAGI.Engine {
         /// Imports a sound resource from a file into this sound.
         /// </summary>
         /// <param name="ImportFile"></param>
-        public void Import(string ImportFile, SoundImportFormat format = SoundImportFormat.AGI) {
+        public void Import(string ImportFile, SoundImportFormat format = SoundImportFormat.AGI, SoundImportOptions options = null) {
             switch (format) {
             case SoundImportFormat.AGI:
                 // import as AGI sound
@@ -983,7 +988,7 @@ namespace WinAGI.Engine {
                 break;
             case SoundImportFormat.MIDI:
                 try {
-                    SoundImport.MIDI2AGI(ImportFile, this);
+                    SoundImport.MIDI2AGI(ImportFile, this, options);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(LoadResString(705)) {
@@ -998,7 +1003,7 @@ namespace WinAGI.Engine {
                 break;
             case SoundImportFormat.MOD:
                 try {
-                    SoundImport.MOD2AGI(ImportFile, this);
+                    SoundImport.MOD2AGI(ImportFile, this, options);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(LoadResString(705)) {
@@ -1012,7 +1017,7 @@ namespace WinAGI.Engine {
                 break;
             case SoundImportFormat.IT:
                 try {
-                    SoundImport.IT2AGI(ImportFile, this);
+                    SoundImport.IT2AGI(ImportFile, this, options);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(LoadResString(705)) {

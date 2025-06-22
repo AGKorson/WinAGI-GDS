@@ -101,10 +101,12 @@ namespace WinAGI.Editor {
 
             // if no tools, hide separator
             MDIMain.mnuTSep2.Visible = blnTools;
+            DialogResult = DialogResult.OK;
             Hide();
         }
 
         private void btnCancel_Click(object sender, EventArgs e) {
+            DialogResult = DialogResult.Cancel;
             Hide();
         }
 

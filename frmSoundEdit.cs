@@ -22,6 +22,7 @@ using static WinAGI.Editor.SoundUndo.SoundUndoType;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
+using WinAGI.Common;
 
 namespace WinAGI.Editor {
     public partial class frmSoundEdit : ClipboardMonitor {
@@ -67,8 +68,9 @@ namespace WinAGI.Editor {
         private int StaffCount; // number of staves that are visible
         private int SOHorz;
         private int[] SOVert = new int[4];
+        private int[] oldstaffH = new int[4];
         private bool OneTrack, KeyboardVisible, KeyboardSound;
-
+        private bool ShowNotes;
         // default note properties
         private int DefLength, DefAttn, DefOctave;
         private bool DefMute;
@@ -79,16 +81,13 @@ namespace WinAGI.Editor {
         private int SelAnchor, SelLength;
         // SelAnchor is either SelStart, or SelStart+SelLength, depending
         // on whether selection is right-to-left, or left-to-right
-
+        // cursor control
+        private bool CursorOn = false;
+        int mX = 0, mY = 0;
+        int StaffScrollDir = 0;
         private bool PlayingSound = false;
         private bool blnNoteOn = false;
         private int PlayNote = 0;
-        /*
-  // variables for selected components
-  // cursor control
-  private int CursorPos;
-  private int lngScrollDir;
-        */
 
         // StatusStrip Items
         internal ToolStripStatusLabel spScale;
@@ -105,9 +104,6 @@ namespace WinAGI.Editor {
             picStaff[1] = picStaff1;
             picStaff[2] = picStaff2;
             picStaff[3] = picStaff3;
-            picStaff[1].Tag = 1;
-            picStaff[2].Tag = 2;
-            picStaff[3].Tag = 3;
             vsbStaff[0] = vsbStaff0;
             vsbStaff[1] = vsbStaff1;
             vsbStaff[2] = vsbStaff2;
@@ -118,7 +114,11 @@ namespace WinAGI.Editor {
             btnMute[3] = btnMute3;
             for (int i = 0; i < 4; i++) {
                 picStaff[i].MouseWheel += picStaff_MouseWheel;
+                picStaff[i].KeyDown += picStaff_KeyDown;
+                picStaff[i].KeyPress += picStaff_KeyPress;
+                picStaff[i].KeyUp += picStaff_KeyUp;
                 picStaff[i].Tag = i;
+                vsbStaff[i].Tag = i;
                 btnMute[i].Tag = i;
                 picStaff[i].Controls.Add(btnMute[i]);
                 picStaff[i].Controls.Add(vsbStaff[i]);
@@ -166,6 +166,9 @@ namespace WinAGI.Editor {
             picDuration.MouseWheel -= picDuration_MouseWheel;
             for (int i = 0; i < 4; i++) {
                 picStaff[i].MouseWheel -= picStaff_MouseWheel;
+                picStaff[i].KeyDown -= picStaff_KeyDown;
+                picStaff[i].KeyPress -= picStaff_KeyPress;
+                picStaff[i].KeyUp -= picStaff_KeyUp;
                 picStaff[i].Controls.Remove(vsbStaff[i]);
                 picStaff[i].Controls.Remove(btnMute[i]);
             }
@@ -178,6 +181,10 @@ namespace WinAGI.Editor {
         private void frmSoundEdit_Leave(object sender, EventArgs e) {
             // when losing focus, disable midi keyboard playback
             midiNotePlayer.KillMidi();
+            // also stop sound playback if needed
+            if (PlayingSound) {
+                StopSound();
+            }
         }
 
         private void frmSoundEdit_Enter(object sender, EventArgs e) {
@@ -207,7 +214,7 @@ namespace WinAGI.Editor {
             else {
                 // if a game is loaded, base import is also always available
                 MDIMain.mnuRImport.Enabled = true;
-                mnuRExport.Text = "Export Sound";
+                mnuRExport.Text = InGame ? "Export Sound" : "Save As ...";
                 mnuRInGame.Enabled = true;
                 mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
                 mnuRRenumber.Enabled = InGame;
@@ -412,15 +419,12 @@ namespace WinAGI.Editor {
             switch (NextUndo.UDAction) {
             case EditNoteFreqDiv:
                 SetNoteFreqDivisor(NextUndo.UDTrack, NextUndo.UDStart, NextUndo.UDData, true);
-                //ChangeSelection(NextUndo.UDTrack, NextUndo.UDStart, 1);
                 break;
             case EditNoteDuration:
                 SetNoteDuration(NextUndo.UDTrack, NextUndo.UDStart, NextUndo.UDData, true);
-                //ChangeSelection(NextUndo.UDTrack, NextUndo.UDStart, 1);
                 break;
             case EditNoteAttenuation:
                 SetNoteAttenuation(NextUndo.UDTrack, NextUndo.UDStart, (byte)NextUndo.UDData, true);
-                //ChangeSelection(NextUndo.UDTrack, NextUndo.UDStart, 1);
                 break;
             case AddNote:
             case Paste:
@@ -456,8 +460,7 @@ namespace WinAGI.Editor {
                     EditSound[NextUndo.UDTrack][NextUndo.UDStart + i].FreqDivisor = NextUndo.UDNotes[i].FreqDivisor;
                 }
                 // update selection
-                propertyGrid1.Refresh();
-                ChangeSelection(NextUndo.UDTrack, NextUndo.UDStart, NextUndo.UDLength);
+                SelectNote(NextUndo.UDTrack, NextUndo.UDStart, NextUndo.UDStart, NextUndo.UDLength);
                 break;
             case ShiftVol:
                 for (int i = 0; i < NextUndo.UDLength; i++) {
@@ -465,7 +468,7 @@ namespace WinAGI.Editor {
                 }
                 // update selection
                 propertyGrid1.Refresh();
-                ChangeSelection(NextUndo.UDTrack, NextUndo.UDStart, NextUndo.UDLength);
+                SelectNote(NextUndo.UDTrack, NextUndo.UDStart, NextUndo.UDStart, NextUndo.UDLength);
                 break;
             case ClearTrack:
                 for (int i = 0; i < NextUndo.UDNotes.Count; i++) {
@@ -538,10 +541,6 @@ namespace WinAGI.Editor {
                     // set flag in undo item
                     UndoCol.Peek().UDText = "R";
                 }
-                // set insertion to end of inserted note
-                SelStart += AddNoteCol.Count;
-                SelAnchor = SelStart;
-                SelLength = 0;
             }
         }
 
@@ -667,7 +666,7 @@ namespace WinAGI.Editor {
 
         private void mnuOneTrack_Click(object sender, EventArgs e) {
             OneTrack = !OneTrack;
-            UpdateVisibleStaves();
+            UpdateVisibleStaves(StaffScale);
         }
         #endregion
 
@@ -706,11 +705,11 @@ namespace WinAGI.Editor {
 
 
         private void tsbZoomIn_Click(object sender, EventArgs e) {
-
+            ZoomScale(1);
         }
 
         private void tsbZoomOut_Click(object sender, EventArgs e) {
-
+            ZoomScale(-1);
         }
         #endregion
 
@@ -730,16 +729,42 @@ namespace WinAGI.Editor {
 
         private void splitContainer2_Panel1_Resize(object sender, EventArgs e) {
             if (Visible) {
-                UpdateVisibleStaves();
+                UpdateVisibleStaves(StaffScale);
+            }
+        }
+
+        private void tvwSound_KeyDown(object sender, KeyEventArgs e) {
+
+            // backspace is treated as 'delete previous' instead of 
+            // moving the selection
+            if (e.KeyValue == (int)Keys.Back) {
+                if (SelLength > 0) {
+                    DeleteNotes(SelectedTrack, SelStart, SelLength);
+                }
+                else {
+                    // if not on first note
+                    if (SelStart > 0) {
+                        // delete previous note
+                        DeleteNotes(SelectedTrack, SelStart - 1, 1);
+                    }
+                }
+                e.Handled = true;
+                e.SuppressKeyPress = true;
             }
         }
 
         private void tvwSound_KeyPress(object sender, KeyPressEventArgs e) {
+
+            // use staff keypress handler handle all keypresses
+            picStaff_KeyPress(picStaff[SelectedTrack], e);
             // ignore all keypresses
             e.Handled = true;
         }
 
         private void tvwSound_KeyUp(object sender, KeyEventArgs e) {
+            if (blnNoteOn) {
+                NoteOff();
+            }
             // when using keyboard to move the selection, the 
             // displayed track/note also needs to be updated
             switch (e.KeyCode) {
@@ -754,15 +779,22 @@ namespace WinAGI.Editor {
                 switch (tvwSound.SelectedNode.Level) {
                 case 0:
                     // root
-                    SelectSound();
+                    SelectSound(false);
                     break;
                 case 1:
                     // loop
-                    SelectTrack(tvwSound.SelectedNode.Index);
+                    SelectTrack(tvwSound.SelectedNode.Index, false);
                     break;
                 case 2:
                     // cel
-                    SelectNote(tvwSound.SelectedNode.Parent.Index, tvwSound.SelectedNodes[0].Index, tvwSound.SelectedNode.Index, tvwSound.SelectedNodes.Count);
+                    int length;
+                    if (tvwSound.NoSelection) {
+                        length = 0;
+                    }
+                    else {
+                        length = tvwSound.SelectedNodes.Count;
+                    }
+                    SelectNote(tvwSound.SelectedNode.Parent.Index, tvwSound.SelectedNodes[0].Index, tvwSound.SelectedNode.Index, length, false);
                     break;
                 }
                 break;
@@ -787,7 +819,7 @@ namespace WinAGI.Editor {
 
             if (tvwSound.SelectedNodes.Count > 1) {
                 // update selection
-                SelectNote(tvwSound.SelectedNodes[0].Parent.Index, tvwSound.SelectedNodes[0].Index, tvwSound.SelectedNode.Index, tvwSound.SelectedNodes.Count);
+                SelectNote(tvwSound.SelectedNodes[0].Parent.Index, tvwSound.SelectedNodes[0].Index, tvwSound.SelectedNode.Index, tvwSound.SelectedNodes.Count, false);
                 // clear property grid when there is a multiple-node selection
                 propertyGrid1.SelectedObject = null;
                 picStaff[SelectedTrack].Invalidate();
@@ -806,7 +838,7 @@ namespace WinAGI.Editor {
                 break;
             case 2:
                 // note
-                SelectNote(e.Node.Parent.Index, e.Node.Index, e.Node.Index, tvwSound.NoSelection ? 0 : 1);
+                SelectNote(e.Node.Parent.Index, e.Node.Index, e.Node.Index, tvwSound.NoSelection ? 0 : 1, e.Button == MouseButtons.Left);
                 break;
             }
         }
@@ -815,7 +847,7 @@ namespace WinAGI.Editor {
             // if double-clicking on a note, select it
             if (e.Node.Level == 2 && e.Node.Index != e.Node.Parent.Nodes.Count - 1) {
                 tvwSound.NoSelection = false;
-                SelectNote(e.Node.Parent.Index, e.Node.Index, e.Node.Index, 1);
+                SelectNote(e.Node.Parent.Index, e.Node.Index, e.Node.Index, 1, false);
             }
         }
 
@@ -849,38 +881,566 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void picStaff_MouseDown(object sender, MouseEventArgs e) {
+        private void picStaff_KeyDown(object sender, KeyEventArgs e) {
             int index = (int)((SelectablePictureBox)sender).Tag;
 
-            if (index != SelectedTrack) {
-                // if not the selected track, select it
-                SelectTrack(index);
+            switch (e.Modifiers) {
+            case Keys.None:
+                // no shift, ctrl, alt
+                switch (e.KeyCode) {
+                case Keys.Left:// or Keys.Up:
+                    // if there is an active selection or cursor is not at start,
+                    if (SelectedTrack != -1 && (SelStart > 0 || SelLength > 0)) {
+                        // if just a cursor
+                        if (SelLength == 0) {
+                            // move left one note
+                            SelectNote(SelectedTrack, SelStart - 1, SelStart - 1, 0);
+                        }
+                        else {
+                            // if anchor is to right of selection
+                            // collapse to current startpos
+                            SelectNote(SelectedTrack, SelStart, SelStart, 0);
+                        }
+                    }
+                    else if (SelectedTrack != -1 && SelStart == 0) {
+                        // at beginning, move up to track
+                        SelectTrack(SelectedTrack);
+                    }
+                    e.SuppressKeyPress = true;
+                    e.Handled = true;
+                    break;
+                case Keys.Right:// or Keys.Down:
+                    // if there is an active selection or cursor is not at end,
+                    if (SelectedTrack != -1 && (SelStart < EditSound[SelectedTrack].Notes.Count || SelLength > 0)) {
+                        if (SelLength == 0) {
+                            // move right one note
+                            SelectNote(SelectedTrack, SelStart + 1, SelStart + 1, 0);
+                        }
+                        else {
+                            // collapse selection to current end position
+                            SelectNote(SelectedTrack, SelStart + SelLength, SelStart + SelLength, 0);
+                        }
+                    }
+                    else if (SelectedTrack != -1 && SelStart == -1) {
+                        // at track level, move to first note
+                        SelectNote(SelectedTrack, SelStart, SelStart, 0);
+                    }
+                    e.SuppressKeyPress = true;
+                    e.Handled = true;
+                    break;
+                case Keys.Back:
+                    if (SelLength > 0) {
+                        DeleteNotes(SelectedTrack, SelStart, SelLength);
+                    }
+                    else {
+                        // if not on first note
+                        if (SelStart > 0) {
+                            // delete previous note
+                            DeleteNotes(SelectedTrack, SelStart - 1, 1);
+                        }
+                    }
+                    e.SuppressKeyPress = true;
+                    e.Handled = true;
+                    break;
+                }
+                break;
+            case Keys.Shift:
+                // if working with a staff, adjust selection; if working with tracks, exit
+                if (SelectionMode == SelectionModeType.Sound ||
+                    SelectionMode == SelectionModeType.MusicTrack ||
+                    SelectionMode == SelectionModeType.NoiseTrack) {
+                    return;
+                }
+                switch (e.KeyCode) {
+                case Keys.Left:// or Keys.Up:
+                    // selection is expanded to left, or collapsed on the right,
+                    // depending on where current position is relative to the anchor
+
+                    // if there is an active selection of one or more notes
+                    // AND the startpoint is the anchor,
+                    if (SelLength > 0 && SelAnchor == SelStart) {
+                        // shrink the selection by one note (move end pt)
+                        SelectNote(SelectedTrack, SelStart, SelStart, SelLength - 1);
+                    }
+                    else {
+                        // if starting point not yet at beginning of track,
+                        if (SelStart > 0) {
+                            // expand selection by one note (move start)
+                            SelectNote(SelectedTrack, SelStart - 1, SelAnchor, SelLength + 1);
+                        }
+                        else {
+                            // cursor is already at beginning; just exit
+                            return;
+                        }
+                    }
+                    e.SuppressKeyPress = true;
+                    e.Handled = true;
+                    break;
+                case Keys.Right:// or Keys.Down:
+                    // selection is expanded to right, or collapsed on the left,
+                    // depending on where current position is relative to the anchor
+                    if (SelAnchor == SelStart) {
+                        // if not yet at end of track
+                        if (SelStart + SelLength < EditSound[SelectedTrack].Notes.Count) {
+                            // expand selection (move end pt)
+                            SelectNote(SelectedTrack, SelStart, SelStart, SelLength + 1, true, 2);
+                        }
+                        else {
+                            // cursor is already at end; just exit
+                            return;
+                        }
+                    }
+                    else {
+                        // shrink selection by one note (move start pt)
+                        SelectNote(SelectedTrack, SelStart + 1, SelAnchor, SelLength - 1);
+                    }
+                    e.SuppressKeyPress = true;
+                    e.Handled = true;
+                    break;
+                }
+                break;
             }
         }
 
-        private void picStaff_MouseWheel(object sender, MouseEventArgs e) {
-            int index = (int)((SelectablePictureBox)sender).Tag;
-            if (Math.Sign(e.Delta) == -1) {
-                //vsbStaff[index].Value += vsbStaff[index].SmallChange;
+        private void picStaff_KeyPress(object sender, KeyPressEventArgs e) {
+            // no need to check which staff, since the active staff (SelectedTrack)
+            // is always the one with the keyboard focus
+
+            int keyval = e.KeyChar;
+
+            switch (keyval) {
+            case 8: // Keys.Back
+                e.Handled = true;
+                break;
+            case 45:
+                // "-" vol down (attenuation up)
+                if (DefAttn < 14) {
+                    DefAttn++;
+                    DrawDefaultNote();
+                }
+                break;
+            case 43:
+                // "+" vol up (attenuation down)
+                if (DefAttn > 0) {
+                    DefAttn--;
+                    DrawDefaultNote();
+                }
+                break;
+            case 32:
+                DefMute = !DefMute;
+                DrawDefaultNote();
+                break;
+            case 60 or 44:
+                // "<", "," octave down
+                if (SelectedTrack != 3 && DefOctave > 3) {
+                    DefOctave--;
+                    picKeyboard.Invalidate();
+                }
+                break;
+            case 62 or 46:
+                // ">", "." octave up
+                if (SelectedTrack != 3 && DefOctave < 10) {
+                    DefOctave++;
+                    picKeyboard.Invalidate();
+                }
+                break;
+            case 91 or 123:
+                // "{", "[" default length down
+                if (DefLength > 1) {
+                    DefLength--;
+                    DrawDefaultNote();
+                }
+                break;
+            case 93 or 125:
+                // "}", "]" default length up
+                if (DefLength < 16) {
+                    DefLength++;
+                    DrawDefaultNote();
+                }
+                break;
             }
-            else if (Math.Sign(e.Delta) == 1) {
-                //vsbStaff[index].Value -= vsbStaff[index].SmallChange;
+            if (SelectedTrack == -1) {
+                return;
+            }
+            switch (keyval) {
+            case >= 97 and <= 103:
+                // a - g /natural tones
+                if (SelectedTrack == 3) {
+                    // don't do anything
+                    return;
+                }
+                // convert to 0-7 scale
+                int lngMIDInote = keyval - 99;
+                // shift so c=0 and g=6
+                if (lngMIDInote < 0) {
+                    lngMIDInote += 7;
+                }
+                // convert letter number to music scale
+                lngMIDInote *= 2;
+                if (lngMIDInote > 4) {
+                    lngMIDInote--;
+                }
+                // combine with octave to get midi note
+                lngMIDInote = DefOctave * 12 + lngMIDInote;
+                // validate
+                if (lngMIDInote < 45 || lngMIDInote > 127 ||
+                    lngMIDInote == 121 || lngMIDInote == 124 || lngMIDInote == 126) {
+                    return;
+                }
+                // play it
+                NoteOn(lngMIDInote);
+                break;
+            case 67 or 68 or 70 or 71 or 65:
+                // C, D, F, G, A (sharps)
+                if (SelectedTrack == 3) {
+                    // don't do anything
+                    return;
+                }
+                // convert to 0-7 scale
+                lngMIDInote = keyval - 67;
+                // shift so C=0 and G=6
+                if (lngMIDInote < 0) {
+                    lngMIDInote -= 7;
+                }
+                // convert letter number to music scale
+                lngMIDInote *= 2;
+                if (lngMIDInote > 4) {
+                    lngMIDInote--;
+                }
+                // combine with octave and sharpen
+                lngMIDInote = DefOctave * 12 + lngMIDInote + 1;
+
+                // validate
+                if (lngMIDInote < 45 || lngMIDInote > 127 ||
+                    lngMIDInote == 121 || lngMIDInote == 124 || lngMIDInote == 126) {
+                    return;
+                }
+                // play it
+                NoteOn(lngMIDInote);
+                break;
+            case >= 49 and <= 52:
+                // 1, 2, 3, 4
+                // only used in noise track
+                if (SelectedTrack != 3) {
+                    return;
+                }
+                // insert a noise track periodic tone note with appopriate frequency
+                NoteOn(keyval - 49);
+                break;
+            case 33 or 64 or 35 or 36:
+                // !,@,#,$
+                // only used in noise track
+                if (SelectedTrack != 3) {
+                    return;
+                }
+                // insert a noise track white noise note with appropriate frequency
+                if (keyval == 64) {
+                    lngMIDInote = 5;
+                }
+                else {
+                    lngMIDInote = keyval - 29;
+                }
+                NoteOn(lngMIDInote);
+                break;
+            }
+        }
+
+        private void picStaff_KeyUp(object sender, KeyEventArgs e) {
+            int index = (int)((SelectablePictureBox)sender).Tag;
+            if (blnNoteOn) {
+                NoteOff();
+            }
+        }
+
+        private void picStaff_MouseDown(object sender, MouseEventArgs e) {
+            int index = (int)((SelectablePictureBox)sender).Tag;
+
+            mX = e.X;
+            mY = e.Y;
+
+            switch (e.Button) {
+            case MouseButtons.Right:
+                // if clicking on a different track
+                if (index != SelectedTrack) {
+                    // select track first
+                    SelectTrack(index);
+                }
+                // context menu
+                return;
+            case MouseButtons.Left:
+                picStaff[index].Capture = true;
+                // if clicking on clef area
+                if (e.X < KeyWidth) {
+                    // select first note in track
+                    SelectNote(index, 0, 0, 0);
+                }
+                else {
+                    // determine which note is being selected
+                    // if holding shift key AND same staff
+                    int tmpPos;
+                    if (ModifierKeys == Keys.Shift && index == SelectedTrack) {
+                        tmpPos = NoteFromPos(index, e.X, true);
+                        if (tmpPos >= SelAnchor) {
+                            // extend/compress selection (move end pt)
+                            SelectNote(index, SelAnchor, SelAnchor, tmpPos - SelAnchor);
+                        }
+                        else {
+                            // extend/compress selection (move start pt)
+                            SelectNote(index, tmpPos, SelAnchor, SelAnchor - tmpPos);
+                        }
+                    }
+                    else {
+                        // determine which note is being selected
+                        tmpPos = NoteFromPos(index, e.X, false);
+                        SelectNote(index, tmpPos, tmpPos, 0);
+                    }
+                }
+                break;
+            }
+        }
+
+        private void picStaff_MouseMove(object sender, MouseEventArgs e) {
+            int index = (int)((SelectablePictureBox)sender).Tag;
+
+            // if track is not selected, no need to process mouse messages
+            if (index != SelectedTrack) {
+                return;
+            }
+            // if no movement from starting position
+            if (mX == e.X && mY == e.Y) {
+                // not really a mousemove
+                return;
+            }
+
+            // update time marker
+            double sngTime = (e.X - KeyWidth - SOHorz - 2) / TICK_WIDTH / 60 / StaffScale;
+            UpdateStatusBarTime(sngTime);
+
+            if (SelectedTrack == -1) {
+                return;
+            }
+            switch (e.Button) {
+            case MouseButtons.Left:
+                // cache current mouse position
+                mX = e.X;
+                mY = e.Y;
+                // if mouse position is off edge of screen, enable autoscrolling
+                if (e.X < 0 && SOHorz != 0) {
+                    tmrStaffScroll.Enabled = true;
+                    tmrStaffScroll.Interval = 200 / ((-e.X / 5) + 1);
+                    StaffScrollDir = 1;
+                }
+                else if (e.X > picStaff[index].ClientSize.Width - vsbStaff[index].Width &&
+                         -SOHorz != hsbStaff.Maximum - hsbStaff.LargeChange + 1) {
+                    tmrStaffScroll.Enabled = true;
+                    tmrStaffScroll.Interval = 200 / (((e.X - (picStaff[index].ClientSize.Width - vsbStaff[index].Width)) / 5) + 1);
+                    StaffScrollDir = -1;
+                }
+                else {
+                    tmrStaffScroll.Enabled = false;
+                    StaffScrollDir = 0;
+                }
+                // update selection based on mouse position
+                SelectUnderMouse(e.X);
+                break;
+            }
+        }
+
+        private void picStaff_MouseUp(object sender, MouseEventArgs e) {
+            int index = (int)((SelectablePictureBox)sender).Tag;
+            picStaff[index].Capture = false;
+            tmrStaffScroll.Enabled = false;
+        }
+
+        private void picStaff_MouseDoubleClick(object sender, MouseEventArgs e) {
+            int index = (int)((SelectablePictureBox)sender).Tag;
+
+            int tmpPos = NoteFromPos(SelectedTrack, e.X, false);
+
+            // if note is already selected, do nothing
+            if (SelLength > 0 && tmpPos >= SelStart && tmpPos <= SelStart + SelLength) {
+                return;
+            }
+            // select the note being clicked;
+            SelectNote(index, tmpPos, tmpPos, 1);
+        }
+
+        private void picStaff_MouseLeave(object sender, EventArgs e) {
+            int index = (int)((SelectablePictureBox)sender).Tag;
+            spTime.Text = "Pos: 0.00 sec"; // reset time marker
+        }
+
+        private void picStaff_MouseWheel(object sender, MouseEventArgs e) {
+            // default action is to scroll the staff horizontally
+            // if scroll button is pressed scroll vertically
+
+            // if over a selectionh, SHIFT will adjust attenuation, CTRL
+            // will adjust length (but only if a single note is selected)
+
+            int index = (int)((SelectablePictureBox)sender).Tag;
+
+            if (index == SelectedTrack && SelLength > 0) {
+                int tmpPos = NoteFromPos(SelectedTrack, e.X, false);
+                if (tmpPos >= SelStart && tmpPos < SelStart + SelLength) {
+                    switch (ModifierKeys) {
+                    case Keys.Shift:
+                        // attenuation
+                        ShiftNoteVol(Math.Sign(e.Delta), SelectedTrack, SelStart, SelLength);
+                        return;
+                    case Keys.Control:
+                        if (SelLength == 1) {
+                            // length
+                            ShiftDuration(Math.Sign(e.Delta), SelectedTrack, SelStart);
+                            return;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // not over a selection; scroll the window
+            int newval;
+            if (MouseButtons == MouseButtons.Middle) {
+                if (vsbStaff[index].Enabled) {
+                    newval = vsbStaff[index].Value;
+                    if (Math.Sign(e.Delta) == -1) {
+                        newval += vsbStaff[index].SmallChange;
+                        if (newval > vsbStaff[index].Maximum - vsbStaff[index].LargeChange + 1) {
+                            newval = vsbStaff[index].Maximum - vsbStaff[index].LargeChange + 1;
+                        }
+                    }
+                    else if (Math.Sign(e.Delta) == 1) {
+                        newval -= vsbStaff[index].SmallChange;
+                        if (newval < 0) {
+                            newval = 0;
+                        }
+                    }
+                    vsbStaff[index].Value = newval;
+                }
+            }
+            else {
+                if (hsbStaff.Enabled) {
+                    newval = hsbStaff.Value;
+                    if (Math.Sign(e.Delta) == -1) {
+                        newval -= hsbStaff.SmallChange;
+                        if (newval < 0) {
+                            newval = 0;
+                        }
+                    }
+                    else if (Math.Sign(e.Delta) == 1) {
+                        newval += hsbStaff.SmallChange;
+                        if (newval > hsbStaff.Maximum - hsbStaff.LargeChange + 1) {
+                            newval = hsbStaff.Maximum - hsbStaff.LargeChange + 1;
+                        }
+                    }
+                    hsbStaff.Value = newval;
+                }
             }
         }
 
         private void picStaff_Paint(object sender, PaintEventArgs e) {
+            if (Disposing) return;
             int index = (int)((SelectablePictureBox)sender).Tag;
 
-            if (index == 3) {
-                DrawNoiseStaff(e.Graphics);
+            // to support inverting, need to use backbuffering
+            using (Bitmap backBuffer = new Bitmap(picStaff[index].Width, picStaff[index].Height)) {
+                using (Graphics bbg = Graphics.FromImage(backBuffer)) {
+                    bbg.Clear(Color.White);
+                    if (index == 3) {
+                        DrawNoiseStaff(bbg);
+                    }
+                    else {
+                        DrawMusicStaff(bbg, index);
+                    }
+
+                    // highlight selection by inverting it
+                    if (SelectedTrack == index && SelStart >= 0) {
+
+                        if (SelLength > 0) {
+                            HighlightSelection(backBuffer, bbg);
+                        }
+                        else if (CursorOn) {
+                            ShowCursor(backBuffer, bbg);
+                        }
+                    }
+                    e.Graphics.DrawImageUnscaled(backBuffer, 0, 0);
+                }
             }
-            else {
-                DrawMusicStaff(e.Graphics, index);
+        }
+
+        private void tmrCursor_Tick(object sender, EventArgs e) {
+            // toggle cursor state
+            CursorOn = !CursorOn;
+            Debug.Assert(SelectedTrack != -1);
+            Debug.Assert(SelLength == 0);
+
+            picStaff[SelectedTrack].Invalidate();
+        }
+
+        private void vsbStaff_ValueChanged(object sender, EventArgs e) {
+            int index = (int)((VScrollBar)sender).Tag;
+            if (SOVert[index] == -vsbStaff[index].Value) {
+                return;
+            }
+            SOVert[index] = -vsbStaff[index].Value;
+            picStaff[index].Invalidate();
+        }
+
+        private void hsbStaff_ValueChanged(object sender, EventArgs e) {
+            if (SOHorz == -hsbStaff.Value) {
+                return;
+            }
+            SOHorz = -hsbStaff.Value;
+            for (int i = 0; i < 4; i++) {
+                if (picStaff[i].Visible) {
+                    picStaff[i].Invalidate();
+                }
             }
         }
 
         private void tmrStaffScroll_Tick(object sender, EventArgs e) {
+            // autoscroll staves
 
+            switch (StaffScrollDir) {
+            case 1:
+                // scroll left
+                // if already at left edge
+                if (SOHorz == 0) {
+                    // disable autoscroll
+                    StaffScrollDir = 0;
+                    tmrStaffScroll.Enabled = false;
+                    return;
+                }
+                else {
+                    hsbStaff.Value = Math.Max(hsbStaff.Minimum, hsbStaff.Value - 10);
+                    // if there is room for a small change
+                    if (hsbStaff.Value > hsbStaff.SmallChange) {
+                        hsbStaff.Value -= hsbStaff.SmallChange;
+                    }
+                    else {
+                        hsbStaff.Value = 0;
+                    }
+                }
+                break;
+            case -1:
+                // scroll right
+                // if already at right edge
+                if (hsbStaff.Value == hsbStaff.Maximum - hsbStaff.LargeChange + 1) {
+                    // disable autoscroll
+                    StaffScrollDir = 0;
+                    tmrStaffScroll.Enabled = false;
+                    return;
+                }
+                else {
+                    hsbStaff.Value = Math.Min(hsbStaff.Maximum - hsbStaff.LargeChange + 1, hsbStaff.Value + 10);
+                }
+                break;
+            }
+            // adjust mouse position? or use cached value?
+            double sngTime = (mX - KeyWidth - SOHorz - 2) / TICK_WIDTH / 60 / StaffScale;
+            UpdateStatusBarTime(sngTime);
+            // update selection using new mouse position
+            SelectUnderMouse(mX);
         }
 
         private void picKeyboard_MouseDown(object sender, MouseEventArgs e) {
@@ -900,7 +1460,6 @@ namespace WinAGI.Editor {
                     return;
                 }
                 int lngMIDInote = (e.X + NKbOffset) / (picKeyboard.Width / 8 < MinNoiseKeyWidth ? MinNoiseKeyWidth : picKeyboard.Width / 8);
-
                 // play this note
                 NoteOn(lngMIDInote);
                 break;
@@ -940,7 +1499,6 @@ namespace WinAGI.Editor {
                 }
                 // calculate note to play
                 lngMIDInote = (Octave * 12) + NoteNum;
-
                 // play the note
                 NoteOn(lngMIDInote);
                 break;
@@ -950,9 +1508,6 @@ namespace WinAGI.Editor {
         private void picKeyboard_MouseUp(object sender, MouseEventArgs e) {
             // stop playing note
             NoteOff();
-            if (SelectedTrack >= 0 && SelStart != -1 && e.Button != MouseButtons.Right) {
-                InsertNote(PlayNote);
-            }
         }
 
         private void picKeyboard_Resize(object sender, EventArgs e) {
@@ -1111,10 +1666,12 @@ namespace WinAGI.Editor {
 
         private void btnKybdLeft_MouseUp(object sender, MouseEventArgs e) {
             tmrKeyboardScroll.Enabled = false;
+            SetFocus();
         }
 
         private void btnKybdRight_MouseUp(object sender, MouseEventArgs e) {
             tmrKeyboardScroll.Enabled = false;
+            SetFocus();
         }
 
         private void tmrKeyboardScroll_Tick(object sender, EventArgs e) {
@@ -1138,21 +1695,20 @@ namespace WinAGI.Editor {
             // not playing now - begin
             PlaySound();
             // go back
-            RestoreFocus();
-
+            SetFocus();
         }
 
         private void btnStop_Click(object sender, EventArgs e) {
             // stop the sound
             StopSound();
-            // go back
-            RestoreFocus();
+            SetFocus();
         }
 
         private void btnMute_Click(object sender, EventArgs e) {
             int index = (int)((Button)sender).Tag;
             // toggle mute for this track
             SetTrackMute(index, !EditSound[index].Muted);
+            SetFocus();
         }
 
         private void btnDurationUp_Click(object sender, EventArgs e) {
@@ -1160,6 +1716,7 @@ namespace WinAGI.Editor {
                 DefLength += 1;
                 DrawDefaultNote();
             }
+            SetFocus();
         }
 
         private void btnDurationDown_Click(object sender, EventArgs e) {
@@ -1167,2529 +1724,32 @@ namespace WinAGI.Editor {
                 DefLength -= 1;
                 DrawDefaultNote();
             }
+            SetFocus();
         }
         #endregion
 
         #region temp code
-        void tmpsoundform() {
+        void tempsoundform() {
             /*
-    private void ClearSelection()
-
-      Dim lngStartPos As Long, lngEndPos As Long
-
-      On Error GoTo ErrHandler
-
-      // assumes that:
-      //  a track is selected (SelectedTrack >= 0) AND
-      //  track is visible (picStaffVis(SelectedTrack) = true) AND
-      //  one or more notes currently selected (SelStart >=0 And SelLength >=1) AND
-      //  selection is actively displayed (SelActive= true)
-      // 
-      if (SelectedTrack < 0) {
-        return;
-      }
-
-      // calculate start pos
-      lngStartPos = SOHorz + KeyWidth + NotePos(SelectedTrack, SelStart) * TICK_WIDTH * StaffScale
-
-      // set draw mode to invert
-      picStaff(SelectedTrack).DrawMode = 6
-
-      // if starting pos <keywidth,
-      if (lngStartPos < KeyWidth) {
-        lngStartPos = KeyWidth
-      }
-
-      // calculate end pos
-      lngEndPos = SOHorz + KeyWidth + NotePos(SelectedTrack, SelStart + SelLength) * TICK_WIDTH * StaffScale - 2
-
-      // if end note is past edge of staff
-      if (lngEndPos > picStaff(SelectedTrack).Width - 25) {
-        lngEndPos = picStaff(SelectedTrack).Width - 25
-      }
-
-      // draw box over selection
-      picStaff(SelectedTrack).Line (lngStartPos, 2)-(lngEndPos, picStaff(SelectedTrack).ScaleHeight - 4), vbBlack, BF
-
-      // mode to copypen
-      picStaff(SelectedTrack).DrawMode = 13
-
-      // set selection status to off
-      SelActive = false
-    }
-
-    private void DrawNoiseNote(ByVal HPos As Long, ByVal Note As Long, ByVal Length As Long, ByVal Attenuation As Long)
-
-      // draws noise note on staff;
-      // HPos is horizontal position where note will be drawn
-      // Note is the freq of the note to be played
-      // Length is length of note is AGI ticks
-      // Attenuation is amount of volume attenuation (0 means loudest; 15 means mute)
-
-      Dim sngLen As Single
-      Dim lngVPos As Long
-      Dim lngColor As Long
-      Dim lngTPQN As Long
-
-      // get tpqn
-      lngTPQN = EditSound.TPQN
-
-      // set note color based on attenuation
-      lngColor = EGAColor(Attenuation)
-      picStaff(3).FillColor = lngColor
-
-      // convert length of note to MIDI Value, using TPQN
-      sngLen = Length / lngTPQN * 4 // (one MIDI unit is a sixteenth note)
-
-      // set vertical position
-      lngVPos = (11 + 6 * (Note And 3)) * StaffScale + SOVert(3) + 1
-
-      // set fill style to diagonal hash
-      picStaff(3).FillStyle = vbUpwardDiagonal
-
-      // if white noise
-      if ((Note And 4) = 4) {
-        // draw line with diagonal fill
-        picStaff(3).Line (HPos, lngVPos)-(HPos + StaffScale * TICK_WIDTH * (Length - 0.3), lngVPos + StaffScale * 6 - 2), lngColor, B
-      } else {
-        // draw line with solid fill
-        picStaff(3).Line (HPos, lngVPos)-(HPos + StaffScale * TICK_WIDTH * (Length - 0.3), lngVPos + StaffScale * 6 - 2), lngColor, BF
-      }
-
-      // reset fill style
-      picStaff(3).FillStyle = vbFSSolid
-    }
-
-    private void DrawRest(ByVal Track As Long, ByVal HPos As Long, ByVal Length As Long)
-
-      // draws rest on staff;
-      // HPos is horizontal position where note will be drawn
-      // Length is length of note is AGI ticks
-
-      Dim rtn As Long, i As Long
-      Dim VPos As Long, TrackCount As Long
-      Dim sngLen As Single, lngTempPos As Long
-      Dim lngTPQN As Long
-
-      // get tpqn
-      lngTPQN = EditSound.TPQN
-
-      // convert length of note to MIDI Value, using TPQN
-      sngLen = Length / lngTPQN * 4 // (one MIDI unit is a sixteenth note)
-
-      // set fill color to black so dots draw correctly
-      picStaff(Track).FillColor = vbBlack
-
-      // if this is noise track
-      if (Track = 3) {
-        // notes are drawn only once
-        TrackCount = 1
-        VPos = 16 * StaffScale + SOVert(Track)
-      } else {
-        TrackCount = 2
-        VPos = 101 * StaffScale + SOVert(Track)
-      }
-
-      lngTempPos = HPos
-      For i = 1 To TrackCount
-        HPos = lngTempPos
-        // if showing notes
-        if (Settings.ShowNotes) {
-          // draw appropriate rest
-          switch (sngLen
-          case 1  // sixteenth rest
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 0, 264, 72, 108, SRCAND)
-
-          case 2  // eighth rest
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 72, 264, 72, 108, SRCAND)
-
-          case 3  // eighth rest dotted
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 72, 264, 72, 108, SRCAND)
-           // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 10, VPos + 10 * StaffScale), StaffScale * 1.125, vbBlack
-
-          case 4  // quarter rest
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                            NotePictures.hDC, 144, 264, 72, 108, SRCAND)
-
-          case 5 // quater rest and sixteenth rest
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 144, 264, 72, 108, SRCAND)
-            // draw connector
-            rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH, StaffScale * 7, _
-                             NotePictures.hDC, 0, 476, 849, 99, TRANSCOPY)
-            // increment position
-            HPos = HPos + StaffScale * TICK_WIDTH * lngTPQN
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 0, 264, 72, 108, SRCAND)
-
-          case 6  // quarter rest dotted
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 144, 264, 72, 108, SRCAND)
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 10, VPos + 10 * StaffScale), StaffScale * 1.125, vbBlack
-
-          case 7  // quarter rest double dotted
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 144, 264, 72, 108, SRCAND)
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 10, VPos + 10 * StaffScale), StaffScale * 1.125, vbBlack
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 13, VPos + 10 * StaffScale), StaffScale * 1.125, vbBlack
-
-          case 8  // half rest
-            picStaff(Track).Line (HPos, VPos + 7 * StaffScale)-Step(8 * StaffScale, -3 * StaffScale), vbBlack, BF
-
-          case 9  // half rest and sixteenth
-            picStaff(Track).Line (HPos, VPos + 7 * StaffScale)-Step(8 * StaffScale, -3 * StaffScale), vbBlack, BF
-            // draw connector
-            rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 2, StaffScale * 7, _
-                            NotePictures.hDC, 0, 476, 849, 99, TRANSCOPY)
-            // increment position
-            HPos = HPos + StaffScale * TICK_WIDTH * 2 * lngTPQN
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 0, 264, 72, 108, SRCAND)
-
-          case 10 // half rest and eighth
-            picStaff(Track).Line (HPos, VPos + 7 * StaffScale)-Step(8 * StaffScale, -3 * StaffScale), vbBlack, BF
-            // draw connector
-            rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 2, StaffScale * 7, _
-                             NotePictures.hDC, 0, 476, 849, 99, TRANSCOPY)
-            // increment position
-            HPos = HPos + StaffScale * TICK_WIDTH * 2 * lngTPQN
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 72, 264, 72, 108, SRCAND)
-
-          case 11 // half rest, eighth dotted
-            picStaff(Track).Line (HPos, VPos + 7 * StaffScale)-Step(8 * StaffScale, -3 * StaffScale), vbBlack, BF
-            // draw connector
-            rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 2, StaffScale * 7, _
-                             NotePictures.hDC, 0, 476, 849, 99, TRANSCOPY)
-            // increment position
-            HPos = HPos + StaffScale * TICK_WIDTH * 2 * lngTPQN
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 72, 264, 72, 108, SRCAND)
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 10, VPos + 10 * StaffScale), StaffScale * 1.125, vbBlack
-
-          case 12 // half rest dotted
-            picStaff(Track).Line (HPos, VPos + 7 * StaffScale)-Step(8 * StaffScale, -3 * StaffScale), vbBlack, BF
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 11, VPos + 4 * StaffScale), StaffScale * 1.125, vbBlack
-
-          case 13 // half rest dotted and sixteenth
-            picStaff(Track).Line (HPos, VPos + 7 * StaffScale)-Step(8 * StaffScale, -3 * StaffScale), vbBlack, BF
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 11, VPos + 4 * StaffScale), StaffScale * 1.125, vbBlack
-            // draw connector
-            rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 3, StaffScale * 7, _
-                             NotePictures.hDC, 0, 476, 849, 99, TRANSCOPY)
-            // increment position
-            HPos = HPos + StaffScale * TICK_WIDTH * 3 * lngTPQN
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 0, 264, 72, 108, SRCAND)
-
-          case 14 // half rest double dotted
-            picStaff(Track).Line (HPos, VPos + 7 * StaffScale)-Step(8 * StaffScale, -3 * StaffScale), vbBlack, BF
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 11, VPos + 4 * StaffScale), StaffScale * 1.125, vbBlack
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 14, VPos + 4 * StaffScale), StaffScale * 1.125, vbBlack
-
-          case 15 // half rest double dotted and sixteenth
-            picStaff(Track).Line (HPos, VPos + 7 * StaffScale)-Step(8 * StaffScale, -3 * StaffScale), vbBlack, BF
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 11, VPos + 4 * StaffScale), StaffScale * 1.125, vbBlack
-            // draw dot
-            picStaff(Track).Circle (HPos + StaffScale * 14, VPos + 4 * StaffScale), StaffScale * 1.125, vbBlack
-            // draw connector
-            rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 3.5, StaffScale * 7, _
-                            NotePictures.hDC, 0, 476, 849, 99, TRANSCOPY)
-            // increment position
-            HPos = HPos + StaffScale * TICK_WIDTH * 3.5 * lngTPQN
-            rtn = StretchBlt(picStaff(Track).hDC, HPos, VPos, StaffScale * 12, StaffScale * 18, _
-                             NotePictures.hDC, 0, 264, 72, 108, SRCAND)
-
-          case 16 // whole rest
-            picStaff(Track).Line (HPos, VPos + StaffScale)-Step(7 * StaffScale, 4 * StaffScale), vbBlack, BF
-
-          case Is > 16
-            // greater than whole note;
-            // recurse to draw one whole note at a time until done
-            // ONLY do this once;
-            if (i = 1) {
-              Do Until Length < 4 * lngTPQN
-                DrawRest Track, HPos, 4 * lngTPQN
-                // decrement length
-                Length = Length - 4 * lngTPQN
-                if (Length > 0) {
-                  // draw connectors
-                  rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 4, StaffScale * 7, _
-                                   NotePictures.hDC, 0, 476, 849, 99, TRANSCOPY)
-                  if (Track != 3) {
-                    rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 3, VPos + StaffScale * 77, StaffScale * lngTPQN * TICK_WIDTH * 4, StaffScale * 7, _
-                                     NotePictures.hDC, 0, 476, 849, 99, TRANSCOPY)
-                  }
-                }
-                // increment horizontal position
-                HPos = HPos + StaffScale * TICK_WIDTH * lngTPQN * 4
-              Loop
-              // if anything left
-              if (Length > 0) {
-                // draw remaining portion of note
-                DrawRest Track, HPos, Length
-              }
-            }
-          default:
-            picStaff(Track).FillStyle = vbFSTransparent
-            // not a normal note; draw a bar
-            picStaff(Track).Line (HPos, VPos - 2 * StaffScale)-Step _
-                                 (StaffScale * TICK_WIDTH * (Length - 0.5), StaffScale * 18), RGB(228, 228, 228), BF
-            // draw black border around bar
-            picStaff(Track).Line (HPos, VPos - 2 * StaffScale)-Step _
-                                 (StaffScale * TICK_WIDTH * (Length - 0.5), StaffScale * 18), vbBlack, B
-            picStaff(Track).FillStyle = vbFSSolid
-          }
-        } else {
-          // draw all rest notes as blocks
-          picStaff(Track).FillStyle = vbFSTransparent
-          picStaff(Track).Line (HPos, VPos - 2 * StaffScale)-Step _
-                               (StaffScale * TICK_WIDTH * (Length - 0.5), StaffScale * 18), RGB(228, 228, 228), BF
-          // draw black border around bar
-          picStaff(Track).Line (HPos, VPos - 2 * StaffScale)-Step _
-                               (StaffScale * TICK_WIDTH * (Length - 0.5), StaffScale * 18), vbBlack, B
-          picStaff(Track).FillStyle = vbFSSolid
-        }
-
-        // reset vpos
-        VPos = 161 * StaffScale + SOVert(Track)
-      Next i
-    }
-
-    public void DrawStaff(ByVal TrackNo As Long)
-
-      // draws the staff for the given track
-
-      Dim i As Long
-      Dim lngFreq As Long, lngDur As Long, lngAtt As Long
-      Dim sngStaffWidth As Single
-      Dim lngHPos As Long
-      Dim lngTPQN As Long, lngNoteCount As Long
-      Dim lngSndLength As Long
-      Dim strTime As String
-
-      On Error GoTo ErrHandler
-
-      // if overriding draw
-      if (DontDraw) {
-        return;
-      }
-
-      // special draw functions are managed as negative values
-      if (TrackNo < 0) {
-        switch (TrackNo
-        case -1
-          // draw all tracks
-          For i = 0 To 3
-            // recurse to draw correct tracks
-            DrawStaff i
-          Next i
-        case -2
-          // switch TO/FROM one track
-          For i = 0 To 3
-          // *'Debug.Assert OneTrack
-              if (i = SelectedTrack) {
-                picStaff(i).Visible = true
-                picStaffVis(i) = true
-              } else {
-                picStaff(i).Visible = false
-                picStaffVis(i) = false
-              }
-          Next i
-          // use resize to force update
-          Form_Resize
-        case -3
-          // force redraw due to change in settings
-          // which depends on which displaymode is currently active
-          if (OneTrack) {
-            DrawStaff -2
-          } else {
-            DrawStaff -1
-          }
-          return;
-        }
-        // exit
-        return;
-      }
-
-      // get tpqn
-      lngTPQN = EditSound.TPQN
-
-      // if track not visible
-      if (Not picStaffVis(TrackNo)) {
-        return;
-      }
-
-      // clear the staff
-      picStaff(TrackNo).Cls
-      picStaff(TrackNo).ForeColor = vbBlack
-
-      // set drawmode to copypen (so lines draw correctly)
-      picStaff(TrackNo).DrawMode = 13
-
-      // cache scalewidth and sound length
-      sngStaffWidth = picStaff(TrackNo).ScaleWidth
-      lngSndLength = EditSound.Length * 15 / lngTPQN
-
-      // if noise track
-      if (TrackNo = 3) {
-        For i = 0 To 4
-          picStaff(3).Line (0, (11 + 6 * i) * StaffScale + SOVert(3))-(sngStaffWidth, (11 + 6 * i) * StaffScale + SOVert(3)), vbBlack
-        Next i
-        // draw time lines at whole note intervals, offset by two pixels
-        For i = 0 To lngSndLength
-          // if past right edge,
-          // horizontal pos of marker
-          lngHPos = i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2
-
-          // if past right edge
-          if (lngHPos > sngStaffWidth) {
-            Exit For
-          }
-          // if greater than 0 (not to left of visible window)
-          if (lngHPos >= 0) {
-            picStaff(3).Line (i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2, (11 * StaffScale) + SOVert(3))-Step(0, 24 * StaffScale), vbBlack
-          }
-        Next i
-      } else {
-        For i = 0 To 4
-          picStaff(TrackNo).Line (0, (96 + 6 * i) * StaffScale + SOVert(TrackNo))-(sngStaffWidth, (96 + 6 * i) * StaffScale + SOVert(TrackNo)), vbBlack
-        Next i
-        For i = 0 To 4
-          picStaff(TrackNo).Line (0, (156 + 6 * i) * StaffScale + SOVert(TrackNo))-(sngStaffWidth, (156 + 6 * i) * StaffScale + SOVert(TrackNo)), vbBlack
-        Next i
-        // draw time lines at whole note intervals, offset by two pixels
-        For i = 0 To lngSndLength
-          // horizontal pos of marker
-          lngHPos = i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2
-          // if past right edge,
-          if (lngHPos > sngStaffWidth) {
-            Exit For
-          }
-          if (lngHPos >= 0) {
-            picStaff(TrackNo).Line (lngHPos, (96 * StaffScale) + SOVert(TrackNo))-Step(0, 84 * StaffScale), vbBlack
-          }
-        Next i
-      }
-
-      // first note position
-      lngHPos = CLng(SOHorz + KeyWidth)
-
-      // step through all notes in this track
-      lngNoteCount = EditSound[TrackNo).Notes.Count - 1
-      For i = 0 To lngNoteCount
-        // get duration first
-        lngDur = EditSound[TrackNo).Notes(i).Duration
-
-        // if note is visible,
-        if (lngHPos + StaffScale * TICK_WIDTH * lngDur > KeyWidth * 0.75) {
-          // now get freq and attenuation
-          lngFreq = EditSound[TrackNo).Notes(i).FreqDivisor
-          lngAtt = EditSound[TrackNo).Notes(i).Attenuation
-
-          // if music note is zero, or attenuation is zero
-          if ((TrackNo != 3 And lngFreq = 0) Or lngAtt = 15) {
-            // draw a rest note
-            DrawRest TrackNo, lngHPos, lngDur
-          } else {
-            // if noise track
-            if (TrackNo = 3) {
-              // draw noise note
-              DrawNoiseNote lngHPos, lngFreq, lngDur, lngAtt
-            } else {
-              // convert note to MIDI and draw it
-              DrawNote TrackNo, lngHPos, MIDINote(lngFreq), lngDur, lngAtt
-            }
-          }
-        }
-        // calculate position of next note
-        lngHPos = CInt(SOHorz + KeyWidth + NotePos(TrackNo, i + 1) * TICK_WIDTH * StaffScale)
-
-        // if note is past visible area
-        if (lngHPos > sngStaffWidth) {
-          Exit For
-        }
-      Next i
-
-      // now add clef and time marks
-
-      // if noise track
-      if (TrackNo = 3) {
-        // clear clef area
-        picStaff(3).Line (0, 0)-(KeyWidth - 3, picStaff(3).ScaleHeight), vbWhite, BF
-
-        // redraw the staff lines
-        For i = 0 To 4
-          picStaff(3).Line (0, (11 + 6 * i) * StaffScale + SOVert(3))-Step(KeyWidth, 0), vbBlack
-        Next i
-
-        // add time markers
-        picStaff(3).FontSize = picStaff(3).FontSize * 2
-        picStaff(3).CurrentY = 36 * StaffScale + SOVert(3)
-        // draw time marks at whole note intervals
-        For i = 0 To lngSndLength
-          strTime = format$(i / 15 * lngTPQN, "0.0#")
-          // horizontal pos of marker
-          lngHPos = i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2 - picStaff(TrackNo).TextWidth(strTime) / 2
-          // if past right edge
-          if (lngHPos > sngStaffWidth) {
-            Exit For
-          }
-          // if greater than 0 (not to left of visible window)
-          if (lngHPos >= 0) {
-            picStaff(3).CurrentX = lngHPos
-            picStaff(3).Print strTime;
-          }
-        Next i
-        picStaff(3).FontSize = picStaff(3).FontSize / 2
-
-        picStaff(3).FontTransparent = true
-        // draw noise clef
-        picStaff(3).CurrentX = 3
-        picStaff(3).CurrentY = 10 * StaffScale + SOVert(3) + 1
-        picStaff(3).Print "   2330"
-        picStaff(3).CurrentX = 3
-        picStaff(3).CurrentY = 16 * StaffScale + SOVert(3) + 1
-        picStaff(3).Print "   1165"
-        picStaff(3).CurrentX = 3
-        picStaff(3).CurrentY = 22 * StaffScale + SOVert(3) + 1
-        picStaff(3).Print "    583"
-        picStaff(3).CurrentX = 3
-        picStaff(3).CurrentY = 28 * StaffScale + SOVert(3) + 1
-        picStaff(3).Print "Track 2"
-        picStaff(3).FontTransparent = false
-
-      } else {
-        // clear clef area (adjust by two for offset, then one more for linewidth)
-    //    picStaff(TrackNo).Line (0, 0)-(KeyWidth - 6 * StaffScale, picStaff(TrackNo).ScaleHeight), vbWhite, BF
-        picStaff(TrackNo).Line (0, 0)-(KeyWidth - 3, picStaff(TrackNo).ScaleHeight), vbWhite, BF
-
-        // redraw the staff lines
-        For i = 0 To 4
-    //      picStaff(TrackNo).Line (0, (96 + 6 * i) * StaffScale + SOVert(TrackNo))- _
-    //                             (KeyWidth - 6 * StaffScale + 1, (96 + 6 * i) * StaffScale + SOVert(TrackNo)), vbBlack
-          picStaff(TrackNo).Line (0, (96 + 6 * i) * StaffScale + SOVert(TrackNo))-Step(KeyWidth, 0), vbBlack
-        Next i
-        For i = 0 To 4
-    //      picStaff(TrackNo).Line (0, (156 + 6 * i) * StaffScale + SOVert(TrackNo))- _
-    //                             (KeyWidth - 6 * StaffScale + 1, (156 + 6 * i) * StaffScale + SOVert(TrackNo)), vbBlack
-          picStaff(TrackNo).Line (0, (156 + 6 * i) * StaffScale + SOVert(TrackNo))-Step(KeyWidth, 0), vbBlack
-        Next i
-
-        // draw time markers
-        picStaff(TrackNo).FontSize = picStaff(TrackNo).FontSize * 2
-        For i = 0 To lngSndLength
-          strTime = format$(i / 15 * lngTPQN, "0.0#")
-          // horizontal pos of marker
-          lngHPos = i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2 - picStaff(TrackNo).TextWidth(strTime) / 2
-          // if past right edge
-          if (lngHPos > sngStaffWidth) {
-            Exit For
-          }
-          // if greater than 0 (not to left of visible window)
-          if (lngHPos >= 0) {
-            picStaff(TrackNo).CurrentY = 130 * StaffScale + SOVert(TrackNo)
-            picStaff(TrackNo).CurrentX = lngHPos
-            picStaff(TrackNo).Print strTime;
-          }
-        Next i
-        picStaff(TrackNo).FontSize = picStaff(TrackNo).FontSize / 2
-
-        // draw clefs
-        i = StretchBlt(picStaff(TrackNo).hDC, 3, 90 * StaffScale - 2 + SOVert(TrackNo), 16 * StaffScale, 41 * StaffScale, _
-                       NotePictures.hDC, 367, 0, 140, 358, SRCAND)
-        i = StretchBlt(picStaff(TrackNo).hDC, 3, 156 * StaffScale + 1 + SOVert(TrackNo), 16 * StaffScale, 20 * StaffScale, _
-                       NotePictures.hDC, 520, 0, 150, 174, SRCAND)
-
-        // add Key signature
-        Do While EditSound.Key != 0
-          if (Sgn(EditSound.Key) > 0) {
-            // add f (-10,+2)
-            i = StretchBlt(picStaff(TrackNo).hDC, 20 * StaffScale, 89 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 20 * StaffScale, 149 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            if (EditSound.Key = 1) {
-              Exit Do
-            }
-            // add c (-7, +5)
-            i = StretchBlt(picStaff(TrackNo).hDC, 26 * StaffScale, 98 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 26 * StaffScale, 158 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            if (EditSound.Key = 2) {
-              Exit Do
-            }
-            // add g (-11, +1)
-            i = StretchBlt(picStaff(TrackNo).hDC, 32 * StaffScale, 86 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 32 * StaffScale, 146 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            if (EditSound.Key = 3) {
-              Exit Do
-            }
-            // add d (-8,+4)
-            i = StretchBlt(picStaff(TrackNo).hDC, 38 * StaffScale, 95 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 38 * StaffScale, 155 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            if (EditSound.Key = 4) {
-              Exit Do
-            }
-            // add a (-5,+7)
-            i = StretchBlt(picStaff(TrackNo).hDC, 44 * StaffScale, 104 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 44 * StaffScale, 164 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            if (EditSound.Key = 5) {
-              Exit Do
-            }
-            // add e (-9,+3)
-            i = StretchBlt(picStaff(TrackNo).hDC, 50 * StaffScale, 92 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 50 * StaffScale, 152 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            if (EditSound.Key = 6) {
-              Exit Do
-            }
-            // add b (-6,+6)
-            i = StretchBlt(picStaff(TrackNo).hDC, 56 * StaffScale, 101 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 56 * StaffScale, 161 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, SRCAND)
-          } else {
-            // add b (-6, +6)
-            i = StretchBlt(picStaff(TrackNo).hDC, 20 * StaffScale, 98 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 20 * StaffScale, 158 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            if (EditSound.Key = -1) {
-              Exit Do
-            }
-            // add e (-9, +3)
-            i = StretchBlt(picStaff(TrackNo).hDC, 26 * StaffScale, 89 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 26 * StaffScale, 149 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            if (EditSound.Key = -2) {
-              Exit Do
-            }
-            // add a (-5, +7)
-            i = StretchBlt(picStaff(TrackNo).hDC, 32 * StaffScale, 101 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 32 * StaffScale, 161 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            if (EditSound.Key = -3) {
-              Exit Do
-            }
-            // add d (-8, +4)
-            i = StretchBlt(picStaff(TrackNo).hDC, 38 * StaffScale, 92 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 38 * StaffScale, 152 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            if (EditSound.Key = -4) {
-              Exit Do
-            }
-            // add g (-4, +8)
-            i = StretchBlt(picStaff(TrackNo).hDC, 44 * StaffScale, 104 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 44 * StaffScale, 164 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            if (EditSound.Key = -5) {
-              Exit Do
-            }
-            // add c (-7, +5)
-            i = StretchBlt(picStaff(TrackNo).hDC, 50 * StaffScale, 95 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 50 * StaffScale, 155 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            if (EditSound.Key = -6) {
-              Exit Do
-            }
-            // add f (-3, +9)
-            i = StretchBlt(picStaff(TrackNo).hDC, 56 * StaffScale, 107 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-            i = StretchBlt(picStaff(TrackNo).hDC, 56 * StaffScale, 167 * StaffScale + SOVert(TrackNo), StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, SRCAND)
-          }
-          // always exit
-          Exit Do
-        Loop
-      }
-
-      // if this is the selected track
-      if (TrackNo = SelectedTrack) {
-        picStaff(TrackNo).DrawWidth = 3
-        picStaff(TrackNo).FillStyle = vbFSTransparent
-        // add track selection border
-        picStaff(TrackNo).Line (0, 0)-(sngStaffWidth + (vsbStaff(TrackNo).Visible * vsbStaff(TrackNo).Width) - 2, picStaff(TrackNo).ScaleHeight - 2), vbBlue, B
-        picStaff(TrackNo).DrawWidth = 1
-        picStaff(TrackNo).FillStyle = vbFSSolid
-        // reset cursor flag
-        CursorOn = false
-      }
-    }
-
-    private void DrawNote(ByVal Track As Long, ByVal HPos As Long, ByVal NoteIndex As Long, ByVal Length As Long, ByVal Attenuation As Long)
-
-      // draws note on staff;
-      // Track identifies which note to draw
-      // HPos is horizontal position where note will be drawn
-      // Length is duration of note in AGI ticks
-      // Attenuation is volume attenuation; 0 means full sound; 15 means silence
-
-      Dim rtn As Long, dnNote As tDisplayNote
-      Dim lngNoteTop As Long
-      Dim i As Single, lngNPos As Long
-      Dim lngDPos As Long, lngAPos As Long
-      Dim lngTPos As Long, lngBPos As Long
-      Dim lngColor As Long
-      Dim lngTPQN As Long
-
-      // make local copies of sound and note parameters
-      lngTPQN = EditSound.TPQN
-
-      // set note color based on attenuation
-      lngColor = EGAColor(Attenuation)
-      picStaff(Track).FillColor = lngColor
-
-      // get note pos and accidental based on current key
-      dnNote = DisplayNote(NoteIndex, EditSound.Key)
-
-      // draw extra staffline if above or below staff
-      For i = -6 To dnNote.Pos / 2 Step -1
-        picStaff(Track).Line (HPos - 3 * StaffScale, (96 + 6 * (i + 5)) * StaffScale + SOVert(Track))-Step(12 * StaffScale, 0), vbBlack
-      Next i
-
-      if (dnNote.Pos = 0) {
-        picStaff(Track).Line (HPos - 3 * StaffScale, 126 * StaffScale + SOVert(Track))-Step(12 * StaffScale, 0), vbBlack
-      }
-      // based on note position, determine if it should be drawn rightside up or upside down
-      // lngNoteTop is vertical offset on the Notes bitmap to the correctly oriented note
-      // lngNPos is the absolute position on picScale where the bitmap needs to be placed
-      // 
-      // when drawing notes as blocks, drawing dots, or drawing accidentals,
-      // lngNPos is adjusted by an amount that results in correct placement
-      // lngDPos is used for the adjusted Value of dots;
-      // lngAPos is used for the adjusted Value of accidentals, ties, blocks
-
-      // if negative (meaning note is above middle c)
-      if (dnNote.Pos <= 0) {
-        // notes above middle B(vpos<-6) are drawn upsidedown
-        if (dnNote.Pos < -6) {
-          lngNoteTop = 132
-          // draw on treble staff
-          lngNPos = (123 + (3 * dnNote.Pos)) * StaffScale + SOVert(Track)
-          // set position for dots, blocks, accidentals and ties
-          lngDPos = lngNPos + 3 * StaffScale
-          lngBPos = lngDPos
-          lngAPos = lngNPos - 4 * StaffScale
-          lngTPos = lngNPos - 8 * StaffScale
-        } else {
-          lngNoteTop = 0
-          // draw on treble staff
-          lngNPos = (107 + (3 * dnNote.Pos)) * StaffScale + SOVert(Track)
-          // set position for dots, blocks, accidentals and ties
-          lngDPos = lngNPos + 19 * StaffScale
-          lngBPos = lngDPos
-          lngAPos = lngNPos + 12 * StaffScale
-          lngTPos = lngNPos + 24 * StaffScale
-        }
-      } else {
-        // notes above middle B of bass staff(v<=6) are drawn upside down
-        if (dnNote.Pos < 6) {
-          lngNoteTop = 133
-          // draw on bass staff
-          lngNPos = (147 + (3 * dnNote.Pos)) * StaffScale + SOVert(Track)
-          // set position for dots, blocks, accidentals and ties
-          lngDPos = lngNPos + 3 * StaffScale
-          lngBPos = lngDPos
-          lngAPos = lngNPos - 4 * StaffScale
-          lngTPos = lngNPos - 8 * StaffScale
-        } else {
-          lngNoteTop = 0
-          // draw on bass staff
-          lngNPos = (131 + (3 * dnNote.Pos)) * StaffScale + SOVert(Track)
-          // set position for dots, blocks, accidentals and ties
-          lngDPos = lngNPos + 19 * StaffScale
-          lngBPos = lngDPos
-          lngAPos = lngNPos + 12 * StaffScale
-          lngTPos = lngNPos + 24 * StaffScale
-        }
-      }
-
-      // if note is on a line,
-      if ((Int(dnNote.Pos / 2) = dnNote.Pos / 2)) {
-        // dot needs to be moved off the line
-        lngDPos = lngDPos - 2 * StaffScale
-      }
-
-      // if drawing notes as bitmaps
-      if (Settings.ShowNotes) {
-        // convert length of note to MIDI Value, using TPQN
-        switch (Length / lngTPQN * 4
-        case 1  // sixteenth note
-          // draw sixteenth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 0, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 2  // eighth note
-          // draw eighth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 72, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 3  // eighth note dotted
-          // draw eighth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 72, lngNoteTop, 72, 133, TRANSCOPY)
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 10, lngDPos), StaffScale * 1.125, lngColor
-
-        case 4  // quarter note
-          // draw quarter
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 144, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 5 // quater note tied to sixteenth note
-          // draw quarter
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 144, lngNoteTop, 72, 133, TRANSCOPY)
-          // add accidental, if necessary
-          switch (dnNote.Tone
-          case ntSharp
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, TRANSCOPY)
-          case ntFlat
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, TRANSCOPY)
-          case ntNatural
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 624, 195, 36, 84, TRANSCOPY)
-          }
-          // draw connector
-          rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 4, lngTPos, StaffScale * lngTPQN * TICK_WIDTH, StaffScale * 7, _
-                           NotePictures.hDC, 0, 376 - 100 * (lngNoteTop = 0), 849, 99, TRANSCOPY)
-          // increment position
-          HPos = HPos + StaffScale * TICK_WIDTH * lngTPQN
-
-          // draw sixteenth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 0, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 6  // quarter note dotted
-          // draw quarter
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 144, lngNoteTop, 72, 133, TRANSCOPY)
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 10, lngDPos), StaffScale * 1.125, picStaff(Track).FillColor
-
-         case 7  // quarter note double dotted
-          // draw quarter
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 144, lngNoteTop, 72, 133, TRANSCOPY)
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 10, lngDPos), StaffScale * 1.125, lngColor
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 13, lngDPos), StaffScale * 1.125, lngColor
-
-        case 8  // half note
-          // draw half note
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 216, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 9  // half note tied to sixteenth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 216, lngNoteTop, 72, 133, TRANSCOPY)
-          // add accidental, if necessary
-          switch (dnNote.Tone
-          case ntSharp
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, TRANSCOPY)
-          case ntFlat
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, TRANSCOPY)
-          case ntNatural
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 624, 195, 36, 84, TRANSCOPY)
-          }
-          // draw connector
-          rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 4, lngTPos, StaffScale * 2 * lngTPQN * TICK_WIDTH, StaffScale * 7, _
-                             NotePictures.hDC, 0, 376 - 100 * (lngNoteTop = 0), 849, 99, TRANSCOPY)
-          // increment position
-          HPos = HPos + StaffScale * TICK_WIDTH * 2 * lngTPQN
-          // if note is on bottom, it trails past the staff mark; need to bump it back a little
-          if (lngNoteTop = 0) {
-            HPos = HPos - StaffScale * TICK_WIDTH * 1.25
-          }
-
-          // draw sixteenth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 0, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 10 // half note tied to eighth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 216, lngNoteTop, 72, 133, TRANSCOPY)
-          // add accidental, if necessary
-          switch (dnNote.Tone
-          case ntSharp
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, TRANSCOPY)
-          case ntFlat
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, TRANSCOPY)
-          case ntNatural
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 624, 195, 36, 84, TRANSCOPY)
-          }
-          // draw connector
-          rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 4, lngTPos, StaffScale * 2 * lngTPQN * TICK_WIDTH, StaffScale * 7, _
-                           NotePictures.hDC, 0, 376 - 100 * (lngNoteTop = 0), 849, 99, TRANSCOPY)
-          // increment position
-          HPos = HPos + StaffScale * TICK_WIDTH * 2 * lngTPQN
-          // if note is on bottom, it trails past the staff mark; need to bump it back a little
-          if (lngNoteTop = 0) {
-            HPos = HPos - StaffScale * TICK_WIDTH * 1.25
-          }
-
-          // draw eighth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 72, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 11 // half note tied to dotted eighth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 216, lngNoteTop, 72, 133, TRANSCOPY)
-          // add accidental, if necessary
-          switch (dnNote.Tone
-          case ntSharp
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, TRANSCOPY)
-          case ntFlat
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, TRANSCOPY)
-          case ntNatural
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 624, 195, 36, 84, TRANSCOPY)
-          }
-          // draw connector
-          rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 4, lngTPos, StaffScale * 2 * lngTPQN * TICK_WIDTH, StaffScale * 7, _
-                             NotePictures.hDC, 0, 376 - 100 * (lngNoteTop = 0), 849, 99, TRANSCOPY)
-          // increment position
-          HPos = HPos + StaffScale * TICK_WIDTH * 2 * lngTPQN
-          // if note is on bottom, it trails past the staff mark; need to bump it back a little
-          if (lngNoteTop = 0) {
-            HPos = HPos - StaffScale * TICK_WIDTH * 1.25
-          }
-
-          // draw eighth note
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 72, lngNoteTop, 72, 133, TRANSCOPY)
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 10, lngDPos), StaffScale * 1.125, lngColor
-
-        case 12 // half note dotted
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 216, lngNoteTop, 72, 133, TRANSCOPY)
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 10, lngDPos), StaffScale * 1.125, lngColor
-
-        case 13 // half note dotted tied to sixteenth
-           rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 216, lngNoteTop, 72, 133, TRANSCOPY)
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 10, lngDPos), StaffScale * 1.125, lngColor
-          // add accidental, if necessary
-          switch (dnNote.Tone
-          case ntSharp
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, TRANSCOPY)
-          case ntFlat
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, TRANSCOPY)
-          case ntNatural
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 624, 195, 36, 84, TRANSCOPY)
-          }
-          // draw connector
-          rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 4, lngTPos, StaffScale * 3 * lngTPQN * TICK_WIDTH, StaffScale * 7, _
-                             NotePictures.hDC, 0, 376 - 100 * (lngNoteTop = 0), 849, 99, TRANSCOPY)
-          // increment position
-          HPos = HPos + StaffScale * TICK_WIDTH * 3 * lngTPQN
-          // if note is on bottom, it trails past the staff mark; need to bump it back a little
-          if (lngNoteTop = 0) {
-            HPos = HPos - StaffScale * TICK_WIDTH * 1.25
-          }
-
-          // draw sixteenth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 0, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 14 // half note double dotted
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 216, lngNoteTop, 72, 133, TRANSCOPY)
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 10, lngDPos), StaffScale * 1.125, lngColor
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 13, lngDPos), StaffScale * 1.125, lngColor
-
-        case 15 // half note double dotted tied to sixteenth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 216, lngNoteTop, 72, 133, TRANSCOPY)
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 10, lngDPos), StaffScale * 1.125, lngColor
-          // draw dot
-          picStaff(Track).Circle (HPos + StaffScale * 13, lngDPos), StaffScale * 1.125, lngColor
-          // add accidental, if necessary
-          switch (dnNote.Tone
-          case ntSharp
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 588, 195, 36, 84, TRANSCOPY)
-          case ntFlat
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 552, 195, 36, 84, TRANSCOPY)
-          case ntNatural
-            rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                             NotePictures.hDC, 624, 195, 36, 84, TRANSCOPY)
-          }
-          // draw connector
-          rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 4, lngTPos, StaffScale * 3.5 * lngTPQN * TICK_WIDTH, StaffScale * 7, _
-                             NotePictures.hDC, 0, 376 - 100 * (lngNoteTop = 0), 849, 99, TRANSCOPY)
-          // increment position
-          HPos = HPos + StaffScale * TICK_WIDTH * 3.5 * lngTPQN
-          // if note is on bottom, it trails past the staff mark; need to bump it back a little
-          if (lngNoteTop = 0) {
-            HPos = HPos - StaffScale * TICK_WIDTH * 1.25
-          }
-
-          // draw sixteenth
-          rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 0, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case 16 // whole note
-           rtn = StretchBlt(picStaff(Track).hDC, HPos, lngNPos, StaffScale * 12, StaffScale * 22, _
-                           NotePictures.hDC, 288, lngNoteTop, 72, 133, TRANSCOPY)
-
-        case Is > 16
-          // greater than whole note;
-          // recurse to draw one whole note at a time until done
-          Do Until Length < 4 * lngTPQN
-            DrawNote Track, HPos, NoteIndex, 4 * lngTPQN, Attenuation
-            // decrement length
-            Length = Length - 4 * lngTPQN
-            // draw connector if note continues
-            if (Length > 0) {
-              rtn = StretchBlt(picStaff(Track).hDC, HPos + StaffScale * 4, lngTPos, StaffScale * 4 * lngTPQN * TICK_WIDTH, StaffScale * 7, _
-                               NotePictures.hDC, 0, 376 - 100 * (lngNoteTop = 0), 849, 99, TRANSCOPY)
-            }
-            // increment horizontal position
-            HPos = HPos + StaffScale * TICK_WIDTH * lngTPQN * 4
-            // special case- if EXACTLY one sixteenth note left AND on bottom
-            // bump it back a little
-            if (CSng(Length / lngTPQN * 4) = 1 And lngNoteTop = 0) {
-              HPos = HPos - StaffScale * TICK_WIDTH * 1.25
-            }
-
-          Loop
-          // if anything left
-          if (Length > 0) {
-            // draw remaining portion of note
-            DrawNote Track, HPos, NoteIndex, Length, Attenuation
-          }
-          // exit
-          return;
-
-        default:
-          // not a normal note; draw a bar
-          // this adjustment is interfering with the accidental position; need to reset lngNPos after drawing box
-          picStaff(Track).Line (HPos, lngBPos - StaffScale * 3)-Step(StaffScale * TICK_WIDTH * (Length - 0.8), StaffScale * 6), lngColor, BF
-        }
-      } else {
-        // draw the block for this note
-        picStaff(Track).Line (HPos, lngBPos - StaffScale * 3)-Step(StaffScale * TICK_WIDTH * (Length - 0.8), StaffScale * 6), lngColor, BF
-      }
-
-      // add accidental, if necessary
-      switch (dnNote.Tone
-      case ntSharp
-        rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                         NotePictures.hDC, 588, 195, 36, 84, TRANSCOPY)
-      case ntFlat
-        rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14, _
-                         NotePictures.hDC, 552, 195, 36, 84, TRANSCOPY)
-      case ntNatural
-        rtn = StretchBlt(picStaff(Track).hDC, HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14, _
-                         NotePictures.hDC, 624, 195, 36, 84, TRANSCOPY)
-      }
-    }
-
-    private void HideCursor(ByVal HideTrack As Long)
-
-      On Error GoTo ErrHandler
-
-      Timer1.Enabled = false
-      // un-highlight previous selection
-      if (CursorOn) {
-        // draw the cursor line, using invert pen
-          picStaff(HideTrack).DrawWidth = 2
-          picStaff(HideTrack).DrawMode = 6 // invert
-          picStaff(HideTrack).Line (CursorPos, 0)-(CursorPos, picStaff(HideTrack).ScaleHeight), vbBlack
-          picStaff(HideTrack).DrawWidth = 1
-          picStaff(HideTrack).DrawMode = 13 // copy pen
-        // set cursor status to off
-        CursorOn = false
-      }
-    }
-
     public void MenuClickHelp() {
       // help
       HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Sound_Editor.htm"
-    }
-
-    private Function NoteFromPos(ByVal TrackNo As Long, ByVal Pos As Long, Optional ByVal RoundUp As Boolean = false) As Long
-      // converts an X position into a note's index number for a given track
-
-      Dim i As Long, lngNoteCount As Long
-      Dim lngHPos As Long, lngDur As Long
-
-      // start at first note, offset by clef and Key signature
-      lngHPos = SOHorz + KeyWidth
-
-      lngNoteCount = EditSound[TrackNo).Notes.Count - 1
-      // step through all notes in this track
-      For i = 0 To lngNoteCount
-        // get note dur
-        lngDur = EditSound[TrackNo).Notes(i).Duration
-
-        // if rounding
-        if (RoundUp) {
-          // if 1/2 of note extends past this position
-          if (lngHPos + (StaffScale * TICK_WIDTH * lngDur) / 2 > Pos) {
-            // this is note
-            Exit For
-          }
-
-        // if not rounding,
-        } else {
-          // if note extends past this position,
-          if (lngHPos + StaffScale * TICK_WIDTH * lngDur > Pos) {
-            // this is the note
-            Exit For
-          }
-        }
-
-        // calculate position of next note
-        lngHPos = CLng(SOHorz + KeyWidth + NotePos(TrackNo, i + 1) * TICK_WIDTH * StaffScale)
-      Next i
-
-      // if loop is exited normally, i will equal Notes.Count
-      // which means cursor is positioned at end of track
-      // and added notes will be at end
-
-      NoteFromPos = i
-    }
-
-    private Function NotePos(ByVal Track As Long, ByVal NoteNumber As Long) As Long
-
-      // returns the timepostion of a note
-      // Track and NoteNumber should be validated BEFORE calling this function
-
-      Dim i As Long
-
-        // if looking for a note past end, return the end
-        if (NoteNumber > EditSound[Track).Notes.Count) {
-          NoteNumber = EditSound[Track).Notes.Count
-        }
-
-        For i = 0 To NoteNumber - 1
-          NotePos = NotePos + EditSound[Track).Notes.Item(i).Duration
-        Next i
-    }
-
-
-    private void SetVScroll(ByVal Index As Long, ByVal PrevScale As Long)
-
-      // shows/hides vertical scrollbar, and
-      // adjust position so staves stay in same relative
-      // position after redrawing
-
-      Dim intNewScroll As Integer
-      Dim intMax As Integer, intSH0 As Integer
-
-      On Error GoTo ErrHandler
-
-        // move scrollbar to end
-        vsbStaff(Index).Left = picStaff(Index).ScaleWidth - vsbStaff(Index).Width
-        vsbStaff(Index).Height = picStaff(Index).ScaleHeight
-
-        // reset height
-        vsbStaff(Index).Height = picStaff(Index).ScaleHeight
-
-        // calculate amount of staff height that
-        // exceeds picstaff scaleheight
-        switch (Index
-        case 0, 1, 2  // for music tracks
-          intMax = 186 * StaffScale - picStaff(Index).ScaleHeight
-          intSH0 = 186 * PrevScale
-          intSH0 = vsbStaff(Index).Value + picStaff(Index).ScaleHeight / PrevScale
-        case 3        // noise track
-          intMax = 50 * StaffScale - picStaff(Index).ScaleHeight
-          intSH0 = 50 * PrevScale
-        }
-
-        // reset vertical scrollbar or hide, if not needed
-        vsbStaff(Index).Visible = (intMax > 0)
-
-        if (vsbStaff(Index).Visible) {
-          // if Max has changed,
-          if (vsbStaff(Index).Max != intMax) {
-            // disable updates
-            DontDraw = true
-            // if vsb was not previously visible,
-            if (vsbStaff(Index).Max = -1) {
-              switch (Index
-              case 0, 1, 2
-                // set new scroll position to show
-                // treble clef at bottom of picStaff
-                intNewScroll = (132 * StaffScale / PrevScale) - picStaff(Index).ScaleHeight
-              case 3
-                // set new scroll position to show
-                // clef at bottom of picStaff
-                intNewScroll = intMax
-              }
-            } else {
-              // calculate the new scroll position
-              intNewScroll = intSH0
-            }
-
-            // reset Max
-            vsbStaff(Index).Max = intMax
-            // validate new scroll Value
-            if (intNewScroll < 0) { intNewScroll = 0
-            if (intNewScroll > intMax) { intNewScroll = intMax
-            // set Value
-            vsbStaff(Index).Value = intNewScroll
-            // and offset
-            SOVert(Index) = -intNewScroll
-            // restore drawing
-            DontDraw = false
-          }
-        } else {
-          // reset offset
-          SOVert(Index) = 0
-          vsbStaff(Index).Value = 0
-          vsbStaff(Index).Max = -1
-        }
-        // update small and large change values
-        vsbStaff(Index).SmallChange = picStaff(Index).Height * SM_SCROLL
-        vsbStaff(Index).LargeChange = picStaff(Index).Height * LG_SCROLL
-    return;
-
-    ErrHandler:
-      Resume Next
-    }
-
-    private void ShiftDuration(ByVal NewLength As Long)
-
-      // shift (change) duration for selected note to new value
-      // 
-      // NOTE: this only works for a single note; can't adjust
-      // duration of a group of notes
-
-      Dim NextUndo As SoundUndo
-
-      On Error GoTo ErrHandler
-
-      Set NextUndo = New SoundUndo
-
-      // allow editing of a single selected note, or no selection
-      // (which means cursor note is being edited)
-      if (SelectedTrack != -1 And SelStart >= 0 And SelLength <= 1) {
-        // one note- change it
-        // *'Debug.Assert SelectedTrack == tvwSound.SelectedItem.Parent.Index - 2
-        // set undo properties
-        NextUndo.UDAction = EditNote
-        NextUndo.UDTrack = SelectedTrack
-        NextUndo.UDStart = CLng(tvwSound.SelectedItem.Tag)
-        NextUndo.UDText = EditSound[SelectedTrack).Notes(tvwSound.SelectedItem.Tag).Duration
-        NextUndo.UDLength = 2
-
-        // make change
-        EditSound[SelectedTrack).Notes(tvwSound.SelectedItem.Tag).Duration = NewLength
-
-        // add undo
-        if (Settings.SndUndo != 0) {
-          AddUndo NextUndo
-        }
-
-        // reset horizontal scrollbar
-        SetHScroll
-        // use force-redraw to update display
-        ChangeSelection SelectedTrack, SelStart, SelLength, true, false, true
-      }
-    }
-
-
-    private void ShowSelection()
-
-      Dim lngStartPos As Long, lngEndPos As Long
-
-      // assumes that:
-      //  a track is selected (SelectedTrack >= 0) AND
-      //  track is visible (picStaffVis(SelectedTrack) = true) AND
-      //  zero or more notes currently selected (SelStart >=0 And SelLength >=0) AND
-      //  selection is NOT actively displayed (SelActive = false)
-
-      On Error GoTo ErrHandler
-
-      // *'Debug.Assert picStaffVis(SelectedTrack) = true
-      if (Not picStaffVis(SelectedTrack)) {
-        return;
-      }
-
-      // calculate selstart pos
-      lngStartPos = SOHorz + KeyWidth + NotePos(SelectedTrack, SelStart) * TICK_WIDTH * StaffScale
-
-      if (SelLength = 0) {
-        // cursorpos is lngstartpos; if cursorpos is less than keywidth, or if
-        // cursorpos is greater than right edge, don't draw cursor
-
-        if (lngStartPos >= KeyWidth And lngStartPos <= picStaff(SelectedTrack).Width - 8 + vsbStaff(SelectedTrack).Visible * 17) {
-          CursorPos = lngStartPos
-          // enable cursor
-          Timer1.Enabled = true
-        }
-      } else {
-        // set draw mode to invert
-        picStaff(SelectedTrack).DrawMode = 6
-
-        // calculate end pos
-        lngEndPos = SOHorz + KeyWidth + NotePos(SelectedTrack, SelStart + SelLength) * TICK_WIDTH * StaffScale - 2
-
-        // if not completely off left or right edge
-        if (lngStartPos <= picStaff(SelectedTrack).Width - 8 + vsbStaff(SelectedTrack).Visible * 17 And lngEndPos >= KeyWidth) {
-          // if starting pos <keywidth,
-          if (lngStartPos < KeyWidth) {
-            lngStartPos = KeyWidth
-          }
-
-          // if end note is past edge of staff
-          if (lngEndPos > picStaff(SelectedTrack).Width - 8 + vsbStaff(SelectedTrack).Visible * 17) {
-            lngEndPos = picStaff(SelectedTrack).Width - 8 + vsbStaff(SelectedTrack).Visible * 17
-          }
-
-          // draw box over selection
-          picStaff(SelectedTrack).Line (lngStartPos, 2)-(lngEndPos, picStaff(SelectedTrack).ScaleHeight - 4), vbBlack, BF
-
-          // mode to copypen
-          picStaff(SelectedTrack).DrawMode = 13
-
-          SelActive = true
-        }
-      }
-
-      // update edit menu
-      SetEditMenu
-    }
-
-    public void UpdateID(ByVal NewID As String, NewDescription As String)
-
-      Dim blnRedraw As Boolean
-
-      On Error GoTo ErrHandler
-
-      if (EditSound.Description != NewDescription) {
-        // change the EditSound object's description
-        EditSound.Description = NewDescription
-        // if node 1 is selected
-        if (tvwSound.SelectedItem.Index = 1) {
-          blnRedraw = true
-        }
-      }
-
-      if (EditSound.ID != NewID) {
-
-        // change the EditSound object's ID and caption
-        EditSound.ID = NewID
-
-        // if soundedit is dirty
-        if (Asc(Caption) = 42) {
-          Caption = sDM & sSNDED & ResourceName(EditSound, InGame, true)
-        } else {
-          Caption = sSNDED & ResourceName(EditSound, InGame, true)
-        }
-
-        // change root node of notes list
-        Me.tvwSound.Nodes(1).Text = ResourceName(EditSound, InGame, true)
-        // if node 1 is selected
-        if (tvwSound.SelectedItem.Index = 1) {
-          blnRedraw = true
-        }
-      }
-
-      if (blnRedraw) {
-        // force redraw
-        PaintPropertyWindow
-      }
-    }
-
-    public void ZoomScale(ByVal Dir As Long)
-
-      // adjusts zoom factor for display
-      // positive dir increases scale; negative decreases scale
-
-      Dim i As Long
-      Dim lngPrevScale As Long
-
-      // save current scroll position
-      lngPrevScale = StaffScale
-
-      // increment/decrement scale
-      StaffScale = StaffScale + Sgn(Dir)
-
-      // if below minimum
-      if (StaffScale = 0) {
-        // reset and exit
-        StaffScale = 1
-        return;
-      }
-
-      // if above maximum
-      if (StaffScale = 4) {
-        // reset and exit
-        StaffScale = 3
-        return;
-      }
-
-      if (MainStatusBar.Tag != CStr(rtSound)) {
-     // *'Debug.Print "AdjustMenus 1"
-        AdjustMenus rtSound, InGame, true, IsChanged
-      }
-      // update statusbar
-      MainStatusBar.Panels("Scale").Text = "Scale: " & CStr(StaffScale)
-
-      // adjust offset
-      SOHorz = SOHorz / lngPrevScale * StaffScale
-
-      For i = 0 To 3
-        // set font size for track
-        picStaff(i).FontSize = 5 * StaffScale
-        // reset vertical scrollbars
-        SetVScroll i, lngPrevScale
-      Next i
-
-      // adjust key width FIRST
-      SetKeyWidth();
-
-      // THEN resize horizontal scale
-      SetHScroll
-      // need to convert pixels into duration, since the
-      // scrollbar uses units of duration
-      hsbStaff.SmallChange = (picStaff(0).Width - KeyWidth) * SM_SCROLL / TICK_WIDTH / StaffScale
-      hsbStaff.LargeChange = (picStaff(0).Width - KeyWidth) * LG_SCROLL / TICK_WIDTH / StaffScale
-
-      // redraw staves
-      DrawStaff -1
-
-      // if a selection is active, use changeselection to draw it correctly
-      if (SelectedTrack != -1) {
-        ChangeSelection SelectedTrack, SelStart, SelLength, true, false, true // 
-      }
-    }
-
-    private void Form_Deactivate()
-
-      // release midi
-
-      On Error GoTo ErrHandler
-
-      if (Not Settings.NoMIDI) {
-        // if playing
-        if (frmMDIMain.mnuECustom1.Caption = "Stop Sound" & vbTab & "Ctrl+Enter") {
-          // stop it
-          EditSound.StopSound
-          // reset menu caption
-          frmMDIMain.mnuECustom1.Caption = "Play Sound" & vbTab & "Ctrl+Enter"
-        }
-
-        // close midi
-        KillMIDI
-      }
-    }
-
-    private void Form_KeyPress(KeyAscii As Integer)
-
-      Dim intKey As Integer
-
-      // don't override editboxes
-      if (ActiveControl.Name = "txtProperty" Or ActiveControl.Name = "lstProperty") {
-        return;
-      }
-
-      // *'Debug.Assert frmMDIMain.ActiveForm Is Me
-
-      // local copy of key
-      intKey = KeyAscii
-      // clear buffer so key is not processed
-      // further
-      KeyAscii = 0
-
-
-      switch (intKey
-      case 45, 95 // "-", "_" vol down (attenuation up)
-        picDuration_MouseDown 0, 0, 1, 1
-
-      case 43, 61 // "+", "=" vol up (attenuation down)
-        picDuration_MouseDown 0, 0, 25, 1
-
-      case 32 // space toggle mute
-        DefMute = Not DefMute
-        ShowDefaultDuration
-
-      case 60, 44 // "<", "," octave down
-        DefOctave = DefOctave - 1
-        if (DefOctave = 2) { DefOctave = 3
-        picKeyboard.Refresh
-
-      case 62, 46 // ">", "." octave up
-        DefOctave = DefOctave + 1
-        if (DefOctave = 11) { DefOctave = 10
-        picKeyboard.Refresh
-
-      case 91, 123 // "{", "[" length down
-        if (DefLength > 1) {
-          udDuration.Value = udDuration.Value - 1
-        }
-
-      case 93, 125 // "}", "]" length up
-        if (DefLength < 16) {
-          udDuration.Value = udDuration.Value + 1
-        }
-
-      case 97 To 103  // a - g /natural tones
-        if (SelectedTrack == 3) {
-          // don't do anything
-          return;
-        }
-        // convert to 0-7 scale
-        lngMIDInote = intKey - 99
-        // shift so c=0 and g=6
-        if (lngMIDInote < 0) { lngMIDInote = lngMIDInote + 7
-        // convert letter number to music scale
-        lngMIDInote = lngMIDInote * 2
-        if (lngMIDInote > 4) { lngMIDInote = lngMIDInote - 1
-        // combine with octave to get midi note
-        lngMIDInote = DefOctave * 12 + lngMIDInote
-        // validate
-        if (lngMIDInote < 45 Or lngMIDInote > 127 Or lngMIDInote = 121 Or lngMIDInote = 124 Or lngMIDInote = 126) {
-          lngMIDInote = -1
-          return;
-        }
-
-        // play it
-        NoteOn lngMIDInote, Not (SelectedTrack < 0 Or SelectedTrack > 3 Or SelStart = -1)
-
-      case 67, 68, 70, 71, 65 // C, D, F, G, A (sharps)
-        if (SelectedTrack == 3) {
-          // don't do anything
-          return;
-        }
-        // convert to 0-7 scale
-        lngMIDInote = intKey - 67
-        // shift so C=0 and G=6
-        if (lngMIDInote < 0) { lngMIDInote = lngMIDInote + 7
-        // convert letter number to music scale
-        lngMIDInote = lngMIDInote * 2
-        if (lngMIDInote > 4) { lngMIDInote = lngMIDInote - 1
-        // combine with octave and sharpen
-        lngMIDInote = DefOctave * 12 + lngMIDInote + 1
-
-        // validate
-        if (lngMIDInote < 45 Or lngMIDInote > 127 Or lngMIDInote = 121 Or lngMIDInote = 124 Or lngMIDInote = 126) {
-          lngMIDInote = -1
-          return;
-        }
-
-        // play it
-        NoteOn lngMIDInote, Not (SelectedTrack < 0 Or SelectedTrack > 3 Or SelStart = -1)
-      case 49 To 52 // 1, 2, 3, 4
-        // only used in noise track
-        if (SelectedTrack != 3) {
-          return;
-        }
-
-        // insert a noise track periodic tone note with appopriate frequency
-        lngMIDInote = intKey - 49
-        NoteOn intKey - 49, true
-
-      case 33, 64, 35, 36 // !,@,#,$
-        // only used in noise track
-        if (SelectedTrack != 3) {
-          return;
-        }
-        // insert a noise track white noise note with appropriate frequency
-        if (intKey = 64) {
-          lngMIDInote = 5
-        } else {
-          lngMIDInote = intKey - 29
-        }
-        NoteOn lngMIDInote, true
-      }
-
-    }
-
-    private void Form_KeyUp(KeyCode As Integer, Shift As Integer)
-
-      // if a note is playing that was pressed on the keyboard,
-      if (lngMIDInote != -1) {
-        // turn it off
-        NoteOff lngMIDInote
-      }
-      // reset note
-      lngMIDInote = -1
-    }
-
-    private void hsbKeyboard_GotFocus()
-
-      // go back
-      RestoreFocus
-    }
-
-    private void hsbKeyboard_Scroll()
-
-      hsbKeyboard_Change
-    }
-
-    private void hsbStaff_Change()
-
-      // hsbStaff.Value is measured in trackmode (ticks)- it needs
-      // conversion to scalemode to calculate SOHorz
-
-      // adjust offset
-      SOHorz = CLng(-hsbStaff.Value * TICK_WIDTH * StaffScale)
-
-      if (Not DontDraw) {
-        // use force-redraw to update display
-        DrawStaff -1
-        // reset cursor and selection flags
-        CursorOn = false
-        Timer1.Enabled = false
-        SelActive = false
-
-        // reselect as appropriate
-        ChangeSelection SelectedTrack, SelStart, SelLength, true, false, false // 
-      }
-    }
-
-    private void hsbStaff_GotFocus()
-
-      On Error GoTo ErrHandler
-
-      // if there is a track
-      if (SelectedTrack >= 0) {
-        if (picStaffVis(SelectedTrack)) {
-          // set focus to staff
-          picStaff(SelectedTrack).SetFocus
-        } else {
-          // set focus to tree
-          tvwSound.SetFocus
-          FocusCtrl = fcTree
-        }
-      } else {
-        // set focus to tree
-        tvwSound.SetFocus
-        FocusCtrl = fcTree
-      }
-    }
-
-    private void hsbStaff_Scroll()
-
-      hsbStaff_Change
-    }
-
-    private void lstProperty_DblClick()
-
-      // user has made a selection
-      SelectPropFromList
-
-      // set focus to picProperties
-      picProperties.SetFocus
-      FocusCtrl = fcProperty
-    }
-
-    private void lstProperty_KeyPress(KeyAscii As Integer)
-
-      // enter = accept
-      // esc = cancel
-
-      switch (KeyAscii
-      case vbKeyEscape
-        // hide the list, set focus to property box
-        lstProperty.Visible = false
-        picProperties.SetFocus
-        FocusCtrl = fcProperty
-
-      case vbKeyReturn
-        // select the property, set focus to property box
-        SelectPropFromList
-        picProperties.SetFocus
-        FocusCtrl = fcProperty
-      }
-    }
-
-    private void lstProperty_LostFocus()
-
-      On Error GoTo ErrHandler
-
-      // if visible, just hide it
-      if (lstProperty.Visible) {
-        lstProperty.Visible = false
-      }
-
-      // reset the focus to original control (should always be propertybox?)
-      RestoreFocus
-    }
-
-    private void picDuration_DblClick()
-
-      // *'Debug.Assert frmMDIMain.ActiveForm Is Me
-      // if double-clicking on volume icon
-      if (mX >= 12 And mX <= 22 And mY < 18) {
-        // toggle mute
-        DefMute = Not DefMute
-        ShowDefaultDuration
-
-      } else {
-        // same as click
-        picDuration_MouseDown 0, 0, mX, mY
-      }
-    }
-
-    private void picDuration_GotFocus()
-
-      // go back
-      RestoreFocus
-    }
-
-    private void picDuration_MouseDown(Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-      // check for change in volume control
-      // *'Debug.Assert frmMDIMain.ActiveForm Is Me
-
-      // if above volume control edge
-      if (Y < 18 And Not DefMute) {
-        switch (X
-        case Is <= 11 // minus
-          // make quieter (increase vol attenuation)
-          DefAttn = DefAttn + 1
-          if (DefAttn > 14) {
-            DefAttn = 14
-          } else {
-            ShowDefaultDuration
-          }
-
-        case Is >= 23 // plus
-          // make louder (decrease vol attenuation)
-          DefAttn = DefAttn - 1
-          if (DefAttn < 0) {
-            DefAttn = 0
-          } else {
-            ShowDefaultDuration
-          }
-        }
-      }
-
-      // save x and Y
-      mX = X
-      mY = Y
-    }
-
-    public void MouseWheel(ByVal MouseKeys As Long, ByVal Rotation As Long, ByVal xPos As Long, ByVal yPos As Long)
-
-      // mouse wheel changes default note length/volume if over the default note picture
-      // it scrolls staves left/right if over one of the staves
-
-      Dim lngDur As Long, lngLen As Long
-      Dim lngNewDur As Long, intAttn As Integer
-      Dim lngTarget As Long, i As Long
-
-      // determine
-      // MouseKeys values:
-      //    0 = no keys pressed
-      //    8 = Ctrl
-      //    4 = Shift
-      //    NO VALUE for Alt?
-
-      On Error GoTo ErrHandler
-
-      // this should never happen, but just in case
-      if (Not frmMDIMain.ActiveForm Is Me) {
-        return;
-      }
-
-      // determine which control the cursor is currently over
-        if (xPos > picDuration.Left And xPos < picDuration.Left + picDuration.Width And yPos > picDuration.Top And yPos < picDuration.Top + picDuration.Height) {
-          lngTarget = 1
-        }
-
-      // if over a visible staff:
-      For i = 0 To 3
-          if (picStaff(i).Visible) {
-            if (xPos > picStaff(i).Left And xPos < picStaff(i).Left + picStaff(i).Width And yPos > picStaff(i).Top And yPos < picStaff(i).Top + picStaff(i).Height) {
-              // found it
-              lngTarget = 2
-              Exit For
-            }
-          }
-      Next i
-
-      // check the scrollbar
-        if (hsbStaff.Visible) {
-          if (xPos > hsbStaff.Left And xPos < hsbStaff.Left + hsbStaff.Width And yPos > hsbStaff.Top And yPos < hsbStaff.Top + hsbStaff.Height) {
-            // same as being over a staff
-            lngTarget = 2
-          }
-        }
-
-      // check the keyboard
-        if (picKeyboard.Visible) {
-          if (xPos > picKeyboard.Left And xPos < picKeyboard.Left + picKeyboard.Width And yPos > picKeyboard.Top And yPos < picKeyboard.Top + picKeyboard.Height) {
-            lngTarget = 3
-          }
-        }
-
-      // if not over a target
-      if (lngTarget = 0) {
-        // do nothing
-        return;
-      }
-
-      // scroll based on target value
-      switch (lngTarget
-      case 1 // default note length
-        // NOTE: in this context, note DURATION is the AGI duration value
-        // and note LENGTH is the corresponding MIDI note length (accounting
-        // for TPQN value), which may be a rounded value
-
-        switch (MouseKeys
-        case 0 // no shift, ctrl, or alt
-          // adjust note length
-
-          // is a single note on one (music) track selected?
-          if (SelectedTrack >= 0 And SelectedTrack <= 2 And SelStart >= 0 And SelLength = 1) {
-            // *'Debug.Assert SelectedTrack == tvwSound.SelectedItem.Parent.Index - 2
-            // get current note duration
-            lngDur = EditSound[SelectedTrack).Notes(tvwSound.SelectedItem.Tag).Duration
-            // is it a 'regular' note value? i.e. does it exactly match a standard note duration?
-
-            // convert to note length, which will include rounding, if needed
-            lngLen = lngDur * 4 / EditSound.TPQN
-            // now convert back, to compare against original (if not an exact match)
-            lngNewDur = lngLen * EditSound.TPQN / 4
-            // if it matches original duration, then we have a 'regular' note
-            if (lngDur = lngNewDur) {
-              // adjust the length based on wheel, using call to ShiftDuration
-              if (Sgn(Rotation) = 1) {
-                if (lngLen > 1) {
-                  lngNewDur = EditSound.TPQN * (lngLen - 1) / 4
-                  ShiftDuration lngNewDur
-                }
-
-              } else if ( Sgn(Rotation) = -1) {
-                lngNewDur = EditSound.TPQN * (lngLen + 1) / 4
-                ShiftDuration lngNewDur
-              }
-            }
-
-          } else {
-            // adjust default length
-            if (Sgn(Rotation) = 1) {
-              if (DefLength > 1) {
-                DefLength = DefLength - 1
-                ShowDefaultDuration
-              }
-            } else if ( Sgn(Rotation) = -1) {
-              if (DefLength < 16) {
-                DefLength = DefLength + 1
-                ShowDefaultDuration
-              }
-            }
-          }
-
-        case 8
-          // adjust note volume
-          // adjusting attenuation is not limited to a single note
-
-          // is at least one note on one (music) track selected?
-          if (SelectedTrack >= 0 And SelectedTrack <= 2 And SelStart >= 0 And SelLength > 0) {
-            // *'Debug.Assert SelectedTrack == tvwSound.SelectedItem.Parent.Index - 2
-            // get current note attenuation
-            intAttn = EditSound[SelectedTrack).Notes(tvwSound.SelectedItem.Tag).Attenuation
-            // adjust the length based on wheel, using call to ShiftDuration
-
-            if (Sgn(Rotation) = 1) {
-              if (intAttn > 0) {
-                ShiftVol 1 // Sgn(Rotation)
-              }
-
-            } else if ( Sgn(Rotation) = -1) {
-              if (intAttn < 14) {
-                ShiftVol -1 // Sgn(Rotation)
-              }
-            }
-
-          } else {
-            // adjust default volume
-            if (Sgn(Rotation) = 1) {
-              if (DefAttn > 1) {
-                DefAttn = DefAttn - 1
-                ShowDefaultDuration
-              }
-            } else if ( Sgn(Rotation) = -1) {
-              // it's 14 because attenuation of 15 equals mute, which
-              // is represented on the staves differently
-              if (DefAttn < 14) {
-                DefAttn = DefAttn + 1
-                ShowDefaultDuration
-              }
-            }
-          }
-        }
-
-      case 2 // staff
-        // ignore unless no keys pressed
-        if (MouseKeys = 0) {
-          if (Sgn(Rotation) = 1) {
-              if (hsbStaff.Value > hsbStaff.Min) {
-                // if there is room for a small change
-                if (hsbStaff.Value > hsbStaff.Min + hsbStaff.SmallChange) {
-                  hsbStaff.Value = hsbStaff.Value - hsbStaff.SmallChange
-                } else {
-                  hsbStaff.Value = hsbStaff.Min
-                }
-              }
-
-          } else if ( Sgn(Rotation) = -1) {
-              if (hsbStaff.Value < hsbStaff.Max) {
-                // if there is room for a small change
-                if (hsbStaff.Value < hsbStaff.Max - hsbStaff.SmallChange) {
-                  hsbStaff.Value = hsbStaff.Value + hsbStaff.SmallChange
-                } else {
-                  hsbStaff.Value = hsbStaff.Max
-                }
-              }
-          }
-        }
-
-      case 3 // keyboard
-
-        // ignore unless no keys pressed
-        if (MouseKeys == 0 && btnKybdLeft.Enabled) {
-            if (SelectedTrack == 3 ) {
-                if (Math.Sign(Rotation) == 1) {
-                    NkbOffset += 10;
-                    if (NKbOffset > 8 * MinNoiseKeyWidth - picKeyboard.Width) {
-                        NKbOffset = 8 * MinNoiseKeyWidth - picKeyboard.Width;
-                    }
-                }
-                else if (Math.Sign(Rotation) == -1) {
-                    NkbOffset -= 10;
-                    if (NKbOffset < 0) {
-                        NKbOffset = 0;
-                    }
-                }
-            }
-            else {
-                if (Math.Sign(Rotation) == 1) {
-                    MkbOffset += 1;
-                    if (MKbOffset > 93 - picKeyboard.Width / 24) {
-                        MKbOffset = 93 - picKeyboard.Width / 24;
-                    }
-                }
-                else if (Math.Sign(Rotation) == -1) {
-                    MkbOffset -= 1;
-                    if (MKbOffset < 45) {
-                        MKbOffset = 45;
-                    }
-                }
-            }
-        }
-      }
-    }
-
-    private void picKeyboard_DblClick()
-      picKeyboard_MouseDown mButton, mShift, mX, mY
-    }
-
-    public void MenuClickClear()
-
-      // verify notes are selected
-
-      // shift selected notes up one note on scale
-      ShiftTone 1
-    }
-
-    public void MenuClickCopy()
-
-      Dim i As Long
-
-      // if an active selection
-      if (SelectedTrack != -1 And SelStart >= 0 And SelLength > 0) {
-
-        // clear clipboard
-        SoundClipboard.Clear
-
-        // add selected notes
-        For i = 0 To SelLength - 1
-          SoundClipboard.Add EditSound[SelectedTrack).Notes(SelStart + i).FreqDivisor, EditSound[SelectedTrack).Notes(SelStart + i).Duration, EditSound[SelectedTrack).Notes(SelStart + i).Attenuation
-        Next i
-
-        // set mode based on track
-        if (SelectedTrack == 3) {
-          // notes are noise note
-          SoundCBMode = 1
-        } else {
-          // notes are regular notes
-          SoundCBMode = 0
-        }
-
-        // update menus
-        SetEditMenu
-      }
-    }
-
-    public void MenuClickCut()
-
-      // copy
-      MenuClickCopy
-
-      // then delete
-      MenuClickDelete
-
-      // change last undo item to 'cut'
-      UndoCol(UndoCol.Count).UDAction = Cut
-
-    }
-
-    public void MenuClickInsert()
-
-      // shift selected notes down
-      ShiftTone -1
-    }
-
-    public void MenuClickPaste()
-
-      // inserts clipboard notes into this track
-
-      Dim blnReplace As Boolean
-
-      // if clipboard has regular notes and seltrack is a regular track OR
-      //   clipboard has noise notes and seltrack is noise AND there are notes on the clipboard
-      if (((SoundCBMode = 0 And SelectedTrack >= 0 And SelectedTrack <= 2) Or _
-         (SoundCBMode = 1 And SelectedTrack == 3)) And SoundClipboard.Count != 0) {
-        // if selection is >=1
-        if (SelLength >= 1) {
-          // delete selection first
-          DeleteNotes SelectedTrack, SelStart, SelLength
-          blnReplace = true
-        }
-
-        // insert clipboard notes
-        AddNotes SelectedTrack, SelStart, SoundClipboard, false
-
-        // if replacing,
-        if (blnReplace) {
-          // set flag in undo item so the undo action
-          // deletes the pasted notes and restores original notes
-          UndoCol(UndoCol.Count).UDText = "R"
-        }
-      }
-    }
-
-    private void Form_KeyDown(KeyCode As Integer, Shift As Integer)
-
-      On Error GoTo ErrHandler
-
-      Dim tmpMax As Long
-
-      // always check for help first
-      if (Shift = 0 And KeyCode = vbKeyF1) {
-        MenuClickHelp
-        KeyCode = 0
-        return;
-      }
-
-      // don't override editboxes or the property box
-      if (ActiveControl Is txtProperty Or ActiveControl Is lstProperty) {
-        return;
-      }
-
-      // check for global shortcut keys
-      CheckShortcuts KeyCode, Shift
-      if (KeyCode = 0) {
-        return;
-      }
-
-      switch (Shift
-      case vbCtrlMask
-        switch (KeyCode
-        case vbKeyA
-          // select all
-          if (frmMDIMain.mnuESelectAll.Enabled) {
-            MenuClickSelectAll
-            KeyCode = 0
-          }
-
-        case vbKeyZ
-          // undo
-          if (frmMDIMain.mnuEUndo.Enabled) {
-            MenuClickUndo
-            KeyCode = 0
-          }
-
-        case vbKeyX
-          // cut
-          if (frmMDIMain.mnuECut.Enabled) {
-            MenuClickCut
-            KeyCode = 0
-          }
-
-        case vbKeyC
-          // copy
-          if (frmMDIMain.mnuECopy.Enabled) {
-            MenuClickCopy
-            KeyCode = 0
-          }
-
-        case vbKeyV
-          // paste
-          if (frmMDIMain.mnuEPaste.Enabled) {
-            MenuClickPaste
-            KeyCode = 0
-          }
-
-        case vbKeyK
-          if (frmMDIMain.mnuECustom2.Enabled) {
-            MenuClickECustom2
-            KeyCode = 0
-          }
-
-        case vbKeyReturn
-          if (frmMDIMain.mnuECustom1) {
-            MenuClickECustom1
-            KeyCode = 0
-          }
-        }
-      case 0
-        // no shift, ctrl, alt
-        switch (KeyCode
-        case vbKeyDelete
-          // if (frmMDIMain.mnuEDelete.Enabled) {
-            MenuClickDelete
-            KeyCode = 0
-          // }
-
-        case vbKeyLeft, vbKeyUp
-          switch (FocusCtrl
-          case fcStaff, fcTree
-            // if there is an active selection or cursor is not at start,
-            if (SelectedTrack != -1 And (SelStart > 0 Or SelLength > 0)) {
-              // if just a cursor
-              if (SelLength = 0) {
-                // move left one note
-                ChangeSelection SelectedTrack, SelStart - 1, 0
-              } else {
-                // if anchor is to right of selection
-                if (SelStart != SelAnchor) {
-                  // reset start to right of selection before collapsing
-                  ChangeSelection SelectedTrack, SelAnchor - SelLength, 0
-                } else {
-                  // collapse to current startpos
-                  ChangeSelection SelectedTrack, SelStart, 0
-                }
-              }
-              SelAnchor = SelStart
-
-            // if at beginning, move up to track
-            } else if ( SelectedTrack != -1 And SelStart = 0) {
-              SelStart = -1
-              ChangeSelection SelectedTrack, SelStart, 0
-            }
-          }
-          KeyCode = 0
-          Shift = 0
-
-        case vbKeyRight, vbKeyDown
-          switch (FocusCtrl
-          case fcStaff, fcTree
-            // if there is an active selection or cursor is not at end,
-            if (SelectedTrack != -1 And (SelStart < EditSound[SelectedTrack).Notes.Count Or SelLength > 0)) {
-              if (SelLength = 0) {
-                // move right one note
-                ChangeSelection SelectedTrack, SelStart + 1, 0, false, true
-              } else {
-                if (SelStart = SelAnchor) {
-                  ChangeSelection SelectedTrack, SelAnchor + SelLength, 0 // , true
-                } else {
-                  ChangeSelection SelectedTrack, SelAnchor, 0 // , true
-                }
-              }
-            // if at track level, move to first note
-            } else if ( SelectedTrack != -1 And SelStart = -1) {
-              SelStart = 0
-              ChangeSelection SelectedTrack, SelStart, 0
-            }
-          }
-          KeyCode = 0
-          Shift = 0
-
-        case vbKeyBack
-          switch (FocusCtrl
-          case fcProperty
-          case fcStaff
-            // if selection is >0
-            if (SelLength > 0) {
-              MenuClickDelete
-            } else {
-              // if not on first note
-              if (SelStart > 0) {
-                // move it back one, and delete
-                SelStart = SelStart - 1
-                MenuClickDelete
-              }
-            }
-            KeyCode = 0
-          case fcTree
-          }
-        }
-
-      case vbShiftMask
-          // if working with a staff, adjust selection; if working with tracks, exit
-          if (tvwSound.SelectedItem.Parent Is Nothing) {
-            return;
-          } else if ( tvwSound.SelectedItem.Parent.Parent Is Nothing) {
-            return;
-          }
-
-        switch (KeyCode
-        case vbKeyLeft, vbKeyUp
-          switch (FocusCtrl
-          case fcStaff
-            // selection is expanded to left, or collapsed on the right,
-            // depending on where current position is relative to the anchor
-
-            // if there is an active selection of one or more notes
-            // AND the startpoint is the anchor,
-            if (SelLength > 0 And SelAnchor = SelStart) {
-              // shrink the selection by one note (move end pt)
-              ChangeSelection SelectedTrack, SelStart, SelLength - 1, false, true
-            } else {
-              // if starting point not yet at beginning of track,
-              if (SelStart > 0) {
-                // expand selection by one note (move start)
-                ChangeSelection SelectedTrack, SelAnchor - SelLength - 1, SelLength + 1
-              } else {
-                // cursor is already at beginning; just exit
-                return;
-              }
-            }
-          case fcTree
-          }
-          KeyCode = 0
-          Shift = 0
-
-        case vbKeyRight, vbKeyDown
-          switch (FocusCtrl
-          case fcStaff
-            // selection is expanded to right, or collapsed on the left,
-            // depending on where current position is relative to the anchor
-
-            // if there is an active selection of one or more notes AND the startpoint is the anchor,
-            // OR there is no current selection
-            if (SelLength >= 0 And SelAnchor = SelStart) {
-              // if not yet at end of track
-              if (SelStart + SelLength < EditSound[SelectedTrack).Notes.Count) {
-                // expand selection (move end pt)
-                ChangeSelection SelectedTrack, SelStart, SelLength + 1, false, true
-              } else {
-                // cursor is already at end; just exit
-                return;
-              }
-            } else {
-              // shrink selection by one note (move start pt)
-              ChangeSelection SelectedTrack, SelAnchor - SelLength + 1, SelLength - 1
-            }
-          case fcTree
-          }
-          KeyCode = 0
-          Shift = 0
-        }
-
-      case vbAltMask
-        switch (KeyCode
-        case vbKeyU
-          if (frmMDIMain.mnuEClear.Enabled) {
-            MenuClickClear
-            KeyCode = 0
-            Shift = 0
-          }
-
-        case vbKeyD
-          if (frmMDIMain.mnuEInsert.Enabled) {
-            MenuClickInsert
-            KeyCode = 0
-            Shift = 0
-          }
-        }
-      }
-    }
-
-    private void picStaff_DblClick(Index As Integer)
-
-      // select the note being clicked;
-      // use mouse down, then extend selection by 1 (move end pt)
-      picStaff_MouseDown Index, 0, 0, mX, mY
-      ChangeSelection SelectedTrack, SelStart, SelLength + 1, false, true, true // 
-    }
-
-    private void picStaff_MouseDown(Index As Integer, Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-      Dim tmpPos As Long
-
-      On Error GoTo ErrHandler
-
-
-      switch (Button
-      case vbRightButton
-        // if clicking on a different track
-        if (Index != SelectedTrack) {
-          // select track first
-          picStaff_MouseDown Index, vbLeftButton, Shift, X, Y
-        }
-
-        // make sure this form is the active form
-        if (Not (frmMDIMain.ActiveForm Is Me)) {
-          // set focus before showing the menu
-          Me.SetFocus
-        }
-        // need doevents so form activation occurs BEFORE popup
-        // otherwise, errors will be generated because of menu
-        // adjustments that are made in the form_activate event
-        SafeDoEvents
-        // context menu
-        PopupMenu frmMDIMain.mnuEdit, 0, X + picStaff(Index).Left, Y + picStaff(Index).Top
-
-      case vbLeftButton
-        // if clicking on clef area
-        if (X < KeyWidth) {
-          // move cursor to start
-          ChangeSelection Index, 0, 0
-          // reset anchor pos
-          SelAnchor = SelStart
-        } else {
-          // if holding shift key AND same staff
-          if (Shift = vbShiftMask And Index = SelectedTrack) {
-            // determine which note is being selected
-            tmpPos = NoteFromPos(Index, X, true)
-            if (tmpPos > SelAnchor) {
-              // extend/compress selection (move end pt)
-              ChangeSelection SelectedTrack, SelAnchor, tmpPos - SelAnchor, false, true
-            } else {
-              // extend/compress selection (move start pt)
-              ChangeSelection SelectedTrack, tmpPos, SelAnchor - tmpPos
-            }
-          } else {
-            // determine which note is being selected
-            tmpPos = NoteFromPos(Index, X)
-            ChangeSelection Index, tmpPos, 0
-            // set anchor pos
-            SelAnchor = SelStart
-          }
-        }
-
-        // save mouse state for dbl click
-        mButton = Button
-        mShift = Shift
-        mX = X
-        mY = Y
-      }
-    }
-
-    private void picStaff_MouseMove(Index As Integer, Button As Integer, Shift As Integer, X As Single, Y As Single)
-
-      // determine is sellength needs to be changed,
-      Dim tmpPos As Long, tmpSelStart As Long
-      Dim tmpSelLength As Long
-      Dim sngTime As Single
-
-      // if no movement from starting position
-      if (Not tmrScroll.Enabled And mX = X And mY = Y) {
-        // not really a mousemove
-        return;
-      }
-
-      switch (Button
-      case vbLeftButton
-        mX = X
-        mY = Y
-
-        // if no track, then exit
-        if (SelectedTrack == -1) {
-          return;
-        }
-
-        // get note number under cursor
-        tmpPos = NoteFromPos(SelectedTrack, X, true)
-
-        // set sellength
-        tmpSelLength = tmpPos - SelAnchor
-        tmpSelStart = SelAnchor
-
-        // if backwards
-        if (tmpSelLength < 0) {
-          // adjust so selstart is to left of selend
-          tmpSelStart = tmpSelStart + tmpSelLength
-          tmpSelLength = tmpSelLength * -1
-        }
-
-        // if mouse position is off edge of screen,
-        // enable autoscrolling
-        if (X < 0) {
-          tmrScroll.Enabled = true
-          tmrScroll.Interval = 200 / ((-1 * X \ 10) + 1)
-          lngScrollDir = 1
-        } else if ( X > picStaff(Index).ScaleWidth + vsbStaff(Index).Visible * vsbStaff(Index).Width) {
-          tmrScroll.Enabled = true
-          tmrScroll.Interval = 200 / (((X - (picStaff(Index).ScaleWidth + vsbStaff(Index).Visible * vsbStaff(Index).Width)) \ 10) + 1)
-          lngScrollDir = -1
-        } else {
-          tmrScroll.Enabled = false
-          lngScrollDir = 0
-        }
-
-        // if NOT a change in selection
-        if (tmpSelLength = SelLength And tmpSelStart = SelStart) {
-          return;
-        } else {
-          // extend/compress; direction depends on anchor relation to start
-          ChangeSelection SelectedTrack, tmpSelStart, tmpSelLength, false, (tmpSelStart = SelAnchor) // 
-        }
-      }
-
-      // update time marker
-      tmpPos = (5 + Abs(EditSound.Key)) * StaffScale * 6
-      if (tmpPos < 36 * StaffScale) {
-        tmpPos = 36 * StaffScale
-      }
-
-      sngTime = CSng((X - tmpPos - SOHorz)) / TICK_WIDTH / 60 / StaffScale
-      if (sngTime < 0) {
-        sngTime = 0
-      }
-
-      if (MainStatusBar.Tag != CStr(rtSound)) {
-     // *'Debug.Print "AdjustMenus 3"
-        AdjustMenus rtSound, InGame, true, IsChanged
-      }
-      MainStatusBar.Panels("Time").Text = "Pos: " & format$(sngTime, "0.00") & " sec"
-    }
-
-    private void Timer1_Timer()
-
-      // toggles the cursor in the appropriate staff window
-
-      On Error GoTo ErrHandler
-
-      if (SelectedTrack == -1) {
-        Timer1.Enabled = false
-        return;
-      }
-
-      // draw the cursor line, using invert pen
-      picStaff(SelectedTrack).DrawWidth = 2
-      picStaff(SelectedTrack).DrawMode = 6 // invert
-      picStaff(SelectedTrack).Line (CursorPos, 0)-(CursorPos, picStaff(SelectedTrack).ScaleHeight), vbBlack
-      picStaff(SelectedTrack).DrawWidth = 1
-      picStaff(SelectedTrack).DrawMode = 13 // copy pen
-
-      // set cursor status
-      CursorOn = Not CursorOn
-    }
-
-    private void tmrScroll_Timer()
-
-      // autoscroll staves
-
-      switch (lngScrollDir
-      case 1  // scroll left
-        // if already at left edge
-        if (SOHorz = 0) {
-          // disable autoscroll
-          lngScrollDir = 0
-          tmrScroll.Enabled = false
-        } else {
-          // if there is room for a small change
-          if (hsbStaff.Value > hsbStaff.SmallChange) {
-            hsbStaff.Value = hsbStaff.Value - hsbStaff.SmallChange
-          } else {
-            hsbStaff.Value = 0
-          }
-          // force change
-          hsbStaff_Change
-        }
-
-      case -1 // scroll right
-        // if already at right edge
-        if (hsbStaff.Value = hsbStaff.Max) {
-          // disable autoscroll
-          lngScrollDir = 0
-          tmrScroll.Enabled = false
-        } else {
-          // if there is room for a small change
-          if (hsbStaff.Value < hsbStaff.Max - hsbStaff.SmallChange) {
-            hsbStaff.Value = hsbStaff.Value + hsbStaff.SmallChange
-          } else {
-            hsbStaff.Value = hsbStaff.Max
-          }
-        }
-      }
-
-      // force mousemove event
-      picStaff_MouseMove CInt(SelectedTrack), mButton, mShift, mX, mY
-    }
-
-    private void vsbStaff_Change(Index As Integer)
-
-      if (Not DontDraw) {
-        // set new offset
-        SOVert(Index) = -vsbStaff(Index).Value
-
-        // if staff was selected, easiest thing to do is use changeselection
-        if (Index = SelectedTrack) {
-          ChangeSelection SelectedTrack, SelStart, SelLength, true, false, true
-        } else {
-          // use draw staff method
-          DrawStaff Index
-        }
-      }
-
     }
             */
         }
         #endregion
 
         #region Methods
+        private void SetFocus() {
+            // if a track is selected, and visible, set focus to it
+            if (SelectedTrack != -1 && picStaff[SelectedTrack].Visible) {
+                picStaff[SelectedTrack].Focus();
+            }
+            else {
+                tvwSound.Focus();
+            }
+        }
+
         private void InitStatusStrip() {
             spScale = new ToolStripStatusLabel();
             spTime = new ToolStripStatusLabel();
@@ -3702,7 +1762,7 @@ namespace WinAGI.Editor {
             spScale.BorderStyle = Border3DStyle.SunkenInner;
             spScale.Name = "spScale";
             spScale.Size = new System.Drawing.Size(70, 18);
-            spScale.Text = "soundscale";
+            spScale.Text = "";
             // 
             // spTime
             // 
@@ -3710,8 +1770,8 @@ namespace WinAGI.Editor {
             spTime.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spTime.BorderStyle = Border3DStyle.SunkenInner;
             spTime.Name = "spTime";
-            spTime.Size = new System.Drawing.Size(70, 18);
-            spTime.Text = "soundtime";
+            spTime.Size = new System.Drawing.Size(140, 18);
+            spTime.Text = "";
         }
 
         public bool LoadSound(Sound loadsound) {
@@ -3765,9 +1825,6 @@ namespace WinAGI.Editor {
                 EditSound = null;
                 return false;
             }
-            for (int i = 0; i < 4; i++) {
-                picStaff[i].Visible = EditSound[i].Visible;
-            }
             tvwSound.Nodes[0].ExpandAll();
             SelectSound();
 
@@ -3788,20 +1845,13 @@ namespace WinAGI.Editor {
                 PlaybackMode = SoundPlaybackMode.WAV;
                 break;
             }
-
+            ShowNotes = WinAGISettings.ShowNotes.Value;
             OneTrack = WinAGISettings.OneTrack.Value;
             KeyboardVisible = WinAGISettings.ShowKeyboard.Value;
             splitContainer2.Panel2Collapsed = !KeyboardVisible;
             KeyboardSound = !WinAGISettings.NoKeyboardSound.Value;
-
+            staffFont = new("Courier New", 8 * StaffScale);
             for (int i = 0; i < 4; i++) {
-                // set default offsets
-                SOVert[i] = -(52 * StaffScale);
-                vsbStaff[i].SmallChange = (int)(picStaff[i].Height * SM_SCROLL);
-                vsbStaff[i].LargeChange = (int)(picStaff[i].Height * LG_SCROLL);
-                vsbStaff[i].Maximum = -SOVert[i] * 2;
-                vsbStaff[i].Value = -SOVert[i];
-                staffFont = new("Courier New", 5 * StaffScale);
                 if (EditSound[i].Muted) {
                     btnMute[i].Image = EditorResources.esi_muteon;
                 }
@@ -3809,10 +1859,13 @@ namespace WinAGI.Editor {
                     btnMute[i].Image = EditorResources.esi_muteoff;
                 }
             }
-
+            spScale.Text = "Scale: " + StaffScale;
             // draw the default note display
             DrawDefaultNote();
             SetKeyWidth();
+            // UpdateVisibleStaves will position and display the staves
+            // when the form resizs after loadng (all picstaff picture
+            // boxes should be marked not Visible before loading)
             return true;
         }
 
@@ -3820,15 +1873,22 @@ namespace WinAGI.Editor {
         /// Re-distribute the staff panels to match the current visibility of
         /// the tracks.
         /// </summary>
-        public void UpdateVisibleStaves() {
-
+        public void UpdateVisibleStaves(int oldscale) {
+            // track previous vertical scrollbar values (default is
+            // minus 1 indicating panel was previously not visible)
+            int[] oldvalue = [-1, -1, -1, -1];
             if (OneTrack) {
+                // display only the selected track
                 for (int i = 0; i <= 3; i++) {
                     if (i == SelectedTrack) {
+                        if (picStaff[i].Visible == true) {
+                            oldvalue[i] = vsbStaff[i].Value;
+                        }
                         picStaff[i].Visible = true;
                         picStaff[i].Top = 0;
+                        oldstaffH[i] = picStaff[i].ClientSize.Height;
                         picStaff[i].Height = splitContainer2.Panel1.Height - hsbStaff.Height;
-                        picStaff[i].Invalidate();
+                        picStaff[i].Width = splitContainer2.Panel1.Width;
                     }
                     else {
                         picStaff[i].Visible = false;
@@ -3836,11 +1896,38 @@ namespace WinAGI.Editor {
                 }
             }
             else {
+                // first determine which staves need to be displayed
                 StaffCount = 0;
                 for (int i = 0; i <= 3; i++) {
-                    picStaff[i].Visible = EditSound[i].Visible;
                     if (EditSound[i].Visible) {
+                        if (picStaff[i].Visible) {
+                            oldvalue[i] = vsbStaff[i].Value;
+                        }
                         StaffCount++;
+                    }
+                    picStaff[i].Visible = EditSound[i].Visible;
+                }
+                // then set position and size of visible staves
+                // (staff 3 height is never more than needed to show entire staff)
+                int maxNoiseHeight = 21 + 36 * StaffScale;
+                int onestaffheight = 1;
+                if (StaffCount > 1) {
+                    onestaffheight = (splitContainer2.Panel1.Height - hsbStaff.Height) / StaffCount;
+                    if (picStaff[3].Visible && onestaffheight > maxNoiseHeight) {
+                        // readjust heights so noise is at its max
+                        oldstaffH[3] = picStaff[3].ClientSize.Height;
+                        picStaff3.Height = maxNoiseHeight;
+                        onestaffheight = (splitContainer2.Panel1.Height - hsbStaff.Height - maxNoiseHeight) / (StaffCount - 1);
+                        for (int i = 0; i < 3; i++) {
+                            oldstaffH[i] = picStaff[i].ClientSize.Height;
+                            picStaff[i].Height = onestaffheight;
+                        }
+                    }
+                    else {
+                        for (int i = 0; i < 4; i++) {
+                            oldstaffH[i] = picStaff[i].ClientSize.Height;
+                            picStaff[i].Height = onestaffheight;
+                        }
                     }
                 }
                 switch (StaffCount) {
@@ -3854,93 +1941,42 @@ namespace WinAGI.Editor {
                     for (int i = 0; i <= 3; i++) {
                         if (picStaff[i].Visible) {
                             picStaff[i].Top = 0;
+                            oldstaffH[i] = picStaff[i].ClientSize.Height;
                             picStaff[i].Height = splitContainer2.Panel1.Height - hsbStaff.Height;
+                            picStaff[i].Width = splitContainer2.Panel1.Width;
                             break;
                         }
                     }
                     break;
-                case 2:
-                    // two staves visible   
+                default:
+                    // two or more staves visible   
                     hsbStaff.Visible = true;
-                    // if one of the staves is the noise track, then
-                    // it has a static height
-                    if (picStaff[3].Visible) {
-                        for (int i = 0; i < 3; i++) {
-                            if (picStaff[i].Visible) {
-                                picStaff[i].Top = 0;
-                                picStaff[i].Height = splitContainer2.Panel1.Height - 55 - hsbStaff.Height;
-                                break;
-                            }
+                    int ctr = 0;
+                    for (int i = 0; i < 4; i++) {
+                        if (picStaff[i].Visible) {
+                            picStaff[i].Top = ctr * onestaffheight;
+                            picStaff[i].Width = splitContainer2.Panel1.Width;
+                            ctr++;
                         }
                     }
-                    else {
-                        // distrubute the other two staves evenly
-                        bool first = true;
-                        for (int i = 0; i < 3; i++) {
-                            if (picStaff[i].Visible) {
-                                picStaff[i].Height = (splitContainer2.Panel1.Height - hsbStaff.Height) / 2;
-                                if (first) {
-                                    picStaff[i].Top = 0;
-                                    first = false;
-                                }
-                                else {
-                                    picStaff[i].Top = (splitContainer2.Panel1.Height - hsbStaff.Height) / 2;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    break;
-                case 3:
-                    // three staves visible
-                    hsbStaff.Visible = true;
-                    // if one of the staves is the noise track, then
-                    // it has a static height
-                    if (picStaff[3].Visible) {
-                        // distrubute the other two staves evenly
-                        bool first = true;
-                        for (int i = 0; i < 3; i++) {
-                            if (picStaff[i].Visible) {
-                                if (first) {
-                                    picStaff[i].Height = (splitContainer2.Panel1.Height - 55 - hsbStaff.Height) / 2;
-                                    picStaff[i].Top = 0;
-                                    first = false;
-                                }
-                                else {
-                                    picStaff[i].Height = (splitContainer2.Panel1.Height - 55 - hsbStaff.Height) / 2;
-                                    picStaff[i].Top = (splitContainer2.Panel1.Height - 55 - hsbStaff.Height) / 2;
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        // distrubute the other three staves evenly
-                        picStaff[0].Height = (splitContainer2.Panel1.Height - hsbStaff.Height) / 3;
-                        picStaff[1].Height = (splitContainer2.Panel1.Height - hsbStaff.Height) / 3;
-                        picStaff[1].Top = picStaff[0].Bottom;
-                        picStaff[2].Height = (splitContainer2.Panel1.Height - hsbStaff.Height) / 3;
-                        picStaff[2].Top = picStaff[1].Bottom;
-                    }
-                    break;
-                case 4:
-                    // all staves visible
-                    picStaff[0].Height = (splitContainer2.Panel1.Height - 55 - hsbStaff.Height) / 3;
-                    picStaff[1].Height = (splitContainer2.Panel1.Height - 55 - hsbStaff.Height) / 3;
-                    picStaff[1].Top = picStaff[0].Bottom;
-                    picStaff[2].Height = (splitContainer2.Panel1.Height - 55 - hsbStaff.Height) / 3;
-                    picStaff[2].Top = picStaff[1].Bottom;
-                    picStaff[3].Top = picStaff[2].Bottom;
                     break;
                 }
-                picStaff0.Invalidate();
-                picStaff1.Invalidate();
-                picStaff2.Invalidate();
-                picStaff3.Invalidate();
             }
+            // now step through all visible staves, update vertical scroll
+            // bars and invalidate them to force re-paint
+            for (int i = 0; i < 4; i++) {
+                if (picStaff[i].Visible) {
+                    SetVScroll(i, oldscale, oldvalue[i]);
+                    picStaff[i].Invalidate();
+                }
+            }
+            // adjust key width FIRST
+            SetKeyWidth();
+            // THEN resize horizontal scale
+            SetHScroll(oldscale);
         }
 
         private bool BuildSoundTree() {
-
             for (int i = 0; i < 4; i++) {
                 // add this track's notes
                 for (int j = 0; j < EditSound[i].Notes.Count; j++) {
@@ -4018,33 +2054,20 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        private void RestoreFocus() {
-            //switch (FocusCtrl) {
-            //case fcTree:
-            //    tvwSound.Focus();
-            //    break;
-            //case fcProperty:
-            //    picProperties.Focus();
-            //    break;
-            //case fcStaff:
-            //    // make sure it's visible
-            //    if (picStaff[SelectedTrack].Visible) {
-            //        picStaff[SelectedTrack].Focus();
-            //    }
-            //    else {
-            //        // go back to tree
-            //        tvwSound.Focus();
-            //    }
-            //    break;
-            //}
-        }
-
-        internal void SelectSound() {
+        internal void SelectSound(bool refreshtree = true) {
             int oldtrack = SelectedTrack;
 
+            if (refreshtree) {
+                if (tvwSound.SelectedNode != tvwSound.Nodes[0]) {
+                    tvwSound.SelectedNode = tvwSound.Nodes[0];
+
+                }
+                tvwSound.SelectedNode.EnsureVisible();
+            }
             SelectionMode = SelectionModeType.Sound;
             SelectedTrack = -1;
             SelStart = -1;
+            tmrCursor.Enabled = false;
             propertyGrid1.SelectedObject = new SoundEditSound(this);
             if (oldtrack != SelectedTrack) {
                 picStaff[oldtrack].Invalidate();
@@ -4059,14 +2082,21 @@ namespace WinAGI.Editor {
             ConfigureToolbar();
         }
 
-        internal void SelectTrack(int track) {
+        internal void SelectTrack(int track, bool refreshtree = true) {
             int oldtrack = SelectedTrack;
+
+            if (refreshtree) {
+                if (tvwSound.SelectedNode != tvwSound.Nodes[0].Nodes[track]) {
+                    tvwSound.SelectedNode = tvwSound.Nodes[0].Nodes[track];
+                }
+            }
 
             if (track == 3) {
                 // noise track
                 SelectionMode = SelectionModeType.NoiseTrack;
                 SelectedTrack = 3;
                 SelStart = -1;
+                tmrCursor.Enabled = false;
                 SelAnchor = -1;
                 SelLength = 0;
                 propertyGrid1.SelectedObject = new SoundEditNTrack(this);
@@ -4076,12 +2106,13 @@ namespace WinAGI.Editor {
                 SelectionMode = SelectionModeType.MusicTrack;
                 SelectedTrack = track;
                 SelStart = -1;
+                tmrCursor.Enabled = false;
                 SelAnchor = -1;
                 SelLength = 0;
                 propertyGrid1.SelectedObject = new SoundEditMTrack(this, track, SelectedTrack);
             }
             if (OneTrack) {
-                UpdateVisibleStaves();
+                UpdateVisibleStaves(StaffScale);
             }
             else {
                 if (oldtrack != -1 && oldtrack != SelectedTrack) {
@@ -4099,9 +2130,30 @@ namespace WinAGI.Editor {
             ConfigureToolbar();
         }
 
-        internal void SelectNote(int track, int startnote, int anchor, int length) {
+        internal void SelectNote(int track, int startnote, int anchor, int length, bool refreshtree = true, int showselection = 1) {
             int oldtrack = SelectedTrack;
 
+            if (refreshtree) {
+                // refresh the tree node selection
+                if (length <= 1) {
+                    //if (tvwSound.SelectedNode != tvwSound.Nodes[0].Nodes[track].Nodes[startnote]) {
+                    tvwSound.SelectedNodes = [tvwSound.Nodes[0].Nodes[track].Nodes[startnote]];
+                    tvwSound.SelectedNode = tvwSound.Nodes[0].Nodes[track].Nodes[startnote];
+                    //}
+                    tvwSound.NoSelection = length == 0;
+                    tvwSound.SelectedNode.EnsureVisible();
+                }
+                else {
+                    if (tvwSound.SelectedNodes[0].Index != startnote || tvwSound.SelectedNodes.Count != length) {
+                        tvwSound.BeginUpdate();
+                        tvwSound.SelectedNode = tvwSound.Nodes[0].Nodes[track].Nodes[anchor];
+                        tvwSound.SelectedNodes.Clear();
+                        tvwSound.SelectedNodes = tvwSound.Nodes[0].Nodes[track].Nodes.Cast<TreeNode>().Skip(startnote).Take(length).ToList();
+                        tvwSound.EndUpdate();
+                    }
+                    tvwSound.SelectedNode.EnsureVisible();
+                }
+            }
             if (startnote == EditSound[track].Notes.Count) {
                 // end only sets insertion
                 SelectionMode = SelectionModeType.EndNote;
@@ -4109,6 +2161,7 @@ namespace WinAGI.Editor {
                 SelStart = startnote;
                 SelAnchor = startnote;
                 SelLength = 0;
+                tmrCursor.Enabled = true;
                 propertyGrid1.SelectedObject = null;
             }
             else if (track == 3) {
@@ -4118,6 +2171,7 @@ namespace WinAGI.Editor {
                 SelStart = startnote;
                 SelAnchor = anchor;
                 SelLength = length;
+                tmrCursor.Enabled = length == 0;
                 if (tvwSound.SelectedNodes.Count > 1) {
                     propertyGrid1.SelectedObject = null;
                 }
@@ -4132,6 +2186,7 @@ namespace WinAGI.Editor {
                 SelStart = startnote;
                 SelAnchor = anchor;
                 SelLength = length;
+                tmrCursor.Enabled = length == 0;
                 if (tvwSound.SelectedNodes.Count > 1) {
                     propertyGrid1.SelectedObject = null;
                 }
@@ -4139,329 +2194,248 @@ namespace WinAGI.Editor {
                     propertyGrid1.SelectedObject = new SoundEditMNote(this, track, startnote);
                 }
             }
-            if (oldtrack != -1 && oldtrack != SelectedTrack) {
-                picStaff[oldtrack].Invalidate();
-            }
-            picStaff[SelectedTrack].Invalidate();
 
             if (SelectedTrack == 3 && oldtrack != 3 || SelectedTrack != 3 && oldtrack == 3) {
                 picKeyboard.Invalidate();
             }
+            // update displayed staves
+            if (oldtrack != SelectedTrack && OneTrack) {
+                picStaff[oldtrack].Visible = false;
+                picStaff[SelectedTrack].Top = 0;
+                picStaff[SelectedTrack].Size = picStaff[oldtrack].Size;
+                SetVScroll(SelectedTrack, StaffScale, SOVert[SelectedTrack]);
+                picStaff[SelectedTrack].Visible = true;
+            }
+            if (picStaff[SelectedTrack].Visible) {
+                switch (showselection) {
+                case 1:
+                    // scroll startpos into view
+                    int startPos = (int)(EditSound[SelectedTrack].TimePos(SelStart) * TICK_WIDTH * StaffScale + SOHorz + KeyWidth);
+                    // determine if selection is in view
+                    if (startPos < KeyWidth || startPos > picStaff[SelectedTrack].ClientSize.Width - 3 - vsbStaff[SelectedTrack].Width) {
+                        // choose an offset that puts selection at 5% of window, past keywidth
+                        SOHorz = (int)(0.00 * (picStaff[SelectedTrack].ClientSize.Width - 3 - vsbStaff[SelectedTrack].Width) - EditSound[SelectedTrack].TimePos(SelStart) * TICK_WIDTH * StaffScale);
+                        if (SOHorz < -hsbStaff.Maximum + hsbStaff.LargeChange - 1) {
+                            SOHorz = -hsbStaff.Maximum + hsbStaff.LargeChange - 1;
+                        }
+                        hsbStaff.Value = -SOHorz;
+                    }
+                    break;
+                case 2:
+                    // scroll endpos into view
+                    int endPos = (int)(EditSound[SelectedTrack].TimePos(SelStart + SelLength) * TICK_WIDTH * StaffScale + SOHorz + KeyWidth);
+                    if (endPos < KeyWidth || endPos > picStaff[SelectedTrack].ClientSize.Width - 3 - vsbStaff[SelectedTrack].Width) {
+                        // choose an offset that puts selection at 95% of window
+                        SOHorz = (int)(0.95 * (picStaff[SelectedTrack].ClientSize.Width - 3 - vsbStaff[SelectedTrack].Width) - KeyWidth - EditSound[SelectedTrack].TimePos(SelStart + SelLength) * TICK_WIDTH * StaffScale);
+                        hsbStaff.Value = -SOHorz;
+                    }
+                    break;
+                }
+            }
+            for (int i = 0; i < 4; i++) {
+                if (picStaff[i].Visible) {
+                    picStaff[i].Invalidate();
+                }
+            }
             ConfigureToolbar();
         }
 
-        private void ChangeSelection(int NewTrack, int NewStart, int NewLength, bool NoScroll = false, bool MoveEndPt = false, bool ForceRedraw = false) {
-            /*
-            Dim PrevTrack As Long, PrevStart As Long, PrevLength As Long, tmpNode As Node
-            Dim i As Long
-            Dim blnPrevVis As Boolean, blnSelVis As Boolean
-            Dim lngStartPos As Long, lngEndPos As Long
-            Dim blnScrolled As Boolean
-            Dim lngTreeTrack As Long
-
-            // if newtrack=-1, means no track selected, and redraw all VISIBLE tracks
-
-            On Error GoTo ErrHandler
-
-            // note previuos selection
-            PrevTrack = SelectedTrack
-            PrevStart = SelStart
-            PrevLength = SelLength
-
-            // first determine if selected track is being actively displayed - it depends
-            // on which track is selected, whether OneTrack propery is enabled, and
-            // visibility of selected track
-
-            // if a specific track is selected
-            if (NewTrack != -1) {
-              if (OneTrack) {
-                // if one track, always show selection
-                blnSelVis = true
-              } else {
-                // if all tracks, don't need to show selection if new track is not visible
-                blnSelVis = picStaffVis(NewTrack)
-              }
-            } else {
-              // all tracks selected -
-              if (OneTrack) {
-                // if one track, (with all-update) hide all tracks
-                For i = 0 To 3
-                  picStaff(i).Visible = false
-                  picStaffVis(i) = false
-                Next i
-                hsbStaff.Visible = false
-                blnSelVis = false
-              } else {
-                blnSelVis = true
-              }
-            }
-            // need to know if previous track was visible or not
-            if (PrevTrack != -1) {
-              blnPrevVis = picStaffVis(PrevTrack)
-            } else {
-              blnPrevVis = true
-            }
-
-            // if selection requires scrolling, do that first before anything else;
-            // that saves from drawing staves once in old position, then again
-            // after scrolling
-
-            // check to see if staff is supposed to be scrolled first
-            if (Not NoScroll And blnSelVis And NewTrack >= 0) {
-              // calculate position of the new selection start point
-              lngStartPos = NotePos(NewTrack, NewStart)
-              // and position of the new selection end point
-              lngEndPos = NotePos(NewTrack, NewStart + NewLength)
-
-              // if moving end point:
-              if (MoveEndPt) {
-                // endpos to left, OR endpos to right:
-                if (SOHorz + lngEndPos * TICK_WIDTH * StaffScale < 0 Or SOHorz + lngEndPos * TICK_WIDTH * StaffScale + KeyWidth > picStaff(NewTrack).ScaleWidth + vsbStaff(NewTrack).Visible * vsbStaff(NewTrack).Width) {
-                  // set scroll so note is at right edge
-                  lngEndPos = lngEndPos - picStaff(NewTrack).ScaleWidth / TICK_WIDTH / StaffScale + 16
-
-                  // set scrollbars
-                  if (lngEndPos > hsbStaff.Max) {
-                    lngEndPos = hsbStaff.Max
-                  }
-                  if (lngEndPos < 0) {
-                    lngEndPos = 0
-                  }
-                  DontDraw = true
-                  hsbStaff.Value = lngEndPos
-                  DontDraw = false
-                  blnScrolled = true
-                }
-
-              // if moving start point (or neither point)
-              } else {
-                // startpos to left, or startpos to right:
-                if (SOHorz + lngStartPos * TICK_WIDTH * StaffScale < 0 Or SOHorz + lngStartPos * TICK_WIDTH * StaffScale + KeyWidth > hsbStaff.Width) {
-                  // set scroll so note is at left edge (allow small margin)
-
-                  lngStartPos = lngStartPos - 3
-                  // verify new position is within bounds of staff display
-                  if (lngStartPos < 0) {
-                    lngStartPos = 0
-                  }
-                  // if pos is past right extent of scrollbar, max out
-                  if (lngStartPos > hsbStaff.Max) {
-                    lngStartPos = hsbStaff.Max
-                  }
-                  DontDraw = true
-                  hsbStaff.Value = lngStartPos
-                  DontDraw = false
-                  blnScrolled = true
-                }
-              }
-            }
-
-            // if scrolled, draw all tracks, which clears selection/cursor
-            if (blnScrolled) {
-              // update track now; it's needed to correctly redraw tracks
-              SelectedTrack = NewTrack
-
-              // which 'alldraw' used depends on onetrack setting
-              if (OneTrack) {
-                DrawStaff -2
-              } else {
-                DrawStaff -1
-              }
-
-              // make sure cursor status is set to off and timer disabled
-              CursorOn = false
-              Timer1.Enabled = false
-              // and selactive is set to off
-              SelActive = false
-
-            // if not scrolled, do regular checks to clear selection/cursor:
-
-            // did new track change to a different track?
-            } else if ( NewTrack != PrevTrack) {
-              // if previous track was a valid one and visible AND has changed, need to clear it
-              if (PrevTrack != -1 And blnPrevVis And PrevTrack != NewTrack) {
-                if (SelLength > 0) {
-                  ClearSelection
-                } else {
-                  HideCursor PrevTrack
-                }
-                // and selactive is set to off
-                SelActive = false
-              }
-              // if showing multiple tracks
-              if (Not OneTrack) {
-                // erase current selection border by redrawing
-                SelectedTrack = NewTrack
-                DrawStaff PrevTrack
-                SelectedTrack = PrevTrack
-              }
-
-              // if no track selected?
-              if (NewTrack = -1) {
-                // if forcing a redraw, do it now
-                if (ForceRedraw) {
-                  // update track now; it's needed to correctly redraw
-                  SelectedTrack = NewTrack
-                  DrawStaff -1
-                }
-              } else {
-                // if new track is visible, and has changed
-                if (picStaffVis(NewTrack) And PrevTrack != NewTrack) {
-                  // if it is, select it by drawing selection border
-                    picStaff(NewTrack).DrawWidth = 3
-                    picStaff(NewTrack).FillStyle = vbFSTransparent
-                    // add track selection border
-                    picStaff(NewTrack).Line (0, 0)-(.ScaleWidth + (vsbStaff(NewTrack).Visible * vsbStaff(NewTrack).Width) - 2, .ScaleHeight - 2), vbBlue, B
-                    picStaff(NewTrack).DrawWidth = 1
-                    picStaff(NewTrack).FillStyle = vbFSSolid
-                } else {
-                  // onetrack mode?
-                  if (OneTrack) {
-                    // update track and note now; it's needed to correctly redraw
-                    SelectedTrack = NewTrack
-                    SelStart = NewStart
-                    SelLength = NewLength
-                    // use special draw value (-2) to force redraw of correct track
-                    DrawStaff -2
-                  }
-                }
-              }
-
-              // change keyboard instrument if track changes
-              // adjust midi output to match track, if midi is enabled
-              if (Not Settings.NoMIDI And hMIDI != 0) {
-                // if track is a music track
-                if (SelectedTrack >= 0 And SelectedTrack <= 2) {
-                  // send instrument to midi
-                  midiOutShortMsg hMIDI, CLng(EditSound[SelectedTrack).Instrument * &H100 + &HC0)
-                } else {
-                  // set instrument to 0
-                  midiOutShortMsg hMIDI, &H1C0&
-                }
-              }
-
-              // if oldtrack is noise, or new track is noise
-              if (NewTrack = 3 Or PrevTrack = 3) {
-                // refresh keyboard so it shows correctly
-                picKeyboard.Refresh
-              }
-            } else {
-              // track hasn't changed
-
-              // if forcing a redraw, do it now
-              if (ForceRedraw) {
-
-                // draw new staff, IF it is visible
-                if (blnSelVis) {
-                  // update seltrack now; it's needed to correctly redraw
-                  SelectedTrack = NewTrack
-                  DrawStaff SelectedTrack
-                }
-                // make sure timer is off (don// t use hidecursor, as it
-                // could cause selection to invert!)
-                Timer1.Enabled = false
-                CursorOn = false
-
-              } else {
-                // seltrack is the same
-                // is there a selection?
-                if (SelActive) {
-                  // clear it
-                  ClearSelection
-                } else {
-                  HideCursor PrevTrack
-                }
-              }
-            }
-
-            // previous track/selection is cleared; new seltrack is drawn, visible;
-            // nothing is selected, cursor should be off
-
-            // confirm correct track/note selection
-            SelectedTrack = NewTrack
-            SelStart = NewStart
-            SelLength = NewLength
-
-            // if track changed to/from track3, need to switch and redraw keyboard
-            if (picKeyboard.Visible) {
-              if ((PrevTrack = 3 Or NewTrack = 3) And PrevTrack != NewTrack) {
-                // set scrollbar properties
-                SetKeyboardScroll NewTrack = 3
-                NKbOffset = 0;
-                MKbOffset = 45;
-                DrawKeyboard();
-              }
-            }
-
-            // if a valid track is selected, make the selection
-            if (SelectedTrack != -1) {
-              if (SelStart >= 0) {
-                // the tree node may not match selected note, if
-                // change is made by clicking on the staff
-
-                // deterimine which track was previously selected
-                if (tvwSound.SelectedItem.Parent Is Nothing) {
-                  lngTreeTrack = -1
-                } else {
-                  lngTreeTrack = tvwSound.SelectedItem.Parent.Index - 2
-                }
-
-                // is selection supposed to be shown?
-                if (blnSelVis) {
-                  // show cursor or selection
-                  ShowSelection
-                }
-
-                // if note and/or track has changed from previous selection...
-                if (tvwSound.SelectedItem.Tag != SelStart Or lngTreeTrack != SelectedTrack) {
-                  Set tmpNode = tvwSound.Nodes(SelectedTrack + 2).Child
-                  Do Until tmpNode.Tag = SelStart
-                    Set tmpNode = tmpNode.Next
-                  Loop
-                  tmpNode.Selected = true
-
-                  if (tmpNode.Parent.Index = 5 And PropRowCount != 4) {
-                    PropRowCount = 4
-                    SetPropertyBoxPos
-                  } else {
-                    if (PropRowCount != 6) {
-                      PropRowCount = 6
-                      SetPropertyBoxPos
-                    }
-                  }
-                  // and make sure edit menu is correct
-                  SetEditMenu
-                }
-              } else {
-                // select track node
-                tvwSound.Nodes(SelectedTrack + 2).Selected = true
-                // and make sure edit menu is correct
-                SetEditMenu
-              }
-            } else {
-              // select root node
-              tvwSound.Nodes(1).Selected = true
-              // and make sure edit menu is correct
-              SetEditMenu
-            }
-
-            // update property window if it doesn't match current property display
-            if (PropTrack != SelectedTrack Or PropNote != SelStart) {
-              PaintPropertyWindow
-            }
-            */
-        }
-
         internal void DrawMusicStaff(Graphics gs, int track) {
-            //Pen pen = new(Color.Red);
-            //pen.Width = 2;
             SolidBrush brush = new(Color.Black);
-            //gs.DrawLine(pen, 0, 0, picStaff[track].ClientSize.Width - vsbStaff[track].Width, picStaff[track].ClientSize.Height);
-            //gs.DrawLine(pen, 0, picStaff[track].ClientSize.Height, picStaff[track].ClientSize.Width - vsbStaff[track].Width, 0);
-            gs.DrawString("staff " + track + ": " + EditSound[track].Notes.Count + " notes", this.Font, brush, 25, 4);
+            Pen pen = new(Color.Black);
+            int x1, x2, y1, y2;
+            int lngTPQN = EditSound.TPQN;
+            int lngHPos;
+
+            gs.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            gs.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+
+            // sound length in whole note units
+            int lngSndLength = (int)(EditSound.Length * 15 / lngTPQN);
+            // draw staff lines
+            x1 = 0;
+            x2 = picStaff[track].Width;
+            for (int i = 0; i < 5; i++) {
+                y1 = y2 = (0 + 96 + 6 * i) * StaffScale + SOVert[track];
+                gs.DrawLine(pen, x1, y1, x2, y2);
+                y1 = y2 = (0 + 156 + 6 * i) * StaffScale + SOVert[track];
+                gs.DrawLine(pen, x1, y1, x2, y2);
+            }
+            // draw time lines at whole note intervals, offset by two pixels
+            for (int i = 0; i <= lngSndLength; i++) {
+                // horizontal pos of marker
+                lngHPos = (int)(i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2);
+                // if past right edge
+                if (lngHPos > picStaff[track].Width) {
+                    break;
+                }
+                // if greater than 0 (not to left of visible window)
+                if (lngHPos >= 0) {
+                    //x1 = x2 = lngHPos;
+                    y1 = (96 * StaffScale) + SOVert[track];
+                    y2 = y1 + 36 * StaffScale;
+                    gs.DrawLine(pen, lngHPos, y1, lngHPos, y2);
+                    y1 = (144 * StaffScale) + SOVert[track];
+                    y2 = y1 + 36 * StaffScale;
+                    gs.DrawLine(pen, lngHPos, y1, lngHPos, y2);
+                }
+            }
+
+            // add notes
+            // first note position
+            lngHPos = SOHorz + KeyWidth;
+            // step through all notes in this track
+            for (int i = 0; i < EditSound[track].Notes.Count; i++) {
+                // get duration first
+                int lngDur = EditSound[track][i].Duration;
+                // if note is visible,
+                if (lngHPos + StaffScale * TICK_WIDTH * lngDur > KeyWidth * 0.75) {
+                    // now get freq and attenuation
+                    int lngFreq = EditSound[track][i].FreqDivisor;
+                    int lngAtt = EditSound[track][i].Attenuation;
+                    // if music note is zero, or attenuation is zero
+                    if (lngFreq == 0 || lngAtt == 15) {
+                        // draw a rest note
+                        DrawRest(gs, track, lngHPos, lngDur);
+                    }
+                    else {
+                        // convert note to MIDI and draw it
+                        DrawMusicNote(gs, track, lngHPos, FreqDivToMidiNote(lngFreq), lngDur, lngAtt);
+                    }
+                }
+                // calculate position of next note
+                lngHPos = (int)(SOHorz + KeyWidth + NotePos(track, i + 1) * TICK_WIDTH * StaffScale);
+
+                // if note is past visible area
+                if (lngHPos > picStaff[track].Width) {
+                    break;
+                }
+            }
+
+            // clear clef area (adjust by two for offset, then one more for linewidth)
+            brush = new(Color.White);
+            gs.FillRectangle(brush, 0, 0, KeyWidth - 3, picStaff[track].Height);
+            // redraw the staff lines
+            x1 = 0;
+            x2 = KeyWidth;
+            for (int i = 0; i < 5; i++) {
+                y1 = y2 = (96 + 6 * i) * StaffScale + SOVert[track];
+                gs.DrawLine(pen, x1, y1, x2, y2);
+                y1 = y2 = (156 + 6 * i) * StaffScale + SOVert[track];
+                gs.DrawLine(pen, x1, y1, x2, y2);
+            }
+
+            // draw time marks at whole note intervals
+            Font cleffont = new(staffFont.FontFamily, 5f * StaffScale, FontStyle.Regular);
+            brush = new(Color.Black);
+            y1 = 132 * StaffScale + SOVert[track];
+            for (int i = 0; i <= lngSndLength; i++) {
+                string strTime = ((float)i / 15 * lngTPQN).ToString("F2");
+                // horizontal pos of marker
+                float textwidth = gs.MeasureString(strTime, staffFont).Width;
+                x1 = (int)(i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2 - textwidth / 2);
+                // if past right edge
+                if (x1 > picStaff[3].Width) {
+                    break;
+                }
+                // if greater than 0 (not to left of visible window)
+                if (x1 >= 0) {
+                    gs.DrawString(strTime, staffFont, brush, x1, y1);
+                }
+            }
+
+            // draw clefs
+            gs.DrawImage(EditorResources.trebleclef, 3, 90 * StaffScale - 2 + SOVert[track], 16 * StaffScale, 41 * StaffScale);
+            gs.DrawImage(EditorResources.bassclef, 3, 156 * StaffScale + 1 + SOVert[track], 16 * StaffScale, 20 * StaffScale);
+            // add Key signature
+            while (EditSound.Key != 0) {
+                if (EditSound.Key > 0) {
+                    // add f (-10,+2)
+                    gs.DrawImage(EditorResources.noteflat, 20 * StaffScale, 89 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.noteflat, 20 * StaffScale, 149 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == 1) {
+                        break;
+                    }
+                    // add c (-7, +5)
+                    gs.DrawImage(EditorResources.noteflat, 26 * StaffScale, 98 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.noteflat, 26 * StaffScale, 158 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == 2) {
+                        break;
+                    }
+                    // add g (-11, +1)
+                    gs.DrawImage(EditorResources.noteflat, 32 * StaffScale, 86 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.noteflat, 32 * StaffScale, 146 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == 3) {
+                        break;
+                    }
+                    // add d (-8,+4)
+                    gs.DrawImage(EditorResources.noteflat, 38 * StaffScale, 95 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.noteflat, 38 * StaffScale, 155 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == 4) {
+                        break;
+                    }
+                    // add a (-5,+7)
+                    gs.DrawImage(EditorResources.noteflat, 44 * StaffScale, 104 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.noteflat, 44 * StaffScale, 164 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == 5) {
+                        break;
+                    }
+                    // add e (-9,+3)
+                    gs.DrawImage(EditorResources.noteflat, 50 * StaffScale, 92 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.noteflat, 50 * StaffScale, 152 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == 6) {
+                        break;
+                    }
+                    // add b (-6,+6)
+                    gs.DrawImage(EditorResources.noteflat, 56 * StaffScale, 101 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.noteflat, 56 * StaffScale, 161 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                }
+                else {
+                    // add b (-6, +6)
+                    gs.DrawImage(EditorResources.notesharp, 20 * StaffScale, 98 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.notesharp, 20 * StaffScale, 158 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == -1) {
+                        break;
+                    }
+                    // add e (-9, +3)
+                    gs.DrawImage(EditorResources.notesharp, 26 * StaffScale, 89 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.notesharp, 26 * StaffScale, 149 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == -2) {
+                        break;
+                    }
+                    // add a (-5, +7)
+                    gs.DrawImage(EditorResources.notesharp, 32 * StaffScale, 101 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.notesharp, 32 * StaffScale, 161 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == -3) {
+                        break;
+                    }
+                    // add d (-8, +4)
+                    gs.DrawImage(EditorResources.notesharp, 38 * StaffScale, 92 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.notesharp, 38 * StaffScale, 152 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == -4) {
+                        break;
+                    }
+                    // add g (-4, +8)
+                    gs.DrawImage(EditorResources.notesharp, 44 * StaffScale, 104 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.notesharp, 44 * StaffScale, 164 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == -5) {
+                        break;
+                    }
+                    // add c (-7, +5)
+                    gs.DrawImage(EditorResources.notesharp, 50 * StaffScale, 95 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.notesharp, 50 * StaffScale, 155 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    if (EditSound.Key == -6) {
+                        break;
+                    }
+                    // add f (-3, +9)
+                    gs.DrawImage(EditorResources.notesharp, 56 * StaffScale, 107 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                    gs.DrawImage(EditorResources.notesharp, 56 * StaffScale, 167 * StaffScale + SOVert[track], StaffScale * 6, StaffScale * 14);
+                }
+                // always exit
+                break;
+            }
 
             if (SelectedTrack == track) {
-                gs.DrawString($"anchor: {SelAnchor}  start: {SelStart}  length: {SelLength}", this.Font, brush, 25, 16);
                 Pen borderpen = new(Color.Blue);
                 borderpen.Width = 3;
                 gs.DrawRectangle(borderpen, 1, 1, picStaff[track].ClientSize.Width - vsbStaff[track].Width - 3, picStaff[track].ClientSize.Height - 3);
@@ -4469,39 +2443,1338 @@ namespace WinAGI.Editor {
         }
 
         public void DrawNoiseStaff(Graphics gs) {
-            //Pen pen = new(Color.Red);
-            //pen.Width = 2;
             SolidBrush brush = new(Color.Black);
-            //gs.DrawLine(pen, 0, 0, picStaff[3].ClientSize.Width - vsbStaff[3].Width, picStaff[3].ClientSize.Height);
-            //gs.DrawLine(pen, 0, picStaff[3].ClientSize.Height, picStaff[3].ClientSize.Width - vsbStaff[3].Width, 0);
-            gs.DrawString("staff " + 3 + ": " + EditSound[3].Notes.Count + " notes", this.Font, brush, 25, 4);
+            Pen pen = new(Color.Black);
+            int x1, x2, y1, y2;
+            int lngTPQN = EditSound.TPQN;
+            int lngHPos;
+
+            // sound length in whole note units
+            int lngSndLength = (int)(EditSound.Length * 15 / lngTPQN);
+
+            x1 = 0;
+            x2 = picStaff[3].Width;
+            for (int i = 0; i < 5; i++) {
+                y1 = 11 + 6 * i * StaffScale + SOVert[3];
+                gs.DrawLine(pen, x1, y1, x2, y1);
+            }
+            // draw time lines at whole note intervals, offset by two pixels
+            y1 = 11 + SOVert[3];
+            y2 = y1 + 27 * StaffScale;
+            for (int i = 0; i <= lngSndLength; i++) {
+                // horizontal pos of marker
+                lngHPos = (int)(i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2);
+                // if past right edge
+                if (lngHPos > picStaff3.Width) {
+                    break;
+                }
+                // if greater than 0 (not to left of visible window)
+                if (lngHPos >= 0) {
+                    //x1 = x2 = lngHPos;
+                    gs.DrawLine(pen, lngHPos, y1, lngHPos, y2);
+                }
+            }
+            // add notes
+            // first note position
+            lngHPos = SOHorz + KeyWidth;
+
+            // step through all notes in this track
+            for (int i = 0; i < EditSound[3].Notes.Count; i++) {
+                // get duration first
+                int lngDur = EditSound[3][i].Duration;
+                // if note is visible,
+                if (lngHPos + StaffScale * TICK_WIDTH * lngDur > KeyWidth * 0.75) {
+                    // now get freq and attenuation
+                    int lngFreq = EditSound[3][i].FreqDivisor;
+                    int lngAtt = EditSound[3][i].Attenuation;
+                    // draw noise note
+                    DrawNoiseNote(gs, lngHPos, lngFreq, lngDur, lngAtt);
+                }
+                // calculate position of next note
+                lngHPos = (int)(SOHorz + KeyWidth + NotePos(3, i + 1) * TICK_WIDTH * StaffScale);
+
+                // if note is past visible area
+                if (lngHPos > picStaff[3].Width) {
+                    break;
+                }
+            }
+
+            // clear clef area
+            brush = new(Color.White);
+            gs.FillRectangle(brush, new(0, 0, KeyWidth - 3, picStaff[3].Height));
+            // redraw the staff lines
+            brush = new(Color.Black);
+            x1 = 0;
+            x2 = KeyWidth;
+            for (int i = 0; i < 5; i++) {
+                y1 = 11 + 6 * i * StaffScale + SOVert[3];
+                gs.DrawLine(pen, x1, y1, x2, y1);
+            }
+            // draw time marks at whole note intervals
+            Font cleffont = new(staffFont.FontFamily, 5f * StaffScale, FontStyle.Regular);
+            y1 = 11 + 27 * StaffScale + SOVert[3];
+            for (int i = 0; i <= lngSndLength; i++) {
+                string strTime = ((float)i / 15 * lngTPQN).ToString("F2");
+                // horizontal pos of marker
+                float textwidth = gs.MeasureString(strTime, staffFont).Width;
+                x1 = (int)(i * TICK_WIDTH * 4 * lngTPQN * StaffScale + KeyWidth + SOHorz - 2 - textwidth / 2);
+                // if past right edge
+                if (x1 > picStaff[3].Width) {
+                    break;
+                }
+                // if greater than 0 (not to left of visible window)
+                if (x1 >= 0) {
+                    gs.DrawString(strTime, staffFont, brush, x1, y1);
+                }
+            }
+
+            // draw noise clef
+            x1 = 2 + 3 * StaffScale;
+            y1 = 10 + SOVert[3];
+            gs.DrawString("   2330", cleffont, brush, x1, y1);
+            y1 = 10 + 6 * StaffScale + SOVert[3];
+            gs.DrawString("   1165", cleffont, brush, x1, y1);
+            y1 = 10 + 12 * StaffScale + SOVert[3];
+            gs.DrawString("    583", cleffont, brush, x1, y1);
+            y1 = 10 + 18 * StaffScale + SOVert[3];
+            gs.DrawString("Track 2", cleffont, brush, x1, y1);
 
             if (SelectedTrack == 3) {
-                gs.DrawString($"anchor: {SelAnchor}  start: {SelStart}  length: {SelLength}", this.Font, brush, 25, 16);
+                //gs.DrawString($"anchor: {SelAnchor}  start: {SelStart}  length: {SelLength}", this.Font, brush, 25, 16);
                 Pen borderpen = new(Color.Blue);
                 borderpen.Width = 3;
                 gs.DrawRectangle(borderpen, 1, 1, picStaff[3].ClientSize.Width - vsbStaff[3].Width - 3, picStaff[3].ClientSize.Height - 3);
             }
         }
 
-        private void SetHScroll() {
+        private void DrawMusicNote(Graphics gs, int track, int HPos, int noteIndex, int length, int attenuation) {
+            // draws note on staff;
+            // track identifies which note to draw
+            // HPos is horizontal position where note will be drawn
+            // length is duration of note in AGI ticks
+            // attenuation is volume attenuation; 0 means full sound; 15 means silence
 
-            // calculate width of sound that doesn't fit in display
-            // (total sound length minus what will fit in display;
-            // value is negative if the sound is small enough to fit
-            // without a scrollbar)
-            int tmpWidth = (int)(EditSound.Length * 60 + (KeyWidth + 24 - hsbStaff.Width) / (TICK_WIDTH * StaffScale));
+            bool flipnote = false;
+            int lngNoteTop, lngNPos;
+            int lngDPos, lngAPos;
+            int lngTPos, lngBPos;
 
-            // show horizontal scrollbar if necessary
-            hsbStaff.Enabled = (tmpWidth > 0);
-            if (hsbStaff.Enabled) {
-                hsbStaff.Maximum = tmpWidth;
+            int lngTPQN = EditSound.TPQN;
+            float x1, x2, y1, y2;
+            Pen linepen = new(Color.Black);
+            // set note color based on attenuation
+            SolidBrush notebrush = new(EditPalette[attenuation]);
+            Pen dotpen = new(EditPalette[attenuation]);
+
+            // get note pos and accidental based on current key
+            tDisplayNote dnNote = DisplayNote(noteIndex, EditSound.Key);
+
+            // draw extra staffline if above or below staff
+            x1 = HPos - 3 * StaffScale;
+            x2 = x1 + 12 * StaffScale;
+            for (int i = -6; i >= dnNote.Pos / 2; i--) {
+                y1 = y2 = (96 + 6 * (i + 5)) * StaffScale + SOVert[track];
+                gs.DrawLine(linepen, x1, y1, x2, y2);
+            }
+            if (dnNote.Pos == 0) {
+                x1 = HPos - 3 * StaffScale;
+                x2 = x1 + 15 * StaffScale;
+                y1 = y2 = 126 * StaffScale + SOVert[track];
+                gs.DrawLine(linepen, x1, y1, x2, y2);
+            }
+            // based on note position, determine if it should be drawn rightside up or upside down
+            // lngNoteTop is vertical offset on the Notes bitmap to the correctly oriented note
+            // lngNPos is the absolute position on picScale where the bitmap needs to be placed
+            // 
+            // when drawing notes as blocks, drawing dots, or drawing accidentals,
+            // lngNPos is adjusted by an amount that results in correct placement
+            // lngDPos is used for the adjusted Value of dots;
+            // lngAPos is used for the adjusted Value of accidentals, ties, blocks
+
+            // if negative (meaning note is above middle c)
+            if (dnNote.Pos <= 0) {
+                // notes above middle B(vpos<-6) are drawn upsidedown
+                if (dnNote.Pos < -6) {
+                    flipnote = true;
+                    lngNoteTop = 132;
+                    // draw on treble staff
+                    lngNPos = (123 + (3 * dnNote.Pos)) * StaffScale + SOVert[track];
+                    // set position for dots, blocks, accidentals and ties
+                    lngDPos = lngNPos + 2 * StaffScale;
+                    lngBPos = lngDPos;
+                    lngAPos = lngNPos - 4 * StaffScale;
+                    lngTPos = lngNPos - 8 * StaffScale;
+                }
+                else {
+                    flipnote = false;
+                    lngNoteTop = 0;
+                    // draw on treble staff
+                    lngNPos = (107 + (3 * dnNote.Pos)) * StaffScale + SOVert[track];
+                    // set position for dots, blocks, accidentals and ties
+                    lngDPos = lngNPos + 18 * StaffScale;
+                    lngBPos = lngDPos;
+                    lngAPos = lngNPos + 12 * StaffScale;
+                    lngTPos = lngNPos + 24 * StaffScale;
+                }
             }
             else {
-                // if not needed, reset Max to 0
+                // notes above middle B of bass staff(v<=6) are drawn upside down
+                if (dnNote.Pos < 6) {
+                    flipnote = true;
+                    lngNoteTop = 133;
+                    // draw on bass staff
+                    lngNPos = (147 + (3 * dnNote.Pos)) * StaffScale + SOVert[track];
+                    // set position for dots, blocks, accidentals and ties
+                    lngDPos = lngNPos + 2 * StaffScale;
+                    lngBPos = lngDPos;
+                    lngAPos = lngNPos - 4 * StaffScale;
+                    lngTPos = lngNPos - 8 * StaffScale;
+                }
+                else {
+                    flipnote = false;
+                    lngNoteTop = 0;
+                    // draw on bass staff
+                    lngNPos = (131 + (3 * dnNote.Pos)) * StaffScale + SOVert[track];
+                    // set position for dots, blocks, accidentals and ties
+                    lngDPos = lngNPos + 18 * StaffScale;
+                    lngBPos = lngDPos;
+                    lngAPos = lngNPos + 12 * StaffScale;
+                    lngTPos = lngNPos + 24 * StaffScale;
+                }
+            }
+            // if note is on a line,
+            if (dnNote.Pos.IsEven()) {
+                // dot needs to be moved off the line
+                lngDPos -= 2 * StaffScale;
+            }
+            // if drawing notes as bitmaps
+            if (ShowNotes) {
+                // convert length of note to MIDI Value, using TPQN
+                switch ((float)length / lngTPQN * 4) {
+                case 1:
+                    // sixteenth note
+                    DrawNoteImage(gs, flipnote ? EditorResources.note16down : EditorResources.note16up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case 2:
+                    // eighth note
+                    DrawNoteImage(gs, flipnote ? EditorResources.note8down : EditorResources.note8up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case 3:
+                    // eighth note dotted
+                    DrawNoteImage(gs, flipnote ? EditorResources.note8down : EditorResources.note8up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 10, lngDPos, (float)(StaffScale * 1.25), (float)(StaffScale * 1.25));
+                    break;
+                case 4:
+                    // quarter note
+                    DrawNoteImage(gs, flipnote ? EditorResources.note4down : EditorResources.note4up,
+                                 new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                 EditPalette[attenuation]);
+                    break;
+                case 5:
+                    // quater note tied to sixteenth note
+                    DrawNoteImage(gs, flipnote ? EditorResources.note4down : EditorResources.note4up,
+                                 new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22), EditPalette[attenuation]);
+                    // add accidental, if necessary
+                    switch (dnNote.Tone) {
+                    case NoteTone.Sharp:
+                        DrawNoteImage(gs, EditorResources.notesharp,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Flat:
+                        DrawNoteImage(gs, EditorResources.noteflat,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Natural:
+                        DrawNoteImage(gs, EditorResources.notenatural,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    }
+                    // draw connector
+                    DrawNoteImage(gs, flipnote ? EditorResources.connectordown : EditorResources.connectorup,
+                                  new Rectangle(HPos + StaffScale * 4, lngTPos, (int)(StaffScale * lngTPQN * TICK_WIDTH), StaffScale * 7),
+                                  EditPalette[attenuation]);
+                    // increment position
+                    HPos += (int)(StaffScale * TICK_WIDTH * lngTPQN);
+                    // draw sixteenth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note16down : EditorResources.note16up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case 6:
+                    // quarter note dotted
+                    // draw quarter
+                    DrawNoteImage(gs, flipnote ? EditorResources.note4down : EditorResources.note4up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 10, lngDPos, (float)(StaffScale * 2.5), (float)(StaffScale * 2.5));
+                    break;
+                case 7:
+                    // quarter note double dotted
+                    // draw quarter
+                    DrawNoteImage(gs, flipnote ? EditorResources.note4down : EditorResources.note4up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 13, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 13, lngDPos, StaffScale * 2, StaffScale * 2);
+                    break;
+                case 8:
+                    // half note
+                    // draw half note
+                    DrawNoteImage(gs, flipnote ? EditorResources.note2down : EditorResources.note2up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case 9:
+                    // half note tied to sixteenth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note2down : EditorResources.note2up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 2),
+                                  EditPalette[attenuation]);
+                    // add accidental, if necessary
+                    switch (dnNote.Tone) {
+                    case NoteTone.Sharp:
+                        DrawNoteImage(gs, EditorResources.notesharp,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Flat:
+                        DrawNoteImage(gs, EditorResources.noteflat,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Natural:
+                        DrawNoteImage(gs, EditorResources.notenatural,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    }
+                    // draw connector
+                    DrawNoteImage(gs, flipnote ? EditorResources.connectordown : EditorResources.connectorup,
+                                  new Rectangle(HPos + StaffScale * 4, lngTPos, (int)(StaffScale * 2 * lngTPQN * TICK_WIDTH), StaffScale * 7),
+                                  EditPalette[attenuation]);
+                    // increment position
+                    HPos = (int)(StaffScale * TICK_WIDTH * 2 * lngTPQN);
+                    // if note is on bottom, it trails past the staff mark; need to bump it back a little
+                    if (lngNoteTop == 0) {
+                        HPos -= (int)(StaffScale * TICK_WIDTH * 1.25);
+                    }
+                    // draw sixteenth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note16down : EditorResources.note16up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case 10:
+                    // half note tied to eighth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note2down : EditorResources.note2up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // add accidental, if necessary
+                    switch (dnNote.Tone) {
+                    case NoteTone.Sharp:
+                        DrawNoteImage(gs, EditorResources.notesharp,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Flat:
+                        DrawNoteImage(gs, EditorResources.noteflat,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Natural:
+                        DrawNoteImage(gs, EditorResources.notenatural,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    }
+                    // draw connector
+                    DrawNoteImage(gs, flipnote ? EditorResources.connectordown : EditorResources.connectorup,
+                                  new Rectangle(HPos + StaffScale * 4, lngTPos, (int)(StaffScale * 2 * lngTPQN * TICK_WIDTH), StaffScale * 7),
+                                  EditPalette[attenuation]);
+                    // increment position
+                    HPos += (int)(StaffScale * TICK_WIDTH * 2 * lngTPQN);
+                    // if note is on bottom, it trails past the staff mark; need to bump it back a little
+                    if (lngNoteTop == 0) {
+                        HPos -= (int)(StaffScale * TICK_WIDTH * 1.25);
+                    }
+                    // draw eighth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note8down : EditorResources.note8up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case 11:
+                    // half note tied to dotted eighth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note2down : EditorResources.note2up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // add accidental, if necessary
+                    switch (dnNote.Tone) {
+                    case NoteTone.Sharp:
+                        DrawNoteImage(gs, EditorResources.notesharp,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Flat:
+                        DrawNoteImage(gs, EditorResources.noteflat,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Natural:
+                        DrawNoteImage(gs, EditorResources.notenatural,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    }
+                    // draw connector
+                    DrawNoteImage(gs, flipnote ? EditorResources.connectordown : EditorResources.connectorup,
+                                  new Rectangle(HPos + StaffScale * 4, lngTPos, (int)(StaffScale * 2 * lngTPQN * TICK_WIDTH), StaffScale * 7),
+                                  EditPalette[attenuation]);
+                    // increment position
+                    HPos += (int)(StaffScale * TICK_WIDTH * 2 * lngTPQN);
+                    // if note is on bottom, it trails past the staff mark; need to bump it back a little
+                    if (lngNoteTop == 0) {
+                        HPos -= (int)(StaffScale * TICK_WIDTH * 1.25);
+                    }
+                    // draw eighth note
+                    DrawNoteImage(gs, flipnote ? EditorResources.note8down : EditorResources.note8up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    break;
+                case 12:
+                    // half note dotted
+                    DrawNoteImage(gs, flipnote ? EditorResources.note2down : EditorResources.note2up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    break;
+                case 13:
+                    // half note dotted tied to sixteenth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note2down : EditorResources.note2up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    // add accidental, if necessary
+                    switch (dnNote.Tone) {
+                    case NoteTone.Sharp:
+                        DrawNoteImage(gs, EditorResources.notesharp,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Flat:
+                        DrawNoteImage(gs, EditorResources.noteflat,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Natural:
+                        DrawNoteImage(gs, EditorResources.notenatural,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    }
+                    // draw connector
+                    DrawNoteImage(gs, flipnote ? EditorResources.connectordown : EditorResources.connectorup,
+                                  new Rectangle(HPos + StaffScale * 4, lngTPos, (int)(StaffScale * 3 * lngTPQN * TICK_WIDTH), StaffScale * 7),
+                                  EditPalette[attenuation]);
+                    // increment position
+                    HPos += (int)(StaffScale * TICK_WIDTH * 3 * lngTPQN);
+                    // if note is on bottom, it trails past the staff mark; need to bump it back a little
+                    if (lngNoteTop == 0) {
+                        HPos -= (int)(StaffScale * TICK_WIDTH * 1.25);
+                    }
+                    // draw sixteenth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note16down : EditorResources.note16up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case 14:
+                    // half note double dotted
+                    DrawNoteImage(gs, flipnote ? EditorResources.note2down : EditorResources.note2up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 13, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 13, lngDPos, StaffScale * 2, StaffScale * 2);
+                    break;
+                case 15:
+                    // half note double dotted tied to sixteenth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note2down : EditorResources.note2up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 10, lngDPos, StaffScale * 2, StaffScale * 2);
+                    // draw dot
+                    gs.FillEllipse(notebrush, HPos + StaffScale * 13, lngDPos, StaffScale * 2, StaffScale * 2);
+                    gs.DrawEllipse(dotpen, HPos + StaffScale * 13, lngDPos, StaffScale * 2, StaffScale * 2);
+                    // add accidental, if necessary
+                    switch (dnNote.Tone) {
+                    case NoteTone.Sharp:
+                        DrawNoteImage(gs, EditorResources.notesharp,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Flat:
+                        DrawNoteImage(gs, EditorResources.noteflat,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    case NoteTone.Natural:
+                        DrawNoteImage(gs, EditorResources.notenatural,
+                                      new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                                      EditPalette[attenuation]);
+                        break;
+                    }
+                    // draw connector
+                    DrawNoteImage(gs, flipnote ? EditorResources.connectordown : EditorResources.connectorup,
+                                  new Rectangle(HPos + StaffScale * 4, lngTPos, (int)(StaffScale * 3.5 * lngTPQN * TICK_WIDTH), StaffScale * 7),
+                                  EditPalette[attenuation]);
+                    // increment position
+                    HPos += (int)(StaffScale * TICK_WIDTH * 3.5 * lngTPQN);
+                    // if note is on bottom, it trails past the staff mark; need to bump it back a little
+                    if (lngNoteTop == 0) {
+                        HPos -= (int)(StaffScale * TICK_WIDTH * 1.25);
+                    }
+                    // draw sixteenth
+                    DrawNoteImage(gs, flipnote ? EditorResources.note16down : EditorResources.note16up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case 16:
+                    // whole note
+                    DrawNoteImage(gs, flipnote ? EditorResources.note1down : EditorResources.note1up,
+                                  new Rectangle(HPos, lngNPos, StaffScale * 12, StaffScale * 22),
+                                  EditPalette[attenuation]);
+                    break;
+                case > 16:
+                    // greater than whole note;
+                    // recurse to draw one whole note at a time until done
+                    while (length >= 4 * lngTPQN) {
+                        DrawMusicNote(gs, track, HPos, noteIndex, 4 * lngTPQN, attenuation);
+                        // decrement length
+                        length -= 4 * lngTPQN;
+                        // draw connector if note continues
+                        if (length > 0) {
+                            DrawNoteImage(gs, flipnote ? EditorResources.connectordown : EditorResources.connectorup,
+                                          new Rectangle(HPos + StaffScale * 4, lngTPos, (int)(StaffScale * 4 * lngTPQN * TICK_WIDTH), StaffScale * 7),
+                                          EditPalette[attenuation]);
+                        }
+                        // increment horizontal position
+                        HPos += (int)(StaffScale * TICK_WIDTH * lngTPQN * 4);
+                        // special case- if EXACTLY one sixteenth note left AND on bottom
+                        // bump it back a little
+                        if ((length / lngTPQN * 4) == 1 && lngNoteTop == 0) {
+                            HPos -= (int)(StaffScale * TICK_WIDTH * 1.25);
+                        }
+                    }
+                    // if anything left
+                    if (length > 0) {
+                        // draw remaining portion of note
+                        DrawMusicNote(gs, track, HPos, noteIndex, length, attenuation);
+                    }
+                    // exit
+                    return;
+                default:
+                    // not a normal note; draw a bar
+                    // this adjustment is interfering with the accidental position; need to reset lngNPos after drawing box
+                    gs.FillRectangle(notebrush, HPos, lngBPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.8)), StaffScale * 6);
+                    break;
+                }
+            }
+            else {
+                // draw the block for this note
+                gs.FillRectangle(notebrush, HPos, lngBPos - StaffScale * 3, (float)(StaffScale * TICK_WIDTH * (length - 0.8)), StaffScale * 6);
+            }
+            // add accidental, if necessary
+            switch (dnNote.Tone) {
+            case NoteTone.Sharp:
+                DrawNoteImage(gs, EditorResources.notesharp,
+                              new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                              EditPalette[attenuation]);
+                break;
+            case NoteTone.Flat:
+                DrawNoteImage(gs, EditorResources.noteflat,
+                        new Rectangle(HPos - StaffScale * 7, lngAPos - 3 * StaffScale, StaffScale * 6, StaffScale * 14),
+                        EditPalette[attenuation]);
+                break;
+            case NoteTone.Natural:
+                DrawNoteImage(gs, EditorResources.notenatural,
+                              new Rectangle(HPos - StaffScale * 7, lngAPos, StaffScale * 6, StaffScale * 14),
+                              EditPalette[attenuation]);
+                break;
+            }
+        }
+
+        private void DrawNoiseNote(Graphics gs, int HPos, int note, int length, int attenuation) {
+            // draws noise note on staff;
+            // HPos is horizontal position where note will be drawn
+            // Note is the freq of the note to be played
+            // length is length of note is AGI ticks
+            // attenuation is amount of volume attenuation (0 means loudest; 15 means mute)
+
+            Brush brush;
+            Pen pen;
+
+            // set vertical position
+            if (attenuation == 15) {
+                int lngVPos = 11 + SOVert[3] + 3;
+                // draw a box over entire staff
+                brush = new SolidBrush(Color.LightGray);
+                gs.FillRectangle(brush, HPos, lngVPos, (float)(StaffScale * TICK_WIDTH * (length - 0.3)), StaffScale * 24 - 6);
+                pen = new(Color.Black);
+                gs.DrawRectangle(pen, HPos, lngVPos, (float)(StaffScale * TICK_WIDTH * (length - 0.3)), StaffScale * 24 - 6);
+            }
+            else {
+                int lngVPos = 11 + 6 * (note & 3) * StaffScale + SOVert[3] + 1;
+                // if white noise
+                if ((note & 4) == 4) {
+                    // draw box with diagonal fill
+                    brush = new HatchBrush(HatchStyle.LightUpwardDiagonal, EditPalette[attenuation], Color.White);
+                    gs.FillRectangle(brush, HPos, lngVPos, (float)(StaffScale * TICK_WIDTH * (length - 0.3)), StaffScale * 6 - 2);
+                }
+                else {
+                    // draw box with solid fill
+                    brush = new SolidBrush(EditPalette[attenuation]);
+                    gs.FillRectangle(brush, HPos, lngVPos, (float)(StaffScale * TICK_WIDTH * (length - 0.3)), StaffScale * 6 - 2);
+                }
+                pen = new(EditPalette[attenuation]);
+                gs.DrawRectangle(pen, HPos, lngVPos, (float)(StaffScale * TICK_WIDTH * (length - 0.3)), StaffScale * 6 - 2);
+            }
+        }
+
+        private void DrawRest(Graphics gs, int track, int HPos, int length) {
+            // draws rest on staff;
+            // HPos is horizontal position where note will be drawn
+            // length is length of note is AGI ticks
+
+            SolidBrush brush = new(Color.Black);
+
+            int VPos, TrackCount;
+
+            // get tpqn
+            int lngTPQN = EditSound.TPQN;
+
+            // convert length of note to MIDI Value, using TPQN
+            // (one MIDI unit is a sixteenth note)
+            float sngLen = length / lngTPQN * 4;
+
+            // if this is noise track
+            if (track == 3) {
+                // notes are drawn only once
+                TrackCount = 1;
+                VPos = 16 * StaffScale + SOVert[track];
+            }
+            else {
+                TrackCount = 2;
+                VPos = 101 * StaffScale + SOVert[track];
+            }
+            int lngTempPos = HPos;
+            for (int i = 1; i <= TrackCount; i++) {
+                HPos = lngTempPos;
+                // if showing notes
+                if (ShowNotes) {
+                    // draw appropriate rest
+                    switch (sngLen) {
+                    case 1:
+                        // sixteenth rest
+                        gs.DrawImage(EditorResources.rest16, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        break;
+                    case 2:
+                        // eighth rest
+                        gs.DrawImage(EditorResources.rest8, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        break;
+                    case 3:
+                        // eighth rest dotted
+                        gs.DrawImage(EditorResources.rest8, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        break;
+                    case 4:
+                        // quarter rest
+                        gs.DrawImage(EditorResources.rest4, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        break;
+                    case 5:
+                        // quater rest and sixteenth rest
+                        gs.DrawImage(EditorResources.rest4, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        // draw connector
+                        gs.DrawImage(EditorResources.connectorup, new Rectangle(HPos + StaffScale * 3, VPos + StaffScale * 17, (int)(StaffScale * lngTPQN * TICK_WIDTH), StaffScale * 7));
+                        // increment position
+                        HPos += (int)(StaffScale * TICK_WIDTH * lngTPQN);
+                        gs.DrawImage(EditorResources.rest16, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        break;
+                    case 6:
+                        // quarter rest dotted
+                        gs.DrawImage(EditorResources.rest4, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        break;
+                    case 7:
+                        // quarter rest double dotted
+                        gs.DrawImage(EditorResources.rest4, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 13, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 13, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        break;
+                    case 8:
+                        // half rest
+                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        break;
+                    case 9:
+                        // half rest and sixteenth
+                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        // draw connector
+                        gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 2, StaffScale * 7);
+                        // increment position
+                        HPos += (int)(StaffScale * TICK_WIDTH * 2 * lngTPQN);
+                        gs.DrawImage(EditorResources.rest16, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        break;
+                    case 10:
+                        // half rest and eighth
+                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        // draw connector
+                        gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 2, StaffScale * 7);
+                        // increment position
+                        HPos += (int)(StaffScale * TICK_WIDTH * 2 * lngTPQN);
+                        gs.DrawImage(EditorResources.rest8, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        break;
+                    case 11:
+                        // half rest, eighth dotted
+                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        // draw connector
+                        gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 2, StaffScale * 7);
+                        // increment position
+                        HPos += (int)(StaffScale * TICK_WIDTH * 2 * lngTPQN);
+                        gs.DrawImage(EditorResources.rest8, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        break;
+                    case 12:
+                        // half rest dotted
+                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        break;
+                    case 13:
+                        // half rest dotted and sixteenth
+                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        // draw connector
+                        gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * lngTPQN * TICK_WIDTH * 3, StaffScale * 7);
+                        // increment position
+                        HPos += (int)(StaffScale * TICK_WIDTH * 3 * lngTPQN);
+                        gs.DrawImage(EditorResources.rest16, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        break;
+                    case 14:
+                        // half rest double dotted
+                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        break;
+                    case 15:
+                        // half rest double dotted and sixteenth
+                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        // draw dot
+                        gs.FillEllipse(brush, HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        // draw connector
+                        gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, (float)(StaffScale * lngTPQN * TICK_WIDTH * 3.5), StaffScale * 7);
+                        // increment position
+                        HPos += (int)(StaffScale * TICK_WIDTH * 3.5 * lngTPQN);
+                        gs.DrawImage(EditorResources.rest16, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
+                        break;
+                    case 16:
+                        // whole rest
+                        gs.FillRectangle(brush, HPos, VPos + StaffScale, 7 * StaffScale, 4 * StaffScale);
+                        break;
+                    case > 16:
+                        // greater than whole note;
+                        // recurse to draw one whole note at a time until done
+                        // ONLY do this once;
+                        if (i == 1) {
+                            while (!(length < 4 * lngTPQN)) {
+                                DrawRest(gs, track, HPos, 4 * lngTPQN);
+                                // decrement length
+                                length -= 4 * lngTPQN;
+                                if (length > 0) {
+                                    // draw connectors
+                                    gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, (float)(StaffScale * lngTPQN * TICK_WIDTH * 4), StaffScale * 7);
+                                    gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 77, (float)(StaffScale * lngTPQN * TICK_WIDTH * 4), StaffScale * 7);
+                                }
+                                // increment horizontal position
+                                HPos += (int)(StaffScale * TICK_WIDTH * lngTPQN * 4);
+                            }
+                            // if anything left
+                            if (length > 0) {
+                                // draw remaining portion of note
+                                DrawRest(gs, track, HPos, length);
+                            }
+                        }
+                        break;
+                    default:
+                        // not a normal note; draw a bar
+                        brush = new SolidBrush(Color.LightGray);
+                        gs.FillRectangle(brush, HPos, VPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.5)), StaffScale * 18);
+                        // draw black border around bar
+                        Pen pen = new(Color.Black);
+                        gs.DrawRectangle(pen, HPos, VPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.5)), StaffScale * 18);
+                        break;
+                    }
+                }
+                else {
+                    // draw all rest notes as blocks
+                    brush = new SolidBrush(Color.LightGray);
+                    gs.FillRectangle(brush, HPos, VPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.5)), StaffScale * 18);
+                    // draw black border around bar
+                    Pen pen = new(Color.Black);
+                    gs.DrawRectangle(pen, HPos, VPos - 2 * StaffScale, (float)(HPos + StaffScale * TICK_WIDTH * (length - 0.5)), VPos - 2 * StaffScale + StaffScale * 18);
+                }
+
+                // reset vpos
+                VPos = 161 * StaffScale + SOVert[track];
+            }
+        }
+
+        private void HighlightSelection(Bitmap backBuffer, Graphics gs) {
+            // only called if track is visible, and there are one
+            // or more selected notes
+
+            // get start pos and end pos in AGI ticks
+            int startPos = (int)(EditSound[SelectedTrack].TimePos(SelStart) * TICK_WIDTH * StaffScale + SOHorz + KeyWidth);
+            int endPos = (int)(EditSound[SelectedTrack].TimePos(SelStart + SelLength) * TICK_WIDTH * StaffScale + SOHorz + KeyWidth);
+
+            // determine if selection is in view
+            if (startPos >= picStaff[SelectedTrack].ClientSize.Width - 3 - vsbStaff[SelectedTrack].Width || endPos <= KeyWidth) {
+                return;
+            }
+            // restrict to visible window
+            if (startPos < KeyWidth) {
+                startPos = KeyWidth;
+            }
+            // account for border (3 pixels) and scrollbar
+            if (endPos > picStaff[SelectedTrack].ClientSize.Width - 3 - vsbStaff[SelectedTrack].Width) {
+                endPos = picStaff[SelectedTrack].ClientSize.Width - 3 - vsbStaff[SelectedTrack].Width;
+            }
+            // invert the selection
+            int x = startPos;
+            int y = 3;
+            int width = endPos - startPos;
+            int height = picStaff[SelectedTrack].ClientSize.Height - 6;
+            using (Bitmap selectionBmp = backBuffer.Clone(new Rectangle(x, y, width, height), backBuffer.PixelFormat)) {
+                // Create a color matrix that inverts colors
+                var invertMatrix = new ColorMatrix(
+                [ [-1,  0,  0,  0, 0],
+                  [0, -1,  0,  0, 0],
+                  [0,  0, -1,  0, 0],
+                  [0,  0,  0,  1, 0],
+                  [1,  1,  1,  0, 1] ]);
+                var attributes = new ImageAttributes();
+                attributes.SetColorMatrix(invertMatrix);
+                // Draw the inverted bitmap back onto the graphics surface
+                gs.DrawImage(
+                    selectionBmp,
+                    new Rectangle(x, y, width, height),
+                    0, 0, width, height,
+                    GraphicsUnit.Pixel,
+                    attributes
+                );
+            }
+        }
+
+        private void ShowCursor(Bitmap backBuffer, Graphics gs) {
+            // when cursor is needed, it is drawn as a 2 pixel-wide bar that alternates
+            // between black white?
+            // get cursor pos in AGI ticks
+            int startPos = (int)(EditSound[SelectedTrack].TimePos(SelStart) * TICK_WIDTH * StaffScale + SOHorz + KeyWidth);
+            // determine if selection is in view
+            if (startPos > picStaff[SelectedTrack].ClientSize.Width - 3 - vsbStaff[SelectedTrack].Width || startPos < KeyWidth) {
+                return;
+            }
+            // invert the cursor location
+            int x = startPos;
+            int y = 3;
+            int width = 2;
+            int height = picStaff[SelectedTrack].ClientSize.Height - 6;
+            using (Bitmap selectionBmp = backBuffer.Clone(new Rectangle(x, y, width, height), backBuffer.PixelFormat)) {
+                // Create a color matrix that inverts colors
+                var invertMatrix = new ColorMatrix(
+                [ [-1,  0,  0,  0, 0],
+                  [0, -1,  0,  0, 0],
+                  [0,  0, -1,  0, 0],
+                  [0,  0,  0,  1, 0],
+                  [1,  1,  1,  0, 1] ]);
+                var attributes = new ImageAttributes();
+                attributes.SetColorMatrix(invertMatrix);
+                // Draw the inverted bitmap back onto the graphics surface
+                gs.DrawImage(
+                    selectionBmp,
+                    new Rectangle(x, y, width, height),
+                    0, 0, width, height,
+                    GraphicsUnit.Pixel,
+                    attributes
+                );
+            }
+        }
+
+        private int NoteFromPos(int track, int pos, bool roundup = false) {
+            // converts an X position into a note's index number for a given track
+
+            // start at first note, offset by key width
+            int lngHPos = SOHorz + KeyWidth;
+
+            int lngNoteCount = EditSound[track].Notes.Count;
+            // step through all notes in this track
+            for (int i = 0; i < lngNoteCount; i++) {
+                // get note dur
+                int lngDur = EditSound[track][i].Duration;
+                if (roundup) {
+                    // if 1/2 of note extends past this position
+                    if (lngHPos + (StaffScale * TICK_WIDTH * lngDur) / 2 > pos) {
+                        // this is the note
+                        return i;
+                    }
+
+                    // if not rounding,
+                }
+                else {
+                    // if note extends past this position,
+                    if (lngHPos + StaffScale * TICK_WIDTH * lngDur > pos) {
+                        // this is the note
+                        return i;
+                    }
+                }
+
+                // calculate position of next note
+                lngHPos += (int)(StaffScale * TICK_WIDTH * lngDur);
+            }
+
+            // if loop is exited normally, cursor is positioned at end of track
+            return lngNoteCount;
+        }
+
+        private void SelectUnderMouse(int pos) {
+            // get note number under cursor
+            int tmpPos = NoteFromPos(SelectedTrack, pos, true);
+            if (tmpPos >= SelAnchor) {
+                if (tmpPos - SelAnchor == SelLength) {
+                    // no change in selection
+                    return;
+                }
+                // extend/compress selection (move end pt)
+                SelectNote(SelectedTrack, SelAnchor, SelAnchor, tmpPos - SelAnchor, true, 0);
+            }
+            else {
+                if (SelAnchor - tmpPos == SelLength) {
+                    // no change in selection
+                    return;
+                }
+                // extend/compress selection (move start pt)
+                SelectNote(SelectedTrack, tmpPos, SelAnchor, SelAnchor - tmpPos, true, 0);
+            }
+        }
+
+        private void UpdateStatusBarTime(double time) {
+            if (time < 0) {
+                time = 0;
+            }
+            spTime.Text = "Pos: " + time.ToString("F2") + " sec";
+        }
+
+        private tDisplayNote DisplayNote(int MIDINote, int Key) {
+            // returns a note position, relative to middle c
+            // as either a positive or negative Value (negative meaning higher tone)
+            // 
+            // the Value is the offset needed to draw the note correctly
+            // on the staff; one unit is a half the distance between staff lines
+            // 
+            // the returned Value is adjusted based on the key
+
+            tDisplayNote retval = new();
+
+            if (MIDINote < 0 || MIDINote > 127) {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            // get octave and note Value
+            int lngOctave = MIDINote / 12 - 1;
+            int lngNote = MIDINote - ((lngOctave + 1) * 12);
+            switch (lngNote) {
+            case 0:
+                //  "-C"
+                if (Key == 7) {
+                    retval.Pos = 1;
+                    retval.Tone = NoteTone.None;
+                }
+                else {
+                    retval.Pos = 0;
+                    if (Key >= -5 && Key <= 1) {
+                        retval.Tone = NoteTone.None;
+                    }
+                    else {
+                        retval.Tone = NoteTone.Natural;
+                    }
+                }
+                break;
+            case 1:
+                //  "-C#"
+                if (Key >= 0) {
+                    retval.Pos = 0;
+                }
+                else {
+                    retval.Pos = -1;
+                }
+                switch (Key) {
+                case 0 or 1:
+                    retval.Tone = NoteTone.Sharp;
+                    break;
+                case -1 or -2 or -3:
+                    retval.Tone = NoteTone.Flat;
+                    break;
+                default:
+                    retval.Tone = NoteTone.None;
+                    break;
+                }
+                break;
+            case 2:
+                //  "-D"
+                retval.Pos = -1;
+                switch (Key) {
+                case > 3 or < -3:
+                    retval.Tone = NoteTone.Natural;
+                    break;
+                default:
+                    retval.Tone = NoteTone.None;
+                    break;
+                }
+                break;
+            case 3:
+                //  "-D#"
+                if (Key >= 0) {
+                    retval.Pos = -1;
+                }
+                else {
+                    retval.Pos = -2;
+                }
+                switch (Key) {
+                case >= 0 and <= 3:
+                    retval.Tone = NoteTone.Sharp;
+                    break;
+                case -1:
+                    retval.Tone = NoteTone.Flat;
+                    break;
+                default:
+                    retval.Tone = NoteTone.None;
+                    break;
+                }
+                break;
+            case 4:
+                //  "-E"
+                if (Key == -7) {
+                    retval.Pos = -3;
+                    retval.Tone = NoteTone.None;
+                }
+                else {
+                    retval.Pos = -2;
+                    if (Key >= -1 && Key <= 5) {
+                        retval.Tone = NoteTone.None;
+                    }
+                    else {
+                        retval.Tone = NoteTone.Natural;
+                    }
+                }
+                break;
+            case 5:
+                //  "-F"
+                if (Key >= 6) {
+                    retval.Pos = -2;
+                    retval.Tone = NoteTone.None;
+                }
+                else {
+                    retval.Pos = -3;
+                    if (Key <= 0 && Key >= -6) {
+                        retval.Tone = NoteTone.None;
+                    }
+                    else {
+                        retval.Tone = NoteTone.Natural;
+                    }
+                }
+                break;
+            case 6:
+                //  "-F#"
+                if (Key >= 0) {
+                    retval.Pos = -3;
+                }
+                else {
+                    retval.Pos = -4;
+                }
+                switch (Key) {
+                case 0:
+                    retval.Tone = NoteTone.Sharp;
+                    break;
+                case >= -4 and <= -1:
+                    retval.Tone = NoteTone.Flat;
+                    break;
+                default:
+                    retval.Tone = NoteTone.None;
+                    break;
+                }
+                break;
+            case 7:
+                //  "-G"
+                retval.Pos = -4;
+                if (Key >= 3 || Key <= -5) {
+                    retval.Tone = NoteTone.Natural;
+                }
+                else {
+                    retval.Tone = NoteTone.None;
+                }
+                break;
+            case 8:
+                //  "-G#"
+                if (Key >= 0) {
+                    retval.Pos = -4;
+                }
+                else {
+                    retval.Pos = -5;
+                }
+                switch (Key) {
+                case 0 or 1 or 2:
+                    retval.Tone = NoteTone.Sharp;
+                    break;
+                case -1 or -2:
+                    retval.Tone = NoteTone.Flat;
+                    break;
+                default:
+                    retval.Tone = NoteTone.None;
+                    break;
+                }
+                break;
+            case 9:
+                //  "-A"
+                retval.Pos = -5;
+                if (Key >= 5 || Key <= -3) {
+                    retval.Tone = NoteTone.Natural;
+                }
+                else {
+                    retval.Tone = NoteTone.None;
+                }
+                break;
+            case 10:
+                //  "-A#"
+                if (Key >= 0) {
+                    retval.Pos = -5;
+                }
+                else {
+                    retval.Pos = -6;
+                }
+                switch (Key) {
+                case >= 0 and <= 4:
+                    retval.Tone = NoteTone.Sharp;
+                    break;
+                default:
+                    retval.Tone = NoteTone.None;
+                    break;
+                }
+                break;
+            case 11:
+                //  "-B"
+                if (Key <= -6) {
+                    retval.Pos = -7;
+                    retval.Tone = NoteTone.None;
+                }
+                else {
+                    retval.Pos = -6;
+                    if (Key <= -1 || Key == 7) {
+                        retval.Tone = NoteTone.Natural;
+                    }
+                    else {
+                        retval.Tone = NoteTone.None;
+                    }
+                }
+                break;
+            }
+
+            // adust for octave
+            retval.Pos = retval.Pos + (4 - lngOctave) * 7;
+            return retval;
+        }
+
+        private void SetHScroll(int oldscale) {
+            // Scrollbar math:
+            // ACT_SZ = size of the area being scrolled; usually the image size + margins
+            // WIN_SZ = size of the window area; the container's client size
+            // SV_MAX = maximum value that scrollbar can have; this puts the scroll bar
+            //          and scrolled image at farthest position
+            // LG_CHG = LargeChange property of the scrollbar
+            // SB_MAX = actual Maximum property of the scrollbar, to avoid out-of-bounds errors
+            //
+            //      SV_MAX = ACT_SZ - WIN_SZ 
+            //      SB_MAX = SV_MAX + LG_CHG + 1
+
+            int staffWidth = (int)(EditSound.Length * 60 * TICK_WIDTH * StaffScale) + KeyWidth + 24;
+
+            // enable horizontal scrollbar if staff doesn't fit
+            hsbStaff.Enabled = staffWidth > picStaff[0].ClientSize.Width - vsbStaff[0].Width;
+            if (hsbStaff.Enabled) {
+                // set change values
+                // (LargeChange value can't exceed Max value, so set Max to high enough
+                // value so it can be calculated correctly later)
+                hsbStaff.Maximum = staffWidth;
+                hsbStaff.LargeChange = (int)(picStaff[0].ClientSize.Width * LG_SCROLL);
+                hsbStaff.SmallChange = (int)(picStaff[0].ClientSize.Width * SM_SCROLL);
+
+                // calculate actual max (when staff is fully scrolled to right)
+                int SV_MAX = staffWidth - (picStaff[0].ClientSize.Width - vsbStaff[0].Width);
+                // control MAX value equals actual Max + LargeChange - 1
+                hsbStaff.Maximum = SV_MAX + hsbStaff.LargeChange - 1;
+
+                // adjust scrollbar value so left edge remains anchored
+                // the correct algebra to make this work is:
+                //         SB1 = SB0 + (SB0 + WAN - MGN) * (SF1 / SF0 - 1)
+                // SB = scrollbar value
+                // WAN = panel client window anchor point (get from cursor pos)
+                // MGN is the left/top margin
+                // SF = scale factor (as calculated above)
+                // -0 = previous values
+                // -1 = new (desired) values
+                // WAN = 0 to keep anchor at left edge, MGN = 0;
+                int newscroll = hsbStaff.Value + (hsbStaff.Value) * (StaffScale / oldscale - 1);
+                if (newscroll < 0) {
+                    newscroll = 0;
+                }
+                else if (newscroll > SV_MAX) {
+                    newscroll = SV_MAX;
+                }
+                hsbStaff.Value = newscroll;
+                SOHorz = -newscroll;
+            }
+            else {
+                SOHorz = 0;
                 hsbStaff.Maximum = 0;
                 hsbStaff.Value = 0;
             }
+        }
+
+        private void SetVScroll(int index, int oldscale, int oldvalue) {
+            // Scrollbar math:
+            // ACT_SZ = size of the area being scrolled; usually the image size + margins
+            // WIN_SZ = size of the window area; the container's client size
+            // SV_MAX = maximum value that scrollbar can have; this puts the scroll bar
+            //          and scrolled image at farthest position
+            // LG_CHG = LargeChange property of the scrollbar
+            // SB_MAX = actual Maximum property of the scrollbar, to avoid out-of-bounds errors
+            //
+            //      SV_MAX = ACT_SZ - WIN_SZ 
+            //      SB_MAX = SV_MAX + LG_CHG + 1
+
+            int staffHeight;
+            if (index == 3) {
+                staffHeight = 21 + 36 * StaffScale;
+            }
+            else {
+                //staffHeight = 186 * StaffScale;
+                staffHeight = 10 + 186 * StaffScale;
+            }
+            vsbStaff[index].Enabled = staffHeight > picStaff[index].Height;
+            if (vsbStaff[index].Enabled) {
+                // set change values
+                // (LargeChange value can't exceed Max value, so set Max to high enough
+                // value so it can be calculated correctly later)
+                vsbStaff[index].Maximum = staffHeight;
+                vsbStaff[index].LargeChange = (int)(picStaff[index].ClientSize.Height * LG_SCROLL);
+                vsbStaff[index].SmallChange = (int)(picStaff[index].ClientSize.Height * SM_SCROLL);
+
+                // calculate actual max (when staff is fully scrolled up)
+                int SV_MAX = staffHeight - picStaff[index].ClientSize.Height;
+                // control MAX value equals actual Max + LargeChange - 1
+                vsbStaff[index].Maximum = SV_MAX + vsbStaff[index].LargeChange - 1;
+                // adjust scrollbar value so bottom edge remains anchored
+                // the correct algebra to make this work is:
+                //      SB1 = (SB0 + PW0) * (SF1 / SF0) - PW1
+                // SB = scrollbar value
+                // PW = panel client window width
+                // SF = scale factor (as calculated above)
+                // -0 = previous values
+                // -1 = new (desired) values
+                // if not previously visible (SB0 == -1), then
+                // use the default starting position (time markers
+                // at bottom of window)
+                int newscroll;
+                if (oldvalue == -1) {
+                    if (index == 3) {
+                        newscroll = SV_MAX;
+                    }
+                    else {
+                        newscroll = SV_MAX - 42 * StaffScale;
+                    }
+                }
+                else {
+                    newscroll = (int)((oldvalue + oldstaffH[index]) * (float)StaffScale / oldscale - picStaff[index].ClientSize.Height);
+                }
+                if (newscroll < 0) {
+                    newscroll = 0;
+                }
+                else if (newscroll > SV_MAX) {
+                    newscroll = SV_MAX;
+                }
+                vsbStaff[index].Value = newscroll;
+                SOVert[index] = -newscroll;
+            }
+            else {
+                // use offset that puts staff at bottom
+                SOVert[index] = picStaff[index].ClientSize.Height - staffHeight;
+            }
+        }
+
+        private int NotePos(int track, int noteNumber) {
+
+            // returns the timepostion of a note
+            // track and NoteNumber should be validated BEFORE calling this function
+            int retval = 0;
+            // if looking for a note past end, return the end
+            if (noteNumber > EditSound[track].Notes.Count) {
+                noteNumber = EditSound[track].Notes.Count;
+            }
+            for (int i = 0; i < noteNumber; i++) {
+                retval += EditSound[track][i].Duration;
+            }
+            return retval;
         }
 
         private void DrawKeyboard(Graphics g) {
@@ -4682,42 +3955,42 @@ namespace WinAGI.Editor {
                 switch (DefLength) {
                 case 1:
                     // sixteenth note
-                    DrawNote(g, EditorResources.note16up, new(4, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note16up, new(4, 20, 24, 40), EditPalette[DefAttn]);
                     break;
                 case 2:
                     // eighth note
-                    DrawNote(g, EditorResources.note8up, new(4, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note8up, new(4, 20, 24, 40), EditPalette[DefAttn]);
                     break;
                 case 3:
                     // eighth note dotted
-                    DrawNote(g, EditorResources.note8up, new(2, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note8up, new(2, 20, 24, 40), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 26, 53, 5, 5);
                     break;
                 case 4:
                     // quarter note
-                    DrawNote(g, EditorResources.note4up, new(8, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note4up, new(8, 20, 24, 40), EditPalette[DefAttn]);
                     break;
                 case 5:
                     // quater note tied to sixteenth note
                     // draw quarter
-                    DrawNote(g, EditorResources.note4up, new(2, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note4up, new(2, 25, 12, 22), EditPalette[DefAttn]);
                     // draw connector
-                    DrawNote(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
                     // draw sixteenth
-                    DrawNote(g, EditorResources.note16up, new(20, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note16up, new(20, 25, 12, 22), EditPalette[DefAttn]);
                     break;
                 case 6:
                     // quarter note dotted
                     // draw quarter
-                    DrawNote(g, EditorResources.note4up, new(4, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note4up, new(4, 20, 24, 40), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 21, 51, 5, 5);
                     break;
                 case 7:
                     // quarter note double dotted
                     // draw quarter
-                    DrawNote(g, EditorResources.note4up, new(3, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note4up, new(3, 20, 24, 40), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 19, 51, 5, 5);
                     // draw dot
@@ -4725,53 +3998,53 @@ namespace WinAGI.Editor {
                     break;
                 case 8:
                     // half note
-                    DrawNote(g, EditorResources.note2up, new(8, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note2up, new(8, 20, 24, 40), EditPalette[DefAttn]);
                     break;
                 case 9:
                     // half note tied to sixteenth
-                    DrawNote(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
                     // draw connector
-                    DrawNote(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
                     // draw sixteenth
-                    DrawNote(g, EditorResources.note16up, new(20, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note16up, new(20, 25, 12, 22), EditPalette[DefAttn]);
                     break;
                 case 10:
                     // half note tied to eighth
-                    DrawNote(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
                     // draw connector
-                    DrawNote(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
                     // draw eighth
-                    DrawNote(g, EditorResources.note8up, new(20, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note8up, new(20, 25, 12, 22), EditPalette[DefAttn]);
                     break;
                 case 11:
                     // half note tied to dotted eighth
-                    DrawNote(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
                     // draw connector
-                    DrawNote(g, EditorResources.connectorup, new(3, 49, 21, 6), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.connectorup, new(3, 49, 21, 6), EditPalette[DefAttn]);
                     // draw eighth note
-                    DrawNote(g, EditorResources.note8up, new(19, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note8up, new(19, 25, 12, 22), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 29, 43, 3, 3);
                     break;
                 case 12:
                     // half note dotted
-                    DrawNote(g, EditorResources.note2up, new(4, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note2up, new(4, 20, 24, 40), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 21, 51, 5, 5);
                     break;
                 case 13:
                     // half note dotted tied to sixteenth
-                    DrawNote(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
                     // draw connector
-                    DrawNote(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
                     // draw sixteenth
-                    DrawNote(g, EditorResources.note16up, new(20, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note16up, new(20, 25, 12, 22), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 11, 53, 3, 3);
                     break;
                 case 14:
                     // half note double dotted
-                    DrawNote(g, EditorResources.note2up, new(3, 20, 24, 40), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note2up, new(3, 20, 24, 40), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 19, 51, 5, 5);
                     // draw dot
@@ -4779,11 +4052,11 @@ namespace WinAGI.Editor {
                     break;
                 case 15:
                     // half note double dotted tied to sixteenth
-                    DrawNote(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note2up, new(2, 25, 12, 22), EditPalette[DefAttn]);
                     // draw connector
-                    DrawNote(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.connectorup, new(3, 49, 22, 6), EditPalette[DefAttn]);
                     // draw sixteenth
-                    DrawNote(g, EditorResources.note16up, new(20, 25, 12, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note16up, new(20, 25, 12, 22), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 11, 40, 3, 3);
                     // draw dot
@@ -4791,7 +4064,7 @@ namespace WinAGI.Editor {
                     break;
                 case 16:
                     // whole note
-                    DrawNote(g, EditorResources.note1up, new(6, 22, 24, 22), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.note1up, new(6, 22, 24, 22), EditPalette[DefAttn]);
                     break;
                 }
             }
@@ -4800,36 +4073,36 @@ namespace WinAGI.Editor {
                 switch (DefLength) {
                 case 1:
                     // sixteenth rest
-                    DrawNote(g, EditorResources.rest16, new(12, 22, 18, 30), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest16, new(12, 22, 18, 30), EditPalette[DefAttn]);
                     break;
                 case 2:
                     // eighth rest
-                    DrawNote(g, EditorResources.rest8, new(12, 22, 18, 30), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest8, new(12, 22, 18, 30), EditPalette[DefAttn]);
                     break;
                 case 3:
                     // eighth rest dotted
-                    DrawNote(g, EditorResources.rest8, new(9, 22, 18, 30), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest8, new(9, 22, 18, 30), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 21, 36, 5, 5);
                     break;
                 case 4:
                     // quarter rest
-                    DrawNote(g, EditorResources.rest4, new(12, 22, 18, 30), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest4, new(12, 22, 18, 30), EditPalette[DefAttn]);
                     break;
                 case 5:
                     // quater rest and sixteenth rest
-                    DrawNote(g, EditorResources.rest4, new(8, 26, 12, 20), EditPalette[DefAttn]);
-                    DrawNote(g, EditorResources.rest16, new(20, 26, 12, 20), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest4, new(8, 26, 12, 20), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest16, new(20, 26, 12, 20), EditPalette[DefAttn]);
                     break;
                 case 6:
                     // quarter rest dotted
-                    DrawNote(g, EditorResources.rest4, new(9, 22, 18, 30), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest4, new(9, 22, 18, 30), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 21, 36, 5, 5);
                     break;
                 case 7:
                     // quarter rest double dotted
-                    DrawNote(g, EditorResources.rest4, new(7, 22, 18, 30), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest4, new(7, 22, 18, 30), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 17, 36, 5, 5);
                     // draw dot
@@ -4844,19 +4117,19 @@ namespace WinAGI.Editor {
                     // half rest and sixteenth
                     g.FillRectangle(brush, 4, 32, 14, 5);
                     g.DrawLine(pen, 1, 37, 21, 37);
-                    DrawNote(g, EditorResources.rest16, new(24, 24, 12, 20), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest16, new(24, 24, 12, 20), EditPalette[DefAttn]);
                     break;
                 case 10:
                     // half rest and eighth
                     g.FillRectangle(brush, 4, 32, 14, 5);
                     g.DrawLine(pen, 1, 37, 21, 37);
-                    DrawNote(g, EditorResources.rest8, new(24, 24, 12, 20), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest8, new(24, 24, 12, 20), EditPalette[DefAttn]);
                     break;
                 case 11:
                     // half rest, eighth dotted
                     g.FillRectangle(brush, 4, 32, 14, 5);
                     g.DrawLine(pen, 1, 37, 21, 37);
-                    DrawNote(g, EditorResources.rest8, new(22, 24, 12, 20), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest8, new(22, 24, 12, 20), EditPalette[DefAttn]);
                     // draw dot
                     g.FillEllipse(brush, 30, 33, 4, 4);
                     break;
@@ -4873,7 +4146,7 @@ namespace WinAGI.Editor {
                     g.DrawLine(pen, 1, 37, 21, 37);
                     // draw dot
                     g.FillEllipse(brush, 21, 32, 4, 4);
-                    DrawNote(g, EditorResources.rest16, new(27, 24, 12, 20), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest16, new(27, 24, 12, 20), EditPalette[DefAttn]);
                     break;
                 case 14:
                     // half rest double dotted
@@ -4892,7 +4165,7 @@ namespace WinAGI.Editor {
                     g.FillEllipse(brush, 19, 33, 3, 3);
                     // draw dot
                     g.FillEllipse(brush, 24, 33, 3, 3);
-                    DrawNote(g, EditorResources.rest16, new(28, 26, 12, 20), EditPalette[DefAttn]);
+                    DrawNoteImage(g, EditorResources.rest16, new(28, 26, 12, 20), EditPalette[DefAttn]);
                     break;
                 case 16:
                     // whole rest
@@ -4908,7 +4181,7 @@ namespace WinAGI.Editor {
                 (DefMute ? ", Muted" : ", Attn: " + DefAttn));
         }
 
-        private static void DrawNote(Graphics g, Bitmap noteimage, Rectangle position, Color forecolor) {
+        private static void DrawNoteImage(Graphics g, Bitmap noteimage, Rectangle position, Color forecolor) {
             // Clone the bitmap to avoid modifying the original palette
             using (Bitmap tempImage = (Bitmap)noteimage.Clone()) {
                 // Get the palette
@@ -4939,8 +4212,12 @@ namespace WinAGI.Editor {
             }
             EditSound.Key = newkey;
             SetKeyWidth();
-            // use force-redraw to update display
-            ChangeSelection(SelectedTrack, SelStart, SelLength, true, false, true);
+            // update displayed staves
+            for (int i = 0; i < 3; i++) {
+                if (picStaff[i].Visible) {
+                    picStaff[i].Invalidate();
+                }
+            }
             if (SelectionMode == SelectionModeType.Sound) {
                 propertyGrid1.Refresh();
             }
@@ -4963,13 +4240,17 @@ namespace WinAGI.Editor {
             if (SelectionMode == SelectionModeType.Sound) {
                 propertyGrid1.Refresh();
             }
-            // update any selection
-            ChangeSelection(SelectedTrack, SelStart, SelLength);
+            // update displayed staves
+            for (int i = 0; i < 3; i++) {
+                if (picStaff[i].Visible) {
+                    picStaff[i].Invalidate();
+                }
+            }
         }
 
         public void SetTrackVisibility(int track, bool value) {
             EditSound[track].Visible = value;
-            UpdateVisibleStaves();
+            UpdateVisibleStaves(StaffScale);
         }
 
         public void SetTrackMute(int track, bool value) {
@@ -5014,19 +4295,19 @@ namespace WinAGI.Editor {
             }
         }
 
-        public void SetNoteDuration(int track, int note, int newdur, bool DontUndo = false) {
+        public void SetNoteDuration(int track, int notepos, int newdur, bool DontUndo = false) {
             if (!DontUndo) {
                 SoundUndo NextUndo = new();
                 NextUndo.UDAction = EditNoteDuration;
                 NextUndo.UDTrack = track;
-                NextUndo.UDStart = note;
-                NextUndo.UDData = EditSound[track].Notes[note].Duration;
+                NextUndo.UDStart = notepos;
+                NextUndo.UDData = EditSound[track].Notes[notepos].Duration;
                 AddUndo(NextUndo);
             }
-            EditSound[track].Notes[note].Duration = newdur;
+            EditSound[track].Notes[notepos].Duration = newdur;
             if (SelectionMode == SelectionModeType.MusicNote &&
                 SelectedTrack == track &&
-                SelStart == note) {
+                SelStart == notepos) {
                 propertyGrid1.Refresh();
             }
             if (picStaff[track].Visible) {
@@ -5084,13 +4365,13 @@ namespace WinAGI.Editor {
                 if (KeyboardVisible) {
                     picKeyboard.Invalidate();
                 }
+                if (SelectedTrack >= 0 && SelStart != -1) {
+                    InsertNote(PlayNote);
+                }
             }
         }
 
         private void NoteOn(int Note) {
-            // play the note
-            // toggle keyboard display
-
             // if a note is already playing
             if (blnNoteOn) {
                 return;
@@ -5181,10 +4462,7 @@ namespace WinAGI.Editor {
                 // set flag in undo item
                 UndoCol.Peek().UDText = "R";
             }
-            // set insertion to end of inserted note
-            SelStart += AddNoteCol.Count;
-            SelAnchor = SelStart;
-            SelLength = 0;
+            picStaff[SelectedTrack].Invalidate();
         }
 
         private void AddNotes(int AddTrack, int InsertPos, Notes AddedNotes, bool SelectAll, bool DontUndo = false) {
@@ -5217,7 +4495,7 @@ namespace WinAGI.Editor {
             // update the text of the nodes after the inserted notes
             // (this causes significant slowdown if many notes are inserted, but
             // is necessary to keep the tree in sync with the sound data; so we
-            // use SET_REDRAW to avoid redrawing the tree until all notes are added)
+            // use update method to avoid redrawing the tree until all notes are added)
             tvwSound.BeginUpdate();
             for (int i = InsertPos + AddedNotes.Count; i < tmpNodes.Count - 1; i++) {
                 tmpNodes[i].Text = "Note " + i;
@@ -5226,17 +4504,16 @@ namespace WinAGI.Editor {
             tvwSound.EndUpdate();
 
             // readjust track length, staff scroll, if necessary
-            SetHScroll();
+            SetHScroll(StaffScale);
 
             // set anchor, then change selection
             SelAnchor = SelStart;
             // if selecting inserted notes
             if (SelectAll) {
-                ChangeSelection(AddTrack, InsertPos, AddedNotes.Count, false, false, true);
+                SelectNote(AddTrack, InsertPos, InsertPos, AddedNotes.Count);
             }
             else {
-                // set cursor to point at end of inserted note
-                ChangeSelection(AddTrack, InsertPos + AddedNotes.Count, 0, false, false, true);
+                SelectNote(AddTrack, InsertPos + AddedNotes.Count, InsertPos + AddedNotes.Count, 0);
             }
         }
 
@@ -5291,9 +4568,10 @@ namespace WinAGI.Editor {
             }
             tvwSound.Nodes[0].Nodes[DelTrack].Nodes[^1].Text = "End";
             tvwSound.EndUpdate();
-
+            // update length
+            SetHScroll(StaffScale);
             // adjust selection
-            ChangeSelection(SelectedTrack, DelPos, 0, false, false, true);
+            SelectNote(SelectedTrack, DelPos, DelPos, 0);
         }
 
         private void CopySelection() {
@@ -5391,6 +4669,9 @@ namespace WinAGI.Editor {
                 propertyGrid1.Refresh();
             }
             // refresh staff
+            if (picStaff[SelectedTrack].Visible) {
+                picStaff[SelectedTrack].Invalidate();
+            }
         }
 
         private void ShiftNoteVol(int Dir, int track, int startnote, int length = 0) {
@@ -5437,32 +4718,77 @@ namespace WinAGI.Editor {
                 propertyGrid1.Refresh();
             }
             // refresh staff
+            if (picStaff[SelectedTrack].Visible) {
+                picStaff[SelectedTrack].Invalidate();
+            }
         }
 
-        public void ImportSound(string importfile) {
+        private void ShiftDuration(int Dir, int track, int notepos) {
+            // shift (change) duration for selected note to new value
+            // 
+            // NOTE: this only works for a single note; can't adjust
+            // duration of a group of notes
+
+            // if at minimum and shortening, do nothing
+            int midiLen = EditSound[track][notepos].Duration * 4 / EditSound.TPQN;
+            if (midiLen <= 1 && Dir == -1) {
+                return;
+            }
+            SoundUndo NextUndo = new();
+            NextUndo.UDAction = EditNoteDuration;
+            NextUndo.UDTrack = track;
+            NextUndo.UDStart = notepos;
+            NextUndo.UDData = EditSound[track][notepos].Duration;
+            // make change
+            EditSound[SelectedTrack][SelStart].Duration = (midiLen + Dir) * EditSound.TPQN / 4;
+            // add undo
+            AddUndo(NextUndo);
+            // update property grid for selected note
+            if ((SelectionMode == SelectionModeType.MusicNote ||
+                SelectionMode == SelectionModeType.NoiseNote) &&
+                SelectedTrack == track && SelStart == notepos) {
+                propertyGrid1.Refresh();
+            }
+            // reset horizontal scrollbar
+            SetHScroll(StaffScale);
+            // refresh staff
+            if (picStaff[SelectedTrack].Visible) {
+                picStaff[SelectedTrack].Invalidate();
+            }
+        }
+
+        public void ZoomScale(int Dir) {
+            // adjusts zoom factor for display
+            // positive dir increases scale; negative decreases scale
+            int oldscale = StaffScale;
+
+            // increment/decrement scale
+            StaffScale += Math.Sign(Dir);
+            // validate
+            if (StaffScale == 0) {
+                // reset and exit
+                StaffScale = 1;
+                return;
+            }
+            if (StaffScale == 4) {
+                // reset and exit
+                StaffScale = 3;
+                return;
+            }
+            // update statusbar
+            spScale.Text = "Scale: " + StaffScale;
+            // resize font
+            staffFont = new("Courier New", 8 * StaffScale);
+            UpdateVisibleStaves(oldscale);
+        }
+
+        public void ImportSound(string importfile, SoundImportFormat format, SoundImportOptions options) {
             MDIMain.UseWaitCursor = true;
             Sound tmpSound = new();
 
-            //string filedata = "";
-            //try {
-            //    using FileStream fsSnd = new(importfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            //    using StreamReader srSnd = new(fsSnd);
-            //    filedata = srSnd.ReadToEnd();
-            //    fsSnd.Dispose();
-            //    srSnd.Dispose();
-            //}
-            //catch (Exception e) {
-            //    // something wrong
-            //    ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
-            //    MDIMain.UseWaitCursor = false;
-            //    return;
-            //}
-
-            // for now, base import type on file extension
-            SoundImportFormat format = SoundImport.GetSoundInputFormat(importfile);
             // import the sound and (and check for error)
             try {
-                tmpSound.Import(importfile, format);
+                tmpSound.Import(importfile, format, options);
             }
             catch (Exception e) {
                 // something wrong
@@ -5797,7 +5123,7 @@ namespace WinAGI.Editor {
             }
         }
         public double Length {
-            get { return sound.Length; }
+            get { return Math.Round(sound.Length, 2); }
         }
         public enum KeySignature {
             CFlatMajor,
@@ -6096,7 +5422,7 @@ namespace WinAGI.Editor {
         public SoundEditMNote(frmSoundEdit parent, int track, int note) {
             this.parent = parent;
             this.track = track;
-            this.noteindex = note;
+            noteindex = note;
             this.note = parent.EditSound[track].Notes[note];
         }
         public int FreqDiv {

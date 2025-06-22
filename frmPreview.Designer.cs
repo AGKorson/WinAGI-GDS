@@ -901,7 +901,7 @@ namespace WinAGI.Editor {
             // tmrSound
             // 
             tmrSound.Interval = 1;
-            tmrSound.Tick += Timer1_Tick;
+            tmrSound.Tick += tmrSound_Tick;
             // 
             // menuStrip1
             // 

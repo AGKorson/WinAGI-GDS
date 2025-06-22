@@ -9,6 +9,9 @@ using System.Diagnostics.Eventing.Reader;
 using System.Collections.Generic;
 
 namespace WinAGI.Editor {
+    /// <summary>
+    /// A TreeView control that allows for multi-node selection and manipulation.
+    /// </summary>
     public class MultiNodeTreeview : TreeView {
         protected List<TreeNode> nodecollection = [];
         protected TreeNode endnode, anchornode;
@@ -25,6 +28,10 @@ namespace WinAGI.Editor {
                 ?.SetValue(this, true, null);
         }
 
+        #region Properties
+        /// <summary>
+        /// Gets or sets whether the control is in a state where no selection is made.
+        /// </summary>
         public bool NoSelection {
             get { return noselection; }
             set {
@@ -42,6 +49,9 @@ namespace WinAGI.Editor {
             }
         }
 
+        /// <summary>
+        /// Gets or sets the currently selected nodes in the tree view.
+        /// </summary>
         public List<TreeNode> SelectedNodes {
             get { return nodecollection; }
             set {
@@ -70,10 +80,12 @@ namespace WinAGI.Editor {
                         }
                     }
                     nodecollection = value;
+                    noselection = false;
                 }
                 Invalidate();
             }
         }
+        #endregion
 
         protected override void OnDrawNode(DrawTreeNodeEventArgs e) {
             // Determine if the node is in selection collection
@@ -106,11 +118,11 @@ namespace WinAGI.Editor {
                 //ControlPaint.DrawFocusRectangle(e.Graphics, e.Bounds, foreColor, backColor);
                 ControlPaint.DrawFocusRectangle(e.Graphics, e.Bounds, foreColor, backColor);
             }
-            //Debug.Print($"anchor: {anchornode.Text}, end: {endnode.Text}, coll: {nodecollection[0].Text}..{nodecollection[^1].Text}");
         }
 
         protected override void OnMouseDown(MouseEventArgs e) {
             TreeNode node = GetNodeAt(e.X, e.Y);
+            Debug.Assert(node != null, "Mouse down on a node that is not in the treeview.");
 
             // check for right-click within the bounds of the selection
             if (e.Button == MouseButtons.Right) {
@@ -125,61 +137,69 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            noselection = false;
-            SelectedNode = node;
-            nodecollection.Clear();
-            nodecollection.Add(node);
-            if (e.Button == MouseButtons.Left && node.Level == 2) {
-                switch (ModifierKeys) {
-                case Keys.None:
-                    // begin multi-select if left button is pressed and node is at level 2
-                    // and no modifier keys
-                    anchornode = node;
-                    endnode = node;
-                    selecting = true;
-                    // default to inserting only
-                    noselection = true;
-                    break;
-                case Keys.Shift:
-                    // if currently on an 'End' node, treat this like a regular
-                    // mouse click
-                    if (anchornode.Index == anchornode.Parent.Nodes.Count - 1) {
+            if (node != null) {
+                noselection = false;
+                SelectedNode = node;
+                nodecollection.Clear();
+                nodecollection.Add(node);
+                if (e.Button == MouseButtons.Left && node.Level == 2) {
+                    switch (ModifierKeys) {
+                    case Keys.None:
+                        // begin multi-select if left button is pressed and node is at level 2
+                        // and no modifier keys
                         anchornode = node;
                         endnode = node;
                         selecting = true;
                         // default to inserting only
                         noselection = true;
                         break;
-                    }
-                    // extend selection if shift-mouse
-                    if (anchornode.Index != node.Index) {
-                        TreeNode parent = anchornode.Parent;
-                        if (anchornode.Index > node.Index) {
-                            for (int i = node.Index + 1; i <= anchornode.Index; i++) {
-                                if (i != parent.Nodes.Count - 1) {
-                                    nodecollection.Add(parent.Nodes[i]);
-                                }
-                            }
-                            endnode = nodecollection[0];
+                    case Keys.Shift:
+                        // if currently on an 'End' node, treat this like a regular
+                        // mouse click
+                        if (anchornode.Index == anchornode.Parent.Nodes.Count - 1) {
+                            anchornode = node;
+                            endnode = node;
+                            selecting = true;
+                            // default to inserting only
+                            noselection = true;
+                            break;
                         }
-                        else if (anchornode.Index < node.Index) {
-                            // build list from top to bottom
-                            nodecollection.Clear();
-                            for (int i = anchornode.Index; i <= node.Index; i++) {
-                                if (i != parent.Nodes.Count - 1) {
-                                    nodecollection.Add(parent.Nodes[i]);
+                        // extend selection if shift-mouse
+                        if (anchornode.Index != node.Index) {
+                            TreeNode parent = anchornode.Parent;
+                            if (anchornode.Index > node.Index) {
+                                for (int i = node.Index + 1; i <= anchornode.Index; i++) {
+                                    if (i != parent.Nodes.Count - 1) {
+                                        nodecollection.Add(parent.Nodes[i]);
+                                    }
                                 }
+                                endnode = nodecollection[0];
                             }
-                            endnode = nodecollection[^1];
+                            else if (anchornode.Index < node.Index) {
+                                // build list from top to bottom
+                                nodecollection.Clear();
+                                for (int i = anchornode.Index; i <= node.Index; i++) {
+                                    if (i != parent.Nodes.Count - 1) {
+                                        nodecollection.Add(parent.Nodes[i]);
+                                    }
+                                }
+                                endnode = nodecollection[^1];
+                            }
+                            forcenode = anchornode;
+                            forceselection = true;
                         }
-                        forcenode = anchornode;
-                        forceselection = true;
+                        break;
                     }
-                    break;
+                    // repaint the treeview
+                    Invalidate();
+                }
+                else if (e.Button == MouseButtons.Right && node.Level == 2) {
+                    // no selection, just a single node, and no multi-selecting
+                    noselection = true;
+                    // repaint the treeview
+                    Invalidate();
                 }
             }
-            // repaint the treeview
-            Invalidate();
             base.OnMouseDown(e);
         }
 

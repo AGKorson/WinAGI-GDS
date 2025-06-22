@@ -833,6 +833,70 @@ namespace WinAGI.Common {
             Random random = new Random();
             return (byte)random.Next(lower, upper + 1);
         }
+
+        public static byte FreqDivToMidiNote(int freqdiv) {
+            // converts AGI freq offset into a MIDI note
+
+            // middle C is 261.6 HZ; from midi specs,
+            // middle C is a note with a Value of 60
+            // this requires a shift in freq of approx. 36.376
+            // however, this offset results in crappy sounding music;
+            // empirically, 36.5 seems to work best
+
+            // note that since freq divisor is in range of 0 - 1023
+            // resulting midinotes are in range of 45 - 127
+            // and that midinotes of 126, 124, 121 are not possible (no corresponding freq divisor)
+
+            if (freqdiv <= 0) {
+                // set note to Max
+                return 127;
+            }
+            else {
+                byte retval = (byte)Math.Round((Math.Log10(111860 / (double)freqdiv) / LOG10_1_12) - 36.5);
+                // validate
+                if (retval < 0) {
+                    return 0;
+                }
+                if (retval > 127) {
+                    return 127;
+                }
+                return retval;
+            }
+        }
+
+        public static int MidiNoteToFreqDiv(int NoteIn) {
+            // converts a midinote into a freqdivisor Value
+
+            // valid range of NoteIn is 45-127
+            // note that 121, 124, 126 NoteIn values will actually return same freqdivisor
+            // values as 120, 123, 127 respectively (due to loss of resolution in freqdivisor
+            // values at the high end)
+
+            // validate input
+            if (NoteIn < 45) {
+                NoteIn = 45;
+            }
+            else if (NoteIn > 127) {
+                NoteIn = 127;
+            }
+            // alternate calc:
+            double freq = 440.0 * Math.Exp((NoteIn - 69) * Math.Log(2.0) / 12.0);
+            if (freq - (int)freq >= 0.5) {
+                freq = (int)freq + 1;
+            }
+            else {
+                //freq = (int)freq;
+            }
+            return (int)(111860.0 / freq);
+
+
+
+
+            return (int)(111860.0 / Math.Round(440.0 * Math.Exp((NoteIn - 69) * Math.Log(2.0) / 12.0)));
+            
+            //double sngFreq = 111860D / Math.Pow(10, (NoteIn + 36.5) * LOG10_1_12);
+            //return (int)Math.Round(sngFreq, 0);
+        }
         #endregion
 
     }
@@ -964,6 +1028,18 @@ namespace WinAGI.Common {
         /// <returns>true if numeric, false if not</returns>
         public static bool IsNumeric(this string str) {
             if (double.TryParse(str, out _)) {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if a string is an integer.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns>true if integer, false if not</returns>
+        public static bool IsInt(this string str) {
+            if (int.TryParse(str, out _)) {
                 return true;
             }
             return false;

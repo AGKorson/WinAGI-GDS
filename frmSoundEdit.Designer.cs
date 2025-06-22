@@ -63,6 +63,7 @@ namespace WinAGI.Editor {
             mnuPaste = new System.Windows.Forms.ToolStripMenuItem();
             mnuDelete = new System.Windows.Forms.ToolStripMenuItem();
             mnuSelectAll = new System.Windows.Forms.ToolStripMenuItem();
+            mnuClear = new System.Windows.Forms.ToolStripMenuItem();
             toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             mnuToneUp = new System.Windows.Forms.ToolStripMenuItem();
             mnuToneDown = new System.Windows.Forms.ToolStripMenuItem();
@@ -101,7 +102,7 @@ namespace WinAGI.Editor {
             picStaff2 = new SelectablePictureBox();
             picStaff3 = new SelectablePictureBox();
             hsbStaff = new System.Windows.Forms.HScrollBar();
-            picKeyboard = new SelectablePictureBox();
+            picKeyboard = new System.Windows.Forms.PictureBox();
             picDuration = new System.Windows.Forms.PictureBox();
             btnDurationDown = new System.Windows.Forms.Button();
             btnDurationUp = new System.Windows.Forms.Button();
@@ -109,7 +110,7 @@ namespace WinAGI.Editor {
             btnKybdLeft = new System.Windows.Forms.Button();
             tmrStaffScroll = new System.Windows.Forms.Timer(components);
             tmrKeyboardScroll = new System.Windows.Forms.Timer(components);
-            mnuClear = new System.Windows.Forms.ToolStripMenuItem();
+            tmrCursor = new System.Windows.Forms.Timer(components);
             menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -241,6 +242,7 @@ namespace WinAGI.Editor {
             // mnuRPlaySound
             // 
             mnuRPlaySound.Name = "mnuRPlaySound";
+            mnuRPlaySound.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Enter;
             mnuRPlaySound.Size = new System.Drawing.Size(225, 22);
             mnuRPlaySound.Text = "Play Sound";
             mnuRPlaySound.Click += mnuRPlaySound_Click;
@@ -309,6 +311,7 @@ namespace WinAGI.Editor {
             splitContainer1.Size = new System.Drawing.Size(556, 304);
             splitContainer1.SplitterDistance = 130;
             splitContainer1.TabIndex = 6;
+            splitContainer1.TabStop = false;
             splitContainer1.MouseUp += splitContainer1_MouseUp;
             // 
             // splitContainer3
@@ -331,6 +334,7 @@ namespace WinAGI.Editor {
             splitContainer3.Size = new System.Drawing.Size(130, 229);
             splitContainer3.SplitterDistance = 105;
             splitContainer3.TabIndex = 8;
+            splitContainer3.TabStop = false;
             splitContainer3.MouseUp += splitContainer3_MouseUp;
             // 
             // tvwSound
@@ -369,6 +373,7 @@ namespace WinAGI.Editor {
             tvwSound.AfterExpand += tvwSound_After;
             tvwSound.NodeMouseClick += tvwSound_NodeMouseClick;
             tvwSound.NodeMouseDoubleClick += tvwSound_NodeMouseDoubleClick;
+            tvwSound.KeyDown += tvwSound_KeyDown;
             tvwSound.KeyPress += tvwSound_KeyPress;
             tvwSound.KeyUp += tvwSound_KeyUp;
             tvwSound.MouseDown += tvwSound_MouseDown;
@@ -378,7 +383,7 @@ namespace WinAGI.Editor {
             // 
             contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuUndo, toolStripSeparator1, mnuCut, mnuCopy, mnuPaste, mnuDelete, mnuSelectAll, mnuClear, toolStripSeparator2, mnuToneUp, mnuToneDown, mnuVolumeUp, mnuVolumeDown, toolStripSeparator3, mnuKeyboard, mnuNoKybdSound, mnuOneTrack });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(253, 352);
+            contextMenuStrip1.Size = new System.Drawing.Size(253, 330);
             contextMenuStrip1.Closed += contextMenuStrip1_Closed;
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
@@ -434,6 +439,14 @@ namespace WinAGI.Editor {
             mnuSelectAll.Size = new System.Drawing.Size(252, 22);
             mnuSelectAll.Text = "Select All";
             mnuSelectAll.Click += mnuSelectAll_Click;
+            // 
+            // mnuClear
+            // 
+            mnuClear.Name = "mnuClear";
+            mnuClear.ShortcutKeys = System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Delete;
+            mnuClear.Size = new System.Drawing.Size(252, 22);
+            mnuClear.Text = "Clear";
+            mnuClear.Click += mnuClear_Click;
             // 
             // toolStripSeparator2
             // 
@@ -702,6 +715,7 @@ namespace WinAGI.Editor {
             splitContainer2.Size = new System.Drawing.Size(422, 304);
             splitContainer2.SplitterDistance = 234;
             splitContainer2.TabIndex = 0;
+            splitContainer2.TabStop = false;
             splitContainer2.MouseUp += splitContainer2_MouseUp;
             // 
             // vsbStaff3
@@ -710,6 +724,7 @@ namespace WinAGI.Editor {
             vsbStaff3.Name = "vsbStaff3";
             vsbStaff3.Size = new System.Drawing.Size(17, 43);
             vsbStaff3.TabIndex = 10;
+            vsbStaff3.ValueChanged += vsbStaff_ValueChanged;
             // 
             // btnMute3
             // 
@@ -757,6 +772,7 @@ namespace WinAGI.Editor {
             vsbStaff2.Name = "vsbStaff2";
             vsbStaff2.Size = new System.Drawing.Size(17, 43);
             vsbStaff2.TabIndex = 9;
+            vsbStaff2.ValueChanged += vsbStaff_ValueChanged;
             // 
             // vsbStaff1
             // 
@@ -764,6 +780,7 @@ namespace WinAGI.Editor {
             vsbStaff1.Name = "vsbStaff1";
             vsbStaff1.Size = new System.Drawing.Size(17, 43);
             vsbStaff1.TabIndex = 8;
+            vsbStaff1.ValueChanged += vsbStaff_ValueChanged;
             // 
             // vsbStaff0
             // 
@@ -771,6 +788,7 @@ namespace WinAGI.Editor {
             vsbStaff0.Name = "vsbStaff0";
             vsbStaff0.Size = new System.Drawing.Size(17, 43);
             vsbStaff0.TabIndex = 7;
+            vsbStaff0.ValueChanged += vsbStaff_ValueChanged;
             // 
             // picStaff0
             // 
@@ -783,8 +801,13 @@ namespace WinAGI.Editor {
             picStaff0.ShowFocusRectangle = false;
             picStaff0.Size = new System.Drawing.Size(422, 55);
             picStaff0.TabIndex = 1;
+            picStaff0.Visible = false;
             picStaff0.Paint += picStaff_Paint;
+            picStaff0.MouseDoubleClick += picStaff_MouseDoubleClick;
             picStaff0.MouseDown += picStaff_MouseDown;
+            picStaff0.MouseLeave += picStaff_MouseLeave;
+            picStaff0.MouseMove += picStaff_MouseMove;
+            picStaff0.MouseUp += picStaff_MouseUp;
             // 
             // picStaff1
             // 
@@ -797,8 +820,13 @@ namespace WinAGI.Editor {
             picStaff1.ShowFocusRectangle = false;
             picStaff1.Size = new System.Drawing.Size(422, 55);
             picStaff1.TabIndex = 2;
+            picStaff1.Visible = false;
             picStaff1.Paint += picStaff_Paint;
+            picStaff1.MouseDoubleClick += picStaff_MouseDoubleClick;
             picStaff1.MouseDown += picStaff_MouseDown;
+            picStaff1.MouseLeave += picStaff_MouseLeave;
+            picStaff1.MouseMove += picStaff_MouseMove;
+            picStaff1.MouseUp += picStaff_MouseUp;
             // 
             // picStaff2
             // 
@@ -811,8 +839,13 @@ namespace WinAGI.Editor {
             picStaff2.ShowFocusRectangle = false;
             picStaff2.Size = new System.Drawing.Size(422, 55);
             picStaff2.TabIndex = 3;
+            picStaff2.Visible = false;
             picStaff2.Paint += picStaff_Paint;
+            picStaff2.MouseDoubleClick += picStaff_MouseDoubleClick;
             picStaff2.MouseDown += picStaff_MouseDown;
+            picStaff2.MouseLeave += picStaff_MouseLeave;
+            picStaff2.MouseMove += picStaff_MouseMove;
+            picStaff2.MouseUp += picStaff_MouseUp;
             // 
             // picStaff3
             // 
@@ -825,8 +858,13 @@ namespace WinAGI.Editor {
             picStaff3.ShowFocusRectangle = false;
             picStaff3.Size = new System.Drawing.Size(422, 55);
             picStaff3.TabIndex = 4;
+            picStaff3.Visible = false;
             picStaff3.Paint += picStaff_Paint;
+            picStaff3.MouseDoubleClick += picStaff_MouseDoubleClick;
             picStaff3.MouseDown += picStaff_MouseDown;
+            picStaff3.MouseLeave += picStaff_MouseLeave;
+            picStaff3.MouseMove += picStaff_MouseMove;
+            picStaff3.MouseUp += picStaff_MouseUp;
             // 
             // hsbStaff
             // 
@@ -835,6 +873,7 @@ namespace WinAGI.Editor {
             hsbStaff.Name = "hsbStaff";
             hsbStaff.Size = new System.Drawing.Size(422, 17);
             hsbStaff.TabIndex = 0;
+            hsbStaff.ValueChanged += hsbStaff_ValueChanged;
             // 
             // picKeyboard
             // 
@@ -842,7 +881,6 @@ namespace WinAGI.Editor {
             picKeyboard.BackColor = System.Drawing.Color.White;
             picKeyboard.Location = new System.Drawing.Point(34, 0);
             picKeyboard.Name = "picKeyboard";
-            picKeyboard.ShowFocusRectangle = false;
             picKeyboard.Size = new System.Drawing.Size(334, 66);
             picKeyboard.TabIndex = 5;
             picKeyboard.TabStop = false;
@@ -921,13 +959,10 @@ namespace WinAGI.Editor {
             tmrKeyboardScroll.Interval = 400;
             tmrKeyboardScroll.Tick += tmrKeyboardScroll_Tick;
             // 
-            // mnuClear
+            // tmrCursor
             // 
-            mnuClear.Name = "mnuClear";
-            mnuClear.ShortcutKeys = System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Delete;
-            mnuClear.Size = new System.Drawing.Size(252, 22);
-            mnuClear.Text = "Clear";
-            mnuClear.Click += mnuClear_Click;
+            tmrCursor.Interval = 400;
+            tmrCursor.Tick += tmrCursor_Tick;
             // 
             // frmSoundEdit
             // 
@@ -1007,7 +1042,7 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.Button btnKybdRight;
         private System.Windows.Forms.Button btnDurationDown;
         private System.Windows.Forms.Button btnDurationUp;
-        private SelectablePictureBox picKeyboard;
+        private System.Windows.Forms.PictureBox picKeyboard;
         private System.Windows.Forms.PictureBox picDuration;
         private SelectablePictureBox picStaff0;
         private SelectablePictureBox picStaff1;
@@ -1052,5 +1087,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuNoKybdSound;
         private System.Windows.Forms.Timer tmrKeyboardScroll;
         private System.Windows.Forms.ToolStripMenuItem mnuClear;
+        private System.Windows.Forms.Timer tmrCursor;
     }
 }

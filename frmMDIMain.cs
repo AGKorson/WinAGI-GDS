@@ -913,17 +913,41 @@ namespace WinAGI.Editor {
         internal void mnuRISound_Click(object sender, EventArgs e) {
             string importfile = GetOpenResourceFilename("Import ", AGIResType.Sound);
             if (importfile.Length > 0) {
+                SoundImportFormat format = SoundImport.GetSoundImportFormat(importfile);
+                SoundImportOptions options;
+                // IT, MOD, and MIDI have import options
+                switch (format) {
+                case SoundImportFormat.IT:
+                case SoundImportFormat.MOD:
+                case SoundImportFormat.MIDI:
+                    // get options
+                    var frm = new frmImportSoundOptions(format);
+                    if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                        options = frm.Options;
+                        frm.Dispose();
+                    }
+                    else {
+                        // canceled
+                        frm.Dispose();
+                        return;
+                    }
+                        break;
+                default:
+                    // no options needed
+                    options = null;
+                    break;
+                }
                 if (ActiveMdiChild.Name == "frmSoundEdit") {
                     if (MessageBox.Show(MDIMain,
                         "Do you want to replace the sound you are currently editing?",
                         "Import Sound",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question) == DialogResult.Yes) {
-                        ((frmSoundEdit)ActiveMdiChild).ImportSound(importfile);
+                        ((frmSoundEdit)ActiveMdiChild).ImportSound(importfile, format, options);
                         return;
                     }
                 }
-                NewSound(importfile);
+                NewSound(importfile, format, options);
             }
         }
 
@@ -1224,6 +1248,7 @@ namespace WinAGI.Editor {
         private void mnuTCustomize_Click(object sender, EventArgs e) {
             frmTools ToolsEditor = new() { };
             _ = ToolsEditor.ShowDialog(this);
+            ToolsEditor.Dispose();
         }
 
         #endregion
@@ -3977,7 +4002,7 @@ namespace WinAGI.Editor {
                     break;
                 case ".ags":
                     // open a sound resource
-                    NewSound(args[1]);
+                    NewSound(args[1], SoundImportFormat.AGI, null);
                     break;
                 case ".agv":
                     // open a view resource

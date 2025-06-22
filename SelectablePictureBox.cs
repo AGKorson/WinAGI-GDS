@@ -1,8 +1,14 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Numerics;
 using System.Windows.Forms;
 
 namespace WinAGI.Editor {
+    /// <summary>
+    /// A picturebox control that can be selected and shows a focus rectangle when focused.
+    /// It also handles keyboard events.
+    /// </summary>
     public class SelectablePictureBox : PictureBox {
         private bool showfocus = true;
 
@@ -22,8 +28,8 @@ namespace WinAGI.Editor {
         }
 
         protected override bool IsInputKey(Keys keyData) {
-            if (keyData == Keys.Up || keyData == Keys.Down) return true;
-            if (keyData == Keys.Left || keyData == Keys.Right) return true;
+            if ((keyData & Keys.Up) == Keys.Up || (keyData & Keys.Down) == Keys.Down) return true;
+            if ((keyData & Keys.Left) == Keys.Left || (keyData & Keys.Up) == Keys.Right) return true;
             return base.IsInputKey(keyData);
         }
 

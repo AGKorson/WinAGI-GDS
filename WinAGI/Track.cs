@@ -175,6 +175,20 @@ namespace WinAGI.Engine {
             mLength = SourceTrack.mLength;
             mNotes.CloneFrom(SourceTrack.mNotes);
         }
+
+        /// <summary>
+        /// Return the time position (in AGI Ticks) of a note in this track.
+        /// </summary>
+        public int TimePos(int note) {
+            int pos = 0;
+            for (int i = 0; i < mNotes.Count; i++) {
+                if (i == note) {
+                    break;
+                }
+                pos += mNotes[i].Duration;
+            }
+            return pos;
+        }
         #endregion
     }
 }

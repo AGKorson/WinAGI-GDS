@@ -43,7 +43,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X 15. Palette Editor
     X 16. Picture Editor
     X 17. View Editor
-    O 18. Sound Editor
+    X 18. Sound Editor
       19. Layout Editor
       20. Menu Editor
       21. Text Screen Editor
@@ -54,6 +54,9 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+**alpha18.0** Sound editor is complete. Added support for drawing and editing staff notes directly from the staff display. Fixed some bugs in the sound editor and other editors.
+
+
 **alpha17.1** Sound editor framework is set. Basic sound editing functions are working. Added support for importing MIDI, IT and MOD files directly, without needing intermediary conversion. Still need to add support for drawing and editing staff notes directly from the staff display.
 
 **alpha17.0** View Editor is complete. 
