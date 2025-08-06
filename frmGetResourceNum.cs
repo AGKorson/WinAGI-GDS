@@ -60,6 +60,7 @@ namespace WinAGI.Editor {
                     DialogResult = DialogResult.Cancel;
                     Hide();
                 }
+                DialogResult = DialogResult.OK;
                 break;
             case AddNew or AddInGame or Import:
                 // validate resourceID (use impossible value for old ID to avoid matching
@@ -189,6 +190,7 @@ namespace WinAGI.Editor {
         }
 
         private void lstResNum_MouseDoubleClick(object sender, MouseEventArgs e) {
+            // TODO: why don't all functions use dbl-click?
             switch (WindowFunction) {
             case TestView:
                 btnOK.PerformClick();
@@ -216,7 +218,32 @@ namespace WinAGI.Editor {
         }
 
         private void chkIncludePic_CheckedChanged(object sender, EventArgs e) {
-            // no action
+            if (!Visible) return;
+
+            // reload the available numbers list based on selection
+            if (chkIncludePic.Checked) {
+                // remove unused logic numbers that have pictures
+                for (int i = lstResNum.Items.Count - 1; i >= 0; i--) {
+                    if (EditGame.Pictures.Contains(((ListItemData)lstResNum.Items[i]).ResNum)) {
+                        lstResNum.Items.RemoveAt(i);
+                    }
+                }
+            }
+            else {
+                // add unused logic numbers that have pictures
+                int pos = 0;
+                for (int i = 0; i < 256; i++) {
+                    // if this logic is not ingame, and has a picture of 
+                    // same index, add it
+                    if (!EditGame.Logics.Contains(i)) {
+                        if (EditGame.Pictures.Contains(i)) {
+                            lstResNum.Items.Insert(pos, new ListItemData() { ResNum = (byte)i, ID = i.ToString()});
+                        }
+                        pos++;
+                    }
+                }
+            }
+
         }
 
         private void txtID_TextChanged(object sender, EventArgs e) {

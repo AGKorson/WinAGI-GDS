@@ -72,15 +72,12 @@ namespace WinAGI.Editor {
             }
         }
 
-        [ReadOnly(true)]
         [Editor(typeof(AGIPropertyEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string Description {
             get => EditGame.GameDescription;
             set { }
         }
 
-        //[Editor(typeof(AGIPropertyEditor),
-        //        typeof(System.Drawing.Design.UITypeEditor))]
         public string GameVer {
             get => EditGame.GameVersion;
             set {
@@ -90,8 +87,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        //[Editor(typeof(AGIPropertyEditor),
-        //        typeof(System.Drawing.Design.UITypeEditor))]
         public string GameAbout { 
             get => EditGame.GameAbout;
             set {
@@ -212,7 +207,7 @@ namespace WinAGI.Editor {
                             reason = UpdateReason.ShowRoom;
                         }
                         else {
-                            reason = UpdateReason.RemoveRoom;
+                            reason = UpdateReason.HideRoom;
                         }
                         // update layout editor to show new room status
                         UpdateExitInfo(reason, SelResNum, pLogic);
@@ -470,7 +465,7 @@ namespace WinAGI.Editor {
             AGIResType restype = 0;
             byte resnum = 0;
             AGIResource thisres = null;
-            frmGetResourceNum _frmGetResNum;
+            frmGetResourceNum frm;
 
             switch (context.PropertyDescriptor.Name) {
             case "Number":
@@ -494,9 +489,9 @@ namespace WinAGI.Editor {
                     resnum = ((ViewProperties)context.Instance).Number;
                     break;
                 }
-                _frmGetResNum = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, restype, resnum);
-                if (_frmGetResNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                    value = _frmGetResNum.NewResNum;
+                frm = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, restype, resnum);
+                if (frm.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    value = frm.NewResNum;
                 }
                 else {
                     value = (byte)SelResNum;

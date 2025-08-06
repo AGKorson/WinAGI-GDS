@@ -324,9 +324,9 @@ namespace WinAGI.Editor {
         private void mnuRIsRoom_Click(object sender, EventArgs e) {
             if (InGame && LogicNumber != 0) {
                 EditLogic.IsRoom = !EditLogic.IsRoom;
+                MDIMain.RefreshPropertyGrid(AGIResType.Logic, LogicNumber);
                 MarkAsChanged();
-                MessageBox.Show("TODO: update Layout");
-                RestoreFocusHack();
+                UpdateExitInfo(EditLogic.IsRoom ? UpdateReason.ShowRoom : UpdateReason.HideRoom, LogicNumber, EditLogic);
             }
         }
         #endregion
@@ -2402,26 +2402,7 @@ namespace WinAGI.Editor {
 
                 if (EditGame.UseLE && EditLogic.IsRoom) {
                     // need to update the layout editor and the layout data file with new exit info
-
-                    /*
-                    // save current cursor position
-                    lngPos = rtfLogic.Selection.Start;
-                    // cache the current first visible line
-                    lngFirst = SendMessage(rtfLogic.Handle, EM_GETFIRSTVISIBLELINE, 0, 0);
-                    // this returns zero sometimes when it shouldn't
-                    UpdateExitInfo(euUpdateRoom, LogicNumber, EditGame.Logics[LogicNumber]);
-                    rtfLogic.Text = EditGame.Logics[LogicNumber].SourceText;
-                    // reset cursor first; it will scroll the screen if
-                    // cursor is currently offscreen
-                    rtfLogic.Selection.Start = lngPos;
-                    rtfLogic.Selection.End = lngPos;
-                    // TODO: adjust scrolling to match previous position
-                    lngLine = SendMessage(rtfLogic.Handle, EM_GETFIRSTVISIBLELINE, 0, 0);
-                    if (lngLine != lngFirst) {
-                        SendMessage(rtfLogic.Handle, EM_LINESCROLL, 0, lngFirst - lngLine);
-                    }
-                    */
-
+                    UpdateExitInfo(UpdateReason.UpdateRoom, LogicNumber, EditGame.Logics[LogicNumber]);
                 }
                 // use the ingame logic to save the SOURCE
                 EditGame.Logics[LogicNumber].SaveSource();
@@ -2637,6 +2618,7 @@ namespace WinAGI.Editor {
             }
             btnCompile.Enabled = InGame;
             btnMsgClean.Enabled = InGame;
+            UpdateExitInfo(InGame ? UpdateReason.ShowRoom : UpdateReason.HideRoom, LogicNumber, EditLogic);
         }
 
         public void RenumberLogic() {
@@ -3276,6 +3258,7 @@ namespace WinAGI.Editor {
                     }
                 }
             }
+            // resource IDs
             if (EditGame != null) {
                 // check for logics, views, sounds, iobjs, voc words AND pics
                 switch (ArgType) {
@@ -3330,8 +3313,14 @@ namespace WinAGI.Editor {
                 }
             }
             // lastly, check for reserved defines option (if not looking for a resourceID)
-            if (((EditGame == null && WinAGISettings.DefIncludeReserved.Value) || (EditGame != null && EditGame.IncludeReserved)) && ArgType < ArgListType.Logic) {
-                TDefine[] tmpDefines = EditGame.ReservedDefines.All();
+            TDefine[] tmpDefines = null;
+            if (EditGame == null && WinAGISettings.DefIncludeReserved.Value && ArgType < ArgListType.Logic) {
+                tmpDefines = DefaultReservedDefines.All();
+            }
+            if (EditGame != null && EditGame.IncludeReserved && ArgType < ArgListType.Logic) {
+                tmpDefines = EditGame.ReservedDefines.All();
+            }
+            if (tmpDefines != null) {
                 for (int i = 0; i < tmpDefines.Length; i++) {
                     // add these reserved defines IF
                     //     types match OR

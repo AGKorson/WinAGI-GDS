@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -12,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography.Pkcs;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using WinAGI.Common;
@@ -266,26 +268,24 @@ namespace WinAGI.Editor {
             ltComment,
         }
         public enum EEReason {
-            erNone,      //no exit reason specified (reason not yet assigned)
-            erHorizon,   //exit is //if ego=horizon// Type
-            erRight,     //exit is //if ego=right// Type
-            erBottom,    //exit is //if ego=bottom// Type
-            erLeft,      //exit is //if ego=left// Type
-            erOther,     //exit can//t be easily determined to be a simple edge exit
+            erNone,      // no exit reason specified (reason not yet assigned)
+            erHorizon,   // exit is 'if egoegde=horizon' Type
+            erRight,     // exit is 'if egoedge=right' Type
+            erBottom,    // exit is 'if egoedge=bottom' Type
+            erLeft,      // exit is 'if egoedge=left' Type
+            erOther,     // exit can't be easily determined to be a simple edge exit
         }
         public enum EEStatus {
-            esOK,        //exit is drawn in layout editor, and exists in source code correctly
-            esNew,       //exit that is drawn in layout editor, but hasn//t been saved to source code yet
-            esChanged,   //exit that has been changed in the layout editor, but not updated in source code
-            esDeleted,   //exit that has been deleted in layout editor, but not updated in source code
-            esHidden,    //exit is valid, but to a logic currently marked as not IsRoom
+            esOK,        // exit is drawn in layout editor, and exists in source code correctly
+            esNew,       // exit that is drawn in layout editor, but hasn't been saved to source code yet
+            esChanged,   // exit that has been changed in the layout editor, but not updated in source code
+            esDeleted,   // exit that has been deleted in layout editor, but not updated in source code
         }
         public enum UpdateReason {
-            AddRoom,         //new room added in layout editor
-            ShowRoom,        //existing room toggled to show in layout editor
-            RemoveRoom,      //room removed by hiding (IsRoom to false), or actual removal from game
             RenumberRoom,    //room's logic number is changed
             UpdateRoom,      //existing room updated in logic editor
+            ShowRoom,        //new room added or existing room toggled to show in layout editor
+            HideRoom,      //room removed by hiding (IsRoom to false), or actual removal from game
         }
         public enum ArgListType {
             // same as ArgTypeEnum for 0-10; 
@@ -332,6 +332,7 @@ namespace WinAGI.Editor {
             Number,
             Symbol,
             Identifier,
+            LineBreak,
         }
 
         public enum TokenSubtype {
@@ -373,6 +374,7 @@ namespace WinAGI.Editor {
             public Color ExitEdge;
             public Color ExitOther;
         }
+
         public struct GifOptions {
             public int Zoom;
             public bool Transparency;
@@ -686,18 +688,22 @@ namespace WinAGI.Editor {
             // ************************************************
             // DefUseLE: default value for new games
             public SettingBool DefUseLE = new(nameof(DefUseLE), true, sLAYOUT);
-            // LEPages:
-            public SettingBool LEPages = new("PageBoundaries", true, sLAYOUT);
+            // LEUseGrid:
+            public SettingBool LEUseGrid = new("UseGrid", true, sLAYOUT);
+            // LEShowGrid:
+            public SettingBool LEShowGrid = new("PageBoundaries", true, sLAYOUT);
+            // LEGridMinor:
+            public SettingDouble LEGridMinor = new("GridSizeMinor", 0.1, sLAYOUT);
+            // LEGridMajor:
+            public SettingDouble LEGridMajor = new("GridSizeMajor", 1, sLAYOUT);
             // LEShowPics: false=no pics on rooms when drawn
             public SettingBool LEShowPics = new("ShowPics", true, sLAYOUT);
-            // LEUseGrid: 
-            public SettingBool LEUseGrid = new("UseGrid", true, sLAYOUT);
-            // LEGrid: 
-            public SettingDouble LEGrid = new("GridSize", 0.1, sLAYOUT);
+            // LEShowHidden: false= hidden exits are not shown in layout editor
+            public SettingBool LEShowHidden = new("ShowHidden", true, sLAYOUT);
             // LESync: 
             public SettingBool LESync = new("Sync", true, sLAYOUT);
-            // LEZoom: 
-            public SettingInt LEZoom = new("Zoom", 6, sLAYOUT);
+            // LEScale: 
+            public SettingInt LEScale = new("Zoom", 6, sLAYOUT);
             // RoomEdgeColor: 
             public SettingColor RoomEdgeColor = new SettingColor(nameof(RoomEdgeColor), Color.FromArgb(0, 0x55, 0xAA), sLAYOUT);
             // RoomFillColor:
@@ -862,12 +868,14 @@ namespace WinAGI.Editor {
                 clonesettings.DefVColor2 = new(DefVColor2);
                 // LAYOUT EDITOR
                 clonesettings.DefUseLE = new(DefUseLE);
-                clonesettings.LEPages = new(LEPages);
-                clonesettings.LEShowPics = new(LEShowPics);
                 clonesettings.LEUseGrid = new(LEUseGrid);
-                clonesettings.LEGrid = new(LEGrid);
+                clonesettings.LEShowGrid = new(LEShowGrid);
+                clonesettings.LEGridMinor = new(LEGridMinor);
+                clonesettings.LEGridMajor = new(LEGridMajor);
+                clonesettings.LEShowPics = new(LEShowPics);
+                clonesettings.LEShowHidden = new(LEShowHidden);
                 clonesettings.LESync = new(LESync);
-                clonesettings.LEZoom = new(LEZoom);
+                clonesettings.LEScale = new(LEScale);
                 clonesettings.RoomEdgeColor = new(RoomEdgeColor);
                 clonesettings.RoomFillColor = new(RoomFillColor);
                 clonesettings.TransPtEdgeColor = new(TransPtEdgeColor);
@@ -932,11 +940,6 @@ namespace WinAGI.Editor {
                 clonesettings.TestCel = TestCel;
                 return clonesettings;
             }
-        }
-
-        public struct LCoord {
-            public double X;
-            public double Y;
         }
 
         public struct NewGameResults {
@@ -1045,11 +1048,11 @@ namespace WinAGI.Editor {
         static public frmObjectEdit ObjectEditor;
         public static bool OEInUse = false;
         public static bool DragObject = false;
-        public static int ObjCount;
+        public static int ObjEdCount;
         public static frmWordsEdit WordEditor;
         public static bool WEInUse = false;
         public static bool DragWord = false;
-        public static int WrdCount;
+        public static int WrdEdCount;
         public static frmGlobals GlobalsEditor;
         public static bool GEInUse;
         public static int TextCount;
@@ -2170,7 +2173,7 @@ namespace WinAGI.Editor {
             MDIMain.toolStrip1.Items["btnLayoutEd"].Enabled = EditGame != null;
         }
 
-        internal static void UpdateTBResourceBtns(AGIResType restype, bool ingame, bool changed) {
+        internal static void UpdateTBResourceBtns(AGIResType restype, bool ingame, bool changed, int resnum) {
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = changed;
             switch (restype) {
             case AGIResType.Game:
@@ -2696,9 +2699,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public static void CompileGame(string CompGameDir = "", bool RebuildOnly = false) {
             DialogResult rtn = DialogResult.Cancel;
             string strTemp = "";
@@ -2729,12 +2729,12 @@ namespace WinAGI.Editor {
                 case DialogResult.Yes:
                     if (LEInUse) {
                         if (LayoutEditor.IsChanged) {
-                            LayoutEditor.MenuClickSave();
+                            LayoutEditor.SaveLayout();
                         }
                     }
                     if (GEInUse) {
                         if (GlobalsEditor.IsChanged) {
-                            GlobalsEditor.MenuClickSave();
+                            GlobalsEditor.SaveDefinesList();
                         }
                     }
                     break;
@@ -3459,7 +3459,8 @@ namespace WinAGI.Editor {
             }
             foreach (char ch in NewID.ToCharArray()) {
                 // alphanumeric only
-                if (ch < 'A' || ch > 'z' || (ch >= 91 && ch <= 96)) {
+                if (!char.IsLetterOrDigit(ch)) {
+                //if (ch < 'A' || ch > 'z' || (ch >= 91 && ch <= 96)) {
                     MessageBox.Show("The specified gameID contains invalid characters. No change made.", "Invalid Game ID", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return false;
                 }
@@ -3698,7 +3699,7 @@ namespace WinAGI.Editor {
                           WinAGIHelp, @"htm\winagi\Layout_Editor.htm");
                     //save it, if changed
                     if (LayoutEditor != null || LayoutEditor.IsChanged) {
-                        LayoutEditor.MenuClickSave();
+                        LayoutEditor.SaveLayout();
                     }
                     //close it
                     LayoutEditor.Close();
@@ -3796,9 +3797,48 @@ namespace WinAGI.Editor {
             return;
         }
 
+        public static void OpenLayout() {
+            if (EditGame == null) {
+                return;
+            }
+            if (LEInUse) {
+                // just bring it in focus
+                LayoutEditor.Focus();
+
+                if (LayoutEditor.WindowState == FormWindowState.Minimized) {
+                    // if minimized, restore it
+                    LayoutEditor.WindowState = FormWindowState.Normal;
+                }
+            }
+            else {
+                // open the layout for the current game
+                LayoutEditor = new frmLayout();
+                LayoutEditor.Text = EditGame.GameID + " - Room Layout";
+
+                //open layout data file
+                if (!LayoutEditor.GetLayoutData()) {
+                    //there was a problem
+                    LayoutEditor.Close();
+                    LayoutEditor = null;
+                    return;
+                }
+                LayoutEditor.Show();
+                LayoutEditor.Activate();
+                // mark editor as in use
+                LEInUse = true;
+            }
+        }
+
         public static byte GetNewNumber(AGIResType ResType, byte OldResNum) {
             byte newnum;
-            using frmGetResourceNum frm = new(GetRes.Renumber, ResType, OldResNum);
+            bool isroom;
+            if (ResType == AGIResType.Logic) {
+                isroom = EditGame.Logics[OldResNum].IsRoom;
+            }
+            else {
+                isroom = false;
+            }
+            using frmGetResourceNum frm = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, ResType, OldResNum);
             if (frm.ShowDialog(MDIMain) != DialogResult.Cancel) {
                 newnum = frm.NewResNum;
                 if (newnum != OldResNum) {
@@ -3831,6 +3871,9 @@ namespace WinAGI.Editor {
                 EditGame.Logics.Renumber(OldResNum, NewResNum);
                 strCaption = ResourceName(EditGame.Logics[NewResNum], true);
                 newID = EditGame.Logics[NewResNum].ID;
+                if (EditGame.UseLE) {
+                    UpdateExitInfo(UpdateReason.RenumberRoom, OldResNum, null, NewResNum);
+                }
                 break;
             case AGIResType.Picture:
                 oldID = EditGame.Pictures[OldResNum].ID;
@@ -3870,7 +3913,7 @@ namespace WinAGI.Editor {
                         break;
                     }
                 }
-                //add to tree
+                // add to tree
                 tmpNode = tmpNode.Nodes.Insert(lngPos, KeyText(ResType, NewResNum), strCaption);
                 tmpNode.Tag = NewResNum;
                 if (ResType == AGIResType.Logic) {
@@ -4347,7 +4390,7 @@ namespace WinAGI.Editor {
                 }
                 if (LEInUse) {
                     // redraw to ensure correct ID is displayed
-                    LayoutEditor.DrawLayout();
+                    LayoutEditor.DrawLayout(ELSelection.lsRoom, ResNum);
                 }
                 break;
             case AGIResType.Picture:
@@ -4406,114 +4449,893 @@ namespace WinAGI.Editor {
             }
         }
 
+        public static string ReadNextBlock(StreamReader sr) {
+            // read next line until '\x01' or EOF
+            StringBuilder sb = new();
+            int next = sr.Read();
+            while (next != -1 && next != 1 && next != 2) {
+                sb.Append((char)next);
+                next = sr.Read();
+            }
+            return sb.Length > 0 ? sb.ToString() : null;
+        }
+
+        public static string ReadNextBlock(StreamReader sr, char separator) {
+            // read next line until separator or EOF
+            StringBuilder sb = new();
+            int next = sr.Read();
+            while (next != -1 && next != separator) {
+                sb.Append((char)next);
+                next = sr.Read();
+            }
+            return sb.Length > 0 ? sb.ToString() : null;
+        }
+
+        public static string ReadNextBlock(StreamReader sr, ref long count) {
+            // read next line until '\x01' or EOF, and return the number of characters read
+            StringBuilder sb = new();
+            int next = sr.Read();
+            count = 0;
+            while (next != -1 && next != 1 && next != 2) {
+                sb.Append((char)next);
+                next = sr.Read();
+                count++;
+            }
+            return sb.Length > 0 ? sb.ToString() : null;
+        }
+
+        public static void UpdateLayoutFile(UpdateReason Reason, int LogicNumber, AGIExits NewExits, int NewNum = 0) {
+            // updates the layout file with new exit information based on the
+            // change indicated by Reason
+
+            // it is possible that file might not exist; if a layout was extracted without
+            // being saved, then an update to the layout followed by a call to view
+            // a logic would get us here...
+            if (!File.Exists(EditGame.GameDir + EditGame.GameID + ".wal")) {
+                return;
+            }
+            // file update strategy depends on reason:
+            // RenumberRoom: room's logic number is changed
+            //      add new RenumberRoom entry (unless changing back)
+            //
+            // UpdateRoom: add or replace an update to a room's exits
+            //      must have a Room or ShowRoom entry
+            //      if an update exists, remove it
+            //      then add a new UpdateRoom entry
+            //
+            // ShowRoom: new room added or existing room toggled to show
+            //      must have no entry OR a Room/ShowRoom with a HideRoom entry
+            //      if HideRoom exists, remove it, then add UpdateRoom entry
+            //      otherwise, add a ShowRoom entry
+            //
+            // HideRoom: room removed by hiding (IsRoom to false), or actual removal from game
+            //      must have a Room entry OR a ShowRoom entry, may have an UpdateRoom entry
+            //      if an UpdateRoom entry exists, remove it
+            //      then add a HideRoom entry
+
+            FileStream fs;
+            try {
+                fs = new(EditGame.GameDir + EditGame.GameID + ".wal", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                // first check for renumber, because it just
+                // adds a new entry
+
+                using StreamReader sr = new(fs, Encoding.Default);
+                // skip to first update block (find first '\x02')
+                int next = sr.Read();
+                long pos = 1, count = 0;
+                while (next != -1 && next != 2) {
+                    next = sr.Read();
+                    pos++;
+                }
+                // pos indicates start of block, not including the separator
+                // character; count is length of block, also without the separator
+
+                // read first block
+                string strLine = ReadNextBlock(sr, ref count);
+                bool found = false;
+                while (strLine != null) {
+                    // read each line, finding blocks that belong to this logic number
+                    LayoutFileData layoutobj = null;
+                    try {
+                        // convert to update block
+                        layoutobj = JsonSerializer.Deserialize<LayoutFileData>(strLine);
+                        switch (Reason) {
+                        case UpdateReason.RenumberRoom:
+                            if (layoutobj is LFDRenumber renumber) {
+                                if (NewNum == renumber.OldNumber && LogicNumber == renumber.Index) {
+                                    RemoveBlock(fs, pos - 1, count + 1);
+                                    found = true;
+                                }
+                            }
+                            break;
+                        case UpdateReason.UpdateRoom:
+                        case UpdateReason.HideRoom:
+                            // if an update exists, remove it
+                            if (layoutobj is LFDUpdate update) {
+                                // if this is a room block, check if it matches
+                                if (update.Index == LogicNumber) {
+                                    // remove this entry
+                                    RemoveBlock(fs, pos - 1, count + 1);
+                                    found = true;
+                                }
+                            }
+                            break;
+                        case UpdateReason.ShowRoom:
+                            // must have no entry OR a Room/ShowRoom with a HideRoom entry
+                            // if HideRoom exists, remove it
+                            if (layoutobj is LFDHideRoom hide) {
+                                // if this is a hide block, check if it matches
+                                if (hide.Index == LogicNumber) {
+                                    // remove this entry
+                                    RemoveBlock(fs, pos - 1, count + 1);
+                                    // now instead of a showroom, we need an update
+                                    found = true;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    catch (Exception e) {
+                        // just ignore blocks with errors
+                    }
+                    if (found) {
+                        break;
+                    }
+                    // try next block (add one to account for 0x02 code)
+                    pos += count + 1;
+                    strLine = ReadNextBlock(sr, ref count);
+                }
+                switch (Reason) {
+                case UpdateReason.RenumberRoom:
+                    if (!found) {
+                        // add a new RenumberRoom entry
+                        LFDRenumber renumber = new() {
+                            Index = NewNum,
+                            OldNumber = LogicNumber,
+                        };
+                        string renum = '\x02' + JsonSerializer.Serialize(renumber as LayoutFileData, new JsonSerializerOptions { WriteIndented = true });
+                        byte[] bytData = Encoding.Default.GetBytes(renum);
+                        fs.Seek(0, SeekOrigin.End);
+                        fs.Write(bytData, 0, bytData.Length);
+                    }
+                    break;
+                case UpdateReason.UpdateRoom:
+                    // add new update block
+                    LFDUpdate newupdate = new() {
+                        Index = LogicNumber,
+                        Visible = true,
+                        ShowPic = WinAGISettings.LEShowPics.Value,
+                        Exits = NewExits?.ToArray() ?? []
+                    };
+                    byte[] bytUpdateData = Encoding.Default.GetBytes(
+                        '\x02' + JsonSerializer.Serialize(
+                            newupdate as LayoutFileData,
+                            new JsonSerializerOptions { WriteIndented = true }));
+                    fs.Seek(0, SeekOrigin.End);
+                    fs.Write(bytUpdateData, 0, bytUpdateData.Length);
+                    break;
+                case UpdateReason.HideRoom:
+                    // add a HideRoom entry
+                    LFDHideRoom hide = new() {
+                        Index = LogicNumber,
+                        Visible = false
+                    };
+                    string hideStr = '\x02' + JsonSerializer.Serialize(hide as LayoutFileData, new JsonSerializerOptions { WriteIndented = true });
+                    byte[] hideData = Encoding.Default.GetBytes(hideStr);
+                    fs.Seek(0, SeekOrigin.End);
+                    fs.Write(hideData, 0, hideData.Length);
+                    break;
+                case UpdateReason.ShowRoom:
+                    if (found) {
+                        LFDUpdate update = new() {
+                            Index = LogicNumber,
+                            Visible = true,
+                            ShowPic = WinAGISettings.LEShowPics.Value
+                        };
+                        if (NewExits == null) {
+                            // if no exits passed, use empty exits
+                            update.Exits = [];
+                        }
+                        else {
+                            // use the exits passed
+                            update.Exits = NewExits.ToArray();
+                        }
+                        strLine = '\x02' + JsonSerializer.Serialize(update as LayoutFileData, new JsonSerializerOptions { WriteIndented = true });
+                    }
+                    else {
+                        LFDShowRoom show = new() {
+                            Index = LogicNumber,
+                            Visible = true,
+                            ShowPic = WinAGISettings.LEShowPics.Value
+                        };
+                        if (NewExits == null) {
+                            // if no exits passed, use empty exits
+                            show.Exits = [];
+                        }
+                        else {
+                            // use the exits passed
+                            show.Exits = NewExits.ToArray();
+                        }
+                        strLine = '\x02' + JsonSerializer.Serialize(show as LayoutFileData, new JsonSerializerOptions { WriteIndented = true });
+                    }
+                    byte[] buffer = Encoding.Default.GetBytes(strLine);
+                    fs.Seek(0, SeekOrigin.End);
+                    fs.Write(buffer, 0, buffer.Length);
+                    break;
+                }
+                fs.Flush();
+                fs.Dispose();
+            }
+            catch (Exception e) {
+                // something went wrong -ignore it
+                //ErrMsgBox(e, "Unable to open Layout File", "", "Update Layout File Error");
+            }
+
+            static void ReplaceBlock(FileStream fs, long oldPos, long oldSize, byte[] bytNew) {
+                long tailStart = oldPos + oldSize;
+                long tailLen = fs.Length - tailStart;
+                int newSize = bytNew.Length;
+
+                if (newSize == oldSize) {
+                    // Overwrite in place
+                    fs.Position = oldPos;
+                    fs.Write(bytNew, 0, newSize);
+                }
+                else if (newSize < oldSize) {
+                    // Overwrite, shift tail left, truncate
+                    fs.Position = oldPos;
+                    fs.Write(bytNew, 0, newSize);
+
+                    // Move tail data left
+                    byte[] buffer = new byte[8192];
+                    long readPos = tailStart;
+                    long writePos = oldPos + newSize;
+                    long bytesLeft = tailLen;
+                    while (bytesLeft > 0) {
+                        fs.Position = readPos;
+                        int toRead = (int)Math.Min(buffer.Length, bytesLeft);
+                        int bytesRead = fs.Read(buffer, 0, toRead);
+
+                        fs.Position = writePos;
+                        fs.Write(buffer, 0, bytesRead);
+
+                        readPos += bytesRead;
+                        writePos += bytesRead;
+                        bytesLeft -= bytesRead;
+                    }
+                    fs.SetLength(fs.Length - (oldSize - newSize));
+                }
+                else // newSize > oldSize
+                {
+                    // Shift tail right to make room
+                    byte[] buffer = new byte[8192];
+                    long readPos = tailStart + tailLen;
+                    long writePos = readPos + (newSize - oldSize);
+                    while (tailLen > 0) {
+                        int toMove = (int)Math.Min(buffer.Length, tailLen);
+                        readPos -= toMove;
+                        writePos -= toMove;
+
+                        fs.Position = readPos;
+                        fs.Read(buffer, 0, toMove);
+
+                        fs.Position = writePos;
+                        fs.Write(buffer, 0, toMove);
+
+                        tailLen -= toMove;
+                    }
+                    // Write new data
+                    fs.Position = oldPos;
+                    fs.Write(bytNew, 0, newSize);
+                    fs.SetLength(fs.Length + (newSize - oldSize));
+                }
+            }
+            static void RemoveBlock(FileStream fs, long pos, long len) {
+                // remove a block of data from the file
+                // by shifting the tail left
+                long bytesToMove = fs.Length - (pos + len);
+                if (bytesToMove > 0) {
+                    byte[] buffer = new byte[8192];
+                    long readPos = pos + len;
+                    long writePos = pos;
+                    int bytesRead;
+                    while (bytesToMove > 0) {
+                        fs.Position = readPos;
+                        int toRead = (int)Math.Min(buffer.Length, bytesToMove);
+                        bytesRead = fs.Read(buffer, 0, toRead);
+                        fs.Position = writePos;
+                        fs.Write(buffer, 0, bytesRead);
+                        readPos += bytesRead;
+                        writePos += bytesRead;
+                        bytesToMove -= bytesRead;
+                    }
+                }
+                // Truncate the file to remove the leftover bytes at the end
+                fs.SetLength(fs.Length - len);
+            }
+        }
+
+        public static void UpdateLayoutFileO(UpdateReason Reason, int LogicNumber, AGIExits NewExits, int NewNum = 0) {
+            // updates the layout file with new exit information based on the
+            // change indicated by Reason
+
+            // ORIGINAL CODE:
+
+            // if renumbering, just add the new entry
+            // if updating, find any existing update; remove it then add the new one
+            // if adding or showing, if there's an existing update, remove it
+            // if hiding or removing,
+
+            // it is possible that file might not exist; if a layout was extracted without
+            // being saved, then an update to the layout followed by a call to view
+            // a logic would get us here...
+            if (!File.Exists(EditGame.GameDir + EditGame.GameID + ".wal")) {
+                return;
+            }
+            FileStream fs = null;
+            try {
+                long updatePos = 0, roomPos = 0;
+                long updateLen = 0, roomLen = 0;
+                bool blnRoomVis = false;
+                long pos = 0, count = 0;
+                fs = new(EditGame.GameDir + EditGame.GameID + ".wal", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                using StreamReader sr = new(fs, Encoding.Default);
+                // skip header
+                string strLine = ReadNextBlock(sr, ref count);
+                pos += count + 1;
+                // read first block
+                strLine = ReadNextBlock(sr, ref count);
+
+                if (Reason != UpdateReason.RenumberRoom) {
+                    while (strLine != null) {
+                        // read each line, finding blocks that belong to this logic number
+                        LayoutFileData layoutobj = null;
+                        try {
+                            // convert to update block
+                            layoutobj = JsonSerializer.Deserialize<LayoutFileData>(strLine);
+                        }
+                        catch (Exception e) {
+                            // just ignore blocks with errors
+                        }
+                        if (layoutobj is LFDUpdate update) {
+                            if (layoutobj.Index == LogicNumber) {
+                                // this is the update line
+                                updatePos = pos;
+                                // adjust count by 1 to account for the leading \x01
+                                updateLen = count - 1;
+                            }
+                        }
+                        else if (layoutobj is LFDRoom room) {
+                            if (room.Index == LogicNumber) {
+                                // this is the room line
+                                roomPos = pos;
+                                roomLen = count - 1;
+                                // determine if room is visible
+                                blnRoomVis = room.Visible;
+                            }
+                        }
+                        if (updatePos != 0 && roomPos != 0) {
+                            // if both found, we can stop
+                            break;
+                        }
+                        pos += count + 1;
+                        strLine = ReadNextBlock(sr, ref count);
+                    }
+                    // ALWAYS delete update line, if there is one
+                    if (updatePos != 0) {
+                        // if there is an update line, remove it (including the
+                        // starting \x01 character
+                        updatePos -= 1; updateLen += 1;
+                        long bytesToMove = fs.Length - (updatePos + updateLen);
+                        if (bytesToMove > 0) {
+                            byte[] buffer = new byte[8192];
+                            long readPos = updatePos + updateLen;
+                            long writePos = updatePos;
+                            int bytesRead;
+                            while (bytesToMove > 0) {
+                                fs.Position = readPos;
+                                int toRead = (int)Math.Min(buffer.Length, bytesToMove);
+                                bytesRead = fs.Read(buffer, 0, toRead);
+
+                                fs.Position = writePos;
+                                fs.Write(buffer, 0, bytesRead);
+
+                                readPos += bytesRead;
+                                writePos += bytesRead;
+                                bytesToMove -= bytesRead;
+                            }
+                        }
+                        // Truncate the file to remove the leftover bytes at the end
+                        fs.SetLength(fs.Length - updateLen);
+                    }
+                }
+
+                switch (Reason) {
+                case UpdateReason.ShowRoom:
+                    LFDShowRoom show = new() {
+                        Index = LogicNumber,
+                        Visible = true,
+                        ShowPic = WinAGISettings.LEShowPics.Value
+                    };
+                    if (NewExits == null) {
+                        // if no exits passed, use empty exits
+                        show.Exits = [];
+                    }
+                    else {
+                        // use the exits passed
+                        show.Exits = NewExits.ToArray();
+                    }
+                    strLine = '\x02' + JsonSerializer.Serialize(show as LayoutFileData, new JsonSerializerOptions { WriteIndented = true });
+                    break;
+                case UpdateReason.UpdateRoom:
+                    LFDUpdate update = new() {
+                        Index = LogicNumber,
+                        Visible = true,
+                        ShowPic = WinAGISettings.LEShowPics.Value
+                    };
+                    if (NewExits == null) {
+                        // if no exits passed, use empty exits
+                        update.Exits = [];
+                    }
+                    else {
+                        // use the exits passed
+                        update.Exits = NewExits.ToArray();
+                    }
+                    strLine = '\x02' + JsonSerializer.Serialize(update as LayoutFileData, new JsonSerializerOptions { WriteIndented = true });
+                    break;
+                case UpdateReason.HideRoom:
+                    // if there is NOT a visible room
+                    if (blnRoomVis) {
+                        update = new() {
+                            Index = LogicNumber,
+                            Visible = false,
+                            ShowPic = WinAGISettings.LEShowPics.Value,
+                            Exits = []
+                        };
+                        strLine = '\x02' + JsonSerializer.Serialize(update as LayoutFileData, new JsonSerializerOptions { WriteIndented = true });
+                    }
+                    else {
+                        // dont need to update, cuz room is already hidden
+                        strLine = "";
+                    }
+                    break;
+                case UpdateReason.RenumberRoom:
+                    // updates the layout file to indicate a room has changed its number
+                    // a file entry using the update code (N)
+                    // instead of the room code (R) indicates to the layout editor
+                    // that the room has changed
+                    LFDRenumber renumber = new() {
+                        Index = NewNum,
+                        OldNumber = LogicNumber
+                    };
+                    strLine = '\x02' + JsonSerializer.Serialize(renumber as LayoutFileData, new JsonSerializerOptions { WriteIndented = true });
+                    break;
+                }
+                if (strLine.Length > 0) {
+                    long bytesToAdd = strLine.Length;
+                    byte[] buffer = Encoding.Default.GetBytes(strLine);
+                    fs.Seek(0, SeekOrigin.End);
+                    fs.Write(buffer, 0, buffer.Length);
+                    fs.Flush();
+                }
+            }
+            catch (Exception e) {
+                // something went wrong -ignore it
+                //ErrMsgBox(e, "Unable to open Layout File", "", "Update Layout File Error");
+            }
+            fs.Dispose();
+        }
+
         public static void UpdateExitInfo(UpdateReason Reason, int LogicNumber, Logic ThisLogic, int NewNum = 0) {
-            /*
-          //   frmMDIMain|SelectedItemRenumber:  UpdateExitInfo euRenumberRoom, OldResNum, null, NewResNum
-          //  frmMDIMain|lstProperty_LostFocus:  UpdateExitInfo Reason, SelResNum, Logics(SelResNum) //showroom or removeroom
-          //frmMDIMain|picProperties_MouseDown:  UpdateExitInfo Reason, SelResNum, Logics(SelResNum) //showroom or removeroom
-          //                ResMan|RemoveLogic:  UpdateExitInfo euRemoveRoom, LogicNum, null
-          //        frmLogicEdit|MenuClickSave:  UpdateExitInfo euUpdateRoom, EditLogic.Number, EditLogic
-          //    frmLogicEdit|MenuClickRenumber:  UpdateExitInfo euRenumberRoom, OldResNum, null, NewResNum
+            // updates the layout editor (if it is open) and the layout file
+            // (if there is one) whenever exit info for a room is changed
+            // 
+            // changes that should be captured are:
+            //    - saving changes to logic source from the editor (Update)
+            //    - changing IsRoom property for existing logic from property
+            //      window or logic editor (Show, Hide)
+            //    - changing Number of a logic that is a room in resource
+            //      list or logic editor (Renumber)
+            //    - adding or removing a logic that is a room from
+            //      resource menu or editor (Show, Delete)
+            // TODO: ErrPts should include the text of the exit room so
+            // it can be checked against globals and local defines
+            AGIExits tmpExits = null;
 
-          //updates the layout editor (if it is open) and the layout file
-          //(if there is one) whenever exit info for a room is changed
-          //(including when IsRoom property is changed, or when a room is
-          //deleted from the game)
+            //is there an existing layout editor file?
+            bool blnSave = File.Exists(EditGame.GameDir + EditGame.GameID + ".wal");
 
-          AGIExits tmpExits;
-          bool blnSave, blnShow;
+            //if layout file does not exist AND not editing layout
+            if (!blnSave && !LEInUse) {
+                //no file, and editor is not in use;
+                //no updates are necessary
+                return;
+            }
 
-          On Error GoTo ErrHandler
+            //if showing new/existing room, or updating an existing room,
+            if (Reason == UpdateReason.ShowRoom || Reason == UpdateReason.UpdateRoom) {
+                // get new exits from the logic that was passed
+                tmpExits = ExtractExits(ThisLogic);
+            }
 
-          //is there an existing layout editor file?
-          blnSave = File.Exists(GameDir + GameID + ".wal")
+            //if a layout file exists, it needs to be updated too
+            if (blnSave) {
+                // add line to output file
+                UpdateLayoutFile(Reason, LogicNumber, tmpExits, NewNum);
+            }
 
-          //if layout file does not exist AND not editing layout
-          if (!blnSave && !LEInUse) {
-          //no file, and editor is not in use;
-          //no updates are necessary
-          return;
-          }
+            //if layout editor is open
+            if (LEInUse) {
+                // use layout editor update method
+                LayoutEditor.UpdateLayout(Reason, LogicNumber, tmpExits, NewNum);
+                // and redraw to refresh the editor
+                LayoutEditor.DrawLayout(ELSelection.lsRoom, NewNum);
+            }
+        }
 
-          //if adding new room, showing existing room, or updating an existing room,
-          if (Reason = euAddRoom || Reason = euShowRoom || Reason = euUpdateRoom) {
-          //get new exits from the logic that was passed
-          tmpExits = ExtractExits(ThisLogic)
-          }
+        public static AGIExits ExtractExits(Logic ThisLogic) {
+            // extracts the exits from a logic resource
+            // and returns them as an AGIExits object
+            // (this is used to update the layout editor
+            // and the layout data file)
 
-          //if a layout file exists, it needs to be updated too
-          if (blnSave) {
-          //add line to output file
-          UpdateLayoutFile Reason, LogicNumber, tmpExits, NewNum
-          }
+            // analyzes a logic to find 'new.room' commands and builds a new
+            // exits object that contains the exit info for the logic
+            //
+            // NOTE: this analyzes an existing SAVED logic source; not
+            // a source that is being edited
+            //
+            //
+            // if the exit id for an exit is new or has changed,
+            // the source code is updated, and SAVED
+            //
+            // transfer point info is not addressed by the extractexits method
+            // the calling method must deal with transpts on its own
 
-          //if layout editor is open
-          if (LEInUse) {
-          //use layout editor update method
-          LayoutEditor.UpdateLayout Reason, LogicNumber, tmpExits
-          //and redraw to refresh the editor
-          LayoutEditor.DrawLayout true
-          }
-          return;
+            // lngCmdLoc is location of 1st character of 'new.room' command
 
-          ErrHandler:
-          Resume Next
-          }
+            bool blnIDOK, blnSave = false;
+            int lngID = 0;
 
-          public static AGIExits ParseExits(string strExitInfo, string strVer)
-          //parses the string that contains exit info that comes from the layout editor
-          //data file
-          //if error is encountered,
+            // ensure source is loaded
+            bool blnLogLoad = ThisLogic.Loaded;
+            if (!blnLogLoad) {
+                ThisLogic.Load();
+            }
 
-          string[] strExit;
-           string[] strData;
-          int i, offset, Size;
+            // get source code
+            string strLogic = ThisLogic.SourceText;
 
-          ParseExits = New AGIExits
+            // create new room object
+            AGIExits RoomExits = new();
 
-          On Error GoTo ErrHandler
+            // locate first instance of new.room command
+            int lngCmdLoc = WinAGIFCTB.FindTokenPos(strLogic, "new.room", 0);
 
-          //ver 10,11: R|##|v|o|x|y|index:room:reason:style:xfer:leg:spx:spy:epx:epy|...
-          //ver 12:    R|##|v|o|p|x|y|index:room:reason:style:xfer:leg|...
+            // loop through exit extraction until all new.room commands are processed
+            while (lngCmdLoc != -1) {
+                // get exit info
+                AGIExit tmpExit = AnalyzeExit(strLogic, ref lngCmdLoc);
 
-          switch (strVer
-          case "10", "11"
-          offset = 6
-          Size = 9
-          case "12", "21"
-          offset = 7
-          Size = 5
-          }
+                // find end of line by searching for crlf
+                int j = strLogic.IndexOf('\r', lngCmdLoc);
+                // if no line end found, means we are on last line; set
+                // j to a value of lngCmdLoc+1 so we get the last char of the line
+                if (j == 0)
+                    j = lngCmdLoc + 1;
+                // get rest of line (to check against existing exits)
+                string strLine = strLogic[lngCmdLoc..j].Trim();
 
-          strData = Split(strExitInfo, "|")
+                // check line for a ##LE marker:
+                //  first, strip off comment marker
+                if (strLine.Left(1) == "[") {
+                    strLine = strLine.Right(strLine.Length - 1).Trim();
+                }
+                else if (strLine.Left(2) == "//") {
+                    strLine = strLine.Right(strLine.Length - 2).Trim();
+                }
+                //  next, look for ##LE tag
+                if (strLine.Left(4) == "##LE") {
+                    // strip off leader to expose exit id number
+                    strLine = strLine[4..];//   .Right(strLine.Length - 4);
+                    if (strLine.Right(2) == "##") {
+                        strLine = strLine[..^2];
+                    }
+                }
+                else {
+                    // not an exit marker; reset the string
+                    strLine = "";
+                }
+                // if a valid id Value was found
+                if (strLine.Length != 0) {
+                    // an id may exist
+                    // assum ok until proven otherwise
+                    blnIDOK = true;
+                    // get the id number
+                    lngID = strLine.IntVal();
+                    // if not a number (val=0) then no marker
+                    if (lngID == 0) {
+                        blnIDOK = false;
+                    }
+                    else {
+                        // check for this marker among current exits
+                        for (int i = 0; i < RoomExits.Count; i++) {
+                            if (RoomExits[i].ID.Right(3).IntVal() == lngID) {
+                                // this ID has already been added by the editor;
+                                // it needs to be reset
+                                blnIDOK = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else {
+                    // no previous marker; assign id automatically
+                    blnIDOK = false;
+                }
+                // if previous ID needs updating (or one not found)
+                if (!blnIDOK) {
+                    // get next available id number
+                    lngID = 0;
+                    bool found;
+                    do {
+                        lngID++;
+                        found = true;
+                        for (int i = 0; i < RoomExits.Count; i++) {
+                            if (RoomExits[i].ID.Right(3).IntVal() == lngID) {
+                                found = false;
+                                break;
+                            }
+                        }
+                    } while (!found);
+                }
+                // exit is ok? or use AnalyzeExit result?
+                EEStatus tmpStatus = EEStatus.esOK;
+                // add exit to logic, and flag as in game and ok
+                RoomExits.Add(lngID, tmpExit.Room, tmpExit.Reason, tmpExit.Style).Status = tmpStatus;
 
-          //get exit info
-          For i = 0 To UBound(strData) - offset
-          strExit = Split(strData(i + offset), ":")
-          //ver 10 and 11 have ten elements,
-          //ver 12 needs just 6
-          if (UBound(strExit) = Size) {
+                // if id is new or changed,
+                if (!blnIDOK) {
+                    //lngCmdLoc marks end of commands on this line
+                    // find end of line with 'new.room' command
+                    j = strLogic.IndexOf('\r', lngCmdLoc);
+                    // use end of logic, if on last line (i=0)
+                    if (j == 0)
+                        j = strLogic.Length + 1;
 
-            //add new exit, and flag as new, in source
-            ParseExits.Add(strExit(0), strExit(1), strExit(2), strExit(3), strExit(4), strExit(5)).Status = esOK
+                    // insert exit info into logic source
+                    strLogic = strLogic.Left(lngCmdLoc - 1) + " [ ##LE" + lngID.ToString("000") + "##" + strLogic.Right(strLogic.Length - j + 1);
+                    // set save flag
+                    blnSave = true;
+                }
+                
+                // get next new.room cmd
+                lngCmdLoc = WinAGIFCTB.FindTokenPos(strLogic, "new.room", ++lngCmdLoc);
+            }
+            // if changes made to exit ids
+            if (blnSave) {
+                // replace sourcecode
+                ThisLogic.SourceText = strLogic;
+                Debug.Assert(ThisLogic == EditGame.Logics[ThisLogic.Number]);
+                Debug.Assert(ThisLogic.InGame);
 
-          //      With ParseExits.Item(ParseExits.Count - 1)
-          //        .SPX = CSng(strExit(6))
-          //        .SPY = CSng(strExit(7))
-          //        .EPX = CSng(strExit(8))
-          //        .EPY = CSng(strExit(9))
-          //      End With
+                if (!ThisLogic.InGame) {
+                    // save id
+                    strLogic = ThisLogic.ID;
+                }
+                ThisLogic.SaveSource();
+                if (!ThisLogic.InGame) {
+                    ThisLogic.ID = strLogic;
+                }
+                // now need to make sure tree is up to date (and preview window, if this
+                // logic happens to be the one being previewed)
+                RefreshTree(AGIResType.Logic, ThisLogic.Number);
+            }
+            // unload OR load if necessary
+            if (!blnLogLoad && ThisLogic.Loaded) {
+                ThisLogic.Unload();
+            }
+            else if (blnLogLoad && !ThisLogic.Loaded) {
+                ThisLogic.Load();
+            }
 
-          }
-          Next i
-          Exit Function
+            //return the new exit list
+            return RoomExits;
+        }
 
-          ErrHandler:
-          //error!
-          //Debug.Assert false
-          Resume Next
-          ParseExits = null
-            */
+        private static AGIExit AnalyzeExit(string strSource, ref int lngLoc) {
+            // analyzes the exit info associated with the 'new.room' command
+            // located at lngLoc in strSource
+            //
+            // returns an agiexit object with exit info
+            //
+            // lngLoc is also changed to point to the end of the 'new.room' command
+            // to allow insertion of layouteditor marker (at the position of an
+            // existing comment, or at end of line following the command)
+
+            EEReason reason = EEReason.erNone;
+            int intStyle = 0;
+            int lngEnd = 0;
+            int room = 0;
+            bool blnGood = false;
+            AGIToken token = new();
+
+            //get room Value first:
+            token.EndPos = lngLoc + 8; // length of 'new.room
+            token = WinAGIFCTB.NextToken(strSource, token);
+            if (token.Text == "(") {
+                // next cmd should be the Value we are looking for
+                token = WinAGIFCTB.NextToken(strSource, token);
+                room = ArgFromToken(token.Text).IntVal();
+                // next token should be ')'
+                token = WinAGIFCTB.NextToken(strSource, token);
+                if (token.Text == ")") {
+                    // and then next token should be ';'
+                    token = WinAGIFCTB.NextToken(strSource, token);
+                    if (token.Text == ";") {
+                        blnGood = true;
+                        lngEnd = token.EndPos;
+                    }
+                }
+            }
+            else {
+                // if no parenthesis, set room arg to zero
+                room = 0;
+            }
+            // validate room
+            if (room < 0 || room > 255) {
+                room = 0;
+            }
+            // if syntax is bad, use end of line, or comment start
+            if (!blnGood) {
+                // find first comment after the 'new.room' command
+                // or end of line if no comment found
+                token.EndPos = lngLoc + 8; // length of 'new.room
+                do {
+                    token = WinAGIFCTB.NextToken(strSource, token);
+
+                } while (token.Type != AGITokenType.LineBreak && token.Type != AGITokenType.Comment);
+                lngEnd = token.StartPos;
+            }
+            // next step, go backwards to find the 'if' statement that
+            // precedes this 'new.room' command and determine style of
+            // exit (complex or simple)
+            token.StartPos = lngLoc;
+            token = WinAGIFCTB.PreviousToken(strSource, token);
+            while (token.Text != "if") {
+                if (token.Type == AGITokenType.None) {
+                    break;
+                }
+                token = WinAGIFCTB.PreviousToken(strSource, token);
+            }
+            // token = 'if' or it's at beginning of logic
+            if (token.Type == AGITokenType.None || token.Text != "if") {
+                // no 'if' found, so this is an 'other' exit
+                reason = EEReason.erOther;
+            }
+            else {
+                // now examine the 'if' statement to determine exit Type
+                // expected syntax:
+                //    if ({test}) {new.room(##)
+                // (agi syntax allows cr's inbetween any of the elements)
+                // comments could also exist between any elements either as
+                // line comments in conjunction with a cr, or as a block comment
+                // other commands could exist between '{' and 'new.room'
+
+                // expecting '('
+                token = WinAGIFCTB.NextToken(strSource, token);
+                if (token.Text != "(") {
+                    // unknown exit
+                    reason = EEReason.erOther;
+                }
+                else {
+                    // expecting 'v2'
+                    token = WinAGIFCTB.NextToken(strSource, token);
+                    if (ArgFromToken(token.Text) != "v2") {
+                        // unknown reason
+                        reason = EEReason.erOther;
+                    }
+                    else {
+                        // expecting '=='
+                        token = WinAGIFCTB.NextToken(strSource, token);
+                        if (token.Text != "==") {
+                            reason = EEReason.erOther;
+                        }
+                        else {
+                            // expecting valid exit reason (1 to 4)
+                            token = WinAGIFCTB.NextToken(strSource, token);
+                            int argval = ArgFromToken(token.Text).IntVal();
+                            if (argval > 0 && argval < 5) {
+                                reason = (EEReason)argval;
+                                // expecting ')'
+                                token = WinAGIFCTB.NextToken(strSource, token);
+                                if (token.Text != ")") {
+                                    reason = EEReason.erOther;
+                                }
+                            }
+                            else {
+                                // unknown reason
+                                reason = EEReason.erOther;
+                            }
+                        }
+                    }
+                }
+                // Style is currently not implemented leaving it at 0 is fine
+                //intStyle = 0;
+            }
+            AGIExit retval = new() {
+                Reason = reason,
+                Room = room,
+                Style = intStyle,
+            };
+            if (room > 0 && EditGame.Logics.Contains(room)) {
+                retval.Status = EEStatus.esOK;
+                if (!EditGame.Logics[room].IsRoom) {
+                    retval.Hidden = true;
+                }
+            }
+            else {
+                // ok, but will be marked as an error
+                retval.Status = EEStatus.esOK;
+            }
+            // update end pos
+            lngLoc = lngEnd;
+            // return exit info
+            return retval;
+        }
+
+        public static string ArgFromToken(string text) {
+            // checks the reserved defines and global defines lists 
+            // for the passed string and returns the argument value
+            // if found (returns original string if not found)
+
+            // check resource IDs first
+            for (int j = 0; j < 4; j++) {
+                for (int i = 0; i < 256; i++) {
+                    if (IDefLookup[j, i].Type == Engine.ArgType.Num &&
+                        IDefLookup[j, i].Name == text) {
+                        return IDefLookup[j, i].Value;
+                    }
+                }
+            }
+            // then global defines
+            if (EditGame != null) {
+                for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
+                    if (EditGame.GlobalDefines[i].Name == text) {
+                        return EditGame.GlobalDefines[i].Value;
+                    }
+                }
+            }
+            // lastly, check for reserved defines option (if not looking for a resourceID)
+            if (EditGame == null && WinAGISettings.DefIncludeReserved.Value) {
+            }
+            if (EditGame != null && EditGame.IncludeReserved) {
+                TDefine[] tmpDefines = EditGame.ReservedDefines.All();
+                for (int i = 0; i < tmpDefines.Length; i++) {
+                    if (tmpDefines[i].Name == text) {
+                        return tmpDefines[i].Value;
+                    }
+                }
+            }
+            // if not found, return the input
+            return text;
+        }
+
+        public static AGIExits ParseExits(string[] strData) {
+            // parses the string that contains exit info that comes from the layout editor
+            // data file
+            // ver 12+:    R|##|v|o|p|x|y|index:room:reason:style:xfer:leg|...
+            AGIExits retval = new();
+
+            for (int i = 7; i < strData.Length; i++) {
+                string[] strExit = strData[i].Split(":");
+                // should be six elements
+                if (strExit.Length == 6) {
+                    //add new exit, and flag as new, in source
+                    retval.Add(strExit).Status = EEStatus.esOK;
+                }
+            }
+            return retval;
         }
 
         public static void AddNewLogic(byte NewLogicNumber, Logic NewLogic) {
@@ -4526,7 +5348,7 @@ namespace WinAGI.Editor {
             //if using layout editor AND isroom
             if (EditGame.UseLE && EditGame.Logics[NewLogicNumber].IsRoom) {
                 // update layout editor and layout data file to show this room is in the game
-                UpdateExitInfo(UpdateReason.AddRoom, NewLogicNumber, EditGame.Logics[NewLogicNumber]);
+                UpdateExitInfo(UpdateReason.ShowRoom, NewLogicNumber, EditGame.Logics[NewLogicNumber]);
             }
             MDIMain.AddResourceToList(AGIResType.Logic, NewLogicNumber);
             // unload it once all done getting it added
@@ -4538,6 +5360,9 @@ namespace WinAGI.Editor {
             EditGame.Pictures[NewPictureNumber].SaveProps();
             MDIMain.AddResourceToList(AGIResType.Picture, NewPictureNumber);
             EditGame.Pictures[NewPictureNumber].Unload();
+            if (LEInUse) {
+                LayoutEditor.UpdatePictureStatus(NewPictureNumber, true);
+            }
         }
 
         public static void AddNewSound(byte NewSoundNumber, Sound NewSound) {
@@ -5849,7 +6674,7 @@ namespace WinAGI.Editor {
             EditGame.Logics.Remove(LogicNum);
             if (EditGame.UseLE && blnIsRoom) {
                 // update layout editor and layout data file to show this room is now gone
-                // TODO: UpdateExitInfo(euRemoveRoom, LogicNum, null);
+                UpdateExitInfo(UpdateReason.HideRoom, LogicNum, null);
             }
             switch (WinAGISettings.ResListType.Value) {
             case EResListType.TreeList:
@@ -5891,10 +6716,11 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            // disposition any existing resource file
-            if (File.Exists(strSourceFile)) {
-                KillCopyFile(strSourceFile, WinAGISettings.BackupResFile.Value);
-            }
+            //// disposition any existing resource file
+            //if (File.Exists(strSourceFile)) {
+            //    KillCopyFile(strSourceFile, WinAGISettings.BackupResFile.Value);
+            //}
+
             // update the logic tooltip lookup table
             IDefLookup[(int)AGIResType.Logic, LogicNum].Name = "";
             IDefLookup[(int)AGIResType.Logic, LogicNum].Type = ArgType.None;
@@ -5958,17 +6784,20 @@ namespace WinAGI.Editor {
                 }
             }
 
-            //disposition any existing resource file
-            if (File.Exists(strPicFile)) {
-                KillCopyFile(strPicFile, WinAGISettings.BackupResFile.Value);
-            }
+            //// disposition any existing resource file
+            //if (File.Exists(strPicFile)) {
+            //    KillCopyFile(strPicFile, WinAGISettings.BackupResFile.Value);
+            //}
 
-            //update the logic tooltip lookup table
+            // update the logic tooltip lookup table
             IDefLookup[(int)AGIResType.Picture, PicNum].Name = "";
             IDefLookup[(int)AGIResType.Picture, PicNum].Type = ArgType.None;
             // then let open logic editors know
             foreach (frmLogicEdit frm in LogicEditors) {
                 frm.ListChanged = true;
+            }
+            if (LEInUse) {
+                LayoutEditor.UpdatePictureStatus(PicNum, false);
             }
         }
 
@@ -6022,10 +6851,10 @@ namespace WinAGI.Editor {
                 }
             }
 
-            //disposition any existing resource file
-            if (File.Exists(strSoundFile)) {
-                KillCopyFile(strSoundFile, WinAGISettings.BackupResFile.Value);
-            }
+            ////disposition any existing resource file
+            //if (File.Exists(strSoundFile)) {
+            //    KillCopyFile(strSoundFile, WinAGISettings.BackupResFile.Value);
+            //}
 
             //update the logic tooltip lookup table
             IDefLookup[(int)AGIResType.Sound, SoundNum].Name = "";
@@ -6088,10 +6917,10 @@ namespace WinAGI.Editor {
                 }
             }
 
-            //disposition any existing resource file
-            if (File.Exists(strViewFile)) {
-                KillCopyFile(strViewFile, WinAGISettings.BackupResFile.Value);
-            }
+            ////disposition any existing resource file
+            //if (File.Exists(strViewFile)) {
+            //    KillCopyFile(strViewFile, WinAGISettings.BackupResFile.Value);
+            //}
 
             //update the logic tooltip lookup table
             IDefLookup[(int)AGIResType.View, ViewNum].Name = "";
@@ -6902,6 +7731,7 @@ namespace WinAGI.Editor {
                     ReplaceAllText(FindText, ReplaceText, MatchWord, MatchCase, false, EditGame.Logics[LogNum], null, SearchType);
                     if (EditGame.Logics[LogNum].SourceChanged) {
                         EditGame.Logics[LogNum].SaveSource();
+                        UpdateExitInfo(UpdateReason.UpdateRoom, LogNum, EditGame.Logics[LogNum]);
                         // refresh preview and tree as applicable
                         RefreshTree(AGIResType.Logic, LogNum);
                         if (MDIMain.propertyGrid1.Visible) {
@@ -7657,6 +8487,42 @@ namespace WinAGI.Editor {
             }
             // no match
             return retval;
+        }
+
+        public static List<string> WordWrapLines(string text, Font font, float maxWidth, Graphics g, char[] breakChars = null) {
+            breakChars ??= new char[] { ' ', '\t', '-', '/', ',' };
+            List<string> lines = new();
+            string[] paragraphs = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
+            foreach (string paragraph in paragraphs) {
+                string remaining = paragraph;
+                do {
+                    int len = remaining.Length;
+                    // Find the maximum substring that fits
+                    while (len > 0) {
+                        string substr = remaining[..len];
+                        SizeF size = g.MeasureString(substr, font);
+                        if (size.Width <= maxWidth)
+                            break;
+                        len--;
+                    }
+                    if (len == 0 && remaining.Length > 0) len = 1; // fallback to at least one char
+
+                    // Try to break at last space
+                    int breakAt = -1;
+                    for (int i = len - 1; i >= 0; i--) {
+                        if (breakChars.Contains(remaining[i])) {
+                            breakAt = i;
+                            break;
+                        }
+                    }
+                    if (breakAt > 0 && len != remaining.Length)
+                        len = breakAt + 1;
+                    string line = remaining[..len].TrimEnd();
+                    lines.Add(line);
+                    remaining = remaining[len..].TrimStart();
+                } while (!string.IsNullOrEmpty(remaining));
+            }
+            return lines;
         }
 
         #region Export Functions
@@ -8438,6 +9304,7 @@ namespace WinAGI.Editor {
         }
         #endregion
         #endregion
+
         #region Editor Extension Methods
         public static string CommandName(this DrawFunction drawfunction) {
             return drawfunction switch {

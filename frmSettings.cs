@@ -5,10 +5,12 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
@@ -31,13 +33,12 @@ namespace WinAGI.Editor {
         private TextStyle prevNumberStyle;
         private TextStyle prevArgIdentifierStyle;
         private TextStyle prevDefIdentifierStyle;
+        private CancellationTokenSource fontSearchCts;
+
 
         public frmSettings(int starttab = 0, string startprop = "") {
             InitializeComponent();
             MDIMain.UseWaitCursor = true;
-            // I don't like doing this, but for now, it's needed- without calling
-            // DoEvents, the wait cursor never shows up
-            Application.DoEvents();
             //    0,1,2,3=lower, 4,5,6,7=upper, 8,9,10,11=proper
             for (int i = 0; i <= 3; i++) {
                 cmbResFormat.Items.Add("logic");
@@ -68,19 +69,6 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
-            // TODO: this takes awhile, maybe move this to app startup, which will also
-            // help avoid the need to use DoEvents
-            FontFamily[] fontFamilies;
-            InstalledFontCollection installedFontCollection = new();
-            fontFamilies = installedFontCollection.Families;
-            int count = fontFamilies.Length;
-            for (int j = 0; j < count; ++j) {
-                if (Common.Base.FontIsMonospace(fontFamilies[j])) {
-                    cmbEditFont.Items.Add(fontFamilies[j].Name);
-                    cmbPrevFont.Items.Add(fontFamilies[j].Name);
-                }
-            }
-
             for (int i = 8; i <= 12; i++) {
                 cmbEditSize.Items.Add(i);
                 cmbPrevSize.Items.Add(i);
@@ -134,6 +122,11 @@ namespace WinAGI.Editor {
         }
 
         #region Form Event Handlers
+        private void frmSettings_Load(object sender, EventArgs e) {
+            // load list of available monospace fonts asynchronously
+            BeginFindMonoSpaceFontsAsync();
+        }
+
         private void btnDefault_Click(object sender, EventArgs e) {
             // restore all default values for settings
             // and flag warnings to be reset (only if ok button is pressed)
@@ -228,12 +221,14 @@ namespace WinAGI.Editor {
             NewSettings.DefVColor2.Reset();
             // Layout
             NewSettings.DefUseLE.Reset();
-            NewSettings.LEPages.Reset();
-            NewSettings.LEShowPics.Reset();
             NewSettings.LEUseGrid.Reset();
-            NewSettings.LEGrid.Reset();
+            NewSettings.LEShowGrid.Reset();
+            NewSettings.LEGridMinor.Reset();
+            NewSettings.LEGridMajor.Reset();
+            NewSettings.LEShowPics.Reset();
+            NewSettings.LEShowHidden.Reset();
             NewSettings.LESync.Reset();
-            NewSettings.LEZoom.Reset();
+            NewSettings.LEScale.Reset();
             NewSettings.RoomEdgeColor.Reset();
             NewSettings.RoomFillColor.Reset();
             NewSettings.TransPtEdgeColor.Reset();
@@ -262,13 +257,6 @@ namespace WinAGI.Editor {
             // force msg reset
             blnResetWarnings = true;
             chkResetWarnings.Checked = true;
-
-            /*
-            // redraw colors
-            picLEColor_Paint();
-            picLESample_Paint();
-            picColor_Paint();
-            */
         }
 
         private void btnCancel_Click(object sender, EventArgs e) {
@@ -460,9 +448,7 @@ namespace WinAGI.Editor {
                             }
                         }
                     }
-                    if (LEInUse) {
-                        LayoutEditor.DrawLayout(true);
-                    }
+
                 }
                 if (changePicPrevZoom) {
                     PreviewWin.SetPictureScale();
@@ -533,7 +519,11 @@ namespace WinAGI.Editor {
             }
 
             // LAYOUT
-            // no updates needed
+            if (LEInUse) {
+                // if layout editor is in use, update the editor
+                LayoutEditor.InitFonts();
+                LayoutEditor.DrawLayout();
+            }
 
             // RESET WARNINGS
             if (chkResetWarnings.Checked || blnResetWarnings) {
@@ -862,7 +852,7 @@ namespace WinAGI.Editor {
                 }
                 // update picture
                 lstColors_SelectedIndexChanged(null, null);
-                picColor.Select();
+                picColor.Refresh();
             }
         }
 
@@ -929,9 +919,14 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void picColor_DoubleClick(object sender, EventArgs e) {
+            // same as clicking on the color button
+            cmdColor.PerformClick();
+        }
+
         private void lstColors_DoubleClick(object sender, EventArgs e) {
             // same as clicking button
-            cmdColor_Click(null, null);
+            cmdColor.PerformClick();
         }
 
         private void txtTabWidth_Validating(object sender, CancelEventArgs e) {
@@ -1292,421 +1287,457 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Layout Tab Event Handlers
-        /*
-        private void chkDisplayPics_Click(object sender, EventArgs e) {
-            NewSettings.LEShowPics.Value = chkDisplayPics.Checked;
+        private void chkUseLE_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.DefUseLE.Value = chkUseLE.Checked;
         }
 
-        private void chkLEGrid_Click(object sender, EventArgs e) {
-            NewSettings.LEUseGrid = chkLEGrid.Checked;
-            txtGrid.Enabled = NewSettings.LEUseGrid;
-        }
-
-        private void chkPages_Click(object sender, EventArgs e) {
-            NewSettings.LEPages.Value = chkPages.Checked;
-        }
-
-        private void chkShowGrid_Click(object sender, EventArgs e) {
-            NewSettings.ShowGrid.Value = chkShowGrid.Checked;
-        }
-
-        private void chkSynchronize_Click(object sender, EventArgs e) {
+        private void chkSynchronize_CheckedChanged(object sender, EventArgs e) {
             NewSettings.LESync.Value = chkSynchronize.Checked;
         }
 
-        private void chkUseLE_Click(object sender, EventArgs e) {
-          NewSettings.DefUseLE.Value = chkUseLE.Checked;
+        private void chkUseGrid_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.LEUseGrid.Value = chkUseGrid.Checked;
+            txtGridMinor.Enabled = lblLEGridMinor.Enabled = NewSettings.LEUseGrid.Value;
+            txtGridMajor.Enabled = lblLEGridMajor.Enabled = NewSettings.LEUseGrid.Value;
         }
 
-    private void cmdLEColor_Click() {
-        NewSettings.DialogTitle = "Choose Layout Editor Colors"
-        switch (lstLEColors.SelectedIndex) {
-        case 0:
-            // room edge
-          cdColors.Color = NewSettings.RoomEdgeColor.Value;
-            break;
-        case 1:
-            // room fill
-          cdColors.Color = NewSettings.RoomFillColor.Value;
-            break;
-        case 2:
-            // top edge
-          cdColors.Color = NewSettings.TransPtEdgeColor.Value;
-            break;
-        case 3:
-            // tp fill
-          cdColors.Color = NewSettings.TransPtFillColor.Value;
-            break;
-        case 4:
-            // cmt edge
-          cdColors.Color = NewSettings.CmtEdgeColor.Value;
-            break;
-        case 5:
-            // cmt fill
-          cdColors.Color = NewSettings.CmtFillColor.Value;
-            break; 
-        case 6:
-            // errpt edge
-          cdColors.Color = NewSettings.ErrPtEdgeColor.Value;
-            break;
-        case 7:
-            // errpt fill
-          cdColors.Color = NewSettings.ErrPtFillColor.Value;
-            break;
-        case 8:
-            // exit edge
-          cdColors.Color = NewSettings.ExitEdgeColor.Value;
-            break;
-        case 9:
-            // exit other
-          cdColors.Color = NewSettings.ExitOtherColor.Value;
-        default:
-          return;
-        }
-        cdColors.Flags = cdlCCRGBInit Or cdlCCFullOpen;
-        if (cdColors.ShowColor() == DialogResult.Cancel) {
-            return;
+        private void chkLEShowGrid_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.LEShowGrid.Value = chkLEShowGrid.Checked;
+            DrawLESample();
         }
 
-        // special case: color vbWhite-1 is the background color
-        // so it can't be chosen; it's close to white, so just
-        // change it
-        if (cdColors.Color == Color.White - 1) {
-          cdColors.Color = Color.White;
+        private void chkDisplayPics_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.LEShowPics.Value = chkDisplayPics.Checked;
         }
-        switch (lstLEColors.SelectedIndex) {
-        case 0:
-            // room edge
-          NewSettings.RoomEdgeColor = cdColors.Color;
-            break;
-        case 1:
-            // room fill
-          NewSettings.RoomFillColor = cdColors.Color;
-            break;
-        case 2:
-            // tp edge
-          NewSettings.TransPtEdgeColor = cdColors.Color;
-            break;
-        case 3:
-            // tp fill
-          NewSettings.TransPtFillColor = cdColors.Color;
-            break;
-        case 4:
-            // cmt edge
-          NewSettings.CmtEdgeColor = cdColors.Color;
-            break;
-        case 5:
-            // cmt fill
-          NewSettings.CmtFillColor = cdColors.Color;
-            break;
-        case 6:
-            // errpt edge
-          NewSettings.ErrPtEdgeColor = cdColors.Color;
-            break;
-        case 7;
-            // errpt fill
-          NewSettings.ErrPtFillColor = cdColors.Color;
-            break;
-        case 8:
-            // exit edge
-          NewSettings.ExitEdgeColor = cdColors.Color;
-            break;
-        case 9:
-            // exit other
-          NewSettings.ExitOtherColor = cdColors.Color;
+
+        private void chkShowHidden_CheckedChanged(object sender, EventArgs e) {
+            NewSettings.LEShowHidden.Value = chkShowHidden.Checked;
         }
-        // update picture
-        //lstLEColors_Click
-        picLESample.Invalidate();
-      picLEColor.Select();
-    }
 
-    private void txtLEZoom_Validating(object sender, CancelEventArgs e) {
-      if (!double.TryParse(txtLEZoom.Text, out double var) || var < 1) {
-        txtLEZoom.Text = "1";
-      }
-            else if (var > 8) {
-        txtLEZoom.Text = "8";
-      }
-else {
-            txtLEZoom.Text = ((int)var).ToString();
-      }
-      NewSettings.LEZoom = (int)var;
-    }
-
-    private void txtLEZoom_KeyPress(object sender, KeyPressEventArgs e) {
-      // enter is same as tabbing to next control
-      if ( e.KeyChar == 13) {
-         e.KeyChar = '\0';
-            e.Handled = true;
-        lstLEColors.Select();
-            return;
-      }
-      // only numbers or control keys
-      switch ( e.KeyChar) {
-      case  < 32:
-            case >=48 and <= 57:
-            break;
-      default:
-         e.KeyChar = '\0';
-            e.Handled = true;
-            break;
-      }
-    }
-
-    private void txtGrid_Validating(object sender, CancelEventArgs e) {
-      // >=.05; <=1; increments of 0.05
-      if (!double.TryParse(txtGrid.Text, out double var) || var < 0.05) {
-            var = 0.05;
-        txtGrid.Text = "0.05";
-      }
-            else if (var > 1) {
-        txtGrid.Text = "1.00";
-            var = 1;
-      }
-else {
-
-       var = ((double)((int)(val * 20)) / 20);
+        private void txtGridMinor_Validating(object sender, CancelEventArgs e) {
+            // >=.05; <=1; increments of 0.05
+            if (!double.TryParse(txtGridMinor.Text, out double var)) {
+                return;
             }
-      txtGrid.Text = var.ToString("0.00");
-            NewSettings.LEGrid = var;
-    }
-
-    private void txtGrid_KeyPress(object sender, KeyPressEventArgs e) {
-      // enter is same as tabbing to next control
-      if ( e.KeyChar == 13) {
-         e.KeyChar = '\0';
-            e.Handled = true;
-        txtLEZoom.Select();
-            return;
-      }
-      // only numbers, period,  or control keys
-      switch ( e.KeyChar) {
-      case  < 32:
-            case >=48 and <= 57:
-            case 46:
-            break;
-      default:
-         e.KeyChar = '\0';
-                        e.Handled = true;
-            break;
-      }
-    }
-
-    private void picLESample_Paint() {
-////      Dim rtn As Long, v(2) As POINTAPI
-//      Dim hBrush As Long, hRgn As Long
-
-//      // sets the sample objects to match current color selections
-//      picLESample.Cls
-//      picLESample.DrawWidth = 1
-//      picLESample.FillColor = vbWhite
-//      picLESample.Line (5, 5)-Step(picLESample.ScaleWidth - 10, picLESample.ScaleHeight - 10), vbBlack, B
-//      picLESample.DrawWidth = 2
-
-//        // rooms
-//        picLESample.FillColor = NewSettings.RoomFillColor
-//        picLESample.ForeColor = NewSettings.RoomEdgeColor
-//        picLESample.Line (38, 60)-Step(33, 33), NewSettings.RoomEdgeColor, B
-//        picLESample.Line (94, 60)-Step(33, 33), NewSettings.RoomEdgeColor, B
-//        picLESample.CurrentX = 42
-//        picLESample.CurrentY = 73
-//        picLESample.Print "Rm 1"
-//        picLESample.CurrentX = 97
-//        picLESample.CurrentY = 73
-//        picLESample.Print "Rm 2"
-
-//       // transfer points
-//        picLESample.FillColor = NewSettings.TransPtFillColor
-//        picLESample.ForeColor = NewSettings.TransPtEdgeColor
-//        picLESample.Circle (148.5, 37.5), 8.5, NewSettings.TransPtEdgeColor
-//        picLESample.Circle (54.5, 118.5), 8.5, NewSettings.TransPtEdgeColor
-//        picLESample.CurrentX = 146
-//        picLESample.CurrentY = 31
-//        picLESample.Print "1"
-//        picLESample.CurrentX = 51
-//        picLESample.CurrentY = 112
-//        picLESample.Print "1"
-
-//        // comments
-//        // create region
-//        hRgn = CreateRoundRectRgn(16, 16, 97, 41, 3, 3)
-
-//        // create brush
-//        hBrush = CreateSolidBrush(.CmtFillColor)
-
-//        // fill region
-//        rtn = FillRgn(picLESample.hDC, hRgn, hBrush)
-
-//        // delete fill brush; create edge brush
-//        rtn = DeleteObject(hBrush)
-//        hBrush = CreateSolidBrush(.CmtEdgeColor)
-
-//        // draw outline
-//        rtn = FrameRgn(picLESample.hDC, hRgn, hBrush, 2, 2)
-
-//        // delete brush and region
-//        rtn = DeleteObject(hBrush)
-//        rtn = DeleteObject(hRgn)
-//        picLESample.ForeColor = NewSettings.CmtEdgeColor
-//        picLESample.CurrentX = 30
-//        picLESample.CurrentY = 21
-//        picLESample.Print "Comment"
-
-//        // exit lines
-//        picLESample.Line (70, 76)-(94, 76), NewSettings.ExitEdgeColor
-//        picLESample.Line (110, 92)-(110, 116), NewSettings.ExitEdgeColor
-//        picLESample.Line (54, 92)-(54, 110), NewSettings.ExitOtherColor
-//        picLESample.Line (126, 60)-(142, 44), NewSettings.ExitOtherColor
-
-
-//        // errpoints
-//        // use polygon drawing function
-//        picLESample.FillColor = NewSettings.ErrPtFillColor
-//        picLESample.ForeColor = NewSettings.ErrPtEdgeColor
-//        v(0).X = 110
-//        v(0).Y = 108
-//        v(1).X = 100
-//        v(1).Y = 124
-//        v(2).X = 120
-//        v(2).Y = 124
-//        rtn = Polygon(picLESample.hDC, v(0), 3)
-////
-    }
-
-    private void picLESample_MouseDown() {
-        switch (picLESample.Point(X, Y)) {
-        case NewSettings.RoomEdgeColor
-          lstLEColors.SelectedIndex = 0;
-            break;
-        case NewSettings.RoomFillColor:
-          lstLEColors.SelectedIndex = 1;
-            break;
-        case NewSettings.TransPtEdgeColor:
-          lstLEColors.SelectedIndex = 2;
-                        break;
-        case NewSettings.TransPtFillColor:
-          lstLEColors.SelectedIndex = 3;
-            break;
-        case NewSettings.CmtEdgeColor:
-          lstLEColors.SelectedIndex = 4;
-            break;
-        case NewSettings.CmtFillColor:
-          lstLEColors.SelectedIndex = 5;
-            break;
-        case NewSettings.ErrPtEdgeColor:
-          lstLEColors.SelectedIndex = 6;
-            break;
-        case NewSettings.ErrPtFillColor:
-          lstLEColors.SelectedIndex = 7;
-            break;
-        case NewSettings.ExitEdgeColor:
-          lstLEColors.SelectedIndex = 8;
-            break;
-        case NewSettings.ExitOtherColor:
-          lstLEColors.SelectedIndex = 9;
-            break;
+            if (var < 0.05) {
+                var = 0.05;
+                txtGridMinor.Text = "0.05";
+            }
+            else if (var > 1) {
+                txtGridMinor.Text = "1.00";
+                var = 1;
+            }
+            else {
+                var = (double)Math.Round(var * 20) / 20;
+            }
+            txtGridMinor.Text = var.ToString("0.00");
+            NewSettings.LEGridMinor.Value = var;
+            // major grid must be an increment of minor
+            var = Math.Round(NewSettings.LEGridMajor.Value / NewSettings.LEGridMinor.Value) * NewSettings.LEGridMinor.Value;
+            NewSettings.LEGridMajor.Value = var;
+            txtGridMajor.Text = var.ToString("0.00");
+            DrawLESample();
         }
-    }
 
-    private void picColor_DblClick() {
-      // same as clicking on the color button
-      cmdColor.DoClick();
-    }
+        private void txtGridMinor_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.KeyChar = '\0';
+                e.Handled = true;
+                txtGridMajor.Select();
+                return;
+            }
+            // only numbers, period,  or control keys
+            switch ((int)e.KeyChar) {
+            case < 32:
+            case >= 48 and <= 57:
+            case 46:
+                break;
+            default:
+                e.KeyChar = '\0';
+                e.Handled = true;
+                break;
+            }
+        }
 
-    private void picLEColor_DblClick() {
-      // same as clicking on LEColor button
-      cmdLEColor.DoClick();
-    }
+        private void txtGridMajor_Validating(object sender, CancelEventArgs e) {
+            // major grid must be an increment of minor
+            if (!double.TryParse(txtGridMajor.Text, out double var)) {
+                return;
+            }
+            var = Math.Round(var / NewSettings.LEGridMinor.Value) * NewSettings.LEGridMinor.Value;
+            NewSettings.LEGridMajor.Value = var;
+            txtGridMajor.Text = var.ToString("0.00");
+            DrawLESample();
+        }
 
-    private void picLEColor_Paint() {
-      Color lngColor = Color.Black;
+        private void txtGridMajor_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.KeyChar = '\0';
+                e.Handled = true;
+                lstLEColors.Select();
+                return;
+            }
+            // only numbers, period,  or control keys
+            switch ((int)e.KeyChar) {
+            case < 32:
+            case >= 48 and <= 57:
+            case 46:
+                break;
+            default:
+                e.KeyChar = '\0';
+                e.Handled = true;
+                break;
+            }
+        }
 
-      switch (lstLEColors.SelectedIndex) {
-      case 0:
-        lngColor = NewSettings.RoomEdgeColor;
-            break;
-      case 1:
-        lngColor = NewSettings.RoomFillColor;
-            break;
-      case 2:
-        lngColor = NewSettings.TransPtEdgeColor;
-            break;
-      case 3:
-        lngColor = NewSettings.TransPtFillColor;
-            break;
-      case 4:
-        lngColor = NewSettings.CmtEdgeColor;
-            break;
-      case 5:
-        lngColor = NewSettings.CmtFillColor;
-            break;
-      case 6:
-        lngColor = NewSettings.ErrPtEdgeColor;
-            break;
-      case 7:
-        lngColor = NewSettings.ErrPtFillColor;
-            break;
-      case 8:
-        lngColor = NewSettings.ExitEdgeColor;
-            break;
-      case 9:
-        lngColor = NewSettings.ExitOtherColor;
-            break;
-      }
-      picLEColor.Line(); // (30, 30)-Step(1320, 180), lngColor, BF
-    }
+        private void txtLEScale_Validating(object sender, CancelEventArgs e) {
+            NewSettings.LEScale.Value = txtLEScale.Value;
+        }
 
-    private void picLESample_DblClick() {
-      // same as clicking the cmdLEColor button
-      cmdLEColor.DoClick();
-    }
+        private void txtLEScale_KeyPress(object sender, KeyPressEventArgs e) {
+            // enter is same as tabbing to next control
+            if (e.KeyChar == 13) {
+                e.KeyChar = '\0';
+                e.Handled = true;
+                txtGridMinor.Select();
+                return;
+            }
+        }
 
-    private void lstLEColors_Click() {
-      Color lngColor = Color.Black;
+        private void lstLEColors_SelectedIndexChanged(object sender, EventArgs e) {
+            Color lngColor = Color.Black;
+            switch (lstLEColors.SelectedIndex) {
+            case 0:
+                lngColor = NewSettings.RoomEdgeColor.Value;
+                break;
+            case 1:
+                lngColor = NewSettings.RoomFillColor.Value;
+                break;
+            case 2:
+                lngColor = NewSettings.TransPtEdgeColor.Value;
+                break;
+            case 3:
+                lngColor = NewSettings.TransPtFillColor.Value;
+                break;
+            case 4:
+                lngColor = NewSettings.CmtEdgeColor.Value;
+                break;
+            case 5:
+                lngColor = NewSettings.CmtFillColor.Value;
+                break;
+            case 6:
+                lngColor = NewSettings.ErrPtEdgeColor.Value;
+                break;
+            case 7:
+                lngColor = NewSettings.ErrPtFillColor.Value;
+                break;
+            case 8:
+                lngColor = NewSettings.ExitEdgeColor.Value;
+                break;
+            case 9:
+                lngColor = NewSettings.ExitOtherColor.Value;
+                break;
+            }
+            picLEColor.BackColor = lngColor;
+        }
 
-      picLEColor.Clear();
-      switch (lstLEColors.SelectedIndex) {
-      case 0:
-        lngColor = NewSettings.RoomEdgeColor;
-            break;
-      case 1:
-        lngColor = NewSettings.RoomFillColor;
-            break;
-      case 2:
-        lngColor = NewSettings.TransPtEdgeColor;
-            break;
-      case 3:
-        lngColor = NewSettings.TransPtFillColor;
-            break;
-      case 4:
-        lngColor = NewSettings.CmtEdgeColor;
-            break;
-      case 5:
-        lngColor = NewSettings.CmtFillColor;
-            break;
-      case 6:
-        lngColor = NewSettings.ErrPtEdgeColor;
-            break;
-      case 7:
-        lngColor = NewSettings.ErrPtFillColor;
-            break;
-      case 8:
-        lngColor = NewSettings.ExitEdgeColor;
-            break;
-      case 9:
-        lngColor = NewSettings.ExitOtherColor;
-            break;
-      }
-      picLEColor.Line(); // (30, 30)-Step(1320, 180), lngColor, BF
-    }
+        private void lstLEColors_DblClick() {
+            // same as clicking on button
+            cmdLEColor.PerformClick();
+        }
 
-    private void lstLEColors_DblClick() {
-      // same as clicking on button
-      cmdLEColor.DoClick();
-    }
+        private void picLEColor_DoubleClick(object sender, EventArgs e) {
+            // same as clicking on LEColor button
+            cmdLEColor.PerformClick();
+        }
 
-        */
+        private void cmdLEColor_Click(object sender, EventArgs e) {
+            //cdColors.Caption = "Choose Layout Editor Colors";
+            switch (lstLEColors.SelectedIndex) {
+            case 0:
+                // room edge
+                cdColors.Color = NewSettings.RoomEdgeColor.Value;
+                break;
+            case 1:
+                // room fill
+                cdColors.Color = NewSettings.RoomFillColor.Value;
+                break;
+            case 2:
+                // top edge
+                cdColors.Color = NewSettings.TransPtEdgeColor.Value;
+                break;
+            case 3:
+                // tp fill
+                cdColors.Color = NewSettings.TransPtFillColor.Value;
+                break;
+            case 4:
+                // cmt edge
+                cdColors.Color = NewSettings.CmtEdgeColor.Value;
+                break;
+            case 5:
+                // cmt fill
+                cdColors.Color = NewSettings.CmtFillColor.Value;
+                break;
+            case 6:
+                // errpt edge
+                cdColors.Color = NewSettings.ErrPtEdgeColor.Value;
+                break;
+            case 7:
+                // errpt fill
+                cdColors.Color = NewSettings.ErrPtFillColor.Value;
+                break;
+            case 8:
+                // exit edge
+                cdColors.Color = NewSettings.ExitEdgeColor.Value;
+                break;
+            case 9:
+                // exit other
+                cdColors.Color = NewSettings.ExitOtherColor.Value;
+                break;
+            default:
+                return;
+            }
+            cdColors.SolidColorOnly = true;
+            cdColors.AnyColor = true;
+            cdColors.FullOpen = true;
+            if (cdColors.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                return;
+            }
+            // special case: color vbWhite-1 is the background color
+            // so it can't be chosen; it's close to white, so just
+            // change it
+            if (cdColors.Color == Color.FromArgb(255, 255, 255, 254)) {
+                cdColors.Color = Color.White;
+            }
+            switch (lstLEColors.SelectedIndex) {
+            case 0:
+                // room edge
+                NewSettings.RoomEdgeColor.Value = cdColors.Color;
+                break;
+            case 1:
+                // room fill
+                NewSettings.RoomFillColor.Value = cdColors.Color;
+                break;
+            case 2:
+                // tp edge
+                NewSettings.TransPtEdgeColor.Value = cdColors.Color;
+                break;
+            case 3:
+                // tp fill
+                NewSettings.TransPtFillColor.Value = cdColors.Color;
+                break;
+            case 4:
+                // cmt edge
+                NewSettings.CmtEdgeColor.Value = cdColors.Color;
+                break;
+            case 5:
+                // cmt fill
+                NewSettings.CmtFillColor.Value = cdColors.Color;
+                break;
+            case 6:
+                // errpt edge
+                NewSettings.ErrPtEdgeColor.Value = cdColors.Color;
+                break;
+            case 7:
+                // errpt fill
+                NewSettings.ErrPtFillColor.Value = cdColors.Color;
+                break;
+            case 8:
+                // exit edge
+                NewSettings.ExitEdgeColor.Value = cdColors.Color;
+                break;
+            case 9:
+                // exit other
+                NewSettings.ExitOtherColor.Value = cdColors.Color;
+                break;
+            }
+            picLEColor.BackColor = cdColors.Color;
+            // update sample
+            DrawLESample();
+            picLESample.Refresh();
+        }
+
+        private void picLESample_DoubleClick(object sender, EventArgs e) {
+            // same as clicking the cmdLEColor button
+            cmdLEColor.PerformClick();
+        }
+
+        private void picLESample_MouseDown(object sender, MouseEventArgs e) {
+            // get color under mouse pointer
+            if (e.X < 0 || e.X >= picLESample.Width || e.Y < 0 || e.Y >= picLESample.Height) {
+                return; // outside of picture
+            }
+            Bitmap bitmap = (Bitmap)((PictureBox)(sender)).Image; // assuming sender is a PictureBox with an Image property
+
+            // get the color at the point
+            // and set the selected index in the listbox
+            // (if it matches one of the colors)
+            Color color = bitmap.GetPixel(e.X, e.Y);
+            if (color == NewSettings.RoomEdgeColor.Value) {
+                lstLEColors.SelectedIndex = 0;
+            }
+            else if (color == NewSettings.RoomFillColor.Value) {
+                lstLEColors.SelectedIndex = 1;
+            }
+            else if (color == NewSettings.TransPtEdgeColor.Value) {
+                lstLEColors.SelectedIndex = 2;
+            }
+            else if (color == NewSettings.TransPtFillColor.Value) {
+                lstLEColors.SelectedIndex = 3;
+            }
+            else if (color == NewSettings.CmtEdgeColor.Value) {
+                lstLEColors.SelectedIndex = 4;
+            }
+            else if (color == NewSettings.CmtFillColor.Value) {
+                lstLEColors.SelectedIndex = 5;
+            }
+            else if (color == NewSettings.ErrPtEdgeColor.Value) {
+                lstLEColors.SelectedIndex = 6;
+            }
+            else if (color == NewSettings.ErrPtFillColor.Value) {
+                lstLEColors.SelectedIndex = 7;
+            }
+            else if (color == NewSettings.ExitEdgeColor.Value) {
+                lstLEColors.SelectedIndex = 8;
+            }
+            else if (color == NewSettings.ExitOtherColor.Value) {
+                lstLEColors.SelectedIndex = 9;
+            }
+        }
+
+        private void DrawLESample() {
+            // draws the sample objects to match current color selections
+            Pen borderPen;
+            Font font = new Font(NewSettings.EditorFontName.Value, 8);
+            Brush fontBrush = new SolidBrush(NewSettings.RoomEdgeColor.Value);
+
+            int bWidth = picLESample.Width, bHeight = picLESample.Height;
+            picLESample.Image = new Bitmap(bWidth, bHeight);
+            Graphics g = Graphics.FromImage(picLESample.Image);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.Clear(picLESample.BackColor);
+
+            if (NewSettings.LEShowGrid.Value) {
+                using Pen dotPen = new(Color.LightGray);
+                int i, j;
+                int x1, y1;
+                // minor gridlines
+                if (NewSettings.LEGridMinor.Value != NewSettings.LEGridMajor.Value) {
+                    float minorgrid = (float)NewSettings.LEGridMinor.Value * 50;
+                    dotPen.DashStyle = DashStyle.Custom;
+                    dotPen.DashPattern = [1, 3];
+                    // get position of first vertical line that would occur after
+                    // current offset position
+                    i = 1;
+                    // add vertical lines, until past right edge of drawing surface
+                    while (i * minorgrid <= bWidth) {
+                        x1 = (int)(i * minorgrid);
+                        g.DrawLine(dotPen, x1, 0, x1, bHeight);
+                        i++;
+                    }
+                    j = 1;
+                    // add horizontal lines until past bottom edge of drawing surface
+                    while (j * minorgrid <= bHeight) {
+                        y1 = (int)(j * minorgrid);
+                        g.DrawLine(dotPen, 0, y1, bWidth, y1);
+                        j++;
+                    }
+                }
+                // major gridlines
+                float majorgrid = (float)NewSettings.LEGridMajor.Value * 50;
+                dotPen.DashStyle = DashStyle.DashDot;
+                i = 1;
+                // add vertical lines, until past right edge of drawing surface
+                while (i * majorgrid <= bWidth) {
+                    x1 = (int)(i * majorgrid);
+                    g.DrawLine(dotPen, x1, 0, x1, bHeight);
+                    i++;
+                }
+                j = 1;
+                // add horizontal lines until past bottom edge of drawing surface
+                while (j * majorgrid <= bHeight) {
+                    y1 = (int)(j * majorgrid);
+                    g.DrawLine(dotPen, 0, y1, bWidth, y1);
+                    j++;
+                }
+            }
+
+            // draw some sample room objects
+            borderPen = new Pen(NewSettings.RoomEdgeColor.Value, 2);
+            g.FillRectangle(new SolidBrush(NewSettings.RoomFillColor.Value), 31, 53, 40, 40);
+            g.FillRectangle(new SolidBrush(NewSettings.RoomFillColor.Value), 119, 53, 40, 40);
+            g.DrawRectangle(borderPen, 31, 53, 40, 40);
+            g.DrawRectangle(borderPen, 119, 53, 40, 40);
+            g.DrawString("Room1", font, fontBrush, 34, 67);
+            g.DrawString("Room2", font, fontBrush, 122, 67);
+
+            // draw some sample transfer points
+            borderPen = new Pen(NewSettings.TransPtEdgeColor.Value, 2);
+            fontBrush = new SolidBrush(NewSettings.TransPtEdgeColor.Value);
+            g.FillEllipse(new SolidBrush(NewSettings.TransPtFillColor.Value), 43, 121, 17, 17);
+            g.DrawEllipse(borderPen, 43, 121, 17, 17);
+            g.DrawString("1", font, fontBrush, 47, 123);
+            g.FillEllipse(new SolidBrush(NewSettings.TransPtFillColor.Value), 180, 12, 17, 17);
+            g.DrawEllipse(borderPen, 180, 12, 17, 17);
+            g.DrawString("1", font, fontBrush, 184, 14);
+
+            // draw a sample comment
+            borderPen = new Pen(NewSettings.CmtEdgeColor.Value, 2);
+            float radius = 5.0f; // radius for rounded corners
+            Rectangle rect = new Rectangle(16, 8, 75, 25);
+            using (GraphicsPath path = new GraphicsPath()) {
+                // Create rounded rectangle path
+                path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
+                path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
+                path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
+                path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
+                path.CloseFigure();
+                // Fill the rounded rectangle
+                using (Brush fillBrush = new SolidBrush(NewSettings.CmtFillColor.Value)) {
+                    g.FillPath(fillBrush, path);
+                }
+                // Draw the border
+                g.DrawPath(borderPen, path);
+            }
+            fontBrush = new SolidBrush(NewSettings.CmtEdgeColor.Value);
+            g.DrawString("Comment", font, fontBrush, 23, 13);
+
+            // draw a sample error point
+            Point[] errPoints =
+            [
+                new Point(139, 122),
+                new Point(129, 138),
+                new Point(149, 138)
+            ];
+            // Fill the polygon
+            using (Brush fillBrush = new SolidBrush(NewSettings.ErrPtFillColor.Value)) {
+                g.FillPolygon(fillBrush, errPoints);
+            }
+            borderPen = new(NewSettings.ErrPtEdgeColor.Value, 2);
+            borderPen.LineJoin = LineJoin.Bevel;
+            g.DrawPolygon(borderPen, errPoints);
+
+            // some sample exit lines, including arrows
+            Pen arrowPen = new Pen(NewSettings.ExitEdgeColor.Value, 2);
+            var arrowCap = new System.Drawing.Drawing2D.AdjustableArrowCap(3, 5); // width, height
+            arrowPen.CustomEndCap = arrowCap;
+            arrowPen.CustomStartCap = arrowCap;
+            g.DrawLine(arrowPen, 70, 73, 119, 73);
+            arrowPen.StartCap = LineCap.Flat;
+            g.DrawLine(arrowPen, 139, 92, 139, 126);
+            arrowPen.Color = NewSettings.ExitOtherColor.Value;
+            g.DrawLine(arrowPen, 51, 92, 51, 120);
+            g.DrawLine(arrowPen, 183, 26, 159, 52);
+
+            picLESample.Refresh();
+            borderPen.Dispose();
+            arrowPen.Dispose();
+            fontBrush.Dispose();
+            font.Dispose();
+            g.Dispose();
+        }
         #endregion
 
         #region temp code
@@ -1746,6 +1777,60 @@ else {
             */
         }
         #endregion
+
+        private async void BeginFindMonoSpaceFontsAsync() {
+            fontSearchCts?.Cancel(); // cancel any previous search
+            fontSearchCts = new CancellationTokenSource();
+            var token = fontSearchCts.Token;
+
+            // show a "loading..." item in the comboboxes
+            cmbEditFont.Items.Clear();
+            cmbPrevFont.Items.Clear();
+            cmbEditFont.Items.Add("Loading...");
+            cmbPrevFont.Items.Add("Loading...");
+            cmbEditFont.Enabled = false;
+            cmbPrevFont.Enabled = false;
+
+            var fontFamilies = await Task.Run(() => GetMonospaceFontFamilies(token), token);
+            if (token.IsCancellationRequested) {
+                return; // exit if the task was cancelled
+            }
+            // update the comboboxes with the found monospace fonts
+            cmbEditFont.BeginInvoke(() => {
+                cmbEditFont.Items.Clear();
+                cmbPrevFont.Items.Clear();
+                if (fontFamilies.Count == 0) {
+                    cmbEditFont.Items.Add("No monospace fonts found");
+                    cmbPrevFont.Items.Add("No monospace fonts found");
+                }
+                else {
+                    foreach (var family in fontFamilies) {
+                        cmbEditFont.Items.Add(family);
+                        cmbPrevFont.Items.Add(family);
+                    }
+                    cmbEditFont.Enabled = true;
+                    cmbPrevFont.Enabled = true;
+                    cmbEditFont.Text = NewSettings.EditorFontName.Value;
+                    cmbPrevFont.Text = NewSettings.PreviewFontName.Value;
+                }
+            });
+        }
+
+        private List<string> GetMonospaceFontFamilies(CancellationToken token) {
+            var retval = new List<string>();
+
+            using (InstalledFontCollection fonts = new()) {
+                foreach (FontFamily fontFamily in fonts.Families) {
+                    if (token.IsCancellationRequested) {
+                        return retval; // exit if the task was cancelled
+                    }
+                    if (FontIsMonospace(fontFamily)) {
+                        retval.Add(fontFamily.Name);
+                    }
+                }
+            }
+            return retval;
+        }
 
         private void InitForm() {
             // move preview rtf to front
@@ -1795,9 +1880,7 @@ else {
             chkHighlightText.Checked = NewSettings.HighlightText.Value;
             lstColors.SelectedIndex = 0;
             txtTabWidth.Text = NewSettings.LogicTabWidth.Value.ToString();
-            cmbEditFont.Text = NewSettings.EditorFontName.Value;
             cmbEditSize.Text = NewSettings.EditorFontSize.Value.ToString();
-            cmbPrevFont.Text = NewSettings.PreviewFontName.Value;
             cmbPrevSize.Text = NewSettings.PreviewFontSize.Value.ToString();
             txtExtension.Text = NewSettings.DefaultExt.Value.ToLower();
 
@@ -1981,7 +2064,9 @@ else {
             chkMute3.Checked = NewSettings.DefMute[3].Value;
             chkMute3.Tag = 3;
 
-            // views
+            //***********************
+            // VIEW SETTINGS
+            //***********************
             for (int i = 0; i < udVPZoom.Items.Count; i++) {
                 if (NewSettings.ViewScalePreview.Value * 100 >= float.Parse(((string)udVPZoom.Items[i])[..^1])) {
                     udVPZoom.SelectedIndex = i;
@@ -2010,19 +2095,22 @@ else {
             chkDefPrevPlay.Checked = NewSettings.DefPrevPlay.Value;
             chkShowGrid.Checked = NewSettings.ShowGrid.Value;
 
-            /*
-            // layout
-            chkUseLE.Checked = NewSettings.DefUseLE;
-            chkPages.Checked = NewSettings.LEPages;
-            chkDisplayPics.Checked = NewSettings.LEShowPics;
-            chkSynchronize.Checked = NewSettings.LESync;
-            chkLEGrid.Checked = NewSettings.LEUseGrid;
-            txtGrid.Enabled = NewSettings.LEUseGrid;
-            Label16.Enabled = NewSettings.LEUseGrid;
-            txtGrid.Text = NewSettings.LEGrid.Format("0.00");
+            //***********************
+            // LAYOUT EDITOR SETTINGS
+            //***********************
+            chkUseLE.Checked = NewSettings.DefUseLE.Value;
+            chkLEShowGrid.Checked = NewSettings.LEShowGrid.Value;
+            chkDisplayPics.Checked = NewSettings.LEShowPics.Value;
+            chkShowHidden.Checked = NewSettings.LEShowHidden.Value;
+            chkSynchronize.Checked = NewSettings.LESync.Value;
+            chkUseGrid.Checked = NewSettings.LEUseGrid.Value;
+            txtGridMinor.Enabled = lblLEGridMinor.Enabled = NewSettings.LEUseGrid.Value;
+            txtGridMinor.Text = NewSettings.LEGridMinor.Value.ToString("0.00");
+            txtGridMajor.Enabled = lblLEGridMajor.Enabled = NewSettings.LEUseGrid.Value;
+            txtGridMajor.Text = NewSettings.LEGridMajor.Value.ToString("0.00");
             lstLEColors.SelectedIndex = 0;
-            txtLEZoom.Text = NewSettings.LEZoom.Value.ToString();
-            */
+            txtLEScale.Value = NewSettings.LEScale.Value;
+            DrawLESample();
         }
 
         private void SaveNewSettings() {
@@ -2119,12 +2207,14 @@ else {
 
             // layout settings
             WinAGISettings.DefUseLE.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.LEPages.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.LEShowPics.WriteSetting(WinAGISettingsFile);
             WinAGISettings.LEUseGrid.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.LEGrid.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.LEGridMinor.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.LEGridMajor.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.LEShowGrid.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.LEShowPics.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.LEShowHidden.WriteSetting(WinAGISettingsFile);
             WinAGISettings.LESync.WriteSetting(WinAGISettingsFile);
-            WinAGISettings.LEZoom.WriteSetting(WinAGISettingsFile);
+            WinAGISettings.LEScale.WriteSetting(WinAGISettingsFile);
             WinAGISettings.RoomEdgeColor.WriteSetting(WinAGISettingsFile);
             WinAGISettings.RoomFillColor.WriteSetting(WinAGISettingsFile);
             WinAGISettings.TransPtEdgeColor.WriteSetting(WinAGISettingsFile);

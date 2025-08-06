@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha17.1
+        Version 3.0.0alpha18.1
     ==============================
 
 
@@ -19,7 +19,7 @@ WinAGI is a full featured game development system, that includes editors which p
   
 ### Known Issues:  
 
- - When installing, don't use a sub-directory of Program Files. There are weird file access permission issues that will prevent the app from running.
+ - When installing, don't use a sub-directory of Program Files. There are weird file access permission issues that may prevent the app from running.
 
 ---
 
@@ -44,7 +44,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X 16. Picture Editor
     X 17. View Editor
     X 18. Sound Editor
-      19. Layout Editor
+    O 19. Layout Editor
       20. Menu Editor
       21. Text Screen Editor
       22. Help Integration
@@ -54,6 +54,8 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+**alpha18.1** Layout editor framework set. Layouts successfully load and display. Integration between logic editor and layout editor works as expected to keep the layout and logics up to date. Layout editing functions still need to be completed. Continuing to fix bugs in all other editors as they are found.
+
 **alpha18.0** Sound editor is complete. Added support for drawing and editing staff notes directly from the staff display. Fixed some bugs in the sound editor and other editors.
 
 

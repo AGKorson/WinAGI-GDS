@@ -129,6 +129,7 @@
             label14 = new System.Windows.Forms.Label();
             label13 = new System.Windows.Forms.Label();
             Sounds = new System.Windows.Forms.TabPage();
+            chkNoKybdSound = new System.Windows.Forms.CheckBox();
             chkNotes = new System.Windows.Forms.CheckBox();
             chkOneTrack = new System.Windows.Forms.CheckBox();
             chkKeybd = new System.Windows.Forms.CheckBox();
@@ -180,9 +181,26 @@
             label18 = new System.Windows.Forms.Label();
             label19 = new System.Windows.Forms.Label();
             LayoutTab = new System.Windows.Forms.TabPage();
+            groupBox18 = new System.Windows.Forms.GroupBox();
+            picLESample = new System.Windows.Forms.PictureBox();
+            cmdLEColor = new System.Windows.Forms.Button();
+            picLEColor = new System.Windows.Forms.PictureBox();
+            lstLEColors = new System.Windows.Forms.ListBox();
+            groupBox17 = new System.Windows.Forms.GroupBox();
+            txtGridMajor = new System.Windows.Forms.TextBox();
+            lblLEGridMajor = new System.Windows.Forms.Label();
+            txtLEScale = new NumericTextBox();
+            txtGridMinor = new System.Windows.Forms.TextBox();
+            label35 = new System.Windows.Forms.Label();
+            lblLEGridMinor = new System.Windows.Forms.Label();
+            chkDisplayPics = new System.Windows.Forms.CheckBox();
+            chkLEShowGrid = new System.Windows.Forms.CheckBox();
+            chkUseGrid = new System.Windows.Forms.CheckBox();
+            chkSynchronize = new System.Windows.Forms.CheckBox();
+            chkUseLE = new System.Windows.Forms.CheckBox();
             cdColors = new System.Windows.Forms.ColorDialog();
             colorDialog1 = new System.Windows.Forms.ColorDialog();
-            chkNoKybdSound = new System.Windows.Forms.CheckBox();
+            chkShowHidden = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)rtfPreview).BeginInit();
             tabControl1.SuspendLayout();
             General.SuspendLayout();
@@ -211,6 +229,11 @@
             groupBox12.SuspendLayout();
             groupBox11.SuspendLayout();
             groupBox10.SuspendLayout();
+            LayoutTab.SuspendLayout();
+            groupBox18.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)picLESample).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)picLEColor).BeginInit();
+            groupBox17.SuspendLayout();
             SuspendLayout();
             // 
             // btnCancel
@@ -271,6 +294,7 @@
             rtfPreview.CharWidth = 8;
             rtfPreview.CommentPrefix = "[";
             rtfPreview.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            rtfPreview.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfPreview.Hotkeys = resources.GetString("rtfPreview.Hotkeys");
             rtfPreview.IsReplaceMode = false;
             rtfPreview.Location = new System.Drawing.Point(24, 35);
@@ -817,6 +841,7 @@
             picColor.Size = new System.Drawing.Size(69, 31);
             picColor.TabIndex = 1;
             picColor.TabStop = false;
+            picColor.DoubleClick += picColor_DoubleClick;
             // 
             // lstColors
             // 
@@ -1476,6 +1501,17 @@
             Sounds.Text = "Sounds";
             Sounds.UseVisualStyleBackColor = true;
             // 
+            // chkNoKybdSound
+            // 
+            chkNoKybdSound.AutoSize = true;
+            chkNoKybdSound.Location = new System.Drawing.Point(24, 339);
+            chkNoKybdSound.Name = "chkNoKybdSound";
+            chkNoKybdSound.Size = new System.Drawing.Size(154, 19);
+            chkNoKybdSound.TabIndex = 6;
+            chkNoKybdSound.Text = "Disable Keyboard Sound";
+            chkNoKybdSound.UseVisualStyleBackColor = true;
+            chkNoKybdSound.CheckedChanged += chkNoKybdSound_CheckedChanged;
+            // 
             // chkNotes
             // 
             chkNotes.AutoSize = true;
@@ -2063,6 +2099,8 @@
             // 
             // LayoutTab
             // 
+            LayoutTab.Controls.Add(groupBox18);
+            LayoutTab.Controls.Add(groupBox17);
             LayoutTab.Location = new System.Drawing.Point(4, 24);
             LayoutTab.Name = "LayoutTab";
             LayoutTab.Size = new System.Drawing.Size(468, 371);
@@ -2070,21 +2108,218 @@
             LayoutTab.Text = "Layout";
             LayoutTab.UseVisualStyleBackColor = true;
             // 
+            // groupBox18
+            // 
+            groupBox18.Controls.Add(picLESample);
+            groupBox18.Controls.Add(cmdLEColor);
+            groupBox18.Controls.Add(picLEColor);
+            groupBox18.Controls.Add(lstLEColors);
+            groupBox18.Location = new System.Drawing.Point(13, 162);
+            groupBox18.Name = "groupBox18";
+            groupBox18.Size = new System.Drawing.Size(439, 188);
+            groupBox18.TabIndex = 1;
+            groupBox18.TabStop = false;
+            groupBox18.Text = "Object Colors";
+            // 
+            // picLESample
+            // 
+            picLESample.BackColor = System.Drawing.Color.White;
+            picLESample.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            picLESample.Location = new System.Drawing.Point(158, 23);
+            picLESample.Name = "picLESample";
+            picLESample.Size = new System.Drawing.Size(263, 149);
+            picLESample.TabIndex = 3;
+            picLESample.TabStop = false;
+            picLESample.DoubleClick += picLESample_DoubleClick;
+            picLESample.MouseDown += picLESample_MouseDown;
+            // 
+            // cmdLEColor
+            // 
+            cmdLEColor.Location = new System.Drawing.Point(107, 145);
+            cmdLEColor.Name = "cmdLEColor";
+            cmdLEColor.Size = new System.Drawing.Size(28, 26);
+            cmdLEColor.TabIndex = 2;
+            cmdLEColor.Text = "...";
+            cmdLEColor.UseVisualStyleBackColor = true;
+            cmdLEColor.Click += cmdLEColor_Click;
+            // 
+            // picLEColor
+            // 
+            picLEColor.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            picLEColor.Location = new System.Drawing.Point(13, 146);
+            picLEColor.Name = "picLEColor";
+            picLEColor.Size = new System.Drawing.Size(97, 26);
+            picLEColor.TabIndex = 1;
+            picLEColor.TabStop = false;
+            picLEColor.DoubleClick += picLEColor_DoubleClick;
+            // 
+            // lstLEColors
+            // 
+            lstLEColors.FormattingEnabled = true;
+            lstLEColors.ItemHeight = 15;
+            lstLEColors.Items.AddRange(new object[] { "Room Edge", "Room Fill", "TransPt Edge", "TransPt Fill", "Comment Edge", "Comment Fill", "ErrPt Edge", "ErrPt Fill", "Edge Exit", "Other Exit" });
+            lstLEColors.Location = new System.Drawing.Point(13, 23);
+            lstLEColors.Name = "lstLEColors";
+            lstLEColors.Size = new System.Drawing.Size(121, 109);
+            lstLEColors.TabIndex = 0;
+            lstLEColors.SelectedIndexChanged += lstLEColors_SelectedIndexChanged;
+            // 
+            // groupBox17
+            // 
+            groupBox17.Controls.Add(chkShowHidden);
+            groupBox17.Controls.Add(txtGridMajor);
+            groupBox17.Controls.Add(lblLEGridMajor);
+            groupBox17.Controls.Add(txtLEScale);
+            groupBox17.Controls.Add(txtGridMinor);
+            groupBox17.Controls.Add(label35);
+            groupBox17.Controls.Add(lblLEGridMinor);
+            groupBox17.Controls.Add(chkDisplayPics);
+            groupBox17.Controls.Add(chkLEShowGrid);
+            groupBox17.Controls.Add(chkUseGrid);
+            groupBox17.Controls.Add(chkSynchronize);
+            groupBox17.Controls.Add(chkUseLE);
+            groupBox17.Location = new System.Drawing.Point(12, 9);
+            groupBox17.Name = "groupBox17";
+            groupBox17.Size = new System.Drawing.Size(435, 147);
+            groupBox17.TabIndex = 0;
+            groupBox17.TabStop = false;
+            groupBox17.Text = "Options";
+            // 
+            // txtGridMajor
+            // 
+            txtGridMajor.Location = new System.Drawing.Point(376, 79);
+            txtGridMajor.Name = "txtGridMajor";
+            txtGridMajor.Size = new System.Drawing.Size(46, 23);
+            txtGridMajor.TabIndex = 10;
+            txtGridMajor.Text = "0";
+            txtGridMajor.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            txtGridMajor.Validating += txtGridMajor_Validating;
+            // 
+            // lblLEGridMajor
+            // 
+            lblLEGridMajor.AutoSize = true;
+            lblLEGridMajor.Location = new System.Drawing.Point(303, 82);
+            lblLEGridMajor.Name = "lblLEGridMajor";
+            lblLEGridMajor.Size = new System.Drawing.Size(66, 15);
+            lblLEGridMajor.TabIndex = 9;
+            lblLEGridMajor.Text = "Major Grid:";
+            lblLEGridMajor.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // txtLEScale
+            // 
+            txtLEScale.Location = new System.Drawing.Point(376, 20);
+            txtLEScale.MaxValue = 8;
+            txtLEScale.MinValue = 1;
+            txtLEScale.Name = "txtLEScale";
+            txtLEScale.Size = new System.Drawing.Size(46, 23);
+            txtLEScale.TabIndex = 6;
+            txtLEScale.Text = "1";
+            txtLEScale.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            txtLEScale.Value = 1;
+            txtLEScale.KeyPress += txtLEScale_KeyPress;
+            txtLEScale.Validating += txtLEScale_Validating;
+            // 
+            // txtGridMinor
+            // 
+            txtGridMinor.Location = new System.Drawing.Point(376, 53);
+            txtGridMinor.Name = "txtGridMinor";
+            txtGridMinor.Size = new System.Drawing.Size(46, 23);
+            txtGridMinor.TabIndex = 8;
+            txtGridMinor.Text = "0";
+            txtGridMinor.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            txtGridMinor.KeyPress += txtGridMinor_KeyPress;
+            txtGridMinor.Validating += txtGridMinor_Validating;
+            // 
+            // label35
+            // 
+            label35.AutoSize = true;
+            label35.Location = new System.Drawing.Point(287, 23);
+            label35.Name = "label35";
+            label35.Size = new System.Drawing.Size(83, 15);
+            label35.TabIndex = 5;
+            label35.Text = "Default Zoom:";
+            label35.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // lblLEGridMinor
+            // 
+            lblLEGridMinor.AutoSize = true;
+            lblLEGridMinor.Location = new System.Drawing.Point(303, 56);
+            lblLEGridMinor.Name = "lblLEGridMinor";
+            lblLEGridMinor.Size = new System.Drawing.Size(67, 15);
+            lblLEGridMinor.TabIndex = 7;
+            lblLEGridMinor.Text = "Minor Grid:";
+            lblLEGridMinor.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // chkDisplayPics
+            // 
+            chkDisplayPics.AutoSize = true;
+            chkDisplayPics.Location = new System.Drawing.Point(11, 122);
+            chkDisplayPics.Name = "chkDisplayPics";
+            chkDisplayPics.Size = new System.Drawing.Size(109, 19);
+            chkDisplayPics.TabIndex = 4;
+            chkDisplayPics.Text = "Display Pictures";
+            chkDisplayPics.UseVisualStyleBackColor = true;
+            chkDisplayPics.CheckedChanged += chkDisplayPics_CheckedChanged;
+            // 
+            // chkLEShowGrid
+            // 
+            chkLEShowGrid.AutoSize = true;
+            chkLEShowGrid.Location = new System.Drawing.Point(11, 97);
+            chkLEShowGrid.Name = "chkLEShowGrid";
+            chkLEShowGrid.Size = new System.Drawing.Size(106, 19);
+            chkLEShowGrid.TabIndex = 3;
+            chkLEShowGrid.Text = "Show grid lines";
+            chkLEShowGrid.UseVisualStyleBackColor = true;
+            chkLEShowGrid.CheckedChanged += chkLEShowGrid_CheckedChanged;
+            // 
+            // chkUseGrid
+            // 
+            chkUseGrid.AutoSize = true;
+            chkUseGrid.Location = new System.Drawing.Point(11, 72);
+            chkUseGrid.Name = "chkUseGrid";
+            chkUseGrid.Size = new System.Drawing.Size(90, 19);
+            chkUseGrid.TabIndex = 2;
+            chkUseGrid.Text = "Snap to grid";
+            chkUseGrid.UseVisualStyleBackColor = true;
+            chkUseGrid.CheckedChanged += chkUseGrid_CheckedChanged;
+            // 
+            // chkSynchronize
+            // 
+            chkSynchronize.AutoSize = true;
+            chkSynchronize.Location = new System.Drawing.Point(11, 47);
+            chkSynchronize.Name = "chkSynchronize";
+            chkSynchronize.Size = new System.Drawing.Size(188, 19);
+            chkSynchronize.TabIndex = 1;
+            chkSynchronize.Text = "Synchronize with Resource List";
+            chkSynchronize.UseVisualStyleBackColor = true;
+            chkSynchronize.CheckedChanged += chkSynchronize_CheckedChanged;
+            // 
+            // chkUseLE
+            // 
+            chkUseLE.AutoSize = true;
+            chkUseLE.Location = new System.Drawing.Point(11, 22);
+            chkUseLE.Name = "chkUseLE";
+            chkUseLE.Size = new System.Drawing.Size(202, 19);
+            chkUseLE.TabIndex = 0;
+            chkUseLE.Text = "Use Layout Editor for New Games";
+            chkUseLE.UseVisualStyleBackColor = true;
+            chkUseLE.CheckedChanged += chkUseLE_CheckedChanged;
+            // 
             // cdColors
             // 
             cdColors.AnyColor = true;
             cdColors.SolidColorOnly = true;
             // 
-            // chkKeyboardSound
+            // chkShowHidden
             // 
-            chkNoKybdSound.AutoSize = true;
-            chkNoKybdSound.Location = new System.Drawing.Point(24, 339);
-            chkNoKybdSound.Name = "chkKeyboardSound";
-            chkNoKybdSound.Size = new System.Drawing.Size(154, 19);
-            chkNoKybdSound.TabIndex = 6;
-            chkNoKybdSound.Text = "Disable Keyboard Sound";
-            chkNoKybdSound.UseVisualStyleBackColor = true;
-            chkNoKybdSound.CheckedChanged += chkNoKybdSound_CheckedChanged;
+            chkShowHidden.AutoSize = true;
+            chkShowHidden.Location = new System.Drawing.Point(287, 122);
+            chkShowHidden.Name = "chkShowHidden";
+            chkShowHidden.Size = new System.Drawing.Size(130, 19);
+            chkShowHidden.TabIndex = 11;
+            chkShowHidden.Text = "Display hidden exits";
+            chkShowHidden.UseVisualStyleBackColor = true;
+            chkShowHidden.CheckedChanged += chkShowHidden_CheckedChanged;
             // 
             // frmSettings
             // 
@@ -2105,6 +2340,7 @@
             ShowInTaskbar = false;
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "Settings";
+            Load += frmSettings_Load;
             ((System.ComponentModel.ISupportInitialize)rtfPreview).EndInit();
             tabControl1.ResumeLayout(false);
             General.ResumeLayout(false);
@@ -2156,6 +2392,12 @@
             groupBox11.PerformLayout();
             groupBox10.ResumeLayout(false);
             groupBox10.PerformLayout();
+            LayoutTab.ResumeLayout(false);
+            groupBox18.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)picLESample).EndInit();
+            ((System.ComponentModel.ISupportInitialize)picLEColor).EndInit();
+            groupBox17.ResumeLayout(false);
+            groupBox17.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -2319,5 +2561,23 @@
         private System.Windows.Forms.Label label31;
         private System.Windows.Forms.Label label33;
         private System.Windows.Forms.CheckBox chkNoKybdSound;
+        private System.Windows.Forms.GroupBox groupBox18;
+        private System.Windows.Forms.GroupBox groupBox17;
+        private System.Windows.Forms.CheckBox chkDisplayPics;
+        private System.Windows.Forms.CheckBox chkLEShowGrid;
+        private System.Windows.Forms.CheckBox chkUseGrid;
+        private System.Windows.Forms.CheckBox chkSynchronize;
+        private System.Windows.Forms.CheckBox chkUseLE;
+        private System.Windows.Forms.Label label35;
+        private System.Windows.Forms.Label lblLEGridMinor;
+        private System.Windows.Forms.ListBox lstLEColors;
+        private NumericTextBox txtLEScale;
+        private System.Windows.Forms.TextBox txtGridMinor;
+        private System.Windows.Forms.PictureBox picLESample;
+        private System.Windows.Forms.Button cmdLEColor;
+        private System.Windows.Forms.PictureBox picLEColor;
+        private System.Windows.Forms.TextBox txtGridMajor;
+        private System.Windows.Forms.Label lblLEGridMajor;
+        private System.Windows.Forms.CheckBox chkShowHidden;
     }
 }

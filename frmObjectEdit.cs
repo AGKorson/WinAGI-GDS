@@ -630,7 +630,13 @@ namespace WinAGI.Editor {
         }
 
         private void fgObjects_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
+            // ignore formatting if no value, or if in new row
             if (e.Value == null || e.RowIndex == fgObjects.NewRowIndex) {
+                return;
+            }
+            // also ignore if adding a new row (because it does not yet
+            // exist in the object list)
+            if (Adding && e.RowIndex == fgObjects.NewRowIndex - 1) {
                 return;
             }
             // determine if tooltip is needed
@@ -870,7 +876,6 @@ namespace WinAGI.Editor {
                         fgObjects.EndEdit();
                         return;
                     }
-                    // TODO: check for duplicates
                     if (EditTextBox.Text != "?") {
                         if (WinAGISettings.WarnDupObj.Value) {
                             for (int i = 0; i < EditInvList.Count; i++) {
@@ -899,8 +904,8 @@ namespace WinAGI.Editor {
                         }
                     }
                     EditItem.ItemName = EditTextBox.Text;
-                    EditInvList[fgObjects.CurrentRow.Index].ItemName = EditTextBox.Text;
                     if (!Adding) {
+                        EditInvList[fgObjects.CurrentRow.Index].ItemName = EditTextBox.Text;
                         NextUndo = new() {
                             UDAction = ObjectsUndo.ActionType.ModifyItem,
                             UDObjectNo = fgObjects.CurrentRow.Index,
@@ -921,7 +926,6 @@ namespace WinAGI.Editor {
                         return;
                     }
                     EditItem.Room = byte.Parse(EditTextBox.Text);
-                    EditInvList[fgObjects.CurrentRow.Index].Room = EditItem.Room;
                     if (Adding) {
                         NextUndo = new() {
                             UDAction = AddItem,
@@ -930,6 +934,7 @@ namespace WinAGI.Editor {
                         AddUndo(NextUndo);
                     }
                     else {
+                        EditInvList[fgObjects.CurrentRow.Index].Room = EditItem.Room;
                         NextUndo = new() {
                             UDAction = ModifyRoom,
                             UDObjectNo = fgObjects.CurrentRow.Index,
@@ -1385,8 +1390,8 @@ namespace WinAGI.Editor {
                     Text += Common.Base.CompactPath(EditInvListFilename, 75);
                 }
                 else {
-                    ObjCount++;
-                    Text += "NewObjects" + ObjCount.ToString();
+                    ObjEdCount++;
+                    Text += "NewObjects" + ObjEdCount.ToString();
                 }
             }
             if (IsChanged) {
@@ -1604,7 +1609,7 @@ namespace WinAGI.Editor {
                         }
                         if (textchanged) {
                             logic.SaveSource();
-                            //update reslist
+                            // update reslist
                             RefreshTree(AGIResType.Logic, logic.Number);
                         }
                         if (unload) {

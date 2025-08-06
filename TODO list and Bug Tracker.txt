@@ -17,7 +17,7 @@ X   15. Palette Editor
 X   16. Picture Editor
 X   17. View Editor
 X   18. Sound Editor
-    19. Layout Editor
+O   19. Layout Editor
     20. Menu Editor
     21. Text Screen Editor
     22. Help Integration
@@ -1137,12 +1137,13 @@ WinAGI settings and warnings:
 // LAYOUT EDITOR SETTINGS
 // ************************************************
 // DefUseLE
-// LEPages
-// LEShowPics
 // LEUseGrid
-// LEGrid
+// LEGridMinor
+// LEGridMajor
+// LEShowGrid
+// LEShowPics
 // LESync
-// LEZoom
+// LEScale
 // RoomEdgeColor
 // RoomFillColor
 // TransPtEdgeColor
@@ -1395,9 +1396,25 @@ public void mnuRInGame_Click(object sender, EventArgs e)
 | AlphaBlend        | Graphics.DrawImage + ImageAttributes.SetColorMatrix |
 ---
 
-| GDI Classic (BitBlt/ROP) | System.Drawing Equivalent     |
-|--------------------------|-------------------------------|
-| ROP codes (SRCCOPY, etc) | Not supported                 |
-| Alpha blending           | CompositingMode/ImageAttributes |
-| Color key transparency   | ImageAttributes.SetColorKey   |
-| Custom raster ops        | P/Invoke GDI or manual pixels |
+| GDI Classic (BitBlt/ROP)  | System.Drawing Equivalent       |
+|---------------------------|---------------------------------|
+| ROP codes (SRCCOPY, etc)  | Not supported                   |
+| Alpha blending            | CompositingMode/ImageAttributes |
+| Color key transparency    | ImageAttributes.SetColorKey     |
+| Custom raster ops         | P/Invoke GDI or manual pixels   |
+
+Layout File Format:
+Header: Name, Version, DrawScale, Offset
+0x01 character separates element blocks
+element block types:
+    Room: ShowPic, Loc, Exits[ID, OldRoom, Reason, Style, Transfer, Leg, Status], Index, Visible
+    TransPt: Loc[2], Rooms[2], ID[2], Count, Index, Visible
+    ErrPt: Loc, Room, ExitID, FromRoom, Index, Visible
+    Comment: Loc, Size, Text, Index, Visible
+0x02 character separates modification blocks
+modification block types
+    Renumber: OldNumber, Index, Visible
+    Update: ShowPic, Exits[ID, OldRoom, Reason, Style, Transfer, Leg, Status], Index, Visible
+    Show: ShowPic, Exits[ID, OldRoom, Reason, Style, Transfer, Leg, Status], Index, Visible
+    Hide: Index", Visible
+each block is a json serialized object

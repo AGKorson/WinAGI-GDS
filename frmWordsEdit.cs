@@ -1849,8 +1849,8 @@ namespace WinAGI.Editor {
                     Text += Common.Base.CompactPath(EditWordListFilename, 75);
                 }
                 else {
-                    WrdCount++;
-                    Text += "NewWords" + WrdCount.ToString();
+                    WrdEdCount++;
+                    Text += "NewWords" + WrdEdCount.ToString();
                 }
             }
 

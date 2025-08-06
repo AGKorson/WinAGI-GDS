@@ -28,7 +28,6 @@ namespace WinAGI.Editor {
         public bool InGame = false; // dynamic
         public bool IsChanged = false; // dynamic
         public string FileName = "";
-        private bool closing = false;
         private TDefine EditDefine;
         private bool Inserting = false;
         private Stack<GlobalsUndo> UndoCol = [];
@@ -122,13 +121,14 @@ namespace WinAGI.Editor {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
             }
-            closing = AskClose();
+            bool closing = AskClose();
             e.Cancel = !closing;
         }
 
         private void frmGlobals_FormClosed(object sender, FormClosedEventArgs e) {
             if (InGame) {
                 GEInUse = false;
+                GlobalsEditor = null;
             }
         }
         #endregion
@@ -158,7 +158,7 @@ namespace WinAGI.Editor {
         /// <param name="e"></param>
         public void mnuRSave_Click(object sender, EventArgs e) {
             if (IsChanged) {
-                MenuClickSave();
+                SaveDefinesList();
             }
         }
 
@@ -171,7 +171,7 @@ namespace WinAGI.Editor {
         private void mnuRSaveAs_Click(object sender, EventArgs e) {
             string filename = NewSaveFileName();
             if (filename.Length != 0) {
-                MenuClickSave(filename);
+                SaveDefinesList(filename);
             }
         }
 
@@ -1057,7 +1057,7 @@ namespace WinAGI.Editor {
         }
 
         private void EditTextBox_KeyDown(object sender, KeyEventArgs e) {
-            // pressing enter should move to next COLUMN, not next ROW
+            // pressing tab or enter should move to next COLUMN, not next ROW
             // (unless it's at end of row)
             string message = "";
             bool blnNoWarn = false;
@@ -1610,7 +1610,7 @@ namespace WinAGI.Editor {
             return retval;
         }
 
-        public void MenuClickSave(string savefile = "") {
+        public void SaveDefinesList(string savefile = "") {
             // save list of globals
             string FindText, pattern, replacetext;
 
@@ -2478,7 +2478,7 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Question);
                 switch (rtn) {
                 case DialogResult.Yes:
-                    //SaveDefinesList();
+                    SaveDefinesList();
                     if (IsChanged) {
                         rtn = MessageBox.Show(MDIMain,
                             "File not saved. Continue closing anyway?",
@@ -2497,12 +2497,12 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        public void UpdateStatusBar() {
+        private void UpdateStatusBar() {
 
             // TODO: status bars...
         }
 
-        void MarkAsChanged() {
+        private void MarkAsChanged() {
             // ignore when loading (not visible yet)
             if (!Visible) {
                 return;
@@ -2527,9 +2527,16 @@ namespace WinAGI.Editor {
             // Enter key is usually captured by the grid, but we want it to go to the textbox
             if (keyData == Keys.Enter) {
                 if (EditTextBox.Focused) {
-                    //if (fgObjects.IsCurrentCellInEditMode) {
                     EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
                     return true;
+                }
+            }
+            if (keyData == Keys.Tab) {
+                if (EditTextBox.Focused) {
+                    if (globalsgrid.IsCurrentCellInEditMode) {
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                        return true;
+                    }
                 }
             }
             return base.ProcessCmdKey(ref msg, keyData);

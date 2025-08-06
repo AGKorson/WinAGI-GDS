@@ -1067,6 +1067,10 @@ namespace WinAGI.Engine {
         /// applies to sounds in a game. Non-game sounds are always loaded.
         /// </summary>
         public override void Load() {
+            Load(false);
+        }
+
+        internal void Load(bool validateonly) {
             if (mLoaded) {
                 return;
             }
@@ -1087,7 +1091,7 @@ namespace WinAGI.Engine {
             }
             else {
                 // finish loading sound
-                FinishLoad();
+                FinishLoad(validateonly);
                 // get settings
                 mKey = parent.agGameProps.GetSetting("Sound" + mResNum, "Key", 0);
                 if (mKey < -7 || mKey > 7) {
@@ -1118,7 +1122,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// This method sets the sound format and loads tracks and output data.
         /// </summary>
-        private void FinishLoad() {
+        private void FinishLoad(bool no_output = false) {
             int i;
 
             // initialize tracks
@@ -1149,12 +1153,14 @@ namespace WinAGI.Engine {
                 ErrClear();
                 break;
             }
-            try {
-                BuildSoundOutput();
-            }
-            catch (Exception) {
-                // pass along errors
-                throw;
+            if (!no_output) {
+                try {
+                    BuildSoundOutput();
+                }
+                catch (Exception) {
+                    // pass along errors
+                    throw;
+                }
             }
         }
 

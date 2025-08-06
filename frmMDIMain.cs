@@ -214,6 +214,32 @@ namespace WinAGI.Editor {
         }
 
         private void frmMDIMain_KeyPress(object sender, KeyPressEventArgs e) {
+            // grid keypresses occur AFTER the form keypresses
+
+                // if the active control is the property grid, 
+                // we need to handle some keypresses
+                if (ActiveControl == splResource && splResource.ActiveControl == propertyGrid1) {
+                    // for some properties, direct editing not allowed
+                    switch (propertyGrid1.SelectedGridItem.Label) {
+                    case "GameID":
+                        // only alphanumeric, backspace, delete, return
+                        if (!char.IsLetterOrDigit(e.KeyChar) && e.KeyChar != '\b' && e.KeyChar != '\r' && e.KeyChar != '\x7f') {
+                            e.Handled = true;
+                        }
+                        break;
+                    case "GlobalDef":
+                    case "Number":
+                    case "ID":
+                    case "Description":
+                    case "ViewDesc":
+                        // never allow direct editing
+                        e.Handled = true;
+                        break;
+                    }
+                    return;
+                }
+            
+
             // after processing key press for the main form, pass it 
             // to preview window, if it's active
             if (!e.Handled) {
@@ -292,17 +318,18 @@ namespace WinAGI.Editor {
             }
             // update toolbar
             if (MDIMain.ActiveMdiChild == null) {
-                UpdateTBResourceBtns(AGIResType.None, false, false);
+                UpdateTBResourceBtns(AGIResType.None, false, false, -1);
             }
             else {
                 dynamic form = MDIMain.ActiveMdiChild;
                 bool ingame = false;
                 bool changed = false;
                 AGIResType restype = AGIResType.None;
+                int resnum = -1;
 
                 switch (MDIMain.ActiveMdiChild.Name) {
                 case "frmPreview":
-                    UpdateTBResourceBtns(SelResType, true, false);
+                    UpdateTBResourceBtns(SelResType, true, false, SelResNum);
                     break;
                 case "frmLogicEdit":
                 case "frmPicEdit":
@@ -312,15 +339,19 @@ namespace WinAGI.Editor {
                     switch (MDIMain.ActiveMdiChild.Name) {
                     case "frmLogicEdit":
                         restype = AGIResType.Logic;
+                        resnum = form.LogicNumber;
                         break;
                     case "frmPicEdit":
                         restype = AGIResType.Picture;
+                        resnum = form.PictureNumber;
                         break;
                     case "frmSoundEdit":
                         restype = AGIResType.Sound;
+                        resnum = form.SoundNumber;
                         break;
                     case "frmViewEdit":
                         restype = AGIResType.View;
+                        resnum = form.ViewNumber;
                         break;
                     case "frmGlobals":
                         restype = AGIResType.Globals;
@@ -333,26 +364,26 @@ namespace WinAGI.Editor {
                             restype = AGIResType.Text;
                         }
                     }
-                    UpdateTBResourceBtns(restype, ingame, changed);
+                    UpdateTBResourceBtns(restype, ingame, changed, resnum);
                     break;
                 case "frmLayout":
                     changed = form.IsChanged;
-                    UpdateTBResourceBtns(AGIResType.Layout, true, changed);
+                    UpdateTBResourceBtns(AGIResType.Layout, true, changed, -1);
                     break;
                 case "frmObjectEdit":
                     changed = form.IsChanged;
-                    UpdateTBResourceBtns(AGIResType.Objects, false, changed);
+                    UpdateTBResourceBtns(AGIResType.Objects, false, changed, -1);
                     break;
                 case "frmWordsEdit":
                     changed = form.IsChanged;
-                    UpdateTBResourceBtns(AGIResType.Words, false, changed);
+                    UpdateTBResourceBtns(AGIResType.Words, false, changed, -1);
                     break;
                 case "frmTextScreenEdit":
                     changed = form.IsChanged;
-                    UpdateTBResourceBtns(AGIResType.TextScreen, false, changed);
+                    UpdateTBResourceBtns(AGIResType.TextScreen, false, changed, -1);
                     break;
                 default:
-                    UpdateTBResourceBtns(AGIResType.None, false, false);
+                    UpdateTBResourceBtns(AGIResType.None, false, false, -1);
                     break;
                 }
             }
@@ -416,40 +447,6 @@ namespace WinAGI.Editor {
         }
 
         public void OnIdle(object sender, EventArgs e) {
-            //string msg = MDIMain.ActiveMdiChild == null ? "none" : MDIMain.ActiveMdiChild.Name;
-            //Debug.Print($"activemdichild: {msg}");
-
-            //bool f = false;
-            //for (int i = 0; i < MDIMain.OwnedForms.Length; i++) {
-            //    if (MDIMain.OwnedForms[i].Focused) {
-            //        msg = MDIMain.OwnedForms[i].Name;
-            //        f = true;
-            //        break;
-            //    }
-            //}
-            //if (!f) {
-            //    msg = "none";
-            //}
-            //Debug.Print($"owned focus: {msg}");
-
-            //msg = Form.ActiveForm == null ? "none" : Form.ActiveForm.Name;
-            // Debug.Print($"active form: {msg}");
-
-            //bool g = false;
-            //for (int i = 0; i < MDIMain.MdiChildren.Length; i++) {
-            //    if (MDIMain.MdiChildren[i].Focused) {
-            //        msg = MDIMain.MdiChildren[i].Name;
-            //        g = true;
-            //        break;
-            //    }
-            //}
-            //if (!g) {
-            //    msg = "none";
-            //}
-            //Debug.Print($"mdichild focus : {msg}");
-            //Debug.Print("loged has focus: " + MDIMain.MdiChildren[1].Focused);
-
-
             // Update the 'lock' panels when the program is idle
             // unless panel is in a window that doesn't show them
             if (MainStatusBar.Items.ContainsKey(nameof(spCapsLock))) {
@@ -931,7 +928,7 @@ namespace WinAGI.Editor {
                         frm.Dispose();
                         return;
                     }
-                        break;
+                    break;
                 default:
                     // no options needed
                     options = null;
@@ -1123,10 +1120,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTLayout_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: layout editor");
-            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
-                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
-            }
+            OpenLayout();
         }
 
         private void mnuTMenuEditor_Click(object sender, EventArgs e) {
@@ -2451,10 +2445,6 @@ namespace WinAGI.Editor {
             MessageBox.Show("TODO: Text Screen Editor");
         }
 
-        private void btnGlobals_Click(object sender, EventArgs e) {
-            MessageBox.Show("TODO: Globals Editor");
-        }
-
         private void btnHelp_Click(object sender, EventArgs e) {
             Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Index);
         }
@@ -2765,6 +2755,7 @@ namespace WinAGI.Editor {
                 break;
             }
         }
+
         private void SplashTimer(object sender, EventArgs e) {
             // used by splash screen
             splashDone = true;
@@ -2902,11 +2893,11 @@ namespace WinAGI.Editor {
                 }
             }
 
-            //update selection properties
+            // update selection properties
             SelResType = NewResType;
             SelResNum = NewResNum;
             if (WinAGISettings.ResListType.Value != EResListType.None) {
-                //add selected resource to navigation queue
+                // add selected resource to navigation queue
                 AddToQueue(SelResType, SelResNum < 0 ? 256 : SelResNum);
                 // always disable forward button
                 cmdForward.Enabled = false;
@@ -2927,11 +2918,14 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            UpdateTBResourceBtns(SelResType, true, false);
-
+            if (PreviewWin.Visible) {
+                if (MDIMain.ActiveMdiChild == PreviewWin) {
+                    UpdateTBResourceBtns(SelResType, true, false, NewResNum);
+                }
+            }
         }
 
-        void SelectFromQueue() {
+        private void SelectFromQueue() {
             //selects the node/resource from the current queue position
             //
             //if the current resource is gone (deleted)
@@ -3389,7 +3383,7 @@ namespace WinAGI.Editor {
             return;
         }
 
-        bool ReadSettings() {
+        private bool ReadSettings() {
             double sngProp;
             double sngTop, sngLeft;
             double sngWidth, sngHeight;
@@ -3696,7 +3690,7 @@ namespace WinAGI.Editor {
             else {
                 WinAGISettings.ViewScaleEdit.Value = (int)WinAGISettings.ViewScaleEdit.Value;
             }
-                WinAGISettings.DefVColor1.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.DefVColor1.ReadSetting(WinAGISettingsFile);
             if (WinAGISettings.DefVColor1.Value < 0) {
                 WinAGISettings.DefVColor1.Value = 0;
             }
@@ -3719,19 +3713,26 @@ namespace WinAGI.Editor {
 
             // LAYOUT EDITOR
             WinAGISettings.DefUseLE.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.LEPages.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.LEShowPics.ReadSetting(WinAGISettingsFile);
             WinAGISettings.LEUseGrid.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.LEGrid.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.LEGrid.Value = Math.Round(WinAGISettings.LEGrid.Value, 2);
-            if (WinAGISettings.LEGrid.Value > 1) {
-                WinAGISettings.LEGrid.Value = 1;
+            WinAGISettings.LEGridMinor.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.LEGridMajor.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.LEShowGrid.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.LEShowPics.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.LEShowHidden.ReadSetting(WinAGISettingsFile);
+            // minor restricted to 0.05 - 1.0 in 0.05 increments
+            if (WinAGISettings.LEGridMinor.Value > 1) {
+                WinAGISettings.LEGridMinor.Value = 1;
             }
-            if (WinAGISettings.LEGrid.Value < 0.05) {
-                WinAGISettings.LEGrid.Value = 0.05;
+            else if (WinAGISettings.LEGridMinor.Value < 0.05) {
+                WinAGISettings.LEGridMinor.Value = 0.05;
             }
+            else {
+                WinAGISettings.LEGridMinor.Value = Math.Round(WinAGISettings.LEGridMinor.Value * 20) * 0.05;
+            }
+            // major grid must be an increment of minor
+            WinAGISettings.LEGridMajor.Value = Math.Round(WinAGISettings.LEGridMajor.Value / WinAGISettings.LEGridMinor.Value) * WinAGISettings.LEGridMinor.Value;
             WinAGISettings.LESync.ReadSetting(WinAGISettingsFile);
-            WinAGISettings.LEZoom.ReadSetting(WinAGISettingsFile);
+            WinAGISettings.LEScale.ReadSetting(WinAGISettingsFile);
             WinAGISettings.RoomEdgeColor.ReadSetting(WinAGISettingsFile);
             WinAGISettings.RoomFillColor.ReadSetting(WinAGISettingsFile);
             WinAGISettings.TransPtEdgeColor.ReadSetting(WinAGISettingsFile);
@@ -3947,7 +3948,7 @@ namespace WinAGI.Editor {
             WinAGISettingsFile.Save();
         }
 
-        void CheckCmd() {
+        private void CheckCmd() {
             string[] args = Environment.GetCommandLineArgs();
             // arg[0] is the program name
             // arg[1] is the target file
@@ -4120,6 +4121,7 @@ namespace WinAGI.Editor {
             //    fgWarnings.CurrentCell = fgWarnings.Rows[tmpRow].Cells[0];
             //}
         }
+
         public void HideWarningList(bool clearlist = false) {
             if (clearlist) {
                 ClearWarnings();
@@ -4697,6 +4699,10 @@ namespace WinAGI.Editor {
                 propertyGrid1.SelectedObject = pWordList;
                 break;
             }
+        }
+
+        private void propertyGrid1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e) {
+            Debug.Print($"PreviewKeyDown: {e.KeyCode} {e.Modifiers}");
         }
     }
 

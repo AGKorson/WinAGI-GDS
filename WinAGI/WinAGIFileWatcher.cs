@@ -72,7 +72,7 @@ namespace WinAGI.Engine {
         private static void OnError(object sender, ErrorEventArgs e) =>
             PrintException(e.GetException());
 
-        private static void PrintException(Exception? ex) {
+        private static void PrintException(Exception ex) {
             if (ex != null) {
                 Debug.Print($"Message: {ex.Message}");
                 Debug.Print("Stacktrace:");

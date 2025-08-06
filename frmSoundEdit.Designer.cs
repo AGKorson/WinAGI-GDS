@@ -293,7 +293,7 @@ namespace WinAGI.Editor {
             // 
             splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-            splitContainer1.Location = new System.Drawing.Point(0, 0);
+            splitContainer1.Location = new System.Drawing.Point(0, 24);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -308,7 +308,7 @@ namespace WinAGI.Editor {
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer2);
-            splitContainer1.Size = new System.Drawing.Size(556, 304);
+            splitContainer1.Size = new System.Drawing.Size(556, 280);
             splitContainer1.SplitterDistance = 130;
             splitContainer1.TabIndex = 6;
             splitContainer1.TabStop = false;
@@ -331,8 +331,8 @@ namespace WinAGI.Editor {
             // 
             splitContainer3.Panel2.Controls.Add(propertyGrid1);
             splitContainer3.Panel2MinSize = 50;
-            splitContainer3.Size = new System.Drawing.Size(130, 229);
-            splitContainer3.SplitterDistance = 105;
+            splitContainer3.Size = new System.Drawing.Size(130, 205);
+            splitContainer3.SplitterDistance = 81;
             splitContainer3.TabIndex = 8;
             splitContainer3.TabStop = false;
             splitContainer3.MouseUp += splitContainer3_MouseUp;
@@ -367,7 +367,7 @@ namespace WinAGI.Editor {
             tvwSound.NoSelection = false;
             tvwSound.SelectedNodes = (System.Collections.Generic.List<System.Windows.Forms.TreeNode>)resources.GetObject("tvwSound.SelectedNodes");
             tvwSound.ShowRootLines = false;
-            tvwSound.Size = new System.Drawing.Size(130, 105);
+            tvwSound.Size = new System.Drawing.Size(130, 81);
             tvwSound.TabIndex = 3;
             tvwSound.AfterCollapse += tvwSound_After;
             tvwSound.AfterExpand += tvwSound_After;
@@ -712,8 +712,8 @@ namespace WinAGI.Editor {
             splitContainer2.Panel2.Controls.Add(btnDurationUp);
             splitContainer2.Panel2.Controls.Add(btnKybdRight);
             splitContainer2.Panel2.Controls.Add(btnKybdLeft);
-            splitContainer2.Size = new System.Drawing.Size(422, 304);
-            splitContainer2.SplitterDistance = 234;
+            splitContainer2.Size = new System.Drawing.Size(422, 280);
+            splitContainer2.SplitterDistance = 210;
             splitContainer2.TabIndex = 0;
             splitContainer2.TabStop = false;
             splitContainer2.MouseUp += splitContainer2_MouseUp;
@@ -815,7 +815,7 @@ namespace WinAGI.Editor {
             picStaff1.BackColor = System.Drawing.Color.White;
             picStaff1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             picStaff1.ContextMenuStrip = contextMenuStrip1;
-            picStaff1.Location = new System.Drawing.Point(0, 55);
+            picStaff1.Location = new System.Drawing.Point(0, 43);
             picStaff1.Name = "picStaff1";
             picStaff1.ShowFocusRectangle = false;
             picStaff1.Size = new System.Drawing.Size(422, 55);
@@ -834,7 +834,7 @@ namespace WinAGI.Editor {
             picStaff2.BackColor = System.Drawing.Color.White;
             picStaff2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             picStaff2.ContextMenuStrip = contextMenuStrip1;
-            picStaff2.Location = new System.Drawing.Point(0, 110);
+            picStaff2.Location = new System.Drawing.Point(0, 98);
             picStaff2.Name = "picStaff2";
             picStaff2.ShowFocusRectangle = false;
             picStaff2.Size = new System.Drawing.Size(422, 55);
@@ -853,7 +853,7 @@ namespace WinAGI.Editor {
             picStaff3.BackColor = System.Drawing.Color.White;
             picStaff3.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             picStaff3.ContextMenuStrip = contextMenuStrip1;
-            picStaff3.Location = new System.Drawing.Point(0, 162);
+            picStaff3.Location = new System.Drawing.Point(0, 150);
             picStaff3.Name = "picStaff3";
             picStaff3.ShowFocusRectangle = false;
             picStaff3.Size = new System.Drawing.Size(422, 55);
@@ -869,7 +869,7 @@ namespace WinAGI.Editor {
             // hsbStaff
             // 
             hsbStaff.Dock = System.Windows.Forms.DockStyle.Bottom;
-            hsbStaff.Location = new System.Drawing.Point(0, 217);
+            hsbStaff.Location = new System.Drawing.Point(0, 193);
             hsbStaff.Name = "hsbStaff";
             hsbStaff.Size = new System.Drawing.Size(422, 17);
             hsbStaff.TabIndex = 0;

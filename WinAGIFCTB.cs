@@ -171,7 +171,7 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
-        /// Parses a line of text to see determine the token type at the 
+        /// Parses a line of text to determine the token type at the 
         /// specified position. The start argument is updated to the start
         /// position of the detected token.
         /// </summary>
@@ -229,10 +229,10 @@ namespace WinAGI.Editor {
                                 return AGITokenType.Comment;
                             }
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && strLine[i + 1] == '=') {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '[':
@@ -244,55 +244,55 @@ namespace WinAGI.Editor {
                     case '!':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && strLine[i + 1] == '=') {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '&':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && strLine[i + 1] == '&') {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '*':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && strLine[i + 1] == '=') {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '+':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && (strLine[i + 1] == '+' || strLine[i + 1] == '=')) {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '-':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && (strLine[i + 1] == '-' || strLine[i + 1] == '=')) {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '>':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && (strLine[i + 1] == '=' || strLine[i + 1] == '<')) {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '=':
@@ -307,28 +307,28 @@ namespace WinAGI.Editor {
                     case '<':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && (strLine[i + 1] == '=' || strLine[i + 1] == '>')) {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '@':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && strLine[i + 1] == '=') {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '|':
                         if (!inQuote) {
                             retval = AGITokenType.Symbol;
+                            tokenstart = i;
                             if (i < strLine.Length && strLine[i + 1] == '|') {
                                 i++;
                             }
-                            tokenstart = i;
                         }
                         break;
                     case '\'' or '(' or ')' or ',' or ':' or ';' or '?' or ']' or
@@ -594,7 +594,7 @@ namespace WinAGI.Editor {
             return GetTokenEnd(retval, checkline);
         }
 
-        public static AGIToken NextToken(string checkline, AGIToken token) {
+        public static AGIToken NextToken(string checkline, AGIToken token, bool includelinebreaks = false) {
             AGIToken nexttoken = new AGIToken();
             nexttoken.StartPos = token.EndPos;
             nexttoken.Line = token.Line;
@@ -606,7 +606,25 @@ namespace WinAGI.Editor {
                     // end of line reached; no token found
                     nexttoken.StartPos = checkline.Length;
                     nexttoken.EndPos = nexttoken.StartPos;
+                    nexttoken.Type = AGITokenType.None;
                     return nexttoken;
+                }
+                // when includelinebreaks is true, line breaks are returned as tokens
+                if (includelinebreaks) {
+                    // return '\r' or '\n' or "\r\n" as a token
+                    if (checkline[nexttoken.StartPos] == '\r') {
+                        nexttoken.Type = AGITokenType.LineBreak;
+                        nexttoken.EndPos = nexttoken.StartPos + 1;
+                        if (nexttoken.EndPos < checkline.Length && checkline[nexttoken.EndPos] == '\n') {
+                            nexttoken.EndPos++;
+                        }
+                        return nexttoken;
+                    }
+                    else if (checkline[nexttoken.StartPos] == '\n') {
+                        nexttoken.Type = AGITokenType.LineBreak;
+                        nexttoken.EndPos = nexttoken.StartPos + 1;
+                        return nexttoken;
+                    }
                 }
             } while (checkline[nexttoken.StartPos] <= (char)33);
 
@@ -641,7 +659,16 @@ namespace WinAGI.Editor {
             return GetTokenEnd(nexttoken, checkline);
         }
 
-        public static AGIToken PreviousToken(string checkline, AGIToken token) {
+        public static AGIToken NextToken(string checkline, int startPos, bool includelinebreaks = false) {
+            // gets the next token in the specified text, allowing for line breaks
+            AGIToken token = new() {
+                StartPos = startPos,
+                Line = 0
+            };
+            return NextToken(checkline, token, includelinebreaks);
+        }
+        
+        public static AGIToken PreviousToken(string checkline, AGIToken token, bool includelinebreaks = false) {
             AGIToken prevtoken = new AGIToken();
             prevtoken.Line = token.Line;
             prevtoken.StartPos = token.StartPos;
@@ -652,10 +679,52 @@ namespace WinAGI.Editor {
                     // beginning of line reached; no token found
                     prevtoken.StartPos = -1;
                     prevtoken.EndPos = -1;
+                    prevtoken.Type = AGITokenType.None;
                     return prevtoken;
+                }
+                // when includelinebreaks is true, line breaks are returned as tokens
+                if (includelinebreaks) {
+                    // return '\r' or '\n' or "\r\n" as a token
+                    if (checkline[prevtoken.StartPos] == '\n') {
+                        prevtoken.Type = AGITokenType.LineBreak;
+                        prevtoken.EndPos = prevtoken.StartPos + 1;
+                        if (prevtoken.StartPos > 0 && checkline[prevtoken.StartPos - 1] == '\r') {
+                            prevtoken.StartPos--;
+                        }
+                        return prevtoken;
+                    }
+                    else if (checkline[prevtoken.StartPos] == '\r') {
+                        prevtoken.Type = AGITokenType.LineBreak;
+                        prevtoken.EndPos = prevtoken.StartPos + 1;
+                        return prevtoken;
+                    }
                 }
             } while (checkline[prevtoken.StartPos] <= (char)33);
             return TokenFromPos(checkline, prevtoken.StartPos);
+        }
+
+        /// <summary>
+        /// Gets the starting position of the specified token text.
+        /// </summary>
+        /// <param name="sourcetext"></param>
+        /// <param name="tokentext"></param>
+        /// <param name="startpos"></param>
+        /// <returns></returns>
+        public static int FindTokenPos(string sourcetext, string tokentext, int startpos = 0) {
+            do {
+                startpos = sourcetext.IndexOf(tokentext, startpos);
+                if (startpos != -1) {
+                    // if found, confirm it's a token, and not part of a larger token
+                    AGIToken token = TokenFromPos(sourcetext, startpos);
+                    if (token.Text == tokentext) {
+                        // found
+                        break;
+                    }
+                    // try again
+                    startpos++;
+                }
+            } while (startpos != -1);
+            return startpos;
         }
 
         internal void RemoveLine(int line) {

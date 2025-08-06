@@ -1305,7 +1305,7 @@
             btnLayoutEd.Name = "btnLayoutEd";
             btnLayoutEd.Size = new System.Drawing.Size(28, 28);
             btnLayoutEd.Text = "Layout Editor";
-            btnLayoutEd.Click += btnLayoutEd_Click;
+            btnLayoutEd.Click += mnuTLayout_Click;
             // 
             // btnMenuEd
             // 
@@ -1588,6 +1588,7 @@
             propertyGrid1.TabIndex = 28;
             propertyGrid1.ToolbarVisible = false;
             propertyGrid1.MouseWheel += propertyGrid1_MouseWheel;
+            propertyGrid1.PreviewKeyDown += propertyGrid1_PreviewKeyDown;
             // 
             // cmsGrid
             // 

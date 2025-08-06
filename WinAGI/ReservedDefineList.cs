@@ -16,8 +16,8 @@ namespace WinAGI.Engine {
     /// Represents a list of reserved defines that are used for this game.
     /// </summary>
     public class ReservedDefineList {
-        // TODO: manage reserved defines as s list attached to each game; a default
-        // list is also attached to the game engine; need to do extensive testing
+        // TODO: manage reserved defines as a list attached to each game; a default
+        // list is also attached to the game engine; will need to do extensive testing
 
         #region Local Members
         readonly AGIGame parent;

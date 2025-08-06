@@ -73,7 +73,8 @@ namespace WinAGI.Engine {
         /// <param name="lngLoc"></param>
         internal void InitLoad(byte bytResNum, sbyte bytVol, int lngLoc) {
             Sound newResource = new(parent, bytResNum, bytVol, lngLoc);
-            newResource.Load();
+            // for initial load, skip the output build
+            newResource.Load(true);
             Col.Add(bytResNum, newResource);
             // leave it loaded, so error level can be addressed by loader
         }

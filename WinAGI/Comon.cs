@@ -637,7 +637,7 @@ namespace WinAGI.Common {
         }
 
         public static bool FontIsMonospace(FontFamily testfontfamily) {
-            Font testfont = new Font(testfontfamily, 9.75f);
+            Font testfont = new Font(testfontfamily, 10, FontStyle.Regular);
             return FontIsMonospace(testfont);
         }
 
@@ -888,11 +888,7 @@ namespace WinAGI.Common {
                 //freq = (int)freq;
             }
             return (int)(111860.0 / freq);
-
-
-
-
-            return (int)(111860.0 / Math.Round(440.0 * Math.Exp((NoteIn - 69) * Math.Log(2.0) / 12.0)));
+            //return (int)(111860.0 / Math.Round(440.0 * Math.Exp((NoteIn - 69) * Math.Log(2.0) / 12.0)));
             
             //double sngFreq = 111860D / Math.Pow(10, (NoteIn + 36.5) * LOG10_1_12);
             //return (int)Math.Round(sngFreq, 0);
