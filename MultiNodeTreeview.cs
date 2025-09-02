@@ -1,11 +1,7 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
 using System.Diagnostics;
-using System.Collections;
 using System;
-using static WinAGI.Common.API;
-using Microsoft.VisualStudio.Shell.Interop;
-using System.Diagnostics.Eventing.Reader;
 using System.Collections.Generic;
 
 namespace WinAGI.Editor {
@@ -115,7 +111,6 @@ namespace WinAGI.Editor {
 
             // Draw focus rectangle if needed
             if ((e.State & TreeNodeStates.Focused) != 0) {
-                //ControlPaint.DrawFocusRectangle(e.Graphics, e.Bounds, foreColor, backColor);
                 ControlPaint.DrawFocusRectangle(e.Graphics, e.Bounds, foreColor, backColor);
             }
         }

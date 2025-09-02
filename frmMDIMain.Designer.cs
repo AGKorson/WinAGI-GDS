@@ -107,6 +107,7 @@
             mnuTSep1 = new ToolStripSeparator();
             mnuTLayout = new ToolStripMenuItem();
             mnuTMenuEditor = new ToolStripMenuItem();
+            mnuTTextScreenEditor = new ToolStripMenuItem();
             mnuTGlobals = new ToolStripMenuItem();
             mnuTReserved = new ToolStripMenuItem();
             mnuTSnippets = new ToolStripMenuItem();
@@ -734,7 +735,7 @@
             // 
             // mnuTools
             // 
-            mnuTools.DropDownItems.AddRange(new ToolStripItem[] { mnuTSettings, mnuTSep1, mnuTLayout, mnuTMenuEditor, mnuTGlobals, mnuTReserved, mnuTSnippets, mnuTPalette, mnuTWarning, mnuTSep2, mnuTCustom1, mnuTCustom2, mnuTCustom3, mnuTCustom4, mnuTCustom5, mnuTCustom6, mnuTSep3, mnuTCustomize });
+            mnuTools.DropDownItems.AddRange(new ToolStripItem[] { mnuTSettings, mnuTSep1, mnuTLayout, mnuTMenuEditor, mnuTTextScreenEditor, mnuTGlobals, mnuTReserved, mnuTSnippets, mnuTPalette, mnuTWarning, mnuTSep2, mnuTCustom1, mnuTCustom2, mnuTCustom3, mnuTCustom4, mnuTCustom5, mnuTCustom6, mnuTSep3, mnuTCustomize });
             mnuTools.MergeIndex = 1;
             mnuTools.Name = "mnuTools";
             mnuTools.Size = new System.Drawing.Size(47, 20);
@@ -769,6 +770,14 @@
             mnuTMenuEditor.Size = new System.Drawing.Size(249, 22);
             mnuTMenuEditor.Text = "Menu Editor";
             mnuTMenuEditor.Click += mnuTMenuEditor_Click;
+            // 
+            // mnuTTextScreenEditor
+            // 
+            mnuTTextScreenEditor.Name = "mnuTTextScreenEditor";
+            mnuTTextScreenEditor.ShortcutKeys = Keys.Control | Keys.T;
+            mnuTTextScreenEditor.Size = new System.Drawing.Size(249, 22);
+            mnuTTextScreenEditor.Text = "Text Screen Editor";
+            mnuTTextScreenEditor.Click += mnuTTextEd_Click;
             // 
             // mnuTGlobals
             // 
@@ -1096,7 +1105,7 @@
             btnOpenGame.Name = "btnOpenGame";
             btnOpenGame.Size = new System.Drawing.Size(28, 28);
             btnOpenGame.Text = "Open";
-            btnOpenGame.Click += btnOpenGame_Click;
+            btnOpenGame.Click += mnuGOpen_Click;
             // 
             // btnCloseGame
             // 
@@ -1108,7 +1117,7 @@
             btnCloseGame.Name = "btnCloseGame";
             btnCloseGame.Size = new System.Drawing.Size(28, 28);
             btnCloseGame.Text = "Close";
-            btnCloseGame.Click += btnCloseGame_Click;
+            btnCloseGame.Click += mnuGClose_Click;
             // 
             // btnRun
             // 
@@ -1120,7 +1129,7 @@
             btnRun.Name = "btnRun";
             btnRun.Size = new System.Drawing.Size(28, 28);
             btnRun.Text = "Run";
-            btnRun.Click += btnRun_Click;
+            btnRun.Click += mnuGRun_Click;
             // 
             // btnSep1
             // 
@@ -1245,7 +1254,7 @@
             btnOjects.Name = "btnOjects";
             btnOjects.Size = new System.Drawing.Size(28, 28);
             btnOjects.Text = "OBJECT File";
-            btnOjects.Click += btnOjects_Click;
+            btnOjects.Click += btnObjects_Click;
             // 
             // btnSep3
             // 
@@ -1316,7 +1325,7 @@
             btnMenuEd.Name = "btnMenuEd";
             btnMenuEd.Size = new System.Drawing.Size(28, 28);
             btnMenuEd.Text = "Menu Editor";
-            btnMenuEd.Click += btnMenuEd_Click;
+            btnMenuEd.Click += mnuTMenuEditor_Click;
             // 
             // btnTextEd
             // 
@@ -1326,7 +1335,7 @@
             btnTextEd.Name = "btnTextEd";
             btnTextEd.Size = new System.Drawing.Size(28, 31);
             btnTextEd.Text = "Text Mode Editor";
-            btnTextEd.Click += btnTextEd_Click;
+            btnTextEd.Click += mnuTTextEd_Click;
             // 
             // btnGlobals
             // 
@@ -1354,7 +1363,7 @@
             btnHelp.Name = "btnHelp";
             btnHelp.Size = new System.Drawing.Size(28, 28);
             btnHelp.Text = "Help";
-            btnHelp.Click += btnHelp_Click;
+            btnHelp.Click += mnuHContents_Click;
             // 
             // pnlResources
             // 
@@ -2077,6 +2086,7 @@
         public ToolStripStatusLabel spCapsLock;
         public ToolStripStatusLabel spNumLock;
         public ToolStripStatusLabel spInsLock;
+        private ToolStripMenuItem mnuTTextScreenEditor;
     }
 }
 

@@ -10,11 +10,11 @@
             DeleteItem,   // store object number, text, and room that was deleted
             ModifyItem,   // store old object number, text
             ModifyRoom,   // store old object number, room
-            ChangeMaxObj,   // store old maxobjects
-            TglEncrypt,     // store old encryption Value
-            Clear,          // store old Objects object
-            Replace,    // store old object number, text
-            ReplaceAll, // store all old numbers and text
+            ChangeMaxObj, // store old maxobjects
+            TglEncrypt,   // store old encryption Value
+            Clear,        // store old Objects object
+            Replace,      // store old object number, text
+            ReplaceAll,   // store all old numbers and text
         }
 
         public ObjectsUndo() {

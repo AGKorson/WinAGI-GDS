@@ -137,7 +137,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public SoundFormat SndFormat {
             //  0 = not loaded
-            //  1 = //standard// agi
+            //  1 = PCjr agi
             //  2 = IIgs sampled sound
             //  3 = IIgs midi
             get {
@@ -619,7 +619,6 @@ namespace WinAGI.Engine {
             switch (playmode) {
             case SoundPlaybackMode.PCSpeaker:
                 throw (new NotImplementedException());
-                //break;
             case SoundPlaybackMode.WAV:
                 try {
                     wavPlayer.PlayWAVSound(this);
@@ -1127,7 +1126,7 @@ namespace WinAGI.Engine {
 
             // initialize tracks
             for (i = 0; i <= 3; i++) {
-                //clear out tracks by assigning new
+                // clear out tracks by assigning new
                 mTrack[i] = new Track(this);
             }
             // check header to determine what type of sound resource;

@@ -442,9 +442,9 @@ namespace WinAGI.Engine {
                         break;
                     }
                 }
-                //if number is ok
+                // if number is ok
                 if (goodnum) {
-                    //use this mirrorpair
+                    // use this mirrorpair
                     break;
                 }
                 // try another
@@ -557,7 +557,7 @@ namespace WinAGI.Engine {
                     Pos = lngDescLoc;
                     do {
                         bytInput[0] = ReadByte();
-                        //if not zero, and string not yet up to 255 characters,
+                        // if not zero, and string not yet up to 255 characters,
                         if ((bytInput[0] > 0) && (mViewDesc.Length < 255)) {
                             mViewDesc += Encoding.GetEncoding(CodePage).GetString(bytInput);
                         }

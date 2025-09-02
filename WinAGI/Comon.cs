@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -48,6 +46,8 @@ namespace WinAGI.Common {
 
         [DllImport("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, Int32 wParam, Int32 lParam);
         public const int WM_SETREDRAW = 11;
     }
 
@@ -98,15 +98,31 @@ namespace WinAGI.Common {
     /// and classes that are needed by both the Editor and the Engine.
     /// </summary>
     public static partial class Base {
-        #region Local Members
+        #region Constants
         public const char QUOTECHAR = '\"';
-        public static readonly string NEWLINE = Environment.NewLine;
         public const double LOG10_1_12 = 2.50858329719984E-02; // = Log10(2 ^ (1/12))
         public const string ARG1 = "%1";
         public const string ARG2 = "%2";
         public const string ARG3 = "%3";
         public const string sAPPNAME = "WinAGI Game Development System 3.0 alpha";
         public const string COPYRIGHT_YEAR = "2025";
+        #endregion
+
+        #region Enums
+        public enum ResListType {
+            None,
+            TreeList,
+            ComboList
+        }
+        public enum AskOption {
+            Ask,
+            No,
+            Yes
+        }
+        #endregion
+
+        #region Local Members
+        public static readonly string NEWLINE = Environment.NewLine;
         internal static uint[] CRC32Table = new uint[256];
         internal static bool CRC32Loaded;
         public static readonly char[] INVALID_DEFINE_CHARS;
@@ -117,19 +133,7 @@ namespace WinAGI.Common {
         public static readonly string s_INVALID_FIRST_CHARS;
         public static readonly string s_INVALID_SIERRA_CHARS;
         public static readonly string s_INVALID_SIERRA_1ST_CHARS;
-
         #endregion
-
-        public enum EResListType {
-            None,
-            TreeList,
-            ComboList
-        }
-        public enum AskOption {
-            Ask,
-            No,
-            Yes
-        }
 
         #region Constructors
         /// <summary>
@@ -137,11 +141,11 @@ namespace WinAGI.Common {
         /// </summary>
         static Base() {
             // invalid DEFINE/ID characters: these, plus control chars and extended chars
-            //        3       4         5         6         7         8         9         0         1         2
-            //        234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
-            //NOT OK  .!"   &'()*+,- /          :;<=>?                           [\]^ `                          {|}~x
-            //ANY OK     #$%        . 0123456789      @ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz
-            //1ST OK                                   ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz
+            //         3       4         5         6         7         8         9         0         1         2
+            //         234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
+            // NOT OK  .!"   &'()*+,- /          :;<=>?                           [\]^ `                          {|}~x
+            // ANY OK     #$%        . 0123456789      @ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz
+            // 1ST OK                                   ABCDEFGHIJKLMNOPQRSTUVWXYZ    _ abcdefghijklmnopqrstuvwxyz
             INVALID_DEFINE_CHARS = " !\"&'()*+,-/:;<=>?[\\]^`{|}~".ToCharArray();
             INVALID_FIRST_CHARS = [.. INVALID_DEFINE_CHARS, .. "#$%.0123456789@".ToCharArray()];
             // sierra syntax allows ' / and ?
@@ -642,7 +646,6 @@ namespace WinAGI.Common {
         }
 
         public static bool FontIsMonospace(Font testfont) {
-            //check monospace font
             SizeF sizeM = GetCharSize(testfont, 'M');
             SizeF sizeDot = GetCharSize(testfont, '.');
             return sizeM == sizeDot;
@@ -868,9 +871,9 @@ namespace WinAGI.Common {
             // converts a midinote into a freqdivisor Value
 
             // valid range of NoteIn is 45-127
-            // note that 121, 124, 126 NoteIn values will actually return same freqdivisor
-            // values as 120, 123, 127 respectively (due to loss of resolution in freqdivisor
-            // values at the high end)
+            // note that 121, 124, 126 NoteIn values will actually return
+            // same freqdivisor values as 120, 123, 127 respectively (due
+            // to loss of resolution in freqdivisor values at the high end)
 
             // validate input
             if (NoteIn < 45) {
@@ -889,12 +892,11 @@ namespace WinAGI.Common {
             }
             return (int)(111860.0 / freq);
             //return (int)(111860.0 / Math.Round(440.0 * Math.Exp((NoteIn - 69) * Math.Log(2.0) / 12.0)));
-            
             //double sngFreq = 111860D / Math.Pow(10, (NoteIn + 36.5) * LOG10_1_12);
             //return (int)Math.Round(sngFreq, 0);
+            
         }
         #endregion
-
     }
 
     public static class ExtensionMethods {

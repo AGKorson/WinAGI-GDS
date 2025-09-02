@@ -130,7 +130,7 @@ namespace WinAGI.Engine {
                     // no offset for version 2
                     lngDirOffset = 0;
                     strDirFile = game.agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
-                    //verify DIR file exists
+                    // verify DIR file exists
                     if (!File.Exists(strDirFile)) {
                         WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
                             HResult = WINAGI_ERR + 524
@@ -932,8 +932,8 @@ namespace WinAGI.Engine {
                 if (!SoundIn[i].Muted && SoundIn[i].Notes.Count > 0) {
                     sndOut.WriteSndByte(77);  // "M"
                     sndOut.WriteSndByte(84);  // "T"
-                    sndOut.WriteSndByte(114); //"r"
-                    sndOut.WriteSndByte(107); //"k"
+                    sndOut.WriteSndByte(114); // "r"
+                    sndOut.WriteSndByte(107); // "k"
                     // starting position for this track's data
                     lngStart = sndOut.Pos;
                     // place holder for data size
@@ -1252,7 +1252,7 @@ namespace WinAGI.Engine {
                 if (lngInPos >= midiIn.Length) {
                     break;
                 }
-                //add it to output
+                // add it to output
                 midiOut[lngOutPos++] = bytIn;
                 // time is always first input; it is supposed to be a delta value
                 // but it appears that agi used it as an absolute value; so if time
@@ -1547,9 +1547,9 @@ namespace WinAGI.Engine {
                     intOldCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
                     // the character Value is same as code for beginning
                     strChar = (char)intOldCode;
-                    //write out the first character
+                    // write out the first character
                     bytTempData[intPosOut++] = (byte)intOldCode;
-                    //now get next code
+                    // now get next code
                     intNewCode = ReadCode(ref bytOriginalData, intCodeSize, ref intPosIn);
                 }
                 else {
@@ -1559,7 +1559,7 @@ namespace WinAGI.Engine {
                     // (new_code will ONLY return a next_code Value if the condition exists;
                     // it should otherwise return a known code, or a ascii Value)
                     if ((intNewCode >= intNextCode)) {
-                        //decode the string using old code
+                        // decode the string using old code
                         strDat = DecodeString(intOldCode);
                         // append the character code
                         strDat += strChar;

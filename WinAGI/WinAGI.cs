@@ -214,9 +214,9 @@ namespace WinAGI.Engine {
     }
 
     public enum InfoType {
-        //used to update editor during a game load or compile
+        // used to update editor during a game load or compile
         Initialize,
-        Validating,     //add check for changed source code
+        Validating,     // add check for changed source code
         PropertyFile,
         ClearWarnings,
         Resources,
@@ -268,7 +268,7 @@ namespace WinAGI.Engine {
     /// </summary>
     public struct TDefine {
         public string Name = "";
-        public string Default = ""; //for reserved, this is default name; not used for other defines
+        public string Default = ""; // for reserved, this is default name; not used for other defines
         public string Value = "";
         public ArgType Type = ArgType.None;
         public string Comment = "";
@@ -463,14 +463,6 @@ namespace WinAGI.Engine {
         /// Handles initialization of the WinAGI base class when it is instantiated. 
         /// </summary>
         private static void InitWinAGI() {
-            // TEMP CHECK - verify the string resource file is still working correctly
-            try {
-                Debug.Assert(LoadResString(505) == "Invalid resource location (%1) in %2.");
-            }
-            catch (Exception e) {
-                Debug.Assert(false);
-            }
-
             // calling this forces the module to load and initialize
             LogicCompiler.compGame = null;
         }
@@ -534,7 +526,7 @@ namespace WinAGI.Engine {
                     // 3.xxx.xxx format (for easier manipulation, the second '.' is
                     // removed, so result can be converted to a single precision number)
                     strVersion = "3";
-                    //get next seven chars
+                    // get next seven chars
                     for (i = 1; i <= 7; i++) {
                         pos++;
                         if (pos >= bytBuffer.Length) {

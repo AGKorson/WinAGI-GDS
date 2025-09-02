@@ -136,7 +136,7 @@ namespace WinAGI.Editor {
             this.Hide();
             switch (FormMode) {
             case 0:
-                //palette change mode
+                // palette change mode
                 for (int i = 0; i < 16; i++) {
                     if (EditGame != null) {
                         EditGame.Palette[i] = lngTempCol[i];
@@ -248,7 +248,7 @@ namespace WinAGI.Editor {
         #endregion
 
         private void LoadPalette(string LoadFile) {
-            //opens the load file, and finds the palette section
+            // opens the load file, and finds the palette section
             // file should be NAGI.INI compatible, which is similar to
             // WinAGI settings file format except comments use ';'
             // instead of '#'

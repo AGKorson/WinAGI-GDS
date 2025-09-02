@@ -171,7 +171,7 @@ namespace WinAGI.Engine {
             if (!Col.TryGetValue(OldPicture, out tmpPic)) {
                 throw new IndexOutOfRangeException("picture does not exist");
             }
-            //verify new number is not in collection
+            // verify new number is not in collection
             if (Col.ContainsKey(NewPicture)) {
                 WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669

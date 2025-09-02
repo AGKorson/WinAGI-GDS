@@ -250,7 +250,7 @@ namespace WinAGI.Editor {
                     isChanged = true;
                 }
             }
-
+            
             private int tStartRow = 0;
             public int StartRow {
                 get => tStartRow;
@@ -259,7 +259,7 @@ namespace WinAGI.Editor {
                     isChanged = true;
                 }
             }
-
+            
             private int tBGColor = 0;
             public int BGColor {
                 get => tBGColor;
@@ -268,7 +268,7 @@ namespace WinAGI.Editor {
                     isChanged = true;
                 }
             }
-
+            
             private int tFGColor = 15;
             public int FGColor {
                 get => tFGColor;
@@ -277,7 +277,7 @@ namespace WinAGI.Editor {
                     isChanged = true;
                 }
             }
-
+            
             private int tMaxCol = 39;
             public int MaxCol {
                 get => tMaxCol;
@@ -286,7 +286,7 @@ namespace WinAGI.Editor {
                     isChanged = true;
                 }
             }
-
+            
             private int tCharWidth = 8;
             public int CharWidth {
                 get => tCharWidth;
@@ -599,17 +599,17 @@ namespace WinAGI.Editor {
         /// Enum to indicate the current drawing tool.
         /// </summary>
         private enum PicToolType {
-            Edit = 0,       //indicates edit tool is selected; mouse ops move coords and commands
-            SetPen = 1,     //not used, but included for possible updated capabilities
-            Line = 2,       //line drawing tool; mouse ops set start/end points
-            ShortLine = 3,  //short line tool; mouse ops set start/end points
-            StepLine = 4,   //corner line tool; mouse ops set start/end points
-            Fill = 5,       //fill tool; mouse ops set starting point of fill operations
-            Plot = 6,       //plot tool
-            Rectangle = 7,  //for drawing rectangles
-            Trapezoid = 8,  //for drawing trapezoids
-            Ellipse = 9,    //for drawing ellipses
-            SelectArea = 10, //for selecting bitmap areas of the Image
+            Edit = 0,        // indicates edit tool is selected; mouse ops move coords and commands
+            SetPen = 1,      // not used, but included for possible updated capabilities
+            Line = 2,        // line drawing tool; mouse ops set start/end points
+            ShortLine = 3,   // short line tool; mouse ops set start/end points
+            StepLine = 4,    // corner line tool; mouse ops set start/end points
+            Fill = 5,        // fill tool; mouse ops set starting point of fill operations
+            Plot = 6,        // plot tool
+            Rectangle = 7,   // for drawing rectangles
+            Trapezoid = 8,   // for drawing trapezoids
+            Ellipse = 9,     // for drawing ellipses
+            SelectArea = 10, // for selecting bitmap areas of the Image
         }
 
         /// <summary>
@@ -692,7 +692,7 @@ namespace WinAGI.Editor {
         // graphics/display
         private WindowMode OneWindow;
         private bool TooSmall = false;
-        private Color VCColor; //color of 'x's in 'x' cursor mode for visual
+        private Color VCColor; // color of 'x's in 'x' cursor mode for visual
         private Color PCColor; // color of 'x's in 'x' cursor mode for priority
         private AGIColorIndex CursorColorIndex = AGIColorIndex.Black;
         public CoordinateHighlightType CursorMode;
@@ -739,24 +739,6 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spBlock;
         internal ToolStripStatusLabel spPriBand;
         internal ToolStripStatusLabel spStatus;
-        #endregion
-
-        #region temp code
-        void tmpPicForm() {
-            /*
-public void MenuClickHelp() {
-  
-  switch (PicMode) {
-  case PicEditorMode.Edit:
-    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\Picture_Editor.htm");
-  case PicEditorMode.PrintTest:
-    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\pictestmode.htm#textprint");
-  case PicEditorMode.ViewTest:
-    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\pictestmode.htm");
-  }
-}
-            */
-        }
         #endregion
 
         /// <summary>
@@ -943,7 +925,6 @@ public void MenuClickHelp() {
             // and handle it manually
             const int WM_MOUSEWHEEL = 0x020A;
             if (m.Msg == WM_MOUSEWHEEL) {
-                //if (Control.FromHandle(m.HWnd) is Control control && InSplitContainer(control)) {
                 if (Control.FromHandle(m.HWnd) is Control control) {
                     if (control == picVisual) {
                         int fwKeys = (int)m.WParam & 0xffff;
@@ -1177,7 +1158,7 @@ public void MenuClickHelp() {
 
         #region Menu Event Handlers
         /// <summary>
-        /// Dynamic function to enable/disable resource menu items before they are displayed.
+        /// Configures the resource menu prior to displaying it.
         /// </summary>
         internal void SetResourceMenu() {
 
@@ -1208,9 +1189,9 @@ public void MenuClickHelp() {
         }
 
         /// <summary>
-        /// Dynamic function to reset the resource menu.
+        /// Resets all resource menu items so shortcut keys can work correctly.
         /// </summary>
-        public void ResetResourceMenu() {
+        internal void ResetResourceMenu() {
             // always reenable all items so shortcuts work
             mnuRSave.Enabled = true;
             mnuRExport.Enabled = true;
@@ -1221,23 +1202,23 @@ public void MenuClickHelp() {
             mnuRExportGIF.Enabled = true;
         }
 
-        public void mnuRSave_Click(object sender, EventArgs e) {
+        internal void mnuRSave_Click(object sender, EventArgs e) {
             if (IsChanged) {
                 SavePicture();
             }
         }
 
-        public void mnuRExport_Click(object sender, EventArgs e) {
+        internal void mnuRExport_Click(object sender, EventArgs e) {
             ExportPicture();
         }
 
-        public void mnuRInGame_Click(object sender, EventArgs e) {
+        internal void mnuRInGame_Click(object sender, EventArgs e) {
             if (EditGame != null) {
                 ToggleInGame();
             }
         }
 
-        private void mnuRRenumber_Click(object sender, EventArgs e) {
+        internal void mnuRRenumber_Click(object sender, EventArgs e) {
             if (InGame) {
                 RenumberPicture();
             }
@@ -1652,13 +1633,9 @@ public void MenuClickHelp() {
                         if (NextUndo.CoordIndex != SelectedCmd.Coords.Count - 1) {
                             // need to flip the type
                             if (SelectedCmd.Type == XCorner) {
-                                //SelectedCmd.Type = ;
                                 lstCommands.Items[SelectedCmd.Index].Text = YCorner.CommandName();
-                                //    EditPicture.Data[SelectedCmd.Position] = (byte)YCorner;
                             }
                             else {
-                                //SelectedCmd.Type = XCorner;
-                                //    EditPicture.Data[SelectedCmd.Position] = (byte)XCorner;
                                 lstCommands.Items[SelectedCmd.Index].Text = XCorner.CommandName();
                             }
                             // delete first coord instead of coord 1
@@ -2058,7 +2035,7 @@ public void MenuClickHelp() {
                 bool addpen = false;
                 if (picCBData.HasPlotCmds) {
 
-                    //IncludePlotPen: false means first plot cmd comes AFTER the first
+                    // IncludePlotPen: false means first plot cmd comes AFTER the first
                     // pen set, so the plot pen does not need to be included/checked
 
                     // IncludePlotPen: true means first plot cmd comes BEFORE the first
@@ -2357,7 +2334,6 @@ public void MenuClickHelp() {
             // rebuild cmd list
             AdjustCommandList(InsertIndex, NextUndo.ByteCount);
             AddUndo(NextUndo);
-            //}
             // select the commands that were pasted
             SelectCommand(InsertIndex + NextUndo.CmdCount - 1, NextUndo.CmdCount, true);
         }
@@ -2690,8 +2666,8 @@ public void MenuClickHelp() {
                 // if not canceled
                 if (frmTest.ShowDialog(this) == DialogResult.OK) {
                     // Retrieve option values safely by copying TestInfo to a local variable
-                    var testInfoCopy = frmTest.TestInfo.Clone();
-                    TestSettings = testInfoCopy;
+                    var testInfoCopy = frmTest.TestInfo;
+                    TestSettings = testInfoCopy.Clone();
 
                     // if test loop and/or cel are NOT auto, force current loop/cel
                     if (TestSettings.TestLoop != -1) {
@@ -3122,9 +3098,6 @@ public void MenuClickHelp() {
                             // get delta from current point to selstart
                             Delta = PicPt;
                             Delta.Offset(-SelectedRegion.X, -SelectedRegion.Y);
-                            // set curpt to invalid Value so mousemove will
-                            // update the selection even if moved back to starting point
-                            //CurPt.X = 255;
                             return;
                         }
                         else {
@@ -4247,7 +4220,6 @@ public void MenuClickHelp() {
                                    EditPicture.Data[SelectedCmd.SelectedCoordPos - 1],
                                    (byte)SelectedCmd.SelectedCoord.Y];
                     EditPicture.Data[SelectedCmd.SelectedCoordPos - 2] = (byte)newPT.X;
-                    //EditPicture.Data[SelectedCmd.SelectedCoordPos - 1] = EditPicture.Data[SelectedCmd.SelectedCoordPos - 1];
                     EditPicture.Data[SelectedCmd.SelectedCoordPos] = (byte)newPT.Y;
                     NextUndo.PicPos -= 2;
                 }
@@ -4387,7 +4359,7 @@ public void MenuClickHelp() {
 
             // adjust to account for the disabled block
             if (bytNewCol == 0 || bytNewCol == 9) {
-                //color disable was chosen
+                // color disable was chosen
                 bytNewCol = 16;
             }
             else {
@@ -5034,7 +5006,7 @@ public void MenuClickHelp() {
             }
             Text = sPICED + ResourceName(EditPicture, InGame, true);
             if (IsChanged) {
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
@@ -5101,7 +5073,7 @@ public void MenuClickHelp() {
                 tmpPicture.Import(importfile);
             }
             catch (Exception e) {
-                //something wrong
+                // something wrong
                 MDIMain.UseWaitCursor = false;
                 ErrMsgBox(e, "Error while importing picture:", "Unable to load this picture resource.", "Import Picture Error");
                 return;
@@ -5109,9 +5081,9 @@ public void MenuClickHelp() {
             // now check to see if it's a valid picture resource (by trying to reload it)
             tmpPicture.Load();
             if (tmpPicture.ErrLevel < 0) {
-                MDIMain.UseWaitCursor = false;
                 ErrMsgBox(tmpPicture.ErrLevel, "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource");
-                //restore main form mousepointer and exit
+                // restore main form mousepointer and exit
+                MDIMain.UseWaitCursor = false;
                 return;
             }
             // copy only the resource data
@@ -5145,6 +5117,10 @@ public void MenuClickHelp() {
                     EditPicture.Export(EditGame.ResDir + EditPicture.ID + ".agp");
                     // reset ID (non-game id gets saved by export...)
                     EditPicture.ID = EditGame.Pictures[PictureNumber].ID;
+                }
+                if (LEInUse && EditGame.Logics.Contains(PictureNumber) &&
+                    EditGame.Logics[PictureNumber].IsRoom) {
+                    LayoutEditor.DrawLayout(LayoutSelection.Room, PictureNumber);
                 }
                 MarkAsSaved();
                 MDIMain.UseWaitCursor = false;
@@ -5213,7 +5189,6 @@ public void MenuClickHelp() {
                     strExportName = NewResourceName(EditPicture, InGame);
                     if (strExportName.Length > 0) {
                         EditPicture.Export(strExportName);
-                        //UpdateStatusBar();
                     }
                     break;
                 case DialogResult.No:
@@ -5284,7 +5259,7 @@ public void MenuClickHelp() {
                 PictureNumber = NewResNum;
                 Text = sPICED + ResourceName(EditPicture, InGame, true);
                 if (IsChanged) {
-                    Text = sDM + Text;
+                    Text = CHG_MARKER + Text;
                 }
                 if (EditPicture.ID != oldid) {
                     if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
@@ -5310,7 +5285,7 @@ public void MenuClickHelp() {
                     EditPicture.ID = id;
                     Text = sPICED + ResourceName(EditPicture, InGame, true);
                     if (IsChanged) {
-                        Text = sDM + Text;
+                        Text = CHG_MARKER + Text;
                     }
                 }
             }
@@ -5471,7 +5446,7 @@ public void MenuClickHelp() {
 
         /// <summary>
         /// When opening editor, the selected command doesn't move into view unless
-        /// the EnsureVisible method is called after the form is mde visible and
+        /// the EnsureVisible method is called after the form is made visible and
         /// refreshed.
         /// </summary>
         public void ForceRefresh() {
@@ -5699,8 +5674,6 @@ public void MenuClickHelp() {
                 picPriority.Cursor = Cursors.SizeAll;
                 break;
             case PicCursor.Default:
-                //picVisual.Cursor = Cursors.Default;
-                //picPriority.Cursor = Cursors.Default;
                 msCursor = new(EditorResources.EPC_EDIT);
                 picVisual.Cursor = picPriority.Cursor = new Cursor(msCursor);
                 break;
@@ -7730,7 +7703,7 @@ public void MenuClickHelp() {
                         xdisp = -((bytCmd & 0x70) / 0x10);
                     }
                     else {
-                        xdisp = ((bytCmd & 0x70) / 0x10);
+                        xdisp = (bytCmd & 0x70) / 0x10;
                     }
                     if ((bytCmd & 0x8) == 0x8) {
                         ydisp = -(bytCmd & 0x7);
@@ -7738,8 +7711,8 @@ public void MenuClickHelp() {
                     else {
                         ydisp = bytCmd & 0x7;
                     }
-                    bytX = (byte)((int)bytX + xdisp);
-                    bytY = (byte)((int)bytY + ydisp);
+                    bytX = (byte)(bytX + xdisp);
+                    bytY = (byte)(bytY + ydisp);
                     bytCmd = bytData[lngPos++];
                 }
                 break;
@@ -8871,8 +8844,6 @@ public void MenuClickHelp() {
                 case XCorner:
                 case YCorner:
                 case RelLine:
-                    //// position of the split coord is back one
-                    //NextUndo.PicPos = pos2 - 1;
                     // coordindex is count of previous cmd coords minus 1
                     NextUndo.CoordIndex = pos2 - pos1 - 3;
                     if (NextUndo.CoordIndex < 0) {
@@ -8880,7 +8851,6 @@ public void MenuClickHelp() {
                     }
                     break;
                 default:
-                    //NextUndo.PicPos = pos2;
                     switch (cmd2) {
                     case AbsLine:
                         // coordindex is count of previous cmd coords
@@ -9200,7 +9170,7 @@ public void MenuClickHelp() {
         }
 
         /// <summary>
-        /// Removes splatter data from the speicfied plot command.
+        /// Removes splatter data from the specified plot command.
         /// </summary>
         /// <param name="tmpIndex"></param>
         /// <param name="DontUndo"></param>
@@ -10230,12 +10200,26 @@ public void MenuClickHelp() {
             tsbUndo.Enabled = true;
         }
 
+        internal void ShowHelp() {
+            switch (PicMode) {
+            case PicEditorMode.Edit:
+                Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\Picture_Editor.htm");
+                break;
+            case PicEditorMode.PrintTest:
+                Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\pictestmode.htm#textprint");
+                break;
+            case PicEditorMode.ViewTest:
+                Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\pictestmode.htm");
+                break;
+            }
+        }
         /// <summary>
         /// When closing the picture editor, this method gives the user
         /// an opportunity to save the resource before closing, or to 
         /// cancel the close operation.
         /// </summary>
         /// <returns></returns>
+
         private bool AskClose() {
             if (EditPicture.ErrLevel < 0) {
                 // if an error occurs on form load, always close
@@ -10288,7 +10272,7 @@ public void MenuClickHelp() {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
         }
 

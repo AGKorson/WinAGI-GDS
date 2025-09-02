@@ -1,24 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
-using static WinAGI.Common.API;
 using System.IO;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
-using System.Collections;
-using EnvDTE;
 
 namespace WinAGI.Editor {
     public partial class frmWordsEdit : ClipboardMonitor {
+        #region Members
         private bool GroupMode = true;
         public bool InGame;
         public bool IsChanged;
@@ -37,6 +32,7 @@ namespace WinAGI.Editor {
         private Font defaultfont;
         private Font boldfont;
         private Stack<WordsUndo> UndoCol = new();
+
         // StatusStrip Items
         internal ToolStripStatusLabel spGroupCount;
         internal ToolStripStatusLabel spWordCount;
@@ -44,6 +40,7 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spCapsLock;
         internal ToolStripStatusLabel spNumLock;
         internal ToolStripStatusLabel spInsLock;
+        #endregion
 
         public static frmWordsEdit DragSourceForm { get; private set; }
 
@@ -73,8 +70,6 @@ namespace WinAGI.Editor {
                     FindingForm.SetForm(FindFormFunction.FindWord, InGame);
                 }
             }
-            //spGroupCount.Text = "Group Count: " + EditWordList.GroupCount;
-            //spWordCount.Text = "Word Count: " + EditWordList.WordCount;
         }
 
         private void frmWordsEdit_FormClosing(object sender, FormClosingEventArgs e) {
@@ -99,11 +94,8 @@ namespace WinAGI.Editor {
         }
 
         private void frmWordsEdit_Resize(object sender, EventArgs e) {
-            //_ = SendMessage(this.Handle, WM_SETREDRAW, false, 0);
-            //_ = SendMessage(lstGroups.Handle, WM_SETREDRAW, false, 0);
-            //_ = SendMessage(lstWords.Handle, WM_SETREDRAW, false, 0);
+            int newWidth = (ClientSize.Width - 15) / 2;
 
-            int newWidth = (this.ClientSize.Width - 15) / 2;
             lstGroups.Width = newWidth;
             lstWords.Width = newWidth;
             lstWords.Left = lstGroups.Right + 5;
@@ -113,10 +105,6 @@ namespace WinAGI.Editor {
             if (GroupMode) {
                 lstGroups.Height = lstWords.Height;
             }
-            //_ = SendMessage(lstWords.Handle, WM_SETREDRAW, true, 0);
-            //_ = SendMessage(lstGroups.Handle, WM_SETREDRAW, true, 0);
-            //_ = SendMessage(this.Handle, WM_SETREDRAW, true, 0);
-            //this.Refresh();
         }
         #endregion
 
@@ -143,9 +131,9 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
-        /// Dynamic function to reset the resource menu.
+        /// Resets all resource menu items so shortcut keys can work correctly.
         /// </summary>
-        public void ResetResourceMenu() {
+        internal void ResetResourceMenu() {
             mnuRSave.Enabled = true;
             mnuRExport.Enabled = true;
             mnuRProperties.Enabled = true;
@@ -153,7 +141,7 @@ namespace WinAGI.Editor {
             mnuRGroupCheck.Enabled = true;
         }
 
-        public void mnuRSave_Click(object sender, EventArgs e) {
+        internal void mnuRSave_Click(object sender, EventArgs e) {
             if (EditingGroup || EditingWord) {
                 return;
             }
@@ -162,14 +150,14 @@ namespace WinAGI.Editor {
             }
         }
 
-        public void mnuRExport_Click(object sender, EventArgs e) {
+        internal void mnuRExport_Click(object sender, EventArgs e) {
             if (EditingGroup || EditingWord) {
                 return;
             }
             ExportWords();
         }
 
-        public void mnuRProperties_Click(object sender, EventArgs e) {
+        private void mnuRProperties_Click(object sender, EventArgs e) {
             EditProperties();
         }
 
@@ -937,7 +925,7 @@ namespace WinAGI.Editor {
                         NextUndo.Word = clipboardword;
                         AddUndo(NextUndo);
 
-                        //select the pasted word
+                        // select the pasted word
                         UpdateSelection(clipboardword);
                     }
                 }
@@ -1005,7 +993,7 @@ namespace WinAGI.Editor {
                     }
                     switch (EditGroupNumber) {
                     case 0:
-                        //'a' and 'i' are special
+                        // 'a' and 'i' are special
                         if (EditWordText == "a" || EditWordText == "i") {
                             if (MessageBox.Show(MDIMain,
                                 $"The word '{EditWordText}' is usually associated with group 0. Are " +
@@ -1162,11 +1150,17 @@ namespace WinAGI.Editor {
             if (!InGame || EditWordText.Length == 0) {
                 return;
             }
+            FindingForm.ResetSearch();
+            FirstFind = false;
+            GFindDir = FindDirection.All;
             GMatchWord = true;
+            GMatchCase = true;
+            GLogFindLoc = FindLocation.All;
             GFindSynonym = lstGroups.Focused;
             GFindGrpNum = EditGroupNumber;
-            FindingForm.SetForm(FindFormFunction.FindWordsLogic, true);
             GFindText = '"' + EditWordText + '"';
+            SearchType = AGIResType.Words;
+            FindingForm.SetForm(FindFormFunction.FindWordsLogic, true);
             // to avoid unwanted change in form function, don't assign text
             // cmbFind directly
             FindingForm.SetFindText(GFindText);
@@ -1183,7 +1177,6 @@ namespace WinAGI.Editor {
             FirstFind = false;
             GroupMode = !GroupMode;
             if (GroupMode) {
-                //string curword = lstWords.Text;
                 label1.Text = "Groups";
                 lstGroups.Height = lstWords.Height;
                 lstGroups.Items.Clear();
@@ -1200,7 +1193,6 @@ namespace WinAGI.Editor {
                 buttonicon = (byte[])EditorResources.ResourceManager.GetObject("ewi_bygroup");
             }
             else {
-                //string curword = lstWords.Text;
                 label1.Text = "Group Number:";
                 lstGroups.Items.Clear();
                 lstGroups.Height = txtGroupEdit.Height + 4;
@@ -1705,18 +1697,11 @@ namespace WinAGI.Editor {
             case Keys.Escape:
                 FinishWordEdit();
                 break;
-            //case >= Keys.D0 and <= Keys.D9:
             case Keys.Back:
             case Keys.Left:
             case Keys.Right:
                 break;
             default:
-                //switch (e.KeyValue) {
-                //case >= 97 and <= 122:
-                //    break;
-                //}
-                //    e.SuppressKeyPress = true;
-                //    e.Handled = true;
                 break;
             }
         }
@@ -1794,6 +1779,7 @@ namespace WinAGI.Editor {
             spWordCount.Size = new System.Drawing.Size(140, 18);
             spWordCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
         }
+        
         internal void InitFonts() {
             defaultfont = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
             boldfont = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, FontStyle.Bold);
@@ -1849,8 +1835,8 @@ namespace WinAGI.Editor {
                     Text += Common.Base.CompactPath(EditWordListFilename, 75);
                 }
                 else {
-                    WrdEdCount++;
-                    Text += "NewWords" + WrdEdCount.ToString();
+                    WordEdCount++;
+                    Text += "NewWords" + WordEdCount.ToString();
                 }
             }
 
@@ -2491,13 +2477,12 @@ namespace WinAGI.Editor {
                 NextUndo.OldGroupNo = OldGrpNum;
                 NextUndo.Word = WordText;
                 AddUndo(NextUndo);
-                //force logic refresh
+                // force logic refresh
                 blnRefreshLogics = true;
             }
             if (EditWordList.GroupByNumber(NewGrpNum).GroupName == WordText) {
                 UpdateGroupName(NewGrpNum);
             }
-            //UpdateSelection(WordText, true);
         }
 
         private void DeleteWord(string word, bool DontUndo = false) {
@@ -2977,7 +2962,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 else {
-                    //search direction is All
+                    // search direction is All
                     if (RestartSearch) {
                         break; // exit do
                     }
@@ -3101,7 +3086,7 @@ namespace WinAGI.Editor {
                     if (ValidateWord(replaceWord, true) != "!") {
                         if (EditWordList.WordExists(replaceWord)) {
                             EditWord(findWord, replaceWord, EditWordList[i].Group);
-                            //only advance if the replaced word is now the current word
+                            // only advance if the replaced word is now the current word
                             if (EditWordList.WordIndex(replaceWord) == i) {
                                 i++;
                             }
@@ -3200,7 +3185,6 @@ namespace WinAGI.Editor {
                 tbbDelete.Enabled = (EditWordIndex != 0);
             }
             tbbPaste.Enabled = Clipboard.ContainsText(TextDataFormat.Text);
-            //tbbAddGroup.Enabled = true;
             tbbAddWord.Enabled = EditGroupNumber != 1 && EditGroupNumber != 9999 || EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0;
         }
 
@@ -3209,7 +3193,6 @@ namespace WinAGI.Editor {
             switch (keyData) {
             case Keys.Enter:
             case Keys.Tab:
-            //case Keys.Delete:
             case Keys.Escape:
                 if (txtGroupEdit.Visible) {
                     txtGroupEdit_KeyDown(txtGroupEdit, new KeyEventArgs(keyData));
@@ -3234,6 +3217,14 @@ namespace WinAGI.Editor {
             EditingWord = false;
             txtWordEdit.Visible = false;
             lstWords.Select();
+        }
+
+        internal void ShowHelp() {
+            string strTopic = "htm\\winagi\\Words_Editor.htm";
+
+            // TODO: add context sensitive help
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            return;
         }
 
         private bool AskClose() {
@@ -3277,7 +3268,7 @@ namespace WinAGI.Editor {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             tbbUndo.Enabled = UndoCol.Count > 0;
             spGroupCount.Text = "Group Count: " + EditWordList.GroupCount;

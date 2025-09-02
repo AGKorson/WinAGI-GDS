@@ -808,7 +808,6 @@ namespace WinAGI.Engine {
 
         public MidiNotePlayer() {
             // don't initialize MIDI here
-            //InitMidi();
         }
 
         public void InitMidi() {
@@ -846,7 +845,7 @@ namespace WinAGI.Engine {
                 return;
             }
 
-            //change instrument
+            // change instrument
             midiOutShortMsg(hMidi, instrument);
             // send note on
             playnote = note; // 0x7F is the velocity, 0x90 is the note on message

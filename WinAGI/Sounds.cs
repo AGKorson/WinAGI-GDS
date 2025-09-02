@@ -168,7 +168,7 @@ namespace WinAGI.Engine {
             if (!Col.TryGetValue(OldSound, out tmpSound)) {
                 throw new IndexOutOfRangeException("sound does not exist");
             }
-            //verify new number is not in collection
+            // verify new number is not in collection
             if (Col.ContainsKey(NewSound)) {
                 WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669

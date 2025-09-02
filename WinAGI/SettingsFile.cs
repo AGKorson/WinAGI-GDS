@@ -439,7 +439,7 @@ namespace WinAGI.Common {
             // list has been updated, but a group was passed, so need to
             // verify the section is in the group, moving it if necessary
 
-            //if this was last section, AND section is NOT in its group
+            // if this was last section, AND section is NOT in its group
             // then then section end won't be set yet
             if (lngSectionEnd <= 0) {
                 lngSectionEnd = Lines.Count - 1;
@@ -558,12 +558,6 @@ namespace WinAGI.Common {
             }
             // if value contains spaces or '#', it must be enclosed in quotes
             if (retval.Contains(' ') || retval.Contains('#')) {
-                //if (retval[0] != '"') {
-                //    retval = "\"" + retval;
-                //}
-                //if ((retval[^1] != '"')) {
-                //    retval += "\"";
-                //}
                 Debug.Assert(retval[0] != '\"');
                 retval = "\"" + retval + "\"";
             }
@@ -611,7 +605,7 @@ namespace WinAGI.Common {
                 strLine = Lines[i].Replace("\t", " ").Trim();
                 // skip blanks, and lines starting with a comment
                 if (strLine.Length > 0 && strLine[0] != '#') {
-                    //if another section is found, stop here
+                    // if another section is found, stop here
                     if (strLine[0] == '[') {
                         break;
                     }
@@ -655,14 +649,6 @@ namespace WinAGI.Common {
                                 if (strLine.Length > 0) {
                                     if (strLine[0] == '"') {
                                         strLine = strLine[1..];
-                                        if (strLine.Length > 0) {
-                                            //if (strLine[^1] == '"') {
-                                            //    strLine = strLine[..^1];
-                                            //}
-                                            //else {
-                                            //    strLine = strLine.TrimEnd();
-                                            //}
-                                        }
                                     }
                                 }
                                 // check for control characters '\\' and '\n'
@@ -689,7 +675,7 @@ namespace WinAGI.Common {
             }
             // stash the default value unmodified by control codes
             string sReturn = Default;
-            //back up until a nonblank line is found
+            // back up until a nonblank line is found
             for (startPos = i - 1; startPos >= lngSection; startPos--) {
                 if (Lines[startPos].Trim().Length > 0) {
                     break;
@@ -736,7 +722,7 @@ namespace WinAGI.Common {
             else if (strValue.Left(2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
                 try {
                     int retval = Convert.ToInt32(strValue.Right(strValue.Length - 2), 16);
-                    //write the value in correct format
+                    // write the value in correct format
                     WriteSetting(Section, Key, "0x" + retval.ToString("x8"));
                     return retval;
                 }
@@ -786,8 +772,8 @@ namespace WinAGI.Common {
             }
             else if (strValue.Left(2).Equals("&H", StringComparison.OrdinalIgnoreCase)) {
                 try {
-                    UInt32 retval = Convert.ToUInt32(strValue.Right(strValue.Length - 2), 16);
-                    //write the value in correct format
+                    uint retval = Convert.ToUInt32(strValue.Right(strValue.Length - 2), 16);
+                    // write the value in correct format
                     WriteSetting(Section, Key, "0x" + retval.ToString("x8"));
                     return retval;
                 }
@@ -1159,35 +1145,36 @@ namespace WinAGI.Common {
             string strLine;
             int lngSection, lenKey;
 
-            //find the section we are looking for
+            // find the section we are looking for
             lngSection = FindSettingSection(Section);
-            //if not found,
+            // if not found,
             if (lngSection <= 0) {
-                //nothing to delete
+                // nothing to delete
                 return;
             }
-            //step through all lines in this section; find matching key
+            // step through all lines in this section; find matching key
             lenKey = Key.Length;
             for (i = lngSection + 1; i < Lines.Count; i++) {
-                //skip blanks, and lines starting with a comment
+                // skip blanks, and lines starting with a comment
                 strLine = Lines[i].Replace("\t", " ").Trim();
                 if (strLine.Length > 0) {
-                    if (strLine[0] != '#') { //not a comment
-                                             //if another section is found, stop here
+                    if (strLine[0] != '#') {
+                        // not a comment
+                        // if another section is found, stop here
                         if (strLine[0] == '[') {
-                            //nothing to delete
+                            // nothing to delete
                             return;
                         }
-                        //look for key
+                        // look for key
                         if (strLine.Left(lenKey) == Key) {
-                            //found it- delete this line
+                            // found it- delete this line
                             Lines.RemoveAt(i);
                             return;
                         }
                     }
                 }
             }
-            //not found - nothing to delete
+            // not found - nothing to delete
         }
 
         /// <summary>
@@ -1200,13 +1187,13 @@ namespace WinAGI.Common {
             string strLine;
             // find the section we are looking for
             for (i = 0; i <= Lines.Count - 1; i++) {
-                //skip blanks, and lines starting with a comment
+                // skip blanks, and lines starting with a comment
                 strLine = Lines[i].Replace("\t", " ").Trim();
                 if (strLine.Length > 0) {
                     if (strLine[0] != '#') {
-                        //look for a bracket
+                        // look for a bracket
                         if (strLine[0] == '[') {
-                            //find end bracket
+                            // find end bracket
                             lngPos = strLine.IndexOf(']', 1);
                             string strCheck;
                             if (lngPos > 0) {
@@ -2159,14 +2146,14 @@ namespace WinAGI.Common {
 
     public class SettingEResListType : SettingItem {
         #region Members
-        private EResListType itemValue;
-        private readonly EResListType defaultValue;
+        private ResListType itemValue;
+        private readonly ResListType defaultValue;
         private bool savetext;
         #endregion
 
         #region Constructors
-        public SettingEResListType(string name, EResListType itemvalue, string section, string group, EResListType defaultvalue) {
-            base.Type = typeof(EResListType);
+        public SettingEResListType(string name, ResListType itemvalue, string section, string group, ResListType defaultvalue) {
+            base.Type = typeof(ResListType);
             itemName = name;
             itemSection = section;
             itemGroup = group;
@@ -2174,8 +2161,8 @@ namespace WinAGI.Common {
             defaultValue = defaultvalue;
         }
 
-        public SettingEResListType(string name, EResListType itemvalue, string section, string group) {
-            base.Type = typeof(EResListType);
+        public SettingEResListType(string name, ResListType itemvalue, string section, string group) {
+            base.Type = typeof(ResListType);
             itemName = name;
             itemSection = section;
             itemGroup = group;
@@ -2183,8 +2170,8 @@ namespace WinAGI.Common {
             defaultValue = itemvalue;
         }
 
-        public SettingEResListType(string name, EResListType itemvalue, string section, EResListType defaultvalue) {
-            base.Type = typeof(EResListType);
+        public SettingEResListType(string name, ResListType itemvalue, string section, ResListType defaultvalue) {
+            base.Type = typeof(ResListType);
             itemName = name;
             itemSection = section;
             itemGroup = "";
@@ -2192,8 +2179,8 @@ namespace WinAGI.Common {
             defaultValue = defaultvalue;
         }
 
-        public SettingEResListType(string name, EResListType itemvalue, string section) {
-            base.Type = typeof(EResListType);
+        public SettingEResListType(string name, ResListType itemvalue, string section) {
+            base.Type = typeof(ResListType);
             itemName = name;
             itemSection = section;
             itemGroup = "";
@@ -2212,12 +2199,12 @@ namespace WinAGI.Common {
         #endregion
 
         #region Properties
-        public EResListType Value {
+        public ResListType Value {
             get => itemValue;
             set => itemValue = value;
         }
 
-        public EResListType DefaultValue {
+        public ResListType DefaultValue {
             get => defaultValue;
         }
 
@@ -2243,24 +2230,24 @@ namespace WinAGI.Common {
             }
         }
 
-        public EResListType ReadSetting(SettingsFile file) {
+        public ResListType ReadSetting(SettingsFile file) {
             ArgumentNullException.ThrowIfNull(file);
             return ReadSetting(file, defaultValue, false);
         }
-        public EResListType ReadSetting(SettingsFile file, EResListType defaultvalue) {
+        public ResListType ReadSetting(SettingsFile file, ResListType defaultvalue) {
             ArgumentNullException.ThrowIfNull(file);
             return ReadSetting(file, defaultvalue, false);
         }
-        public EResListType ReadSetting(SettingsFile file, EResListType defaultvalue, bool dontadd) {
+        public ResListType ReadSetting(SettingsFile file, ResListType defaultvalue, bool dontadd) {
             ArgumentNullException.ThrowIfNull(file);
-            int retval = file.GetSetting(Section, Name, (int)defaultvalue, false, dontadd, typeof(EResListType));
+            int retval = file.GetSetting(Section, Name, (int)defaultvalue, false, dontadd, typeof(ResListType));
             if (retval < 0) {
                 retval = 0;
             }
             if (retval > 2) {
                 retval = 2;
             }
-            itemValue = (EResListType)retval;
+            itemValue = (ResListType)retval;
             return itemValue;
         }
 

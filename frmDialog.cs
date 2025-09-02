@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace WinAGI.Editor {
@@ -39,9 +33,9 @@ namespace WinAGI.Editor {
             // Information =       0x40
 
             // MsgBoxHelpButton =     0x4000
-            // MsgBoxSetForeground = 0x10000  //?
-            // MsgBoxRight =         0x80000  //right align the msg text
-            // MsgBoxRtlReading =   0x100000  //?
+            // MsgBoxSetForeground = 0x10000  // ?
+            // MsgBoxRight =         0x80000  // right align the msg text
+            // MsgBoxRtlReading =   0x100000  // ?
             int lngButtonCount = 0;
             int lngBW;
             bool showHelp = HelpTopic.Length > 0;
@@ -270,7 +264,7 @@ namespace WinAGI.Editor {
             // respond to keys depending on mode
 
             if (e.Alt == true || e.Control == true) {
-                //ignore alt and ctrl
+                // ignore alt and ctrl
                 e.SuppressKeyPress = true;
                 return;
             }

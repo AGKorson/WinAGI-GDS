@@ -228,7 +228,7 @@ namespace WinAGI.Engine {
                 if (parent is not null && Array.IndexOf(IntVersions, parent.InterpreterVersion) < 13) {
                     mPriBase = 48;
                 }
-                //max value is 158
+                // max value is 158
                 else if (value > 158) {
                     mPriBase = 158;
                 }

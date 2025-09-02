@@ -376,7 +376,6 @@ namespace WinAGI.Editor {
             tvwSound.KeyDown += tvwSound_KeyDown;
             tvwSound.KeyPress += tvwSound_KeyPress;
             tvwSound.KeyUp += tvwSound_KeyUp;
-            tvwSound.MouseDown += tvwSound_MouseDown;
             tvwSound.MouseUp += tvwSound_MouseUp;
             // 
             // contextMenuStrip1

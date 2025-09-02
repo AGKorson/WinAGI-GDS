@@ -64,7 +64,6 @@ namespace WinAGI.Engine {
         /// <param name="ResType"></param>
         protected AGIResource(AGIResType ResType) {
         mResType = ResType;
-        //mResData = new ResByte(this);
         // New resources start out NOT in game; so vol and loc are undefined
         mInGame = false;
             mVolume = -1;
@@ -529,7 +528,7 @@ namespace WinAGI.Engine {
                     fsVOL.Seek(mLoc, SeekOrigin.Begin);
                     bytLow = brVOL.ReadByte();
                     bytHigh = brVOL.ReadByte();
-                    //verify this is a proper resource
+                    // verify this is a proper resource
                     if ((bytLow == 0x12) && (bytHigh == 0x34)) {
                         // now get the low and high bytes of the size
                         fsVOL.Seek(1, SeekOrigin.Current);
@@ -727,7 +726,6 @@ namespace WinAGI.Engine {
                 diskSize = fullSize;
             }
             // get resource data
-            //mData = new byte[diskSize];
             mData = brVOL.ReadBytes(diskSize);
             fsVOL.Dispose();
             brVOL.Dispose();
@@ -952,9 +950,6 @@ namespace WinAGI.Engine {
             // the calling function will take care or reassigning it later, if needed
             // (for example, if being added to a game)
             string tmpID = Path.GetFileName(ImportFile);
-            //if (tmpID.Length > 64) {
-            //    tmpID = tmpID[..64];
-            //}
             if (mInGame) {
                 // drop the extension if ingame
                 tmpID = Path.GetFileNameWithoutExtension(ImportFile);
@@ -993,7 +988,7 @@ namespace WinAGI.Engine {
                 Pos = mData.Length;
             }
             if (Pos == mData.Length) {
-                //adjust to make room for new data being added
+                // adjust to make room for new data being added
                 Array.Resize(ref mData, mData.Length + 1);
             }
             mData[Pos] = InputByte;
@@ -1225,7 +1220,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public virtual void Clear() {
             WinAGIException.ThrowIfNotLoaded(this);
-            //clears the resource data
+            // clears the resource data
             mData = [];
             mlngCurPos = 0;
             // mSizeInVol is undefined

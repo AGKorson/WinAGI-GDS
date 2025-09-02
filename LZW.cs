@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WinAGI.Common {
     public static class LZW {
-
         public static byte[] GifLZW(byte[] bytCelData) {
             // used by picture and view export functions for creating GIFs
 
@@ -28,12 +22,12 @@ namespace WinAGI.Common {
             using MemoryStream ms = new();
             BitWriter bw = new(ms);
 
-            //send 'clear' code to output
+            // send 'clear' code to output
             bw.WriteCode(clearCode, codeSize);
             
             // NOW BEGIN THE COMPRESSION
             for (int i = 0; i < bytCelData.Length; i++) {
-                //get next character
+                // get next character
                 char currentChar = (char)bytCelData[i];
                 // add to current string to check against table
                 string checkstring = currentString + currentChar;
@@ -72,9 +66,9 @@ namespace WinAGI.Common {
                     currentString = currentChar.ToString();
                 }
             }
-            //output last string code
+            // output last string code
             bw.WriteCode(dictionary[currentString], codeSize);
-            //output an 'end' code
+            // output an 'end' code
             bw.WriteCode(endCode, codeSize);
             // flush the bitwriter
             bw.Flush();
@@ -104,7 +98,6 @@ namespace WinAGI.Common {
 
                 // if there are already bits in the buffer, shift the code before adding it to the buffer
                 if (bitCount != 0) {
-                    //lngCodeIn = SHL(lngCodeIn, intBitCount)
                     codevalue <<= bitCount;
                 }
                 // add code to the buffer
@@ -116,7 +109,7 @@ namespace WinAGI.Common {
                 while (bitCount >= 8) {
                     // output get lower 8 bits to stream
                     stream.WriteByte((byte)(buffer & 0xFF));
-                    //shift buffer right by 8 bits
+                    // shift buffer right by 8 bits
                     buffer >>= 8;
                     // decrement bit Count
                     bitCount -= 8;
@@ -217,7 +210,6 @@ public static class LZWai {
                 _bitPosition1 += bitLength;
                 while (_bitPosition1 >= 8) {
                     _currentByte1 = buffer & 0xFF;
-                    //_stream.WriteByte((byte)_currentByte1);
                     buffer >>= 8;
                     _bitPosition1 -= 8;
                 }

@@ -590,7 +590,7 @@ namespace WinAGI.Engine {
                             if (strCurWord[i] > 127) {
                                 // add marker
                                 fsWords.WriteByte(0);
-                                //adjust character down by 128
+                                // adjust character down by 128
                                 CurByte = (byte)(0x7F ^ (strCurWord[i] - 128));
                             }
                             else {
@@ -605,7 +605,7 @@ namespace WinAGI.Engine {
                     if (strCurWord[^1] > 127) {
                         // add marker
                         fsWords.WriteByte(0);
-                        //adjust character down by 128
+                        // adjust character down by 128
                         CurByte = (byte)(0x80 + (0x7F ^ (strCurWord[^1] - 128)));
                     }
                     else {
@@ -651,11 +651,11 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="CompileFile"></param>
         void CompileSVE(string CompileFile) {
-            //format is:
-            // header (1st line): "Unofficial extended format to support ASCII range of 128-255"
-            // subsequent lines are words, in alphabetical order
-            // in following format:
-            //      wordtext + chr(0) + groupnum.ToString() + newline(CRLF)
+            // format is:
+            //   header (1st line): "Unofficial extended format to support ASCII range of 128-255"
+            //   subsequent lines are words, in alphabetical order
+            //   in following format:
+            //        wordtext + chr(0) + groupnum.ToString() + newline(CRLF)
             string strTempFile;
             int i;
 
@@ -669,7 +669,7 @@ namespace WinAGI.Engine {
             try {
                 StreamWriter swWords = new(strTempFile);
                 swWords.WriteLine("Unofficial extended format to support ASCII range of 128-255");
-                //add all words, in alphabetical order
+                // add all words, in alphabetical order
                 for (i = 0; i < this.WordCount; i++) {
                     swWords.WriteLine(this[i].WordText + (char)0 + this[i].Group);
                 }
@@ -988,9 +988,6 @@ namespace WinAGI.Engine {
             // delete this word from its assigned group by Group number
             WordGroup tmpGroup = GroupByNumber(value.Group);
             tmpGroup.DeleteWordFromGroup(aWord);
-            //if (tmpGroup.GroupNum != 0 && tmpGroup.GroupNum != 1 && tmpGroup.GroupNum != 9999 && tmpGroup.WordCount == 0) {
-            //    mGroupCol.Remove(tmpGroup.GroupNum);
-            //}
             mWordCol.Remove(aWord);
             mIsChanged = true;
         }

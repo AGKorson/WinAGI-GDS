@@ -326,9 +326,9 @@ namespace WinAGI.Engine {
                     bytIn = x;
                     return false;
                 }
-                if (lngPos > endpos) {
-                    //return false;
-                }
+                //if (lngPos > endpos) {
+                //    return false;
+                //}
                 if (x > 159) {
                     x = 159;
                 }
@@ -340,9 +340,9 @@ namespace WinAGI.Engine {
                 if (y > 167) {
                     y = 167;
                 }
-                if (lngPos > endpos) {
-                    //return false;
-                }
+                //if (lngPos > endpos) {
+                //    return false;
+                //}
                 return true;
             }
 

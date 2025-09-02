@@ -1951,7 +1951,7 @@
     <value>step.time</value>
   </data>
   <data name="101" xml:space="preserve">
-    <value>[|[ %id|[||[ in first cycle through this room only|if(f5) |~{|~[ |~[ load, draw and discard the picture for the current room|~load.pic(v0);|~draw.pic(v0);|~discard.pic(v0);|~|~[ the horizon defines the upper limit of ego's movement|~set.horizon(%h);|~|~[ add additional room initialization here|~|~[ load ego view, animate and draw ego|~[ this is sometimes handled in logic 0|~[ instead of in each individual logic|~|~[ display the picture on screen|~show.pic();|~[ in most cases, no need to execute any other|~[ commands during first cycle|~return();|~}||[ *************************************************|:handleInput         [ check for input from player|[ *************************************************|if(f2 &amp;&amp; !f4 &amp;&amp; v9 == 0) |~{|~[ place said tests here|~}||[ *************************************************|:noInput    [ all non-input related code goes here |[ *************************************************||[ add other room specific statements here|||[ *************************************************|:exit              [  test for leaving the room|[ *************************************************||[ add exit checks here (or use layout editor)|return();||[ *************************************************|[ messages             [ declared messages go here|[ *************************************************||</value>
+    <value>[|[ %id|[||[ in first cycle through this room only|if (f5)F0{|~[ |~[ load, draw and discard the picture for the current room|~load.pic(v0);|~draw.pic(v0);|~discard.pic(v0);|~|~[ the horizon defines the upper limit of ego's movement|~set.horizon(%h);|~|~[ add additional room initialization here|~|~[ load ego view, animate and draw ego|~[ this is sometimes handled in logic 0|~[ instead of in each individual logic|~|~[ display the picture on screen|~show.pic();|~[ in most cases, no need to execute any other|~[ commands during first cycle|~return();|F1}||[ *************************************************|:handleInput         [ check for input from player|[ *************************************************|if (f2 &amp;&amp; !f4 &amp;&amp; v9 == 0)F0{|~[ place said tests here|F1}||[ *************************************************|:noInput    [ all non-input related code goes here |[ *************************************************||[ add other room specific statements here|||[ *************************************************|:exit              [  test for leaving the room|[ *************************************************||[ add exit checks here (or use layout editor)|return();||[ *************************************************|[ messages             [ declared messages go here|[ *************************************************||</value>
   </data>
   <data name="3127" xml:space="preserve">
     <value>Gunshot</value>
@@ -2162,5 +2162,32 @@
   </data>
   <data name="1413" xml:space="preserve">
     <value>Clear Sound</value>
+  </data>
+  <data name="ELC_ADDOBJ" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_addobj.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ELC_BOTTOM" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_bottom.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ELC_HORIZON" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_horizon.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ELC_LEFT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_left.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ELC_MOVESEL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_movesel.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ELC_MOVING" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_moving.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ELC_OTHER" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_other.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ELC_RIGHT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_right.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ELC_SELOBJ" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\elc_selobj.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

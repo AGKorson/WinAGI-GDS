@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WinAGI.Engine;
+﻿using WinAGI.Engine;
 
 namespace WinAGI.Editor {
     // not much error checking; assumption
@@ -23,7 +18,6 @@ namespace WinAGI.Editor {
             udgClearList,
             udgEditName,
             udgEditValue,
-            udgSort,
             udgEditComment,
         }
 

@@ -4,17 +4,12 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
-using EnvDTE;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using WinAGI.Engine;
 using static WinAGI.Common.Base;
-using static WinAGI.Common.API;
-using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Sound;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
@@ -238,9 +233,9 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
-        /// Dynamic function to reset the resource menu.
+        /// Resets all resource menu items so shortcut keys can work correctly.
         /// </summary>
-        public void ResetResourceMenu() {
+        internal void ResetResourceMenu() {
             mnuRSave.Enabled = true;
             mnuRExport.Enabled = true;
             mnuRInGame.Enabled = true;
@@ -249,17 +244,17 @@ namespace WinAGI.Editor {
             mnuRPlaySound.Enabled = true;
         }
 
-        public void mnuRSave_Click(object sender, EventArgs e) {
+        internal void mnuRSave_Click(object sender, EventArgs e) {
             if (IsChanged) {
                 SaveSound();
             }
         }
 
-        public void mnuRExport_Click(object sender, EventArgs e) {
+        internal void mnuRExport_Click(object sender, EventArgs e) {
             ExportSound();
         }
 
-        public void mnuRInGame_Click(object sender, EventArgs e) {
+        internal void mnuRInGame_Click(object sender, EventArgs e) {
             if (EditGame != null) {
                 ToggleInGame();
             }
@@ -714,17 +709,16 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Control Event Handlers
-
         private void splitContainer1_MouseUp(object sender, MouseEventArgs e) {
-            tvwSound.Focus();
+            tvwSound.Select();
         }
 
         private void splitContainer2_MouseUp(object sender, MouseEventArgs e) {
-            tvwSound.Focus();
+            tvwSound.Select();
         }
 
         private void splitContainer3_MouseUp(object sender, MouseEventArgs e) {
-            tvwSound.Focus();
+            tvwSound.Select();
         }
 
         private void splitContainer2_Panel1_Resize(object sender, EventArgs e) {
@@ -801,18 +795,6 @@ namespace WinAGI.Editor {
             }
             e.SuppressKeyPress = true;
             e.Handled = true;
-        }
-
-        private void tvwSound_MouseDown(object sender, MouseEventArgs e) {
-            TreeNode node = tvwSound.GetNodeAt(e.X, e.Y);
-            // check for right-click within the bounds of the selection
-            if (e.Button == MouseButtons.Right) {
-                if (tvwSound.SelectedNodes.Count > 1) {
-                    if (tvwSound.SelectedNodes.Contains(node)) {
-                        //return;
-                    }
-                }
-            }
         }
 
         private void tvwSound_MouseUp(object sender, MouseEventArgs e) {
@@ -1267,7 +1249,7 @@ namespace WinAGI.Editor {
 
         private void picStaff_MouseLeave(object sender, EventArgs e) {
             int index = (int)((SelectablePictureBox)sender).Tag;
-            spTime.Text = "Pos: 0.00 sec"; // reset time marker
+            spTime.Text = "Pos: --"; // reset time marker
         }
 
         private void picStaff_MouseWheel(object sender, MouseEventArgs e) {
@@ -1728,25 +1710,14 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region temp code
-        void tempsoundform() {
-            /*
-    public void MenuClickHelp() {
-      // help
-      HtmlHelpS HelpParent, WinAGIHelp, HH_DISPLAY_TOPIC, "htm\winagi\Sound_Editor.htm"
-    }
-            */
-        }
-        #endregion
-
         #region Methods
         private void SetFocus() {
             // if a track is selected, and visible, set focus to it
             if (SelectedTrack != -1 && picStaff[SelectedTrack].Visible) {
-                picStaff[SelectedTrack].Focus();
+                picStaff[SelectedTrack].Select();
             }
             else {
-                tvwSound.Focus();
+                tvwSound.Select();
             }
         }
 
@@ -1771,7 +1742,7 @@ namespace WinAGI.Editor {
             spTime.BorderStyle = Border3DStyle.SunkenInner;
             spTime.Name = "spTime";
             spTime.Size = new System.Drawing.Size(140, 18);
-            spTime.Text = "";
+            spTime.Text = "Pos: --";
         }
 
         public bool LoadSound(Sound loadsound) {
@@ -1809,7 +1780,7 @@ namespace WinAGI.Editor {
             }
             Text = sSNDED + ResourceName(EditSound, InGame, true);
             if (IsChanged) {
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
@@ -2136,10 +2107,8 @@ namespace WinAGI.Editor {
             if (refreshtree) {
                 // refresh the tree node selection
                 if (length <= 1) {
-                    //if (tvwSound.SelectedNode != tvwSound.Nodes[0].Nodes[track].Nodes[startnote]) {
                     tvwSound.SelectedNodes = [tvwSound.Nodes[0].Nodes[track].Nodes[startnote]];
                     tvwSound.SelectedNode = tvwSound.Nodes[0].Nodes[track].Nodes[startnote];
-                    //}
                     tvwSound.NoSelection = length == 0;
                     tvwSound.SelectedNode.EnsureVisible();
                 }
@@ -2271,7 +2240,6 @@ namespace WinAGI.Editor {
                 }
                 // if greater than 0 (not to left of visible window)
                 if (lngHPos >= 0) {
-                    //x1 = x2 = lngHPos;
                     y1 = (96 * StaffScale) + SOVert[track];
                     y2 = y1 + 36 * StaffScale;
                     gs.DrawLine(pen, lngHPos, y1, lngHPos, y2);
@@ -2470,7 +2438,6 @@ namespace WinAGI.Editor {
                 }
                 // if greater than 0 (not to left of visible window)
                 if (lngHPos >= 0) {
-                    //x1 = x2 = lngHPos;
                     gs.DrawLine(pen, lngHPos, y1, lngHPos, y2);
                 }
             }
@@ -2540,7 +2507,6 @@ namespace WinAGI.Editor {
             gs.DrawString("Track 2", cleffont, brush, x1, y1);
 
             if (SelectedTrack == 3) {
-                //gs.DrawString($"anchor: {SelAnchor}  start: {SelStart}  length: {SelLength}", this.Font, brush, 25, 16);
                 Pen borderpen = new(Color.Blue);
                 borderpen.Width = 3;
                 gs.DrawRectangle(borderpen, 1, 1, picStaff[3].ClientSize.Width - vsbStaff[3].Width - 3, picStaff[3].ClientSize.Height - 3);
@@ -2567,7 +2533,7 @@ namespace WinAGI.Editor {
             Pen dotpen = new(EditPalette[attenuation]);
 
             // get note pos and accidental based on current key
-            tDisplayNote dnNote = DisplayNote(noteIndex, EditSound.Key);
+            DisplayNote dnNote = DisplayNote(noteIndex, EditSound.Key);
 
             // draw extra staffline if above or below staff
             x1 = HPos - 3 * StaffScale;
@@ -3416,7 +3382,7 @@ namespace WinAGI.Editor {
             spTime.Text = "Pos: " + time.ToString("F2") + " sec";
         }
 
-        private tDisplayNote DisplayNote(int MIDINote, int Key) {
+        private DisplayNote DisplayNote(int MIDINote, int Key) {
             // returns a note position, relative to middle c
             // as either a positive or negative Value (negative meaning higher tone)
             // 
@@ -3425,7 +3391,7 @@ namespace WinAGI.Editor {
             // 
             // the returned Value is adjusted based on the key
 
-            tDisplayNote retval = new();
+            DisplayNote retval = new();
 
             if (MIDINote < 0 || MIDINote > 127) {
                 throw new ArgumentOutOfRangeException();
@@ -3708,7 +3674,6 @@ namespace WinAGI.Editor {
                 staffHeight = 21 + 36 * StaffScale;
             }
             else {
-                //staffHeight = 186 * StaffScale;
                 staffHeight = 10 + 186 * StaffScale;
             }
             vsbStaff[index].Enabled = staffHeight > picStaff[index].Height;
@@ -4343,7 +4308,6 @@ namespace WinAGI.Editor {
                 switch (PlaybackMode) {
                 case SoundPlaybackMode.PCSpeaker:
                     throw (new NotImplementedException());
-                //break;
                 case SoundPlaybackMode.WAV:
                     try {
                         wavNotePlayer.StopWavNote();
@@ -4561,7 +4525,7 @@ namespace WinAGI.Editor {
                 AddUndo(NextUndo);
             }
 
-            //renumber notes affected by deletion
+            // renumber notes affected by deletion
             tvwSound.BeginUpdate();
             for (int i = DelPos; i < tvwSound.Nodes[0].Nodes[DelTrack].Nodes.Count - 1; i++) {
                 tvwSound.Nodes[0].Nodes[DelTrack].Nodes[i].Text = "Note " + i.ToString();
@@ -4853,7 +4817,6 @@ namespace WinAGI.Editor {
                 }
                 EditGame.Sounds[SoundNumber].CloneFrom(EditSound);
                 EditGame.Sounds[SoundNumber].Save();
-                //EditSound.CloneFrom(EditGame.Sounds[SoundNumber]);// WHY?????
                 if (!blnLoaded) {
                     EditGame.Sounds[SoundNumber].Unload();
                 }
@@ -4924,7 +4887,6 @@ namespace WinAGI.Editor {
                     strExportName = NewResourceName(EditSound, InGame);
                     if (strExportName.Length > 0) {
                         EditSound.Export(strExportName);
-                        //UpdateStatusBar();
                     }
                     break;
                 case DialogResult.No:
@@ -4990,7 +4952,7 @@ namespace WinAGI.Editor {
                 SoundNumber = NewResNum;
                 Text = sPICED + ResourceName(EditSound, InGame, true);
                 if (IsChanged) {
-                    Text = sDM + Text;
+                    Text = CHG_MARKER + Text;
                 }
                 if (EditSound.ID != oldid) {
                     if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
@@ -5011,10 +4973,17 @@ namespace WinAGI.Editor {
                     EditSound.ID = id;
                     Text = sSNDED + ResourceName(EditSound, InGame, true);
                     if (IsChanged) {
-                        Text = sDM + Text;
+                        Text = CHG_MARKER + Text;
                     }
                 }
             }
+        }
+        
+        internal void ShowHelp() {
+            string strTopic = "htm\\winagi\\Sound_Editor.htm";
+
+            // TODO: add context-sensitive help
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
         }
 
         private bool AskClose() {
@@ -5070,7 +5039,7 @@ namespace WinAGI.Editor {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
         }
 
@@ -5557,11 +5526,11 @@ namespace WinAGI.Editor {
                 int octave = FreqDivToMidiNote(sound[track][noteindex].FreqDivisor) / 12;
                 switch (octave) {
                 case 3:
-                    //3: B, A#, A
+                    // B, A#, A
                     EMidiNote[] values = [EMidiNote.A, EMidiNote.AsBf, EMidiNote.B];
                     return new StandardValuesCollection(values);
                 case 10:
-                    //10: G, F#, F, E, D#, D, C#, C
+                    // G, F#, F, E, D#, D, C#, C
                     values = [EMidiNote.C, EMidiNote.CsDf, EMidiNote.D,
                         EMidiNote.DsEf, EMidiNote.E, EMidiNote.F,
                         EMidiNote.FsGf, EMidiNote.G];
@@ -5689,7 +5658,6 @@ namespace WinAGI.Editor {
 
     public class SoundEditNNote {
         frmSoundEdit parent;
-        int track;
         int noteindex;
         Note note;
         public SoundEditNNote(frmSoundEdit parent, int note) {

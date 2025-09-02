@@ -96,16 +96,16 @@ namespace WinAGI.Common {
                 // build resource list
                 BuildResourceTree();
                 // show it, if needed
-                if (WinAGISettings.ResListType.Value != EResListType.None) {
+                if (WinAGISettings.ResListType.Value != ResListType.None) {
                     // show resource tree pane
                     MDIMain.ShowResTree();
                 }
                 switch (WinAGISettings.ResListType.Value) {
-                case EResListType.TreeList:
+                case ResListType.TreeList:
                     // select root
                     MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
                     break;
-                case EResListType.ComboList:
+                case ResListType.ComboList:
                     // select root
                     MDIMain.cmbResType.SelectedIndex = 0;
                     // update selected resource
@@ -242,17 +242,17 @@ namespace WinAGI.Common {
                         break;
                     case 541:
                         // Not a valid AGI directory
-                        //["baddir"] = string gamedir
+                        // ["baddir"] = string gamedir
                         strError = $"Invalid or missing directory file '{Path.GetFileName((string)ex.Data["baddir"])}'";
                         break;
                     case 542:
                         // invalid DIR file
-                        //["baddir"] = string DIRfile
+                        // ["baddir"] = string DIRfile
                         strError = $"'{ex.Data["baddir"]}' is an invalid directory file.";
                         break;
                     case 543:
-                        //invalid interpreter version - couldn't find correct version from the AGI
-                        //files
+                        // invalid interpreter version - couldn't find correct version from the AGI
+                        // files
                         strError = ex.Message;
                         break;
                     case 655:
@@ -267,11 +267,11 @@ namespace WinAGI.Common {
                         }
                         break;
                     case 690:
-                        //missing gameID in wag file
+                        // missing gameID in wag file
                         strError = "Game property file does not contain a valid GameID.";
                         break;
                     case 691:
-                        //invalid intVersion in wag file
+                        // invalid intVersion in wag file
                         strError = $"{ex.Data["badversion"]} is not a valid Interpreter Version.";
                         break;
                     case 699:
@@ -285,7 +285,7 @@ namespace WinAGI.Common {
                         strError = $"Game file ({Path.GetFileName((string)ex.Data["badfile"])}) is readonly";
                         break;
                     case 701:
-                        //file error accessing WAG
+                        // file error accessing WAG
                         // ["exception"] = Exception ex
                         strError = $"File access error when reading WAG file - {((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
                         break;
@@ -342,15 +342,15 @@ namespace WinAGI.Common {
                 // game finished loading
                 MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
                 BuildResourceTree();
-                if (WinAGISettings.ResListType.Value != EResListType.None) {
+                if (WinAGISettings.ResListType.Value != ResListType.None) {
                     MDIMain.ShowResTree();
                 }
                 // setting reslist type will also show PreviewWin if needed
                 switch (WinAGISettings.ResListType.Value) {
-                case EResListType.TreeList:
+                case ResListType.TreeList:
                     MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
                     break;
-                case EResListType.ComboList:
+                case ResListType.ComboList:
                     MDIMain.cmbResType.SelectedIndex = 0;
                     MDIMain.SelectResource(Game, -1);
                     break;
@@ -561,13 +561,12 @@ namespace WinAGI.Common {
             case CompileMode.RebuildOnly:
                 switch (CompGameResults.Status) {
                 case CompileStatus.OK:
-                    //everything is ok
+                    // everything is ok
                     MDIMain.UseWaitCursor = false;
                     if (CompGameResults.Warnings) {
                         if (!MDIMain.pnlWarnings.Visible) {
                             MDIMain.pnlWarnings.Visible = true;
                         }
-                        //msgbox to user
                         MessageBox.Show(MDIMain,
                             "Warnings were generated during game" + (CompGameResults.Mode == CompileMode.RebuildOnly ? "rebuild." : "compile."),
                             CompGameResults.Mode == CompileMode.RebuildOnly ? "Rebuild VOL Files" : "Compile Game",
@@ -640,7 +639,7 @@ namespace WinAGI.Common {
             case CompileMode.ChangedLogics:
                 switch (CompGameResults.Status) {
                 case CompileStatus.OK:
-                    //everything is ok
+                    // everything is ok
                     MDIMain.UseWaitCursor = false;
                     MessageBox.Show(MDIMain,
                         "All logics compiled successfully.",

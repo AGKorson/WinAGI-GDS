@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
@@ -228,7 +222,7 @@ namespace WinAGI.Editor {
                         }
                         if (textchanged) {
                             logic.SaveSource();
-                            //update reslist
+                            // update reslist
                             RefreshTree(AGIResType.Logic, logic.Number);
                         }
                         if (unload) {
@@ -306,9 +300,6 @@ namespace WinAGI.Editor {
                 switch (retval) {
                 case DefineNameCheck.OK:
                     break;
-                //case DefineNameCheck.Empty:
-                //    // empty is already handled above
-                //    break;
                 case DefineNameCheck.Numeric:
                     message = "Define names cannot be numeric.";
                     break;
@@ -363,9 +354,8 @@ namespace WinAGI.Editor {
                         message,
                         "Invalid Name",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Error, 0, 0 //,
-                                                   //WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax"
-                    );
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
                     e.Cancel = true;
                     return;
                 }
@@ -385,9 +375,8 @@ namespace WinAGI.Editor {
                             message,
                             "Invalid Name",
                             MessageBoxButtons.OK,
-                            MessageBoxIcon.Error, 0, 0 //,
-                                                       //WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax"
-                        );
+                            MessageBoxIcon.Error, 0, 0 ,
+                            WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
                         e.Cancel = true;
                         return;
                     }
@@ -623,7 +612,7 @@ namespace WinAGI.Editor {
             reservedgrid[0, currentrow].Value = "Other Reserved Defines";
             reservedgrid[0, currentrow].Style.Font = boldfont;
             reservedgrid[0, currentrow].ReadOnly = true;
-            //ego
+            // ego
             tmpDefines = gridlist.ReservedObjects;
             for (int i = 0; i < tmpDefines.Length; i++) {
                 currentrow = reservedgrid.Rows.Add();

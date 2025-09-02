@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using WinAGI.Common;
 using WinAGI.Engine;
 using static WinAGI.Editor.frmPicEdit;
 
@@ -128,7 +121,6 @@ namespace WinAGI.Editor {
                 if (newval > 159 - SelCmd.Pen.PlotSize / 2) {
                     newval = 159 - SelCmd.Pen.PlotSize / 2;
                 }
-                //lblWarning.Visible = newval == 160 - SelCmd.Pen.PlotSize / 2;
                 txtX.Value = newval;
             }
             if (newval != NewCoord.X) {
@@ -174,7 +166,6 @@ namespace WinAGI.Editor {
 
         private void udPattern_ValueChanged(object sender, EventArgs e) {
             NewPattern = (byte)udPattern.Value;
-            //DrawPlotPoint();
             picPlot.Refresh();
         }
 
@@ -257,7 +248,7 @@ namespace WinAGI.Editor {
             Brush pb = new SolidBrush(Color.FromArgb(TransLevel, PenColor));
             Brush eb = new HatchBrush(HatchStyle.Percent50, Color.FromArgb(TransLevel, PenColor), Color.Transparent);
 
-            //disable screen updating for the picture control until after point is plotted
+            // disable screen updating for the picture control until after point is plotted
             Common.API.SendMessage(picPlot.Handle, Common.API.WM_SETREDRAW, false, 0);
 
             // start in upper-right corner
@@ -306,7 +297,7 @@ namespace WinAGI.Editor {
                 }
             }
 
-            //reenable screen updating
+            // reenable screen updating
             Common.API.SendMessage(picPlot.Handle, Common.API.WM_SETREDRAW, true, 0);
         }
         #endregion

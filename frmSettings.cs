@@ -2,13 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +18,8 @@ using static WinAGI.Editor.frmPicEdit;
 
 namespace WinAGI.Editor {
     public partial class frmSettings : Form {
-        private agiSettings NewSettings = WinAGISettings.Clone();
+        #region Members
+        private AGISettings NewSettings = WinAGISettings.Clone();
         private PicTestInfo NewPicTestSettings = PicEditTestSettings.Clone();
         private bool blnChangeCmtCol;
         private bool blnResetWarnings;
@@ -34,7 +33,7 @@ namespace WinAGI.Editor {
         private TextStyle prevArgIdentifierStyle;
         private TextStyle prevDefIdentifierStyle;
         private CancellationTokenSource fontSearchCts;
-
+        #endregion
 
         public frmSettings(int starttab = 0, string startprop = "") {
             InitializeComponent();
@@ -125,6 +124,51 @@ namespace WinAGI.Editor {
         private void frmSettings_Load(object sender, EventArgs e) {
             // load list of available monospace fonts asynchronously
             BeginFindMonoSpaceFontsAsync();
+        }
+
+        private void frmSettings_KeyDown(object sender, KeyEventArgs e) {
+            string strHelp;
+
+            // check for help key
+            if (!e.Shift && !e.Alt && !e.Control && e.KeyCode == Keys.F1) {
+                switch (tabControl1.SelectedIndex) {
+                case 0:
+                    // general
+                    strHelp = "generalsettings.htm";
+                    break;
+                case 1:
+                    // logics1
+                    strHelp = "logicsettings.htm";
+                    break;
+                case 2:
+                    // logics2
+                    strHelp = "decompilersettings.htm";
+                    break;
+                case 3:
+                    // pictures
+                    strHelp = "picturesettings.htm";
+                    break;
+                case 4:
+                    // sounds
+                    strHelp = "soundsettings.htm";
+                    break;
+                case 5:
+                    // views
+                    strHelp = "viewsettings.htm";
+                    break;
+                case 6:
+                    // layout
+                    strHelp = "layoutsettings.htm";
+                    break;
+                default:
+                    // generic setting help
+                    strHelp = "Settings.htm";
+                    break;
+                }
+                Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\" + strHelp);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
         }
 
         private void btnDefault_Click(object sender, EventArgs e) {
@@ -284,7 +328,7 @@ namespace WinAGI.Editor {
             bool changeViewPrevZoom = NewSettings.ViewScalePreview.Value != WinAGISettings.ViewScalePreview.Value;
 
             blnChangeCmtCol = NewSettings.GEShowComment.Value != WinAGISettings.GEShowComment.Value;
-            EResListType lngResList = WinAGISettings.ResListType.Value;
+            ResListType lngResList = WinAGISettings.ResListType.Value;
 
             // copy new settings back to game settings (this does NOT save them to
             // the settings list; that is done in the save new settings function)
@@ -306,7 +350,7 @@ namespace WinAGI.Editor {
             // if a game is loaded, changes may need to be made immediately:
             if (EditGame != null) {
                 switch (WinAGISettings.ResListType.Value) {
-                case EResListType.None:
+                case ResListType.None:
                     // if visible, hide it
                     if (MDIMain.pnlResources.Visible) {
                         MDIMain.HideResTree();
@@ -334,7 +378,7 @@ namespace WinAGI.Editor {
                 PreviewWin.rtfLogPrev.Font = new Font(NewSettings.PreviewFontName.Value, NewSettings.PreviewFontSize.Value);
 
                 // if showing preview window (and using reslist)
-                if (WinAGISettings.ShowPreview.Value && WinAGISettings.ResListType.Value != EResListType.None) {
+                if (WinAGISettings.ShowPreview.Value && WinAGISettings.ResListType.Value != ResListType.None) {
                     // if not visible, show it
                     if (!PreviewWin.Visible) {
                         PreviewWin.Show();
@@ -356,23 +400,25 @@ namespace WinAGI.Editor {
                         case 0:
                             MDIMain.LastNodeName = "";
                             break;
-                        case EResListType.TreeList:
+                        case ResListType.TreeList:
                             // listtree
-                            //// force update (why?)
-                            //MDIMain.SelectResource(SelResType, SelResNum);
+                            // force update
+                            // TODO: why update?
+                            MDIMain.SelectResource(SelResType, SelResNum);
                             break;
-                        case EResListType.ComboList:
+                        case ResListType.ComboList:
                             // listbox
-                            //// force update (why?)
-                            //MDIMain.SelectResource(SelResType, SelResNum);
+                            // force update
+                            // TODO: why update?
+                            MDIMain.SelectResource(SelResType, SelResNum);
                             break;
                         }
                     }
                 }
                 // if now showing resource list as numbers OR if number format has changed
-                if (blnChangeResName || NewSettings.ResListType.Value != EResListType.None) {
+                if (blnChangeResName || NewSettings.ResListType.Value != ResListType.None) {
                     switch (NewSettings.ResListType.Value) {
-                    case EResListType.TreeList:
+                    case ResListType.TreeList:
                         // step through all resources, and reassign tree list caption
                         foreach (TreeNode node in HdrNode[0].Nodes) {
                             node.Text = ResourceName(EditGame.Logics[(byte)node.Tag], true);
@@ -387,7 +433,7 @@ namespace WinAGI.Editor {
                             node.Text = ResourceName(EditGame.Views[(byte)node.Tag], true);
                         }
                         break;
-                    case EResListType.ComboList:
+                    case ResListType.ComboList:
                         // combo list - update list for resources being listed
                         switch (MDIMain.cmbResType.SelectedIndex) {
                         case 1:
@@ -419,7 +465,7 @@ namespace WinAGI.Editor {
                             if (frm.InGame) {
                                 frm.Text = sLOGED + ResourceName(frm.EditLogic, true, true);
                                 if (frm.IsChanged) {
-                                    frm.Text = sDM + frm.Text;
+                                    frm.Text = CHG_MARKER + frm.Text;
                                 }
                             }
                         }
@@ -428,7 +474,7 @@ namespace WinAGI.Editor {
                         if (frm.InGame) {
                             frm.Text = sPICED + ResourceName(frm.EditPicture, true, true);
                             if (frm.IsChanged) {
-                                frm.Text = sDM + frm.Text;
+                                frm.Text = CHG_MARKER + frm.Text;
                             }
                         }
                     }
@@ -436,7 +482,7 @@ namespace WinAGI.Editor {
                         if (frm.InGame) {
                             frm.Text = sSNDED + ResourceName(frm.EditSound, true, true);
                             if (frm.IsChanged) {
-                                frm.Text = sDM + frm.Text;
+                                frm.Text = CHG_MARKER + frm.Text;
                             }
                         }
                     }
@@ -444,7 +490,7 @@ namespace WinAGI.Editor {
                         if (frm.InGame) {
                             frm.Text = sVIEWED + ResourceName(frm.EditView, true, true);
                             if (frm.IsChanged) {
-                                frm.Text = sDM + frm.Text;
+                                frm.Text = CHG_MARKER + frm.Text;
                             }
                         }
                     }
@@ -460,16 +506,23 @@ namespace WinAGI.Editor {
                 }
             }
             foreach (Form frm in MDIMain.MdiChildren) {
-                switch (frm.Name) {
-                case "frmLogicEdit":
-                case "frmGlobals":
-                case "frmLayout":
-                case "frmObjectEdit":
-                case "frmViewEdit":
-                case "frmWordsEdit":
-                    dynamic dfrm = frm;
-                    dfrm.InitFonts();
-                    break;
+                if (frm is frmLogicEdit logicForm) {
+                    logicForm.InitFonts();
+                }
+                else if (frm is frmGlobals globalsForm) {
+                    globalsForm.InitFonts();
+                }
+                else if (frm is frmLayout layoutForm) {
+                    layoutForm.InitFonts();
+                }
+                else if (frm is frmObjectEdit objectForm) {
+                    objectForm.InitFonts();
+                }
+                else if (frm is frmViewEdit viewForm) {
+                    viewForm.InitFonts();
+                }
+                else if (frm is frmWordsEdit wordsForm) {
+                    wordsForm.InitFonts();
                 }
             }
             LogicDecoder.DefaultSrcExt = NewSettings.DefaultExt.Value.ToLower();
@@ -544,7 +597,7 @@ namespace WinAGI.Editor {
                 WinAGISettings.WarnCompile.Reset(WinAGISettingsFile);
                 WinAGISettings.DelBlankG.Reset(WinAGISettingsFile);
                 WinAGISettings.NotifyCompSuccess.Reset(WinAGISettingsFile);
-                //WinAGISettings.NotifyCompWarn.Reset(WinAGISettingsFile);
+                WinAGISettings.NotifyCompWarn.Reset(WinAGISettingsFile);
                 WinAGISettings.NotifyCompFail.Reset(WinAGISettingsFile);
                 WinAGISettings.WarnItem0.Reset(WinAGISettingsFile);
                 WinAGISettings.OpenOnErr.Reset(WinAGISettingsFile);
@@ -599,8 +652,8 @@ namespace WinAGI.Editor {
         }
 
         private void cmbResTree_SelectedIndexChanged(object sender, EventArgs e) {
-            NewSettings.ResListType.Value = (EResListType)cmbResTree.SelectedIndex;
-            if (NewSettings.ResListType.Value == EResListType.None) {
+            NewSettings.ResListType.Value = (ResListType)cmbResTree.SelectedIndex;
+            if (NewSettings.ResListType.Value == ResListType.None) {
                 chkDisplayByNum.Enabled = false;
                 chkIncludeResNum.Enabled = false;
                 cmbResFormat.Enabled = false;
@@ -613,11 +666,10 @@ namespace WinAGI.Editor {
                 lblResNameFormat.Enabled = NewSettings.ShowResNum.Value;
             }
 
-
             // preview checkboxes depends on tree setting
-            Frame17.Enabled = (NewSettings.ResListType.Value != EResListType.None);
+            Frame17.Enabled = (NewSettings.ResListType.Value != ResListType.None);
             if (Frame17.Enabled) {
-                chkPreview.Enabled = (NewSettings.ResListType.Value != EResListType.None);
+                chkPreview.Enabled = (NewSettings.ResListType.Value != ResListType.None);
                 chkShiftPreview.Enabled = NewSettings.ShowPreview.Value;
                 chkHidePreview.Enabled = NewSettings.ShowPreview.Value;
             }
@@ -1156,7 +1208,6 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Sounds Tab Event Handlers
-
         private void optPlaybackMode_CheckedChanged(object sender, EventArgs e) {
             if (optPCSpeaker.Checked) {
                 NewSettings.PlaybackMode.Value = 0;
@@ -1316,11 +1367,11 @@ namespace WinAGI.Editor {
 
         private void txtGridMinor_Validating(object sender, CancelEventArgs e) {
             // >=.05; <=1; increments of 0.05
-            if (!double.TryParse(txtGridMinor.Text, out double var)) {
+            if (!float.TryParse(txtGridMinor.Text, out float var)) {
                 return;
             }
             if (var < 0.05) {
-                var = 0.05;
+                var = 0.05f;
                 txtGridMinor.Text = "0.05";
             }
             else if (var > 1) {
@@ -1328,12 +1379,12 @@ namespace WinAGI.Editor {
                 var = 1;
             }
             else {
-                var = (double)Math.Round(var * 20) / 20;
+                var = (float)Math.Round(var * 20) / 20;
             }
             txtGridMinor.Text = var.ToString("0.00");
             NewSettings.LEGridMinor.Value = var;
             // major grid must be an increment of minor
-            var = Math.Round(NewSettings.LEGridMajor.Value / NewSettings.LEGridMinor.Value) * NewSettings.LEGridMinor.Value;
+            var = (float)Math.Round(NewSettings.LEGridMajor.Value / NewSettings.LEGridMinor.Value) * NewSettings.LEGridMinor.Value;
             NewSettings.LEGridMajor.Value = var;
             txtGridMajor.Text = var.ToString("0.00");
             DrawLESample();
@@ -1362,10 +1413,10 @@ namespace WinAGI.Editor {
 
         private void txtGridMajor_Validating(object sender, CancelEventArgs e) {
             // major grid must be an increment of minor
-            if (!double.TryParse(txtGridMajor.Text, out double var)) {
+            if (!float.TryParse(txtGridMajor.Text, out float var)) {
                 return;
             }
-            var = Math.Round(var / NewSettings.LEGridMinor.Value) * NewSettings.LEGridMinor.Value;
+            var = (float)Math.Round(var / NewSettings.LEGridMinor.Value) * NewSettings.LEGridMinor.Value;
             NewSettings.LEGridMajor.Value = var;
             txtGridMajor.Text = var.ToString("0.00");
             DrawLESample();
@@ -1505,12 +1556,6 @@ namespace WinAGI.Editor {
             if (cdColors.ShowDialog(MDIMain) == DialogResult.Cancel) {
                 return;
             }
-            // special case: color vbWhite-1 is the background color
-            // so it can't be chosen; it's close to white, so just
-            // change it
-            if (cdColors.Color == Color.FromArgb(255, 255, 255, 254)) {
-                cdColors.Color = Color.White;
-            }
             switch (lstLEColors.SelectedIndex) {
             case 0:
                 // room edge
@@ -1569,7 +1614,7 @@ namespace WinAGI.Editor {
             if (e.X < 0 || e.X >= picLESample.Width || e.Y < 0 || e.Y >= picLESample.Height) {
                 return; // outside of picture
             }
-            Bitmap bitmap = (Bitmap)((PictureBox)(sender)).Image; // assuming sender is a PictureBox with an Image property
+            Bitmap bitmap = (Bitmap)((PictureBox)sender).Image; // assuming sender is a PictureBox with an Image property
 
             // get the color at the point
             // and set the selected index in the listbox
@@ -1740,44 +1785,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region temp code
-        void temp() {
-            /*
-    private void Form_KeyDown(KeyCode As Integer, Shift As Integer)
-
-      Dim strHelp As String
-
-      // check for help key
-      if (Shift = 0 And KeyCode = vbKeyF1) {
-        switch (TabStrip1.SelectedItem.Index) {
-        case 1 // general
-          strHelp = "generalsettings.htm"
-        case 2 // logics
-          strHelp = "logicsettings.htm"
-        case 3 // decompiler
-          strHelp = "decompilersettings.htm"
-        case 4 // pictures
-          strHelp = "picturesettings.htm"
-        case 5 // sounds
-          strHelp = "soundsettings.htm"
-        case 6 // views
-          strHelp = "viewsettings.htm"
-        case 7 // layout
-          strHelp = "layoutsettings.htm"
-        default:
-          // generic setting help
-          strHelp = "Settings.htm"
-        }
-
-        Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\" + strHelp);
-        KeyCode = 0
-      }
-
-    }
-            */
-        }
-        #endregion
-
+        #region Methods
         private async void BeginFindMonoSpaceFontsAsync() {
             fontSearchCts?.Cancel(); // cancel any previous search
             fontSearchCts = new CancellationTokenSource();
@@ -1836,9 +1844,9 @@ namespace WinAGI.Editor {
             // move preview rtf to front
             Controls.SetChildIndex(rtfPreview, 0);
 
-            //***********************
-            // GENERAL SETTINGS
-            //***********************
+            // ***********************
+            //  GENERAL SETTINGS
+            // ***********************
             chkDisplayByNum.Checked = NewSettings.ShowResNum.Value;
             chkIncludeResNum.Checked = NewSettings.IncludeResNum.Value;
             chkIncludeResNum.Enabled = !NewSettings.ShowResNum.Value;
@@ -1854,7 +1862,7 @@ namespace WinAGI.Editor {
             cmbResTree.SelectedIndex = (int)NewSettings.ResListType.Value;
             lblResNameFormat.Enabled = NewSettings.ShowResNum.Value;
             chkPreview.Checked = NewSettings.ShowPreview.Value;
-            chkPreview.Enabled = (NewSettings.ResListType.Value != EResListType.None);
+            chkPreview.Enabled = (NewSettings.ResListType.Value != ResListType.None);
             chkShiftPreview.Checked = NewSettings.ShiftPreview.Value;
             chkShiftPreview.Enabled = NewSettings.ShowPreview.Value;
             chkHidePreview.Checked = NewSettings.HidePreview.Value;
@@ -1867,9 +1875,9 @@ namespace WinAGI.Editor {
             txtMaxSO.Text = NewSettings.DefMaxSO.Value.ToString();
             txtMaxVol0.Text = (NewSettings.DefMaxVol0.Value / 1024).ToString();
 
-            //***********************
-            // LOGICS SETTINGS TAB 1
-            //***********************
+            // ***********************
+            //  LOGICS SETTINGS TAB 1
+            // ***********************
             chkSnippets.Checked = NewSettings.UseSnippets.Value;
             chkAutoQuickInfo.Checked = NewSettings.AutoQuickInfo.Value;
             chkDocMap.Checked = NewSettings.ShowDocMap.Value;
@@ -1884,9 +1892,9 @@ namespace WinAGI.Editor {
             cmbPrevSize.Text = NewSettings.PreviewFontSize.Value.ToString();
             txtExtension.Text = NewSettings.DefaultExt.Value.ToLower();
 
-            //***********************
-            // LOGICS SETTINGS TAB 2
-            //***********************
+            // ***********************
+            //  LOGICS SETTINGS TAB 2
+            // ***********************
             cmbErrorLevel.SelectedIndex = NewSettings.ErrorLevel.IntValue;
             chkAutoWarn.Checked = NewSettings.AutoWarn.Value;
             chkShowComment.Checked = NewSettings.GEShowComment.Value;
@@ -1913,9 +1921,9 @@ namespace WinAGI.Editor {
             chkIncludeResDefs.Checked = NewSettings.DefIncludeReserved.Value;
             chkIncludeGlobals.Checked = NewSettings.DefIncludeGlobals.Value;
 
-            //***********************
-            // PICTURE SETTINGS
-            //***********************
+            // ***********************
+            //  PICTURE SETTINGS
+            // ***********************
             double scale = NewSettings.PicScaleEdit.Value;
             // convert scale to percentage vlues
             if (scale < 1) {
@@ -2032,9 +2040,9 @@ namespace WinAGI.Editor {
             chkIgnoreHorizon.Checked = NewPicTestSettings.IgnoreHorizon.Value;
             chkCycleAtRest.Checked = NewPicTestSettings.CycleAtRest.Value;
 
-            //***********************
-            // SOUND SETTINGS
-            //***********************
+            // ***********************
+            //  SOUND SETTINGS
+            // ***********************
             if (NewSettings.PlaybackMode.Value == 2) {
                 optMIDI.Checked = true;
             }
@@ -2064,9 +2072,9 @@ namespace WinAGI.Editor {
             chkMute3.Checked = NewSettings.DefMute[3].Value;
             chkMute3.Tag = 3;
 
-            //***********************
-            // VIEW SETTINGS
-            //***********************
+            // ***********************
+            //  VIEW SETTINGS
+            // ***********************
             for (int i = 0; i < udVPZoom.Items.Count; i++) {
                 if (NewSettings.ViewScalePreview.Value * 100 >= float.Parse(((string)udVPZoom.Items[i])[..^1])) {
                     udVPZoom.SelectedIndex = i;
@@ -2095,9 +2103,9 @@ namespace WinAGI.Editor {
             chkDefPrevPlay.Checked = NewSettings.DefPrevPlay.Value;
             chkShowGrid.Checked = NewSettings.ShowGrid.Value;
 
-            //***********************
-            // LAYOUT EDITOR SETTINGS
-            //***********************
+            // ***********************
+            //  LAYOUT EDITOR SETTINGS
+            // ***********************
             chkUseLE.Checked = NewSettings.DefUseLE.Value;
             chkLEShowGrid.Checked = NewSettings.LEShowGrid.Value;
             chkDisplayPics.Checked = NewSettings.LEShowPics.Value;
@@ -2259,7 +2267,7 @@ namespace WinAGI.Editor {
             WinAGISettingsFile.Save();
         }
 
-        public void RefreshPreviewSyntaxStyles() {
+        private void RefreshPreviewSyntaxStyles() {
             rtfPreview.ClearStylesBuffer();
             prevCommentStyle.ForeBrush = new SolidBrush(NewSettings.SyntaxStyle[1].Color.Value);
             prevCommentStyle.FontStyle = NewSettings.SyntaxStyle[1].FontStyle.Value;
@@ -2281,7 +2289,7 @@ namespace WinAGI.Editor {
             prevDefIdentifierStyle.FontStyle = NewSettings.SyntaxStyle[9].FontStyle.Value;
         }
 
-        public void PreviewSyntaxHighlight() {
+        private void PreviewSyntaxHighlight() {
             rtfPreview.Range.SetStyle(prevCommentStyle, CommentStyleRegEx1, RegexOptions.Multiline);
             rtfPreview.Range.SetStyle(prevCommentStyle, CommentStyleRegEx2, RegexOptions.Multiline);
             rtfPreview.Range.SetStyle(prevStringStyle, StringStyleRegEx);
@@ -2350,5 +2358,6 @@ namespace WinAGI.Editor {
                 break;
             }
         }
+        #endregion
     }
 }

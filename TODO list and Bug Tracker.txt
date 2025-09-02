@@ -17,7 +17,7 @@ X   15. Palette Editor
 X   16. Picture Editor
 X   17. View Editor
 X   18. Sound Editor
-O   19. Layout Editor
+X   19. Layout Editor
     20. Menu Editor
     21. Text Screen Editor
     22. Help Integration
@@ -721,7 +721,24 @@ frmGlobals
  
 frmLayout
 ---------
-      tbd
+      mnuResources
+      0   mnuRNew ...
+      1   mnuROpen ...
+      2   mnuRImport ...
+      3   mnuRSeparator1 
+      4 - mnuROpenRes
+      4 r mnuRSave
+      5 - mnuRExport
+      5 - mnuRSeparator2 
+      5 - mnuRRemove
+      5 - mnuRRenumber
+      5 - mnuRIDDesc
+      5 - mnuRSeparator3 
+      5 - mnuRCompileLogic
+      5 - mnuRSavePicImage
+      5 - mnuRExportGIF
+     -1 + mnuRepair
+     -1 + mnuToggleAllPics
 
 frmLogicEdit
 ------------
@@ -746,7 +763,24 @@ frmLogicEdit
 
 frmMenuEdit
 -----------
-    tbd
+      mnuResources
+      0   mnuRNew ...
+      1   mnuROpen ...
+      2   mnuRImport ...
+      3   mnuRSeparator1 
+      4 - mnuROpenRes
+      4 - mnuRSave
+      4 - mnuRExport
+      4 - mnuRSeparator2 
+      4 - mnuRRemove
+      4 - mnuRRenumber
+      4 - mnuRIDDesc
+      4 - mnuRSeparator3 
+      4 - mnuRCompileLogic
+      4 - mnuRSavePicImage
+      4 - mnuRExportGIF
+     -1 + mnuBackground
+     -1 + mnuHotKeyAlign
 
 frmObjectEdit
 -------------
@@ -816,7 +850,23 @@ frmSoundEdit
 
 frmTextScreenEdit
 -----------------
-      tbd
+      mnuResources
+      0   mnuRNew ...
+      1   mnuROpen ...
+      2   mnuRImport ...
+      3   mnuRSeparator1 
+      4 - mnuROpenRes
+      4 r mnuRSave
+      5 r mnuRExport -> mnuRSaveAs
+      6   mnuRSeparator2 
+      7 - mnuRRemove
+      7 - mnuRRenumber
+      7 - mnuRIDDesc
+      7 - mnuRSeparator3 
+      7 - mnuRCompileLogic
+      7 - mnuRSavePicImage
+      7 - mnuRExportGIF
+     -1 + mnuLoadLayout
 
 frmViewEdit
 -----------
@@ -995,7 +1045,7 @@ WinAGI settings and warnings:
 // WarnCompile
 // DelBlankG
 // NotifyCompSuccess
-// // NotifyCompWarn
+// NotifyCompWarn
 // NotifyCompFail
 // WarnItem0
 // OpenOnErr
@@ -1296,13 +1346,13 @@ frmSoundEdit:
 
 frmTextScreenEdit:
     spScale -> Insert[0]
-    spMode -> Insert[1]
-    spTool -> Insert[2]
-    spStatus -> Inherit[3]
-    ? row/col ?
-    spCapsLock -> Inherit[4]
-    spNumLock -> Inherit[5]
-    spInsLock -> Inherit[6]
+    spStatus -> Inherit[1]
+    spMode -> Insert[2]
+    spRow -> Insert[3]
+    spCol -> Insert[4]
+    spCapsLock -> Inherit[5]
+    spNumLock -> Inherit[6]
+    spInsLock -> Inherit[7]
 
 frmViewEdit:
     spScale -> Insert[0]
@@ -1376,16 +1426,6 @@ Unused compiler errors (4001 - 4166)
 
 Unused compiler warnings (5001 - 5117):
 5012
-
-
-Dynamic items in editor forms:
--these members must be present and reachable in all game editors
-public bool InGame;
-public bool IsChanged;
-public void SetResourceMenu()
-public void mnuRSave_Click(object sender, EventArgs e)
-public void mnuRExport_Click(object sender, EventArgs e)
-public void mnuRInGame_Click(object sender, EventArgs e)
 
 
 | GDI Function      | C# Equivalent (System.Drawing)         |

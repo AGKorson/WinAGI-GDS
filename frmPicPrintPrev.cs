@@ -1,24 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
-using static WinAGI.Common.Base;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
 using static WinAGI.Editor.Base;
-using static WinAGI.Editor.PictureUndo.ActionType;
-using System.IO;
-using WinAGI.Common;
-using static WinAGI.Common.API;
 using static WinAGI.Editor.frmPicEdit;
-using Microsoft.VisualStudio.TextManager.Interop;
-using System.Diagnostics;
 
 namespace WinAGI.Editor {
     public partial class frmPicPrintPrev : Form {
@@ -231,7 +216,7 @@ namespace WinAGI.Editor {
         }
 
         private void txtMessage_TextChanged(object sender, EventArgs e) {
-            //make sure no tabs, cr/lfs
+            // make sure no tabs, cr/lfs
             if (txtMessage.Text.Contains('\t')) {
                 txtMessage.Text = txtMessage.Text.Replace("\t", "");
             }

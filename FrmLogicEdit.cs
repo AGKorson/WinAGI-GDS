@@ -18,13 +18,24 @@ using static WinAGI.Common.API;
 
 namespace WinAGI.Editor {
     public partial class frmLogicEdit : Form {
+        struct MessageData {
+            public string Text;
+            public bool Declared;
+            public bool ByNumber;
+            public bool ByRef;
+            public int Type; // 0=string, 1=marker, 2=define
+            public int Line;
+            public int Concat;
+        }
+
+        #region Logic Editor Members
         public int LogicNumber;
         public Logic EditLogic = new() { };
         public bool Compiled = false;
         internal readonly LogicFormMode FormMode;
         public bool ListChanged = false;
-        public bool InGame = false; // dynamic
-        public bool IsChanged = false; // dynamic
+        public bool InGame = false;
+        public bool IsChanged = false;
         public string TextFilename = "";
         private bool closing = false;
         // editor syntax styles
@@ -49,13 +60,10 @@ namespace WinAGI.Editor {
         // tracks what is currently being included in the list
 
         // to manage the defines list feature
-        //int DefEndPos, DefTopLine;
         Place DefStartPos;
         Place DefEndPos;
         string PrevText;
         string DefText;
-        //string DefTip;
-        //int LastPos;
 
         // tool tip variables
         AGIToken TipCmdToken;
@@ -69,6 +77,7 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spCapsLock;
         internal ToolStripStatusLabel spNumLock;
         internal ToolStripStatusLabel spInsLock;
+        #endregion
 
         public frmLogicEdit(LogicFormMode mode) {
             InitializeComponent();
@@ -79,7 +88,6 @@ namespace WinAGI.Editor {
             splitLogic.Panel1.TabIndex = 1;
             splitLogic.Panel2.TabIndex = 0;
             rtfLogic1.Controls.Add(picTip);
-            rtfLogic1.Controls.Add(lstDefines);
             splitLogic.SplitterDistance = 0;
             MdiParent = MDIMain;
             rtfLogic1.LeftBracket = '(';
@@ -116,12 +124,20 @@ namespace WinAGI.Editor {
                 btnMsgClean.Enabled = false;
                 break;
             }
+            // another hack needed...
+            // list boxes don't actually apply the sort until they have been 
+            // displayed at least one time, so we move it off screen and show
+            // at at the start; when needed, it will be moved to correct
+            // location
+            lstDefines.Left = -9999;
+            lstDefines.Visible = true;
         }
 
         #region Form Event Handlers
         private void frmLogicEdit_Activated(object sender, EventArgs e) {
-
-            if (FindingForm.Visible && FindingForm.FormFunction != FindFormFunction.FindWordsLogic) {
+            if (FindingForm.Visible && 
+                FindingForm.FormFunction != FindFormFunction.FindWordsLogic &&
+                FindingForm.FormFunction != FindFormFunction.FindObjsLogic) {
                 if (FindingForm.rtfReplace.Visible) {
                     FindingForm.SetForm(FindFormFunction.ReplaceLogic, InGame);
                 }
@@ -129,7 +145,7 @@ namespace WinAGI.Editor {
                     FindingForm.SetForm(FindFormFunction.FindLogic, InGame);
                 }
             }
-       }
+        }
 
         private void frmLogicEdit_FormClosing(object sender, FormClosingEventArgs e) {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
@@ -159,11 +175,11 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Resource Menu Item Event Handlers
+        #region Resource Menu Event Handlers
         /// <summary>
-        /// Dynamic function to set up the resource menu.
+        /// Configures the resource menu prior to displaying it.
         /// </summary>
-        public void SetResourceMenu() {
+        internal void SetResourceMenu() {
 
             mnuRSave.Enabled = fctb.IsChanged;
             if (EditGame is null) {
@@ -242,9 +258,9 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
-        /// Dynamic function to reset the resource menu.
+        /// Resets all resource menu items so shortcut keys can work correctly.
         /// </summary>
-        public void ResetResourceMenu() {
+        internal void ResetResourceMenu() {
             mnuRSave.Enabled = true;
             mnuRExport.Enabled = true;
             mnuRInGame.Enabled = true;
@@ -255,12 +271,7 @@ namespace WinAGI.Editor {
             mnuRIsRoom.Enabled = true;
         }
 
-        /// <summary>
-        /// Dynamic function to handle the menu-save click event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void mnuRSave_Click(object sender, EventArgs e) {
+        internal void mnuRSave_Click(object sender, EventArgs e) {
             if (fctb.IsChanged) {
                 if (FormMode == LogicFormMode.Logic) {
                     SaveLogicSource();
@@ -271,12 +282,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        /// <summary>
-        /// Dynamic function to handle the menu-export click event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void mnuRExport_Click(object sender, EventArgs e) {
+        internal void mnuRExport_Click(object sender, EventArgs e) {
             if (FormMode == LogicFormMode.Logic) {
                 ExportLogic();
             }
@@ -285,12 +291,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        /// <summary>
-        /// Dynamic function to handle the menu-ingame click event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void mnuRInGame_Click(object sender, EventArgs e) {
+        internal void mnuRInGame_Click(object sender, EventArgs e) {
             if (EditGame != null) {
                 ToggleInGame();
             }
@@ -532,7 +533,6 @@ namespace WinAGI.Editor {
         private void mnuEFind_Click(object sender, EventArgs e) {
             FindingForm.SetForm(FormMode == LogicFormMode.Logic ? FindFormFunction.FindLogic : FindFormFunction.FindText, InGame);
             if (fctb.SelectionLength > 0) {
-                //FindingForm.SetFindText(fctb.SelectedText);
                 FindingForm.cmbFind.Text = fctb.SelectedText;
             }
             if (!FindingForm.Visible) {
@@ -561,7 +561,6 @@ namespace WinAGI.Editor {
                 frmSnippets Snippets = new(true, fctb.SelectedText);
                 _ = Snippets.ShowDialog(this);
                 Snippets.Dispose();
-                //RestoreFocusHack();
             }
         }
 
@@ -697,11 +696,12 @@ namespace WinAGI.Editor {
 
         #region Control Event Handlers
         private void fctb_Enter(object sender, EventArgs e) {
-            fctb = (sender as WinAGIFCTB);
             // !!! when form gets focus, it always sets focus to the control in
             // the Panel with TabIndex 0; to keep the current WinAGIFCTB in 
             // focus, the panel TabIndex values must be reset each time the 
             // focused control changes
+
+            fctb = (sender as WinAGIFCTB);
             if (fctb == rtfLogic1) {
                 splitLogic.Panel1.TabIndex = 1;
                 splitLogic.Panel2.TabIndex = 0;
@@ -712,11 +712,8 @@ namespace WinAGI.Editor {
             }
             documentMap1.Target = fctb;
             picTip.Visible = false;
-            lstDefines.Visible = false;
             fctb.Controls.Add(picTip);
             picTip.BringToFront();
-            fctb.Controls.Add(lstDefines);
-            lstDefines.BringToFront();
         }
 
         private void fctb_KeyPressed(object sender, KeyPressEventArgs e) {
@@ -869,6 +866,7 @@ namespace WinAGI.Editor {
         private void fctb_MouseDown(object sender, MouseEventArgs e) {
             if (lstDefines.Visible) {
                 lstDefines.Visible = false;
+                fctb.CaretVisible = true;
             }
             if (e.Button == MouseButtons.Right) {
                 // move cursor if not on selection
@@ -919,19 +917,8 @@ namespace WinAGI.Editor {
             if (fctb == null) {
                 return;
             }
-            //if (MainStatusBar.Items.ContainsKey("spLine")) {
-            //    MainStatusBar.Items["spStatus"].Text = "";
-            //    try {
             spLine.Text = "Line: " + fctb.Selection.End.iLine;
             spColumn.Text = "Col: " + fctb.Selection.End.iChar;
-            //    }
-            //    catch (Exception ex) {
-            //        Debug.Print(ex.ToString());
-            //    }
-            //}
-            //else {
-            //    Debug.Print("no status bar");
-            //}
         }
 
         private void fctb_TextChanged(object sender, TextChangedEventArgs e) {
@@ -941,11 +928,9 @@ namespace WinAGI.Editor {
             }
             DefDirty = true;
             MarkAsChanged();
-            //if (MainStatusBar.Items.ContainsKey("spLine")) {
             spStatus.Text = "";
             spLine.Text = "Line: " + fctb.Selection.End.iLine;
             spColumn.Text = "Col: " + fctb.Selection.End.iChar;
-            //}
         }
 
         private void fctb_ToolTipNeeded(object sender, ToolTipNeededEventArgs e) {
@@ -1044,13 +1029,32 @@ namespace WinAGI.Editor {
             SelectDefine();
         }
 
-        private void lstDefines_KeyPress(object sender, KeyPressEventArgs e) {
+        private void lstDefines_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e) {
+            // tab key needs to be handled as normal input
+            if (e.KeyCode == Keys.Tab) {
+                e.IsInputKey = true;
+            }
+        }
 
+        private void lstDefines_KeyDown(object sender, KeyEventArgs e) {
+            // tab is same as enter
+            if (e.KeyCode == Keys.Tab) {
+                // ENTER selects the highlighted define
+                SelectDefine();
+                lstDefines.Visible = false;
+                fctb.CaretVisible = true;
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+            }
+        }
+
+        private void lstDefines_KeyPress(object sender, KeyPressEventArgs e) {
             switch (e.KeyChar) {
             case '\r' or '\n':
                 // ENTER selects the highlighted define
                 SelectDefine();
                 lstDefines.Visible = false;
+                fctb.CaretVisible = true;
                 break;
             case (char)27:
                 // ESCAPE cancels, and restores selection
@@ -1059,6 +1063,7 @@ namespace WinAGI.Editor {
                 fctb.SelectedText = DefText;
                 fctb.Selection.Start = fctb.Selection.End;
                 lstDefines.Visible = false;
+                fctb.CaretVisible = true;
                 break;
             default:
                 if ((string)lstDefines.Tag != "defines") {
@@ -1079,7 +1084,15 @@ namespace WinAGI.Editor {
                     PrevText += e.KeyChar;
                     DefEndPos.iChar++;
                 }
+                // the SelectText method causes focus to shift to the
+                // textbox without firing the Enter event. Trial and
+                // error testing found this hack to keep focus in the
+                // listbox - force focus to fctb, change the text,
+                // then force it back to listbox. So far, it appears
+                // to be working
+                fctb.Select();
                 fctb.SelectedText = PrevText;
+                lstDefines.Select();
                 fctb.Selection.Start = DefStartPos;
                 fctb.Selection.End = DefEndPos;
                 // find closest match, if there's something typed
@@ -1107,6 +1120,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Methods
         private void InitStatusStrip() {
             spLine = new ToolStripStatusLabel();
             spColumn = new ToolStripStatusLabel();
@@ -1228,7 +1242,7 @@ namespace WinAGI.Editor {
                         Messages[intMsgNum].Declared = true;
                         break;
                     case AGITokenType.Identifier:
-                        //try replacing with define (locals, then globals, then reserved
+                        // try replacing with define (locals, then globals, then reserved
                         bool blnDefFound = false;
                         for (int i = 0; i < LDefLookup.Length; i++) {
                             if (LDefLookup[i].Type == ArgType.DefStr) {
@@ -1394,9 +1408,6 @@ namespace WinAGI.Editor {
                                 lngArg--;
                             } while (lngArg != 0);
                         }
-                        // TODO: need to validate the token before returning, right?
-                        //msgtoken.Number = 0;
-                        //return msgtoken;
                     }
                     else {
                         // check for string assignment
@@ -1470,8 +1481,6 @@ namespace WinAGI.Editor {
                                     }
                                 }
 
-                                //what if something NOT a string found?
-
                                 // add it to current 
                                 msgtoken.Text = msgtoken.Text[..^1] + concattoken.Text[1..];
                                 msgtoken.EndPos = concattoken.EndPos;
@@ -1495,7 +1504,7 @@ namespace WinAGI.Editor {
                                     }
                                 }
                             }
-                            //not a msg marker; try replacing with define -
+                            // not a msg marker; try replacing with define -
                             // check local defines first
                             for (int i = 0; i < LDefLookup.Length; i++) {
                                 if (msgtoken.Text == LDefLookup[i].Name) {
@@ -1523,11 +1532,9 @@ namespace WinAGI.Editor {
                                 if (msgtoken.Text == EditGame.GlobalDefines[i].Name) {
                                     switch (EditGame.GlobalDefines[i].Type) {
                                     case ArgType.Msg:
-                                        //msgtoken.Text = EditGame.GlobalDefines[i].Value;
                                         msgtoken.Number = 0;
                                         return msgtoken;
                                     case ArgType.DefStr:
-                                        //msgtoken.Text = EditGame.GlobalDefines[i].Value;
                                         msgtoken.Number = 0;
                                         return msgtoken;
                                     default:
@@ -1541,7 +1548,6 @@ namespace WinAGI.Editor {
 
                             for (int i = 0; i <= 2; i++) {
                                 if (msgtoken.Text == EditGame.ReservedDefines.GameInfo[i].Name) {
-                                    //msgtoken.Text = RDefLookup[i].Value;
                                     msgtoken.Number = 0;
                                     return msgtoken;
                                 }
@@ -1563,19 +1569,7 @@ namespace WinAGI.Editor {
             return msgtoken;
         }
 
-        struct MessageData {
-            public string Text;
-            public bool Declared;
-            public bool ByNumber;
-            public bool ByRef;
-            public int Type; // 0=string, 1=marker, 2=define
-            public int Line;
-            public int Concat;
-        }
-
         public void MessageCleanup() {
-
-            //int[] MsgUsed = new int[256];
             MessageData[] Messages = new MessageData[256];
             string[] NewMsgs = [];
             bool blnKeepUnused, repeatAction = false;
@@ -1584,14 +1578,6 @@ namespace WinAGI.Editor {
             string strMsg;
             Place start;
             Place end;
-
-            // MsgsUsed() array is a bitfield flag used to track message usage
-            //   bit0 = message is declared
-            //   bit1 = message is in use by number in the logic
-            //   bit2 = message is in use by string reference
-
-            // strStrings() array used to hold copy of all string defines in order
-            // to search for 's##="msg text";' syntax
 
             if (WinAGISettings.WarnMsgs.Value == 0) {
                 repeatAction = false;
@@ -1972,7 +1958,9 @@ namespace WinAGI.Editor {
         private void SelectDefine() {
             int i;
             bool cancel = false;
-
+            if (lstDefines.SelectedItems.Count == 0) {
+                return;
+            }
             if ((string)lstDefines.Tag == "snippets") {
                 string snippetvalue = "";
                 for (i = 0; i < CodeSnippets.Length; i++) {
@@ -2013,11 +2001,11 @@ namespace WinAGI.Editor {
             fctb.Selection.Start = fctb.Selection.End;
             lstDefines.ShowItemToolTips = false;
             lstDefines.Visible = false;
+            fctb.CaretVisible = true;
         }
 
         /// <summary>
-        /// Dynamic function to handle changes in displayed fonts used 
-        /// by the editor.
+        /// Initializes or updates the displayed fonts used by the editor.
         /// </summary>
         internal void InitFonts() {
             rtfLogic1.ForeColor = WinAGISettings.SyntaxStyle[0].Color.Value;
@@ -2034,7 +2022,7 @@ namespace WinAGI.Editor {
                 AGISyntaxHighlight(rtfLogic1.Range);
             }
             else {
-                //clear all styles of changed range
+                // clear all styles of changed range
                 rtfLogic1.Range.ClearStyle(StyleIndex.All);
             }
             rtfLogic1.TabLength = WinAGISettings.LogicTabWidth.Value;
@@ -2048,7 +2036,7 @@ namespace WinAGI.Editor {
                 AGISyntaxHighlight(rtfLogic2.Range);
             }
             else {
-                //clear all styles of changed range
+                // clear all styles of changed range
                 rtfLogic2.Range.ClearStyle(StyleIndex.All);
             }
             rtfLogic2.TabLength = WinAGISettings.LogicTabWidth.Value;
@@ -2059,7 +2047,7 @@ namespace WinAGI.Editor {
             lstDefines.Columns[0].Width = lstDefines.Width;
         }
 
-        public void RefreshSyntaxStyles() {
+        private void RefreshSyntaxStyles() {
             CommentStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[1].Color.Value);
             CommentStyle.FontStyle = WinAGISettings.SyntaxStyle[1].FontStyle.Value;
             StringStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[2].Color.Value);
@@ -2080,8 +2068,8 @@ namespace WinAGI.Editor {
             DefIdentifierStyle.FontStyle = WinAGISettings.SyntaxStyle[9].FontStyle.Value;
         }
 
-        public void AGISyntaxHighlight(FastColoredTextBoxNS.Range range) {
-            //clear all styles of changed range
+        private void AGISyntaxHighlight(FastColoredTextBoxNS.Range range) {
+            // clear all styles of changed range
             range.ClearStyle(StyleIndex.All);
 
             range.SetStyle(CommentStyle, CommentStyleRegEx1, RegexOptions.Multiline);
@@ -2095,10 +2083,10 @@ namespace WinAGI.Editor {
             range.SetStyle(ArgIdentifierStyle, ArgIdentifierStyleRegEx);
             range.SetStyle(DefIdentifierStyle, DefIdentifierStyleRegEx);
 
-            //clear folding markers
+            // clear folding markers
             range.ClearFoldingMarkers();
 
-            //set folding markers
+            // set folding markers
             range.SetFoldingMarkers("{", "}");
         }
 
@@ -2149,22 +2137,6 @@ namespace WinAGI.Editor {
                 // back to text
                 rtfLogic1.Text = Encoding.GetEncoding(codepage).GetString(Encoding.GetEncoding(codepage).GetBytes(EditLogic.SourceText));
             }
-            // TODO: set up form for editing, add error handling
-
-            // remove any tabs
-            //if (rtfLogic.Range.FindText("\t")) {
-            //    rtfLogic.Text = rtfLogic.Replace("\t", Space$(WinAGISettings.LogicTabWidth));
-            //}
-            //else {
-            //    rtfLogic.Text = EditLogic.SourceText;
-            //}
-            //if (!WinAGISettings.HighlightLogic) {
-            //    rtfLogic.SyntaxHighlighter = null;
-            //}
-            //else {
-            //    // set up highlighter
-            //    rtfLogic.SyntaxHighlighter = new(rtfLogic);
-            //}
             rtfLogic1.ClearUndo();
             if (EditLogic.SourceFile.Length != 0) {
                 rtfLogic1.IsChanged = EditLogic.SourceChanged;
@@ -2196,7 +2168,7 @@ namespace WinAGI.Editor {
             // set IsChanged base on rtfLogic change state
             IsChanged = rtfLogic1.IsChanged;
             if (IsChanged) {
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
@@ -2219,13 +2191,6 @@ namespace WinAGI.Editor {
                     catch {
                         return false;
                     }
-                    // remove any tabs
-                    //if (rtfLogic.Range.FindText("\t")) {
-                    //    rtfLogic.Text = rtfLogic.Replace("\t", Space$(WinAGISettings.LogicTabWidth));
-                    //}
-                    //else {
-                    //    rtfLogic.Text = EditLogic.SourceText;
-                    //}
                 }
                 else {
                     return false;
@@ -2239,7 +2204,7 @@ namespace WinAGI.Editor {
             rtfLogic1.ClearUndo();
             IsChanged = rtfLogic1.IsChanged = filename.Length == 0;
             if (IsChanged) {
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
@@ -2394,9 +2359,6 @@ namespace WinAGI.Editor {
                 if (!loaded) {
                     EditGame.Logics[LogicNumber].Load();
                 }
-                // TODO: lot of re-work on layout functions
-                // probably can cleanup the update functions so it's easier 
-                // to manage...
                 UpdateIncludes();
                 EditGame.Logics[LogicNumber].SourceText = fctb.Text;
 
@@ -2406,12 +2368,15 @@ namespace WinAGI.Editor {
                 }
                 // use the ingame logic to save the SOURCE
                 EditGame.Logics[LogicNumber].SaveSource();
-                // update the clone to match
-                // TODO: for logics, why bother? only the source code 
-                // and ingame status need to be tracked, and that can
-                // be done with the rtfLogic control and the InGame local
-                // flag
-                EditLogic.SourceText = EditGame.Logics[LogicNumber].SourceText;
+                // update the editor to match
+                Place start = fctb.Selection.Start;
+                Place end = fctb.Selection.End;
+                FastColoredTextBoxNS.Range vr = fctb.VisibleRange;
+                fctb.SelectAll();
+                fctb.SelectedText = EditGame.Logics[LogicNumber].SourceText;
+                fctb.Selection.Start = start;
+                fctb.Selection.End = end;
+                fctb.DoRangeVisible(vr);
                 if (!loaded) {
                     EditGame.Logics[LogicNumber].Unload();
                 }
@@ -2525,7 +2490,7 @@ namespace WinAGI.Editor {
         }
 
         public void ToggleInGame() {
-            //toggles the game state of an object
+            // toggles the game state of this logic
 
             DialogResult rtn;
             string strExportName;
@@ -2631,7 +2596,7 @@ namespace WinAGI.Editor {
                 LogicNumber = NewResNum;
                 Text = sLOGED + ResourceName(EditLogic, InGame, true);
                 if (IsChanged) {
-                    Text = sDM + Text;
+                    Text = CHG_MARKER + Text;
                 }
                 if (EditLogic.ID != oldid) {
                     if (File.Exists(EditGame.ResDir + oldid + "." + EditGame.SourceExt)) {
@@ -2814,15 +2779,19 @@ namespace WinAGI.Editor {
             string id = EditLogic.ID;
             string description = EditLogic.Description;
             if (GetNewResID(AGIResType.Logic, LogicNumber, ref id, ref description, InGame, 1)) {
-                if (EditLogic.Description != description) {
-                    EditLogic.Description = description;
-                }
-                if (EditLogic.ID != id) {
-                    EditLogic.ID = id;
-                    Text = sLOGED + ResourceName(EditLogic, InGame, true);
-                    if (IsChanged) {
-                        Text = sDM + Text;
-                    }
+                UpdateID(id, description);
+            }
+        }
+
+        public void UpdateID(string id, string description) {
+            if (EditLogic.Description != description) {
+                EditLogic.Description = description;
+            }
+            if (EditLogic.ID != id) {
+                EditLogic.ID = id;
+                Text = sLOGED + ResourceName(EditLogic, InGame, true);
+                if (IsChanged) {
+                    Text = CHG_MARKER + Text;
                 }
             }
         }
@@ -2859,7 +2828,7 @@ namespace WinAGI.Editor {
                     }
                     // there has to be at least one space
                     if (strLine.Contains(' ')) {
-                        //split it by position of first space
+                        // split it by position of first space
                         string[] strings = strLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         if (strings.Length == 2) {
                             tmpDefine.Name = strings[0];
@@ -3147,7 +3116,6 @@ namespace WinAGI.Editor {
             }
             // OK to add it
             ListViewItem item = lstDefines.Items.Add(strName, strName, lngIcon);
-            //item.Name = strName;
             item.ToolTipText = strValue;
             return;
         }
@@ -3390,14 +3358,22 @@ namespace WinAGI.Editor {
             lstDefines.Items[0].Selected = true;
             lstDefines.Items[0].EnsureVisible();
             // position it
+            PositionListBox();
+            lstDefines.Visible = true;
+            fctb.CaretVisible = false;
+            lstDefines.Select();
+            return;
+        }
+
+        private void PositionListBox() {
             Place tp = fctb.Selection.Start;
             Point pPos;
             pPos = fctb.PlaceToPoint(tp);
+            // convert to form coordinates
+            pPos = fctb.PointToScreen(pPos);
+            pPos = this.PointToClient(pPos);
             lstDefines.Top = pPos.Y + fctb.CharHeight;
             lstDefines.Left = pPos.X;
-            lstDefines.Visible = true;
-            lstDefines.Select();
-            return;
         }
 
         private void ShowSnippetList() {
@@ -3420,16 +3396,15 @@ namespace WinAGI.Editor {
             // save pos and text
             DefStartPos = fctb.Selection.Start;
             DefEndPos = fctb.Selection.End;
+            fctb.CaretVisible = false;
             PrevText = "";
             DefText = "";
             // position it
-            Place tp = fctb.Selection.Start;
-            Point pPos;
-            pPos = fctb.PlaceToPoint(tp);
-            lstDefines.Top = pPos.Y + fctb.CharHeight;
-            lstDefines.Left = pPos.X;
+            PositionListBox();
+
             lstDefines.ShowItemToolTips = true;
             lstDefines.Visible = true;
+            fctb.CaretVisible = false;
             lstDefines.Select();
         }
 
@@ -3488,6 +3463,7 @@ namespace WinAGI.Editor {
             DefEndPos = fctb.Selection.End;
             PrevText = fctb.Selection.Text;
             DefText = PrevText;
+            fctb.CaretVisible = false;
             // check for match or partial in the list
             if (fctb.SelectionLength > 0) {
                 string strText = fctb.SelectedText;
@@ -3504,32 +3480,45 @@ namespace WinAGI.Editor {
                     }
                 }
                 if (!selected) {
+                    bool found = false;
                     foreach (ListViewItem tmpItem in lstDefines.Items) {
                         switch (strText.ToUpper().CompareTo(tmpItem.Text.ToUpper())) {
                         case 0:
-                            //select this one
+                            // select this one
                             tmpItem.Selected = true;
+                            lstDefines.TopItem = tmpItem;
                             tmpItem.EnsureVisible();
+                            found = true;
                             break;
-                        case > 0:
-                            // strText > tmpItem.Text
+                        case < 0:
+                            // strText < tmpItem.Text
                             // stop here; don't select it, but scroll to it
+                            lstDefines.TopItem = tmpItem;
                             tmpItem.EnsureVisible();
+                            found = true;
+                            break;
+                        }
+                        if (found) {
                             break;
                         }
                     }
                 }
             }
-            // position it
             lstDefines.Columns[0].Width = lstDefines.Width;
-            Place tp = fctb.Selection.Start;
-            Point pPos;
-            pPos = fctb.PlaceToPoint(tp);
-            lstDefines.Top = pPos.Y + fctb.CharHeight;
-            lstDefines.Left = pPos.X;
+            // position it
+            PositionListBox();
             lstDefines.ShowItemToolTips = true;
             lstDefines.Visible = true;
+            fctb.CaretVisible = false;
             lstDefines.Select();
+        }
+        
+        internal void ShowHelp() {
+            string strTopic = "htm\\winagi\\Logic_Editor.htm";
+
+            // TODO: add context help
+
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
         }
 
         private ArgListType GetArgType(AGIToken token) {
@@ -3752,19 +3741,12 @@ namespace WinAGI.Editor {
         }
 
         public void UpdateStatusBar() {
-
-            // TODO: add statusbars to all resource/tool editors and
-            // merge just like menus
-
-            int lngRow, lngCol;
-
-            if (!this.Visible) {
+            if (!Visible) {
                 return;
             }
-            // get row and column of selection
-            lngRow = fctb.Selection.End.iLine;
-            lngCol = fctb.Selection.End.iChar;
-            // TODO: status bars...
+            spLine.Text = "Line: " + fctb.Selection.End.iLine;
+            spColumn.Text = "Col: " + fctb.Selection.End.iChar;
+            spStatus.Text = "";
         }
 
         void MarkAsChanged() {
@@ -3776,7 +3758,7 @@ namespace WinAGI.Editor {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             btnUndo.Enabled = rtfLogic1.UndoEnabled;
             btnRedo.Enabled = rtfLogic1.RedoEnabled;
@@ -3795,5 +3777,6 @@ namespace WinAGI.Editor {
             mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
+        #endregion
     }
 }

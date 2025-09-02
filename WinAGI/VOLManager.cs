@@ -192,7 +192,7 @@ namespace WinAGI.Engine {
         internal void ValidateVolAndLoc(AGIResource resource, bool IsV3) {
             // check if resource is too long
             if (Loc + resource.Size > parent.agMaxVolSize || (Index == 0 && (Loc + resource.Size > resource.parent.agMaxVol0))) {
-                //set maxvol count to 4 or 15, depending on version
+                // set maxvol count to 4 or 15, depending on version
                 int lngMaxVol = IsV3 ? 15 : 4;
 
                 // close current vol file
@@ -477,7 +477,7 @@ namespace WinAGI.Engine {
                 previousend = 0;
                 // check for space between resources
                 for (j = 0; j <= resInfo[i].Count; j++) {
-                    //if this is not the end of the list
+                    // if this is not the end of the list
                     if (j < resInfo[i].Count) {
                         nextstart = resInfo[i].Values[j].Loc;
                     }

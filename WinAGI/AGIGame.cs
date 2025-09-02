@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Policy;
 using System.Text;
+using System.Text.Json;
 using System.Windows.Forms;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
@@ -353,14 +354,14 @@ namespace WinAGI.Engine {
                         throw wex;
                     }
                     else if (Double.Parse(value) < 2 || Double.Parse(value) > 3) {
-                        //not a version 2 or 3 game
+                        // not a version 2 or 3 game
                         WinAGIException wex = new(LoadResString(597)) {
                             HResult = WINAGI_ERR + 597
                         };
                         throw wex;
                     }
                     else {
-                        //unsupported version 2 or 3 game
+                        // unsupported version 2 or 3 game
                         WinAGIException wex = new(LoadResString(543)) {
                             HResult = WINAGI_ERR + 543
                         };
@@ -561,8 +562,8 @@ namespace WinAGI.Engine {
             get => agPlatformType;
             set {
                 // only 0 - 4 are valid
-                if (value < 0 || value > (PlatformType)4) {
-                    agPlatformType = 0;
+                if ((int)value < 0 || (int)value > 4) {
+                    agPlatformType = PlatformType.None;
                 }
                 else {
                     agPlatformType = value;
@@ -708,9 +709,9 @@ namespace WinAGI.Engine {
             agViews.Clear();
             agInvObj.Unload();
             agVocabWords.Unload();
-            //write date of last edit
+            // write date of last edit
             WriteGameSetting("General", "LastEdit", agLastEdit.ToString());
-            //now save it
+            // now save it
             agGameProps.Save();
             // clear all game properties
             ClearGameState();
@@ -1368,7 +1369,7 @@ namespace WinAGI.Engine {
                 // add logic zero
                 Logic newlogic = agLogs.Add(0);
 
-                //add default text
+                // add default text
                 StringList src =
                 [];
                 // add standard include files
@@ -1388,7 +1389,6 @@ namespace WinAGI.Engine {
                 newlogic.Save();
                 agLogs[0].Unload();
                 if (IncludeGlobals) {
-
                     StringList resIDlist = [
                         "[",
                         "[ global defines file for " + agGameID,
@@ -1553,7 +1553,6 @@ namespace WinAGI.Engine {
                     wex.Data["exception"] = e;
                     throw wex;
                 }
-                //check retval
             }
             blnSetIDs = false;
             SetResourceIDs(this);
@@ -2156,7 +2155,7 @@ namespace WinAGI.Engine {
                                     fsCOM.Read(bChunk, 0, 6);
                                     strChunk = Encoding.UTF8.GetString(bChunk);
                                     fsCOM.Dispose();
-                                    //if this is a Sierra loader
+                                    // if this is a Sierra loader
                                     if (strChunk == "LOADER") {
                                         // determine ID to use based on loader filename
                                         strFile = Path.GetFileName(strLoader);
@@ -2324,7 +2323,7 @@ namespace WinAGI.Engine {
             agIncludeReserved = agGameProps.GetSetting("General", "IncludeReserved", true);
             agIncludeIDs = agGameProps.GetSetting("General", "IncludeIDs", true);
             agIncludeGlobals = agGameProps.GetSetting("General", "IncludeGlobals", true);
-            agUseLE = agGameProps.GetSetting("General", "UseLE", false);
+            agUseLE = agGameProps.GetSetting("General", "UseLE", true);
             agSierraSyntax = agGameProps.GetSetting("General", "SierraSyntax", defaultSierraSyntax);
             agSrcFileExt = agGameProps.GetSetting("Decompiler", "SourceFileExt", agDefSrcExt).ToLower().Trim();
             if (agSrcFileExt[0] == '.') {

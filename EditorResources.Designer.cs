@@ -151,7 +151,7 @@ namespace WinAGI.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [|[ %id|[||[ in first cycle through this room only|if(f5) |~{|~[ |~[ load, draw and discard the picture for the current room|~load.pic(v0);|~draw.pic(v0);|~discard.pic(v0);|~|~[ the horizon defines the upper limit of ego&apos;s movement|~set.horizon(%h);|~|~[ add additional room initialization here|~|~[ load ego view, animate and draw ego|~[ this is sometimes handled in logic 0|~[ instead of in each individual logic|~|~[ display the picture on screen|~show.pic();|~[ in most cases, no need to execute any other|~[ [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to [|[ %id|[||[ in first cycle through this room only|if (f5)F0{|~[ |~[ load, draw and discard the picture for the current room|~load.pic(v0);|~draw.pic(v0);|~discard.pic(v0);|~|~[ the horizon defines the upper limit of ego&apos;s movement|~set.horizon(%h);|~|~[ add additional room initialization here|~|~[ load ego view, animate and draw ego|~[ this is sometimes handled in logic 0|~[ instead of in each individual logic|~|~[ display the picture on screen|~show.pic();|~[ in most cases, no need to execute any other|~[ [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _101 {
             get {
@@ -5859,6 +5859,96 @@ namespace WinAGI.Editor {
         internal static byte[] downarrow {
             get {
                 object obj = ResourceManager.GetObject("downarrow", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_ADDOBJ {
+            get {
+                object obj = ResourceManager.GetObject("ELC_ADDOBJ", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_BOTTOM {
+            get {
+                object obj = ResourceManager.GetObject("ELC_BOTTOM", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_HORIZON {
+            get {
+                object obj = ResourceManager.GetObject("ELC_HORIZON", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_LEFT {
+            get {
+                object obj = ResourceManager.GetObject("ELC_LEFT", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_MOVESEL {
+            get {
+                object obj = ResourceManager.GetObject("ELC_MOVESEL", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_MOVING {
+            get {
+                object obj = ResourceManager.GetObject("ELC_MOVING", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_OTHER {
+            get {
+                object obj = ResourceManager.GetObject("ELC_OTHER", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_RIGHT {
+            get {
+                object obj = ResourceManager.GetObject("ELC_RIGHT", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ELC_SELOBJ {
+            get {
+                object obj = ResourceManager.GetObject("ELC_SELOBJ", resourceCulture);
                 return ((byte[])(obj));
             }
         }

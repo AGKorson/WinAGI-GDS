@@ -24,7 +24,6 @@ namespace WinAGI.Engine {
         /// When blnCelBMPSet is false, it means cel bitmap needs to be rebuilt.
         /// </summary>
         internal bool blnCelBMPSet;
-        //internal bool mTransparency;
         /// <summary>
         /// When mCelChanged is true, it means cel data has changed.
         /// </summary>
@@ -325,25 +324,6 @@ namespace WinAGI.Engine {
             }
         }
 
-        ///// <summary>
-        ///// Gets or sets the transparency value for this cel. Transparency determines
-        ///// how the transparent color in the cel will be displayed when the bitmap is
-        ///// generated. When true, the transparent pixels are made transparent in the
-        ///// bitmap. When false, the transparent pixels show as the transparent color.
-        ///// </summary>
-        //public bool Transparency {
-        //    get { return mTransparency; }
-        //    set {
-        //        if (mTransparency != value) {
-        //            mTransparency = value;
-        //            mCelChanged = true;
-        //            if (parentview is not null) {
-        //                parentview.PropsChanged = true;
-        //            }
-        //        }
-        //    }
-        //}
-
         public EGAColors Palette {
             get {
                 if (parentview != null) {
@@ -387,7 +367,6 @@ namespace WinAGI.Engine {
                 mSetMirror = mSetMirror,
                 mMirrored = mMirrored,
                 blnCelBMPSet = blnCelBMPSet,
-                //mTransparency = mTransparency,
                 mCelChanged = mCelChanged,
             };
             if (parentview != null) {
@@ -420,7 +399,6 @@ namespace WinAGI.Engine {
             mSetMirror = SourceCel.mSetMirror;
             mMirrored = SourceCel.mMirrored;
             blnCelBMPSet = SourceCel.blnCelBMPSet;
-            //mTransparency = SourceCel.mTransparency;
             mCelChanged = SourceCel.mCelChanged;
             mPalette = SourceCel.mPalette.Clone();
             if (SourceCel.mCelBMP is null) {

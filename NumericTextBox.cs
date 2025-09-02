@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows.Forms;
+
 namespace WinAGI.Editor {
     public class NumericTextBox : TextBox {
         private int _maxValue = int.MaxValue;

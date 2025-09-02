@@ -94,17 +94,6 @@ namespace WinAGI.Editor {
                     return true;
                 }
                 break;
-            //case 0x40000:
-            //    // ALT key
-            //    switch (keyData & (Keys)0xffff) {
-            //    case Keys.Left:
-            //    case Keys.Right:
-            //    case Keys.Up:
-            //    case Keys.Down:
-            //        Debug.Print("   ALT: " + (keyData & (Keys)0xffff).ToString());
-            //        return true;
-            //    }
-            //    break;
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
@@ -409,7 +398,7 @@ namespace WinAGI.Editor {
         }
 
         private void udScale_SelectedItemChanged(object sender, EventArgs e) {
-            //adjust scalefactor
+            // adjust scalefactor
             int oldscale = scalefactor;
             scalefactor = int.Parse(((string)(udScale.SelectedItem))[..3]) / 100;
             // adjust the size and position of the images
@@ -433,7 +422,7 @@ namespace WinAGI.Editor {
                 example = example.Clone(new(0, 0, 320 * scalefactor, 168 * scalefactor), PixelFormat.Format8bppIndexed);
             }
             catch (Exception ex) {
-                Debug.WriteLine(ex.Message);
+                Debug.Assert(false);
             }
             picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
             minsize = 32 * scalefactor;
@@ -514,12 +503,12 @@ namespace WinAGI.Editor {
                 example = example.Clone(new(0, 0, 320 * scalefactor, 168 * scalefactor), PixelFormat.Format8bppIndexed);
             }
             catch (Exception ex) {
-                Debug.WriteLine(ex.Message);
+                Debug.Assert(false);
             }
             // Set the image with initial opacity to the PictureBox
             picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
             // UpdateScrollbars doesn't work here because the form is not visible
-            //UpdateScrollbars();
+            // UpdateScrollbars();
         }
 
         private bool GetBkgdFile() {

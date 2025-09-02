@@ -36,10 +36,8 @@ namespace WinAGI.Editor {
             Rectangle r = ClientRectangle;
                 r.Width -= 1;
                 r.Height -= 1;
-            //_ = SendMessage(this.Handle, WM_SETREDRAW, false, 0);
             CreateGraphics().DrawRectangle(dash1, r);
             CreateGraphics().DrawRectangle(dash2, r);
-            //_ = SendMessage(this.Handle, WM_SETREDRAW, true, 0);
         }
 
         [DefaultValue(50)]
@@ -89,12 +87,8 @@ namespace WinAGI.Editor {
                 }
                 dont = false;
             }
-            //else {
-            //    Debug.Print("DONT!");
-            //}
             // Draw the control's background with the specified opacity
             using (var brush = new SolidBrush(Color.FromArgb(this.opacity * 255 / 100, this.BackColor))) {
-                //using (var brush = new SolidBrush(Color.FromArgb(255, this.BackColor))) {
                 e.Graphics.FillRectangle(brush, this.ClientRectangle);
             }
             Rectangle r = ClientRectangle;

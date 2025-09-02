@@ -272,7 +272,7 @@ namespace WinAGI.Engine {
 
             // reset error flag
             strError = "";
-            //locate labels, and mark them (this also validates all command bytes to be <=181)
+            // locate labels, and mark them (this also validates all command bytes to be <=181)
             if (!FindLabels(bytData)) {
                 // check for 'quit' cmd error (can happen if a game that is for a version where
                 // quit() uses an argument has an older logic in it that uses a version of quit
@@ -397,7 +397,7 @@ namespace WinAGI.Engine {
                     // valid agi command (don't need to check for invalid command number;
                     // they are all validated in FindLabels)
                     if (bytCurData > ActionCount - 1) {
-                        //this command is not expected for the targeted interpreter version
+                        // this command is not expected for the targeted interpreter version
                         AddDecodeWarning("DC10", "This command is not valid for selected interpreter version (" + decompGame.agIntVersion + ")  [resource index: " + lngPos + "]", stlOutput.Count - 1);
                     }
                     bytCmd = bytCurData;
@@ -748,7 +748,7 @@ namespace WinAGI.Engine {
                     return dcReservedList.ReservedFlags[17].Name;
                 }
                 else {
-                    //not a reserved data type
+                    // not a reserved data type
                     return 'f' + ArgNum.ToString();
                 }
             case Msg:
@@ -789,7 +789,7 @@ namespace WinAGI.Engine {
                             }
                         }
                         else {
-                            //non-unique - use obj number instead
+                            // non-unique - use obj number instead
                             if (ErrorLevel == Medium) {
                                 AddDecodeWarning("DC05", "Non-unique inventory item '" + decompGame.agInvObj[ArgNum].ItemName + "' [resource index: " + lngPos + "]", stlOutput.Count - 1);
                             }
@@ -821,7 +821,7 @@ namespace WinAGI.Engine {
                 return 'w' + (ArgNum + 1).ToString();
             }
 
-            //can't get here, but compiler demands a return statement
+            // can't get here, but compiler demands a return statement
             return "";
         }
 
@@ -890,7 +890,7 @@ namespace WinAGI.Engine {
                 // now read all messages
                 for (intCurMsg = 1; intCurMsg <= NumMessages; intCurMsg++) {
                     bMsgText = [];
-                    //if msg start points to a valid msg
+                    // if msg start points to a valid msg
                     if (MessageStart[intCurMsg] > 0 && MessageStart[intCurMsg] >= lngMsgTextStart) {
                         lngPos = MessageStart[intCurMsg];
                         blnEndOfMsg = false;
@@ -973,7 +973,7 @@ namespace WinAGI.Engine {
                 // always reset 'NOT' block status to false
                 blnInNotBlock = false;
                 bytCurByte = bytData[lngPos++];
-                //first, check for an 'or'
+                // first, check for an 'or'
                 if (bytCurByte == 0xFC) {
                     blnInOrBlock = !blnInOrBlock;
                     if (blnInOrBlock) {
@@ -1187,8 +1187,8 @@ namespace WinAGI.Engine {
                         DecodeBlock[bytBlockDepth].IsOutside = true;
                         DecodeBlock[bytBlockDepth].JumpPos = DecodeBlock[bytBlockDepth].EndPos;
                         DecodeBlock[bytBlockDepth].EndPos = DecodeBlock[bytBlockDepth - 1].EndPos;
-                        //add a new goto item (since error level is medium or low (dont need to
-                        //worry about an invalid jumppos)
+                        // add a new goto item (since error level is medium or low (dont need to
+                        // worry about an invalid jumppos)
                         // check fo existing label at jump pos
                         for (i = 1; i <= bytLabelCount; i++) {
                             if (lngLabelPos[i] == DecodeBlock[bytBlockDepth].JumpPos) {
@@ -1259,7 +1259,7 @@ namespace WinAGI.Engine {
                     break;
                 case 0xFE:
                     // GOTO command
-                    //reset goto status flag
+                    // reset goto status flag
                     DoGoto = false;
                     tmpBlockLength = 256 * bytData[lngPos + 1] + bytData[lngPos];
                     lngPos += 2;
@@ -1267,7 +1267,7 @@ namespace WinAGI.Engine {
                     if (tmpBlockLength > 0x7FFF) {
                         tmpBlockLength -= 0x10000;
                     }
-                    //check to see if this 'goto' might be an 'else':
+                    // check to see if this 'goto' might be an 'else':
                     //  - end of this block matches this position (the if-then part is done)
                     //  - this block is identified as an IF block
                     //  - this is NOT the main block
@@ -1281,7 +1281,7 @@ namespace WinAGI.Engine {
                         //  - the block is not negative (means jumping backward, so it MUST be a goto)
                         //  - length of block has enough room for code necessary to close the 'else'
                         if ((tmpBlockLength + lngPos > DecodeBlock[bytBlockDepth - 1].EndPos) || (tmpBlockLength < 0) || (DecodeBlock[bytBlockDepth].Length <= 3)) {
-                            //this is a 'goto' statement
+                            // this is a 'goto' statement
                             DoGoto = true;
                         }
                         else {
@@ -1292,7 +1292,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     else {
-                        //this is a goto statement (or an else statement while ElseAsGoto flag is true)
+                        // this is a goto statement (or an else statement while ElseAsGoto flag is true)
                         DoGoto = true;
                     }
                     // goto
@@ -1549,8 +1549,8 @@ namespace WinAGI.Engine {
             case AGICodeStyle.cstDefaultStyle: 
                 D_TKN_NOT = "!";
                 D_TKN_IF = "if (";
-                D_TKN_THEN = ")%1{"; //where %1 is a line feed plus indent at current level
-                D_TKN_ELSE = "%1" + INDENT + "else%1" + INDENT + "{"; //where %1 is a line feed plus indent at current level
+                D_TKN_THEN = ")%1{"; // where %1 is a line feed plus indent at current level
+                D_TKN_ELSE = "%1" + INDENT + "else%1" + INDENT + "{"; // where %1 is a line feed plus indent at current level
                 D_TKN_ENDIF = "%1}"; // where %1 is an extra indent
                 D_TKN_GOTO = "goto(%1)";
                 D_TKN_EOL = ";";

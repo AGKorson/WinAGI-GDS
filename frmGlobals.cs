@@ -1,32 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using WinAGI.Common;
-using static WinAGI.Common.API;
 using static WinAGI.Common.Base;
-using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.Commands;
-using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.ArgType;
 using static WinAGI.Editor.Base;
 using System.IO;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Shell.Interop;
 using System.Text.RegularExpressions;
 using FastColoredTextBoxNS;
 
 namespace WinAGI.Editor {
     public partial class frmGlobals : Form {
-        public bool InGame = false; // dynamic
-        public bool IsChanged = false; // dynamic
+        public bool InGame = false;
+        public bool IsChanged = false;
         public string FileName = "";
         private TDefine EditDefine;
         private bool Inserting = false;
@@ -135,53 +126,37 @@ namespace WinAGI.Editor {
 
         #region Menu Events
         /// <summary>
-        /// Dynamic function to set up the resource menu.
+        /// Configures the resource menu prior to displaying it.
         /// </summary>
-        public void SetResourceMenu() {
+        internal void SetResourceMenu() {
             mnuRSave.Enabled = IsChanged;
         }
 
         /// <summary>
-        /// Dynamic function to reset the resource menu.
+        /// Resets all resource menu items so shortcut keys can work correctly.
         /// </summary>
-        public void ResetResourceMenu() {
+        internal void ResetResourceMenu() {
             mnuRSave.Enabled = true;
             mnuRSaveAs.Enabled = true;
             mnuRInGame.Enabled = true;
             mnuRAddFile.Enabled = true;
         }
 
-        /// <summary>
-        /// Dynamic function to handle the menu-save click event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void mnuRSave_Click(object sender, EventArgs e) {
+        internal void mnuRSave_Click(object sender, EventArgs e) {
             if (IsChanged) {
                 SaveDefinesList();
             }
         }
 
-        /// <summary>
-        /// Dynamic function to handle the menu-export click event. (For
-        /// defines list files, it's 'Save As')
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void mnuRSaveAs_Click(object sender, EventArgs e) {
+        internal void mnuRSaveAs_Click(object sender, EventArgs e) {
             string filename = NewSaveFileName();
             if (filename.Length != 0) {
                 SaveDefinesList(filename);
             }
         }
 
-        /// <summary>
-        /// Dynamic function to handle the menu-ingame click event
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void mnuRInGame_Click(object sender, EventArgs e) {
-            //TODO: add ingame functionality for defines lists
+        internal void mnuRInGame_Click(object sender, EventArgs e) {
+            // TODO: add ingame functionality for defines lists
             //ToggleInGame();
         }
 
@@ -410,10 +385,6 @@ namespace WinAGI.Editor {
             case GlobalsUndo.udgActionType.udgEditComment:
                 globalsgrid[CommentCol, NextUndo.UDPos].Value = NextUndo.UDText;
                 globalsgrid[CommentCol, NextUndo.UDPos].Selected = true;
-                break;
-            case GlobalsUndo.udgActionType.udgSort:
-                // restore the previous sort order
-                //SortGlobals(-1, NextUndo);
                 break;
             }
             MarkAsChanged();
@@ -652,6 +623,7 @@ namespace WinAGI.Editor {
                 FindInLogic(this, searchtext, FindDirection.All, true, true, FindLocation.All);
             }
         }
+
         private void cmCel_Opening(object sender, CancelEventArgs e) {
             mnuCelUndo.Enabled = EditTextBox.CanUndo;
             mnuCelCut.Enabled = EditTextBox.SelectionLength > 0;
@@ -1089,7 +1061,7 @@ namespace WinAGI.Editor {
                         // no change
                         globalsgrid.EndEdit();
                         if (EditDefine.Name.Length == 0) {
-                            //cancel an add
+                            // cancel an add
                             globalsgrid.Rows.RemoveAt(globalsgrid.Rows.Count - 1);
                         }
                         return;
@@ -1280,7 +1252,7 @@ namespace WinAGI.Editor {
                     }
                     DefineValueCheck valuecheck = ValidateGlobalValue(EditTextBox.Text, ref EditDefine.Type);
                     if (valuecheck is >= (DefineValueCheck)1 and <= (DefineValueCheck)2) {
-                        //errors
+                        // errors
                         switch (valuecheck) {
                         case DefineValueCheck.Empty:
                             // 1 = no Value
@@ -1466,7 +1438,6 @@ namespace WinAGI.Editor {
                 else {
                     globalsgrid.CurrentCell = globalsgrid[NameCol, globalsgrid.CurrentCell.RowIndex + 1];
                 }
-                //if (forceedit) {
                 if (Inserting) {
                     globalsgrid.BeginEdit(true);
                 }
@@ -1511,8 +1482,7 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
-        /// Dynamic function to handle changes in displayed fonts used 
-        /// by the editor.
+        /// Initializes or updates the displayed fonts used by the editor.
         /// </summary>
         internal void InitFonts() {
             Font commonFont = new(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
@@ -1520,6 +1490,25 @@ namespace WinAGI.Editor {
             globalsgrid.ColumnHeadersDefaultCellStyle.Font = commonFont;
             globalsgrid.AlternatingRowsDefaultCellStyle.Font = commonFont;
             globalsgrid.AlternatingRowsDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+            // Enter key is usually captured by the grid, but we want it to go to the textbox
+            if (keyData == Keys.Enter) {
+                if (EditTextBox.Focused) {
+                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                    return true;
+                }
+            }
+            if (keyData == Keys.Tab) {
+                if (EditTextBox.Focused) {
+                    if (globalsgrid.IsCurrentCellInEditMode) {
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                        return true;
+                    }
+                }
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         /// <summary>
@@ -1540,7 +1529,7 @@ namespace WinAGI.Editor {
                 definetext = File.ReadAllText(GlobalFile);
             }
             catch (Exception) {
-                //if error opening file, just exit
+                // if error opening file, just exit
                 MessageBox.Show(MDIMain,
                     "An error occurred while accessing this defines file. No defines were loaded.",
                     "Defines File Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -1574,10 +1563,10 @@ namespace WinAGI.Editor {
             strings.Add(definetext);
             for (int i = 0; i < strings.Count; i++) {
                 strLine = strings[i].Replace((char)Keys.Tab, ' ').Trim();
-                //trim it - also, skip comments
+                // trim it - also, skip comments
                 string cmt = "";
                 strLine = StripComments(strLine, ref cmt, true);
-                //ignore blanks
+                // ignore blanks
                 if (strLine.Length != 0) {
                     AGIToken token = WinAGIFCTB.TokenFromPos(strLine, 0);
                     if (token.Text.Equals("#define", StringComparison.OrdinalIgnoreCase)) {
@@ -1641,7 +1630,8 @@ namespace WinAGI.Editor {
                         "Update Logics?",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question,
-                        "Always take this action when saving the global defines list.", ref blnDontAsk,
+                        "Always take this action when saving the global defines list.",
+                        ref blnDontAsk,
                         WinAGIHelp, "htm\\winagi\\editingdefines.htm#edit");
                     if (blnDontAsk) {
                         if (rtn == DialogResult.Yes) {
@@ -1675,7 +1665,6 @@ namespace WinAGI.Editor {
                     ProgressWin.Refresh();
                     foreach (frmLogicEdit loged in LogicEditors) {
                         if (loged.FormMode == LogicFormMode.Logic && loged.InGame) {
-                            bool textchanged = false;
                             // check for deleted define names
                             for (int i = 0; i < DeletedDefines.Count; i++) {
                                 FindText = DeletedDefines[i].Name;
@@ -1690,15 +1679,14 @@ namespace WinAGI.Editor {
                                         AGIToken token = loged.fctb.TokenFromPos(pl);
                                         if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
                                             loged.fctb.ReplaceToken(token, DeletedDefines[i].Value);
-                                            textchanged = true;
                                         }
                                     }
                                     ProgressWin.lblProgress.Text = "Locating modified define names...";
                                     ProgressWin.Refresh();
                                 }
                             }
+                            // check for name changes
                             for (int i = 0; i < globalsgrid.RowCount - 1; i++) {
-                                // check for name change
                                 FindText = (string)globalsgrid[DefaultCol, i].Value;
                                 replacetext = (string)globalsgrid[NameCol, i].Value;
                                 if (FindText != replacetext && FindText.Length > 0) {
@@ -1712,7 +1700,6 @@ namespace WinAGI.Editor {
                                             AGIToken token = loged.fctb.TokenFromPos(pl);
                                             if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
                                                 loged.fctb.ReplaceToken(token, replacetext);
-                                                textchanged = true;
                                             }
                                         }
                                         ProgressWin.lblProgress.Text = "Locating modified define names...";
@@ -1722,8 +1709,13 @@ namespace WinAGI.Editor {
                                 // check for standard arg identifier
                                 if ((ArgType)globalsgrid[TypeCol, i].Value >= (ArgType)1 &&
                                     (ArgType)globalsgrid[TypeCol, i].Value <= (ArgType)8) {
-                                    FindText = (string)globalsgrid[ValueCol, i].Value;
-                                    pattern = $@"\b" + FindText + $@"\b";
+                                    pattern = FindText = (string)globalsgrid[ValueCol, i].Value;
+                                    if (FindText[0] != '\"') {
+                                        pattern = $@"\b" + pattern;
+                                    }
+                                    if (FindText[0] != '\"') {
+                                        pattern += $@"\b";
+                                    }
                                     MatchCollection mc = Regex.Matches(loged.fctb.Text, pattern);
                                     if (mc.Count > 0) {
                                         ProgressWin.lblProgress.Text = "Updating editor for " + loged.EditLogic.ID;
@@ -1733,16 +1725,12 @@ namespace WinAGI.Editor {
                                             AGIToken token = loged.fctb.TokenFromPos(pl);
                                             if (token.Type == AGITokenType.Identifier && token.Text.Length == FindText.Length) {
                                                 loged.fctb.ReplaceToken(token, replacetext);
-                                                textchanged = true;
                                             }
                                         }
                                         ProgressWin.lblProgress.Text = "Locating modified define names...";
                                         ProgressWin.Refresh();
                                     }
                                 }
-                            }
-                            if (textchanged) {
-                                // ? who cares for editors...
                             }
                         }
                         ProgressWin.pgbStatus.Value++;
@@ -1825,7 +1813,7 @@ namespace WinAGI.Editor {
                         }
                         if (textchanged) {
                             logic.SaveSource();
-                            //update reslist
+                            // update reslist
                             RefreshTree(AGIResType.Logic, logic.Number);
                         }
                         if (unload) {
@@ -1857,7 +1845,6 @@ namespace WinAGI.Editor {
                 ProgressWin.Show();
             }
             // done updating logics, now save the list
-            //ProgressWin.Text = "Save Defines List";
             ProgressWin.lblProgress.Text = "Saving defines to file ...";
             ProgressWin.pgbStatus.Value = 0;
             ProgressWin.pgbStatus.Maximum = globalsgrid.Rows.Count + 1;
@@ -1950,13 +1937,6 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 MarkAsChanged();
             }
-            //// remove old undo items until there is room for this one
-            //// to be added
-            //if (Settings.GlobalUndo > 0) {
-            //    while (UndoCol.Count >= Settings.GlobalUndo) {
-            //        UndoCol.Remove(0);
-            //    }
-            //}
             UndoCol.Push(NextUndo);
         }
 
@@ -1983,7 +1963,7 @@ namespace WinAGI.Editor {
             bool blnError = false;
             string definetext;
             try {
-                //open file for input
+                // open file for input
                 using FileStream fsGlobal = new(MDIMain.OpenDlg.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using StreamReader srGlobal = new(fsGlobal);
 
@@ -1994,7 +1974,7 @@ namespace WinAGI.Editor {
                 definetext = new string(chText);
             }
             catch (Exception) {
-                //if error opening file, just exit
+                // if error opening file, just exit
                 MessageBox.Show(MDIMain,
                     "An error occurred while accessing this defines file. No defines were imported.",
                     "Defines File Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -2193,9 +2173,6 @@ namespace WinAGI.Editor {
             }
             // resourceIDs
             if (EditGame != null && EditGame.IncludeIDs) {
-                //if (!blnSetIDs) {
-                //    SetResourceIDs(EditGame);
-                //}
                 foreach (Logic logic in EditGame.Logics) {
                     if (checkname == logic.ID) {
                         return DefineNameCheck.ResourceID;
@@ -2465,11 +2442,14 @@ namespace WinAGI.Editor {
             MarkAsChanged();
         }
 
+        internal void ShowHelp() {
+            string topic = "htm\\winagi\\editingdefines.htm";
+
+            // TODO: add context help
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
+        }
+
         private bool AskClose() {
-            //if (forcing) {
-            //    // force shutdown
-            //    return true;
-            //}
             if (IsChanged) {
                 DialogResult rtn = MessageBox.Show(MDIMain,
                     "Do you want to save this defines list?",
@@ -2497,11 +2477,6 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        private void UpdateStatusBar() {
-
-            // TODO: status bars...
-        }
-
         private void MarkAsChanged() {
             // ignore when loading (not visible yet)
             if (!Visible) {
@@ -2511,7 +2486,7 @@ namespace WinAGI.Editor {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             FindingForm.ResetSearch();
         }
@@ -2522,33 +2497,6 @@ namespace WinAGI.Editor {
             mnuRSave.Enabled = false;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
         }
-
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
-            // Enter key is usually captured by the grid, but we want it to go to the textbox
-            if (keyData == Keys.Enter) {
-                if (EditTextBox.Focused) {
-                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
-                    return true;
-                }
-            }
-            if (keyData == Keys.Tab) {
-                if (EditTextBox.Focused) {
-                    if (globalsgrid.IsCurrentCellInEditMode) {
-                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
-                        return true;
-                    }
-                }
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
     }
-    #endregion
-
-    #region temp code
-    /*
-public void MenuClickHelp() {
-  Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\editingdefines.htm");
-}
-    */
     #endregion
 }

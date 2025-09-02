@@ -102,9 +102,9 @@ namespace WinAGI.Editor {
             // txtSnipName
             // 
             txtSnipName.BackColor = System.Drawing.Color.White;
-            txtSnipName.ReadOnly = true;
             txtSnipName.Location = new System.Drawing.Point(171, 30);
             txtSnipName.Name = "txtSnipName";
+            txtSnipName.ReadOnly = true;
             txtSnipName.Size = new System.Drawing.Size(202, 23);
             txtSnipName.TabIndex = 3;
             txtSnipName.DoubleClick += txtSnipName_DoubleClick;
@@ -155,7 +155,6 @@ namespace WinAGI.Editor {
             rtfSnipValue.CharWidth = 8;
             rtfSnipValue.ContextMenuStrip = contextMenuStrip1;
             rtfSnipValue.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
-            rtfSnipValue.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfSnipValue.Hotkeys = resources.GetString("rtfSnipValue.Hotkeys");
             rtfSnipValue.IsReplaceMode = false;
             rtfSnipValue.Location = new System.Drawing.Point(171, 74);
@@ -364,6 +363,7 @@ namespace WinAGI.Editor {
             Controls.Add(lblArgTips);
             Controls.Add(label2);
             Controls.Add(label1);
+            KeyPreview = true;
             MaximizeBox = false;
             MaximumSize = new System.Drawing.Size(1200, 407);
             MinimizeBox = false;
@@ -375,6 +375,7 @@ namespace WinAGI.Editor {
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "Snippet Manager";
             FormClosing += frmSnippets_FormClosing;
+            KeyDown += frmSnippets_KeyDown;
             ((System.ComponentModel.ISupportInitialize)rtfSnipValue).EndInit();
             contextMenuStrip1.ResumeLayout(false);
             ResumeLayout(false);

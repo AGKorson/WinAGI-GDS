@@ -2,22 +2,18 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Common;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
 using static WinAGI.Editor.ObjectsUndo.ActionType;
+
 namespace WinAGI.Editor {
     public partial class frmObjectEdit : Form {
+        #region Members
         public bool InGame;
         public bool IsChanged;
         public InventoryList EditInvList;
@@ -38,7 +34,8 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spCapsLock;
         internal ToolStripStatusLabel spNumLock;
         internal ToolStripStatusLabel spInsLock;
-
+        #endregion
+        
         public frmObjectEdit() {
             InitializeComponent();
             InitStatusStrip();
@@ -68,8 +65,6 @@ namespace WinAGI.Editor {
                     FindingForm.SetForm(FindFormFunction.FindObject, InGame);
                 }
             }
-            //spCount.Text = "Object Count: " + EditInvList.Count;
-            //spEncrypt.Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
         }
 
         private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
@@ -94,14 +89,16 @@ namespace WinAGI.Editor {
                 EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Escape));
             }
         }
-
-        private void frmObjectEdit_Load(object sender, EventArgs e) {
-
-        }
         #endregion
 
         #region Menu Event Handlers
         internal void SetResourceMenu() {
+            if (Adding) {
+                // need to cancel
+                Adding = false;
+                fgObjects.CancelEdit();
+                fgObjects.EndEdit();
+            }
 
             mnuRSave.Enabled = IsChanged;
             MDIMain.mnuRSep3.Visible = true;
@@ -119,12 +116,13 @@ namespace WinAGI.Editor {
                 // mnuRProperties no change
                 mnuRExportLoopGIF.Enabled = true; // = loop or cel selected
             }
+            mnuRAmigaOBJ.Visible = EditInvList.AmigaOBJ;
         }
 
         /// <summary>
-        /// Dynamic function to reset the resource menu.
+        /// Resets all resource menu items so shortcut keys can work correctly.
         /// </summary>
-        public void ResetResourceMenu() {
+        internal void ResetResourceMenu() {
             mnuRSave.Enabled = true;
             mnuRExport.Enabled = true;
             mnuRProperties.Enabled = true;
@@ -132,17 +130,17 @@ namespace WinAGI.Editor {
             mnuRAmigaOBJ.Enabled = true;
         }
 
-        public void mnuRSave_Click(object sender, EventArgs e) {
+        internal void mnuRSave_Click(object sender, EventArgs e) {
             if (IsChanged) {
                 SaveObjects();
             }
         }
 
-        public void mnuRExport_Click(object sender, EventArgs e) {
+        internal void mnuRExport_Click(object sender, EventArgs e) {
             ExportObjects();
         }
 
-        public void mnuRProperties_Click(object sender, EventArgs e) {
+        private void mnuRProperties_Click(object sender, EventArgs e) {
             EditProperties();
         }
 
@@ -152,9 +150,9 @@ namespace WinAGI.Editor {
 
         private void mnuRAmigaOBJ_Click(object sender, EventArgs e) {
             // convert an Amiga format OBJECT file to DOS format
-            Debug.Assert(!EditInvList.AmigaOBJ);
+            Debug.Assert(EditInvList.AmigaOBJ);
             if (MessageBox.Show(MDIMain,
-                "Your current OBJECT file will be saved as 'OBJECT.amg'. Continue with the conversion?",
+                "Your current OBJECT file will be backed up as 'OBJECT.amg'. Continue with the conversion?",
                 "Convert AMIGA Object File",
                 MessageBoxButtons.OKCancel,
                 MessageBoxIcon.Question) == DialogResult.OK) {
@@ -190,7 +188,7 @@ namespace WinAGI.Editor {
                 mnuEUndo.Text += LoadResString((int)(OBJUNDOTEXT + UndoCol.Peek().UDAction));
             }
             // item i0 can not be deleted
-            mnuEDelete.Enabled = fgObjects.CurrentCell.RowIndex > 1;
+            mnuEDelete.Enabled = fgObjects.CurrentCell.RowIndex > 0;
             mnuEClear.Enabled = true;
             mnuEInsert.Enabled = EditInvList.Count < 256;
             mnuEFind.Enabled = true;
@@ -210,7 +208,7 @@ namespace WinAGI.Editor {
                 mnuEditItem.Text = "Edit Room";
                 break;
             }
-            //enable findinlogics if object is not a ' ? '
+            // enable findinlogics if object is not a ' ? '
             mnuEFindInLogic.Enabled = (string)fgObjects[1, fgObjects.CurrentCell.RowIndex].Value != "?";
         }
 
@@ -328,7 +326,7 @@ namespace WinAGI.Editor {
                 fgObjects[1, 0].Selected = true;
                 break;
             }
-            //ensure selected row is visible
+            // ensure selected row is visible
             if (!fgObjects.CurrentRow.Displayed) {
                 if (fgObjects.CurrentRow.Index < 2) {
                     fgObjects.FirstDisplayedScrollingRowIndex = 0;
@@ -456,18 +454,21 @@ namespace WinAGI.Editor {
             }
             FindingForm.ResetSearch();
             FirstFind = false;
-            GFindText = '"' + strObj.Replace("\"", "\\\"") + '"';
             GFindDir = FindDirection.All;
             GMatchWord = true;
             GMatchCase = true;
             GLogFindLoc = FindLocation.All;
             GFindSynonym = false;
+            GFindText = '"' + strObj.Replace("\"", "\\\"") + '"';
             SearchType = AGIResType.Objects;
-            if (FindingForm.Visible) {
-                // set it to match desired search parameters
-                FindingForm.SetForm(FindFormFunction.FindLogic, true);
+            FindingForm.SetForm(FindFormFunction.FindObjsLogic, true);
+            // to avoid unwanted change in form function, don't assign text
+            // cmbFind directly
+            FindingForm.SetFindText(GFindText);
+            if (!FindingForm.Visible) {
+                FindingForm.Visible = true;
             }
-            FindInLogic(this, GFindText, FindDirection.All, true, false, FindLocation.All, false, "");
+            FindingForm.Select();
         }
 
         private void cmCel_Opening(object sender, CancelEventArgs e) {
@@ -582,7 +583,6 @@ namespace WinAGI.Editor {
                     EditTextBox.Multiline = true;
                     EditTextBox.AcceptsReturn = true;
                     EditTextBox.AcceptsTab = true;
-                    EditTextBox.Validating += EditTextBox_Validating;
                     EditTextBox.KeyDown += EditTextBox_KeyDown;
                     EditTextBox.TextChanged += EditTextBox_TextChanged;
                 }
@@ -777,7 +777,7 @@ namespace WinAGI.Editor {
 
             // if blank, reset to current, othrwise, process the new value
 
-            if (txtMaxScreenObjs.Text.Length > 0 ) {
+            if (txtMaxScreenObjs.Text.Length > 0) {
                 int newMax = int.Parse(txtMaxScreenObjs.Text);
                 if (newMax != EditInvList.MaxScreenObjects) {
                     if (newMax == 0) {
@@ -829,10 +829,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void EditTextBox_Validating(object sender, CancelEventArgs e) {
-            // textbox Validating event ignores Cancel property, use CellValidate
-        }
-
         private void EditTextBox_KeyDown(object sender, KeyEventArgs e) {
             // pressing enter should move to next COLUMN, not next ROW
             // (unless it's at end of row)
@@ -845,7 +841,6 @@ namespace WinAGI.Editor {
                 fgObjects.EndEdit();
                 if (Adding) {
                     Adding = false;
-                    //fgObjects.Rows.RemoveAt(fgObjects.CurrentRow.Index);
                 }
                 return;
             }
@@ -859,12 +854,11 @@ namespace WinAGI.Editor {
                 case 1:
                     // item text
                     if (EditTextBox.Text.Length == 0) {
-                        //if adding, a blank means cancel
+                        // if adding, a blank means cancel
                         if (Adding) {
                             fgObjects.CancelEdit();
                             fgObjects.EndEdit();
                             Adding = false;
-                            fgObjects.Rows.RemoveAt(fgObjects.CurrentRow.Index);
                             return;
                         }
                         // otherwise a blank is same as '?'
@@ -904,7 +898,14 @@ namespace WinAGI.Editor {
                         }
                     }
                     EditItem.ItemName = EditTextBox.Text;
-                    if (!Adding) {
+                    if (Adding) {
+                        NextUndo = new() {
+                            UDAction = AddItem,
+                            UDObjectNo = fgObjects.CurrentRow.Index,
+                        };
+                        AddUndo(NextUndo);
+                    }
+                    else {
                         EditInvList[fgObjects.CurrentRow.Index].ItemName = EditTextBox.Text;
                         NextUndo = new() {
                             UDAction = ObjectsUndo.ActionType.ModifyItem,
@@ -927,11 +928,8 @@ namespace WinAGI.Editor {
                     }
                     EditItem.Room = byte.Parse(EditTextBox.Text);
                     if (Adding) {
-                        NextUndo = new() {
-                            UDAction = AddItem,
-                            UDObjectNo = fgObjects.CurrentRow.Index,
-                        };
-                        AddUndo(NextUndo);
+                        // do nothing, undo has already been added
+                        Adding = false;
                     }
                     else {
                         EditInvList[fgObjects.CurrentRow.Index].Room = EditItem.Room;
@@ -949,6 +947,10 @@ namespace WinAGI.Editor {
                     if (Adding || e.KeyCode == Keys.Tab) {
                         fgObjects.CurrentCell = fgObjects[2, fgObjects.CurrentCell.RowIndex];
                         if (Adding) {
+                            // add item after text is entered,
+                            // but leave flag so if user changes room
+                            // number, it will be appended to the undo
+                            EditInvList.Add(EditItem);
                             fgObjects.BeginEdit(true);
                         }
                     }
@@ -958,10 +960,6 @@ namespace WinAGI.Editor {
                 }
                 else {
                     fgObjects.CurrentCell = fgObjects[1, fgObjects.CurrentCell.RowIndex + 1];
-                    if (Adding) {
-                        EditInvList.Add(EditItem);
-                        Adding = false;
-                    }
                 }
                 fgObjects.Refresh();
                 MarkAsChanged();
@@ -982,7 +980,6 @@ namespace WinAGI.Editor {
                 }
             }
         }
-
         #endregion
 
         #region Methods
@@ -996,18 +993,23 @@ namespace WinAGI.Editor {
             // 
             // spCount
             // 
+            spCount.AutoSize = false;
             spCount.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCount.BorderStyle = Border3DStyle.SunkenInner;
             spCount.Name = "spCount";
-            spCount.Size = new System.Drawing.Size(4, 18);
+            spCount.Size = new System.Drawing.Size(120, 18);
+            spCount.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // spEncrypt
             // 
+            spEncrypt.AutoSize = false;
             spEncrypt.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spEncrypt.BorderStyle = Border3DStyle.SunkenInner;
             spEncrypt.Name = "spEncrypt";
-            spEncrypt.Size = new System.Drawing.Size(4, 18);
+            spEncrypt.Size = new System.Drawing.Size(120, 18);
+            spEncrypt.TextAlign = ContentAlignment.MiddleLeft;
         }
+
         private void StartSearch(FindFormFunction formfunction) {
             string searchtext;
             if (fgObjects.CurrentCell == null || fgObjects.CurrentCell.RowIndex < 0 ||
@@ -1019,12 +1021,11 @@ namespace WinAGI.Editor {
             }
             // TODO: should I remove quotes, if the current search string includes them?
 
-            //default to matchcase, and wholeword
+            // default to matchcase, and wholeword
             GMatchCase = true;
             GMatchWord = true;
             FindingForm.SetForm(formfunction, InGame);
-            //FindingForm.SetFindText(searchtext);
-            FindingForm.cmbFind.Text = searchtext;
+            FindingForm.SetFindText(searchtext);
             if (!FindingForm.Visible) {
                 FindingForm.Visible = true;
             }
@@ -1069,7 +1070,7 @@ namespace WinAGI.Editor {
                     FirstFind = false;
                 }
             }
-            //main search loop
+            // main search loop
             do {
                 if (FindDir == FindDirection.Up) {
                     // iterate backwards until word found or foundrow=-1
@@ -1191,7 +1192,7 @@ namespace WinAGI.Editor {
 
             if (foundrow >= 0 && foundrow < EditInvList.Count) {
                 if (!FirstFind) {
-                    //save this position
+                    // save this position
                     FirstFind = true;
                     ObjStartPos = foundrow;
                 }
@@ -1208,9 +1209,10 @@ namespace WinAGI.Editor {
                     }
                     // adjust undoobject
                     UndoCol.Peek().UDAction = Replace;
-                    //recurse the find method to get next occurrence
+                    // recurse the find method to get next occurrence
                     // !!!!!!!!ACK!!!!!!!!!!!!
-                    // GET RID OF THIS RECURSION
+                    // RECURSIONS ARE BAD, but this seems to be the 
+                    // simplest way to handle multiple replacements
                     blnRecurse = true;
                     FindInObjects(FindText, FindDir, MatchWord, MatchCase, false);
                     blnRecurse = false;
@@ -1377,9 +1379,9 @@ namespace WinAGI.Editor {
             }
             txtMaxScreenObjs.Value = EditInvList.MaxScreenObjects;
 
-            // statusbar has not been merged yet
-            //statusStrip1.Items["spCount"].Text = "Object Count: " + EditInvList.Count;
-            //statusStrip1.Items["spEncrypt"].Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
+            // statusbar
+            spCount.Text = "Object Count: " + EditInvList.Count;
+            spEncrypt.Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";
 
             Text = "Objects Editor - ";
             if (InGame) {
@@ -1395,7 +1397,7 @@ namespace WinAGI.Editor {
                 }
             }
             if (IsChanged) {
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
 
             mnuRSave.Enabled = !IsChanged;
@@ -1432,8 +1434,8 @@ namespace WinAGI.Editor {
         }
 
         public void SaveObjects() {
-            DialogResult rtn = DialogResult.No;
             if (InGame) {
+                DialogResult rtn = DialogResult.No;
                 bool blnDontAsk = false;
                 if (WinAGISettings.AutoUpdateObjects.Value == Common.Base.AskOption.Ask) {
                     rtn = MsgBoxEx.Show(MDIMain,
@@ -1481,7 +1483,6 @@ namespace WinAGI.Editor {
 
                     foreach (frmLogicEdit loged in LogicEditors) {
                         if (loged.FormMode == LogicFormMode.Logic && loged.InGame) {
-                            bool textchanged = false;
                             // run through all objects in the current object list
                             for (int i = 0; i < EditGame.InvObjects.Count; i++) {
                                 bool replaceitem = false;
@@ -1522,13 +1523,18 @@ namespace WinAGI.Editor {
                                                 //
                                                 // action cmds that use IObj:
                                                 //   get, drop, put
+
                                                 AGIToken token2 = loged.fctb.PreviousToken(token);
                                                 if (token2.Text == "(") {
                                                     token2 = loged.fctb.PreviousToken(token2);
-                                                    if (token2.Text == "has" || token2.Text == "obj.in.room" ||
-                                                        token2.Text == "get" || token2.Text == "drop" || token2.Text == "put") {
+                                                    switch (token2.Text) {
+                                                    case "has":
+                                                    case "obj.in.room":
+                                                    case "get":
+                                                    case "put":
+                                                    case "drop":
                                                         loged.fctb.ReplaceToken(token, replacetext);
-                                                        textchanged = true;
+                                                        break;
                                                     }
                                                 }
                                             }
@@ -1537,9 +1543,6 @@ namespace WinAGI.Editor {
                                         }
                                     }
                                 }
-                            }
-                            if (textchanged) {
-                                // ? who cares for editors...
                             }
                         }
                         ProgressWin.pgbStatus.Value++;
@@ -1594,10 +1597,15 @@ namespace WinAGI.Editor {
                                             AGIToken token2 = WinAGIFCTB.PreviousToken(logic.SourceText, token);
                                             if (token2.Text == "(") {
                                                 token2 = WinAGIFCTB.PreviousToken(logic.SourceText, token2);
-                                                if (token2.Text == "has" || token2.Text == "obj.in.room" ||
-                                                    token2.Text == "get" || token2.Text == "drop" || token2.Text == "put") {
+                                                switch (token2.Text) {
+                                                case "has":
+                                                case "obj.in.room":
+                                                case "get":
+                                                case "drop":
+                                                case "put":
                                                     logic.SourceText = logic.SourceText.ReplaceFirst(FindText, replacetext, mc[m].Index);
                                                     textchanged = true;
+                                                    break;
                                                 }
                                             }
                                         }
@@ -1621,8 +1629,7 @@ namespace WinAGI.Editor {
                     ProgressWin.Close();
                     MDIMain.UseWaitCursor = false;
                 }
-            }
-            if (InGame) {
+                // after updating logics, save the object list
                 MDIMain.UseWaitCursor = true;
                 bool loaded = EditGame.InvObjects.Loaded;
                 if (!loaded) {
@@ -1639,6 +1646,7 @@ namespace WinAGI.Editor {
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
+                // TODO: only logics actually changed should be marked 
                 MakeAllChanged();
                 RefreshTree(AGIResType.Objects, 0);
                 MDIMain.ClearWarnings(AGIResType.Objects, 0);
@@ -1675,7 +1683,8 @@ namespace WinAGI.Editor {
             if (!InGame && retval) {
                 EditInvListFilename = EditInvList.ResFile;
                 MarkAsSaved();
-            };
+            }
+            ;
         }
 
         public void EditProperties() {
@@ -1742,7 +1751,6 @@ namespace WinAGI.Editor {
                     break;
                 case Keys.Tab:
                     if (EditTextBox.Focused) {
-                        //if (fgObjects.IsCurrentCellInEditMode) {
                         EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Tab));
                         return true;
                     }
@@ -1750,6 +1758,14 @@ namespace WinAGI.Editor {
                 }
             }
             return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        internal void ShowHelp() {
+            string strTopic = "htm\\winagi\\Objects_Editor.htm";
+
+            // TODO: add context sensitive help
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            return;
         }
 
         private bool AskClose() {
@@ -1793,7 +1809,7 @@ namespace WinAGI.Editor {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             spCount.Text = "Object Count: " + EditInvList.Count;
             spEncrypt.Text = EditInvList.Encrypted ? "Encrypted" : "Not Encrypted";

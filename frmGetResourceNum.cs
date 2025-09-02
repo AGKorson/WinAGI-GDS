@@ -2,10 +2,7 @@
 using System.Windows.Forms;
 using static WinAGI.Editor.Base;
 using WinAGI.Engine;
-using static WinAGI.Engine.AGIResType;
 using static WinAGI.Editor.Base.GetRes;
-using static WinAGI.Common.Base;
-using System.Windows.Forms.Design;
 using WinAGI.Common;
 using System.Diagnostics;
 
@@ -51,10 +48,12 @@ namespace WinAGI.Editor {
             NewResNum = ((ListItemData)lstResNum.SelectedItem).ResNum;
             switch (WindowFunction) {
             case Open:
+            case ShowRoom:
                 // nothing else do to
                 DialogResult = DialogResult.OK;
                 break;
-            case Renumber or GetRes.RenumberRoom:
+            case Renumber: 
+            case GetRes.RenumberRoom:
                 if (OldResNum == NewResNum) {
                     // same as canceling
                     DialogResult = DialogResult.Cancel;
@@ -62,7 +61,10 @@ namespace WinAGI.Editor {
                 }
                 DialogResult = DialogResult.OK;
                 break;
-            case AddNew or AddInGame or Import:
+            case AddNew:
+            case AddInGame:
+            case AddLayout:
+            case Import:
                 // validate resourceID (use impossible value for old ID to avoid matching
                 DefineNameCheck rtn = ValidateID(txtID.Text, 255.ToString());
                 switch (rtn) {
@@ -109,9 +111,11 @@ namespace WinAGI.Editor {
                 // OK to exit
                 DialogResult = DialogResult.OK;
                 break;
-            default:
-                // TODO: hmm, what would get us here?
-                DialogResult = DialogResult.Cancel;
+            case GetRes.Menu:
+            case MenuBkgd:
+                // TODO: need to define correct action for these functions
+                Debug.Assert(false);
+                DialogResult = DialogResult.OK;
                 break;
             }
             // done
@@ -132,21 +136,12 @@ namespace WinAGI.Editor {
 
         private void lstResNum_SelectedIndexChanged(object sender, EventArgs e) {
             byte resnum = ((ListItemData)lstResNum.SelectedItem).ResNum;
+
             switch (WindowFunction) {
-            case Renumber:
-            case Open:
-            case TestView:
-            case ShowRoom:
-            case GetRes.Menu:
-            case MenuBkgd:
-            case GetRes.RenumberRoom:
-                btnOK.Enabled = lstResNum.SelectedIndex != -1;
-                break;
-            default:
-                break;
-            }
-            switch (WindowFunction) {
-            case AddLayout or AddNew or AddInGame or Import:
+            case AddLayout:
+            case AddNew:
+            case AddInGame:
+            case Import:
                 btnOK.Enabled = txtID.Text.Length != 0 && lstResNum.SelectedIndex != -1;
                 // if format is 'restype & resnum' (i.e., "Logic0") OR is blank
                 if (txtID.Text.Length == 0 || txtID.Text.Left(ResType.ToString().Length).Equals(ResType.ToString(), StringComparison.OrdinalIgnoreCase)) {
@@ -177,13 +172,6 @@ namespace WinAGI.Editor {
                 }
                 break;
             default:
-                //case grRenumber:
-                //case grOpen:
-                //case grTestView:
-                //case grShowRoom:
-                //case grMenu:
-                //case grMenuBkgd:
-                //case grRenumberRoom:
                 btnOK.Enabled = lstResNum.SelectedIndex != -1;
                 break;
             }
@@ -279,7 +267,7 @@ namespace WinAGI.Editor {
             int i;
             ListItemData tmpItem;
             WindowFunction = function;
-            //clear the listbox
+            // clear the listbox
             lstResNum.Items.Clear();
 
             switch (WindowFunction) {
@@ -289,11 +277,6 @@ namespace WinAGI.Editor {
             case GetRes.RenumberRoom:
             case AddLayout:
             case Import:
-                // if adding rooms in layout, always SUGGEST include pic
-                if (WindowFunction == AddLayout) {
-                    chkIncludePic.Checked = true;
-                    chkIncludePic.Enabled = true;
-                }
                 // only add  resource numbers that are NOT in use
                 for (i = 0; i < 256; i++) {
                     tmpItem = new ListItemData {
@@ -388,8 +371,16 @@ namespace WinAGI.Editor {
                     }
                 }
                 if (lstResNum.Items.Count == 0) {
-                    MessageBox.Show(MDIMain, "All logics in the game are currently tagged as rooms and are visible.", "Show Room", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, 0, WinAGIHelp, "htm\\winagi\\Managing_Resources.htm#resourceids");
-                    Hide();
+                    MessageBox.Show(MDIMain,
+                        "All logics in the game are currently tagged as rooms and are visible.",
+                        "Show Room",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information,
+                        MessageBoxDefaultButton.Button1, 0,
+                        WinAGIHelp, "htm\\winagi\\Managing_Resources.htm#resourceids");
+                    // set NewResNum to a value so the calling function knows 
+                    NewResNum = 255;
+                    return;
                 }
                 break;
             }

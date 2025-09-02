@@ -364,10 +364,10 @@ namespace WinAGI.Engine {
             }
             for (int i = 1; i <= intCount; i++) {
                 string strIn = propfile.GetSetting("ResDefOverrides", "Override" + i, "");
-                //split it to get the def value and def name
-                //(0)=group
-                //(1)=index
-                //(2)=newname
+                // split it to get the def value and def name
+                //    (0) = group
+                //    (1) = index
+                //    (2) = newname
                 string[] strDef = strIn.Split(":");
                 if (strDef.Length == 3) {
                     if (!int.TryParse(strDef[0], out int group)) {
@@ -380,7 +380,7 @@ namespace WinAGI.Engine {
                     if (strDef[2].Length == 0) {
                         continue;
                     }
-                    //get the new name, if a valid entry
+                    // get the new name, if a valid entry
                     if (index < ByGroup((ResDefGroup)group).Length) {
                         SetResDef((ResDefGroup)group, index, strDef[2]);
                     }
@@ -398,21 +398,21 @@ namespace WinAGI.Engine {
         }
 
         public void SaveResDefOverrides() {
-            //if any reserved define names are different from the default values,
-            //write them to the app settings;
+            // if any reserved define names are different from the default values,
+            // write them to the app settings;
             int intCount = 0, i;
             TDefine[] dfTemp;
-            //need to make string comparisons case sensitive, in case user
-            //wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
+            // need to make string comparisons case sensitive, in case user
+            // wants to change case of a define (even though it really doesn't matter; compiler is not case sensitive)
 
-            //first, delete any previous overrides
+            // first, delete any previous overrides
             propfile.DeleteSection("ResDefOverrides");
-            //now step through each type of define value; if name is not the default, then save it
+            // now step through each type of define value; if name is not the default, then save it
             for (ResDefGroup grp = 0; (int)grp < 10; grp++) {
                 dfTemp = ByGroup(grp);
                 for (i = 0; i < dfTemp.Length; i++) {
                     if (dfTemp[i].Default != dfTemp[i].Name) {
-                        //save it
+                        // save it
                         intCount++;
                         propfile.WriteSetting("ResDefOverrides", "Override" + intCount, (int)grp + ":" + i + ":" + dfTemp[i].Name);
                     }

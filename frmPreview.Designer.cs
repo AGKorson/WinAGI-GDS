@@ -978,7 +978,6 @@ namespace WinAGI.Editor {
             rtfLogPrev.Zoom = 100;
             rtfLogPrev.DoubleClick += rtfLogPrev_DoubleClick;
             rtfLogPrev.KeyDown += rtfLogPrev_KeyDown;
-            rtfLogPrev.MouseDown += rtfLogPrev_MouseDown;
             // 
             // frmPreview
             // 
@@ -1006,7 +1005,6 @@ namespace WinAGI.Editor {
             FormClosing += frmPreview_FormClosing;
             KeyDown += frmPreview_KeyDown;
             KeyPress += frmPreview_KeyPress;
-            PreviewKeyDown += frmPreview_PreviewKeyDown;
             cmsLogic.ResumeLayout(false);
             pnlPicture.ResumeLayout(false);
             tableLayoutPanel1.ResumeLayout(false);

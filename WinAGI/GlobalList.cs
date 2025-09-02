@@ -52,7 +52,6 @@ namespace WinAGI.Engine {
                 fs.Write(Encoding.Default.GetBytes(hdr));
                 fs.Close();
             }
-            //LoadGlobalDefines(mResFile);
         }
 
         public GlobalList(string filename) {
@@ -255,7 +254,7 @@ namespace WinAGI.Engine {
             if (retval != DefineNameCheck.OK) {
                 return retval;
             }
-            //order: locals>globals>resids>reserved
+            // order: locals>globals>resids>reserved
 
             if (parent != null) {
                 // resourceids

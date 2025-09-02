@@ -187,6 +187,7 @@
             picLEColor = new System.Windows.Forms.PictureBox();
             lstLEColors = new System.Windows.Forms.ListBox();
             groupBox17 = new System.Windows.Forms.GroupBox();
+            chkShowHidden = new System.Windows.Forms.CheckBox();
             txtGridMajor = new System.Windows.Forms.TextBox();
             lblLEGridMajor = new System.Windows.Forms.Label();
             txtLEScale = new NumericTextBox();
@@ -200,7 +201,6 @@
             chkUseLE = new System.Windows.Forms.CheckBox();
             cdColors = new System.Windows.Forms.ColorDialog();
             colorDialog1 = new System.Windows.Forms.ColorDialog();
-            chkShowHidden = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)rtfPreview).BeginInit();
             tabControl1.SuspendLayout();
             General.SuspendLayout();
@@ -2185,6 +2185,17 @@
             groupBox17.TabStop = false;
             groupBox17.Text = "Options";
             // 
+            // chkShowHidden
+            // 
+            chkShowHidden.AutoSize = true;
+            chkShowHidden.Location = new System.Drawing.Point(287, 122);
+            chkShowHidden.Name = "chkShowHidden";
+            chkShowHidden.Size = new System.Drawing.Size(130, 19);
+            chkShowHidden.TabIndex = 11;
+            chkShowHidden.Text = "Display hidden exits";
+            chkShowHidden.UseVisualStyleBackColor = true;
+            chkShowHidden.CheckedChanged += chkShowHidden_CheckedChanged;
+            // 
             // txtGridMajor
             // 
             txtGridMajor.Location = new System.Drawing.Point(376, 79);
@@ -2310,17 +2321,6 @@
             cdColors.AnyColor = true;
             cdColors.SolidColorOnly = true;
             // 
-            // chkShowHidden
-            // 
-            chkShowHidden.AutoSize = true;
-            chkShowHidden.Location = new System.Drawing.Point(287, 122);
-            chkShowHidden.Name = "chkShowHidden";
-            chkShowHidden.Size = new System.Drawing.Size(130, 19);
-            chkShowHidden.TabIndex = 11;
-            chkShowHidden.Text = "Display hidden exits";
-            chkShowHidden.UseVisualStyleBackColor = true;
-            chkShowHidden.CheckedChanged += chkShowHidden_CheckedChanged;
-            // 
             // frmSettings
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -2334,6 +2334,7 @@
             Controls.Add(rtfPreview);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            KeyPreview = true;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "frmSettings";
@@ -2341,6 +2342,7 @@
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "Settings";
             Load += frmSettings_Load;
+            KeyDown += frmSettings_KeyDown;
             ((System.ComponentModel.ISupportInitialize)rtfPreview).EndInit();
             tabControl1.ResumeLayout(false);
             General.ResumeLayout(false);

@@ -10,9 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
-using System.Text;
 using System.Windows.Forms;
-using System.Windows.Forms.Design;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
 using static WinAGI.Engine.Base;
@@ -23,7 +21,6 @@ namespace WinAGI.Editor {
     /// properties, and allows them to be edited.
     /// </summary>
     public class GameProperties {
-        //string _GameID;
         public GameProperties() {
             
         }

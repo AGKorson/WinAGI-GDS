@@ -1,16 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.AGIGame;
 
 namespace WinAGI.Editor {
     public partial class frmExportAnimatedGIF : Form {
@@ -112,7 +105,7 @@ namespace WinAGI.Editor {
             else {
                 picCel.BackColor = exportloop[bytCel].Palette[(int)exportloop[bytCel].TransColor];
             }
-            //force update
+            // force update
             DisplayCel();
         }
 
@@ -152,11 +145,11 @@ namespace WinAGI.Editor {
         }
 
         private void timer1_Tick(object sender, EventArgs e) {
-            //advance cel number for this loop
+            // advance cel number for this loop
             byte bytCmd;
             switch (formMode) {
             case 0:
-                //loop
+                // loop
                 bytCel++;
                 if (bytCel == exportloop.Cels.Count) {
                     bytCel = 0;
@@ -170,11 +163,11 @@ namespace WinAGI.Editor {
                 DisplayCel();
                 break;
             case 1:
-                //picture
+                // picture
                 do {
                     lngPos++;
                     if (lngPos >= exportpic.Size) {
-                        //reset to beginning of picture
+                        // reset to beginning of picture
                         lngPos = -1;
                         break;
                     }
@@ -214,8 +207,8 @@ namespace WinAGI.Editor {
                         lngPos++;
                         break;
                     default:
-                        //skip second coordinate byte, unless
-                        //currently drawing X or Y lines
+                        // skip second coordinate byte, unless
+                        // currently drawing X or Y lines
                         if (!blnXYDraw) {
                             lngPos++;
                         }
@@ -223,7 +216,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 while ((bytCmd >= 240 && bytCmd < 244) || bytCmd == 249 || !blnVisOn);
-                //show pic drawn up to this point
+                // show pic drawn up to this point
                 exportpic.DrawPos = lngPos;
                 ShowAGIBitmap(picGrid, exportpic.VisualBMP, 1);
                 picGrid.Refresh();
@@ -305,10 +298,10 @@ namespace WinAGI.Editor {
                 }
             }
 
-            //set size of view holder
+            // set size of view holder
             picCel.Width = MaxW * 2 * SelectedGifOptions.Zoom;
             picCel.Height = MaxH * SelectedGifOptions.Zoom;
-            //force back to upper, left
+            // force back to upper, left
             picCel.Top = VG_MARGIN;
             picCel.Left = VG_MARGIN;
             cmbLoop.SelectedIndex = startloop;
@@ -366,7 +359,7 @@ namespace WinAGI.Editor {
         }
 
         void CheckScrollbars() {
-            //shrink grid if cel is small
+            // shrink grid if cel is small
             if (picCel.Width + 2 * VG_MARGIN < 322) {
                 picGrid.Width = picCel.Width + 2 * VG_MARGIN;
             }
@@ -447,9 +440,9 @@ namespace WinAGI.Editor {
         }
 
         void DisplayCel() {
-            //this function copies the bitmap Image
-            //from bytLoop.bytCel into the view Image box,
-            //and resizes it to be correct size
+            // this function copies the bitmap Image
+            // from bytLoop.bytCel into the view Image box,
+            // and resizes it to be correct size
             int tgtX, tgtY, tgtH, tgtW;
 
             tgtW = exportloop[bytCel].Width * 2 * SelectedGifOptions.Zoom;
@@ -466,15 +459,20 @@ namespace WinAGI.Editor {
             else {
                 tgtY = picCel.Height - tgtH;
             }
-            ShowAGIBitmap(picCel, chkTrans.Checked ? exportloop[bytCel].TransImage : exportloop[bytCel].CelImage, tgtX, tgtY, tgtW, tgtH);
+            picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+            using Graphics g = Graphics.FromImage(picCel.Image);
+            g.Clear(picCel.BackColor);
+            // set correct interpolation mode
+            g.InterpolationMode = InterpolationMode.NearestNeighbor;
+            g.PixelOffsetMode = PixelOffsetMode.Half;
+            g.DrawImage(chkTrans.Checked ? exportloop[bytCel].TransImage : exportloop[bytCel].CelImage, tgtX, tgtY, tgtW, tgtH);
             if (chkTrans.Checked) {
                 // draws single pixel dots spaced 10 pixels apart over transparent pixels only
-                using Graphics gc = Graphics.FromImage(picCel.Image);
                 Bitmap b = new(picCel.Image);
                 for (int i = 0; i < picCel.Width; i += 10) {
                     for (int j = 0; j < picCel.Height; j += 10) {
                         if (b.GetPixel(i, j).ToArgb() == picCel.BackColor.ToArgb()) {
-                            gc.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
+                            g.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
                         }
                     }
                 }

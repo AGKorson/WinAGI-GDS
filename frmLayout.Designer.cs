@@ -1,5 +1,4 @@
-﻿
-namespace WinAGI.Editor {
+﻿namespace WinAGI.Editor {
     partial class frmLayout {
         /// <summary>
         /// Required designer variable.
@@ -28,10 +27,14 @@ namespace WinAGI.Editor {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmLayout));
             contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
             mnuShowRoom = new System.Windows.Forms.ToolStripMenuItem();
+            mnuHideRoom = new System.Windows.Forms.ToolStripMenuItem();
             mnuEditLogic = new System.Windows.Forms.ToolStripMenuItem();
             mnuEditPicture = new System.Windows.Forms.ToolStripMenuItem();
             mnuDelete = new System.Windows.Forms.ToolStripMenuItem();
             mnuInsert = new System.Windows.Forms.ToolStripMenuItem();
+            mnuInsertRoom = new System.Windows.Forms.ToolStripMenuItem();
+            mnuInsertTransfer = new System.Windows.Forms.ToolStripMenuItem();
+            mnuInsertComment = new System.Windows.Forms.ToolStripMenuItem();
             mnuSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuEditSep1 = new System.Windows.Forms.ToolStripSeparator();
             mnuOrder = new System.Windows.Forms.ToolStripMenuItem();
@@ -39,9 +42,11 @@ namespace WinAGI.Editor {
             mnuOrderDown = new System.Windows.Forms.ToolStripMenuItem();
             mnuOrderFront = new System.Windows.Forms.ToolStripMenuItem();
             mnuOrderBack = new System.Windows.Forms.ToolStripMenuItem();
+            mnuToggleTransPt = new System.Windows.Forms.ToolStripMenuItem();
             mnuTogglePicture = new System.Windows.Forms.ToolStripMenuItem();
-            mnuToggleGrid = new System.Windows.Forms.ToolStripMenuItem();
             mnuProperties = new System.Windows.Forms.ToolStripMenuItem();
+            mnuEditSep2 = new System.Windows.Forms.ToolStripSeparator();
+            mnuToggleGrid = new System.Windows.Forms.ToolStripMenuItem();
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             mnuResource = new System.Windows.Forms.ToolStripMenuItem();
             mnuROpen = new System.Windows.Forms.ToolStripMenuItem();
@@ -75,12 +80,11 @@ namespace WinAGI.Editor {
             btnBack = new System.Windows.Forms.ToolStripButton();
             btnZoomIn = new System.Windows.Forms.ToolStripButton();
             btnZoomOut = new System.Windows.Forms.ToolStripButton();
-            picDraw = new System.Windows.Forms.PictureBox();
+            picDraw = new SelectablePictureBox();
             tmrScroll = new System.Windows.Forms.Timer(components);
             vScrollBar1 = new VScrollBarMouseAware();
             hScrollBar1 = new HScrollBarMouseAware();
             txtComment = new System.Windows.Forms.TextBox();
-            mnuEditSep2 = new System.Windows.Forms.ToolStripSeparator();
             contextMenuStrip1.SuspendLayout();
             menuStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
@@ -89,9 +93,9 @@ namespace WinAGI.Editor {
             // 
             // contextMenuStrip1
             // 
-            contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuShowRoom, mnuEditLogic, mnuEditPicture, mnuDelete, mnuInsert, mnuSelectAll, mnuEditSep1, mnuOrder, mnuTogglePicture, mnuProperties, mnuEditSep2, mnuToggleGrid });
+            contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuShowRoom, mnuHideRoom, mnuEditLogic, mnuEditPicture, mnuDelete, mnuInsert, mnuSelectAll, mnuEditSep1, mnuOrder, mnuToggleTransPt, mnuTogglePicture, mnuProperties, mnuEditSep2, mnuToggleGrid });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(248, 258);
+            contextMenuStrip1.Size = new System.Drawing.Size(266, 302);
             contextMenuStrip1.Closed += contextMenuStrip1_Closed;
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
@@ -99,15 +103,23 @@ namespace WinAGI.Editor {
             // 
             mnuShowRoom.Name = "mnuShowRoom";
             mnuShowRoom.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.S;
-            mnuShowRoom.Size = new System.Drawing.Size(247, 22);
+            mnuShowRoom.Size = new System.Drawing.Size(265, 22);
             mnuShowRoom.Text = "Show Room";
             mnuShowRoom.Click += mnuShowRoom_Click;
+            // 
+            // mnuHideRoom
+            // 
+            mnuHideRoom.Name = "mnuHideRoom";
+            mnuHideRoom.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.H;
+            mnuHideRoom.Size = new System.Drawing.Size(265, 22);
+            mnuHideRoom.Text = "Hide Room";
+            mnuHideRoom.Click += mnuHideRoom_Click;
             // 
             // mnuEditLogic
             // 
             mnuEditLogic.Name = "mnuEditLogic";
             mnuEditLogic.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.L;
-            mnuEditLogic.Size = new System.Drawing.Size(247, 22);
+            mnuEditLogic.Size = new System.Drawing.Size(265, 22);
             mnuEditLogic.Text = "Edit Logic";
             mnuEditLogic.Click += mnuEditLogic_Click;
             // 
@@ -115,7 +127,7 @@ namespace WinAGI.Editor {
             // 
             mnuEditPicture.Name = "mnuEditPicture";
             mnuEditPicture.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.P;
-            mnuEditPicture.Size = new System.Drawing.Size(247, 22);
+            mnuEditPicture.Size = new System.Drawing.Size(265, 22);
             mnuEditPicture.Text = "Edit Picture";
             mnuEditPicture.Click += mnuEditPicture_Click;
             // 
@@ -123,89 +135,131 @@ namespace WinAGI.Editor {
             // 
             mnuDelete.Name = "mnuDelete";
             mnuDelete.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            mnuDelete.Size = new System.Drawing.Size(247, 22);
+            mnuDelete.Size = new System.Drawing.Size(265, 22);
             mnuDelete.Text = "Delete";
             mnuDelete.Click += mnuDelete_Click;
             // 
             // mnuInsert
             // 
+            mnuInsert.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuInsertRoom, mnuInsertTransfer, mnuInsertComment });
             mnuInsert.Name = "mnuInsert";
-            mnuInsert.ShortcutKeys = System.Windows.Forms.Keys.Insert;
-            mnuInsert.Size = new System.Drawing.Size(247, 22);
-            mnuInsert.Text = "Insert Transfer";
-            mnuInsert.Click += mnuInsert_Click;
+            mnuInsert.Size = new System.Drawing.Size(265, 22);
+            mnuInsert.Text = "Insert";
+            // 
+            // mnuInsertRoom
+            // 
+            mnuInsertRoom.Name = "mnuInsertRoom";
+            mnuInsertRoom.ShortcutKeys = System.Windows.Forms.Keys.Insert;
+            mnuInsertRoom.Size = new System.Drawing.Size(177, 22);
+            mnuInsertRoom.Text = "New Room";
+            mnuInsertRoom.Click += mnuInsertRoom_Click;
+            // 
+            // mnuInsertTransfer
+            // 
+            mnuInsertTransfer.Name = "mnuInsertTransfer";
+            mnuInsertTransfer.ShortcutKeyDisplayString = "Shift+Ins";
+            mnuInsertTransfer.ShortcutKeys = System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.Insert;
+            mnuInsertTransfer.Size = new System.Drawing.Size(177, 22);
+            mnuInsertTransfer.Text = "Transfer";
+            mnuInsertTransfer.Click += mnuInsertTransfer_Click;
+            // 
+            // mnuInsertComment
+            // 
+            mnuInsertComment.Name = "mnuInsertComment";
+            mnuInsertComment.ShortcutKeyDisplayString = "Ctrl+Ins";
+            mnuInsertComment.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Insert;
+            mnuInsertComment.Size = new System.Drawing.Size(177, 22);
+            mnuInsertComment.Text = "Comment";
+            mnuInsertComment.Click += mnuInsertComment_Click;
             // 
             // mnuSelectAll
             // 
             mnuSelectAll.Name = "mnuSelectAll";
             mnuSelectAll.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.A;
-            mnuSelectAll.Size = new System.Drawing.Size(247, 22);
+            mnuSelectAll.Size = new System.Drawing.Size(265, 22);
             mnuSelectAll.Text = "Select All";
             mnuSelectAll.Click += mnuSelectAll_Click;
             // 
             // mnuEditSep1
             // 
             mnuEditSep1.Name = "mnuEditSep1";
-            mnuEditSep1.Size = new System.Drawing.Size(244, 6);
+            mnuEditSep1.Size = new System.Drawing.Size(262, 6);
             // 
             // mnuOrder
             // 
             mnuOrder.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuOrderUp, mnuOrderDown, mnuOrderFront, mnuOrderBack });
             mnuOrder.Name = "mnuOrder";
-            mnuOrder.Size = new System.Drawing.Size(247, 22);
+            mnuOrder.Size = new System.Drawing.Size(265, 22);
             mnuOrder.Text = "Order";
             // 
             // mnuOrderUp
             // 
             mnuOrderUp.Name = "mnuOrderUp";
-            mnuOrderUp.Size = new System.Drawing.Size(147, 22);
+            mnuOrderUp.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.U;
+            mnuOrderUp.Size = new System.Drawing.Size(221, 22);
             mnuOrderUp.Text = "Move Up";
             mnuOrderUp.Click += mnuOrderUp_Click;
             // 
             // mnuOrderDown
             // 
             mnuOrderDown.Name = "mnuOrderDown";
-            mnuOrderDown.Size = new System.Drawing.Size(147, 22);
+            mnuOrderDown.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.D;
+            mnuOrderDown.Size = new System.Drawing.Size(221, 22);
             mnuOrderDown.Text = "Move Down";
             mnuOrderDown.Click += mnuOrderDown_Click;
             // 
             // mnuOrderFront
             // 
             mnuOrderFront.Name = "mnuOrderFront";
-            mnuOrderFront.Size = new System.Drawing.Size(147, 22);
+            mnuOrderFront.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.U;
+            mnuOrderFront.Size = new System.Drawing.Size(221, 22);
             mnuOrderFront.Text = "Bring to Front";
             mnuOrderFront.Click += mnuOrderFront_Click;
             // 
             // mnuOrderBack
             // 
             mnuOrderBack.Name = "mnuOrderBack";
-            mnuOrderBack.Size = new System.Drawing.Size(147, 22);
+            mnuOrderBack.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.D;
+            mnuOrderBack.Size = new System.Drawing.Size(221, 22);
             mnuOrderBack.Text = "Send to Back";
             mnuOrderBack.Click += mnuOrderBack_Click;
+            // 
+            // mnuToggleTransPt
+            // 
+            mnuToggleTransPt.Name = "mnuToggleTransPt";
+            mnuToggleTransPt.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.O;
+            mnuToggleTransPt.Size = new System.Drawing.Size(265, 22);
+            mnuToggleTransPt.Text = "Jump to Other Transfer Point";
+            mnuToggleTransPt.Click += mnuToggleTransPt_Click;
             // 
             // mnuTogglePicture
             // 
             mnuTogglePicture.Name = "mnuTogglePicture";
             mnuTogglePicture.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.P;
-            mnuTogglePicture.Size = new System.Drawing.Size(247, 22);
+            mnuTogglePicture.Size = new System.Drawing.Size(265, 22);
             mnuTogglePicture.Text = "Show Room Picture";
-            mnuTogglePicture.Click += mnuShowPicture_Click;
+            mnuTogglePicture.Click += mnuTogglePicture_Click;
+            // 
+            // mnuProperties
+            // 
+            mnuProperties.Name = "mnuProperties";
+            mnuProperties.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.P;
+            mnuProperties.Size = new System.Drawing.Size(265, 22);
+            mnuProperties.Text = "Room Properties";
+            mnuProperties.Click += mnuProperties_Click;
+            // 
+            // mnuEditSep2
+            // 
+            mnuEditSep2.Name = "mnuEditSep2";
+            mnuEditSep2.Size = new System.Drawing.Size(262, 6);
             // 
             // mnuToggleGrid
             // 
             mnuToggleGrid.Name = "mnuToggleGrid";
             mnuToggleGrid.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.G;
-            mnuToggleGrid.Size = new System.Drawing.Size(247, 22);
+            mnuToggleGrid.Size = new System.Drawing.Size(265, 22);
             mnuToggleGrid.Text = "Hide Grid Lines";
             mnuToggleGrid.Click += mnuToggleGrid_Click;
-            // 
-            // mnuProperties
-            // 
-            mnuProperties.Name = "mnuProperties";
-            mnuProperties.ShortcutKeys = System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.P;
-            mnuProperties.Size = new System.Drawing.Size(247, 22);
-            mnuProperties.Text = "Room Properties";
-            mnuProperties.Click += mnuProperties_Click;
             // 
             // menuStrip1
             // 
@@ -213,7 +267,7 @@ namespace WinAGI.Editor {
             menuStrip1.Location = new System.Drawing.Point(0, 0);
             menuStrip1.Name = "menuStrip1";
             menuStrip1.Size = new System.Drawing.Size(815, 24);
-            menuStrip1.TabIndex = 1;
+            menuStrip1.TabIndex = 4;
             menuStrip1.Text = "menuStrip1";
             menuStrip1.Visible = false;
             // 
@@ -347,17 +401,20 @@ namespace WinAGI.Editor {
             toolStrip1.Location = new System.Drawing.Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new System.Drawing.Size(815, 31);
-            toolStrip1.TabIndex = 2;
+            toolStrip1.TabIndex = 5;
             toolStrip1.Text = "toolStrip1";
             // 
             // btnSelect
             // 
+            btnSelect.Checked = true;
+            btnSelect.CheckState = System.Windows.Forms.CheckState.Checked;
             btnSelect.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             btnSelect.Image = (System.Drawing.Image)resources.GetObject("btnSelect.Image");
             btnSelect.ImageTransparentColor = System.Drawing.Color.Magenta;
             btnSelect.Name = "btnSelect";
             btnSelect.Size = new System.Drawing.Size(28, 28);
             btnSelect.Text = "Select";
+            btnSelect.Click += btnSelect_Click;
             // 
             // btnEdge1
             // 
@@ -367,6 +424,7 @@ namespace WinAGI.Editor {
             btnEdge1.Name = "btnEdge1";
             btnEdge1.Size = new System.Drawing.Size(28, 28);
             btnEdge1.Text = "One Way Exit";
+            btnEdge1.Click += btnEdge1_Click;
             // 
             // btnEdge2
             // 
@@ -376,6 +434,7 @@ namespace WinAGI.Editor {
             btnEdge2.Name = "btnEdge2";
             btnEdge2.Size = new System.Drawing.Size(28, 28);
             btnEdge2.Text = "Two Way Exit";
+            btnEdge2.Click += btnEdge2_Click;
             // 
             // btnEdgeOther
             // 
@@ -385,6 +444,7 @@ namespace WinAGI.Editor {
             btnEdgeOther.Name = "btnEdgeOther";
             btnEdgeOther.Size = new System.Drawing.Size(28, 28);
             btnEdgeOther.Text = "Other Exit";
+            btnEdgeOther.Click += btnEdgeOther_Click;
             // 
             // btnAddRoom
             // 
@@ -394,6 +454,7 @@ namespace WinAGI.Editor {
             btnAddRoom.Name = "btnAddRoom";
             btnAddRoom.Size = new System.Drawing.Size(28, 28);
             btnAddRoom.Text = "New Room";
+            btnAddRoom.Click += mnuInsertRoom_Click;
             // 
             // btnAddComment
             // 
@@ -403,6 +464,7 @@ namespace WinAGI.Editor {
             btnAddComment.Name = "btnAddComment";
             btnAddComment.Size = new System.Drawing.Size(28, 28);
             btnAddComment.Text = "Add Comment";
+            btnAddComment.Click += mnuInsertComment_Click;
             // 
             // toolStripSeparator4
             // 
@@ -412,20 +474,24 @@ namespace WinAGI.Editor {
             // btnDelete
             // 
             btnDelete.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnDelete.Enabled = false;
             btnDelete.Image = (System.Drawing.Image)resources.GetObject("btnDelete.Image");
             btnDelete.ImageTransparentColor = System.Drawing.Color.Magenta;
             btnDelete.Name = "btnDelete";
             btnDelete.Size = new System.Drawing.Size(28, 28);
             btnDelete.Text = "Delete";
+            btnDelete.Click += mnuDelete_Click;
             // 
             // btnTransfer
             // 
             btnTransfer.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnTransfer.Enabled = false;
             btnTransfer.Image = (System.Drawing.Image)resources.GetObject("btnTransfer.Image");
             btnTransfer.ImageTransparentColor = System.Drawing.Color.Magenta;
             btnTransfer.Name = "btnTransfer";
             btnTransfer.Size = new System.Drawing.Size(28, 28);
             btnTransfer.Text = "Insert Transfer";
+            btnTransfer.Click += mnuInsertTransfer_Click;
             // 
             // btnShowRoom
             // 
@@ -435,15 +501,18 @@ namespace WinAGI.Editor {
             btnShowRoom.Name = "btnShowRoom";
             btnShowRoom.Size = new System.Drawing.Size(28, 28);
             btnShowRoom.Text = "Show Room";
+            btnShowRoom.Click += mnuShowRoom_Click;
             // 
             // btnHideRoom
             // 
             btnHideRoom.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnHideRoom.Enabled = false;
             btnHideRoom.Image = (System.Drawing.Image)resources.GetObject("btnHideRoom.Image");
             btnHideRoom.ImageTransparentColor = System.Drawing.Color.Magenta;
             btnHideRoom.Name = "btnHideRoom";
             btnHideRoom.Size = new System.Drawing.Size(28, 28);
             btnHideRoom.Text = "Hide Room";
+            btnHideRoom.Click += mnuHideRoom_Click;
             // 
             // toolStripSeparator5
             // 
@@ -453,6 +522,7 @@ namespace WinAGI.Editor {
             // btnFront
             // 
             btnFront.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnFront.Enabled = false;
             btnFront.Image = (System.Drawing.Image)resources.GetObject("btnFront.Image");
             btnFront.ImageTransparentColor = System.Drawing.Color.Magenta;
             btnFront.Name = "btnFront";
@@ -463,6 +533,7 @@ namespace WinAGI.Editor {
             // btnBack
             // 
             btnBack.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnBack.Enabled = false;
             btnBack.Image = (System.Drawing.Image)resources.GetObject("btnBack.Image");
             btnBack.ImageTransparentColor = System.Drawing.Color.Magenta;
             btnBack.Name = "btnBack";
@@ -497,9 +568,12 @@ namespace WinAGI.Editor {
             picDraw.ContextMenuStrip = contextMenuStrip1;
             picDraw.Location = new System.Drawing.Point(0, 31);
             picDraw.Name = "picDraw";
+            picDraw.ShowFocusRectangle = false;
             picDraw.Size = new System.Drawing.Size(795, 260);
-            picDraw.TabIndex = 3;
+            picDraw.TabIndex = 0;
             picDraw.TabStop = false;
+            picDraw.KeyDown += picDraw_KeyDown;
+            picDraw.Paint += picDraw_Paint;
             picDraw.MouseDoubleClick += picDraw_MouseDoubleClick;
             picDraw.MouseDown += picDraw_MouseDown;
             picDraw.MouseLeave += picDraw_MouseLeave;
@@ -516,9 +590,10 @@ namespace WinAGI.Editor {
             vScrollBar1.Location = new System.Drawing.Point(797, 31);
             vScrollBar1.Name = "vScrollBar1";
             vScrollBar1.Size = new System.Drawing.Size(17, 263);
-            vScrollBar1.TabIndex = 4;
+            vScrollBar1.TabIndex = 2;
             vScrollBar1.TabStop = true;
             vScrollBar1.ValueChanged += vScrollBar1_ValueChanged;
+            vScrollBar1.Enter += vScrollBar1_Enter;
             // 
             // hScrollBar1
             // 
@@ -526,9 +601,10 @@ namespace WinAGI.Editor {
             hScrollBar1.Location = new System.Drawing.Point(0, 294);
             hScrollBar1.Name = "hScrollBar1";
             hScrollBar1.Size = new System.Drawing.Size(798, 17);
-            hScrollBar1.TabIndex = 5;
+            hScrollBar1.TabIndex = 1;
             hScrollBar1.TabStop = true;
             hScrollBar1.ValueChanged += hScrollBar1_ValueChanged;
+            hScrollBar1.Enter += hScrollBar1_Enter;
             // 
             // txtComment
             // 
@@ -540,35 +616,36 @@ namespace WinAGI.Editor {
             txtComment.Multiline = true;
             txtComment.Name = "txtComment";
             txtComment.Size = new System.Drawing.Size(124, 126);
-            txtComment.TabIndex = 6;
+            txtComment.TabIndex = 3;
             txtComment.TabStop = false;
             txtComment.Visible = false;
-            // 
-            // mnuEditSep2
-            // 
-            mnuEditSep2.Name = "mnuEditSep2";
-            mnuEditSep2.Size = new System.Drawing.Size(244, 6);
+            txtComment.TextChanged += txtComment_TextChanged;
+            txtComment.Enter += txtComment_Enter;
+            txtComment.KeyDown += txtComment_KeyDown;
+            txtComment.Leave += txtComment_Leave;
             // 
             // frmLayout
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(815, 311);
-            Controls.Add(txtComment);
+            Controls.Add(picDraw);
             Controls.Add(hScrollBar1);
             Controls.Add(vScrollBar1);
-            Controls.Add(picDraw);
+            Controls.Add(txtComment);
             Controls.Add(toolStrip1);
             Controls.Add(menuStrip1);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            KeyPreview = true;
             MainMenuStrip = menuStrip1;
             Name = "frmLayout";
             StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
             Text = "frmLayout";
             FormClosing += frmLayout_FormClosing;
             FormClosed += frmLayout_FormClosed;
-            Load += frmLayout_Load;
             VisibleChanged += frmLayout_VisibleChanged;
+            KeyDown += frmLayout_KeyDown;
+            KeyUp += frmLayout_KeyUp;
             Resize += frmLayout_Resize;
             contextMenuStrip1.ResumeLayout(false);
             menuStrip1.ResumeLayout(false);
@@ -625,7 +702,7 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripButton btnBack;
         private System.Windows.Forms.ToolStripButton btnZoomIn;
         private System.Windows.Forms.ToolStripButton btnZoomOut;
-        private System.Windows.Forms.PictureBox picDraw;
+        private SelectablePictureBox picDraw;
         private System.Windows.Forms.Timer tmrScroll;
         private VScrollBarMouseAware vScrollBar1;
         private HScrollBarMouseAware hScrollBar1;
@@ -637,5 +714,10 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuOrderFront;
         private System.Windows.Forms.ToolStripMenuItem mnuOrderBack;
         private System.Windows.Forms.ToolStripSeparator mnuEditSep2;
+        private System.Windows.Forms.ToolStripMenuItem mnuHideRoom;
+        private System.Windows.Forms.ToolStripMenuItem mnuInsertRoom;
+        private System.Windows.Forms.ToolStripMenuItem mnuInsertTransfer;
+        private System.Windows.Forms.ToolStripMenuItem mnuInsertComment;
+        private System.Windows.Forms.ToolStripMenuItem mnuToggleTransPt;
     }
 }

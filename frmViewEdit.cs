@@ -5,21 +5,15 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Common.API;
 using static WinAGI.Common.Base;
-using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
 using static WinAGI.Editor.ViewUndo.ActionType;
-using WinAGI.Common;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
-using EnvDTE;
-using System.Numerics;
 
 namespace WinAGI.Editor {
     public partial class frmViewEdit : ClipboardMonitor, IMessageFilter {
@@ -252,7 +246,6 @@ namespace WinAGI.Editor {
             // and handle it manually
             const int WM_MOUSEWHEEL = 0x020A;
             if (m.Msg == WM_MOUSEWHEEL) {
-                //if (Control.FromHandle(m.HWnd) is Control control && InSplitContainer(control)) {
                 if (Control.FromHandle(m.HWnd) is Control control) {
                     if (control == picCel) {
                         int fwKeys = (int)m.WParam & 0xffff;
@@ -402,9 +395,9 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
-        /// Dynamic function to reset the resource menu.
+        /// Resets all resource menu items so shortcut keys can work correctly.
         /// </summary>
-        public void ResetResourceMenu() {
+        internal void ResetResourceMenu() {
             mnuRSave.Enabled = true;
             mnuRExport.Enabled = true;
             mnuRInGame.Enabled = true;
@@ -413,18 +406,18 @@ namespace WinAGI.Editor {
             mnuRExportLoopGIF.Enabled = true;
         }
 
-        public void mnuRSave_Click(object sender, EventArgs e) {
+        internal void mnuRSave_Click(object sender, EventArgs e) {
             if (IsChanged) {
                 // save the view
                 SaveView();
             }
         }
 
-        public void mnuRExport_Click(object sender, EventArgs e) {
+        internal void mnuRExport_Click(object sender, EventArgs e) {
             ExportView();
         }
 
-        public void mnuRInGame_Click(object sender, EventArgs e) {
+        internal void mnuRInGame_Click(object sender, EventArgs e) {
             if (EditGame != null) {
                 ToggleInGame();
             }
@@ -716,7 +709,7 @@ namespace WinAGI.Editor {
         }
 
         private void ConfigureToolbar() {
-            //tsbUndo - handled inline
+            // tsbUndo is handled inline
             switch (ViewMode) {
             case ViewEditMode.View:
                 tsbCut.Enabled = false;
@@ -871,7 +864,6 @@ namespace WinAGI.Editor {
         private void mnuUndo_Click(object sender, EventArgs e) {
             int i, j;
             byte CelWidth, CelHeight;
-            //byte CelStartX, CelStartY, CelEndX, CelEndY;
             int startx, starty, endx, endy;
 
             if (UndoCol.Count == 0) {
@@ -1784,7 +1776,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 else {
-                    //right:
+                    // right:
                     // context menu
                 }
             }
@@ -2252,7 +2244,6 @@ namespace WinAGI.Editor {
                     if (newT > VE_MARGIN) {
                         newT = VE_MARGIN;
                     }
-                    //pnlPreview.Top = -vsbPreview.Value + toolStrip2.Bottom;
                     pnlPreview.Top = newT + toolStrip2.Bottom;
                     vsbPreview.Value = -newT;
                     Debug.Print("drag newT: " + newT);
@@ -2279,7 +2270,7 @@ namespace WinAGI.Editor {
                 }
             }
             NewPalette.Dispose();
-            //force redraw of preview cel
+            // force redraw of preview cel
             if (pnlPreview.Visible) {
                 DisplayCel();
             }
@@ -2333,7 +2324,7 @@ namespace WinAGI.Editor {
                 dash1.DashOffset = dashdistance;
                 dash2.DashOffset = dashdistance - 3;
 
-                //force refresh
+                // force refresh
                 picCel.Invalidate();
             }
         }
@@ -2463,19 +2454,6 @@ namespace WinAGI.Editor {
                 break;
             }
         }
-
-        #endregion
-
-        #region temp code
-        void tmpviewform() {
-            /*
-      public void MenuClickHelp() {
-        // help
-        Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\View_Editor.htm");
-      return;
-      }
-            */
-        }
         #endregion
 
         #region Methods
@@ -2559,7 +2537,7 @@ namespace WinAGI.Editor {
             }
             Text = sVIEWED + ResourceName(EditView, InGame, true);
             if (IsChanged) {
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
             MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
@@ -2589,7 +2567,7 @@ namespace WinAGI.Editor {
                 tmpView.Import(importfile);
             }
             catch (Exception e) {
-                //something wrong
+                // something wrong
                 MDIMain.UseWaitCursor = false;
                 ErrMsgBox(e, "Error while importing view:", "Unable to load this view resource.", "Import View Error");
                 return;
@@ -2597,9 +2575,9 @@ namespace WinAGI.Editor {
             // now check to see if it's a valid view resource (by trying to reload it)
             tmpView.Load();
             if (tmpView.ErrLevel < 0) {
-                MDIMain.UseWaitCursor = false;
                 ErrMsgBox(tmpView.ErrLevel, "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource");
-                //restore main form mousepointer and exit
+                // restore main form mousepointer and exit
+                MDIMain.UseWaitCursor = false;
                 return;
             }
             // copy only the resource data
@@ -2702,7 +2680,6 @@ namespace WinAGI.Editor {
                     strExportName = NewResourceName(EditView, InGame);
                     if (strExportName.Length > 0) {
                         EditView.Export(strExportName);
-                        //UpdateStatusBar();
                     }
                     break;
                 case DialogResult.No:
@@ -2768,7 +2745,7 @@ namespace WinAGI.Editor {
                 ViewNumber = NewResNum;
                 Text = sPICED + ResourceName(EditView, InGame, true);
                 if (IsChanged) {
-                    Text = sDM + Text;
+                    Text = CHG_MARKER + Text;
                 }
                 if (EditView.ID != oldid) {
                     if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
@@ -2789,7 +2766,7 @@ namespace WinAGI.Editor {
                     EditView.ID = id;
                     Text = sSNDED + ResourceName(EditView, InGame, true);
                     if (IsChanged) {
-                        Text = sDM + Text;
+                        Text = CHG_MARKER + Text;
                     }
                 }
             }
@@ -3313,7 +3290,6 @@ namespace WinAGI.Editor {
 
             if (!DontUndo) {
                 int CelWidth = EditView[SelectedLoop][SelectedCel].Width;
-                //set undo properties
                 ViewUndo NextUndo = new();
                 NextUndo.UDLoopNo = SelectedLoop;
                 NextUndo.UDCelNo = SelectedCel;
@@ -3327,7 +3303,7 @@ namespace WinAGI.Editor {
                     byte[,] tmpCelData = new byte[CelWidth, CelHeight - NewCelHeight];
                     for (int j = NewCelHeight; j < CelHeight; j++) {
                         for (int i = 0; i < CelWidth; i++) {
-                            //add this cel pixel's color
+                            // add this cel pixel's color
                             tmpCelData[i, j - NewCelHeight] = EditView[SelectedLoop][SelectedCel][i, j];
                         }
                     }
@@ -3777,7 +3753,7 @@ namespace WinAGI.Editor {
                 tmrSelect.Enabled = true;
                 AnchorPt = new(0, 0);
                 SelectRegion(new(EditView[SelectedLoop][SelectedCel].Width - 1, EditView[SelectedLoop][SelectedCel].Height - 1));
-                //set the selection
+                // set the selection
                 SetSelection();
                 // always reset operation
                 CurrentOperation = ViewEditOperation.opNone;
@@ -4021,9 +3997,7 @@ namespace WinAGI.Editor {
             // convert to scale
             startpt.X *= (int)(2 * ScaleFactor);
             startpt.Y *= (int)ScaleFactor;
-            //p2.X++;
             endpt.X *= (int)(2 * ScaleFactor);
-            //p2.Y++;
             endpt.Y *= (int)ScaleFactor;
 
             if (BoxFill) {
@@ -4371,7 +4345,7 @@ namespace WinAGI.Editor {
                     }
                     // adjust panel size to hold all cels
                     ResizePreviewPanel();
-                    //set scroll bars everytime loop is changed
+                    // set scroll bars everytime loop is changed
                     SetPScrollbars();
                     // display the preview cel
                     DisplayPrevCel();
@@ -4659,17 +4633,25 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
-            //return best match
+            // return best match
             return closestcolor;
         }
 
         private void AddUndo(ViewUndo NextUndo) {
-            //adds the next undo object
+            // adds the next undo object
             if (!IsChanged) {
                 MarkAsChanged();
             }
             UndoCol.Push(NextUndo);
             tsbUndo.Enabled = true;
+        }
+
+        internal void ShowHelp() {
+            string strTopic = "htm\\winagi\\View_Editor.htm";
+
+            // TODO: add context sensitive help
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            return;
         }
 
         private bool AskClose() {
@@ -4717,7 +4699,7 @@ namespace WinAGI.Editor {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
                 MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
-                Text = sDM + Text;
+                Text = CHG_MARKER + Text;
             }
         }
 

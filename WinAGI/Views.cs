@@ -121,7 +121,7 @@ namespace WinAGI.Engine {
             // force flags so save function will work
             agResource.IsChanged = true;
             agResource.PropsChanged = true;
-            //save new view to add it to VOL file
+            // save new view to add it to VOL file
             agResource.Save();
             LogicCompiler.blnSetIDs = false;
             return agResource;
@@ -168,7 +168,7 @@ namespace WinAGI.Engine {
             if (!Col.TryGetValue(OldView, out tmpView)) {
                 throw new IndexOutOfRangeException("view does not exist");
             }
-            //verify new number is not in collection
+            // verify new number is not in collection
             if (Col.ContainsKey(NewView)) {
                 WinAGIException wex = new(LoadResString(669)) {
                     HResult = WINAGI_ERR + 669

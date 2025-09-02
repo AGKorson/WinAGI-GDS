@@ -2,9 +2,6 @@
 using System.Windows.Forms;
 using static WinAGI.Editor.Base;
 using WinAGI.Engine;
-using static WinAGI.Editor.Base.GetRes;
-using System.Windows.Forms.Design;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace WinAGI.Editor {
     public partial class frmEditResourceProperties : Form {
@@ -20,7 +17,7 @@ namespace WinAGI.Editor {
             case AGIResType.Sound:
             case AGIResType.View:
                 if (InGame) {
-                    chkUpdate.Checked = DefUpdateVal;
+                    chkUpdate.Checked = DefUpdateLogics;
                     lblID.Text = "Resource ID for " + EWMode.ToString() + " " + ResNum + ": ";
                 }
                 else {

@@ -311,13 +311,10 @@ namespace WinAGI.Engine {
             InventoryItem tmpItem;
             mMaxScreenObjects = defMaxSO;
             // add placeholder for item 0
-            //tmpItem = new InventoryItem(this) {
-            //    ItemName = "?",
-            //    Room = 0
-            //};
-            tmpItem = new InventoryItem(this);
-            tmpItem.mItemName = "?";
-            tmpItem.mRoom = 0;
+            tmpItem = new InventoryItem(this) {
+                mItemName = "?",
+                mRoom = 0
+            };
             mItems.Add(tmpItem);
         }
 
@@ -460,7 +457,6 @@ namespace WinAGI.Engine {
                     retval |= 2;
                     intItem++;
                     continue;
-                    //return retval;
                 }
                 // build item name string
                 sbItem = new();
@@ -642,7 +638,7 @@ namespace WinAGI.Engine {
             }
             if (mEncrypted) {
                 for (lngPos = 0; lngPos < bytTemp.Length; lngPos++) {
-                    //encrypt with 'Avis Durgan'
+                    // encrypt with 'Avis Durgan'
                     bytTemp[lngPos] ^= bytEncryptKey[lngPos % 11];
                 }
             }
@@ -712,7 +708,7 @@ namespace WinAGI.Engine {
             }
             InventoryItem tmpItem = mItems[Index];
 
-            //if this item is currently a duplicate, 
+            // if this item is currently a duplicate, 
             // need to de-unique-ify this item
             if (!tmpItem.Unique) {
                 // there are at least two objects with this item name;
@@ -753,7 +749,7 @@ namespace WinAGI.Engine {
                 mItems.RemoveAt(Index);
             }
             else {
-                //set item to '?'
+                // set item to '?'
                 mItems[Index].Unique = true;
                 mItems[Index].ItemName = "?";
                 mItems[Index].Room = 0;

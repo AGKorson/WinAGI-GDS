@@ -25,6 +25,8 @@
         private void InitializeComponent() {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmLogicEdit));
+            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("");
+            System.Windows.Forms.ListViewItem listViewItem2 = new System.Windows.Forms.ListViewItem("");
             menuStrip1 = new System.Windows.Forms.MenuStrip();
             mnuResource = new System.Windows.Forms.ToolStripMenuItem();
             mnuROpenRes = new System.Windows.Forms.ToolStripMenuItem();
@@ -609,7 +611,6 @@
             rtfLogic2.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic2.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic2.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
-            rtfLogic2.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic2.Hotkeys = resources.GetString("rtfLogic2.Hotkeys");
             rtfLogic2.IsReplaceMode = false;
             rtfLogic2.LineNumberStartValue = 0U;
@@ -667,7 +668,6 @@
             rtfLogic1.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rtfLogic1.Dock = System.Windows.Forms.DockStyle.Fill;
             rtfLogic1.FindEndOfFoldingBlockStrategy = FastColoredTextBoxNS.FindEndOfFoldingBlockStrategy.Strategy2;
-            rtfLogic1.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogic1.Hotkeys = resources.GetString("rtfLogic1.Hotkeys");
             rtfLogic1.IsReplaceMode = false;
             rtfLogic1.LineNumberStartValue = 0U;
@@ -721,6 +721,7 @@
             lstDefines.FullRowSelect = true;
             lstDefines.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.None;
             lstDefines.HideSelection = true;
+            lstDefines.Items.AddRange(new System.Windows.Forms.ListViewItem[] { listViewItem1, listViewItem2 });
             lstDefines.Location = new System.Drawing.Point(408, 44);
             lstDefines.MultiSelect = false;
             lstDefines.Name = "lstDefines";
@@ -735,8 +736,10 @@
             lstDefines.View = System.Windows.Forms.View.Details;
             lstDefines.Visible = false;
             lstDefines.VisibleChanged += lstDefines_VisibleChanged;
+            lstDefines.KeyDown += lstDefines_KeyDown;
             lstDefines.KeyPress += lstDefines_KeyPress;
             lstDefines.MouseDoubleClick += lstDefines_MouseDoubleClick;
+            lstDefines.PreviewKeyDown += lstDefines_PreviewKeyDown;
             // 
             // columnHeader1
             // 

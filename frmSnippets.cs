@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Common;
-using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
@@ -76,6 +70,14 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void frmSnippets_KeyDown(object sender, KeyEventArgs e) {
+            if (e.KeyCode == Keys.F1) {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                ShowHelp();
+            }
+        }
+        
         private void btnClose_Click(object sender, EventArgs e) {
             this.Close();
             this.Dispose();
@@ -84,7 +86,7 @@ namespace WinAGI.Editor {
         private void btnDelete_Click(object sender, EventArgs e) {
             // delete the snippet from the listbox
             lstSnippets.Items.RemoveAt(lstSnippets.SelectedIndex);
-            //select nothing
+            // select nothing
             lstSnippets.SelectedIndex = -1;
             IsChanged = true;
         }
@@ -156,7 +158,7 @@ namespace WinAGI.Editor {
                 txtSnipName.ReadOnly = true;
                 rtfSnipValue.Text = snippet.Value;
                 rtfSnipValue.ReadOnly = false;
-                //'argument tips
+                // argument tips
                 txtArgTips.Text = snippet.ArgTips;
                 txtArgTips.Visible = lblArgTips.Visible = txtArgTips.Text.Length > 0;
                 txtArgTips.ReadOnly = true;
@@ -201,6 +203,14 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void txtArgTips_DoubleClick(object sender, EventArgs e) {
+            if (txtSnipName.ReadOnly) {
+                if (lstSnippets.SelectedIndex != -1) {
+                    BeginEdit(txtArgTips);
+                }
+            }
+        }
+
         private void txtArgTips_KeyPress(object sender, KeyPressEventArgs e) {
             if (e.KeyChar == (char)Keys.Return) {
                 e.Handled = true;
@@ -208,6 +218,7 @@ namespace WinAGI.Editor {
             }
         }
 
+        #region Context Menu Events
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
             if (txtSnipName.ReadOnly) {
                 e.Cancel = true;
@@ -278,9 +289,10 @@ namespace WinAGI.Editor {
             CharPicker.Close();
             CharPicker.Dispose();
         }
-
+        #endregion
         #endregion
 
+        #region Methods
         internal void InitFonts() {
             rtfSnipValue.ForeColor = WinAGISettings.SyntaxStyle[0].Color.Value;
             rtfSnipValue.BackColor = WinAGISettings.EditorBackColor.Value;
@@ -295,7 +307,7 @@ namespace WinAGI.Editor {
                 AGISyntaxHighlight(rtfSnipValue.Range);
             }
             else {
-                //clear all styles of changed range
+                // clear all styles of changed range
                 rtfSnipValue.Range.ClearStyle(StyleIndex.All);
             }
         }
@@ -343,7 +355,7 @@ namespace WinAGI.Editor {
         }
 
         public void AGISyntaxHighlight(FastColoredTextBoxNS.Range range) {
-            //clear all styles of changed range
+            // clear all styles of changed range
             range.ClearStyle(StyleIndex.All);
             range.SetStyle(CommentStyle, CommentStyleRegEx1, RegexOptions.Multiline);
             range.SetStyle(CommentStyle, CommentStyleRegEx2, RegexOptions.Multiline);
@@ -356,10 +368,10 @@ namespace WinAGI.Editor {
             range.SetStyle(ArgIdentifierStyle, ArgIdentifierStyleRegEx);
             range.SetStyle(DefIdentifierStyle, DefIdentifierStyleRegEx);
 
-            //clear folding markers
+            // clear folding markers
             range.ClearFoldingMarkers();
 
-            //set folding markers
+            // set folding markers
             range.SetFoldingMarkers("{", "}");
         }
 
@@ -485,7 +497,7 @@ namespace WinAGI.Editor {
             do {
                 // check for spaces at start of this line
                 if (value.Mid(lngPos, tablength) == tab) {
-                    //replace the spaces with a tab
+                    // replace the spaces with a tab
                     value = value.Left(lngPos) + "%t" + value.Right(value.Length - lngPos - tablength);
                     lngPos += 2;
                 }
@@ -534,29 +546,9 @@ namespace WinAGI.Editor {
             SnipList.Save();
         }
 
-        #region temp code
-        void tmpcode() {
-            /*
-rivate Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
-
-  'always check for help first
-  If Shift = 0 And KeyCode = vbKeyF1 Then
-    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\snippets.htm");
-    KeyCode = 0
-    Exit Sub
-  End If
-
-End Sub
-            */
+        void ShowHelp() {
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\snippets.htm");
         }
         #endregion
-
-        private void txtArgTips_DoubleClick(object sender, EventArgs e) {
-            if (txtSnipName.ReadOnly) {
-                if (lstSnippets.SelectedIndex != -1) {
-                    BeginEdit(txtArgTips);
-                }
-            }
-        }
     }
 }

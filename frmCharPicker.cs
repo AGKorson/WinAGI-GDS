@@ -1,20 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Resources;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Common;
-using WinAGI.Engine;
-using static WinAGI.Common.Base;
-using static WinAGI.Engine.Base;
-using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmCharPicker : Form {
@@ -141,7 +130,7 @@ namespace WinAGI.Editor {
                 case < 32:
                 case 127:
                 case 255:
-                    //add slash-x codes for these chars
+                    // add slash-x codes for these chars
                     AddChar(92);
                     AddChar(120);
                     // add char as two-digit hex string
@@ -195,7 +184,7 @@ namespace WinAGI.Editor {
             }
             lblTip.Hide();
 
-            //set cursor to nodrop if on char 0
+            // set cursor to nodrop if on char 0
             if (CurChar.Value == 0) {
                 this.Cursor = Cursors.No;
             }
@@ -310,10 +299,10 @@ namespace WinAGI.Editor {
             else if (e.Modifiers == Keys.Shift) {
                 switch (e.KeyCode) {
                 case Keys.Right:
-                    //if there is a selection, expand or shrink depending on cursorpos
+                    // if there is a selection, expand or shrink depending on cursorpos
                     if (SelStart != SelEnd) {
                         if (CursorPos == SelStart) {
-                            //shrink the selection
+                            // shrink the selection
                             CursorPos++;
                             SelStart = CursorPos;
                             blnUpdate = true;
@@ -328,7 +317,7 @@ namespace WinAGI.Editor {
                         }
                     }
                     else {
-                        //expand the selection if there is room
+                        // expand the selection if there is room
                         if (CursorPos < InsertString.Length) {
                             CursorPos++;
                             SelEnd = CursorPos;
@@ -337,17 +326,17 @@ namespace WinAGI.Editor {
                     }
                     break;
                 case Keys.Left:
-                    //if there is a selection,
-                    //expand or shrink depending on cursorpos
+                    // if there is a selection,
+                    // expand or shrink depending on cursorpos
                     if (SelStart != SelEnd) {
                         if (CursorPos == SelEnd) {
-                            //shrink the selection
+                            // shrink the selection
                             CursorPos--;
                             SelEnd = CursorPos;
                             blnUpdate = true;
                         }
                         else {
-                            //expand the selection if there is room
+                            // expand the selection if there is room
                             if (CursorPos > 0) {
                                 CursorPos--;
                                 SelStart = CursorPos;
@@ -356,7 +345,7 @@ namespace WinAGI.Editor {
                         }
                     }
                     else {
-                        //expand the selection if there is room
+                        // expand the selection if there is room
                         if (CursorPos > 0) {
                             CursorPos--;
                             SelStart = CursorPos;
@@ -381,16 +370,16 @@ namespace WinAGI.Editor {
             if (Control.ModifierKeys == Keys.None) {
                 switch (intChar) {
                 case 8:
-                    //backspace
+                    // backspace
                     if (SelStart != SelEnd) {
-                        //delete the selection, and collapse to start
+                        // delete the selection, and collapse to start
                         InsertString = InsertString.Left(SelStart) + InsertString.Right(InsertString.Length - SelEnd);
                         CursorPos = SelStart;
                         SelEnd = SelStart;
                         blnUpdate = true;
                     }
                     else {
-                        //delete char in front of cursor, and move cursor
+                        // delete char in front of cursor, and move cursor
                         if (CursorPos > 0) {
                             InsertString = InsertString.Left(CursorPos - 1) + InsertString.Right(InsertString.Length - CursorPos);
                             CursorPos = CursorPos - 1;
@@ -402,16 +391,16 @@ namespace WinAGI.Editor {
                     break;
                 case < 31:
                 case > 254:
-                    //do nothing
+                    // do nothing
                     break;
                 default:
-                    //add the character
+                    // add the character
                     AddChar(intChar);
                     blnUpdate = true;
                     break;
                 }
             }
-            //did anything change?
+            // did anything change?
             if (blnUpdate) {
                 picInsert.Invalidate();
             }
@@ -429,7 +418,7 @@ namespace WinAGI.Editor {
             // limit cursor position to allowable values
             if (CurX < 0) CurX = 0;
             if (CurX > InsertString.Length) CurX = InsertString.Length;
-            //if in a selection,  start drag
+            // if in a selection,  start drag
             if (CurX >= SelStart && CurX < SelEnd) {
                 DragSel = true;
             }
@@ -454,7 +443,7 @@ namespace WinAGI.Editor {
             if (CurX > InsertString.Length) CurX = InsertString.Length;
             switch (e.Button) {
             case MouseButtons.None:
-                //if no button, adjust mouse pointer
+                // if no button, adjust mouse pointer
                 if (SelStart != SelEnd) {
                     if (CurX >= SelStart && CurX < SelEnd) {
                         picInsert.Cursor = Cursors.Arrow;
@@ -484,7 +473,7 @@ namespace WinAGI.Editor {
                 else if (DragSel) {
                     // if dragging, show drag cursor (default is arrow)
                     picInsert.Cursor = Cursors.Default;
-                    //position drag point
+                    // position drag point
                     DragPos = CurX;
                     picInsert.Invalidate();
                 }
@@ -512,13 +501,13 @@ namespace WinAGI.Editor {
             // if dragging, finish the drag
             if (DragSel) {
                 DragSel = false;
-                //if cursor is within selection, do nothing
+                // if cursor is within selection, do nothing
                 if (CurX >= SelStart && CurX < SelEnd) {
                     // show the arrow cursor
                     picInsert.Cursor = Cursors.Arrow;
                 }
                 else {
-                    //drop the selected text at drag pos
+                    // drop the selected text at drag pos
                     if (DragPos < SelStart) {
                         InsertString = InsertString.Left(DragPos) + InsertString.Mid(SelStart, SelEnd - SelStart) + InsertString.Mid(DragPos, SelStart - DragPos) + InsertString.Right(InsertString.Length - SelEnd);
                         CursorPos = DragPos + SelEnd - SelStart;
@@ -631,7 +620,7 @@ namespace WinAGI.Editor {
                 SelStart = SelEnd = CursorPos;
             }
             else {
-                //insert char at cursor position
+                // insert char at cursor position
                 InsertString = InsertString.Left(CursorPos) + intChar.ToString() + InsertString.Right(InsertString.Length - CursorPos);
                 SelStart = SelEnd = ++CursorPos;
             }

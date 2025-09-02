@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
@@ -114,9 +109,6 @@ namespace WinAGI.Editor {
                 e.Handled = true;
                 cmbVersion.Select();
                 return;
-            //case >= 97 and <= 122:
-            //    e.KeyChar = (char)((int)e.KeyChar - 32);
-            //    return;
             case <= 7:
             case >= 9 and <= 47:
             case >= 91 and <= 96:
@@ -125,7 +117,7 @@ namespace WinAGI.Editor {
                 e.Handled = true;
                 return;
             }
-            if (txtGameID.Text.Length >= 5) {
+            if (txtGameID.SelectionLength == 0 && txtGameID.Text.Length >= 5) {
                 e.Handled = true;
             }
         }
@@ -161,7 +153,7 @@ namespace WinAGI.Editor {
             string dirtext = "";
             foreach (char c in txtResDir.Text) {
                 if (c > 32 && c < 127) {
-                    //no invalid path chars
+                    // no invalid path chars
                     if (!(Path.GetInvalidFileNameChars()).Contains(c)) {
                         dirtext += c;
                     }
@@ -231,7 +223,7 @@ namespace WinAGI.Editor {
             string exttext = "";
             foreach (char c in txtSrcExt.Text) {
                 if (c > 32 && c < 127) {
-                    //no invalid path chars
+                    // no invalid path chars
                     if (!(Path.GetInvalidFileNameChars()).Contains(c)) {
                         exttext += c;
                     }
@@ -707,7 +699,7 @@ namespace WinAGI.Editor {
             string idtext = "";
             foreach (char c in txtGameID.Text) {
                 if (c > 32 && c < 127) {
-                    //no invalid path chars
+                    // no invalid path chars
                     if (!(Path.GetInvalidFileNameChars()).Contains(c)) {
                         idtext += c;
                     }

@@ -494,7 +494,6 @@ namespace WinAGI.Editor {
             Activated += frmObjectEdit_Activated;
             FormClosing += frmObjectEdit_FormClosing;
             FormClosed += frmObjectEdit_FormClosed;
-            Load += frmObjectEdit_Load;
             Leave += frmObjectEdit_Leave;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();

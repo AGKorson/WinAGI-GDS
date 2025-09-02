@@ -171,13 +171,40 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
+        /// Gets the starting position of the specified token text in this fctb.
+        /// </summary>
+        /// <param name="sourcetext"></param>
+        /// <param name="tokentext"></param>
+        /// <param name="startpos"></param>
+        /// <returns></returns>
+        public int FindTokenPos(string tokentext, int startpos = 0) {
+            Place place = new();
+            do {
+                startpos = Text.IndexOf(tokentext, startpos);
+                if (startpos != -1) {
+                    place = this.PositionToPlace(startpos);
+                    // if found, confirm it's a token, and not part of a larger token
+                    AGIToken token = TokenFromPos(place);
+                    if (token.Text == tokentext) {
+                        // found
+                        break;
+                    }
+                    // try again
+                    startpos++;
+                }
+            } while (startpos != -1);
+            return startpos;
+        }
+
+
+        /// <summary>
         /// Parses a line of text to determine the token type at the 
         /// specified position. The start argument is updated to the start
         /// position of the detected token.
         /// </summary>
         /// <param name="strLine"></param>
         /// <returns>Token type.
-        ///</returns>
+        /// </returns>
         private static AGITokenType ParseLine(string strLine, ref int start) {
             bool inQuote = false;
             bool slashcode = false;
@@ -421,7 +448,7 @@ namespace WinAGI.Editor {
                     if (checkline[endpos] == '\r' || checkline[endpos] == '\n') {
                         break;
                     }
-                    //39, 40, 41, 44, 46, 58, 59, 63, 92, 93, 94, 96, 123, 125, 126
+                    // 39, 40, 41, 44, 46, 58, 59, 63, 92, 93, 94, 96, 123, 125, 126
                     switch (checkline[retval.StartPos]) {
                     //case '\'' or '(' or ')' or ',' or '.' or ':' or ';' or '?' or
                     //     '\\' or ']' or '^' or '`' or '{' or '}' or '~':
@@ -727,6 +754,34 @@ namespace WinAGI.Editor {
             return startpos;
         }
 
+        /// <summary>
+        /// Gets the starting position of the specified token text, searching
+        /// backwards from the specified start position.
+        /// </summary>
+        /// <param name="sourcetext"></param>
+        /// <param name="tokentext"></param>
+        /// <param name="startpos"></param>
+        /// <returns></returns>
+        public static int FindTokenPosRev(string sourcetext, string tokentext, int startpos = -1) {
+            do {
+                if (startpos == -1) {
+                    startpos = sourcetext.Length - 1;
+                }
+                startpos = sourcetext.LastIndexOf(tokentext, startpos);
+                if (startpos != -1) {
+                    // if found, confirm it's a token, and not part of a larger token
+                    AGIToken token = TokenFromPos(sourcetext, startpos);
+                    if (token.Text == tokentext) {
+                        // found
+                        break;
+                    }
+                    // try again
+                    startpos--;
+                }
+            } while (startpos != -1);
+            return startpos;
+        }
+
         internal void RemoveLine(int line) {
             Place start = Selection.Start;
             if (start.iLine > line) {
@@ -791,6 +846,18 @@ namespace WinAGI.Editor {
             FastColoredTextBoxNS.Range vr = VisibleRange;
             Selection.Start = token.Start;
             Selection.End = token.End;
+            this.SelectedText = newtext;
+            Selection.Start = start;
+            Selection.End = end;
+            DoRangeVisible(vr);
+        }
+
+        public void ReplaceText(int startpos, int length, string newtext) {
+            Place start = Selection.Start;
+            Place end = Selection.End;
+            FastColoredTextBoxNS.Range vr = VisibleRange;
+            Selection.Start = PositionToPlace(startpos);
+            Selection.End = PositionToPlace(startpos + length);
             this.SelectedText = newtext;
             Selection.Start = start;
             Selection.End = end;

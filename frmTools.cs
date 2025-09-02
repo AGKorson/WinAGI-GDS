@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using static WinAGI.Editor.Base;
 
@@ -40,7 +33,7 @@ namespace WinAGI.Editor {
             // select row 1
             fgTools.CurrentCell = fgTools[1, 0];
             fgTools.Select();
-            //set browse button so it fits inside a row
+            // set browse button so it fits inside a row
             btnBrowse.Height = fgTools.Rows[0].Height - 1;
         }
 
@@ -48,7 +41,7 @@ namespace WinAGI.Editor {
             if (fgTools.SelectedRows.Count == 1) {
                 // entire row can be deleted
                 if (e.KeyCode == Keys.Delete) {
-                    //erase this row
+                    // erase this row
                     fgTools[1, fgTools.CurrentCell.RowIndex].Value = "";
                     fgTools[2, fgTools.CurrentCell.RowIndex].Value = "";
                 }
@@ -71,7 +64,7 @@ namespace WinAGI.Editor {
 
             // first item to add will be row 1
             int lngRow = 1;
-            //step through all rows
+            // step through all rows
             for (int i = 1; i <= 6; i++) {
                 // if both columns are NON blank
                 caption = ((string)fgTools[1, i - 1].Value).Trim();
@@ -216,7 +209,6 @@ namespace WinAGI.Editor {
                     sourcerow = fgTools.HitTest(e.X, e.Y).RowIndex;
                     fgTools.Rows[sourcerow].Selected = true;
                     dragging = true;
-                    //fgTools.Cursor = Cursors.HSplit;
                 }
             }
         }

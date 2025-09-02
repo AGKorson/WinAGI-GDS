@@ -1,22 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WinAGI.Common;
-using WinAGI.Engine;
-using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmTemplates : Form {
-        //private string[] strVersions = new string[19];
         public int CodePage;
         public bool IncludeReserved, UseLayoutEd, SierraSyntax;
         public bool IncludeIDs, IncludeGlobals;
@@ -72,10 +63,6 @@ namespace WinAGI.Editor {
                 // problem accessing the template; assume not valid
                 ErrMsgBox(e, "An error occurred trying to validate this template directory: ",
                     "", "Invalid Template Directory");
-                //MessageBox.Show(MDIMain,
-                //    "Error occurred trying to validate this template directory.",
-                //    "Invalid Template Directory", MessageBoxButtons.OK, MessageBoxIcon.Error,
-                //    0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
                 RemoveBadTemplate();
                 return;
             }

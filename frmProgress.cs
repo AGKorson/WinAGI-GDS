@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using System.Windows.Forms;
 
 namespace WinAGI.Editor {
@@ -19,7 +11,6 @@ namespace WinAGI.Editor {
                 StartPosition = FormStartPosition.CenterScreen;
             }
             else {
-                //StartPosition = FormStartPosition.Manual;
                 Point offset = new() {
                     X = owner.Width / 2 - Width / 2,
                     Y = owner.Height / 2 - Height / 2
