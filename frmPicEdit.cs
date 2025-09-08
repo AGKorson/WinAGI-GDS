@@ -5009,7 +5009,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            MDIMain.btnSaveResource.Enabled = !IsChanged;
 
             // enable stepdrawing
             EditPicture.StepDraw = true;
@@ -5236,8 +5236,8 @@ namespace WinAGI.Editor {
                     EditGame.Pictures[PictureNumber].Unload();
                     MarkAsSaved();
                     InGame = true;
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove Picture";
+                    MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[20];
+                    MDIMain.btnAddRemove.Text = "Remove Picture";
                 }
             }
         }
@@ -10271,7 +10271,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }
         }
@@ -10283,7 +10283,7 @@ namespace WinAGI.Editor {
         private void MarkAsSaved() {
             IsChanged = false;
             Text = sPICED + ResourceName(EditPicture, InGame, true);
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+            MDIMain.btnSaveResource.Enabled = false;
         }
         #endregion
     }

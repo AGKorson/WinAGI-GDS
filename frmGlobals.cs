@@ -121,6 +121,8 @@ namespace WinAGI.Editor {
                 GEInUse = false;
                 GlobalsEditor = null;
             }
+            EditTextBox.Dispose();
+            EditTextBox = null;
         }
         #endregion
 
@@ -679,6 +681,11 @@ namespace WinAGI.Editor {
         private void mnuCelDelete_Click(object sender, EventArgs e) {
             if (EditTextBox.SelectionLength > 0) {
                 EditTextBox.SelectedText = "";
+            }
+            else if (EditTextBox.SelectionStart < EditTextBox.Text.Length) {
+                int oldsel = EditTextBox.SelectionStart;
+                EditTextBox.Text = EditTextBox.Text[..oldsel] + EditTextBox.Text[(oldsel + 1)..];
+                EditTextBox.SelectionStart = oldsel;
             }
         }
 
@@ -2485,7 +2492,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }
             FindingForm.ResetSearch();
@@ -2495,7 +2502,7 @@ namespace WinAGI.Editor {
             Text = "Defines Editor for " + Path.GetFileName(FileName);
             IsChanged = false;
             mnuRSave.Enabled = false;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+            MDIMain.btnSaveResource.Enabled = false;
         }
     }
     #endregion

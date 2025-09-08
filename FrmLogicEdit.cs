@@ -2171,7 +2171,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            MDIMain.btnSaveResource.Enabled = !IsChanged;
             if (WinAGISettings.MaximizeLogics.Value) {
                 WindowState = FormWindowState.Maximized;
             }
@@ -2207,7 +2207,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            MDIMain.btnSaveResource.Enabled = !IsChanged;
 
             // maximize, if that's the current setting
             if (WinAGISettings.MaximizeLogics.Value) {
@@ -2576,8 +2576,8 @@ namespace WinAGI.Editor {
                     EditGame.Logics[LogicNumber].Unload();
                     MarkAsSaved();
                     InGame = true;
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove Logic";
+                    MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[20];
+                    MDIMain.btnAddRemove.Text = "Remove Logic";
                 }
                 RestoreFocusHack();
             }
@@ -3757,7 +3757,7 @@ namespace WinAGI.Editor {
             if (!IsChanged && (rtfLogic1.IsChanged || rtfLogic2.IsChanged)) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }
             btnUndo.Enabled = rtfLogic1.UndoEnabled;
@@ -3775,7 +3775,7 @@ namespace WinAGI.Editor {
             IsChanged = false;
             rtfLogic1.IsChanged = false;
             mnuRSave.Enabled = false;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+            MDIMain.btnSaveResource.Enabled = false;
         }
         #endregion
     }

@@ -527,12 +527,10 @@ namespace WinAGI.Editor {
             if (EditTextBox.SelectionLength > 0) {
                 EditTextBox.SelectedText = "";
             }
-            else {
-                if (EditTextBox.SelectionStart < EditTextBox.Text.Length) {
-                    int oldsel = EditTextBox.SelectionStart;
-                    EditTextBox.Text = EditTextBox.Text[..oldsel] + EditTextBox.Text[(oldsel + 1)..];
-                    EditTextBox.SelectionStart = oldsel;
-                }
+            else if (EditTextBox.SelectionStart < EditTextBox.Text.Length) {
+                int oldsel = EditTextBox.SelectionStart;
+                EditTextBox.Text = EditTextBox.Text[..oldsel] + EditTextBox.Text[(oldsel + 1)..];
+                EditTextBox.SelectionStart = oldsel;
             }
         }
 
@@ -1401,7 +1399,7 @@ namespace WinAGI.Editor {
             }
 
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            MDIMain.btnSaveResource.Enabled = !IsChanged;
             return true;
         }
 
@@ -1808,7 +1806,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }
             spCount.Text = "Object Count: " + EditInvList.Count;
@@ -1825,7 +1823,7 @@ namespace WinAGI.Editor {
                 Text += Common.Base.CompactPath(EditInvListFilename, 75);
             }
             mnuRSave.Enabled = false;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+            MDIMain.btnSaveResource.Enabled = false;
         }
         #endregion
     }

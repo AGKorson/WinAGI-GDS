@@ -386,7 +386,7 @@ namespace WinAGI.Editor {
             // 
             cmCel.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuCelUndo, mnuCelSep0, mnuCelCut, mnuCelCopy, mnuCelPaste, mnuCelDelete, mnuCelCharMap, mnuCelSep1, mnuCelSelectAll, mnuCelSep2, mnuCelCancel });
             cmCel.Name = "cmCel";
-            cmCel.Size = new System.Drawing.Size(225, 198);
+            cmCel.Size = new System.Drawing.Size(225, 220);
             cmCel.Closed += cmCel_Closed;
             cmCel.Opening += cmCel_Opening;
             // 

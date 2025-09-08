@@ -586,9 +586,9 @@ namespace WinAGI.Editor {
             hoverTimer.Stop();
             ShowToolTip();
         }
-
         #endregion
 
+        #region Methods
         private void StartCursor() {
             tmrCursor.Enabled = true;
         }
@@ -670,6 +670,6 @@ namespace WinAGI.Editor {
             lblTip.Show();
             showtip = true;
         }
-
+        #endregion
     }
 }

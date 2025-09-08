@@ -1783,7 +1783,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            MDIMain.btnSaveResource.Enabled = !IsChanged;
 
             if (!BuildSoundTree()) {
                 // error
@@ -4933,8 +4933,8 @@ namespace WinAGI.Editor {
                     EditGame.Sounds[SoundNumber].Unload();
                     MarkAsSaved();
                     InGame = true;
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove Sound";
+                    MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[20];
+                    MDIMain.btnAddRemove.Text = "Remove Sound";
                 }
             }
         }
@@ -5038,7 +5038,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }
         }
@@ -5047,7 +5047,7 @@ namespace WinAGI.Editor {
             IsChanged = false;
             Text = sSNDED + ResourceName(EditSound, InGame, true);
             mnuRSave.Enabled = false;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+            MDIMain.btnSaveResource.Enabled = false;
         }
         #endregion
     }

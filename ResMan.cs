@@ -2031,7 +2031,7 @@ namespace WinAGI.Editor {
             }
             // unload the menu editor
             if (MEInUse) {
-                MenuEditor.Close();
+                MenuEditor?.Close();
                 if (MEInUse) {
                     return false;
                 }
@@ -2144,64 +2144,72 @@ namespace WinAGI.Editor {
 
         private static void UpdateTBGameBtns() {
             // enable/disable buttons based on current game/editor state
-            MDIMain.toolStrip1.Items["btnCloseGame"].Enabled = EditGame != null;
-            MDIMain.toolStrip1.Items["btnRun"].Enabled = EditGame != null;
-            MDIMain.toolStrip1.Items["btnImportRes"].Enabled = EditGame != null;
-            MDIMain.toolStrip1.Items["btnLayoutEd"].Enabled = EditGame != null;
+            MDIMain.btnCloseGame.Enabled = EditGame != null;
+            MDIMain.btnRun.Enabled = EditGame != null;
+            MDIMain.btnImportRes.Enabled = EditGame != null;
+            MDIMain.btnLayoutEd.Enabled = EditGame != null;
         }
 
         internal static void UpdateTBResourceBtns(AGIResType restype, bool ingame, bool changed, int resnum) {
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = changed;
+            MDIMain.btnSaveResource.Enabled = changed;
             switch (restype) {
             case AGIResType.Game:
-                MDIMain.toolStrip1.Items["btnSaveResource"].Text = "Save Resource";
-                MDIMain.toolStrip1.Items["btnExportRes"].Enabled = true;
-                MDIMain.toolStrip1.Items["btnExportRes"].Text = "Export All Resources";
-                MDIMain.toolStrip1.Items["btnAddRemove"].Enabled = false;
-                MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[19];
-                MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Add/Remove Resource";
+                MDIMain.btnSaveResource.Text = "Save Resource";
+                MDIMain.btnExportRes.Enabled = true;
+                MDIMain.btnExportRes.Text = "Export All Resources";
+                MDIMain.btnAddRemove.Enabled = false;
+                MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[19];
+                MDIMain.btnAddRemove.Text = "Add/Remove Resource";
                 break;
             case AGIResType.Logic:
             case AGIResType.Picture:
             case AGIResType.Sound:
             case AGIResType.View:
-                MDIMain.toolStrip1.Items["btnSaveResource"].Text = "Save " + restype.ToString();
-                MDIMain.toolStrip1.Items["btnExportRes"].Enabled = true;
-                MDIMain.toolStrip1.Items["btnExportRes"].Text = "Export " + restype.ToString();
-                MDIMain.toolStrip1.Items["btnAddRemove"].Enabled = true;
+                MDIMain.btnSaveResource.Text = "Save " + restype.ToString();
+                MDIMain.btnExportRes.Enabled = true;
+                MDIMain.btnExportRes.Text = "Export " + restype.ToString();
+                MDIMain.btnAddRemove.Enabled = true;
                 if (ingame) {
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[20];
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Remove " + restype.ToString();
+                    MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[20];
+                    MDIMain.btnAddRemove.Text = "Remove " + restype.ToString();
                 }
                 else {
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[19];
-                    MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Add " + restype.ToString();
+                    MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[19];
+                    MDIMain.btnAddRemove.Text = "Add " + restype.ToString();
                 }
                 break;
             case AGIResType.Objects:
             case AGIResType.Words:
-                MDIMain.toolStrip1.Items["btnSaveResource"].Text = "Save " + restype.ToString();
-                MDIMain.toolStrip1.Items["btnExportRes"].Enabled = true;
-                MDIMain.toolStrip1.Items["btnExportRes"].Text = "Export " + restype.ToString();
-                MDIMain.toolStrip1.Items["btnAddRemove"].Enabled = false;
-                MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[19];
-                MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Add/Remove Resource";
+                MDIMain.btnSaveResource.Text = "Save " + restype.ToString();
+                MDIMain.btnExportRes.Enabled = true;
+                MDIMain.btnExportRes.Text = "Export " + restype.ToString();
+                MDIMain.btnAddRemove.Enabled = false;
+                MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[19];
+                MDIMain.btnAddRemove.Text = "Add/Remove Resource";
                 break;
             case AGIResType.Globals:
-                MDIMain.toolStrip1.Items["btnSaveResource"].Text = "Save " + restype.ToString();
-                MDIMain.toolStrip1.Items["btnExportRes"].Enabled = true;
-                MDIMain.toolStrip1.Items["btnExportRes"].Text = "Export " + restype.ToString();
-                MDIMain.toolStrip1.Items["btnAddRemove"].Enabled = false;
-                MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[19];
-                MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Add/Remove Resource";
+                MDIMain.btnSaveResource.Text = "Save " + restype.ToString();
+                MDIMain.btnExportRes.Enabled = true;
+                MDIMain.btnExportRes.Text = "Export " + restype.ToString();
+                MDIMain.btnAddRemove.Enabled = false;
+                MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[19];
+                MDIMain.btnAddRemove.Text = "Add/Remove Resource";
+                break;
+            case AGIResType.Menu:
+                MDIMain.btnSaveResource.Text = "Update Source Logic";
+                MDIMain.btnExportRes.Enabled = false;
+                MDIMain.btnExportRes.Text = "Export Resource";
+                MDIMain.btnAddRemove.Enabled = false;
+                MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[19];
+                MDIMain.btnAddRemove.Text = "Add/Remove Resource";
                 break;
             default:
-                MDIMain.toolStrip1.Items["btnSaveResource"].Text = "Save Resource";
-                MDIMain.toolStrip1.Items["btnExportRes"].Enabled = false;
-                MDIMain.toolStrip1.Items["btnExportRes"].Text = "Export Resource";
-                MDIMain.toolStrip1.Items["btnAddRemove"].Enabled = false;
-                MDIMain.toolStrip1.Items["btnAddRemove"].Image = MDIMain.imageList1.Images[19];
-                MDIMain.toolStrip1.Items["btnAddRemove"].Text = "Add/Remove Resource";
+                MDIMain.btnSaveResource.Text = "Save Resource";
+                MDIMain.btnExportRes.Enabled = false;
+                MDIMain.btnExportRes.Text = "Export Resource";
+                MDIMain.btnAddRemove.Enabled = false;
+                MDIMain.btnAddRemove.Image = MDIMain.imageList1.Images[19];
+                MDIMain.btnAddRemove.Text = "Add/Remove Resource";
                 break;
             }
         }
@@ -3710,7 +3718,7 @@ namespace WinAGI.Editor {
             }
             // adjust the menubar and toolbar
             MDIMain.mnuTLayout.Enabled = EditGame.UseLE;
-            MDIMain.toolStrip1.Items["btnLayoutEd"].Enabled = EditGame.UseLE;
+            MDIMain.btnLayoutEd.Enabled = EditGame.UseLE;
         }
 
         public static void OpenGlobals(bool ForceLoad = false) {
@@ -3827,6 +3835,37 @@ namespace WinAGI.Editor {
                 LayoutEditor.Activate();
                 // mark editor as in use
                 LEInUse = true;
+            }
+        }
+
+        public static void OpenMenuEditor() {
+            if (MEInUse) {
+                // just bring it in focus
+                MenuEditor.Select();
+                if (MenuEditor.WindowState == FormWindowState.Minimized) {
+                    // if minimized, restore it
+                    MenuEditor.WindowState = FormWindowState.Normal;
+                }
+            }
+            else {
+                // open the menu editor for the current game
+                MenuEditor = new frmMenuEdit();
+                MenuEditor.Text = EditGame != null ? EditGame.GameID + " - Menu Editor" : "Menu Editor";
+                if (MenuEditor.Canceled) {
+                    MEInUse = false;
+                    MenuEditor.Close();
+                    MenuEditor.Dispose();
+                    MenuEditor = null;
+                    return;
+                }
+                // resize for optimum viewing
+                int hborder = MenuEditor.Width - MenuEditor.splitContainer1.Panel2.Width;
+                int vborder = MenuEditor.Height - MenuEditor.splitContainer1.Panel2.Height;
+                MenuEditor.Size = new(320 * MenuEditor.PicScale + hborder, 200 * MenuEditor.PicScale + vborder);
+                MenuEditor.Show();
+                MenuEditor.Activate();
+                // mark editor as in use
+                MEInUse = true;
             }
         }
 
@@ -4718,6 +4757,7 @@ namespace WinAGI.Editor {
                     fs.SetLength(fs.Length + (newSize - oldSize));
                 }
             }
+            
             static void RemoveBlock(FileStream fs, long pos, long len) {
                 // remove a block of data from the file
                 // by shifting the tail left

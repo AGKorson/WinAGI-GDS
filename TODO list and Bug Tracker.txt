@@ -18,7 +18,7 @@ X   16. Picture Editor
 X   17. View Editor
 X   18. Sound Editor
 X   19. Layout Editor
-    20. Menu Editor
+X   20. Menu Editor
     21. Text Screen Editor
     22. Help Integration
     23. BETA TESTING
@@ -769,16 +769,16 @@ frmMenuEdit
       2   mnuRImport ...
       3   mnuRSeparator1 
       4 - mnuROpenRes
-      4 - mnuRSave
-      4 - mnuRExport
-      4 - mnuRSeparator2 
-      4 - mnuRRemove
-      4 - mnuRRenumber
-      4 - mnuRIDDesc
-      4 - mnuRSeparator3 
-      4 - mnuRCompileLogic
-      4 - mnuRSavePicImage
-      4 - mnuRExportGIF
+      5 r mnuRSave
+      5 - mnuRExport
+      6   mnuRSeparator2 
+      6 - mnuRRemove
+      6 - mnuRRenumber
+      6 - mnuRIDDesc
+      6 - mnuRSeparator3 
+      6 - mnuRCompileLogic
+      6 - mnuRSavePicImage
+      6 - mnuRExportGIF
      -1 + mnuBackground
      -1 + mnuHotKeyAlign
 

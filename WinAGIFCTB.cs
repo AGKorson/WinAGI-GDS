@@ -621,6 +621,15 @@ namespace WinAGI.Editor {
             return GetTokenEnd(retval, checkline);
         }
 
+        public static AGIToken NextToken(string checkline, int startPos, bool includelinebreaks = false) {
+            // gets the next token in the specified text, allowing for line breaks
+            AGIToken token = new() {
+                StartPos = startPos,
+                Line = 0
+            };
+            return NextToken(checkline, token, includelinebreaks);
+        }
+
         public static AGIToken NextToken(string checkline, AGIToken token, bool includelinebreaks = false) {
             AGIToken nexttoken = new AGIToken();
             nexttoken.StartPos = token.EndPos;
@@ -684,15 +693,6 @@ namespace WinAGI.Editor {
                 break;
             }
             return GetTokenEnd(nexttoken, checkline);
-        }
-
-        public static AGIToken NextToken(string checkline, int startPos, bool includelinebreaks = false) {
-            // gets the next token in the specified text, allowing for line breaks
-            AGIToken token = new() {
-                StartPos = startPos,
-                Line = 0
-            };
-            return NextToken(checkline, token, includelinebreaks);
         }
         
         public static AGIToken PreviousToken(string checkline, AGIToken token, bool includelinebreaks = false) {

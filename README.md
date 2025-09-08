@@ -6,7 +6,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha19.0
+        Version 3.0.0alpha20.0
     ==============================
 
 
@@ -45,7 +45,7 @@ WinAGI is a full featured game development system, that includes editors which p
     X 17. View Editor
     X 18. Sound Editor
     X 19. Layout Editor
-      20. Menu Editor
+    X 20. Menu Editor
       21. Text Screen Editor
       22. Help Integration
       23. BETA TESTING
@@ -54,6 +54,8 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+**alpha20.0** Menu editor is complete.
+
 **alpha19.0** Layout editor is complete, fully integrated with the logic editor. Fixed a ton of bugs, and did a lot of code cleanup and refactoring. 
 
 **alpha18.1** Layout editor framework set. Layouts successfully load and display. Integration between logic editor and layout editor works as expected to keep the layout and logics up to date. Layout editing functions still need to be completed. Continuing to fix bugs in all other editors as they are found.

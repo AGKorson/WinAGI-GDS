@@ -306,11 +306,11 @@ namespace WinAGI.Editor {
         private void frmMDIMain_MdiChildActivate(object sender, EventArgs e) {
             // update statusbar
             ResetStatusStrip();
-            if (this.ActiveMdiChild != null) {
+            if (ActiveMdiChild != null) {
                 // !!!
                 // statusstrip merging SUCKS... so we do it manually
                 // !!!
-                MergeStatusStrip(statusStrip1, this.ActiveMdiChild);
+                MergeStatusStrip(statusStrip1, ActiveMdiChild);
             }
             // update toolbar
             if (ActiveMdiChild == null) {
@@ -379,8 +379,8 @@ namespace WinAGI.Editor {
                     UpdateTBResourceBtns(AGIResType.TextScreen, false, changed, -1);
                 }
                 else if (ActiveMdiChild is frmMenuEdit menuForm) {
-                    changed = menuForm.IsChanged;
-                    UpdateTBResourceBtns(AGIResType.Menu, false, false, -1);
+                    changed = EditGame != null && menuForm.IsChanged && menuForm.MenuLogic != -1;
+                    UpdateTBResourceBtns(AGIResType.Menu, false, changed, -1);
                 }
                 else {
                     UpdateTBResourceBtns(AGIResType.None, false, false, -1);
@@ -397,8 +397,8 @@ namespace WinAGI.Editor {
         private void frmMDIMain_FormClosing(object sender, FormClosingEventArgs e) {
             bool blnLastLoad;
 
-            // !!!! for MDI forms, the Cancel property seems to always be set to true
-            // by default - set it to false explicitly, THEN do closegame check...
+            // force cancel, in case one of the child forms wants to
+            // stay open
             e.Cancel = false;
             if (EditGame is null) {
                 blnLastLoad = false;
@@ -1207,10 +1207,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTMenuEditor_Click(object sender, EventArgs e) {
-            MessageBox.Show(MDIMain, "TODO: menu editor");
-            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
-                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
-            }
+            OpenMenuEditor();
         }
 
         private void mnuTGlobals_Click(object sender, EventArgs e) {
@@ -2543,7 +2540,7 @@ namespace WinAGI.Editor {
                 layoutForm.mnuRSave_Click(sender, e);
             }
             else if (ActiveMdiChild is frmMenuEdit menuForm) {
-                menuForm.mnuRSave_Click(sender, e);
+                menuForm.mnuUpdateLogic_Click(sender, e);
             }
             else if (ActiveMdiChild is frmTextScreenEdit txtscreenForm) {
                 txtscreenForm.mnuRSave_Click(sender, e);

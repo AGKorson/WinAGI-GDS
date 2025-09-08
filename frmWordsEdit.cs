@@ -1841,7 +1841,7 @@ namespace WinAGI.Editor {
             }
 
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = !IsChanged;
+            MDIMain.btnSaveResource.Enabled = !IsChanged;
             return true;
         }
 
@@ -3267,7 +3267,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = true;
+                MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }
             tbbUndo.Enabled = UndoCol.Count > 0;
@@ -3285,7 +3285,7 @@ namespace WinAGI.Editor {
                 Text += Common.Base.CompactPath(EditWordListFilename, 75);
             }
             mnuRSave.Enabled = false;
-            MDIMain.toolStrip1.Items["btnSaveResource"].Enabled = false;
+            MDIMain.btnSaveResource.Enabled = false;
         }
         #endregion
     }

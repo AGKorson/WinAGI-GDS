@@ -216,7 +216,8 @@ namespace WinAGI.Editor {
         /// <summary>
         ///   Looks up a localized string similar to [
         ///[  Menu created by WinAGI Menu Editor
-        ///[.
+        ///[
+        ///.
         /// </summary>
         internal static string _102 {
             get {

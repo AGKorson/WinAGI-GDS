@@ -113,8 +113,7 @@ namespace WinAGI.Editor {
                 break;
             case GetRes.Menu:
             case MenuBkgd:
-                // TODO: need to define correct action for these functions
-                Debug.Assert(false);
+                // OK to exit
                 DialogResult = DialogResult.OK;
                 break;
             }
@@ -192,7 +191,10 @@ namespace WinAGI.Editor {
             case ShowRoom:
             case GetRes.Menu:
             case MenuBkgd:
+                btnOK.PerformClick();
+                break;
             case GetRes.RenumberRoom:
+                btnOK.PerformClick();
                 break;
             }
 
