@@ -49,6 +49,29 @@ namespace WinAGI.Common {
         [DllImport("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, Int32 wParam, Int32 lParam);
         public const int WM_SETREDRAW = 11;
+
+        // virtual key codes
+        public const byte VK_INSERT = 0x2D; // Virtual key code for Insert
+        public const uint KEYEVENTF_KEYUP = 0x0002; // Key up flag
+        public const uint KEYEVENTF_KEYDOWN = 0x0000; // Key down flag
+        public const uint INPUT_KEYBOARD = 1;
+        [DllImport("user32.dll")]
+        public static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct INPUT {
+            public uint type;
+            public KEYBDINPUT ki;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct KEYBDINPUT {
+            public ushort wVk;
+            public ushort wScan;
+            public uint dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
     }
 
     /// <summary>
@@ -311,8 +334,8 @@ namespace WinAGI.Common {
             int line, insertpos = -1, idpos = -1, reservedpos = -1, globalspos = -1;
             int badidpos = -1, badreservedpos = -1, badglobalspos = -1;
             changed = false;
-            StringList src = [];
-            src.Add(logicsource);
+            List<string> src = [];
+            src.AddLines(logicsource);
             string includefile;
             Regex goodinclude;
             Regex badinclude;
@@ -1044,7 +1067,7 @@ namespace WinAGI.Common {
         }
 
         /// <summary>
-        /// Returns numeric value of a string. If non-numeric,null, or empty
+        /// Returns numeric value of a string. If non-numeric, null, or empty
         /// it returns 0.
         /// </summary>
         /// <param name="strIn">The string that will be converted to a number</param>
@@ -1137,30 +1160,37 @@ namespace WinAGI.Common {
             }
             return rect;
         }
-    }
 
-    /// <summary>
-    /// An overload version of List<string> that detects multiple lines in the 
-    /// Add method.
-    /// </summary>
-    public class StringList : List<string> {
-        public string Text => string.Join(Environment.NewLine, this);
-
-        public new void Add(string item) {
-            // check for multiple lines in item
-            if (item.Contains('\n') || item.Contains('\r')) {
-                item = item.Replace("\r\n", "\n");
-                item = item.Replace('\r', '\n');
+        /// <summary>
+        /// Adds text to the list. If the text has line separators, the text
+        /// is split and multiple lines are added.
+        /// </summary>
+        /// <param name="list"></param>
+        /// <param name="text"></param>
+        public static void AddLines(this List<string> list, string text) {
+            // check for multiple lines in input text
+            if (text.Contains('\n') || text.Contains('\r')) {
+                text = text.Replace("\r\n", "\n");
+                text = text.Replace('\r', '\n');
                 // split it
-                string[] items = item.Split('\n');
+                string[] items = text.Split('\n');
                 foreach (string subitem in items) {
-                    base.Add(subitem);
+                    list.Add(subitem);
                 }
             }
             else {
-                base.Add(item);
+                list.Add(text);
             }
         }
-    }
 
+        /// <summary>
+        /// Concatenates the strings in the list and returns a single string using
+        /// the specified .
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static string Text(this List<string> list, string separator) {
+            return string.Join(separator, list);
+        }
+    }
 }

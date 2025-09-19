@@ -114,6 +114,8 @@ namespace WinAGI.Editor {
             }
             rtfLogic1.ShowLineNumbers = WinAGISettings.ShowLineNumbers.Value;
             rtfLogic2.ShowLineNumbers = WinAGISettings.ShowLineNumbers.Value;
+            rtfLogic1.IsReplaceMode = IsKeyLocked(Keys.Insert);
+            rtfLogic2.IsReplaceMode = IsKeyLocked(Keys.Insert);
             loading = true;
             switch (mode) {
             case LogicFormMode.Logic:
@@ -3274,8 +3276,12 @@ namespace WinAGI.Editor {
                     }
                     // skip group 0
                     for (int i = 1; i < EditGame.WordList.GroupCount; i++) {
-                        strLine = "\"" + EditGame.WordList.GroupByIndex(i).GroupName + "\"";
-                        lstDefines.Items.Add(strLine, strLine, 22).ToolTipText = EditGame.WordList.GroupByIndex(i).GroupNum.ToString();
+                        // skip groups with no name (only possible if group 1 or 9999
+                        // have no words added)
+                        if (EditGame.WordList.GroupByIndex(i).WordCount > 0) {
+                            strLine = "\"" + EditGame.WordList.GroupByIndex(i).Words[0] + "\"";
+                            lstDefines.Items.Add(strLine, strLine, 22).ToolTipText = EditGame.WordList.GroupByIndex(i).GroupNum.ToString();
+                        }
                     }
                     break;
                 }

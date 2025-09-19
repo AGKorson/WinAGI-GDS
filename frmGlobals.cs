@@ -121,7 +121,7 @@ namespace WinAGI.Editor {
                 GEInUse = false;
                 GlobalsEditor = null;
             }
-            EditTextBox.Dispose();
+            EditTextBox?.Dispose();
             EditTextBox = null;
         }
         #endregion
@@ -131,6 +131,8 @@ namespace WinAGI.Editor {
         /// Configures the resource menu prior to displaying it.
         /// </summary>
         internal void SetResourceMenu() {
+            MDIMain.mnuRSep2.Visible = true;
+            MDIMain.mnuRSep3.Visible = true;
             mnuRSave.Enabled = IsChanged;
         }
 
@@ -223,9 +225,9 @@ namespace WinAGI.Editor {
                     mnuEDelete.Text += "s";
                 }
             }
-            if (Clipboard.ContainsText(TextDataFormat.Text)) {
+            if (Clipboard.ContainsText(TextDataFormat.UnicodeText)) {
                 // if text on clipboard has globals format (#define ....)
-                string strTemp = Clipboard.GetText(TextDataFormat.Text);
+                string strTemp = Clipboard.GetText(TextDataFormat.UnicodeText);
                 // check for define marker
                 if (strTemp.Left(8) == DEF_MARKER) {
                     mnuEPaste.Enabled = true;
@@ -456,9 +458,9 @@ namespace WinAGI.Editor {
                 enabled = false;
             }
             else {
-                if (Clipboard.ContainsText(TextDataFormat.Text)) {
+                if (Clipboard.ContainsText(TextDataFormat.UnicodeText)) {
                     // if text on clipboard has globals format (#define ....)
-                    string strTemp = Clipboard.GetText(TextDataFormat.Text);
+                    string strTemp = Clipboard.GetText(TextDataFormat.UnicodeText);
                     // check for define marker
                     if (strTemp.Left(8) == DEF_MARKER) {
                         enabled = true;
@@ -479,7 +481,7 @@ namespace WinAGI.Editor {
             NextUndo.UDAction = GlobalsUndo.udgActionType.udgPasteDefines;
             NextUndo.UDPos = globalsgrid.CurrentRow.Index;
             TDefine[] PasteDefines;
-            PasteDefines = ReadDefines(Clipboard.GetText(TextDataFormat.Text), ref blnErrors);
+            PasteDefines = ReadDefines(Clipboard.GetText(TextDataFormat.UnicodeText), ref blnErrors);
             if (PasteDefines.Length == 0) {
                 // nothing to paste
                 MessageBox.Show(MDIMain,
@@ -1563,11 +1565,11 @@ namespace WinAGI.Editor {
 
         private TDefine[] ReadDefines(string definetext, ref bool errors) {
             errors = false;
-            StringList strings = new StringList();
+            List<string> strings = new();
             string strLine;
             TDefine[] retval = [];
             TDefine tmpDef = new();
-            strings.Add(definetext);
+            strings.AddLines(definetext);
             for (int i = 0; i < strings.Count; i++) {
                 strLine = strings[i].Replace((char)Keys.Tab, ' ').Trim();
                 // trim it - also, skip comments
@@ -1615,7 +1617,7 @@ namespace WinAGI.Editor {
             }
             if (savefile.Length == 0) {
                 if (FileName.Length == 0) {
-                    savefile = NewSaveFileName(this.FileName);
+                    savefile = NewSaveFileName(FileName);
                 }
                 else {
                     savefile = FileName;
@@ -1874,7 +1876,7 @@ namespace WinAGI.Editor {
             }
             else {
                 // save the file
-                StringList stlGlobals = BuildGlobalsFile(true);
+                List<string> stlGlobals = BuildGlobalsFile(true);
                 try {
                     File.WriteAllLines(savefile, stlGlobals);
                 }
@@ -1890,7 +1892,6 @@ namespace WinAGI.Editor {
         }
 
         private string NewSaveFileName(string filename = "") {
-            DialogResult rtn;
 
             if (filename.Length != 0) {
                 MDIMain.SaveDlg.Title = "Save Defines List";
@@ -1909,7 +1910,7 @@ namespace WinAGI.Editor {
             MDIMain.SaveDlg.OverwritePrompt = true;
             MDIMain.SaveDlg.OkRequiresInteraction = true;
             MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-            rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
+            DialogResult rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
             if (rtn == DialogResult.Cancel) {
                 // nothing selected
                 return "";
@@ -2337,11 +2338,11 @@ namespace WinAGI.Editor {
             }
         }
 
-        public StringList BuildGlobalsFile(bool Progress = false) {
+        public List<string> BuildGlobalsFile(bool Progress = false) {
             string strName, strValue, strComment;
             int lngMaxLen, lngMaxV = 0;
             TDefine tmpDef = new();
-            StringList tmpStrList;
+            List<string> tmpStrList;
 
             // determine longest name length to facilitate aligning values
             lngMaxLen = 0;

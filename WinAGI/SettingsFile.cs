@@ -33,7 +33,7 @@ namespace WinAGI.Common {
         //  in strings control codes are '\n' for new line, '\\' for backslash 
 
         #region Members
-        public StringList Lines = [];
+        public List<string> Lines = [];
         #endregion
 
         #region Constructors

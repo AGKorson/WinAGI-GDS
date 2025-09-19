@@ -1,13 +1,9 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Policy;
 using System.Text;
-using System.Text.Json;
-using System.Windows.Forms;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
@@ -1370,7 +1366,7 @@ namespace WinAGI.Engine {
                 Logic newlogic = agLogs.Add(0);
 
                 // add default text
-                StringList src =
+                List<string> src =
                 [];
                 // add standard include files
                 if (IncludeIDs) {
@@ -1389,7 +1385,7 @@ namespace WinAGI.Engine {
                 newlogic.Save();
                 agLogs[0].Unload();
                 if (IncludeGlobals) {
-                    StringList resIDlist = [
+                    List<string> resIDlist = [
                         "[",
                         "[ global defines file for " + agGameID,
                         "[",

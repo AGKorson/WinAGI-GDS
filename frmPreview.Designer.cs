@@ -962,7 +962,6 @@ namespace WinAGI.Editor {
             rtfLogPrev.CharWidth = 8;
             rtfLogPrev.ContextMenuStrip = cmsLogic;
             rtfLogPrev.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
-            rtfLogPrev.Font = new System.Drawing.Font("Courier New", 9.75F);
             rtfLogPrev.Hotkeys = resources.GetString("rtfLogPrev.Hotkeys");
             rtfLogPrev.IsReplaceMode = false;
             rtfLogPrev.LineNumberStartValue = 0U;

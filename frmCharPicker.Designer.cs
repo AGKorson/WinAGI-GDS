@@ -69,6 +69,7 @@ namespace WinAGI.Editor {
             // 
             // btnInsert
             // 
+            btnInsert.Enabled = false;
             btnInsert.Location = new System.Drawing.Point(169, 373);
             btnInsert.Name = "btnInsert";
             btnInsert.Size = new System.Drawing.Size(75, 24);

@@ -79,7 +79,6 @@ namespace WinAGI.Editor {
         private TreeNode ViewNode;
         internal bool InGame;
         internal bool IsChanged;
-        private bool closing = false;
         private Stack<ViewUndo> UndoCol = [];
         private Bitmap PlayImage, StopImage;
         private Bitmap AddCelImage, AddLoopImage;
@@ -275,8 +274,7 @@ namespace WinAGI.Editor {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
             }
-            closing = AskClose();
-            e.Cancel = !closing;
+            e.Cancel = !AskClose();
         }
 
         private void frmViewEdit_FormClosed(object sender, FormClosedEventArgs e) {
@@ -371,6 +369,7 @@ namespace WinAGI.Editor {
         #region Menu Event Handlers
         internal void SetResourceMenu() {
             mnuRSave.Enabled = IsChanged;
+            MDIMain.mnuRSep2.Visible = true;
             MDIMain.mnuRSep3.Visible = true;
             if (EditGame is null) {
                 // no game is open
@@ -4697,7 +4696,6 @@ namespace WinAGI.Editor {
             }
             if (!IsChanged) {
                 IsChanged = true;
-                mnuRSave.Enabled = true;
                 MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }

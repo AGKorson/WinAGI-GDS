@@ -52,10 +52,10 @@ namespace WinAGI.Engine {
         static int intArgStart;
         static int[] lngLabelPos = [];
         static int lngMsgSecStart;
-        static StringList stlMsgs;
+        static List<string> stlMsgs;
         static bool[] blnMsgUsed = new bool[256];
         static bool[] blnMsgExists = new bool[256];
-        static StringList stlOutput = [];
+        static List<string> stlOutput = [];
         static string strError;
         static bool badQuit = false;
         static byte mIndentSize = 4;
@@ -81,7 +81,7 @@ namespace WinAGI.Engine {
         static string D_TKN_COMMENT;
         static string D_TKN_MESSAGE;
         static bool blnWarning;
-        static StringList strWarning = [];
+        static List<string> strWarning = [];
         #endregion
 
         #region Properties
@@ -216,7 +216,7 @@ namespace WinAGI.Engine {
                 decompGame = compLogic.Parent;
             }
             else {
-                dcReservedList = Engine.Base.DefaultReservedDefines;
+                dcReservedList = DefaultReservedDefines;
                 decompGame = null;
             }
             if (!blnTokensSet) {
@@ -955,7 +955,7 @@ namespace WinAGI.Engine {
         /// <param name="bytData"></param>
         /// <param name="stlOut"></param>
         /// <returns></returns>
-        static bool DecodeIf(byte[] bytData, StringList stlOut) {
+        static bool DecodeIf(byte[] bytData, List<string> stlOut) {
             bool blnFirstCmd = true;
             bool blnInOrBlock = false;
             bool blnInNotBlock;
@@ -1037,11 +1037,18 @@ namespace WinAGI.Engine {
                                 lngPos += 2;
                                 if (!WordsByNumber && decompGame is not null) {
                                     if (decompGame.agVocabWords.GroupExists(lngWordGroupNum)) {
-                                        if (decompGame.agSierraSyntax) {
-                                            strLine += QUOTECHAR + decompGame.agVocabWords.GroupByNumber(lngWordGroupNum).GroupName.Replace(' ', '$');
+                                        if (decompGame.agVocabWords.GroupByNumber(lngWordGroupNum).WordCount > 0) {
+                                            if (decompGame.agSierraSyntax) {
+                                                strLine += QUOTECHAR + decompGame.agVocabWords.GroupByNumber(lngWordGroupNum).GroupName.Replace(' ', '$');
+                                            }
+                                            else {
+                                                strLine += QUOTECHAR + decompGame.agVocabWords.GroupByNumber(lngWordGroupNum).GroupName + QUOTECHAR;
+                                            }
                                         }
                                         else {
-                                            strLine += QUOTECHAR + decompGame.agVocabWords.GroupByNumber(lngWordGroupNum).GroupName + QUOTECHAR;
+                                            // rare, but if group 0, 1, or 9999, it's possible
+                                            // to have a group without any words
+                                            strLine += lngWordGroupNum;
                                         }
                                     }
                                     else {
@@ -1359,7 +1366,7 @@ namespace WinAGI.Engine {
         /// This method adds the message declarations to end of the source code output.
         /// </summary>
         /// <param name="stlOut"></param>
-        static void DisplayMessages(StringList stlOut) {
+        static void DisplayMessages(List<string> stlOut) {
             int lngMsg;
             stlOut.Add(D_TKN_COMMENT + "DECLARED MESSAGES");
             for (lngMsg = 1; lngMsg < stlMsgs.Count; lngMsg++) {
@@ -1509,7 +1516,7 @@ namespace WinAGI.Engine {
         /// This method adds all the block ends that are aligned with the current position.
         /// </summary>
         /// <param name="stlOutput"></param>
-        static void AddBlockEnds(StringList stlOutput) {
+        static void AddBlockEnds(List<string> stlOutput) {
             int CurBlock, i;
 
             for (CurBlock = bytBlockDepth; CurBlock > 0; CurBlock--) {

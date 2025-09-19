@@ -196,6 +196,7 @@ namespace WinAGI.Editor {
         internal void SetResourceMenu() {
 
             mnuRSave.Enabled = IsChanged;
+            MDIMain.mnuRSep2.Visible = true;
             MDIMain.mnuRSep3.Visible = true;
             if (EditGame is null) {
                 // no game is open

@@ -1163,6 +1163,7 @@ namespace WinAGI.Editor {
         internal void SetResourceMenu() {
 
             mnuRSave.Enabled = IsChanged;
+            MDIMain.mnuRSep2.Visible = true;
             MDIMain.mnuRSep3.Visible = true;
             if (EditGame is null) {
                 // no game is open
@@ -3705,14 +3706,14 @@ namespace WinAGI.Editor {
         }
 
         private void DrawSurface_MouseUp(object sender, MouseEventArgs e) {
-            Point PicPt = new(0, 0);
-
             if (blnDragging) {
                 blnDragging = false;
                 SetCursors(PicCursor.Default);
                 return;
             }
+
             // calculate position
+            Point PicPt = new(0, 0);
             PicPt.X = (int)(e.X / (2 * ScaleFactor));
             PicPt.Y = (int)(e.Y / ScaleFactor);
             if (PicPt.X < 0) {

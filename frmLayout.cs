@@ -418,6 +418,8 @@ namespace WinAGI.Editor {
         /// Configures the resource menu prior to displaying it.
         /// </summary>
         internal void SetResourceMenu() {
+            MDIMain.mnuRSep2.Visible = true;
+            MDIMain.mnuRSep3.Visible = false;
             mnuRSave.Enabled = IsChanged;
             // mnuRepair - always visible and enabled
             // mnuToggleAllPics always visible and enabled

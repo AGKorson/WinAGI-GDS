@@ -2191,4 +2191,10 @@
   <data name="ELC_SELOBJ" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\elc_selobj.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="ET_INS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\ET_INS.ICO;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ET_OVR" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\ET_OVR.ICO;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

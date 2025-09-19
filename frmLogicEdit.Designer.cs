@@ -548,7 +548,7 @@
             // splitContainer1
             // 
             splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            splitContainer1.Location = new System.Drawing.Point(0, 33);
+            splitContainer1.Location = new System.Drawing.Point(0, 57);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -559,7 +559,7 @@
             // 
             splitContainer1.Panel2.Controls.Add(documentMap1);
             splitContainer1.Panel2MinSize = 75;
-            splitContainer1.Size = new System.Drawing.Size(719, 309);
+            splitContainer1.Size = new System.Drawing.Size(719, 285);
             splitContainer1.SplitterDistance = 600;
             splitContainer1.TabIndex = 4;
             splitContainer1.TabStop = false;
@@ -580,8 +580,8 @@
             // 
             splitLogic.Panel2.Controls.Add(rtfLogic1);
             splitLogic.Panel2MinSize = 0;
-            splitLogic.Size = new System.Drawing.Size(600, 309);
-            splitLogic.SplitterDistance = 148;
+            splitLogic.Size = new System.Drawing.Size(600, 285);
+            splitLogic.SplitterDistance = 136;
             splitLogic.TabIndex = 4;
             splitLogic.TabStop = false;
             // 
@@ -601,7 +601,7 @@
     '\''
     };
             rtfLogic2.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
-            rtfLogic2.AutoScrollMinSize = new System.Drawing.Size(27, 14);
+            rtfLogic2.AutoScrollMinSize = new System.Drawing.Size(2, 14);
             rtfLogic2.BackBrush = null;
             rtfLogic2.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
             rtfLogic2.CharHeight = 14;
@@ -622,7 +622,7 @@
             rtfLogic2.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic2.ServiceColors");
             rtfLogic2.ShowCaretWhenInactive = true;
             rtfLogic2.ShowFoldingLines = true;
-            rtfLogic2.Size = new System.Drawing.Size(600, 148);
+            rtfLogic2.Size = new System.Drawing.Size(600, 136);
             rtfLogic2.SourceTextBox = rtfLogic1;
             rtfLogic2.TabIndex = 1;
             rtfLogic2.Zoom = 100;
@@ -658,7 +658,7 @@
     '\''
     };
             rtfLogic1.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
-            rtfLogic1.AutoScrollMinSize = new System.Drawing.Size(27, 14);
+            rtfLogic1.AutoScrollMinSize = new System.Drawing.Size(2, 14);
             rtfLogic1.BackBrush = null;
             rtfLogic1.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
             rtfLogic1.CharHeight = 14;
@@ -678,7 +678,7 @@
             rtfLogic1.SelectionColor = System.Drawing.Color.FromArgb(60, 255, 255, 255);
             rtfLogic1.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic1.ServiceColors");
             rtfLogic1.ShowCaretWhenInactive = true;
-            rtfLogic1.Size = new System.Drawing.Size(600, 157);
+            rtfLogic1.Size = new System.Drawing.Size(600, 145);
             rtfLogic1.TabIndex = 0;
             rtfLogic1.Zoom = 100;
             rtfLogic1.ToolTipNeeded += fctb_ToolTipNeeded;
@@ -696,7 +696,7 @@
             documentMap1.ForeColor = System.Drawing.Color.Maroon;
             documentMap1.Location = new System.Drawing.Point(0, 0);
             documentMap1.Name = "documentMap1";
-            documentMap1.Size = new System.Drawing.Size(115, 309);
+            documentMap1.Size = new System.Drawing.Size(115, 285);
             documentMap1.TabIndex = 4;
             documentMap1.Target = rtfLogic1;
             documentMap1.Text = "documentMap1";

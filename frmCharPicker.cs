@@ -122,7 +122,7 @@ namespace WinAGI.Editor {
             default:
                 SelChar.Value = (byte)intChar;
                 switch (intChar) {
-                case 13:
+                case 10:
                     // add slash code for newline
                     AddChar(92);
                     AddChar(110);
@@ -362,6 +362,7 @@ namespace WinAGI.Editor {
                 picInsert.Invalidate();
                 e.Handled = true;
             }
+            btnInsert.Enabled = InsertString.Length > 0;
         }
 
         private void picInsert_KeyPress(object sender, KeyPressEventArgs e) {
@@ -404,6 +405,7 @@ namespace WinAGI.Editor {
             if (blnUpdate) {
                 picInsert.Invalidate();
             }
+            btnInsert.Enabled = InsertString.Length > 0;
         }
 
         private void picInsert_MouseDown(object sender, MouseEventArgs e) {
@@ -624,6 +626,7 @@ namespace WinAGI.Editor {
                 InsertString = InsertString.Left(CursorPos) + intChar.ToString() + InsertString.Right(InsertString.Length - CursorPos);
                 SelStart = SelEnd = ++CursorPos;
             }
+            btnInsert.Enabled = InsertString.Length > 0;
         }
 
         /// <summary>

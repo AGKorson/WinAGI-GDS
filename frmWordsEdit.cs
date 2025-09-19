@@ -32,7 +32,8 @@ namespace WinAGI.Editor {
         private Font defaultfont;
         private Font boldfont;
         private Stack<WordsUndo> UndoCol = new();
-
+        private DataGridViewCellStyle warningstyle;
+        private DataGridViewCellStyle reservedstyle;
         // StatusStrip Items
         internal ToolStripStatusLabel spGroupCount;
         internal ToolStripStatusLabel spWordCount;
@@ -43,7 +44,6 @@ namespace WinAGI.Editor {
         #endregion
 
         public static frmWordsEdit DragSourceForm { get; private set; }
-
         public frmWordsEdit() {
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer |
                           ControlStyles.AllPaintingInWmPaint |
@@ -56,6 +56,25 @@ namespace WinAGI.Editor {
         }
 
         #region Form Event Handlers
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+            // command keys need to be intercepted and rerouted
+            switch (keyData) {
+            case Keys.Enter:
+            case Keys.Tab:
+            case Keys.Escape:
+                if (txtGroupEdit.Visible) {
+                    txtGroupEdit_KeyDown(txtGroupEdit, new KeyEventArgs(keyData));
+                    return true;
+                }
+                if (txtWordEdit.Visible) {
+                    txtWordEdit_KeyDown(txtGroupEdit, new KeyEventArgs(keyData));
+                    return true;
+                }
+                break;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         protected override void OnClipboardChanged() {
             base.OnClipboardChanged();
             tbbPaste.Enabled = CanPaste();
@@ -96,14 +115,14 @@ namespace WinAGI.Editor {
         private void frmWordsEdit_Resize(object sender, EventArgs e) {
             int newWidth = (ClientSize.Width - 15) / 2;
 
-            lstGroups.Width = newWidth;
-            lstWords.Width = newWidth;
-            lstWords.Left = lstGroups.Right + 5;
-            label1.Left = 5 + (lstGroups.Width - label1.Width) / 2;
-            label2.Left = lstWords.Left + (lstWords.Width - label2.Width) / 2;
-            lstWords.Height = ClientSize.Height - lstWords.Top - 5;
+            dgGroups.Width = newWidth;
+            dgWords.Width = newWidth;
+            dgWords.Left = dgGroups.Right + 5;
+            label1.Left = 5 + (dgGroups.Width - label1.Width) / 2;
+            label2.Left = dgWords.Left + (dgWords.Width - label2.Width) / 2;
+            dgWords.Height = ClientSize.Height - dgWords.Top - 5;
             if (GroupMode) {
-                lstGroups.Height = lstWords.Height;
+                dgGroups.Height = dgWords.Height;
             }
         }
         #endregion
@@ -111,6 +130,7 @@ namespace WinAGI.Editor {
         #region Menu Event Handlers
         internal void SetResourceMenu() {
             mnuRSave.Enabled = IsChanged;
+            MDIMain.mnuRSep2.Visible = true;
             MDIMain.mnuRSep3.Visible = true;
             if (EditGame is null) {
                 // no game is open
@@ -246,16 +266,16 @@ namespace WinAGI.Editor {
             string msg = "";
             if (lngCount > 0) {
                 // refresh form
-                lstGroups.Items.Clear();
-                lstWords.Items.Clear();
+                dgGroups.Rows.Clear();
+                dgWords.Rows.Clear();
                 if (GroupMode) {
                     for (int i = 0; i < EditWordList.GroupCount; i++) {
-                        lstGroups.Items.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
+                        dgGroups.Rows.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
                     }
                 }
                 else {
                     foreach (AGIWord word in EditWordList) {
-                        lstWords.Items.Add(word.WordText);
+                        AddWordToGrid(word.WordText);
                     }
                 }
                 UpdateSelection(0, 0, true);
@@ -383,7 +403,7 @@ namespace WinAGI.Editor {
                     tmpLogic.Unload();
                 }
             }
-            StringList stlOutput = new();
+            List<string> stlOutput = new();
             //  go through all groups, make list of any that are unused
             for (int i = 0; i < GroupUsed.Length; i++) {
                 if (!GroupUsed[i]) {
@@ -409,7 +429,7 @@ namespace WinAGI.Editor {
             }
             else {
                 Clipboard.Clear();
-                Clipboard.SetText(stlOutput.Text, TextDataFormat.Text);
+                Clipboard.SetText(stlOutput.Text(Environment.NewLine), TextDataFormat.UnicodeText);
                 string strCount;
                 if (UnusedCount == 1) {
                     strCount = "is one unused word group";
@@ -440,7 +460,7 @@ namespace WinAGI.Editor {
             // cut is enabled if mode is group or word, and a group or word is selected
             //   NOT grp 0, 1, 1999
             mnuECut.Visible = true;
-            if (lstGroups.Focused) {
+            if (dgGroups.Focused) {
                 mnuECut.Text = "Cut Group";
                 mnuECut.Enabled = EditGroupNumber != -1 &&
                     EditGroupNumber != 0 &&
@@ -470,7 +490,7 @@ namespace WinAGI.Editor {
                 mnuEPaste.Enabled = false;
                 mnuEPaste.Text = "Paste";
             }
-            else if (lstGroups.Focused) {
+            else if (dgGroups.Focused) {
                 mnuEPaste.Enabled = Clipboard.ContainsData(WORDSTOK_CB_FMT);
                 mnuEPaste.Text = "Paste Group";
             }
@@ -495,8 +515,8 @@ namespace WinAGI.Editor {
                 }
             }
             // clear - always available
-            mnuEInsertGroup.Visible = lstGroups.Focused;
-            mnuEInsertWord.Visible = lstWords.Focused;
+            mnuEInsertGroup.Visible = dgGroups.Focused;
+            mnuEInsertWord.Visible = dgWords.Focused;
             mnuEInsertWord.Enabled = true;
             // if group 1 or 9999 insert only allowed if empty
             if (EditGroupNumber == 1 || EditGroupNumber == 9999) {
@@ -506,7 +526,7 @@ namespace WinAGI.Editor {
             }
             // ffind again depends on search status
             mnuEFindAgain.Enabled = GFindText.Length > 0;
-            if (lstGroups.Focused) {
+            if (dgGroups.Focused) {
                 mnuEditItem.Text = "Renumber Group";
                 mnuEditItem.Enabled = EditGroupNumber > 1 &&
                     EditGroupNumber != 9999;
@@ -523,7 +543,7 @@ namespace WinAGI.Editor {
                     mnuEditItem.Enabled = true;
                 }
             }
-            if (lstGroups.Focused) {
+            if (dgGroups.Focused) {
                 mnuEFindInLogic.Enabled = EditGroupNumber >= 0;
             }
             else {
@@ -602,7 +622,7 @@ namespace WinAGI.Editor {
                 for (int i = 0; i < NextUndo.Group.Length; i++) {
                     int index = EditWordList.AddWord(NextUndo.Group[i], NextUndo.GroupNo);
                     if (!GroupMode) {
-                        lstWords.Items.Insert(index, NextUndo.Group[i]);
+                        AddWordToGrid(NextUndo.Group[i], index);
                     }
                 }
                 UpdateSelection(NextUndo.GroupNo, 0);
@@ -626,7 +646,7 @@ namespace WinAGI.Editor {
                 }
                 if (EditWordList.GroupByNumber(NextUndo.GroupNo).WordCount == 0) {
                     if (GroupMode) {
-                        lstWords.Items.Clear();
+                        dgWords.Rows.Clear();
                     }
                 }
                 AddWord(NextUndo.GroupNo, NextUndo.Word, true);
@@ -681,16 +701,16 @@ namespace WinAGI.Editor {
                         EditWordList.AddWord(strWords[j], lngGroup);
                     }
                 }
-                lstGroups.Items.Clear();
-                lstWords.Items.Clear();
+                dgGroups.Rows.Clear();
+                dgWords.Rows.Clear();
                 if (GroupMode) {
                     for (int i = 0; i < EditWordList.GroupCount; i++) {
-                        lstGroups.Items.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
+                        dgGroups.Rows.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
                     }
                 }
                 else {
                     foreach (AGIWord word in EditWordList) {
-                        lstWords.Items.Add(word.WordText);
+                        AddWordToGrid(word.WordText);
                     }
                 }
                 UpdateSelection(0, 0, true);
@@ -702,7 +722,7 @@ namespace WinAGI.Editor {
         private void mnuECut_Click(object sender, EventArgs e) {
             if (CanCut()) {
                 mnuECopy_Click(sender, e);
-                mnuEDelete_Click(sender, e);
+                DeleteGroupOrWord();
                 if (UndoCol.Peek().Action == WordsUndo.ActionType.DelGroup) {
                     UndoCol.Peek().Action = WordsUndo.ActionType.CutGroup;
                 }
@@ -712,23 +732,91 @@ namespace WinAGI.Editor {
             }
         }
 
-        private bool CanCut() {
+        private bool CanCut(bool confirmspecial = false) {
             // cut(delete) is enabled if mode is group or word, and a group or word is selected
             //   NOT grp 0, 1, 1999
             if (EditingGroup || EditingWord) {
                 return false;
             }
-            if (lstGroups.Focused) {
+            if (dgGroups.Focused) {
                 return EditGroupNumber != -1 &&
                     EditGroupNumber != 0 &&
                     EditGroupNumber != 1 &&
                     EditGroupNumber != 9999;
             }
             else {
-                // for group 0, 1, 9999 disable if no words in group
                 if (EditGroupNumber == 0 || EditGroupNumber == 1 || EditGroupNumber == 9999) {
+                    // for group 0, 1, 9999 disable if no words in group
                     if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0) {
                         return false;
+                    }
+                    // for group 0, a and i are special
+                    // for group 1 and 9999 confirm before deleting default placeholder
+                    switch (EditGroupNumber) {
+                    case 0:
+                        // 'a' and 'i' are special
+                        if (EditWordText == "a" || EditWordText == "i") {
+                            if (MessageBox.Show(MDIMain,
+                                $"The word '{EditWordText}' is usually associated with group 0. Are " +
+                                "you sure you want to delete it?",
+                                "Delete Group 0 Word",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                return false;
+                            }
+                        }
+                        break;
+                    case 1:
+                        // 'anyword' is special
+                        if (EditWordText == "anyword") {
+                            if (MessageBox.Show(MDIMain,
+                                $"The word 'anyword' is the Sierra default placeholder word for reserved group 1. " +
+                                "Deleting it is not advised.\n\nAre you sure you want to delete it?",
+                                "Delete Group 1 Placeholder",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                return false;
+                            }
+                        }
+                        else if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 1) {
+                            if (MessageBox.Show(MDIMain,
+                                $"Group '1' is a reserved group. Deleting its placeholder is not " +
+                                "advised.\n\nAre you sure you want to delete it?",
+                                "Delete Group 1 Placeholder",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                return false;
+                            }
+                        }
+                        break;
+                    case 9999:
+                        // 'rol' is special
+                        if (EditWordText == "rol") {
+                            if (MessageBox.Show(MDIMain,
+                                $"The word 'rol' is the Sierra default placeholder word for reserved group 9999. " +
+                                "Deleting it is not advised.\n\nAre you sure you want to delete it?",
+                                "Delete Group 9999 Placeholder",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                return false;
+                            }
+                        }
+                        else if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 1) {
+                            if (MessageBox.Show(MDIMain,
+                                $"Group '9999' is a reserved group. Deleting its placeholder is not " +
+                                "advised.\n\nAre you sure you want to delete it?",
+                                "Delete Group 9999 Placeholder",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                return false;
+                            }
+                        }
+                        break;
                     }
                 }
                 return true;
@@ -740,7 +828,7 @@ namespace WinAGI.Editor {
                 EditGroupNumber == -1 || EditWordIndex == -1) {
                 return;
             }
-            if (lstGroups.Focused) {
+            if (dgGroups.Focused) {
                 // add a word group as custom data
                 WordClipboardData groupdata = new();
                 groupdata.IsGroup = true;
@@ -775,7 +863,7 @@ namespace WinAGI.Editor {
                 // now add the combined clipboard data object
                 Clipboard.SetDataObject(dataObject, true);
             }
-            else if (lstWords.Focused) {
+            else if (dgWords.Focused) {
                 // add word as  custom data to clipboard
                 DataObject dataObject = new();
                 WordClipboardData worddata = new();
@@ -790,7 +878,7 @@ namespace WinAGI.Editor {
         private void mnuEPaste_Click(object sender, EventArgs e) {
             string strMsg = "";
             if (CanPaste()) {
-                if (lstGroups.Focused) {
+                if (dgGroups.Focused) {
                     WordClipboardData groupdata = Clipboard.GetData(WORDSTOK_CB_FMT) as WordClipboardData;
                     if (groupdata == null) {
                         // no custom clipboard data
@@ -854,7 +942,7 @@ namespace WinAGI.Editor {
                     }
                     return;
                 }
-                if (lstWords.Focused) {
+                if (dgWords.Focused) {
                     string strWord = "";
                     // check clipboard for custom data
                     WordClipboardData worddata = Clipboard.GetData(WORDSTOK_CB_FMT) as WordClipboardData;
@@ -863,8 +951,8 @@ namespace WinAGI.Editor {
                         // clipboard contains a single word
                         clipboardword = worddata.WordText;
                     }
-                    else if (Clipboard.ContainsText(TextDataFormat.Text)) {
-                        strWord = Clipboard.GetText(TextDataFormat.Text).ToLower();
+                    else if (Clipboard.ContainsText(TextDataFormat.UnicodeText)) {
+                        strWord = Clipboard.GetText(TextDataFormat.UnicodeText).LowerAGI();
                         if (strWord.Contains('\n') || strWord.Contains("\r")) {
                             strWord = "";
                         }
@@ -958,7 +1046,7 @@ namespace WinAGI.Editor {
             if (EditingGroup || EditingWord) {
                 return false;
             }
-            if (lstGroups.Focused) {
+            if (dgGroups.Focused) {
                 return Clipboard.ContainsData(WORDSTOK_CB_FMT);
             }
             else {
@@ -968,133 +1056,7 @@ namespace WinAGI.Editor {
 
         private void mnuEDelete_Click(object sender, EventArgs e) {
             if (CanCut()) {
-                if (lstGroups.Focused) {
-                    if (EditGroupNumber != -1) {
-                        int groupindex = EditGroupIndex;
-                        int wordindex = EditWordIndex;
-                        DeleteGroup(EditGroupNumber);
-                        if (GroupMode) {
-                            if (groupindex == lstGroups.Items.Count) {
-                                groupindex--;
-                            }
-                            UpdateSelection(EditWordList.GroupByIndex(groupindex).GroupNum, 0, true);
-                        }
-                        else {
-                            if (wordindex == lstWords.Items.Count) {
-                                wordindex--;
-                            }
-                            UpdateSelection(wordindex, true);
-                        }
-                    }
-                }
-                if (lstWords.Focused) {
-                    if (EditGroupNumber == -1) {
-                        return;
-                    }
-                    switch (EditGroupNumber) {
-                    case 0:
-                        // 'a' and 'i' are special
-                        if (EditWordText == "a" || EditWordText == "i") {
-                            if (MessageBox.Show(MDIMain,
-                                $"The word '{EditWordText}' is usually associated with group 0. Are " +
-                                "you sure you want to delete it?",
-                                "Delete Group 0 Word",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                                DeleteWord(EditWordText);
-                            }
-                        }
-                        else {
-                            // more than one, allow it
-                            DeleteWord(EditWordText);
-                        }
-                        break;
-                    case 1:
-                        // 'anyword' is special
-                        if (EditWordText == "anyword") {
-                            if (MessageBox.Show(MDIMain,
-                                $"The word 'anyword' is the Sierra default placeholder word for reserved group 1. " +
-                                "Deleting it is not advised.\n\nAre you sure you want to delete it?",
-                                "Delete Group 1 Placeholder",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                                DeleteWord(EditWordText);
-                            }
-                        }
-                        else if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 1) {
-                            if (MessageBox.Show(MDIMain,
-                                $"Group '1' is a reserved group. Deleting its placeholder is not " +
-                                "advised.\n\nAre you sure you want to delete it?",
-                                "Delete Group 1 Placeholder",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                                DeleteWord(EditWordText);
-                            }
-                        }
-                        else {
-                            // more than one?? allow it
-                            DeleteWord(EditWordText);
-                        }
-                        break;
-                    case 9999:
-                        // 'rol' is special
-                        if (EditWordText == "rol") {
-                            if (MessageBox.Show(MDIMain,
-                                $"The word 'rol' is the Sierra default placeholder word for reserved group 9999. " +
-                                "Deleting it is not advised.\n\nAre you sure you want to delete it?",
-                                "Delete Group 9999 Placeholder",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                                DeleteWord(EditWordText);
-                            }
-                        }
-                        else if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 1) {
-                            if (MessageBox.Show(MDIMain,
-                                $"Group '9999' is a reserved group. Deleting its placeholder is not " +
-                                "advised.\n\nAre you sure you want to delete it?",
-                                "Delete Group 9999 Placeholder",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.Yes) {
-                                DeleteWord(EditWordText);
-                            }
-                        }
-                        else {
-                            // more than one?? allow it
-                            DeleteWord(EditWordText);
-                        }
-                        break;
-                    default:
-                        DeleteWord(EditWordText);
-                        break;
-                    }
-                    // select next word, or if the grp is
-                    // gone select next group
-                    if (!GroupMode || EditWordList.GroupExists(EditGroupNumber)) {
-                        if (GroupMode) {
-                            if (EditWordGroupIndex == lstWords.Items.Count) {
-                                EditWordGroupIndex--;
-                            }
-                            UpdateSelection(EditGroupNumber, EditWordGroupIndex, true);
-                        }
-                        else {
-                            if (EditWordIndex == lstWords.Items.Count) {
-                                EditWordIndex--;
-                            }
-                            UpdateSelection(EditWordIndex, true);
-                        }
-                    }
-                    else {
-                        if (EditGroupIndex == lstGroups.Items.Count) {
-                            EditGroupIndex--;
-                        }
-                        UpdateSelection(EditWordList.GroupByIndex(EditGroupIndex).GroupNum, 0, true);
-                    }
-                }
+                DeleteGroupOrWord();
             }
         }
 
@@ -1121,11 +1083,11 @@ namespace WinAGI.Editor {
             if (EditingGroup || EditingWord) {
                 return;
             }
-            if (sender == tbbRenumber || lstGroups.Focused) {
-                lstGroups_DoubleClick(sender, e);
+            if (sender == tbbRenumber || dgGroups.Focused) {
+                dgGroups_DoubleClick(sender, e);
             }
-            if (lstWords.Focused) {
-                lstWords_DoubleClick(sender, e);
+            if (dgWords.Focused) {
+                dgWords_DoubleClick(sender, e);
             }
         }
 
@@ -1156,7 +1118,7 @@ namespace WinAGI.Editor {
             GMatchWord = true;
             GMatchCase = true;
             GLogFindLoc = FindLocation.All;
-            GFindSynonym = lstGroups.Focused;
+            GFindSynonym = dgGroups.Focused;
             GFindGrpNum = EditGroupNumber;
             GFindText = '"' + EditWordText + '"';
             SearchType = AGIResType.Words;
@@ -1178,42 +1140,42 @@ namespace WinAGI.Editor {
             GroupMode = !GroupMode;
             if (GroupMode) {
                 label1.Text = "Groups";
-                lstGroups.Height = lstWords.Height;
-                lstGroups.Items.Clear();
+                dgGroups.Height = dgWords.Height;
+                dgGroups.Rows.Clear();
                 for (int i = 0; i < EditWordList.GroupCount; i++) {
-                    lstGroups.Items.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
+                    dgGroups.Rows.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
                 }
-                lstGroups.SelectionMode = SelectionMode.One;
-                lstGroups.SelectedIndex = EditGroupIndex;
-                lstWords.Items.Clear();
+                dgGroups.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                SelectGroup(EditGroupIndex);
+                dgWords.Rows.Clear();
                 for (int i = 0; i < EditWordList.GroupByIndex(EditGroupIndex).WordCount; i++) {
-                    lstWords.Items.Add(EditWordList.GroupByIndex(EditGroupIndex).Words[i]);
+                    AddWordToGrid(EditWordList.GroupByIndex(EditGroupIndex).Words[i]);
                 }
-                lstWords.Text = EditWordText;
+                SelectWord(EditWordText);
                 buttonicon = (byte[])EditorResources.ResourceManager.GetObject("ewi_bygroup");
             }
             else {
                 label1.Text = "Group Number:";
-                lstGroups.Items.Clear();
-                lstGroups.Height = txtGroupEdit.Height + 4;
-                lstGroups.SelectionMode = SelectionMode.None;
-                lstWords.Items.Clear();
+                dgGroups.Rows.Clear();
+                dgGroups.Height = txtGroupEdit.Height + 4;
+                dgGroups.SelectionMode = DataGridViewSelectionMode.CellSelect;
+                dgWords.Rows.Clear();
                 foreach (AGIWord word in EditWordList) {
-                    lstWords.Items.Add(word.WordText);
+                    AddWordToGrid(word.WordText);
                 }
                 if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0) {
-                    lstGroups.Items.Add("");
+                    dgGroups.Rows.Add("");
                     UpdateSelection(EditWordList[0].WordText, true);
                 }
                 else {
-                    lstGroups.Items.Add((EditGroupNumber.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(EditGroupIndex).GroupName);
+                    dgGroups.Rows.Add((EditGroupNumber.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(EditGroupIndex).GroupName);
                 }
-                lstWords.Text = EditWordText;
+                SelectWord(EditWordText);
                 buttonicon = (byte[])EditorResources.ResourceManager.GetObject("ewi_byword");
             }
             Stream stream = new MemoryStream(buttonicon);
             tbbMode.Image = (Bitmap)Image.FromStream(stream);
-            label1.Left = 5 + (lstGroups.Width - label1.Width) / 2;
+            label1.Left = 5 + (dgGroups.Width - label1.Width) / 2;
         }
 
         private void cmUndo_Click(object sender, EventArgs e) {
@@ -1311,7 +1273,7 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Control Event Handlers
-        private void lstGroups_DoubleClick(object sender, EventArgs e) {
+        private void dgGroups_DoubleClick(object sender, EventArgs e) {
             if (EditingGroup || EditingWord) {
                 return;
             }
@@ -1329,50 +1291,54 @@ namespace WinAGI.Editor {
             EditingGroup = true;
             // configure the TextBox for in-place editing
             txtGroupEdit.Text = EditGroupNumber.ToString();
-            Point location = lstGroups.GetItemRectangle(index).Location;
-            location.Offset(lstGroups.Location + new Size(3, 1));
+            Point location = dgGroups.GetCellDisplayRectangle(0, index, true).Location;
+            location.Offset(dgGroups.Location + new Size(3, 2));
             txtGroupEdit.Location = location;
-            txtGroupEdit.Size = lstGroups.GetItemRectangle(index).Size;
+            txtGroupEdit.Size = dgGroups.GetCellDisplayRectangle(0, index, true).Size;
+            dgGroups.SelectedCells[0].Style.SelectionBackColor = SystemColors.Window;
             txtGroupEdit.Visible = true;
             txtGroupEdit.Select();
         }
 
-        private void lstGroups_Enter(object sender, EventArgs e) {
+        private void dgGroups_Enter(object sender, EventArgs e) {
             label1.Font = boldfont;
             SetToolbarStatus();
         }
 
-        private void lstGroups_Leave(object sender, EventArgs e) {
-            if (lstWords.Focused) {
+        private void dgGroups_Leave(object sender, EventArgs e) {
+            if (dgWords.Focused) {
                 label1.Font = defaultfont;
             }
         }
 
-        private void lstGroups_MouseDown(object sender, MouseEventArgs e) {
-            if (lstGroups.SelectionMode != SelectionMode.None) {
-                int selitem = (e.Y / lstGroups.ItemHeight) + lstGroups.TopIndex;
-                if (selitem >= lstGroups.Items.Count) {
-                    selitem = lstGroups.Items.Count - 1;
-                }
-                if (EditGroupIndex != selitem) {
-                    UpdateSelection(EditWordList.GroupByIndex(selitem).GroupNum, 0, true);
-                    // always reset search
-                    StartWord = -1;
-                    StartGrp = -1;
+        private void dgGroups_MouseDown(object sender, MouseEventArgs e) {
+            if (GroupMode) {
+                DataGridView.HitTestInfo info = dgGroups.HitTest(e.X, e.Y);
+                if (info != null) {
+                    int selitem = info.RowIndex;
+                    if (selitem >= dgGroups.Rows.Count) {
+                        selitem = dgGroups.Rows.Count - 1;
+                    }
+                    if (EditGroupIndex != selitem) {
+                        UpdateSelection(EditWordList.GroupByIndex(selitem).GroupNum, 0, true);
+                        // always reset search
+                        StartWord = -1;
+                        StartGrp = -1;
+                    }
                 }
             }
             if (e.Button == MouseButtons.Right) {
-                lstGroups.Select();
+                dgGroups.Select();
             }
         }
 
-        private void lstGroups_MouseUp(object sender, MouseEventArgs e) {
-            if (GroupMode && lstGroups.SelectedIndex != EditGroupIndex) {
-                UpdateSelection(EditWordList.GroupByIndex(lstGroups.SelectedIndex).GroupNum, 0, true);
+        private void dgGroups_MouseUp(object sender, MouseEventArgs e) {
+            if (GroupMode && dgGroups.SelectedRows[0].Index != EditGroupIndex) {
+                UpdateSelection(EditWordList.GroupByIndex(dgGroups.SelectedRows[0].Index).GroupNum, 0, true);
             }
         }
 
-        private void lstGroups_DragEnter(object sender, DragEventArgs e) {
+        private void dgGroups_DragEnter(object sender, DragEventArgs e) {
             if (GroupMode && DragWord) {
                 if (!this.Focused) {
                     this.Select();
@@ -1384,37 +1350,66 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void lstGroups_DragOver(object sender, DragEventArgs e) {
+        private void dgGroups_DragOver(object sender, DragEventArgs e) {
             if (GroupMode && DragWord) {
-                // convert screen coordinates to lstGroup coordinates
-                Point cP = lstGroups.PointToClient(new Point(e.X, e.Y));
-
-                int selitem = (cP.Y / lstGroups.ItemHeight) + lstGroups.TopIndex;
-                if (selitem < 0) {
-                    selitem = 0;
-                }
-                if (selitem >= lstGroups.Items.Count) {
-                    selitem = lstGroups.Items.Count - 1;
-                }
-                if (selitem != lstGroups.SelectedIndex) {
-                    lstGroups.SelectedIndex = selitem;
+                // convert screen coordinates to dgGroup coordinates
+                Point cP = dgGroups.PointToClient(new Point(e.X, e.Y));
+                DataGridView.HitTestInfo info = dgGroups.HitTest(cP.X, cP.Y);
+                int selitem;
+                if (info != null) {
+                    // handle scrolling manually
+                    if (cP.Y < 3) {
+                        if (dgGroups.FirstDisplayedScrollingRowIndex == 0) {
+                            return;
+                        }
+                        selitem = dgGroups.FirstDisplayedScrollingRowIndex - 1;
+                        dgGroups.FirstDisplayedScrollingRowIndex = selitem;
+                    }
+                    else if (cP.Y > dgGroups.ClientRectangle.Height - 8) {
+                        selitem = dgGroups.FirstDisplayedScrollingRowIndex + dgGroups.DisplayedRowCount(true);
+                        if (selitem >= dgGroups.Rows.Count) {
+                            return;
+                        }
+                        dgGroups.FirstDisplayedScrollingRowIndex++;
+                    }
+                    else {
+                        // ignore it not on a cell
+                        if (info.Type != DataGridViewHitTestType.Cell) {
+                            return;
+                        }
+                        selitem = info.RowIndex;
+                    }
+                    if (selitem < 0 ||selitem >= dgGroups.Rows.Count) {
+                        return;
+                    }
+                    if (selitem != dgGroups.SelectedRows[0].Index) {
+                        dgGroups.Rows[selitem].Selected = true;
+                    }
+                    // don't allow dropping on group 1 or 9999
+                    if (selitem == 1 || EditWordList.GroupByIndex(selitem).GroupNum == 9999) {
+                        e.Effect = DragDropEffects.None;
+                    }
+                    else {
+                        e.Effect = DragDropEffects.Move;
+                    }
                 }
             }
         }
 
-        private void lstGroups_DragLeave(object sender, EventArgs e) {
+        private void dgGroups_DragLeave(object sender, EventArgs e) {
+            Debug.Print("leave drag");
             if (GroupMode && DragWord) {
-                if (lstGroups.SelectedIndex != EditGroupIndex) {
-                    lstGroups.SelectedIndex = EditGroupIndex;
+                if (dgGroups.SelectedRows[0].Index != EditGroupIndex) {
+                   //SelectGroup(EditGroupIndex);
                 }
             }
         }
 
-        private void lstGroups_DragDrop(object sender, DragEventArgs e) {
+        private void dgGroups_DragDrop(object sender, DragEventArgs e) {
             if (GroupMode) {
                 string dropword = (string)e.Data.GetData(DataFormats.Text);
                 if (dropword.Length > 0) {
-                    int groupnum = EditWordList.GroupByIndex(lstGroups.SelectedIndex).GroupNum;
+                    int groupnum = EditWordList.GroupByIndex(dgGroups.SelectedRows[0].Index).GroupNum;
                     if (this == DragSourceForm) {
                         if (EditWordList[dropword].Group != groupnum) {
                             // check for last word of group 1,9999
@@ -1445,7 +1440,7 @@ namespace WinAGI.Editor {
                                 UpdateSelection(dropword, true);
                             }
                             else {
-                                lstGroups.SelectedIndex = EditGroupIndex;
+                                SelectGroup(EditGroupIndex);
                             }
                         }
                     }
@@ -1456,7 +1451,7 @@ namespace WinAGI.Editor {
                                 "Duplicate Word",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Information);
-                            lstGroups.SelectedIndex = EditGroupIndex;
+                                SelectGroup(EditGroupIndex);
                         }
                         else {
                             AddWord(groupnum, dropword);
@@ -1500,7 +1495,8 @@ namespace WinAGI.Editor {
                     txtGroupEdit.SelectAll();
                     return;
                 }
-                lstGroups.Select();
+                dgGroups.SelectedCells[0].Style.SelectionBackColor = SystemColors.Highlight;
+                dgGroups.Select();
                 return;
             case Keys.Escape:
                 FinishGroupEdit();
@@ -1523,7 +1519,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void lstWords_DoubleClick(object sender, EventArgs e) {
+        private void dgWords_DoubleClick(object sender, EventArgs e) {
             if (EditingGroup || EditingWord) {
                 return;
             }
@@ -1565,76 +1561,96 @@ namespace WinAGI.Editor {
             BeginWordEdit();
         }
 
-        private void lstWords_Enter(object sender, EventArgs e) {
+        private void dgWords_Enter(object sender, EventArgs e) {
             label2.Font = boldfont;
             SetToolbarStatus();
         }
 
-        private void lstWords_Leave(object sender, EventArgs e) {
-            if (lstGroups.Focused) {
+        private void dgWords_Leave(object sender, EventArgs e) {
+            if (dgGroups.Focused) {
                 label2.Font = defaultfont;
             }
         }
 
-        private void lstWords_MouseDown(object sender, MouseEventArgs e) {
-            int selitem = (e.Y / lstWords.ItemHeight) + lstWords.TopIndex;
-            if (selitem >= lstWords.Items.Count) {
-                selitem = lstWords.Items.Count - 1;
-            }
-            if ((EditGroupNumber == 0 || EditGroupNumber == 1 || EditGroupNumber == 9999) &&
-                EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0) {
-                selitem = -1;
-            }
-            // in groupmode, selindex corresponds to EditWordGroupIndex
-            // in wordmode, selindex corresponds to EditWordIndex
-            if (GroupMode) {
-                if (EditWordGroupIndex != selitem) {
-                    UpdateSelection((string)lstWords.Items[selitem]);
-                    // always reset search
-                    StartWord = -1;
-                    StartGrp = -1;
+        private void dgWords_MouseDown(object sender, MouseEventArgs e) {
+            DataGridView.HitTestInfo info = dgWords.HitTest(e.X, e.Y);
+            if (info != null && info.Type == DataGridViewHitTestType.Cell) {
+                int selitem = info.RowIndex;
+                if (selitem >= dgWords.Rows.Count) {
+                    selitem = dgWords.Rows.Count - 1;
                 }
-            }
-            else {
-                if (EditWordIndex != selitem) {
-                    UpdateSelection((string)lstWords.Items[selitem]);
-                    // always reset search
-                    StartWord = -1;
-                    StartGrp = -1;
+                if ((EditGroupNumber == 0 || EditGroupNumber == 1 || EditGroupNumber == 9999) &&
+                    EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0) {
+                    return;
+                }
+                // in groupmode, selindex corresponds to EditWordGroupIndex
+                // in wordmode, selindex corresponds to EditWordIndex
+                if (GroupMode) {
+                    if (EditWordGroupIndex != selitem) {
+                        UpdateSelection((string)dgWords.Rows[selitem].Cells[0].Value);
+                        // always reset search
+                        StartWord = -1;
+                        StartGrp = -1;
+                    }
+                }
+                else {
+                    if (EditWordIndex != selitem) {
+                        UpdateSelection((string)dgWords.Rows[selitem].Cells[0].Value);
+                        // always reset search
+                        StartWord = -1;
+                        StartGrp = -1;
+                    }
                 }
             }
             if (e.Button == MouseButtons.Right) {
-                lstWords.Select();
+                dgWords.Select();
             }
         }
 
-        private void lstWords_MouseUp(object sender, MouseEventArgs e) {
+        private void dgWords_MouseUp(object sender, MouseEventArgs e) {
             if (GroupMode) {
-                if (EditWordGroupIndex != lstWords.SelectedIndex) {
-                    UpdateSelection((string)lstWords.Items[lstWords.SelectedIndex]);
+                if (EditWordGroupIndex != dgWords.SelectedRows[0].Index) {
+                    UpdateSelection((string)dgWords.Rows[dgWords.SelectedRows[0].Index].Cells[0].Value);
                 }
             }
             else {
-                if (EditWordIndex != lstWords.SelectedIndex) {
-                    UpdateSelection((string)lstWords.Items[lstWords.SelectedIndex]);
+                if (EditWordIndex != dgWords.SelectedRows[0].Index) {
+                    UpdateSelection((string)dgWords.Rows[dgWords.SelectedRows[0].Index].Cells[0].Value);
                 }
             }
-            Debug.Print("mouse up");
         }
 
-        private void lstWords_MouseMove(object sender, MouseEventArgs e) {
+        private void dgWords_MouseMove(object sender, MouseEventArgs e) {
             if (GroupMode && !DragWord && e.Button == MouseButtons.Left) {
+                if (EditGroupNumber == 1 || EditGroupNumber == 9999) {
+                    return;
+                }
+                if (EditGroupNumber == 0) {
+                    if (EditWordText == "a" || EditWordText == "i") {
+                        return;
+                    }
+                }
                 DragWord = true;
                 DragSourceForm = this;
-                lstWords.DoDragDrop(EditWordText, DragDropEffects.Move);
+                dgWords.DoDragDrop(EditWordText, DragDropEffects.Move);
             }
         }
 
-        private void lstWords_QueryContinueDrag(object sender, QueryContinueDragEventArgs e) {
+        private void dgWords_QueryContinueDrag(object sender, QueryContinueDragEventArgs e) {
             if (e.Action == DragAction.Drop) {
                 DragWord = false;
             }
-            if (e.Action == DragAction.Cancel) {
+            else {
+                // check if drag is close to either top or bottom edge
+                // of the group list; if not, reset selection
+                Point mp = new(MousePosition.X, MousePosition.Y);
+                mp = dgGroups.PointToClient(mp);
+                if (mp.X < 0 || mp.X > dgGroups.ClientRectangle.Width ||
+                    mp.Y < -50 || mp.Y > dgGroups.ClientRectangle.Height + 50) {
+                    if (dgGroups.SelectedRows[0].Index != EditGroupIndex) {
+                        SelectGroup(EditGroupIndex);
+                    }
+                }
             }
         }
 
@@ -1657,8 +1673,9 @@ namespace WinAGI.Editor {
             switch (newword) {
             case "":
                 // same as delete
-                // TODO: delete word
-                FinishWordEdit();
+                EditingWord = false;
+                txtWordEdit.Visible = false;
+                DeleteWord(EditWordText);
                 return;
             case "!":
                 // invalid word
@@ -1668,7 +1685,7 @@ namespace WinAGI.Editor {
                 if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0) {
                     // it's group 0/1/9999 with no word
                     if (GroupMode) {
-                        lstWords.Items.Clear();
+                        dgWords.Rows.Clear();
                     }
                     AddWord(EditGroupNumber, newword);
                 }
@@ -1692,7 +1709,8 @@ namespace WinAGI.Editor {
                     txtWordEdit.SelectAll();
                     return;
                 }
-                lstWords.Select();
+                dgWords.SelectedCells[0].Style.SelectionBackColor = SystemColors.Highlight;
+                dgWords.Select();
                 return;
             case Keys.Escape:
                 FinishWordEdit();
@@ -1787,17 +1805,19 @@ namespace WinAGI.Editor {
             label2.Font = defaultfont;
             txtGroupEdit.Font = defaultfont;
             txtWordEdit.Font = defaultfont;
-            lstGroups.Font = defaultfont;
-            if (GroupMode && (EditGroupNumber == 1 || EditGroupNumber == 9999)) {
-                lstWords.Font = boldfont;
-                lstWords.ForeColor = Color.DarkGray;
-            }
-            else {
-                lstWords.Font = defaultfont;
-                lstWords.ForeColor = Color.Black;
-            }
-            lstGroups.Top = label1.Bottom;
-            txtGroupEdit.Top = lstWords.Top = lstGroups.Top;
+            dgGroups.Font = defaultfont;
+            dgWords.Font = defaultfont;
+            dgGroups.Top = label1.Bottom;
+            txtGroupEdit.Top = dgWords.Top = dgGroups.Top;
+            warningstyle = dgWords.DefaultCellStyle.Clone();
+            warningstyle.ForeColor = Color.Red;
+            warningstyle.SelectionForeColor = Color.LightPink;
+            reservedstyle = dgWords.DefaultCellStyle.Clone();
+            reservedstyle.ForeColor = Color.DarkGray;
+            reservedstyle.SelectionForeColor = Color.LightGray;
+            Font f = new(warningstyle.Font, FontStyle.Bold);
+            warningstyle.Font = reservedstyle.Font = f;
+
         }
 
         public bool LoadWords(WordList loadwords) {
@@ -1817,9 +1837,9 @@ namespace WinAGI.Editor {
             EditWordList = loadwords.Clone();
             EditWordListFilename = loadwords.ResFile;
 
-            lstGroups.Items.Clear();
+            dgGroups.Rows.Clear();
             for (int i = 0; i < EditWordList.GroupCount; i++) {
-                lstGroups.Items.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
+                dgGroups.Rows.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
             }
             UpdateSelection(0, 0, true);
             spGroupCount.Text = "Group Count: " + EditWordList.GroupCount;
@@ -1862,9 +1882,9 @@ namespace WinAGI.Editor {
             // replace current wordlist
             EditWordList = tmpList;
             EditWordListFilename = importfile;
-            lstGroups.Items.Clear();
+            dgGroups.Rows.Clear();
             for (int i = 0; i < EditWordList.GroupCount; i++) {
-                lstGroups.Items.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
+                dgGroups.Rows.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
             }
             UpdateSelection(0, true);
             UndoCol = new();
@@ -1904,10 +1924,7 @@ namespace WinAGI.Editor {
 
             if (InGame) {
                 MDIMain.UseWaitCursor = true;
-                bool loaded = EditGame.WordList.Loaded;
-                if (!loaded) {
-                    EditGame.WordList.Load();
-                }
+                EditGame.WordList.Load();
                 EditGame.WordList.CloneFrom(EditWordList);
                 try {
                     EditGame.WordList.Save();
@@ -1991,19 +2008,57 @@ namespace WinAGI.Editor {
                 EditWordList.AddWord("anyword", 1);
                 EditWordList.AddWord("rol", 9999);
             }
-            lstGroups.Items.Clear();
-            lstWords.Items.Clear();
+            dgGroups.Rows.Clear();
+            dgWords.Rows.Clear();
             if (GroupMode) {
                 for (int i = 0; i < EditWordList.GroupCount; i++) {
-                    lstGroups.Items.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
+                    dgGroups.Rows.Add((EditWordList.GroupByIndex(i).GroupNum.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(i).GroupName);
                 }
             }
             else {
                 foreach (AGIWord word in EditWordList) {
-                    lstWords.Items.Add(word.WordText);
+                    AddWordToGrid(word.WordText);
                 }
             }
             UpdateSelection(0, 0);
+        }
+
+        private void AddWordToGrid(string word, int index = -1) {
+            int newrow;
+            if (index >= 0) {
+                newrow = index;
+                dgWords.Rows.Insert(index, word);
+            } else {
+                newrow = dgWords.Rows.Add(word);
+            }
+            
+            // check for invalid characters ,.?!();:[]{} and '`-"
+            string inv = ",.?!();:[]{}'`-\"";
+            if (word.Any(inv.Contains)) {
+                dgWords.Rows[newrow].DefaultCellStyle = warningstyle;
+            }
+            else {
+                switch (EditGroupNumber) {
+                case 0:
+                    // 'a' and 'i' are reserved
+                    if (word == "a" || word == "i") {
+                        dgWords.Rows[newrow].DefaultCellStyle = reservedstyle;
+                    }
+                    break;
+                case 1:
+                    // 'anyword' is reserved
+                    if (word == "anyword") {
+                        dgWords.Rows[newrow].DefaultCellStyle = reservedstyle;
+                    }
+                    break;
+                case 9999:
+                    // 'rol' is reserved
+                    if (word == "rol") {
+                        dgWords.Rows[newrow].DefaultCellStyle = reservedstyle;
+                    }
+                    break;
+                }
+            }
         }
 
         public void UpdateSelection(int newwordindex, bool force = false) {
@@ -2032,32 +2087,65 @@ namespace WinAGI.Editor {
                 EditWordIndex = EditWordList.WordIndex(EditWordText);
             }
             if (GroupMode) {
-                if (force || lstGroups.SelectedIndex != EditGroupIndex) {
-                    lstWords.Items.Clear();
+                if (force || dgGroups.SelectedRows[0].Index != EditGroupIndex) {
+                    dgWords.Rows.Clear();
                     foreach (string word in EditWordList.GroupByNumber(EditGroupNumber)) {
-                        lstWords.Items.Add(word);
+                        AddWordToGrid(word);
                     }
-                    if (lstWords.Items.Count == 0) {
+                    if (dgWords.Rows.Count == 0) {
+                        if (EditGroupNumber == 0) {
+                            dgWords.Rows.Add("<group 0: null words>");
+                        }
                         if (EditGroupNumber == 1) {
-                            lstWords.Items.Add("<group 1: any word>");
+                            dgWords.Rows.Add("<group 1: any word>");
                         }
                         else if (EditGroupNumber == 9999) {
-                            lstWords.Items.Add("<group 9999: rest of line>");
+                            dgWords.Rows.Add("<group 9999: rest of line>");
                         }
                     }
-                    lstGroups.Items[EditGroupIndex] = (EditGroupNumber.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(EditGroupIndex).GroupName;
                 }
-                lstGroups.SelectedIndex = EditGroupIndex;
-                lstWords.SelectedIndex = EditWordGroupIndex;
+                SelectGroup(EditGroupIndex);
+                SelectWord(EditWordGroupIndex);
             }
             else {
-                lstWords.SelectedIndex = EditWordIndex;
-                lstGroups.Items[0] = (EditGroupNumber.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(EditGroupIndex).GroupName;
+                dgGroups.Rows[0].Cells[0].Value = (EditGroupNumber.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(EditGroupIndex).GroupName;
+                SelectWord(EditWordIndex);
+            }
+        }
+
+        public void SelectGroup(int groupindex) {
+            dgGroups.Rows[groupindex].Selected = true;
+            if (groupindex >= dgGroups.FirstDisplayedScrollingRowIndex &&
+                groupindex < dgGroups.FirstDisplayedScrollingRowIndex + dgGroups.DisplayedRowCount(false)) {
+                return;
+            }
+            dgGroups.FirstDisplayedScrollingRowIndex = groupindex;
+        }
+
+        public void SelectWord(int wordindex) {
+            dgWords.Rows[wordindex].Selected = true;
+            if (wordindex >= dgWords.FirstDisplayedScrollingRowIndex &&
+                wordindex < dgWords.FirstDisplayedScrollingRowIndex + dgWords.DisplayedRowCount(false)) {
+                return;
+            }
+            dgWords.FirstDisplayedScrollingRowIndex = wordindex;
+        }
+
+        public void SelectWord(string word) {
+            for (int i = 0; i < dgWords.Rows.Count; i++) {
+                if ((string)dgWords.Rows[i].Cells[0].Value == EditWordText) {
+                    dgWords.Rows[i].Selected = true;
+                    if (i >= dgWords.FirstDisplayedScrollingRowIndex &&
+                        i < dgWords.FirstDisplayedScrollingRowIndex + dgWords.DisplayedRowCount(false)) {
+                        return;
+                    }
+                    dgWords.FirstDisplayedScrollingRowIndex = i;
+                    break;
+                }
             }
         }
 
         private void NewGroup() {
-
             // inserts a new group, with next available group number
             // and a new default word
 
@@ -2105,6 +2193,56 @@ namespace WinAGI.Editor {
             return lngNewGrpNum;
         }
 
+        private void DeleteGroupOrWord() {
+            if (dgGroups.Focused) {
+                if (EditGroupNumber != -1) {
+                    int groupindex = EditGroupIndex;
+                    int wordindex = EditWordIndex;
+                    DeleteGroup(EditGroupNumber);
+                    if (GroupMode) {
+                        if (groupindex == dgGroups.Rows.Count) {
+                            groupindex--;
+                        }
+                        UpdateSelection(EditWordList.GroupByIndex(groupindex).GroupNum, 0, true);
+                    }
+                    else {
+                        if (wordindex == dgWords.Rows.Count) {
+                            wordindex--;
+                        }
+                        UpdateSelection(wordindex, true);
+                    }
+                }
+            }
+            if (dgWords.Focused) {
+                if (EditGroupNumber == -1) {
+                    return;
+                }
+                DeleteWord(EditWordText);
+                // select next word, or if the grp is
+                // gone select next group
+                if (!GroupMode || EditWordList.GroupExists(EditGroupNumber)) {
+                    if (GroupMode) {
+                        if (EditWordGroupIndex == dgWords.Rows.Count) {
+                            EditWordGroupIndex--;
+                        }
+                        UpdateSelection(EditGroupNumber, EditWordGroupIndex, true);
+                    }
+                    else {
+                        if (EditWordIndex == dgWords.Rows.Count) {
+                            EditWordIndex--;
+                        }
+                        UpdateSelection(EditWordIndex, true);
+                    }
+                }
+                else {
+                    if (EditGroupIndex == dgGroups.Rows.Count) {
+                        EditGroupIndex--;
+                    }
+                    UpdateSelection(EditWordList.GroupByIndex(EditGroupIndex).GroupNum, 0, true);
+                }
+            }
+        }
+
         private void DeleteGroup(int group, bool DontUndo = false) {
             if (group < 2 || group == 9999) {
                 if (!DontUndo) {
@@ -2140,17 +2278,18 @@ namespace WinAGI.Editor {
 
             EditWordList.RenumberGroup(OldGroupNo, NewGroupNo);
             if (GroupMode) {
-                lstGroups.Items.RemoveAt(EditGroupIndex);
+                dgGroups.Rows.RemoveAt(EditGroupIndex);
                 EditGroupIndex = EditWordList.GroupIndexFromNumber(NewGroupNo);
                 EditGroupNumber = NewGroupNo;
-                lstGroups.Items.Insert(EditGroupIndex, (EditGroupNumber.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(EditGroupIndex).GroupName);
+                dgGroups.Rows.Insert(EditGroupIndex, (EditGroupNumber.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(EditGroupIndex).GroupName);
                 UpdateSelection(EditGroupNumber, EditWordGroupIndex);
+                SelectGroup(EditGroupIndex);
             }
             else {
                 EditGroupIndex = EditWordList.GroupIndexFromNumber(NewGroupNo);
                 UpdateSelection(NewGroupNo, 0, true);
             }
-            lstGroups.Refresh();
+            dgGroups.Refresh();
             if (!DontUndo) {
                 WordsUndo NextUndo = new();
                 NextUndo.Action = WordsUndo.ActionType.Renumber;
@@ -2165,14 +2304,15 @@ namespace WinAGI.Editor {
         }
 
         private void BeginWordEdit() {
-            int index = lstWords.SelectedIndex;
+            int index = dgWords.SelectedRows[0].Index;
             EditingWord = true;
             // configure the TextBox for in-place editing
             txtWordEdit.Text = EditWordText;
-            Point location = lstWords.GetItemRectangle(index).Location;
-            location.Offset(lstWords.Location + new Size(3, 2));
+            Point location = dgWords.GetCellDisplayRectangle(0, index, true).Location;
+            location.Offset(dgWords.Location + new Size(3, 2));
             txtWordEdit.Location = location;
-            txtWordEdit.Size = lstWords.GetItemRectangle(index).Size;
+            txtWordEdit.Size = dgWords.GetCellDisplayRectangle(0, index, true).Size;
+            dgWords.SelectedCells[0].Style.SelectionBackColor = SystemColors.Window;
             txtWordEdit.Visible = true;
             txtWordEdit.Select();
         }
@@ -2185,7 +2325,7 @@ namespace WinAGI.Editor {
             if ((group == 0 || group == 1 || group == 9999) && EditWordList.GroupByNumber(group).WordCount == 0) {
                 // remove the placeholder
                 if (GroupMode) {
-                    lstWords.Items.RemoveAt(0);
+                    dgWords.Rows.RemoveAt(0);
                 }
             }
             AddWord(group, strNewWord);
@@ -2494,11 +2634,11 @@ namespace WinAGI.Editor {
             }
             else {
                 RemoveAWord(word);
-                if (group == 1 && lstWords.Items.Count == 0) {
-                    lstWords.Items.Add("<group 1: any word>");
+                if (group == 1 && dgWords.Rows.Count == 0) {
+                    dgWords.Rows.Add("<group 1: any word>");
                 }
-                if (group == 9999 && lstWords.Items.Count == 0) {
-                    lstWords.Items.Add("<group 9999: rest of line>");
+                if (group == 9999 && dgWords.Rows.Count == 0) {
+                    dgWords.Rows.Add("<group 9999: rest of line>");
                 }
             }
             if (!DontUndo) {
@@ -2516,14 +2656,14 @@ namespace WinAGI.Editor {
             EditWordList.AddGroup(NewGroupNo);
             int i = 0;
             if (GroupMode) {
-                for (i = 0; i < lstGroups.Items.Count; i++) {
+                for (i = 0; i < dgGroups.Rows.Count; i++) {
                     // if the new group is less than or equal to current group number
                     if (NewGroupNo <= EditWordList.GroupByIndex(i).GroupNum) {
                         // this is where to insert it
                         break;
                     }
                 }
-                lstGroups.Items.Insert(i, (NewGroupNo.ToString() + ":").PadRight(6) + EditWordList.GroupByNumber(NewGroupNo).GroupName);
+                dgGroups.Rows.Insert(i, (NewGroupNo.ToString() + ":").PadRight(6) + EditWordList.GroupByNumber(NewGroupNo).GroupName);
             }
             if (!DontUndo) {
                 // create undo object
@@ -2540,7 +2680,7 @@ namespace WinAGI.Editor {
         private void AddWord(int GroupNo, string NewWord, bool DontUndo = false) {
             string strFirst = "";
 
-            // groups 0, 1, and 9999 never change groupname so no need to capture current groupname
+            // groups 0, 1, and 9999 always use default groupname, so ignore check for change
             if (GroupNo != 0 && GroupNo != 1 && GroupNo != 9999) {
                 // any other group will always have at least one word
                 strFirst = EditWordList.GroupByNumber(GroupNo).GroupName;
@@ -2567,23 +2707,23 @@ namespace WinAGI.Editor {
             EditWordList.AddWord(NewWord, group);
             if ((GroupMode && EditGroupNumber == group) || !GroupMode) {
                 int i;
-                for (i = 0; i < lstWords.Items.Count; i++) {
-                    if (comparer.Compare(NewWord, (string)lstWords.Items[i]) < 0) {
+                for (i = 0; i < dgWords.Rows.Count; i++) {
+                    if (comparer.Compare(NewWord, (string)dgWords.Rows[i].Cells[0].Value) < 0) {
                         break;
                     }
                 }
-                lstWords.Items.Insert(i, NewWord);
+                AddWordToGrid(NewWord, i);
             }
         }
 
         private void RemoveAGroup(int group) {
             // this also removes all words from the group
             if (GroupMode) {
-                lstGroups.Items.RemoveAt(EditWordList.GroupIndexFromNumber(group));
+                dgGroups.Rows.RemoveAt(EditWordList.GroupIndexFromNumber(group));
             }
             else {
                 foreach (string word in EditWordList.GroupByNumber(group)) {
-                    lstWords.Items.Remove(word);
+                    dgWords.Rows.RemoveAt(IndexFromString(word));
                 }
             }
             EditWordList.RemoveGroup(group);
@@ -2593,14 +2733,23 @@ namespace WinAGI.Editor {
             // update the list boxes
             if (GroupMode) {
                 if (EditGroupNumber == EditWordList[word].Group) {
-                    lstWords.Items.Remove(word);
+                    dgWords.Rows.RemoveAt(IndexFromString(word));
                 }
             }
             else {
-                lstWords.Items.Remove(word);
+                dgWords.Rows.RemoveAt(IndexFromString(word));
             }
             // update the list
             EditWordList.RemoveWord(word);
+        }
+
+        private int IndexFromString(string word) {
+            for (int i = 0; i < dgWords.Rows.Count; i++) {
+                if ((string)dgWords.Rows[i].Cells[0].Value == word) {
+                    return i;
+                }
+            }
+            return -1;
         }
 
         private void UpdateGroupName(int GroupNo) {
@@ -2610,13 +2759,19 @@ namespace WinAGI.Editor {
             if (!EditWordList.GroupExists(GroupNo)) {
                 return;
             }
-
+            switch (GroupNo) {
+            case 0:
+            case 1:
+            case 9999:
+                // never change the group name for these groups
+                return;
+            }
             if (GroupMode) {
-                lstGroups.Items[EditWordList.GroupIndexFromNumber(GroupNo)] = (GroupNo.ToString() + ":").PadRight(6) + EditWordList.GroupByNumber(GroupNo).GroupName;
+                dgGroups.Rows[EditWordList.GroupIndexFromNumber(GroupNo)].Cells[0].Value = (GroupNo.ToString() + ":").PadRight(6) + EditWordList.GroupByNumber(GroupNo).GroupName;
             }
             else {
                 if (GroupNo == EditGroupNumber) {
-                    lstGroups.Items[0] = (GroupNo.ToString() + ":").PadRight(6) + EditWordList.GroupByNumber(GroupNo).GroupName;
+                    dgGroups.Rows[0].Cells[0].Value = (GroupNo.ToString() + ":").PadRight(6) + EditWordList.GroupByNumber(GroupNo).GroupName;
                 }
             }
         }
@@ -3163,7 +3318,7 @@ namespace WinAGI.Editor {
         }
 
         private void SetToolbarStatus() {
-            if (lstGroups.Focused) {
+            if (dgGroups.Focused) {
                 tbbRenumber.Enabled = EditGroupNumber > 1 && EditGroupNumber != 9999;
                 tbbCut.Enabled = (EditGroupNumber != -1 &&
                     EditGroupNumber != 0 &&
@@ -3172,7 +3327,7 @@ namespace WinAGI.Editor {
                 tbbDelete.Enabled = tbbCut.Enabled;
                 tbbCopy.Enabled = (EditGroupNumber != -1);
             }
-            if (lstWords.Focused) {
+            if (dgWords.Focused) {
                 tbbRenumber.Enabled = EditWordList.GroupByNumber(EditGroupNumber).WordCount > 0;
                 tbbCut.Enabled = (EditWordIndex != 0);
                 // for group 0, 1, 9999 disable if no words in group
@@ -3184,39 +3339,22 @@ namespace WinAGI.Editor {
                 tbbCopy.Enabled = (EditWordIndex != 0);
                 tbbDelete.Enabled = (EditWordIndex != 0);
             }
-            tbbPaste.Enabled = Clipboard.ContainsText(TextDataFormat.Text);
+            tbbPaste.Enabled = Clipboard.ContainsText(TextDataFormat.UnicodeText);
             tbbAddWord.Enabled = EditGroupNumber != 1 && EditGroupNumber != 9999 || EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0;
-        }
-
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
-            // command keys need to be intercepted and rerouted
-            switch (keyData) {
-            case Keys.Enter:
-            case Keys.Tab:
-            case Keys.Escape:
-                if (txtGroupEdit.Visible) {
-                    txtGroupEdit_KeyDown(txtGroupEdit, new KeyEventArgs(keyData));
-                    return true;
-                }
-                if (txtWordEdit.Visible) {
-                    txtWordEdit_KeyDown(txtGroupEdit, new KeyEventArgs(keyData));
-                    return true;
-                }
-                break;
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         private void FinishGroupEdit() {
             EditingGroup = false;
             txtGroupEdit.Visible = false;
-            lstGroups.Select();
+            dgGroups.SelectedCells[0].Style.SelectionBackColor = SystemColors.Highlight;
+            dgGroups.Select();
         }
 
         private void FinishWordEdit() {
             EditingWord = false;
             txtWordEdit.Visible = false;
-            lstWords.Select();
+            dgWords.SelectedCells[0].Style.SelectionBackColor = SystemColors.Highlight;
+            dgWords.Select();
         }
 
         internal void ShowHelp() {

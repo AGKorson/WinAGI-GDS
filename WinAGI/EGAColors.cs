@@ -86,6 +86,21 @@ namespace WinAGI.Engine {
             }
             return ColorText(colorList[index]);
         }
+
+        /// <summary>
+        /// Converts the EGAColor for this index to a comma separated
+        /// string of hex values for the four color components.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public string ColorText(AGIColorIndex index) {
+            if (index < 0 || index > AGIColorIndex.White) {
+                throw new IndexOutOfRangeException("bad color");
+            }
+            return ColorText(colorList[(int)index]);
+        }
+
         /// <summary>
         /// Copies the source palette to an identical new palette.
         /// </summary>

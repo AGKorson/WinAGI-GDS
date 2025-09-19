@@ -159,7 +159,7 @@ namespace WinAGI.Editor {
         }
 
         private void frmMenuEdit_FormClosed(object sender, FormClosedEventArgs e) {
-            EditTextBox.Dispose();
+            EditTextBox?.Dispose();
             EditTextBox = null;
             MenuEditor = null;
             MEInUse = false;
@@ -168,6 +168,8 @@ namespace WinAGI.Editor {
 
         #region Menu Events
         internal void SetResourceMenu() {
+            MDIMain.mnuRSep2.Visible = false;
+            MDIMain.mnuRSep3.Visible = true;
             mnuUpdateLogic.Enabled = EditGame != null && MenuLogic >= 0 && IsChanged;
             mnuSaveAsDefault.Enabled = true;
             mnuBackground.Enabled = EditGame != null && EditGame.Pictures.Count > 0;
@@ -222,6 +224,14 @@ namespace WinAGI.Editor {
                 mnuInsert,
                 mnuCopy,
                 mnuReset]);
+            ResetEditMenu();
+        }
+
+        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
+            SetEditMenu();
+        }
+
+        private void contextMenuStrip1_Closed(object sender, ToolStripDropDownClosedEventArgs e) {
             ResetEditMenu();
         }
 
@@ -1031,7 +1041,7 @@ namespace WinAGI.Editor {
                 }
             }
             Clipboard.Clear();
-            Clipboard.SetText(CreateMenu(), TextDataFormat.Text);
+            Clipboard.SetText(CreateMenu(), TextDataFormat.UnicodeText);
         }
 
         private bool AnyBlankControllers() {
@@ -1226,7 +1236,7 @@ namespace WinAGI.Editor {
                     for (int i = 0; i < strLines.Length; i++) {
                         // eliminate tab characters and trim the string
                         strMsg = strLines[i].Replace('\t', ' ');
-                        strMsg = strMsg.Replace('\n', '\0').Trim();
+                        strMsg = strMsg.Replace("\n", "").Trim();
                         // use do loop to skip to next line if current line isn't a msg declaration
                         do {
                             lngPos = strMsg.IndexOf("#message");

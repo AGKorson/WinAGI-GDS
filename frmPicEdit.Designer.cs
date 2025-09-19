@@ -1095,7 +1095,7 @@ namespace WinAGI.Editor {
             lstCoords.Name = "lstCoords";
             lstCoords.ShowGroups = false;
             lstCoords.ShowItemToolTips = true;
-            lstCoords.Size = new System.Drawing.Size(132, 71);
+            lstCoords.Size = new System.Drawing.Size(132, 68);
             lstCoords.TabIndex = 0;
             lstCoords.UseCompatibleStateImageBehavior = false;
             lstCoords.View = View.Details;

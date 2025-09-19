@@ -41,11 +41,9 @@ namespace WinAGI.Editor {
             mnuROpen = new System.Windows.Forms.ToolStripMenuItem();
             mnuUpdateLogic = new System.Windows.Forms.ToolStripMenuItem();
             mnuSaveAsDefault = new System.Windows.Forms.ToolStripMenuItem();
-            toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             mnuRRemove = new System.Windows.Forms.ToolStripMenuItem();
             mnuRRenumber = new System.Windows.Forms.ToolStripMenuItem();
             mnuRIDDesc = new System.Windows.Forms.ToolStripMenuItem();
-            toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             mnuRCompileLogic = new System.Windows.Forms.ToolStripMenuItem();
             mnuRSavePic = new System.Windows.Forms.ToolStripMenuItem();
             mnuExportGif = new System.Windows.Forms.ToolStripMenuItem();
@@ -93,6 +91,8 @@ namespace WinAGI.Editor {
             contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuMoveUp, mnuMoveDown, mnuDelete, mnuInsert, mnuCopy, mnuReset });
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new System.Drawing.Size(214, 136);
+            contextMenuStrip1.Closed += contextMenuStrip1_Closed;
+            contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
             // mnuMoveUp
             // 
@@ -154,7 +154,7 @@ namespace WinAGI.Editor {
             // 
             // mnuResource
             // 
-            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuROpen, mnuUpdateLogic, mnuSaveAsDefault, toolStripSeparator1, mnuRRemove, mnuRRenumber, mnuRIDDesc, toolStripSeparator2, mnuRCompileLogic, mnuRSavePic, mnuExportGif, mnuBackground, mnuHotKeys });
+            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuROpen, mnuUpdateLogic, mnuSaveAsDefault, mnuRRemove, mnuRRenumber, mnuRIDDesc, mnuRCompileLogic, mnuRSavePic, mnuExportGif, mnuBackground, mnuHotKeys });
             mnuResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
             mnuResource.MergeIndex = 1;
             mnuResource.Name = "mnuResource";
@@ -189,17 +189,10 @@ namespace WinAGI.Editor {
             mnuSaveAsDefault.Text = "Save As Default Menu";
             mnuSaveAsDefault.Click += mnuRSaveDefault_Click;
             // 
-            // toolStripSeparator1
-            // 
-            toolStripSeparator1.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            toolStripSeparator1.MergeIndex = 6;
-            toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new System.Drawing.Size(226, 6);
-            // 
             // mnuRRemove
             // 
             mnuRRemove.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRRemove.MergeIndex = 6;
+            mnuRRemove.MergeIndex = 7;
             mnuRRemove.Name = "mnuRRemove";
             mnuRRemove.Size = new System.Drawing.Size(229, 22);
             mnuRRemove.Text = "remove";
@@ -207,7 +200,7 @@ namespace WinAGI.Editor {
             // mnuRRenumber
             // 
             mnuRRenumber.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRRenumber.MergeIndex = 6;
+            mnuRRenumber.MergeIndex = 7;
             mnuRRenumber.Name = "mnuRRenumber";
             mnuRRenumber.Size = new System.Drawing.Size(229, 22);
             mnuRRenumber.Text = "renumber";
@@ -215,22 +208,15 @@ namespace WinAGI.Editor {
             // mnuRIDDesc
             // 
             mnuRIDDesc.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRIDDesc.MergeIndex = 6;
+            mnuRIDDesc.MergeIndex = 7;
             mnuRIDDesc.Name = "mnuRIDDesc";
             mnuRIDDesc.Size = new System.Drawing.Size(229, 22);
             mnuRIDDesc.Text = "iddesc";
             // 
-            // toolStripSeparator2
-            // 
-            toolStripSeparator2.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            toolStripSeparator2.MergeIndex = 6;
-            toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new System.Drawing.Size(226, 6);
-            // 
             // mnuRCompileLogic
             // 
             mnuRCompileLogic.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRCompileLogic.MergeIndex = 6;
+            mnuRCompileLogic.MergeIndex = 8;
             mnuRCompileLogic.Name = "mnuRCompileLogic";
             mnuRCompileLogic.Size = new System.Drawing.Size(229, 22);
             mnuRCompileLogic.Text = "compile";
@@ -238,7 +224,7 @@ namespace WinAGI.Editor {
             // mnuRSavePic
             // 
             mnuRSavePic.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRSavePic.MergeIndex = 6;
+            mnuRSavePic.MergeIndex = 8;
             mnuRSavePic.Name = "mnuRSavePic";
             mnuRSavePic.Size = new System.Drawing.Size(229, 22);
             mnuRSavePic.Text = "savepic";
@@ -246,7 +232,7 @@ namespace WinAGI.Editor {
             // mnuExportGif
             // 
             mnuExportGif.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuExportGif.MergeIndex = 6;
+            mnuExportGif.MergeIndex = 8;
             mnuExportGif.Name = "mnuExportGif";
             mnuExportGif.Size = new System.Drawing.Size(229, 22);
             mnuExportGif.Text = "exportgif";
@@ -588,7 +574,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuRRemove;
         private System.Windows.Forms.ToolStripMenuItem mnuRRenumber;
         private System.Windows.Forms.ToolStripMenuItem mnuRIDDesc;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem mnuRCompileLogic;
         private System.Windows.Forms.ToolStripMenuItem mnuRSavePic;
         private System.Windows.Forms.ToolStripMenuItem mnuExportGif;
@@ -611,7 +596,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.PictureBox picBackground;
         private System.Windows.Forms.ToolStripMenuItem mnuUpdateLogic;
         private System.Windows.Forms.ToolStripMenuItem mnuSaveAsDefault;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DataGridView dgProps;
         private System.Windows.Forms.DataGridViewTextBoxColumn propName;

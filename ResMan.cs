@@ -1008,6 +1008,13 @@ namespace WinAGI.Editor {
                 return Name;
             }
         }
+
+        [Serializable]
+        public struct TextChar {
+            public byte CharVal;
+            public AGIColorIndex BG;
+            public AGIColorIndex FG;
+        }
         #endregion
 
         #region Global Variables
@@ -1045,10 +1052,6 @@ namespace WinAGI.Editor {
         internal static int SoundCount;
         internal static List<frmViewEdit> ViewEditors;
         internal static int ViewCount;
-        internal static frmLayout LayoutEditor;
-        internal static bool LEInUse;
-        internal static frmMenuEdit MenuEditor;
-        internal static bool MEInUse;
         internal static frmObjectEdit ObjectEditor;
         internal static bool OEInUse = false;
         internal static bool DragObject = false;
@@ -1059,6 +1062,12 @@ namespace WinAGI.Editor {
         internal static int WordEdCount;
         internal static frmGlobals GlobalsEditor;
         internal static bool GEInUse;
+        internal static frmLayout LayoutEditor;
+        internal static bool LEInUse;
+        internal static frmMenuEdit MenuEditor;
+        internal static bool MEInUse;
+        internal static frmTextScreenEdit TextScreenEditor;
+        internal static bool TSEInUse;
         internal static int TextCount;
         // lookup lists for logic editor
         // tooltips and define lists
@@ -1077,6 +1086,7 @@ namespace WinAGI.Editor {
         internal const string SOUND_CB_FMT = "WinAGISoundData";
         internal const string VIEW_CB_FMT = "WinAGIViewData";
         internal const string WORDSTOK_CB_FMT = "WinAGIWordData";
+        internal const string TXTSCREEN_CB_FMT = "WinAGITextscreenData";
         // default colors
         internal static Color[] DefEGAColor = new Color[16];
 
@@ -3869,6 +3879,23 @@ namespace WinAGI.Editor {
             }
         }
 
+        public static void OpenTextscreenEditor() {
+            if (TSEInUse) {
+                // just bring it in focus
+                TextScreenEditor.Select();
+                if (TextScreenEditor.WindowState == FormWindowState.Minimized) {
+                    // if minimized, restore it
+                    TextScreenEditor.WindowState = FormWindowState.Normal;
+                }
+            }
+            else {
+                TextScreenEditor = new frmTextScreenEdit();
+                TextScreenEditor.Show();
+                TextScreenEditor.Activate();
+                TSEInUse = true;
+            }
+        }
+
         public static byte GetNewNumber(AGIResType ResType, byte OldResNum) {
             byte newnum;
             bool isroom;
@@ -5349,7 +5376,7 @@ namespace WinAGI.Editor {
                     }
                     else {
                         // add default text
-                        StringList src =
+                        List<string> src =
                         [
                             "[*********************************************************************",
                             "[",
@@ -5429,7 +5456,7 @@ namespace WinAGI.Editor {
             }
             else {
                 // add default text
-                StringList src =
+                List<string> src =
                 [
                     "[*********************************************************************",
                                 "[",
@@ -6835,7 +6862,7 @@ namespace WinAGI.Editor {
             try {
                 // substitute correct values for the various place holders:
                 // add the tabs
-                strLogic = strLogic.Replace("~", " ".MultStr(WinAGISettings.LogicTabWidth.Value));
+                strLogic = strLogic.Replace("~", "".PadRight(WinAGISettings.LogicTabWidth.Value));
                 // id:
                 strLogic = strLogic.Replace("%id", NewID);
                 // description
@@ -9252,6 +9279,59 @@ namespace WinAGI.Editor {
                 DrawFunction.End => "End",           // end of drawing
                 _ => "undefined"
             };
+        }
+
+        /// <summary>
+        /// Colorizes a black and white bitmap with the specified foreground and
+        /// background colors. Black pixels will be converted to foreground,
+        /// white pixels will be converted to background. Don't use this on a
+        /// bitmap with colors other than black and white.
+        /// </summary>
+        /// <param name="originalBitmap"></param>
+        /// <param name="foreground"></param>
+        /// <param name="background"></param>
+        /// <returns>A new bitmap with the desired foreground and background colors.</returns>
+        public static Bitmap Colorize(this Bitmap originalBitmap, Color foreground, Color background) {
+
+            Bitmap newBitmap = new Bitmap(originalBitmap.Width, originalBitmap.Height);
+
+            // Lock the bits of the original bitmap
+            BitmapData originalData = originalBitmap.LockBits(new Rectangle(0, 0, originalBitmap.Width, originalBitmap.Height), ImageLockMode.ReadOnly, originalBitmap.PixelFormat);
+            BitmapData newData = newBitmap.LockBits(new Rectangle(0, 0, newBitmap.Width, newBitmap.Height), ImageLockMode.WriteOnly, newBitmap.PixelFormat);
+
+            unsafe {
+                byte* originalPtr = (byte*)originalData.Scan0;
+                byte* newPtr = (byte*)newData.Scan0;
+
+                int bytesPerPixel = Image.GetPixelFormatSize(originalBitmap.PixelFormat) / 8;
+                for (int y = 0; y < originalBitmap.Height; y++) {
+                    for (int x = 0; x < originalBitmap.Width; x++) {
+                        int pixelIndex = (y * originalData.Stride) + (x * bytesPerPixel);
+                        Color pixelColor = Color.FromArgb(originalPtr[pixelIndex + 3], originalPtr[pixelIndex + 2], originalPtr[pixelIndex + 1], originalPtr[pixelIndex]);
+
+                        // if it's black (foreground)
+                        if (pixelColor == Color.Black) {
+                            newPtr[pixelIndex] = foreground.B;
+                            newPtr[pixelIndex + 1] = foreground.G;
+                            newPtr[pixelIndex + 2] = foreground.R;
+                            newPtr[pixelIndex + 3] = foreground.A;
+                        }
+                        else {
+                            // assume it's white (background)
+                            newPtr[pixelIndex] = background.B;
+                            newPtr[pixelIndex + 1] = background.G;
+                            newPtr[pixelIndex + 2] = background.R;
+                            newPtr[pixelIndex + 3] = background.A;
+                        }
+                    }
+                }
+            }
+
+            // Unlock the bits
+            originalBitmap.UnlockBits(originalData);
+            newBitmap.UnlockBits(newData);
+
+            return newBitmap;
         }
         #endregion
     }

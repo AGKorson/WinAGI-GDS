@@ -595,16 +595,22 @@ namespace WinAGI.Engine {
                         warnInfo.Text = "Empty WORDS.TOK file";
                         retval.Add(warnInfo);
                     }
-                    if ((errlevel & 8) == 16) {
+                    if ((errlevel & 16) == 16) {
                         warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW15";
                         warnInfo.Text = "Multiple group 1 words";
                         retval.Add(warnInfo);
                     }
-                    if ((errlevel & 8) == 32) {
+                    if ((errlevel & 32) == 32) {
                         warnInfo.Type = EventType.ResourceWarning;
                         warnInfo.ID = "RW16";
                         warnInfo.Text = "Multiple group 9999 words";
+                        retval.Add(warnInfo);
+                    }
+                    if ((errlevel & 64) == 64) {
+                        warnInfo.Type = EventType.ResourceWarning;
+                        warnInfo.ID = "RW17";
+                        warnInfo.Text = "Invalid characters detected in WORDS.TOK";
                         retval.Add(warnInfo);
                     }
 
@@ -614,22 +620,22 @@ namespace WinAGI.Engine {
                     switch (errlevel) {
                     case 1:
                         // 1 = file access error
-                        warnInfo.ID = "RW17";
+                        warnInfo.ID = "RW18";
                         warnInfo.Text = "globals.txt file access error";
                         break;
                     case 2:
                         // 2 = file read error
-                        warnInfo.ID = "RW18";
+                        warnInfo.ID = "RW19";
                         warnInfo.Text = "globals.txt file data error";
                         break;
                     case 3:
                         // 3 = file not found
-                        warnInfo.ID = "RW19";
+                        warnInfo.ID = "RW20";
                         warnInfo.Text = "globals.txt file not found";
                         break;
                     case 4:
                         // 4 = file is read-only
-                        warnInfo.ID = "RW20";
+                        warnInfo.ID = "RW21";
                         warnInfo.Text = "globals.txt file is read only";
                         break;
                     }

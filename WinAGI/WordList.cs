@@ -7,7 +7,6 @@ using static WinAGI.Common.Base;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Diagnostics;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -329,6 +328,7 @@ namespace WinAGI.Engine {
         /// 8 = no data/empty file<br />
         /// 16 = multiple group 1 words<br />
         /// 32 = multiple group 9999 words<br />
+        /// 64 = invalid characters in word<br />
         /// -24 = invalid index - can't read file<br />
         /// -25 = file access error, unable to read file
         /// </returns>
@@ -429,8 +429,13 @@ namespace WinAGI.Engine {
                 sbThisWord.Append(Encoding.GetEncoding(CodePage).GetString(bytVal));
                 sThisWord = sbThisWord.ToString();
                 // check for ascii upper case (allowed, but not useful)
-                if (sThisWord.Any(ch => (ch >= 65 && ch <= 90))) {
+                if (sThisWord.Any(ch => ch >= 65 && ch <= 90)) {
                     retval |= 4;
+                }
+                // check for invalid characters ,.?!();:[]{} and '`-"
+                string inv = ",.?!();:[]{}'`-\"";
+                if (sThisWord.Any(inv.Contains)) {
+                    retval |= 64;
                 }
                 sThisWord = sThisWord.LowerAGI();
                 lngGrpNum = (bytData[lngPos++] << 8) + bytData[lngPos++];
@@ -459,6 +464,16 @@ namespace WinAGI.Engine {
                     }
                 }
                 bytPrevWordCharCount = bytData[lngPos++];
+            }
+            // if groups 0, 1, or 9999 not loade, add them here
+            if (!GroupExists(0)) {
+                AddGroup(0);
+            }
+            if (!GroupExists(1)) {
+                AddGroup(1);
+            }
+            if (!GroupExists(9999)) {
+                AddGroup(9999);
             }
             return retval;
         }
@@ -795,6 +810,9 @@ namespace WinAGI.Engine {
         public void Clear() {
             WinAGIException.ThrowIfNotLoaded(this);
             mGroupCol = [];
+            AddGroup(0);
+            AddGroup(1);
+            AddGroup(9999);
             mWordCol = new(new AGIWordComparer());
             mDescription = "";
             mIsChanged = true;
@@ -1048,8 +1066,8 @@ namespace WinAGI.Engine {
 
         /// <summary>
         /// Custom Comparer function that prioritizes words starting
-        /// with non-letters ('a' - 'z') before words that start with
-        /// lettters; within each sub-group, words are sorted by
+        /// with non-letters before words that start with letters
+        /// ('a' - 'z'); within each sub-group, words are sorted by
         /// standard string comparison.
         /// </summary>
         public class AGIWordComparer : Comparer<string> {

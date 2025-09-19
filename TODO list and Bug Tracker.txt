@@ -19,7 +19,7 @@ X   17. View Editor
 X   18. Sound Editor
 X   19. Layout Editor
 X   20. Menu Editor
-    21. Text Screen Editor
+X   21. Text Screen Editor
     22. Help Integration
     23. BETA TESTING
       
@@ -509,7 +509,7 @@ POSITIVE VALUES represent warnings, but resource is usable
       8 = no data/empty file
      16 = invalid index - can't read file
      32 = file access error, unable to read file
-
+     64 = one or more words contain invalid characters
 
 ERROR HANDLER info:
 resource base errors:
@@ -684,36 +684,40 @@ mnuResources
         toolStripSeparator15 
         mnuRIObjects
         mnuRIWords
-    mnuRSeparator1 
+    mnuRSep1 
     mnuROpenRes
     mnuRSave
     mnuRExport
-    mnuRSeparator2 
+    mnuRSep2 
     mnuRRemove
     mnuRRenumber
-    mnuRIDDesc
-    mnuRSeparator3 
+    mnuRProperties
+    mnuRSep3 
     mnuRCompileLogic
     mnuRSavePicImage
     mnuRExportGIF
 
 Editors:
-
+!!! merging menu separators does not work as expected - 
+no matter what is specified for MergeIndex, only the first
+separator gets replaced; so instead of merging, the
+separators are left in place and Visible property is set
+as needed to manage them
 frmGlobals
 ----------
       mnuResources
       0   mnuRNew ...
       1   mnuROpen ...
       2   mnuRImport ...
-      3   mnuRSeparator1 
+      3   mnuRSep1 
       4 - mnuROpenRes
       4 r mnuRSave
       5 r mnuRExport -> mnuRSaveAs
-      6   mnuRSeparator2 
+      6 S mnuRSep2 
       7 r mnuRRemove -> mnuRInGame
       8 - mnuRRenumber
-      8 - mnuRIDDesc
-      8   mnuRSeparator3 
+      8 - mnuRProperties
+      8 S mnuRSep3 
       9 - mnuRCompileLogic
       9 - mnuRSavePicImage
       9 - mnuRExportGIF
@@ -725,18 +729,18 @@ frmLayout
       0   mnuRNew ...
       1   mnuROpen ...
       2   mnuRImport ...
-      3   mnuRSeparator1 
+      3   mnuRSep1 
       4 - mnuROpenRes
       4 r mnuRSave
       5 - mnuRExport
-      5 - mnuRSeparator2 
-      5 - mnuRRemove
-      5 - mnuRRenumber
-      5 - mnuRIDDesc
-      5 - mnuRSeparator3 
-      5 - mnuRCompileLogic
-      5 - mnuRSavePicImage
-      5 - mnuRExportGIF
+      5 S mnuRSep2 
+      6 - mnuRRemove
+      6 - mnuRRenumber
+      6 - mnuRProperties
+      6 H mnuRSep3 
+      7 - mnuRCompileLogic
+      7 - mnuRSavePicImage
+      7 - mnuRExportGIF
      -1 + mnuRepair
      -1 + mnuToggleAllPics
 
@@ -746,15 +750,15 @@ frmLogicEdit
       0   mnuRNew ...
       1   mnuROpen ...
       2   mnuRImport ...
-      3   mnuRSeparator1 
+      3   mnuRSep1 
       4 - mnuROpenRes
       4 r mnuRSave
       5 r mnuRExport
-      6   mnuRSeparator2 
+      6 S mnuRSep2 
       7 r mnuRRemove -> mnuRInGame
       8 r mnuRRenumber
-      9 r mnuRIDDesc
-     10   mnuRSeparator3 
+      9 r mnuRProperties
+     10 S mnuRSep3 
      11 r mnuRCompileLogic -> mnuCompile
      12 - mnuRSavePicImage
      12 - mnuRExportGIF
@@ -767,60 +771,60 @@ frmMenuEdit
       0   mnuRNew ...
       1   mnuROpen ...
       2   mnuRImport ...
-      3   mnuRSeparator1 
+      3   mnuRSep1 
       4 - mnuROpenRes
-      5 r mnuRSave
-      5 - mnuRExport
-      6   mnuRSeparator2 
-      6 - mnuRRemove
-      6 - mnuRRenumber
-      6 - mnuRIDDesc
-      6 - mnuRSeparator3 
-      6 - mnuRCompileLogic
-      6 - mnuRSavePicImage
-      6 - mnuRExportGIF
+      4 r mnuRSave
+      5 r mnuRExport
+      6 S mnuRSep2 
+      7 - mnuRRemove
+      7 - mnuRRenumber
+      7 - mnuRProperties
+      7 H mnuRSep3 
+      8 - mnuRCompileLogic
+      8 - mnuRSavePicImage
+      8 - mnuRExportGIF
      -1 + mnuBackground
      -1 + mnuHotKeyAlign
 
 frmObjectEdit
 -------------
       mnuResources
-          mnuRNew ...
-          mnuROpen ...
-          mnuRImport ...
-          mnuRSeparator1 
-        - mnuROpenRes
-        r mnuRSave
-        r mnuRExport
-          mnuRSeparator2 
-        - mnuRRemove
-        - mnuRRenumber
-        r mnuRIDDesc
-          mnuRSeparator3 
-        - mnuRCompileLogic
-        - mnuRSavePicImage
-        - mnuRExportGIF
+      0   mnuRNew ...
+      1   mnuROpen ...
+      2   mnuRImport ...
+      3   mnuRSep1 
+      4 - mnuROpenRes
+      4 r mnuRSave
+      5 r mnuRExport
+      6 S mnuRSep2 
+      7 - mnuRRemove
+      7 - mnuRRenumber
+      7 r mnuRProperties
+      8 S mnuRSep3 
+      9 - mnuRCompileLogic
+      9 - mnuRSavePicImage
+      9 - mnuRExportGIF
         + mnuRToggleEncrypt
         + mnuRAmigaOBJ
 
 frmPicEdit
 ----------
       mnuResources
-          mnuRNew ...
-          mnuROpen ...
-          mnuRImport ...
-          mnuRSeparator1 
-        - mnuROpenRes
-        r mnuRSave
-        r mnuRExport
-          mnuRSeparator2 
-        r mnuRRemove -> mnuRInGame
-        r mnuRRenumber
-        r mnuRIDDesc
-          mnuRSeparator3 
-        - mnuRCompileLogic
-        r mnuRSavePicImage
-        r mnuRExportGIF
+      0   mnuRNew ...
+      1   mnuROpen ...
+      2   mnuRImport ...
+      3   mnuRSep1 
+      4 - mnuROpenRes
+      4 r mnuRSave
+      5 r mnuRExport
+      6 S mnuRSep2 
+      7 r mnuRRemove -> mnuRInGame
+      8 r mnuRRenumber
+      9 r mnuRProperties
+     10 S mnuRSep3 
+     11 - mnuRCompileLogic
+     11 r mnuRSavePicImage
+     12 r mnuRExportGIF
 
 frmPreview
 ----------
@@ -829,21 +833,21 @@ frmPreview
 frmSoundEdit
 ------------
       mnuResources
-          mnuRNew ...
-          mnuROpen ...
-          mnuRImport ...
-          mnuRSeparator1 
-        - mnuROpenRes
-        r mnuRSave
-        r mnuRExport
-          mnuRSeparator2 
-        r mnuRRemove -> mnuRInGame
-        r mnuRRenumber
-        r mnuRIDDesc
-          mnuRSeparator3 
-        - mnuRCompileLogic
-        - mnuRSavePicImage
-        - mnuRExportGIF
+      0   mnuRNew ...
+      1   mnuROpen ...
+      2   mnuRImport ...
+      3   mnuRSep1 
+      4 - mnuROpenRes
+      4 r mnuRSave
+      5 r mnuRExport
+      6 S mnuRSep2 
+      7 r mnuRRemove -> mnuRInGame
+      8 r mnuRRenumber
+      9 r mnuRProperties
+     10 S mnuRSep3 
+     11 - mnuRCompileLogic
+     11 - mnuRSavePicImage
+     11 - mnuRExportGIF
         + mnuRPlaySound
         + mnuRPlaybackMode
         
@@ -854,57 +858,56 @@ frmTextScreenEdit
       0   mnuRNew ...
       1   mnuROpen ...
       2   mnuRImport ...
-      3   mnuRSeparator1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport -> mnuRSaveAs
-      6   mnuRSeparator2 
-      7 - mnuRRemove
-      7 - mnuRRenumber
-      7 - mnuRIDDesc
-      7 - mnuRSeparator3 
-      7 - mnuRCompileLogic
-      7 - mnuRSavePicImage
-      7 - mnuRExportGIF
-     -1 + mnuLoadLayout
+      3   mnuRSep1
+      4 r mnuROpenRes -> mnuOpen
+      5 r mnuRSave
+      6 r mnuRExport -> mnuRSaveAs
+      7 H mnuRSep2 
+      8 - mnuRRemove
+      8 - mnuRRenumber
+      8 - mnuRProperties
+      8 H mnuRSep3 
+      9 - mnuRCompileLogic
+      9 - mnuRSavePicImage
+      9 - mnuRExportGIF
 
 frmViewEdit
 -----------
       mnuResources
-          mnuRNew ...
-          mnuROpen ...
-          mnuRImport ...
-          mnuRSeparator1 
-        - mnuROpenRes
-        r mnuRSave
-        r mnuRExport
-          mnuRSeparator2 
-        r mnuRRemove -> mnuRInGame
-        r mnuRRenumber
-        r mnuRIDDesc
-          mnuRSeparator3 
-        - mnuRCompileLogic
-        - mnuRSavePicImage
-        r mnuRExportGIF =>mnuRExportLoopGIF
+      0   mnuRNew ...
+      1   mnuROpen ...
+      2   mnuRImport ...
+      3   mnuRSep1 
+      4 - mnuROpenRes
+      4 r mnuRSave
+      5 r mnuRExport
+      6 S mnuRSep2 
+      7 r mnuRRemove -> mnuRInGame
+      8 r mnuRRenumber
+      9 r mnuRProperties
+     10 S mnuRSep3 
+     11 - mnuRCompileLogic
+     11 - mnuRSavePicImage
+     11 r mnuRExportGIF =>mnuRExportLoopGIF
 
 frmWordEdit
 -----------
       mnuResources
-          mnuRNew ...
-          mnuROpen ...
-          mnuRImport ...
-          mnuRSeparator1 
-        - mnuROpenRes
-        r mnuRSave
-        r mnuRExport
-          mnuRSeparator2 
-        - mnuRRemove
-        - mnuRRenumber
-        r mnuRIDDesc
-          mnuRSeparator3 
-        - mnuRCompileLogic
-        - mnuRSavePicImage
-        - mnuRExportGIF
+      0   mnuRNew ...
+      1   mnuROpen ...
+      2   mnuRImport ...
+      3   mnuRSep1 
+      4 - mnuROpenRes
+      4 r mnuRSave
+      5 r mnuRExport
+      6 S mnuRSep2 
+      7 - mnuRRemove
+      7 - mnuRRenumber
+      7 r mnuRProperties
+      8 S mnuRSep3 
+      9 - mnuRCompileLogic
+      9 - mnuRSavePicImage
+      9 - mnuRExportGIF
         + mnuRMerge
         + mnuRGroupCheck
 

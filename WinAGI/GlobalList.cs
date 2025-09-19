@@ -327,7 +327,7 @@ namespace WinAGI.Engine {
         public void Save() {
             // save list of globals
 
-            StringList stlGlobals = BuildGlobalsFile();
+            List<string> stlGlobals = BuildGlobalsFile();
             try {
                 File.WriteAllLines(mResFile, stlGlobals);
                 mIsChanged = false;
@@ -337,7 +337,7 @@ namespace WinAGI.Engine {
             }
         }
 
-        private StringList BuildGlobalsFile() {
+        private List<string> BuildGlobalsFile() {
             // determine longest name length to facilitate aligning values
             int lngMaxLen = 0;
             int lngMaxV = 0;
@@ -352,7 +352,7 @@ namespace WinAGI.Engine {
                     }
                 }
             }
-            StringList tmpStrList = [];
+            List<string> tmpStrList = [];
             // add a useful header
             tmpStrList.Add("[");
             if (parent == null) {

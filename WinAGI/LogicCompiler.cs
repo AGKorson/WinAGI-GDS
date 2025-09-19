@@ -603,7 +603,7 @@ namespace WinAGI.Engine {
             if (blnSetIDs) {
                 return;
             }
-            StringList resIDlist = [
+            List<string> resIDlist = [
                 "[ Resource ID Defines for " + game.agGameID,
                 "[",
                 "[ WinAGI generated code required for IncludeResourceIDs support - ",
@@ -1940,7 +1940,7 @@ namespace WinAGI.Engine {
                         }
                         else {
                             // word does not exist
-                            AddError(4114, false);
+                            AddError(4114, LoadResString(4114).Replace(ARG1, strArg), false);
                             // use 1 as placeholder
                             lngArg = 1;
                         }
@@ -4560,8 +4560,8 @@ namespace WinAGI.Engine {
                     while (intCharPos < bMessage.Length) {
                         bytCharVal = bMessage[intCharPos];
                         switch (bytCharVal) {
-                        case 8 or 9:
-                            // convert these to space (' ') to avoid trouble
+                        case 8:
+                            // convert to space (' ') to avoid trouble
                             bytCharVal = 32;
                             break;
                         case 13:

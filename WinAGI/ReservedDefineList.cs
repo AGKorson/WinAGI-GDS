@@ -9,6 +9,7 @@ using static WinAGI.Engine.DefineNameCheck;
 using static WinAGI.Engine.DefineValueCheck;
 using System.Linq;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace WinAGI.Engine {
 
@@ -743,7 +744,7 @@ namespace WinAGI.Engine {
             // only need to update if file is missing, OR if any of the defines
             // have changed, OR if game properties have changed OR if force is true
             if (!File.Exists(filename) || force || IsChanged) {
-                StringList resList = [
+                List<string> resList = [
                 "[ Reserved Defines",
                 "[",
                 "[ WinAGI generated code required for IncludeReserved support - ",

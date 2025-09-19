@@ -8,15 +8,14 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using WinAGI.Common;
+using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Common.BkgdTasks;
 using static WinAGI.Editor.Base;
-using WinAGI.Engine;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.EventType;
-using System.Diagnostics.Eventing.Reader;
 
 namespace WinAGI.Editor {
     public partial class frmMDIMain : Form {
@@ -32,7 +31,7 @@ namespace WinAGI.Editor {
         // tracks status of caps/num/ins
         private static bool CapsLock = false;
         private static bool NumLock = false;
-        private static bool InsertLock = false;
+        private static bool Overwrite = false;
 
         public frmMDIMain() {
             InitializeComponent();
@@ -43,6 +42,12 @@ namespace WinAGI.Editor {
 
             // use idle time to update caps/num/ins
             Application.Idle += new System.EventHandler(OnIdle);
+            CapsLock = Console.CapsLock;
+            spCapsLock.Text = CapsLock ? "CAP" : "\t";
+            NumLock = Console.NumberLock;
+            spNumLock.Text = NumLock ? "NUM" : "\t";
+            Overwrite = IsKeyLocked(Keys.Insert);
+            spInsLock.Text = Overwrite ? "OVR" : "INS";
 
             // save pointer to main form
             MDIMain = this;
@@ -211,29 +216,29 @@ namespace WinAGI.Editor {
         private void frmMDIMain_KeyPress(object sender, KeyPressEventArgs e) {
             // grid keypresses occur AFTER the form keypresses
 
-                // if the active control is the property grid, 
-                // we need to handle some keypresses
-                if (ActiveControl == splResource && splResource.ActiveControl == propertyGrid1) {
-                    // for some properties, direct editing not allowed
-                    switch (propertyGrid1.SelectedGridItem.Label) {
-                    case "GameID":
-                        // only alphanumeric, backspace, delete, return
-                        if (!char.IsLetterOrDigit(e.KeyChar) && e.KeyChar != '\b' && e.KeyChar != '\r' && e.KeyChar != '\x7f') {
-                            e.Handled = true;
-                        }
-                        break;
-                    case "GlobalDef":
-                    case "Number":
-                    case "ID":
-                    case "Description":
-                    case "ViewDesc":
-                        // never allow direct editing
+            // if the active control is the property grid, 
+            // we need to handle some keypresses
+            if (ActiveControl == splResource && splResource.ActiveControl == propertyGrid1) {
+                // for some properties, direct editing not allowed
+                switch (propertyGrid1.SelectedGridItem.Label) {
+                case "GameID":
+                    // only alphanumeric, backspace, delete, return
+                    if (!char.IsLetterOrDigit(e.KeyChar) && e.KeyChar != '\b' && e.KeyChar != '\r' && e.KeyChar != '\x7f') {
                         e.Handled = true;
-                        break;
                     }
-                    return;
+                    break;
+                case "GlobalDef":
+                case "Number":
+                case "ID":
+                case "Description":
+                case "ViewDesc":
+                    // never allow direct editing
+                    e.Handled = true;
+                    break;
                 }
-            
+                return;
+            }
+
 
             // after processing key press for the main form, pass it 
             // to preview window, if it's active
@@ -417,6 +422,29 @@ namespace WinAGI.Editor {
             if (e.Cancel) {
                 return;
             }
+            // before closing, make sure all non-resource editors are also closed,
+            // canceling if the user decides not to close
+            GlobalsEditor?.Close();
+            if (GlobalsEditor != null) {
+                e.Cancel = true;
+                return;
+            }
+            MenuEditor?.Close();
+            if (MenuEditor != null) {
+                e.Cancel = true;
+                return;
+            }
+            LayoutEditor?.Close();
+            if (LayoutEditor != null) {
+                e.Cancel = true;
+                return;
+            }
+            TextScreenEditor?.Close();
+            if (TextScreenEditor != null) {
+                e.Cancel = true;
+                return;
+            }
+
             WinAGISettingsFile.WriteSetting(sMRULIST, "LastLoad", blnLastLoad);
             SaveSettings();
 
@@ -428,7 +456,7 @@ namespace WinAGI.Editor {
             DecodeLogicStatus -= MDIMain.GameEvents_DecodeLogicStatus;
             // dispose all
             MDIMain = null;
-            this.Dispose();
+            Dispose();
             PreviewWin?.Dispose();
             ProgressWin?.Dispose();
             CompStatusWin?.Dispose();
@@ -450,7 +478,7 @@ namespace WinAGI.Editor {
             if (MainStatusBar.Items.ContainsKey(nameof(spCapsLock))) {
                 bool newCapsLock = Console.CapsLock;
                 bool newNumLock = Console.NumberLock;
-                bool newInsertLock = IsKeyLocked(Keys.Insert);
+                bool newOverwrite = IsKeyLocked(Keys.Insert);
                 if (newCapsLock != CapsLock) {
                     CapsLock = newCapsLock;
                     if (spCapsLock is not null) {
@@ -463,10 +491,14 @@ namespace WinAGI.Editor {
                         spNumLock.Text = NumLock ? "NUM" : "\t";
                     }
                 }
-                if (newInsertLock != InsertLock) {
-                    InsertLock = newInsertLock;
+                if (newOverwrite != Overwrite) {
+                    Overwrite = newOverwrite;
                     if (spInsLock is not null) {
-                        spInsLock.Text = InsertLock ? "INS" : "\t";
+                        spInsLock.Text = Overwrite ? "OVR" : "INS";
+                    }
+                    // let the textscreen editor know
+                    if (TSEInUse) {
+                        TextScreenEditor.ToggleINS();
                     }
                 }
             }
@@ -630,6 +662,7 @@ namespace WinAGI.Editor {
                 mnuRSave.Text = "Save Resource";
                 mnuRSave.Enabled = false;
                 mnuRExport.Visible = false;
+                mnuRSep2.Visible = true;
                 mnuRRemove.Visible = true;
                 mnuRRemove.Text = "Add to Game";
                 mnuRRemove.Enabled = false;
@@ -655,6 +688,7 @@ namespace WinAGI.Editor {
                 mnuRExport.Visible = true;
                 mnuRExport.Text = "Export OBJECT";
                 mnuRExport.Enabled = true;
+                mnuRSep2.Visible= true;
                 mnuRRemove.Visible = true;
                 mnuRRemove.Text = "Add to Game";
                 mnuRRemove.Enabled = false;
@@ -678,6 +712,7 @@ namespace WinAGI.Editor {
                 mnuRExport.Visible = true;
                 mnuRExport.Text = "Export WORDS.TOK";
                 mnuRExport.Enabled = true;
+                mnuRSep2.Visible = true;
                 mnuRRemove.Visible = true;
                 mnuRRemove.Text = "Add to Game";
                 mnuRRemove.Enabled = false;
@@ -705,6 +740,7 @@ namespace WinAGI.Editor {
                 else {
                     mnuRExport.Visible = false;
                 }
+                mnuRSep2.Visible = true;
                 mnuRRemove.Visible = true;
                 mnuRRemove.Text = "Add to Game";
                 mnuRRemove.Enabled = false;
@@ -733,6 +769,7 @@ namespace WinAGI.Editor {
             mnuRSave.Enabled = false;
             mnuRExport.Visible = true;
             mnuRExport.Text = "Export " + SelResType.ToString();
+            mnuRSep2.Visible = true;
             mnuRRemove.Visible = true;
             mnuRRemove.Text = "Remove from Game";
             mnuRRemove.Enabled = true;
@@ -1200,10 +1237,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTTextEd_Click(object sender, EventArgs e) {
-            MessageBox.Show("TODO: Text Screen Editor");
-            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
-                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
-            }
+            OpenTextscreenEditor();
         }
 
         private void mnuTMenuEditor_Click(object sender, EventArgs e) {
@@ -2825,7 +2859,6 @@ namespace WinAGI.Editor {
         internal void GameEvents_DecodeLogicStatus(object sender, DecodeLogicEventArgs e) {
             // TODO: if not opening  game, find different way to report decode errors...
 
-            Debug.Print($"decode it: {e.DecodeInfo.Text}");
             if (bgwOpenGame.IsBusy) {
                 if (e.DecodeInfo.Type == EventType.TODO) {
                     bgwOpenGame?.ReportProgress(2, e.DecodeInfo);
@@ -2923,8 +2956,8 @@ namespace WinAGI.Editor {
                 break;
             case frmTextScreenEdit frmTE:
                 statusStrip1.Items.Insert(0, frmTE.spScale);
+                statusStrip1.Items.Insert(1, frmTE.spMode);
                 // status
-                statusStrip1.Items.Insert(2, frmTE.spMode);
                 statusStrip1.Items.Insert(3, frmTE.spRow);
                 statusStrip1.Items.Insert(4, frmTE.spCol);
                 spCapsLock.Visible = true;
@@ -4872,7 +4905,7 @@ namespace WinAGI.Editor {
         #endregion
     }
 
-        public class WarningGridInfo {
+    public class WarningGridInfo {
         public string Type { get; set; } // 0
         public string ResType { get; set; } // 1
         public string Code { get; set; } // 2

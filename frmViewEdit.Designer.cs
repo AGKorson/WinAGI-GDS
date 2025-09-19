@@ -259,7 +259,7 @@ namespace WinAGI.Editor {
             // 
             toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { tsbTool, toolStripSeparator1, tsbZoomIn, tsbZoomOut, toolStripSeparator2, tsbUndo, toolStripSeparator3, tsbCut, tsbCopy, tsbPaste, tsbDelete, tsbInsert, toolStripSeparator4, tsbFlipH, tsbFlipV });
-            toolStrip1.Location = new System.Drawing.Point(0, 0);
+            toolStrip1.Location = new System.Drawing.Point(0, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new System.Drawing.Size(704, 31);
             toolStrip1.Stretch = true;
@@ -479,7 +479,7 @@ namespace WinAGI.Editor {
             // 
             splitForm.Dock = System.Windows.Forms.DockStyle.Fill;
             splitForm.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
-            splitForm.Location = new System.Drawing.Point(0, 31);
+            splitForm.Location = new System.Drawing.Point(0, 55);
             splitForm.Name = "splitForm";
             // 
             // splitForm.Panel1
@@ -491,7 +491,7 @@ namespace WinAGI.Editor {
             // splitForm.Panel2
             // 
             splitForm.Panel2.Controls.Add(splitCanvas);
-            splitForm.Size = new System.Drawing.Size(704, 281);
+            splitForm.Size = new System.Drawing.Size(704, 257);
             splitForm.SplitterDistance = 133;
             splitForm.TabIndex = 13;
             splitForm.TabStop = false;
@@ -501,7 +501,7 @@ namespace WinAGI.Editor {
             // 
             propertyGrid1.Dock = System.Windows.Forms.DockStyle.Bottom;
             propertyGrid1.HelpVisible = false;
-            propertyGrid1.Location = new System.Drawing.Point(0, 214);
+            propertyGrid1.Location = new System.Drawing.Point(0, 190);
             propertyGrid1.Name = "propertyGrid1";
             propertyGrid1.PropertySort = System.Windows.Forms.PropertySort.NoSort;
             propertyGrid1.Size = new System.Drawing.Size(133, 67);
@@ -541,7 +541,7 @@ namespace WinAGI.Editor {
             tvwView.Nodes.AddRange(new System.Windows.Forms.TreeNode[] { treeNode5 });
             tvwView.SelectedImageIndex = 0;
             tvwView.ShowRootLines = false;
-            tvwView.Size = new System.Drawing.Size(133, 208);
+            tvwView.Size = new System.Drawing.Size(133, 184);
             tvwView.TabIndex = 0;
             tvwView.NodeMouseClick += tvwView_NodeMouseClick;
             tvwView.KeyPress += tvwView_KeyPress;
@@ -719,7 +719,7 @@ namespace WinAGI.Editor {
             splitCanvas.Panel2.DoubleClick += preview_DoubleClick;
             splitCanvas.Panel2.Resize += splitCanvas_Panel2_Resize;
             splitCanvas.Panel2MinSize = 200;
-            splitCanvas.Size = new System.Drawing.Size(567, 281);
+            splitCanvas.Size = new System.Drawing.Size(567, 257);
             splitCanvas.SplitterDistance = 363;
             splitCanvas.TabIndex = 0;
             splitCanvas.TabStop = false;
@@ -728,7 +728,7 @@ namespace WinAGI.Editor {
             // picCelCorner
             // 
             picCelCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            picCelCorner.Location = new System.Drawing.Point(342, 260);
+            picCelCorner.Location = new System.Drawing.Point(342, 236);
             picCelCorner.Name = "picCelCorner";
             picCelCorner.Size = new System.Drawing.Size(16, 16);
             picCelCorner.TabIndex = 3;
@@ -764,7 +764,7 @@ namespace WinAGI.Editor {
             // hsbCel
             // 
             hsbCel.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            hsbCel.Location = new System.Drawing.Point(0, 260);
+            hsbCel.Location = new System.Drawing.Point(0, 248);
             hsbCel.Minimum = -3;
             hsbCel.Name = "hsbCel";
             hsbCel.Size = new System.Drawing.Size(342, 16);
@@ -775,7 +775,7 @@ namespace WinAGI.Editor {
             // picPreviewCorner
             // 
             picPreviewCorner.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            picPreviewCorner.Location = new System.Drawing.Point(180, 236);
+            picPreviewCorner.Location = new System.Drawing.Point(180, 212);
             picPreviewCorner.Name = "picPreviewCorner";
             picPreviewCorner.Size = new System.Drawing.Size(16, 16);
             picPreviewCorner.TabIndex = 6;
@@ -787,7 +787,7 @@ namespace WinAGI.Editor {
             trkSpeed.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
             trkSpeed.AutoSize = false;
             trkSpeed.BackColor = System.Drawing.SystemColors.Control;
-            trkSpeed.Location = new System.Drawing.Point(134, 229);
+            trkSpeed.Location = new System.Drawing.Point(134, 205);
             trkSpeed.Maximum = 15;
             trkSpeed.Minimum = 1;
             trkSpeed.Name = "trkSpeed";
@@ -805,7 +805,7 @@ namespace WinAGI.Editor {
             toolStrip3.BackColor = System.Drawing.SystemColors.Control;
             toolStrip3.Dock = System.Windows.Forms.DockStyle.None;
             toolStrip3.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { tspCycle, tspMode });
-            toolStrip3.Location = new System.Drawing.Point(0, 252);
+            toolStrip3.Location = new System.Drawing.Point(0, 228);
             toolStrip3.Name = "toolStrip3";
             toolStrip3.Size = new System.Drawing.Size(196, 25);
             toolStrip3.TabIndex = 1;
@@ -965,7 +965,7 @@ namespace WinAGI.Editor {
             // hsbPreview
             // 
             hsbPreview.Anchor = System.Windows.Forms.AnchorStyles.Left;
-            hsbPreview.Location = new System.Drawing.Point(0, 236);
+            hsbPreview.Location = new System.Drawing.Point(0, 224);
             hsbPreview.Minimum = -3;
             hsbPreview.Name = "hsbPreview";
             hsbPreview.Size = new System.Drawing.Size(180, 16);

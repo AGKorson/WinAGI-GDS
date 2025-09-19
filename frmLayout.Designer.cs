@@ -52,11 +52,9 @@
             mnuROpen = new System.Windows.Forms.ToolStripMenuItem();
             mnuRSave = new System.Windows.Forms.ToolStripMenuItem();
             mnuRExport = new System.Windows.Forms.ToolStripMenuItem();
-            toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             mnuRRemove = new System.Windows.Forms.ToolStripMenuItem();
             mnuRRenumber = new System.Windows.Forms.ToolStripMenuItem();
             mnuRIDDesc = new System.Windows.Forms.ToolStripMenuItem();
-            toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             mnuRCompileLogic = new System.Windows.Forms.ToolStripMenuItem();
             mnuRSavePic = new System.Windows.Forms.ToolStripMenuItem();
             mnuExportGif = new System.Windows.Forms.ToolStripMenuItem();
@@ -95,7 +93,7 @@
             // 
             contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuShowRoom, mnuHideRoom, mnuEditLogic, mnuEditPicture, mnuDelete, mnuInsert, mnuSelectAll, mnuEditSep1, mnuOrder, mnuToggleTransPt, mnuTogglePicture, mnuProperties, mnuEditSep2, mnuToggleGrid });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(266, 302);
+            contextMenuStrip1.Size = new System.Drawing.Size(266, 280);
             contextMenuStrip1.Closed += contextMenuStrip1_Closed;
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
@@ -273,7 +271,7 @@
             // 
             // mnuResource
             // 
-            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuROpen, mnuRSave, mnuRExport, toolStripSeparator1, mnuRRemove, mnuRRenumber, mnuRIDDesc, toolStripSeparator2, mnuRCompileLogic, mnuRSavePic, mnuExportGif, mnuRepair, mnuToggleAllPics });
+            mnuResource.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuROpen, mnuRSave, mnuRExport, mnuRRemove, mnuRRenumber, mnuRIDDesc, mnuRCompileLogic, mnuRSavePic, mnuExportGif, mnuRepair, mnuToggleAllPics });
             mnuResource.MergeAction = System.Windows.Forms.MergeAction.MatchOnly;
             mnuResource.MergeIndex = 1;
             mnuResource.Name = "mnuResource";
@@ -306,17 +304,10 @@
             mnuRExport.Size = new System.Drawing.Size(206, 22);
             mnuRExport.Text = "export";
             // 
-            // toolStripSeparator1
-            // 
-            toolStripSeparator1.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            toolStripSeparator1.MergeIndex = 5;
-            toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new System.Drawing.Size(203, 6);
-            // 
             // mnuRRemove
             // 
             mnuRRemove.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRRemove.MergeIndex = 5;
+            mnuRRemove.MergeIndex = 6;
             mnuRRemove.Name = "mnuRRemove";
             mnuRRemove.Size = new System.Drawing.Size(206, 22);
             mnuRRemove.Text = "remove";
@@ -324,7 +315,7 @@
             // mnuRRenumber
             // 
             mnuRRenumber.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRRenumber.MergeIndex = 5;
+            mnuRRenumber.MergeIndex = 6;
             mnuRRenumber.Name = "mnuRRenumber";
             mnuRRenumber.Size = new System.Drawing.Size(206, 22);
             mnuRRenumber.Text = "renumber";
@@ -332,22 +323,15 @@
             // mnuRIDDesc
             // 
             mnuRIDDesc.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRIDDesc.MergeIndex = 5;
+            mnuRIDDesc.MergeIndex = 6;
             mnuRIDDesc.Name = "mnuRIDDesc";
             mnuRIDDesc.Size = new System.Drawing.Size(206, 22);
             mnuRIDDesc.Text = "iddesc";
             // 
-            // toolStripSeparator2
-            // 
-            toolStripSeparator2.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            toolStripSeparator2.MergeIndex = 5;
-            toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new System.Drawing.Size(203, 6);
-            // 
             // mnuRCompileLogic
             // 
             mnuRCompileLogic.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRCompileLogic.MergeIndex = 5;
+            mnuRCompileLogic.MergeIndex = 7;
             mnuRCompileLogic.Name = "mnuRCompileLogic";
             mnuRCompileLogic.Size = new System.Drawing.Size(206, 22);
             mnuRCompileLogic.Text = "compile";
@@ -355,7 +339,7 @@
             // mnuRSavePic
             // 
             mnuRSavePic.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuRSavePic.MergeIndex = 5;
+            mnuRSavePic.MergeIndex = 7;
             mnuRSavePic.Name = "mnuRSavePic";
             mnuRSavePic.Size = new System.Drawing.Size(206, 22);
             mnuRSavePic.Text = "savepic";
@@ -363,7 +347,7 @@
             // mnuExportGif
             // 
             mnuExportGif.MergeAction = System.Windows.Forms.MergeAction.Remove;
-            mnuExportGif.MergeIndex = 5;
+            mnuExportGif.MergeIndex = 7;
             mnuExportGif.Name = "mnuExportGif";
             mnuExportGif.Size = new System.Drawing.Size(206, 22);
             mnuExportGif.Text = "exportgif";
@@ -398,7 +382,7 @@
             // 
             toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnSelect, btnEdge1, btnEdge2, btnEdgeOther, btnAddRoom, btnAddComment, toolStripSeparator4, btnDelete, btnTransfer, btnShowRoom, btnHideRoom, toolStripSeparator5, btnFront, btnBack, btnZoomIn, btnZoomOut });
-            toolStrip1.Location = new System.Drawing.Point(0, 0);
+            toolStrip1.Location = new System.Drawing.Point(0, 24);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Size = new System.Drawing.Size(815, 31);
             toolStrip1.TabIndex = 5;
@@ -639,6 +623,7 @@
             KeyPreview = true;
             MainMenuStrip = menuStrip1;
             Name = "frmLayout";
+            ShowInTaskbar = false;
             StartPosition = System.Windows.Forms.FormStartPosition.WindowsDefaultBounds;
             Text = "frmLayout";
             FormClosing += frmLayout_FormClosing;
@@ -667,11 +652,9 @@
         private System.Windows.Forms.ToolStripMenuItem mnuROpen;
         private System.Windows.Forms.ToolStripMenuItem mnuRSave;
         private System.Windows.Forms.ToolStripMenuItem mnuRExport;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem mnuRRemove;
         private System.Windows.Forms.ToolStripMenuItem mnuRRenumber;
         private System.Windows.Forms.ToolStripMenuItem mnuRIDDesc;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem mnuRCompileLogic;
         private System.Windows.Forms.ToolStripMenuItem mnuRSavePic;
         private System.Windows.Forms.ToolStripMenuItem mnuExportGif;

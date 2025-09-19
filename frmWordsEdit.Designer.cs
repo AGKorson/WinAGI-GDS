@@ -43,7 +43,6 @@ namespace WinAGI.Editor {
             mnuRMerge = new System.Windows.Forms.ToolStripMenuItem();
             mnuRGroupCheck = new System.Windows.Forms.ToolStripMenuItem();
             mnuEdit = new System.Windows.Forms.ToolStripMenuItem();
-            lstGroups = new System.Windows.Forms.ListBox();
             cmLists = new System.Windows.Forms.ContextMenuStrip(components);
             mnuEUndo = new System.Windows.Forms.ToolStripMenuItem();
             mnESep0 = new System.Windows.Forms.ToolStripSeparator();
@@ -62,7 +61,6 @@ namespace WinAGI.Editor {
             mnuEditItem = new System.Windows.Forms.ToolStripMenuItem();
             mnuEFindInLogic = new System.Windows.Forms.ToolStripMenuItem();
             mnuEditMode = new System.Windows.Forms.ToolStripMenuItem();
-            lstWords = new System.Windows.Forms.ListBox();
             toolStrip1 = new System.Windows.Forms.ToolStrip();
             tbbUndo = new System.Windows.Forms.ToolStripButton();
             tbbMode = new System.Windows.Forms.ToolStripButton();
@@ -103,11 +101,17 @@ namespace WinAGI.Editor {
             cmwSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             toolStripSeparator5 = new System.Windows.Forms.ToolStripSeparator();
             cmwCancel = new System.Windows.Forms.ToolStripMenuItem();
+            dgGroups = new System.Windows.Forms.DataGridView();
+            groups = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            dgWords = new System.Windows.Forms.DataGridView();
+            words = new System.Windows.Forms.DataGridViewTextBoxColumn();
             menuStrip1.SuspendLayout();
             cmLists.SuspendLayout();
             toolStrip1.SuspendLayout();
             cmGroupEdit.SuspendLayout();
             cmWordEdit.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dgGroups).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgWords).BeginInit();
             SuspendLayout();
             // 
             // label1
@@ -247,29 +251,6 @@ namespace WinAGI.Editor {
             mnuEdit.DropDownClosed += mnuEdit_DropDownClosed;
             mnuEdit.DropDownOpening += mnuEdit_DropDownOpening;
             // 
-            // lstGroups
-            // 
-            lstGroups.AllowDrop = true;
-            lstGroups.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lstGroups.ContextMenuStrip = cmLists;
-            lstGroups.FormattingEnabled = true;
-            lstGroups.HorizontalScrollbar = true;
-            lstGroups.IntegralHeight = false;
-            lstGroups.ItemHeight = 15;
-            lstGroups.Location = new System.Drawing.Point(5, 45);
-            lstGroups.Name = "lstGroups";
-            lstGroups.Size = new System.Drawing.Size(331, 266);
-            lstGroups.TabIndex = 7;
-            lstGroups.DragDrop += lstGroups_DragDrop;
-            lstGroups.DragEnter += lstGroups_DragEnter;
-            lstGroups.DragOver += lstGroups_DragOver;
-            lstGroups.DragLeave += lstGroups_DragLeave;
-            lstGroups.DoubleClick += lstGroups_DoubleClick;
-            lstGroups.Enter += lstGroups_Enter;
-            lstGroups.Leave += lstGroups_Leave;
-            lstGroups.MouseDown += lstGroups_MouseDown;
-            lstGroups.MouseUp += lstGroups_MouseUp;
-            // 
             // cmLists
             // 
             cmLists.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnESep0, mnuECut, mnuECopy, mnuEPaste, mnuEDelete, mnuEClear, mnuEInsertGroup, mnuEInsertWord, mnuESep1, mnuEFind, mnuEFindAgain, mnuEReplace, mnuESep2, mnuEditItem, mnuEFindInLogic, mnuEditMode });
@@ -403,27 +384,6 @@ namespace WinAGI.Editor {
             mnuEditMode.Size = new System.Drawing.Size(234, 22);
             mnuEditMode.Text = "Display by Words";
             mnuEditMode.Click += mnuEMode_Click;
-            // 
-            // lstWords
-            // 
-            lstWords.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            lstWords.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            lstWords.ContextMenuStrip = cmLists;
-            lstWords.FormattingEnabled = true;
-            lstWords.HorizontalScrollbar = true;
-            lstWords.IntegralHeight = false;
-            lstWords.ItemHeight = 15;
-            lstWords.Location = new System.Drawing.Point(342, 45);
-            lstWords.Name = "lstWords";
-            lstWords.Size = new System.Drawing.Size(337, 266);
-            lstWords.TabIndex = 8;
-            lstWords.QueryContinueDrag += lstWords_QueryContinueDrag;
-            lstWords.DoubleClick += lstWords_DoubleClick;
-            lstWords.Enter += lstWords_Enter;
-            lstWords.Leave += lstWords_Leave;
-            lstWords.MouseDown += lstWords_MouseDown;
-            lstWords.MouseMove += lstWords_MouseMove;
-            lstWords.MouseUp += lstWords_MouseUp;
             // 
             // toolStrip1
             // 
@@ -754,17 +714,96 @@ namespace WinAGI.Editor {
             cmwCancel.Text = "Cancel";
             cmwCancel.Click += cmCancel_Click;
             // 
+            // dgGroups
+            // 
+            dgGroups.AllowDrop = true;
+            dgGroups.AllowUserToAddRows = false;
+            dgGroups.AllowUserToDeleteRows = false;
+            dgGroups.AllowUserToResizeColumns = false;
+            dgGroups.AllowUserToResizeRows = false;
+            dgGroups.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            dgGroups.BackgroundColor = System.Drawing.SystemColors.Window;
+            dgGroups.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
+            dgGroups.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgGroups.ColumnHeadersVisible = false;
+            dgGroups.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { groups });
+            dgGroups.ContextMenuStrip = cmLists;
+            dgGroups.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
+            dgGroups.Location = new System.Drawing.Point(5, 45);
+            dgGroups.MultiSelect = false;
+            dgGroups.Name = "dgGroups";
+            dgGroups.RowHeadersVisible = false;
+            dgGroups.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            dgGroups.ShowEditingIcon = false;
+            dgGroups.Size = new System.Drawing.Size(331, 266);
+            dgGroups.TabIndex = 7;
+            dgGroups.DragDrop += dgGroups_DragDrop;
+            dgGroups.DragEnter += dgGroups_DragEnter;
+            dgGroups.DragOver += dgGroups_DragOver;
+            dgGroups.DragLeave += dgGroups_DragLeave;
+            dgGroups.DoubleClick += dgGroups_DoubleClick;
+            dgGroups.Enter += dgGroups_Enter;
+            dgGroups.Leave += dgGroups_Leave;
+            dgGroups.MouseDown += dgGroups_MouseDown;
+            dgGroups.MouseUp += dgGroups_MouseUp;
+            // 
+            // groups
+            // 
+            groups.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            groups.HeaderText = "Column1";
+            groups.MinimumWidth = 50;
+            groups.Name = "groups";
+            groups.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            groups.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
+            // dgWords
+            // 
+            dgWords.AllowUserToAddRows = false;
+            dgWords.AllowUserToDeleteRows = false;
+            dgWords.AllowUserToResizeColumns = false;
+            dgWords.AllowUserToResizeRows = false;
+            dgWords.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
+            dgWords.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
+            dgWords.BackgroundColor = System.Drawing.SystemColors.Window;
+            dgWords.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.None;
+            dgWords.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgWords.ColumnHeadersVisible = false;
+            dgWords.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { words });
+            dgWords.ContextMenuStrip = cmLists;
+            dgWords.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
+            dgWords.Location = new System.Drawing.Point(342, 45);
+            dgWords.MultiSelect = false;
+            dgWords.Name = "dgWords";
+            dgWords.RowHeadersVisible = false;
+            dgWords.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            dgWords.Size = new System.Drawing.Size(337, 266);
+            dgWords.TabIndex = 8;
+            dgWords.QueryContinueDrag += dgWords_QueryContinueDrag;
+            dgWords.DoubleClick += dgWords_DoubleClick;
+            dgWords.Enter += dgWords_Enter;
+            dgWords.Leave += dgWords_Leave;
+            dgWords.MouseDown += dgWords_MouseDown;
+            dgWords.MouseMove += dgWords_MouseMove;
+            dgWords.MouseUp += dgWords_MouseUp;
+            // 
+            // words
+            // 
+            words.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            words.HeaderText = "Column1";
+            words.Name = "words";
+            words.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            // 
             // frmWordsEdit
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(684, 311);
             Controls.Add(txtWordEdit);
+            Controls.Add(dgWords);
             Controls.Add(txtGroupEdit);
+            Controls.Add(dgGroups);
             Controls.Add(label2);
             Controls.Add(toolStrip1);
-            Controls.Add(lstWords);
-            Controls.Add(lstGroups);
             Controls.Add(menuStrip1);
             Controls.Add(label1);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
@@ -782,6 +821,8 @@ namespace WinAGI.Editor {
             toolStrip1.PerformLayout();
             cmGroupEdit.ResumeLayout(false);
             cmWordEdit.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dgGroups).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgWords).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -803,8 +844,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem mnuRMerge;
         private System.Windows.Forms.ToolStripMenuItem mnuEdit;
         private System.Windows.Forms.ToolStripMenuItem mnuRGroupCheck;
-        private System.Windows.Forms.ListBox lstGroups;
-        private System.Windows.Forms.ListBox lstWords;
         private System.Windows.Forms.ContextMenuStrip cmLists;
         private System.Windows.Forms.ToolStripMenuItem mnuEUndo;
         private System.Windows.Forms.ToolStripSeparator mnESep0;
@@ -863,5 +902,9 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.ToolStripMenuItem cmwCancel;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
         private System.Windows.Forms.ToolStripMenuItem cmgCancel;
+        private System.Windows.Forms.DataGridView dgGroups;
+        private System.Windows.Forms.DataGridViewTextBoxColumn groups;
+        private System.Windows.Forms.DataGridView dgWords;
+        private System.Windows.Forms.DataGridViewTextBoxColumn words;
     }
 }
