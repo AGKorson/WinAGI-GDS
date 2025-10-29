@@ -127,8 +127,8 @@ namespace WinAGI.Engine {
 
             if (mLoopCol.Count == 1) {
                 // can't delete last loop
-                WinAGIException wex = new(LoadResString(613)) {
-                    HResult = WINAGI_ERR + 613
+                WinAGIException wex = new(LoadResString(523)) {
+                    HResult = WINAGI_ERR + 523
                 };
                 throw wex;
             }

@@ -446,7 +446,7 @@ namespace WinAGI.Editor {
                 }
                 catch (Exception ex) {
                     ErrMsgBox(ex, "File error - unable to load this image.",
-                        "",
+                        ex.StackTrace,
                         "Invalid Image File");
                     // use a blank white image
                     BkgdImage = new(320 * scalefactor, 168 * scalefactor);
@@ -563,7 +563,7 @@ namespace WinAGI.Editor {
             }
             catch (Exception ex) {
                 ErrMsgBox(ex, "File error. Unable to open this image file.",
-                    "",
+                    ex.StackTrace,
                     "Load Background Image Error");
                 return false;
             }

@@ -125,29 +125,16 @@ namespace WinAGI.Engine {
             byte bytVol, temp;
             bool bVal;
 
-            if (scriptfile is null || scriptfile.Length == 0) {
-                WinAGIException wex = new(LoadResString(604)) {
-                    HResult = WINAGI_ERR + 604,
-                };
-                throw wex;
-            }
-            if (!File.Exists(scriptfile)) {
-                WinAGIException wex = new(LoadResString(524).Replace(ARG1, scriptfile)) {
-                    HResult = WINAGI_ERR + 524,
-                };
-                wex.Data["missingfile"] = scriptfile;
-                throw wex;
-            }
             // default to no tracks
             lngTrack = -1;
             try {
-                using FileStream fsSnd = new(scriptfile, FileMode.Open);
+                using FileStream fsSnd = new(scriptfile, FileMode.Open, FileAccess.Read);
                 using StreamReader srSnd = new(fsSnd);
                 strLine = srSnd.ReadToEnd();
                 fsSnd.Dispose();
                 srSnd.Dispose();
             }
-            catch (Exception) {
+            catch {
                 // pass along any errors
                 throw;
             }
@@ -363,9 +350,10 @@ namespace WinAGI.Engine {
                 if (blnError) {
                     sound.Clear();
                     sound.Description = "";
-                    WinAGIException wex = new(LoadResString(681)) {
-                        HResult = WINAGI_ERR + 681
+                    WinAGIException wex = new(LoadResString(532)) {
+                        HResult = WINAGI_ERR + 532
                     };
+                    wex.Data["badfile"] = scriptfile;
                     throw wex;
                 }
             }
@@ -380,7 +368,7 @@ namespace WinAGI.Engine {
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="InvalidDataException"></exception>
         public static void IT2AGI(string filename, Sound sound, SoundImportOptions options) {
-            if (options.Channels == null) options.Channels = [1, 2, 3, 4];
+            if (options.Channels is null) options.Channels = [1, 2, 3, 4];
             int NUMCH = options.Channels.Length;
             if (NUMCH > 4) throw new ArgumentException("IT2AGI only supports up to 4 channels.");
 
@@ -518,10 +506,10 @@ namespace WinAGI.Engine {
                         int note = evt.Note;
                         int vol = evt.VolPan;
                         int instr = evt.Instrument;
-                        if (options.InstrShift != null && options.InstrShift.TryGetValue(instr, out int shift)) {
+                        if (options.InstrShift is not null && options.InstrShift.TryGetValue(instr, out int shift)) {
                             note += shift;
                         }
-                        if (options.InstrNote != null && options.InstrNote.TryGetValue(instr, out int forcedNote)) {
+                        if (options.InstrNote is not null && options.InstrNote.TryGetValue(instr, out int forcedNote)) {
                             note = forcedNote;
                         }
                         double start = row * rowdur_ms;
@@ -597,10 +585,10 @@ namespace WinAGI.Engine {
                         int note = 0;
                         if (samplenum != 0 || period != 0 || command != 0) {
                             note = periodtonote.TryGetValue(period, out int n) ? n : -1;
-                            if (note > 0 && options.InstrShift != null && options.InstrShift.TryGetValue(samplenum, out int shift)) {
+                            if (note > 0 && options.InstrShift is not null && options.InstrShift.TryGetValue(samplenum, out int shift)) {
                                 note += shift;
                             }
-                            if (note > 0 && options.InstrNote != null && options.InstrNote.TryGetValue(samplenum, out int forcedNote)) {
+                            if (note > 0 && options.InstrNote is not null && options.InstrNote.TryGetValue(samplenum, out int forcedNote)) {
                                 note = forcedNote;
                             }
                         }

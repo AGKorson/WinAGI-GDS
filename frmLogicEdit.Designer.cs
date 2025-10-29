@@ -79,10 +79,12 @@
             btnSep3 = new System.Windows.Forms.ToolStripSeparator();
             btnCompile = new System.Windows.Forms.ToolStripButton();
             btnMsgClean = new System.Windows.Forms.ToolStripButton();
+            btnCharMap = new System.Windows.Forms.ToolStripButton();
             splitContainer1 = new System.Windows.Forms.SplitContainer();
             splitLogic = new System.Windows.Forms.SplitContainer();
             rtfLogic2 = new WinAGIFCTB();
             contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
+            mnuEListCommands = new System.Windows.Forms.ToolStripMenuItem();
             rtfLogic1 = new WinAGIFCTB();
             documentMap1 = new FastColoredTextBoxNS.DocumentMap();
             picTip = new System.Windows.Forms.PictureBox();
@@ -412,7 +414,7 @@
             // toolStrip1
             // 
             toolStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
-            toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnCut, btnCopy, btnPaste, btnDelete, btnSep1, btnUndo, btnRedo, btnFind, btnSep2, btnComment, btnUncomment, btnSep3, btnCompile, btnMsgClean });
+            toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { btnCut, btnCopy, btnPaste, btnDelete, btnSep1, btnUndo, btnRedo, btnFind, btnSep2, btnComment, btnUncomment, btnCharMap, btnSep3, btnMsgClean, btnCompile });
             toolStrip1.Location = new System.Drawing.Point(0, 0);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.Padding = new System.Windows.Forms.Padding(0, 1, 2, 1);
@@ -545,10 +547,20 @@
             btnMsgClean.Text = "Message Cleanup";
             btnMsgClean.Click += mnuRMsgCleanup_Click;
             // 
+            // btnCharMap
+            // 
+            btnCharMap.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            btnCharMap.Image = (System.Drawing.Image)resources.GetObject("btnCharMap.Image");
+            btnCharMap.ImageTransparentColor = System.Drawing.Color.Magenta;
+            btnCharMap.Name = "btnCharMap";
+            btnCharMap.Size = new System.Drawing.Size(28, 28);
+            btnCharMap.Text = "toolStripButton1";
+            btnCharMap.Click += mnuECharMap_Click;
+            // 
             // splitContainer1
             // 
             splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            splitContainer1.Location = new System.Drawing.Point(0, 57);
+            splitContainer1.Location = new System.Drawing.Point(0, 33);
             splitContainer1.Name = "splitContainer1";
             // 
             // splitContainer1.Panel1
@@ -559,7 +571,7 @@
             // 
             splitContainer1.Panel2.Controls.Add(documentMap1);
             splitContainer1.Panel2MinSize = 75;
-            splitContainer1.Size = new System.Drawing.Size(719, 285);
+            splitContainer1.Size = new System.Drawing.Size(719, 309);
             splitContainer1.SplitterDistance = 600;
             splitContainer1.TabIndex = 4;
             splitContainer1.TabStop = false;
@@ -580,8 +592,8 @@
             // 
             splitLogic.Panel2.Controls.Add(rtfLogic1);
             splitLogic.Panel2MinSize = 0;
-            splitLogic.Size = new System.Drawing.Size(600, 285);
-            splitLogic.SplitterDistance = 136;
+            splitLogic.Size = new System.Drawing.Size(600, 309);
+            splitLogic.SplitterDistance = 147;
             splitLogic.TabIndex = 4;
             splitLogic.TabStop = false;
             // 
@@ -600,8 +612,8 @@
     '\'',
     '\''
     };
-            rtfLogic2.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
-            rtfLogic2.AutoScrollMinSize = new System.Drawing.Size(2, 14);
+            rtfLogic2.AutoIndentCharsPatterns = "";
+            rtfLogic2.AutoScrollMinSize = new System.Drawing.Size(27, 14);
             rtfLogic2.BackBrush = null;
             rtfLogic2.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
             rtfLogic2.CharHeight = 14;
@@ -622,7 +634,7 @@
             rtfLogic2.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic2.ServiceColors");
             rtfLogic2.ShowCaretWhenInactive = true;
             rtfLogic2.ShowFoldingLines = true;
-            rtfLogic2.Size = new System.Drawing.Size(600, 136);
+            rtfLogic2.Size = new System.Drawing.Size(600, 147);
             rtfLogic2.SourceTextBox = rtfLogic1;
             rtfLogic2.TabIndex = 1;
             rtfLogic2.Zoom = 100;
@@ -637,10 +649,18 @@
             // 
             // contextMenuStrip1
             // 
-            contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuERedo, mnuESep0, mnuECut, mnuEDelete, mnuECopy, mnuEPaste, mnuESelectAll, mnuESep1, mnuEFind, mnuEFindAgain, mnuEReplace, mnuESep2, mnuEListDefines, mnuEViewSynonym, mnuESnippet, mnuEBlockCmt, mnuEUnblockCmt, mnuEOpenRes, mnuESep3, mnuEDocumentMap, mnuELineNumbers, mnuECharMap });
+            contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuERedo, mnuESep0, mnuECut, mnuEDelete, mnuECopy, mnuEPaste, mnuESelectAll, mnuESep1, mnuEFind, mnuEFindAgain, mnuEReplace, mnuESep2, mnuEListDefines, mnuEListCommands, mnuEViewSynonym, mnuESnippet, mnuEBlockCmt, mnuEUnblockCmt, mnuEOpenRes, mnuESep3, mnuEDocumentMap, mnuELineNumbers, mnuECharMap });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new System.Drawing.Size(263, 446);
+            contextMenuStrip1.Size = new System.Drawing.Size(263, 468);
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
+            // 
+            // mnuEListCommands
+            // 
+            mnuEListCommands.Name = "mnuEListCommands";
+            mnuEListCommands.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.J;
+            mnuEListCommands.Size = new System.Drawing.Size(262, 22);
+            mnuEListCommands.Text = "List Commands";
+            mnuEListCommands.Click += mnuEListCommands_Click;
             // 
             // rtfLogic1
             // 
@@ -657,8 +677,8 @@
     '\'',
     '\''
     };
-            rtfLogic1.AutoIndentCharsPatterns = "^\\s*[\\w\\.]+(\\s\\w+)?\\s*(?<range>=)\\s*(?<range>[^;=]+);\r\n^\\s*(case|default)\\s*[^:]*(?<range>:)\\s*(?<range>[^;]+);";
-            rtfLogic1.AutoScrollMinSize = new System.Drawing.Size(2, 14);
+            rtfLogic1.AutoIndentCharsPatterns = "";
+            rtfLogic1.AutoScrollMinSize = new System.Drawing.Size(27, 14);
             rtfLogic1.BackBrush = null;
             rtfLogic1.BracketsHighlightStrategy = FastColoredTextBoxNS.BracketsHighlightStrategy.Strategy2;
             rtfLogic1.CharHeight = 14;
@@ -678,7 +698,7 @@
             rtfLogic1.SelectionColor = System.Drawing.Color.FromArgb(60, 255, 255, 255);
             rtfLogic1.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rtfLogic1.ServiceColors");
             rtfLogic1.ShowCaretWhenInactive = true;
-            rtfLogic1.Size = new System.Drawing.Size(600, 145);
+            rtfLogic1.Size = new System.Drawing.Size(600, 158);
             rtfLogic1.TabIndex = 0;
             rtfLogic1.Zoom = 100;
             rtfLogic1.ToolTipNeeded += fctb_ToolTipNeeded;
@@ -696,7 +716,7 @@
             documentMap1.ForeColor = System.Drawing.Color.Maroon;
             documentMap1.Location = new System.Drawing.Point(0, 0);
             documentMap1.Name = "documentMap1";
-            documentMap1.Size = new System.Drawing.Size(115, 285);
+            documentMap1.Size = new System.Drawing.Size(115, 309);
             documentMap1.TabIndex = 4;
             documentMap1.Target = rtfLogic1;
             documentMap1.Text = "documentMap1";
@@ -799,6 +819,7 @@
             Controls.Add(menuStrip1);
             Controls.Add(toolStrip1);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
+            KeyPreview = true;
             MainMenuStrip = menuStrip1;
             Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             Name = "frmLogicEdit";
@@ -807,6 +828,7 @@
             Activated += frmLogicEdit_Activated;
             FormClosing += frmLogicEdit_FormClosing;
             FormClosed += frmLogicEdit_FormClosed;
+            KeyDown += frmLogicEdit_KeyDown;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             toolStrip1.ResumeLayout(false);
@@ -891,5 +913,7 @@
         private System.Windows.Forms.ListView lstDefines;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.ToolStripMenuItem mnuEListCommands;
+        private System.Windows.Forms.ToolStripButton btnCharMap;
     }
 }

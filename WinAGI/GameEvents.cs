@@ -162,7 +162,7 @@ namespace WinAGI.Engine {
         /// Raises the CompileLogicStatus event. 
         /// </summary>
         /// <param name="CompInfo"></param>
-        internal static bool OnCompileLogicStatus(TWinAGIEventInfo CompInfo) {
+        internal static bool OnCompileLogicStatus(AGIGame game, TWinAGIEventInfo CompInfo) {
             GameCompileStatus stat;
             if (CompInfo.Type == EventType.LogicCompileError) {
                 stat = GameCompileStatus.LogicError;
@@ -170,7 +170,7 @@ namespace WinAGI.Engine {
             else {
                 stat = GameCompileStatus.Warning;
             }
-            if (LogicCompiler.compGame is null || !LogicCompiler.compGame.Compiling) {
+            if (game is null || !game.Compiling) {
                 // not compiling a game, must be compiling a single logic
                 // Raise the event in a thread-safe manner using the ?. operator.
                 // TODO: do I need a status parameter here (like gamecompile)?
@@ -180,16 +180,12 @@ namespace WinAGI.Engine {
             // if compiling a game, use that event
             else {
                 // Raise the event in a thread-safe manner using the ?. operator.
-
                 CompileGameEventArgs e = new(stat, CompInfo);
                 CompileGameStatus?.Invoke(null, e);
                 return e.Cancel;
             }
         }
 
-        internal static bool OnCompileLogicStatus() {
-            return true;
-        }
         /// <summary>
         /// DecodeLogicStatus event handler delegate.
         /// </summary>

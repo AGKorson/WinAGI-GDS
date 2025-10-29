@@ -53,7 +53,7 @@ namespace WinAGI.Editor {
             set {
                 // confirm all nodes are in the treeview, level 
                 // 2 nodes only, and same parent node
-                if (value == null) {
+                if (value is null) {
                     nodecollection.Clear();
                 }
                 else if (value.Count == 0) {
@@ -132,7 +132,7 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            if (node != null) {
+            if (node is not null) {
                 noselection = false;
                 SelectedNode = node;
                 nodecollection.Clear();
@@ -199,11 +199,11 @@ namespace WinAGI.Editor {
         }
 
         protected override void OnMouseMove(MouseEventArgs e) {
-            if (selecting && anchornode != null) {
+            if (selecting && anchornode is not null) {
                 // Find the node under the mouse
                 TreeNode node = GetNodeAt(e.X, e.Y);
                 // only level 2 in same group
-                if (node != null && node.Level == 2 && node.Parent == anchornode.Parent) {
+                if (node is not null && node.Level == 2 && node.Parent == anchornode.Parent) {
                     int oldstart =  Math.Min(anchornode.Index, endnode.Index);
                     int oldend = Math.Max(anchornode.Index, endnode.Index);
                     Rectangle bounds = new();
@@ -311,7 +311,7 @@ namespace WinAGI.Editor {
             bool bNoShift = ModifierKeys == 0;
 
             // if arrow up or down, with shift, expand or contact selection
-            if (SelectedNode != null && SelectedNode.Level == 2 && bShift) {
+            if (SelectedNode is not null && SelectedNode.Level == 2 && bShift) {
                 if (e.KeyCode == Keys.Up) {
                     if (anchornode != endnode && anchornode.Index < endnode.Index) {
                         // move end node to previous node to reduce selection
@@ -328,7 +328,7 @@ namespace WinAGI.Editor {
                     }
                     else {
                         // move end node to previous node to expand selection
-                        if (endnode.PrevNode != null) {
+                        if (endnode.PrevNode is not null) {
                             endnode = endnode.PrevNode;
                             nodecollection.Insert(0, endnode);
                             Rectangle bounds = endnode.Bounds;
@@ -375,7 +375,7 @@ namespace WinAGI.Editor {
                     e.Handled = true;
                 }
             }
-            else if (SelectedNode != null && SelectedNode.Level == 2 && bNoShift) {
+            else if (SelectedNode is not null && SelectedNode.Level == 2 && bNoShift) {
                 if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down) {
                     // if there is a selection, deselect it first
                     if (nodecollection.Count > 1) {
@@ -395,7 +395,7 @@ namespace WinAGI.Editor {
 
         protected override void OnAfterSelect(TreeViewEventArgs e) {
             // update the selected nodes collection
-            if (e.Node == null) {
+            if (e.Node is null) {
                 return;
             }
             Rectangle bounds;

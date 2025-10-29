@@ -45,6 +45,7 @@ namespace WinAGI.Common {
                 lngErr = ex.HResult;
                 strError = "Error encountered, game not created: " + ex.Message;
                 bgwNewGame.ReportProgress(0, "Error encountered, game not created");
+                argval.Error = ex;
             }
             if (Loaded) {
                 argval.Failed = false;
@@ -53,7 +54,6 @@ namespace WinAGI.Common {
             }
             else {
                 argval.Failed = true;
-                argval.ErrorMsg = strError;
             }
             e.Result = argval;
         }
@@ -179,11 +179,10 @@ namespace WinAGI.Common {
                 catch {
                     // ignore errors
                 }
-
-                MessageBox.Show(MDIMain,
-                    "Unable to create new game due to an error:\n\n" + NewResults.ErrorMsg,
-                    "New AGI Game Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ErrMsgBox(NewResults.Error,
+                    "Unable to create new game.",
+                    NewResults.Error.StackTrace,
+                    "New AGI Game Error");
             }
             else {
                 if (NewResults.Warnings) {
@@ -201,7 +200,6 @@ namespace WinAGI.Common {
         public static void OpenGameDoWork(object sender, DoWorkEventArgs e) {
             string strError = "";
             bool blnWarnings = false;
-            int lngErr;
             LoadGameResults argval = (LoadGameResults)e.Argument;
             bool blnLoaded;
 
@@ -218,94 +216,91 @@ namespace WinAGI.Common {
                 blnLoaded = true;
                 blnWarnings = EditGame.LoadWarnings;
             }
+            catch (WinAGIException wex) {
+                // errors always causes failure to load
+                // ALWAYS release the game object if it fails to load
+                EditGame = null;
+                blnLoaded = false;
+                switch (wex.HResult & 0xffff) {
+                case 504:
+                    // Not a valid AGI directory
+                    // ["baddir"] = string gamedir
+                    strError = $"Invalid or missing directory file " +
+                        $"'{Path.GetFileName((string)wex.Data["baddir"])}'";
+                    break;
+                case 505:
+                    // invalid DIR file
+                    // ["baddir"] = string DIRfile
+                    strError = $"'{wex.Data["baddir"]}' is an invalid directory file.";
+                    break;
+                case 506:
+                    // invalid interpreter version - couldn't find correct version from the AGI
+                    // files
+                    strError = wex.Message;
+                    break;
+                case 529:
+                    strError = $"Missing game property file ({wex.Data["badfile"]}).";
+                    break;
+                case 530:
+                    if (wex.Data["badversion"].ToString().Length > 0) {
+                        strError = $"Invalid WINAGI game file version ({wex.Data["badversion"]}).";
+                    }
+                    else {
+                        strError = $"Invalid WINAGI property file ({wex.Data["badfile"]}).";
+                    }
+                    break;
+                case 537:
+                    // missing gameID in wag file
+                    strError = "Game property file does not contain a valid GameID.";
+                    break;
+                case 538:
+                    // invalid intVersion in wag file
+                    strError = $"{wex.Data["badversion"]} is not a valid Interpreter Version.";
+                    break;
+                case 539:
+                    // game file is readonly
+                    // ["badfile"] = string filename
+                    strError = $"Game file ({Path.GetFileName((string)wex.Data["badfile"])}) is readonly";
+                    break;
+                case 540:
+                    // file error accessing WAG
+                    // ["exception"] = Exception ex
+                    strError = $"File access error when reading WAG file - " +
+                        $"{((WinAGIException)wex.Data["exception"]).HResult}: " +
+                        $"{((WinAGIException)wex.Data["exception"]).Message}";
+                    break;
+                case 541:
+                    // DIR file access error
+                    // ["exception"] Exception = ex
+                    // ["dirfile"] = string dirfile
+                    strError = $"An error occurred while trying to access " +
+                        $"{Path.GetFileName((string)wex.Data["dirfile"])}:\n\n" +
+                        $"{((WinAGIException)wex.Data["exception"]).HResult}: " +
+                        $"{((WinAGIException)wex.Data["exception"]).Message}";
+                    break;
+                default:
+                    // shouldn't ever happen...
+                    Debug.Assert(false);
+                    strError = "WinAGI ERROR: " + (wex.HResult & 0xffff).ToString() +
+                        " - " + wex.Message;
+                    break;
+                }
+            }
+            catch (FileNotFoundException fex) {
+                // errors always causes failure to load
+                // ALWAYS release the game object if it fails to load
+                EditGame = null;
+                blnLoaded = false;
+                // file not found:
+                strError = $"A critical game file ({Path.GetFileName((string)fex.Data["missingfile"])}) is missing.";
+            }
             catch (Exception ex) {
                 // errors always causes failure to load
                 // ALWAYS release the game object if it fails to load
                 EditGame = null;
                 blnLoaded = false;
-                lngErr = ex.HResult;
-                if ((lngErr & WINAGI_ERR) == WINAGI_ERR) {
-                    switch (lngErr - WINAGI_ERR) {
-                    case 501:
-                        strError = "A game is already loaded. Close it before opening another game.";
-                        break;
-                    case 502:
-                        // DIR file access error
-                        // ["exception"] Exception = ex
-                        // ["dirfile"] = string dirfile
-                        strError = $"A file access error occurred while trying to open {Path.GetFileName((string)ex.Data["dirfile"])}:{Environment.NewLine}{Environment.NewLine}{((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
-                        break;
-                    case 524:
-                        // missing v2 DIR file
-                        // ["missingfile"] = string dirfile
-                        strError = $"A critical game file ({Path.GetFileName((string)ex.Data["missingfile"])}) is missing.";
-                        break;
-                    case 541:
-                        // Not a valid AGI directory
-                        // ["baddir"] = string gamedir
-                        strError = $"Invalid or missing directory file '{Path.GetFileName((string)ex.Data["baddir"])}'";
-                        break;
-                    case 542:
-                        // invalid DIR file
-                        // ["baddir"] = string DIRfile
-                        strError = $"'{ex.Data["baddir"]}' is an invalid directory file.";
-                        break;
-                    case 543:
-                        // invalid interpreter version - couldn't find correct version from the AGI
-                        // files
-                        strError = ex.Message;
-                        break;
-                    case 655:
-                        strError = $"Missing game property file ({ex.Data["badfile"]}).";
-                        break;
-                    case 665:
-                        if (ex.Data["badversion"].ToString().Length > 0) {
-                            strError = $"Invalid WINAGI version ({ex.Data["badversion"]}).";
-                        }
-                        else {
-                            strError = $"Invalid WINAGI property file ({ex.Data["badfile"]}).";
-                        }
-                        break;
-                    case 690:
-                        // missing gameID in wag file
-                        strError = "Game property file does not contain a valid GameID.";
-                        break;
-                    case 691:
-                        // invalid intVersion in wag file
-                        strError = $"{ex.Data["badversion"]} is not a valid Interpreter Version.";
-                        break;
-                    case 699:
-                        // Unable to backup existing wag file
-                        // ["exception"] = Exception ex
-                        strError = $"Unable to backup existing WAG file - {((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
-                        break;
-                    case 700:
-                        // game file is readonly
-                        // ["badfile"] = string filename
-                        strError = $"Game file ({Path.GetFileName((string)ex.Data["badfile"])}) is readonly";
-                        break;
-                    case 701:
-                        // file error accessing WAG
-                        // ["exception"] = Exception ex
-                        strError = $"File access error when reading WAG file - {((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
-                        break;
-                    case 703:
-                        // file access error in DIR file
-                        // ["exception"] Exception = ex
-                        // ["dirfile"] = string dirfile
-                        strError = $"File access error when reading {Path.GetFileName(ex.Data["dirfile"].ToString())} file - {((WinAGIException)ex.Data["exception"]).HResult}: {((WinAGIException)ex.Data["exception"]).Message}";
-                        break;
-                    default:
-                        // unknown error
-                        Debug.Assert(false);
-                        strError = "UNKNOWN: " + lngErr.ToString() + " - " + ex.Source + " - " + ex.Message;
-                        break;
-                    }
-                }
-                else {
-                    // unknown error
-                    strError = "UNKNOWN: " + lngErr.ToString() + " - " + ex.Source + " - " + strError;
-                }
+                // unknown error
+                strError = "UNKNOWN: " + ex.HResult.ToString("x8") + " - " + ex.Message + "\n\n" + ex.StackTrace;
             }
             if (blnLoaded) {
                 bgwOpenGame.ReportProgress(50, "Game " + (argval.Mode == 0 ? "loaded" : "imported") + " successfully, setting up editors");
@@ -331,7 +326,7 @@ namespace WinAGI.Common {
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
             case 3:
-                // Decode warning
+                // Decode errors and warnings
                 MDIMain.AddWarning((TWinAGIEventInfo)e.UserState);
                 break;
             case 4:
@@ -515,20 +510,23 @@ namespace WinAGI.Common {
                 // warning generated
                 int warnings = CompStatusWin.Warnings;
                 warnings++;
-                warnings.ToString();
                 CompStatusWin.lblWarnings.Text = warnings.ToString();
                 CompStatusWin.Warnings = warnings;
-                MDIMain.AddWarning(compInfo);
+                CompStatusWin.lblStatus.Text = compInfo.Text;
+                if (compInfo.Type != EventType.Info) {
+                    MDIMain.AddWarning(compInfo);
+                }
                 break;
             case GameCompileStatus.ResError:
             case GameCompileStatus.LogicError:
                 // error encountered
                 int errors = CompStatusWin.Errors;
                 errors++;
-                errors.ToString();
                 CompStatusWin.lblWarnings.Text = errors.ToString();
                 CompStatusWin.Warnings = errors;
-                MDIMain.AddWarning(compInfo);
+                if (compInfo.Type != EventType.Info) {
+                    MDIMain.AddWarning(compInfo);
+                }
                 break;
             case GameCompileStatus.FatalError:
                 // need to tell user!
@@ -650,7 +648,7 @@ namespace WinAGI.Common {
                 case CompileStatus.Error:
                     MessageBox.Show(MDIMain,
                         "One or more errors occurred while compiling logics. Not all logics have " +
-                        "been compiled.",
+                        "been compiled.\n\n" + errmsg.Text,
                         "Compile Logics",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
@@ -668,7 +666,10 @@ namespace WinAGI.Common {
             case CompileMode.ChangeVersion:
                 // change version rebuild
                 if (CompGameResults.Status != CompileStatus.OK) {
-                    ErrMsgBox(CompGameResults.CompExc, "Error during version change: ", "Original version has been restored.", "Change Interpreter Version");
+                    ErrMsgBox(CompGameResults.CompExc,
+                        "Error during version change: ",
+                        CompGameResults.CompExc.StackTrace + "\n\nOriginal version has been restored.",
+                        "Change Interpreter Version");
                 }
                 else {
                     // TODO: need better way to check for errors and warnings
@@ -728,7 +729,7 @@ namespace WinAGI.Common {
             else {
                 ErrMsgBox((Exception)e.UserState,
                     "Unable to create gif file.",
-                    "", 
+                    ((Exception)e.UserState).StackTrace, 
                     $"Make {((int)e.ProgressPercentage == -1 ? "Picture" : "Loop")} Gif Failure");
             }
         }

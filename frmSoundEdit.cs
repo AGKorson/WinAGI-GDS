@@ -256,7 +256,7 @@ namespace WinAGI.Editor {
         }
 
         internal void mnuRInGame_Click(object sender, EventArgs e) {
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 ToggleInGame();
             }
         }
@@ -840,7 +840,7 @@ namespace WinAGI.Editor {
             }
             // stinkin glitch in expand/collapse raises  node-click event
             // sometimes, but not always, so have to check again after...
-            if (e.Node != null) {
+            if (e.Node is not null) {
                 switch (e.Node.Level) {
                 case 0:
                     if (SelectionMode != SelectionModeType.Sound) {
@@ -1746,7 +1746,7 @@ namespace WinAGI.Editor {
             spTime.Text = "Pos: --";
         }
 
-        public bool LoadSound(Sound loadsound) {
+        public bool LoadSound(Sound loadsound, bool quiet = false) {
             InGame = loadsound.InGame;
             if (InGame) {
                 SoundNumber = loadsound.Number;
@@ -1760,11 +1760,85 @@ namespace WinAGI.Editor {
             try {
                 loadsound.Load();
             }
-            catch {
+            catch (Exception ex) {
+                // unhandled error
+                if (!quiet) {
+                    string resid = InGame ? "Sound " + SoundNumber : loadsound.ID;
+                    ErrMsgBox(ex,
+                        "Something went wrong. Unable to load " + resid,
+                        ex.StackTrace,
+                        "Load Sound Failed");
+                }
                 return false;
             }
-            if (loadsound.ErrLevel < 0) {
+            if (loadsound.Error != ResourceErrorType.NoError) {
+                if (!quiet) {
+                    if (InGame) {
+                        switch (loadsound.Error) {
+                        case ResourceErrorType.FileNotFound:
+                            // should not be possible unless volfile deleted after
+                            // the game was loaded
+                            MessageBox.Show(MDIMain,
+                                $"The VOL file with Sound {loadsound.Number} is missing.",
+                                "Missing VOL File",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re01.htm");
+                            break;
+                        case ResourceErrorType.FileIsReadonly:
+                            // should not be possible unless volfile properties were
+                            // changed after the game was loaded
+                            MessageBox.Show(MDIMain,
+                                $"Sound {loadsound.Number} is in a VOL file tagged as readonly. " +
+                                "It cannot be edited unless full access is allowed.",
+                                "Readonly VOL File",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re02.htm");
+                            break;
+                        case ResourceErrorType.FileAccessError:
+                            MessageBox.Show(MDIMain,
+                                $"A file access error in the VOL file with Picture {loadsound.Number} " +
+                                "is preventing the picture from being edited. ",
+                                "VOL File Access Error",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re03.htm");
+                            break;
+                        //case ResourceErrorType.InvalidLocation:
+                        //case ResourceErrorType.InvalidHeader:
+                        //case ResourceErrorType.DecompressionError:
+                        default:
+                            // should not be possible
+                            Debug.Assert(false);
+                            MessageBox.Show(MDIMain,
+                            "Something went wrong. Unable to load Sound " + SoundNumber,
+                            "Load Sound Failed",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                            break;
+                        }
+                    }
+                    else {
+                        // show a generic message
+                        MessageBox.Show(MDIMain,
+                            "Unable to open Sound " + SoundNumber + ":\n\n LoadError " +
+                            loadsound.Error.ToString(),
+                            "Sound Resource Load Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                }
                 return false;
+            }
+            // only pc sounds can be edited
+            if (loadsound.SndFormat != SoundFormat.AGI) {
+                Debug.Assert(false);
+                MessageBox.Show(MDIMain,
+                    "Only PCjr sound resources can be edited in WinAGI.",
+                    "Unsupported Sound Format",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
             EditSound = loadsound.Clone();
             if (InGame) {
@@ -1777,7 +1851,8 @@ namespace WinAGI.Editor {
                 IsChanged = true;
             }
             else {
-                IsChanged = (EditSound.IsChanged || EditSound.ErrLevel != 0);
+                // TODO: why would IsChanged ever be true?
+                IsChanged = EditSound.IsChanged || EditSound.Warnings != 0;
             }
             Text = sSNDED + ResourceName(EditSound, InGame, true);
             if (IsChanged) {
@@ -2017,7 +2092,8 @@ namespace WinAGI.Editor {
 
         private bool CanPlay() {
             // check if sound is playable
-            if (EditSound.ErrLevel != 0) {
+            if (EditSound.Error != ResourceErrorType.NoError && EditSound.Error != ResourceErrorType.FileIsReadonly) {
+                // (any error except readonly means not playable)
                 return false;
             }
             if (EditSound.Length == 0) {
@@ -4313,7 +4389,7 @@ namespace WinAGI.Editor {
                     try {
                         wavNotePlayer.StopWavNote();
                     }
-                    catch (Exception) {
+                    catch {
                         throw;
                     }
                     break;
@@ -4321,7 +4397,7 @@ namespace WinAGI.Editor {
                     try {
                         midiNotePlayer.StopMIDINote();
                     }
-                    catch (Exception) {
+                    catch {
                         throw;
                     }
                     break;
@@ -4389,7 +4465,7 @@ namespace WinAGI.Editor {
                         }
                         midiNotePlayer.PlayMIDINote(instrument, Note);
                     }
-                    catch (Exception) {
+                    catch {
                         throw;
                     }
                     break;
@@ -4554,7 +4630,7 @@ namespace WinAGI.Editor {
         private bool CanPaste(int pastetrack) {
             if (pastetrack != -1 && Clipboard.ContainsData(SOUND_CB_FMT)) {
                 SoundClipboardData soundCBData = Clipboard.GetData(SOUND_CB_FMT) as SoundClipboardData;
-                if (soundCBData == null) {
+                if (soundCBData is null) {
                     return false;
                 }
                 if (pastetrack == 3) {
@@ -4750,26 +4826,12 @@ namespace WinAGI.Editor {
         public void ImportSound(string importfile, SoundImportFormat format, SoundImportOptions options) {
             MDIMain.UseWaitCursor = true;
             Sound tmpSound = new();
-
-            // import the sound and (and check for error)
-            try {
-                tmpSound.Import(importfile, format, options);
-            }
-            catch (Exception e) {
-                // something wrong
-                ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
-                MDIMain.UseWaitCursor = false;
-                return;
-            }
-            tmpSound.Load();
-            if (tmpSound.ErrLevel < 0) {
-                MDIMain.UseWaitCursor = false;
-                ErrMsgBox(tmpSound.ErrLevel, "Error reading sound data:", "This is not a valid sound resource.", "Invalid Sound Resource");
+            if (!Base.ImportSound(importfile, tmpSound, format, options)) {
                 return;
             }
             if (tmpSound.SndFormat != SoundFormat.AGI) {
                 MessageBox.Show(MDIMain,
-                    "This is an Apple IIgs formatted sound. Only PC/PCjr sounds can be edited in WinAGI.",
+                    "This is an Apple IIgs formatted sound.\n\nOnly PC/PCjr sounds can be edited in WinAGI.",
                     "Unsupported Sound Format",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
@@ -4981,14 +5043,14 @@ namespace WinAGI.Editor {
         }
         
         internal void ShowHelp() {
-            string strTopic = "htm\\winagi\\Sound_Editor.htm";
+            string topic = "htm\\winagi\\editor.htm";
 
             // TODO: add context-sensitive help
-            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
         }
 
         private bool AskClose() {
-            if (EditSound.ErrLevel < 0) {
+            if (EditSound.Error != ResourceErrorType.NoError) {
                 // if exiting due to error on form load
                 return true;
             }

@@ -86,6 +86,38 @@ namespace WinAGI.Engine {
         Splatter
     };
 
+    public enum ResourceErrorType {
+        NoError,
+        FileNotFound, // -1
+        FileIsReadonly, // -2
+        FileAccessError, // -3
+        InvalidLocation, // -4
+        InvalidHeader, // -5
+        DecompressionError, // -6
+        LogicSourceIsReadonly, // -7
+        LogicSourceAccessError, // -8
+        LogicSourceDecompileError,
+        SoundNoData, // -9
+        SoundBadTracks, // -10
+        SoundCantConvert,
+        ViewNoData, // -11
+        ViewNoLoops, // -12
+        ObjectNoFile, // -13
+        ObjectIsReadOnly, // -14
+        ObjectAccessError, // -15
+        ObjectNoData, // -16
+        ObjectDecryptError, // -17
+        ObjectBadHeader, // -18
+        WordsTokNoFile, // -19
+        WordsTokIsReadOnly, // -20
+        WordsTokAccessError, // -21
+        WordsTokNoData, // -22
+        WordsTokBadIndex, // -23
+        GlobalsNoFile, // -24
+        GlobalsIsReadOnly, // -25
+        GlobalsAccessError, // -26
+    }
+
     public enum LogicErrorLevel {
         Low,       // errors that prevent compilation/decompiliation
                    // are passed; minimal warnings are given
@@ -123,22 +155,31 @@ namespace WinAGI.Engine {
     }
     
     public enum ArgType {
-        Num = 0,          // i.e. numeric Value
-        Var = 1,          // v##
-        Flag = 2,         // f##
-        Msg = 3,          // m##
-        SObj = 4,         // o##
-        InvItem = 5,      // i##
-        Str = 6,          // s##
-        Word = 7,         // w## -- word argument (that user types in)
-        Ctrl = 8,         // c##
-        DefStr = 9,       // defined string; could be msg, inv obj, or vocword
-        VocWrd = 10,      // vocabulary word; NOT word argument
-        ActionCmd = 11,   // action command synonym
-        TestCmd = 12,     // test command synonym
-        Obj = 13,         // dual object type for Sierra syntax
-        View = 14,        // view type is number, only in Sierra syntax
-        None = 15,        // used when a non-valid value is needed
+        Num,          // i.e. numeric Value
+        Var,          // v##
+        Flag,         // f##
+        Msg,          // m##
+        SObj,         // o##
+        InvItem,      // i##
+        Str,          // s##
+        Word,         // w## -- word argument (that user types in)
+        Ctrl,         // c##
+        DefStr,       // defined string; could be msg, inv obj, or vocword
+        VocWrd,      // vocabulary word; NOT word argument
+        ActionCmd,   // action command synonym
+        TestCmd,     // test command synonym
+        Obj,         // dual object type for Sierra syntax
+        View,        // view type is number, only in Sierra syntax
+        Symbol,
+        AssignOperator,
+        TestOperator,
+        LineBreak,
+        BadString,
+        Keyword,
+        Label,
+        Comment,
+        None,        // used when a non-valid value is needed
+        Unknown,     // used when type is cannot be determined
         // if using Sierra syntax, only valid types are:
         //   Num, Var, Flag, DefStr[msg only], VocWrd,
         //   ActionCmd, TestCmd, Obj, View
@@ -205,10 +246,11 @@ namespace WinAGI.Engine {
         Info,
         GameLoadError,
         GameCompileError,
-        LogicCompileError,
-        LogicCompileWarning,
         ResourceError,
         ResourceWarning,
+        LogicCompileError,
+        LogicCompileWarning,
+        DecompError,
         DecompWarning,
         TODO
     }
@@ -274,6 +316,7 @@ namespace WinAGI.Engine {
         public string Comment = "";
         public DefineNameCheck NameCheck = DefineNameCheck.OK;
         public DefineValueCheck ValueCheck = DefineValueCheck.OK;
+        public int Line = 0; // line number in source file where defined
         public TDefine() {
         }
     }
@@ -328,7 +371,11 @@ namespace WinAGI.Engine {
     /// </summary>
     public static partial class Base {
         #region Local Members
-        public const int WINAGI_ERR = 0x100000;
+        // combine severity (unchecked((int)0x80000000); // bit 31
+        //      CustomerBit (0x20000000;                 // bit 29
+        // and     Facility (0x0001 << 16)               // bits 16..26
+        // custom WinAGI errors are then unique 16 bit numbers, in bits 0..15
+        public const int WINAGI_ERR = unchecked((int)0xA0010000);
         public static readonly string[] ResTypeAbbrv = ["LOG", "PIC", "SND", "VIEW"];
         public static readonly string[] IntVersions =
         [
@@ -349,6 +396,7 @@ namespace WinAGI.Engine {
         internal const string DEFRESDIR = "src";
         public const string WINAGI_VERSION = "3.0";
         internal static readonly byte[] bytEncryptKey;
+        internal static bool defaultSierraSyntax = false;
         // member values
         internal static EGAColors defaultPalette = new();
         internal static string agTemplateDir = "";
@@ -384,7 +432,8 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets or sets the default resource directory used for storing logic source files and stand alone resource files in a game.
+        /// Gets or sets the default resource directory used for storing logic source
+        /// files and stand alone resource files in a game.
         /// </summary>
         public static string DefResDir {
             get { return agDefResDir; }
@@ -464,7 +513,6 @@ namespace WinAGI.Engine {
         /// </summary>
         private static void InitWinAGI() {
             // calling this forces the module to load and initialize
-            LogicCompiler.compGame = null;
         }
 
         /// <summary>
@@ -484,7 +532,7 @@ namespace WinAGI.Engine {
             string strFileName = gameDir + "AGIDATA.OVL";
             if (File.Exists(strFileName)) {
                 try {
-                    using FileStream fsVer = new(strFileName, FileMode.Open);
+                    using FileStream fsVer = new(strFileName, FileMode.Open, FileAccess.Read);
                     bytBuffer = new byte[fsVer.Length];
                     fsVer.Read(bytBuffer, 0, (int)fsVer.Length);
                     fsVer.Dispose();
@@ -564,6 +612,15 @@ namespace WinAGI.Engine {
             catch (Exception) {
                 // return nothing if string doesn't exist
                 return "";
+            }
+        }
+
+        internal static bool CompileLogic(Logic SourceLogic) {
+            if (SourceLogic.Parent.SierraSyntax) {
+                return SierraLogicCompiler.CompileSierraLogic(SourceLogic);
+            }
+            else {
+                return FanLogicCompiler.CompileFanLogic(SourceLogic);
             }
         }
     }

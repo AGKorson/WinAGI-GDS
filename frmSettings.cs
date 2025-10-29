@@ -127,45 +127,45 @@ namespace WinAGI.Editor {
         }
 
         private void frmSettings_KeyDown(object sender, KeyEventArgs e) {
-            string strHelp;
+            string topic;
 
             // check for help key
             if (!e.Shift && !e.Alt && !e.Control && e.KeyCode == Keys.F1) {
                 switch (tabControl1.SelectedIndex) {
                 case 0:
                     // general
-                    strHelp = "generalsettings.htm";
+                    topic = "settings_general.htm";
                     break;
                 case 1:
                     // logics1
-                    strHelp = "logicsettings.htm";
+                    topic = "settings_logic.htm";
                     break;
                 case 2:
                     // logics2
-                    strHelp = "decompilersettings.htm";
+                    topic = "settings_logic2.htm";
                     break;
                 case 3:
                     // pictures
-                    strHelp = "picturesettings.htm";
+                    topic = "settings_picture.htm";
                     break;
                 case 4:
                     // sounds
-                    strHelp = "soundsettings.htm";
+                    topic = "settings_sound.htm";
                     break;
                 case 5:
                     // views
-                    strHelp = "viewsettings.htm";
+                    topic = "settings_view.htm";
                     break;
                 case 6:
                     // layout
-                    strHelp = "layoutsettings.htm";
+                    topic = "settings_layout.htm";
                     break;
                 default:
                     // generic setting help
-                    strHelp = "Settings.htm";
+                    topic = "settings.htm";
                     break;
                 }
-                Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\" + strHelp);
+                Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\" + topic);
                 e.Handled = true;
                 e.SuppressKeyPress = true;
             }
@@ -348,7 +348,7 @@ namespace WinAGI.Editor {
             MDIMain.cmbResType.Font = new Font(WinAGISettings.PreviewFontName.Value, WinAGISettings.PreviewFontSize.Value);
 
             // if a game is loaded, changes may need to be made immediately:
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 switch (WinAGISettings.ResListType.Value) {
                 case ResListType.None:
                     // if visible, hide it
@@ -395,7 +395,7 @@ namespace WinAGI.Editor {
                 }
                 else {
                     PreviewWin.Hide();
-                    if (MDIMain.ActiveMdiChild == null) {
+                    if (MDIMain.ActiveMdiChild is null) {
                         switch (WinAGISettings.ResListType.Value) {
                         case 0:
                             MDIMain.LastNodeName = "";
@@ -526,7 +526,7 @@ namespace WinAGI.Editor {
                 }
             }
             LogicDecoder.DefaultSrcExt = NewSettings.DefaultExt.Value.ToLower();
-            LogicCompiler.ErrorLevel = NewSettings.ErrorLevel.Value;
+            FanLogicCompiler.ErrorLevel = NewSettings.ErrorLevel.Value;
 
             // DECOMPILE
             LogicDecoder.MsgsByNumber = WinAGISettings.MsgsByNumber.Value;
@@ -607,8 +607,8 @@ namespace WinAGI.Editor {
                 WinAGISettings.WarnEncrypt.Reset(WinAGISettingsFile);
                 WinAGISettings.LEDelPicToo.Reset(WinAGISettingsFile);
                 //WinAGISettings.WarnPlotPaste.Reset(WinAGISettingsFile);
-                for (int i = 1; i <= LogicCompiler.WARNCOUNT; i++) {
-                    LogicCompiler.SetIgnoreWarning(5000 + i, false);
+                for (int i = 1; i <= FanLogicCompiler.WARNCOUNT; i++) {
+                    FanLogicCompiler.SetIgnoreWarning(5000 + i, false);
                 }
                 for (int i = 0; i <= 3; i++) {
                     //  (int)((WARNCOUNT - 1) / 30)

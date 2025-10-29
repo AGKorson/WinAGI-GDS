@@ -48,6 +48,33 @@ namespace WinAGI.Editor {
         }
 
         #region Form Event Handlers
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+            // Enter key is usually captured by the grid, but we want it to go to the textbox
+            if (EditTextBox is not null) {
+                switch (keyData) {
+                case Keys.Enter:
+                    if (EditTextBox.Focused) {
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                        return true;
+                    }
+                    break;
+                case Keys.Escape:
+                    if (EditTextBox.Focused) {
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Escape));
+                        return true;
+                    }
+                    break;
+                case Keys.Tab:
+                    if (EditTextBox.Focused) {
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Tab));
+                        return true;
+                    }
+                    break;
+                }
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         private void frmObjectEdit_FormClosing(object sender, FormClosingEventArgs e) {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
@@ -70,7 +97,7 @@ namespace WinAGI.Editor {
         private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
             // ensure object is cleared and dereferenced
 
-            if (EditInvList != null) {
+            if (EditInvList is not null) {
                 EditInvList.Unload();
                 EditInvList = null;
             }
@@ -540,7 +567,7 @@ namespace WinAGI.Editor {
                 return;
             }
             frmCharPicker CharPicker;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 CharPicker = new(EditGame.CodePage);
             }
             else {
@@ -630,7 +657,7 @@ namespace WinAGI.Editor {
 
         private void fgObjects_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
             // ignore formatting if no value, or if in new row
-            if (e.Value == null || e.RowIndex == fgObjects.NewRowIndex) {
+            if (e.Value is null || e.RowIndex == fgObjects.NewRowIndex) {
                 return;
             }
             // also ignore if adding a new row (because it does not yet
@@ -839,6 +866,9 @@ namespace WinAGI.Editor {
                 fgObjects.CancelEdit();
                 fgObjects.EndEdit();
                 if (Adding) {
+                    // clear number and room cells as well
+                    fgObjects.CurrentRow.Cells[0].Value = "";
+                    fgObjects.CurrentRow.Cells[2].Value = "";
                     Adding = false;
                 }
                 return;
@@ -881,7 +911,7 @@ namespace WinAGI.Editor {
                                              MessageBoxButtons.YesNo,
                                              MessageBoxIcon.Question,
                                              "Don't show this warning again.", ref blnNoWarn,
-                                             WinAGIHelp, "htm\\winagi\\Objects_Editor.htm#duplicates");
+                                             WinAGIHelp, "htm\\winagi\\editor_object.htm#duplicates");
                                         WinAGISettings.WarnDupObj.Value = !blnNoWarn;
                                         if (!WinAGISettings.WarnDupObj.Value) {
                                             WinAGISettings.WarnDupObj.WriteSetting(WinAGISettingsFile);
@@ -1011,7 +1041,7 @@ namespace WinAGI.Editor {
 
         private void StartSearch(FindFormFunction formfunction) {
             string searchtext;
-            if (fgObjects.CurrentCell == null || fgObjects.CurrentCell.RowIndex < 0 ||
+            if (fgObjects.CurrentCell is null || fgObjects.CurrentCell.RowIndex < 0 ||
                 fgObjects.CurrentCell.RowIndex == fgObjects.NewRowIndex) {
                 searchtext = "";
             }
@@ -1356,18 +1386,81 @@ namespace WinAGI.Editor {
         public bool LoadOBJECT(InventoryList objectobj) {
 
             InGame = objectobj.InGame;
-            IsChanged = objectobj.IsChanged;
             try {
                 if (InGame) {
                     objectobj.Load();
                 }
             }
-            catch {
+            catch (Exception ex) {
+                // unhandled error
+                ErrMsgBox(ex,
+                    "Something went wrong. Unable to load OBJECT",
+                    ex.StackTrace,
+                    "Load OBJECT Failed");
                 return false;
             }
-            if (objectobj.ErrLevel < 0) {
-                return false; ;
+            if (objectobj.Error != ResourceErrorType.NoError) {
+                switch (objectobj.Error) {
+                case ResourceErrorType.ObjectNoFile:
+                    MessageBox.Show(MDIMain,
+                        "OBJECT file is missing from this game's directory. A blank " +
+                        "file will be created.",
+                        "Missing OBJECT file",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re13.htm");
+                    objectobj = new();
+                    break;
+                case ResourceErrorType.ObjectIsReadOnly:
+                    MessageBox.Show(MDIMain,
+                        "OBJECT file is tagged as readonly. It cannot be edited " +
+                        "unless full access is allowed.",
+                        "Readonly OBJECT file",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re14.htm");
+                    return false;
+                case ResourceErrorType.ObjectAccessError:
+                    MessageBox.Show(MDIMain,
+                        "Unable to access OBJECT file. It cannot be edited.",
+                        "File Access Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re15.htm");
+                    return false;
+                case ResourceErrorType.ObjectNoData:
+                    MessageBox.Show(MDIMain,
+                        "OBJECT file has no data. A blank " +
+                        "file will be created.",
+                        "Empyt OBJECT file",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re16.htm");
+                    objectobj = new();
+                    break;
+                case ResourceErrorType.ObjectDecryptError:
+                    MessageBox.Show(MDIMain,
+                        "Unable to decrypt OBJECT file. A blank " +
+                        "file will be created.",
+                        "Invalid OBJECT file",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re17.htm");
+                    objectobj = new();
+                    break;
+                case ResourceErrorType.ObjectBadHeader:
+                    MessageBox.Show(MDIMain,
+                        "OBJECT file is corrupted. A blank " +
+                        "file will be created.",
+                        "Invalid OBJECT file",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re18.htm");
+                    objectobj = new();
+                    break;
+                }
             }
+            IsChanged = objectobj.IsChanged;
             EditInvList = objectobj.Clone();
             EditInvListFilename = objectobj.ResFile;
             for (int i = 0; i < EditInvList.Count; i++) {
@@ -1398,7 +1491,6 @@ namespace WinAGI.Editor {
             if (IsChanged) {
                 Text = CHG_MARKER + Text;
             }
-
             mnuRSave.Enabled = !IsChanged;
             MDIMain.btnSaveResource.Enabled = !IsChanged;
             return true;
@@ -1411,8 +1503,11 @@ namespace WinAGI.Editor {
             try {
                 tmpList = new(importfile);
             }
-            catch (Exception e) {
-                ErrMsgBox(e, "An error occurred during import:", "", "Import Object File Error");
+            catch (Exception ex) {
+                ErrMsgBox(ex,
+                    "An error occurred during import:",
+                    ex.StackTrace,
+                    "Import Object File Error");
                 MDIMain.UseWaitCursor = false;
                 return;
             }
@@ -1630,27 +1725,34 @@ namespace WinAGI.Editor {
                 }
                 // after updating logics, save the object list
                 MDIMain.UseWaitCursor = true;
-                bool loaded = EditGame.InvObjects.Loaded;
-                if (!loaded) {
-                    EditGame.InvObjects.Load();
-                }
+                EditGame.InvObjects.Load();
                 EditGame.InvObjects.CloneFrom(EditInvList);
                 try {
                     EditGame.InvObjects.Save();
                 }
                 catch (Exception ex) {
-                    ErrMsgBox(ex, "Error during OBJECT compilation: ",
-                        "Existing OBJECT has not been modified.",
+                    ErrMsgBox(ex,
+                        "Error during OBJECT compilation: ",
+                        ex.StackTrace + "\n\nExisting OBJECT has not been modified.",
                         "OBJECT Compile Error");
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
-                // TODO: only logics actually changed should be marked 
-                MakeAllChanged();
                 RefreshTree(AGIResType.Objects, 0);
+                // refresh warnings
                 MDIMain.ClearWarnings(AGIResType.Objects, 0);
-                if (!loaded) {
-                    EditGame.InvObjects.Unload();
+                if (EditGame.InvObjects.Warnings != 0) {
+                    TWinAGIEventInfo warnInfo = new() {
+                        ResType = AGIResType.Objects,
+                        ResNum = 0,
+                        Line = "--",
+                        Type = EventType.ResourceWarning,
+                    };
+                    if ((EditGame.WordList.Warnings & 1) == 1) {
+                        warnInfo.ID = "RW18";
+                        warnInfo.Text = EngineResources.RW18;
+                        MDIMain.AddWarning(warnInfo);
+                    }
                 }
                 MDIMain.UseWaitCursor = false;
             }
@@ -1665,8 +1767,9 @@ namespace WinAGI.Editor {
                         EditInvList.Save();
                     }
                     catch (Exception ex) {
-                        ErrMsgBox(ex, "An error occurred while trying to save object list: ",
-                            "Existing object list has not been modified.",
+                        ErrMsgBox(ex,
+                            "An error occurred while trying to save object list: ",
+                            ex.StackTrace + "\n\nExisting object list has not been modified.",
                             "Object List Save Error");
                         MDIMain.UseWaitCursor = false;
                         return;
@@ -1738,37 +1841,16 @@ namespace WinAGI.Editor {
             MarkAsChanged();
         }
 
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
-            // Enter key is usually captured by the grid, but we want it to go to the textbox
-            if (EditTextBox != null) {
-                switch (keyData) {
-                case Keys.Enter:
-                    if (EditTextBox.Focused) {
-                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
-                        return true;
-                    }
-                    break;
-                case Keys.Tab:
-                    if (EditTextBox.Focused) {
-                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Tab));
-                        return true;
-                    }
-                    break;
-                }
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
-
         internal void ShowHelp() {
-            string strTopic = "htm\\winagi\\Objects_Editor.htm";
+            string topic = "htm\\winagi\\editor_object.htm";
 
             // TODO: add context sensitive help
-            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
             return;
         }
 
         private bool AskClose() {
-            if (EditInvList.ErrLevel < 0) {
+            if (EditInvList.Error != ResourceErrorType.NoError) {
                 // if exiting due to error on form load
                 return true;
             }

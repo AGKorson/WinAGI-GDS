@@ -1,4 +1,3 @@
-
 # WinAGI-GDS
 
     WinAGI Game Development System
@@ -6,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0alpha21.0
+        Version 3.0.0alpha21.1
     ==============================
 
 
@@ -47,13 +46,15 @@ WinAGI is a full featured game development system, that includes editors which p
     X 19. Layout Editor
     X 20. Menu Editor
     X 21. Text Screen Editor
-      22. Help Integration
+    0 22. Help Integration
       23. BETA TESTING
 
 ---
 
   
 ### History:
+**alpha21.1** Begin rewrite of help file. Refactored all game and resource errors and warnings. Updated resource load and save functions to improve error and warning handlers. Linked errors and warnings to help file topics. Refactored logic compiler and moved Sierra compiler to a separate class. 
+
 **alpha21.0** Text Screen editor is complete. Fixed a few bugs in other editors, and did a lot of code cleanup and refactoring.
 
 **alpha20.0** Menu editor is complete.

@@ -9,36 +9,36 @@ namespace WinAGI.Editor {
     // BEFORE saving defines or positions
 
     internal class GlobalsUndo {
-        public enum udgActionType {
-            udgAddDefine,
-            udgImportDefines,
-            udgPasteDefines,
-            udgDeleteDefine,
-            udgCutDefine,
-            udgClearList,
-            udgEditName,
-            udgEditValue,
-            udgEditComment,
+        public enum GlobalUndoAction {
+            AddDefine,
+            ImportDefines,
+            PasteDefines,
+            DeleteDefine,
+            CutDefine,
+            ClearList,
+            EditName,
+            EditValue,
+            EditComment,
         }
 
-        public udgActionType UDAction;
-        private TDefine[] mUDDefine = [];
-        private int mUDCount = 0;
-        public int UDPos = 0;
-        public string UDText = "";
+        public GlobalUndoAction Action;
+        private TDefine[] mDefine = [];
+        private int mCount = 0;
+        public int Pos = 0;
+        public string Text = "";
 
-        public int UDCount {
+        public int Count {
             get {
-                return mUDCount;
+                return mCount;
             }
             set {
-                mUDCount = value;
-                mUDDefine = new TDefine[mUDCount];
+                mCount = value;
+                mDefine = new TDefine[mCount];
             }
         }
 
         public TDefine[] UDDefine {
-            get => mUDDefine;
+            get => mDefine;
         }
     }
 }

@@ -837,6 +837,7 @@ namespace WinAGI.Editor {
             lstCommands.MouseClick += lstCommands_MouseClick;
             lstCommands.MouseDoubleClick += lstCommands_MouseDoubleClick;
             lstCommands.MouseUp += lstCommands_MouseUp;
+            lstCommands.SizeChanged += lstCommands_SizeChanged;
             // 
             // CmdColumnHeader
             // 

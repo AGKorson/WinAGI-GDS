@@ -48,12 +48,11 @@ namespace WinAGI.Engine {
         /// <summary>
         /// flag indicating pointer is at beginning of resource (CurPos=0)
         /// </summary>
-        private bool mblnEORes;
+        private bool mEORes;
         /// <summary>
         /// current position of pointer in resource data
         /// </summary>
-        private int mlngCurPos;
-        string[] mErrData = ["", "", "", "", ""];
+        private int mCurPos;
         #endregion
 
         #region Constructors
@@ -164,7 +163,8 @@ namespace WinAGI.Engine {
                 //  - SizeInVol - is always -1
 
                 if (mInGame) {
-                    if (ErrLevel < 0) {
+                    if (Error != ResourceErrorType.NoError && 
+                        Error != ResourceErrorType.FileIsReadonly) {
                         return -1;
                     }
                     else {
@@ -222,16 +222,26 @@ namespace WinAGI.Engine {
         /// Greater than zero = minor errors but resource is readable <br />
         /// (varies for each type of derived resource)
         /// </returns>
-        public int ErrLevel { get; internal set; }
+        public ResourceErrorType Error { get; internal set; }
 
         /// <summary>
         /// Gets individualized error data associated with the error level for 
         /// this resource. Varies for each type of derived resource.
         /// </summary>
-        public string[] ErrData {
-            get => mErrData;
-            private protected set => mErrData = value;
-        }
+        public string[] ErrData { get; private protected set; } = ["", "", "", "", "", ""];
+
+        /// <summary>
+        /// Gets the warning tags for this resource. Zero means no
+        /// warnings. Bitfield used to determine which warnings 
+        /// apply. Warnings vary for each type of derived resource.
+        /// </summary>
+        public int Warnings { get; internal set; }
+
+        /// <summary>
+        /// Gets individualized warning tags for this resource. Varies for
+        /// each type of derived resource.
+        /// </summary>
+        public string[] WarnData { get; private protected set; } = ["", "", "", "", "", ""];
 
         /// <summary>
         /// Gets or sets the resource file of a resource that is not in a game. 
@@ -302,15 +312,15 @@ namespace WinAGI.Engine {
         public int Pos {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                return mlngCurPos;
+                return mCurPos;
             }
             set {
                 WinAGIException.ThrowIfNotLoaded(this);
                 if (value < 0 || value > mData.Length) {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
-                mlngCurPos = value;
-                mblnEORes = (mlngCurPos == mData.Length);
+                mCurPos = value;
+                mEORes = (mCurPos == mData.Length);
                 return;
             }
         }
@@ -322,7 +332,7 @@ namespace WinAGI.Engine {
         public bool EORes {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                return mlngCurPos >= mData.Length;
+                return mCurPos >= mData.Length;
             }
         }
 
@@ -384,7 +394,7 @@ namespace WinAGI.Engine {
                 else if (NewID.Length > 64) {
                     NewID = NewID[..64];
                 }
-                if (parent == null || !parent.SierraSyntax) {
+                if (parent is null || !parent.SierraSyntax) {
                     if (INVALID_FIRST_CHARS.Any(ch => ch == NewID[0])) {
                         NewID = "_" + NewID[1..];
                     }
@@ -428,7 +438,7 @@ namespace WinAGI.Engine {
                     }
                     mResID = NewID;
                     if (mInGame) {
-                        LogicCompiler.blnSetIDs = false;
+                        FanLogicCompiler.setIDs = false;
                         parent.WriteGameSetting(mResType.ToString() + Number, "ID", mResID, mResType.ToString() + "s");
                     }
                 }
@@ -575,10 +585,16 @@ namespace WinAGI.Engine {
             NewRes.mIsChanged = mIsChanged;
             NewRes.mSize = mSize;
             NewRes.mSizeInVol = mSizeInVol;
-            NewRes.mblnEORes = mblnEORes;
-            NewRes.mlngCurPos = mlngCurPos;
-            NewRes.ErrLevel = ErrLevel;
-            NewRes.ErrData = ErrData;
+            NewRes.mEORes = mEORes;
+            NewRes.mCurPos = mCurPos;
+            NewRes.Error = Error;
+            NewRes.Warnings = Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                NewRes.ErrData[i] = ErrData[i];
+            }
+            for (int i = 0; i < WarnData.Length; i++) {
+                NewRes.WarnData[i] = WarnData[i];
+            }
             // force prop status to changed instead 
             // since the cloned object has likely changed
             NewRes.PropsChanged = true;
@@ -607,10 +623,14 @@ namespace WinAGI.Engine {
             mIsChanged = SourceRes.mIsChanged;
             mSize = SourceRes.mSize;
             mSizeInVol = SourceRes.mSizeInVol;
-            mblnEORes = SourceRes.mblnEORes;
-            mlngCurPos = SourceRes.mlngCurPos;
-            ErrLevel = SourceRes.ErrLevel;
-            ErrData = SourceRes.ErrData;
+            mEORes = SourceRes.mEORes;
+            mCurPos = SourceRes.mCurPos;
+            Error = SourceRes.Error;
+            Warnings = SourceRes.Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                ErrData[i] = SourceRes.ErrData[i];
+                WarnData[i] = SourceRes.WarnData[i];
+            }
             // force status to changed
             mIsChanged = true;
             PropsChanged = true;
@@ -633,9 +653,11 @@ namespace WinAGI.Engine {
             mLoaded = true;
             mIsChanged = false;
             PropsChanged = false;
-            // clear error info before loading
-            ErrLevel = 0;
-            mErrData = ["", "", "", "", ""];
+            // clear error and warning info before loading
+            Error = ResourceErrorType.NoError;
+            ErrData = ["", "", "", "", "", ""];
+            Warnings = 0;
+            WarnData = ["", "", "", "", "", ""];
 
             if (mInGame) {
                 if (parent.agIsVersion3) {
@@ -649,15 +671,16 @@ namespace WinAGI.Engine {
                 strLoadResFile = mResFile;
             }
             if (!File.Exists(strLoadResFile)) {
-                ErrLevel = -1;
+                Error = ResourceErrorType.FileNotFound;
                 ErrData[0] = strLoadResFile;
                 ErrData[1] = mResID;
                 return;
             }
             if ((File.GetAttributes(strLoadResFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                ErrLevel = -2;
+                Error = ResourceErrorType.FileIsReadonly;
                 ErrData[0] = strLoadResFile;
-                return;
+                // continue reading resource; if another error occurs
+                // it will trump the readonly error
             }
             // open file (VOL or individual resource)
             FileStream fsVOL = null;
@@ -669,7 +692,7 @@ namespace WinAGI.Engine {
             catch (Exception e1) {
                 fsVOL?.Dispose();
                 brVOL?.Dispose();
-                ErrLevel = -3;
+                Error = ResourceErrorType.FileAccessError;
                 ErrData[0] = e1.Message;
                 ErrData[1] = mResID;
                 return;
@@ -678,7 +701,7 @@ namespace WinAGI.Engine {
             if (mLoc >= fsVOL.Length) {
                 fsVOL.Dispose();
                 brVOL.Dispose();
-                ErrLevel = -4;
+                Error = ResourceErrorType.InvalidLocation;
                 ErrData[0] = mLoc.ToString();
                 ErrData[1] = mVolume.ToString();
                 ErrData[2] = Path.GetFileName(fsVOL.Name);
@@ -693,7 +716,7 @@ namespace WinAGI.Engine {
                 if (bytHigh != 0x12 || bytLow != 0x34) {
                     fsVOL.Dispose();
                     brVOL.Dispose();
-                    ErrLevel = -5;
+                    Error = ResourceErrorType.InvalidHeader;
                     ErrData[0] = mLoc.ToString();
                     ErrData[1] = mVolume.ToString();
                     ErrData[2] = Path.GetFileName(fsVOL.Name);
@@ -738,7 +761,7 @@ namespace WinAGI.Engine {
                 catch (Exception e) {
                     fsVOL.Dispose();
                     brVOL.Dispose();
-                    ErrLevel = -6;
+                    Error = ResourceErrorType.DecompressionError;
                     ErrData[0] = mLoc.ToString();
                     ErrData[1] = mVolume.ToString();
                     ErrData[2] = Path.GetFileName(fsVOL.Name);
@@ -757,7 +780,7 @@ namespace WinAGI.Engine {
                     catch (Exception e) {
                         fsVOL.Dispose();
                         brVOL.Dispose();
-                        ErrLevel = -6;
+                        Error = ResourceErrorType.DecompressionError;
                         ErrData[0] = mLoc.ToString();
                         ErrData[1] = mVolume.ToString();
                         ErrData[2] = Path.GetFileName(fsVOL.Name);
@@ -768,8 +791,8 @@ namespace WinAGI.Engine {
                 }
             }
             // reset resource markers
-            mlngCurPos = 0;
-            mblnEORes = false;
+            mCurPos = 0;
+            mEORes = false;
             // update size properties
             mSize = fullSize;
             mSizeInVol = diskSize;
@@ -787,8 +810,8 @@ namespace WinAGI.Engine {
             // reset resource variables
             mData = [];
             // don't mess with sizes though! they remain accessible even when unloaded
-            mblnEORes = true;
-            mlngCurPos = 0;
+            mEORes = true;
+            mCurPos = 0;
         }
 
         /// <summary>
@@ -838,16 +861,12 @@ namespace WinAGI.Engine {
             // caller is responsible for verifying overwrite is ok or not
 
             WinAGIException.ThrowIfNotLoaded(this);
-            if (ExportFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(599)) {
-                    HResult = WINAGI_ERR + 599,
-                };
-                throw wex;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(ExportFile, nameof(ExportFile));
             // resources with major errors can't be exported
-            if (ErrLevel < 0) {
-                WinAGIException wex = new(LoadResString(601)) {
-                    HResult = WINAGI_ERR + 601,
+            if (Error != ResourceErrorType.NoError &&
+                Error != ResourceErrorType.FileIsReadonly) {
+                WinAGIException wex = new(LoadResString(519)) {
+                    HResult = WINAGI_ERR + 519,
                 };
                 throw wex;
             }
@@ -859,15 +878,17 @@ namespace WinAGI.Engine {
                 fsExport.SetLength(0);
                 fsExport.Write(mData, 0, mData.Length);
             }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(582)) {
-                    HResult = WINAGI_ERR + 582,
+            catch (Exception ex) {
+                WinAGIException wex = new(LoadResString(502).Replace(
+                    ARG1, ex.Message).Replace(
+                    ARG2, ExportFile)) {
+                    HResult = WINAGI_ERR + 502,
                 };
-                wex.Data["exception"] = e;
+                wex.Data["exception"] = ex;
                 throw wex;
             }
             finally {
-                Debug.Assert(fsExport != null);
+                Debug.Assert(fsExport is not null);
                 fsExport?.Dispose();
             }
             // if NOT in a game,
@@ -891,41 +912,33 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ImportFile"></param>
         public virtual void Import(string ImportFile) {
-            if (ImportFile is null || ImportFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(604)) {
-                    HResult = WINAGI_ERR + 604,
-                };
-                throw wex;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(ImportFile, nameof(ImportFile));
             if (!File.Exists(ImportFile)) {
-                WinAGIException wex = new(LoadResString(524).Replace(ARG1, ImportFile)) {
-                    HResult = WINAGI_ERR + 524,
-                };
-                wex.Data["missingfile"] = ImportFile;
-                throw wex;
+                throw new FileNotFoundException(ImportFile);
             }
             FileStream fsImport;
             try {
                 fsImport = new FileStream(ImportFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             }
-            catch (Exception) {
-                WinAGIException wex = new(LoadResString(605).Replace(ARG1, ImportFile)) {
-                    HResult = WINAGI_ERR + 605,
+            catch (Exception ex) {
+                WinAGIException wex = new(LoadResString(502).Replace(ARG1, ImportFile)) {
+                    HResult = WINAGI_ERR + 502,
                 };
+                wex.Data["exception"] = ex;
                 throw wex;
             }
             // if file is empty
             if (fsImport.Length == 0) {
-                WinAGIException wex = new(LoadResString(605).Replace(ARG1, ImportFile)) {
-                    HResult = WINAGI_ERR + 605,
+                WinAGIException wex = new(LoadResString(521).Replace(ARG1, ImportFile)) {
+                    HResult = WINAGI_ERR + 521,
                 };
                 throw wex;
             }
             mData = new byte[(int)fsImport.Length];
             fsImport.Read(mData, 0, (int)fsImport.Length);
             // reset resource markers
-            mlngCurPos = 0;
-            mblnEORes = false;
+            mCurPos = 0;
+            mEORes = false;
             mIsChanged = false;
             PropsChanged = false;
             // update size property
@@ -992,8 +1005,8 @@ namespace WinAGI.Engine {
                 Array.Resize(ref mData, mData.Length + 1);
             }
             mData[Pos] = InputByte;
-            mlngCurPos = Pos + 1;
-            mblnEORes = (mlngCurPos == mData.Length);
+            mCurPos = Pos + 1;
+            mEORes = (mCurPos == mData.Length);
             IsChanged = true;
             return;
         }
@@ -1041,8 +1054,8 @@ namespace WinAGI.Engine {
                 mData[Pos] = bytLow;
                 mData[Pos + 1] = bytHigh;
             }
-            mlngCurPos = Pos + 2;
-            mblnEORes = (mlngCurPos == mData.Length);
+            mCurPos = Pos + 2;
+            mEORes = (mCurPos == mData.Length);
             IsChanged = true;
         }
 
@@ -1054,16 +1067,20 @@ namespace WinAGI.Engine {
         /// <param name="Pos"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="IndexOutOfRangeException"></exception>
         public byte ReadByte(int Pos = -1) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (Pos != -1) {
                 if (Pos < 0 || Pos >= mData.Length) {
                     throw new ArgumentOutOfRangeException(nameof(Pos));
                 }
-                mlngCurPos = Pos;
+                mCurPos = Pos;
             }
-            byte retval = mData[mlngCurPos++];
-            mblnEORes = (mlngCurPos == mData.Length);
+            if (mCurPos < 0 || mCurPos >= mData.Length) {
+                throw new IndexOutOfRangeException();
+            }
+            byte retval = mData[mCurPos++];
+            mEORes = mCurPos == mData.Length;
             return retval;
         }
 
@@ -1086,20 +1103,20 @@ namespace WinAGI.Engine {
                 if (Pos < 0 || Pos >= mData.Length - 1) {
                     throw new ArgumentOutOfRangeException(nameof(Pos));
                 }
-                mlngCurPos = Pos;
+                mCurPos = Pos;
             }
             if (MSLS) {
                 // high first
-                bytHigh = mData[mlngCurPos];
-                bytLow = mData[mlngCurPos + 1];
+                bytHigh = mData[mCurPos];
+                bytLow = mData[mCurPos + 1];
             }
             else {
                 // low first
-                bytLow = mData[mlngCurPos];
-                bytHigh = mData[mlngCurPos + 1];
+                bytLow = mData[mCurPos];
+                bytHigh = mData[mCurPos + 1];
             }
-            mlngCurPos += 2;
-            mblnEORes = mlngCurPos == mData.Length;
+            mCurPos += 2;
+            mEORes = mCurPos == mData.Length;
             return (ushort)((bytHigh << 8) + bytLow);
         }
 
@@ -1205,13 +1222,18 @@ namespace WinAGI.Engine {
         /// </summary>
         private protected void ErrClear() {
             // cache error info
-            int errlevel = ErrLevel;
-            string[] errdata = ErrData;
+            ResourceErrorType errlevel = Error;
+            string[] errdata = new string[6];
+            for (int i = 0; i < ErrData.Length; i++) {
+                errdata[i] = ErrData[i];
+            }
             // use public clear method
             Clear();
             // restore error info
-            ErrLevel = errlevel;
-            ErrData = errdata;
+            Error = errlevel;
+            for (int i = 0; i < ErrData.Length; i++) {
+                ErrData[i] = errdata[i];
+            }
         }
 
         /// <summary>
@@ -1222,13 +1244,15 @@ namespace WinAGI.Engine {
             WinAGIException.ThrowIfNotLoaded(this);
             // clears the resource data
             mData = [];
-            mlngCurPos = 0;
+            mCurPos = 0;
             // mSizeInVol is undefined
             mSizeInVol = -1;
-            mblnEORes = false;
+            mEORes = false;
             IsChanged = true;
-            ErrLevel = 0;
-            mErrData = ["", "", "", "", ""];
+            Error = ResourceErrorType.NoError;
+            ErrData = ["", "", "", "", "", ""];
+            Warnings = 0;
+            WarnData = ["", "", "", "", "", ""];
         }
 
         /// <summary>

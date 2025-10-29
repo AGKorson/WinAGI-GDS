@@ -86,8 +86,8 @@ namespace WinAGI.Engine {
             Cel agNewCel;
 
             if (mCelCol.Count == MAX_CELS || pos < 0) {
-                WinAGIException wex = new(LoadResString(552).Replace("ARG1", "")) {
-                    HResult = WINAGI_ERR + 552,
+                WinAGIException wex = new(LoadResString(508).Replace("ARG1", "")) {
+                    HResult = WINAGI_ERR + 508,
                 };
                 throw wex;
             }
@@ -129,8 +129,8 @@ namespace WinAGI.Engine {
         public void Remove(int index) {
             int i;
             if (mCelCol.Count == 1) {
-                WinAGIException wex = new(LoadResString(612)) {
-                    HResult = WINAGI_ERR + 612,
+                WinAGIException wex = new(LoadResString(522)) {
+                    HResult = WINAGI_ERR + 522,
                 };
                 throw wex;
             }

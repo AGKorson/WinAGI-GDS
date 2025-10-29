@@ -67,8 +67,8 @@ namespace WinAGI.Editor {
         #region Event Handlers
         #region Form and Button Event Handlers
         private void frmGameProperties_HelpRequested(object sender, HelpEventArgs hlpevent) {
-            string strTopic = @"htm\winagi\Properties.htm" + (string)((Control)sender).Tag;
-            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            string topic = @"htm\winagi\properties.htm" + (string)((Control)sender).Tag;
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
             hlpevent.Handled = true;
         }
 
@@ -661,7 +661,7 @@ namespace WinAGI.Editor {
             // get a platform executable that will run a game
             if (NewPlatformFile.Length == 0) {
                 MDIMain.OpenDlg.FileName = "";
-                if (EditGame != null) {
+                if (EditGame is not null) {
                     MDIMain.OpenDlg.InitialDirectory = EditGame.GameDir;
                 }
                 else {
@@ -735,35 +735,50 @@ namespace WinAGI.Editor {
         /*
 Private Sub Form_KeyDown(KeyCode As Integer, Shift As Integer)
 // TODO: add help 
-Dim strTopic As String
 
-'check for help key
 If Shift = 0 And KeyCode = vbKeyF1 Then
 'help with game properties
-strTopic = 
+strTopic = @"htm\winagi\properties.htm"
 
-Select Case ActiveControl.Name
-Case "cmbVersion"
-  strTopic = strTopic & "#intversion"
-Case "picGameDir", "txtGameDir"
-  strTopic = strTopic & "#gamedir"
-Case "picPlatformFile", "txtPlatformFile", "txtExec", "txtOptions", "optOther", "optDosBox", "optScummVM", "optNAGI"
-  strTopic = strTopic & "#executable"
-Case "txtGameAbout"
-  strTopic = strTopic & "#about"
-Case "txtGameAuthor"
-  strTopic = strTopic & "#author"
-Case "txtGameDescription"
-  strTopic = strTopic & "#description"
-Case "txtGameID"
-  strTopic = strTopic & "#gameid"
-Case "txtGameVersion"
-  strTopic = strTopic & "#gameversion"
-Case "txtResDir"
-  strTopic = strTopic & "#resdir"
-Case "cmbCodePage"
-  strTopic = strTopic & "#codepage"
-End Select
+switch (ActiveControl.Name) {
+case "cmbVersion":
+  strTopic += "#intversion";
+        break;
+case "picGameDir" or "txtGameDir":
+  strTopic += "#gamedir"
+        break;
+case "picPlatformFile":
+        case "txtPlatformFile":
+        case "txtExec":
+        case "txtOptions":
+        case "optOther":
+        case "optDosBox":
+        case: "optScummVM":
+        case "optNAGI":
+  strTopic += "#executable";
+        break;
+case "txtGameAbout":
+  strTopic += "#about";
+        break;
+case "txtGameAuthor":
+  strTopic += "#author";
+        break;
+case "txtGameDescription":
+  strTopic += "#description";
+        break;
+case "txtGameID":
+  strTopic += "#gameid";
+        break;
+case "txtGameVersion";
+  strTopic += "#gameversion";
+        break;
+case "txtResDir":
+  strTopic += "#resdir";
+        break;
+case "cmbCodePage":
+  strTopic += "#codepage";
+        break;
+}
 
 Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
 KeyCode = 0

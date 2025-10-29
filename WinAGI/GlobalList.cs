@@ -13,25 +13,22 @@ namespace WinAGI.Engine {
     /// include file.
     /// </summary>
     public class GlobalList {
-        // TODO: no more global list; instead provide 'define list' object that lets users 
-        // edit defines in the same editor, but all files must be manually included;
-        // create a scope property allowing files to be tagged 'global' (which will
-        // automatically add them to existing/new logics) or identify which logics they
-        // apply to; add a branch to resource tree to list define files
+        // TODO: replace global list with a 'define list' object that
+        // lets users edit all defines files in the same editor, but
+        // now all files must be manually included (no more auto-include
+        // globals.txt)
+        // create a scope property allowing files to be tagged 'global'
+        // (which will automatically add them to existing/new logics)
+        // or identify which logics they apply to; add a branch to
+        // resource tree to list define files
 
         #region Local Members
-        readonly AGIGame parent;
-        string mResFile = "";
-        bool mIsChanged = false;
-        bool mInGame = false;
-        bool mLoaded = false;
-        int mErrLevel = 0;
-        //  0 = OK
-        //  1 = file access error
-        //  2 = file read error
-        //  3 = file not found
-        //  4 = file is read-only
-        List<TDefine> agGlobal = new();
+        private readonly AGIGame parent;
+        private string mResFile = "";
+        private bool mIsChanged = false;
+        private bool mInGame = false;
+        private bool mLoaded = false;
+        private List<TDefine> agGlobal = new();
         #endregion
 
         #region Constructors
@@ -107,14 +104,14 @@ namespace WinAGI.Engine {
             }
         }
 
-        /// <summary>
-        /// Gets the error level associated with this inventory item list.
-        /// </summary>
-        public int ErrLevel {
-            get {
-                return mErrLevel;
-            }
-        }
+        public ResourceErrorType Error { get; internal set; } = ResourceErrorType.NoError;
+
+        public string[] ErrData { get; internal set; } = ["", "", "", "", "", ""];
+
+        public int Warnings { get; internal set; } = 0;
+
+        public string[] WarnData { get; internal set; } = ["", "", "", "", "", ""];
+
 
         public bool Loaded {
             get => mLoaded;
@@ -130,28 +127,14 @@ namespace WinAGI.Engine {
             if (mInGame) {
                 LoadFile = mResFile;
             }
-            // verify file exists
-            if (!File.Exists(LoadFile)) {
-                mErrLevel = 3;
+            // always set loaded flag regardless of error status
+            mLoaded = true;
+            mIsChanged = false;
+            (Error, Warnings) = LoadGlobalDefines(mResFile);
+            if (!mInGame) {
+                mResFile = LoadFile;
             }
-            // check for readonly
-            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                mErrLevel = 4;
-            }
-            try {
-                mErrLevel = LoadGlobalDefines(mResFile);
-            }
-            catch {
-                throw;
-            }
-            finally {
-                // always set loaded flag regardless of error status
-                mLoaded = true;
-                if (!mInGame) {
-                    mResFile = LoadFile;
-                }
-                mIsChanged = false;
-            }
+            mIsChanged = false;
         }
 
         public void Unload() {
@@ -166,22 +149,34 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Loads the specified defines file, creating the defines list.
         /// </summary>
-        private int LoadGlobalDefines(string definefile) {
+        private (ResourceErrorType, int) LoadGlobalDefines(string definefile) {
             FileStream fsDefines = null;
             StreamReader srDefines = null;
             string strLine;
             TDefine tdNewDefine = new();
+            ResourceErrorType reterr = ResourceErrorType.NoError;
+            int retwarn = 0;
 
             agGlobal = [];
+            // verify file exists
+            if (!File.Exists(definefile)) {
+                return (ResourceErrorType.GlobalsNoFile, 0);
+            }
+            // check for readonly
+            if ((File.GetAttributes(definefile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                reterr = ResourceErrorType.GlobalsIsReadOnly;
+            }
+
             try {
                 fsDefines = new FileStream(definefile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             }
             catch (Exception ex) {
-                return 1;
+                ErrData[0] = ex.Message;
+                return (ResourceErrorType.GlobalsAccessError, 0);
             }
             // if nothing to load, just return
             if (fsDefines.Length == 0) {
-                return 0;
+                return (reterr, 0);
             }
             try {
                 // grab the file data
@@ -210,12 +205,32 @@ namespace WinAGI.Engine {
                                 ReservedObj or
                                 ReservedStr or
                                 ReservedMsg:
-                                    DefineValueCheck chkValue = LogicCompiler.ValidateDefineValue(ref tdNewDefine, null);
+                                    DefineValueCheck chkValue = FanLogicCompiler.ValidateDefineValue(ref tdNewDefine, null);
                                     switch (chkValue) {
                                     case DefineValueCheck.OK or Reserved or DefineValueCheck.Global:
                                         agGlobal.Add(tdNewDefine);
                                         break;
+                                    default:
+                                        // DefineValueCheck.Empty
+                                        // OutofBounds
+                                        // BadArgNumber
+                                        // NotAValue
+                                        retwarn = 1;
+                                        break;
                                     }
+                                    break;
+                                default:
+                                    // DefineNameCheck.Empty
+                                    // Numeric
+                                    // ActionCommand
+                                    // TestCommand
+                                    // KeyWord
+                                    // ArgMarker
+                                    // BadChar
+                                    // DefineNameCheck.Global
+                                    // ReservedGameInfo
+                                    // ResourceID
+                                    retwarn = 1;
                                     break;
                                 }
                             }
@@ -226,11 +241,11 @@ namespace WinAGI.Engine {
             catch {
                 srDefines.Dispose();
                 fsDefines.Dispose();
-                return 2;
+                return (ResourceErrorType.GlobalsAccessError, 0);
             }
             srDefines.Dispose();
             fsDefines.Dispose();
-            return 0;
+            return (reterr, retwarn);
         }
 
         public void SetDefines(List<TDefine> definelist) {
@@ -249,14 +264,14 @@ namespace WinAGI.Engine {
                 return DefineNameCheck.OK;
             }
             // basic checks
-            bool sierrasyntax = parent != null && parent.SierraSyntax;
+            bool sierrasyntax = parent is not null && parent.SierraSyntax;
             DefineNameCheck retval = BaseNameCheck(CheckDef.Name, sierrasyntax);
             if (retval != DefineNameCheck.OK) {
                 return retval;
             }
             // order: locals>globals>resids>reserved
 
-            if (parent != null) {
+            if (parent is not null) {
                 // resourceids
                 foreach (Logic logic in parent.Logics) {
                     if (CheckDef.Name == logic.ID) {
@@ -332,7 +347,7 @@ namespace WinAGI.Engine {
                 File.WriteAllLines(mResFile, stlGlobals);
                 mIsChanged = false;
             }
-            catch (Exception e) {
+            catch {
                 throw;
             }
         }
@@ -355,7 +370,7 @@ namespace WinAGI.Engine {
             List<string> tmpStrList = [];
             // add a useful header
             tmpStrList.Add("[");
-            if (parent == null) {
+            if (parent is null) {
                 tmpStrList.Add("[ global defines file " + Path.GetFileName(mResFile));
             }
             else {

@@ -193,7 +193,7 @@ namespace WinAGI.Editor {
         #region Methods
         private void SetImage() {
             // draw portion of source picture onto picPlot image
-            if (picPlot.Image == null) {
+            if (picPlot.Image is null) {
                 picPlot.Image = new Bitmap(150, 145);
             }
             Graphics g = Graphics.FromImage(picPlot.Image);

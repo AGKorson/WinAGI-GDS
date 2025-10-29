@@ -170,11 +170,13 @@ namespace WinAGI.Engine {
                 VOLWriter.Write(ResHeader, 0, IsV3 ? 7 : 5);
                 VOLWriter.Write(AddRes.Data, 0, AddRes.Data.Length);
             }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(638)) {
-                    HResult = WINAGI_ERR + 638,
+            catch (Exception ex) {
+                WinAGIException wex = new(LoadResString(528)) {
+                    HResult = WINAGI_ERR + 528,
                 };
-                wex.Data["exception"] = e;
+                fsVOL?.Dispose();
+                VOLWriter?.Dispose();
+                wex.Data["exception"] = ex;
                 wex.Data["ID"] = AddRes.ID;
                 throw wex;
             }
@@ -209,8 +211,8 @@ namespace WinAGI.Engine {
                     }
                     catch (Exception e) {
                         Clear();
-                        WinAGIException wex = new(LoadResString(640)) {
-                            HResult = WINAGI_ERR + 640
+                        WinAGIException wex = new(LoadResString(528)) {
+                            HResult = WINAGI_ERR + 528
                         };
                         wex.Data["exception"] = e;
                         wex.Data["ID"] = resource.ID;
@@ -227,9 +229,9 @@ namespace WinAGI.Engine {
                         return;
                     }
                 }
-                // if no volume found, we've got a problem...
-                WinAGIException wex1 = new(LoadResString(593)) {
-                    HResult = WINAGI_ERR + 593
+                // if no volume found, means all 16 are full
+                WinAGIException wex1 = new(LoadResString(517)) {
+                    HResult = WINAGI_ERR + 517
                 };
                 throw wex1;
             }
@@ -287,80 +289,37 @@ namespace WinAGI.Engine {
                     // load resource
                     tmpGameRes.Load();
                 }
-                if (tmpGameRes.ErrLevel != 0 || ((tmpGameRes.ResType == AGIResType.Logic) && ((Logic)tmpGameRes).SrcErrLevel != 0)) {
-                    // add events
-                    AddCompileWarning(tmpGameRes.ResType, tmpGameRes.Number, tmpGameRes.ErrLevel, tmpGameRes.ErrData);
-                    // check for major error (compile automatically fails)
-                    if (tmpGameRes.ErrLevel < 0) {
-                        // error level is less than zero - major error
-                        // -1  resource: file does not exist
-                        // -2  resource: file is readonly
-                        // -3  resource: file access error
-                        // -4  resource: invalid location value in VOL file
-                        // -5  resource: invalid data (missing AGI '0x12-0x34' header)
-                        // -6  resource: failure to expand v3 compressed resource
-                        tmpWarn.Text = $"Unable to load {tmpGameRes.ID}";
-                        tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                        AGIGame.OnCompileGameStatus(GameCompileStatus.FatalError, tmpWarn);
-                        // make sure unloaded
-                        tmpGameRes.Unload();
-                        // and stop compiling
-                        game.CompleteCancel(true);
-                        return CompileStatus.Error;
-                    }
-                    // check for minor error (compile fails if user cancels)
-                    if (tmpGameRes.ErrLevel > 0) {
-                        // minor errors/warnings
-                        // ask if compiling, assume ok if rebuilding
-                        // Logics:
-                        //  1 = error when decoding messages
-                        //  2 = error when locating goto labels
-                        //  4 = error when decoding if block
-                        // Pictures:
-                        //  1 = no EOP marker
-                        //  2 = bad vis color data
-                        //  4 = invalid command byte
-                        //  8 = unused data at end of resource
-                        //  16 = other error
-                        // Sounds:
-                        //  1 = invalid track offset
-                        //  2 = zero length note
-                        //  4 = missing track end marker
-                        //  8 = no sound data
-                        // 16 = invalid sound file format
-                        // Views:
-                        //  1 = no loops
-                        //  2 = invalid loop offset
-                        //  4 = invalid mirror loop pair
-                        //  8 = more than two loops share mirror
-                        // 16 = invalid cel offset
-                        // 32 = unexpected end of cel data
-                        // 64 = invalid description offset
-                        tmpWarn.Text = $"Errors and/or anomalies detected in {tmpGameRes.ID}";
-                        tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                        AGIGame.OnCompileGameStatus(GameCompileStatus.Warning, tmpWarn, ref game.CancelComp);
-                        // check for cancellation
-                        if (game.CancelComp) {
-                            // unload if needed
-                            if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
-                            // then stop compiling
-                            game.CompleteCancel();
-                            return CompileStatus.Canceled;
-                        }
-                    }
-                    // for logics, check for source errors (compile automatically fails)
-                    if (tmpGameRes.ResType == AGIResType.Logic && ((Logic)tmpGameRes).SrcErrLevel != 0) {
-                        // -1  logic source: file does not exist
-                        // -2  logic source: file is readonly
-                        // -3  logic source: file access error
+                // check for errors
+                if (tmpGameRes.Error != ResourceErrorType.NoError) {
+                    // add event
+                    AddCompileError(tmpGameRes.ResType, tmpGameRes.Number, tmpGameRes.Error, tmpGameRes.ErrData);
+                    // major error (compile automatically fails)
+                    if (tmpGameRes.ResType == AGIResType.Logic) {
                         tmpWarn.Text = $"Unable to load source code for {tmpGameRes.ID}";
-                        tmpWarn.Line = tmpGameRes.ErrLevel.ToString();
-                        AGIGame.OnCompileGameStatus(GameCompileStatus.ResError, tmpWarn);
-                        // make sure unloaded
-                        tmpGameRes.Unload();
-                        // and stop compiling
-                        game.CompleteCancel(true);
-                        return CompileStatus.Error;
+                    }
+                    else {
+                        tmpWarn.Text = $"Unable to load {tmpGameRes.ID}";
+                    }
+                    // make sure unloaded
+                    tmpGameRes.Unload();
+                    // and stop compiling
+                    game.CompleteCancel(true);
+                    return CompileStatus.Error;
+                }
+                // check for minor errors/warnings
+                if (tmpGameRes.Warnings != 0) {
+                    // add event
+                    AddCompileWarnings(tmpGameRes.ResType, tmpGameRes.Number, tmpGameRes.Warnings, tmpGameRes.WarnData);
+                    tmpWarn.Text = $"Errors and/or anomalies detected in {tmpGameRes.ID}";
+                    AGIGame.OnCompileGameStatus(GameCompileStatus.Warning, tmpWarn, ref game.CancelComp);
+                    // check for cancellation
+                    // (compile fails if user cancels)
+                    if (game.CancelComp) {
+                        // unload if needed
+                        if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
+                        // then stop compiling
+                        game.CompleteCancel();
+                        return CompileStatus.Canceled;
                     }
                 }
                 // if full compile (not rebuild only)
@@ -374,7 +333,7 @@ namespace WinAGI.Engine {
                             game.CompleteCancel();
                             return CompileStatus.Canceled;
                         }
-                        if (!LogicCompiler.CompileLogic((Logic)tmpGameRes)) {
+                        if (!CompileLogic((Logic)tmpGameRes)) {
                             // logic compile critical error - always cancel
                             // unload if needed
                             if (blnUnloadRes && tmpGameRes is not null) tmpGameRes.Unload();
@@ -500,8 +459,8 @@ namespace WinAGI.Engine {
                 }
             }
             // if no room in any VOL file, raise an error
-            WinAGIException wex = new(LoadResString(593)) {
-                HResult = WINAGI_ERR + 593
+            WinAGIException wex = new(LoadResString(517)) {
+                HResult = WINAGI_ERR + 517
             };
             throw wex;
         }
@@ -558,13 +517,13 @@ namespace WinAGI.Engine {
                 fsVOL?.Dispose();
                 bwVOL?.Dispose();
             }
-            catch (Exception e) {
+            catch (Exception ex) {
+                WinAGIException wex = new(LoadResString(528)) {
+                    HResult = WINAGI_ERR + 528,
+                };
                 fsVOL?.Dispose();
                 bwVOL?.Dispose();
-                WinAGIException wex = new(LoadResString(638)) {
-                    HResult = WINAGI_ERR + 638,
-                };
-                wex.Data["exception"] = e;
+                wex.Data["exception"] = ex;
                 wex.Data["ID"] = AddRes.ID;
                 throw wex;
             }
@@ -634,16 +593,12 @@ namespace WinAGI.Engine {
                 strDirFile = resource.parent.agGameDir + ResTypeAbbrv[(int)resource.ResType] + "DIR";
             }
             if (!File.Exists(strDirFile)) {
-                WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
-                    HResult = WINAGI_ERR + 524
-                };
-                wex.Data["missingfile"] = strDirFile;
-                throw wex;
+                throw new FileNotFoundException(strDirFile);
             }
             // check for readonly
             if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, strDirFile)) {
-                    HResult = WINAGI_ERR + 700,
+                WinAGIException wex = new(LoadResString(539).Replace(ARG1, strDirFile)) {
+                    HResult = WINAGI_ERR + 539,
                 };
                 wex.Data["badfile"] = strDirFile;
                 throw wex;
@@ -656,11 +611,11 @@ namespace WinAGI.Engine {
                 }
             }
             catch (Exception e) {
-                WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
-                    HResult = WINAGI_ERR + 502,
+                WinAGIException wex = new(LoadResString(541)) {
+                    HResult = WINAGI_ERR + 541,
                 };
                 wex.Data["exception"] = e;
-                wex.Data["badfile"] = strDirFile;
+                wex.Data["dirfile"] = strDirFile;
                 throw wex;
             }
             // calculate old max and offset (for v3 files)
@@ -706,11 +661,11 @@ namespace WinAGI.Engine {
                     return;
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
-                        HResult = WINAGI_ERR + 502,
+                    WinAGIException wex = new(LoadResString(541)) {
+                        HResult = WINAGI_ERR + 541,
                     };
                     wex.Data["exception"] = e;
-                    wex.Data["badfile"] = strDirFile;
+                    wex.Data["dirfile"] = strDirFile;
                     throw wex;
                 }
             }
@@ -770,11 +725,11 @@ namespace WinAGI.Engine {
                     }
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
-                        HResult = WINAGI_ERR + 502,
+                    WinAGIException wex = new(LoadResString(541)) {
+                        HResult = WINAGI_ERR + 541,
                     };
                     wex.Data["exception"] = e;
-                    wex.Data["badfile"] = strDirFile;
+                    wex.Data["dirfile"] = strDirFile;
                     throw wex;
                 }
             }
@@ -855,11 +810,11 @@ namespace WinAGI.Engine {
                     }
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
-                        HResult = WINAGI_ERR + 502,
+                    WinAGIException wex = new(LoadResString(541)) {
+                        HResult = WINAGI_ERR + 541,
                     };
                     wex.Data["exception"] = e;
-                    wex.Data["badfile"] = strDirFile;
+                    wex.Data["dirfile"] = strDirFile;
                     throw wex;
                 }
             }

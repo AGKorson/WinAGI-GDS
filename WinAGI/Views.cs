@@ -99,8 +99,8 @@ namespace WinAGI.Engine {
             int intNextNum = 0;
             string strID, strBaseID;
             if (Contains(ResNum)) {
-                WinAGIException wex = new(LoadResString(602)) {
-                    HResult = WINAGI_ERR + 602
+                WinAGIException wex = new(LoadResString(520)) {
+                    HResult = WINAGI_ERR + 520
                 };
                 throw wex;
             }
@@ -123,7 +123,7 @@ namespace WinAGI.Engine {
             agResource.PropsChanged = true;
             // save new view to add it to VOL file
             agResource.Save();
-            LogicCompiler.blnSetIDs = false;
+            FanLogicCompiler.setIDs = false;
             return agResource;
         }
 
@@ -139,7 +139,7 @@ namespace WinAGI.Engine {
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("View" + Index);
                 // remove ID from compiler list
-                LogicCompiler.blnSetIDs = false;
+                FanLogicCompiler.setIDs = false;
             }
         }
 
@@ -170,8 +170,8 @@ namespace WinAGI.Engine {
             }
             // verify new number is not in collection
             if (Col.ContainsKey(NewView)) {
-                WinAGIException wex = new(LoadResString(669)) {
-                    HResult = WINAGI_ERR + 669
+                WinAGIException wex = new(LoadResString(531)) {
+                    HResult = WINAGI_ERR + 531
                 };
                 throw wex;
             }
@@ -193,7 +193,7 @@ namespace WinAGI.Engine {
             Col.Add(NewView, tmpView);
             VOLManager.UpdateDirFile(tmpView);
             tmpView.SaveProps();
-            LogicCompiler.blnSetIDs = false;
+            FanLogicCompiler.setIDs = false;
         }
         #endregion
 

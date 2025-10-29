@@ -62,7 +62,7 @@ namespace WinAGI.Editor {
             int codepage;
 
             // if game is loaded,
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 codepage = EditGame.CodePage;
                 do {
                     // choose a logic for extracting a menu
@@ -170,9 +170,9 @@ namespace WinAGI.Editor {
         internal void SetResourceMenu() {
             MDIMain.mnuRSep2.Visible = false;
             MDIMain.mnuRSep3.Visible = true;
-            mnuUpdateLogic.Enabled = EditGame != null && MenuLogic >= 0 && IsChanged;
+            mnuUpdateLogic.Enabled = EditGame is not null && MenuLogic >= 0 && IsChanged;
             mnuSaveAsDefault.Enabled = true;
-            mnuBackground.Enabled = EditGame != null && EditGame.Pictures.Count > 0;
+            mnuBackground.Enabled = EditGame is not null && EditGame.Pictures.Count > 0;
             mnuHotKeys.Checked = WinAGISettings.AutoAlignHotKey.Value;
         }
 
@@ -182,7 +182,7 @@ namespace WinAGI.Editor {
         }
 
         internal void mnuUpdateLogic_Click(object sender, EventArgs e) {
-            if (EditGame != null && MenuLogic >= 0 && IsChanged) {
+            if (EditGame is not null && MenuLogic >= 0 && IsChanged) {
                 UpdateSourceLogic();
             }
         }
@@ -192,7 +192,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuBackground_Click(object sender, EventArgs e) {
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 if (ChooseBackground()) {
                     DrawBackground();
                 }
@@ -277,7 +277,7 @@ namespace WinAGI.Editor {
 
         private void mnuMoveUp_Click(object sender, EventArgs e) {
             // shift up
-            if (tvwMenu.SelectedNode == null) {
+            if (tvwMenu.SelectedNode is null) {
                 return;
             }
             switch (tvwMenu.SelectedNode.Level) {
@@ -320,7 +320,7 @@ namespace WinAGI.Editor {
 
         private void mnuMoveDown_Click(object sender, EventArgs e) {
             // shift down
-            if (tvwMenu.SelectedNode == null) {
+            if (tvwMenu.SelectedNode is null) {
                 return;
             }
             switch (tvwMenu.SelectedNode.Level) {
@@ -363,7 +363,7 @@ namespace WinAGI.Editor {
         private void mnuDelete_Click(object sender, EventArgs e) {
             TreeNode tmpNode = null;
 
-            if (tvwMenu.SelectedNode == null) {
+            if (tvwMenu.SelectedNode is null) {
                 return;
             }
             switch (tvwMenu.SelectedNode.Level) {
@@ -372,7 +372,7 @@ namespace WinAGI.Editor {
                 if (tvwMenu.Nodes.Count == 1) {
                     return;
                 }
-                if (tvwMenu.SelectedNode.NextNode != null) {
+                if (tvwMenu.SelectedNode.NextNode is not null) {
                     tmpNode = tvwMenu.SelectedNode.NextNode;
                 }
                 else {
@@ -385,7 +385,7 @@ namespace WinAGI.Editor {
                     tmpNode = tvwMenu.SelectedNode.Parent;
                 }
                 else {
-                    if (tvwMenu.SelectedNode.NextNode != null) {
+                    if (tvwMenu.SelectedNode.NextNode is not null) {
                         tmpNode = tvwMenu.SelectedNode.NextNode;
                     }
                     else {
@@ -401,7 +401,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuInsert_Click(object sender, EventArgs e) {
-            if (tvwMenu.SelectedNode != null) {
+            if (tvwMenu.SelectedNode is not null) {
                 switch (tvwMenu.SelectedNode.Level) {
                 case 0:
                     // is there enough room for aat least 1 letter?
@@ -417,7 +417,7 @@ namespace WinAGI.Editor {
                              "Insert Menu",
                              MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                             WinAGIHelp, "htm\\wagi\\menu.htm#displaymenus");
+                             WinAGIHelp, "htm\\agi\\menu.htm#displaymenus");
                         return;
                     }
                     else if (menulength > 35) {
@@ -428,7 +428,7 @@ namespace WinAGI.Editor {
                              "Menu Bar Size Limit Warning",
                              MessageBoxButtons.OK,
                             MessageBoxIcon.Warning, 0, 0,
-                             WinAGIHelp, "htm\\wagi\\menu.htm#displaymenus");
+                             WinAGIHelp, "htm\\agi\\menu.htm#displaymenus");
                     }
 
                     // add an menu to end
@@ -452,7 +452,7 @@ namespace WinAGI.Editor {
                              "Insert Menu Item",
                              MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                             WinAGIHelp, "htm\\wagi\\menu.htm#displaymenus");
+                             WinAGIHelp, "htm\\agi\\menu.htm#displaymenus");
                         return;
                     }
                     // add an menu item to end
@@ -547,7 +547,7 @@ namespace WinAGI.Editor {
                 return;
             }
             frmCharPicker CharPicker;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 CharPicker = new(EditGame.CodePage);
             }
             else {
@@ -583,7 +583,7 @@ namespace WinAGI.Editor {
             // force selection of node on right-click
             if (e.Button == MouseButtons.Right) {
                 TreeNode node = tvwMenu.GetNodeAt(e.X, e.Y);
-                if (node != null) {
+                if (node is not null) {
                     tvwMenu.SelectedNode = node;
                 }
             }
@@ -591,7 +591,7 @@ namespace WinAGI.Editor {
 
         private void tvwMenu_AfterSelect(object sender, TreeViewEventArgs e) {
             // update selected menu/item and redraw
-            if (tvwMenu.SelectedNode != null) {
+            if (tvwMenu.SelectedNode is not null) {
                 switch (tvwMenu.SelectedNode.Level) {
                 case 0:
                     // menu
@@ -620,7 +620,7 @@ namespace WinAGI.Editor {
 
         private void tvwMenu_DoubleClick(object sender, EventArgs e) {
             // begin editing selected item
-            if (tvwMenu.SelectedNode != null) {
+            if (tvwMenu.SelectedNode is not null) {
                 // ********************************************************
                 // Unfortunately there is no way to change the e.Label
                 // value which means captions can't be padded after
@@ -649,7 +649,7 @@ namespace WinAGI.Editor {
         //    // which means captions can't be padded after entering.
         //    // Unless/until that is solved, no in-tree editing of 
         //    // captions is allowed
-        //    if (e.Label == null) {
+        //    if (e.Label is null) {
         //        e.CancelEdit = true;
         //    }
         //    else {
@@ -716,7 +716,7 @@ namespace WinAGI.Editor {
                 return;
             }
             Debug.Assert(tvwMenu.Nodes.Count != 0);
-            Debug.Assert(tvwMenu.SelectedNode != null);
+            Debug.Assert(tvwMenu.SelectedNode is not null);
             int menu = 0, item = -1;
             switch (tvwMenu.SelectedNode.Level) {
             case 0:
@@ -1077,7 +1077,10 @@ namespace WinAGI.Editor {
                 fs.Close();
             }
             catch (Exception ex) {
-                ErrMsgBox(ex, "Unable to save default menu due to error:", "", "Default Menu Editor Error");
+                ErrMsgBox(ex,
+                    "Unable to save default menu due to error:",
+                    ex.StackTrace,
+                    "Default Menu Editor Error");
             }
         }
 
@@ -1109,7 +1112,7 @@ namespace WinAGI.Editor {
                         "No Menu Found",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question, 0, 0,
-                        WinAGIHelp, "htm\\winagi\\Menu_Editor.htm");
+                        WinAGIHelp, "htm\\winagi\\editor_menu.htm");
                     if (retval == DialogResult.Yes) {
                         // use default
                         DefaultMenu();
@@ -1186,7 +1189,7 @@ namespace WinAGI.Editor {
                         else {
                             strController = "";
                         }
-                        if (tmpNode != null) {
+                        if (tmpNode is not null) {
                             tmpNode.Nodes.Add(strItem[0]).Tag = strController;
                             tmpNode.Nodes[^1].ForeColor = strController.Length > 0 ? Color.Black : Color.Red;
                         }
@@ -1201,7 +1204,7 @@ namespace WinAGI.Editor {
             // step through all menus
             int lngLength = 0;
             tmpNode = tvwMenu.Nodes[0];
-            while (tmpNode != null) {
+            while (tmpNode is not null) {
                 // ensure all menu items sized correctly
                 ResizeMenuItems(tmpNode);
                 // add to total menu length
@@ -1277,7 +1280,7 @@ namespace WinAGI.Editor {
 
             // if not a local variable, check globals (if a game is loaded)
             string retval = strMsgID;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 // check globals list
                 retval = ArgFromToken(strMsgID);
             }
@@ -1296,7 +1299,7 @@ namespace WinAGI.Editor {
 
             // first, determine Max length; start with first node
             TreeNode tmpNode = menuNode.FirstNode;
-            while (tmpNode != null) {
+            while (tmpNode is not null) {
                 // reset the hotkey flag
                 blnKey = false;
                 SplitMenuItem(tmpNode.Text, out string menuText, out string hotkeyText);
@@ -1340,7 +1343,7 @@ namespace WinAGI.Editor {
             // now run through them again, and pad any that
             // are not at Max
             tmpNode = menuNode.FirstNode;
-            while (tmpNode != null) {
+            while (tmpNode is not null) {
                 // if it is a separator
                 if (tmpNode.Text == new string('-', tmpNode.Text.Length)) {
                     // pad it with dashes
@@ -1533,7 +1536,7 @@ namespace WinAGI.Editor {
 
         private void DefaultBackground() {
             bool blnLoaded;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 if (EditGame.Pictures.Count != 0) {
                     // get first valid picture
                     for (int i = 0; i < 256; i++) {
@@ -1542,7 +1545,8 @@ namespace WinAGI.Editor {
                             if (!blnLoaded) {
                                 EditGame.Pictures[i].Load();
                             }
-                            if (EditGame.Pictures[i].ErrLevel >= 0) {
+                            if (EditGame.Pictures[i].Error == ResourceErrorType.NoError ||
+                                EditGame.Pictures[i].Error == ResourceErrorType.FileIsReadonly) {
                                 BkgdPicNum = i;
                                 break;
                             }
@@ -1553,7 +1557,7 @@ namespace WinAGI.Editor {
         }
 
         private bool ChooseBackground() {
-            if (EditGame == null) {
+            if (EditGame is null) {
                 return false;
             }
 
@@ -1849,7 +1853,7 @@ namespace WinAGI.Editor {
         }
 
         internal void ShowHelp() {
-            string topic = "htm\\winagi\\Menu_Editor.htm";
+            string topic = "htm\\winagi\\editor_menu.htm";
 
             // TODO: add context sensitive help
             Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
@@ -1859,7 +1863,7 @@ namespace WinAGI.Editor {
             DialogResult rtn;
             if (IsChanged) {
                 // ask if should save first
-                if (EditGame != null && MenuLogic != -1) {
+                if (EditGame is not null && MenuLogic != -1) {
                     rtn = MessageBox.Show(MDIMain,
                         "Do you want to save this menu structure?",
                         "Menu Editor",
@@ -1876,7 +1880,7 @@ namespace WinAGI.Editor {
                 switch (rtn) {
                 case DialogResult.Yes:
                     // save
-                    if (EditGame != null && MenuLogic != -1 && IsChanged) {
+                    if (EditGame is not null && MenuLogic != -1 && IsChanged) {
                         UpdateSourceLogic();
                     }
                     else {

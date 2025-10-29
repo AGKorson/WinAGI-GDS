@@ -169,7 +169,7 @@ namespace WinAGI.Editor {
         }
 
         private void cmdReplace_Click(object sender, EventArgs e) {
-            if (MDIMain.ActiveMdiChild == null) {
+            if (MDIMain.ActiveMdiChild is null) {
                 Debug.Assert(false);
                 return;
             }
@@ -209,7 +209,7 @@ namespace WinAGI.Editor {
         }
 
         private void cmdReplaceAll_Click(object sender, EventArgs e) {
-            if (MDIMain.ActiveMdiChild == null) {
+            if (MDIMain.ActiveMdiChild is null) {
                 Debug.Assert(false);
                 return;
             }
@@ -302,7 +302,7 @@ namespace WinAGI.Editor {
                 }
                 // 'AllGameLogics' only allowed if searching  InGame logics
                 // (InGame will never be True for text file searches)
-                if (EditGame != null && ingame) {
+                if (EditGame is not null && ingame) {
                     optAllGameLogics.Enabled = true;
                 }
                 else {
@@ -342,7 +342,7 @@ namespace WinAGI.Editor {
                 }
                 // 'AllGameLogics' only allowed if searching  InGame logics
                 // (InGame will never be True for text file searches)
-                if (EditGame != null && ingame) {
+                if (EditGame is not null && ingame) {
                     optAllGameLogics.Enabled = true;
                 }
                 else {
@@ -568,7 +568,7 @@ namespace WinAGI.Editor {
         }
 
         internal void ShowHelp() {
-            string topic = "htm\\winagi\\Working_with_Resources.htm";
+            string topic = "htm\\winagi\\workingwith_resources.htm";
 
             // TODO: add context sensitive help
             Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);

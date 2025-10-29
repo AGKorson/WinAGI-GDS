@@ -6,7 +6,7 @@ using System.Linq;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
-using static WinAGI.Engine.LogicCompiler;
+using static WinAGI.Engine.FanLogicCompiler;
 using static WinAGI.Engine.LogicDecoder;
 
 namespace WinAGI.Engine {
@@ -108,8 +108,8 @@ namespace WinAGI.Engine {
             int intNextNum = 0;
             string strID, strBaseID;
             if (Contains(ResNum)) {
-                WinAGIException wex = new(LoadResString(602)) {
-                    HResult = WINAGI_ERR + 602
+                WinAGIException wex = new(LoadResString(520)) {
+                    HResult = WINAGI_ERR + 520
                 };
                 throw wex;
             }
@@ -133,7 +133,7 @@ namespace WinAGI.Engine {
             // add it to VOL file using base save method
             // (because Logic.Save only saves the source for ingame resource)
             ((AGIResource)agResource).Save();
-            blnSetIDs = false;
+            setIDs = false;
             return agResource;
         }
 
@@ -149,7 +149,7 @@ namespace WinAGI.Engine {
                 // remove all properties from the wag file
                 parent.agGameProps.DeleteSection("Logic" + Index);
                 // remove ID from compiler list
-                blnSetIDs = false;
+                setIDs = false;
             }
         }
 
@@ -178,8 +178,8 @@ namespace WinAGI.Engine {
             }
             // verify new number is not in collection
             if (Col.ContainsKey(NewLogic)) {
-                WinAGIException wex = new(LoadResString(669)) {
-                    HResult = WINAGI_ERR + 669
+                WinAGIException wex = new(LoadResString(531)) {
+                    HResult = WINAGI_ERR + 531
                 };
                 throw wex;
             }
@@ -201,7 +201,7 @@ namespace WinAGI.Engine {
             Col.Add(NewLogic, tmpLogic);
             VOLManager.UpdateDirFile(tmpLogic);
             tmpLogic.SaveProps();
-            blnSetIDs = false;
+            setIDs = false;
         }
 
         /// <summary>
@@ -227,28 +227,6 @@ namespace WinAGI.Engine {
                 parent.WriteGameSetting("Logic" + tmpLogic.Number, "CompCRC32", "0xffffffff", "Logics");
             }
             parent.agGameProps.Save();
-        }
-
-        /// <summary>
-        /// A tie function to allow access to the LogCompile variable conversion function.
-        /// </summary>
-        /// <param name="ArgIn"></param>
-        /// <param name="ArgType"></param>
-        /// <param name="VarOrNum"></param>
-        /// <returns></returns>
-        public string ConvertArg(string ArgIn, ArgType ArgType, bool VarOrNum = false) {
-            if (parent is not null) {
-                if (parent.agIncludeGlobals) {
-                    if (!parent.GlobalDefines.Loaded) {
-                        parent.GlobalDefines.Load();
-                    }
-                }
-                if (!blnSetIDs) {
-                    SetResourceIDs(parent);
-                }
-            }
-            ConvertArgument(ref ArgIn, ArgType, ref VarOrNum);
-            return ArgIn;
         }
         #endregion
 

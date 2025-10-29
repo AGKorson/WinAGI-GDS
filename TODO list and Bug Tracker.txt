@@ -20,7 +20,7 @@ X   18. Sound Editor
 X   19. Layout Editor
 X   20. Menu Editor
 X   21. Text Screen Editor
-    22. Help Integration
+O   22. Help Integration
     23. BETA TESTING
       
 
@@ -32,623 +32,212 @@ Miscellaneous Notes
 
 
 
-GAME EXCEPTIONS: 
+WINAGI EXCEPTIONS: 
 ===========================================================================================================
-CLASS             FUNCTION:                 TYPE/NUMBER:          DESCRIPTION
-AGIGame           .ctor                     PASS                  pass-through OpenGameDIR/OpenGameWAG
-AGIGame           CodePage/set              ArgOutOfRange         new value is invalid codepage value
-AGIGame           GameID/set                530                   file access error while renaming v3  DIR/VOL files
-AGIGame           GameDir/set               630                   new game directory does not exist
-AGIGame           InterpreterVersion/set    597                   new value is not numeric
-AGIGame           InterpreterVersion/set    597                   new value is invalid major version
-AGIGame           InterpreterVersion/set    543                   new value is invalid minor version
-AGIGame           ResDirName/set            ArgOutOfRange         new value is invalid directory name
-AGIGame           FinishGameLoad            PASS                  pass-through ExtractResources
-AGIGame           OpenGameWAG               655                   missing WAG file
-AGIGame           OpenGameWAG               541                   invalid or missing game directory
-AGIGame           OpenGameWAG               700                   WAG file is readonly
-AGIGame           OpenGameWAG               701                   file access error while opening WAG file
-AGIGame           OpenGameWAG               665                   invalid WAG file version
-AGIGame           OpenGameWAG               691                   invalid IntVersion in WAG file
-AGIGame           OpenGameWAG               690                   missing GameID in WAG file
-AGIGame           OpenGameWAG               PASS                  pass-through FinishGameLoad
-AGIGame           OpenGameDIR               541                   directory does not contain AGI files
-AGIGame           OpenGameDIR               699***                file access error while creating new wag file
-AGIGame           OpenGameDIR               PASS                  pass-through FinishGameLoad
-AGIGame           NewGame                   630                   new game directory does not exist
-AGIGame           NewGame                   687                   new game directory has existing WAG file
-AGIGame           NewGame                   687                   new game directory has existing AGI game files
-AGIGame           NewGame                   597                   new intver is invalid major version
-AGIGame           NewGame                   543                   new intver is invalid minor version
-AGIGame           NewGame                   PASS                  pass-through Directory.CreateDirectory
-AGIGame           NewGame                   630                   template (source) directory doesn't have single WAG file
-AGIGame           NewGame                   630***                template (source) missing resdir
-AGIGame           NewGame                   683                   file access error while copying template to new directory
-AGIGame           NewGame                   683***                file access error while copying resdir to new directory
-AGIGame           NewGame                   630***                file access error reading wag file
-AGIGame           NewGame                   684                   unable to open game in new folder(pass-through FinishGameLoad)
-
-AGIResource       Pos/get                   563                   resource not loaded
-AGIResource       Pos/set                   563                   resource not loaded
-AGIResource       Pos/set                   ArgOutOfRange         new Pos value is invalid
-AGIResource       EORes/get                 563                   resource not loaded
-AGIResource       Data/get                  563                   resource not loaded
-AGIResource       ReplaceData               563                   resource not loaded
-AGIResource       Save                      563                   resource not loaded
-AGIResource       Save                      PASS                  pass-through UpdateInVol
-AGIResource       Save                      PASS                  pass-through AGIResource.Export
-AGIResource       Export                    563                   resource not loaded
-AGIResource       Export                    599                   missing ExportFile argument
-AGIResource       Export                    601                   can't export resource that has errors
-AGIResource       Export                    582                   file access error while exporting resource
-AGIResource       Import                    604                   invalid importfile argument (empty)
-AGIResource       Import                    524                   missing importfile
-AGIResource       Import                    605                   file access error when importing resource
-AGIResource       Import                    605                   import resource file is empty
-AGIResource       Import                    PASS                  pass-through AGIResource.Save
-AGIResource       WriteByte                 563                   resource not loaded
-AGIResource       WriteByte                 ArgOutOfRange         Pos value is invalid
-AGIResource       WriteWord                 563                   resource not loaded
-AGIResource       WriteWord                 ArgOutOfRange         Pos value is invalid
-AGIResource       ReadByte                  563                   resource not loaded
-AGIResource       ReadByte                  ArgOutOfRange         Pos value is invalid
-AGIResource       ReadWord                  563                   resource not loaded
-AGIResource       ReadWord                  ArgOutOfRange         Pos value is invalid
-AGIResource       InsertData                563                   resource not loaded
-AGIResource       InsertData                ArgException          Data type mismatch (string)
-AGIResource       InsertData                ArgException          Data type mismatch (other)
-AGIResource       InsertData                ArgOutOfRange         InsertPos value is invalid
-AGIResource       RemoveData                563                   resource not loaded
-AGIResource       RemoveData                ArgOutOfRange         RemoveCount value is invalid
-AGIResource       RemoveData                ArgOutOfRange         RemovePos value is invalid
-AGIResource       Clear                     563                   resource not loaded
-
-AudioPlayer       PlayMIDISound             628                   media player error when opening
-AudioPlayer       PlayMIDISound             628                   media player error when playing
-
-Cel               this/get                  ArgOutOfRange         xPos value is invalid
-Cel               this/get                  ArgOutOfRange         yPos value is invalid
-Cel               this/set                  ArgOutOfRange         xPos value is invalid
-Cel               this/set                  ArgOutOfRange         yPos value is invalid
-Cel               this/set                  ArgOutOfRange         value value is invalid
-Cel               AllCelData/set            614                   array Width is invalid
-Cel               AllCelData/set            614                   array Height is invalid
-Cel               Height/set                ArgOutOfRange         invalid new height value
-Cel               Width/set                 ArgOutOfRange         invalid new width value
-Cel               TransColor/set            ArgOutOfRange         invalid new width value
-
-Cels              this/get                  ArgOutOfRange         invalid index (<0)
-Cels              this/get                  ArgOutOfRange         invalid index (>celcount)
-Cels              Add                       552                   invalid insert pos
-Cels              Remove                    612                   invalid remove pos
-Cels              Remove                    IndexOutOfRange       invalid index
-Cels              CelEnum.Current           InvalidOperation      invalid position
-
-Commands          CorrectCommands           ArgOutOfRange         invalid intversion
-
-Common            CopyDirectory             DirNotFound           invalid directory name
-Common            CopyDirectory             Exception***          file access error
-Common            FullFileName              PASS                  pass-through Path.GetFullPath
-
-EGAColors         this/get                  IndexOutOfRange       invalid color index
-EGAColors         this/set                  IndexOutOfRange       invalid color index
-EGAColors         ColorText                 IndexOutOfRange       invalid color index
-
-GlobalList        LoadGlobalDefines         524                   file does not exist
-GlobalList        LoadGlobalDefines         700                   file is write-protected
-GlobalList        LoadGlobalDefines         502                   file access error
-GlobalList        LoadGlobalDefines         605                   empty file
-InventoryList     .ctor                     PASS                  Pass-through Load
-InventoryList     MaxScreenObjects/get      563                   resource not loaded
-InventoryList     MaxScreenObjects/set      563                   resource not loaded
-InventoryList     Count/get                 563                   resource not loaded
-InventoryList     InUseCount/get            563                   resource not loaded
-InventoryList     Encrypted/get             563                   resource not loaded
-InventoryList     Encrypted/set             563                   resource not loaded
-InventoryList     CodePage/set              ArgOutOfRange         invalid codepage value
-InventoryList     Load                      599                   invalid (empty) loadfile name
-InventoryList     Load                      606                   missing loadfile
-InventoryList     Load                      700                   loadfile is readonly
-InventoryList     Load                      PASS                  pass-through LoadSierraFile
-InventoryList     Save                      563                   resource not loaded
-InventoryList     Save                      615                   invalid savefile name (empty)
-InventoryList     Export                    563                   resource not loaded
-InventoryList     Export                    582***                Compile error  (why not pass-through?)
-InventoryList     Compile                   616                   invalid (empty) compfile name
-InventoryList     Compile                   674                   file access error while writing file
-InventoryList     Add                       563                   resource not loaded
-InventoryList     Add                       569                   too many inventory items
-InventoryList     Remove                    563                   resource not loaded
-InventoryList     Clear                     563                   resource not loaded
-InventoryList     Clone                     563                   resource not loaded
-InventoryList     CloneFrom                 563                   resource not loaded
-InventoryList     SetMSDOSFormat            582                   error converting from Amiga format
-InventoryList     Enum:Current              InvalidOps            invalid indexing op
-
-Logic             SourceFile/set            ArgumentException     invalid filename
-Logic             CodeSize/get              563                   resource not loaded
-Logic             CodePage/set              ArgOutOfRange         unsupported codepage value
-Logic             Clone                     563                   resource not loaded
-Logic             CloneFrom                 563                   this resource not loaded
-Logic             CloneFrom                 563                   source resource not loaded
-Logic             Clear                     563                   resource not loaded
-Logic             ExportSource              563                   resource not loaded
-Logic             ExportSource              582                   file error during export
-Logic             Import                    PASS                  pass-through base.Import/LoadSource
-Logic             ImportSource              615                   invalid filename (empty)
-Logic             SaveSource                599                   sourcefile is missing
-Logic             SaveSource                582                   file access error while writing source
-Logic             Compile                   563                   resource not loaded
-Logic             Compile                   618                   compiling not allowed if not in game
-Logic             Compile                   546                   no source code (empty)
-Logic             Compile                   PASS                  pass-through CompileLogic
-Logic             Save                      563                   resource not loaded
-Logic             Save                      PASS                  pass-through base.Save
-
-LogicCompiler     ArgTypePrefix             IndexOutOfRange       invalid index
-LogicCompiler     ArgTypeName               IndexOutOfRange       invalid index
-LogicCompiler     SetIgnoreWarning          IndexOutOfRange       invalid index
-LogicCompiler     IgnoreWarning             IndexOutOfRange       invalid index
-LogicCompiler     ResDefByGrp               IndexOutOfRange       invalid index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid var index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid flag index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid edgecode index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid direction index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid videomode index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid computertype index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid color index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid object index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid string index
-LogicCompiler     SetResDef                 IndexOutOfRange       invalid type
-
-Logics            this/get                  IndexOutOfRange       invalid index value
-Logics            Add                       602                   resource number already in use
-Logics            Renumber                  IndexOutOfRange       resource not in collection
-Logics            Renumber                  669                   new number already in use
-Logics            Enum:Current              InvalidOps            invalid indexing op
-
-Loop              Index/set                 IndexOutOfRange       invalid index
-
-Loops             this/get                  IndexOutOfRange       invalid index
-Loops             Add                       IndexOutOfRange       invalid index
-Loops             Remove                    613                   can't remove last loop
-Loops             Remove                    IndexOutOfRange       invalid index
-Loops             Enum:Current              InvalidOps            invalid indexing op
-
-Note              .ctor                     ArgOutOfRange         invalid freqdivisor value
-Note              .ctor                     ArgOutOfRange         invalid duration value
-Note              .ctor                     ArgOutOfRange         invalid attenuation value
-Note              .ctor                     ArgOutOfRange         invalid freqdivisor value
-Note              .ctor                     ArgOutOfRange         invalid duration value
-Note              .ctor                     ArgOutOfRange         invalid attenuation value
-Note              Attenuation/set           ArgOutOfRange         invalid attenuation value
-Note              Duration/set              ArgOutOfRange         invalid duration value
-Note              FreqDivisor/set           ArgOutOfRange         invalid freqdivisor value
-
-Notes             this/get                  IndexOutOfRange       invalid index
-Notes             Add                       ArgOutOfRange         invalid attenuation value
-Notes             Add                       ArgOutOfRange         invalid duration value
-Notes             Add                       ArgOutOfRange         invalid freqdivisor value
-Notes             Remove                    IndexOutOfRange       invalid index
-Notes             Enum:Current              InvalidOps            invalid indexing op
-
-Picture           VisData/get               563                   resource not loaded
-Picture           PriData/get               563                   resource not loaded
-Picture           CurrentToolStatus/get     563                   resource not loaded
-Picture           DrawPos/get               563                   resource not loaded
-Picture           DrawPos/set               563                   resource not loaded
-Picture           StepDraw/get              563                   resource not loaded
-Picture           StepDraw/set              563                   resource not loaded
-Picture           Clone                     563                   resource not loaded
-Picture           CloneFrom                 563                   this resource not loaded
-Picture           CloneFrom                 563                   target resource not loaded
-Picture           ObjOnWater                563                   resource not loaded
-Picture           ObjOnWater                ArgOutOfRange         invalid X value
-Picture           ObjOnWater                ArgOutOfRange         invalid Y value
-Picture           ControlPixel              563                   resource not loaded
-Picture           ControlPixel              ArgOutOfRange         invalid X value
-Picture           ControlPixel              ArgOutOfRange         invalid Y value
-Picture           VisPixel                  563                   resource not loaded
-Picture           VisPixel                  ArgOutOfRange         invalid X value
-Picture           VisPixel                  ArgOutOfRange         invalid Y value
-Picture           PriPixel                  563                   resource not loaded
-Picture           PriPixel                  ArgOutOfRange         invalid X value
-Picture           PriPixel                  ArgOutOfRange         invalid Y value
-Picture           PixelPri                  563                   resource not loaded
-Picture           PixelPri                  ArgOutOfRange         invalid X value
-Picture           PixelPri                  ArgOutOfRange         invalid Y value
-Picture           Clear                     563                   resource not loaded
-Picture           Import                    PASS                  pass-through base.Import
-Picture           Save                      563                   resource not loaded
-Picture           Save                      PASS                  pass-through base.Save
-
-Pictures          this/get                  IndexOutOfRange       invalid index
-Pictures          Add                       602                   picture already exists
-Pictures          Renumber                  IndexOutOfRange       resource not in collection
-Pictures          Renumber                  669                   new number already in use
-Pictures          Enum:Current              InvalidOps            invalid indexing op
-
-ResourceFunctions ExtractResources          524                   missing v3 DIR file
-ResourceFunctions ExtractResources          700                   v3 DIR file is readonly
-ResourceFunctions ExtractResources          502                   file access error while reading v3 DIR file
-ResourceFunctions ExtractResources          542                   invalid v3 DIR file (too small)
-ResourceFunctions ExtractResources          524                   missing VOL.0
-ResourceFunctions ExtractResources          700                   VOL.0 is readonly
-ResourceFunctions ExtractResources          524                   missing v2 DIR file
-ResourceFunctions ExtractResources          700                   v2 DIR file is readonly
-ResourceFunctions ExtractResources          502                   file access error while reading v2 DIR file
-ResourceFunctions ExtractResources          542                   invalid v3 DIR file (bad offset/size)
-ResourceFunctions ExtractResources          542                   invalid v3 DIR file (bad offset)
-ResourceFunctions ExpandV3ResData           559                   inalid compression data
-
-SettingsFile      .ctor                     604                   invalid list filename (empty)
-SettingsFile      .ctor                     700                   list file is readonly
-SettingsFile      .ctor                     524                   list file is missing
-SettingsFile      .ctor                     700                   list file is readonly
-SettingsFile      .ctor                     ArgException          invalid filemode
-SettingsFile      .ctor                     502                   file access error while opening list file
-SettingsFile      Save                      563                   invalid filename (zero length)
-SettingsFile      Save                      502                   file access error while opening list file
-
-SettingString     ReadSetting/1             ArgumentNull          null SettingsFile
-SettingString     ReadSetting/2             ArgumentNull          null SettingsFile
-SettingString     ReadSetting/3             ArgumentNull          null SettingsFile
-SettingString     WriteSetting              ArgumentNull          null SettingsFile
-
-also Bool, Int, Byte, Uint, Color, FontStyle, Double, EResListType, AskOption, LogicErrorLevel,
-AGICodeStyle forms are same as SettingString form
-
-Sound             this/get                  IndexOutOfRange       invalid track number
-Sound             Tracks                    563                   resource not loaded
-Sound             Key/set                   ArgOutOfRange         invalid value
-Sound             TPQN/set                  ArgOutOfRange         invalid value
-Sound             WAVData/get               563                   resource not loaded
-Sound             WAVData/get               705                   wrong format
-Sound             WAVData/get               PASS                  pass-through BuildSoundOutput
-Sound             MIDIData/get              563                   resource not loaded
-Sound             MIDIData/get              705                   wrong format
-Sound             MIDIData/get              PASS                  pass-through BuildSoundOutput
-Sound             Clone                     563                   resource not loaded
-Sound             CloneFrom                 563                   this resource not loaded
-Sound             CloneFrom                 563                   target resource not loaded
-Sound             BuildSoundOutput          596                   error while building sound output
-Sound             CompileSound              566                   error while compiling sound tracks
-Sound             Clear                     563                   resource not loaded
-Sound             PlaySound                 563                   sound not loaded
-Sound             PlaySound                 PASS                  pass-through BuildSoundOutput
-Sound             PlaySound                 NotImplemented        PC speaker mode currently not available
-Sound             PlaySound                 PASS                  pass-through WavPlayer.PlayWAVSound
-Sound             PlaySound                 PASS                  pass-through MIDIPlayer.PlayMIDISound
-Sound             Export                    563                   resource not loaded
-Sound             ExportAGISound            PASS                  pass-through CompileSound/base.Export
-Sound             ExportAsMIDI              705                   wrong sound format
-Sound             ExportAsMIDI              PASS                  pass-through CompileSound
-Sound             ExportAsMIDI              PASS                  pass-through BuildSoundOutput/save file stream
-Sound             ExportAsWAV               705                   wrong sound format
-Sound             ExportAsWAV               PASS                  pass-through CompileSound
-Sound             ExportAsWAV               PASS                  pass-through BuildSoundOutput/save file stream
-Sound             ExportAsScript            705                   wrong sound format
-Sound             ExportAsScript            PASS                  pass-through file access errors
-Sound             Import                    PASS                  pass-through base.Import
-Sound             ImportScript              604                   invalid file name (empty)
-Sound             ImportScript              524                   missing scriptfile
-Sound             ImportScript              PASS                  pass-through file access errors
-Sound             ImportScript              681                   invalid script data
-Sound             ImportScript              PASS                  pass-through CompileSound
-Sound             ImportScript              596                   can't compile script to valid sound
-Sound             FinishLoad                PASS                  pass-through BuildSoundOutput
-Sound             Save                      563                   resource not loaded
-Sound             Save                      PASS                  pass-through CompileSound
-Sound             Save                      PASS                  pass-through base.Save
-
-Sounds            this/get                  IndexOutOfRange       sound not in collection
-Sounds            Add                       602                   this index already exists
-Sounds            Renumber                  IndexOutOfRange       sound not in collection
-Sounds            Renumber                  669                   new number already in collection
-Sounds            Enum:Current              InvalidOps            invalid indexing op
-
-Track             Instrument/set            ArgOutOfRange         invalid instrument value
-
-View              this/get                  563                   view not loaded
-View              this/get                  ArgOutOfRange         invalid loop index
-View              Loops/get                 563                   view not loaded
-View              ViewDescription/get       563                   view not loaded
-View              ViewDescription/set       563                   view not loaded
-View              CodePage/set              ArgOutOfRange         unsupported code page value
-View              Clone                     563                   resource not loaded
-View              CloneFrom                 563                   this resource not loaded
-View              CloneFrom                 563                   target resource not loaded
-View              Clear                     563                   view not loaded
-View              ExpandCelData             ArgumentNull          cel is null
-View              Export                    563                   view not loaded
-View              Export                    PASS                  pass-through base.Export
-View              Import                    PASS                  pass-through base.Import
-View              Save                      563                   view not loaded
-View              Save                      PASS                  pass-through base.Save
-
-Views             this/get                  IndexOutOfRange       view not in collection
-Views             Add                       602                   this index already exists
-Views             Renumber                  IndexOutOfRange       view not in collection
-Views             Renumber                  669                   new number already in collection
-Views             Enum:Current              InvalidOps            invalid indexing op
-
-VOLManager        AddNextRes                638                   file access error while writing to VOL file
-VOLManager        ValidateVolAndLoc         640                   file access error while creating new VOL file
-VOLManager        ValidateVolAndLoc         593                   no room for resource in VOL files
-VOLManager        FindFreeVOLSpace          593                   no room for resource in VOL files
-VOLManager        UpdateInVol               PASS                  pass-through FindFreeVOLSpace
-VOLManager        UpdateInVol               638                   file access error while writing to VOL file
-VOLManager        UpdateInVol               PASS                  pass-through UpdateDirFile
-VOLManager        UpdateDirFile             524                   missing DIR file
-VOLManager        UpdateDirFile             700                   DIR file is readonly
-VOLManager        UpdateDirFile             502                   file access error while reading DIR file
-VOLManager        UpdateDirFile             502                   file access error while writing DIR file
-VOLManager        UpdateDirFile             502                   file access error while creating DIR file
-VOLManager        UpdateDirFile             502                   file access error while writing DIR file
-
-WinAGI            DefResDir/set             ArgOutOfRange         invalid defresdir value (empty)
-WinAGI            DefResDir/set             ArgOutOfRange         invalid defresdir value (bad chars)
-WinAGI            CodePage                  ArgOutOfRange         unsupported code page value
-
-WordGroup         this/get                  ArgOutOfRange         invalid word index
-WordGroup         Enum:Current              InvalidOps            invalid indexing op
-
-WordList          .ctor                     PASS                  pass-through LoadWords
-WordList          this[index]/get           563                   resource not loaded
-WordList          this[index]/get           IndexOutOfRange       invalid word index
-WordList          this[key]/get             563                   resource not loaded
-WordList          this[key]                 ArgException          invalid key
-WordList          GroupCount/get            563                   resource not loaded
-WordList          WordCount/get             563                   resource not loaded
-WordList          CodePage/set              ArgOutOfRange         unsupported code page value
-WordList          IsChanged/get             563                   resource not loaded
-WordList          Load                      599                   invalid loadfile name (empty)
-WordList          Load                      606                   loadfile missing
-WordList          Load                      700                   loadfile is readonly
-WordList          Save                      563                   resource not loaded
-WordList          Save                      615                   invalid savefile name (empty)
-WordList          Save                      PASS                  pass-through Compile
-WordList          Compile                   616                   invalid savefile name (empty)
-WordList          Compile                   672                   file access error while writing data
-WordList          CompileSVE                616                   invalid savefile name (empty)
-WordList          CompileSVE                672                   file access error while writing data
-WordList          Export                    563                   resource not loaded
-WordList          Export                    PASS                  pass-through Compile        
-WordList          Export[SVE]               563                   resource not loaded
-WordList          Export[SVE]               PASS                  pass-through CompileSVE
-WordList          Clone                     563                   resource not loaded
-WordList          CloneFrom                 563                   this resource not loaded
-WordList          CloneFrom                 563                   target resource not loaded
-WordList          Clear                     563                   resource not loaded
-WordList          GroupN                    563                   resource not loaded
-WordList          Group                     563                   resource not loaded
-WordList          Group                     IndexOutOfRange       invalid wordgroup index
-WordList          GroupExists               563                   resource not loaded
-WordList          AddGroup                  563                   resource not loaded
-WordList          AddGroup                  ArgOutORange          invalid group number (<0)
-WordList          AddGroup                  ArgOutORange          invalid group number (>Max)
-WordList          AddGroup                  ArgException          group number already exists
-WordList          RemoveGroup               563                   resource not loaded
-WordList          RemoveGroup               ArgOutORange          invalid group number (<0)
-WordList          RemoveGroup               ArgOutORange          invalid group number (>Max)
-WordList          RemoveGroup               583                   group number does not exist
-WordList          RenumberGroup             563                   resource not loaded
-WordList          RenumberGroup             ArgOutORange          invalid oldgroup number (<0)
-WordList          RenumberGroup             ArgOutORange          invalid oldgroup number (>Max)
-WordList          RenumberGroup             ArgOutORange          invalid newgroup number (<0)
-WordList          RenumberGroup             ArgOutORange          invalid newgroup number (>Max)
-WordList          RenumberGroup             ArgException          oldgroup number does not exist
-WordList          RenumberGroup             ArgException          newgroup number already exists
-WordList          WordExists                563                   resource not loaded
-WordList          AddWord                   563                   resource not loaded
-WordList          AddWord                   579                   duplicate word
-WordList          AddWord                   581                   invalid group number
-WordList          RemoveWord                563                   resource not loaded
-WordList          RemoveWord                ArgException          word does not exist
-WordList          Enum:Current              InvalidOps            invalid indexing op
-
-
-RESOURCE ERRORS/WARNINGS:
-    errors indicated by negative ErrLevel value
-    warnings indicated by positive ErrLevel value
-    zero means no warnings or errors
-
-    NEGATIVE VALUES represent invalid resources
-    -1 = (606) resource file missing (typically ingame, invalid VOL file given) : 0 = file, 1 = resid
-    -2 = (700) resource file is readonly : 0 = file
-    -3 = (502) file access error : 0 = errmsg, 1 = resid
-    -4 = (505) invalid locator index : 0 = loc; 1 = vol; 2 = filename; 3 = resid
-    -5 = (506) invalid resource header : 0 = loc; 1 = vol; 2 = filename; 3 = resid
-    -6 = (###) decompression error
-
-    SrcErrLevel:
-      -1 = no source file
-      -2 = source file is readonly
-      -3 = file access error
-
-POSITIVE VALUES represent warnings, but resource is usable
-    LOGICS:
-      1 = error in decompile messages : 0 = errmsg; 1 = resid
-      2 = error in decompile labels : 0 = errmsg; 1 = resid
-      4 = error in decompile if-block : 0 = errmsg; 1 = resid
-
-    PICTURES:
-      1 = missing EOP marker
-      2 = bad vis color data
-      4 = invalid cmd byte
-      8 = corrupt data, picture still valid
-
-    SOUNDS:
-      1 = invalid track offset
-      2 = zero length note
-      4 = missing track end marker
-      8 = no data
-     16 = invalid data : 0 = resid; 1 = errmsg
-
-    VIEWS:
-      1 = no loops : 0 = resid
-      2 = invalid loop pointer : 0 = resid; 1 = loopnum
-      4 = invalid mirror loop : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
-      8 = loop mirror error : 0 = resid; 1 = errmsg; 2 = sourceloop; 3 = tgtloop
-     16 = invalid cel offset : 0 = resid; 1 = loop; 2 = cel
-     32 = invalid cel data end data
-     64 = view description has invalid pointer
-
-    OBJECT:
-      1 = no data/empty file
-      2 = invalid data, unable to decrypt
-      4 = invalid header, unable to read item data
-      8 = invalid item pointer
-     16 = first item is not '?'
-     32 = file access error, unable to read file
-
-    WORDS.TOK:
-      1 = invalid index (see KQ1 for example)
-      2 = unexpected end of file
-      4 = one or more words contains an upper case character
-      8 = no data/empty file
-     16 = invalid index - can't read file
-     32 = file access error, unable to read file
-     64 = one or more words contain invalid characters
-
-ERROR HANDLER info:
-resource base errors:
-626: no resfile (outgame only)
-
-606: resfile (volfile for ingame) missing
-    Data["missingfile"] = string filename
-
-502: file access error
-    Data["exception"] = exception
-    Data["badfile"] = string vol/resfile
-    Data["ID"] = mResID
-
-505: invalid mLoc (exceeds size of vol file)
-    Data["loc"] = mLoc
-    Data["vol"] = mVol
-    Data["volname"] = Path.GetFileName(fsVOL.Name);
-    Data["ID"] = mResID
-
-506: invalid resource header (not 0x12 0x34)
-    Data["loc"] = mLoc
-    Data["vol"] = mVol
-    Data["volname"] = Path.GetFileName(fsVOL.Name);
-    Data["ID"] = mResID
-
-Logic Load:
-    none
-
-Logic LoadSource:
-704: missing source file
-    Data["missingfile"] = string LoadFile
-
-502: file access error
-    Data["exception"] = exception
-    Data["badfile"] = string vol/resfile
-    Data["ID"] = mResID
-
-Picture Load:
-    none
-
-Sound Load:
-598: invalid sound data
-    Data["ID"] = mResID
-
-    LoadTracks:
-    598: invalid sound data
-        Data["ID"] = mResID
-
-    565: load track error
-        Data["exception"] = exception
-        Data["ID"] = mResID
-
-
-
-View Load: (LoadLoops):
-595: invalid data
-    Data["ID"] = mResID
-
-548: invalid loop pointer
-    Data["ID"] = mResID
-    Data["loop"] = bytLoop
-    
-    SetMirror:
-    563: not loaded (n/a during gameload)
-    
-    539: source>max (n/a during gameload)
-
-    539: invalid loop(>8)
-        Data["ID"] = mResID
-        Data["srcloop"] = srcloop
-        Data["tgtloop"] = tgtloop
-
-    550: tgt already mirrored (n/a during gameload)
-        Data["ID"] = mResID
-        Data["tgtloop"] = tgtloop
-
-    551: src already mirrored
-        Data["ID"] = mResID
-        Data["srcloop"] = srcloop
-
-
-553: invalid cel pointer
-    Data["ID"] = mResID
-    Data["loop"] = bytLoop
-    Data["cel"] = bytCel
-
-
-other resource errors:
-CompileSound:
-566: compile sound error
-    Data["exception"] = exception
-    Data["ID"] = mResID
-
-BuildSoundOutput:
-596: build sound error
-    Data["exception"] = exception
-    Data["ID"] = mResID
-
-
-CompileResCol:
-638: file access error
-    Data["exception"] = exception
-    Data["ID"] = mResID
-
-    
-AddtoVol:
-638: file access error
-    Data["exception"] = exception
-    Data["ID"] = mResID
-
-ValidateVolAndLoc:
-640: file access error
-    Data["exception"] = exception
-    Data["ID"] = mResID
-
-ValidateVolAndLoc:
-640: file access error
-    Data["exception"] = exception
-    Data["ID"] = mResID
-
-Word.tok Compile:
-672: file access error
-    Data["exception"] = exception
-    Data["ID"] = mResID
-
-
-AudioPlayer PlayWAVSound
- 705: invalid sound playback format
- 628: error opening midi for output
-     Data["error"] = errmsg
- 628: error playing midi
-     Data["error"] = errmsg
-
-AudioPlayer PlayMIDISound
- 705: invalid sound playback format
- 628: error opening midi for output
-     Data["error"] = errmsg
- 628: error playing midi
-     Data["error"] = errmsg
+CLASS             FUNCTION:                 NUMBER:   DESCRIPTION
+AGIGame           Compile                   510       missing directory
+AGIGame           GameID/set                503       file access error while renaming v3  DIR/VOL files
+AGIGame           InterpreterVersion/set    518       new value is not numeric
+AGIGame           InterpreterVersion/set    518       new value is invalid major version
+AGIGame           InterpreterVersion/set    506       new value is invalid minor version
+AGIGame           NewGame                   535       new game directory has existing WAG file
+AGIGame           NewGame                   536       new game directory has existing AGI game files
+AGIGame           NewGame                   518       new intver is invalid major version
+AGIGame           NewGame                   506       new intver is invalid minor version
+AGIGame           NewGame                   527       no WAG files in this directory
+AGIGame           NewGame                   543       template (source) directory has multiple WAG files
+AGIGame           NewGame                   544       template (source) missing resdir
+AGIGame           NewGame                   533       file access error while copying template to new directory
+AGIGame           NewGame                   545       unable to copy resdir directory
+AGIGame           NewGame                   546       unable to create wag file
+AGIGame           NewGame                   534       unable to open game in new folder(pass-through FinishGameLoad)
+AGIGame           OpenGameDIR               504       directory does not contain AGI files
+AGIGame           OpenGameDIR               547       file access error while reading new wag file
+AGIGame           OpenGameWAG               529       missing WAG file
+AGIGame           OpenGameWAG               504       invalid or missing game directory
+AGIGame           OpenGameWAG               539       WAG file is readonly
+AGIGame           OpenGameWAG               540       file access error while opening WAG file
+AGIGame           OpenGameWAG               530       invalid WAG file version
+AGIGame           OpenGameWAG               538       invalid IntVersion in WAG file
+AGIGame           OpenGameWAG               537       missing GameID in WAG file
+
+AGILZW            ExpandV3ResData           509       inalid compression data
+
+AGIResource       Clear                     501       resource not loaded
+AGIResource       Data/get                  501       resource not loaded
+AGIResource       EORes/get                 501       resource not loaded
+AGIResource       Export                    501       resource not loaded
+AGIResource       Export                    519       can't export resource that has errors
+AGIResource       Export                    502       file access error while exporting resource
+AGIResource       Import                    521       nothing to import
+AGIResource       Import                    502       file access error while importing resource
+AGIResource       InsertData                501       resource not loaded
+AGIResource       Pos/get                   501       resource not loaded
+AGIResource       Pos/set                   501       resource not loaded
+AGIResource       ReadByte                  501       resource not loaded
+AGIResource       ReadWord                  501       resource not loaded
+AGIResource       RemoveData                501       resource not loaded
+AGIResource       ReplaceData               501       resource not loaded
+AGIResource       Save                      501       resource not loaded
+AGIResource       WriteByte                 501       resource not loaded
+AGIResource       WriteWord                 501       resource not loaded
+
+AudioPlayer       Dispose                   526       media player error
+AudioPlayer       PlayMIDISound             526       media player error
+AudioPlayer       PlayMIDISound             526       media player error
+
+Cel               AllCelData/set            524       array Width is invalid
+Cel               AllCelData/set            524       array Height is invalid
+
+Cels              Add                       508       invalid insert pos
+Cels              Remove                    522       invalid remove pos
+
+InventoryList     Add                       501       resource not loaded
+InventoryList     Add                       512       too many inventory items
+InventoryList     Clear                     501       resource not loaded
+InventoryList     Clone                     501       resource not loaded
+InventoryList     CloneFrom                 501       resource not loaded
+InventoryList     Compile                   502       file access error while writing file
+InventoryList     Encrypted/get             501       resource not loaded
+InventoryList     Encrypted/set             501       resource not loaded
+InventoryList     Export                    501       resource not loaded
+InventoryList     Count/get                 501       resource not loaded
+InventoryList     InUseCount/get            501       resource not loaded
+InventoryList     MaxScreenObjects/get      501       resource not loaded
+InventoryList     MaxScreenObjects/set      501       resource not loaded
+InventoryList     Remove                    501       resource not loaded
+InventoryList     Save                      501       resource not loaded
+InventoryList     SetMSDOSFormat            502       file error converting from Amiga format
+
+Logic             Clear                     501       resource not loaded
+Logic             Clone                     501       resource not loaded
+Logic             CloneFrom                 501       this resource not loaded
+Logic             CloneFrom                 501       source resource not loaded
+Logic             Compile                   501       resource not loaded
+Logic             Compile                   525       compiling not allowed if not in game
+Logic             Compile                   507       no source code (empty)
+Logic             ExportSource              501       resource not loaded
+Logic             ExportSource              502       file error during export
+Logic             Save                      501       resource not loaded
+Logic             SaveSource                502       file access error while writing source
+
+Logics            Add                       520       resource number already in use
+Logics            Renumber                  531       new number already in use
+
+Loops             Remove                    523       can't remove last loop
+
+Picture           VisData/get               501       resource not loaded
+Picture           PriData/get               501       resource not loaded
+Picture           CurrentToolStatus/get     501       resource not loaded
+Picture           DrawPos/get               501       resource not loaded
+Picture           DrawPos/set               501       resource not loaded
+Picture           StepDraw/get              501       resource not loaded
+Picture           StepDraw/set              501       resource not loaded
+Picture           Clone                     501       resource not loaded
+Picture           CloneFrom                 501       this resource not loaded
+Picture           CloneFrom                 501       target resource not loaded
+Picture           ObjOnWater                501       resource not loaded
+Picture           ControlPixel              501       resource not loaded
+Picture           VisPixel                  501       resource not loaded
+Picture           PriPixel                  501       resource not loaded
+Picture           PixelPri                  501       resource not loaded
+Picture           Clear                     501       resource not loaded
+Picture           Save                      501       resource not loaded
+
+Pictures          Add                       520       picture already exists
+Pictures          Renumber                  531       new number already in use
+
+ResourceFunctions ExpandV3ResData           509       invalid compression data
+ResourceFunctions ExtractResources          539       v3 DIR file is readonly
+ResourceFunctions ExtractResources          541       file access error while reading v3 DIR file
+ResourceFunctions ExtractResources          505       invalid v3 DIR file (too small)
+ResourceFunctions ExtractResources          539       VOL.0 is readonly
+ResourceFunctions ExtractResources          539       v2 DIR file is readonly
+ResourceFunctions ExtractResources          541       file access error while reading v2 DIR file
+ResourceFunctions ExtractResources          505       invalid v3 DIR file (bad offset/size)
+ResourceFunctions ExtractResources          505       invalid v3 DIR file (bad offset)
+
+SettingsFile      .ctor                     539       list file is readonly
+SettingsFile      .ctor                     539       list file is readonly
+SettingsFile      .ctor                     502       file access error while opening list file
+SettingsFile      Save                      502       file access error while opening list file
+
+Sound             Clear                     501       resource not loaded
+Sound             Clone                     501       resource not loaded
+Sound             CloneFrom                 501       this resource not loaded
+Sound             CloneFrom                 501       target resource not loaded
+Sound             CompileSound              511       error while compiling sound tracks
+Sound             Export                    501       resource not loaded
+Sound             ExportAsMIDI              542       wrong sound format
+Sound             ExportAsScript            542       wrong sound format
+Sound             ExportAsWAV               542       wrong sound format
+Sound             PlaySound                 501       sound not loaded
+Sound             Save                      501       resource not loaded
+Sound             Tracks                    501       resource not loaded
+Sound             WAVData/get               501       resource not loaded
+Sound             WAVData/get               542       wrong format
+Sound             MIDIData/get              501       resource not loaded
+Sound             MIDIData/get              542       wrong format
+
+SoundImport       ImportScript              532       invalid script data
+
+Sounds            Add                       520       this index already exists
+Sounds            Renumber                  531       new number already in use
+
+View              this/get                  501       view not loaded
+View              Loops/get                 501       view not loaded
+View              ViewDescription/get       501       view not loaded
+View              ViewDescription/set       501       view not loaded
+View              Clone                     501       resource not loaded
+View              CloneFrom                 501       this resource not loaded
+View              CloneFrom                 501       target resource not loaded
+View              Clear                     501       view not loaded
+View              Export                    501       view not loaded
+View              Save                      501       view not loaded
+
+Views             Add                       520       this index already exists
+Views             Renumber                  531       new number already in use
+
+VOLManager        AddNextRes                528       file access error while writing to VOL file
+VOLManager        FindFreeVOLSpace          517       no room for resource in VOL files
+VOLManager        UpdateDirFile             539       DIR file is readonly
+VOLManager        UpdateDirFile             541       file access error while reading DIR file
+VOLManager        UpdateDirFile             541       file access error while writing DIR file
+VOLManager        UpdateDirFile             541       file access error while creating DIR file
+VOLManager        UpdateDirFile             541       file access error while writing DIR file
+VOLManager        UpdateInVol               528       file access error while writing to VOL file
+VOLManager        ValidateVolAndLoc         528       file access error while creating new VOL file
+VOLManager        ValidateVolAndLoc         517       no room for resource in VOL files
+
+WordList          this[index]/get           501       resource not loaded
+WordList          this[key]/get             501       resource not loaded
+WordList          AddGroup                  501       resource not loaded
+WordList          AddWord                   501       resource not loaded
+WordList          AddWord                   513       duplicate word
+WordList          AddWord                   514       invalid group number
+WordList          Clear                     501       resource not loaded
+WordList          Clone                     501       resource not loaded
+WordList          CloneFrom                 501       this resource not loaded
+WordList          CloneFrom                 501       target resource not loaded
+WordList          Compile                   502       file access error while writing data
+WordList          CompileSVE                502       file access error while writing data
+WordList          Export                    501       resource not loaded
+WordList          Export[SVE]               501       resource not loaded
+WordList          Group                     501       resource not loaded
+WordList          GroupCount/get            501       resource not loaded
+WordList          GroupExists               501       resource not loaded
+WordList          GroupN                    501       resource not loaded
+WordList          IsChanged/get             501       resource not loaded
+WordList          RemoveGroup               501       resource not loaded
+WordList          RemoveGroup               515       group number does not exist
+WordList          RemoveWord                501       resource not loaded
+WordList          RemoveWord                516       word does not exist
+WordList          RenumberGroup             501       resource not loaded
+WordList          Save                      501       resource not loaded
+WordList          WordCount/get             501       resource not loaded
+WordList          WordExists                501       resource not loaded
+
+Common            CopyDirectory             548       unable to copy directory
 
 
 
@@ -959,28 +548,6 @@ A  txtscreened
 A  globaled
 
 A  help
-
-
-Decompilation Codes
-===========================================================================================================
-DC01: Invalid message: MSGNUM at position POS
-DC02: Invalid word (WORDNUM) at position POS
-DC03: Invalid inventory item (INVITEM) at position POS
-DC04: Reference to null inventory item ('?') at position POS
-DC05: Non-unique inventory item 'INVITEM' at position POS
-DC06: unknowntest19 at position POS is only valid in Amiga AGI versions
-DC07: This block at position POS contains no commands
-DC08: Block end at position POS past end of resource; adjusted to end of resource
-DC09: Block end (ENDPOS) outside of nested block at position POS
-DC10: This command at position POS is not valid for selected interpreter version (INTVER)
-DC11: RSTYPE NUM in CMD at position POS does not exist
-DC12: quit() comand at position POS coded with no argument
-DC13: Goto destination at position POS is past end of logic; adjusted to end of logic
-DC14: Expected block end does not align with calculated block end at position POS
-DC15: return() command is missing from end of logic
-DC16: Message section has invalid end-of-text marker
-DC17: Message MSGNUM has invalid offset
-DC18: Invalid message section data
 
 
 Syntax highlighting notes:
@@ -1398,37 +965,7 @@ PanelClick:
 Panel double-click
    frmObjectEdit, if panel = 'encrypt', toggle encryption
 
-Unused compiler errors (4001 - 4166)
-4001
-4004
-4012 - 4033
-4035 - 4036
-4038 - 4044
-4047
-4049 - 4051
-4054 - 4055
-4057
-4059
-4061 - 4063
-4065 - 4067
-4070 - 4075
-4079 - 4080
-4082
-4085
-4088 - 4090
-4094
-4098
-4101 - 4102
-4104
-4107 - 4133
-4135 - 4156
-4158
-4161 - 4162
-4165
-(~128 unused!)
 
-Unused compiler warnings (5001 - 5117):
-5012
 
 
 | GDI Function      | C# Equivalent (System.Drawing)         |

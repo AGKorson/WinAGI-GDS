@@ -737,6 +737,7 @@ namespace WinAGI.Editor {
             dgGroups.ShowEditingIcon = false;
             dgGroups.Size = new System.Drawing.Size(331, 266);
             dgGroups.TabIndex = 7;
+            dgGroups.RowsAdded += dgGroups_RowsAdded;
             dgGroups.DragDrop += dgGroups_DragDrop;
             dgGroups.DragEnter += dgGroups_DragEnter;
             dgGroups.DragOver += dgGroups_DragOver;

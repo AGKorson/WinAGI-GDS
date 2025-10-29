@@ -185,10 +185,11 @@ namespace WinAGI.Engine {
             // check for error
             if (rtn != 0) {
                 _ = mciGetErrorString(rtn, strError, 255);
-                WinAGIException wex = new(LoadResString(628)) {
-                    HResult = WINAGI_ERR + 628,
+                WinAGIException wex = new(LoadResString(526).Replace(
+                    ARG1, strError.ToString())) {
+                    HResult = WINAGI_ERR + 526,
                 };
-                wex.Data["error"] = strError;
+                wex.Data["error"] = strError.ToString();
                 throw wex;
             }
             bPlayingMIDI = true;
@@ -202,10 +203,11 @@ namespace WinAGI.Engine {
                 soundPlaying = null;
                 // close sound
                 _ = mciSendString("close all", null, 0, 0);
-                WinAGIException wex = new(LoadResString(628)) {
-                    HResult = WINAGI_ERR + 628,
+                WinAGIException wex = new(LoadResString(526).Replace(
+                    ARG1, strError.ToString())) {
+                    HResult = WINAGI_ERR + 526,
                 };
-                wex.Data["error"] = strError;
+                wex.Data["error"] = strError.ToString();
                 throw wex;
             }
         }
@@ -358,7 +360,7 @@ namespace WinAGI.Engine {
             int durationUnitCount = 0;
 
             // TODO: dissolve should depend on a sound property, not on ingame status
-            if (sound.parent == null) {
+            if (sound.parent is null) {
                 dissolveData = dissolveDataV2;
             }
             else {
@@ -565,7 +567,7 @@ namespace WinAGI.Engine {
             if (bPlayingWAV) {
                 // This tells the thread to stop.
                 bPlayingWAV = false;
-                if (playerThread != null) {
+                if (playerThread is not null) {
                     // We wait for the thread to stop only if instructed to do so.
                     if (wait) {
                         while (playerThread.ThreadState != System.Threading.ThreadState.Stopped) {
@@ -892,10 +894,11 @@ namespace WinAGI.Engine {
                         if (rtn != 0) {
                             StringBuilder strError = new(255);
                             _ = mciGetErrorString(rtn, strError, 255);
-                            WinAGIException wex = new(LoadResString(628)) {
-                                HResult = WINAGI_ERR + 628,
+                            WinAGIException wex = new(LoadResString(526).Replace(
+                                ARG1, strError.ToString())) {
+                                HResult = WINAGI_ERR + 526,
                             };
-                            wex.Data["error"] = strError;
+                            wex.Data["error"] = strError.ToString();
                             throw wex;
                         }
                         hMidi = IntPtr.Zero;
@@ -969,7 +972,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public void StopWavNote() {
             isPlaying = false;
-            if (playThread != null && playThread.IsAlive) {
+            if (playThread is not null && playThread.IsAlive) {
                 playThread.Join();
                 playThread = null;
             }

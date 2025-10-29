@@ -59,10 +59,12 @@ namespace WinAGI.Editor {
             try {
                 WagFile = new SettingsFile(Directory.GetFiles(Application.StartupPath + "\\Templates\\" + lstTemplates.Text, "*.wag")[0], FileMode.Open);
             }
-            catch (Exception e) {
+            catch (Exception ex) {
                 // problem accessing the template; assume not valid
-                ErrMsgBox(e, "An error occurred trying to validate this template directory: ",
-                    "", "Invalid Template Directory");
+                ErrMsgBox(ex,
+                    "An error occurred trying to validate this template directory: ",
+                    ex.StackTrace,
+                    "Invalid Template Directory");
                 RemoveBadTemplate();
                 return;
             }
@@ -72,7 +74,7 @@ namespace WinAGI.Editor {
                     "Template wag file is marked 'readonly'.",
                     "Invalid Template Directory",
                     MessageBoxButtons.OK, MessageBoxIcon.Error,
-                    0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
+                    0, 0, WinAGIHelp, "htm\\winagi\\templates.htm");
                 RemoveBadTemplate();
                 return;
             }
@@ -89,7 +91,7 @@ namespace WinAGI.Editor {
                         "The WinAGI game file is corrupt.\nThis is not a valid template directory.",
                         "Invalid Template Directory",
                         MessageBoxButtons.OK, MessageBoxIcon.Error,
-                        0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
+                        0, 0, WinAGIHelp, "htm\\winagi\\templates.htm");
                     RemoveBadTemplate();
                     return;
                 }
@@ -109,7 +111,7 @@ namespace WinAGI.Editor {
                     "The interpreter version for this game is missing.\nThis is not a valid template directory.",
                     "Invalid Template Directory",
                     MessageBoxButtons.OK, MessageBoxIcon.Error,
-                    0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
+                    0, 0, WinAGIHelp, "htm\\winagi\\templates.htm");
                 RemoveBadTemplate();
                 return;
             }
@@ -124,7 +126,7 @@ namespace WinAGI.Editor {
                     "The interpreter version for this game does not match known Sierra versions.\nThis is not a valid template directory.",
                     "Invalid Template Directory",
                     MessageBoxButtons.OK, MessageBoxIcon.Error,
-                    0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
+                    0, 0, WinAGIHelp, "htm\\winagi\\templates.htm");
                 RemoveBadTemplate();
             }
 

@@ -379,7 +379,7 @@ namespace WinAGI.Editor {
             if (!Visible || WindowState == FormWindowState.Minimized) {
                 return;
             }
-            if (picDraw != null) {
+            if (picDraw is not null) {
                 // Redraw the layout
                 SetScrollBars();
                 DrawLayout();
@@ -675,7 +675,10 @@ namespace WinAGI.Editor {
                     }
                     catch (Exception ex) {
                         // error
-                        ErrMsgBox(ex, "Unable to open the picture.", "", "Picture Editor Load Error ");
+                        ErrMsgBox(ex,
+                            "Unable to open the picture.",
+                            ex.StackTrace,
+                            "Picture Editor Load Error ");
                     }
                 }
             }
@@ -3130,7 +3133,7 @@ namespace WinAGI.Editor {
                     "Layout Editor",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question, 0, 0,
-                    WinAGIHelp, "htm\\winagi\\Layout_Editor.htm") == DialogResult.Yes) {
+                    WinAGIHelp, "htm\\winagi\\editor_layout.htm") == DialogResult.Yes) {
                     if (ExtractLayout()) {
                         // Force save the extracted logic
                         SaveLayout();
@@ -3187,7 +3190,7 @@ namespace WinAGI.Editor {
                 using StreamReader sr = new(layoutfile);
                 // read data from file until'\x01' or EOF is found
                 strLine = ReadNextBlock(sr);
-                if (strLine == null) {
+                if (strLine is null) {
                     // empty file
                     return ExtractIfError(1);
                 }
@@ -3210,7 +3213,7 @@ namespace WinAGI.Editor {
 
                 // objects
                 strLine = ReadNextBlock(sr);
-                while (strLine != null) {
+                while (strLine is not null) {
                     LayoutFileData layoutobj = null;
                     try {
                         layoutobj = JsonSerializer.Deserialize<LayoutFileData>(strLine);
@@ -3527,7 +3530,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
                         WinAGIHelp,
-                        "htm\\winagi\\Layout_Editor.htm#layoutrepair");
+                        "htm\\winagi\\editor_layout.htm#layoutrepair");
                     // mark as changed to force update
                     MarkAsChanged();
                 }
@@ -3544,7 +3547,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error, 0, 0,
                         WinAGIHelp,
-                        "htm\\winagi\\Layout_Editor.htm#layoutrepair");
+                        "htm\\winagi\\editor_layout.htm#layoutrepair");
                 }
             }
             return true;
@@ -4441,7 +4444,7 @@ namespace WinAGI.Editor {
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information, 0, 0,
                     WinAGIHelp,
-                    "htm\\winagi\\Layout_Editor.htm#layoutrepair");
+                    "htm\\winagi\\editor_layout.htm#layoutrepair");
                 // since form isn't visible, user isn't given a chance to cancel the repair; it will happen automatically
                 RepairLayout();
             }
@@ -4490,7 +4493,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
                         WinAGIHelp,
-                        "htm\\winagi\\Layout_Editor.htm#layoutrepair");
+                        "htm\\winagi\\editor_layout.htm#layoutrepair");
                 }
                 catch (Exception ex) {
                     // if error, just ignore it
@@ -4505,7 +4508,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error, 0, 0,
                         WinAGIHelp,
-                        "htm\\winagi\\Layout_Editor.htm#layoutrepair");
+                        "htm\\winagi\\editor_layout.htm#layoutrepair");
                 }
             }
             else {
@@ -5414,7 +5417,7 @@ namespace WinAGI.Editor {
             float tmpX = exit.SP.X + DX / 2;
             float tmpY = exit.SP.Y + DY / 2;
 
-            TransPt[tmpTrans].Loc[0].X = GridPos(tmpX - (DX != 0 ? Math.Sign(DX) : Math.Sign(DY)) * TRANSPT_SIZE / 2 - TRANSPT_SIZE / 2);
+            TransPt[tmpTrans].Loc[0].X = GridPos( tmpX - (DX != 0 ? Math.Sign(DX) : Math.Sign(DY)) * TRANSPT_SIZE / 2 - TRANSPT_SIZE / 2);
             TransPt[tmpTrans].Loc[0].Y = GridPos(tmpY - TRANSPT_SIZE / 2);
             TransPt[tmpTrans].Loc[1].X = GridPos(tmpX + (DX != 0 ? Math.Sign(DX) : Math.Sign(DY)) * TRANSPT_SIZE / 2 - TRANSPT_SIZE / 2);
             TransPt[tmpTrans].Loc[1].Y = GridPos(tmpY - TRANSPT_SIZE / 2);
@@ -5473,7 +5476,6 @@ namespace WinAGI.Editor {
 
             switch (Reason) {
             case UpdateReason.ChangeID:
-                // TODO: changing an id should just redraw the layout
                 DrawLayout(LayoutSelection.Room, LogicNumber);
                 break;
             case UpdateReason.RenumberRoom:
@@ -6369,7 +6371,7 @@ namespace WinAGI.Editor {
             if (Comment[CmtID].Text.Trim().Length == 0) {
                 return;
             }
-
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             // wrap text to fit (copy from textbox to be sure lines break at right place)
             FormatCommentTextBox(CmtID);
             List<string> wrappedLines = GetWrappedLines(txtComment);
@@ -7577,7 +7579,7 @@ namespace WinAGI.Editor {
                 "Exit Error Detected",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information, 0, 0,
-                WinAGIHelp, "htm\\winagi\\Layout_Editor.htm#errpts");
+                WinAGIHelp, "htm\\winagi\\editor_layout.htm#errpts");
 
             // find the next available errpt
             int lngEP = 0;
@@ -8569,7 +8571,10 @@ namespace WinAGI.Editor {
                 }
                 catch (Exception ex) {
                     // unable to open
-                    ErrMsgBox(ex, "Unable to open the source file.", "", "File Open Error");
+                    ErrMsgBox(ex,
+                        "Unable to open the source file.",
+                        ex.StackTrace,
+                        "File Open Error");
                 }
             }
             else {
@@ -8597,7 +8602,10 @@ namespace WinAGI.Editor {
                 }
                 catch (Exception ex) {
                     // unable to open
-                    ErrMsgBox(ex, "Unable to open the source file.", "", "File Open Error");
+                    ErrMsgBox(ex,
+                        "Unable to open the source file.",
+                        ex.StackTrace,
+                        "File Open Error");
                 }
             }
         }
@@ -10198,14 +10206,20 @@ namespace WinAGI.Editor {
                     try {
                         fs.Write(Encoding.Default.GetBytes(text));
                     }
-                    catch (Exception e) {
-                        ErrMsgBox(e, "Unable to save layout due to file error.", "", "Save Layout File Error");
+                    catch (Exception ex) {
+                        ErrMsgBox(ex,
+                            "Unable to save layout due to file error.",
+                            ex.StackTrace,
+                            "Save Layout File Error");
                         error = true;
                     }
                 }
             }
-            catch (Exception e) {
-                ErrMsgBox(e, "Unable to save layout due to file error.", "", "Save Layout File Error");
+            catch (Exception ex) {
+                ErrMsgBox(ex,
+                    "Unable to save layout due to file error.",
+                    ex.StackTrace,
+                    "Save Layout File Error");
             }
 
             // if a logic is being previewed, update selection, in case the logic is changed
@@ -10216,7 +10230,7 @@ namespace WinAGI.Editor {
         }
 
         internal void ShowHelp() {
-            string topic = "htm\\winagi\\Layout_Editor.htm";
+            string topic = "htm\\winagi\\editor_layout.htm";
 
             // TODO: add context sensitive help
             Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);

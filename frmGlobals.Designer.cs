@@ -85,6 +85,7 @@ namespace WinAGI.Editor {
             globalsgrid.AllowUserToResizeRows = false;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.ControlLight;
             globalsgrid.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            globalsgrid.BackgroundColor = System.Drawing.SystemColors.Control;
             globalsgrid.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.ControlLight;
@@ -386,7 +387,7 @@ namespace WinAGI.Editor {
             // 
             cmCel.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuCelUndo, mnuCelSep0, mnuCelCut, mnuCelCopy, mnuCelPaste, mnuCelDelete, mnuCelCharMap, mnuCelSep1, mnuCelSelectAll, mnuCelSep2, mnuCelCancel });
             cmCel.Name = "cmCel";
-            cmCel.Size = new System.Drawing.Size(225, 220);
+            cmCel.Size = new System.Drawing.Size(225, 198);
             cmCel.Closed += cmCel_Closed;
             cmCel.Opening += cmCel_Opening;
             // 
@@ -464,9 +465,9 @@ namespace WinAGI.Editor {
             // mnuCelCancel
             // 
             mnuCelCancel.Name = "mnuCelCancel";
-            mnuCelCancel.ShowShortcutKeys = false;
+            mnuCelCancel.ShortcutKeyDisplayString = "Esc";
             mnuCelCancel.Size = new System.Drawing.Size(224, 22);
-            mnuCelCancel.Text = "Cancel                     Esc";
+            mnuCelCancel.Text = "Cancel";
             mnuCelCancel.Click += mnuCelCancel_Click;
             // 
             // frmGlobals

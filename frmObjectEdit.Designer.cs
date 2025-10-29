@@ -425,6 +425,7 @@ namespace WinAGI.Editor {
             fgObjects.AllowUserToResizeColumns = false;
             fgObjects.AllowUserToResizeRows = false;
             fgObjects.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            fgObjects.BackgroundColor = System.Drawing.SystemColors.Control;
             fgObjects.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             fgObjects.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             fgObjects.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { colIndex, colDescription, colRoom });

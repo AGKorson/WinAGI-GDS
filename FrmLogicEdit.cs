@@ -12,7 +12,6 @@ using System.IO;
 using System.Linq;
 using FastColoredTextBoxNS;
 using System.Text.RegularExpressions;
-using System.Diagnostics;
 using WinAGI.Common;
 using static WinAGI.Common.API;
 
@@ -49,6 +48,7 @@ namespace WinAGI.Editor {
         public TextStyle ArgIdentifierStyle;
         public TextStyle DefIdentifierStyle;
         public WinAGIFCTB fctb;
+        private bool SelectEntireLine = false;
         TDefine[] LDefLookup = [];
         private bool loading;
         bool DefDirty = true;
@@ -137,7 +137,7 @@ namespace WinAGI.Editor {
 
         #region Form Event Handlers
         private void frmLogicEdit_Activated(object sender, EventArgs e) {
-            if (FindingForm.Visible && 
+            if (FindingForm.Visible &&
                 FindingForm.FormFunction != FindFormFunction.FindWordsLogic &&
                 FindingForm.FormFunction != FindFormFunction.FindObjsLogic) {
                 if (FindingForm.rtfReplace.Visible) {
@@ -145,6 +145,19 @@ namespace WinAGI.Editor {
                 }
                 else {
                     FindingForm.SetForm(FindFormFunction.FindLogic, InGame);
+                }
+            }
+        }
+
+        private void frmLogicEdit_KeyDown(object sender, KeyEventArgs e) {
+            // CTRL+SHIFT+S = Save All Open Logics
+            if (e.Control && e.Shift && e.KeyCode == Keys.S) {
+                foreach (frmLogicEdit frm in LogicEditors) {
+                    if (frm.FormMode == LogicFormMode.Logic) {
+                        if (frm.IsChanged) {
+                            frm.SaveLogicSource();
+                        }
+                    }
                 }
             }
         }
@@ -230,7 +243,7 @@ namespace WinAGI.Editor {
                 }
                 if (FormMode == LogicFormMode.Logic) {
                     mnuRInGame.Visible = true;
-                    mnuRInGame.Enabled = EditGame != null;
+                    mnuRInGame.Enabled = EditGame is not null;
                     mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
                     mnuRRenumber.Visible = true;
                     mnuRRenumber.Enabled = InGame;
@@ -294,7 +307,7 @@ namespace WinAGI.Editor {
         }
 
         internal void mnuRInGame_Click(object sender, EventArgs e) {
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 ToggleInGame();
             }
         }
@@ -352,6 +365,7 @@ namespace WinAGI.Editor {
             // Insert Snippet (Ctrl+Shift+T) V:UseSnippets && sellength==0; E
             // Create Snippet (Ctrl+Shift+T) V:UseSnippets && sellength>0; E
             // List Defines (Ctrl+J) V; E
+            // List Commands (Shift+Ctrl+J) V; E
             // Block Comment (Alt+B) V; E
             // Unblock Comment (Alt+U) V; E
             // Open xx for Editing (Shift+Ctrl+E) V:on resource token; E
@@ -408,7 +422,7 @@ namespace WinAGI.Editor {
                     break;
                 }
                 // not an include, check for 'said' word
-                if (EditGame != null) {
+                if (EditGame is not null) {
                     int ac = 0;
                     AGIToken cmdtoken = FindPrevCmd(fctb, seltoken, ref ac);
                     if (cmdtoken.Type == AGITokenType.Identifier && cmdtoken.Text == "said") {
@@ -445,6 +459,7 @@ namespace WinAGI.Editor {
             mnuESep2.Owner = mnuEdit.DropDown;
             mnuESnippet.Owner = mnuEdit.DropDown;
             mnuEListDefines.Owner = mnuEdit.DropDown;
+            mnuEListCommands.Owner = mnuEdit.DropDown;
             mnuEViewSynonym.Owner = mnuEdit.DropDown;
             mnuEBlockCmt.Owner = mnuEdit.DropDown;
             mnuEUnblockCmt.Owner = mnuEdit.DropDown;
@@ -473,6 +488,7 @@ namespace WinAGI.Editor {
             mnuESep2.Owner = contextMenuStrip1;
             mnuESnippet.Owner = contextMenuStrip1;
             mnuEListDefines.Owner = contextMenuStrip1;
+            mnuEListCommands.Owner = contextMenuStrip1;
             mnuEViewSynonym.Owner = contextMenuStrip1;
             mnuEBlockCmt.Owner = contextMenuStrip1;
             mnuEUnblockCmt.Owner = contextMenuStrip1;
@@ -570,6 +586,10 @@ namespace WinAGI.Editor {
             ShowDefineList();
         }
 
+        private void mnuEListCommands_Click(object sender, EventArgs e) {
+            ShowCommandList();
+        }
+
         private void mnuEBlockCmt_Click(object sender, EventArgs e) {
             fctb.InsertLinePrefix(fctb.CommentPrefix);
         }
@@ -603,10 +623,8 @@ namespace WinAGI.Editor {
                         return;
                     }
                     else if (filename.Equals("reserved.txt", StringComparison.OrdinalIgnoreCase)) {
-                        MessageBox.Show(MDIMain,
-                            "TODO: reserved defines editor");
+                        OpenReservedEditor();
                         return;
-
                     }
                     // relative to the source dir
                     filename = Path.GetFullPath(EditGame.ResDir + filename);
@@ -638,7 +656,7 @@ namespace WinAGI.Editor {
                         "File Not Found",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        @"htm\commands\syntax.htm#include",
+                        @"htm\commands\fansyntax.htm#include",
                         WinAGIHelp);
                     RestoreFocusHack();
                     return;
@@ -891,6 +909,13 @@ namespace WinAGI.Editor {
                     }
                 }
             }
+            // override FCTB line selection  (it does not include the
+            // linefeed) by checking for left-click on line number
+            // area
+            //
+            if (e.Button == MouseButtons.Left && e.Location.X < (fctb.LeftIndent - 1)) {
+                SelectEntireLine = true;
+            }
         }
 
         private void fctb_MouseUp(object sender, MouseEventArgs e) {
@@ -913,10 +938,38 @@ namespace WinAGI.Editor {
                     }
                 }
             }
+            if (SelectEntireLine) {
+                // use same calculation that FCTB uses to determine if 
+                // the line number area is clicked:
+                //    internal const int minLeftIndent = 8;
+                //    isLineSelect = (e.Location.X < LeftIndentLine);
+                //    private int LeftIndentLine
+                //    {
+                //        get { return LeftIndent - minLeftIndent / 2 - 3; }
+                //    }
+                SelectEntireLine = false;
+                if (e.Button == MouseButtons.Left && e.Location.X < (fctb.LeftIndent - 1)) {
+                    if (fctb.Selection.Start <= fctb.Selection.End) {
+                        if (fctb.LinesCount > fctb.Selection.End.iLine + 1) {
+                            fctb.Selection.End = new(0, fctb.Selection.End.iLine + 1);
+                        }
+                    }
+                    else {
+                        //fctb.Selection.Normalize();
+                        //fctb.Selection.End = new(0, fctb.Selection.End.iLine + 1);
+                        if (fctb.LinesCount > fctb.Selection.Start.iLine + 1) {
+                            Place tmp = fctb.Selection.End;
+                            fctb.Selection.Start = new(0, fctb.Selection.Start.iLine + 1);
+                            fctb.Selection.End = tmp;
+                        }
+                    }
+                    fctb.Invalidate();
+                }
+            }
         }
 
         private void fctb_SelectionChanged(object sender, EventArgs e) {
-            if (fctb == null) {
+            if (fctb is null) {
                 return;
             }
             spLine.Text = "Line: " + fctb.Selection.End.iLine;
@@ -958,7 +1011,7 @@ namespace WinAGI.Editor {
                     return;
                 }
             }
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 // next check globals
                 if (EditGame.IncludeGlobals) {
                     for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
@@ -1010,7 +1063,7 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            if (EditGame == null || EditGame.IncludeReserved) {
+            if (EditGame is null || EditGame.IncludeReserved) {
                 // still no match, check reserved define
                 TDefine[] tmpDefines = EditGame.ReservedDefines.All();
                 for (int i = 0; i < tmpDefines.Length; i++) {
@@ -1590,7 +1643,7 @@ namespace WinAGI.Editor {
                     MessageBoxButtons.YesNoCancel,
                     MessageBoxIcon.Question,
                     "Always take this action when updating messages.", ref repeatAction,
-                   WinAGIHelp, "htm\\winagi\\Logic_Editor.htm#msgcleanup");
+                   WinAGIHelp, "htm\\winagi\\editor_logic.htm#msgcleanup");
                 RestoreFocusHack();
                 // if canceled
                 if (rtn == DialogResult.Cancel) {
@@ -1646,7 +1699,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                     RestoreFocusHack();
                     break;
                 case 2:
@@ -1656,7 +1709,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                     RestoreFocusHack();
                     break;
                 case 3:
@@ -1666,7 +1719,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                     RestoreFocusHack();
                     break;
                 case 4:
@@ -1676,7 +1729,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                     RestoreFocusHack();
                     break;
                 case 5:
@@ -1686,7 +1739,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                     RestoreFocusHack();
                     break;
                 }
@@ -1718,7 +1771,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -2:
@@ -1728,7 +1781,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -3:
@@ -1738,7 +1791,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -4:
@@ -1748,7 +1801,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -5:
@@ -1758,7 +1811,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -6:
@@ -1768,7 +1821,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -7:
@@ -1778,7 +1831,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -8:
@@ -1788,7 +1841,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                         RestoreFocusHack();
                         break;
                     }
@@ -1810,7 +1863,7 @@ namespace WinAGI.Editor {
                                     "Syntax Error",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Information, 0, 0,
-                                    WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                                    WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                                 RestoreFocusHack();
                                 return;
                             }
@@ -1827,7 +1880,7 @@ namespace WinAGI.Editor {
                                     "Syntax Error",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Information, 0, 0,
-                                    WinAGIHelp, "htm\\commands\\syntax.htm#messages");
+                                    WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
                                 RestoreFocusHack();
                                 return;
                             }
@@ -2092,7 +2145,7 @@ namespace WinAGI.Editor {
             range.SetFoldingMarkers("{", "}");
         }
 
-        public bool LoadLogic(Logic loadlogic) {
+        public bool LoadLogic(Logic loadlogic, bool quiet = false) {
             InGame = loadlogic.InGame;
             int codepage;
             if (InGame) {
@@ -2109,36 +2162,54 @@ namespace WinAGI.Editor {
             try {
                 loadlogic.Load();
             }
-            catch {
+            catch (Exception ex) {
+                // unhandled error
+                if (!quiet) {
+                    string resid = InGame ? "Logic " + LogicNumber : loadlogic.ID;
+                    ErrMsgBox(ex,
+                        "Something went wrong. Unable to load " + resid,
+                        ex.StackTrace,
+                        "Load Logic Failed");
+                }
                 return false;
             }
-            if (loadlogic.SrcErrLevel < 0) {
-                return false;
+            if (loadlogic.SourceError != ResourceErrorType.NoError) {
+                if (!quiet) {
+                    // messages are same for ingame/standalone logic sources
+                    switch (loadlogic.SourceError) {
+                    case ResourceErrorType.LogicSourceIsReadonly:
+                        MessageBox.Show(MDIMain,
+                            "Source file for this logic is tagged as readonly. WinAGI " +
+                            "needs full access to edit source files.",
+                            "Logic Source Is Readonly",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                        return false;
+                    case ResourceErrorType.LogicSourceAccessError:
+                        MessageBox.Show(MDIMain,
+                            "Unable to open and read the source file for this logic.",
+                            "Logic Source File Access Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                        return false;
+                    case ResourceErrorType.LogicSourceDecompileError:
+                        MessageBox.Show(MDIMain,
+                            "Errors were encountered when decompiling this logic. " +
+                            "The logic may be corrupt. Check the output carefully and make" +
+                            "any corrections as needed.",
+                            "Logic Decompilation Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                        break;
+                    }
+                }
             }
             Compiled = loadlogic.Compiled;
             EditLogic = loadlogic.Clone();
-            if (EditLogic.SourceFile.Length > 0) {
-                if (File.Exists(EditLogic.SourceFile)) {
-                    try {
-                        // to ensure any non-supported characters for the current codepage
-                        // are converted to '?', we need to convert the text to bytes, then 
-                        // back to text
-                        rtfLogic1.Text = Encoding.GetEncoding(codepage).GetString(Encoding.GetEncoding(codepage).GetBytes(File.ReadAllText(EditLogic.SourceFile)));
-                    }
-                    catch {
-                        return false;
-                    }
-                }
-                else {
-                    return false;
-                }
-            }
-            else {
-                // to ensure any non-supported characters for the current codepage
-                // are converted to '?', we need to convert the text to bytes, then 
-                // back to text
-                rtfLogic1.Text = Encoding.GetEncoding(codepage).GetString(Encoding.GetEncoding(codepage).GetBytes(EditLogic.SourceText));
-            }
+            // to ensure any non-supported characters for the current codepage
+            // are converted to '?', we need to convert the text to bytes, then 
+            // back to text
+            rtfLogic1.Text = Encoding.GetEncoding(codepage).GetString(Encoding.GetEncoding(codepage).GetBytes(EditLogic.SourceText));
             rtfLogic1.ClearUndo();
             if (EditLogic.SourceFile.Length != 0) {
                 rtfLogic1.IsChanged = EditLogic.SourceChanged;
@@ -2161,7 +2232,8 @@ namespace WinAGI.Editor {
                     Text = sLOGED + Path.GetFileName(EditLogic.SourceFile);
                 }
                 else if (EditLogic.ResFile.Length > 0) {
-                    Text = sLOGED + Path.GetFileName(EditLogic.ResFile);
+                    Text = sLOGED + Path.GetFileNameWithoutExtension(EditLogic.ResFile);
+                    Text += "." + WinAGISettings.DefaultExt.Value;
                 }
                 else {
                     Text = sLOGED + EditLogic.ID;
@@ -2249,6 +2321,10 @@ namespace WinAGI.Editor {
         }
 
         public void ImportLogic(string importfile) {
+            ArgumentException.ThrowIfNullOrWhiteSpace(nameof(importfile));
+            if (!File.Exists(importfile)) {
+                throw new FileNotFoundException("Import file not found", importfile);
+            }
             string strFile = "";
 
             MDIMain.UseWaitCursor = true;
@@ -2264,79 +2340,58 @@ namespace WinAGI.Editor {
             catch (Exception) {
                 // ignore errors
             }
-            // check if logic is a compiled logic:
-            // (check for existence of characters <8)
-            string lChars = "";
-            for (int i = 1; i <= 8; i++) {
-                lChars += ((char)i).ToString();
-            }
-            bool blnSource = !strFile.Any(lChars.Contains);
-            // import the logic
-            // (and check for error)
-            try {
-                if (blnSource) {
-                    tmpLogic.ImportSource(importfile);
-                }
-                else {
-                    tmpLogic.Import(importfile);
-                }
-            }
-            catch (Exception e) {
-                // if a compile error occurred,
-                if (e.HResult == WINAGI_ERR + 567) {
-                    // can't open this resource
+            // check if logic is a compiled logic
+            // (check for existence of char '0')
+            bool blnSource = !strFile.Contains('\0');
+            // import the logic (and check for error)
+            if (blnSource) {
+                tmpLogic.ImportSource(importfile);
+                if (tmpLogic.SourceError != ResourceErrorType.NoError) {
                     MDIMain.UseWaitCursor = false;
-                    ErrMsgBox(e, "An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource");
-                    // restore main form mousepointer and exit
-                    return;
-                }
-                else {
-                    // maybe we assumed source status incorrectly- try again
-                    try {
-                        if (blnSource) {
-                            tmpLogic.Import(importfile);
-                        }
-                        else {
-                            tmpLogic.ImportSource(importfile);
-                        }
-                    }
-                    catch (Exception) {
-                        // if STILL error, something wrong
-                        MDIMain.UseWaitCursor = false;
-                        ErrMsgBox(e, "Unable to load this logic resource. It can't be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource");
+                    switch (tmpLogic.SourceError) {
+                    case ResourceErrorType.LogicSourceIsReadonly:
+                        MessageBox.Show(MDIMain,
+                            "This logic source file is marked 'readonly'. WinAGI requires write-access to edit source files.",
+                            "Read only Files not Allowed",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                        RestoreFocusHack();
+                        return;
+                    case ResourceErrorType.LogicSourceAccessError:
+                        MessageBox.Show(MDIMain,
+                            "A file access error has occurred. Unable to read this file.",
+                            "File Access Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                        RestoreFocusHack();
                         return;
                     }
+                    return;
                 }
             }
-            if (tmpLogic.SrcErrLevel < 0) {
-                MDIMain.UseWaitCursor = true;
-                switch (tmpLogic.SrcErrLevel) {
-                case -1:
-                    MessageBox.Show(MDIMain,
-                        "Unable to access this logic source file, file not found.",
-                        "Missing Source File",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                    RestoreFocusHack();
-                    break;
-                case -2:
-                    MessageBox.Show(MDIMain,
-                        "This logic source file is marked 'readonly'. WinAGI requires write-access to edit source files.",
-                        "Read only Files not Allowed",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                    RestoreFocusHack();
-                    break;
-                case -3:
-                    MessageBox.Show(MDIMain,
-                        "A file access error has occurred. Unable to read this file.",
-                        "File Access Error",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error);
-                    RestoreFocusHack();
-                    break;
+            else {
+                try {
+                    tmpLogic.Import(importfile);
+                    if (tmpLogic.SourceError != ResourceErrorType.NoError) {
+                        MDIMain.UseWaitCursor = false;
+                        MessageBox.Show(MDIMain,
+                            "Errors were encountered when decompiling this logic. " +
+                            "The logic may be corrupt. Check the output carefully and make" +
+                            "any corrections as needed.",
+                            "Logic Decompilation Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
                 }
-                return;
+                catch (Exception ex) {
+                    MDIMain.UseWaitCursor = false;
+                    ErrMsgBox(ex,
+                        "Unable to load this logic resource. It can't be decompiled, " +
+                        "and does not appear to be a text file.",
+                        ex.StackTrace,
+                        "Invalid Logic Resource");
+                    return;
+                }
             }
             UpdateIncludes();
             EditLogic.SourceText = fctb.Text;
@@ -2612,12 +2667,16 @@ namespace WinAGI.Editor {
         }
 
         public void UpdateIncludes() {
-            // For ingame logics only, this verifies the correct include lines are
+            // For FAN syntax ingame logics only, this verifies the correct include lines are
             // at the start of the source code. They should be the first three lines of the
             // file, following any comment header.
             //
             // If the lines are not there and they should be, add them. If there
             // and not needed, remove them.
+            if (EditGame.SierraSyntax) {
+                return;
+            }
+
             int line, insertpos = -1, idpos = -1, reservedpos = -1, globalspos = -1;
             int badidpos = -1, badreservedpos = -1, badglobalspos = -1;
             string includefile;
@@ -3182,14 +3241,34 @@ namespace WinAGI.Editor {
                     }
                 }
             }
+            else if (ArgType == ArgListType.ActionCmds) {
+                // add all action commands
+                for (int i = 0; i < Commands.ActionCommands.Length; i++) {
+                    strLine = Commands.ActionCommands[i].Name;
+                    lstDefines.Items.Add(strLine, strLine, 26).ToolTipText = strLine;
+                }
+                ListDirty = false;
+                ListType = ArgType;
+                return;
+            }
+            else if (ArgType == ArgListType.TestCmds) {
+                // add all action commands
+                for (int i = 0; i < Commands.TestCommands.Length; i++) {
+                    strLine = Commands.TestCommands[i].Name;
+                    lstDefines.Items.Add(strLine, strLine, 26).ToolTipText = strLine;
+                }
+                ListDirty = false;
+                ListType = ArgType;
+                return;
+            }
             else {
-                if (EditGame == null) {
+                if (EditGame is null) {
                     // no resIDs if no game is loaded
                     return;
                 }
             }
             // global defines next (but only if not looking for just a ResID AND game is loaded)
-            if (EditGame != null && ArgType < ArgListType.Logic) {
+            if (EditGame is not null && ArgType < ArgListType.Logic) {
                 for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
                     // add these global defines IF
                     //     types match OR
@@ -3229,7 +3308,7 @@ namespace WinAGI.Editor {
                 }
             }
             // resource IDs
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 // check for logics, views, sounds, iobjs, voc words AND pics
                 switch (ArgType) {
                 case ArgListType.All:
@@ -3288,13 +3367,13 @@ namespace WinAGI.Editor {
             }
             // lastly, check for reserved defines option (if not looking for a resourceID)
             TDefine[] tmpDefines = null;
-            if (EditGame == null && WinAGISettings.DefIncludeReserved.Value && ArgType < ArgListType.Logic) {
+            if (EditGame is null && WinAGISettings.DefIncludeReserved.Value && ArgType < ArgListType.Logic) {
                 tmpDefines = DefaultReservedDefines.All();
             }
-            if (EditGame != null && EditGame.IncludeReserved && ArgType < ArgListType.Logic) {
+            if (EditGame is not null && EditGame.IncludeReserved && ArgType < ArgListType.Logic) {
                 tmpDefines = EditGame.ReservedDefines.All();
             }
-            if (tmpDefines != null) {
+            if (tmpDefines is not null) {
                 for (int i = 0; i < tmpDefines.Length; i++) {
                     // add these reserved defines IF
                     //     types match OR
@@ -3335,6 +3414,16 @@ namespace WinAGI.Editor {
             }
             ListDirty = false;
             ListType = ArgType;
+        }
+
+        private bool InIfBlock(AGIToken token) {
+            // returns true if the token is inside an IF block
+            int ifpos = WinAGIFCTB.FindTokenPosRev(fctb.Text, "if", fctb.PlaceToPosition(token.Start));
+            if (ifpos == -1) {
+                return false;
+            }
+            int blockstart = WinAGIFCTB.FindTokenPosRev(fctb.Text, "{", fctb.PlaceToPosition(token.Start));
+            return blockstart < ifpos;
         }
 
         private void ShowSynonymList(string aWord) {
@@ -3518,9 +3607,101 @@ namespace WinAGI.Editor {
             fctb.CaretVisible = false;
             lstDefines.Select();
         }
-        
+
+        private void ShowCommandList() {
+            // displays available commands in a list box
+            // that user can select from to replace current word (if cursor
+            // is in a word) or insert at current position (if cursor is
+            // in between words)
+            AGIToken token;
+            picTip.Visible = false;
+            if (fctb.SelectionLength == 0) {
+                int linelength = fctb.GetLineLength(fctb.Selection.Start.iLine);
+                if (linelength == 0) {
+                    token = fctb.TokenFromPos();
+                }
+                // '|ab ' or ' |ab' or  'a|b'  or 'ab| ' or ' ab|'
+                // should all return 'ab'
+                // TokenFromPos() will get first three
+                else if (fctb.Selection.Start.iChar > 0 && fctb.Selection.Start.iChar == linelength || fctb.Lines[fctb.Selection.Start.iLine][fctb.Selection.Start.iChar] == ' ') {
+                    Place next = fctb.Selection.Start;
+                    next.iChar--;
+                    token = fctb.TokenFromPos(next);
+                }
+                else {
+                    token = fctb.TokenFromPos();
+                }
+            }
+            else {
+                token = fctb.TokenFromPos();
+            }
+            ArgListType tmpType = InIfBlock(token) ? ArgListType.TestCmds : ArgListType.ActionCmds;
+            BuildDefineList(tmpType);
+            // expand selection if necessary
+            Place tokenstart = new(token.StartPos, token.Line);
+            Place tokenend = new(token.EndPos, token.Line);
+            if (fctb.SelectionLength == 0) {
+                if (token.Text.Length > 0 && (token.Type == AGITokenType.Identifier || token.Type == AGITokenType.String || token.Type == AGITokenType.Number)) {
+                    fctb.Selection.Start = tokenstart;
+                    fctb.Selection.End = tokenend;
+                }
+            }
+            else {
+                // expand only if selection is inside the token
+                if (token.Text.Length > 0) {
+                    if (fctb.Selection.Start >= tokenstart && fctb.Selection.End <= tokenend) {
+                        fctb.Selection.Start = tokenstart;
+                        fctb.Selection.End = tokenend;
+                    }
+                }
+            }
+            // save pos and text
+            DefStartPos = fctb.Selection.Start;
+            DefEndPos = fctb.Selection.End;
+            PrevText = fctb.Selection.Text;
+            DefText = PrevText;
+            fctb.CaretVisible = false;
+            // check for match or partial in the list
+            if (fctb.SelectionLength > 0) {
+                string strText = fctb.SelectedText;
+                bool selected = false;
+                // check for value match first
+                if (!selected) {
+                    bool found = false;
+                    foreach (ListViewItem tmpItem in lstDefines.Items) {
+                        switch (strText.ToLower().CompareTo(tmpItem.Text.ToLower())) {
+                        case 0:
+                            // select this one
+                            tmpItem.Selected = true;
+                            lstDefines.TopItem = tmpItem;
+                            tmpItem.EnsureVisible();
+                            found = true;
+                            break;
+                        case < 0:
+                            // strText < tmpItem.Text
+                            // stop here; don't select it, but scroll to it
+                            lstDefines.TopItem = tmpItem;
+                            tmpItem.EnsureVisible();
+                            found = true;
+                            break;
+                        }
+                        if (found) {
+                            break;
+                        }
+                    }
+                }
+            }
+            lstDefines.Columns[0].Width = lstDefines.Width;
+            // position it
+            PositionListBox();
+            lstDefines.ShowItemToolTips = true;
+            lstDefines.Visible = true;
+            fctb.CaretVisible = false;
+            lstDefines.Select();
+        }
+
         internal void ShowHelp() {
-            string strTopic = "htm\\winagi\\Logic_Editor.htm";
+            string strTopic = "htm\\winagi\\editor_logic.htm";
 
             // TODO: add context help
 
@@ -3667,7 +3848,7 @@ namespace WinAGI.Editor {
         }
 
         private bool AskClose() {
-            if (EditLogic.ErrLevel < 0) {
+            if (!Visible) {
                 // if exiting due to error on form load
                 return true;
             }

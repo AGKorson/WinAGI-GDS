@@ -61,7 +61,7 @@ private void Form_KeyDown(int KeyCode, int Shift) {
   // check for help key
   If Shift = 0 And KeyCode = vbKeyF1 Then
     // help with picoptions
-    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\PictureOptions.htm");
+    Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\pictestmode.htm#testoptions");
     KeyCode = 0
   End If
 }

@@ -351,7 +351,7 @@ namespace WinAGI.Editor {
 
         private void cmiCharMap_Click(object sender, EventArgs e) {
             frmCharPicker CharPicker;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 CharPicker = new(EditGame.CodePage);
             }
             else {

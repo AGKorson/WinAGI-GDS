@@ -110,7 +110,7 @@ namespace WinAGI.Common {
         [DoesNotReturn]
         private static void ThrowResourceNotLoaded() {
             WinAGIException wex = new("Resource not loaded") {
-                HResult = WINAGI_ERR + 563,
+                HResult = WINAGI_ERR + 501,
             };
             throw wex;
         }
@@ -291,7 +291,11 @@ namespace WinAGI.Common {
                 }
             }
             catch (Exception) {
-                throw new Exception("directory copy error");
+                WinAGIException wex = new(LoadResString(548).Replace(ARG1, destDirName)) {
+                    HResult = WINAGI_ERR + 548,
+                };
+                wex.Data["targetdir"] = destDirName;
+                throw wex;
             }
         }
 

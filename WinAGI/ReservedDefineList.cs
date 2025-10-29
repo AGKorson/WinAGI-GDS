@@ -17,8 +17,6 @@ namespace WinAGI.Engine {
     /// Represents a list of reserved defines that are used for this game.
     /// </summary>
     public class ReservedDefineList {
-        // TODO: manage reserved defines as a list attached to each game; a default
-        // list is also attached to the game engine; will need to do extensive testing
 
         #region Local Members
         readonly AGIGame parent;
@@ -34,7 +32,7 @@ namespace WinAGI.Engine {
         TDefine[] agVideoModes = new TDefine[5];  //  5: text of video mode codes
         TDefine[] agCompTypes = new TDefine[9];   //  9: computer type codes
         TDefine[] agColorNames = new TDefine[16];  // 16: text of color indices
-        TDefine[] agGameInfo = new TDefine[4];    //  4: gameID, gameabout, gamedescription, invcount
+        TDefine[] agGameInfo = new TDefine[4];    //  4: gameID, gameversion, gameabout, invcount
         #endregion
 
         #region Constructors
@@ -537,74 +535,79 @@ namespace WinAGI.Engine {
         /// <param name="newname"></param>
         /// <exception cref="IndexOutOfRangeException"></exception>
         public void SetResDef(ResDefGroup group, int index, string newname) {
-
             // TODO: validate, and if not ok ignore (or use default?)
+
             switch (group) {
             case ResDefGroup.Variable:
                 // variable: value must be 0-26
                 if (index < 0 || index > 27) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.Variable");
                 }
                 agResVar[index].Name = newname;
                 break;
             case ResDefGroup.Flag:
                 // flag: value must be 0-17
                 if (index < 0 || index > 17) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.Flag");
                 }
                 agResFlag[index].Name = newname;
                 break;
             case ResDefGroup.EdgeCode:
                 // edgecode: value must be 0-4
                 if (index < 0 || index > 4) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.EdgeCode");
                 }
                 agEdgeCodes[index].Name = newname;
                 break;
             case ResDefGroup.ObjectDir:
                 // direction: value must be 0-8
                 if (index < 0 || index > 8) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.ObjectDir");
                 }
                 agObjDirs[index].Name = newname;
                 break;
             case ResDefGroup.VideoMode:
                 // video: value must be 0-4
                 if (index < 0 || index > 4) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.VideoMode");
                 }
                 agVideoModes[index].Name = newname;
                 break;
             case ResDefGroup.ComputerType:
                 // computer: value must be 0-8
                 if (index < 0 || index > 8) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.ComputerType");
                 }
                 agCompTypes[index].Name = newname;
                 break;
             case ResDefGroup.Color:
                 // color: value must be 0-15
                 if (index < 0 || index > 15) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.Color");
                 }
                 agColorNames[index].Name = newname;
                 break;
             case ResDefGroup.Object:
                 // only 0 (ego)
                 if (index != 0) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.Object");
                 }
                 agResObj[index].Name = newname;
                 break;
             case ResDefGroup.String:
                 // only 0 (input prompt)
                 if (index != 0) {
-                    throw new IndexOutOfRangeException(nameof(index));
+                    throw new IndexOutOfRangeException("ReservedDefineList.String");
                 }
                 agResStr[index].Name = newname;
                 break;
-            default:
-                throw new IndexOutOfRangeException(nameof(group));
+            case ResDefGroup.GameInfo:
+                // index must be 0-3
+                if (index < 0 || index > 15) {
+                    throw new IndexOutOfRangeException("ReservedDefineList.GameInfo");
+                }
+                agGameInfo[index].Name = newname;
+                break;
             }
             IsChanged = true;
         }
@@ -688,7 +691,7 @@ namespace WinAGI.Engine {
                 return DefineNameCheck.OK;
             }
             // basic checks
-            bool sierrasyntax = parent != null && parent.SierraSyntax;
+            bool sierrasyntax = parent is not null && parent.SierraSyntax;
             DefineNameCheck retval = BaseNameCheck(CheckDef.Name, sierrasyntax);
             if (retval != DefineNameCheck.OK) {
                 return retval;
@@ -736,7 +739,7 @@ namespace WinAGI.Engine {
         /// </summary>
         public void SaveList(bool force) {
             
-            if (parent != null && !parent.IncludeReserved) {
+            if (parent is not null && !parent.IncludeReserved) {
                 // should never happen
                 Debug.Assert(false);
                 return;

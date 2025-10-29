@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,12 +24,6 @@ namespace WinAGI.Engine {
         bool mInGame;
         bool mIsChanged;
         bool mLoaded;
-        int mErrLevel = 0;
-        // 1 = empty file
-        // 2 = invalid data (decrypt failure)
-        // 3 = invalid data (datawidth failure)
-        // 4 = invalid data (invalid text pointer)
-        // 5 = first object is not '?'
         AGIGame parent = null;
         int mCodePage = Base.CodePage;
         #endregion
@@ -66,16 +61,7 @@ namespace WinAGI.Engine {
             mInGame = false;
             mResFile = filename;
             InitInvObj();
-            try {
-                Load(filename);
-            }
-            catch {
-                // blank the list
-                mResFile = "";
-                InitInvObj();
-                // return the error
-                throw;
-            }
+            Load(filename);
         }
         #endregion
 
@@ -245,13 +231,22 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the error level associated with this inventory item list.
+        /// Gets the error level associated with this inventory item list. Only
+        /// used during first game load event. Once a list is saved in WinAGI,
+        /// it will always be 0.
         /// </summary>
-        public int ErrLevel {
-            get {
-                return mErrLevel;
-            }
-        }
+        public ResourceErrorType Error { get; internal set; } = ResourceErrorType.NoError;
+
+        public string[] ErrData { get; internal set; } = ["", "", "", "", "", ""];
+
+        /// <summary>
+        /// Bitfield that contains warnings applicable to this OBJECT file:<br />
+        /// 1 = unexpected end of file<br />
+        /// 2 = first item is not '?'<br />
+        /// </summary>
+        public int Warnings { get; internal set; } = 0;
+
+        public string[] WarnData { get; internal set; } = ["", "", "", "", "", ""];
 
         /// <summary>
         /// Gets or sets the character code page to use when converting 
@@ -320,7 +315,16 @@ namespace WinAGI.Engine {
 
         /// <summary>
         /// Loads inventory items for the game from an OBJECT file. If not
-        /// in a game, LoadFile must be specified.
+        /// in a game, LoadFile must be specified. Error level is set after
+        /// loading:<br />0 = no errors or warnings<br />
+        /// -21 = file missing<br />
+        /// -22 = file is read-only<br />
+        /// -23 = file access error, unable to read file<br />
+        /// -24 = file too small to contain minimum data <br />
+        /// -25 = invalid data, unable to decrypt<br />
+        /// -26 = invalid header, unable to read item data<br />
+        /// 1 = invalid item pointer<br />
+        /// 2 = first item is not '?'<br />
         /// </summary>
         /// <param name="LoadFile"></param>
         /// <exception cref="Exception"></exception>
@@ -331,45 +335,19 @@ namespace WinAGI.Engine {
             if (mInGame) {
                 LoadFile = mResFile;
             }
-            if (LoadFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(599)) {
-                    HResult = WINAGI_ERR + 599
-                };
-                throw wex;
+            // clear error info before loading
+            ErrData = ["", "", "", "", "", ""];
+            WarnData = ["", "", "", "", "", ""];
+
+            // set loaded flag before reading file data
+            mLoaded = true;
+            mIsChanged = false;
+            (Error, Warnings) = LoadObjectFile(LoadFile);
+            if (mInGame) {
+                mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "", true);
             }
-            // verify file exists
-            if (!File.Exists(LoadFile)) {
-                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 606,
-                };
-                wex.Data["missingfile"] = LoadFile;
-                wex.Data["ID"] = "OBJECT";
-                throw wex;
-            }
-            // check for readonly
-            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 700,
-                };
-                wex.Data["badfile"] = LoadFile;
-                throw wex;
-            }
-            try {
-                mErrLevel = LoadSierraFile(LoadFile);
-            }
-            catch {
-                throw;
-            }
-            finally {
-                // always set loaded flag regardless of error status
-                mLoaded = true;
-                if (mInGame) {
-                    mDescription = parent.agGameProps.GetSetting("OBJECT", "Description", "", true);
-                }
-                else {
-                    mResFile = LoadFile;
-                }
-                mIsChanged = false;
+            else {
+                mResFile = LoadFile;
             }
         }
 
@@ -377,35 +355,53 @@ namespace WinAGI.Engine {
         /// Loads an inventory item list by reading from the OBJECT file.
         /// </summary>
         /// <param name="LoadFile"></param>
-        /// <returns>0 = no errors or warnings<br />
-        /// -21 = invalid data, unable to decrypt<br />
-        /// -22 = invalid header, unable to read item data<br />
-        /// -23 = file access error, unable to read file
-        /// 1 = no data/empty file<br />
-        /// 2 = invalid item pointer<br />
-        /// 4 = first item is not '?'<br />
-        /// </returns>
-        private int LoadSierraFile(string LoadFile) {
+        private (ResourceErrorType, int) LoadObjectFile(string LoadFile) {
             StringBuilder sbItem;
             string sItem;
             int intItem;
             byte bytRoom;
-            int retval = 0;
+            ResourceErrorType reterr = ResourceErrorType.NoError;
+            int retwarn = 0;
             byte[] bytData = [], bytChar = new byte[1];
             int lngDataOffset, lngNameOffset;
             int lngPos, Dwidth;
             FileStream fsObj;
-            try {
-                fsObj = new(LoadFile, FileMode.Open);
-            }
-            catch {
-                return -3;
-            }
-            mLoaded = true;
 
-            if (fsObj.Length == 0) {
+            if (!File.Exists(LoadFile)) {
+                return (ResourceErrorType.ObjectNoFile, 0);
+            }
+            // check for readonly
+            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                reterr = ResourceErrorType.ObjectIsReadOnly;
+            }
+            try {
+                fsObj = new(LoadFile, FileMode.Open, FileAccess.Read);
+            }
+            catch (Exception ex) {
+                ErrData[0] = ex.Message;
+                return (ResourceErrorType.ObjectAccessError, 0);
+            }
+            // based on disassembly of AGI.EXE, the theoretical smallest
+            // valid OBJECT file is 3 bytes (00 00 MX); this will work,
+            // but only if no calls to get, put, has, etc are used, 
+            // because with no items, a run time error will always be thrown
+            //
+            // the smallest practical valid OBJECT file is 8 bytes:
+            //    2 bytes for offset to text (which will be 3)
+            //    1 byte for maxscreenobjects
+            //    3 bytes for one entry in data table
+            //    2 byte for first item ('?')
+            //    (03 00 MX 00 00 RM 3F 00)
+            // 
+            // (if first item item is a null string, then seven
+            // bytes would also work, but every known OBJECT file 
+            // uses '?' as first item of text even if the first
+            // item actually points to a different text; it 
+            // appears Sierra's compiler always added the '?'
+            // regardless of the item0's value
+            if (fsObj.Length < 8) {
                 fsObj.Dispose();
-                return 1;
+                return (ResourceErrorType.ObjectNoData, 0);
             }
             Array.Resize(ref bytData, (int)fsObj.Length);
             fsObj.Read(bytData);
@@ -422,7 +418,7 @@ namespace WinAGI.Engine {
                 break;
             case 2: 
                 // error in object file
-                return -1;
+                return (ResourceErrorType.ObjectDecryptError, 0);
             }
             // MSDOS files always have data element widths of 3 bytes;
             // Amigas have four; need to make sure correct value is used
@@ -442,7 +438,7 @@ namespace WinAGI.Engine {
             }
             while (Dwidth <= 4);
             if (Dwidth == 5) {
-                return -2;
+                return (ResourceErrorType.ObjectBadHeader, 0);
             }
             mMaxScreenObjects = bytData[2];
             intItem = 0;
@@ -454,7 +450,7 @@ namespace WinAGI.Engine {
                 bytRoom = bytData[Dwidth + intItem * Dwidth + 2];
                 lngPos = lngNameOffset;
                 if (lngPos > bytData.Length) {
-                    retval |= 2;
+                    retwarn |= 1;
                     intItem++;
                     continue;
                 }
@@ -470,7 +466,7 @@ namespace WinAGI.Engine {
                 }
                 sItem = sbItem.ToString();
                 // first item IS USUALLY a '?'  , but NOT always
-                // (See MH2 for example!!!!)
+                // (See MH2 as an example)
                 if (intItem == 0) {
                     // don't add first item if it's a '?'; it is already added
                     // but it might not be a '?'
@@ -478,7 +474,7 @@ namespace WinAGI.Engine {
                         // rename first object
                         mItems[0].mItemName = sItem;
                         mItems[0].mRoom = bytRoom;
-                        retval |= 4;
+                        retwarn |= 2;
                     }
                 }
                 else {
@@ -488,7 +484,8 @@ namespace WinAGI.Engine {
                 intItem++;
             }
             while (((intItem * Dwidth) + Dwidth < lngDataOffset) && (intItem < MAX_ITEMS));
-            return retval;
+            mIsChanged = reterr != ResourceErrorType.NoError;
+            return (reterr, retwarn);
         }
 
         /// <summary>
@@ -521,16 +518,24 @@ namespace WinAGI.Engine {
                     SaveFile = mResFile;
                 }
                 // if still no file
-                if (SaveFile.Length == 0) {
-                    WinAGIException wex = new(LoadResString(615)) {
-                        HResult = WINAGI_ERR + 615
-                    };
-                    throw wex;
+                ArgumentException.ThrowIfNullOrWhiteSpace(SaveFile);
+                try {
+                    Compile(SaveFile);
                 }
-                Compile(SaveFile);
+                catch {
+                    throw;
+                }
                 mResFile = SaveFile;
             }
             mIsChanged = false;
+            // clear errors
+            Error = ResourceErrorType.NoError;
+            ErrData = ["", "", "", "", "", ""];
+            // check warnings
+            Warnings = 0;
+            if (mItems[0].ItemName != "?") {
+                Warnings |= 1;
+            }
         }
 
         /// <summary>
@@ -544,11 +549,8 @@ namespace WinAGI.Engine {
             try {
                 Compile(ExportFile);
             }
-            catch (Exception) {
-                WinAGIException wex = new(LoadResString(582)) {
-                    HResult = WINAGI_ERR + 582,
-                };
-                throw wex;
+            catch {
+                throw;
             }
             if (!mInGame) {
                 mIsChanged = false;
@@ -568,13 +570,7 @@ namespace WinAGI.Engine {
             byte[] bytTemp;
             string strTempFile = "";
             int Dwidth;
-
-            if (CompileFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(616)) {
-                    HResult = WINAGI_ERR + 616
-                };
-                throw wex;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(CompileFile);
             if (!mIsChanged && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
                 return;
             }
@@ -650,11 +646,15 @@ namespace WinAGI.Engine {
                 fsObj.Dispose();
                 File.Move(strTempFile, CompileFile, true);
             }
-            catch (Exception e) {
+            catch (Exception ex) {
                 SafeFileDelete(strTempFile);
-                WinAGIException wex = new(LoadResString(674).Replace(ARG1, e.HResult.ToString())) {
-                    HResult = WINAGI_ERR + 674,
+                WinAGIException wex = new(LoadResString(502).Replace(
+                    ARG1, ex.Message).Replace(
+                    ARG2, strTempFile)) {
+                    HResult = WINAGI_ERR + 502,
                 };
+                wex.Data["exception"] = ex;
+                wex.Data["ID"] = "WORDS.TOK";
                 throw wex;
             }
         }
@@ -668,8 +668,8 @@ namespace WinAGI.Engine {
         public InventoryItem Add(string NewItem, byte Room) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (mItems.Count == MAX_ITEMS) {
-                WinAGIException wex = new(LoadResString(569)) {
-                    HResult = WINAGI_ERR + 569,
+                WinAGIException wex = new(LoadResString(512)) {
+                    HResult = WINAGI_ERR + 512,
                 };
                 throw wex;
             }
@@ -684,8 +684,8 @@ namespace WinAGI.Engine {
         public InventoryItem Add(InventoryItem item) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (mItems.Count == MAX_ITEMS) {
-                WinAGIException wex = new(LoadResString(569)) {
-                    HResult = WINAGI_ERR + 569,
+                WinAGIException wex = new(LoadResString(512)) {
+                    HResult = WINAGI_ERR + 512,
                 };
                 throw wex;
             }
@@ -775,6 +775,10 @@ namespace WinAGI.Engine {
                 Room = 0
             };
             mItems.Add(tmpItem);
+            Error = ResourceErrorType.NoError;
+            Warnings = 0;
+            ErrData = ["", "", "", "", "", ""];
+            WarnData = ["", "", "", "", "", ""];
             mIsChanged = true;
         }
 
@@ -790,7 +794,12 @@ namespace WinAGI.Engine {
             clonelist.mCodePage = mCodePage;
             clonelist.mDescription = mDescription;
             clonelist.mEncrypted = mEncrypted;
-            clonelist.mErrLevel = mErrLevel;
+            clonelist.Error = Error;
+            clonelist.Warnings = Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                clonelist.ErrData[i] = ErrData[i];
+                clonelist.WarnData[i] = WarnData[i];
+            }
             clonelist.mLoaded = mLoaded;
             clonelist.mMaxScreenObjects = mMaxScreenObjects;
             clonelist.mResFile = mResFile;
@@ -816,7 +825,12 @@ namespace WinAGI.Engine {
             mCodePage = srcList.mCodePage;
             mDescription = srcList.mDescription;
             mEncrypted = srcList.mEncrypted;
-            mErrLevel = srcList.mErrLevel;
+            Error = srcList.Error;
+            Warnings = srcList.Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                ErrData[i] = srcList.ErrData[i];
+                WarnData[i] = srcList.WarnData[i];
+            }
             mMaxScreenObjects = srcList.mMaxScreenObjects;
             mResFile = srcList.mResFile;
             mIsChanged = srcList.mIsChanged;
@@ -860,16 +874,23 @@ namespace WinAGI.Engine {
             SafeFileDelete(theDir + "OBJECT.amg");
             try {
                 File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg", true);
-                // mark it as changed, and save it to create a new file in MSDOS format
-                mIsChanged = true;
+            }
+            catch (Exception ex) {
+                WinAGIException wex = new(LoadResString(502).Replace(
+                    ARG1, ex.Message).Replace(
+                    ARG2, theDir + "OBJECT.amg")) {
+                    HResult = WINAGI_ERR + 502,
+                };
+                wex.Data["exception"] = ex;
+                throw wex;
+            }
+            // mark it as changed, and save it to create a new file in MSDOS format
+            mIsChanged = true;
+            try {
                 Save();
             }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(582)) {
-                    HResult = WINAGI_ERR + 582,
-                };
-                wex.Data["exception"] = e;
-                throw wex;
+            catch {
+                throw;
             }
         }
 

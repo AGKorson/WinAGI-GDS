@@ -78,7 +78,7 @@ namespace WinAGI.Editor {
             SendMessage(this.Handle, WM_SETREDRAW, false, 0);
             // this method recurses several times before finishing for
             // some reason; to prevent it, use a flag
-            if (Parent != null && !dont) {
+            if (Parent is not null && !dont) {
                 dont = true;
                 // Draw the parent control's background onto this control
                 using (var bmp = new Bitmap(Parent.ClientSize.Width, Parent.ClientSize.Height)) {
@@ -102,7 +102,7 @@ namespace WinAGI.Editor {
 
         protected override void OnParentChanged(EventArgs e) {
             base.OnParentChanged(e);
-            if (Parent != null) {
+            if (Parent is not null) {
                 Parent.Invalidate();
             }
         }

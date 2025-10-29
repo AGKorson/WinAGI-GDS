@@ -3,7 +3,7 @@ using WinAGI.Engine;
 
 namespace WinAGI.Editor {
     internal class ViewUndo {
-        public enum ActionType {
+        public enum ViewUndoAction {
             AddLoop,
             AddCel,
             DelLoop,
@@ -40,17 +40,17 @@ namespace WinAGI.Editor {
             CutCel,
         }
 
-        public ActionType UDAction;
+        public ViewUndoAction Action;
         public View View;
         public Loop UndoLoop;
         public Cel UndoCel;
-        public int UDLoopNo;
-        public int UDCelNo;
+        public int LoopNumber;
+        public int CelNumber;
         public string OldText;
         public int[] UndoData;
         public byte[,] CelData;
         public List<frmViewEdit.PixelInfo> PixelData;
-        public frmViewEdit.SelectionInfo UDSelection;
+        public frmViewEdit.SelectionInfo SelectionInfo;
         public ViewUndo() {
             // Initialize the arrays with a size of 0
             UndoData = [];

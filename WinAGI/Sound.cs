@@ -192,8 +192,8 @@ namespace WinAGI.Engine {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
                 if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.WAV) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
+                    WinAGIException wex = new(LoadResString(542)) {
+                        HResult = WINAGI_ERR + 542,
                     };
                     throw wex;
                 }
@@ -201,7 +201,7 @@ namespace WinAGI.Engine {
                     try {
                         BuildSoundOutput();
                     }
-                    catch (Exception) {
+                    catch {
                         // pass along errors
                         throw;
                     }
@@ -218,8 +218,8 @@ namespace WinAGI.Engine {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
                 if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.MIDI) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
+                    WinAGIException wex = new(LoadResString(542)) {
+                        HResult = WINAGI_ERR + 542,
                     };
                     throw wex;
                 }
@@ -227,7 +227,7 @@ namespace WinAGI.Engine {
                     try {
                         BuildSoundOutput();
                     }
-                    catch (Exception) {
+                    catch {
                         // pass along errors
                         throw;
                     }
@@ -359,13 +359,8 @@ namespace WinAGI.Engine {
                 }
                 mOutputSet = true;
             }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(596)) {
-                    HResult = WINAGI_ERR + 596
-                };
-                wex.Data["exception"] = e;
-                wex.Data["ID"] = mResID;
-                throw wex;
+            catch {
+                throw;
             }
         }
 
@@ -405,23 +400,30 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Extracts sound data from the resource and builds the sound tracks.
         /// </summary>
-        /// <returns>Zero if no errors, otherwise an error code:<br />
+        /// <returns>Error and warning status:<br />
+        /// Errors:<br />
+        /// -9 = no data<br />
+        /// -10 = no data<br />
         /// 1 = invalid track offset<br />
         /// 2 = zero length note<br />
         /// 4 = missing track end marker<br />
         /// 8 = no sound data
         /// </returns>
-        internal int LoadTracks() {
+        internal (ResourceErrorType, int) LoadTracks() {
             int i, lngLength = 0, lngTLength;
             int lngStart, lngDur = 0;
             short intFreq;
             byte bytAttn;
 
-            // assume no errors
-            int retval = 0;
+            // assume no errors or warnings
+            ResourceErrorType errval = ResourceErrorType.NoError;
+            int warnval = 0;
+
+            // minimum size for a sound resource is 10 bytes:
+            // 8 bytes for track offsets + 2 bytes for end of track marker
             if (Size < 10) {
                 // not enough data to be a sound
-                return 8;
+                return (ResourceErrorType.SoundNoData, 0);
             }
             // extract note information for each track from resource
             for (i = 0; i <= 3; i++) {
@@ -430,7 +432,7 @@ namespace WinAGI.Engine {
                 // validate track data location
                 if (lngStart > mSize - 1) {
                     // invalid track offset
-                    retval |= 1;
+                    errval = ResourceErrorType.SoundBadTracks;
                     continue;
                 }
                 else {
@@ -456,7 +458,7 @@ namespace WinAGI.Engine {
                             }
                             else {
                                 // zero length note
-                                retval |= 2;
+                                warnval |= 1;
                             }
                         }
                         else {
@@ -471,6 +473,10 @@ namespace WinAGI.Engine {
                                     mTrack[3].Notes.Add(intFreq, lngDur, bytAttn);
                                     lngTLength += lngDur;
                                 }
+                                else {
+                                    // zero length note
+                                    warnval |= 1;
+                                }
                             }
                         }
                         Pos += 3;
@@ -481,7 +487,7 @@ namespace WinAGI.Engine {
                     }
                     // duration should be 0xffff
                     if (lngDur != 0xFFFF) {
-                        retval |= 4;
+                        warnval |= 2;
                     }
                 }
             }
@@ -489,7 +495,7 @@ namespace WinAGI.Engine {
             // timing of 1/64 sec per tick but correct value is 1/60 sec)
             mLength = (double)lngLength / 60;
             mSoundChanged = false;
-            return retval;
+            return (errval, warnval);
         }
 
         /// <summary>
@@ -538,8 +544,8 @@ namespace WinAGI.Engine {
                 tmpRes.WriteWord(0xFFFF);
             }
             catch (Exception e) {
-                WinAGIException wex = new(LoadResString(566).Replace(ARG1, e.Message)) {
-                    HResult = WINAGI_ERR + 566
+                WinAGIException wex = new(LoadResString(511).Replace(ARG1, e.Message)) {
+                    HResult = WINAGI_ERR + 511
                 };
                 wex.Data["exception"] = e;
                 wex.Data["ID"] = mResID;
@@ -547,7 +553,10 @@ namespace WinAGI.Engine {
             }
             mData = tmpRes.mData;
             mSoundChanged = false;
-            ErrLevel = 0;
+            Error = ResourceErrorType.NoError;
+            ErrData = ["", "", "", "", "", ""];
+            Warnings = 0;
+            WarnData = ["", "", "", "", "", ""];
         }
 
         /// <summary>
@@ -611,7 +620,7 @@ namespace WinAGI.Engine {
                 try {
                     BuildSoundOutput();
                 }
-                catch (Exception) {
+                catch {
                     // pass along exception
                     throw;
                 }
@@ -623,7 +632,7 @@ namespace WinAGI.Engine {
                 try {
                     wavPlayer.PlayWAVSound(this);
                 }
-                catch (Exception) {
+                catch {
                     throw;
                 }
                 break;
@@ -631,7 +640,7 @@ namespace WinAGI.Engine {
                 try {
                     midiPlayer.PlayMIDISound(this);
                 }
-                catch (Exception) {
+                catch {
                     throw;
                 }
                 break;
@@ -683,7 +692,7 @@ namespace WinAGI.Engine {
                 }
                 base.Export(filename);
             }
-            catch (Exception) {
+            catch {
                 throw;
             }
         }
@@ -696,8 +705,8 @@ namespace WinAGI.Engine {
         private void ExportAsMIDI(string MIDIFile) {
             // only pcjr and IIgs midi can be exported as midi
             if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.MIDI) {
-                WinAGIException wex = new(LoadResString(705)) {
-                    HResult = WINAGI_ERR + 705,
+                WinAGIException wex = new(LoadResString(542)) {
+                    HResult = WINAGI_ERR + 542,
                 };
                 throw wex;
             }
@@ -705,7 +714,7 @@ namespace WinAGI.Engine {
                 try {
                     CompileSound();
                 }
-                catch (Exception) {
+                catch {
                     throw;
                 }
             }
@@ -718,7 +727,7 @@ namespace WinAGI.Engine {
                 fsSnd.Write(midiData);
                 fsSnd.Dispose();
             }
-            catch (Exception) {
+            catch {
                 // pass along error
                 throw;
             }
@@ -734,8 +743,8 @@ namespace WinAGI.Engine {
             int lngSize;
 
             if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.WAV) {
-                WinAGIException wex = new(LoadResString(705)) {
-                    HResult = WINAGI_ERR + 705,
+                WinAGIException wex = new(LoadResString(542)) {
+                    HResult = WINAGI_ERR + 542,
                 };
                 throw wex;
             }
@@ -743,7 +752,7 @@ namespace WinAGI.Engine {
                 try {
                     CompileSound();
                 }
-                catch (Exception) {
+                catch {
                     throw;
                 }
             }
@@ -862,7 +871,7 @@ namespace WinAGI.Engine {
                 fsSnd.Write(bOutput);
                 fsSnd.Dispose();
             }
-            catch (Exception) {
+            catch {
                 // pass along any errors
                 throw;
             }
@@ -880,8 +889,8 @@ namespace WinAGI.Engine {
 
             // only agi format can be exported as script
             if (mFormat != SoundFormat.AGI) {
-                WinAGIException wex = new(LoadResString(705)) {
-                    HResult = WINAGI_ERR + 705,
+                WinAGIException wex = new(LoadResString(542)) {
+                    HResult = WINAGI_ERR + 542,
                 };
                 throw wex;
             }
@@ -931,7 +940,7 @@ namespace WinAGI.Engine {
                 swSnd.Dispose();
                 fsSnd.Dispose();
             }
-            catch (Exception) {
+            catch {
                 // pass along any errors
                 throw;
             }
@@ -942,32 +951,14 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="ImportFile"></param>
         public void Import(string ImportFile, SoundImportFormat format = SoundImportFormat.AGI, SoundImportOptions options = null) {
+            ArgumentException.ThrowIfNullOrWhiteSpace(ImportFile, nameof(ImportFile));
+            if (!File.Exists(ImportFile)) {
+                throw new FileNotFoundException(ImportFile);
+            }
             switch (format) {
             case SoundImportFormat.AGI:
                 // import as AGI sound
-                try {
-                    base.Import(ImportFile);
-                    // finish loading sound
-                    FinishLoad();
-                    // reset properties
-                    mKey =  0;
-                    mTPQN = 4;
-                    mTrack[0].Instrument = 80;
-                    mTrack[1].Instrument = 80;
-                    mTrack[2].Instrument = 80;
-                    mTrack[0].Muted = false;
-                    mTrack[1].Muted = false;
-                    mTrack[2].Muted = false;
-                    mTrack[3].Muted = false;
-                    mTrack[0].Visible = true;
-                    mTrack[1].Visible = true;
-                    mTrack[2].Visible = true;
-                    mTrack[3].Visible = true;
-                }
-                catch {
-                    // pass along any errors
-                    throw;
-                }
+                base.Import(ImportFile);
                 // set defaults
                 mTPQN = 16;
                 mKey = 0;
@@ -990,12 +981,12 @@ namespace WinAGI.Engine {
                     SoundImport.MIDI2AGI(ImportFile, this, options);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    wex.Data["exception"] = e;
-                    wex.Data["ID"] = mResID;
-                    throw wex;
+                    // reset to a default sound
+                    Error = ResourceErrorType.SoundCantConvert;
+                    ErrData[0] = format.ToString();
+                    ErrData[1] = e.Message;
+                    ErrClear();
+                    ClearTracks();
                 }
                 // rebuild sound data
                 CompileSound();
@@ -1005,12 +996,12 @@ namespace WinAGI.Engine {
                     SoundImport.MOD2AGI(ImportFile, this, options);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    wex.Data["exception"] = e;
-                    wex.Data["ID"] = mResID;
-                    throw wex;
+                    // reset to a default sound
+                    Error = ResourceErrorType.SoundCantConvert;
+                    ErrData[0] = format.ToString();
+                    ErrData[1] = e.Message;
+                    ErrClear();
+                    ClearTracks();
                 }
                 CompileSound();
                 break;
@@ -1019,12 +1010,12 @@ namespace WinAGI.Engine {
                     SoundImport.IT2AGI(ImportFile, this, options);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    wex.Data["exception"] = e;
-                    wex.Data["ID"] = mResID;
-                    throw wex;
+                    // reset to a default
+                    Error = ResourceErrorType.SoundCantConvert;
+                    ErrData[0] = format.ToString();
+                    ErrData[1] = e.Message;
+                    ErrClear();
+                    ClearTracks();
                 }
                 CompileSound();
                 break;
@@ -1033,12 +1024,12 @@ namespace WinAGI.Engine {
                     SoundImport.Script2AGI(ImportFile, this);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(705)) {
-                        HResult = WINAGI_ERR + 705,
-                    };
-                    wex.Data["exception"] = e;
-                    wex.Data["ID"] = mResID;
-                    throw wex;
+                    // reset to a default
+                    Error = ResourceErrorType.SoundCantConvert;
+                    ErrData[0] = format.ToString();
+                    ErrData[1] = e.Message;
+                    ErrClear();
+                    ClearTracks();
                 }
                 CompileSound();
                 break;
@@ -1075,18 +1066,11 @@ namespace WinAGI.Engine {
             }
             // load base resource
             base.Load();
-            if (ErrLevel < 0) {
+            if (Error != ResourceErrorType.NoError &&
+                Error != ResourceErrorType.FileIsReadonly) {
+                // errors other than readonly can't be extracted
                 ErrClear();
-                // clear the sound to empty set of tracks
-                for (int i = 0; i <= 3; i++) {
-                    mTrack[i] = new Track(this) {
-                        Instrument = 80
-                    };
-                    mTrack[0].Muted = false;
-                    mTrack[0].Visible = true;
-                }
-                mOutputSet = false;
-                mLength = 0;
+                ClearTracks();
             }
             else {
                 // finish loading sound
@@ -1118,6 +1102,19 @@ namespace WinAGI.Engine {
             }
         }
 
+        private void ClearTracks() {
+            // clear the sound to empty set of tracks
+            for (int i = 0; i <= 3; i++) {
+                mTrack[i] = new Track(this) {
+                    Instrument = 80
+                };
+                mTrack[0].Muted = false;
+                mTrack[0].Visible = true;
+            }
+            mOutputSet = false;
+            mLength = 0;
+        }
+
         /// <summary>
         /// This method sets the sound format and loads tracks and output data.
         /// </summary>
@@ -1144,11 +1141,12 @@ namespace WinAGI.Engine {
                 break;
             case 8:
                 mFormat = SoundFormat.AGI;
-                ErrLevel = LoadTracks();
+                (Error, Warnings) = LoadTracks();
                 break;
             default:
                 // bad sound
-                ErrLevel = 16;
+                Error = ResourceErrorType.SoundBadTracks;
+                Warnings = 0;
                 ErrClear();
                 break;
             }
@@ -1156,7 +1154,7 @@ namespace WinAGI.Engine {
                 try {
                     BuildSoundOutput();
                 }
-                catch (Exception) {
+                catch {
                     // pass along errors
                     throw;
                 }
@@ -1201,7 +1199,7 @@ namespace WinAGI.Engine {
                 try {
                     CompileSound();
                 }
-                catch (Exception) {
+                catch {
                     throw;
                 }
             }
@@ -1209,7 +1207,7 @@ namespace WinAGI.Engine {
                 try {
                     base.Save();
                 }
-                catch (Exception) {
+                catch {
                     throw;
                 }
             }

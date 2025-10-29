@@ -19,7 +19,7 @@ namespace WinAGI.Editor {
         #region Constructors
         public frmReserved() {
             InitializeComponent();
-            if (EditGame == null || !EditGame.SierraSyntax) {
+            if (EditGame is null || !EditGame.SierraSyntax) {
                 invalid1st = INVALID_FIRST_CHARS;
                 invalidall = INVALID_DEFINE_CHARS;
             }
@@ -45,7 +45,7 @@ namespace WinAGI.Editor {
             template.Cells[0].Value = "";
             template.Cells[1].Value = "";
             reservedgrid.RowTemplate = template;
-            if (EditGame == null) {
+            if (EditGame is null) {
                 EditList = Engine.Base.DefaultReservedDefines;
             }
             else {
@@ -55,7 +55,7 @@ namespace WinAGI.Editor {
         }
 
         private void btnSave_Click(object sender, EventArgs e) {
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 // replace any changed defines with new names
                 DialogResult rtn = DialogResult.No;
                 bool blnDontAsk = false;
@@ -105,7 +105,7 @@ namespace WinAGI.Editor {
                             bool textchanged = false;
                             for (int i = 0; i < reservedgrid.RowCount - 1; i++) {
                                 // skip header and blank lines
-                                if (reservedgrid.Rows[i].Tag != null) {
+                                if (reservedgrid.Rows[i].Tag is not null) {
                                     continue;
                                 }
                                 ResDefGroup group = (ResDefGroup)reservedgrid[0, i].Tag;
@@ -166,7 +166,7 @@ namespace WinAGI.Editor {
                         // check for deleted define names
                         for (int i = 0; i < reservedgrid.RowCount - 1; i++) {
                             // ignore headers and blanks
-                            if (reservedgrid.Rows[i].Tag != null) {
+                            if (reservedgrid.Rows[i].Tag is not null) {
                                 continue;
                             }
                             ResDefGroup group = (ResDefGroup)reservedgrid[0, i].Tag;
@@ -238,7 +238,7 @@ namespace WinAGI.Editor {
             }
             for (int i = 0; i < reservedgrid.Rows.Count; i++) {
                 // skip header and blank rows
-                if (reservedgrid.Rows[i].Tag != null) {
+                if (reservedgrid.Rows[i].Tag is not null) {
                     continue;
                 }
                 ResDefGroup group = (ResDefGroup)reservedgrid[0, i].Tag;
@@ -253,7 +253,7 @@ namespace WinAGI.Editor {
         private void btnReset_Click(object sender, EventArgs e) {
             for (int i = 0; i < reservedgrid.Rows.Count; i++) {
                 // skip header and blank rows
-                if (reservedgrid.Rows[i].Tag != null) {
+                if (reservedgrid.Rows[i].Tag is not null) {
                     continue;
                 }
                 ResDefGroup group = (ResDefGroup)reservedgrid[0, i].Tag;
@@ -271,7 +271,7 @@ namespace WinAGI.Editor {
         }
 
         private void reservedgrid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
-            if (e.RowIndex < 0 || e.ColumnIndex != 0 || reservedgrid[0, e.RowIndex].Tag == null) {
+            if (e.RowIndex < 0 || e.ColumnIndex != 0 || reservedgrid[0, e.RowIndex].Tag is null) {
                 return;
             }
             ResDefGroup group = (ResDefGroup)reservedgrid[0, e.RowIndex].Tag;
@@ -295,7 +295,7 @@ namespace WinAGI.Editor {
                     return;
                 }
                 // basic checks
-                bool sierrasyntax = EditGame != null && EditGame.SierraSyntax;
+                bool sierrasyntax = EditGame is not null && EditGame.SierraSyntax;
                 DefineNameCheck retval = Common.Base.BaseNameCheck(checkname, sierrasyntax);
                 switch (retval) {
                 case DefineNameCheck.OK:
@@ -355,14 +355,14 @@ namespace WinAGI.Editor {
                         "Invalid Name",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error, 0, 0,
-                        WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                        WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                     e.Cancel = true;
                     return;
                 }
                 // check against existing names in this list
                 for (int i = 0; i < reservedgrid.Rows.Count; i++) {
                     // skip header and blank rows
-                    if (reservedgrid.Rows[i].Tag != null) {
+                    if (reservedgrid.Rows[i].Tag is not null) {
                         continue;
                     }
                     // skip current row
@@ -376,7 +376,7 @@ namespace WinAGI.Editor {
                             "Invalid Name",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error, 0, 0 ,
-                            WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                            WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                         e.Cancel = true;
                         return;
                     }
@@ -411,7 +411,7 @@ namespace WinAGI.Editor {
         }
 
         private void cmCopy_Click(object sender, EventArgs e) {
-            if (reservedgrid.CurrentRow.Tag == null) {
+            if (reservedgrid.CurrentRow.Tag is null) {
                 Clipboard.SetText((string)reservedgrid.CurrentCell.Value);
             }
         }
@@ -427,7 +427,7 @@ namespace WinAGI.Editor {
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
             // ignore if on header or blank row
 
-            if (reservedgrid.CurrentRow.Tag != null) {
+            if (reservedgrid.CurrentRow.Tag is not null) {
                 e.Cancel = true;
                 return;
             }
@@ -666,7 +666,7 @@ namespace WinAGI.Editor {
 
         /*
 public void MenuClickHelp() {
-  Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\reservednames.htm#editor");
+  Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\reservednames.htm#editor");
 }
         */
         #endregion

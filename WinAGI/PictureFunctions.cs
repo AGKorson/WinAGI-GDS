@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -43,13 +41,13 @@ namespace WinAGI.Engine {
         /// <param name="picdata"></param>
         /// <param name="endpos"></param>
         /// <param name="statuspos"></param>
-        /// <returns>0 if successful, no errors/warnings<br />
+        /// <returns> warning status:<br />
+        /// = 0 if successful, no warnings<br />
         /// non-zero bitfield for error/warning:<br />
         ///  1 = no EOP marker<br />
         ///  2 = bad vis color data<br />
         ///  4 = invalid command byte<br />
         ///  8 = unused data at end of resource<br />
-        ///  16 = other error</returns>
         internal static int CompilePicData(ref byte[] VisData, ref byte[] PriData, byte[] picdata, int endpos, int statuspos) {
             // picture resource variables
             byte[] VisBuildData, PriBuildData;
@@ -188,23 +186,13 @@ namespace WinAGI.Engine {
             }
             catch (Exception e) {
                 // depending on error, set warning level
-                if (e is IndexOutOfRangeException) {
-                    // subscript error- caused when a draw function expects
-                    // another byte of data, but end of data is reached
-                    // confirm it
-                    if (lngPos > endpos) {
-                        // set warning flag
-                        retval |= 1;
-                    }
-                    else {
-                        // something else
-                        retval |= 16;
-                    }
-                }
-                else {
-                    // any other error- just pass it along
-                    retval |= 16;
-                }
+                Debug.Assert(e is IndexOutOfRangeException);
+                // subscript error- caused when a draw function expects
+                // another byte of data, but end of data is reached
+                // confirm it
+                Debug.Assert(lngPos > endpos);
+                // set warning flag
+                retval |= 1;
             }
             // if building entire picture
             if (endpos == picdata.Length - 1) {

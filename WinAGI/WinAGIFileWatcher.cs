@@ -73,7 +73,7 @@ namespace WinAGI.Engine {
             PrintException(e.GetException());
 
         private static void PrintException(Exception ex) {
-            if (ex != null) {
+            if (ex is not null) {
                 Debug.Print($"Message: {ex.Message}");
                 Debug.Print("Stacktrace:");
                 Debug.Print(ex.StackTrace);

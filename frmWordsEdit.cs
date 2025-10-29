@@ -44,6 +44,7 @@ namespace WinAGI.Editor {
         #endregion
 
         public static frmWordsEdit DragSourceForm { get; private set; }
+        
         public frmWordsEdit() {
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer |
                           ControlStyles.AllPaintingInWmPaint |
@@ -102,7 +103,7 @@ namespace WinAGI.Editor {
         private void frmWordsEdit_FormClosed(object sender, FormClosedEventArgs e) {
             // ensure object is cleared and dereferenced
 
-            if (EditWordList != null) {
+            if (EditWordList is not null) {
                 EditWordList.Unload();
                 EditWordList = null;
             }
@@ -221,9 +222,11 @@ namespace WinAGI.Editor {
             }
             catch (Exception ex) {
                 ProgressWin.Close();
-                ErrMsgBox(ex, "An error occurred while trying to load " + Path.GetFileName(MDIMain.OpenDlg.FileName) + ":",
-                "Unable to merge the file.",
-                "Merge Word List Error");
+                ErrMsgBox(ex,
+                    "An error occurred while trying to load " +
+                    Path.GetFileName(MDIMain.OpenDlg.FileName) + ":",
+                    ex.StackTrace + "Unable to merge the file.",
+                    "Merge Word List Error");
                 MDIMain.UseWaitCursor = false;
                 return;
             }
@@ -242,7 +245,7 @@ namespace WinAGI.Editor {
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question,
                                 "Repeat this answer for all duplicate words", ref RepeatAnswer,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#merge");
+                                WinAGIHelp, "htm\\winagi\\editor_words.htm#merge");
                         }
                         if (MergeReplace == DialogResult.Yes) {
                             // remove it from previous group
@@ -496,15 +499,15 @@ namespace WinAGI.Editor {
             }
             else {
                 if (Clipboard.ContainsData(WORDSTOK_CB_FMT)) {
-                    mnuEPaste.Enabled =  true;
+                    mnuEPaste.Enabled = true;
                     mnuEPaste.Text = "Paste Word";
                 }
                 else if (Clipboard.ContainsText()) {
-                    mnuEPaste.Enabled =  true;
+                    mnuEPaste.Enabled = true;
                     mnuEPaste.Text = "Paste As Word";
                 }
                 else {
-                    mnuEPaste.Enabled =  false;
+                    mnuEPaste.Enabled = false;
                     mnuEPaste.Text = "Paste Word";
                 }
                 // EXCEPT no pasting to group 1 or 9999 if already one word
@@ -762,7 +765,7 @@ namespace WinAGI.Editor {
                                 "Delete Group 0 Word",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                WinAGIHelp, "htm\\winagi\\editor_words.htm#reserved") == DialogResult.No) {
                                 return false;
                             }
                         }
@@ -776,7 +779,7 @@ namespace WinAGI.Editor {
                                 "Delete Group 1 Placeholder",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                WinAGIHelp, "htm\\winagi\\editor_words.htm#reserved") == DialogResult.No) {
                                 return false;
                             }
                         }
@@ -787,7 +790,7 @@ namespace WinAGI.Editor {
                                 "Delete Group 1 Placeholder",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                WinAGIHelp, "htm\\winagi\\editor_words.htm#reserved") == DialogResult.No) {
                                 return false;
                             }
                         }
@@ -801,7 +804,7 @@ namespace WinAGI.Editor {
                                 "Delete Group 9999 Placeholder",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                WinAGIHelp, "htm\\winagi\\editor_words.htm#reserved") == DialogResult.No) {
                                 return false;
                             }
                         }
@@ -812,7 +815,7 @@ namespace WinAGI.Editor {
                                 "Delete Group 9999 Placeholder",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved") == DialogResult.No) {
+                                WinAGIHelp, "htm\\winagi\\editor_words.htm#reserved") == DialogResult.No) {
                                 return false;
                             }
                         }
@@ -880,7 +883,7 @@ namespace WinAGI.Editor {
             if (CanPaste()) {
                 if (dgGroups.Focused) {
                     WordClipboardData groupdata = Clipboard.GetData(WORDSTOK_CB_FMT) as WordClipboardData;
-                    if (groupdata == null) {
+                    if (groupdata is null) {
                         // no custom clipboard data
                         MessageBox.Show(MDIMain,
                             "The clipboard doesn't contain a valid group.",
@@ -947,7 +950,7 @@ namespace WinAGI.Editor {
                     // check clipboard for custom data
                     WordClipboardData worddata = Clipboard.GetData(WORDSTOK_CB_FMT) as WordClipboardData;
                     string clipboardword = "";
-                    if (worddata != null && !worddata.IsGroup) {
+                    if (worddata is not null && !worddata.IsGroup) {
                         // clipboard contains a single word
                         clipboardword = worddata.WordText;
                     }
@@ -1026,14 +1029,14 @@ namespace WinAGI.Editor {
                 }
                 if ("#$%&*+/0123456789<=>@\\^_|~".Contains(retval[0])) {
                     // not allowed unless supporting power pack
-                    if (EditGame == null || !EditGame.PowerPack) {
+                    if (EditGame is null || !EditGame.PowerPack) {
                         return "";
                     }
                 }
                 // extended characters
                 if (retval.Any(c => c > 127)) {
                     // not allowed unless supporting power pack
-                    if (EditGame == null || !EditGame.PowerPack) {
+                    if (EditGame is null || !EditGame.PowerPack) {
                         return "";
                     }
                 }
@@ -1236,7 +1239,7 @@ namespace WinAGI.Editor {
 
         private void cmCharMap_Click(object sender, EventArgs e) {
             frmCharPicker CharPicker;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 CharPicker = new(EditGame.CodePage);
             }
             else {
@@ -1314,7 +1317,7 @@ namespace WinAGI.Editor {
         private void dgGroups_MouseDown(object sender, MouseEventArgs e) {
             if (GroupMode) {
                 DataGridView.HitTestInfo info = dgGroups.HitTest(e.X, e.Y);
-                if (info != null) {
+                if (info is not null) {
                     int selitem = info.RowIndex;
                     if (selitem >= dgGroups.Rows.Count) {
                         selitem = dgGroups.Rows.Count - 1;
@@ -1356,7 +1359,7 @@ namespace WinAGI.Editor {
                 Point cP = dgGroups.PointToClient(new Point(e.X, e.Y));
                 DataGridView.HitTestInfo info = dgGroups.HitTest(cP.X, cP.Y);
                 int selitem;
-                if (info != null) {
+                if (info is not null) {
                     // handle scrolling manually
                     if (cP.Y < 3) {
                         if (dgGroups.FirstDisplayedScrollingRowIndex == 0) {
@@ -1379,7 +1382,7 @@ namespace WinAGI.Editor {
                         }
                         selitem = info.RowIndex;
                     }
-                    if (selitem < 0 ||selitem >= dgGroups.Rows.Count) {
+                    if (selitem < 0 || selitem >= dgGroups.Rows.Count) {
                         return;
                     }
                     if (selitem != dgGroups.SelectedRows[0].Index) {
@@ -1400,7 +1403,7 @@ namespace WinAGI.Editor {
             Debug.Print("leave drag");
             if (GroupMode && DragWord) {
                 if (dgGroups.SelectedRows[0].Index != EditGroupIndex) {
-                   //SelectGroup(EditGroupIndex);
+                    //SelectGroup(EditGroupIndex);
                 }
             }
         }
@@ -1412,7 +1415,7 @@ namespace WinAGI.Editor {
                     int groupnum = EditWordList.GroupByIndex(dgGroups.SelectedRows[0].Index).GroupNum;
                     if (this == DragSourceForm) {
                         if (EditWordList[dropword].Group != groupnum) {
-                            // check for last word of group 1,9999
+                            // check for last word of group 1 or 9999
                             bool ok2move = true;
                             int oldgroup = EditWordList[dropword].Group;
                             if (dropword == "anyword" && oldgroup == 1) {
@@ -1445,13 +1448,40 @@ namespace WinAGI.Editor {
                         }
                     }
                     else {
+                        // validate
+                        switch (IsValidWord(dropword)) {
+                        case 0:
+                            break;
+                        case 1:
+                            MessageBox.Show(MDIMain,
+                                "This word contains one or more invalid characters.",
+                                "Invalid Word",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, 0, 0,
+                                WinAGIHelp, "htm\\agi\\words.htm#charlimits");
+                            DragSourceForm = null;
+                            return;
+                        case 2:
+                            // not allowed unless supporting power pack
+                            if (!EditGame.PowerPack) {
+                                MessageBox.Show(MDIMain,
+                                    "This word begins with invalid characters.",
+                                    "Invalid Word",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Error, 0, 0,
+                                    WinAGIHelp, "htm\\agi\\words.htm#charlimits");
+                                DragSourceForm = null;
+                                return;
+                            }
+                            break;
+                        }
                         if (EditWordList.WordExists(dropword)) {
                             MessageBox.Show(MDIMain,
                                 $"'{dropword}' is already present in this list. ",
                                 "Duplicate Word",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Information);
-                                SelectGroup(EditGroupIndex);
+                            SelectGroup(EditGroupIndex);
                         }
                         else {
                             AddWord(groupnum, dropword);
@@ -1460,6 +1490,15 @@ namespace WinAGI.Editor {
                     }
                 }
                 DragSourceForm = null;
+            }
+        }
+
+        private void dgGroups_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
+            if (GroupMode) {
+                // format each row
+                for (int i = e.RowIndex; i < e.RowIndex + e.RowCount; i++) {
+                    FormatGroupRow(dgGroups.Rows[i]);
+                }
             }
         }
 
@@ -1574,7 +1613,7 @@ namespace WinAGI.Editor {
 
         private void dgWords_MouseDown(object sender, MouseEventArgs e) {
             DataGridView.HitTestInfo info = dgWords.HitTest(e.X, e.Y);
-            if (info != null && info.Type == DataGridViewHitTestType.Cell) {
+            if (info is not null && info.Type == DataGridViewHitTestType.Cell) {
                 int selitem = info.RowIndex;
                 if (selitem >= dgWords.Rows.Count) {
                     selitem = dgWords.Rows.Count - 1;
@@ -1754,7 +1793,7 @@ namespace WinAGI.Editor {
                 // NOT allowed as first char
                 if (txtWordEdit.SelectionStart == 0) {
                     // UNLESS supporting Power Pack mod
-                    if (EditGame == null || !EditGame.PowerPack) {
+                    if (EditGame is null || !EditGame.PowerPack) {
                         e.Handled = true;
                     }
                 }
@@ -1762,7 +1801,7 @@ namespace WinAGI.Editor {
             case > 127:
                 // extended chars not allowed
                 // UNLESS supporting the Power Pack mod
-                if (EditGame == null || !EditGame.PowerPack) {
+                if (EditGame is null || !EditGame.PowerPack) {
                     e.Handled = true;
                 }
                 break;
@@ -1797,7 +1836,7 @@ namespace WinAGI.Editor {
             spWordCount.Size = new System.Drawing.Size(140, 18);
             spWordCount.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
         }
-        
+
         internal void InitFonts() {
             defaultfont = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
             boldfont = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, FontStyle.Bold);
@@ -1822,18 +1861,68 @@ namespace WinAGI.Editor {
 
         public bool LoadWords(WordList loadwords) {
             InGame = loadwords.InGame;
-            IsChanged = loadwords.IsChanged;
             try {
                 if (InGame) {
                     loadwords.Load();
                 }
             }
-            catch {
+            catch (Exception ex) {
+                // unhandled error
+                ErrMsgBox(ex,
+                    "Something went wrong. Unable to load WORDS.TOK",
+                    ex.StackTrace,
+                    "Load WORDS.TOK Failed");
                 return false;
             }
-            if (loadwords.ErrLevel < 0) {
-                return false;
+            if (loadwords.Error != ResourceErrorType.NoError) {
+                switch (loadwords.Error) {
+                case ResourceErrorType.WordsTokNoFile:
+                    MessageBox.Show(MDIMain,
+                        "WORDS.TOK is missing from this game's directory. A blank " +
+                        "file will be created.",
+                        "Missing WORDS.TOK",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re19.htm");
+                    break;
+                case ResourceErrorType.WordsTokIsReadOnly:
+                    MessageBox.Show(MDIMain,
+                        "WORDS.TOK is tagged as readonly. It cannot be edited " +
+                        "unless full access is allowed.",
+                        "Readonly WORDS.TOK",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re20.htm");
+                    return false;
+                case ResourceErrorType.WordsTokAccessError:
+                    MessageBox.Show(MDIMain,
+                        "Unable to access WORDS.TOK. It cannot be edited.",
+                        "File Access Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re21.htm");
+                    return false;
+                case ResourceErrorType.WordsTokNoData:
+                    MessageBox.Show(MDIMain,
+                        "WORDS.TOK file has no data. A blank " +
+                        "file will be created.",
+                        "Empyt WORDS.TOK",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re22.htm");
+                    break;
+                case ResourceErrorType.WordsTokBadIndex:
+                    MessageBox.Show(MDIMain,
+                        "WORDS.TOK file is corrupted. A blank " +
+                        "file will be created.",
+                        "Invalid WORDS.TOK",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re23.htm");
+                    break;
+                }
             }
+            IsChanged = loadwords.IsChanged;
             EditWordList = loadwords.Clone();
             EditWordListFilename = loadwords.ResFile;
 
@@ -1859,7 +1948,9 @@ namespace WinAGI.Editor {
                     Text += "NewWords" + WordEdCount.ToString();
                 }
             }
-
+            if (IsChanged) {
+                Text = CHG_MARKER + Text;
+            }
             mnuRSave.Enabled = !IsChanged;
             MDIMain.btnSaveResource.Enabled = !IsChanged;
             return true;
@@ -1874,8 +1965,10 @@ namespace WinAGI.Editor {
             try {
                 tmpList = new(importfile);
             }
-            catch (Exception e) {
-                ErrMsgBox(e, "An error occurred during import:", "", "Import WORDS.TOK File Error");
+            catch (Exception ex) {
+                ErrMsgBox(ex, "An error occurred during import:",
+                    ex.StackTrace,
+                    "Import WORDS.TOK File Error");
                 MDIMain.UseWaitCursor = false;
                 return;
             }
@@ -1930,8 +2023,9 @@ namespace WinAGI.Editor {
                     EditGame.WordList.Save();
                 }
                 catch (Exception ex) {
-                    ErrMsgBox(ex, "Error during WORDS.TOK compilation: ",
-                        "Existing WORDS.TOK has not been modified.",
+                    ErrMsgBox(ex,
+                        "Error during WORDS.TOK compilation: ",
+                        ex.StackTrace + "Existing WORDS.TOK has not been modified.",
                         "WORDS.TOK Compile Error");
                     MDIMain.UseWaitCursor = false;
                     return;
@@ -1941,7 +2035,38 @@ namespace WinAGI.Editor {
                     blnRefreshLogics = false;
                 }
                 RefreshTree(AGIResType.Words, 0);
+                // clear errors and warnings
                 MDIMain.ClearWarnings(AGIResType.Words, 0);
+                if (EditGame.WordList.Warnings != 0) {
+                    TWinAGIEventInfo warnInfo = new() {
+                        ResType = AGIResType.Words,
+                        ResNum = 0,
+                        Line = "--",
+                        Type = EventType.ResourceWarning,
+                    };
+                    if ((EditGame.WordList.Warnings & 4) == 4) {
+                        warnInfo.ID = "RW21";
+                        warnInfo.Text = EngineResources.RW21;
+                        MDIMain.AddWarning(warnInfo);
+                    }
+                    if ((EditGame.WordList.Warnings & 8) == 8) {
+                        warnInfo.ID = "RW22";
+                        warnInfo.Text = EngineResources.RW22;
+                        MDIMain.AddWarning(warnInfo);
+                    }
+                    if ((EditGame.WordList.Warnings & 32) == 32) {
+                        warnInfo.Type = EventType.ResourceWarning;
+                        warnInfo.ID = "RW24";
+                        warnInfo.Text = EngineResources.RW24;
+                        MDIMain.AddWarning(warnInfo);
+                    }
+                    if ((EditGame.WordList.Warnings & 64) == 64) {
+                        warnInfo.Type = EventType.ResourceWarning;
+                        warnInfo.ID = "RW25";
+                        warnInfo.Text = EngineResources.RW25;
+                        MDIMain.AddWarning(warnInfo);
+                    }
+                }
                 MDIMain.UseWaitCursor = false;
             }
             else {
@@ -1955,8 +2080,9 @@ namespace WinAGI.Editor {
                         EditWordList.Save();
                     }
                     catch (Exception ex) {
-                        ErrMsgBox(ex, "An Error occurred while saving this wordlist:",
-                            "Existing wordlist file has not been modified.",
+                        ErrMsgBox(ex,
+                            "An Error occurred while saving this wordlist:",
+                            ex.StackTrace + "\n\nExisting wordlist file has not been modified.",
                             "Wordlist Save Error");
                         MDIMain.UseWaitCursor = false;
                         return;
@@ -2028,13 +2154,17 @@ namespace WinAGI.Editor {
             if (index >= 0) {
                 newrow = index;
                 dgWords.Rows.Insert(index, word);
-            } else {
+            }
+            else {
                 newrow = dgWords.Rows.Add(word);
             }
-            
             // check for invalid characters ,.?!();:[]{} and '`-"
             string inv = ",.?!();:[]{}'`-\"";
             if (word.Any(inv.Contains)) {
+                dgWords.Rows[newrow].DefaultCellStyle = warningstyle;
+            }
+            // check for irregular start character
+            else if (word[0] < 'a' || word[0] > 'z') {
                 dgWords.Rows[newrow].DefaultCellStyle = warningstyle;
             }
             else {
@@ -2252,7 +2382,7 @@ namespace WinAGI.Editor {
                         "Reserved Word Group",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\winagi\\Words_Editor.htm#reserved");
+                        WinAGIHelp, "htm\\winagi\\editor_words.htm#reserved");
                 }
                 return;
             }
@@ -2373,9 +2503,9 @@ namespace WinAGI.Editor {
                 }
                 return "!";
             }
-            if ("#$%&*+/0123456789<=>@\\^_|~".Contains(retval[0])) {
+            if (retval[0] < 97 || retval[0] > 122) {
                 // not allowed unless supporting power pack
-                if (EditGame == null || !EditGame.PowerPack) {
+                if (EditGame is null || !EditGame.PowerPack) {
                     if (!Quiet) {
                         MessageBox.Show(MDIMain,
                         "This word begins with invalid characters.",
@@ -2390,7 +2520,7 @@ namespace WinAGI.Editor {
             // extended characters
             if (retval.Any(c => c > 127)) {
                 // not allowed unless supporting power pack
-                if (EditGame == null || !EditGame.PowerPack) {
+                if (EditGame is null || !EditGame.PowerPack) {
                     if (!Quiet) {
                         MessageBox.Show(MDIMain,
                         "This word contains one or more extended characters (> 128).",
@@ -2515,6 +2645,17 @@ namespace WinAGI.Editor {
             return retval;
         }
 
+        private int IsValidWord(string wordtext) {
+            if ("!\"'(),-.:;?[]`{}".Any(wordtext.Contains)) {
+                return 1;
+            }
+            if (wordtext[0] < 97 || wordtext[0] > 122) {
+                // not allowed unless supporting power pack
+                return 2;
+            }
+            return 0;
+        }
+
         private bool EditWord(string oldWord, string newWord, int thisGroup, bool DontUndo = false) {
             bool blnFirst = EditWordList.GroupByNumber(thisGroup).GroupName == oldWord;
             bool blnMoving = EditWordList.WordExists(newWord);
@@ -2623,6 +2764,10 @@ namespace WinAGI.Editor {
             if (EditWordList.GroupByNumber(NewGrpNum).GroupName == WordText) {
                 UpdateGroupName(NewGrpNum);
             }
+            if (GroupMode) {
+                FormatGroupRow(dgGroups.Rows[EditWordList.GroupIndexFromNumber(OldGrpNum)]);
+                FormatGroupRow(dgGroups.Rows[EditWordList.GroupIndexFromNumber(NewGrpNum)]);
+            }
         }
 
         private void DeleteWord(string word, bool DontUndo = false) {
@@ -2634,12 +2779,16 @@ namespace WinAGI.Editor {
             }
             else {
                 RemoveAWord(word);
+                // groups 1 and 9999 use a placeholder if no words left
                 if (group == 1 && dgWords.Rows.Count == 0) {
                     dgWords.Rows.Add("<group 1: any word>");
                 }
                 if (group == 9999 && dgWords.Rows.Count == 0) {
                     dgWords.Rows.Add("<group 9999: rest of line>");
                 }
+            }
+            if (GroupMode) {
+                FormatGroupRow(dgGroups.Rows[EditWordList.GroupIndexFromNumber(group)]);
             }
             if (!DontUndo) {
                 WordsUndo NextUndo = new();
@@ -2686,6 +2835,9 @@ namespace WinAGI.Editor {
                 strFirst = EditWordList.GroupByNumber(GroupNo).GroupName;
             }
             InsertAWord(NewWord, GroupNo);
+            if (GroupMode) {
+                FormatGroupRow(dgGroups.Rows[EditWordList.GroupIndexFromNumber(GroupNo)]);
+            }
             if (EditWordList.GroupByNumber(GroupNo).GroupName != strFirst) {
                 UpdateGroupName(GroupNo);
             }
@@ -3357,17 +3509,35 @@ namespace WinAGI.Editor {
             dgWords.Select();
         }
 
+        private void FormatGroupRow(DataGridViewRow row) {
+            string inv = ",.?!();:[]{}'`-\"";
+            foreach (string word in EditWordList.GroupByIndex(row.Index).Words) {
+                if (word.Any(inv.Contains)) {
+                    row.DefaultCellStyle = warningstyle;
+                    return;
+                }
+                // check for irregular start character
+                else if (word[0] < 'a' || word[0] > 'z') {
+                    row.DefaultCellStyle = warningstyle;
+                    return;
+                }
+            }
+            row.DefaultCellStyle = dgGroups.DefaultCellStyle;
+        }
+
         internal void ShowHelp() {
-            string strTopic = "htm\\winagi\\Words_Editor.htm";
+            string topic = "htm\\winagi\\editor_words.htm";
 
             // TODO: add context sensitive help
-            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
             return;
         }
 
         private bool AskClose() {
-            if (EditWordList.ErrLevel < 0) {
-                // if exiting due to error on form load
+            //if (EditWordList.Error != ResourceErrorType.NoError) {
+            if (!Visible) {
+                // if exiting due to error on form load (form
+                // won't be visible)
                 return true;
             }
             if (IsChanged) {

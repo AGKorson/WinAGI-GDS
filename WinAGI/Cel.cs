@@ -177,14 +177,14 @@ namespace WinAGI.Engine {
             }
             set {
                 if (value.GetUpperBound(0) != mWidth - 1) {
-                    WinAGIException wex = new(LoadResString(614)) {
-                        HResult = WINAGI_ERR + 614,
+                    WinAGIException wex = new(LoadResString(524)) {
+                        HResult = WINAGI_ERR + 524,
                     };
                     throw wex;
                 }
                 if (value.GetUpperBound(1) != mHeight - 1) {
-                    WinAGIException wex = new(LoadResString(614)) {
-                        HResult = WINAGI_ERR + 614,
+                    WinAGIException wex = new(LoadResString(524)) {
+                        HResult = WINAGI_ERR + 524,
                     };
                     throw wex;
                 }
@@ -326,7 +326,7 @@ namespace WinAGI.Engine {
 
         public EGAColors Palette {
             get {
-                if (parentview != null) {
+                if (parentview is not null) {
                     return parentview.Palette;
                 }
                 else {
@@ -334,7 +334,7 @@ namespace WinAGI.Engine {
                 }
             }
             set {
-                if (parentview == null) {
+                if (parentview is null) {
                     mPalette = value.Clone();
                 }
             }
@@ -369,7 +369,7 @@ namespace WinAGI.Engine {
                 blnCelBMPSet = blnCelBMPSet,
                 mCelChanged = mCelChanged,
             };
-            if (parentview != null) {
+            if (parentview is not null) {
                 // copy parent colors
                 CopyCel.mPalette = parentview.Palette.Clone();
             }
@@ -429,7 +429,7 @@ namespace WinAGI.Engine {
             ColorPalette ncp = mCelBMP.Palette;
             ColorPalette ncpT = mTransBMP.Palette;
             for (i = 0; i < 16; i++) {
-                if (parentview == null) {
+                if (parentview is null) {
                     ncp.Entries[i] = Color.FromArgb(
                         255,
                         mPalette[i].R,

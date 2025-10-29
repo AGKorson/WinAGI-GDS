@@ -99,7 +99,7 @@ namespace WinAGI.Editor {
             dash2.DashOffset = 3;
             InitForm();
             // load correct charmap
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 ScreenCodePage = EditGame.CodePage;
             }
             else {
@@ -232,7 +232,7 @@ namespace WinAGI.Editor {
             mnuToggleTextMarks.Text = (ShowTextMarks ? "Hide" : "Show") + "Text Marks";
 
             // mnuChangeScreenSize
-            if (EditGame == null || !EditGame.PowerPack) {
+            if (EditGame is null || !EditGame.PowerPack) {
                 mnuChangeScreenSize.Visible = false;
             }
             else {
@@ -284,7 +284,7 @@ namespace WinAGI.Editor {
         private void mnuPaste_Click(object sender, EventArgs e) {
             // check for custom clipboard data first
             TextscreenClipboardData txtdata = Clipboard.GetData(TXTSCREEN_CB_FMT) as TextscreenClipboardData;
-            if (txtdata != null) {
+            if (txtdata is not null) {
                 // paste the new data
                 PasteData(txtdata);
                 return;
@@ -351,7 +351,7 @@ namespace WinAGI.Editor {
         private void mnuChangeScreenSize_Click(object sender, EventArgs e) {
             //swap screen size if powerpack is active
 
-            if (EditGame == null || !EditGame.PowerPack) {
+            if (EditGame is null || !EditGame.PowerPack) {
                 return;
             }
             // always confirm
@@ -1225,7 +1225,7 @@ namespace WinAGI.Editor {
             // begin in default (edit) mode
             EditAction = TSAction.None;
             // set columns and character widths
-            if (EditGame != null && EditGame.PowerPack) {
+            if (EditGame is not null && EditGame.PowerPack) {
                 ScreenWidth = 80;
                 CharWidth = 4;
             }
@@ -1241,7 +1241,7 @@ namespace WinAGI.Editor {
                 }
             }
             OverwriteMode = IsKeyLocked(Keys.Insert);
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 // TODO: need to add palette update method in case
                 // user changes palette
                 EditPalette = EditGame.Palette;
@@ -1486,7 +1486,7 @@ namespace WinAGI.Editor {
             // black (unless using PowerPack)
 
             // approach depends on whether or not PowerPack is active:
-            if (EditGame != null && EditGame.PowerPack) {
+            if (EditGame is not null && EditGame.PowerPack) {
                 // use the predominant color, if there is one
                 // assume none
                 clearColor = AGIColorIndex.None;
@@ -1522,7 +1522,7 @@ namespace WinAGI.Editor {
             }
             else {
                 // if no PowerPack, color is irrelevant, so set it to black
-                if (EditGame == null || !EditGame.PowerPack && clearColor == AGIColorIndex.White) {
+                if (EditGame is null || !EditGame.PowerPack && clearColor == AGIColorIndex.White) {
                     clearColor = AGIColorIndex.Black;
                 }
                 // if clear color is set
@@ -1744,7 +1744,7 @@ namespace WinAGI.Editor {
         }
 
         private string ColorText(AGIColorIndex index) {
-            if (EditGame == null) {
+            if (EditGame is null) {
                 return ((int)index).ToString();
             }
             else {
@@ -1876,7 +1876,7 @@ namespace WinAGI.Editor {
                                     }
                                     else {
                                         int tmp = -1;
-                                        if (EditGame != null) {
+                                        if (EditGame is not null) {
                                             if (EditGame.IncludeReserved) {
                                                 // look for matching color name
                                                 strArgs[j] = strArgs[j].Trim();
@@ -2125,7 +2125,7 @@ namespace WinAGI.Editor {
         private void ShowCharPicker() {
             // show the char picker, and insert results
             frmCharPicker CharPicker;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 CharPicker = new(EditGame.CodePage);
             }
             else {
@@ -2876,7 +2876,7 @@ namespace WinAGI.Editor {
             byte[] data = null;
             try {
                 do {
-                    fs = new(loadfile, FileMode.Open);
+                    fs = new(loadfile, FileMode.Open, FileAccess.Read);
                     byte[] buffer = new byte[6];
                     if (fs.Read(buffer, 0, 6) != 6) {
                         // invalid
@@ -2915,7 +2915,7 @@ namespace WinAGI.Editor {
                     case 79:
                     case 80:
                         // 80 col - not valid if not using powerpack
-                        if (EditGame == null || !EditGame.PowerPack) {
+                        if (EditGame is null || !EditGame.PowerPack) {
                             MessageBox.Show("80 column text screens are only valid if Power Pack is enabled.",
                                 "Unsupported File Version",
                                 MessageBoxButtons.OK,
@@ -2949,15 +2949,17 @@ namespace WinAGI.Editor {
                 } while (false);
             }
             catch (Exception ex) {
-                ErrMsgBox(ex, "Unable to open file.", "", "File Access Error");
+                ErrMsgBox(ex,
+                    "Unable to open file.",
+                    ex.StackTrace,
+                    "File Access Error");
             }
             finally {
-                Debug.Assert(fs != null);
                 fs?.Close();
             }
             // if no data, it means an 80 col file was tried without
             // PowerPack support
-            if (data == null) {
+            if (data is null) {
                 return;
             }
             // if invalid, inform user
@@ -3042,11 +3044,13 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            catch (Exception e) {
-                ErrMsgBox(e, "Error while saving:", "", "File Save Error");
+            catch (Exception ex) {
+                ErrMsgBox(ex,
+                    "Error while saving:",
+                    ex.StackTrace,
+                    "File Save Error");
             }
             finally {
-                Debug.Assert(fs != null);
                 fs?.Dispose();
             }
             FileName = filename;

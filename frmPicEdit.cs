@@ -978,7 +978,7 @@ namespace WinAGI.Editor {
             }
 
             // if a test view is currently loaded,
-            if (TestView != null) {
+            if (TestView is not null) {
                 // unload it and release it
                 TestView.Unload();
                 TestView = null;
@@ -1214,7 +1214,7 @@ namespace WinAGI.Editor {
         }
 
         internal void mnuRInGame_Click(object sender, EventArgs e) {
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 ToggleInGame();
             }
         }
@@ -1276,7 +1276,7 @@ namespace WinAGI.Editor {
                 mnuTextScreenSize.Text = "Text Screen Size: " + (PTInfo.MaxCol + 1).ToString();
             }
             // background and overlays
-            if (BkgdImage == null) {
+            if (BkgdImage is null) {
                 mnuEditBackground.Text = "Set Background Image...";
                 mnuToggleBackground.Visible = false;
                 mnuRemoveBackground.Visible = false;
@@ -1410,7 +1410,7 @@ namespace WinAGI.Editor {
                     mnuPaste.Text = "Paste";
                     if (mnuPaste.Enabled) {
                         PictureClipboardData pastedata = Clipboard.GetData(PICTURE_CB_FMT) as PictureClipboardData;
-                        if (pastedata == null) {
+                        if (pastedata is null) {
                             mnuPaste.Enabled = mnuPastePen.Visible = false;
                         }
                         else if (pastedata.CmdCount > 1) {
@@ -2000,7 +2000,7 @@ namespace WinAGI.Editor {
                 return;
             }
             PictureClipboardData picCBData = Clipboard.GetData(PICTURE_CB_FMT) as PictureClipboardData;
-            if (picCBData == null) {
+            if (picCBData is null) {
                 return;
             }
             if (SelectedTool != PicToolType.Edit) {
@@ -2056,7 +2056,7 @@ namespace WinAGI.Editor {
                                 MessageBoxButtons.OKCancel,
                                 MessageBoxIcon.Question,
                                 "Don't show this warning again.", ref dontwarn,
-                                WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#plotpaste") != DialogResult.OK) {
+                                WinAGIHelp, "htm\\winagi\\editor_picture.htm#plotpaste") != DialogResult.OK) {
                                 // cancel the paste
                                 return;
                             }
@@ -2096,7 +2096,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OKCancel,
                             MessageBoxIcon.Question,
                             "Don't show this warning again.", ref dontwarn,
-                                WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#plotpaste") != DialogResult.OK) {
+                                WinAGIHelp, "htm\\winagi\\editor_picture.htm#plotpaste") != DialogResult.OK) {
                             // cancel the paste
                             return;
                         }
@@ -2224,7 +2224,7 @@ namespace WinAGI.Editor {
                 return;
             }
             PictureClipboardData picCBData = Clipboard.GetData(PICTURE_CB_FMT) as PictureClipboardData;
-            if (picCBData == null) {
+            if (picCBData is null) {
                 return;
             }
             if (SelectedTool != PicToolType.Edit) {
@@ -2443,11 +2443,9 @@ namespace WinAGI.Editor {
                 if (lstCommands.Items.Count == 1) {
                     return;
                 }
-                // disable painting
-                SendMessage(lstCommands.Handle, WM_SETREDRAW, false, 0);
+                lstCommands.BeginUpdate();
                 SelectCommand(lstCommands.Items.Count - 2, lstCommands.Items.Count - 1);
-                // reenable painting
-                SendMessage(lstCommands.Handle, WM_SETREDRAW, true, 0);
+                lstCommands.EndUpdate();
                 // if more than one cmd
                 if (lstCommands.SelectedItems.Count > 1) {
                     // get bounds, and select the cmds
@@ -2653,11 +2651,11 @@ namespace WinAGI.Editor {
                     TestDir = ObjDirection.odStopped;
                 }
                 tmrTest.Enabled = false;
-                if (TestView == null) {
+                if (TestView is null) {
                     // load one first
                     GetTestView();
                     // if still no testview
-                    if (TestView == null) {
+                    if (TestView is null) {
                         // exit
                         return;
                     }
@@ -2785,7 +2783,7 @@ namespace WinAGI.Editor {
                             "Invalid Base Value",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#pribands");
+                            WinAGIHelp, "htm\\winagi\\editor_picture.htm#pribands");
                     }
                     else if (newBase < 0 || newBase > 158) {
                         // invalid
@@ -2794,7 +2792,7 @@ namespace WinAGI.Editor {
                             "Invalid Base Value",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#pribands");
+                            WinAGIHelp, "htm\\winagi\\editor_picture.htm#pribands");
                     }
                     else {
                         // OK!
@@ -2826,7 +2824,7 @@ namespace WinAGI.Editor {
 
         private void mnuToggleBackground_Click(object sender, EventArgs e) {
             // toggles the background image if one is set
-            if (BkgdImage != null) {
+            if (BkgdImage is not null) {
                 UpdateBkgd(!EditPicture.BkgdVisible);
             }
         }
@@ -2837,7 +2835,7 @@ namespace WinAGI.Editor {
 
         private void mnuRemoveBackground_Click(object sender, EventArgs e) {
             // removes the background image and clears background settings
-            if (BkgdImage != null) {
+            if (BkgdImage is not null) {
                 UpdateBkgd(false);
             }
             BkgdImage = null;
@@ -3864,7 +3862,7 @@ namespace WinAGI.Editor {
                 break;
             case PicEditorMode.ViewTest:
                 // add test cel if in preview mode, and a test view is loaded
-                if (TestView != null && ShowTestCel) {
+                if (TestView is not null && ShowTestCel) {
                     AddCelToPic(g, true);
                 }
                 break;
@@ -3971,7 +3969,7 @@ namespace WinAGI.Editor {
                 break;
             case PicEditorMode.ViewTest:
                 // add test cel if in preview mode, and a test view is loaded
-                if (TestView != null && ShowTestCel) {
+                if (TestView is not null && ShowTestCel) {
                     AddCelToPic(g, false);
                 }
                 break;
@@ -4027,6 +4025,15 @@ namespace WinAGI.Editor {
                 }
             }
             // preview text is never displayed on priority screen
+        }
+
+        private void lstCommands_SizeChanged(object sender, EventArgs e) {
+            if (!Visible) {
+                return;
+            }
+            lstCommands.BeginUpdate();
+            lstCommands.Columns[0].Width = lstCommands.ClientSize.Width;
+            lstCommands.EndUpdate();
         }
 
         private void lstCommands_MouseClick(object sender, MouseEventArgs e) {
@@ -4116,7 +4123,7 @@ namespace WinAGI.Editor {
             // the selection gets cleared, so we need to force the control
             // to re-select the currently focused item
             if (lstCoords.SelectedItems.Count == 0) {
-                if (lstCoords.FocusedItem != null) {
+                if (lstCoords.FocusedItem is not null) {
                     lstCoords.FocusedItem.Selected = true;
                 }
                 else if (lstCoords.Items.Count > 0) {
@@ -4472,7 +4479,7 @@ namespace WinAGI.Editor {
                 }
             }
             else if (e.MouseCursorY > splitImages.Height - 45) {
-                if (splitImages.Cursor.Tag == null) {
+                if (splitImages.Cursor.Tag is null) {
                     MemoryStream msCursor;
                     msCursor = new(EditorResources.downarrow);
                     splitImages.Cursor = new Cursor(msCursor);
@@ -4969,7 +4976,7 @@ namespace WinAGI.Editor {
         /// <param name="loadpic"></param>
         /// <returns>True if picture loads successfully. False if unable to load 
         /// due to error.</returns>
-        public bool LoadPicture(Picture loadpic) {
+        public bool LoadPicture(Picture loadpic, bool quiet = false) {
             InGame = loadpic.InGame;
             if (InGame) {
                 PictureNumber = loadpic.Number;
@@ -4982,10 +4989,75 @@ namespace WinAGI.Editor {
             try {
                 loadpic.Load();
             }
-            catch {
+            catch (Exception ex) {
+                // unhandled error
+                if (!quiet) {
+                    string resid = InGame ? "Picture " + PictureNumber : loadpic.ID;
+                    ErrMsgBox(ex,
+                        "Something went wrong. Unable to load " + resid,
+                        ex.StackTrace,
+                        "Load Picture Failed");
+                }
                 return false;
             }
-            if (loadpic.ErrLevel < 0) {
+            if (loadpic.Error != ResourceErrorType.NoError) {
+                if (!quiet) {
+                    if (InGame) {
+                        switch (loadpic.Error) {
+                        case ResourceErrorType.FileNotFound:
+                            // should not be possible unless volfile deleted after
+                            // the game was loaded
+                            MessageBox.Show(MDIMain,
+                                $"The VOL file with Picture {loadpic.Number} is missing.",
+                                "Missing VOL File",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re01.htm");
+                            break;
+                        case ResourceErrorType.FileIsReadonly:
+                            // should not be possible unless volfile properties were
+                            // changed after the game was loaded
+                            MessageBox.Show(MDIMain,
+                                $"Picture {loadpic.Number} is in a VOL file tagged as readonly. " +
+                                "It cannot be edited unless full access is allowed.",
+                                "Readonly VOL File",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re02.htm");
+                            break;
+                        case ResourceErrorType.FileAccessError:
+                            MessageBox.Show(MDIMain,
+                                $"A file access error in the VOL file with Picture {loadpic.Number} " +
+                                "is preventing the picture from being edited. ",
+                                "VOL File Access Error",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re03.htm");
+                            break;
+                        //case ResourceErrorType.InvalidLocation:
+                        //case ResourceErrorType.InvalidHeader:
+                        //case ResourceErrorType.DecompressionError:
+                        default:
+                            // should not be possible
+                            Debug.Assert(false);
+                            MessageBox.Show(MDIMain,
+                            "Something went wrong. Unable to load Picture " + PictureNumber,
+                            "Load Picture Failed",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                            break;
+                        }
+                    }
+                    else {
+                        // show a generic message
+                        MessageBox.Show(MDIMain,
+                            "Unable to open Picture " + PictureNumber + ":\n\n LoadError " +
+                            loadpic.Error.ToString(),
+                            "Picture Resource Load Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                }
                 return false;
             }
             EditPicture = loadpic.Clone();
@@ -5070,21 +5142,7 @@ namespace WinAGI.Editor {
         public void ImportPicture(string importfile) {
             MDIMain.UseWaitCursor = true;
             Picture tmpPicture = new();
-            try {
-                tmpPicture.Import(importfile);
-            }
-            catch (Exception e) {
-                // something wrong
-                MDIMain.UseWaitCursor = false;
-                ErrMsgBox(e, "Error while importing picture:", "Unable to load this picture resource.", "Import Picture Error");
-                return;
-            }
-            // now check to see if it's a valid picture resource (by trying to reload it)
-            tmpPicture.Load();
-            if (tmpPicture.ErrLevel < 0) {
-                ErrMsgBox(tmpPicture.ErrLevel, "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource");
-                // restore main form mousepointer and exit
-                MDIMain.UseWaitCursor = false;
+            if (!Base.ImportPicture(importfile, tmpPicture)) {
                 return;
             }
             // copy only the resource data
@@ -5414,7 +5472,7 @@ namespace WinAGI.Editor {
                     "Anomaly Found in Picture Data",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information, 0, 0,
-                    WinAGIHelp, "htm\\winagi\\Picture_Editor.htm#picerrors");
+                    WinAGIHelp, "htm\\winagi\\editor_pictures.htm#picerrors");
             }
             CmdColumnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             // select end cmd
@@ -5502,11 +5560,11 @@ namespace WinAGI.Editor {
                 break;
             case PicEditorMode.ViewTest:
                 // get a test view if not yet assigned
-                if (TestView == null) {
+                if (TestView is null) {
                     GetTestView();
                 }
                 // if still no view
-                if (TestView == null) {
+                if (TestView is null) {
                     // cancel the mode change
                     return;
                 }
@@ -5888,10 +5946,10 @@ namespace WinAGI.Editor {
                     next++;
                 }
                 for (int i = SelectedCmd.SelectedCoordIndex + next; i < SelectedCmd.Coords.Count - 1; i++) {
-                    if (gv != null && SelectedCmd.Pen.VisColor < AGIColorIndex.None) {
+                    if (gv is not null && SelectedCmd.Pen.VisColor < AGIColorIndex.None) {
                         DrawLineOnImage(gv, EditPalette[(int)SelectedCmd.Pen.VisColor], SelectedCmd.Coords[i], SelectedCmd.Coords[i + 1]);
                     }
-                    if (gp != null && SelectedCmd.Pen.PriColor < AGIColorIndex.None) {
+                    if (gp is not null && SelectedCmd.Pen.PriColor < AGIColorIndex.None) {
                         DrawLineOnImage(gp, EditPalette[(int)SelectedCmd.Pen.PriColor], SelectedCmd.Coords[i], SelectedCmd.Coords[i + 1]);
                     }
                 }
@@ -7501,7 +7559,7 @@ namespace WinAGI.Editor {
         /// <param name="ShowConfig"></param>
         private void UpdateBkgd(bool NewVal, bool ShowConfig = false) {
             // if switching to ON AND there is not a picture OR if forcing config
-            if ((NewVal && BkgdImage == null) || ShowConfig) {
+            if ((NewVal && BkgdImage is null) || ShowConfig) {
                 // use configure screen, which will load a background
                 if (!ConfigureBackground()) {
                     return;
@@ -7738,7 +7796,7 @@ namespace WinAGI.Editor {
             }
             // update listboxes
             // disable painting of listbox until all done
-            _ = SendMessage(lstCommands.Handle, WM_SETREDRAW, false, 0);
+            lstCommands.BeginUpdate();
             lstCommands.SelectedItems.Clear();
             do {
                 lstCommands.Items[cmdpos - --count].Selected = true;
@@ -7748,7 +7806,7 @@ namespace WinAGI.Editor {
             lstCommands.Items[cmdpos].EnsureVisible();
             SelectedCmdCount = lstCommands.SelectedItems.Count;
             // restore painting of listbox
-            _ = SendMessage(lstCommands.Handle, WM_SETREDRAW, true, 0);
+            lstCommands.EndUpdate();
             lstCommands.Refresh();
             // update selection
             UpdateCmdSelection(cmdpos, force);
@@ -9678,7 +9736,7 @@ namespace WinAGI.Editor {
             // get a test view to use in test mode
 
             // if game is loaded
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 // use the get resource form
                 frmGetResourceNum frmNew = new frmGetResourceNum(GetRes.TestView, AGIResType.View);
                 frmNew.OldResNum = TestViewNum;
@@ -9730,7 +9788,7 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <returns></returns>
         private bool LoadTestView(byte loadviewnum) {
-            if (TestView != null) {
+            if (TestView is not null) {
                 // unload it and release it
                 TestView.Unload();
                 TestView = null;
@@ -9741,7 +9799,7 @@ namespace WinAGI.Editor {
             TestView = new Engine.View();
 
             try {
-                if (EditGame != null) {
+                if (EditGame is not null) {
                     // copy from game
                     bool loaded = EditGame.Views[loadviewnum].Loaded;
                     if (!loaded) {
@@ -9758,7 +9816,9 @@ namespace WinAGI.Editor {
                 }
             }
             catch (Exception ex) {
-                ErrMsgBox(ex, "Unable to load view resource due to error:", "Test view not set.", "Test View Error");
+                ErrMsgBox(ex, "Unable to load view resource due to error:",
+                    ex.StackTrace + "\n\nTest view not set.",
+                    "Test View Error");
                 TestView = null;
                 return false;
             }
@@ -10204,7 +10264,7 @@ namespace WinAGI.Editor {
         internal void ShowHelp() {
             switch (PicMode) {
             case PicEditorMode.Edit:
-                Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\Picture_Editor.htm");
+                Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\editor_picture.htm");
                 break;
             case PicEditorMode.PrintTest:
                 Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\pictestmode.htm#textprint");
@@ -10222,7 +10282,7 @@ namespace WinAGI.Editor {
         /// <returns></returns>
 
         private bool AskClose() {
-            if (EditPicture.ErrLevel < 0) {
+            if (EditPicture.Error != ResourceErrorType.NoError) {
                 // if an error occurs on form load, always close
                 return true;
             }

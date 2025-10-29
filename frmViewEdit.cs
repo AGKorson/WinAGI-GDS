@@ -11,7 +11,7 @@ using static WinAGI.Common.API;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 using static WinAGI.Editor.Base;
-using static WinAGI.Editor.ViewUndo.ActionType;
+using static WinAGI.Editor.ViewUndo.ViewUndoAction;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 
@@ -417,7 +417,7 @@ namespace WinAGI.Editor {
         }
 
         internal void mnuRInGame_Click(object sender, EventArgs e) {
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 ToggleInGame();
             }
         }
@@ -633,7 +633,7 @@ namespace WinAGI.Editor {
             if (UndoCol.Count == 0) {
                 return "Undo"; 
             }
-            switch (UndoCol.Peek().UDAction) {
+            switch (UndoCol.Peek().Action) {
             case AddLoop:
                 return "Undo Add Loop";
             case PasteLoop:
@@ -662,9 +662,9 @@ namespace WinAGI.Editor {
                 return "Undo Mirror";
             case ChangeTransCol:
                 return "Undo Change Transparent Color";
-            case ViewUndo.ActionType.ClearLoop:
+            case ViewUndo.ViewUndoAction.ClearLoop:
                 return "Undo Clear Loop";
-            case ViewUndo.ActionType.ClearCel:
+            case ViewUndo.ViewUndoAction.ClearCel:
                 return "Undo Clear Cel";
             case ChangeVDesc:
                 return "Undo Change View Description";
@@ -672,13 +672,13 @@ namespace WinAGI.Editor {
                 return "Undo Flip Loop Horizontally";
             case FlipLoopV:
                 return "Undo Flip Loop Vertically";
-            case ViewUndo.ActionType.FlipCelH:
+            case ViewUndo.ViewUndoAction.FlipCelH:
                 return "Undo Flip Cel Horizontally";
-            case ViewUndo.ActionType.FlipCelV:
+            case ViewUndo.ViewUndoAction.FlipCelV:
                 return "Undo Flip Cel Vertically";
-            case ViewUndo.ActionType.FlipSelectionH:
+            case ViewUndo.ViewUndoAction.FlipSelectionH:
                 return "Undo Flip Selection Horizontally";
-            case ViewUndo.ActionType.FlipSelectionV:
+            case ViewUndo.ViewUndoAction.FlipSelectionV:
                 return "Undo Flip Selection Vertically";
             case PaintFill:
                 return "Undo Paint Fill";
@@ -696,9 +696,9 @@ namespace WinAGI.Editor {
                 return "Undo Cut Selection";
             case DelSelection:
                 return "Undo Delete Selection";
-            case ViewUndo.ActionType.PasteSelection:
+            case ViewUndo.ViewUndoAction.PasteSelection:
                 return "Undo Paste Selection";
-            case ViewUndo.ActionType.MoveSelection:
+            case ViewUndo.ViewUndoAction.MoveSelection:
                 return "Undo Move Selection";
             case ClearView:
                 return "Undo Clear View";
@@ -871,10 +871,10 @@ namespace WinAGI.Editor {
             ViewUndo NextUndo = UndoCol.Pop();
             tsbUndo.Enabled = (UndoCol.Count > 0);
 
-            switch (NextUndo.UDAction) {
+            switch (NextUndo.Action) {
             case AddLoop or PasteLoop:
                 // get loop to delete
-                SelectedLoop = NextUndo.UDLoopNo;
+                SelectedLoop = NextUndo.LoopNumber;
                 // delete loop
                 DeleteLoop((byte)SelectedLoop, true);
                 // update preview
@@ -883,8 +883,8 @@ namespace WinAGI.Editor {
                 }
                 break;
             case AddCel or PasteCel:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 // delete cel
                 DeleteCel((byte)SelectedLoop, (byte)SelectedCel, true);
                 // update preview
@@ -893,7 +893,7 @@ namespace WinAGI.Editor {
                 }
                 break;
             case DelLoop or CutLoop:
-                SelectedLoop = NextUndo.UDLoopNo;
+                SelectedLoop = NextUndo.LoopNumber;
                 // add a new loop here
                 EditView.Loops.Add(SelectedLoop);
                 // if the loop was mirrored
@@ -910,8 +910,8 @@ namespace WinAGI.Editor {
                 SelectCel(SelectedLoop, 0, true);
                 break;
             case DelCel or CutCel:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 // add a cel
                 EditView[SelectedLoop].Cels.Add(SelectedCel);
                 // copy cel from undo
@@ -921,16 +921,16 @@ namespace WinAGI.Editor {
                 SelectCel(SelectedLoop, SelectedCel, true);
                 break;
             case IncHeight:
-                SelectCel(NextUndo.UDLoopNo, NextUndo.UDCelNo);
+                SelectCel(NextUndo.LoopNumber, NextUndo.CelNumber);
                 ChangeHeight(NextUndo.UndoData[0], true);
                 break;
             case IncWidth:
-                SelectCel(NextUndo.UDLoopNo, NextUndo.UDCelNo);
+                SelectCel(NextUndo.LoopNumber, NextUndo.CelNumber);
                 ChangeWidth(NextUndo.UndoData[0], true);
                 break;
             case DecHeight:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 CelWidth = EditView[SelectedLoop][SelectedCel].Width;
                 CelHeight = EditView[SelectedLoop][SelectedCel].Height;
                 // set new height
@@ -945,8 +945,8 @@ namespace WinAGI.Editor {
                 SelectCel(SelectedLoop, SelectedCel, true);
                 break;
             case DecWidth:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 CelWidth = EditView[SelectedLoop][SelectedCel].Width;
                 CelHeight = EditView[SelectedLoop][SelectedCel].Height;
                 // set new width
@@ -961,7 +961,7 @@ namespace WinAGI.Editor {
                 SelectCel(SelectedLoop, SelectedCel, true);
                 break;
             case Mirror:
-                SelectLoop(NextUndo.UDLoopNo);
+                SelectLoop(NextUndo.LoopNumber);
                 // select first cel
                 SelectedCel = 0;
                 // unmirror loop
@@ -979,11 +979,11 @@ namespace WinAGI.Editor {
                 SelectLoop(SelectedLoop);
                 break;
             case ChangeTransCol:
-                SelectCel(NextUndo.UDLoopNo, NextUndo.UDCelNo);
+                SelectCel(NextUndo.LoopNumber, NextUndo.CelNumber);
                 ChangeTransColor((AGIColorIndex)NextUndo.UndoData[0], true);
                 break;
-            case ViewUndo.ActionType.ClearLoop:
-                SelectedLoop = NextUndo.UDLoopNo;
+            case ViewUndo.ViewUndoAction.ClearLoop:
+                SelectedLoop = NextUndo.LoopNumber;
                 EditView[SelectedLoop].CloneFrom(NextUndo.UndoLoop);
                 // if loop was mirrored
                 if (NextUndo.UndoData[0] != -1) {
@@ -994,9 +994,9 @@ namespace WinAGI.Editor {
                 // select first cel
                 SelectCel(SelectedLoop, 0);
                 break;
-            case ViewUndo.ActionType.ClearCel:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+            case ViewUndo.ViewUndoAction.ClearCel:
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 // restore cel
                 EditView[SelectedLoop][SelectedCel].CloneFrom(NextUndo.UndoCel);
                 SelectCel(SelectedLoop, SelectedCel, true);
@@ -1008,29 +1008,29 @@ namespace WinAGI.Editor {
                 }
                 break;
             case FlipLoopH:
-                for (i = 0; i < EditView[NextUndo.UDLoopNo].Cels.Count; i++) {
-                    FlipCelH(NextUndo.UDLoopNo, i, true);
+                for (i = 0; i < EditView[NextUndo.LoopNumber].Cels.Count; i++) {
+                    FlipCelH(NextUndo.LoopNumber, i, true);
                 }
-                SelectLoop(NextUndo.UDLoopNo);
+                SelectLoop(NextUndo.LoopNumber);
                 break;
             case FlipLoopV:
-                for (i = 0; i < EditView[NextUndo.UDLoopNo].Cels.Count; i++) {
-                    FlipCelV(NextUndo.UDLoopNo, i, true);
+                for (i = 0; i < EditView[NextUndo.LoopNumber].Cels.Count; i++) {
+                    FlipCelV(NextUndo.LoopNumber, i, true);
                 }
-                SelectLoop(NextUndo.UDLoopNo);
+                SelectLoop(NextUndo.LoopNumber);
                 break;
-            case ViewUndo.ActionType.FlipCelH:
-                FlipCelH(NextUndo.UDLoopNo, NextUndo.UDCelNo, true);
-                SelectCel(NextUndo.UDLoopNo, NextUndo.UDCelNo, true);
+            case ViewUndo.ViewUndoAction.FlipCelH:
+                FlipCelH(NextUndo.LoopNumber, NextUndo.CelNumber, true);
+                SelectCel(NextUndo.LoopNumber, NextUndo.CelNumber, true);
                 break;
-            case ViewUndo.ActionType.FlipCelV:
-                FlipCelV(NextUndo.UDLoopNo, NextUndo.UDCelNo, true);
-                SelectCel(NextUndo.UDLoopNo, NextUndo.UDCelNo, true);
+            case ViewUndo.ViewUndoAction.FlipCelV:
+                FlipCelV(NextUndo.LoopNumber, NextUndo.CelNumber, true);
+                SelectCel(NextUndo.LoopNumber, NextUndo.CelNumber, true);
                 break;
-            case ViewUndo.ActionType.FlipSelectionH:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
-                Selection = NextUndo.UDSelection;
+            case ViewUndo.ViewUndoAction.FlipSelectionH:
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
+                Selection = NextUndo.SelectionInfo;
                 SelectionVisible = true;
                 tmrSelect.Enabled = true;
                 // re-flip
@@ -1046,10 +1046,10 @@ namespace WinAGI.Editor {
                     SetCursor(ViewCursor.Select);
                 }
                 break;
-            case ViewUndo.ActionType.FlipSelectionV:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
-                Selection = NextUndo.UDSelection;
+            case ViewUndo.ViewUndoAction.FlipSelectionV:
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
+                Selection = NextUndo.SelectionInfo;
                 SelectionVisible = true;
                 tmrSelect.Enabled = true;
                 // re-flip
@@ -1070,8 +1070,8 @@ namespace WinAGI.Editor {
             case Box:
                 // these all store undo data in the same format - a
                 // list of pixels with the original data
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 for (i = 0; i < NextUndo.PixelData.Count; i++) {
                     PixelInfo px = NextUndo.PixelData[i];
                     EditView[SelectedLoop][SelectedCel][px.Location.X, px.Location.Y] = px.Value;
@@ -1079,8 +1079,8 @@ namespace WinAGI.Editor {
                 SelectCel(SelectedLoop, SelectedCel, true);
                 break;
             case BoxFill:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 // get start and end points
                 for (i = NextUndo.UndoData[0]; i <= NextUndo.UndoData[2]; i++) {
                     for (j = NextUndo.UndoData[1]; j <= NextUndo.UndoData[3]; j++) {
@@ -1090,8 +1090,8 @@ namespace WinAGI.Editor {
                 SelectCel(SelectedLoop, SelectedCel, true);
                 break;
             case Draw or Erase:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 // undo pixels by stepping backward through pixel list
                 for (i = NextUndo.PixelData.Count - 1; i >= 0; i--) {
                     EditView[SelectedLoop][SelectedCel][NextUndo.PixelData[i].Location.X, NextUndo.PixelData[i].Location.Y] = NextUndo.PixelData[i].Value;
@@ -1099,9 +1099,9 @@ namespace WinAGI.Editor {
                 SelectCel(SelectedLoop, SelectedCel, true);
                 break;
             case CutSelection or DelSelection:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
-                Selection = NextUndo.UDSelection;
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
+                Selection = NextUndo.SelectionInfo;
                 // restore data
                 startx = Selection.Bounds.X;
                 starty = Selection.Bounds.Y;
@@ -1129,9 +1129,9 @@ namespace WinAGI.Editor {
                 }
                 ConfigureToolbar();
                 break;
-            case ViewUndo.ActionType.PasteSelection:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
+            case ViewUndo.ViewUndoAction.PasteSelection:
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
                 // restore data under
                 startx = Selection.Bounds.X;
                 starty = Selection.Bounds.Y;
@@ -1154,10 +1154,10 @@ namespace WinAGI.Editor {
                 HideSelection();
                 ConfigureToolbar();
                 break;
-            case ViewUndo.ActionType.MoveSelection:
-                SelectedLoop = NextUndo.UDLoopNo;
-                SelectedCel = NextUndo.UDCelNo;
-                Selection = NextUndo.UDSelection;
+            case ViewUndo.ViewUndoAction.MoveSelection:
+                SelectedLoop = NextUndo.LoopNumber;
+                SelectedCel = NextUndo.CelNumber;
+                Selection = NextUndo.SelectionInfo;
                 // use move to put the selection back
                 Point oldpos = new(NextUndo.UndoData[0], NextUndo.UndoData[1]);
                 MoveSelection(oldpos);
@@ -1175,15 +1175,15 @@ namespace WinAGI.Editor {
             mnuDelete_Click(sender, e);
             if (undocount != UndoCol.Count) {
                 // undo was added
-                switch (UndoCol.Peek().UDAction) {
+                switch (UndoCol.Peek().Action) {
                 case DelLoop:
-                    UndoCol.Peek().UDAction = CutLoop;
+                    UndoCol.Peek().Action = CutLoop;
                     break;
                 case DelCel:
-                    UndoCol.Peek().UDAction = CutCel;
+                    UndoCol.Peek().Action = CutCel;
                     break;
                 case DelSelection:
-                    UndoCol.Peek().UDAction = CutSelection;
+                    UndoCol.Peek().Action = CutSelection;
                     break;
                 }
             }
@@ -1294,7 +1294,7 @@ namespace WinAGI.Editor {
                 // reset view to a single loop with a single cel
                 // with height and width of one with black transcolor
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = ClearView;
+                NextUndo.Action = ClearView;
                 NextUndo.View = EditView.Clone();
                 // clearing mirrored loop not working...
                 AddUndo(NextUndo);
@@ -1349,8 +1349,8 @@ namespace WinAGI.Editor {
             case ViewEditMode.Loop:
                 // flip all cels in the loop
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = ViewUndo.ActionType.FlipLoopH;
-                NextUndo.UDLoopNo = SelectedLoop;
+                NextUndo.Action = ViewUndo.ViewUndoAction.FlipLoopH;
+                NextUndo.LoopNumber = SelectedLoop;
                 AddUndo(NextUndo);
                 for (int i = 0; i < EditView[SelectedLoop].Cels.Count; i++) {
                     FlipCelH(SelectedLoop, i, true);
@@ -1378,8 +1378,8 @@ namespace WinAGI.Editor {
             case ViewEditMode.Loop:
                 // flip all cels in the loop
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = ViewUndo.ActionType.FlipLoopV;
-                NextUndo.UDLoopNo = SelectedLoop;
+                NextUndo.Action = ViewUndo.ViewUndoAction.FlipLoopV;
+                NextUndo.LoopNumber = SelectedLoop;
                 AddUndo(NextUndo);
                 for (int i = 0; i < EditView[SelectedLoop].Cels.Count; i++) {
                     FlipCelV(SelectedLoop, i, true);
@@ -1585,7 +1585,7 @@ namespace WinAGI.Editor {
             // force selection to change BEFORE context menu is shown
             if (e.Button == MouseButtons.Right) {
                 TreeNode node = tvwView.GetNodeAt(e.X, e.Y);
-                if (node != null) {
+                if (node is not null) {
                     tvwView.SelectedNode = node;
                 }
             }
@@ -2052,8 +2052,8 @@ namespace WinAGI.Editor {
             case ViewEditOperation.opDraw:
                 // set undo object
                 NextUndo = new();
-                NextUndo.UDLoopNo = SelectedLoop;
-                NextUndo.UDCelNo = SelectedCel;
+                NextUndo.LoopNumber = SelectedLoop;
+                NextUndo.CelNumber = SelectedCel;
                 // if line or box
                 if (SelectedTool == ViewEditToolType.Rectangle || SelectedTool == ViewEditToolType.BoxFill) {
                     // swap so first variable is always lowest
@@ -2069,26 +2069,26 @@ namespace WinAGI.Editor {
                 case ViewEditToolType.Erase:
                     // if erasing
                     if (SelectedTool == ViewEditToolType.Erase) {
-                        NextUndo.UDAction = Erase;
+                        NextUndo.Action = Erase;
                     }
                     else {
-                        NextUndo.UDAction = Draw;
+                        NextUndo.Action = Draw;
                     }
                     // add pixel data
                     NextUndo.PixelData = PixelData;
                     break;
                 case ViewEditToolType.Line:
-                    NextUndo.UDAction = Line;
+                    NextUndo.Action = Line;
                     NextUndo.PixelData = new();
                     // draw the line
                     DrawLineOnCel(AnchorPt, ViewPt, NextUndo);
                     break;
                 case ViewEditToolType.Rectangle:
-                    NextUndo.UDAction = Box;
+                    NextUndo.Action = Box;
                     DrawBoxOnCel(DrawCol, AnchorPt, ViewPt, false, NextUndo);
                     break;
                 case ViewEditToolType.BoxFill:
-                    NextUndo.UDAction = BoxFill;
+                    NextUndo.Action = BoxFill;
                     DrawBoxOnCel(DrawCol, AnchorPt, ViewPt, true, NextUndo);
                     break;
                 }
@@ -2506,7 +2506,7 @@ namespace WinAGI.Editor {
             spCurY.Text = "";
         }
 
-        public bool LoadView(Engine.View loadview, int StartLoop = 0, int StartCel = 0) {
+        public bool LoadView(Engine.View loadview, int StartLoop = 0, int StartCel = 0, bool quiet = false) {
             InGame = loadview.InGame;
             if (InGame) {
                 ViewNumber = loadview.Number;
@@ -2519,10 +2519,75 @@ namespace WinAGI.Editor {
             try {
                 loadview.Load();
             }
-            catch {
+            catch (Exception ex) {
+                // unhandled error
+                if (!quiet) {
+                    string resid = InGame ? "View " + ViewNumber : loadview.ID;
+                    ErrMsgBox(ex,
+                        "Something went wrong. Unable to load " + resid,
+                        ex.StackTrace,
+                        "Load View Failed");
+                }
                 return false;
             }
-            if (loadview.ErrLevel < 0) {
+            if (loadview.Error != ResourceErrorType.NoError) {
+                if (!quiet) {
+                    if (InGame) {
+                        switch (loadview.Error) {
+                        case ResourceErrorType.FileNotFound:
+                            // should not be possible unless volfile deleted after
+                            // the game was loaded
+                            MessageBox.Show(MDIMain,
+                                $"The VOL file with View {loadview.Number} is missing.",
+                                "Missing VOL File",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re01.htm");
+                            break;
+                        case ResourceErrorType.FileIsReadonly:
+                            // should not be possible unless volfile properties were
+                            // changed after the game was loaded
+                            MessageBox.Show(MDIMain,
+                                $"View {loadview.Number} is in a VOL file tagged as readonly. " +
+                                "It cannot be edited unless full access is allowed.",
+                                "Readonly VOL File",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re02.htm");
+                            break;
+                        case ResourceErrorType.FileAccessError:
+                            MessageBox.Show(MDIMain,
+                                $"A file access error in the VOL file with Picture {loadview.Number} " +
+                                "is preventing the picture from being edited. ",
+                                "VOL File Access Error",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\errors\\re03.htm");
+                            break;
+                        //case ResourceErrorType.InvalidLocation:
+                        //case ResourceErrorType.InvalidHeader:
+                        //case ResourceErrorType.DecompressionError:
+                        default:
+                            // should not be possible
+                            Debug.Assert(false);
+                            MessageBox.Show(MDIMain,
+                            "Something went wrong. Unable to load View " + ViewNumber,
+                            "Load View Failed",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                            break;
+                        }
+                    }
+                    else {
+                        // show a generic message
+                        MessageBox.Show(MDIMain,
+                            "Unable to open View " + ViewNumber + ":\n\n LoadError " +
+                            loadview.Error.ToString(),
+                            "View Resource Load Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
+                }
                 return false;
             }
             EditView = loadview.Clone();
@@ -2532,7 +2597,8 @@ namespace WinAGI.Editor {
                 IsChanged = true;
             }
             else {
-                IsChanged = EditView.IsChanged || EditView.ErrLevel != 0;
+                // TODO: why would IsChanged ever be true?
+                IsChanged = EditView.IsChanged || EditView.Warnings != 0;
             }
             Text = sVIEWED + ResourceName(EditView, InGame, true);
             if (IsChanged) {
@@ -2562,21 +2628,7 @@ namespace WinAGI.Editor {
         public void ImportView(string importfile) {
             MDIMain.UseWaitCursor = true;
             Engine.View tmpView = new();
-            try {
-                tmpView.Import(importfile);
-            }
-            catch (Exception e) {
-                // something wrong
-                MDIMain.UseWaitCursor = false;
-                ErrMsgBox(e, "Error while importing view:", "Unable to load this view resource.", "Import View Error");
-                return;
-            }
-            // now check to see if it's a valid view resource (by trying to reload it)
-            tmpView.Load();
-            if (tmpView.ErrLevel < 0) {
-                ErrMsgBox(tmpView.ErrLevel, "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource");
-                // restore main form mousepointer and exit
-                MDIMain.UseWaitCursor = false;
+            if (!Base.ImportView(importfile, tmpView)) {
                 return;
             }
             // copy only the resource data
@@ -3290,14 +3342,14 @@ namespace WinAGI.Editor {
             if (!DontUndo) {
                 int CelWidth = EditView[SelectedLoop][SelectedCel].Width;
                 ViewUndo NextUndo = new();
-                NextUndo.UDLoopNo = SelectedLoop;
-                NextUndo.UDCelNo = SelectedCel;
+                NextUndo.LoopNumber = SelectedLoop;
+                NextUndo.CelNumber = SelectedCel;
                 NextUndo.UndoData = [CelHeight];
                 if (NewCelHeight > CelHeight) {
-                    NextUndo.UDAction = IncHeight;
+                    NextUndo.Action = IncHeight;
                 }
                 else {
-                    NextUndo.UDAction = DecHeight;
+                    NextUndo.Action = DecHeight;
                     // store data being eliminated
                     byte[,] tmpCelData = new byte[CelWidth, CelHeight - NewCelHeight];
                     for (int j = NewCelHeight; j < CelHeight; j++) {
@@ -3338,15 +3390,15 @@ namespace WinAGI.Editor {
                 // local copy of height
                 int CelHeight = EditView[SelectedLoop][SelectedCel].Height;
                 ViewUndo NextUndo = new();
-                NextUndo.UDLoopNo = SelectedLoop;
-                NextUndo.UDCelNo = SelectedCel;
+                NextUndo.LoopNumber = SelectedLoop;
+                NextUndo.CelNumber = SelectedCel;
                 NextUndo.UndoData = [CelWidth];
                 // if new width is greater than old width
                 if (NewCelWidth > CelWidth) {
-                    NextUndo.UDAction = IncWidth;
+                    NextUndo.Action = IncWidth;
                 }
                 else {
-                    NextUndo.UDAction = DecWidth;
+                    NextUndo.Action = DecWidth;
                     // store data being eliminated
                     byte[,] tmpCelData = new byte[CelWidth - NewCelWidth, CelHeight];
                     for (int i = NewCelWidth; i < CelWidth; i++) {
@@ -3371,9 +3423,9 @@ namespace WinAGI.Editor {
         internal void ChangeTransColor(AGIColorIndex newcolor, bool DontUndo = false) {
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = ChangeTransCol;
-                NextUndo.UDLoopNo = SelectedLoop;
-                NextUndo.UDCelNo = SelectedCel;
+                NextUndo.Action = ChangeTransCol;
+                NextUndo.LoopNumber = SelectedLoop;
+                NextUndo.CelNumber = SelectedCel;
                 NextUndo.UndoData = [(byte)EditView[SelectedLoop][SelectedCel].TransColor];
                 AddUndo(NextUndo);
             }
@@ -3395,8 +3447,8 @@ namespace WinAGI.Editor {
             }
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = Mirror;
-                NextUndo.UDLoopNo = SelectedLoop;
+                NextUndo.Action = Mirror;
+                NextUndo.LoopNumber = SelectedLoop;
                 NextUndo.UndoData = [EditView[SelectedLoop].MirrorLoop];
 
                 if (!EditView[SelectedLoop].Mirrored) {
@@ -3428,7 +3480,7 @@ namespace WinAGI.Editor {
             }
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = ChangeVDesc;
+                NextUndo.Action = ChangeVDesc;
                 NextUndo.OldText = EditView.ViewDescription;
                 AddUndo(NextUndo);
             }
@@ -3439,7 +3491,7 @@ namespace WinAGI.Editor {
         private bool ClipboardHasLoop() {
             if (Clipboard.ContainsData(VIEW_CB_FMT)) {
                 ViewClipboardData viewCBData = Clipboard.GetData(VIEW_CB_FMT) as ViewClipboardData;
-                if (viewCBData == null) {
+                if (viewCBData is null) {
                     return false;
                 }
                 return viewCBData.Mode == ViewClipboardMode.Loop;
@@ -3450,7 +3502,7 @@ namespace WinAGI.Editor {
         private bool ClipboardHasCel() {
             if (Clipboard.ContainsData(VIEW_CB_FMT)) {
                 ViewClipboardData viewCBData = Clipboard.GetData(VIEW_CB_FMT) as ViewClipboardData;
-                if (viewCBData == null) {
+                if (viewCBData is null) {
                     return false;
                 }
                 return viewCBData.Mode == ViewClipboardMode.Cel;
@@ -3462,8 +3514,8 @@ namespace WinAGI.Editor {
             // delete the loop
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = DelLoop;
-                NextUndo.UDLoopNo = loopnum;
+                NextUndo.Action = DelLoop;
+                NextUndo.LoopNumber = loopnum;
                 NextUndo.UndoLoop = new();
                 if (EditView[loopnum].Mirrored) {
                     // only need the mirror loop for undo
@@ -3488,9 +3540,9 @@ namespace WinAGI.Editor {
             // delete the cel
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = DelCel;
-                NextUndo.UDLoopNo = loopnum;
-                NextUndo.UDCelNo = celnum;
+                NextUndo.Action = DelCel;
+                NextUndo.LoopNumber = loopnum;
+                NextUndo.CelNumber = celnum;
                 NextUndo.UndoCel = EditView[loopnum][celnum].Clone();
                 AddUndo(NextUndo);
             }
@@ -3518,7 +3570,7 @@ namespace WinAGI.Editor {
                     WinAGIHelp, "htm\\agi\\views.htm#loop");
                 return false;
             }
-            if (insertloop == null) {
+            if (insertloop is null) {
                 // create a new loop
                 insertloop = new Loop();
                 insertloop.Cels.Add(0, WinAGISettings.DefCelW.Value, WinAGISettings.DefCelH.Value, AGIColorIndex.Black);
@@ -3528,8 +3580,8 @@ namespace WinAGI.Editor {
 
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = AddLoop;
-                NextUndo.UDLoopNo = insertpos;
+                NextUndo.Action = AddLoop;
+                NextUndo.LoopNumber = insertpos;
                 AddUndo(NextUndo);
             }
             UpdateTree();
@@ -3552,7 +3604,7 @@ namespace WinAGI.Editor {
                 return false;
             }
 
-            if (insertcel == null) {
+            if (insertcel is null) {
                 insertcel = new();
                 if (insertpos == EditView[SelectedLoop].Cels.Count) {
                     newW = EditView[SelectedLoop][insertpos - 1].Width;
@@ -3573,9 +3625,9 @@ namespace WinAGI.Editor {
             UpdateTree();
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = AddCel;
-                NextUndo.UDCelNo = SelectedCel;
-                NextUndo.UDLoopNo = SelectedLoop;
+                NextUndo.Action = AddCel;
+                NextUndo.CelNumber = SelectedCel;
+                NextUndo.LoopNumber = SelectedLoop;
                 AddUndo(NextUndo);
             }
             return true;
@@ -3586,8 +3638,8 @@ namespace WinAGI.Editor {
             // the remaining cel to one by one with black transcolor
 
             ViewUndo NextUndo = new();
-            NextUndo.UDAction = ViewUndo.ActionType.ClearLoop;
-            NextUndo.UDLoopNo = loopnum;
+            NextUndo.Action = ViewUndo.ViewUndoAction.ClearLoop;
+            NextUndo.LoopNumber = loopnum;
             NextUndo.UndoLoop.CloneFrom(EditView[loopnum]);
             // need to know if the loop is mirrored
             NextUndo.UndoData = [EditView[loopnum].MirrorLoop];
@@ -3606,9 +3658,9 @@ namespace WinAGI.Editor {
 
         private void ClearCel(int loopnum, int celnum) {
             ViewUndo NextUndo = new();
-            NextUndo.UDAction = ViewUndo.ActionType.ClearCel;
-            NextUndo.UDLoopNo = loopnum;
-            NextUndo.UDCelNo = celnum;
+            NextUndo.Action = ViewUndo.ViewUndoAction.ClearCel;
+            NextUndo.LoopNumber = loopnum;
+            NextUndo.CelNumber = celnum;
             NextUndo.UndoCel = EditView[loopnum][celnum].Clone();
             AddUndo(NextUndo);
             // clear the selected cel
@@ -3629,9 +3681,9 @@ namespace WinAGI.Editor {
             }
             if (!DontUndo) {
                 ViewUndo NextUndo = new() {
-                    UDAction = ViewUndo.ActionType.FlipCelH,
-                    UDLoopNo = loopnum,
-                    UDCelNo = celnum
+                    Action = ViewUndo.ViewUndoAction.FlipCelH,
+                    LoopNumber = loopnum,
+                    CelNumber = celnum
                 };
                 AddUndo(NextUndo);
             }
@@ -3651,9 +3703,9 @@ namespace WinAGI.Editor {
             }
             if (!DontUndo) {
                 ViewUndo NextUndo = new() {
-                    UDAction = ViewUndo.ActionType.FlipCelV,
-                    UDLoopNo = loopnum,
-                    UDCelNo = celnum
+                    Action = ViewUndo.ViewUndoAction.FlipCelV,
+                    LoopNumber = loopnum,
+                    CelNumber = celnum
                 };
                 AddUndo(NextUndo);
             }
@@ -3662,10 +3714,10 @@ namespace WinAGI.Editor {
         private void FlipSelectionH(bool DontUndo = false) {
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = ViewUndo.ActionType.FlipSelectionH;
-                NextUndo.UDLoopNo = SelectedLoop;
-                NextUndo.UDCelNo = SelectedCel;
-                NextUndo.UDSelection = Selection;
+                NextUndo.Action = ViewUndo.ViewUndoAction.FlipSelectionH;
+                NextUndo.LoopNumber = SelectedLoop;
+                NextUndo.CelNumber = SelectedCel;
+                NextUndo.SelectionInfo = Selection;
                 AddUndo(NextUndo);
             }
 
@@ -3702,10 +3754,10 @@ namespace WinAGI.Editor {
         private void FlipSelectionV(bool DontUndo = false) {
             if (!DontUndo) {
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = ViewUndo.ActionType.FlipSelectionV;
-                NextUndo.UDLoopNo = SelectedLoop;
-                NextUndo.UDCelNo = SelectedCel;
-                NextUndo.UDSelection = Selection;
+                NextUndo.Action = ViewUndo.ViewUndoAction.FlipSelectionV;
+                NextUndo.LoopNumber = SelectedLoop;
+                NextUndo.CelNumber = SelectedCel;
+                NextUndo.SelectionInfo = Selection;
                 AddUndo(NextUndo);
             }
 
@@ -3866,10 +3918,10 @@ namespace WinAGI.Editor {
             Selection.Bounds.Y = movey;
             // save undo info
             ViewUndo NextUndo = new();
-            NextUndo.UDAction = ViewUndo.ActionType.MoveSelection;
-            NextUndo.UDLoopNo = SelectedLoop;
-            NextUndo.UDCelNo = SelectedCel;
-            NextUndo.UDSelection = Selection;
+            NextUndo.Action = ViewUndo.ViewUndoAction.MoveSelection;
+            NextUndo.LoopNumber = SelectedLoop;
+            NextUndo.CelNumber = SelectedCel;
+            NextUndo.SelectionInfo = Selection;
             NextUndo.UndoData = new int[2];
             // original location
             NextUndo.UndoData[0] = AnchorPt.X;
@@ -3947,7 +3999,7 @@ namespace WinAGI.Editor {
             MoveSelection(Selection.Bounds.Location, true);
             EndMoveSelection(Selection.Bounds.Left, Selection.Bounds.Top);
             // change last Undo to undo-paste
-            UndoCol.Peek().UDAction = ViewUndo.ActionType.PasteSelection;
+            UndoCol.Peek().Action = ViewUndo.ViewUndoAction.PasteSelection;
             // force tool to 'select'
             SelectedTool = ViewEditToolType.Select;
             SetCursor(ViewCursor.Select);
@@ -3957,10 +4009,10 @@ namespace WinAGI.Editor {
             if (SelectionVisible) {
                 // save undo data
                 ViewUndo NextUndo = new();
-                NextUndo.UDAction = DelSelection;
-                NextUndo.UDLoopNo = SelectedLoop;
-                NextUndo.UDCelNo = SelectedCel;
-                NextUndo.UDSelection = Selection;
+                NextUndo.Action = DelSelection;
+                NextUndo.LoopNumber = SelectedLoop;
+                NextUndo.CelNumber = SelectedCel;
+                NextUndo.SelectionInfo = Selection;
                 AddUndo(NextUndo);
                 // delete data (put under data back in cel)
                 int startx = Selection.Bounds.X;
@@ -4258,9 +4310,9 @@ namespace WinAGI.Editor {
             }
             // create undo
             ViewUndo NextUndo = new();
-            NextUndo.UDAction = PaintFill;
-            NextUndo.UDLoopNo = SelectedLoop;
-            NextUndo.UDCelNo = SelectedCel;
+            NextUndo.Action = PaintFill;
+            NextUndo.LoopNumber = SelectedLoop;
+            NextUndo.CelNumber = SelectedCel;
             NextUndo.PixelData = [];
 
             // Get the dimensions of the cel
@@ -4646,15 +4698,14 @@ namespace WinAGI.Editor {
         }
 
         internal void ShowHelp() {
-            string strTopic = "htm\\winagi\\View_Editor.htm";
+            string topic = "htm\\winagi\\View_Editor.htm";
 
             // TODO: add context sensitive help
-            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, strTopic);
-            return;
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
         }
 
         private bool AskClose() {
-            if (EditView.ErrLevel < 0) {
+            if (EditView.Error != ResourceErrorType.NoError) {
                 // if exiting due to error on form load
                 return true;
             }

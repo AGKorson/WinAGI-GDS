@@ -49,12 +49,7 @@ namespace WinAGI.Common {
             StreamWriter swConfig;
             StreamReader srConfig;
 
-            if (filename is null || filename.Length == 0) {
-                WinAGIException wex = new(LoadResString(604)) {
-                    HResult = WINAGI_ERR + 604,
-                };
-                throw wex;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(filename, nameof(filename));
             // save filename
             Filename = filename;
 
@@ -68,32 +63,24 @@ namespace WinAGI.Common {
                 if (File.Exists(filename)) {
                     // existing file can't be write-protected
                     if ((File.GetAttributes(filename) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                        try {
-                            File.SetAttributes(filename, FileAttributes.Normal);
-                        }
-                        catch {
-                            WinAGIException wex = new(LoadResString(700).Replace(ARG1, Filename)) {
-                                HResult = WINAGI_ERR + 700,
-                            };
-                            wex.Data["badfile"] = Filename;
-                            throw wex;
-                        }
+                        WinAGIException wex = new(LoadResString(539).Replace(ARG1, Filename)) {
+                            HResult = WINAGI_ERR + 539,
+                        };
+                        wex.Data["badfile"] = Filename;
+                        throw wex;
                     }
                 }
                 break;
             case FileMode.Open:
                 // open (file must already exist)
+                
                 if (!File.Exists(filename)) {
-                    WinAGIException wex = new(LoadResString(524).Replace(ARG1, filename)) {
-                        HResult = WINAGI_ERR + 524
-                    };
-                    wex.Data["missingfile"] = filename;
-                    throw wex;
+                    throw new FileNotFoundException("settins file not found", nameof(filename));
                 }
                 // file can't be readonly
                 if ((File.GetAttributes(filename) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                    WinAGIException wex = new(LoadResString(700).Replace(ARG1, Filename)) {
-                        HResult = WINAGI_ERR + 700,
+                    WinAGIException wex = new(LoadResString(539).Replace(ARG1, Filename)) {
+                        HResult = WINAGI_ERR + 539,
                     };
                     wex.Data["badfile"] = Filename;
                     throw wex;
@@ -108,7 +95,9 @@ namespace WinAGI.Common {
                 fsConfig = new FileStream(Filename, mode);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(ARG1, ex.HResult.ToString()).Replace(ARG2, Filename)) {
+                WinAGIException wex = new(LoadResString(502).Replace(
+                    ARG1, ex.HResult.ToString()).Replace(
+                    ARG2, Filename)) {
                     HResult = WINAGI_ERR + 502,
                 };
                 wex.Data["exception"] = ex;
@@ -515,12 +504,7 @@ namespace WinAGI.Common {
         /// </summary>
         public void Save() {
             // verify filename exists
-            if (Filename.Length == 0) {
-                WinAGIException wex = new("invalid name") {
-                    HResult = WINAGI_ERR + 563,
-                };
-                throw wex;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace("filename is missing");
             try {
                 using StreamWriter cfgSR = new(Filename);
                 // output the results to the file
@@ -531,7 +515,9 @@ namespace WinAGI.Common {
             }
             catch (Exception ex) {
                 // file access error
-                WinAGIException wex = new(LoadResString(502).Replace(ARG1, ex.HResult.ToString()).Replace(ARG2, Filename)) {
+                WinAGIException wex = new(LoadResString(502).Replace(
+                    ARG1, ex.HResult.ToString()).Replace(
+                    ARG2, Filename)) {
                     HResult = WINAGI_ERR + 502,
                 };
                 wex.Data["exception"] = ex;
@@ -733,7 +719,7 @@ namespace WinAGI.Common {
             else if (int.TryParse(strValue, out int iResult)) {
                 return iResult;
             }
-            else if (enumType != null) {
+            else if (enumType is not null) {
                 try {
                     return (int)Enum.Parse(enumType, strValue, true);
                 }
@@ -1309,7 +1295,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -1408,7 +1394,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -1508,7 +1494,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -1613,7 +1599,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -1719,7 +1705,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -1824,7 +1810,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -1924,7 +1910,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -2020,7 +2006,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -2116,7 +2102,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -2225,7 +2211,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -2345,7 +2331,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -2464,7 +2450,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }
@@ -2583,7 +2569,7 @@ namespace WinAGI.Common {
         #region Methods
         public void Reset(SettingsFile savefile = null) {
             itemValue = defaultValue;
-            if (savefile != null) {
+            if (savefile is not null) {
                 WriteSetting(savefile);
             }
         }

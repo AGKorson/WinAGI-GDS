@@ -1,4 +1,5 @@
-﻿using FastColoredTextBoxNS;
+﻿using EnvDTE;
+using FastColoredTextBoxNS;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -320,6 +321,8 @@ namespace WinAGI.Editor {
             Picture = 15,
             Sound = 16,
             View = 17,
+            ActionCmds = 18,
+            TestCmds = 19,
         }
         public enum EImgFormat {
             effBMP = 0,
@@ -956,7 +959,7 @@ namespace WinAGI.Editor {
             public string SrcExt;
             public string TemplateDir;
             public bool Failed;
-            public string ErrorMsg;
+            public Exception Error;
             public bool Warnings;
         }
 
@@ -1822,35 +1825,46 @@ namespace WinAGI.Editor {
                     return;
                 }
 
-                // set default text file directory to game source file directory
-                DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
+                // set default resource file directory to game source file directory
+                DefaultResDir = EditGame.ResDir;
 
-                // did the resource directory change? (is this even possible?)
-                // YES it is; if only one dir exists, and it has a different name,
-                // it's assumed to be the resource directory
-                strMsg = "Game file '" + EditGame.GameID + ".wag'  has been created." + Environment.NewLine + Environment.NewLine;
-                if (EditGame.ResDirName != DefResDir) {
-                    strMsg = strMsg + "The existing subdirectory '" + EditGame.ResDirName + "' will be used ";
+                strMsg = "Game file '" + EditGame.GameID + ".wag'  has been created.\n\n";
+                if (EditGame.ResDirName == "") {
+                    // means resdir couldn't be created
+                    strMsg += "Unable to create a resource subdirectory. " +
+                        "Logic source files and exported resources will be " +
+                        "stored in the game directory.";
                 }
                 else {
-                    strMsg = strMsg + "The subdirectory '" + EditGame.ResDirName + "' has been created ";
+                    if (EditGame.ResDirName != DefResDir) {
+                        strMsg += "The existing subdirectory '" +
+                            EditGame.ResDirName + "' will be used ";
+                    }
+                    else {
+                        strMsg += "The subdirectory '" + EditGame.ResDirName +
+                            "' has been created ";
+                    }
+                    strMsg += "to store logic source files and exported resources. " +
+                    "You can change the source directory for this game on the Game " +
+                    "Properties dialog.";
                 }
-                strMsg = strMsg + "to store logic " +
-                "source files and exported resources. You can change the " +
-                "source directory for this game on the Game Properties dialog.";
-
-                // warn user that resource dir set to default
-                MessageBox.Show(strMsg, "Import Game", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                // does the game have an Amiga OBJECT file?
-                // very rare, but we check for it anyway
+                MessageBox.Show(MDIMain,
+                    strMsg,
+                    "Import Game",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                // does the game have an Amiga OBJECT file? (very rare)
                 if (EditGame.InvObjects.AmigaOBJ) {
-                    MessageBox.Show("The OBJECT file for this game is formatted" + Environment.NewLine +
-                           "for the Amiga." + Environment.NewLine + Environment.NewLine +
-                           "If you intend to run this game on a DOS " + Environment.NewLine +
-                           "platform, you will need to convert the file" + Environment.NewLine +
-                           "to DOS format (use the Convert menu option" + Environment.NewLine +
-                           "on the OBJECT Editor's Resource menu)", "Amiga OBJECT File detected", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(MDIMain,
+                        "The OBJECT file for this game is formatted " +
+                        "for the Amiga.\n\n" +
+                        "If you intend to run this game on a DOS " +
+                        "platform, you will need to convert the file " +
+                        "to DOS format (use the Convert menu option " +
+                        "on the OBJECT Editor's Resource menu)",
+                        "Amiga OBJECT File detected",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
 
             }
@@ -2154,10 +2168,10 @@ namespace WinAGI.Editor {
 
         private static void UpdateTBGameBtns() {
             // enable/disable buttons based on current game/editor state
-            MDIMain.btnCloseGame.Enabled = EditGame != null;
-            MDIMain.btnRun.Enabled = EditGame != null;
-            MDIMain.btnImportRes.Enabled = EditGame != null;
-            MDIMain.btnLayoutEd.Enabled = EditGame != null;
+            MDIMain.btnCloseGame.Enabled = EditGame is not null;
+            MDIMain.btnRun.Enabled = EditGame is not null;
+            MDIMain.btnImportRes.Enabled = EditGame is not null;
+            MDIMain.btnLayoutEd.Enabled = EditGame is not null;
         }
 
         internal static void UpdateTBResourceBtns(AGIResType restype, bool ingame, bool changed, int resnum) {
@@ -2242,7 +2256,8 @@ namespace WinAGI.Editor {
                 switch (restype) {
                 case AGIResType.Logic:
                     TreeNode tmpNode = HdrNode[(int)AGIResType.Logic].Nodes["l" + resnum];
-                    if (EditGame.Logics[(byte)tmpNode.Tag].Compiled && EditGame.Logics[(byte)tmpNode.Tag].ErrLevel >= 0) {
+                    if (EditGame.Logics[(byte)tmpNode.Tag].Compiled && 
+                        EditGame.Logics[(byte)tmpNode.Tag].Error == ResourceErrorType.NoError) {
                         tmpNode.ForeColor = Color.Black;
                     }
                     else {
@@ -2252,17 +2267,17 @@ namespace WinAGI.Editor {
                     break;
                 case AGIResType.Picture:
                     tmpNode = HdrNode[(int)AGIResType.Picture].Nodes["p" + resnum];
-                    tmpNode.ForeColor = EditGame.Pictures[(byte)tmpNode.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                    tmpNode.ForeColor = EditGame.Pictures[(byte)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                     tmpNode.Text = ResourceName(EditGame.Pictures[(byte)tmpNode.Tag], true);
                     break;
                 case AGIResType.Sound:
                     tmpNode = HdrNode[(int)AGIResType.Sound].Nodes["s" + resnum];
-                    tmpNode.ForeColor = EditGame.Sounds[(byte)tmpNode.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                    tmpNode.ForeColor = EditGame.Sounds[(byte)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                     tmpNode.Text = ResourceName(EditGame.Sounds[(byte)tmpNode.Tag], true);
                     break;
                 case AGIResType.View:
                     tmpNode = HdrNode[(int)AGIResType.View].Nodes["v" + resnum];
-                    tmpNode.ForeColor = EditGame.Views[(byte)tmpNode.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                    tmpNode.ForeColor = EditGame.Views[(byte)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                     tmpNode.Text = ResourceName(EditGame.Views[(byte)tmpNode.Tag], true);
                     break;
                 }
@@ -2272,7 +2287,8 @@ namespace WinAGI.Editor {
                     switch (restype) {
                     case AGIResType.Logic:
                         ListViewItem tmpItem = MDIMain.lstResources.Items["l" + resnum];
-                        if (EditGame.Logics[(byte)tmpItem.Tag].Compiled && EditGame.Logics[(byte)tmpItem.Tag].ErrLevel >= 0) {
+                        if (EditGame.Logics[(byte)tmpItem.Tag].Compiled && 
+                            EditGame.Logics[(byte)tmpItem.Tag].Error == ResourceErrorType.NoError) {
                             tmpItem.ForeColor = Color.Black;
                         }
                         else {
@@ -2282,17 +2298,17 @@ namespace WinAGI.Editor {
                         break;
                     case AGIResType.Picture:
                         tmpItem = MDIMain.lstResources.Items["p" + resnum];
-                        tmpItem.ForeColor = EditGame.Pictures[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                        tmpItem.ForeColor = EditGame.Pictures[(byte)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                         tmpItem.Text = ResourceName(EditGame.Pictures[(byte)tmpItem.Tag], true);
                         break;
                     case AGIResType.Sound:
                         tmpItem = MDIMain.lstResources.Items["s" + resnum];
-                        tmpItem.ForeColor = EditGame.Sounds[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                        tmpItem.ForeColor = EditGame.Sounds[(byte)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                         tmpItem.Text = ResourceName(EditGame.Pictures[(byte)tmpItem.Tag], true);
                         break;
                     case AGIResType.View:
                         tmpItem = MDIMain.lstResources.Items["v" + resnum];
-                        tmpItem.ForeColor = EditGame.Views[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                        tmpItem.ForeColor = EditGame.Views[(byte)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                         tmpItem.Text = ResourceName(EditGame.Views[(byte)tmpItem.Tag], true);
                         break;
                     }
@@ -2321,7 +2337,8 @@ namespace WinAGI.Editor {
                 MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
                 // refresh logics
                 foreach (TreeNode tmpNode in HdrNode[(int)AGIResType.Logic].Nodes) {
-                    if (EditGame.Logics[(byte)tmpNode.Tag].Compiled && EditGame.Logics[(byte)tmpNode.Tag].ErrLevel >= 0) {
+                    if (EditGame.Logics[(byte)tmpNode.Tag].Compiled &&
+                        EditGame.Logics[(byte)tmpNode.Tag].Error == ResourceErrorType.NoError) {
                         tmpNode.ForeColor = Color.Black;
                     }
                     else {
@@ -2330,15 +2347,15 @@ namespace WinAGI.Editor {
                 }
                 // refresh pictures
                 foreach (TreeNode tmpNode in HdrNode[(int)AGIResType.Picture].Nodes) {
-                    tmpNode.ForeColor = EditGame.Pictures[(byte)tmpNode.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                    tmpNode.ForeColor = EditGame.Pictures[(byte)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                 }
                 // refresh sounds
                 foreach (TreeNode tmpNode in HdrNode[(int)AGIResType.Sound].Nodes) {
-                    tmpNode.ForeColor = EditGame.Sounds[(byte)tmpNode.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                    tmpNode.ForeColor = EditGame.Sounds[(byte)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                 }
                 // refresh views
                 foreach (TreeNode tmpNode in HdrNode[(int)AGIResType.View].Nodes) {
-                    tmpNode.ForeColor = EditGame.Views[(byte)tmpNode.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                    tmpNode.ForeColor = EditGame.Views[(byte)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                 }
                 break;
             case ResListType.ComboList:
@@ -2347,7 +2364,8 @@ namespace WinAGI.Editor {
                 switch (MDIMain.cmbResType.SelectedIndex) {
                 case 1:
                     foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
-                            if (EditGame.Logics[(byte)tmpItem.Tag].Compiled && EditGame.Logics[(byte)tmpItem.Tag].ErrLevel >= 0) {
+                            if (EditGame.Logics[(byte)tmpItem.Tag].Compiled &&
+                            EditGame.Logics[(byte)tmpItem.Tag].Error == ResourceErrorType.NoError) {
                             tmpItem.ForeColor = Color.Black;
                         }
                         else {
@@ -2357,17 +2375,17 @@ namespace WinAGI.Editor {
                     break;
                 case 2:
                     foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
-                        tmpItem.ForeColor = EditGame.Pictures[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                        tmpItem.ForeColor = EditGame.Pictures[(byte)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                     }
                     break;
                 case 3:
                     foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
-                        tmpItem.ForeColor = EditGame.Sounds[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                        tmpItem.ForeColor = EditGame.Sounds[(byte)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                     }
                     break;
                 case 4:
                     foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
-                        tmpItem.ForeColor = EditGame.Views[(byte)tmpItem.Tag].ErrLevel >= 0 ? Color.Black : Color.Red;
+                        tmpItem.ForeColor = EditGame.Views[(byte)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                     }
                     break;
                 }
@@ -2400,7 +2418,7 @@ namespace WinAGI.Editor {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sLOGICS].Nodes.Add("l" + i, ResourceName(EditGame.Logics[(byte)i], true));
                                 tmpNode.Tag = (byte)i;
                                 // get compiled status
-                                if (EditGame.Logics[(byte)i].Compiled && EditGame.Logics[(byte)i].ErrLevel >= 0) {
+                                if (EditGame.Logics[(byte)i].Compiled && EditGame.Logics[(byte)i].Error == ResourceErrorType.NoError) {
                                     tmpNode.ForeColor = Color.Black;
                                 }
                                 else {
@@ -2415,7 +2433,7 @@ namespace WinAGI.Editor {
                             if (EditGame.Pictures.Contains((byte)i)) {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sPICTURES].Nodes.Add("p" + i, ResourceName(EditGame.Pictures[(byte)i], true));
                                 tmpNode.Tag = (byte)i;
-                                tmpNode.ForeColor = EditGame.Pictures[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
+                                tmpNode.ForeColor = EditGame.Pictures[(byte)i].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                             }
                         }
                     }
@@ -2425,7 +2443,7 @@ namespace WinAGI.Editor {
                             if (EditGame.Sounds.Contains((byte)i)) {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sSOUNDS].Nodes.Add("s" + i, ResourceName(EditGame.Sounds[(byte)i], true));
                                 tmpNode.Tag = (byte)i;
-                                tmpNode.ForeColor = EditGame.Sounds[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
+                                tmpNode.ForeColor = EditGame.Sounds[(byte)i].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                             }
                         }
                     }
@@ -2435,7 +2453,7 @@ namespace WinAGI.Editor {
                             if (EditGame.Views.Contains((byte)i)) {
                                 tmpNode = MDIMain.tvwResources.Nodes[0].Nodes[sVIEWS].Nodes.Add("v" + i, ResourceName(EditGame.Views[(byte)i], true));
                                 tmpNode.Tag = (byte)i;
-                                tmpNode.ForeColor = EditGame.Views[(byte)i].ErrLevel >= 0 ? Color.Black : Color.Red;
+                                tmpNode.ForeColor = EditGame.Views[(byte)i].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
                             }
                         }
                     }
@@ -2699,7 +2717,7 @@ namespace WinAGI.Editor {
             string strTemp = "";
             bool blnDontAsk = false;
 
-            if (EditGame == null) {
+            if (EditGame is null) {
                 return;
             }
             // if global editor or layout editor open and unsaved, ask to continue
@@ -3049,7 +3067,7 @@ namespace WinAGI.Editor {
             // set flag so compiling doesn't cause unnecessary updates in preview window
             Compiling = true;
             CompWarnings = false;
-            if (editor != null) {
+            if (editor is not null) {
                 if (editor.IsChanged) {
                     // first, save the source
                     editor.SaveLogicSource();
@@ -3071,6 +3089,7 @@ namespace WinAGI.Editor {
                 }
                 if (!EditGame.Logics[logicnum].Compile()) {
                     // one or more minor errors
+                    // TODO: errors that cancel compile need a stronger notification...
                     if (WinAGISettings.NotifyCompFail.Value) {
                         bool blnDontNotify = false;
                         MsgBoxEx.Show(MDIMain,
@@ -3081,49 +3100,73 @@ namespace WinAGI.Editor {
                         "Do not show this message again",
                         ref blnDontNotify,
                         WinAGIHelp,
-                        "htm\\winagi\\compilererrors.htm");
+                        "htm\\winagi\\errors_compiler.htm");
                         WinAGISettings.NotifyCompFail.Value = !blnDontNotify;
                         if (!WinAGISettings.NotifyCompFail.Value) {
                             WinAGISettings.NotifyCompFail.WriteSetting(WinAGISettingsFile);
                         }
                     }
+                    MDIMain.spStatus.Text = "ERRORS ENCOUNTERED. " + ResourceName(EditGame.Logics[logicnum], true, true) + " compilation FAILED.";
                     Compiling = false;
                     return false;
                 }
             }
             catch (Exception ex) {
                 switch (ex.HResult) {
-                case WINAGI_ERR + 618:
-                    // not in a game
-                    // should NEVER get here, but...
-                    MessageBox.Show(MDIMain,
-                        "Only logics that are in a game can be compiled.",
-                        "Compile Error",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-                    break;
-                case WINAGI_ERR + 546:
+                case WINAGI_ERR + 507:
                     // no data to compile
                     MessageBox.Show(MDIMain,
                         "Nothing to compile!",
                         "Compile Error",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
+                        MessageBoxIcon.Error);
                     break;
-                case WINAGI_ERR + 698:
-                    // unable to write to file (VOL, or DIR)
+                case WINAGI_ERR + 517:
+                    // no room
                     MessageBox.Show(MDIMain,
-                        "Error occurred during compilation:\n\n" +
-                        "The logic has not been updated. Verify " +
-                        "your VOL and DIR files are not marked read-only.",
+                        "All available VOL files are full. There is no room for " +
+                        "the compiled logic.",
+                        "Compile Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    break;
+                case WINAGI_ERR + 525:
+                    // not in a game (should NEVER get here)
+                    MessageBox.Show(MDIMain,
+                        "Only logics that are in a game can be compiled.",
+                        "Compile Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    break;
+                case WINAGI_ERR + 528:
+                    // unable to read and/or write to VOL file
+                    MessageBox.Show(MDIMain,
+                        "Error acessing VOL file occurred during compilation:\n" +
+                        ((Exception)ex.Data["exception"]).Message + "\n\n" +
+                        ((Exception)ex.Data["exception"]).StackTrace + "\n\n" +
+                        "The logic has not been updated.",
                         "File Access Error",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
+                        MessageBoxIcon.Error);
+                    break;
+                case WINAGI_ERR + 541:
+                    // unable to read and/or write to DIR file
+                    MessageBox.Show(MDIMain,
+                        "Error acessing DIR file occurred during compilation:\n" +
+                        ((Exception)ex.Data["exception"]).Message + "\n\n" +
+                        ((Exception)ex.Data["exception"]).StackTrace + "\n\n" +
+                        "The logic has not been updated.",
+                        "File Access Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
                     break;
                 default:
-                    long errNum = ex.HResult - WINAGI_ERR;
                     // some other error
-                    ErrMsgBox(ex, "Error occurred during compilation: ", ex.StackTrace, "Compile Error");
+                    // shouldn't happen, but just in case...
+                    ErrMsgBox(ex,
+                        "Error occurred during logic compilation: ",
+                        ex.StackTrace,
+                        "Compile Error");
                     break;
                 }
                 Compiling = false;
@@ -3135,7 +3178,7 @@ namespace WinAGI.Editor {
                 }
             }
             // no error
-            if (editor != null) {
+            if (editor is not null) {
                 MDIMain.spStatus.Text = ResourceName(EditGame.Logics[logicnum], true, true) + " successfully compiled.";
             }
             if (CompWarnings) {
@@ -3178,7 +3221,7 @@ namespace WinAGI.Editor {
             bool blnDontAsk = false;
 
             // if no game is loaded,
-            if (EditGame == null) {
+            if (EditGame is null) {
                 return false;
             }
             // check for any open logic resources
@@ -3282,7 +3325,7 @@ namespace WinAGI.Editor {
                         "There are no templates available. Unable to create new game.",
                         "No Templates Available",
                         MessageBoxButtons.OK, MessageBoxIcon.Error,
-                        0, 0, WinAGIHelp, "htm\\winagi\\Templates.htm");
+                        0, 0, WinAGIHelp, "htm\\winagi\\templates.htm");
                     templateform.Dispose();
                     return;
                 }
@@ -3315,7 +3358,7 @@ namespace WinAGI.Editor {
             // now get properties from user
             if (propform.ShowDialog() == DialogResult.OK) {
                 // if word or Objects Editor open
-                if (EditGame != null) {
+                if (EditGame is not null) {
                     // close game, if user allows
                     if (!CloseThisGame()) {
                         return;
@@ -3340,7 +3383,7 @@ namespace WinAGI.Editor {
                     SrcExt = propform.txtSrcExt.Text,
                     TemplateDir = strTemplateDir,
                     Failed = false,
-                    ErrorMsg = "",
+                    Error = null,
                     Warnings = false
                 };
                 // run the worker to create the new game
@@ -3454,7 +3497,7 @@ namespace WinAGI.Editor {
             if (NewID == OldID) {
                 return DefineNameCheck.OK;
             }
-            bool sierrasyntax = EditGame != null && EditGame.SierraSyntax;
+            bool sierrasyntax = EditGame is not null && EditGame.SierraSyntax;
             DefineNameCheck retval = BaseNameCheck(NewID, sierrasyntax);
             if (retval != DefineNameCheck.OK) {
                 return retval;
@@ -3560,30 +3603,79 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        public static void ChangeResDir(string NewDir) {
+        public static void ChangeResDir(string newDirName) {
             // validate new dir before changing it
-            if (string.Compare(EditGame.ResDirName, NewDir, true) == 0 || NewDir.Length == 0) {
+            if (string.Compare(EditGame.ResDirName, newDirName, true) == 0 || newDirName.Length == 0) {
                 return;
             }
-            char[] charlist = Path.GetInvalidFileNameChars();
-            foreach (char ch in charlist) {
-                if (NewDir.ToCharArray().Contains(ch)) {
-                    MessageBox.Show("The specified path contains invalid characters. No change made.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (Path.GetInvalidFileNameChars().Any(newDirName.Contains)) {
+                MessageBox.Show(MDIMain,
+                    "The specified path contains invalid characters. No change made.",
+                    "Invalid Path",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return;
+            }
+            if (EditGame.GameDir == EditGame.ResDir) {
+                // copy resource files, source files, defines (txt) to
+                // new directory
+                try {
+                    // moving from gamedir to a new resdir
+                    if (!Directory.Exists(EditGame.GameDir + newDirName)) {
+                        // create the new subdirectory
+                        Directory.CreateDirectory(EditGame.GameDir + newDirName);
+                    }
+
+                    string pattern = "*.lgc";
+                    MoveFiles(newDirName, pattern);
+                    pattern = "*.txt";
+                    MoveFiles(newDirName, pattern);
+                    pattern = "*.agl";
+                    MoveFiles(newDirName, pattern);
+                    pattern = "*.agp";
+                    MoveFiles(newDirName, pattern);
+                    pattern = "*.ags";
+                    MoveFiles(newDirName, pattern);
+                    pattern = "*.agv";
+                    MoveFiles(newDirName, pattern);
+                }
+                catch (Exception ex) {
+                    ErrMsgBox(ex, "An exception occurred when trying to move the " +
+                        "logic source files and other resources to the new directory.",
+                        ex.StackTrace + "\n\nNo change made.",
+                        "Unable to change ResDir");
                     return;
                 }
             }
-            // check for existing folder
-            if (Path.Exists(EditGame.GameDir + NewDir)) {
-                MessageBox.Show($"The folder '{NewDir}' already exists. Existing resource direcory cannot be moved. No change made.", "Invalid Path", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+            else {
+                // check for existing folder
+                if (Path.Exists(EditGame.GameDir + newDirName)) {
+                    MessageBox.Show(MDIMain,
+                        $"The folder '{newDirName}' already exists. Existing resource " +
+                        "direcory cannot be moved. No change made.",
+                        "Invalid Path",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return;
+                }
+                // try renaming the resource dir
+                try {
+                    Directory.Move(EditGame.ResDir, EditGame.GameDir + newDirName);
+                }
+                catch (Exception ex) {
+                    ErrMsgBox(ex,
+                        "An exception occurred when trying to move the resource directory.",
+                        ex.StackTrace + "\n\nNo change made.",
+                        "Unable to change ResDir");
+                }
             }
-            // try renaming the resource dir
-            try {
-                Directory.Move(EditGame.ResDir, EditGame.GameDir + NewDir);
-                EditGame.ResDirName = NewDir;
-            }
-            catch (Exception ex) {
-                ErrMsgBox(ex, "An exception occurred when trying to move the resource directory.", "No change made.", "Unable to change ResDir");
+            EditGame.ResDirName = newDirName;
+
+            static void MoveFiles(string newDirName, string pattern) {
+                foreach (var srcFile in Directory.EnumerateFiles(EditGame.GameDir, pattern, SearchOption.TopDirectoryOnly)) {
+                    string destFile = Path.Combine(EditGame.GameDir + newDirName, Path.GetFileName(srcFile));
+                    File.Move(srcFile, destFile);
+                }
             }
         }
 
@@ -3717,8 +3809,8 @@ namespace WinAGI.Editor {
                           MessageBoxIcon.Information,
                           MessageBoxDefaultButton.Button1,
                           0,
-                          WinAGIHelp, @"htm\winagi\Layout_Editor.htm");
-                    if (LayoutEditor != null || LayoutEditor.IsChanged) {
+                          WinAGIHelp, @"htm\winagi\editor_layout.htm");
+                    if (LayoutEditor is not null || LayoutEditor.IsChanged) {
                         LayoutEditor.SaveLayout();
                     }
                     LayoutEditor.Close();
@@ -3738,7 +3830,7 @@ namespace WinAGI.Editor {
             // if a game is loaded and NOT forcing...
             // open editor if not yet in use
             // or switch to it if it's already open
-            if (EditGame != null && !ForceLoad) {
+            if (EditGame is not null && !ForceLoad) {
                 if (GEInUse) {
                     GlobalsEditor.Activate();
                     if (GlobalsEditor.WindowState == FormWindowState.Minimized) {
@@ -3764,18 +3856,17 @@ namespace WinAGI.Editor {
                             }
                         }
                     }
-                    // now check again for globals file
-                    if (!File.Exists(strFileName)) {
-                        // TODO: create blank file and open it
-                    }
                     GlobalsEditor = new frmGlobals();
                     if (GlobalsEditor.LoadGlobalDefines(strFileName, true)) {
-                        // TODO: deal with errors
+                        GlobalsEditor.Show();
+                        GlobalsEditor.Activate();
+                        GEInUse = true;
                     }
-                    GlobalsEditor.Show();
-                    GlobalsEditor.Activate();
-                    // mark editor as in use
-                    GEInUse = true;
+                    else {
+                        GlobalsEditor.Close();
+                        GlobalsEditor.Dispose();
+                        GEInUse = false;
+                    }
                     // reset cursor
                     MDIMain.UseWaitCursor = false;
                 }
@@ -3807,17 +3898,19 @@ namespace WinAGI.Editor {
                 MDIMain.UseWaitCursor = true;
                 frmNew = new();
                 if (frmNew.LoadGlobalDefines(strFileName, false)) {
-                    // TODO: handle error
+                    frmNew.Show();
+                    frmNew.Activate();
                 }
-                frmNew.Show();
-                frmNew.Activate();
-                MDIMain.UseWaitCursor = false;
+                else {
+                    frmNew.Close();
+                    frmNew.Dispose();
+                }
+                    MDIMain.UseWaitCursor = false;
             }
-            return;
         }
 
         public static void OpenLayout() {
-            if (EditGame == null) {
+            if (EditGame is null) {
                 return;
             }
             if (LEInUse) {
@@ -3860,7 +3953,7 @@ namespace WinAGI.Editor {
             else {
                 // open the menu editor for the current game
                 MenuEditor = new frmMenuEdit();
-                MenuEditor.Text = EditGame != null ? EditGame.GameID + " - Menu Editor" : "Menu Editor";
+                MenuEditor.Text = EditGame is not null ? EditGame.GameID + " - Menu Editor" : "Menu Editor";
                 if (MenuEditor.Canceled) {
                     MEInUse = false;
                     MenuEditor.Close();
@@ -3893,6 +3986,15 @@ namespace WinAGI.Editor {
                 TextScreenEditor.Show();
                 TextScreenEditor.Activate();
                 TSEInUse = true;
+            }
+        }
+
+        internal static void OpenReservedEditor() {
+            frmReserved frm = new();
+            frm.ShowDialog(MDIMain);
+            frm.Dispose();
+            if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
+                ((frmLogicEdit)MDIMain.ActiveMdiChild).RestoreFocusHack();
             }
         }
 
@@ -4144,7 +4246,7 @@ namespace WinAGI.Editor {
                                 MessageBoxIcon.Information,
                                 0, 0,
                                 WinAGIHelp,
-                                "htm\\winagi\\Managing Resources.htm#resourceids");
+                                "htm\\winagi\\managingresources.htm#resourceids");
                         }
                         else {
                             switch (ResType) {
@@ -4346,7 +4448,7 @@ namespace WinAGI.Editor {
                 MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
             }
             string defext;
-            if (EditGame == null) {
+            if (EditGame is null) {
                 defext = WinAGISettings.DefaultExt.Value;
             }
             else {
@@ -4448,9 +4550,12 @@ namespace WinAGI.Editor {
                         }
                     }
                 }
-                catch (Exception e) {
+                catch (Exception ex) {
                     // something went wrong
-                    ErrMsgBox(e, "Unable to update Logic Resource File", "", "Update Logic ID Error");
+                    ErrMsgBox(ex,
+                        "Unable to update Logic Resource File",
+                        ex.StackTrace,
+                        "Update Logic ID Error");
                 }
                 if (LEInUse) {
                     // redraw to ensure correct ID is displayed
@@ -4469,9 +4574,12 @@ namespace WinAGI.Editor {
                         }
                     }
                 }
-                catch (Exception e) {
+                catch (Exception ex) {
                     // something went wrong
-                    ErrMsgBox(e, "Unable to update Picture Resource File", "", "Update Picture ID Error");
+                    ErrMsgBox(ex,
+                        "Unable to update Picture Resource File",
+                        ex.StackTrace,
+                        "Update Picture ID Error");
                 }
                 break;
             case AGIResType.Sound:
@@ -4486,9 +4594,12 @@ namespace WinAGI.Editor {
                         }
                     }
                 }
-                catch (Exception e) {
+                catch (Exception ex) {
                     // something went wrong
-                    ErrMsgBox(e, "Unable to update Sound Resource File", "", "Update Sound ID Error");
+                    ErrMsgBox(ex,
+                        "Unable to update Sound Resource File",
+                        ex.StackTrace,
+                        "Update Sound ID Error");
                 }
                 break;
             case AGIResType.View:
@@ -4505,9 +4616,12 @@ namespace WinAGI.Editor {
                         }
                     }
                 }
-                catch (Exception e) {
+                catch (Exception ex) {
                     // something went wrong
-                    ErrMsgBox(e, "Unable to update View Resource File", "", "Update View ID Error");
+                    ErrMsgBox(ex,
+                        "Unable to update View Resource File",
+                        ex.StackTrace,
+                        "Update View ID Error");
                 }
                 break;
             }
@@ -4588,7 +4702,7 @@ namespace WinAGI.Editor {
                 // read first block
                 string strLine = ReadNextBlock(sr, ref count);
                 bool found = false;
-                while (strLine != null) {
+                while (strLine is not null) {
                     // read each line, finding blocks that belong to this logic number
                     LayoutFileData layoutobj = null;
                     try {
@@ -4687,7 +4801,7 @@ namespace WinAGI.Editor {
                             Visible = true,
                             ShowPic = WinAGISettings.LEShowPics.Value
                         };
-                        if (NewExits == null) {
+                        if (NewExits is null) {
                             // if no exits passed, use empty exits
                             update.Exits = [];
                         }
@@ -4703,7 +4817,7 @@ namespace WinAGI.Editor {
                             Visible = true,
                             ShowPic = WinAGISettings.LEShowPics.Value
                         };
-                        if (NewExits == null) {
+                        if (NewExits is null) {
                             // if no exits passed, use empty exits
                             show.Exits = [];
                         }
@@ -5189,7 +5303,7 @@ namespace WinAGI.Editor {
                 }
             }
             // then global defines
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
                     if (EditGame.GlobalDefines[i].Name == text) {
                         return EditGame.GlobalDefines[i].Value;
@@ -5197,9 +5311,10 @@ namespace WinAGI.Editor {
                 }
             }
             // lastly, check for reserved defines option (if not looking for a resourceID)
-            if (EditGame == null && WinAGISettings.DefIncludeReserved.Value) {
+            if (EditGame is null && WinAGISettings.DefIncludeReserved.Value) {
+                Debug.Assert(false);
             }
-            if (EditGame != null && EditGame.IncludeReserved) {
+            if (EditGame is not null && EditGame.IncludeReserved) {
                 TDefine[] tmpDefines = EditGame.ReservedDefines.All();
                 for (int i = 0; i < tmpDefines.Length; i++) {
                     if (tmpDefines[i].Name == text) {
@@ -5260,7 +5375,6 @@ namespace WinAGI.Editor {
             frmLogicEdit frmNew;
             Logic tmpLogic;
             bool blnOpen = false, blnImporting = false;
-            bool blnSource = false;
             string strFile = "";
 
             MDIMain.UseWaitCursor = true;
@@ -5279,79 +5393,59 @@ namespace WinAGI.Editor {
                 catch (Exception) {
                     // ignore errors; import method will have to handle it
                 }
-                // check if logic is a compiled logic:
-                // (check for existence of characters <8)
-                string lChars = "";
-                for (int i = 1; i <= 8; i++) {
-                    lChars += ((char)i).ToString();
-                }
-                blnSource = !strFile.Any(lChars.Contains);
-                // import the logic
-                // (and check for error)
-                try {
-                    if (blnSource) {
-                        tmpLogic.ImportSource(ImportLogicFile);
-                    }
-                    else {
-                        tmpLogic.Import(ImportLogicFile);
-                    }
-                }
-                catch (Exception e) {
-                    // if a compile error occurred,
-                    if (e.HResult == WINAGI_ERR + 567) {
-                        // can't open this resource
-                        MDIMain.UseWaitCursor = false;
-                        ErrMsgBox(e, "An error occurred while trying to decompile this logic resource:", "Unable to open this logic.", "Invalid Logic Resource");
-                        // restore main form mousepointer and exit
+                // check if logic is a compiled logic
+                // (check for existence of char '0')
+                bool blnSource = !strFile.Contains('\0');
+                // import the logic (and check for error)
+                if (blnSource) {
+                    tmpLogic.ImportSource(ImportLogicFile);
+                    if (tmpLogic.SourceError != ResourceErrorType.NoError) {
+                        MDIMain.UseWaitCursor = true;
+                        switch (tmpLogic.SourceError) {
+                        case ResourceErrorType.LogicSourceIsReadonly:
+                            MessageBox.Show(MDIMain,
+                                "This logic source file is marked 'readonly'. WinAGI requires write-access to edit source files.",
+                                "Read only Files not Allowed",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                            break;
+                        case ResourceErrorType.LogicSourceAccessError:
+                            MessageBox.Show(MDIMain,
+                                "A file access error has occurred. Unable to read this file.",
+                                "File Access Error",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                            break;
+                        }
                         return;
                     }
-                    else {
-                        // maybe we assumed source status incorrectly- try again
-                        try {
-                            if (blnSource) {
-                                tmpLogic.Import(ImportLogicFile);
-                            }
-                            else {
-                                tmpLogic.ImportSource(ImportLogicFile);
-                            }
-                        }
-                        catch (Exception) {
-                            // if STILL error, something wrong
-                            MDIMain.UseWaitCursor = false;
-                            ErrMsgBox(e, "Unable to load this logic resource. It can't be decompiled, and does not appear to be a text file.", "", "Invalid Logic Resource");
-                            return;
-                        }
-                    }
                 }
-                if (tmpLogic.SrcErrLevel < 0) {
-                    MDIMain.UseWaitCursor = true;
-                    switch (tmpLogic.SrcErrLevel) {
-                    case -1:
-                        MessageBox.Show(MDIMain,
-                            "Unable to access this logic source file, file not found.",
-                            "Missing Source File",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                        break;
-                    case -2:
-                        MessageBox.Show(MDIMain,
-                            "This logic source file is marked 'readonly'. WinAGI requires write-access to edit source files.",
-                            "Read only Files not Allowed",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                        break;
-                    case -3:
-                        MessageBox.Show(MDIMain,
-                            "A file access error has occurred. Unable to read this file.",
-                            "File Access Error",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error);
-                        break;
+                else {
+                    try {
+                        tmpLogic.Import(ImportLogicFile);
                     }
-                    return;
+                    catch (Exception ex) {
+                        MDIMain.UseWaitCursor = false;
+                        ErrMsgBox(ex,
+                            "Unable to load this logic resource. It can't be decompiled, " +
+                            "and does not appear to be a text file.",
+                            ex.StackTrace,
+                            "Invalid Logic Resource");
+                        return;
+                    }
+                    // check for errors
+                    if (tmpLogic.SourceError == ResourceErrorType.LogicSourceDecompileError) {
+                        MessageBox.Show(MDIMain,
+                            "Errors were encountered when decompiling this logic. " +
+                            "The logic may be corrupt. Check the output carefully and make" +
+                            "any corrections as needed.",
+                            "Logic Decompilation Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
+                    }
                 }
             }
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 // get logic number, id , description
                 using frmGetResourceNum GetResNum = new(blnImporting ? GetRes.Import : GetRes.AddNew, AGIResType.Logic);
                 if (blnImporting) {
@@ -5369,29 +5463,32 @@ namespace WinAGI.Editor {
                 tmpLogic.Description = GetResNum.txtDescription.Text;
                 if (GetResNum.DontImport) {
                     blnOpen = true;
-                    // not adding to game; still allowed to use template
-                    if (GetResNum.chkRoom.Checked) {
-                        // add template text
-                        tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
-                    }
-                    else {
-                        // add default text
-                        List<string> src =
-                        [
-                            "[*********************************************************************",
-                            "[",
-                            "[ " + tmpLogic.ID,
-                            "[",
-                            "[*********************************************************************",
-                            "",
-                            "return();",
-                            "",
-                            "[***************************************",
-                            "[ DECLARED MESSAGES",
-                            "[***************************************",
-                            "[  declared messages go here"
-                        ];
-                        tmpLogic.SourceText = string.Join(NEWLINE, [.. src]);
+                    if (!blnImporting) {
+                        // for new logics not being added,
+                        // build default logic source
+                        if (GetResNum.chkRoom.Checked) {
+                            // add template text
+                            tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
+                        }
+                        else {
+                            // add default text
+                            List<string> src =
+                            [
+                                "[*********************************************************************",
+                                "[",
+                                "[ " + tmpLogic.ID,
+                                "[",
+                                "[*********************************************************************",
+                                "",
+                                "return();",
+                                "",
+                                "[***************************************",
+                                "[ DECLARED MESSAGES",
+                                "[***************************************",
+                                "[  declared messages go here"
+                            ];
+                            tmpLogic.SourceText = string.Join(NEWLINE, [.. src]);
+                        }
                     }
                 }
                 else {
@@ -5573,23 +5670,11 @@ namespace WinAGI.Editor {
             tmpPic = new Picture();
             if (ImportPictureFile.Length != 0) {
                 blnImporting = true;
-                try {
-                    tmpPic.Import(ImportPictureFile);
-                }
-                catch (Exception e) {
-                    MDIMain.UseWaitCursor = false;
-                    ErrMsgBox(e, "Error while importing picture:", "Unable to load this picture resource.", "Import Picture Error");
-                    return;
-                }
-                // now check to see if it's a valid picture resource (by trying to reload it)
-                tmpPic.Load();
-                if (tmpPic.ErrLevel < 0) {
-                    ErrMsgBox(tmpPic.ErrLevel, "Error reading Picture data:", "This is not a valid picture resource.", "Invalid Picture Resource");
-                    MDIMain.UseWaitCursor = false;
+                if (!ImportPicture(ImportPictureFile, tmpPic)) {
                     return;
                 }
             }
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 frmGetResourceNum GetResNum = new(blnImporting ? GetRes.Import : GetRes.AddNew, AGIResType.Picture);
                 if (blnImporting) {
                     GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportPictureFile).Replace(" ", "");
@@ -5625,14 +5710,57 @@ namespace WinAGI.Editor {
                     PictureEditors.Add(frmNew);
                 }
                 else {
-                    // TODO: handle error
-                    MessageBox.Show(MDIMain, "error, can't open this picture");
                     frmNew.Close();
                     frmNew.Dispose();
                 }
             }
             WinAGISettings.OpenNew.Value = blnOpen;
             MDIMain.UseWaitCursor = false;
+        }
+
+        internal static bool ImportPicture(string importfile, Picture tmpPic) {
+            // TODO: importing loads the resource; need to replace the
+            // exceptions in import with error numbers
+            try {
+                tmpPic.Import(importfile);
+            }
+            catch (Exception ex) {
+                // something wrong
+                MDIMain.UseWaitCursor = false;
+                ErrMsgBox(ex,
+                    "Error while importing picture:",
+                    ex.StackTrace + "\n\nUnable to load this picture resource.",
+                    "Import Picture Error");
+                return false;
+            }
+            // now check to see if it's a valid picture resource
+            if (tmpPic.Error != ResourceErrorType.NoError) {
+                string errmsg = "";
+                switch (tmpPic.Error) {
+                case ResourceErrorType.FileNotFound:
+                    errmsg = "File not found.";
+                    break;
+                case ResourceErrorType.FileIsReadonly:
+                    errmsg = "File access is readonly. WinAGI requires full access.";
+                    break;
+                case ResourceErrorType.FileAccessError:
+                    errmsg = "File access error. Unable to read the import file.";
+                    break;
+                default:
+                    // no other errors should be possible
+                    Debug.Assert(false);
+                    break;
+                }
+                MessageBox.Show(MDIMain,
+                    errmsg,
+                    "Unable to Import Picture",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                // restore main form mousepointer and exit
+                MDIMain.UseWaitCursor = false;
+                return false;
+            }
+            return true;
         }
 
         public static void NewSound() {
@@ -5649,20 +5777,7 @@ namespace WinAGI.Editor {
             tmpSound = new Sound();
             if (importfile.Length != 0) {
                 blnImporting = true;
-
-                try {
-                    tmpSound.Import(importfile, format, options);
-                }
-                catch (Exception e) {
-                    ErrMsgBox(e, "Error occurred while importing sound:", "Unable to load this sound resource", "Import Sound Error");
-                    MDIMain.UseWaitCursor = false;
-                    return;
-                }
-                // now check to see if it's a valid sound resource (by trying to reload it)
-                tmpSound.Load();
-                if (tmpSound.ErrLevel < 0) {
-                    ErrMsgBox(tmpSound.ErrLevel, "Error reading Sound data:", "This is not a valid sound resource.", "Invalid Sound Resource");
-                    MDIMain.UseWaitCursor = false;
+                if (!ImportSound(importfile, tmpSound, format, options)) {
                     return;
                 }
                 // only PC sounds are editable
@@ -5687,7 +5802,7 @@ namespace WinAGI.Editor {
                 tmpSound.Tracks[2].Muted = WinAGISettings.DefMute[2].Value;
                 tmpSound.Tracks[3].Muted = WinAGISettings.DefMute[3].Value;
             }
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 frmGetResourceNum GetResNum = new(blnImporting ? GetRes.Import : GetRes.AddNew, AGIResType.Sound);
                 if (blnImporting) {
                     GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(importfile).Replace(" ", "");
@@ -5722,14 +5837,59 @@ namespace WinAGI.Editor {
                     SoundEditors.Add(frmNew);
                 }
                 else {
-                    // TODO: handle error
-                    MessageBox.Show(MDIMain, "error, can't open this sound");
                     frmNew.Close();
                     frmNew.Dispose();
                 }
             }
             WinAGISettings.OpenNew.Value = blnOpen;
             MDIMain.UseWaitCursor = false;
+        }
+
+        internal static bool ImportSound(string importfile, Sound tmpSound, SoundImportFormat format, SoundImportOptions options) {
+            // TODO: importing loads the resource; need to replace the
+            // exceptions in import with error numbers
+            // import the sound and (and check for error)
+            try {
+                tmpSound.Import(importfile, format, options);
+            }
+            catch (Exception ex) {
+                // something wrong
+                ErrMsgBox(ex,
+                    "Error occurred while importing sound:",
+                    ex.StackTrace + "\n\nUnable to load this sound resource", "Import Sound Error");
+                MDIMain.UseWaitCursor = false;
+                return false;
+            }
+            if (tmpSound.Error != ResourceErrorType.NoError) {
+                string errmsg = "";
+                switch (tmpSound.Error) {
+                case ResourceErrorType.FileNotFound:
+                    errmsg = "File not found.";
+                    break;
+                case ResourceErrorType.FileIsReadonly:
+                    errmsg = "File access is readonly. WinAGI requires full access.";
+                    break;
+                case ResourceErrorType.FileAccessError:
+                    errmsg = "File access error. Unable to read the import file.";
+                    break;
+                case ResourceErrorType.SoundNoData:
+                case ResourceErrorType.SoundBadTracks:
+                    errmsg = "Import file does not contain a valid sound resource.";
+                    break;
+                default:
+                    // no other errors should be possible
+                    Debug.Assert(false);
+                    break;
+                }
+                MDIMain.UseWaitCursor = false;
+                MessageBox.Show(MDIMain,
+                    errmsg,
+                    "Unable to Import Sound",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return false;
+            }
+            return true;
         }
 
         public static void NewView(string ImportViewFile = "") {
@@ -5742,19 +5902,7 @@ namespace WinAGI.Editor {
             tmpView = new Engine.View();
             if (ImportViewFile.Length != 0) {
                 blnImporting = true;
-                try {
-                    tmpView.Import(ImportViewFile);
-                }
-                catch (Exception e) {
-                    ErrMsgBox(e, "An error occurred during import:", "", "Import View Error");
-                    MDIMain.UseWaitCursor = false;
-                    return;
-                }
-                // now check to see if it's a valid picture resource (by trying to reload it)
-                tmpView.Load();
-                if (tmpView.ErrLevel < 0) {
-                    ErrMsgBox(tmpView.ErrLevel, "Error reading View data:", "This is not a valid view resource.", "Invalid View Resource");
-                    MDIMain.UseWaitCursor = false;
+                if (!ImportView(ImportViewFile, tmpView)) {
                     return;
                 }
             }
@@ -5765,7 +5913,7 @@ namespace WinAGI.Editor {
                 tmpView[0][0].Height = WinAGISettings.DefCelH.Value;
                 tmpView[0][0].Width = WinAGISettings.DefCelW.Value;
             }
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 frmGetResourceNum GetResNum = new(blnImporting ? GetRes.Import : GetRes.AddNew, AGIResType.View);
                 if (blnImporting) {
                     GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportViewFile).Replace(" ", "_");
@@ -5801,14 +5949,61 @@ namespace WinAGI.Editor {
                     ViewEditors.Add(frmNew);
                 }
                 else {
-                    // TODO: handle error
-                    MessageBox.Show(MDIMain, "error, can't open this view");
                     frmNew.Close();
                     frmNew.Dispose();
                 }
             }
             WinAGISettings.OpenNew.Value = blnOpen;
             MDIMain.UseWaitCursor = false;
+        }
+
+        internal static bool ImportView(string importfile, Engine.View tmpView) {
+            // TODO: importing loads the resource; need to replace the
+            // exceptions in import with error numbers
+            try {
+                tmpView.Import(importfile);
+            }
+            catch (Exception ex) {
+                // something wrong
+                MDIMain.UseWaitCursor = false;
+                ErrMsgBox(ex,
+                    "Error while importing view:",
+                    ex.StackTrace + "\n\nUnable to load this view resource.",
+                    "Import View Error");
+                return false;
+            }
+            // now check to see if it's a valid view resource (by trying to reload it)
+            if (tmpView.Error != ResourceErrorType.NoError) {
+                string errmsg = "";
+                switch (tmpView.Error) {
+                case ResourceErrorType.FileNotFound:
+                    errmsg = "File not found.";
+                    break;
+                case ResourceErrorType.FileIsReadonly:
+                    errmsg = "File access is readonly. WinAGI requires full access.";
+                    break;
+                case ResourceErrorType.FileAccessError:
+                    errmsg = "File access error. Unable to read the import file.";
+                    break;
+                case ResourceErrorType.ViewNoData:
+                case ResourceErrorType.ViewNoLoops:
+                    errmsg = "Import file does not contain a valid view resource.";
+                    break;
+                default:
+                    // no other errors should be possible
+                    Debug.Assert(false);
+                    break;
+                }
+                MessageBox.Show(MDIMain,
+                    errmsg,
+                    "Unable to Import View",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                // restore main form mousepointer and exit
+                MDIMain.UseWaitCursor = false;
+                return false;
+            }
+            return true;
         }
 
         public static void NewInvObjList(string ImportObjFile = "", bool skipcheck = false) {
@@ -5818,14 +6013,7 @@ namespace WinAGI.Editor {
 
             MDIMain.UseWaitCursor = true;
             if (ImportObjFile.Length != 0) {
-                try {
-                    tmpList = new(ImportObjFile);
-                }
-                catch (Exception e) {
-                    ErrMsgBox(e, "An error occurred during import:", "", "Import Object File Error");
-                    MDIMain.UseWaitCursor = false;
-                    return;
-                }
+                tmpList = new(ImportObjFile);
             }
             else {
                 tmpList = [];
@@ -5835,15 +6023,13 @@ namespace WinAGI.Editor {
                 frmNew.Show();
             }
             else {
-                // TODO: handle errors
-                MessageBox.Show(MDIMain, "error, can't open this OBJECT file");
                 frmNew.Close();
                 frmNew.Dispose();
                 MDIMain.UseWaitCursor = false;
                 return;
             }
             // a game is loaded; find out if user wants this object file to replace existing
-            if (!skipcheck && EditGame != null) {
+            if (!skipcheck && EditGame is not null) {
                 if (MessageBox.Show(MDIMain,
                     "Do you want to replace the existing OBJECT file with this one?",
                     "Replace OBJECT File",
@@ -5916,8 +6102,11 @@ namespace WinAGI.Editor {
                 try {
                     tmpList = new(ImportWordFile);
                 }
-                catch (Exception e) {
-                    ErrMsgBox(e, "An error occurred during import:", "", "Import WORDS.TOK File Error");
+                catch (Exception ex) {
+                    ErrMsgBox(ex, 
+                        "An error occurred during import:",
+                        ex.StackTrace,
+                        "Import WORDS.TOK File Error");
                     MDIMain.UseWaitCursor = false;
                     return;
                 }
@@ -5930,15 +6119,13 @@ namespace WinAGI.Editor {
                 frmNew.Show();
             }
             else {
-                // TODO: handle errors
-                MessageBox.Show(MDIMain, "error, can't load this file");
                 frmNew.Close();
                 frmNew.Dispose();
                 MDIMain.UseWaitCursor = false;
                 return;
             }
             // a game is loaded; find out if user wants this words.tok file to replace existing
-            if (!skipcheck && EditGame != null) {
+            if (!skipcheck && EditGame is not null) {
                 if (MessageBox.Show(MDIMain,
                     "Do you want to replace the existing WORDS.TOK file with this one?",
                     "Replace WORDS.TOK File",
@@ -6010,7 +6197,7 @@ namespace WinAGI.Editor {
             case AGIResType.Logic:
                 MDIMain.OpenDlg.Title = mode + "Logic Source File";
                 string defext;
-                if (EditGame == null) {
+                if (EditGame is null) {
                     defext = WinAGISettings.DefaultExt.Value;
                 }
                 else {
@@ -6023,7 +6210,7 @@ namespace WinAGI.Editor {
                 else {
                     textext = "|Text files (*.txt)|*.txt";
                 }
-                MDIMain.OpenDlg.Filter = $"WinAGI Logic Source files (*.{defext})|*.{defext}{textext}|All files (*.*)|*.*";
+                MDIMain.OpenDlg.Filter = $"WinAGI Logic Source files (*.{defext})|*.{defext}{textext}|Logic Resources (*.agl)|*.agl|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
                 MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Logics", sOPENFILTER, 1);
                 break;
@@ -6120,7 +6307,7 @@ namespace WinAGI.Editor {
         /// user to select which logic to open.
         /// </summary>
         public static void OpenGameLogic() {
-            Debug.Assert(EditGame != null);
+            Debug.Assert(EditGame is not null);
 
             frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Logic);
             if (getresnum.ShowDialog() == DialogResult.OK) {
@@ -6153,15 +6340,11 @@ namespace WinAGI.Editor {
                 }
             }
             frmLogicEdit frmOpen = new(LogicFormMode.Logic);
-            if (frmOpen.LoadLogic(EditGame.Logics[ResNum])) {
+            if (frmOpen.LoadLogic(EditGame.Logics[ResNum], Quiet)) {
                 frmOpen.Show();
                 LogicEditors.Add(frmOpen);
             }
             else {
-                // TODO: handle error
-                if (!Quiet) {
-                    MessageBox.Show(MDIMain, "error, can't open this logic");
-                }
                 frmOpen.Close();
                 frmOpen.Dispose();
                 MDIMain.UseWaitCursor = false;
@@ -6196,8 +6379,6 @@ namespace WinAGI.Editor {
                 LogicEditors.Add(frmOpen);
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this logic");
                 frmOpen.Close();
                 frmOpen.Dispose();
             }
@@ -6206,7 +6387,7 @@ namespace WinAGI.Editor {
         }
 
         public static void OpenGamePicture() {
-            Debug.Assert(EditGame != null);
+            Debug.Assert(EditGame is not null);
 
             frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Picture);
             if (getresnum.ShowDialog() == DialogResult.OK) {
@@ -6230,15 +6411,13 @@ namespace WinAGI.Editor {
                 }
             }
             frmPicEdit frmOpen = new();
-            if (frmOpen.LoadPicture(EditGame.Pictures[ResNum])) {
+            if (frmOpen.LoadPicture(EditGame.Pictures[ResNum], Quiet)) {
                 frmOpen.Show();
                 frmOpen.Refresh();
                 frmOpen.ForceRefresh();
                 PictureEditors.Add(frmOpen);
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this picture");
                 frmOpen.Close();
                 frmOpen.Dispose();
             }
@@ -6264,8 +6443,6 @@ namespace WinAGI.Editor {
                 PictureEditors.Add(frmOpen);
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this picture");
                 frmOpen.Close();
                 frmOpen.Dispose();
             }
@@ -6274,7 +6451,7 @@ namespace WinAGI.Editor {
         }
 
         public static void OpenGameSound() {
-            Debug.Assert(EditGame != null);
+            Debug.Assert(EditGame is not null);
 
             frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Sound);
             if (getresnum.ShowDialog() == DialogResult.OK) {
@@ -6298,13 +6475,11 @@ namespace WinAGI.Editor {
                 }
             }
             frmSoundEdit frmOpen = new();
-            if (frmOpen.LoadSound(EditGame.Sounds[ResNum])) {
+            if (frmOpen.LoadSound(EditGame.Sounds[ResNum], Quiet)) {
                 frmOpen.Show();
                 SoundEditors.Add(frmOpen);
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this view");
                 frmOpen.Close();
                 frmOpen.Dispose();
             }
@@ -6334,7 +6509,7 @@ namespace WinAGI.Editor {
                     frm.Dispose();
                 }
                 else {
-                    // canceled
+                    frm.Close();
                     frm.Dispose();
                     return;
                 }
@@ -6353,8 +6528,6 @@ namespace WinAGI.Editor {
                 SoundEditors.Add(frmOpen);
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this sound");
                 frmOpen.Close();
                 frmOpen.Dispose();
             }
@@ -6363,7 +6536,7 @@ namespace WinAGI.Editor {
         }
 
         public static void OpenGameView() {
-            Debug.Assert(EditGame != null);
+            Debug.Assert(EditGame is not null);
 
             frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.View);
             if (getresnum.ShowDialog() == DialogResult.OK) {
@@ -6387,13 +6560,11 @@ namespace WinAGI.Editor {
                 }
             }
             frmViewEdit frmOpen = new();
-            if (frmOpen.LoadView(EditGame.Views[ResNum], StartLoop, StartCel)) {
+            if (frmOpen.LoadView(EditGame.Views[ResNum], StartLoop, StartCel, Quiet)) {
                 frmOpen.Show();
                 ViewEditors.Add(frmOpen);
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this view");
                 frmOpen.Close();
                 frmOpen.Dispose();
             }
@@ -6419,8 +6590,6 @@ namespace WinAGI.Editor {
                 ViewEditors.Add(frmOpen);
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this view");
                 frmOpen.Close();
                 frmOpen.Dispose();
             }
@@ -6440,28 +6609,20 @@ namespace WinAGI.Editor {
                 OEInUse = true;
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this file");
+                ObjectEditor.Close();
+                ObjectEditor.Dispose();
             }
         }
 
         public static void OpenOBJECT(string filename) {
             InventoryList invlist;
 
-            try {
-                invlist = new(filename);
-            }
-            catch (Exception ex) {
-                ErrMsgBox(ex, "File error, can't load this OBJECT file.", "", "Unable to Open OBJECT File");
-                return;
-            }
+            invlist = new(filename);
             frmObjectEdit frm = new();
             if (frm.LoadOBJECT(invlist)) {
                 frm.Show();
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this file");
                 frm.Close();
                 frm.Dispose();
             }
@@ -6479,28 +6640,20 @@ namespace WinAGI.Editor {
                 WEInUse = true;
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this file");
+                WordEditor.Close();
+                WordEditor.Dispose();
             }
         }
 
         public static void OpenWORDSTOK(string filename) {
             WordList wordlist;
 
-            try {
-                wordlist = new(filename);
-            }
-            catch (Exception ex) {
-                ErrMsgBox(ex, "File error, can't load this WORDS.TOK file.", "", "Unable to Open WORDS.TOK File");
-                return;
-            }
+            wordlist = new(filename);
             frmWordsEdit frm = new();
             if (frm.LoadWords(wordlist)) {
                 frm.Show();
             }
             else {
-                // TODO: handle error
-                MessageBox.Show(MDIMain, "error, can't open this file");
                 frm.Close();
                 frm.Dispose();
             }
@@ -7926,7 +8079,7 @@ namespace WinAGI.Editor {
             // this function is just a handy way to get resource strings by number
             // instead of by stringkey
             try {
-                return Editor.EditorResources.ResourceManager.GetString(index.ToString());
+                return EditorResources.ResourceManager.GetString(index.ToString());
             }
             catch (Exception) {
                 // return nothing if string doesn't exist
@@ -8576,12 +8729,14 @@ namespace WinAGI.Editor {
                 }
                 // source code (if not resourcedir)
                 if (!exportdir.Equals(EditGame.ResDir)) {
-                    if (logic.SrcErrLevel >= 0) {
+                    // TODO: need to add back sourceerror property
+                    // TODO: should readonly resources be exportable?
+                    if (logic.Error == ResourceErrorType.NoError) {
                         logic.ExportSource(exportdir + logic.ID + "." + EditGame.SourceExt);
                     }
                 }
                 // compiled logic
-                if (logic.ErrLevel >= 0) {
+                if (logic.Error == ResourceErrorType.NoError) {
                     logic.Export(exportdir + logic.ID + ".agl");
                 }
                 if (!blnLoaded) {
@@ -8596,7 +8751,7 @@ namespace WinAGI.Editor {
                 if (!blnLoaded) {
                     tmpPic.Load();
                 }
-                if (tmpPic.ErrLevel >= 0) {
+                if (tmpPic.Error == ResourceErrorType.NoError) {
                     tmpPic.Export(exportdir + tmpPic.ID + ".agp");
                 }
                 if (!blnLoaded) {
@@ -8611,7 +8766,7 @@ namespace WinAGI.Editor {
                 if (!blnLoaded) {
                     tmpSnd.Load();
                 }
-                if (tmpSnd.ErrLevel >= 0) {
+                if (tmpSnd.Error == ResourceErrorType.NoError) {
                     tmpSnd.Export(exportdir + tmpSnd.ID + ".ags");
                 }
                 if (!blnLoaded) {
@@ -8626,7 +8781,7 @@ namespace WinAGI.Editor {
                 if (!blnLoaded) {
                     tmpView.Load();
                 }
-                if (tmpView.ErrLevel >= 0) {
+                if (tmpView.Error == ResourceErrorType.NoError) {
                     tmpView.Export(exportdir + tmpView.ID + ".agv");
                 }
                 if (!blnLoaded) {
@@ -8664,7 +8819,10 @@ namespace WinAGI.Editor {
                     logic.ExportSource(filename);
                 }
                 catch (Exception ex) {
-                    ErrMsgBox(ex, "An error occurred while exporting this file: ", "", "Export File Error");
+                    ErrMsgBox(ex,
+                        "An error occurred while exporting this file: ",
+                        ex.StackTrace,
+                        "Export File Error");
                     if (!loaded) {
                         logic.Unload();
                     }
@@ -8678,12 +8836,16 @@ namespace WinAGI.Editor {
                     }
                     return 0;
                 }
-                if (logic.ErrLevel >= 0) {
+                if (logic.Error == ResourceErrorType.NoError ||
+                    logic.Error == ResourceErrorType.FileIsReadonly) {
                     try {
                         logic.Export(filename);
                     }
                     catch (Exception ex) {
-                        ErrMsgBox(ex, "An error occurred while exporting this logic: ", "", "Export Logic Error");
+                        ErrMsgBox(ex,
+                            "An error occurred while exporting this logic: ",
+                            ex.StackTrace,
+                            "Export Logic Error");
                         if (!loaded) {
                             logic.Unload();
                         }
@@ -8778,7 +8940,10 @@ namespace WinAGI.Editor {
                         retval = 1;
                     }
                     catch (Exception ex) {
-                        ErrMsgBox(ex, "An error occurred while exporting this picture:", "", "Export Sound Error");
+                        ErrMsgBox(ex,
+                            "An error occurred while exporting this picture:",
+                            ex.StackTrace,
+                            "Export Sound Error");
                         retval = 0;
                     }
                 }
@@ -8878,7 +9043,10 @@ namespace WinAGI.Editor {
                     retval = exportformat == SoundFormat.AGI ? 1 : 0;
                 }
                 catch (Exception ex) {
-                    ErrMsgBox(ex, "An error occurred while exporting this sound:", "", "Export Sound Error");
+                    ErrMsgBox(ex,
+                        "An error occurred while exporting this sound:",
+                        ex.StackTrace,
+                        "Export Sound Error");
                 }
             }
             if (!loaded) {
@@ -8912,7 +9080,10 @@ namespace WinAGI.Editor {
                     retval = 1;
                 }
                 catch (Exception ex) {
-                    ErrMsgBox(ex, "An error occurred while exporting this view:", "", "Export View Error");
+                    ErrMsgBox(ex,
+                        "An error occurred while exporting this view:",
+                        ex.StackTrace,
+                        "Export View Error");
                 }
             }
             if (!loaded) {
@@ -8963,7 +9134,10 @@ namespace WinAGI.Editor {
                 retval = true;
             }
             catch (Exception ex) {
-                ErrMsgBox(ex, "An error occurred while exporting this OBJECT file:", "", "Export OBJECT Error");
+                ErrMsgBox(ex,
+                    "An error occurred while exporting this OBJECT file:",
+                    ex.StackTrace,
+                    "Export OBJECT Error");
             }
             finally {
                 if (!loaded) {
@@ -9015,7 +9189,10 @@ namespace WinAGI.Editor {
                 retval = true;
             }
             catch (Exception ex) {
-                ErrMsgBox(ex, "An error occurred while exporting this WORDS.TOK file:", "", "Export WORDS.TOK Error");
+                ErrMsgBox(ex,
+                    "An error occurred while exporting this WORDS.TOK file:",
+                    ex.StackTrace,
+                    "Export WORDS.TOK Error");
             }
             finally {
                 if (!loaded) {
@@ -9096,8 +9273,9 @@ namespace WinAGI.Editor {
                 if (!blnLoaded) {
                     ThisPic.Load();
                 }
-                // skip if errors
-                if (ThisPic.ErrLevel >= 0) {
+                // skip if errors (readonly is OK)
+                if (ThisPic.Error == ResourceErrorType.NoError ||
+                    ThisPic.Error == ResourceErrorType.FileIsReadonly) {
                     ExportImg(ThisPic, EditGame.ResDir + ThisPic.ID + strExt, lngFormat, lngMode, lngZoom);
                 }
                 if (!blnLoaded) {

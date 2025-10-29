@@ -575,6 +575,7 @@ namespace WinAGI.Editor {
     }
 
 }
+
 namespace DynamicTypeDescriptor {
     [Flags]
     public enum PropertyFlags {
@@ -684,7 +685,7 @@ namespace DynamicTypeDescriptor {
         public string DisplayName {
             get {
                 if (String.IsNullOrEmpty(m_DisplayName)) {
-                    if (Value != null) {
+                    if (Value is not null) {
                         return Value.ToString();
                     }
                 }
@@ -736,7 +737,7 @@ namespace DynamicTypeDescriptor {
             return DisplayName;
         }
         internal static StandardValueAttribute[] GetEnumItems(Type enumType) {
-            if (enumType == null) {
+            if (enumType is null) {
                 throw new ArgumentNullException("'enumInstance' is null.");
             }
 
@@ -749,7 +750,7 @@ namespace DynamicTypeDescriptor {
             foreach (FieldInfo fi in fields) {
                 StandardValueAttribute[] attr = fi.GetCustomAttributes(typeof(StandardValueAttribute), false) as StandardValueAttribute[];
 
-                if (attr != null && attr.Length > 0) {
+                if (attr is not null && attr.Length > 0) {
                     attr[0].m_Value = fi.GetValue(null);
                     arrAttr.Add(attr[0]);
                 }
@@ -816,7 +817,7 @@ namespace DynamicTypeDescriptor {
                 }
             }
 
-            List<CustomPropertyDescriptor> pdl = m_pdl.FindAll(pd => pd != null);
+            List<CustomPropertyDescriptor> pdl = m_pdl.FindAll(pd => pd is not null);
 
             PreProcess(pdl);
             PropertyDescriptorCollection pdcReturn = new PropertyDescriptorCollection(m_pdl.ToArray());
@@ -900,7 +901,7 @@ namespace DynamicTypeDescriptor {
         }
         private void UpdateMemberData() {
 
-            if (m_pd != null) {
+            if (m_pd is not null) {
                 m_value = m_pd.GetValue(m_owner);
             }
 
@@ -921,7 +922,7 @@ namespace DynamicTypeDescriptor {
         }
         public override Type PropertyType {
             get {
-                if (m_pd != null) {
+                if (m_pd is not null) {
                     return this.m_pd.PropertyType;
                 }
                 return m_PropType;
@@ -958,11 +959,10 @@ namespace DynamicTypeDescriptor {
         /// Must override abstract properties.
         /// </summary>
         /// 
-
         public override bool IsLocalizable {
             get {
                 LocalizableAttribute attr = (LocalizableAttribute)m_Attributes.FirstOrDefault(a => a is LocalizableAttribute);
-                if (attr != null) {
+                if (attr is not null) {
                     return attr.IsLocalizable;
                 }
                 return base.IsLocalizable;
@@ -970,16 +970,17 @@ namespace DynamicTypeDescriptor {
         }
         public void SetIsLocalizable(bool isLocalizable) {
             LocalizableAttribute attr = (LocalizableAttribute)m_Attributes.FirstOrDefault(a => a is LocalizableAttribute);
-            if (attr != null) {
+            if (attr is not null) {
                 m_Attributes.RemoveAll(a => a is LocalizableAttribute);
             }
             attr = new LocalizableAttribute(isLocalizable);
             m_Attributes.Add(attr);
         }
+
         public override bool IsReadOnly {
             get {
                 ReadOnlyAttribute attr = (ReadOnlyAttribute)m_Attributes.FirstOrDefault(a => a is ReadOnlyAttribute);
-                if (attr != null) {
+                if (attr is not null) {
                     return attr.IsReadOnly;
                 }
                 return false;
@@ -987,16 +988,17 @@ namespace DynamicTypeDescriptor {
         }
         public void SetIsReadOnly(bool isReadOnly) {
             ReadOnlyAttribute attr = (ReadOnlyAttribute)m_Attributes.FirstOrDefault(a => a is ReadOnlyAttribute);
-            if (attr != null) {
+            if (attr is not null) {
                 m_Attributes.RemoveAll(a => a is ReadOnlyAttribute);
             }
             attr = new ReadOnlyAttribute(isReadOnly);
             m_Attributes.Add(attr);
         }
+        
         public override bool IsBrowsable {
             get {
                 BrowsableAttribute attr = (BrowsableAttribute)m_Attributes.FirstOrDefault(a => a is BrowsableAttribute);
-                if (attr != null) {
+                if (attr is not null) {
                     return attr.Browsable;
                 }
                 return base.IsBrowsable;
@@ -1004,7 +1006,7 @@ namespace DynamicTypeDescriptor {
         }
         public void SetIsBrowsable(bool isBrowsable) {
             BrowsableAttribute attr = (BrowsableAttribute)m_Attributes.FirstOrDefault(a => a is BrowsableAttribute);
-            if (attr != null) {
+            if (attr is not null) {
                 m_Attributes.RemoveAll(a => a is BrowsableAttribute);
             }
             attr = new BrowsableAttribute(isBrowsable);
@@ -1012,7 +1014,6 @@ namespace DynamicTypeDescriptor {
         }
 
         private string m_KeyPrefix = String.Empty;
-
         internal string KeyPrefix {
             get {
                 return m_KeyPrefix;
@@ -1025,7 +1026,7 @@ namespace DynamicTypeDescriptor {
         public override string DisplayName {
             get {
 
-                if (this.ResourceManager != null && (this.PropertyFlags & PropertyFlags.LocalizeDisplayName) > 0) {
+                if (this.ResourceManager is not null && (this.PropertyFlags & PropertyFlags.LocalizeDisplayName) > 0) {
                     string sKey = KeyPrefix + base.Name + "_Name";
 
                     string sResult = this.ResourceManager.GetString(sKey, CultureInfo.CurrentUICulture);
@@ -1034,7 +1035,7 @@ namespace DynamicTypeDescriptor {
                     }
                 }
                 DisplayNameAttribute attr = (DisplayNameAttribute)m_Attributes.FirstOrDefault(a => a is DisplayNameAttribute);
-                if (attr != null) {
+                if (attr is not null) {
                     return attr.DisplayName;
                 }
                 return base.DisplayName;
@@ -1042,16 +1043,17 @@ namespace DynamicTypeDescriptor {
         }
         public void SetDisplayName(string displayName) {
             DisplayNameAttribute attr = (DisplayNameAttribute)m_Attributes.FirstOrDefault(a => a is DisplayNameAttribute);
-            if (attr != null) {
+            if (attr is not null) {
                 m_Attributes.RemoveAll(a => a is DisplayNameAttribute);
             }
             attr = new DisplayNameAttribute(displayName);
             m_Attributes.Add(attr);
         }
+        
         public override string Category {
             get {
                 string sResult = String.Empty;
-                if (this.ResourceManager != null && CategoryId != 0 && (this.PropertyFlags & PropertyFlags.LocalizeCategoryName) > 0) {
+                if (this.ResourceManager is not null && CategoryId != 0 && (this.PropertyFlags & PropertyFlags.LocalizeCategoryName) > 0) {
                     string sKey = KeyPrefix + "Cat" + CategoryId.ToString();
                     sResult = this.ResourceManager.GetString(sKey, CultureInfo.CurrentUICulture);
                     if (!String.IsNullOrEmpty(sResult)) {
@@ -1060,7 +1062,7 @@ namespace DynamicTypeDescriptor {
 
                 }
                 CategoryAttribute attr = (CategoryAttribute)m_Attributes.FirstOrDefault(a => a is CategoryAttribute);
-                if (attr != null) {
+                if (attr is not null) {
                     sResult = attr.Category;
                 }
                 if (String.IsNullOrEmpty(sResult)) {
@@ -1071,15 +1073,16 @@ namespace DynamicTypeDescriptor {
         }
         public void SetCategory(string category) {
             CategoryAttribute attr = (CategoryAttribute)m_Attributes.FirstOrDefault(a => a is CategoryAttribute);
-            if (attr != null) {
+            if (attr is not null) {
                 m_Attributes.RemoveAll(a => a is CategoryAttribute);
             }
             attr = new CategoryAttribute(category);
             m_Attributes.Add(attr);
         }
+        
         public override string Description {
             get {
-                if (this.ResourceManager != null && (this.PropertyFlags & PropertyFlags.LocalizeDescription) > 0) {
+                if (this.ResourceManager is not null && (this.PropertyFlags & PropertyFlags.LocalizeDescription) > 0) {
                     string sKey = KeyPrefix + base.Name + "_Desc";
                     string sResult = this.ResourceManager.GetString(sKey, CultureInfo.CurrentUICulture);
                     if (!String.IsNullOrEmpty(sResult)) {
@@ -1087,7 +1090,7 @@ namespace DynamicTypeDescriptor {
                     }
                 }
                 DescriptionAttribute attr = (DescriptionAttribute)m_Attributes.FirstOrDefault(a => a is DescriptionAttribute);
-                if (attr != null) {
+                if (attr is not null) {
                     return attr.Description;
                 }
                 return base.Description;
@@ -1095,7 +1098,7 @@ namespace DynamicTypeDescriptor {
         }
         public void SetDescription(string description) {
             DescriptionAttribute attr = (DescriptionAttribute)m_Attributes.FirstOrDefault(a => a is DescriptionAttribute);
-            if (attr != null) {
+            if (attr is not null) {
                 m_Attributes.RemoveAll(a => a is DescriptionAttribute);
             }
             attr = new DescriptionAttribute(description);
@@ -1105,14 +1108,14 @@ namespace DynamicTypeDescriptor {
         public object DefaultValue {
             get {
                 DefaultValueAttribute attr = (DefaultValueAttribute)m_Attributes.FirstOrDefault(a => a is DefaultValueAttribute);
-                if (attr != null) {
+                if (attr is not null) {
                     return attr.Value;
                 }
                 return null;
             }
             set {
                 DefaultValueAttribute attr = (DefaultValueAttribute)m_Attributes.FirstOrDefault(a => a is DefaultValueAttribute);
-                if (attr == null) {
+                if (attr is null) {
                     m_Attributes.RemoveAll(a => a is DefaultValueAttribute);
                 }
                 attr = new DefaultValueAttribute(value);
@@ -1122,14 +1125,14 @@ namespace DynamicTypeDescriptor {
         public int PropertyId {
             get {
                 IdAttribute rsa = (IdAttribute)m_Attributes.FirstOrDefault(a => a is IdAttribute);
-                if (rsa != null) {
+                if (rsa is not null) {
                     return rsa.PropertyId;
                 }
                 return 0;
             }
             set {
                 IdAttribute rsa = (IdAttribute)m_Attributes.FirstOrDefault(a => a is IdAttribute);
-                if (rsa == null) {
+                if (rsa is null) {
                     rsa = new IdAttribute();
                     m_Attributes.Add(rsa);
                 }
@@ -1139,22 +1142,22 @@ namespace DynamicTypeDescriptor {
         public int CategoryId {
             get {
                 IdAttribute rsa = (IdAttribute)m_Attributes.FirstOrDefault(a => a is IdAttribute);
-                if (rsa != null) {
+                if (rsa is not null) {
                     return rsa.CategoryId;
                 }
                 return 0;
             }
             set {
                 IdAttribute rsa = (IdAttribute)m_Attributes.FirstOrDefault(a => a is IdAttribute);
-                if (rsa == null) {
+                if (rsa is null) {
                     rsa = new IdAttribute();
                     m_Attributes.Add(rsa);
                 }
                 rsa.CategoryId = value;
             }
         }
-        private int m_TabAppendCount = 0;
 
+        private int m_TabAppendCount = 0;
         internal int TabAppendCount {
             get {
                 return m_TabAppendCount;
@@ -1177,33 +1180,34 @@ namespace DynamicTypeDescriptor {
 
         private object m_value = null;
         public override object GetValue(object component) {
-            if (m_pd != null) {
+            if (m_pd is not null) {
                 return m_pd.GetValue(component);
             }
             return m_value;
         }
 
         public override void SetValue(object component, object value) {
-            if (value != null && value is StandardValueAttribute) {
+            if (value is not null && value is StandardValueAttribute) {
                 m_value = (value as StandardValueAttribute).Value;
             }
             else {
                 m_value = value;
             }
 
-            if (m_pd != null) {
+            if (m_pd is not null) {
                 m_pd.SetValue(component, m_value);
                 this.OnValueChanged(this, new EventArgs());
 
             }
             else {
                 EventHandler eh = this.GetValueChangedHandler(m_owner);
-                if (eh != null) {
+                if (eh is not null) {
                     eh.Invoke(this, new EventArgs());
                 }
                 this.OnValueChanged(this, new EventArgs());
             }
         }
+
         protected override void OnValueChanged(object component, EventArgs e) {
             MemberDescriptor md = component as MemberDescriptor;
 
@@ -1215,7 +1219,7 @@ namespace DynamicTypeDescriptor {
         /// </summary>			
         public override void ResetValue(object component) {
             DefaultValueAttribute dva = (DefaultValueAttribute)m_Attributes.FirstOrDefault(a => a is DefaultValueAttribute);
-            if (dva == null) {
+            if (dva is null) {
                 return;
             }
             SetValue(component, dva.Value);
@@ -1223,7 +1227,7 @@ namespace DynamicTypeDescriptor {
 
         public override bool CanResetValue(object component) {
             DefaultValueAttribute dva = (DefaultValueAttribute)m_Attributes.FirstOrDefault(a => a is DefaultValueAttribute);
-            if (dva == null) {
+            if (dva is null) {
                 return false;
             }
             bool bOk = (dva.Value.Equals(m_value));
@@ -1244,8 +1248,8 @@ namespace DynamicTypeDescriptor {
                 return m_StatandardValues;
             }
         }
-        private Image m_ValueImage = null;
 
+        private Image m_ValueImage = null;
         public Image ValueImage {
             get {
                 return m_ValueImage;
@@ -1258,7 +1262,7 @@ namespace DynamicTypeDescriptor {
         public PropertyFlags PropertyFlags {
             get {
                 PropertyStateFlagsAttribute attr = (PropertyStateFlagsAttribute)m_Attributes.FirstOrDefault(a => a is PropertyStateFlagsAttribute);
-                if (attr == null) {
+                if (attr is null) {
                     attr = new PropertyStateFlagsAttribute();
                     m_Attributes.Add(attr);
                     attr.Flags = PropertyFlags.Default;
@@ -1268,7 +1272,7 @@ namespace DynamicTypeDescriptor {
             }
             set {
                 PropertyStateFlagsAttribute attr = (PropertyStateFlagsAttribute)m_Attributes.FirstOrDefault(a => a is PropertyStateFlagsAttribute);
-                if (attr == null) {
+                if (attr is null) {
                     attr = new PropertyStateFlagsAttribute();
                     m_Attributes.Add(attr);
                     attr.Flags = PropertyFlags.Default;

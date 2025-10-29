@@ -41,7 +41,7 @@ namespace WinAGI.Editor {
             lblStatus.Name = "lblStatus";
             lblStatus.Size = new System.Drawing.Size(244, 19);
             lblStatus.TabIndex = 0;
-            lblStatus.Text = "Adding resource: PICTURE.059";
+            lblStatus.Text = "";
             lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             lblStatus.UseWaitCursor = true;
             // 

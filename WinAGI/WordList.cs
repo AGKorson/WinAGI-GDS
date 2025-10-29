@@ -7,6 +7,7 @@ using static WinAGI.Common.Base;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -23,13 +24,7 @@ namespace WinAGI.Engine {
         int mCodePage = Base.CodePage;
         bool mIsChanged;
         bool mLoaded;
-        int mErrLevel = 0;
-        // 0 = no errors or warnings
-        // 1 = nonstandard letter index
-        // 2 = invalid eof marker
-        // 4 = upper case detected
-        // 8 = empty word file
-        // 16 = corrupt index file
+
         #endregion
 
         #region Constructors
@@ -91,18 +86,7 @@ namespace WinAGI.Engine {
             mInGame = false;
             mResFile = filename;
             mIsChanged = true;
-            try {
-                Load(filename);
-            }
-            catch {
-                // blank the list
-                mResFile = "";
-                mWordCol = new(new AGIWordComparer());
-                mGroupCol = [];
-                mLoaded = true;
-                // return the error
-                throw;
-            }
+            Load(filename);
         }
         #endregion
 
@@ -197,13 +181,30 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the current error level of the WordList.
+        /// Gets the current error level of the WordList. Only used during first game
+        /// load event. Once a list is saved in WinAGI, it will always be 0.
         /// </summary>
-        public int ErrLevel {
-            get {
-                return mErrLevel;
-            }
-        }
+        public ResourceErrorType Error { get; internal set; } = ResourceErrorType.NoError;
+
+        public string[] ErrData { get; internal set; } = ["", "", "", "", "", ""];
+
+        /// <summary>
+        /// Bitfield that contains warnings applicable to this wordlist:<br />
+        /// 1 = abnormal index table<br />
+        /// 2 = unexpected end of file<br />
+        /// 4 = upper case characters detected<br />
+        /// 8 = invalid characters detected<br />
+        /// 16 = duplicate words found<br />
+        /// 32 = multiple group 1 words<br />
+        /// 64 = multiple group 9999 words
+        /// </summary>
+        public int Warnings { get; internal set; } = 0;
+
+        /// <summary>
+        /// Gets individualized warning tags for this resource. Varies for
+        /// each type of derived resource.
+        /// </summary>
+        public string[] WarnData { get; internal set; } = ["", "", "", "", "", ""];
 
         /// <summary>
         /// Gets or sets a text field that can be used for any purpose. The description
@@ -265,8 +266,12 @@ namespace WinAGI.Engine {
         /// </summary>
         public bool IsChanged {
             get {
-                WinAGIException.ThrowIfNotLoaded(this);
-                return mIsChanged;
+                if (Loaded) {
+                    return mIsChanged;
+                }
+                else {
+                    return false;
+                }
             }
         }
         #endregion
@@ -284,35 +289,19 @@ namespace WinAGI.Engine {
             if (mInGame) {
                 LoadFile = mResFile;
             }
-            if (LoadFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(599)) {
-                    HResult = WINAGI_ERR + 599
-                };
-                throw wex;
-            }
-            if (!File.Exists(LoadFile)) {
-                WinAGIException wex = new(LoadResString(606).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 606,
-                };
-                wex.Data["missingfile"] = LoadFile;
-                wex.Data["ID"] = "WORDS.TOK";
-                throw wex;
-            }
-            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, LoadFile)) {
-                    HResult = WINAGI_ERR + 700,
-                };
-                wex.Data["badfile"] = LoadFile;
-                throw wex;
-            }
-            mErrLevel = LoadSierraFile(LoadFile);
+            // clear error info before loading
+            ErrData = ["", "", "", "", "", ""];
+            WarnData = ["", "", "", "", "", ""];
+
+            // set loaded flag before extracting data
+            mLoaded = true;
+            (Error, Warnings) = LoadWordsTokFile(LoadFile);
             if (mInGame) {
                 mDescription = parent.agGameProps.GetSetting("WORDS.TOK", "Description", "", true);
             }
             else {
                 mResFile = LoadFile;
             }
-            mIsChanged = false;
         }
 
         /// <summary>
@@ -321,151 +310,216 @@ namespace WinAGI.Engine {
         /// encountered when the file is loaded.
         /// </summary>
         /// <param name="LoadFile"></param>
-        /// <returns>0 = no errors or warnings<br />
-        /// 1 = abnormal index<br />
-        /// 2 = unexpected end of file<br />
-        /// 4 = upper case character in word<br />
-        /// 8 = no data/empty file<br />
-        /// 16 = multiple group 1 words<br />
-        /// 32 = multiple group 9999 words<br />
-        /// 64 = invalid characters in word<br />
-        /// -24 = invalid index - can't read file<br />
-        /// -25 = file access error, unable to read file
-        /// </returns>
-        private int LoadSierraFile(string LoadFile) {
-            byte bytHigh, bytLow, bytExt;
-            int lngPos, retval = 0;
-            byte[] bytData = [];
+        /// <returns></returns>
+        private (ResourceErrorType, int) LoadWordsTokFile(string LoadFile) {
+            byte bytExt;
+            int pos = 0, retwarn = 0;
+            ResourceErrorType reterr = ResourceErrorType.NoError;
+            byte[] worddata = [];
             StringBuilder sbThisWord;
             string sThisWord;
-            string strPrevWord;
             byte[] bytVal = new byte[1];
-            int lngGrpNum;
-            byte bytPrevWordCharCount;
+            int groupnumber;
             FileStream fsWords;
 
-            mLoaded = true;
             mWordCol = new(new AGIWordComparer());
             mGroupCol = [];
+            if (!File.Exists(LoadFile)) {
+                // clear to a blank list
+                Clear();
+                return (ResourceErrorType.WordsTokNoFile, 0);
+            }
+            if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                reterr = ResourceErrorType.WordsTokIsReadOnly;
+            }
             try {
-                fsWords = new(LoadFile, FileMode.Open);
+                fsWords = new(LoadFile, FileMode.Open, FileAccess.Read);
             }
-            catch {
+            catch (Exception ex) {
                 // file access error
-                return -25;
+                ErrData[0] = ex.Message;
+                Clear();
+                return (ResourceErrorType.WordsTokAccessError, 0);
             }
-            // if no data,
-            if (fsWords.Length == 0) {
+            // a properly formatted WORDS.TOK has a 52 byte index
+            // followed by word entries, with words in alphabetical
+            // order. Each word entry includes 1 byte for count of
+            // previous word characters, one byte for each additional
+            // character in the word, and 2 bytes for the word group
+            //
+            // minimum size (if no words) is 52 bytes, all zero
+            // all known AGI games have at least one word starting
+            // with 'a', so first index pointer is always 52
+            // BUT it is possible for first word to start with a
+            // different letter; the index values of preceding
+            // letters will be zero, and first non-zero index
+            // should be 52
+            //
+            // if at least one word, minimum size is 56: 52 for
+            // index, 1 for prevcount, 1 for singlechar, 2 for
+            // group (52 is ok, >=56 is ok)
+            if (fsWords.Length != 52 && fsWords.Length < 56) {
                 // be sure to release the stream
                 fsWords.Dispose();
-                return 8;
+                Clear();
+                return (ResourceErrorType.WordsTokNoData, 0);
             }
             // read in entire resource
-            Array.Resize(ref bytData, (int)fsWords.Length);
-            fsWords.Read(bytData);
+            Array.Resize(ref worddata, (int)fsWords.Length);
+            fsWords.Read(worddata);
             // done with the stream
             fsWords.Dispose();
-            // start at beginning of words section
+            fsWords = null;
+            // validate index- first nonzero index offset should
+            // be 52; all other nonzeros should be greater than
+            // the previous
             // (words.tok file uses MSLS format for two byte-word data)
-            bytHigh = bytData[0];
-            bytLow = bytData[1];
-            lngPos = (bytHigh << 8) + bytLow;
-            if (lngPos != 52) {
-                // index is corrupt or invalid;
-                // don't assume it's bad just yet - if the target
-                // byte is zero, give it a try
-                if (bytData[lngPos] == 0) {
-                    // note the problem in a warning
-                    retval = 1;
-                }
-                else {
-                    // unable to read this file
-                    return -24;
-                }
-            }
-            // for first word, there is no previous word
-            strPrevWord = "";
-            // read character Count for first word
-            bytPrevWordCharCount = bytData[lngPos++];
-            // continue loading words until end of resource is reached
-            while (lngPos < bytData.Length) {
-                if (bytPrevWordCharCount > 0) {
-                    sbThisWord = new(strPrevWord[..bytPrevWordCharCount]);
-                }
-                else {
-                    sbThisWord = new();
-                }
-                do {
-                    bytVal[0] = bytData[lngPos];
-                    // EXTENDED CHARACTER FORMAT CHECK:
-                    if (bytVal[0] == 0) {
-                        // the next char is the actual character,
-                        // and is extended
-                        lngPos++;
-                        bytVal[0] = bytData[lngPos];
-                        bytExt = 128;
+            for (int i = 0; i < 52; i++) {
+                pos = (worddata[i++] << 8) + worddata[i];
+                if (pos > 0) {
+                    // 52 is expected; greater than 52 might be OK
+                    if (pos != 52) {
+                        if (pos > 52) {
+                            // index is corrupt or invalid;
+                            // don't assume it's bad just yet - if the target
+                            // byte is zero, give it a try
+                            if (worddata[pos] == 0) {
+                                // note the problem in a warning
+                                retwarn = 1;
+                            }
+                            else {
+                                // bad index, unable to read this file
+                                Clear();
+                                return (ResourceErrorType.WordsTokBadIndex, 0);
+                            }
+                        }
+                        else {
+                            // bad index
+                            Clear();
+                            return (ResourceErrorType.WordsTokBadIndex, 0);
+                        }
                     }
                     else {
-                        bytExt = 0;
+                        // verify first byte is zero (first word can't copy any
+                        // characters from previous)
+                        if (worddata[pos] != 0) {
+                            // bad index, unable to read this file
+                            Clear();
+                            return (ResourceErrorType.WordsTokBadIndex, 0);
+                        }
                     }
-                    if (bytVal[0] < 0x80) {
-                        byte[] charbyte = [(byte)(bytVal[0] ^ 0x7F + bytExt)];
-                        sbThisWord.Append(Encoding.GetEncoding(CodePage).GetString(charbyte));
-                    }
-                    lngPos++;
-                    // continue until last character (indicated by flag) or
-                    // endofresource is reached
-                }
-                while ((bytVal[0] < 0x80) && (lngPos < bytData.Length));
-                // check for end of file
-                if (lngPos >= bytData.Length) {
-                    // invalid words.tok file ending
-                    retval |= 2;
                     break;
                 }
-                // add last character (after stripping off flag)
-                bytVal[0] ^= 0xFF;
-                bytVal[0] += bytExt;
-                sbThisWord.Append(Encoding.GetEncoding(CodePage).GetString(bytVal));
-                sThisWord = sbThisWord.ToString();
-                // check for ascii upper case (allowed, but not useful)
-                if (sThisWord.Any(ch => ch >= 65 && ch <= 90)) {
-                    retval |= 4;
-                }
-                // check for invalid characters ,.?!();:[]{} and '`-"
-                string inv = ",.?!();:[]{}'`-\"";
-                if (sThisWord.Any(inv.Contains)) {
-                    retval |= 64;
-                }
-                sThisWord = sThisWord.LowerAGI();
-                lngGrpNum = (bytData[lngPos++] << 8) + bytData[lngPos++];
-                // skip if same as previous word (unlikely, but 
-                // it would cause an exception, if it did happen)
-                if (sThisWord != strPrevWord) {
-                    if (mWordCol.ContainsKey(sThisWord)) {
-                        // remove the old one so a duplicate isn't
-                        // added, which would cause an exception
-                        RemoveWord(sThisWord);
-                        // TODO: this should add a warning
-                    }
-                    AddWord(sThisWord, lngGrpNum);
-                    // this word is now the previous word
-                    strPrevWord = sThisWord;
-                    // check for multiple words in group 1 or 9999
-                    if (lngGrpNum == 1) {
-                        if (mGroupCol[lngGrpNum].mWords.Count > 1) {
-                            retval |= 8;
-                        }
-                    }
-                    if (lngGrpNum == 9999) {
-                        if (mGroupCol[lngGrpNum].mWords.Count > 1) {
-                            retval |= 16;
-                        }
-                    }
-                }
-                bytPrevWordCharCount = bytData[lngPos++];
             }
-            // if groups 0, 1, or 9999 not loade, add them here
+            // if offset found, it means there are words to add
+            if (pos != 0) {
+                // for first word, there is no previous word
+                string previousword = "";
+                byte prevWordCharCount = 0;
+
+
+                // start with first word
+                // read character Count for first word
+                prevWordCharCount = worddata[pos++];
+
+                // continue loading words until end of resource is reached
+                while (pos < worddata.Length) {
+                    if (prevWordCharCount > 0) {
+                        if (prevWordCharCount > previousword.Length) {
+                            // error
+                            // keep the words that have already been read
+                            WarnData[0] = pos.ToString();
+                            retwarn |= 128;
+                            sbThisWord = new(previousword);
+                        }
+                        else {
+                            sbThisWord = new(previousword[..prevWordCharCount]);
+                        }
+                    }
+                    else {
+                        sbThisWord = new();
+                    }
+                    do {
+                        bytVal[0] = worddata[pos];
+                        // EXTENDED CHARACTER FORMAT CHECK:
+                        if (bytVal[0] == 0) {
+                            // the next char is the actual character,
+                            // and is extended
+                            pos++;
+                            bytVal[0] = worddata[pos];
+                            bytExt = 128;
+                        }
+                        else {
+                            bytExt = 0;
+                        }
+                        if (bytVal[0] < 0x80) {
+                            byte[] charbyte = [(byte)(bytVal[0] ^ 0x7F + bytExt)];
+                            sbThisWord.Append(Encoding.GetEncoding(CodePage).GetString(charbyte));
+                        }
+                        pos++;
+                        // continue until last character (indicated by flag) or
+                        // endofresource is reached
+                    }
+                    while ((bytVal[0] < 0x80) && (pos < worddata.Length));
+                    // check for end of file
+                    if (pos >= worddata.Length) {
+                        // invalid words.tok file ending
+                        retwarn |= 2;
+                        break;
+                    }
+                    // add last character (after stripping off flag)
+                    bytVal[0] ^= 0xFF;
+                    bytVal[0] += bytExt;
+                    sbThisWord.Append(Encoding.GetEncoding(CodePage).GetString(bytVal));
+                    sThisWord = sbThisWord.ToString();
+                    // check for ascii upper case (allowed, but not useful)
+                    if (sThisWord.Any(ch => ch >= 65 && ch <= 90)) {
+                        retwarn |= 4;
+                    }
+                    // check for invalid characters ,.?!();:[]{} and '`-"
+                    const string inv = ",.?!();:[]{}'`-\"";
+                    if (sThisWord.Any(inv.Contains)) {
+                        retwarn |= 8;
+                    }
+                    sThisWord = sThisWord.LowerAGI();
+                    groupnumber = (worddata[pos++] << 8) + worddata[pos++];
+                    // skip if same as previous word (unlikely, but 
+                    // it would cause an exception, if it did happen)
+                    if (sThisWord != previousword) {
+                        if (mWordCol.ContainsKey(sThisWord)) {
+                            // remove the old one so a duplicate isn't
+                            // added, which would cause an exception
+                            RemoveWord(sThisWord);
+                            // add a warning
+                            retwarn |= 16;
+                        }
+                        AddWord(sThisWord, groupnumber);
+                        // this word is now the previous word
+                        previousword = sThisWord;
+                        // check for multiple words in group 1 or 9999
+                        if (groupnumber == 1) {
+                            if (mGroupCol[groupnumber].mWords.Count > 1) {
+                                retwarn |= 32;
+                            }
+                        }
+                        if (groupnumber == 9999) {
+                            if (mGroupCol[groupnumber].mWords.Count > 1) {
+                                retwarn |= 64;
+                            }
+                        }
+                    }
+                    prevWordCharCount = worddata[pos++];
+                }
+            }
+            else {
+                // no words- should only happen if list is empty
+                if (worddata.Length != 52) {
+                    // bad index, unable to read this file
+                    Clear();
+                    return (ResourceErrorType.WordsTokBadIndex, 0);
+                }
+            }
+            // if groups 0, 1, or 9999 not added, add them here
             if (!GroupExists(0)) {
                 AddGroup(0);
             }
@@ -475,7 +529,8 @@ namespace WinAGI.Engine {
             if (!GroupExists(9999)) {
                 AddGroup(9999);
             }
-            return retval;
+            mIsChanged = reterr != ResourceErrorType.NoError;
+            return (reterr, retwarn);
         }
 
         /// <summary>
@@ -507,13 +562,7 @@ namespace WinAGI.Engine {
                 if (SaveFile.Length == 0) {
                     SaveFile = mResFile;
                 }
-                // if still no file
-                if (SaveFile.Length == 0) {
-                    WinAGIException wex = new(LoadResString(615)) {
-                        HResult = WINAGI_ERR + 615
-                    };
-                    throw wex;
-                }
+                ArgumentException.ThrowIfNullOrWhiteSpace(SaveFile);
             }
             try {
                 Compile(SaveFile);
@@ -528,6 +577,19 @@ namespace WinAGI.Engine {
                 mResFile = SaveFile;
             }
             mIsChanged = false;
+            // clear errors
+            Error = ResourceErrorType.NoError;
+            ErrData = ["", "", "", "", "", ""];
+            // check warnings
+            // 32 = multiple group 1 words<br />
+            // 64 = multiple group 9999 words
+            Warnings = 0;
+            if (this.GroupByNumber(1).WordCount > 1) {
+                Warnings |= 32;
+            }
+            if (this.GroupByNumber(9999).WordCount > 1) {
+                Warnings |= 64;
+            }
         }
 
         /// <summary>
@@ -535,126 +597,151 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="CompileFile"></param>
         void Compile(string CompileFile) {
-            int i;
-            byte CurByte;
-            byte[] strCurWord;
-            byte[] strPrevWord = [];
-            byte intPrevWordCharCount;
-            bool blnWordsMatch;
-            byte strFirstLetter;
-            int[] intLetterIndex = new int[26];
-            string strTempFile;
+            byte outputbyte;
+            byte[] wordtext;
+            byte[] previousword = [];
+            int[] letterIndex = new int[26];
+            System.Buffers.SearchValues<char> s_inv = System.Buffers.SearchValues.Create(",.?!();:[]{}'`-\"");
 
-            if (CompileFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(616)) {
-                    HResult = WINAGI_ERR + 616
-                };
-                throw wex;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(CompileFile);
             if (!mIsChanged && CompileFile.Equals(mResFile, StringComparison.OrdinalIgnoreCase)) {
                 return;
             }
-            strTempFile = Path.GetTempFileName();
+            string tempFile = Path.GetTempFileName();
             FileStream fsWords;
             try {
-                fsWords = new FileStream(strTempFile, FileMode.OpenOrCreate);
+                fsWords = new FileStream(tempFile, FileMode.OpenOrCreate);
                 // letter index placeholders
-                for (i = 0; i <= 51; i++) {
+                for (int i = 0; i <= 51; i++) {
                     fsWords.WriteByte(0);
                 }
-                strFirstLetter = (byte)'a';
-                intLetterIndex[0] = 52;
-                foreach (AGIWord tmpWord in mWordCol.Values) {
-                    // get next word
-                    strCurWord = Encoding.GetEncoding(CodePage).GetBytes(tmpWord.WordText);
-                    // if first letter is not current first letter, AND it is 'b' through 'z'
-                    // (this ensures non letter words (such as numbers) are included in the 'a' section)
-                    if ((strCurWord[0] != strFirstLetter) && (strCurWord[0] >= 97) && (strCurWord[0] <= 122)) {
-                        // reset index pointer
-                        strFirstLetter = strCurWord[0];
-                        intLetterIndex[strFirstLetter - 97] = (int)fsWords.Position;
-                    }
-                    // calculate number of characters that are common to previous word
-                    intPrevWordCharCount = 0;
-                    i = 0;
-                    blnWordsMatch = true;
-                    do {
-                        // if not at end of word, AND current position is not longer than previous word,
-                        if ((i < strCurWord.Length - 1) && (i < strPrevWord.Length)) {
-                            if (strPrevWord[i] == strCurWord[i]) {
-                                intPrevWordCharCount++;
+                // if no words, no need to initialize offset table 
+                if (mWordCol.Count > 0) {
+                    byte firstletter = (byte)'a';
+                    letterIndex[0] = 52;
+                    foreach (AGIWord tmpWord in mWordCol.Values) {
+                        // get next word
+                        wordtext = Encoding.GetEncoding(CodePage).GetBytes(tmpWord.WordText);
+                        // upper chase characters not allowed
+                        if (wordtext.Any(ch => ch >= 65 && ch <= 90)) {
+                            throw new WinAGIException(LoadResString(549).Replace(
+                                ARG1, tmpWord.WordText)) {
+                                HResult = WINAGI_ERR + 549,
+                            };
+                        }
+                        if (tmpWord.WordText.AsSpan().IndexOfAny(s_inv) >= 0) {
+                            throw new WinAGIException(LoadResString(550).Replace(
+                                ARG1, tmpWord.WordText)) {
+                                HResult = WINAGI_ERR + 550,
+                            };
+                        }
+                        if (parent is not null || !parent.PowerPack) {
+                            // extended characters not allowed unless using powerpack
+                            if (wordtext.Any(ch => ch >127)) {
+                                throw new WinAGIException(LoadResString(551).Replace(
+                                    ARG1, tmpWord.WordText)) {
+                                    HResult = WINAGI_ERR + 551,
+                                };
+                            }
+                            // first char must be a letter unless powerpack is used
+                            if (wordtext[0] < 97 || wordtext[0] > 122) {
+                                throw new WinAGIException(LoadResString(552).Replace(
+                                    ARG1, tmpWord.WordText)) {
+                                    HResult = WINAGI_ERR + 552,
+                                };
+                            }
+                        }
+                        // if first letter is not current first letter, AND it is 'b' through 'z'
+                        // (this ensures non letter words (such as numbers) are included in the 'a' section)
+                        if ((wordtext[0] != firstletter) && (wordtext[0] >= 97) && (wordtext[0] <= 122)) {
+                            // reset index pointer
+                            firstletter = wordtext[0];
+                            letterIndex[firstletter - 97] = (int)fsWords.Position;
+                        }
+                        // calculate number of characters that are common to previous word
+                        byte prevcharcount = 0;
+                        int i = 0;
+                        bool match = true;
+                        do {
+                            // if not at end of word, AND current position is not longer than previous word,
+                            if ((i < wordtext.Length - 1) && (i < previousword.Length)) {
+                                if (previousword[i] == wordtext[i]) {
+                                    prevcharcount++;
+                                }
+                                else {
+                                    match = false;
+                                }
                             }
                             else {
-                                blnWordsMatch = false;
+                                match = false;
                             }
+                            i++;
+                        }
+                        while (match);
+                        fsWords.WriteByte(prevcharcount);
+                        previousword = wordtext;
+                        // strip off characters that are same as previous word
+                        wordtext = wordtext[prevcharcount..];
+                        if (wordtext.Length > 1) {
+                            // write all but last character
+                            for (i = 0; i < wordtext.Length - 1; i++) {
+                                // check for extended characters
+                                if (wordtext[i] > 127) {
+                                    // add marker
+                                    fsWords.WriteByte(0);
+                                    // adjust character down by 128
+                                    outputbyte = (byte)(0x7F ^ (wordtext[i] - 128));
+                                }
+                                else {
+                                    // encrypt character before writing it
+                                    outputbyte = (byte)(0x7F ^ wordtext[i]);
+                                }
+                                // add the encrypted character
+                                fsWords.WriteByte(outputbyte);
+                            }
+                        }
+                        // add last char - first check for extended character
+                        if (wordtext[^1] > 127) {
+                            // add marker
+                            fsWords.WriteByte(0);
+                            // adjust character down by 128
+                            outputbyte = (byte)(0x80 + (0x7F ^ (wordtext[^1] - 128)));
                         }
                         else {
-                            blnWordsMatch = false;
+                            outputbyte = (byte)(0x80 + (0x7F ^ wordtext[^1]));
                         }
-                        i++;
+                        // add the encrypted end character
+                        fsWords.WriteByte(outputbyte);
+                        // write group number (stored as 2-byte word; high byte first)
+                        outputbyte = (byte)(tmpWord.Group / 256);
+                        fsWords.WriteByte(outputbyte);
+                        outputbyte = (byte)(tmpWord.Group % 256);
+                        fsWords.WriteByte(outputbyte);
                     }
-                    while (blnWordsMatch);
-                    fsWords.WriteByte(intPrevWordCharCount);
-                    strPrevWord = strCurWord;
-                    // strip off characters that are same as previous word
-                    strCurWord = strCurWord[intPrevWordCharCount..];
-                    if (strCurWord.Length > 1) {
-                        // write all but last character
-                        for (i = 0; i < strCurWord.Length - 1; i++) {
-                            // check for extended characters
-                            if (strCurWord[i] > 127) {
-                                // add marker
-                                fsWords.WriteByte(0);
-                                // adjust character down by 128
-                                CurByte = (byte)(0x7F ^ (strCurWord[i] - 128));
-                            }
-                            else {
-                                // encrypt character before writing it
-                                CurByte = (byte)(0x7F ^ strCurWord[i]);
-                            }
-                            // add the encrypted character
-                            fsWords.WriteByte(CurByte);
-                        }
+                    // add null character to end of file
+                    fsWords.WriteByte(0);
+                    // reset file pointer to start
+                    fsWords.Seek(0, SeekOrigin.Begin);
+                    // write index values for all 26 letters
+                    for (int i = 0; i < 26; i++) {
+                        // two byte word, high byte first
+                        outputbyte = (byte)(letterIndex[i] / 256);
+                        fsWords.WriteByte(outputbyte);
+                        outputbyte = (byte)(letterIndex[i] % 256);
+                        fsWords.WriteByte(outputbyte);
                     }
-                    // add last char - first check for extended character
-                    if (strCurWord[^1] > 127) {
-                        // add marker
-                        fsWords.WriteByte(0);
-                        // adjust character down by 128
-                        CurByte = (byte)(0x80 + (0x7F ^ (strCurWord[^1] - 128)));
-                    }
-                    else {
-                        CurByte = (byte)(0x80 + (0x7F ^ strCurWord[^1]));
-                    }
-                    // add the encrypted end character
-                    fsWords.WriteByte(CurByte);
-                    // write group number (stored as 2-byte word; high byte first)
-                    CurByte = (byte)(tmpWord.Group / 256);
-                    fsWords.WriteByte(CurByte);
-                    CurByte = (byte)(tmpWord.Group % 256);
-                    fsWords.WriteByte(CurByte);
-                }
-                // add null character to end of file
-                fsWords.WriteByte(0);
-                // reset file pointer to start
-                fsWords.Seek(0, SeekOrigin.Begin);
-                // write index values for all 26 letters
-                for (i = 0; i < 26; i++) {
-                    // two byte word, high byte first
-                    CurByte = (byte)(intLetterIndex[i] / 256);
-                    fsWords.WriteByte(CurByte);
-                    CurByte = (byte)(intLetterIndex[i] % 256);
-                    fsWords.WriteByte(CurByte);
                 }
                 fsWords.Dispose();
                 // copy tempfile to CompileFile
-                SafeFileMove(strTempFile, CompileFile, true);
+                SafeFileMove(tempFile, CompileFile, true);
             }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, e.HResult.ToString()) + ": " + e.Message) {
-                    HResult = WINAGI_ERR + 672,
+            catch (Exception ex) {
+                WinAGIException wex = new(LoadResString(502).Replace(
+                    ARG1, ex.Message).Replace(
+                    ARG2, tempFile)) {
+                    HResult = WINAGI_ERR + 502,
                 };
-                wex.Data["exception"] = e;
+                wex.Data["exception"] = ex;
                 wex.Data["ID"] = "WORDS.TOK";
                 throw wex;
             }
@@ -674,12 +761,7 @@ namespace WinAGI.Engine {
             string strTempFile;
             int i;
 
-            if (CompileFile.Length == 0) {
-                WinAGIException wex = new(LoadResString(616)) {
-                    HResult = WINAGI_ERR + 616
-                };
-                throw wex;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(CompileFile);
             strTempFile = Path.GetTempFileName();
             try {
                 StreamWriter swWords = new(strTempFile);
@@ -692,11 +774,13 @@ namespace WinAGI.Engine {
                 swWords.Dispose();
                 SafeFileMove(strTempFile, CompileFile, true);
             }
-            catch (Exception e) {
-                WinAGIException wex = new(LoadResString(672).Replace(ARG1, e.HResult.ToString()) + ": " + e.Message) {
-                    HResult = WINAGI_ERR + 672,
+            catch (Exception ex) {
+                WinAGIException wex = new(LoadResString(502).Replace(
+                    ARG1, ex.Message).Replace(
+                    ARG2, strTempFile)) {
+                    HResult = WINAGI_ERR + 502,
                 };
-                wex.Data["exception"] = e;
+                wex.Data["exception"] = ex;
                 wex.Data["ID"] = "WORDS.TOK";
                 throw wex;
             }
@@ -770,6 +854,12 @@ namespace WinAGI.Engine {
             clonelist.mResFile = mResFile;
             clonelist.mIsChanged = mIsChanged;
             clonelist.mCodePage = mCodePage;
+            clonelist.Error = Error;
+            clonelist.Warnings = Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                clonelist.ErrData[i] = ErrData[i];
+                clonelist.WarnData[i] = WarnData[i];
+            }
             return clonelist;
         }
 
@@ -801,6 +891,12 @@ namespace WinAGI.Engine {
             mResFile = clonelist.ResFile;
             mIsChanged = clonelist.mIsChanged;
             mCodePage = clonelist.mCodePage;
+            Error = clonelist.Error;
+            Warnings = clonelist.Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                ErrData[i] = clonelist.ErrData[i];
+                WarnData[i] = clonelist.WarnData[i];
+            }
             mLoaded = true;
         }
         
@@ -810,10 +906,12 @@ namespace WinAGI.Engine {
         public void Clear() {
             WinAGIException.ThrowIfNotLoaded(this);
             mGroupCol = [];
-            AddGroup(0);
-            AddGroup(1);
-            AddGroup(9999);
             mWordCol = new(new AGIWordComparer());
+            // default words
+            AddWord("a", 0);
+            AddWord("i", 0);
+            AddWord("anyword", 1);
+            AddWord("rol", 9999);
             mDescription = "";
             mIsChanged = true;
         }
@@ -892,8 +990,8 @@ namespace WinAGI.Engine {
             ArgumentOutOfRangeException.ThrowIfNegative(GroupNumber, nameof(GroupNumber));
             ArgumentOutOfRangeException.ThrowIfGreaterThan(GroupNumber, MAX_GROUP_NUM, nameof(GroupNumber));
             if (!GroupExists(GroupNumber)) {
-                WinAGIException wex = new(LoadResString(583)) {
-                    HResult = WINAGI_ERR + 583
+                WinAGIException wex = new(LoadResString(515)) {
+                    HResult = WINAGI_ERR + 515
                 };
                 throw wex;
             }
@@ -971,14 +1069,14 @@ namespace WinAGI.Engine {
             WordText = WordText.LowerAGI();
             // check to see if word is already in collection,
             if (mWordCol.ContainsKey(WordText)) {
-                WinAGIException wex = new(LoadResString(579)) {
-                    HResult = WINAGI_ERR + 579
+                WinAGIException wex = new(LoadResString(513)) {
+                    HResult = WINAGI_ERR + 513
                 };
                 throw wex;
             }
             if (Group < 0 || Group > MAX_GROUP_NUM) {
-                WinAGIException wex = new(LoadResString(581)) {
-                    HResult = WINAGI_ERR + 581
+                WinAGIException wex = new(LoadResString(514)) {
+                    HResult = WINAGI_ERR + 514
                 };
                 throw wex;
             }
@@ -1001,7 +1099,10 @@ namespace WinAGI.Engine {
         public void RemoveWord(string aWord) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (!mWordCol.TryGetValue(aWord, out AGIWord value)) {
-                throw new ArgumentException("word does not exist");
+                WinAGIException wex = new(LoadResString(516)) {
+                    HResult = WINAGI_ERR + 516
+                };
+                throw wex;
             }
             // delete this word from its assigned group by Group number
             WordGroup tmpGroup = GroupByNumber(value.Group);

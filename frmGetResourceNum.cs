@@ -97,7 +97,12 @@ namespace WinAGI.Editor {
                 }
                 if (rtn != DefineNameCheck.OK) {
                     // error - show msgbox
-                    MessageBox.Show(strErrMsg, "Invalid Resource ID", MessageBoxButtons.OK, MessageBoxIcon.Information); // vbMsgBoxHelpButton, WinAGIHelp, "htm\winagi\Managing Resources.htm#resourceids"
+                    MessageBox.Show(MDIMain,
+                        strErrMsg,
+                        "Invalid Resource ID",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0 , 0,
+                        "htm\\winagi\\Managing Resources.htm#resourceids");
                     // send user back to the form to try again
                     txtID.Select();
                     return;
@@ -177,27 +182,7 @@ namespace WinAGI.Editor {
         }
 
         private void lstResNum_MouseDoubleClick(object sender, MouseEventArgs e) {
-            // TODO: why don't all functions use dbl-click?
-            switch (WindowFunction) {
-            case TestView:
-                btnOK.PerformClick();
-                break;
-            case AddLayout:
-            case AddNew:
-            case AddInGame:
-            case Import:
-            case Renumber:
-            case Open:
-            case ShowRoom:
-            case GetRes.Menu:
-            case MenuBkgd:
-                btnOK.PerformClick();
-                break;
-            case GetRes.RenumberRoom:
-                btnOK.PerformClick();
-                break;
-            }
-
+            btnOK.PerformClick();
         }
 
         private void chkRoom_CheckedChanged(object sender, EventArgs e) {
@@ -379,7 +364,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information,
                         MessageBoxDefaultButton.Button1, 0,
-                        WinAGIHelp, "htm\\winagi\\Managing_Resources.htm#resourceids");
+                        WinAGIHelp, "htm\\winagi\\managingresources.htm#resourceids");
                     // set NewResNum to a value so the calling function knows 
                     NewResNum = 255;
                     return;

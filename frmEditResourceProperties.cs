@@ -114,10 +114,10 @@ namespace WinAGI.Editor {
       If Shift = 0 And KeyCode = vbKeyF1 Then
         If ActiveControl Is txtDescription Then
           'help with description
-          Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\Managing Resources.htm#descriptions");
+          Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\managingresources.htm#descriptions");
         Else
           'help with ID
-          Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\winagi\Managing Resources.htm#resourceids");
+          Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\managingresources.htm#resourceids");
         End If
         KeyCode = 0
       End If

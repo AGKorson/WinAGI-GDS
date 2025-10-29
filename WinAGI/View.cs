@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Drawing;
 using System.Linq;
@@ -183,6 +185,7 @@ namespace WinAGI.Engine {
                 mLoopCol = NewView.mLoopCol.Clone(this);
             }
             mPalette = defaultPalette.Clone();
+            WarnData = ["", "", "", "", "", "", ""];
         }
 
         /// <summary>
@@ -199,10 +202,15 @@ namespace WinAGI.Engine {
             // copy view properties
             CopyView.mViewDesc = mViewDesc;
             CopyView.mLoopCol = mLoopCol.Clone(CopyView);
-            CopyView.ErrLevel = ErrLevel;
+            CopyView.Error = Error;
+            CopyView.Warnings = Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                CopyView.ErrData[i] = ErrData[i];
+                CopyView.WarnData[i] = WarnData[i];
+            }
             CopyView.mViewChanged = mViewChanged;
             CopyView.ErrData = ErrData;
-            if (parent != null) {
+            if (parent is not null) {
                 // copy parent colors
                 CopyView.mPalette = parent.Palette.Clone();
             }
@@ -229,9 +237,13 @@ namespace WinAGI.Engine {
             mViewChanged = SourceView.mViewChanged;
             mViewDesc = SourceView.mViewDesc;
             mLoopCol.CloneFrom(SourceView.mLoopCol);
-            ErrLevel = SourceView.ErrLevel;
-            ErrData = SourceView.ErrData;
-            if (SourceView.parent != null) {
+            Error = SourceView.Error;
+            Warnings = SourceView.Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                ErrData[i] = SourceView.ErrData[i];
+                WarnData[i] = SourceView.WarnData[i];
+            }
+            if (SourceView.parent is not null) {
                 // copy parent colors
                 mPalette = SourceView.parent.Palette.Clone();
             }
@@ -260,7 +272,7 @@ namespace WinAGI.Engine {
         /// program needs the view to be refreshed.
         /// </summary>
         public void ResetView() {
-            ErrLevel = LoadLoops();
+            (Error, Warnings) = LoadLoops();
         }
 
         /// <summary>
@@ -360,9 +372,11 @@ namespace WinAGI.Engine {
             }
             mViewChanged = false;
             mIsChanged = true;
-            // clear error level
-            ErrLevel = 0;
-            ErrData = ["", "", "", "", ""];
+            // clear errors and warnings
+            Error = ResourceErrorType.NoError;
+            ErrData = ["", "", "", "", "", ""];
+            Warnings = 0;
+            WarnData = ["", "", "", "", "", "", ""];
         }
 
         /// <summary>
@@ -458,120 +472,243 @@ namespace WinAGI.Engine {
         /// and cels from the data stream.
         /// </summary>
         /// <returns>Zero if no errors, otherwise an error code:<br />
-        /// 1 = no loops<br />
-        /// 2 = invalid loop offset<br />
-        /// 4 = invalid mirror loop pair<br />
-        /// 8 = more than two loops share mirror<br />
-        /// 16 = invalid cel offset
-        /// 32 = unexpected end of cel data
-        /// 64 = invalid description offset
+        /// 1 = invalid loop offset<br />
+        /// 2 = invalid mirror loop pair<br />
+        /// 4 = more than two loops share mirror<br />
+        /// 8 = invalid cel offset
+        /// 16 = unexpected end of cel data
+        /// 32 = invalid description offset
         /// </returns>
-        internal int LoadLoops() {
-            byte bytNumLoops, bytNumCels;
-            int[] lngLoopStart = new int[MAX_LOOPS];
-            ushort lngCelStart, lngDescLoc;
-            byte tmpLoopNo, bytLoop, bytCel;
-            byte[] bytInput = new byte[1];
-            byte bytWidth, bytHeight;
-            byte bytTransCol;
-            int retval = 0; // assume no errors
+        internal (ResourceErrorType, int) LoadLoops() {
+            int[] loopoffset = new int[MAX_LOOPS];
+            int[] mirrorpair = new int[MAX_LOOPS];
+            Array.Fill(mirrorpair, -1);
+            byte width, height;
 
-            mLoopCol = new Loops(this);
-            bytNumLoops = ReadByte(2);
-            // get offset to ViewDesc
-            lngDescLoc = ReadWord();
-            if (bytNumLoops == 0) {
-                // error - invalid data
-                ErrData[0] = mResID;
-                mViewChanged = false;
-                return 1;
+            // assume no errors or warnings
+            ResourceErrorType errval = ResourceErrorType.NoError;
+            int warnval = 0;
+
+            if (this.Size < 14) {
+                // too small to be a view
+                // reset to an empty view
+                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00,
+                         0x01, 0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
+                errval = ResourceErrorType.ViewNoData;
             }
-            // get loop offset data for each loop
-            for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
-                lngLoopStart[bytLoop] = ReadWord();
-                if (lngLoopStart[bytLoop] > mSize) {
-                    // invalid loop; let any that are alreay loaded stay loaded
+            try {
+                mLoopCol = new Loops(this);
+                byte loopcount = ReadByte(2);
+                // get offset to ViewDesc
+                ushort descriptionoffset = ReadWord();
+                if (loopcount == 0) {
+                    // error - invalid data
                     ErrData[0] = mResID;
-                    ErrData[1] = bytLoop.ToString();
                     mViewChanged = false;
-                    retval |= 2;
+                    return (ResourceErrorType.ViewNoLoops, 0);
                 }
-            }
-            for (bytLoop = 0; bytLoop < bytNumLoops; bytLoop++) {
-                mLoopCol.Add(bytLoop);
-                //  loop zero NEVER mirrors another loop (but others can 
-                // mirror it); also, v2.089 views are never mirrored
-                if (bytLoop > 0 && mInGame && parent.InterpreterVersion != "2.089") {
-                    // for all other loops, check to see if it mirrors an earlier loop
-                    for (tmpLoopNo = 0; tmpLoopNo < bytLoop; tmpLoopNo++) {
-                        if (lngLoopStart[bytLoop] == lngLoopStart[tmpLoopNo]) {
-                            // cel header will have mirror info
-                            // assume loop is ok until confirmed
-                            // confirm valid mirror
-                            switch (SetMirror(bytLoop, tmpLoopNo)) {
-                            // only valid return values when setting mirrors during
-                            // LoadLoops are -3(loop >8) or -6(source already mirrored)
-                            case -3:
-                                // invalid mirror loop
-                                retval |= 4;
-                                break;
-                            case -6:
-                                // source loop already mirrored
-                                retval |= 8;
-                                break;
-                            }
-                        }
+                // get loop offset data for each loop
+                for (int loop = 0; loop < loopcount; loop++) {
+                    loopoffset[loop] = ReadWord();
+                    if (loopoffset[loop] > mSize) {
+                        // invalid loop pointer
+                        WarnData[1] += "|" + loop;
+                        mViewChanged = false;
+                        warnval |= 1;
                     }
                 }
-                if (!mLoopCol[bytLoop].Mirrored) {
-                    if (lngLoopStart[bytLoop] < mSize) {
-                        Pos = lngLoopStart[bytLoop];
-                        bytNumCels = ReadByte();
-                        for (bytCel = 0; bytCel < bytNumCels; bytCel++) {
-                            // read starting position
-                            lngCelStart = (ushort)(ReadWord(lngLoopStart[bytLoop] + 2 * bytCel + 1) + lngLoopStart[bytLoop]);
-                            if (lngCelStart < mSize - 3) {
-                                bytWidth = ReadByte(lngCelStart);
-                                bytHeight = ReadByte();
-                                bytTransCol = ReadByte();
-                                bytTransCol = (byte)(bytTransCol % 0x10);
-                                // add the cel
-                                mLoopCol[bytLoop].Cels.Add(bytCel, bytWidth, bytHeight, (AGIColorIndex)bytTransCol);
-                                // extract bitmap data from RLE data
-                                if (!ExpandCelData(lngCelStart + 3, mLoopCol[bytLoop][bytCel])) {
-                                    retval |= 32;
+                // step through each loop to extract cels
+                for (int loop = 0; loop < loopcount; loop++) {
+                    bool badmirror = false;
+                    bool badshare = false;
+                    mLoopCol.Add(loop);
+                    if (mirrorpair[loop] >= 0) {
+                        int check = SetMirror(loop, mirrorpair[loop]);
+                        Debug.Assert(check == 0);
+                        continue;
+                    }
+                    // what defines a MIRROR loop?
+                    //  x valid loop pointer AND
+                    //  x one or more valid cels AND
+                    //  x each cel in the loop has the 'mirror' bit set AND
+                    //  x loop number is less than eight AND
+                    //  x loop shares data with exactly one another loop AND
+                    //  x each cel has mirror loopnum that equals one of the loops AND
+                    //  x view is NOT from 2.089
+                    if (loopoffset[loop] < mSize) {
+                        // valid loop pointer
+                        Pos = loopoffset[loop];
+                        byte celcount = ReadByte();
+                        if (celcount > 0) {
+                            // one or more cels
+                            int mirrorcount = 0;
+                            int mirrorLoop = -1;
+                            // check for loop with shared data
+                            int shared = 0;
+                            for (int i = 0; i < loopcount; i++) {
+                                if (loop != i && loopoffset[i] == loopoffset[loop]) {
+                                    // sharing data
+                                    shared++;
                                 }
                             }
-                            else {
-                                // keep view data already loaded
-                                retval |= 16;
+
+                            for (int cel = 0; cel < celcount; cel++) {
+                                // read starting position
+                                int celoffset = ReadWord(loopoffset[loop] + 2 * cel + 1) + loopoffset[loop];
+                                if (celoffset < mSize - 3) {
+                                    width = ReadByte(celoffset);
+                                    height = ReadByte();
+                                    byte transcolor = ReadByte();
+                                    if (mirrorLoop < 0) {
+                                        // currently not a mirror loop
+                                        if ((transcolor & 0x80) == 0x80) {
+                                            // mirror bit is set
+                                            if (loop < 8) {
+                                                // only loops 7 or less can be mirrors
+                                                // check for a matching loop
+                                                int pair = -1;
+                                                for (int i = 0; i < 8 && i < loopcount; i++) {
+                                                    if (loop != i && loopoffset[i] == loopoffset[loop]) {
+                                                        if (pair < 0) {
+                                                            pair = i;
+                                                        }
+                                                        else {
+                                                            // invalid- more than one loop
+                                                            // is using these loop data
+                                                            badmirror = true;
+                                                            pair = -2;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                if (pair >= 0) {
+                                                    mirrorLoop = (transcolor & 0x70) / 0x10;
+                                                    if (mirrorLoop == loop) {
+                                                        if (mInGame && parent.InterpreterVersion == "2.089") {
+                                                            // v2089 does allow mirrors
+                                                            badmirror = true;
+                                                        }
+                                                        else {
+                                                            // it is a mirror
+                                                            mirrorcount = 1;
+                                                            mirrorpair[loop] = pair;
+                                                            mirrorpair[pair] = loop;
+                                                        }
+                                                    }
+                                                    else {
+                                                        // invalid mirror loop number
+                                                        badmirror = true;
+                                                    }
+                                                }
+                                                else if (pair == -1) {
+                                                    // no match found
+                                                    badmirror = true;
+                                                }
+                                            }
+                                            else {
+                                                // not a valid mirror
+                                                badmirror = true;
+                                            }
+                                        }
+                                        else {
+                                            // should NOT share cel data
+                                            if (shared > 0) {
+                                                badshare = true;
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        // confirm mirror info matches
+                                        if (transcolor < 0x80) {
+                                            // missing mirror bit
+                                            badmirror = true;
+                                        }
+                                        else if ((transcolor & 0x70) / 0x10 != mirrorLoop) {
+                                            badmirror = true;
+                                        }
+                                        mirrorcount++;
+                                    }
+                                    // transparent color is lower nibble
+                                    transcolor = (byte)(transcolor & 0x0f);
+                                    // add the cel
+                                    mLoopCol[loop].Cels.Add(cel, width, height, (AGIColorIndex)transcolor);
+                                    // extract bitmap data from RLE data
+                                    if (!ExpandCelData(celoffset + 3, mLoopCol[loop][cel])) {
+                                        warnval |= 32;
+                                        WarnData[6] += "|" + loop + "|" + cel;
+                                    }
+                                }
+                                else {
+                                    // invalid cell pointer
+                                    warnval |= 16;
+                                    WarnData[5] += "|" + loop + "|" + cel;
+                                    // use a single pixel placeholder
+                                }
+                            }
+                            if (mirrorLoop != -1) {
+                                // confirm all cels were looped
+                                if (celcount != mirrorcount) {
+                                    badmirror = true;
+                                }
+                            }
+
+                        }
+                        else {
+                            // no cels
+                            warnval |= 8;
+                            WarnData[4] += "|" + loop;
+                            // add a default cel
+                            mLoopCol[loop].Cels.Add(0, 1, 1, AGIColorIndex.Black);
+                        }
+                    }
+                    else {
+                        // invalid loop- a default cel as a place holder
+                        mLoopCol[loop].Cels.Add(0, 1, 1, AGIColorIndex.Black);
+                    }
+                    // if bad mirror, add warning
+                    if (badmirror) {
+                        warnval |= 2;
+                        WarnData[2] += "|" + loop;
+                    }
+                    if (badshare) {
+                        warnval |= 4;
+                        WarnData[3] += "|" + loop;
+                    }
+                }
+                mViewDesc = "";
+                if (descriptionoffset > 0) {
+                    if (descriptionoffset < mSize - 1) {
+                        // set resource pointer to beginning of description string
+                        Pos = descriptionoffset;
+                        byte nextchar;
+                        do {
+                            nextchar = ReadByte();
+                            // if not zero, and string not yet up to 255 characters,
+                            if ((nextchar > 0) && (mViewDesc.Length < 255)) {
+                                mViewDesc += Encoding.GetEncoding(CodePage).GetString(new byte[nextchar]);
                             }
                         }
+                        while (!EORes && nextchar != 0 && mViewDesc.Length < 255);
                     }
+                    else {
+                        // pointer is not valid
+                        warnval |= 64;
+                    }
+                }
+                if (warnval != 0) {
+                    WarnData[0] = mResID;
                 }
             }
-            mViewDesc = "";
-            if (lngDescLoc > 0) {
-                if (lngDescLoc < mSize - 1) {
-                    // set resource pointer to beginning of description string
-                    Pos = lngDescLoc;
-                    do {
-                        bytInput[0] = ReadByte();
-                        // if not zero, and string not yet up to 255 characters,
-                        if ((bytInput[0] > 0) && (mViewDesc.Length < 255)) {
-                            mViewDesc += Encoding.GetEncoding(CodePage).GetString(bytInput);
-                        }
-                    }
-                    while (!EORes && bytInput[0] != 0 && mViewDesc.Length < 255);
-                }
-                else {
-                    // pointer is not valid
-                    ErrData[0] = mResID;
-                    retval |= 64;
-                }
+            catch (IndexOutOfRangeException) {
+                // unexpected end of data
+                //errval = ResourceErrorType.ViewDataError;
+            }
+            catch {
+                // general error
+                //errval = ResourceErrorType.ViewDataError;
             }
             mViewChanged = false;
-            return retval;
+            return (errval, warnval);
         }
 
         /// <summary>
@@ -599,11 +736,11 @@ namespace WinAGI.Engine {
             try {
                 base.Import(ImportFile);
             }
-            catch (Exception) {
+            catch {
                 // pass along error
                 throw;
             }
-            ErrLevel = LoadLoops();
+            (Error, Warnings) = LoadLoops();
         }
 
         /// <summary>
@@ -616,15 +753,16 @@ namespace WinAGI.Engine {
             }
             // load base resource data
             base.Load();
-            if (ErrLevel < 0) {
+            if (Error != ResourceErrorType.NoError) {
                 // return empty view, with one loop, one cel, one pixel
                 ErrClear();
-                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00, 0x01, 0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
+                mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00,
+                         0x01, 0x03, 0x00, 0x01, 0x01, 0x00, 0x00];
                 mViewChanged = false;
                 return;
             }
             // extract loops/cels
-            ErrLevel = LoadLoops();
+            (Error, Warnings) = LoadLoops();
         }
 
         /// <summary>
@@ -688,13 +826,13 @@ namespace WinAGI.Engine {
         /// -5 = target is already mirrored<br />
         /// -6 = source is already mirrored
         /// </returns>
-        public int SetMirror(byte TargetLoop, byte SourceLoop) {
+        public int SetMirror(int TargetLoop, int SourceLoop) {
             // source loop must already exist
-            if (SourceLoop >= mLoopCol.Count) {
+            if (SourceLoop < 0 || SourceLoop >= mLoopCol.Count) {
                 return -1;
             }
             // target loop must already exist
-            if (SourceLoop >= mLoopCol.Count) {
+            if (TargetLoop < 0 || TargetLoop >= mLoopCol.Count) {
                 return -2;
             }
             // mirror loops must be less than eight

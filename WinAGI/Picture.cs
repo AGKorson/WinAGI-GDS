@@ -401,7 +401,7 @@ namespace WinAGI.Engine {
             CopyPicture.mCurrentPen = mCurrentPen;
             CopyPicture.mVisData = mVisData;
             CopyPicture.mPriData = mPriData;
-            if (parent != null) {
+            if (parent is not null) {
                 // copy parent colors
                 CopyPicture.mPalette = parent.Palette.Clone();
             }
@@ -409,7 +409,12 @@ namespace WinAGI.Engine {
                 // copy picture colors
                 CopyPicture.mPalette = mPalette.Clone();
             }
-            CopyPicture.ErrLevel = ErrLevel;
+            CopyPicture.Error = Error;
+            CopyPicture.Warnings = Warnings;
+            for (int i = 0; i < CopyPicture.ErrData.Length; i++) {
+                CopyPicture.ErrData[i] = ErrData[i];
+                CopyPicture.WarnData[i] = WarnData[i];
+            }
             // bitmaps always need to be rebuilt
             CopyPicture.mPicBMPSet = false;
             return CopyPicture;
@@ -436,7 +441,7 @@ namespace WinAGI.Engine {
             }
             mVisData = SourcePicture.mVisData;
             mPriData = SourcePicture.mPriData;
-            if (SourcePicture.parent != null) {
+            if (SourcePicture.parent is not null) {
                 // copy parent colors
                 mPalette = SourcePicture.parent.Palette.Clone();
             }
@@ -444,7 +449,12 @@ namespace WinAGI.Engine {
                 // copy picture colors
                 mPalette = SourcePicture.mPalette.Clone();
             }
-            ErrLevel = SourcePicture.ErrLevel;
+            Error = SourcePicture.Error;
+            Warnings = SourcePicture.Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                ErrData[i] = SourcePicture.ErrData[i];
+                WarnData[i] = SourcePicture.WarnData[i];
+            }
             // bitmaps always need to be rebuilt
             mPicBMPSet = false;
         }
@@ -634,7 +644,8 @@ namespace WinAGI.Engine {
                 return;
             }
             base.Load();
-            if (ErrLevel < 0) {
+            if (Error != ResourceErrorType.NoError &&
+                Error != ResourceErrorType.FileIsReadonly) {
                 // return a blank picture resource without adjusting error level
                 ErrClear();
                 return;
@@ -755,7 +766,7 @@ namespace WinAGI.Engine {
                 try {
                     base.Save();
                 }
-                catch (Exception) {
+                catch {
                     // pass along any errors
                     throw;
                 }
@@ -778,7 +789,7 @@ namespace WinAGI.Engine {
             mVisData = new byte[26880];
             mPriData = new byte[26880];
             // build arrays of bitmap data, set error level
-            ErrLevel = CompilePicData(ref mVisData, ref mPriData, mData, mStepDraw ? mDrawPos : -1, mDrawPos);
+            Warnings = CompilePicData(ref mVisData, ref mPriData, mData, mStepDraw ? mDrawPos : -1, mDrawPos);
             // build palette, adding transparency info if not in a game
             ColorPalette ncp = bmpVis.Palette;
             for (int i = 0; i < 16; i++) {
@@ -791,7 +802,7 @@ namespace WinAGI.Engine {
                         a = (byte)(255 * (100d - mBkgdSettings.Transparency) / 100d);
                     }
                 }
-                if (parent != null) {
+                if (parent is not null) {
                     ncp.Entries[i] = Color.FromArgb(a,
                     parent.Palette[i].R,
                     parent.Palette[i].G,
@@ -817,7 +828,7 @@ namespace WinAGI.Engine {
                             a = (byte)(255 * (100d - mBkgdSettings.Transparency) / 100d);
                         }
                     }
-                    if (parent != null) {
+                    if (parent is not null) {
                         ncp.Entries[i] = Color.FromArgb(a,
                         parent.Palette[i].R,
                         parent.Palette[i].G,

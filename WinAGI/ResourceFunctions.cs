@@ -1,12 +1,10 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
     public static partial class Base {
@@ -42,29 +40,25 @@ namespace WinAGI.Engine {
                 // check for DIR file
                 strDirFile = game.agGameDir + game.agGameID + "DIR";
                 if (!File.Exists(strDirFile)) {
-                    WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
-                        HResult = WINAGI_ERR + 524
-                    };
-                    wex.Data["missingfile"] = strDirFile;
-                    throw wex;
+                    throw new FileNotFoundException(strDirFile);
                 }
                 // check DIR file for readonly
                 if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                    WinAGIException wex = new(LoadResString(700).Replace(ARG1, strDirFile)) {
-                        HResult = WINAGI_ERR + 700,
+                    WinAGIException wex = new(LoadResString(539).Replace(ARG1, strDirFile)) {
+                        HResult = WINAGI_ERR + 539,
                     };
                     wex.Data["badfile"] = strDirFile;
                     throw wex;
                 }
                 try {
                     // open the file, load it into buffer, and close it
-                    using FileStream fsDIR = new(strDirFile, FileMode.Open);
+                    using FileStream fsDIR = new(strDirFile, FileMode.Open, FileAccess.Read);
                     bytBuffer = new byte[fsDIR.Length];
                     fsDIR.Read(bytBuffer);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
-                        HResult = WINAGI_ERR + 502
+                    WinAGIException wex = new(LoadResString(541)) {
+                        HResult = WINAGI_ERR + 541
                     };
                     wex.Data["exception"] = e;
                     wex.Data["dirfile"] = Path.GetFileName(strDirFile);
@@ -72,8 +66,8 @@ namespace WinAGI.Engine {
                 }
                 if (bytBuffer.Length < 11) {
                     // not enough bytes to hold at least the 4 dir pointers + 1 resource
-                    WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
-                        HResult = WINAGI_ERR + 542
+                    WinAGIException wex = new(LoadResString(505).Replace(ARG1, strDirFile)) {
+                        HResult = WINAGI_ERR + 505
                     };
                     wex.Data["baddir"] = Path.GetFileName(strDirFile);
                     throw wex;
@@ -86,16 +80,14 @@ namespace WinAGI.Engine {
             }
             // confirm vol.0 exists and is accessible
             if (!File.Exists(strVolFile)) {
-                WinAGIException wex = new(LoadResString(524).Replace(ARG1, strVolFile)) {
-                    HResult = WINAGI_ERR + 524
-                };
-                wex.Data["missingfile"] = strVolFile;
-                throw wex;
+                FileNotFoundException fex = new FileNotFoundException(strVolFile);
+                fex.Data["missingfile"] = strVolFile;
+                throw fex;
             }
             // check for readonly
             if ((File.GetAttributes(strVolFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(700).Replace(ARG1, strVolFile)) {
-                    HResult = WINAGI_ERR + 700,
+                WinAGIException wex = new(LoadResString(539).Replace(ARG1, strVolFile)) {
+                    HResult = WINAGI_ERR + 539,
                 };
                 wex.Data["badfile"] = strVolFile;
                 throw wex;
@@ -132,40 +124,36 @@ namespace WinAGI.Engine {
                     strDirFile = game.agGameDir + ResTypeAbbrv[(int)bytResType] + "DIR";
                     // verify DIR file exists
                     if (!File.Exists(strDirFile)) {
-                        WinAGIException wex = new(LoadResString(524).Replace(ARG1, strDirFile)) {
-                            HResult = WINAGI_ERR + 524
-                        };
-                        wex.Data["missingfile"] = strDirFile;
-                        throw wex;
+                        throw new FileNotFoundException(strDirFile);
                     }
                     // readonly not allowed
                     if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                        WinAGIException wex = new(LoadResString(700).Replace(ARG1, strDirFile)) {
-                            HResult = WINAGI_ERR + 700,
+                        WinAGIException wex = new(LoadResString(539).Replace(ARG1, strDirFile)) {
+                            HResult = WINAGI_ERR + 539,
                         };
                         wex.Data["badfile"] = strDirFile;
                         throw wex;
                     }
                     try {
                         // open the file, load it into buffer, and close it
-                        using FileStream fsDIR = new(strDirFile, FileMode.Open);
+                        using FileStream fsDIR = new(strDirFile, FileMode.Open, FileAccess.Read);
                         bytBuffer = new byte[fsDIR.Length];
                         fsDIR.Read(bytBuffer);
                     }
                     catch (Exception e) {
-                        WinAGIException wex = new(LoadResString(502).Replace(ARG1, e.HResult.ToString()).Replace(ARG2, strDirFile)) {
-                            HResult = WINAGI_ERR + 502
+                        WinAGIException wex = new(LoadResString(541)) {
+                            HResult = WINAGI_ERR + 541
                         };
                         wex.Data["exception"] = e;
-                        wex.Data["badfile"] = strDirFile;
+                        wex.Data["dirfile"] = strDirFile;
                         throw wex;
                     }
                     lngDirSize = bytBuffer.Length;
                 }
                 // check for invalid dir information
                 if ((lngDirOffset < 0) || (lngDirSize < 0)) {
-                    WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
-                        HResult = WINAGI_ERR + 542
+                    WinAGIException wex = new(LoadResString(505).Replace(ARG1, strDirFile)) {
+                        HResult = WINAGI_ERR + 505
                     };
                     wex.Data["baddir"] = Path.GetFileName(strDirFile);
                     throw wex;
@@ -173,8 +161,8 @@ namespace WinAGI.Engine {
                 if (lngDirSize >= 3) {
                     // invalid v3 DIR block
                     if (lngDirOffset + lngDirSize > bytBuffer.Length) {
-                        WinAGIException wex = new(LoadResString(542).Replace(ARG1, strDirFile)) {
-                            HResult = WINAGI_ERR + 542
+                        WinAGIException wex = new(LoadResString(505).Replace(ARG1, strDirFile)) {
+                            HResult = WINAGI_ERR + 505
                         };
                         wex.Data["baddir"] = Path.GetFileName(strDirFile);
                         throw wex;
@@ -187,8 +175,9 @@ namespace WinAGI.Engine {
                     if (game.agIsVersion3) {
                         warnInfo.ResType = AGIResType.Game;
                         warnInfo.ResNum = 0;
-                        warnInfo.ID = "DW01";
-                        warnInfo.Text = ResTypeAbbrv[(int)bytResType] + " portion of DIR file is larger than expected; it may be corrupted";
+                        warnInfo.ID = "RW01";
+                        warnInfo.Text = EngineResources.RW01.Replace(
+                            ARG1, ResTypeAbbrv[(int)bytResType]);
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
                         game.LoadEventStatus(mode, warnInfo);
@@ -196,8 +185,9 @@ namespace WinAGI.Engine {
                     else {
                         warnInfo.ResType = AGIResType.Game;
                         warnInfo.ResNum = 0;
-                        warnInfo.ID = "DW02";
-                        warnInfo.Text = ResTypeAbbrv[(int)bytResType] + "DIR file is larger than expected; it may be corrupted";
+                        warnInfo.ID = "RW02";
+                        warnInfo.Text = EngineResources.RW02.Replace(
+                            ARG1, ResTypeAbbrv[(int)bytResType]);
                         warnInfo.Line = "--";
                         warnInfo.Module = "--";
                         game.LoadEventStatus(mode, warnInfo);
@@ -242,10 +232,11 @@ namespace WinAGI.Engine {
                             switch (bytResType) {
                             case AGIResType.Logic:
                                 game.agLogs.InitLoad(bytResNum, bytVol, lngLoc);
-                                if (game.agLogs[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(mode, game, AGIResType.Logic, bytResNum, game.agLogs[bytResNum].ErrLevel, game.agLogs[bytResNum].ErrData);
+                                if (game.agLogs[bytResNum].Error != ResourceErrorType.NoError) {
+                                    AddLoadError(mode, game, AGIResType.Logic, bytResNum, game.agLogs[bytResNum].Error, game.agLogs[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
+                                // source errors checkedlater, an logic resources have no warnings
                                 // make sure it was added before finishing
                                 if (game.agLogs.Contains(bytResNum)) {
                                     game.agLogs[bytResNum].PropsChanged = false;
@@ -255,8 +246,12 @@ namespace WinAGI.Engine {
                                 break;
                             case AGIResType.Picture:
                                 game.agPics.InitLoad(bytResNum, bytVol, lngLoc);
-                                if (game.agPics[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(mode, game, AGIResType.Picture, bytResNum, game.agPics[bytResNum].ErrLevel, game.agPics[bytResNum].ErrData);
+                                if (game.agPics[bytResNum].Error != ResourceErrorType.NoError) {
+                                    AddLoadError(mode, game, AGIResType.Picture, bytResNum, game.agPics[bytResNum].Error, game.agPics[bytResNum].ErrData);
+                                    loadWarnings = true;
+                                }
+                                if (game.agPics[bytResNum].Warnings != 0) {
+                                    AddLoadWarning(mode, game, AGIResType.Picture, bytResNum, game.agPics[bytResNum].Warnings, game.agPics[bytResNum].WarnData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -268,8 +263,12 @@ namespace WinAGI.Engine {
                                 break;
                             case AGIResType.Sound:
                                 game.agSnds.InitLoad(bytResNum, bytVol, lngLoc);
-                                if (game.agSnds[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(mode, game, AGIResType.Sound, bytResNum, game.agSnds[bytResNum].ErrLevel, game.agSnds[bytResNum].ErrData);
+                                if (game.agSnds[bytResNum].Error != ResourceErrorType.NoError) {
+                                    AddLoadError(mode, game, AGIResType.Sound, bytResNum, game.agSnds[bytResNum].Error, game.agSnds[bytResNum].ErrData);
+                                    loadWarnings = true;
+                                }
+                                if (game.agSnds[bytResNum].Warnings != 0) {
+                                    AddLoadWarning(mode, game, AGIResType.Sound, bytResNum, game.agSnds[bytResNum].Warnings, game.agSnds[bytResNum].WarnData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -281,8 +280,12 @@ namespace WinAGI.Engine {
                                 break;
                             case AGIResType.View:
                                 game.agViews.InitLoad(bytResNum, bytVol, lngLoc);
-                                if (game.agViews[bytResNum].ErrLevel != 0) {
-                                    AddLoadWarning(mode, game, AGIResType.View, bytResNum, game.agViews[bytResNum].ErrLevel, game.agViews[bytResNum].ErrData);
+                                if (game.agViews[bytResNum].Error != ResourceErrorType.NoError) {
+                                    AddLoadError(mode, game, AGIResType.View, bytResNum, game.agViews[bytResNum].Error, game.agViews[bytResNum].ErrData);
+                                    loadWarnings = true;
+                                }
+                                if (game.agViews[bytResNum].Warnings != 0) {
+                                    AddLoadWarning(mode, game, AGIResType.View, bytResNum, game.agViews[bytResNum].Warnings, game.agViews[bytResNum].WarnData);
                                     loadWarnings = true;
                                 }
                                 // make sure it was added before finishing
@@ -308,342 +311,411 @@ namespace WinAGI.Engine {
         /// <param name="resNum"></param>
         /// <param name="errlevel"></param>
         /// <param name="errdata"></param>
-        internal static void AddLoadWarning(OpenGameMode mode, AGIGame game, AGIResType resType, byte resNum, int errlevel, string[] errdata) {
-            if (errlevel != 0) {
-                List<TWinAGIEventInfo> errCol = ErrorByNum(resType, resNum, errlevel, errdata);
-                foreach (TWinAGIEventInfo warning in errCol) {
-                    game.LoadEventStatus(mode, warning);
-                }
+        internal static void AddLoadError(OpenGameMode mode, AGIGame game, AGIResType resType, byte resNum, ResourceErrorType errlevel, string[] errdata) {
+            TWinAGIEventInfo error = ErrorByNum(resType, resNum, errlevel, errdata);
+            game.LoadEventStatus(mode, error);
+        }
+
+        internal static void AddLoadWarning(OpenGameMode mode, AGIGame game, AGIResType resType, byte resNum, int warnings, string[] warndata) {
+            List<TWinAGIEventInfo> errCol = WarningsFromField(resType, resNum, warnings, warndata);
+            foreach (TWinAGIEventInfo warning in errCol) {
+                game.LoadEventStatus(mode, warning);
             }
         }
 
-        internal static void AddCompileWarning(AGIResType resType, byte resNum, int errlevel, string[] errdata) {
-            if (errlevel != 0) {
-                List<TWinAGIEventInfo> errCol = ErrorByNum(resType, resNum, errlevel, errdata);
-                foreach (TWinAGIEventInfo warning in errCol) {
-                    GameCompileStatus errstat;
-                    if (warning.Type == EventType.ResourceError) {
-                        errstat = GameCompileStatus.ResError;
-                    }
-                    else {
-                        errstat = GameCompileStatus.Warning;
-                    }
-                    OnCompileGameStatus(errstat, warning);
-                }
+        internal static void AddCompileError(AGIResType resType, byte resNum, ResourceErrorType errlevel, string[] errdata) {
+            TWinAGIEventInfo error = ErrorByNum(resType, resNum, errlevel, errdata);
+            GameCompileStatus errstat = GameCompileStatus.ResError;
+            OnCompileGameStatus(errstat, error);
+        }
+
+        internal static void AddCompileWarnings(AGIResType resType, byte resNum, int warnings, string[] warndata) {
+            List<TWinAGIEventInfo> warnCol = WarningsFromField(resType, resNum, warnings, warndata);
+            GameCompileStatus warnstat = GameCompileStatus.Warning;
+            foreach (TWinAGIEventInfo warning in warnCol) {
+                OnCompileGameStatus(warnstat, warning);
             }
         }
 
-        private static List<TWinAGIEventInfo> ErrorByNum(AGIResType resType, byte resNum, int errlevel, string[] errdata) {
+        private static TWinAGIEventInfo ErrorByNum(AGIResType resType, byte resNum, ResourceErrorType errlevel, string[] errdata) {
+            TWinAGIEventInfo warnInfo = new() {
+                ResType = resType,
+                ResNum = resNum,
+                Type = EventType.ResourceError,
+                Line = "--",
+            };
+            switch (errlevel) {
+            case ResourceErrorType.FileNotFound:
+                warnInfo.ID = "RE01";
+                warnInfo.Text =EngineResources.RE01.Replace(
+                    ARG1, resType.ToString()).Replace(
+                    ARG2, resNum.ToString()).Replace(
+                    ARG3, Path.GetFileName(errdata[0]));
+                warnInfo.Module = errdata[1];
+                break;
+            case ResourceErrorType.FileIsReadonly:
+                warnInfo.ID = "RE02";
+                warnInfo.Text = EngineResources.RE02.Replace(
+                    ARG1, resType.ToString()).Replace(
+                    ARG2, resNum.ToString()).Replace(
+                    ARG3, Path.GetFileName(errdata[0]));
+                warnInfo.Module = errdata[1];
+                break;
+            case ResourceErrorType.FileAccessError:
+                warnInfo.ID = "RE03";
+                warnInfo.Text = EngineResources.RE03.Replace(
+                    ARG1, resType.ToString()).Replace(
+                    ARG2, resNum.ToString()).Replace(
+                    ARG3, errdata[0]);
+                warnInfo.Module = errdata[1];
+                break;
+            case ResourceErrorType.InvalidLocation:
+                warnInfo.ID = "RE04";
+                warnInfo.Text = EngineResources.RE04.Replace(
+                    ARG1, resType.ToString()).Replace(
+                    ARG2, resNum.ToString()).Replace(
+                    ARG3, errdata[0]).Replace(
+                    "%4", errdata[2]);
+                warnInfo.Module = errdata[3];
+                break;
+            case ResourceErrorType.InvalidHeader:
+                warnInfo.ID = "RE05";
+                warnInfo.Text = EngineResources.RE05.Replace(
+                    ARG1, resType.ToString()).Replace(
+                    ARG2, resNum.ToString()).Replace(
+                    ARG3, errdata[0]).Replace(
+                    "%4", errdata[2]);
+                warnInfo.Module = errdata[3];
+                break;
+            case ResourceErrorType.DecompressionError:
+                warnInfo.ID = "RE06";
+                warnInfo.Text = EngineResources.RE06.Replace(
+                    ARG1, "Logic").Replace(
+                    ARG2, resNum.ToString()).Replace(
+                    ARG2, errdata[0]).Replace(
+                    "%4", errdata[1]);
+                warnInfo.Module = errdata[1];
+                break;
+            case ResourceErrorType.LogicSourceIsReadonly:
+                warnInfo.ID = "RE07";
+                warnInfo.Text = EngineResources.RE07.Replace(
+                    ARG1, resNum.ToString()).Replace(
+                    ARG2, errdata[0]);
+                warnInfo.Module = errdata[1];
+                break;
+            case ResourceErrorType.LogicSourceAccessError:
+                warnInfo.ID = "RE08";
+                warnInfo.Text = EngineResources.RE08.Replace(
+                    ARG1, resNum.ToString()).Replace(
+                    ARG2, errdata[0]);
+                warnInfo.Module = errdata[1];
+                break;
+            case ResourceErrorType.SoundNoData:
+                warnInfo.ID = "RE09";
+                warnInfo.Text = EngineResources.RE09.Replace(
+                    ARG1, resNum.ToString());
+                warnInfo.Module = errdata[0];
+                break;
+            case ResourceErrorType.SoundBadTracks:
+                warnInfo.ID = "RE10";
+                warnInfo.Text = EngineResources.RE10.Replace(
+                    ARG1, resNum.ToString()).Replace(
+                    ARG2, errdata[1]);
+                warnInfo.Module = errdata[0];
+                break;
+            case ResourceErrorType.ViewNoData:
+                warnInfo.ID = "RE11";
+                warnInfo.Text = EngineResources.RE11.Replace(
+                    ARG1, resNum.ToString());
+                warnInfo.Module = errdata[0];
+                break;
+            case ResourceErrorType.ViewNoLoops:
+                warnInfo.ID = "RE12";
+                warnInfo.Text = EngineResources.RE12.Replace(
+                    ARG1, resNum.ToString()).Replace(
+                    ARG2, errdata[1]);
+                warnInfo.Module = errdata[0];
+                break;
+            case ResourceErrorType.ObjectNoFile:
+                warnInfo.ID = "RE13";
+                warnInfo.Text = EngineResources.RE13;
+                break;
+            case ResourceErrorType.ObjectIsReadOnly:
+                warnInfo.ID = "RE14";
+                warnInfo.Text = EngineResources.RE14;
+                break;
+            case ResourceErrorType.ObjectAccessError:
+                warnInfo.ID = "RE15";
+                warnInfo.Text = EngineResources.RE15.Replace(
+                    ARG1, errdata[0]);
+                break;
+            case ResourceErrorType.ObjectNoData:
+                warnInfo.ID = "RE16";
+                warnInfo.Text = EngineResources.RE16;
+                break;
+            case ResourceErrorType.ObjectDecryptError:
+                warnInfo.ID = "RE17";
+                warnInfo.Text = EngineResources.RE17;
+                break;
+            case ResourceErrorType.ObjectBadHeader:
+                warnInfo.ID = "RE18";
+                warnInfo.Text = EngineResources.RE18;
+                break;
+            case ResourceErrorType.WordsTokNoFile:
+                warnInfo.ID = "RE19";
+                warnInfo.Text = EngineResources.RE19;
+                break;
+            case ResourceErrorType.WordsTokIsReadOnly:
+                warnInfo.ID = "RE20";
+                warnInfo.Text = EngineResources.RE20;
+                break;
+            case ResourceErrorType.WordsTokAccessError:
+                warnInfo.ID = "RE21";
+                warnInfo.Text = EngineResources.RE21.Replace(
+                    ARG1, errdata[0]);
+                break;
+            case ResourceErrorType.WordsTokNoData:
+                warnInfo.ID = "RE22";
+                warnInfo.Text = EngineResources.RE22;
+                break;
+            case ResourceErrorType.WordsTokBadIndex:
+                warnInfo.ID = "RE23";
+                warnInfo.Text = EngineResources.RE23;
+                break;
+            case ResourceErrorType.GlobalsNoFile:
+                warnInfo.ID = "RE24";
+                warnInfo.Text = EngineResources.RE24;
+                break;
+            case ResourceErrorType.GlobalsIsReadOnly:
+                warnInfo.ID = "RE25";
+                warnInfo.Text = EngineResources.RE25;
+                break;
+            case ResourceErrorType.GlobalsAccessError:
+                warnInfo.ID = "RE26";
+                warnInfo.Text = EngineResources.RE26.Replace(
+                    ARG1, errdata[0]);
+                break;
+            }
+            return warnInfo;
+        }
+
+        private static List<TWinAGIEventInfo> WarningsFromField(AGIResType resType, byte resNum, int warnings, string[] warndata) {
             List<TWinAGIEventInfo> retval = new();
             TWinAGIEventInfo warnInfo = new() {
                 ResType = resType,
                 ResNum = resNum,
                 Line = "--",
             };
-            
-            if (errlevel < 0) {
-                warnInfo.Type = EventType.ResourceError;
-                switch (errlevel) {
-                case -1:
-                    // error 606: Can't load resource: file not found (%1)
-                    warnInfo.ID = "VE01";
-                    warnInfo.Text = $"{resType} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) that does not exist";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -2:
-                    // error 700: file (%1) is readonly
-                    warnInfo.ID = "VE02";
-                    warnInfo.Text = $"{resType} {resNum} is in a VOL file ({Path.GetFileName(errdata[0])}) marked readonly";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -3:
-                    // error 502: Error %1 occurred while trying to access %2.
-                    warnInfo.ID = "VE03";
-                    warnInfo.Text = $"{resType} {resNum} is invalid due to file access error ({errdata[0]})";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -4:
-                    // error 505: Invalid resource location (%1) in %2.
-                    warnInfo.ID = "VE04";
-                    warnInfo.Text = $"{resType} {resNum} has an invalid location ({errdata[0]}) in volume file {errdata[2]}";
-                    warnInfo.Module = errdata[3];
-                    break;
-                case -5:
-                    // 506: invalid header
-                    warnInfo.ID = "RE01";
-                    warnInfo.Text = $"{resType} {resNum} has an invalid resource header at location {errdata[0]} in {errdata[2]}";
-                    warnInfo.Module = errdata[3];
-                    break;
-                case -6:
-                    // 704: sourcefile missing
-                    warnInfo.ID = "RE02";
-                    warnInfo.Text = $"Logic {resNum} source file is missing ({errdata[0]})";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -7:
-                    // 700: sourcefile is readonly
-                    warnInfo.ID = "RE03";
-                    warnInfo.Text = $"Logic {resNum} source file is marked readonly ({errdata[0]})";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -8:
-                    // 502: Error %1 occurred while trying to access logic source file(%2).
-                    warnInfo.ID = "RE04";
-                    warnInfo.Text = $"Logic {resNum} source file is invalid due to file access error ({errdata[0]})";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -9:
-                    // error 688: Error %1 occurred while decompiling message section.
-                    warnInfo.ID = "RE05";
-                    warnInfo.Text = $"Logic {resNum} is invalid due to error in message section ({errdata[0]})";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -10:
-                    // error 688: Error %1 occurred while decompiling labels.
-                    warnInfo.ID = "RE06";
-                    warnInfo.Text = $"Logic {resNum} is invalid due to error in label search ({errdata[0]})";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -11:
-                    // error 688: Error %1 occurred while decompiling if block.
-                    warnInfo.ID = "RE07";
-                    warnInfo.Text = $"Logic {resNum} is invalid due to error in if block section ({errdata[0]})";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -12:
-                    // error 688: Error %1 occurred while decompiling - invalid message.
-                    warnInfo.ID = "RE08";
-                    warnInfo.Text = $"Logic {resNum} is invalid due to invalid message value ({errdata[0]})";
-                    warnInfo.Module = errdata[1];
-                    break;
-                case -13:
-                    // error 598: invalid sound data
-                    warnInfo.ID = "RE09";
-                    warnInfo.Text = $"Sound {resNum} has invalid sound data format, unable to load tracks";
-                    warnInfo.Module = errdata[0];
-                    break;
-                case -14:
-                    // error 565: sound invalid data error
-                    warnInfo.ID = "RE10";
-                    warnInfo.Text = $"Sound {resNum} had error encountered in LoadTracks ({errdata[1]})";
-                    warnInfo.Module = errdata[0];
-                    break;
-                case -15:
-                    // error 595: invalid view data
-                    warnInfo.ID = "RE11";
-                    warnInfo.Text = $"View {resNum} has invalid view data, unable to load view";
-                    warnInfo.Module = errdata[0];
-                    break;
-                case -16:
-                    // error 548: invalid loop pointer
-                    warnInfo.ID = "RE12";
-                    warnInfo.Text = $"View {resNum} has invalid loop data pointer detected (loop {errdata[1]})";
-                    warnInfo.Module = errdata[0];
-                    break;
-                case -17:
-                    // error 539: invalid source loop for mirror/invalid mirror loop number
-                    warnInfo.ID = "RE13";
-                    warnInfo.Text = $"View {resNum} has invalid Mirror loop value detected (loop {errdata[2]} and/or loop {errdata[3]})";
-                    warnInfo.Module = errdata[0];
-                    break;
-                case -18:
-                    // error 550: invalid mirror data, target loop already mirrored
-                    warnInfo.ID = "RE14";
-                    warnInfo.Text = $"View {resNum} has invalid Mirror loop value detected (loop {errdata[3]} already mirrored)";
-                    warnInfo.Module = errdata[0];
-                    break;
-                case -19:
-                    // 551: invalid mirror data, source already a mirror
-                    warnInfo.ID = "RE15";
-                    warnInfo.Text = $"View {resNum} has invalid Mirror loop value detected (loop {errdata[2]} already mirrored)";
-                    warnInfo.Module = errdata[0];
-                    break;
-                case -20:
-                    // 553: invalid cel data pointer
-                    warnInfo.ID = "RE16";
-                    warnInfo.Text = $"View {resNum} has invalid cel pointer detected (cel {errdata[2]} of loop {errdata[1]})";
-                    warnInfo.Module = errdata[0];
-                    break;
-                case -21:
-                    warnInfo.ID = "RE17";
-                    warnInfo.Text = "Unable to decrypt OBJECT file";
+
+            warnInfo.Type = EventType.ResourceWarning;
+            switch (resType) {
+            case AGIResType.Logic:
+                // none
+                break;
+            case AGIResType.Picture:
+                if ((warnings & 1) == 1) {
+                    // missing EOP marker
+                    warnInfo.ID = "RW05";
+                    warnInfo.Text = EngineResources.RW05.Replace(ARG1, resNum.ToString());
+                    warnInfo.Module = warndata[0];
                     retval.Add(warnInfo);
-                    break;
-                case -22:
-                    warnInfo.ID = "RE18";
-                    warnInfo.Text = "Invalid OBJECT file header, unable to read item data";
+                }
+                if ((warnings & 2) == 2) {
+                    // bad color
+                    warnInfo.ID = "RW06";
+                    warnInfo.Text = EngineResources.RW06.Replace(ARG1, resNum.ToString());
+                    warnInfo.Module = warndata[0];
                     retval.Add(warnInfo);
-                    break;
-                case -23:
-                    warnInfo.ID = "RE19";
-                    warnInfo.Text = "File access error, unable to read OBJECT file";
+                }
+                if ((warnings & 4) == 4) {
+                    // bad cmd
+                    warnInfo.ID = "RW07";
+                    warnInfo.Text = EngineResources.RW07.Replace(ARG1, resNum.ToString());
+                    warnInfo.Module = warndata[0];
                     retval.Add(warnInfo);
-                    break;
-                case -24:
-                    warnInfo.ID = "RE20";
-                    warnInfo.Text = "Invalid index table";
+                }
+                if ((warnings & 8) == 8) {
+                    // extra data
+                    warnInfo.ID = "RW08";
+                    warnInfo.Text = EngineResources.RW08.Replace(ARG1, resNum.ToString());
+                    warnInfo.Module = warndata[0];
                     retval.Add(warnInfo);
-                    break;
-                case -25:
-                    warnInfo.ID = "RE21";
-                    warnInfo.Text = "File access error, unable to read WORDS.TOK file";
+                }
+                break;
+            case AGIResType.Sound:
+                if ((warnings & 1) == 1) {
+                    warnInfo.ID = "RW09";
+                    warnInfo.Text = EngineResources.RW09.Replace(
+                        ARG1, resNum.ToString());
+                    warnInfo.Module = warndata[0];
                     retval.Add(warnInfo);
+                }
+                if ((warnings & 2) == 2) {
+                    warnInfo.ID = "RW10";
+                    warnInfo.Text = EngineResources.RW10.Replace(
+                        ARG1, resNum.ToString()).Replace(
+                        ARG2, warnings.ToString());
+                    warnInfo.Module = warndata[0];
+                    retval.Add(warnInfo);
+                }
+                break;
+            case AGIResType.View:
+                if ((warnings & 1) == 1) {
+                    warnInfo.ID = "RW11";
+                    warnInfo.Module = warndata[0];
+                    string[] data = warndata[1].Split('|');
+                    for (int i = 1; i < data.Length; i++) {
+                        warnInfo.Text = EngineResources.RW11.Replace(
+                            ARG1, resNum.ToString()).Replace(
+                            ARG2, data[i]);
+                        retval.Add(warnInfo);
+                    }
+                }
+                if ((warnings & 2) == 2) {
+                    warnInfo.ID = "RW12";
+                    warnInfo.Module = warndata[0];
+                    string[] data = warndata[2].Split('|');
+                    for (int i = 1; i < data.Length; i++) {
+                        warnInfo.Text = EngineResources.RW12.Replace(
+                            ARG1, resNum.ToString()).Replace(
+                            ARG2, data[i]);
+                        retval.Add(warnInfo);
+                    }
+                }
+                if ((warnings & 4) == 4) {
+                    warnInfo.ID = "RW13";
+                    warnInfo.Module = warndata[0];
+                    string[] data = warndata[3].Split('|');
+                    for (int i = 1; i < data.Length; i++) {
+                        warnInfo.Text = EngineResources.RW13.Replace(
+                            ARG1, resNum.ToString()).Replace(
+                            ARG2, data[i]);
+                        retval.Add(warnInfo);
+                    }
+                }
+                if ((warnings & 8) == 8) {
+                    warnInfo.ID = "RW14";
+                    warnInfo.Module = warndata[0];
+                    string[] data = warndata[4].Split('|');
+                    for (int i = 1; i < data.Length; i++) {
+                        warnInfo.Text = EngineResources.RW14.Replace(
+                            ARG1, resNum.ToString()).Replace(
+                            ARG2, data[i]);
+                        retval.Add(warnInfo);
+                    }
+                }
+                if ((warnings & 16) == 16) {
+                    warnInfo.ID = "RW15";
+                    warnInfo.Module = warndata[0];
+                    string[] data = warndata[5].Split('|');
+                    for (int i = 1; i < data.Length; i++) {
+                        warnInfo.Text = EngineResources.RW15.Replace(
+                            ARG1, resNum.ToString()).Replace(
+                            ARG2, data[i]).Replace(
+                            ARG3, data[++i]);
+                        retval.Add(warnInfo);
+                    }
+                }
+                if ((warnings & 32) == 32) {
+                    warnInfo.ID = "RW16";
+                    warnInfo.Module = warndata[0];
+                    string[] data = warndata[6].Split('|');
+                    for (int i = 1; i < data.Length; i++) {
+                        warnInfo.Text = EngineResources.RW16.Replace(
+                            ARG1, resNum.ToString()).Replace(
+                            ARG2, data[i]).Replace(
+                            ARG3, data[++i]);
+                        retval.Add(warnInfo);
+                    }
+                }
+                if ((warnings & 64) == 64) {
+                    warnInfo.ID = "RW17";
+                    warnInfo.Module = warndata[0];
+                    warnInfo.Text = EngineResources.RW17.Replace(
+                        ARG1, resNum.ToString());
+                    retval.Add(warnInfo);
+                }
+                break;
+            case AGIResType.Objects:
+                warnInfo.Module = "OBJECT";
+                if ((warnings & 1) == 1) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW18";
+                    warnInfo.Text = EngineResources.RW18;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 2) == 2) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW19";
+                    warnInfo.Text = EngineResources.RW19;
+                    retval.Add(warnInfo);
+                }
+                break;
+            case AGIResType.Words:
+                warnInfo.Module = "WORDS.TOK";
+                if ((warnings & 1) == 1) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW20";
+                    warnInfo.Text = EngineResources.RW20;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 2) == 2) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW21";
+                    warnInfo.Text = EngineResources.RW21;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 4) == 4) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW22";
+                    warnInfo.Text = EngineResources.RW22;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 8) == 8) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW23";
+                    warnInfo.Text = EngineResources.RW23;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 16) == 16) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW24";
+                    warnInfo.Text = EngineResources.RW24;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 32) == 32) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW25";
+                    warnInfo.Text = EngineResources.RW25;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 64) == 64) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW26";
+                    warnInfo.Text = EngineResources.RW26;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 128) == 128) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW27";
+                    warnInfo.Text = EngineResources.RW27.Replace(
+                        ARG1, warndata[0]);
+                    retval.Add(warnInfo);
+                }
+                break;
+            case AGIResType.Globals:
+                warnInfo.Type = EventType.ResourceWarning;
+                switch (warnings) {
+                case 1:
+                    // invalid entries found
+                    warnInfo.ID = "RW28";
+                    warnInfo.Text = EngineResources.RW28;
                     break;
                 }
                 retval.Add(warnInfo);
-                return retval;
+                break;
             }
-            else {
-                warnInfo.Type = EventType.ResourceWarning;
-                switch (resType) {
-                case AGIResType.Logic:
-                    // none- will never occur...
-                    break;
-                case AGIResType.Picture:
-                    if ((errlevel & 1) == 1) {
-                        // missing EOP marker
-                        warnInfo.ID = "RW01";
-                        warnInfo.Text = $"Picture {resNum} is missing its 'end-of-resource' marker and may be corrupt";
-                        warnInfo.Module = errdata[0];
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 2) == 2) {
-                        // bad color
-                        warnInfo.ID = "RW02";
-                        warnInfo.Text = $"Picture {resNum} has at least one invalid color assignment - picture may be corrupt";
-                        warnInfo.Module = errdata[0];
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 4) == 4) {
-                        // bad cmd
-                        warnInfo.ID = "RW03";
-                        warnInfo.Text = $"Picture {resNum} has at least one invalid command byte - picture may be corrupt";
-                        warnInfo.Module = errdata[0];
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 8) == 8) {
-                        // extra data
-                        warnInfo.ID = "RW04";
-                        warnInfo.Text = $"{resType} {resNum} has extra data past the end of resource";
-                        warnInfo.Module = errdata[0];
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 16) == 16) {
-                        // unhandled error
-                        warnInfo.ID = "RW05";
-                        warnInfo.Text = $"Unhandled error in Picture {resNum} data- picture may not display correctly ({errlevel})";
-                        warnInfo.Module = errdata[0];
-                        retval.Add(warnInfo);
-                    }
-                    break;
-                case AGIResType.Sound:
-                    warnInfo.ID = "RW06";
-                    warnInfo.Text = $"Sound {resNum} has an invalid track pointer ({errlevel})";
-                    warnInfo.Module = errdata[0];
-                    retval.Add(warnInfo);
-                    break;
-                case AGIResType.View:
-                    warnInfo.ID = "RW07";
-                    warnInfo.Text = $"View {resNum} has an invalid view description pointer";
-                    warnInfo.Module = errdata[0];
-                    retval.Add(warnInfo);
-                    break;
-                case AGIResType.Objects:
-                    warnInfo.Module = "OBJECT";
-                    if ((errlevel & 1) == 1) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW08";
-                        warnInfo.Text = "OBJECT file has no items";
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 2) == 2) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW09";
-                        warnInfo.Text = "Invalid text pointer encountered in OBJECT file";
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 4) == 4) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW10";
-                        warnInfo.Text = "First item is not the null '?' item";
-                        retval.Add(warnInfo);
-                    }
-                    break;
-                case AGIResType.Words:
-                    warnInfo.Module = "WORDS.TOK";
-                    if ((errlevel & 1) == 1) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW11";
-                        warnInfo.Text = "Abnormal word index table";
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 2) == 2) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW12";
-                        warnInfo.Text = "Unexpected WORDS.TOK end of file";
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 4) == 4) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW13";
-                        warnInfo.Text = "Upper case characters detected in WORDS.TOK";
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 8) == 8) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW14";
-                        warnInfo.Text = "Empty WORDS.TOK file";
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 16) == 16) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW15";
-                        warnInfo.Text = "Multiple group 1 words";
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 32) == 32) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW16";
-                        warnInfo.Text = "Multiple group 9999 words";
-                        retval.Add(warnInfo);
-                    }
-                    if ((errlevel & 64) == 64) {
-                        warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW17";
-                        warnInfo.Text = "Invalid characters detected in WORDS.TOK";
-                        retval.Add(warnInfo);
-                    }
-
-                    break;
-                case AGIResType.Globals:
-                    warnInfo.Type = EventType.ResourceWarning;
-                    switch (errlevel) {
-                    case 1:
-                        // 1 = file access error
-                        warnInfo.ID = "RW18";
-                        warnInfo.Text = "globals.txt file access error";
-                        break;
-                    case 2:
-                        // 2 = file read error
-                        warnInfo.ID = "RW19";
-                        warnInfo.Text = "globals.txt file data error";
-                        break;
-                    case 3:
-                        // 3 = file not found
-                        warnInfo.ID = "RW20";
-                        warnInfo.Text = "globals.txt file not found";
-                        break;
-                    case 4:
-                        // 4 = file is read-only
-                        warnInfo.ID = "RW21";
-                        warnInfo.Text = "globals.txt file is read only";
-                        break;
-                    }
-                    retval.Add(warnInfo);
-                    break;
-                }
-                return retval;
-            }
+            return retval;
         }
 
         /// <summary>
@@ -704,7 +776,7 @@ namespace WinAGI.Engine {
             string checkID = agRes.ID;
 
             // non-game resources always have unique IDs
-            if (agRes.parent == null) {
+            if (agRes.parent is null) {
                 return false;
             }
             foreach (Logic tmpRes in agRes.parent.agLogs) {
@@ -1535,8 +1607,8 @@ namespace WinAGI.Engine {
             if (intOldCode != 256) {
                 intPrefix = [];
                 bytAppend = [];
-                WinAGIException wex = new(Engine.Base.LoadResString(559).Replace(ARG1, "(invalid compression data)")) {
-                    HResult = Base.WINAGI_ERR + 559,
+                WinAGIException wex = new(Engine.Base.LoadResString(509).Replace(ARG1, "(invalid compression data)")) {
+                    HResult = WINAGI_ERR + 509,
                 };
                 throw wex;
             }

@@ -720,7 +720,8 @@
             // mnuRSavePicImage
             // 
             mnuRSavePicImage.Name = "mnuRSavePicImage";
-            mnuRSavePicImage.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
+            mnuRSavePicImage.ShortcutKeyDisplayString = "";
+            mnuRSavePicImage.ShortcutKeys = Keys.Control | Keys.Alt | Keys.S;
             mnuRSavePicImage.Size = new System.Drawing.Size(311, 22);
             mnuRSavePicImage.Text = "Save Picture Image As...";
             mnuRSavePicImage.Click += mnuRSavePicImage_Click;
@@ -1625,7 +1626,7 @@
             cmiGoWarning.Name = "cmiGoWarning";
             cmiGoWarning.Size = new System.Drawing.Size(184, 22);
             cmiGoWarning.Text = "Goto ...";
-            cmiGoWarning.Click += cmiGoTODO_Click;
+            cmiGoWarning.Click += cmiGoWarning_Click;
             // 
             // cmiHelp
             // 
@@ -1639,7 +1640,7 @@
             cmiIgnoreWarning.Name = "cmiIgnoreWarning";
             cmiIgnoreWarning.Size = new System.Drawing.Size(184, 22);
             cmiIgnoreWarning.Text = "Ignore This Warning";
-            cmiIgnoreWarning.Click += cmiIgnoreError_Click;
+            cmiIgnoreWarning.Click += cmiIgnoreWarning_Click;
             // 
             // picNavList
             // 
@@ -1878,7 +1879,6 @@
             MdiChildActivate += frmMDIMain_MdiChildActivate;
             KeyDown += frmMDIMain_KeyDown;
             KeyPress += frmMDIMain_KeyPress;
-            PreviewKeyDown += frmMDIMain_PreviewKeyDown;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             statusStrip1.ResumeLayout(false);

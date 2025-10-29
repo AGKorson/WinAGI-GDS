@@ -36,7 +36,7 @@ namespace WinAGI {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinAGI.EngineResources", typeof(EngineResources).Assembly);
@@ -51,7 +51,7 @@ namespace WinAGI {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,1521 +61,837 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or more minor errors encountered.
+        ///   Looks up a localized string similar to &apos;(&apos; expected at start of if statement.
         /// </summary>
-        internal static string _4001 {
+        public static string _4001 {
             get {
                 return ResourceManager.GetString("4001", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;(&apos; expected at start of if statement.
+        ///   Looks up a localized string similar to &apos;)&apos; expected after goto argument.
         /// </summary>
-        internal static string _4002 {
+        public static string _4002 {
             get {
                 return ResourceManager.GetString("4002", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;)&apos; expected after goto argument.
+        ///   Looks up a localized string similar to Complex variable math statements are not allowed.
         /// </summary>
-        internal static string _4003 {
+        public static string _4003 {
             get {
                 return ResourceManager.GetString("4003", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid COL argument in get.string command.
+        ///   Looks up a localized string similar to &apos;(&apos; expected after goto statement.
         /// </summary>
-        internal static string _4004 {
+        public static string _4004 {
             get {
                 return ResourceManager.GetString("4004", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Complex variable math statements are not allowed.
+        ///   Looks up a localized string similar to &apos;;&apos; expected at end of statement.
         /// </summary>
-        internal static string _4005 {
+        public static string _4005 {
             get {
                 return ResourceManager.GetString("4005", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;(&apos; expected after goto statement.
+        ///   Looks up a localized string similar to &apos;{&apos; not allowed unless following &apos;if&apos; or &apos;else&apos;.
         /// </summary>
-        internal static string _4006 {
+        public static string _4006 {
             get {
                 return ResourceManager.GetString("4006", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;;&apos; expected at end of statement.
+        ///   Looks up a localized string similar to &apos;}&apos; expected.
         /// </summary>
-        internal static string _4007 {
+        public static string _4007 {
             get {
                 return ResourceManager.GetString("4007", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{&apos; not allowed unless following &apos;if&apos; or &apos;else&apos;.
+        ///   Looks up a localized string similar to &apos;}&apos; not at end of any command blocks.
         /// </summary>
-        internal static string _4008 {
+        public static string _4008 {
             get {
                 return ResourceManager.GetString("4008", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;}&apos; expected.
+        ///   Looks up a localized string similar to &apos;}&apos; required before &apos;else&apos;.
         /// </summary>
-        internal static string _4009 {
+        public static string _4009 {
             get {
                 return ResourceManager.GetString("4009", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;}&apos; not at end of any command blocks.
+        ///   Looks up a localized string similar to &apos;%1&apos; is already defined in this logic.
         /// </summary>
-        internal static string _4010 {
+        public static string _4010 {
             get {
                 return ResourceManager.GetString("4010", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;}&apos; required before &apos;else&apos;.
+        ///   Looks up a localized string similar to &apos;%1&apos; is a compiler reserved word, and cannot be redefined.
         /// </summary>
-        internal static string _4011 {
+        public static string _4011 {
             get {
                 return ResourceManager.GetString("4011", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is already defined in this logic.
+        ///   Looks up a localized string similar to Invalid define name, &apos;%1&apos; is already in use as a label.
         /// </summary>
-        internal static string _4012 {
+        public static string _4012 {
             get {
                 return ResourceManager.GetString("4012", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a compiler reserved word, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI command, and cannot be redefined.
         /// </summary>
-        internal static string _4013 {
+        public static string _4013 {
             get {
                 return ResourceManager.GetString("4013", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved flag name, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI test command and cannot be redefined.
         /// </summary>
-        internal static string _4014 {
+        public static string _4014 {
             get {
                 return ResourceManager.GetString("4014", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved message constant, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;%1&apos; is %2, and cannot be used as a label.
         /// </summary>
-        internal static string _4015 {
+        public static string _4015 {
             get {
                 return ResourceManager.GetString("4015", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved number constant, and cannot be redefined.
+        ///   Looks up a localized string similar to Duplicate label name &apos;%1&apos;.
         /// </summary>
-        internal static string _4016 {
+        public static string _4016 {
             get {
                 return ResourceManager.GetString("4016", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved object or string name, and cannot be redefined.
+        ///   Looks up a localized string similar to Invalid character in label name.
         /// </summary>
-        internal static string _4017 {
+        public static string _4017 {
             get {
                 return ResourceManager.GetString("4017", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved variable name, and cannot be redefined.
+        ///   Looks up a localized string similar to &apos;==&apos; is a comparison operator and cannot be used for variable, flag or string assignment.
         /// </summary>
-        internal static string _4018 {
+        public static string _4018 {
             get {
                 return ResourceManager.GetString("4018", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is already defined as a global define, and cannot be redefined.
+        ///   Looks up a localized string similar to AND operator (&amp;&amp;) not allowed within brackets.
         /// </summary>
-        internal static string _4019 {
+        public static string _4019 {
             get {
                 return ResourceManager.GetString("4019", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is already in use as a label.
+        ///   Looks up a localized string similar to AND operator (&amp;&amp;) or end of if statement expected.
         /// </summary>
-        internal static string _4020 {
+        public static string _4020 {
             get {
                 return ResourceManager.GetString("4020", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI command, and cannot be redefined.
+        ///   Looks up a localized string similar to Undefined symbol (%1) or syntax error in &apos;if&apos; statement.
         /// </summary>
-        internal static string _4021 {
+        public static string _4021 {
             get {
                 return ResourceManager.GetString("4021", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI test command and cannot be redefined.
+        ///   Looks up a localized string similar to Local define argument value out of range.
         /// </summary>
-        internal static string _4022 {
+        public static string _4022 {
             get {
                 return ResourceManager.GetString("4022", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is already assigned to local define &apos;%2&apos;.
+        ///   Looks up a localized string similar to Unexpected symbol (%1) or syntax error in assignment statement.
         /// </summary>
-        internal static string _4023 {
+        public static string _4023 {
             get {
                 return ResourceManager.GetString("4023", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is already in use as a global define, and cannot be used as a label.
+        ///   Looks up a localized string similar to Brackets too deep in &apos;if&apos; statement.
         /// </summary>
-        internal static string _4024 {
+        public static string _4024 {
             get {
                 return ResourceManager.GetString("4024", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI command, and cannot be used as a label.
+        ///   Looks up a localized string similar to Incorrect type or syntax error in unary (++/--) statement.
         /// </summary>
-        internal static string _4025 {
+        public static string _4025 {
             get {
                 return ResourceManager.GetString("4025", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is an AGI test command, and cannot be used as a label.
+        ///   Looks up a localized string similar to Comma expected after argument %1 in %2 command.
         /// </summary>
-        internal static string _4026 {
+        public static string _4026 {
             get {
                 return ResourceManager.GetString("4026", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is already being used as a label.
+        ///   Looks up a localized string similar to &apos;(&apos; expected before command arguments.
         /// </summary>
-        internal static string _4027 {
+        public static string _4027 {
             get {
                 return ResourceManager.GetString("4027", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a compiler reserved word, and cannot be used as a label.
+        ///   Looks up a localized string similar to Could not find include file &apos;%1&apos;.
         /// </summary>
-        internal static string _4028 {
+        public static string _4028 {
             get {
                 return ResourceManager.GetString("4028", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved constant name, and cannot be used as a label.
+        ///   Looks up a localized string similar to Block quotes (/* ... */) are not supported in WinAGI.
         /// </summary>
-        internal static string _4029 {
+        public static string _4029 {
             get {
                 return ResourceManager.GetString("4029", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved flag name, and cannot be used as a label.
+        ///   Looks up a localized string similar to &apos;{&apos; must follow an &apos;if&apos; or &apos;else&apos; statement.
         /// </summary>
-        internal static string _4030 {
+        public static string _4030 {
             get {
                 return ResourceManager.GetString("4030", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved message name, and cannot be used as a label.
+        ///   Looks up a localized string similar to Missing argument %1 in %2 command: (expected: %3).
         /// </summary>
-        internal static string _4031 {
+        public static string _4031 {
             get {
                 return ResourceManager.GetString("4031", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved object or string name, and cannot be used as a label.
+        ///   Looks up a localized string similar to Error accessing include file &apos;%1&apos;.
         /// </summary>
-        internal static string _4032 {
+        public static string _4032 {
             get {
                 return ResourceManager.GetString("4032", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a reserved variable name, and cannot be used as a label.
+        ///   Looks up a localized string similar to Expected test command, but found closing bracket.
         /// </summary>
-        internal static string _4033 {
+        public static string _4033 {
             get {
                 return ResourceManager.GetString("4033", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;=&apos; expected for variable, flag or string assignment.
+        ///   Looks up a localized string similar to Syntax error in string assignment.
         /// </summary>
-        internal static string _4034 {
+        public static string _4034 {
             get {
                 return ResourceManager.GetString("4034", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is a group 0 word and will always be ignored by said command.
+        ///   Looks up a localized string similar to Include filename missing or invalid.
         /// </summary>
-        internal static string _4035 {
+        public static string _4035 {
             get {
                 return ResourceManager.GetString("4035", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ambiguous inventory item for argument %1.
+        ///   Looks up a localized string similar to Invalid preprocessor symbol &apos;%1&apos;.
         /// </summary>
-        internal static string _4036 {
+        public static string _4036 {
             get {
                 return ResourceManager.GetString("4036", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AND operator not allowed within brackets.
+        ///   Looks up a localized string similar to Incorrect type, syntax error or undefined value &apos;%3&apos; for argument %1: (expected: %2).
         /// </summary>
-        internal static string _4037 {
+        public static string _4037 {
             get {
                 return ResourceManager.GetString("4037", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to AND operator or end of if statement expected.
+        ///   Looks up a localized string similar to &apos;%1&apos; is not a valid inventory item.
         /// </summary>
-        internal static string _4038 {
+        public static string _4038 {
             get {
                 return ResourceManager.GetString("4038", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Undefined symbol (%1) or syntax error in &apos;if&apos; statement.
+        ///   Looks up a localized string similar to Invalid value for argument %1 (must be between 0-255).
         /// </summary>
-        internal static string _4039 {
+        public static string _4039 {
             get {
                 return ResourceManager.GetString("4039", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is already defined globally.
+        ///   Looks up a localized string similar to Invalid character in define name.
         /// </summary>
-        internal static string _4040 {
+        public static string _4040 {
             get {
                 return ResourceManager.GetString("4040", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is already defined as a reserved name.
+        ///   Looks up a localized string similar to Include file marker found - unable to compile.
         /// </summary>
-        internal static string _4041 {
+        public static string _4041 {
             get {
                 return ResourceManager.GetString("4041", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Local define argument value out of range.
+        ///   Looks up a localized string similar to Invalid define statement - define name cannot be blank.
         /// </summary>
-        internal static string _4042 {
+        public static string _4042 {
             get {
                 return ResourceManager.GetString("4042", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid MAXWIDTH value for print.at command.
+        ///   Looks up a localized string similar to Invalid define statement - define name cannot be argument marker.
         /// </summary>
-        internal static string _4043 {
+        public static string _4043 {
             get {
                 return ResourceManager.GetString("4043", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Undefined symbol (%1) or syntax error in assignment statement.
+        ///   Looks up a localized string similar to Invalid define statement - define name cannot be numeric.
         /// </summary>
-        internal static string _4044 {
+        public static string _4044 {
             get {
                 return ResourceManager.GetString("4044", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Brackets too deep in if statement.
+        ///   Looks up a localized string similar to Invalid define statement - define value cannot be blank.
         /// </summary>
-        internal static string _4045 {
+        public static string _4045 {
             get {
                 return ResourceManager.GetString("4045", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incorrect type or syntax error in unary (++/--) statement.
+        ///   Looks up a localized string similar to &apos;%1&apos; is not a label.
         /// </summary>
-        internal static string _4046 {
+        public static string _4046 {
             get {
                 return ResourceManager.GetString("4046", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Comma expected after argument %1.
+        ///   Looks up a localized string similar to A label marker (:) is expected after a label name.
         /// </summary>
-        internal static string _4047 {
+        public static string _4047 {
             get {
                 return ResourceManager.GetString("4047", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;(&apos; expected before command arguments.
+        ///   Looks up a localized string similar to Invalid message number in message declaration (must be 1 - 255).
         /// </summary>
-        internal static string _4048 {
+        public static string _4048 {
             get {
                 return ResourceManager.GetString("4048", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Command block must contain at least one command.
+        ///   Looks up a localized string similar to Invalid operator in &apos;if&apos; statement.
         /// </summary>
-        internal static string _4049 {
+        public static string _4049 {
             get {
                 return ResourceManager.GetString("4049", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find include file &apos;%1&apos;.
+        ///   Looks up a localized string similar to Invalid string value.
         /// </summary>
-        internal static string _4050 {
+        public static string _4050 {
             get {
                 return ResourceManager.GetString("4050", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Double quote mark (&quot;) required at start and end of string.
+        ///   Looks up a localized string similar to String value expected in message declaration.
         /// </summary>
-        internal static string _4051 {
+        public static string _4051 {
             get {
                 return ResourceManager.GetString("4051", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Block quotes (/* ... */) are not supported in WinAGI.
+        ///   Looks up a localized string similar to Invalid string value, unable to concatenate.
         /// </summary>
-        internal static string _4052 {
+        public static string _4052 {
             get {
                 return ResourceManager.GetString("4052", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{&apos; must follow an &apos;if&apos; or &apos;else&apos; statement.
+        ///   Looks up a localized string similar to Preprocessor commands do not use &apos;;&apos; as ending character.
         /// </summary>
-        internal static string _4053 {
+        public static string _4053 {
             get {
                 return ResourceManager.GetString("4053", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing argument %1 in %2 command: (expected: %3).
+        ///   Looks up a localized string similar to Nothing allowed on line after preprocessor declaration.
         /// </summary>
-        internal static string _4054 {
+        public static string _4054 {
             get {
                 return ResourceManager.GetString("4054", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error accessing include file &apos;%1&apos;.
+        ///   Looks up a localized string similar to Invalid define value &apos;%1&apos;.
         /// </summary>
-        internal static string _4055 {
+        public static string _4055 {
             get {
                 return ResourceManager.GetString("4055", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected test command, but found closing bracket.
+        ///   Looks up a localized string similar to Invalid use of &apos;else&apos;.
         /// </summary>
-        internal static string _4056 {
+        public static string _4056 {
             get {
                 return ResourceManager.GetString("4056", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If statement must contain at least one test command.
+        ///   Looks up a localized string similar to Unexpected end of input.
         /// </summary>
-        internal static string _4057 {
+        public static string _4057 {
             get {
                 return ResourceManager.GetString("4057", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Syntax error in string assignment.
+        ///   Looks up a localized string similar to Invalid variable operator.
         /// </summary>
-        internal static string _4058 {
+        public static string _4058 {
             get {
                 return ResourceManager.GetString("4058", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Include filename must be enclosed in double quotes.
+        ///   Looks up a localized string similar to Source code must end with a return command.
         /// </summary>
-        internal static string _4059 {
+        public static string _4059 {
             get {
                 return ResourceManager.GetString("4059", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Include filename expected.
+        ///   Looks up a localized string similar to &apos;=&apos; is not a valid comparison operator.
         /// </summary>
-        internal static string _4060 {
+        public static string _4060 {
             get {
                 return ResourceManager.GetString("4060", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid preprocessor symbol &apos;%1&apos;.
+        ///   Looks up a localized string similar to Invalid flag assignment, value must be &apos;true&apos; or &apos;false&apos;.
         /// </summary>
-        internal static string _4061 {
+        public static string _4061 {
             get {
                 return ResourceManager.GetString("4061", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incorrect type for argument %1 (must be numeric).
+        ///   Looks up a localized string similar to &apos;%1&apos; is a test command and is only valid inside an &apos;if&apos; block.
         /// </summary>
-        internal static string _4062 {
+        public static string _4062 {
             get {
                 return ResourceManager.GetString("4062", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incorrect type, syntax error or undefined value &apos;%3&apos; for argument %1: (expected: %2).
+        ///   Looks up a localized string similar to &apos;%1&apos; is an argument marker, can only be used as an argument to a valid AGI action or test command.
         /// </summary>
-        internal static string _4063 {
+        public static string _4063 {
             get {
                 return ResourceManager.GetString("4063", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Indirect operator only valid on variables.
+        ///   Looks up a localized string similar to %1 detected when command expected.
         /// </summary>
-        internal static string _4064 {
+        public static string _4064 {
             get {
                 return ResourceManager.GetString("4064", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; not supported in this game&apos;s AGI version.
+        ///   Looks up a localized string similar to &apos;NOT&apos; operator not valid after previous &apos;NOT&apos;.
         /// </summary>
-        internal static string _4065 {
+        public static string _4065 {
             get {
                 return ResourceManager.GetString("4065", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid value for argument %1 (must be between 0-255).
+        ///   Looks up a localized string similar to A valid test command must follow a NOT operator.
         /// </summary>
-        internal static string _4066 {
+        public static string _4066 {
             get {
                 return ResourceManager.GetString("4066", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid character in define name: !&quot; &amp; QUOTECHAR &amp; &quot;#$%&amp;&apos;()*+,-/:;&lt;=&gt;?@[\]^`{}~ and spaces are not allowed.
+        ///   Looks up a localized string similar to OR blocks cannot be preceded by a NOT operator.
         /// </summary>
-        internal static string _4067 {
+        public static string _4067 {
             get {
                 return ResourceManager.GetString("4067", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid character in label name: &apos;-[~`!@#$%^&amp;*()+{}\?/.,&lt;&gt;;:]&apos; are not allowed.
+        ///   Looks up a localized string similar to &apos;{&apos; encountered when expecting action command.
         /// </summary>
-        internal static string _4068 {
+        public static string _4068 {
             get {
                 return ResourceManager.GetString("4068", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Include file marker found - unable to compile.
+        ///   Looks up a localized string similar to Include files must be enclosed in double quotes.
         /// </summary>
-        internal static string _4069 {
+        public static string _4069 {
             get {
                 return ResourceManager.GetString("4069", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid define statement - define name cannot be blank.
+        ///   Looks up a localized string similar to Variable or number value expected; &apos;%1&apos; is not a variable or number.
         /// </summary>
-        internal static string _4070 {
+        public static string _4070 {
             get {
                 return ResourceManager.GetString("4070", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid define statement - define names cannot be argument markers (v##, f##, m##, o##, i##, s##, w##, c##).
+        ///   Looks up a localized string similar to Maximum number of messages exceeded (limit is 255 per logic).
         /// </summary>
-        internal static string _4071 {
+        public static string _4071 {
             get {
                 return ResourceManager.GetString("4071", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid define statement - define names cannot be numeric.
+        ///   Looks up a localized string similar to Message %1 is already assigned.
         /// </summary>
-        internal static string _4072 {
+        public static string _4072 {
             get {
                 return ResourceManager.GetString("4072", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid define statement - define value cannot be blank.
+        ///   Looks up a localized string similar to Invalid negative argument value.
         /// </summary>
-        internal static string _4073 {
+        public static string _4073 {
             get {
                 return ResourceManager.GetString("4073", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown label &apos;%1&apos;.
+        ///   Looks up a localized string similar to Missing label definition.
         /// </summary>
-        internal static string _4074 {
+        public static string _4074 {
             get {
                 return ResourceManager.GetString("4074", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid inventory item for argument %1.
+        ///   Looks up a localized string similar to NOT operator can only be placed directly in front of a command.
         /// </summary>
-        internal static string _4075 {
+        public static string _4075 {
             get {
                 return ResourceManager.GetString("4075", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid label name.
+        ///   Looks up a localized string similar to OR operator must be within brackets.
         /// </summary>
-        internal static string _4076 {
+        public static string _4076 {
             get {
                 return ResourceManager.GetString("4076", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid message number (must be 1 - 255).
+        ///   Looks up a localized string similar to OR operator or closing bracket expected.
         /// </summary>
-        internal static string _4077 {
+        public static string _4077 {
             get {
                 return ResourceManager.GetString("4077", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid operator in &apos;if&apos; statement.
+        ///   Looks up a localized string similar to Invalid assignment operator in indirect assignment.
         /// </summary>
-        internal static string _4078 {
+        public static string _4078 {
             get {
                 return ResourceManager.GetString("4078", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid string number for argument %1 (must be between 0 - %2).
+        ///   Looks up a localized string similar to Indirection marker is only valid when using alternate syntax assignment.
         /// </summary>
-        internal static string _4079 {
+        public static string _4079 {
             get {
                 return ResourceManager.GetString("4079", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid string concatenation.
+        ///   Looks up a localized string similar to Indirection marker is only valid with variables.
         /// </summary>
-        internal static string _4080 {
+        public static string _4080 {
             get {
                 return ResourceManager.GetString("4080", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid string value (no string detected).
+        ///   Looks up a localized string similar to Syntax error in indirection assignment.
         /// </summary>
-        internal static string _4081 {
+        public static string _4081 {
             get {
                 return ResourceManager.GetString("4081", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid string value for define.
+        ///   Looks up a localized string similar to Unknown action command &apos;%1&apos;.
         /// </summary>
-        internal static string _4082 {
+        public static string _4082 {
             get {
                 return ResourceManager.GetString("4082", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid use of &apos;else&apos;.
+        ///   Looks up a localized string similar to Logic source code is empty.
         /// </summary>
-        internal static string _4083 {
+        public static string _4083 {
             get {
                 return ResourceManager.GetString("4083", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown syntax error.
+        ///   Looks up a localized string similar to &apos;)&apos; expected after command arguments.
         /// </summary>
-        internal static string _4084 {
+        public static string _4084 {
             get {
                 return ResourceManager.GetString("4084", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid variable number in assignment statement.
+        ///   Looks up a localized string similar to Invalid variable or number value %1in arithmetic statement.
         /// </summary>
-        internal static string _4085 {
+        public static string _4085 {
             get {
                 return ResourceManager.GetString("4085", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid variable number in &apos;if&apos; statement.
+        ///   Looks up a localized string similar to Invalid word argument &apos;%1&apos; - must be integer value (0-65535).
         /// </summary>
-        internal static string _4086 {
+        public static string _4086 {
             get {
                 return ResourceManager.GetString("4086", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid variable operator.
+        ///   Looks up a localized string similar to Incorrect syntax for indirection assignment.
         /// </summary>
-        internal static string _4087 {
+        public static string _4087 {
             get {
                 return ResourceManager.GetString("4087", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid variable or number value &apos;%1&apos; in assignment statement.
+        ///   Looks up a localized string similar to Include file cannot be this logic&apos;s source code file.
         /// </summary>
-        internal static string _4088 {
+        public static string _4088 {
             get {
                 return ResourceManager.GetString("4088", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid variable or number value %1in &apos;if&apos; statement.
+        ///   Looks up a localized string similar to %1 is a required #include file for this logic.
         /// </summary>
-        internal static string _4089 {
+        public static string _4089 {
             get {
                 return ResourceManager.GetString("4089", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid word number for argument %1 (must be between 1 - 10).
+        ///   Looks up a localized string similar to Defines &apos;%1&apos; and &apos;%2&apos; make a circular reference.
         /// </summary>
-        internal static string _4090 {
+        public static string _4090 {
             get {
                 return ResourceManager.GetString("4090", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Labels cannot be default argument values (v##, f##, m##, o##, i##, s##, w##, c##).
+        ///   Looks up a localized string similar to Undefined word %1 in said command.
         /// </summary>
-        internal static string _4091 {
+        public static string _4091 {
             get {
                 return ResourceManager.GetString("4091", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Maximum number of messages exceeded (limit is 255 per logic).
-        /// </summary>
-        internal static string _4092 {
-            get {
-                return ResourceManager.GetString("4092", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Maximum number of words exceeded (limit is 10).
-        /// </summary>
-        internal static string _4093 {
-            get {
-                return ResourceManager.GetString("4093", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Message %1 is already assigned.
-        /// </summary>
-        internal static string _4094 {
-            get {
-                return ResourceManager.GetString("4094", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid negative argument value.
-        /// </summary>
-        internal static string _4095 {
-            get {
-                return ResourceManager.GetString("4095", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing label definition.
-        /// </summary>
-        internal static string _4096 {
-            get {
-                return ResourceManager.GetString("4096", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to NOT operator can only be placed directly in front of a command.
-        /// </summary>
-        internal static string _4097 {
-            get {
-                return ResourceManager.GetString("4097", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to NOT operator not allowed before variable comparisons.
-        /// </summary>
-        internal static string _4098 {
-            get {
-                return ResourceManager.GetString("4098", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Nothing allowed on line after message declaration.
-        /// </summary>
-        internal static string _4099 {
-            get {
-                return ResourceManager.GetString("4099", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to OR operator must be within brackets.
-        /// </summary>
-        internal static string _4100 {
-            get {
-                return ResourceManager.GetString("4100", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to OR operator or closing bracket expected.
-        /// </summary>
-        internal static string _4101 {
-            get {
-                return ResourceManager.GetString("4101", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Return command expected at end of logic.
-        /// </summary>
-        internal static string _4102 {
-            get {
-                return ResourceManager.GetString("4102", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Space expected after #include.
-        /// </summary>
-        internal static string _4103 {
-            get {
-                return ResourceManager.GetString("4103", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to reserved.
-        /// </summary>
-        internal static string _4104 {
-            get {
-                return ResourceManager.GetString("4104", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Syntax error in use of indirection.
-        /// </summary>
-        internal static string _4105 {
-            get {
-                return ResourceManager.GetString("4105", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Test command expected in if statement.
-        /// </summary>
-        internal static string _4106 {
-            get {
-                return ResourceManager.GetString("4106", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Message value of 0 is not allowed.
-        /// </summary>
-        internal static string _4107 {
-            get {
-                return ResourceManager.GetString("4107", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Too many &apos;goto&apos; commands (max %1).
-        /// </summary>
-        internal static string _4108 {
-            get {
-                return ResourceManager.GetString("4108", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Too many labels (max %1).
-        /// </summary>
-        internal static string _4109 {
-            get {
-                return ResourceManager.GetString("4109", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Too many nested blocks (max %1).
-        /// </summary>
-        internal static string _4110 {
-            get {
-                return ResourceManager.GetString("4110", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;?&apos; is not a valid inventory item for argument %1.
-        /// </summary>
-        internal static string _4111 {
-            get {
-                return ResourceManager.GetString("4111", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Undefined inventory item (exceeds object count) for argument %1.
-        /// </summary>
-        internal static string _4112 {
-            get {
-                return ResourceManager.GetString("4112", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Undefined message argument (m%1).
-        /// </summary>
-        internal static string _4113 {
-            get {
-                return ResourceManager.GetString("4113", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Undefined word &apos;%1&apos; in said command.
-        /// </summary>
-        internal static string _4114 {
-            get {
-                return ResourceManager.GetString("4114", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error %1 in %2.
-        /// </summary>
-        internal static string _4115 {
-            get {
-                return ResourceManager.GetString("4115", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unknown action command &apos;%1&apos;.
-        /// </summary>
-        internal static string _4116 {
-            get {
-                return ResourceManager.GetString("4116", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Recursively calling a logic may crash AGI.
-        /// </summary>
-        internal static string _4117 {
-            get {
-                return ResourceManager.GetString("4117", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using call command on logic 0 is not allowed.
-        /// </summary>
-        internal static string _4118 {
-            get {
-                return ResourceManager.GetString("4118", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid object number - must not exceed MaxScreenObject value (%1).
-        /// </summary>
-        internal static string _4119 {
-            get {
-                return ResourceManager.GetString("4119", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to new.room command called on a non-existent room.
-        /// </summary>
-        internal static string _4120 {
-            get {
-                return ResourceManager.GetString("4120", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for load.logic (logic %1 does not exist).
-        /// </summary>
-        internal static string _4121 {
-            get {
-                return ResourceManager.GetString("4121", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for load.view (view %1 does not exist).
-        /// </summary>
-        internal static string _4122 {
-            get {
-                return ResourceManager.GetString("4122", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for discard.view (view %1 does not exist).
-        /// </summary>
-        internal static string _4123 {
-            get {
-                return ResourceManager.GetString("4123", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for set.view (view %1 does not exist).
-        /// </summary>
-        internal static string _4124 {
-            get {
-                return ResourceManager.GetString("4124", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for set.priority (acceptable value is &gt;=4 and &lt;=15).
-        /// </summary>
-        internal static string _4125 {
-            get {
-                return ResourceManager.GetString("4125", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for set.horizon command.
-        /// </summary>
-        internal static string _4126 {
-            get {
-                return ResourceManager.GetString("4126", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid target position.
-        /// </summary>
-        internal static string _4127 {
-            get {
-                return ResourceManager.GetString("4127", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid new object position.
-        /// </summary>
-        internal static string _4128 {
-            get {
-                return ResourceManager.GetString("4128", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid block command coordinates.
-        /// </summary>
-        internal static string _4129 {
-            get {
-                return ResourceManager.GetString("4129", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for load.sound (sound %1 does not exist).
-        /// </summary>
-        internal static string _4130 {
-            get {
-                return ResourceManager.GetString("4130", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid cursor position.
-        /// </summary>
-        internal static string _4131 {
-            get {
-                return ResourceManager.GetString("4131", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid arguments for clear.line command.
-        /// </summary>
-        internal static string _4132 {
-            get {
-                return ResourceManager.GetString("4132", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid color value.
-        /// </summary>
-        internal static string _4133 {
-            get {
-                return ResourceManager.GetString("4133", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to shake.screen argument must be non-zero.
-        /// </summary>
-        internal static string _4134 {
-            get {
-                return ResourceManager.GetString("4134", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid TOP argument for configure.screen command (should be &lt;= 3).
-        /// </summary>
-        internal static string _4135 {
-            get {
-                return ResourceManager.GetString("4135", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid controller value for argument %1 (must be between 0 - 49).
-        /// </summary>
-        internal static string _4136 {
-            get {
-                return ResourceManager.GetString("4136", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for sound (sound %1 does not exist).
-        /// </summary>
-        internal static string _4137 {
-            get {
-                return ResourceManager.GetString("4137", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for add.to.pic (view %1 does not exist).
-        /// </summary>
-        internal static string _4138 {
-            get {
-                return ResourceManager.GetString("4138", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for add.to.pic (loop %1 does not exist in view %2).
-        /// </summary>
-        internal static string _4139 {
-            get {
-                return ResourceManager.GetString("4139", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for add.to.pic (cel %1 in loop %2 in view %3 does not exist).
-        /// </summary>
-        internal static string _4140 {
-            get {
-                return ResourceManager.GetString("4140", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid add.to.pic position.
-        /// </summary>
-        internal static string _4141 {
-            get {
-                return ResourceManager.GetString("4141", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid PRIORITY value for add.to.pic command.
-        /// </summary>
-        internal static string _4142 {
-            get {
-                return ResourceManager.GetString("4142", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid MARGIN value for add.to.pic command.
-        /// </summary>
-        internal static string _4143 {
-            get {
-                return ResourceManager.GetString("4143", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for show.obj (view %1 does not exist).
-        /// </summary>
-        internal static string _4144 {
-            get {
-                return ResourceManager.GetString("4144", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid arguments for random command (lower bound must be &lt;= upper bound).
-        /// </summary>
-        internal static string _4145 {
-            get {
-                return ResourceManager.GetString("4145", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid arguments for trace.info command (TOP plus HEIGHT exceeds screen size).
-        /// </summary>
-        internal static string _4146 {
-            get {
-                return ResourceManager.GetString("4146", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for print.at command (ROW must be &lt;= 22).
-        /// </summary>
-        internal static string _4147 {
-            get {
-                return ResourceManager.GetString("4147", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid arguments for print.at command (COL must be &gt;= 2 and (COL + MAXWIDTH) must be &lt;= 39).
-        /// </summary>
-        internal static string _4148 {
-            get {
-                return ResourceManager.GetString("4148", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Dividing by zero will cause AGI to crash.
-        /// </summary>
-        internal static string _4149 {
-            get {
-                return ResourceManager.GetString("4149", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid cursor position values for clear.text.rect command.
-        /// </summary>
-        internal static string _4150 {
-            get {
-                return ResourceManager.GetString("4150", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid test command coordinates.
-        /// </summary>
-        internal static string _4151 {
-            get {
-                return ResourceManager.GetString("4151", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to %1 command is incompatible with MSDOS AGI interpreter.
-        /// </summary>
-        internal static string _4152 {
-            get {
-                return ResourceManager.GetString("4152", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for trace.info (logic %1 does not exist).
-        /// </summary>
-        internal static string _4153 {
-            get {
-                return ResourceManager.GetString("4153", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid arguments for set.key command (must be &apos;##,0&apos; for ascii value, or &apos;0,##&apos; for keycode value).
-        /// </summary>
-        internal static string _4154 {
-            get {
-                return ResourceManager.GetString("4154", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid keycode argument for set.key command.
-        /// </summary>
-        internal static string _4155 {
-            get {
-                return ResourceManager.GetString("4155", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid argument for call (logic %1 does not exist).
-        /// </summary>
-        internal static string _4156 {
-            get {
-                return ResourceManager.GetString("4156", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using room0 in new.room command not allowed.
-        /// </summary>
-        internal static string _4157 {
-            get {
-                return ResourceManager.GetString("4157", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid arguments for random command (LOWER=UPPER+1 will crash AGI).
-        /// </summary>
-        internal static string _4158 {
-            get {
-                return ResourceManager.GetString("4158", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Logic source code is empty.
-        /// </summary>
-        internal static string _4159 {
-            get {
-                return ResourceManager.GetString("4159", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;)&apos; expected after command arguments.
-        /// </summary>
-        internal static string _4160 {
-            get {
-                return ResourceManager.GetString("4160", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid variable or number value %1in arithmetic statement.
-        /// </summary>
-        internal static string _4161 {
-            get {
-                return ResourceManager.GetString("4161", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid word argument &apos;%1&apos; - must be integer value (0-65535).
-        /// </summary>
-        internal static string _4162 {
-            get {
-                return ResourceManager.GetString("4162", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to End of line expected after define declaration.
-        /// </summary>
-        internal static string _4163 {
-            get {
-                return ResourceManager.GetString("4163", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Incorrect syntax for indirection assignment.
-        /// </summary>
-        internal static string _4164 {
-            get {
-                return ResourceManager.GetString("4164", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Adding a cel with a margin that has a width of 2 will crash AGI.
-        /// </summary>
-        internal static string _4165 {
-            get {
-                return ResourceManager.GetString("4165", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Include file cannot be this logic&apos;s source code file.
-        /// </summary>
-        internal static string _4166 {
-            get {
-                return ResourceManager.GetString("4166", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to %1 is a required #include file for this logic.
-        /// </summary>
-        internal static string _4167 {
-            get {
-                return ResourceManager.GetString("4167", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to This command block contains no commands.
         /// </summary>
-        internal static string _5001 {
+        public static string _5001 {
             get {
                 return ResourceManager.GetString("5001", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Strings must be enclosed in quotes; quotes were added.
+        ///   Looks up a localized string similar to Or brackets unnecessary for a single test command.
         /// </summary>
-        internal static string _5002 {
+        public static string _5002 {
             get {
                 return ResourceManager.GetString("5002", resourceCulture);
             }
@@ -1584,7 +900,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Ambiguous inventory item for argument %1.
         /// </summary>
-        internal static string _5003 {
+        public static string _5003 {
             get {
                 return ResourceManager.GetString("5003", resourceCulture);
             }
@@ -1593,7 +909,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;?&apos; is the AGI default marker for an undefined inventory item.
         /// </summary>
-        internal static string _5004 {
+        public static string _5004 {
             get {
                 return ResourceManager.GetString("5004", resourceCulture);
             }
@@ -1602,7 +918,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Undefined inventory item for argument %1.
         /// </summary>
-        internal static string _5005 {
+        public static string _5005 {
             get {
                 return ResourceManager.GetString("5005", resourceCulture);
             }
@@ -1611,7 +927,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Object number exceeds MaxScreenObject value  (%1).
         /// </summary>
-        internal static string _5006 {
+        public static string _5006 {
             get {
                 return ResourceManager.GetString("5006", resourceCulture);
             }
@@ -1620,7 +936,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to String argument value is not within expected range (0 - %1).
         /// </summary>
-        internal static string _5007 {
+        public static string _5007 {
             get {
                 return ResourceManager.GetString("5007", resourceCulture);
             }
@@ -1629,7 +945,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Word argument value is not within expected range (1 - 10).
         /// </summary>
-        internal static string _5008 {
+        public static string _5008 {
             get {
                 return ResourceManager.GetString("5008", resourceCulture);
             }
@@ -1638,16 +954,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Low values for script size will most likely cause a trappable error.
         /// </summary>
-        internal static string _5009 {
+        public static string _5009 {
             get {
                 return ResourceManager.GetString("5009", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A game is already open; close it before opening another..
+        ///   Looks up a localized string similar to Property or method not available until object is loaded..
         /// </summary>
-        internal static string _501 {
+        public static string _501 {
             get {
                 return ResourceManager.GetString("501", resourceCulture);
             }
@@ -1656,7 +972,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using call command on logic 0 will cause game to crash.
         /// </summary>
-        internal static string _5010 {
+        public static string _5010 {
             get {
                 return ResourceManager.GetString("5010", resourceCulture);
             }
@@ -1665,7 +981,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using clear.line command with bottom &lt; top and/or either value &gt; 24 will have unpredictable results.
         /// </summary>
-        internal static string _5011 {
+        public static string _5011 {
             get {
                 return ResourceManager.GetString("5011", resourceCulture);
             }
@@ -1674,7 +990,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using room 0 in the new.room command will crash AGI.
         /// </summary>
-        internal static string _5012 {
+        public static string _5012 {
             get {
                 return ResourceManager.GetString("5012", resourceCulture);
             }
@@ -1683,7 +999,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Attempting to load a logic that does not exist will cause AGI to crash.
         /// </summary>
-        internal static string _5013 {
+        public static string _5013 {
             get {
                 return ResourceManager.GetString("5013", resourceCulture);
             }
@@ -1692,7 +1008,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Attempting to load a sound that does not exist will cause AGI to crash.
         /// </summary>
-        internal static string _5014 {
+        public static string _5014 {
             get {
                 return ResourceManager.GetString("5014", resourceCulture);
             }
@@ -1701,16 +1017,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Attempting to load a view that does not exist will cause AGI to crash.
         /// </summary>
-        internal static string _5015 {
+        public static string _5015 {
             get {
                 return ResourceManager.GetString("5015", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No return() command found at end of logic; WinAGI added a return() command.
+        ///   Looks up a localized string similar to &apos;if&apos; block has no test commands.
         /// </summary>
-        internal static string _5016 {
+        public static string _5016 {
             get {
                 return ResourceManager.GetString("5016", resourceCulture);
             }
@@ -1719,7 +1035,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is normally a read-only variable; changing it could have unexpected results.
         /// </summary>
-        internal static string _5017 {
+        public static string _5017 {
             get {
                 return ResourceManager.GetString("5017", resourceCulture);
             }
@@ -1728,16 +1044,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; shouldn&apos;t be assigned a value &gt; %2, or unexpected results will occur.
         /// </summary>
-        internal static string _5018 {
+        public static string _5018 {
             get {
                 return ResourceManager.GetString("5018", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown word number(%1) in said command .
+        ///   Looks up a localized string similar to Undefined word group number(%1) in said command .
         /// </summary>
-        internal static string _5019 {
+        public static string _5019 {
             get {
                 return ResourceManager.GetString("5019", resourceCulture);
             }
@@ -1746,7 +1062,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Error %1 occurred while trying to access %2..
         /// </summary>
-        internal static string _502 {
+        public static string _502 {
             get {
                 return ResourceManager.GetString("502", resourceCulture);
             }
@@ -1755,7 +1071,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to One or more block coordinates are off screen (X &gt; 159 and/or Y &gt; 167).
         /// </summary>
-        internal static string _5020 {
+        public static string _5020 {
             get {
                 return ResourceManager.GetString("5020", resourceCulture);
             }
@@ -1764,16 +1080,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Unable to validate add.to.pic arguments because view %1 cannot be loaded; check your code and your view for errors.
         /// </summary>
-        internal static string _5021 {
+        public static string _5021 {
             get {
                 return ResourceManager.GetString("5021", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Defined string value not enclosed in quotes; quotes were assumed.
+        ///   Looks up a localized string similar to Duplicate include file (%1).
         /// </summary>
-        internal static string _5022 {
+        public static string _5022 {
             get {
                 return ResourceManager.GetString("5022", resourceCulture);
             }
@@ -1782,7 +1098,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Object position is off screen (X &gt; 159 and/or Y &gt; 167).
         /// </summary>
-        internal static string _5023 {
+        public static string _5023 {
             get {
                 return ResourceManager.GetString("5023", resourceCulture);
             }
@@ -1791,7 +1107,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Attempting to discard a view that does not exist will cause a trappable error.
         /// </summary>
-        internal static string _5024 {
+        public static string _5024 {
             get {
                 return ResourceManager.GetString("5024", resourceCulture);
             }
@@ -1800,7 +1116,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is normally a read-only flag; changing it could have unexpected results.
         /// </summary>
-        internal static string _5025 {
+        public static string _5025 {
             get {
                 return ResourceManager.GetString("5025", resourceCulture);
             }
@@ -1809,7 +1125,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Ego direction cannot be set using the set.dir command.
         /// </summary>
-        internal static string _5026 {
+        public static string _5026 {
             get {
                 return ResourceManager.GetString("5026", resourceCulture);
             }
@@ -1818,16 +1134,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using follow.ego command on ego has no effect.
         /// </summary>
-        internal static string _5027 {
+        public static string _5027 {
             get {
                 return ResourceManager.GetString("5027", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Improper use of quote marks around Include file. Include filename assumed to be: %1.
+        ///   Looks up a localized string similar to Define &apos;%1&apos; redefines %2 &apos;%3&apos;.
         /// </summary>
-        internal static string _5028 {
+        public static string _5028 {
             get {
                 return ResourceManager.GetString("5028", resourceCulture);
             }
@@ -1836,16 +1152,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using color values &gt; 15 may have unpredictable results.
         /// </summary>
-        internal static string _5029 {
+        public static string _5029 {
             get {
                 return ResourceManager.GetString("5029", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File access error while creating temporary DIR file: (%1).
+        ///   Looks up a localized string similar to Error %1 occurred while setting game ID.
         /// </summary>
-        internal static string _503 {
+        public static string _503 {
             get {
                 return ResourceManager.GetString("503", resourceCulture);
             }
@@ -1854,7 +1170,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Dividing by zero will cause AGI to crash.
         /// </summary>
-        internal static string _5030 {
+        public static string _5030 {
             get {
                 return ResourceManager.GetString("5030", resourceCulture);
             }
@@ -1863,7 +1179,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is already defined as a global name.
         /// </summary>
-        internal static string _5031 {
+        public static string _5031 {
             get {
                 return ResourceManager.GetString("5031", resourceCulture);
             }
@@ -1872,7 +1188,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is already defined as a reserved name.
         /// </summary>
-        internal static string _5032 {
+        public static string _5032 {
             get {
                 return ResourceManager.GetString("5032", resourceCulture);
             }
@@ -1881,7 +1197,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is already defined by &apos;%2&apos;.
         /// </summary>
-        internal static string _5033 {
+        public static string _5033 {
             get {
                 return ResourceManager.GetString("5033", resourceCulture);
             }
@@ -1890,7 +1206,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is overriding a global define.
         /// </summary>
-        internal static string _5034 {
+        public static string _5034 {
             get {
                 return ResourceManager.GetString("5034", resourceCulture);
             }
@@ -1899,7 +1215,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is overriding a reserved define.
         /// </summary>
-        internal static string _5035 {
+        public static string _5035 {
             get {
                 return ResourceManager.GetString("5035", resourceCulture);
             }
@@ -1908,7 +1224,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Variable is being assigned to itself.
         /// </summary>
-        internal static string _5036 {
+        public static string _5036 {
             get {
                 return ResourceManager.GetString("5036", resourceCulture);
             }
@@ -1917,7 +1233,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Attempting to set a view that does not exist will cause a trappable error.
         /// </summary>
-        internal static string _5037 {
+        public static string _5037 {
             get {
                 return ResourceManager.GetString("5037", resourceCulture);
             }
@@ -1926,7 +1242,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Position is off screen (X &gt; 159 and/or Y &gt; 167.
         /// </summary>
-        internal static string _5038 {
+        public static string _5038 {
             get {
                 return ResourceManager.GetString("5038", resourceCulture);
             }
@@ -1935,16 +1251,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using script.size command outside logic 0 wastes memory.
         /// </summary>
-        internal static string _5039 {
+        public static string _5039 {
             get {
                 return ResourceManager.GetString("5039", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error while decompressing picture resource..
+        ///   Looks up a localized string similar to %1 is not a valid AGI game directory..
         /// </summary>
-        internal static string _504 {
+        public static string _504 {
             get {
                 return ResourceManager.GetString("504", resourceCulture);
             }
@@ -1953,7 +1269,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Referencing a logic that does not exist will crash AGI.
         /// </summary>
-        internal static string _5040 {
+        public static string _5040 {
             get {
                 return ResourceManager.GetString("5040", resourceCulture);
             }
@@ -1962,7 +1278,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Setting the horizon less than 16 is unusual.
         /// </summary>
-        internal static string _5041 {
+        public static string _5041 {
             get {
                 return ResourceManager.GetString("5041", resourceCulture);
             }
@@ -1971,7 +1287,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Setting the horizon greater than 120 is unusual.
         /// </summary>
-        internal static string _5042 {
+        public static string _5042 {
             get {
                 return ResourceManager.GetString("5042", resourceCulture);
             }
@@ -1980,7 +1296,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Setting the horizon greater than 167 may cause unexpected results.
         /// </summary>
-        internal static string _5043 {
+        public static string _5043 {
             get {
                 return ResourceManager.GetString("5043", resourceCulture);
             }
@@ -1989,7 +1305,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to TOP argument is too large; portions of the play area will be off-screen, and graphics functions will be unpredictable.
         /// </summary>
-        internal static string _5044 {
+        public static string _5044 {
             get {
                 return ResourceManager.GetString("5044", resourceCulture);
             }
@@ -1998,7 +1314,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using move.obj on ego automatically forces program control mode.
         /// </summary>
-        internal static string _5045 {
+        public static string _5045 {
             get {
                 return ResourceManager.GetString("5045", resourceCulture);
             }
@@ -2007,16 +1323,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to If HEIGHT is less than 2, AGI resets it to 2 automatically.
         /// </summary>
-        internal static string _5046 {
+        public static string _5046 {
             get {
                 return ResourceManager.GetString("5046", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using submit.menu command outside logic 0 wastes memory.
+        ///   Looks up a localized string similar to &apos;or&apos; block has no test commands.
         /// </summary>
-        internal static string _5047 {
+        public static string _5047 {
             get {
                 return ResourceManager.GetString("5047", resourceCulture);
             }
@@ -2025,7 +1341,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to INPUTLINE and STATUSLINE are the same, which is usually not desired.
         /// </summary>
-        internal static string _5048 {
+        public static string _5048 {
             get {
                 return ResourceManager.GetString("5048", resourceCulture);
             }
@@ -2034,16 +1350,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to INPUTLINE and/or STATUSLINE are inside the graphic display; this is usually not desired.
         /// </summary>
-        internal static string _5049 {
+        public static string _5049 {
             get {
                 return ResourceManager.GetString("5049", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid resource location (%1) in %2..
+        ///   Looks up a localized string similar to %1 is not a valid directory file..
         /// </summary>
-        internal static string _505 {
+        public static string _505 {
             get {
                 return ResourceManager.GetString("505", resourceCulture);
             }
@@ -2052,7 +1368,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Setting PRIORITY to &lt; 4 or &gt; 15  may cause unexpected results.
         /// </summary>
-        internal static string _5050 {
+        public static string _5050 {
             get {
                 return ResourceManager.GetString("5050", resourceCulture);
             }
@@ -2061,7 +1377,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to X2 - X1 should be &gt;= 2 and Y2 - Y1 should be &gt;= 2; this block will not behave as expected.
         /// </summary>
-        internal static string _5051 {
+        public static string _5051 {
             get {
                 return ResourceManager.GetString("5051", resourceCulture);
             }
@@ -2070,7 +1386,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to If ROW &gt;= 25 the prompt string is drawn at current text cursor location (both ROW and COL arguments are ignored).
         /// </summary>
-        internal static string _5052 {
+        public static string _5052 {
             get {
                 return ResourceManager.GetString("5052", resourceCulture);
             }
@@ -2079,7 +1395,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using new.room command on a non-existent room will crash AGI.
         /// </summary>
-        internal static string _5053 {
+        public static string _5053 {
             get {
                 return ResourceManager.GetString("5053", resourceCulture);
             }
@@ -2088,7 +1404,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using random command with lower bound &gt; upper bound will have unexpected results.
         /// </summary>
-        internal static string _5054 {
+        public static string _5054 {
             get {
                 return ResourceManager.GetString("5054", resourceCulture);
             }
@@ -2097,52 +1413,52 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Assigning a large number to &apos;cycle_delay&apos; (v10) is highly unusual.
         /// </summary>
-        internal static string _5055 {
+        public static string _5055 {
             get {
                 return ResourceManager.GetString("5055", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to LENGTH is &gt; max string length (but AGI automatically resets it to 40 so no errors occur).
+        ///   Looks up a localized string similar to LENGTH is &gt; max string length.
         /// </summary>
-        internal static string _5056 {
+        public static string _5056 {
             get {
                 return ResourceManager.GetString("5056", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Large values for shake.screen command are unusual.
+        ///   Looks up a localized string similar to Using zero as shake.screen argument will cause eight hours of shaking.
         /// </summary>
-        internal static string _5057 {
+        public static string _5057 {
             get {
                 return ResourceManager.GetString("5057", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This &apos;shake.screen&apos; command appears to be an AGIPAL palette change; don&apos;t use original interpreter to run this game.
+        ///   Looks up a localized string similar to Large values for shake.screen command are unusual.
         /// </summary>
-        internal static string _5058 {
+        public static string _5058 {
             get {
                 return ResourceManager.GetString("5058", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cursor position is off screen (ROW &gt; 24 and/or COL &gt; 39).
+        ///   Looks up a localized string similar to This &apos;shake.screen&apos; command appears to be an AGIPAL palette change; don&apos;t use original interpreter to run this game.
         /// </summary>
-        internal static string _5059 {
+        public static string _5059 {
             get {
                 return ResourceManager.GetString("5059", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid resource data at %1 in %2..
+        ///   Looks up a localized string similar to This AGI version is not supported by WinAGI..
         /// </summary>
-        internal static string _506 {
+        public static string _506 {
             get {
                 return ResourceManager.GetString("506", resourceCulture);
             }
@@ -2151,7 +1467,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Controller argument value is not within expected range (0 - 49).
         /// </summary>
-        internal static string _5060 {
+        public static string _5060 {
             get {
                 return ResourceManager.GetString("5060", resourceCulture);
             }
@@ -2160,7 +1476,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using show.obj command with an invalid view will generate a trappable error.
         /// </summary>
-        internal static string _5061 {
+        public static string _5061 {
             get {
                 return ResourceManager.GetString("5061", resourceCulture);
             }
@@ -2169,7 +1485,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Target position is off screen (X &gt; 159 and/or Y &gt; 167).
         /// </summary>
-        internal static string _5062 {
+        public static string _5062 {
             get {
                 return ResourceManager.GetString("5062", resourceCulture);
             }
@@ -2178,7 +1494,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to The ROW and HEIGHT combination specified will not fit on the screen.
         /// </summary>
-        internal static string _5063 {
+        public static string _5063 {
             get {
                 return ResourceManager.GetString("5063", resourceCulture);
             }
@@ -2187,16 +1503,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using add.to.pic command with an invalid view will generate a trappable error.
         /// </summary>
-        internal static string _5064 {
+        public static string _5064 {
             get {
                 return ResourceManager.GetString("5064", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The set.key parameters are not a valid ASCII code or KEY code.
+        ///   Looks up a localized string similar to set.key parameters are not a valid ASCII code or KEY code.
         /// </summary>
-        internal static string _5065 {
+        public static string _5065 {
             get {
                 return ResourceManager.GetString("5065", resourceCulture);
             }
@@ -2205,7 +1521,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Assigning keycode values that correspond to normal input keys may result in unpredictable behavior in AGI.
         /// </summary>
-        internal static string _5066 {
+        public static string _5066 {
             get {
                 return ResourceManager.GetString("5066", resourceCulture);
             }
@@ -2214,7 +1530,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to The message box won&apos;t draw correctly if ROW &gt; 22.
         /// </summary>
-        internal static string _5067 {
+        public static string _5067 {
             get {
                 return ResourceManager.GetString("5067", resourceCulture);
             }
@@ -2223,7 +1539,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to The message box may not draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39.
         /// </summary>
-        internal static string _5068 {
+        public static string _5068 {
             get {
                 return ResourceManager.GetString("5068", resourceCulture);
             }
@@ -2232,16 +1548,25 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Invalid cursor position for clear.text.rect command; must be in upper-left/lower-right format.
         /// </summary>
-        internal static string _5069 {
+        public static string _5069 {
             get {
                 return ResourceManager.GetString("5069", resourceCulture);
             }
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No source code to compile..
+        /// </summary>
+        public static string _507 {
+            get {
+                return ResourceManager.GetString("507", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid cursor position values for clear.text.rect command; R1 &amp; R2 must be &lt;=24; C1 &amp; C2 must be &lt;=39.
         /// </summary>
-        internal static string _5070 {
+        public static string _5070 {
             get {
                 return ResourceManager.GetString("5070", resourceCulture);
             }
@@ -2250,7 +1575,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using a value &gt; 167 for set.pri.base results in entire screen being priority 4.
         /// </summary>
-        internal static string _5071 {
+        public static string _5071 {
             get {
                 return ResourceManager.GetString("5071", resourceCulture);
             }
@@ -2259,16 +1584,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to One or more test command coordinates are offscreen (X &gt; 159 and/or Y &gt; 167).
         /// </summary>
-        internal static string _5072 {
+        public static string _5072 {
             get {
                 return ResourceManager.GetString("5072", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to X1 should be &lt;= X2 and Y1 should be &lt;=Y2; this test command will not behave as expected.
+        ///   Looks up a localized string similar to X1 should be &lt;= X2 and Y1 should be &lt;= Y2; this test command will not behave as expected.
         /// </summary>
-        internal static string _5073 {
+        public static string _5073 {
             get {
                 return ResourceManager.GetString("5073", resourceCulture);
             }
@@ -2277,7 +1602,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Message is null (0 length).
         /// </summary>
-        internal static string _5074 {
+        public static string _5074 {
             get {
                 return ResourceManager.GetString("5074", resourceCulture);
             }
@@ -2286,7 +1611,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is not a supported command for this game&apos;s interpreter version.
         /// </summary>
-        internal static string _5075 {
+        public static string _5075 {
             get {
                 return ResourceManager.GetString("5075", resourceCulture);
             }
@@ -2295,7 +1620,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Attempting to call a logic that does not exist will cause AGI to crash.
         /// </summary>
-        internal static string _5076 {
+        public static string _5076 {
             get {
                 return ResourceManager.GetString("5076", resourceCulture);
             }
@@ -2304,7 +1629,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using a reserved variable in &apos;%1&apos; command may cause unexpected behavior.
         /// </summary>
-        internal static string _5077 {
+        public static string _5077 {
             get {
                 return ResourceManager.GetString("5077", resourceCulture);
             }
@@ -2313,7 +1638,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using a reserved flag in &apos;%1&apos; command may cause unexpected behavior.
         /// </summary>
-        internal static string _5078 {
+        public static string _5078 {
             get {
                 return ResourceManager.GetString("5078", resourceCulture);
             }
@@ -2322,16 +1647,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Setting PRIORITY to 1, 2 or 3, or &gt; 15 in add.to.pic command may cause unexpected results.
         /// </summary>
-        internal static string _5079 {
+        public static string _5079 {
             get {
                 return ResourceManager.GetString("5079", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Template directory is missing its WinAGI game property file..
+        ///   Looks up a localized string similar to Maximum number of cels exceeded in loop %1..
         /// </summary>
-        internal static string _508 {
+        public static string _508 {
             get {
                 return ResourceManager.GetString("508", resourceCulture);
             }
@@ -2340,7 +1665,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Setting COL to &gt; 39 in the get.string command will cause the PROMPT to appear in unexpected location.
         /// </summary>
-        internal static string _5080 {
+        public static string _5080 {
             get {
                 return ResourceManager.GetString("5080", resourceCulture);
             }
@@ -2349,7 +1674,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Test command &apos;return.false()&apos; is not compatible with AGIStudio.
         /// </summary>
-        internal static string _5081 {
+        public static string _5081 {
             get {
                 return ResourceManager.GetString("5081", resourceCulture);
             }
@@ -2358,7 +1683,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;object.on.land&apos;, &apos;object.on.water&apos; and &apos;object.on.anything&apos; have no effect on ego object.
         /// </summary>
-        internal static string _5082 {
+        public static string _5082 {
             get {
                 return ResourceManager.GetString("5082", resourceCulture);
             }
@@ -2367,7 +1692,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is a Group 0 word, which is always ignored by AGI, so it will never be detected by the &apos;said&apos; command.
         /// </summary>
-        internal static string _5083 {
+        public static string _5083 {
             get {
                 return ResourceManager.GetString("5083", resourceCulture);
             }
@@ -2376,7 +1701,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Attempting to play a sound that does not exist will cause a trappable error.
         /// </summary>
-        internal static string _5084 {
+        public static string _5084 {
             get {
                 return ResourceManager.GetString("5084", resourceCulture);
             }
@@ -2385,7 +1710,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using add.to.pic command with an invalid loop will generate a trappable error.
         /// </summary>
-        internal static string _5085 {
+        public static string _5085 {
             get {
                 return ResourceManager.GetString("5085", resourceCulture);
             }
@@ -2394,7 +1719,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using add.to.pic command with an invalid cel will generate a trappable error.
         /// </summary>
-        internal static string _5086 {
+        public static string _5086 {
             get {
                 return ResourceManager.GetString("5086", resourceCulture);
             }
@@ -2403,7 +1728,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to %1 command has no functionality in MSDOS AGI interpreter.
         /// </summary>
-        internal static string _5087 {
+        public static string _5087 {
             get {
                 return ResourceManager.GetString("5087", resourceCulture);
             }
@@ -2412,25 +1737,25 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to %1 command is incompatible with MSDOS AGI interpreter.
         /// </summary>
-        internal static string _5088 {
+        public static string _5088 {
             get {
                 return ResourceManager.GetString("5088", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Recursively calling a logic may crash AGI.
+        ///   Looks up a localized string similar to Recursively calling a logic can crash AGI.
         /// </summary>
-        internal static string _5089 {
+        public static string _5089 {
             get {
                 return ResourceManager.GetString("5089", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unhandled error %1 while loading logic.
+        ///   Looks up a localized string similar to Unhandled error %1 while expanding resource..
         /// </summary>
-        internal static string _509 {
+        public static string _509 {
             get {
                 return ResourceManager.GetString("509", resourceCulture);
             }
@@ -2439,7 +1764,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Undefined message (m%1); null value assumed.
         /// </summary>
-        internal static string _5090 {
+        public static string _5090 {
             get {
                 return ResourceManager.GetString("5090", resourceCulture);
             }
@@ -2448,7 +1773,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using m0 as a message value will cause an error.
         /// </summary>
-        internal static string _5091 {
+        public static string _5091 {
             get {
                 return ResourceManager.GetString("5091", resourceCulture);
             }
@@ -2457,16 +1782,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Unless resetting after responding to an error, &apos;%1&apos; should normally be treated as read-only.
         /// </summary>
-        internal static string _5092 {
+        public static string _5092 {
             get {
                 return ResourceManager.GetString("5092", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using control characters (code values 8, 10, 13) in message text will result in incorrectly displayed messages.
+        ///   Looks up a localized string similar to Using control characters 8 or 13 in message text will result in incorrectly displayed messages.
         /// </summary>
-        internal static string _5093 {
+        public static string _5093 {
             get {
                 return ResourceManager.GetString("5093", resourceCulture);
             }
@@ -2475,7 +1800,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Messages with extended characters (128-255)  won&apos;t display correctly in most circumstances.
         /// </summary>
-        internal static string _5094 {
+        public static string _5094 {
             get {
                 return ResourceManager.GetString("5094", resourceCulture);
             }
@@ -2484,7 +1809,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Commands after a new.room() or new.room.v() command are always ignored by AGI.
         /// </summary>
-        internal static string _5095 {
+        public static string _5095 {
             get {
                 return ResourceManager.GetString("5095", resourceCulture);
             }
@@ -2493,16 +1818,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using a long input prompt is unusual and will limit player input.
         /// </summary>
-        internal static string _5096 {
+        public static string _5096 {
             get {
                 return ResourceManager.GetString("5096", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Commands after a return() command are always ignored by AGI.
+        ///   Looks up a localized string similar to Commands after a return command are always ignored by AGI.
         /// </summary>
-        internal static string _5097 {
+        public static string _5097 {
             get {
                 return ResourceManager.GetString("5097", resourceCulture);
             }
@@ -2511,7 +1836,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Negative numbers are converted to unsigned 2s complement value.
         /// </summary>
-        internal static string _5098 {
+        public static string _5098 {
             get {
                 return ResourceManager.GetString("5098", resourceCulture);
             }
@@ -2520,16 +1845,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to INPUTLINE and/or STATUSLINE &gt; 24 will result in undesirable effects on graphics screen.
         /// </summary>
-        internal static string _5099 {
+        public static string _5099 {
             get {
                 return ResourceManager.GetString("5099", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NewResource cannot be used by a resource in a game. Use the Clear method instead..
+        ///   Looks up a localized string similar to Directory &apos;%1&apos; not found.
         /// </summary>
-        internal static string _510 {
+        public static string _510 {
             get {
                 return ResourceManager.GetString("510", resourceCulture);
             }
@@ -2538,7 +1863,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to COLOR value other than 0 is treated as 15.
         /// </summary>
-        internal static string _5100 {
+        public static string _5100 {
             get {
                 return ResourceManager.GetString("5100", resourceCulture);
             }
@@ -2547,16 +1872,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to MGN values &gt; 15 will cause unexepected results in add.to.pic command.
         /// </summary>
-        internal static string _5101 {
+        public static string _5101 {
             get {
                 return ResourceManager.GetString("5101", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Object will not catch ego if DISTANCE &lt;= 1.
+        ///   Looks up a localized string similar to Object will never catch ego if DISTANCE &lt;= 1.
         /// </summary>
-        internal static string _5102 {
+        public static string _5102 {
             get {
                 return ResourceManager.GetString("5102", resourceCulture);
             }
@@ -2565,7 +1890,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Using a value of 1 for MAXWIDTH will crash AGI.
         /// </summary>
-        internal static string _5103 {
+        public static string _5103 {
             get {
                 return ResourceManager.GetString("5103", resourceCulture);
             }
@@ -2574,7 +1899,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Print window will not display correctly if MAXWIDTH &gt; 36.
         /// </summary>
-        internal static string _5104 {
+        public static string _5104 {
             get {
                 return ResourceManager.GetString("5104", resourceCulture);
             }
@@ -2583,7 +1908,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Print window will use default value of 30 if MAXWIDTH = 0.
         /// </summary>
-        internal static string _5105 {
+        public static string _5105 {
             get {
                 return ResourceManager.GetString("5105", resourceCulture);
             }
@@ -2592,7 +1917,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to When UPPER = LOWER, result will always be the same.
         /// </summary>
-        internal static string _5106 {
+        public static string _5106 {
             get {
                 return ResourceManager.GetString("5106", resourceCulture);
             }
@@ -2601,7 +1926,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to If LOWER = UPPER + 1, AGI will crash due to &apos;Divide by 0&apos; error.
         /// </summary>
-        internal static string _5107 {
+        public static string _5107 {
             get {
                 return ResourceManager.GetString("5107", resourceCulture);
             }
@@ -2610,907 +1935,484 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to The word &apos;%1&apos; is not in WORD.TOK, but AGI automatically assigns it to group 0.
         /// </summary>
-        internal static string _5108 {
+        public static string _5108 {
             get {
                 return ResourceManager.GetString("5108", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Or brackets unnecessary for a single test command.
+        ///   Looks up a localized string similar to Cursor position is off screen (ROW &gt; 24 and/or COL &gt; 39).
         /// </summary>
-        internal static string _5109 {
+        public static string _5109 {
             get {
                 return ResourceManager.GetString("5109", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Resource already loaded.
+        ///   Looks up a localized string similar to Error in CompileSound method(%1).
         /// </summary>
-        internal static string _511 {
+        public static string _511 {
             get {
                 return ResourceManager.GetString("511", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Referencing a view that doesn&apos;t not exist will cause an error and may crash AGI.
+        ///   Looks up a localized string similar to Cel width less than 3 will not draw control box correctly.
         /// </summary>
-        internal static string _5110 {
+        public static string _5110 {
             get {
                 return ResourceManager.GetString("5110", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to End of line mark (;) missing; allowed in Sierra syntax, but not best coding practice.
+        ///   Looks up a localized string similar to Commands after a forced quit() command are always ignored by AGI.
         /// </summary>
-        internal static string _5111 {
+        public static string _5111 {
             get {
                 return ResourceManager.GetString("5111", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compiler adds return at end automatically, no need to code one.
+        ///   Looks up a localized string similar to Using submit.menu command outside logic 0 wastes memory.
         /// </summary>
-        internal static string _5112 {
+        public static string _5112 {
             get {
                 return ResourceManager.GetString("5112", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;or&apos; block has no test commands.
+        ///   Looks up a localized string similar to Menu &quot;%1&quot; has no items assigned to it.
         /// </summary>
-        internal static string _5113 {
+        public static string _5113 {
             get {
                 return ResourceManager.GetString("5113", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;if&apos; block has no test commands.
+        ///   Looks up a localized string similar to Menu &quot;%1&quot; has too many items.
         /// </summary>
-        internal static string _5114 {
+        public static string _5114 {
             get {
                 return ResourceManager.GetString("5114", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cel width less than 3 will not draw control box correctly.
+        ///   Looks up a localized string similar to submit.menu called before any menus added.
         /// </summary>
-        internal static string _5115 {
+        public static string _5115 {
             get {
                 return ResourceManager.GetString("5115", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Commands after a forced quit() command are always ignored by AGI.
+        ///   Looks up a localized string similar to More than one submit.menu() command is unnecessary.
         /// </summary>
-        internal static string _5116 {
+        public static string _5116 {
             get {
                 return ResourceManager.GetString("5116", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Duplicate include file (%1).
+        ///   Looks up a localized string similar to set.menu and set.menu.item commands are ignored after submit.menu is called.
         /// </summary>
-        internal static string _5117 {
+        public static string _5117 {
             get {
                 return ResourceManager.GetString("5117", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error %1 occurred while attempting to set game directory.
+        ///   Looks up a localized string similar to Menu item &quot;%1&quot; text width exceeds menu display width.
         /// </summary>
-        internal static string _512 {
+        public static string _5118 {
             get {
-                return ResourceManager.GetString("512", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t read past end of resource..
-        /// </summary>
-        internal static string _513 {
-            get {
-                return ResourceManager.GetString("513", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Resource position marker must be a non-negative value..
-        /// </summary>
-        internal static string _514 {
-            get {
-                return ResourceManager.GetString("514", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t set position index past end of resource..
-        /// </summary>
-        internal static string _515 {
-            get {
-                return ResourceManager.GetString("515", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Resource can&apos;t exceed maximum allowable size..
-        /// </summary>
-        internal static string _516 {
-            get {
-                return ResourceManager.GetString("516", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t write past end of resource..
-        /// </summary>
-        internal static string _517 {
-            get {
-                return ResourceManager.GetString("517", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Line index must be a non-negative value..
-        /// </summary>
-        internal static string _518 {
-            get {
-                return ResourceManager.GetString("518", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Line index exceeds number of lines..
-        /// </summary>
-        internal static string _519 {
-            get {
-                return ResourceManager.GetString("519", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Only strings or array of strings can be assigned to a string list..
-        /// </summary>
-        internal static string _520 {
-            get {
-                return ResourceManager.GetString("520", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Only arrays of bytes can be assigned to a resource..
-        /// </summary>
-        internal static string _521 {
-            get {
-                return ResourceManager.GetString("521", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid word group index..
-        /// </summary>
-        internal static string _522 {
-            get {
-                return ResourceManager.GetString("522", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t add a group that already exists..
-        /// </summary>
-        internal static string _523 {
-            get {
-                return ResourceManager.GetString("523", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File not found (%1).
-        /// </summary>
-        internal static string _524 {
-            get {
-                return ResourceManager.GetString("524", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Maximum number of word groups exceeded..
-        /// </summary>
-        internal static string _525 {
-            get {
-                return ResourceManager.GetString("525", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No groups- no name!.
-        /// </summary>
-        internal static string _526 {
-            get {
-                return ResourceManager.GetString("526", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unknown drawing action 0x%1 found at position 0x%2..
-        /// </summary>
-        internal static string _527 {
-            get {
-                return ResourceManager.GetString("527", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid object index..
-        /// </summary>
-        internal static string _528 {
-            get {
-                return ResourceManager.GetString("528", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to load WORDS.TOK file- invalid data.
-        /// </summary>
-        internal static string _529 {
-            get {
-                return ResourceManager.GetString("529", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error &apos;%1&apos; occurred while setting game ID..
-        /// </summary>
-        internal static string _530 {
-            get {
-                return ResourceManager.GetString("530", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid cel index..
-        /// </summary>
-        internal static string _531 {
-            get {
-                return ResourceManager.GetString("531", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid cel height..
-        /// </summary>
-        internal static string _532 {
-            get {
-                return ResourceManager.GetString("532", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid cel width..
-        /// </summary>
-        internal static string _533 {
-            get {
-                return ResourceManager.GetString("533", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No data assigned to this cel..
-        /// </summary>
-        internal static string _534 {
-            get {
-                return ResourceManager.GetString("534", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Maximum number of cels exceeded..
-        /// </summary>
-        internal static string _535 {
-            get {
-                return ResourceManager.GetString("535", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid cel index number..
-        /// </summary>
-        internal static string _536 {
-            get {
-                return ResourceManager.GetString("536", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Maximum number of loops exceeded..
-        /// </summary>
-        internal static string _537 {
-            get {
-                return ResourceManager.GetString("537", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid loop index number..
-        /// </summary>
-        internal static string _538 {
-            get {
-                return ResourceManager.GetString("538", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid loop index for mirror..
-        /// </summary>
-        internal static string _539 {
-            get {
-                return ResourceManager.GetString("539", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to A loop can&apos;t mirror itself..
-        /// </summary>
-        internal static string _540 {
-            get {
-                return ResourceManager.GetString("540", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to %1 is not a valid AGI game directory..
-        /// </summary>
-        internal static string _541 {
-            get {
-                return ResourceManager.GetString("541", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to %1 is not a valid directory file..
-        /// </summary>
-        internal static string _542 {
-            get {
-                return ResourceManager.GetString("542", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This AGI version is not supported by WinAGI..
-        /// </summary>
-        internal static string _543 {
-            get {
-                return ResourceManager.GetString("543", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error while expanding V3 Dir file (%1).
-        /// </summary>
-        internal static string _544 {
-            get {
-                return ResourceManager.GetString("544", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error (%1) encountered while loading resources..
-        /// </summary>
-        internal static string _545 {
-            get {
-                return ResourceManager.GetString("545", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No source code to compile..
-        /// </summary>
-        internal static string _546 {
-            get {
-                return ResourceManager.GetString("546", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error (%1) while creating temporary file.
-        /// </summary>
-        internal static string _547 {
-            get {
-                return ResourceManager.GetString("547", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid resource data..
-        /// </summary>
-        internal static string _548 {
-            get {
-                return ResourceManager.GetString("548", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid sound track..
-        /// </summary>
-        internal static string _549 {
-            get {
-                return ResourceManager.GetString("549", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Loop %1 is already a mirror..
-        /// </summary>
-        internal static string _550 {
-            get {
-                return ResourceManager.GetString("550", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Loop %1 already has a mirror..
-        /// </summary>
-        internal static string _551 {
-            get {
-                return ResourceManager.GetString("551", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Maximum number of cels exceeded in loop %1..
-        /// </summary>
-        internal static string _552 {
-            get {
-                return ResourceManager.GetString("552", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cel start beyond end of resource..
-        /// </summary>
-        internal static string _553 {
-            get {
-                return ResourceManager.GetString("553", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cel bitmap data not set..
-        /// </summary>
-        internal static string _554 {
-            get {
-                return ResourceManager.GetString("554", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid cel data. Unable to load cel bitmap..
-        /// </summary>
-        internal static string _555 {
-            get {
-                return ResourceManager.GetString("555", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid transparent color value..
-        /// </summary>
-        internal static string _556 {
-            get {
-                return ResourceManager.GetString("556", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overflow- unsigned integer expected..
-        /// </summary>
-        internal static string _557 {
-            get {
-                return ResourceManager.GetString("557", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Function not yet implemented..
-        /// </summary>
-        internal static string _558 {
-            get {
-                return ResourceManager.GetString("558", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error %1 while expanding resource..
-        /// </summary>
-        internal static string _559 {
-            get {
-                return ResourceManager.GetString("559", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error %1 in message section of logic resource..
-        /// </summary>
-        internal static string _560 {
-            get {
-                return ResourceManager.GetString("560", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t set source dir to %1.
-        /// </summary>
-        internal static string _561 {
-            get {
-                return ResourceManager.GetString("561", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to %1 is not a valid resource file.
-        /// </summary>
-        internal static string _562 {
-            get {
-                return ResourceManager.GetString("562", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Property or method not available until object is loaded..
-        /// </summary>
-        internal static string _563 {
-            get {
-                return ResourceManager.GetString("563", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error in CopyLoop method(%1).
-        /// </summary>
-        internal static string _564 {
-            get {
-                return ResourceManager.GetString("564", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error in LoadTracks method(%1).
-        /// </summary>
-        internal static string _565 {
-            get {
-                return ResourceManager.GetString("565", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error in CompileSound method(%1).
-        /// </summary>
-        internal static string _566 {
-            get {
-                return ResourceManager.GetString("566", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error in SetSound(%1).
-        /// </summary>
-        internal static string _567 {
-            get {
-                return ResourceManager.GetString("567", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Item &apos;%1&apos; already exists in OBJECT file.
-        /// </summary>
-        internal static string _568 {
-            get {
-                return ResourceManager.GetString("568", resourceCulture);
+                return ResourceManager.GetString("5118", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Can&apos;t add item; maximum number of objects already in OBJECT file.
         /// </summary>
-        internal static string _569 {
+        public static string _512 {
             get {
-                return ResourceManager.GetString("569", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid item or item index.
-        /// </summary>
-        internal static string _570 {
-            get {
-                return ResourceManager.GetString("570", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error %1 while adding item to OBJECT file.
-        /// </summary>
-        internal static string _571 {
-            get {
-                return ResourceManager.GetString("571", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error %1 while adding word to group.
-        /// </summary>
-        internal static string _572 {
-            get {
-                return ResourceManager.GetString("572", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error %1 while deleting word from group.
-        /// </summary>
-        internal static string _573 {
-            get {
-                return ResourceManager.GetString("573", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid word index.
-        /// </summary>
-        internal static string _574 {
-            get {
-                return ResourceManager.GetString("574", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid wordgroup number.
-        /// </summary>
-        internal static string _575 {
-            get {
-                return ResourceManager.GetString("575", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t add group; this number already exists.
-        /// </summary>
-        internal static string _576 {
-            get {
-                return ResourceManager.GetString("576", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error &apos;%1&apos; while renumbering wordgroup.
-        /// </summary>
-        internal static string _577 {
-            get {
-                return ResourceManager.GetString("577", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error &apos;%1&apos; while adding wordgroup.
-        /// </summary>
-        internal static string _578 {
-            get {
-                return ResourceManager.GetString("578", resourceCulture);
+                return ResourceManager.GetString("512", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Can&apos;t add word; it already exists.
         /// </summary>
-        internal static string _579 {
+        public static string _513 {
             get {
-                return ResourceManager.GetString("579", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error while adding word(%1).
-        /// </summary>
-        internal static string _580 {
-            get {
-                return ResourceManager.GetString("580", resourceCulture);
+                return ResourceManager.GetString("513", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Can&apos;t add word; invalid group number.
         /// </summary>
-        internal static string _581 {
+        public static string _514 {
             get {
-                return ResourceManager.GetString("581", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File access error while trying to save resource.
-        /// </summary>
-        internal static string _582 {
-            get {
-                return ResourceManager.GetString("582", resourceCulture);
+                return ResourceManager.GetString("514", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Can&apos;t delete wordgroup; it does not exist.
         /// </summary>
-        internal static string _583 {
+        public static string _515 {
             get {
-                return ResourceManager.GetString("583", resourceCulture);
+                return ResourceManager.GetString("515", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Can&apos;t delete word; it does not exist.
         /// </summary>
-        internal static string _584 {
+        public static string _516 {
             get {
-                return ResourceManager.GetString("584", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error while loading WORDS.TOK file: %1.
-        /// </summary>
-        internal static string _585 {
-            get {
-                return ResourceManager.GetString("585", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Word not found.
-        /// </summary>
-        internal static string _586 {
-            get {
-                return ResourceManager.GetString("586", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error %1 while loading OBJECT file.
-        /// </summary>
-        internal static string _587 {
-            get {
-                return ResourceManager.GetString("587", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid wordgroup index.
-        /// </summary>
-        internal static string _588 {
-            get {
-                return ResourceManager.GetString("588", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to %1 is not a valid WinAGI resource.
-        /// </summary>
-        internal static string _589 {
-            get {
-                return ResourceManager.GetString("589", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Logic compilation failed: %1.
-        /// </summary>
-        internal static string _590 {
-            get {
-                return ResourceManager.GetString("590", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error during compilation: %1.
-        /// </summary>
-        internal static string _591 {
-            get {
-                return ResourceManager.GetString("591", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CRC not available.
-        /// </summary>
-        internal static string _592 {
-            get {
-                return ResourceManager.GetString("592", resourceCulture);
+                return ResourceManager.GetString("516", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Maximum number of VOL files exceeded - GAME IS TOO BIG!!!.
         /// </summary>
-        internal static string _593 {
+        public static string _517 {
             get {
-                return ResourceManager.GetString("593", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t export resource without a filename.
-        /// </summary>
-        internal static string _594 {
-            get {
-                return ResourceManager.GetString("594", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to extract resource; invalid data found.
-        /// </summary>
-        internal static string _595 {
-            get {
-                return ResourceManager.GetString("595", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to create MIDI data from sound resource.
-        /// </summary>
-        internal static string _596 {
-            get {
-                return ResourceManager.GetString("596", resourceCulture);
+                return ResourceManager.GetString("517", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Incompatible AGI version: WinAGI only works with versions 2 and 3.
         /// </summary>
-        internal static string _597 {
+        public static string _518 {
             get {
-                return ResourceManager.GetString("597", resourceCulture);
+                return ResourceManager.GetString("518", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid sound data: unable to load sound resource.
+        ///   Looks up a localized string similar to Can&apos;t export file; unable to load resource data.
         /// </summary>
-        internal static string _598 {
+        public static string _519 {
             get {
-                return ResourceManager.GetString("598", resourceCulture);
+                return ResourceManager.GetString("519", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No resource filename specified.
+        ///   Looks up a localized string similar to Can&apos;t create new resource; index already in use.
         /// </summary>
-        internal static string _599 {
+        public static string _520 {
             get {
-                return ResourceManager.GetString("599", resourceCulture);
+                return ResourceManager.GetString("520", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to WORDS.TOK file not found in game directory.
+        ///   Looks up a localized string similar to No data to import.
         /// </summary>
-        internal static string _600 {
+        public static string _521 {
             get {
-                return ResourceManager.GetString("600", resourceCulture);
+                return ResourceManager.GetString("521", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t delete last cel in a loop.
+        /// </summary>
+        public static string _522 {
+            get {
+                return ResourceManager.GetString("522", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t delete last loop in a view.
+        /// </summary>
+        public static string _523 {
+            get {
+                return ResourceManager.GetString("523", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid data format for cel data.
+        /// </summary>
+        public static string _524 {
+            get {
+                return ResourceManager.GetString("524", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only logics in a game can be compiled.
+        /// </summary>
+        public static string _525 {
+            get {
+                return ResourceManager.GetString("525", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Media player error: %1.
+        /// </summary>
+        public static string _526 {
+            get {
+                return ResourceManager.GetString("526", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to directory &apos;%1&apos; has no wag files.
+        /// </summary>
+        public static string _527 {
+            get {
+                return ResourceManager.GetString("527", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access error in VOL file.
+        /// </summary>
+        public static string _528 {
+            get {
+                return ResourceManager.GetString("528", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Missing wag file (%1).
+        /// </summary>
+        public static string _529 {
+            get {
+                return ResourceManager.GetString("529", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported wag version.
+        /// </summary>
+        public static string _530 {
+            get {
+                return ResourceManager.GetString("530", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t renumber; new number is already in use.
+        /// </summary>
+        public static string _531 {
+            get {
+                return ResourceManager.GetString("531", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid sound script file.
+        /// </summary>
+        public static string _532 {
+            get {
+                return ResourceManager.GetString("532", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to copy template files to game directory due to error: %1.
+        /// </summary>
+        public static string _533 {
+            get {
+                return ResourceManager.GetString("533", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to open the newly created game due to error: %1.
+        /// </summary>
+        public static string _534 {
+            get {
+                return ResourceManager.GetString("534", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t create new game in a directory that already has a wag file.
+        /// </summary>
+        public static string _535 {
+            get {
+                return ResourceManager.GetString("535", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t create new game in a directory that already has AGI game files.
+        /// </summary>
+        public static string _536 {
+            get {
+                return ResourceManager.GetString("536", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid GameID in game properties file.
+        /// </summary>
+        public static string _537 {
+            get {
+                return ResourceManager.GetString("537", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid Interpreter Version in game properties file.
+        /// </summary>
+        public static string _538 {
+            get {
+                return ResourceManager.GetString("538", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 is read only.
+        /// </summary>
+        public static string _539 {
+            get {
+                return ResourceManager.GetString("539", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access error when opening WAG file.
+        /// </summary>
+        public static string _540 {
+            get {
+                return ResourceManager.GetString("540", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access error in DIR file.
+        /// </summary>
+        public static string _541 {
+            get {
+                return ResourceManager.GetString("541", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid sound playback format.
+        /// </summary>
+        public static string _542 {
+            get {
+                return ResourceManager.GetString("542", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to multiple WAG files found.
+        /// </summary>
+        public static string _543 {
+            get {
+                return ResourceManager.GetString("543", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to template is missing resource directory.
+        /// </summary>
+        public static string _544 {
+            get {
+                return ResourceManager.GetString("544", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to move resource directory (%1).
+        /// </summary>
+        public static string _545 {
+            get {
+                return ResourceManager.GetString("545", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to create wag file (%1).
+        /// </summary>
+        public static string _546 {
+            get {
+                return ResourceManager.GetString("546", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error accessing wag file (%1).
+        /// </summary>
+        public static string _547 {
+            get {
+                return ResourceManager.GetString("547", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to copy directory (%1).
+        /// </summary>
+        public static string _548 {
+            get {
+                return ResourceManager.GetString("548", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upper case characters not allowed in word text (%1).
+        /// </summary>
+        public static string _549 {
+            get {
+                return ResourceManager.GetString("549", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid characters in word text (%1).
+        /// </summary>
+        public static string _550 {
+            get {
+                return ResourceManager.GetString("550", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extended characters ( &gt; 127) not allowed in word text (%1).
+        /// </summary>
+        public static string _551 {
+            get {
+                return ResourceManager.GetString("551", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First character of word must be a letter (%1).
+        /// </summary>
+        public static string _552 {
+            get {
+                return ResourceManager.GetString("552", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Invalid vocabulary word (no quotes allowed).
         /// </summary>
-        internal static string _6001 {
+        public static string _6001 {
             get {
                 return ResourceManager.GetString("6001", resourceCulture);
             }
@@ -3519,7 +2421,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is an AGI %2 command, and can&apos;t be defined as a flag, variable, object or view.
         /// </summary>
-        internal static string _6002 {
+        public static string _6002 {
             get {
                 return ResourceManager.GetString("6002", resourceCulture);
             }
@@ -3528,7 +2430,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to View &apos;%1&apos; does not exist.
         /// </summary>
-        internal static string _6003 {
+        public static string _6003 {
             get {
                 return ResourceManager.GetString("6003", resourceCulture);
             }
@@ -3537,7 +2439,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is not a valid test command number.
         /// </summary>
-        internal static string _6004 {
+        public static string _6004 {
             get {
                 return ResourceManager.GetString("6004", resourceCulture);
             }
@@ -3546,7 +2448,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to &apos;%1&apos; is not a valid action command number for this int version.
         /// </summary>
-        internal static string _6005 {
+        public static string _6005 {
             get {
                 return ResourceManager.GetString("6005", resourceCulture);
             }
@@ -3555,7 +2457,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Missing string value in message assignment.
         /// </summary>
-        internal static string _6006 {
+        public static string _6006 {
             get {
                 return ResourceManager.GetString("6006", resourceCulture);
             }
@@ -3564,7 +2466,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to String value must start with a quote.
         /// </summary>
-        internal static string _6007 {
+        public static string _6007 {
             get {
                 return ResourceManager.GetString("6007", resourceCulture);
             }
@@ -3573,7 +2475,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to String value must end with a quote.
         /// </summary>
-        internal static string _6008 {
+        public static string _6008 {
             get {
                 return ResourceManager.GetString("6008", resourceCulture);
             }
@@ -3582,25 +2484,16 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Direct string assignment not allowed.
         /// </summary>
-        internal static string _6009 {
+        public static string _6009 {
             get {
                 return ResourceManager.GetString("6009", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t export file; unable to load resource data.
-        /// </summary>
-        internal static string _601 {
-            get {
-                return ResourceManager.GetString("601", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Direct flag assignment not allowed.
         /// </summary>
-        internal static string _6010 {
+        public static string _6010 {
             get {
                 return ResourceManager.GetString("6010", resourceCulture);
             }
@@ -3609,7 +2502,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Syntax error in indirection assignment - second argument must be a variable.
         /// </summary>
-        internal static string _6011 {
+        public static string _6011 {
             get {
                 return ResourceManager.GetString("6011", resourceCulture);
             }
@@ -3618,7 +2511,7 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Long arithmetic assignments not allowed.
         /// </summary>
-        internal static string _6012 {
+        public static string _6012 {
             get {
                 return ResourceManager.GetString("6012", resourceCulture);
             }
@@ -3627,936 +2520,126 @@ namespace WinAGI {
         /// <summary>
         ///   Looks up a localized string similar to Flag, variable, object and view values must be numeric (0-255).
         /// </summary>
-        internal static string _6013 {
+        public static string _6013 {
             get {
                 return ResourceManager.GetString("6013", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t create new resource; index already in use.
+        ///   Looks up a localized string similar to Fan syntax for indirection is not valid in Sierra syntax.
         /// </summary>
-        internal static string _602 {
+        public static string _6014 {
             get {
-                return ResourceManager.GetString("602", resourceCulture);
+                return ResourceManager.GetString("6014", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Source code not loaded.
+        ///   Looks up a localized string similar to Referencing a view that doesn&apos;t not exist will cause an error and may crash AGI.
         /// </summary>
-        internal static string _603 {
+        public static string _7110 {
             get {
-                return ResourceManager.GetString("603", resourceCulture);
+                return ResourceManager.GetString("7110", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Import filename must be specified.
+        ///   Looks up a localized string similar to End of line mark (;) missing; allowed in Sierra syntax, but not best coding practice.
         /// </summary>
-        internal static string _604 {
+        public static string _7111 {
             get {
-                return ResourceManager.GetString("604", resourceCulture);
+                return ResourceManager.GetString("7111", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File access error while importing %1.
+        ///   Looks up a localized string similar to Compiler adds return at end automatically, no need to code one.
         /// </summary>
-        internal static string _605 {
+        public static string _7112 {
             get {
-                return ResourceManager.GetString("605", resourceCulture);
+                return ResourceManager.GetString("7112", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t load resource: file not found (%1).
+        ///   Looks up a localized string similar to Logic contains no data to decompile.
         /// </summary>
-        internal static string _606 {
+        public static string DE01 {
             get {
-                return ResourceManager.GetString("606", resourceCulture);
+                return ResourceManager.GetString("DE01", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t create cel bitmap due to system error.
+        ///   Looks up a localized string similar to Invalid test command byte code (%1) found at resource index %2.
         /// </summary>
-        internal static string _607 {
+        public static string DE02 {
             get {
-                return ResourceManager.GetString("607", resourceCulture);
+                return ResourceManager.GetString("DE02", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid bitmap data; wrong dimensions.
+        ///   Looks up a localized string similar to Invalid action command byte code (%1) found at resource index %2.
         /// </summary>
-        internal static string _608 {
+        public static string DE03 {
             get {
-                return ResourceManager.GetString("608", resourceCulture);
+                return ResourceManager.GetString("DE03", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unhandled error while building picture (%1) at position 0x%2.
+        ///   Looks up a localized string similar to Block end at resource index %2 is past end of resource; adjusted to end.
         /// </summary>
-        internal static string _609 {
+        public static string DE04 {
             get {
-                return ResourceManager.GetString("609", resourceCulture);
+                return ResourceManager.GetString("DE04", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t create picture bitmap due to system error.
+        ///   Looks up a localized string similar to Destination for &apos;goto&apos; at resource index %2 is past end of logic; adjusted to end.
         /// </summary>
-        internal static string _610 {
+        public static string DE05 {
             get {
-                return ResourceManager.GetString("610", resourceCulture);
+                return ResourceManager.GetString("DE05", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MirrorLoop property is not defined for this loop.
+        ///   Looks up a localized string similar to Expected block end does not align with calculated block end at resource index %2.
         /// </summary>
-        internal static string _611 {
+        public static string DE06 {
             get {
-                return ResourceManager.GetString("611", resourceCulture);
+                return ResourceManager.GetString("DE06", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t delete last cel in a loop.
+        ///   Looks up a localized string similar to Message section has an invalid end-of-text marker.
         /// </summary>
-        internal static string _612 {
+        public static string DE07 {
             get {
-                return ResourceManager.GetString("612", resourceCulture);
+                return ResourceManager.GetString("DE07", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t delete last loop in a view.
+        ///   Looks up a localized string similar to Message %1 has an invalid offset (resource index %2).
         /// </summary>
-        internal static string _613 {
+        public static string DE08 {
             get {
-                return ResourceManager.GetString("613", resourceCulture);
+                return ResourceManager.GetString("DE08", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid data format for cel data.
+        ///   Looks up a localized string similar to Invalid message section data.
         /// </summary>
-        internal static string _614 {
+        public static string DE09 {
             get {
-                return ResourceManager.GetString("614", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t save resource; no filename specified.
-        /// </summary>
-        internal static string _615 {
-            get {
-                return ResourceManager.GetString("615", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t compile resource; no filename specified.
-        /// </summary>
-        internal static string _616 {
-            get {
-                return ResourceManager.GetString("616", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid resource number.
-        /// </summary>
-        internal static string _617 {
-            get {
-                return ResourceManager.GetString("617", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Only logics in a game can be compiled.
-        /// </summary>
-        internal static string _618 {
-            get {
-                return ResourceManager.GetString("618", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Logic source file must be specified.
-        /// </summary>
-        internal static string _619 {
-            get {
-                return ResourceManager.GetString("619", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid insertion point.
-        /// </summary>
-        internal static string _620 {
-            get {
-                return ResourceManager.GetString("620", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Picture point out of bounds.
-        /// </summary>
-        internal static string _621 {
-            get {
-                return ResourceManager.GetString("621", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid property file.
-        /// </summary>
-        internal static string _622 {
-            get {
-                return ResourceManager.GetString("622", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Duplicate resource ID value.
-        /// </summary>
-        internal static string _623 {
-            get {
-                return ResourceManager.GetString("623", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to save property to WAG file.
-        /// </summary>
-        internal static string _624 {
-            get {
-                return ResourceManager.GetString("624", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to retrieve resource size information.
-        /// </summary>
-        internal static string _625 {
-            get {
-                return ResourceManager.GetString("625", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to load resource; no file specified.
-        /// </summary>
-        internal static string _626 {
-            get {
-                return ResourceManager.GetString("626", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error occurred during source conversion: %1.
-        /// </summary>
-        internal static string _627 {
-            get {
-                return ResourceManager.GetString("627", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to PlaySound error: %1.
-        /// </summary>
-        internal static string _628 {
-            get {
-                return ResourceManager.GetString("628", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t play this sound because another sound is already playing..
-        /// </summary>
-        internal static string _629 {
-            get {
-                return ResourceManager.GetString("629", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is not a valid directory.
-        /// </summary>
-        internal static string _630 {
-            get {
-                return ResourceManager.GetString("630", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t create game: %1.
-        /// </summary>
-        internal static string _631 {
-            get {
-                return ResourceManager.GetString("631", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error in CompileView(%1).
-        /// </summary>
-        internal static string _632 {
-            get {
-                return ResourceManager.GetString("632", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File access error while converting directory files (&apos;%1&apos;).
-        /// </summary>
-        internal static string _633 {
-            get {
-                return ResourceManager.GetString("633", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;compile error&gt;.
-        /// </summary>
-        internal static string _634 {
-            get {
-                return ResourceManager.GetString("634", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;compile warning&gt;.
-        /// </summary>
-        internal static string _635 {
-            get {
-                return ResourceManager.GetString("635", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Warnings generated during OpenGame.
-        /// </summary>
-        internal static string _636 {
-            get {
-                return ResourceManager.GetString("636", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Warnings generated during NewGame.
-        /// </summary>
-        internal static string _637 {
-            get {
-                return ResourceManager.GetString("637", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error while adding resource to VOL file (%1).
-        /// </summary>
-        internal static string _638 {
-            get {
-                return ResourceManager.GetString("638", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Game resources exceed maximum allowed storage space.
-        /// </summary>
-        internal static string _639 {
-            get {
-                return ResourceManager.GetString("639", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled file access error while creating new VOL file.
-        /// </summary>
-        internal static string _640 {
-            get {
-                return ResourceManager.GetString("640", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Version conversion error (%1).
-        /// </summary>
-        internal static string _641 {
-            get {
-                return ResourceManager.GetString("641", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Resource must be unloaded before calling &apos;New&apos; method.
-        /// </summary>
-        internal static string _642 {
-            get {
-                return ResourceManager.GetString("642", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in SetView(%1).
-        /// </summary>
-        internal static string _643 {
-            get {
-                return ResourceManager.GetString("643", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in CloseGame(%1).
-        /// </summary>
-        internal static string _644 {
-            get {
-                return ResourceManager.GetString("644", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in Logics.Add method(%1).
-        /// </summary>
-        internal static string _645 {
-            get {
-                return ResourceManager.GetString("645", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in Pictures.Add method(%1).
-        /// </summary>
-        internal static string _647 {
-            get {
-                return ResourceManager.GetString("647", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unexpected error when importing game from DIR.
-        /// </summary>
-        internal static string _648 {
-            get {
-                return ResourceManager.GetString("648", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in Views.Add method(%1).
-        /// </summary>
-        internal static string _649 {
-            get {
-                return ResourceManager.GetString("649", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unexpected error when opening game from WAG file.
-        /// </summary>
-        internal static string _650 {
-            get {
-                return ResourceManager.GetString("650", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in Sounds.Add method(%1).
-        /// </summary>
-        internal static string _651 {
-            get {
-                return ResourceManager.GetString("651", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in Cels.Add method(%1).
-        /// </summary>
-        internal static string _653 {
-            get {
-                return ResourceManager.GetString("653", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in CompressCelData function(%1).
-        /// </summary>
-        internal static string _654 {
-            get {
-                return ResourceManager.GetString("654", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing wag file (%1).
-        /// </summary>
-        internal static string _655 {
-            get {
-                return ResourceManager.GetString("655", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in NextChar(%1).
-        /// </summary>
-        internal static string _656 {
-            get {
-                return ResourceManager.GetString("656", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in NextCommand(%1).
-        /// </summary>
-        internal static string _657 {
-            get {
-                return ResourceManager.GetString("657", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in CompileAGI method(%1).
-        /// </summary>
-        internal static string _658 {
-            get {
-                return ResourceManager.GetString("658", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in CompileSpecial method(%1).
-        /// </summary>
-        internal static string _659 {
-            get {
-                return ResourceManager.GetString("659", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in ValidateDefValue method(%1).
-        /// </summary>
-        internal static string _660 {
-            get {
-                return ResourceManager.GetString("660", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in Loops.Remove method(%1).
-        /// </summary>
-        internal static string _661 {
-            get {
-                return ResourceManager.GetString("661", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in DrawLine method(%1).
-        /// </summary>
-        internal static string _662 {
-            get {
-                return ResourceManager.GetString("662", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in SourCode.Save method(%1).
-        /// </summary>
-        internal static string _663 {
-            get {
-                return ResourceManager.GetString("663", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in ReadProperty method(%1).
-        /// </summary>
-        internal static string _664 {
-            get {
-                return ResourceManager.GetString("664", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid wag file (%1).
-        /// </summary>
-        internal static string _665 {
-            get {
-                return ResourceManager.GetString("665", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in GetGameProperties method(%1).
-        /// </summary>
-        internal static string _666 {
-            get {
-                return ResourceManager.GetString("666", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Null value not allowed for resource ID.
-        /// </summary>
-        internal static string _667 {
-            get {
-                return ResourceManager.GetString("667", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Only logic resources in a game can be exported.
-        /// </summary>
-        internal static string _668 {
-            get {
-                return ResourceManager.GetString("668", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t renumber; new number is already in use.
-        /// </summary>
-        internal static string _669 {
-            get {
-                return ResourceManager.GetString("669", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in Renumber method(%1).
-        /// </summary>
-        internal static string _670 {
-            get {
-                return ResourceManager.GetString("670", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in Export method(%1).
-        /// </summary>
-        internal static string _671 {
-            get {
-                return ResourceManager.GetString("671", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to WORDS.TOK compile error(%1).
-        /// </summary>
-        internal static string _672 {
-            get {
-                return ResourceManager.GetString("672", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in AddWord method(%1).
-        /// </summary>
-        internal static string _673 {
-            get {
-                return ResourceManager.GetString("673", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to OBJECT file compile error(%1).
-        /// </summary>
-        internal static string _674 {
-            get {
-                return ResourceManager.GetString("674", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to WAG file access error(%1).
-        /// </summary>
-        internal static string _675 {
-            get {
-                return ResourceManager.GetString("675", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Stringlist is empty.
-        /// </summary>
-        internal static string _676 {
-            get {
-                return ResourceManager.GetString("676", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to GameID is not available when game is not loaded..
-        /// </summary>
-        internal static string _677 {
-            get {
-                return ResourceManager.GetString("677", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t reference sourcecode because logic not loaded.
-        /// </summary>
-        internal static string _678 {
-            get {
-                return ResourceManager.GetString("678", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SourceFile is read-only for logics that are part of a game.
-        /// </summary>
-        internal static string _679 {
-            get {
-                return ResourceManager.GetString("679", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ResFile is read-only for resources that are part of a game.
-        /// </summary>
-        internal static string _680 {
-            get {
-                return ResourceManager.GetString("680", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid sound resource file.
-        /// </summary>
-        internal static string _681 {
-            get {
-                return ResourceManager.GetString("681", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid picture resource file (missing end-of-resource code).
-        /// </summary>
-        internal static string _682 {
-            get {
-                return ResourceManager.GetString("682", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to copy template files to game directory due to error: %1.
-        /// </summary>
-        internal static string _683 {
-            get {
-                return ResourceManager.GetString("683", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to open the newly created game due to error: %1.
-        /// </summary>
-        internal static string _684 {
-            get {
-                return ResourceManager.GetString("684", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in NewGame method: %1.
-        /// </summary>
-        internal static string _685 {
-            get {
-                return ResourceManager.GetString("685", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error in %1 ID method: %2.
-        /// </summary>
-        internal static string _686 {
-            get {
-                return ResourceManager.GetString("686", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t create new game in a directory that already has AGI game files.
-        /// </summary>
-        internal static string _687 {
-            get {
-                return ResourceManager.GetString("687", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;decompiler error&gt;.
-        /// </summary>
-        internal static string _688 {
-            get {
-                return ResourceManager.GetString("688", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No export file specified.
-        /// </summary>
-        internal static string _689 {
-            get {
-                return ResourceManager.GetString("689", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid GameID in game properties file.
-        /// </summary>
-        internal static string _690 {
-            get {
-                return ResourceManager.GetString("690", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid Interpreter Version in game properties file.
-        /// </summary>
-        internal static string _691 {
-            get {
-                return ResourceManager.GetString("691", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to load OBJECT file - invalid data.
-        /// </summary>
-        internal static string _692 {
-            get {
-                return ResourceManager.GetString("692", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to GameFile is not available when game is not loaded..
-        /// </summary>
-        internal static string _693 {
-            get {
-                return ResourceManager.GetString("693", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid GameID - V3 limited to 5 characters.
-        /// </summary>
-        internal static string _694 {
-            get {
-                return ResourceManager.GetString("694", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unhandled error &apos;%1&apos; while deleting word group.
-        /// </summary>
-        internal static string _695 {
-            get {
-                return ResourceManager.GetString("695", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t renumber word group; old group does not exist.
-        /// </summary>
-        internal static string _696 {
-            get {
-                return ResourceManager.GetString("696", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t renumber word group; new group already exists.
-        /// </summary>
-        internal static string _697 {
-            get {
-                return ResourceManager.GetString("697", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to write to file (%1). Make sure the file is not marked &apos;read only&apos;..
-        /// </summary>
-        internal static string _698 {
-            get {
-                return ResourceManager.GetString("698", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File access error while backing up WAG file.
-        /// </summary>
-        internal static string _699 {
-            get {
-                return ResourceManager.GetString("699", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to %1 is readonly.
-        /// </summary>
-        internal static string _700 {
-            get {
-                return ResourceManager.GetString("700", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File access error when opening WAG file.
-        /// </summary>
-        internal static string _701 {
-            get {
-                return ResourceManager.GetString("701", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to AddToVOL error.
-        /// </summary>
-        internal static string _702 {
-            get {
-                return ResourceManager.GetString("702", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File access error when saving DIR file.
-        /// </summary>
-        internal static string _703 {
-            get {
-                return ResourceManager.GetString("703", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing source file (%1).
-        /// </summary>
-        internal static string _704 {
-            get {
-                return ResourceManager.GetString("704", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid sound playback format.
-        /// </summary>
-        internal static string _705 {
-            get {
-                return ResourceManager.GetString("705", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to TBD: need a new custom error string.
-        /// </summary>
-        internal static string _999 {
-            get {
-                return ResourceManager.GetString("999", resourceCulture);
+                return ResourceManager.GetString("DE09", resourceCulture);
             }
         }
         
@@ -4567,6 +2650,600 @@ namespace WinAGI {
             get {
                 object obj = ResourceManager.GetObject("default_resdef", resourceCulture);
                 return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid message m%1 at resource index %2.
+        /// </summary>
+        public static string DW01 {
+            get {
+                return ResourceManager.GetString("DW01", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid word %1 at resource index %2.
+        /// </summary>
+        public static string DW02 {
+            get {
+                return ResourceManager.GetString("DW02", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid inventory item i%1 at resource index %2.
+        /// </summary>
+        public static string DW03 {
+            get {
+                return ResourceManager.GetString("DW03", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference to null inventory item (&apos;?&apos;) at resource index %2.
+        /// </summary>
+        public static string DW04 {
+            get {
+                return ResourceManager.GetString("DW04", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-unique inventory item &apos;%1&apos; at resource index %2.
+        /// </summary>
+        public static string DW05 {
+            get {
+                return ResourceManager.GetString("DW05", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknowntest19 at resource index %2 is only valid in Amiga AGI versions.
+        /// </summary>
+        public static string DW06 {
+            get {
+                return ResourceManager.GetString("DW06", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This block at resource index %2 contains no commands.
+        /// </summary>
+        public static string DW07 {
+            get {
+                return ResourceManager.GetString("DW07", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Block end at resource index %2 is outside nested block (jump location %1).
+        /// </summary>
+        public static string DW08 {
+            get {
+                return ResourceManager.GetString("DW08", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Command &apos;%1&apos; at resource index %2 is not valid for selected interpreter version (%3).
+        /// </summary>
+        public static string DW09 {
+            get {
+                return ResourceManager.GetString("DW09", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 in &apos;%3&apos; command at resource index %2 does not exist.
+        /// </summary>
+        public static string DW10 {
+            get {
+                return ResourceManager.GetString("DW10", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to quit command at resource index %2 coded with no argument.
+        /// </summary>
+        public static string DW11 {
+            get {
+                return ResourceManager.GetString("DW11", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to return command is missing at end of logic.
+        /// </summary>
+        public static string DW12 {
+            get {
+                return ResourceManager.GetString("DW12", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 %2 is in a VOL file (%3) that does not exist.
+        /// </summary>
+        public static string RE01 {
+            get {
+                return ResourceManager.GetString("RE01", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 %2 is in a VOL file (%3) marked read only.
+        /// </summary>
+        public static string RE02 {
+            get {
+                return ResourceManager.GetString("RE02", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 %2 is invalid due to file access error (%3).
+        /// </summary>
+        public static string RE03 {
+            get {
+                return ResourceManager.GetString("RE03", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 %2 has an invalid location (%3) in volume file %4.
+        /// </summary>
+        public static string RE04 {
+            get {
+                return ResourceManager.GetString("RE04", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 %2 has an invalid resource header at location %3 in %4.
+        /// </summary>
+        public static string RE05 {
+            get {
+                return ResourceManager.GetString("RE05", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to expand %1 %2 at location %3 in %4.
+        /// </summary>
+        public static string RE06 {
+            get {
+                return ResourceManager.GetString("RE06", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logic %1 source file (%2) is marked read only.
+        /// </summary>
+        public static string RE07 {
+            get {
+                return ResourceManager.GetString("RE07", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logic %1 source file (%2) is invalid due to file access error.
+        /// </summary>
+        public static string RE08 {
+            get {
+                return ResourceManager.GetString("RE08", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sound %1 contains no data.
+        /// </summary>
+        public static string RE09 {
+            get {
+                return ResourceManager.GetString("RE09", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sound %1 has one or more invalid track pointers.
+        /// </summary>
+        public static string RE10 {
+            get {
+                return ResourceManager.GetString("RE10", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View %1 contains no data.
+        /// </summary>
+        public static string RE11 {
+            get {
+                return ResourceManager.GetString("RE11", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View %1 has no loops.
+        /// </summary>
+        public static string RE12 {
+            get {
+                return ResourceManager.GetString("RE12", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OBJECT file is missing.
+        /// </summary>
+        public static string RE13 {
+            get {
+                return ResourceManager.GetString("RE13", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OBJECT is read only.
+        /// </summary>
+        public static string RE14 {
+            get {
+                return ResourceManager.GetString("RE14", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access error, unable to read OBJECT file (%1).
+        /// </summary>
+        public static string RE15 {
+            get {
+                return ResourceManager.GetString("RE15", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OBJECT file contains no data.
+        /// </summary>
+        public static string RE16 {
+            get {
+                return ResourceManager.GetString("RE16", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid data in OBJECT file, unable to decrypt.
+        /// </summary>
+        public static string RE17 {
+            get {
+                return ResourceManager.GetString("RE17", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid OBJECT file header, unable to read item data.
+        /// </summary>
+        public static string RE18 {
+            get {
+                return ResourceManager.GetString("RE18", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WORDS.TOK file is missing.
+        /// </summary>
+        public static string RE19 {
+            get {
+                return ResourceManager.GetString("RE19", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WORDS.TOK is read only.
+        /// </summary>
+        public static string RE20 {
+            get {
+                return ResourceManager.GetString("RE20", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access error, unable to read WORDS.TOK file (%1).
+        /// </summary>
+        public static string RE21 {
+            get {
+                return ResourceManager.GetString("RE21", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WORDS.TOK file contains no data.
+        /// </summary>
+        public static string RE22 {
+            get {
+                return ResourceManager.GetString("RE22", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid word index table in WORDS.TOK.
+        /// </summary>
+        public static string RE23 {
+            get {
+                return ResourceManager.GetString("RE23", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to globals.txt file not found.
+        /// </summary>
+        public static string RE24 {
+            get {
+                return ResourceManager.GetString("RE24", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to globals.txt file is read only.
+        /// </summary>
+        public static string RE25 {
+            get {
+                return ResourceManager.GetString("RE25", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File access error, unable to read globals.txt file (%1).
+        /// </summary>
+        public static string RE26 {
+            get {
+                return ResourceManager.GetString("RE26", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1 portion of DIR file is larger than expected; it may be corrupted.
+        /// </summary>
+        public static string RW01 {
+            get {
+                return ResourceManager.GetString("RW01", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %1DIR file is larger than expected; it may be corrupted.
+        /// </summary>
+        public static string RW02 {
+            get {
+                return ResourceManager.GetString("RW02", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to create resource directory &apos;%1&apos;.
+        /// </summary>
+        public static string RW03 {
+            get {
+                return ResourceManager.GetString("RW03", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error while loading WAG file; some properties not loaded. (Error %1: %2).
+        /// </summary>
+        public static string RW04 {
+            get {
+                return ResourceManager.GetString("RW04", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Picture %1 is missing its &apos;end-of-resource&apos; marker and may be corrupt.
+        /// </summary>
+        public static string RW05 {
+            get {
+                return ResourceManager.GetString("RW05", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Picture %1 has at least one invalid color assignment - picture may be corrupt.
+        /// </summary>
+        public static string RW06 {
+            get {
+                return ResourceManager.GetString("RW06", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Picture %1 has at least one invalid command byte - picture may be corrupt.
+        /// </summary>
+        public static string RW07 {
+            get {
+                return ResourceManager.GetString("RW07", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Picture %1 has extra data past the end of resource.
+        /// </summary>
+        public static string RW08 {
+            get {
+                return ResourceManager.GetString("RW08", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sound %1 has one or more zero-length notes.
+        /// </summary>
+        public static string RW09 {
+            get {
+                return ResourceManager.GetString("RW09", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sound %1 has one or more tracks with missing end of track marker.
+        /// </summary>
+        public static string RW10 {
+            get {
+                return ResourceManager.GetString("RW10", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View %1 has an invalid data pointer for loop %2.
+        /// </summary>
+        public static string RW11 {
+            get {
+                return ResourceManager.GetString("RW11", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loop %2 in view %1 has invalid mirror assignment.
+        /// </summary>
+        public static string RW12 {
+            get {
+                return ResourceManager.GetString("RW12", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loop %2 in view %1 shares cel data with another loop but is not a mirror.
+        /// </summary>
+        public static string RW13 {
+            get {
+                return ResourceManager.GetString("RW13", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loop %2 of view %1 has no cels.
+        /// </summary>
+        public static string RW14 {
+            get {
+                return ResourceManager.GetString("RW14", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View %1 has an invalid cel pointer for cel %2 of loop %3.
+        /// </summary>
+        public static string RW15 {
+            get {
+                return ResourceManager.GetString("RW15", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View %1 has invalid cel data for cel %2 of loop %3.
+        /// </summary>
+        public static string RW16 {
+            get {
+                return ResourceManager.GetString("RW16", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View %1 has an invalid view description pointer.
+        /// </summary>
+        public static string RW17 {
+            get {
+                return ResourceManager.GetString("RW17", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid text pointer encountered in OBJECT file.
+        /// </summary>
+        public static string RW18 {
+            get {
+                return ResourceManager.GetString("RW18", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First item is not the null &apos;?&apos; item.
+        /// </summary>
+        public static string RW19 {
+            get {
+                return ResourceManager.GetString("RW19", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Abnormal word index table.
+        /// </summary>
+        public static string RW20 {
+            get {
+                return ResourceManager.GetString("RW20", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected WORDS.TOK end of file.
+        /// </summary>
+        public static string RW21 {
+            get {
+                return ResourceManager.GetString("RW21", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upper case characters detected in one or more words.
+        /// </summary>
+        public static string RW22 {
+            get {
+                return ResourceManager.GetString("RW22", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ignored characters detected in WORDS.TOK.
+        /// </summary>
+        public static string RW23 {
+            get {
+                return ResourceManager.GetString("RW23", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more duplicate words encountered.
+        /// </summary>
+        public static string RW24 {
+            get {
+                return ResourceManager.GetString("RW24", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple group 1 words.
+        /// </summary>
+        public static string RW25 {
+            get {
+                return ResourceManager.GetString("RW25", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple group 9999 words.
+        /// </summary>
+        public static string RW26 {
+            get {
+                return ResourceManager.GetString("RW26", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid data in WORDS.TOK at position %1.
+        /// </summary>
+        public static string RW27 {
+            get {
+                return ResourceManager.GetString("RW27", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to globals.txt file has one or more invalid entries.
+        /// </summary>
+        public static string RW28 {
+            get {
+                return ResourceManager.GetString("RW28", resourceCulture);
             }
         }
     }

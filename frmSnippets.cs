@@ -273,7 +273,7 @@ namespace WinAGI.Editor {
 
         private void mnuECharMap_Click(object sender, EventArgs e) {
             int codepage;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 codepage = EditGame.CodePage;
             }
             else {

@@ -53,7 +53,7 @@ namespace WinAGI.Editor {
             InitStatusStrip();
             MdiParent = MDIMain;
             InitFonts();
-            if (EditGame == null || !EditGame.SierraSyntax) {
+            if (EditGame is null || !EditGame.SierraSyntax) {
                 invalid1st = INVALID_FIRST_CHARS;
                 invalidall = INVALID_DEFINE_CHARS;
             }
@@ -88,6 +88,32 @@ namespace WinAGI.Editor {
 
         #region Event Handlers
         #region Form Events
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
+            // Enter key is usually captured by the grid, but we want it to go to the textbox
+            if (keyData == Keys.Enter) {
+                if (EditTextBox.Focused) {
+                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                    return true;
+                }
+            }
+            // Escape key is usually captured by the grid, but we want it to go to the textbox
+            if (keyData == Keys.Escape) {
+                if (EditTextBox.Focused) {
+                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Escape));
+                    return true;
+                }
+            }
+            if (keyData == Keys.Tab) {
+                if (EditTextBox.Focused) {
+                    if (globalsgrid.IsCurrentCellInEditMode) {
+                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
+                        return true;
+                    }
+                }
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         private void frmGlobals_Leave(object sender, EventArgs e) {
             // if editing, need to cancel; otherwise, the edit text box
             // control stays active, and any other form will not be able
@@ -184,7 +210,7 @@ namespace WinAGI.Editor {
             }
             mnuEUndo.Enabled = UndoCol.Count > 0;
             if (mnuEUndo.Enabled) {
-                mnuEUndo.Text = "Undo " + Editor.Base.LoadResString(GLBUNDOTEXT + (int)UndoCol.Peek().UDAction);
+                mnuEUndo.Text = "Undo " + Editor.Base.LoadResString(GLBUNDOTEXT + (int)UndoCol.Peek().Action);
             }
             else {
                 mnuEUndo.Text = "Undo";
@@ -241,7 +267,7 @@ namespace WinAGI.Editor {
             }
             mnuEInsert.Enabled = true;
             mnuESelectAll.Enabled = true; // always available
-            mnuEFindInLogics.Visible = mnuESep1.Visible = EditGame != null;
+            mnuEFindInLogics.Visible = mnuESep1.Visible = EditGame is not null;
             if (mnuESep1.Visible) {
                 if (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect) {
                     mnuEFindInLogics.Enabled = globalsgrid.CurrentCell.ColumnIndex == NameCol;
@@ -311,20 +337,20 @@ namespace WinAGI.Editor {
                 return;
             }
             GlobalsUndo NextUndo = UndoCol.Pop();
-            switch (NextUndo.UDAction) {
-            case GlobalsUndo.udgActionType.udgAddDefine:
+            switch (NextUndo.Action) {
+            case GlobalsUndo.GlobalUndoAction.AddDefine:
                 // remove the define values that was added
-                globalsgrid.Rows.RemoveAt(NextUndo.UDPos);
+                globalsgrid.Rows.RemoveAt(NextUndo.Pos);
                 break;
-            case GlobalsUndo.udgActionType.udgImportDefines:
-            case GlobalsUndo.udgActionType.udgPasteDefines:
+            case GlobalsUndo.GlobalUndoAction.ImportDefines:
+            case GlobalsUndo.GlobalUndoAction.PasteDefines:
                 // remove the define values were added
                 // if there is a value, the define was a replace;
                 // if no value, it was added as a new row 
 
                 // step through the defines list in reverse
                 // order to preserve the previous state
-                for (int i = NextUndo.UDCount - 1; i >= 0; i--) {
+                for (int i = NextUndo.Count - 1; i >= 0; i--) {
                     int rownum = int.Parse(NextUndo.UDDefine[i].Name);
                     string value = NextUndo.UDDefine[i].Value;
                     if (value.Length > 0) {
@@ -339,23 +365,23 @@ namespace WinAGI.Editor {
                     }
                 }
                 break;
-            case GlobalsUndo.udgActionType.udgDeleteDefine:
-            case GlobalsUndo.udgActionType.udgCutDefine:
-            case GlobalsUndo.udgActionType.udgClearList:
+            case GlobalsUndo.GlobalUndoAction.DeleteDefine:
+            case GlobalsUndo.GlobalUndoAction.CutDefine:
+            case GlobalsUndo.GlobalUndoAction.ClearList:
                 // add back the items removed and select them
                 globalsgrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-                globalsgrid.Rows.Insert(NextUndo.UDPos, NextUndo.UDCount);
-                for (int i = 0; i < NextUndo.UDCount; i++) {
+                globalsgrid.Rows.Insert(NextUndo.Pos, NextUndo.Count);
+                for (int i = 0; i < NextUndo.Count; i++) {
                     // set values for hidden columns first
-                    globalsgrid[TypeCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Type;
-                    globalsgrid[NameCheckCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].NameCheck;
-                    globalsgrid[ValueCheckCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].ValueCheck;
-                    globalsgrid[DefaultCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Default;
+                    globalsgrid[TypeCol, NextUndo.Pos + i].Value = NextUndo.UDDefine[i].Type;
+                    globalsgrid[NameCheckCol, NextUndo.Pos + i].Value = NextUndo.UDDefine[i].NameCheck;
+                    globalsgrid[ValueCheckCol, NextUndo.Pos + i].Value = NextUndo.UDDefine[i].ValueCheck;
+                    globalsgrid[DefaultCol, NextUndo.Pos + i].Value = NextUndo.UDDefine[i].Default;
                     // visible columns will trigger format event
-                    globalsgrid[NameCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Name;
-                    globalsgrid[ValueCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Value;
-                    globalsgrid[CommentCol, NextUndo.UDPos + i].Value = NextUndo.UDDefine[i].Comment;
-                    globalsgrid.Rows[NextUndo.UDPos + i].Selected = true;
+                    globalsgrid[NameCol, NextUndo.Pos + i].Value = NextUndo.UDDefine[i].Name;
+                    globalsgrid[ValueCol, NextUndo.Pos + i].Value = NextUndo.UDDefine[i].Value;
+                    globalsgrid[CommentCol, NextUndo.Pos + i].Value = NextUndo.UDDefine[i].Comment;
+                    globalsgrid.Rows[NextUndo.Pos + i].Selected = true;
                     if (NextUndo.UDDefine[i].Default.Length > 0) {
                         DelDefine delDefine = new() {
                             Name = NextUndo.UDDefine[i].Default,
@@ -364,31 +390,31 @@ namespace WinAGI.Editor {
                         DeletedDefines.Remove(delDefine);
                     }
                 }
-                if (!globalsgrid.Rows[NextUndo.UDPos].Displayed) {
-                    if (globalsgrid.Rows[NextUndo.UDPos].Index < 2) {
+                if (!globalsgrid.Rows[NextUndo.Pos].Displayed) {
+                    if (globalsgrid.Rows[NextUndo.Pos].Index < 2) {
                         globalsgrid.FirstDisplayedScrollingRowIndex = 0;
                     }
                     else {
-                        globalsgrid.FirstDisplayedScrollingRowIndex = globalsgrid.Rows[NextUndo.UDPos].Index - 2;
+                        globalsgrid.FirstDisplayedScrollingRowIndex = globalsgrid.Rows[NextUndo.Pos].Index - 2;
                     }
                 }
                 break;
-            case GlobalsUndo.udgActionType.udgEditName:
-                validname = (int)ValidateGlobalName(NextUndo.UDText);
-                globalsgrid[NameCol, NextUndo.UDPos].Value = NextUndo.UDText;
-                globalsgrid[NameCol, NextUndo.UDPos].Selected = true;
+            case GlobalsUndo.GlobalUndoAction.EditName:
+                validname = (int)ValidateGlobalName(NextUndo.Text);
+                globalsgrid[NameCol, NextUndo.Pos].Value = NextUndo.Text;
+                globalsgrid[NameCol, NextUndo.Pos].Selected = true;
                 break;
-            case GlobalsUndo.udgActionType.udgEditValue:
-                globalsgrid[ValueCol, NextUndo.UDPos].Value = NextUndo.UDText;
+            case GlobalsUndo.GlobalUndoAction.EditValue:
+                globalsgrid[ValueCol, NextUndo.Pos].Value = NextUndo.Text;
                 ArgType type = ArgType.None;
-                DefineValueCheck valcheck = ValidateGlobalValue(NextUndo.UDText, ref type);
-                globalsgrid[ValueCheckCol, NextUndo.UDPos].Value = valcheck;
-                globalsgrid[TypeCol, NextUndo.UDPos].Value = type;
-                globalsgrid[ValueCol, NextUndo.UDPos].Selected = true;
+                DefineValueCheck valcheck = ValidateGlobalValue(NextUndo.Text, ref type);
+                globalsgrid[ValueCheckCol, NextUndo.Pos].Value = valcheck;
+                globalsgrid[TypeCol, NextUndo.Pos].Value = type;
+                globalsgrid[ValueCol, NextUndo.Pos].Selected = true;
                 break;
-            case GlobalsUndo.udgActionType.udgEditComment:
-                globalsgrid[CommentCol, NextUndo.UDPos].Value = NextUndo.UDText;
-                globalsgrid[CommentCol, NextUndo.UDPos].Selected = true;
+            case GlobalsUndo.GlobalUndoAction.EditComment:
+                globalsgrid[CommentCol, NextUndo.Pos].Value = NextUndo.Text;
+                globalsgrid[CommentCol, NextUndo.Pos].Selected = true;
                 break;
             }
             MarkAsChanged();
@@ -406,7 +432,7 @@ namespace WinAGI.Editor {
             // then delete
             RemoveRows(globalsgrid.SelectedRows[0].Index, globalsgrid.SelectedRows[^1].Index);
             // rename last Undo object
-            UndoCol.Peek().UDAction = GlobalsUndo.udgActionType.udgCutDefine;
+            UndoCol.Peek().Action = GlobalsUndo.GlobalUndoAction.CutDefine;
         }
 
         private void mnuECopy_Click(object sender, EventArgs e) {
@@ -478,8 +504,8 @@ namespace WinAGI.Editor {
             }
             bool blnErrors = false;
             GlobalsUndo NextUndo = new();
-            NextUndo.UDAction = GlobalsUndo.udgActionType.udgPasteDefines;
-            NextUndo.UDPos = globalsgrid.CurrentRow.Index;
+            NextUndo.Action = GlobalsUndo.GlobalUndoAction.PasteDefines;
+            NextUndo.Pos = globalsgrid.CurrentRow.Index;
             TDefine[] PasteDefines;
             PasteDefines = ReadDefines(Clipboard.GetText(TextDataFormat.UnicodeText), ref blnErrors);
             if (PasteDefines.Length == 0) {
@@ -503,7 +529,7 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Information);
             }
             else {
-                NextUndo.UDCount = undodata.Length;
+                NextUndo.Count = undodata.Length;
                 for (int i = 0; i < undodata.Length; i++) {
                     NextUndo.UDDefine[i] = undodata[i];
                 }
@@ -539,8 +565,8 @@ namespace WinAGI.Editor {
                 return;
             }
             GlobalsUndo NextUndo = new();
-            NextUndo.UDAction = GlobalsUndo.udgActionType.udgClearList;
-            NextUndo.UDCount = globalsgrid.RowCount;
+            NextUndo.Action = GlobalsUndo.GlobalUndoAction.ClearList;
+            NextUndo.Count = globalsgrid.RowCount;
             for (int i = 0; i < globalsgrid.RowCount - 1; i++) {
                 TDefine tmpdef = new TDefine();
                 tmpdef.Type = (ArgType)globalsgrid[TypeCol, i].Value;
@@ -696,7 +722,7 @@ namespace WinAGI.Editor {
                 return;
             }
             frmCharPicker CharPicker;
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 CharPicker = new(EditGame.CodePage);
             }
             else {
@@ -730,23 +756,23 @@ namespace WinAGI.Editor {
         #region Grid Events
         private void globalsgrid_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
 
-            if (globalsgrid[TypeCol, e.RowIndex].Value == null) {
+            if (globalsgrid[TypeCol, e.RowIndex].Value is null) {
                 globalsgrid[TypeCol, e.RowIndex].Value = ArgType.None;
             }
-            if (globalsgrid[DefaultCol, e.RowIndex].Value == null) {
+            if (globalsgrid[DefaultCol, e.RowIndex].Value is null) {
                 globalsgrid[DefaultCol, e.RowIndex].Value = "";
             }
-            if (globalsgrid[NameCheckCol, e.RowIndex].Value == null) {
+            if (globalsgrid[NameCheckCol, e.RowIndex].Value is null) {
                 globalsgrid[NameCheckCol, e.RowIndex].Value = DefineNameCheck.OK;
             }
-            if (globalsgrid[ValueCheckCol, e.RowIndex].Value == null) {
+            if (globalsgrid[ValueCheckCol, e.RowIndex].Value is null) {
                 globalsgrid[ValueCheckCol, e.RowIndex].Value = DefineValueCheck.OK;
             }
         }
 
         private void globalsgrid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
-            if (e.Value == null || e.RowIndex == globalsgrid.NewRowIndex ||
-                globalsgrid[TypeCol, e.RowIndex].Value == null) {
+            if (e.Value is null || e.RowIndex == globalsgrid.NewRowIndex ||
+                globalsgrid[TypeCol, e.RowIndex].Value is null) {
                 return;
             }
             // determine if tooltip is needed
@@ -767,7 +793,7 @@ namespace WinAGI.Editor {
             // next apply formatting based on validatecheck status
             switch (e.ColumnIndex) {
             case NameCol:
-                if (globalsgrid[NameCheckCol, e.RowIndex].Value != null) {
+                if (globalsgrid[NameCheckCol, e.RowIndex].Value is not null) {
                     switch ((DefineNameCheck)globalsgrid[NameCheckCol, e.RowIndex].Value) {
                     case DefineNameCheck.OK:
                         // default style
@@ -1001,7 +1027,6 @@ namespace WinAGI.Editor {
         }
 
         private void globalsgrid_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
-            Debug.Assert(globalsgrid.CurrentCell.Value != null);
             EditCell(e.ColumnIndex);
         }
 
@@ -1069,10 +1094,6 @@ namespace WinAGI.Editor {
                     if (EditDefine.Name == EditTextBox.Text) {
                         // no change
                         globalsgrid.EndEdit();
-                        if (EditDefine.Name.Length == 0) {
-                            // cancel an add
-                            globalsgrid.Rows.RemoveAt(globalsgrid.Rows.Count - 1);
-                        }
                         return;
                     }
                     // can't use the compiler validation checks, because they won't catch
@@ -1092,7 +1113,7 @@ namespace WinAGI.Editor {
                                     MessageBoxButtons.YesNo,
                                     MessageBoxIcon.Question,
                                     "Always take this action", ref blnNoWarn,
-                                    WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                                    WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                                 if (blnNoWarn) {
                                     if (rtn == DialogResult.No) WinAGISettings.DelBlankG.Value = AskOption.No;
                                     if (rtn == DialogResult.Yes) WinAGISettings.DelBlankG.Value = AskOption.Yes;
@@ -1182,7 +1203,7 @@ namespace WinAGI.Editor {
                             "Invalid Define Name",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error, 0, 0,
-                            WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                            WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                         EditTextBox.Multiline = true;
                         EditTextBox.SelectAll();
                         return;
@@ -1229,7 +1250,7 @@ namespace WinAGI.Editor {
                                MessageBoxButtons.YesNo,
                                MessageBoxIcon.Question,
                                "Don't show this warning again.", ref blnNoWarn,
-                               WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                               WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                             WinAGISettings.WarnResOverride.Value = !blnNoWarn;
                             EditTextBox.Multiline = true;
                         }
@@ -1244,10 +1265,10 @@ namespace WinAGI.Editor {
                     EditDefine.Name = EditTextBox.Text;
                     if (!Inserting) {
                         NextUndo = new() {
-                            UDAction = GlobalsUndo.udgActionType.udgEditName,
-                            UDCount = 1,
-                            UDPos = globalsgrid.CurrentRow.Index,
-                            UDText = globalsgrid.CurrentCell.Value.ToString()
+                            Action = GlobalsUndo.GlobalUndoAction.EditName,
+                            Count = 1,
+                            Pos = globalsgrid.CurrentRow.Index,
+                            Text = globalsgrid.CurrentCell.Value.ToString()
                         };
                         AddUndo(NextUndo);
                     }
@@ -1298,7 +1319,7 @@ namespace WinAGI.Editor {
                                         MessageBoxButtons.YesNo,
                                         MessageBoxIcon.Question,
                                         "Don't show this warning again.", ref blnNoWarn,
-                                        WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                                        WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                                     EditTextBox.Multiline = true;
                                     WinAGISettings.WarnInvalidCtlVal.Value = !blnNoWarn;
                                 }
@@ -1313,7 +1334,7 @@ namespace WinAGI.Editor {
                             case 's':
                                 if (WinAGISettings.WarnInvalidStrVal.Value) {
                                     string slimit = "s23";
-                                    if (EditGame != null) {
+                                    if (EditGame is not null) {
                                         if (EditGame.InterpreterVersion == "2.089" || EditGame.InterpreterVersion == "2.272" || EditGame.InterpreterVersion == "3.002149") {
                                             slimit = "s12";
                                         }
@@ -1326,7 +1347,7 @@ namespace WinAGI.Editor {
                                         MessageBoxButtons.YesNo,
                                         MessageBoxIcon.Question,
                                         "Don't show this warning again.", ref blnNoWarn,
-                                        WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                                        WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                                     EditTextBox.Multiline = true;
                                     WinAGISettings.WarnInvalidStrVal.Value = !blnNoWarn;
                                 }
@@ -1346,7 +1367,7 @@ namespace WinAGI.Editor {
                                     "Invalid Word Argument Value",
                                     MessageBoxButtons.YesNo,
                                     MessageBoxIcon.Question, 0, 0,
-                                    WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                                    WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                                 EditTextBox.Multiline = true;
                                 if (rtn == DialogResult.No) {
                                     EditTextBox.SelectAll();
@@ -1358,19 +1379,15 @@ namespace WinAGI.Editor {
                         case DefineValueCheck.NotAValue:
                             // 4 = Value is not a string, number or argument marker
                             EditTextBox.Multiline = false;
-                            rtn = MessageBox.Show(MDIMain,
-                                "'" + EditTextBox.Text + "' is not a number, argument marker or text string." +
-                                "Do you really want to assign this define value?",
+                            MessageBox.Show(MDIMain,
+                                "'" + EditTextBox.Text + "' is not a number, argument marker or text string. ",
                                 "Unknown Define Value Type",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question, 0, 0,
-                                WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, 0, 0,
+                                WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                             EditTextBox.Multiline = true;
-                            if (rtn == DialogResult.No) {
-                                EditTextBox.SelectAll();
-                                return;
-                            }
-                            break;
+                            EditTextBox.SelectAll();
+                            return;
                         case DefineValueCheck.Reserved:
                         // 5 = Value is already defined by a reserved name
                         case DefineValueCheck.Global:
@@ -1385,7 +1402,7 @@ namespace WinAGI.Editor {
                                     MessageBoxButtons.YesNo,
                                     MessageBoxIcon.Question,
                                     "Don't show this warning again.", ref blnNoWarn,
-                                    WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                                    WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                                 EditTextBox.Multiline = true;
                                 WinAGISettings.WarnDupGVal.Value = !blnNoWarn;
                             }
@@ -1402,10 +1419,10 @@ namespace WinAGI.Editor {
                     EditDefine.Value = EditTextBox.Text;
                     if (!Inserting) {
                         NextUndo = new();
-                        NextUndo.UDAction = GlobalsUndo.udgActionType.udgEditValue;
-                        NextUndo.UDCount = 1;
-                        NextUndo.UDPos = globalsgrid.CurrentRow.Index;
-                        NextUndo.UDText = globalsgrid.CurrentCell.Value.ToString();
+                        NextUndo.Action = GlobalsUndo.GlobalUndoAction.EditValue;
+                        NextUndo.Count = 1;
+                        NextUndo.Pos = globalsgrid.CurrentRow.Index;
+                        NextUndo.Text = globalsgrid.CurrentCell.Value.ToString();
                         AddUndo(NextUndo);
                     }
                     globalsgrid[ValueCheckCol, globalsgrid.CurrentRow.Index].Value = valuecheck;
@@ -1426,17 +1443,17 @@ namespace WinAGI.Editor {
                     EditDefine.Comment = EditTextBox.Text;
                     NextUndo = new();
                     if (Inserting) {
-                        NextUndo.UDAction = GlobalsUndo.udgActionType.udgAddDefine;
+                        NextUndo.Action = GlobalsUndo.GlobalUndoAction.AddDefine;
                         globalsgrid.CurrentRow.Cells[TypeCol].Value = EditDefine.Type;
                         globalsgrid.CurrentRow.Cells[DefaultCol].Value = "";
                         Inserting = false;
                     }
                     else {
-                        NextUndo.UDAction = GlobalsUndo.udgActionType.udgEditComment;
-                        NextUndo.UDText = globalsgrid.CurrentCell.Value.ToString();
+                        NextUndo.Action = GlobalsUndo.GlobalUndoAction.EditComment;
+                        NextUndo.Text = globalsgrid.CurrentCell.Value.ToString();
                     }
-                    NextUndo.UDCount = 1;
-                    NextUndo.UDPos = globalsgrid.CurrentRow.Index;
+                    NextUndo.Count = 1;
+                    NextUndo.Pos = globalsgrid.CurrentRow.Index;
                     AddUndo(NextUndo);
                     break;
                 }
@@ -1501,25 +1518,6 @@ namespace WinAGI.Editor {
             globalsgrid.AlternatingRowsDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
         }
 
-        protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
-            // Enter key is usually captured by the grid, but we want it to go to the textbox
-            if (keyData == Keys.Enter) {
-                if (EditTextBox.Focused) {
-                    EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
-                    return true;
-                }
-            }
-            if (keyData == Keys.Tab) {
-                if (EditTextBox.Focused) {
-                    if (globalsgrid.IsCurrentCellInEditMode) {
-                        EditTextBox_KeyDown(EditTextBox, new KeyEventArgs(Keys.Enter));
-                        return true;
-                    }
-                }
-            }
-            return base.ProcessCmdKey(ref msg, keyData);
-        }
-
         /// <summary>
         /// loads a defines list into the grid for editing
         /// </summary>
@@ -1530,18 +1528,71 @@ namespace WinAGI.Editor {
             string definetext;
 
             if (!File.Exists(GlobalFile)) {
-                return false;
+                if (ingame) {
+                    // create a new file
+                    MessageBox.Show(MDIMain,
+                        "globals.txt is missing from this game's source directory. " +
+                        "A blank file will be created.",
+                        "Missing globals.txt",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re24.htm");
+                }
+                else {
+                    // cancel
+                    MessageBox.Show(MDIMain,
+                        "File not found.",
+                        "Defines Editor Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                    return false;
+                }
             }
             MDIMain.UseWaitCursor = true;
+            // check for readonly
+            if ((File.GetAttributes(GlobalFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                if (ingame) {
+                    MessageBox.Show(MDIMain,
+                        "globals.txt is tagged as readonly. It cannot be edited " +
+                        "unless full access is allowed.",
+                        "Readonly globals.txt",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors\\re25.htm");
+                }
+                else {
+                    MessageBox.Show(MDIMain,
+                        "This file is tagged as readonly. It cannot be edited " +
+                        "unless full access is allowed.",
+                        "Readonly Defines File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+                return false;
+            }
             try {
                 // open file for input
                 definetext = File.ReadAllText(GlobalFile);
             }
             catch (Exception) {
                 // if error opening file, just exit
-                MessageBox.Show(MDIMain,
-                    "An error occurred while accessing this defines file. No defines were loaded.",
-                    "Defines File Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (ingame) {
+                    MessageBox.Show(MDIMain,
+                        "An error occurred while accessing globals.txt. " +
+                        "It cannot be edited.",
+                        "globals.txt File Access Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                }
+                else {
+                    MessageBox.Show(MDIMain,
+                        "An error occurred while accessing this defines file. " +
+                        "It cannot be edited.",
+                        "Defines File Access Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+
+                }
                 return false;
             }
             TDefine[] defines = ReadDefines(definetext, ref blnError);
@@ -1660,7 +1711,6 @@ namespace WinAGI.Editor {
                     break;
                 }
                 MDIMain.UseWaitCursor = true;
-                // TODO: do I need error handling for load/source changes?
                 if (rtn == DialogResult.Yes) {
                     // step through all defines; if the current name is different than
                     // the original name, change it in all logics
@@ -1861,18 +1911,41 @@ namespace WinAGI.Editor {
 
             // update the globallist object
             if (InGame) {
+                bool warning = false;
                 EditGame.GlobalDefines.Clear();
                 for (int i = 0; i < globalsgrid.Rows.Count - 1; i++) {
-                    EditGame.GlobalDefines.Add(
-                        (string)globalsgrid[NameCol, i].Value,
-                        (string)globalsgrid[ValueCol, i].Value,
-                        (string)globalsgrid[CommentCol, i].Value,
-                        (ArgType)globalsgrid[TypeCol, i].Value
-                    );
-                    ProgressWin.pgbStatus.Value += 1;
+                    // confirm value is either an arg marker, number or literal string
+                    if (ValidateDefineValue((string)globalsgrid[ValueCol, i].Value)) {
+                        EditGame.GlobalDefines.Add(
+                            (string)globalsgrid[NameCol, i].Value,
+                            (string)globalsgrid[ValueCol, i].Value,
+                            (string)globalsgrid[CommentCol, i].Value,
+                            (ArgType)globalsgrid[TypeCol, i].Value
+                        );
+                    }
+                    else {
+                        // bad define - add warning to grid
+                        Debug.Assert(false);
+                        warning = true;
+                    }
+                        ProgressWin.pgbStatus.Value += 1;
                     ProgressWin.Refresh();
                 }
                 EditGame.GlobalDefines.Save();
+                MDIMain.ClearWarnings(AGIResType.Globals, 0);
+                if (warning) {
+                    // msg box?
+                    Debug.Assert(false);
+                    //TWinAGIEventInfo warnInfo = new() {
+                    //    ResType = AGIResType.Words,
+                    //    ResNum = 0,
+                    //    Line = "--",
+                    //    Type = EventType.ResourceWarning,
+                    //    ID = "RW26",
+                    //    Text = EngineResources.RW26,
+                    //};
+                    //MDIMain.AddWarning(warnInfo);
+                }
             }
             else {
                 // save the file
@@ -1880,8 +1953,11 @@ namespace WinAGI.Editor {
                 try {
                     File.WriteAllLines(savefile, stlGlobals);
                 }
-                catch (Exception e) {
-                    ErrMsgBox(e, "Unable to save due to file error.", "", "File Error");
+                catch (Exception ex) {
+                    ErrMsgBox(ex,
+                        "Unable to save due to file error.",
+                        ex.StackTrace,
+                        "File Error");
                 }
                 FileName = savefile;
             }
@@ -1919,8 +1995,43 @@ namespace WinAGI.Editor {
             return MDIMain.SaveDlg.FileName;
         }
 
+        private bool ValidateDefineValue(string value) {
+            if (value.Length == 0) {
+                return false;
+            }
+            // values must be an AGI argument marker (variable/flag/etc),
+            // literal string, or a number
+
+            if (int.TryParse(value, out int intVal)) {
+                // numeric
+                // unsigned byte (0-255) or signed byte (-128 to 127) are OK
+                if (intVal >= -128 && intVal < 256) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                // non-numeric, check for arg marker
+                if ("vfmoiswc".Contains(value[0])) {
+                    string strVal = value[1..];
+                    if (int.TryParse(strVal, out intVal)) {
+                        return intVal >= 0 && intVal <= 255;
+                    }
+                }
+                // non-numeric, non-marker and most likely a string
+                if (FanLogicCompiler.IsAGIString(value)) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+
         private void EditCell(int columnindex) {
-            if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex || globalsgrid.CurrentCell.Value == null) {
+            if (globalsgrid.CurrentRow.Index == globalsgrid.NewRowIndex || globalsgrid.CurrentCell.Value is null) {
                 // only start new define in first column
                 if (columnindex != NameCol) {
                     return;
@@ -1928,7 +2039,7 @@ namespace WinAGI.Editor {
                 EditDefine.Type = ArgType.None;
                 EditDefine.Default = "";
                 EditDefine.Name = "";
-                EditDefine.Value = "";
+                EditDefine.Value = "\"\"";
                 EditDefine.Comment = "";
             }
             else {
@@ -1989,8 +2100,8 @@ namespace WinAGI.Editor {
                 return;
             }
             GlobalsUndo NextUndo = new();
-            NextUndo.UDAction = GlobalsUndo.udgActionType.udgImportDefines;
-            NextUndo.UDPos = globalsgrid.NewRowIndex;
+            NextUndo.Action = GlobalsUndo.GlobalUndoAction.ImportDefines;
+            NextUndo.Pos = globalsgrid.NewRowIndex;
             TDefine[] addDefines = ReadDefines(definetext, ref blnError);
             if (addDefines.Length == 0) {
                 // nothing to paste
@@ -2011,7 +2122,7 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Information);
             }
             else {
-                NextUndo.UDCount = undodata.Length;
+                NextUndo.Count = undodata.Length;
                 for (int i = 0; i < undodata.Length; i++) {
                     NextUndo.UDDefine[i] = undodata[i];
                 }
@@ -2067,7 +2178,7 @@ namespace WinAGI.Editor {
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question,
                                 "Don't show this warning again.", ref dontask,
-                                WinAGIHelp, "htm\\winagi\\Global Defines.htm#syntax");
+                                WinAGIHelp, "htm\\winagi\\globaldefines.htm#syntax");
                             if (dontask) {
                                 if (rtn == DialogResult.Yes) {
                                     WinAGISettings.WarnDupGName.Value = AskOption.Yes;
@@ -2180,7 +2291,7 @@ namespace WinAGI.Editor {
                 }
             }
             // resourceIDs
-            if (EditGame != null && EditGame.IncludeIDs) {
+            if (EditGame is not null && EditGame.IncludeIDs) {
                 foreach (Logic logic in EditGame.Logics) {
                     if (checkname == logic.ID) {
                         return DefineNameCheck.ResourceID;
@@ -2258,7 +2369,7 @@ namespace WinAGI.Editor {
                             }
                         }
                         // check reserved
-                        if (EditGame != null && EditGame.IncludeReserved) {
+                        if (EditGame is not null && EditGame.IncludeReserved) {
                             switch (type) {
                             case Flag:
                                 if (intVal <= 15)
@@ -2317,7 +2428,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 // non-numeric, non-marker and most likely a string
-                if (LogicCompiler.IsAGIString(checkvalue)) {
+                if (FanLogicCompiler.IsAGIString(checkvalue)) {
                     type = DefStr;
                     return DefineValueCheck.OK;
                 }
@@ -2396,9 +2507,9 @@ namespace WinAGI.Editor {
             if (!DontUndo) {
                 GlobalsUndo NextUndo = new GlobalsUndo();
                 TDefine tmpDef = new();
-                NextUndo.UDAction = GlobalsUndo.udgActionType.udgDeleteDefine;
-                NextUndo.UDCount = BtmRow - TopRow + 1;
-                NextUndo.UDPos = TopRow;
+                NextUndo.Action = GlobalsUndo.GlobalUndoAction.DeleteDefine;
+                NextUndo.Count = BtmRow - TopRow + 1;
+                NextUndo.Pos = TopRow;
                 for (int i = 0; i <= BtmRow - TopRow; i++) {
                     tmpDef.Type = (ArgType)globalsgrid[TypeCol, TopRow + i].Value;
                     tmpDef.Default = (string)globalsgrid[DefaultCol, TopRow + i].Value;
@@ -2428,9 +2539,9 @@ namespace WinAGI.Editor {
         private void RemoveRow(int RowIndex, bool DontUndo = false) {
             if (!DontUndo) {
                 GlobalsUndo NextUndo = new GlobalsUndo();
-                NextUndo.UDAction = GlobalsUndo.udgActionType.udgDeleteDefine;
-                NextUndo.UDCount = 1;
-                NextUndo.UDPos = RowIndex;
+                NextUndo.Action = GlobalsUndo.GlobalUndoAction.DeleteDefine;
+                NextUndo.Count = 1;
+                NextUndo.Pos = RowIndex;
                 TDefine tmpDef = new();
                 tmpDef.Type = (ArgType)globalsgrid[TypeCol, RowIndex].Value;
                 tmpDef.Default = (string)globalsgrid[DefaultCol, RowIndex].Value;

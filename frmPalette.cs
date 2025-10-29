@@ -23,7 +23,7 @@ namespace WinAGI.Editor {
             FormMode = mode;
             switch (FormMode) {
             case 0:
-                if (EditGame != null) {
+                if (EditGame is not null) {
                     Text = "Modify Color Palette for this Game";
                     label1.Text = "Default:";
                 }
@@ -48,7 +48,7 @@ namespace WinAGI.Editor {
                 break;
             }
             for (int i = 0; i < 16; i++) {
-                if (EditGame != null) {
+                if (EditGame is not null) {
                     lngTempCol[i] = EditGame.Palette[i];
                 }
                 else {
@@ -101,7 +101,7 @@ namespace WinAGI.Editor {
             case 0:
                 // editing palette; reset to current defaults
                 for (int i = 0; i < 16; i++) {
-                    if (EditGame == null) {
+                    if (EditGame is null) {
                         lngTempCol[i] = SierraColors[i];
                     }
                     else {
@@ -138,7 +138,7 @@ namespace WinAGI.Editor {
             case 0:
                 // palette change mode
                 for (int i = 0; i < 16; i++) {
-                    if (EditGame != null) {
+                    if (EditGame is not null) {
                         EditGame.Palette[i] = lngTempCol[i];
                         EditGame.WriteProperty("Palette", "Color" + i, EGAColors.ColorText(lngTempCol[i]));
                     }
@@ -163,7 +163,7 @@ namespace WinAGI.Editor {
             Graphics g = e.Graphics;
             Color defColor;
 
-            if (EditGame != null) {
+            if (EditGame is not null) {
                 defColor = DefaultPalette[SelColorIndex];
             }
             else {
@@ -345,7 +345,7 @@ namespace WinAGI.Editor {
             catch (Exception ex) {
                 ErrMsgBox(ex,
                     "Unable to save this palette file due to file access error:",
-                    "",
+                    ex.StackTrace,
                     "Save Palette Error");
                 return false;
             }
