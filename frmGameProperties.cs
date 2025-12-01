@@ -13,7 +13,6 @@ namespace WinAGI.Editor {
         public string NewPlatformFile = "";
         public int NewCodePage;
         public string DisplayDir;
-        public bool UseSierraSyntax;
 
         public frmGameProperties(GameSettingFunction mode, string starttab = "", string startprop = "") {
             InitializeComponent();
@@ -83,7 +82,6 @@ namespace WinAGI.Editor {
             this.DialogResult = DialogResult.OK;
             this.Hide();
         }
-
         #endregion
 
         #region General Tab Event Handlers
@@ -460,27 +458,31 @@ namespace WinAGI.Editor {
         private void txtPlatformFile_Validating(object sender, CancelEventArgs e) {
             NewPlatformFile = txtPlatformFile.Text;
         }
-
         #endregion
 
         #region Advanced Tab Event Handlers
         private void chkSierraSyntax_Click(object sender, EventArgs e) {
+            // auto-includes, layout editor not available if using Sierra syntax
+            chkGlobals.Enabled = !chkSierraSyntax.Checked;
+            chkResDefs.Enabled = !chkSierraSyntax.Checked;
+            chkResourceIDs.Enabled = !chkSierraSyntax.Checked;
+            chkUseLE.Enabled = !chkSierraSyntax.Checked;
+            if (chkSierraSyntax.Checked) {
+                chkGlobals.Checked = false;
+                chkResDefs.Checked = false;
+                chkResourceIDs.Checked = false;
+                chkUseLE.Checked = false;
+            }
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void cmbCodePage_SelectionChangeCommitted(object sender, EventArgs e) {
             // change codepage
-            try {
-                NewCodePage = int.Parse(((string)cmbCodePage.SelectedItem)[..3]);
-            }
-            catch {
-                MessageBox.Show("NOPE");
-            }
+            NewCodePage = int.Parse(((string)cmbCodePage.SelectedItem)[..3]);
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
-
         #endregion
         #endregion
 
@@ -511,7 +513,7 @@ namespace WinAGI.Editor {
                 btnGameDir.Enabled = false;
 
                 // resdir is just the directory by itself, not entire path
-                txtResDir.Text = EditGame.ResDirName;
+                txtResDir.Text = EditGame.SrcResDirName;
 
                 txtSrcExt.Text = EditGame.SourceExt;
 
@@ -588,6 +590,11 @@ namespace WinAGI.Editor {
                 // sierra syntax option
                 if (EditGame.SierraSyntax) {
                     chkSierraSyntax.Checked = true;
+                    // auto-includes, layout not available if using Sierra syntax
+                    chkGlobals.Enabled = false;
+                    chkResDefs.Enabled = false;
+                    chkResourceIDs.Enabled = false;
+                    chkUseLE.Enabled = false;
                 }
 
                 // set caption
@@ -721,7 +728,7 @@ namespace WinAGI.Editor {
             MDIMain.FolderDlg.AddToRecent = false;
             MDIMain.FolderDlg.InitialDirectory = BrowserStartDir;
             MDIMain.FolderDlg.SelectedPath = "";
-            //MDIMain.FolderDlg.OkRequiresInteraction = true;
+            MDIMain.FolderDlg.OkRequiresInteraction = true;
             MDIMain.FolderDlg.ShowNewFolderButton = true;
 
             if (MDIMain.FolderDlg.ShowDialog() == DialogResult.OK) {

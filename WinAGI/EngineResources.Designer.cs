@@ -1258,7 +1258,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to %1 is not a valid AGI game directory..
+        ///   Looks up a localized string similar to &apos;%1&apos; is not a valid AGI game directory..
         /// </summary>
         public static string _504 {
             get {
@@ -1357,7 +1357,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to %1 is not a valid directory file..
+        ///   Looks up a localized string similar to &apos;%1&apos; is not a valid directory file..
         /// </summary>
         public static string _505 {
             get {
@@ -1555,7 +1555,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No source code to compile..
+        ///   Looks up a localized string similar to UNHANDLED ERROR %1: %2\n\n&quot; + %3.
         /// </summary>
         public static string _507 {
             get {
@@ -1654,7 +1654,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Maximum number of cels exceeded in loop %1..
+        ///   Looks up a localized string similar to A critical game file (%1) is missing..
         /// </summary>
         public static string _508 {
             get {
@@ -2194,7 +2194,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing wag file (%1).
+        ///   Looks up a localized string similar to Missing game property file (%1).
         /// </summary>
         public static string _529 {
             get {
@@ -2203,7 +2203,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unsupported wag version.
+        ///   Looks up a localized string similar to Invalid game property file version (%1).
         /// </summary>
         public static string _530 {
             get {
@@ -2266,7 +2266,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid GameID in game properties file.
+        ///   Looks up a localized string similar to Game property file does not contain a valid GameID..
         /// </summary>
         public static string _537 {
             get {
@@ -2275,7 +2275,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid Interpreter Version in game properties file.
+        ///   Looks up a localized string similar to %1 is not a valid AGI interpreter version..
         /// </summary>
         public static string _538 {
             get {
@@ -2284,7 +2284,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to %1 is read only.
+        ///   Looks up a localized string similar to Game property file &apos;%1&apos; is read only.
         /// </summary>
         public static string _539 {
             get {
@@ -2293,7 +2293,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File access error when opening WAG file.
+        ///   Looks up a localized string similar to File access error when reading game property file - %1: %2.
         /// </summary>
         public static string _540 {
             get {
@@ -2302,7 +2302,7 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File access error in DIR file.
+        ///   Looks up a localized string similar to File access error when reading %1 - %2: %3.
         /// </summary>
         public static string _541 {
             get {
@@ -2406,6 +2406,33 @@ namespace WinAGI {
         public static string _552 {
             get {
                 return ResourceManager.GetString("552", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum number of cels exceeded in loop %1..
+        /// </summary>
+        public static string _553 {
+            get {
+                return ResourceManager.GetString("553", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No source code to compile..
+        /// </summary>
+        public static string _554 {
+            get {
+                return ResourceManager.GetString("554", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid data in game property file..
+        /// </summary>
+        public static string _555 {
+            get {
+                return ResourceManager.GetString("555", resourceCulture);
             }
         }
         
@@ -2644,12 +2671,29 @@ namespace WinAGI {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to Unexpected end of input.
         /// </summary>
-        public static byte[] default_resdef {
+        public static string DE10 {
             get {
-                object obj = ResourceManager.GetObject("default_resdef", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("DE10", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Valid reference to WORDS.TOK is missing.
+        /// </summary>
+        public static string DE11 {
+            get {
+                return ResourceManager.GetString("DE11", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Word group %1 does not exist in WORDS.TOK.
+        /// </summary>
+        public static string DE12 {
+            get {
+                return ResourceManager.GetString("DE12", resourceCulture);
             }
         }
         
@@ -2758,6 +2802,111 @@ namespace WinAGI {
         public static string DW12 {
             get {
                 return ResourceManager.GetString("DW12", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Screen object value is greater than game&apos;s MaxScreenObj (%1).
+        /// </summary>
+        public static string DW13 {
+            get {
+                return ResourceManager.GetString("DW13", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to String number is greater than maximum allowed value for the target game version (%1).
+        /// </summary>
+        public static string DW14 {
+            get {
+                return ResourceManager.GetString("DW14", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Controller number is greater than maximum usable value for the target game version (%1).
+        /// </summary>
+        public static string DW15 {
+            get {
+                return ResourceManager.GetString("DW15", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Word argument number is greater than maximum usable value (10).
+        /// </summary>
+        public static string DW16 {
+            get {
+                return ResourceManager.GetString("DW16", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %3 command %1 not defined (%2).
+        /// </summary>
+        public static string DW17 {
+            get {
+                return ResourceManager.GetString("DW17", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Message %1 is not referenced in logic source code.
+        /// </summary>
+        public static string DW18 {
+            get {
+                return ResourceManager.GetString("DW18", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to create separate message file for %1; messages are defined in the source (error: %2).
+        /// </summary>
+        public static string DW19 {
+            get {
+                return ResourceManager.GetString("DW19", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to create gamedefs.h file (error: %1).
+        /// </summary>
+        public static string DW20 {
+            get {
+                return ResourceManager.GetString("DW20", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [
+        ///[    gamedefs.h
+        ///[    GAME SPECIFIC DEFINITIONS FOR
+        ///[           %1
+        ///[
+        ///[  generated by WinAGI
+        ///[
+        ///
+        ///
+        ///[******************   WORDS   ******************]
+        ///%tokens	&quot;..\\words.tok&quot; 
+        ///
+        ///
+        ///[******************   ITEMS   ******************]
+        ///%2
+        ///
+        ///[******************   VARS   *******************]
+        ///[ reserved by interpreter:       0-26
+        ///[ general use variables:       21-219
+        ///[ room variables:             220-239
+        ///[ dynamic logic variables:    240-255
+        ///%3
+        ///
+        ///[******************   FLAGS   ******************]
+        ///[ re [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string GAMEDEFS {
+            get {
+                return ResourceManager.GetString("GAMEDEFS", resourceCulture);
             }
         }
         
@@ -2992,6 +3141,15 @@ namespace WinAGI {
         public static string RE26 {
             get {
                 return ResourceManager.GetString("RE26", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to import resource for %1 %2 from Sierra source files (%3).
+        /// </summary>
+        public static string RE27 {
+            get {
+                return ResourceManager.GetString("RE27", resourceCulture);
             }
         }
         
@@ -3244,6 +3402,33 @@ namespace WinAGI {
         public static string RW28 {
             get {
                 return ResourceManager.GetString("RW28", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [
+        ///[    sysdefs.h
+        ///[    INTERPRETER SPECIFIC DEFINITIONS
+        ///[
+        ///[    generated by WinAGI
+        ///[
+        ///
+        ///
+        ///[*****************   ACTIONS   *****************]
+        ///
+        ///%action return()                                0
+        ///
+        ///[ Variable actions
+        ///%action increment(VAR)                          1
+        ///%action decrement(VAR)                          2
+        ///%action assignn(VAR, NUM)                       3
+        ///%action assignv(VAR, VAR)                       4
+        ///%action addn(VAR, NUM)                          5
+        ///%action addv(VAR, VAR)                [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string SYSDEFS {
+            get {
+                return ResourceManager.GetString("SYSDEFS", resourceCulture);
             }
         }
     }

@@ -350,7 +350,7 @@ namespace WinAGI.Engine {
                 if (blnError) {
                     sound.Clear();
                     sound.Description = "";
-                    WinAGIException wex = new(LoadResString(532)) {
+                    WinAGIException wex = new(EngineResourceByNum(532)) {
                         HResult = WINAGI_ERR + 532
                     };
                     wex.Data["badfile"] = scriptfile;

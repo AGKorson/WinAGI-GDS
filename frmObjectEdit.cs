@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using WinAGI.Common;
+using static WinAGI.Common.Base;
 using WinAGI.Engine;
 using static WinAGI.Editor.Base;
 using static WinAGI.Editor.ObjectsUndo.ActionType;
@@ -213,7 +215,7 @@ namespace WinAGI.Editor {
             mnuEUndo.Enabled = UndoCol.Count > 0;
             mnuEUndo.Text = "Undo ";
             if (UndoCol.Count > 0) {
-                mnuEUndo.Text += LoadResString((int)(OBJUNDOTEXT + UndoCol.Peek().UDAction));
+                mnuEUndo.Text += EditorResourceByNum((int)(OBJUNDOTEXT + UndoCol.Peek().UDAction));
             }
             // item i0 can not be deleted
             mnuEDelete.Enabled = fgObjects.CurrentCell.RowIndex > 0;
@@ -1500,17 +1502,51 @@ namespace WinAGI.Editor {
             InventoryList tmpList;
 
             MDIMain.UseWaitCursor = true;
-            try {
-                tmpList = new(importfile);
-            }
-            catch (Exception ex) {
-                ErrMsgBox(ex,
-                    "An error occurred during import:",
-                    ex.StackTrace,
-                    "Import Object File Error");
-                MDIMain.UseWaitCursor = false;
+            bool sierrasrc = Path.GetFileName(importfile).Equals("object.txt", StringComparison.OrdinalIgnoreCase);
+            tmpList = new(importfile, sierrasrc);
+            MDIMain.UseWaitCursor = false;
+            if (tmpList.Error != ResourceErrorType.NoError) {
+                if (sierrasrc) {
+                    MessageBox.Show(MDIMain,
+                        tmpList.ErrData[0],
+                        "Unable to Import Sierra Object Source File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\commands\\sierra_objectcompiler.htm");
+                }
+                else {
+                    string errmsg = "";
+                    switch (tmpList.Error) {
+                    case ResourceErrorType.ObjectNoFile:
+                        errmsg = "RE13: " + EngineResources.RE13;
+                        break;
+                    case ResourceErrorType.ObjectIsReadOnly:
+                        errmsg = "RE14: " + EngineResources.RE14;
+                        break;
+                    case ResourceErrorType.ObjectAccessError:
+                        errmsg = "RE15: " + EngineResources.RE15.Replace(
+                            ARG1, tmpList.ErrData[0]);
+                        break;
+                    case ResourceErrorType.ObjectNoData:
+                        errmsg = "RE16: " + EngineResources.RE16;
+                        break;
+                    case ResourceErrorType.ObjectDecryptError:
+                        errmsg = "RE17: " + EngineResources.RE17;
+                        break;
+                    case ResourceErrorType.ObjectBadHeader:
+                        errmsg = "RE18: " + EngineResources.RE18;
+                        break;
+                    }
+                    MessageBox.Show(MDIMain,
+                        errmsg,
+                        "Unable to Open OBJECT File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors_resource.htm");
+                }
                 return;
             }
+            MDIMain.UseWaitCursor = true;
             // replace current objectlist
             EditInvList = tmpList;
             EditInvListFilename = importfile;
@@ -1525,6 +1561,21 @@ namespace WinAGI.Editor {
             UndoCol = new();
             MarkAsChanged();
             MDIMain.UseWaitCursor = false;
+            if (tmpList.Warnings != 0) {
+                string warnmsg = "Anomalies were detected in this OBJECT file:\n";
+                if ((tmpList.Warnings & 1) == 1) {
+                    warnmsg += "\nRW18: " + EngineResources.RW18;
+                }
+                if ((tmpList.Warnings & 2) == 2) {
+                    warnmsg += "\nRW19: " + EngineResources.RW19;
+                }
+                MessageBox.Show(MDIMain,
+                    warnmsg,
+                    "OBJECT File Import Warnings",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning, 0, 0,
+                    WinAGIHelp, "htm\\winagi\\warnings_resource.htm");
+            }
         }
 
         public void SaveObjects() {

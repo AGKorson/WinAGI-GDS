@@ -55,7 +55,7 @@ namespace WinAGI.Editor {
                     lngTempCol[i] = DefaultPalette[i];
 
                 }
-                strColName[i] = i + ": " + Editor.Base.LoadResString(COLORNAME + i);
+                strColName[i] = i + ": " + Editor.Base.EditorResourceByNum(COLORNAME + i);
             }
         }
 

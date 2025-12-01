@@ -543,7 +543,7 @@ namespace WinAGI.Editor {
 
         private void mnuGImport_Click(object sender, EventArgs e) {
             // import a game by directory
-            OpenDIR();
+            ImportGame();
         }
 
         private void mnuGOpen_Click(object sender, EventArgs e) {
@@ -1393,6 +1393,9 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTMenuEditor_Click(object sender, EventArgs e) {
+            if (EditGame is not null && EditGame.SierraSyntax) {
+                return;
+            }
             OpenMenuEditor();
         }
 
@@ -1401,7 +1404,17 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTReserved_Click(object sender, EventArgs e) {
-            OpenReservedEditor();
+            // not allowed if using SierraSyntax
+            if (EditGame is not null && EditGame.SierraSyntax) {
+                MessageBox.Show(MDIMain,
+                    "Reserved Defines are not active when using Sierra syntax.",
+                    "Not Available",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            else {
+                OpenReservedEditor();
+            }
         }
 
         private void mnuTSnippets_Click(object sender, EventArgs e) {
@@ -2778,6 +2791,14 @@ namespace WinAGI.Editor {
                     break;
                 case InfoType.Decompiling:
                     bgwOpenGame.ReportProgress(0, "Validating AGI game files ...");
+                    break;
+                case InfoType.DecodingAllLogics:
+                    if (e.LoadInfo.ResType == AGIResType.None) {
+                        bgwOpenGame.ReportProgress(0, "Decoding all logic resources ...");
+                    }
+                    else {
+                        bgwOpenGame.ReportProgress(0, "Decoding logic " + e.LoadInfo.ResNum.ToString());
+                    }
                     break;
                 case InfoType.CheckCRC:
                     break;
@@ -4686,23 +4707,33 @@ namespace WinAGI.Editor {
                 Debug.Assert(propForm.txtGameID.Text != "");
                 ChangeGameID(propForm.txtGameID.Text);
             }
-            if (!EditGame.ResDirName.Equals(propForm.txtResDir.Text, StringComparison.CurrentCultureIgnoreCase)) {
+            if (!EditGame.SrcResDirName.Equals(propForm.txtResDir.Text, StringComparison.CurrentCultureIgnoreCase)) {
                 ChangeResDir(propForm.txtResDir.Text);
             }
             if (EditGame.SourceExt != propForm.txtSrcExt.Text) {
                 EditGame.SourceExt = propForm.txtSrcExt.Text.ToLower();
                 foreach (Logic aLogic in EditGame.Logics) {
-                    SafeFileMove(aLogic.SourceFile, EditGame.ResDir + Path.GetFileNameWithoutExtension(aLogic.SourceFile) + "." + EditGame.SourceExt, true);
+                    SafeFileMove(aLogic.SourceFile, EditGame.SrcResDir + Path.GetFileNameWithoutExtension(aLogic.SourceFile) + "." + EditGame.SourceExt, true);
                 }
             }
-            EditGame.IncludeIDs = propForm.chkResourceIDs.Checked;
-            EditGame.IncludeReserved = propForm.chkResDefs.Checked;
-            EditGame.IncludeGlobals = propForm.chkGlobals.Checked;
+            EditGame.SierraSyntax = propForm.chkSierraSyntax.Checked;
+            if (EditGame.SierraSyntax) {
+                EditGame.IncludeIDs = false;
+                EditGame.IncludeReserved = false;
+                EditGame.IncludeGlobals = false;
+            }
+            else {
+                EditGame.IncludeIDs = propForm.chkResourceIDs.Checked;
+                EditGame.IncludeReserved = propForm.chkResDefs.Checked;
+                EditGame.IncludeGlobals = propForm.chkGlobals.Checked;
+            }
+            mnuTGlobals.Enabled = btnGlobals.Enabled = !EditGame.SierraSyntax;
             EditGame.UseLE = propForm.chkUseLE.Checked;
             // update menu/toolbar, and hide LE if not in use anymore
             UpdateLEStatus();
             EditGame.CodePage = propForm.NewCodePage;
             WinAGISettingsFile.Save();
+            RefreshPropertyGrid();
             propForm.Dispose();
         }
 
@@ -4837,6 +4868,10 @@ namespace WinAGI.Editor {
                 // show gameid, gameauthor, description,etc
                 GameProperties pGame = new();
                 propertyGrid1.SelectedObject = pGame;
+                // layout is readonly in Sierra syntax mode
+                Attribute readOnlyG = TypeDescriptor.GetProperties(pGame.GetType())["LayoutEditor"].Attributes[typeof(ReadOnlyAttribute)];
+                FieldInfo fiG = readOnlyG.GetType().GetRuntimeFields().ToArray()[0];
+                fiG?.SetValue(readOnlyG, EditGame.SierraSyntax);
 
                 // TODO: this works for dblclicks on the property name but not
                 // on the value; can't find any way to make it work...
@@ -4851,6 +4886,11 @@ namespace WinAGI.Editor {
                 if (resnum == -1) {
                     // logic header
                     LogicHdrProperties pLgcHdr = new();
+                    // set read-only status of some properties based on Sierra syntax
+                    SetReadOnly(pLgcHdr, "IncludeIDs");
+                    SetReadOnly(pLgcHdr, "IncludeReserved");
+                    SetReadOnly(pLgcHdr, "IncludeGlobals");
+                    SetReadOnly(pLgcHdr, "GlobalDef");
                     propertyGrid1.SelectedObject = pLgcHdr;
                 }
                 else {
@@ -4919,6 +4959,12 @@ namespace WinAGI.Editor {
                 WordListProperties pWordList = new(EditGame.WordList);
                 propertyGrid1.SelectedObject = pWordList;
                 break;
+            }
+
+            static void SetReadOnly(LogicHdrProperties pLgcHdr, string propname) {
+                Attribute readOnly = TypeDescriptor.GetProperties(pLgcHdr.GetType())[propname].Attributes[typeof(ReadOnlyAttribute)];
+                FieldInfo fi = readOnly.GetType().GetRuntimeFields().ToArray()[0];
+                fi?.SetValue(readOnly, EditGame.SierraSyntax);
             }
         }
         #endregion

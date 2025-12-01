@@ -108,7 +108,7 @@ namespace WinAGI.Engine {
             int intNextNum = 0;
             string strID, strBaseID;
             if (Contains(ResNum)) {
-                WinAGIException wex = new(LoadResString(520)) {
+                WinAGIException wex = new(EngineResourceByNum(520)) {
                     HResult = WINAGI_ERR + 520
                 };
                 throw wex;
@@ -178,7 +178,7 @@ namespace WinAGI.Engine {
             }
             // verify new number is not in collection
             if (Col.ContainsKey(NewLogic)) {
-                WinAGIException wex = new(LoadResString(531)) {
+                WinAGIException wex = new(EngineResourceByNum(531)) {
                     HResult = WINAGI_ERR + 531
                 };
                 throw wex;

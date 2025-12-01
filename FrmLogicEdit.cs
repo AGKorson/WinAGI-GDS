@@ -364,8 +364,8 @@ namespace WinAGI.Editor {
             // ----------- V
             // Insert Snippet (Ctrl+Shift+T) V:UseSnippets && sellength==0; E
             // Create Snippet (Ctrl+Shift+T) V:UseSnippets && sellength>0; E
-            // List Defines (Ctrl+J) V; E
-            // List Commands (Shift+Ctrl+J) V; E
+            // List Defines (Ctrl+J) V:not sierrasyntax; E
+            // List Commands (Shift+Ctrl+J) V:not sierrasyntax; E
             // Block Comment (Alt+B) V; E
             // Unblock Comment (Alt+U) V; E
             // Open xx for Editing (Shift+Ctrl+E) V:on resource token; E
@@ -380,6 +380,8 @@ namespace WinAGI.Editor {
             mnuESnippet.Visible = WinAGISettings.UseSnippets.Value;
             mnuESnippet.Text = fctb.Selection.Length > 0 ? "Create Code Snippet..." : "Insert Code Snippet";
             mnuEFindAgain.Enabled = GFindText.Length > 0;
+            mnuEListCommands.Visible = EditGame is null || !EditGame.SierraSyntax;
+            mnuEListDefines.Visible = EditGame is null || !EditGame.SierraSyntax;
             // default to not visible
             mnuEOpenRes.Visible = false;
             mnuEViewSynonym.Visible = false;
@@ -406,7 +408,9 @@ namespace WinAGI.Editor {
                 }
                 break;
             case AGITokenType.String:
-                if (fctb.PreviousToken(seltoken).Text == "#include") {
+                if (fctb.PreviousToken(seltoken).Text == "#include" ||
+                    (EditGame is not null && EditGame.SierraSyntax &&
+                    fctb.PreviousToken(seltoken).Text == "%include")) {
                     if (seltoken.Text[^1] != '"') {
                         seltoken.Text += '"';
                     }
@@ -422,7 +426,7 @@ namespace WinAGI.Editor {
                     break;
                 }
                 // not an include, check for 'said' word
-                if (EditGame is not null) {
+                if (EditGame is not null && !EditGame.SierraSyntax) {
                     int ac = 0;
                     AGIToken cmdtoken = FindPrevCmd(fctb, seltoken, ref ac);
                     if (cmdtoken.Type == AGITokenType.Identifier && cmdtoken.Text == "said") {
@@ -583,11 +587,15 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEListDefines_Click(object sender, EventArgs e) {
-            ShowDefineList();
+            if (EditGame is null || !EditGame.SierraSyntax) {
+                ShowDefineList();
+            }
         }
 
         private void mnuEListCommands_Click(object sender, EventArgs e) {
-            ShowCommandList();
+            if (EditGame is null || !EditGame.SierraSyntax) {
+                ShowCommandList();
+            }
         }
 
         private void mnuEBlockCmt_Click(object sender, EventArgs e) {
@@ -616,7 +624,7 @@ namespace WinAGI.Editor {
             default:
                 // include file
                 string filename = mnuEOpenRes.Text[6..(^13)];
-                if (InGame) {
+                if (InGame && !EditGame.SierraSyntax) {
                     // globals.txt and reserved.txt use special editors
                     if (filename.Equals("globals.txt", StringComparison.OrdinalIgnoreCase)) {
                         OpenGlobals();
@@ -627,7 +635,7 @@ namespace WinAGI.Editor {
                         return;
                     }
                     // relative to the source dir
-                    filename = Path.GetFullPath(EditGame.ResDir + filename);
+                    filename = Path.GetFullPath(EditGame.SrcResDir + filename);
                 }
                 else {
                     // relative to current dir of this logic
@@ -656,7 +664,7 @@ namespace WinAGI.Editor {
                         "File Not Found",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        @"htm\commands\fansyntax.htm#include",
+                        @"htm\commands\syntax_fan.htm#include",
                         WinAGIHelp);
                     RestoreFocusHack();
                     return;
@@ -667,12 +675,14 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEViewSynonym_Click(object sender, EventArgs e) {
-            AGIToken token = fctb.TokenFromPos();
-            Place place = new(token.StartPos, token.Line);
-            fctb.Selection.Start = place;
-            place.iChar = token.EndPos;
-            fctb.Selection.End = place;
-            ShowSynonymList(token.Text);
+            if (EditGame is null || !EditGame.SierraSyntax) {
+                AGIToken token = fctb.TokenFromPos();
+                Place place = new(token.StartPos, token.Line);
+                fctb.Selection.Start = place;
+                place.iChar = token.EndPos;
+                fctb.Selection.End = place;
+                ShowSynonymList(token.Text);
+            }
         }
 
         private void mnuEDocumentMap_Click(object sender, EventArgs e) {
@@ -697,20 +707,21 @@ namespace WinAGI.Editor {
         }
 
         public void RestoreFocusHack() {
+            // TODO: is this still needed?
             // something about this form (probably the fctb? it's the only 
             // 'non-standard' control on the form) causes focus to jump to
             // the previous form/control when a messagebox or other external
             // dialog window is called from within the form. This hack seems
             // to fix it. Ugh.
 
-            _ = SendMessage(Handle, WM_SETREDRAW, false, 0);
-            _ = SendMessage(MDIMain.Handle, WM_SETREDRAW, false, 0);
-            Point pos = this.Location;
-            Hide();
-            Show();
-            Location = pos;
-            _ = SendMessage(Handle, WM_SETREDRAW, true, 0);
-            _ = SendMessage(MDIMain.Handle, WM_SETREDRAW, true, 0);
+            //_ = SendMessage(Handle, WM_SETREDRAW, false, 0);
+            //_ = SendMessage(MDIMain.Handle, WM_SETREDRAW, false, 0);
+            //Point pos = this.Location;
+            //Hide();
+            //Show();
+            //Location = pos;
+            //_ = SendMessage(Handle, WM_SETREDRAW, true, 0);
+            //_ = SendMessage(MDIMain.Handle, WM_SETREDRAW, true, 0);
         }
         #endregion
 
@@ -1012,58 +1023,61 @@ namespace WinAGI.Editor {
                 }
             }
             if (EditGame is not null) {
-                // next check globals
-                if (EditGame.IncludeGlobals) {
-                    for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
-                        if (strDefine.Equals(EditGame.GlobalDefines[i].Name)) {
-                            strDefine += " = " + EditGame.GlobalDefines[i].Value;
+                if (!EditGame.SierraSyntax) {
+                    // next check globals
+                    if (EditGame.IncludeGlobals) {
+                        if (EditGame.GlobalDefines.ContainsName(strDefine)) {
+                            strDefine += " = " + EditGame.GlobalDefines[strDefine].Value;
                             e.ToolTipText = strDefine;
                             return;
                         }
                     }
+                    if (EditGame.IncludeIDs) {
+                        // then ids; we will test logics, then views, then sounds, then pics
+                        // as that's the order that defines are most likely to be used
+                        for (int i = 0; i <= EditGame.Logics.Max; i++) {
+                            if (IDefLookup[(int)AGIResType.Logic, i].Type != ArgType.None) {
+                                if (strDefine.Equals(IDefLookup[(int)AGIResType.Logic, i].Name)) {
+                                    strDefine += " = " + IDefLookup[(int)AGIResType.Logic, i].Value;
+                                    e.ToolTipText = strDefine;
+                                    return;
+                                }
+                            }
+                        }
+                        for (int i = 0; i <= EditGame.Views.Max; i++) {
+                            if (IDefLookup[(int)AGIResType.View, i].Type != ArgType.None) {
+                                if (strDefine.Equals(IDefLookup[(int)AGIResType.View, i].Name)) {
+                                    strDefine += " = " + IDefLookup[(int)AGIResType.View, i].Value;
+                                    e.ToolTipText = strDefine;
+                                    return;
+                                }
+                            }
+                        }
+                        for (int i = 0; i <= EditGame.Sounds.Max; i++) {
+                            if (IDefLookup[(int)AGIResType.Sound, i].Type != ArgType.None) {
+                                if (strDefine.Equals(IDefLookup[(int)AGIResType.Sound, i].Name)) {
+                                    strDefine += " = " + IDefLookup[(int)AGIResType.Sound, i].Value;
+                                    e.ToolTipText = strDefine;
+                                    return;
+                                }
+                            }
+                        }
+                        for (int i = 0; i <= EditGame.Pictures.Max; i++) {
+                            if (IDefLookup[(int)AGIResType.Picture, i].Type != ArgType.None) {
+                                if (strDefine.Equals(IDefLookup[(int)AGIResType.Picture, i].Name)) {
+                                    strDefine += " = " + IDefLookup[(int)AGIResType.Picture, i].Value;
+                                    e.ToolTipText = strDefine;
+                                    return;
+                                }
+                            }
+                        }
+                    }
                 }
-                if (EditGame.IncludeIDs) {
-                    // then ids; we will test logics, then views, then sounds, then pics
-                    // as that's the order that defines are most likely to be used
-                    for (int i = 0; i <= EditGame.Logics.Max; i++) {
-                        if (IDefLookup[(int)AGIResType.Logic, i].Type != ArgType.None) {
-                            if (strDefine.Equals(IDefLookup[(int)AGIResType.Logic, i].Name)) {
-                                strDefine += " = " + IDefLookup[(int)AGIResType.Logic, i].Value;
-                                e.ToolTipText = strDefine;
-                                return;
-                            }
-                        }
-                    }
-                    for (int i = 0; i <= EditGame.Views.Max; i++) {
-                        if (IDefLookup[(int)AGIResType.View, i].Type != ArgType.None) {
-                            if (strDefine.Equals(IDefLookup[(int)AGIResType.View, i].Name)) {
-                                strDefine += " = " + IDefLookup[(int)AGIResType.View, i].Value;
-                                e.ToolTipText = strDefine;
-                                return;
-                            }
-                        }
-                    }
-                    for (int i = 0; i <= EditGame.Sounds.Max; i++) {
-                        if (IDefLookup[(int)AGIResType.Sound, i].Type != ArgType.None) {
-                            if (strDefine.Equals(IDefLookup[(int)AGIResType.Sound, i].Name)) {
-                                strDefine += " = " + IDefLookup[(int)AGIResType.Sound, i].Value;
-                                e.ToolTipText = strDefine;
-                                return;
-                            }
-                        }
-                    }
-                    for (int i = 0; i <= EditGame.Pictures.Max; i++) {
-                        if (IDefLookup[(int)AGIResType.Picture, i].Type != ArgType.None) {
-                            if (strDefine.Equals(IDefLookup[(int)AGIResType.Picture, i].Name)) {
-                                strDefine += " = " + IDefLookup[(int)AGIResType.Picture, i].Value;
-                                e.ToolTipText = strDefine;
-                                return;
-                            }
-                        }
-                    }
+                else {
+                    // use sysdefines
                 }
             }
-            if (EditGame is null || EditGame.IncludeReserved) {
+            if (EditGame is null || (EditGame.IncludeReserved && !EditGame.SierraSyntax)) {
                 // still no match, check reserved define
                 TDefine[] tmpDefines = EditGame.ReservedDefines.All();
                 for (int i = 0; i < tmpDefines.Length; i++) {
@@ -1309,12 +1323,10 @@ namespace WinAGI.Editor {
                             }
                         }
                         if (!blnDefFound) {
-                            for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
-                                if (EditGame.GlobalDefines[i].Type == ArgType.DefStr) {
-                                    if (EditGame.GlobalDefines[i].Name == token.Text) {
-                                        blnDefFound = true;
-                                        break;
-                                    }
+                            if (EditGame.GlobalDefines.ContainsName(token.Text)) {
+                                if (EditGame.GlobalDefines[token.Text].Type == ArgType.DefStr) {
+                                    blnDefFound = true;
+                                    break;
                                 }
                             }
                         }
@@ -1583,20 +1595,19 @@ namespace WinAGI.Editor {
                                 }
                             }
                             // try globals next
-                            for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
-                                if (msgtoken.Text == EditGame.GlobalDefines[i].Name) {
-                                    switch (EditGame.GlobalDefines[i].Type) {
-                                    case ArgType.Msg:
-                                        msgtoken.Number = 0;
-                                        return msgtoken;
-                                    case ArgType.DefStr:
-                                        msgtoken.Number = 0;
-                                        return msgtoken;
-                                    default:
-                                        // invalid argtype
-                                        msgtoken.Number = -3;
-                                        return msgtoken;
-                                    }
+                            if (EditGame.GlobalDefines.ContainsName(msgtoken.Text)) {
+                                var define = EditGame.GlobalDefines[msgtoken.Text];
+                                switch (define.Type) {
+                                case ArgType.Msg:
+                                    msgtoken.Number = 0;
+                                    return msgtoken;
+                                case ArgType.DefStr:
+                                    msgtoken.Number = 0;
+                                    return msgtoken;
+                                default:
+                                    // invalid argtype
+                                    msgtoken.Number = -3;
+                                    return msgtoken;
                                 }
                             }
                             // lastly check reserved defines
@@ -1674,10 +1685,10 @@ namespace WinAGI.Editor {
                     strStrings[^1] = LDefLookup[i].Name;
                 }
             }
-            for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
-                if (EditGame.GlobalDefines[i].Type == ArgType.Str) {
+            foreach (var define in EditGame.GlobalDefines.Values) {
+                if (define.Type == ArgType.Str) {
                     Array.Resize(ref strStrings, ++lngCount);
-                    strStrings[^1] = EditGame.GlobalDefines[i].Name;
+                    strStrings[^1] = define.Name;
                 }
             }
             // add the only resdef that's a string
@@ -1699,7 +1710,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                     RestoreFocusHack();
                     break;
                 case 2:
@@ -1709,7 +1720,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                     RestoreFocusHack();
                     break;
                 case 3:
@@ -1719,7 +1730,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                     RestoreFocusHack();
                     break;
                 case 4:
@@ -1729,7 +1740,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                     RestoreFocusHack();
                     break;
                 case 5:
@@ -1739,7 +1750,7 @@ namespace WinAGI.Editor {
                         "Syntax Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information, 0, 0,
-                        WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                        WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                     RestoreFocusHack();
                     break;
                 }
@@ -1771,7 +1782,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -2:
@@ -1781,7 +1792,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -3:
@@ -1791,7 +1802,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -4:
@@ -1801,7 +1812,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -5:
@@ -1811,7 +1822,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -6:
@@ -1821,7 +1832,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -7:
@@ -1831,7 +1842,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                         RestoreFocusHack();
                         break;
                     case -8:
@@ -1841,7 +1852,7 @@ namespace WinAGI.Editor {
                             "Syntax Error",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information, 0, 0,
-                            WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                            WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                         RestoreFocusHack();
                         break;
                     }
@@ -1863,7 +1874,7 @@ namespace WinAGI.Editor {
                                     "Syntax Error",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Information, 0, 0,
-                                    WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                                    WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                                 RestoreFocusHack();
                                 return;
                             }
@@ -1880,7 +1891,7 @@ namespace WinAGI.Editor {
                                     "Syntax Error",
                                     MessageBoxButtons.OK,
                                     MessageBoxIcon.Information, 0, 0,
-                                    WinAGIHelp, "htm\\commands\\fansyntax.htm#messages");
+                                    WinAGIHelp, "htm\\commands\\syntax_fan.htm#messages");
                                 RestoreFocusHack();
                                 return;
                             }
@@ -2130,18 +2141,21 @@ namespace WinAGI.Editor {
             range.SetStyle(CommentStyle, CommentStyleRegEx1, RegexOptions.Multiline);
             range.SetStyle(CommentStyle, CommentStyleRegEx2, RegexOptions.Multiline);
             range.SetStyle(StringStyle, StringStyleRegEx);
-            range.SetStyle(KeyWordStyle, KeyWordStyleRegEx);
+            if (EditGame is not null && EditGame.SierraSyntax) {
+                range.SetStyle(KeyWordStyle, SierraKeyWordStyleRegEx);
+            }
+            else {
+                range.SetStyle(KeyWordStyle, FanKeyWordStyleRegEx);
+                range.SetStyle(TestCmdStyle, TestCmdStyleRegex);
+                range.SetStyle(ActionCmdStyle, ActionCmdStyleRegEx);
+            }
             range.SetStyle(InvalidCmdStyle, InvalidCmdStyleRegEx);
-            range.SetStyle(TestCmdStyle, TestCmdStyleRegex);
-            range.SetStyle(ActionCmdStyle, ActionCmdStyleRegEx);
             range.SetStyle(NumberStyle, NumberStyleRegEx);
             range.SetStyle(ArgIdentifierStyle, ArgIdentifierStyleRegEx);
             range.SetStyle(DefIdentifierStyle, DefIdentifierStyleRegEx);
 
-            // clear folding markers
+            // reset folding markers
             range.ClearFoldingMarkers();
-
-            // set folding markers
             range.SetFoldingMarkers("{", "}");
         }
 
@@ -2578,7 +2592,7 @@ namespace WinAGI.Editor {
                     // MUST make sure logic sourcefile is set to correct Value
                     // BEFORE calling exporting; this is because EditLogic is NOT
                     // in a game; it only mimics the ingame resource
-                    EditLogic.SourceFile = EditGame.ResDir + EditLogic.ID + "." + EditGame.SourceExt;
+                    EditLogic.SourceFile = EditGame.SrcResDir + EditLogic.ID + "." + EditGame.SourceExt;
                     strExportName = NewSourceName(EditLogic, InGame);
                     if (strExportName.Length > 0) {
                         // preserve all extended characters by using default codepage
@@ -2656,8 +2670,8 @@ namespace WinAGI.Editor {
                     Text = CHG_MARKER + Text;
                 }
                 if (EditLogic.ID != oldid) {
-                    if (File.Exists(EditGame.ResDir + oldid + "." + EditGame.SourceExt)) {
-                        SafeFileMove(EditGame.ResDir + oldid + "." + EditGame.SourceExt, EditGame.ResDir + EditGame.Logics[NewResNum].ID + "." + EditGame.SourceExt, true);
+                    if (File.Exists(EditGame.SrcResDir + oldid + "." + EditGame.SourceExt)) {
+                        SafeFileMove(EditGame.SrcResDir + oldid + "." + EditGame.SourceExt, EditGame.SrcResDir + EditGame.Logics[NewResNum].ID + "." + EditGame.SourceExt, true);
                     }
                 }
                 if (EditGame.UseLE) {
@@ -3002,17 +3016,18 @@ namespace WinAGI.Editor {
             picTip.Visible = true;
         }
 
+        /// <summary>This function will examine current row, and determine
+        /// if a command is being edited it sets value of the module 
+        /// variables TipCmdPos, TipCurArg, TipCmdNum<br/>
+        /// if matchonly is true, it only returns true if the identified command matches
+        /// the command currently being tipped.</summary>
+        /// <returns>TRUE if a valid AGI command is found, otherwise it
+        /// returns FALSE</returns>
         private bool NeedCommandTip(WinAGIFCTB fctb, Place place, bool matchonly = false) {
-            // this function will examine current row, and determine if a command is being
-            // edited
-            // it sets value of the module variables TipCmdPos, TipCurArg, TipCmdNum
-            //
-            // if matchonly is true, it only returns true if the identified command matches
-            // the command currently being tipped
-            //
-            // function returns TRUE if a valid AGI command is found, otherwise it
-            // returns FALSE
 
+            if (EditGame is not null && EditGame.SierraSyntax) {
+                return false;
+            }
             AGIToken seltoken = fctb.TokenFromPos(place);
             if (seltoken.Type == AGITokenType.Comment) {
                 return false;
@@ -3131,8 +3146,8 @@ namespace WinAGI.Editor {
                 return false;
             }
             for (int k = i; k <= j; k++) {
-                if (cmdtoken.Text == Editor.Base.LoadResString(ALPHACMDTEXT + k)) {
-                    cmdtoken.ArgList = Editor.Base.LoadResString(5000 + k).Split(", ");
+                if (cmdtoken.Text == Editor.Base.EditorResourceByNum(ALPHACMDTEXT + k)) {
+                    cmdtoken.ArgList = Editor.Base.EditorResourceByNum(5000 + k).Split(", ");
                     cmdtoken.ArgIndex = k;
                     return true;
                 }
@@ -3244,7 +3259,7 @@ namespace WinAGI.Editor {
             else if (ArgType == ArgListType.ActionCmds) {
                 // add all action commands
                 for (int i = 0; i < Commands.ActionCommands.Length; i++) {
-                    strLine = Commands.ActionCommands[i].Name;
+                    strLine = Commands.ActionCommands[i].FanName;
                     lstDefines.Items.Add(strLine, strLine, 26).ToolTipText = strLine;
                 }
                 ListDirty = false;
@@ -3254,7 +3269,7 @@ namespace WinAGI.Editor {
             else if (ArgType == ArgListType.TestCmds) {
                 // add all action commands
                 for (int i = 0; i < Commands.TestCommands.Length; i++) {
-                    strLine = Commands.TestCommands[i].Name;
+                    strLine = Commands.TestCommands[i].FanName;
                     lstDefines.Items.Add(strLine, strLine, 26).ToolTipText = strLine;
                 }
                 ListDirty = false;
@@ -3269,14 +3284,14 @@ namespace WinAGI.Editor {
             }
             // global defines next (but only if not looking for just a ResID AND game is loaded)
             if (EditGame is not null && ArgType < ArgListType.Logic) {
-                for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
+                foreach (var define in EditGame.GlobalDefines.Values) {
                     // add these global defines IF
                     //     types match OR
                     //     argtype is ALL OR
                     //     argtype is (msg OR invobj) AND deftype is defined string
                     //     argtype matches a special type
                     blnAdd = false;
-                    if ((int)EditGame.GlobalDefines[i].Type == (int)ArgType) {
+                    if ((int)define.Type == (int)ArgType) {
                         blnAdd = true;
                     }
                     else {
@@ -3286,24 +3301,24 @@ namespace WinAGI.Editor {
                             break;
                         case ArgListType.IfArg:
                             // variables and flags
-                            blnAdd = EditGame.GlobalDefines[i].Type == Engine.ArgType.Var || EditGame.GlobalDefines[i].Type == Engine.ArgType.Flag;
+                            blnAdd = define.Type == Engine.ArgType.Var || define.Type == Engine.ArgType.Flag;
                             break;
                         case ArgListType.OthArg:
                             // variables and strings
-                            blnAdd = EditGame.GlobalDefines[i].Type == Engine.ArgType.Var || EditGame.GlobalDefines[i].Type == Engine.ArgType.Str;
+                            blnAdd = define.Type == Engine.ArgType.Var || define.Type == Engine.ArgType.Str;
                             break;
                         case ArgListType.Values:
                             // variables and numbers
-                            blnAdd = EditGame.GlobalDefines[i].Type == Engine.ArgType.Var || EditGame.GlobalDefines[i].Type == Engine.ArgType.Num;
+                            blnAdd = define.Type == Engine.ArgType.Var || define.Type == Engine.ArgType.Num;
                             break;
                         case ArgListType.Msg or ArgListType.IObj:
-                            blnAdd = EditGame.GlobalDefines[i].Type == Engine.ArgType.DefStr;
+                            blnAdd = define.Type == Engine.ArgType.DefStr;
                             break;
                         }
                     }
                     if (blnAdd) {
                         // don't add if already defined
-                        AddIfUnique(EditGame.GlobalDefines[i].Name, 11 + (int)EditGame.GlobalDefines[i].Type, EditGame.GlobalDefines[i].Value);
+                        AddIfUnique(define.Name, 11 + (int)define.Type, define.Value);
                     }
                 }
             }

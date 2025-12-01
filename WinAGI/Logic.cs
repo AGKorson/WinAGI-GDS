@@ -68,7 +68,7 @@ namespace WinAGI.Engine {
             // get rest of properties
             mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
             mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
-            SourceFile = parent.agResDir + mResID + "." + parent.agSrcFileExt;
+            SourceFile = parent.agSrcResDir + mResID + "." + parent.agSrcFileExt;
             if (ResNum == 0) {
                 // logic0 can never be a room
                 mIsRoom = false;
@@ -91,7 +91,7 @@ namespace WinAGI.Engine {
                 string oldID = base.ID;
                 base.ID = value;
                 if (mInGame && oldID is not null && oldID.Length > 0 && oldID != value) {
-                    SafeFileMove(parent.agResDir + oldID + "." + parent.agSrcFileExt, parent.agResDir + base.ID + "." + parent.agSrcFileExt, true);
+                    SafeFileMove(parent.agSrcResDir + oldID + "." + parent.agSrcFileExt, parent.agSrcResDir + base.ID + "." + parent.agSrcFileExt, true);
                 }
             }
         }
@@ -148,7 +148,7 @@ namespace WinAGI.Engine {
         public string SourceFile {
             get {
                 if (mInGame) {
-                    return parent.agResDir + this.ID + "." + parent.SourceExt;
+                    return parent.agSrcResDir + this.ID + "." + parent.SourceExt;
                 }
                 else {
                     return mSourceFile;
@@ -441,7 +441,7 @@ namespace WinAGI.Engine {
                 File.WriteAllText(ExportFile, mSourceText);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.Message).Replace(
                     ARG2, ExportFile)) {
                     HResult = WINAGI_ERR + 502
@@ -468,6 +468,20 @@ namespace WinAGI.Engine {
             mSourceChanged = false;
         }
 
+        /// <summary>
+        /// Sierra syntax imports need to load the logic without loading source code.
+        /// </summary>
+        /// <param name="ImportFile"></param>
+        internal void ImportResource(string ImportFile) {
+            try {
+                base.Import(ImportFile);
+            }
+            catch {
+                throw;
+            }
+            mSourceChanged = false;
+
+        }
         /// <summary>
         /// Imports a an existing source code file into this logic resource. It does not 
         /// compile the logic so the resource data remains unchanged.
@@ -514,20 +528,20 @@ namespace WinAGI.Engine {
             // assume no errors
             SourceError = ResourceErrorType.NoError;
 
-            if (mInGame) {
+            if (mInGame && !Decompile) {
                 // check that file exists; if not, look for alternate filename
                 // formats, and move/rename as needed
                 if (!File.Exists(SourceFile)) {
-                    if (File.Exists(parent.agResDir + "logic" + Number + ".txt")) {
-                        File.Move(parent.agResDir + "logic" + Number + ".txt", SourceFile);
+                    if (File.Exists(parent.agSrcResDir + "logic" + Number + ".txt")) {
+                        File.Move(parent.agSrcResDir + "logic" + Number + ".txt", SourceFile);
                     }
-                    else if (File.Exists(parent.agResDir + mResID + ".txt")) {
-                        File.Move(parent.agResDir + mResID + ".txt", SourceFile);
+                    else if (File.Exists(parent.agSrcResDir + mResID + ".txt")) {
+                        File.Move(parent.agSrcResDir + mResID + ".txt", SourceFile);
                     }
                     else {
                         if (parent.agSierraSyntax) {
-                            if (File.Exists(parent.agResDir + "RM" + Number + ".cg")) {
-                                File.Move(parent.agResDir + "RM" + Number + ".cg", SourceFile);
+                            if (File.Exists(parent.agSrcResDir + "RM" + Number + ".cg")) {
+                                File.Move(parent.agSrcResDir + "RM" + Number + ".cg", SourceFile);
                             }
                             else {
                                 // default file does not exist
@@ -587,7 +601,7 @@ namespace WinAGI.Engine {
             }
             // replace tabs with indent spaces
             if (mSourceText.Contains('\t')) {
-                mSourceText = mSourceText.Replace("\t", LogicDecoder.INDENT);
+                mSourceText = mSourceText.Replace("\t", " ");
             }
             // calculate source crc
             if (mInGame) {
@@ -628,7 +642,9 @@ namespace WinAGI.Engine {
                 LoadSource();
                 unload = true;
             }
-            mSourceText = CheckIncludes(mSourceText, parent, ref changed);
+            if (!parent.agSierraSyntax) {
+                mSourceText = CheckIncludes(mSourceText, parent, ref changed);
+            }
             if (changed) {
                 mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
                 parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
@@ -657,7 +673,7 @@ namespace WinAGI.Engine {
                 File.WriteAllText(SaveFile, mSourceText);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.Message).Replace(
                     ARG2, SaveFile)) {
                     HResult = WINAGI_ERR + 502
@@ -685,14 +701,14 @@ namespace WinAGI.Engine {
             WinAGIException.ThrowIfNotLoaded(this);
             if (!mInGame) {
                 // for now, only ingame logics can be compiled
-                WinAGIException wex = new(LoadResString(525)) {
+                WinAGIException wex = new(EngineResourceByNum(525)) {
                     HResult = WINAGI_ERR + 525
                 };
                 throw wex;
             }
             if (mSourceText.Length == 0) {
-                WinAGIException wex = new(LoadResString(507)) {
-                    HResult = WINAGI_ERR + 507
+                WinAGIException wex = new(EngineResourceByNum(554)) {
+                    HResult = WINAGI_ERR + 554
                 };
                 throw wex;
             }

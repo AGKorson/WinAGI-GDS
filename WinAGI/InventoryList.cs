@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
@@ -57,11 +59,20 @@ namespace WinAGI.Engine {
 
         /// Instantiates an inventory item list from a file that is not part
         /// of an AGI game. </summary>
-        public InventoryList(string filename) {
+        public InventoryList(string filename, bool sierrasrc) {
             mInGame = false;
             mResFile = filename;
             InitInvObj();
-            Load(filename);
+            if (sierrasrc) {
+                (string errMsg, int errLine) = LoadObjectText(filename);
+                if (errLine >= 0) {
+                    Error = ResourceErrorType.ObjectNoData;
+                    ErrData[0] = "line " + errLine + "   " + errMsg;
+                }
+            }
+            else {
+                Load(filename);
+            }
         }
         #endregion
 
@@ -327,7 +338,6 @@ namespace WinAGI.Engine {
         /// 2 = first item is not '?'<br />
         /// </summary>
         /// <param name="LoadFile"></param>
-        /// <exception cref="Exception"></exception>
         public void Load(string LoadFile = "") {
             if (mLoaded) {
                 return;
@@ -486,6 +496,208 @@ namespace WinAGI.Engine {
             while (((intItem * Dwidth) + Dwidth < lngDataOffset) && (intItem < MAX_ITEMS));
             mIsChanged = reterr != ResourceErrorType.NoError;
             return (reterr, retwarn);
+        }
+
+        /// <summary>
+        /// Loads a text file that is in Sierra's format for OBJECT source files.
+        /// </summary>
+        /// <param name="loadfile"></param>
+        /// <returns>int value of -1 if OK, otherwise, a string with error
+        /// information, and the line number where the error occurred.</returns>
+        private (string, int) LoadObjectText(string loadfile) {
+            string filetext;
+            mLoaded = true;
+            // open the file
+            if (!File.Exists(loadfile)) {
+                return ("missing file", 0);
+            }
+            //// check for readonly
+            //if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+            //    return ("file is readonly", 0);
+            //}
+            try {
+                filetext = File.ReadAllText(loadfile).Replace("\r", "");
+            }
+            catch (Exception ex) {
+                return ("file access error: " + ex.Message, 0);
+            }
+            SortedList<int, InventoryItem> items = [];
+            items.Add(0, new InventoryItem { mItemName = "?", mRoom = 0 });
+            int pos = 0, linenumber = 1;
+            char ch;
+            bool inQuote = false;
+            int mx = 0;
+            string token = GetNextToken();
+            while (token.Length > 0) {
+                switch (token) {
+                case ".numani":
+                    if (!GetNumber(out mx)) {
+                        return ("Not a number: " + token, linenumber);
+                    }
+                    break;
+                case ".obj":
+                    int index;
+                    if (!GetNumber(out index)) {
+                        return ("Not a number: " + token, linenumber);
+                    }
+                    index = (byte)index;
+                    string itemtext = GetNextToken();
+                    int room;
+                    if (!GetNumber(out room)) {
+                        return ("Not a number: " + token, linenumber);
+                    }
+                    // add to list, overwriting potential duplicates
+                    if (items.ContainsKey(index)) {
+                        items[index].ItemName = itemtext;
+                        items[index].Room = (byte)room;
+                    }
+                    else {
+                        InventoryItem invitem = new();
+                        invitem.ItemName = itemtext;
+                        invitem.Room = (byte)room;
+                        items.Add(index, invitem);
+                    }
+                    break;
+                case "\n":
+                    linenumber++;
+                    break;
+                default:
+                    return ("Unknown command: " + token, linenumber);
+                }
+                token = GetNextToken();
+            }
+            // copy the loaded items to the object list
+            Clear();
+            // remove the builtin default item
+            mItems = [];
+            mMaxScreenObjects = (byte)mx;
+            int count = 1;
+            foreach (KeyValuePair<int, InventoryItem> item in items) {
+                while (item.Key > count) {
+                    Add("?", 0);
+                    count++;
+                }
+                Add(item.Value.ItemName, item.Value.Room);
+                count++;
+            }
+            return ("", -1);
+
+            string GetNextToken() {
+                string retval = "";
+                if (!SkipWhiteSpace()) {
+                    return retval;
+                }
+                do {
+                    ch = filetext[pos++];
+                    if (ch == '\"') {
+                        inQuote = !inQuote;
+                    }
+                    else if (ch < '\"') {
+                        switch (ch) {
+                        case '\t':
+                        case ' ':
+                            if (!inQuote) {
+                                return retval;
+                            }
+                            break;
+                        case '\n':
+                            if (retval.Length > 0) {
+                                --pos;
+                                return retval;
+                            }
+                            else {
+                                return "\n";
+                            }
+                        }
+                        retval += ch;
+                    }
+                    else {
+                        switch (ch) {
+                        case ',':
+                        case ';':
+                            if (!inQuote) {
+                                return retval;
+                            }
+                            break;
+                        case '[':
+                            if (!SkipToEnd()) {
+                                return retval;
+                            }
+                            continue;
+                        case '\\':
+                            if (pos < filetext.Length) {
+                                ch = filetext[pos++];
+                                if (ch == 'n') {
+                                    ch = '\n';
+                                }
+                            }
+                            break;
+                        }
+                        retval += ch;
+                    }
+                } while (pos < filetext.Length);
+                return retval;
+            }
+
+            bool SkipWhiteSpace() {
+                while (pos < filetext.Length) {
+                    ch = filetext[pos++];
+                    if (ch != ' ' && ch != '\t') {
+                        pos--;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            bool SkipToEnd() {
+                while (pos < filetext.Length) {
+                    if (filetext[pos++] == '\n') {
+                        pos--;
+                        return true;
+                    }
+                }
+                // bug in Sierra's code - it skips line breaks
+                // if they're part of a comment, so line count
+                // will be off
+                //if (!SkipWhiteSpace()) {
+                //    return false;
+                //}
+                return false;
+            }
+
+            bool GetNumber(out int retval) {
+                string numtext = GetNextToken();
+                int neg = 1;
+                if (numtext.Length == 0) {
+                    retval = 0;
+                    return false;
+                }
+                if (numtext.Length > 1) {
+                    if (numtext[0] == '+') {
+                        numtext = numtext[1..];
+                    }
+                    if (numtext[0] == '-') {
+                        neg = -1;
+                        numtext = numtext[1..];
+                    }
+                }
+                if (!char.IsDigit(numtext[0])) {
+                    retval = 0;
+                    return false;
+                }
+                int pos = 0;
+                retval = numtext[pos++] - 0x30;
+                while (pos < numtext.Length) {
+                    int digit = numtext[pos++];
+                    if (digit < '0' || digit > '9') {
+                        return true;
+                    }
+                    retval = retval * 10 + digit - 0x30;
+                }
+                retval *= neg;
+                return true;
+            }
         }
 
         /// <summary>
@@ -648,7 +860,7 @@ namespace WinAGI.Engine {
             }
             catch (Exception ex) {
                 SafeFileDelete(strTempFile);
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.Message).Replace(
                     ARG2, strTempFile)) {
                     HResult = WINAGI_ERR + 502,
@@ -668,7 +880,7 @@ namespace WinAGI.Engine {
         public InventoryItem Add(string NewItem, byte Room) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (mItems.Count == MAX_ITEMS) {
-                WinAGIException wex = new(LoadResString(512)) {
+                WinAGIException wex = new(EngineResourceByNum(512)) {
                     HResult = WINAGI_ERR + 512,
                 };
                 throw wex;
@@ -684,7 +896,7 @@ namespace WinAGI.Engine {
         public InventoryItem Add(InventoryItem item) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (mItems.Count == MAX_ITEMS) {
-                WinAGIException wex = new(LoadResString(512)) {
+                WinAGIException wex = new(EngineResourceByNum(512)) {
                     HResult = WINAGI_ERR + 512,
                 };
                 throw wex;
@@ -876,7 +1088,7 @@ namespace WinAGI.Engine {
                 File.Move(parent.agGameDir + "OBJECT", theDir + "OBJECT.amg", true);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.Message).Replace(
                     ARG2, theDir + "OBJECT.amg")) {
                     HResult = WINAGI_ERR + 502,

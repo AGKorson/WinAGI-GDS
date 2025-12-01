@@ -44,7 +44,7 @@ namespace WinAGI.Engine {
                 }
                 // check DIR file for readonly
                 if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                    WinAGIException wex = new(LoadResString(539).Replace(ARG1, strDirFile)) {
+                    WinAGIException wex = new(EngineResourceByNum(539).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 539,
                     };
                     wex.Data["badfile"] = strDirFile;
@@ -57,7 +57,7 @@ namespace WinAGI.Engine {
                     fsDIR.Read(bytBuffer);
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(541)) {
+                    WinAGIException wex = new(EngineResourceByNum(541)) {
                         HResult = WINAGI_ERR + 541
                     };
                     wex.Data["exception"] = e;
@@ -66,7 +66,7 @@ namespace WinAGI.Engine {
                 }
                 if (bytBuffer.Length < 11) {
                     // not enough bytes to hold at least the 4 dir pointers + 1 resource
-                    WinAGIException wex = new(LoadResString(505).Replace(ARG1, strDirFile)) {
+                    WinAGIException wex = new(EngineResourceByNum(505).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 505
                     };
                     wex.Data["baddir"] = Path.GetFileName(strDirFile);
@@ -86,7 +86,7 @@ namespace WinAGI.Engine {
             }
             // check for readonly
             if ((File.GetAttributes(strVolFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(539).Replace(ARG1, strVolFile)) {
+                WinAGIException wex = new(EngineResourceByNum(539).Replace(ARG1, strVolFile)) {
                     HResult = WINAGI_ERR + 539,
                 };
                 wex.Data["badfile"] = strVolFile;
@@ -128,7 +128,7 @@ namespace WinAGI.Engine {
                     }
                     // readonly not allowed
                     if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                        WinAGIException wex = new(LoadResString(539).Replace(ARG1, strDirFile)) {
+                        WinAGIException wex = new(EngineResourceByNum(539).Replace(ARG1, strDirFile)) {
                             HResult = WINAGI_ERR + 539,
                         };
                         wex.Data["badfile"] = strDirFile;
@@ -141,7 +141,7 @@ namespace WinAGI.Engine {
                         fsDIR.Read(bytBuffer);
                     }
                     catch (Exception e) {
-                        WinAGIException wex = new(LoadResString(541)) {
+                        WinAGIException wex = new(EngineResourceByNum(541)) {
                             HResult = WINAGI_ERR + 541
                         };
                         wex.Data["exception"] = e;
@@ -152,7 +152,7 @@ namespace WinAGI.Engine {
                 }
                 // check for invalid dir information
                 if ((lngDirOffset < 0) || (lngDirSize < 0)) {
-                    WinAGIException wex = new(LoadResString(505).Replace(ARG1, strDirFile)) {
+                    WinAGIException wex = new(EngineResourceByNum(505).Replace(ARG1, strDirFile)) {
                         HResult = WINAGI_ERR + 505
                     };
                     wex.Data["baddir"] = Path.GetFileName(strDirFile);
@@ -161,7 +161,7 @@ namespace WinAGI.Engine {
                 if (lngDirSize >= 3) {
                     // invalid v3 DIR block
                     if (lngDirOffset + lngDirSize > bytBuffer.Length) {
-                        WinAGIException wex = new(LoadResString(505).Replace(ARG1, strDirFile)) {
+                        WinAGIException wex = new(EngineResourceByNum(505).Replace(ARG1, strDirFile)) {
                             HResult = WINAGI_ERR + 505
                         };
                         wex.Data["baddir"] = Path.GetFileName(strDirFile);
@@ -236,7 +236,7 @@ namespace WinAGI.Engine {
                                     AddLoadError(mode, game, AGIResType.Logic, bytResNum, game.agLogs[bytResNum].Error, game.agLogs[bytResNum].ErrData);
                                     loadWarnings = true;
                                 }
-                                // source errors checkedlater, an logic resources have no warnings
+                                // source errors checkedlater, and logic resources have no warnings
                                 // make sure it was added before finishing
                                 if (game.agLogs.Contains(bytResNum)) {
                                     game.agLogs[bytResNum].PropsChanged = false;
@@ -337,14 +337,14 @@ namespace WinAGI.Engine {
             }
         }
 
-        private static TWinAGIEventInfo ErrorByNum(AGIResType resType, byte resNum, ResourceErrorType errlevel, string[] errdata) {
+        private static TWinAGIEventInfo ErrorByNum(AGIResType resType, byte resNum, ResourceErrorType error, string[] errdata) {
             TWinAGIEventInfo warnInfo = new() {
                 ResType = resType,
                 ResNum = resNum,
                 Type = EventType.ResourceError,
                 Line = "--",
             };
-            switch (errlevel) {
+            switch (error) {
             case ResourceErrorType.FileNotFound:
                 warnInfo.ID = "RE01";
                 warnInfo.Text =EngineResources.RE01.Replace(
@@ -482,18 +482,25 @@ namespace WinAGI.Engine {
                 warnInfo.ID = "RE23";
                 warnInfo.Text = EngineResources.RE23;
                 break;
-            case ResourceErrorType.GlobalsNoFile:
+            case ResourceErrorType.DefinesNoFile:
                 warnInfo.ID = "RE24";
                 warnInfo.Text = EngineResources.RE24;
                 break;
-            case ResourceErrorType.GlobalsIsReadOnly:
+            case ResourceErrorType.DefinesReadOnly:
                 warnInfo.ID = "RE25";
                 warnInfo.Text = EngineResources.RE25;
                 break;
-            case ResourceErrorType.GlobalsAccessError:
+            case ResourceErrorType.DefinesAccessError:
                 warnInfo.ID = "RE26";
                 warnInfo.Text = EngineResources.RE26.Replace(
                     ARG1, errdata[0]);
+                break;
+            case ResourceErrorType.SierraResourceError:
+                warnInfo.ID = "RE27";
+                warnInfo.Text = EngineResources.RE27.Replace(
+                    ARG1, resType.ToString()).Replace(
+                    ARG2, resNum.ToString()).Replace(
+                    ARG3, errdata[0]);
                 break;
             }
             return warnInfo;
@@ -1607,7 +1614,7 @@ namespace WinAGI.Engine {
             if (intOldCode != 256) {
                 intPrefix = [];
                 bytAppend = [];
-                WinAGIException wex = new(Engine.Base.LoadResString(509).Replace(ARG1, "(invalid compression data)")) {
+                WinAGIException wex = new(Engine.Base.EngineResourceByNum(509).Replace(ARG1, "(invalid compression data)")) {
                     HResult = WINAGI_ERR + 509,
                 };
                 throw wex;

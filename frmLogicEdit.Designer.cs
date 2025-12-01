@@ -554,7 +554,8 @@
             btnCharMap.ImageTransparentColor = System.Drawing.Color.Magenta;
             btnCharMap.Name = "btnCharMap";
             btnCharMap.Size = new System.Drawing.Size(28, 28);
-            btnCharMap.Text = "toolStripButton1";
+            btnCharMap.Text = "Character Map";
+            btnCharMap.ToolTipText = "Character Map";
             btnCharMap.Click += mnuECharMap_Click;
             // 
             // splitContainer1

@@ -177,13 +177,13 @@ namespace WinAGI.Engine {
             }
             set {
                 if (value.GetUpperBound(0) != mWidth - 1) {
-                    WinAGIException wex = new(LoadResString(524)) {
+                    WinAGIException wex = new(EngineResourceByNum(524)) {
                         HResult = WINAGI_ERR + 524,
                     };
                     throw wex;
                 }
                 if (value.GetUpperBound(1) != mHeight - 1) {
-                    WinAGIException wex = new(LoadResString(524)) {
+                    WinAGIException wex = new(EngineResourceByNum(524)) {
                         HResult = WINAGI_ERR + 524,
                     };
                     throw wex;

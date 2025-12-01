@@ -1,18 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using static WinAGI.Common.Base;
-using static WinAGI.Engine.LogicDecoder;
-using static WinAGI.Engine.ArgType;
-using static WinAGI.Engine.Base;
-using static WinAGI.Engine.Commands;
-using static WinAGI.Engine.DefineNameCheck;
-using static WinAGI.Engine.DefineValueCheck;
-using static WinAGI.Engine.LogicErrorLevel;
-using System.Diagnostics;
-
-namespace WinAGI.Engine {
+﻿namespace WinAGI.Engine {
     public partial class AGIGame {
         #region Classes
         /// <summary>

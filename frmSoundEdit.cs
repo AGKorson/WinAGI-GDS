@@ -326,7 +326,7 @@ namespace WinAGI.Editor {
             // set edit menu items based on current selection
             mnuUndo.Enabled = UndoCol.Count > 0;
             if (mnuUndo.Enabled) {
-                mnuUndo.Text = "Undo " + Editor.Base.LoadResString(SNDUNDOTEXT + (int)UndoCol.Peek().UDAction);
+                mnuUndo.Text = "Undo " + Editor.Base.EditorResourceByNum(SNDUNDOTEXT + (int)UndoCol.Peek().UDAction);
             }
             else {
                 mnuUndo.Text = "Undo";
@@ -4885,7 +4885,7 @@ namespace WinAGI.Editor {
                 }
                 RefreshTree(AGIResType.Sound, SoundNumber);
                 if (WinAGISettings.AutoExport.Value) {
-                    EditSound.Export(EditGame.ResDir + EditSound.ID + ".ags");
+                    EditSound.Export(EditGame.SrcResDir + EditSound.ID + ".ags");
                     // reset ID (non-game id gets changed by export...)
                     EditSound.ID = EditGame.Sounds[SoundNumber].ID;
                 }
@@ -5018,8 +5018,8 @@ namespace WinAGI.Editor {
                     Text = CHG_MARKER + Text;
                 }
                 if (EditSound.ID != oldid) {
-                    if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
-                        SafeFileMove(EditGame.ResDir + oldid + ".agp", EditGame.ResDir + EditGame.Sounds[NewResNum].ID + ".agp", true);
+                    if (File.Exists(EditGame.SrcResDir + oldid + ".agp")) {
+                        SafeFileMove(EditGame.SrcResDir + oldid + ".agp", EditGame.SrcResDir + EditGame.Sounds[NewResNum].ID + ".agp", true);
                     }
                 }
             }

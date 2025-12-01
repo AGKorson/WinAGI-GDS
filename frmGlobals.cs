@@ -53,14 +53,8 @@ namespace WinAGI.Editor {
             InitStatusStrip();
             MdiParent = MDIMain;
             InitFonts();
-            if (EditGame is null || !EditGame.SierraSyntax) {
-                invalid1st = INVALID_FIRST_CHARS;
-                invalidall = INVALID_DEFINE_CHARS;
-            }
-            else {
-                invalidall = INVALID_SIERRA_CHARS;
-                invalid1st = INVALID_SIERRA_1ST_CHARS;
-            }
+            invalid1st = INVALID_FIRST_CHARS;
+            invalidall = INVALID_DEFINE_CHARS;
             s_invalid1st = new string(invalid1st);
             s_invalidall = new string(invalidall);
             DataGridViewRow template = new();
@@ -210,7 +204,7 @@ namespace WinAGI.Editor {
             }
             mnuEUndo.Enabled = UndoCol.Count > 0;
             if (mnuEUndo.Enabled) {
-                mnuEUndo.Text = "Undo " + Editor.Base.LoadResString(GLBUNDOTEXT + (int)UndoCol.Peek().Action);
+                mnuEUndo.Text = "Undo " + Editor.Base.EditorResourceByNum(GLBUNDOTEXT + (int)UndoCol.Peek().Action);
             }
             else {
                 mnuEUndo.Text = "Undo";
@@ -331,7 +325,6 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEUndo_Click(object sender, EventArgs e) {
-            int validname;
 
             if (UndoCol.Count == 0 || globalsgrid.IsCurrentCellInEditMode) {
                 return;
@@ -400,14 +393,13 @@ namespace WinAGI.Editor {
                 }
                 break;
             case GlobalsUndo.GlobalUndoAction.EditName:
-                validname = (int)ValidateGlobalName(NextUndo.Text);
                 globalsgrid[NameCol, NextUndo.Pos].Value = NextUndo.Text;
                 globalsgrid[NameCol, NextUndo.Pos].Selected = true;
                 break;
             case GlobalsUndo.GlobalUndoAction.EditValue:
                 globalsgrid[ValueCol, NextUndo.Pos].Value = NextUndo.Text;
                 ArgType type = ArgType.None;
-                DefineValueCheck valcheck = ValidateGlobalValue(NextUndo.Text, ref type);
+                DefineValueCheck valcheck = ValidateGridValue(NextUndo.Text, ref type);
                 globalsgrid[ValueCheckCol, NextUndo.Pos].Value = valcheck;
                 globalsgrid[TypeCol, NextUndo.Pos].Value = type;
                 globalsgrid[ValueCol, NextUndo.Pos].Selected = true;
@@ -830,7 +822,6 @@ namespace WinAGI.Editor {
                 }
                 break;
             case ValueCol:
-                // TODO: format based on token type
                 switch ((DefineValueCheck)globalsgrid[ValueCheckCol, e.RowIndex].Value) {
                 case DefineValueCheck.OK:
                     switch ((ArgType)globalsgrid[TypeCol, e.RowIndex].Value) {
@@ -868,7 +859,8 @@ namespace WinAGI.Editor {
                     case ArgType.TestCmd:
                     case ArgType.Obj:
                     case ArgType.View:
-                        // TODO: SierraSyntax values
+                        // sierrasyntax not applicable (global editor
+                        // not used)
                         break;
                     }
                     break;
@@ -1098,7 +1090,7 @@ namespace WinAGI.Editor {
                     }
                     // can't use the compiler validation checks, because they won't catch
                     // changes that are in the current modified globals list
-                    DefineNameCheck namecheck = ValidateGlobalName(EditTextBox.Text);
+                    DefineNameCheck namecheck = ValidateGridName(EditTextBox.Text);
                     // first eight codes are error
                     if (namecheck is >= (DefineNameCheck)1 and <= (DefineNameCheck)8) {
                         switch (namecheck) {
@@ -1280,7 +1272,7 @@ namespace WinAGI.Editor {
                         globalsgrid.EndEdit();
                         return;
                     }
-                    DefineValueCheck valuecheck = ValidateGlobalValue(EditTextBox.Text, ref EditDefine.Type);
+                    DefineValueCheck valuecheck = ValidateGridValue(EditTextBox.Text, ref EditDefine.Type);
                     if (valuecheck is >= (DefineValueCheck)1 and <= (DefineValueCheck)2) {
                         // errors
                         switch (valuecheck) {
@@ -1525,7 +1517,7 @@ namespace WinAGI.Editor {
         /// <param name="ClearAll"></param>
         public bool LoadGlobalDefines(string GlobalFile, bool ingame) {
             bool blnError = false;
-            string definetext;
+            string filetext;
 
             if (!File.Exists(GlobalFile)) {
                 if (ingame) {
@@ -1537,6 +1529,8 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning, 0, 0,
                         WinAGIHelp, "htm\\winagi\\errors\\re24.htm");
+                    File.WriteAllText(GlobalFile, "[\r\n[ global defines file for " +
+                        EditGame.GameID + "\r\n[\r\n");
                 }
                 else {
                     // cancel
@@ -1572,7 +1566,7 @@ namespace WinAGI.Editor {
             }
             try {
                 // open file for input
-                definetext = File.ReadAllText(GlobalFile);
+                filetext = File.ReadAllText(GlobalFile);
             }
             catch (Exception) {
                 // if error opening file, just exit
@@ -1595,7 +1589,7 @@ namespace WinAGI.Editor {
                 }
                 return false;
             }
-            TDefine[] defines = ReadDefines(definetext, ref blnError);
+            TDefine[] defines = ReadDefines(filetext, ref blnError);
             for (int i = 0; i < defines.Length; i++) {
                 globalsgrid.Rows.Add(defines[i].Type, defines[i].Name, defines[i].Name, defines[i].Value, defines[i].Comment, defines[i].NameCheck, defines[i].ValueCheck);
             }
@@ -1634,9 +1628,9 @@ namespace WinAGI.Editor {
                         tmpDef.Name = token.Text;
                         tmpDef.Value = WinAGIFCTB.NextToken(strLine, token).Text;
                         tmpDef.Comment = cmt;
-                        DefineNameCheck validatename = ValidateGlobalName(tmpDef.Name);
+                        DefineNameCheck validatename = ValidateGridName(tmpDef.Name);
                         ArgType deftype = ArgType.None;
-                        DefineValueCheck validatevalue = ValidateGlobalValue(tmpDef.Value, ref deftype);
+                        DefineValueCheck validatevalue = ValidateGridValue(tmpDef.Value, ref deftype);
                         if ((validatename != DefineNameCheck.OK && validatename < DefineNameCheck.Global) ||
                             (validatevalue != DefineValueCheck.OK && validatevalue < DefineValueCheck.BadArgNumber)) {
                             // something wrong with this entry
@@ -2148,9 +2142,9 @@ namespace WinAGI.Editor {
                 // coming from internal clipboard means no concerns
                 //  about formatting, so just validate and add it
 
-                DefineNameCheck nameCheck = ValidateGlobalName(PasteDefines[i].Name);
+                DefineNameCheck nameCheck = ValidateGridName(PasteDefines[i].Name);
                 ArgType t = ArgType.None;
-                DefineValueCheck valueCheck = ValidateGlobalValue(PasteDefines[i].Value, ref t);
+                DefineValueCheck valueCheck = ValidateGridValue(PasteDefines[i].Value, ref t);
                 if (((int)nameCheck > 0 && (int)nameCheck <= 7) || ((int)valueCheck > 0 && (int)valueCheck <= 3)) {
                     errors = true;
                 }
@@ -2231,10 +2225,13 @@ namespace WinAGI.Editor {
             return retval;
         }
 
-        public DefineNameCheck ValidateGlobalName(string checkname) {
+        public DefineNameCheck ValidateGridName(string checkname) {
+            // use a separate check than the one in DefinesList because the 
+            // entries in the grid are not put into the defines list until the
+            // user saves the file
+
             // basic checks
-            bool sierrasyntax = InGame && EditGame.SierraSyntax;
-            DefineNameCheck retval = BaseNameCheck(checkname, sierrasyntax);
+            DefineNameCheck retval = BaseNameCheck(checkname, false);
             if (retval != DefineNameCheck.OK) {
                 return retval;
             }
@@ -2244,6 +2241,29 @@ namespace WinAGI.Editor {
                 if (i != globalsgrid.NewRowIndex) {
                     if (i != globalsgrid.CurrentRow.Index && globalsgrid[NameCol, i].Value.ToString() == checkname)
                         return DefineNameCheck.Global;
+                }
+            }
+            // resourceIDs
+            if (EditGame is not null && EditGame.IncludeIDs) {
+                foreach (Logic logic in EditGame.Logics) {
+                    if (checkname == logic.ID) {
+                        return DefineNameCheck.ResourceID;
+                    }
+                }
+                foreach (Picture picture in EditGame.Pictures) {
+                    if (checkname == picture.ID) {
+                        return DefineNameCheck.ResourceID;
+                    }
+                }
+                foreach (Sound sound in EditGame.Sounds) {
+                    if (checkname == sound.ID) {
+                        return DefineNameCheck.ResourceID;
+                    }
+                }
+                foreach (Engine.View view in EditGame.Views) {
+                    if (checkname == view.ID) {
+                        return DefineNameCheck.ResourceID;
+                    }
                 }
             }
             // check against basic reserved
@@ -2290,34 +2310,15 @@ namespace WinAGI.Editor {
                         return i == 3 ? DefineNameCheck.ReservedNum : DefineNameCheck.ReservedMsg;
                 }
             }
-            // resourceIDs
-            if (EditGame is not null && EditGame.IncludeIDs) {
-                foreach (Logic logic in EditGame.Logics) {
-                    if (checkname == logic.ID) {
-                        return DefineNameCheck.ResourceID;
-                    }
-                }
-                foreach (Picture picture in EditGame.Pictures) {
-                    if (checkname == picture.ID) {
-                        return DefineNameCheck.ResourceID;
-                    }
-                }
-                foreach (Sound sound in EditGame.Sounds) {
-                    if (checkname == sound.ID) {
-                        return DefineNameCheck.ResourceID;
-                    }
-                }
-                foreach (Engine.View view in EditGame.Views) {
-                    if (checkname == view.ID) {
-                        return DefineNameCheck.ResourceID;
-                    }
-                }
-            }
             // if no error conditions, it's OK
             return DefineNameCheck.OK;
         }
 
-        public DefineValueCheck ValidateGlobalValue(string checkvalue, ref ArgType type) {
+        public DefineValueCheck ValidateGridValue(string checkvalue, ref ArgType type) {
+            // use a separate check than the one in DefinesList because the 
+            // entries in the grid are not put into the defines list until the
+            // user saves the file
+
             // default type
             type = ArgType.None;
 

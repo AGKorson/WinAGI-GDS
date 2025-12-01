@@ -228,7 +228,7 @@ namespace WinAGI.Editor {
         /// Resets all resource menu items so shortcut keys can work correctly.
         /// </summary>
         internal void ResetResourceMenu() {
-            // currently, nothing to rest
+            // currently, nothing to reset
         }
 
         private void mnuRExportGIF_Click(object sender, EventArgs e) {
@@ -468,6 +468,8 @@ namespace WinAGI.Editor {
                 // this could happen if the sound has no notes in any tracks
                 return;
             }
+            // add hook to event handler
+            agSound.SoundComplete += This_SoundComplete;
             btnStop.Enabled = true;
             btnPlay.Enabled = false;
             // disable other controls while sound is playing
@@ -580,16 +582,6 @@ namespace WinAGI.Editor {
         private void btnStop_Click(object sender, EventArgs e) {
             // stop sounds
             StopSoundPreview();
-            btnPlay.Enabled = true;
-            btnStop.Enabled = false;
-            tmrSound.Enabled = false;
-            picProgress.Width = pnlProgressBar.Width;
-            picProgress.Refresh();
-            // if playing MIDI, re-enable track controls
-            if (optMIDI.Checked) {
-                SetMIDIControls(true);
-            }
-            picProgress.Width = 0;
         }
 
         void pnlSound_DoubleClick(object sender, EventArgs e) {
@@ -615,7 +607,7 @@ namespace WinAGI.Editor {
                 btnStop.Invoke(new Action(() => { btnStop.Enabled = false; }));
                 tmrSound.Enabled = false;
                 picProgress.Invoke(new Action(() => { picProgress.Width = pnlProgressBar.Width; }));
-                picProgress.Invoke(new Action(() => { picProgress.Refresh(); }));
+                picProgress.Invoke(new Action(picProgress.Refresh));
                 for (int i = 0; i < 3; i++) {
                     chkTrack[i].Invoke(new Action(() => { chkTrack[i].Enabled = agSound.SndFormat == SoundFormat.AGI; }));
                     cmbInst[i].Invoke(new Action(() => { cmbInst[i].Enabled = agSound.SndFormat == SoundFormat.AGI; }));
@@ -1059,13 +1051,9 @@ namespace WinAGI.Editor {
             if (agSound is not null) {
                 // if resource exists, it should still be loaded
                 if (agSound.Loaded) {
-                    agSound.StopSound();
+                    // unload, which also stops the sound if playing
                     agSound.Unload();
                 }
-                // stop sound
-                agSound.StopSound();
-                // always unhook the event handler
-                agSound.SoundComplete -= This_SoundComplete;
                 agSound = null;
                 // ensure timer is off
                 tmrSound.Enabled = false;
@@ -1097,7 +1085,6 @@ namespace WinAGI.Editor {
 
         public void LoadPreview(AGIResType ResType, int ResNum) {
             // the desired resource must be loaded before showing its preview
-
             UseWaitCursor = true;
             // if changing restype, or showing a header
             if (SelResType != ResType || ResNum == -1) {
@@ -1109,8 +1096,6 @@ namespace WinAGI.Editor {
             agPic?.Unload();
             agView?.Unload();
             if (agSound is not null) {
-                // if a sound is already being previewed, make sure it gets stopped
-                // before switching to the new sound
                 StopSoundPreview();
                 agSound.Unload();
             }
@@ -1168,8 +1153,6 @@ namespace WinAGI.Editor {
                 case AGIResType.Sound:
                     if (PreviewSound((byte)ResNum)) {
                         pnlSound.Visible = true;
-                        // hook the sound_complete event
-                        agSound.SoundComplete += This_SoundComplete;
                     }
                     else {
                         pnlSound.Visible = false;
@@ -1553,7 +1536,7 @@ namespace WinAGI.Editor {
         #region PreviewSound Methods
         bool PreviewSound(byte SndNum) {
             int i;
-
+            // assign new sound
             agSound = EditGame.Sounds[SndNum];
             if (!agSound.Loaded) {
                 agSound.Load();
@@ -1617,6 +1600,17 @@ namespace WinAGI.Editor {
         public void StopSoundPreview() {
             // stop sound
             agSound?.StopSound();
+            btnPlay.Enabled = true;
+            btnStop.Enabled = false;
+            tmrSound.Enabled = false;
+            // if playing MIDI, re-enable track controls
+            if (optMIDI.Checked) {
+                SetMIDIControls(true);
+            }
+            picProgress.Width = 0;
+            picProgress.Refresh();
+            // always unhook the event handler
+            agSound.SoundComplete -= This_SoundComplete;
         }
 
         void SetMIDIControls(bool enabled) {

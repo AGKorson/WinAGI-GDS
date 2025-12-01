@@ -663,6 +663,7 @@
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "frmGameProperties";
+            ShowInTaskbar = false;
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "frmGameProperties";
             tabControl1.ResumeLayout(false);

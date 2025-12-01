@@ -127,7 +127,7 @@ namespace WinAGI.Engine {
 
             if (mLoopCol.Count == 1) {
                 // can't delete last loop
-                WinAGIException wex = new(LoadResString(523)) {
+                WinAGIException wex = new(EngineResourceByNum(523)) {
                     HResult = WINAGI_ERR + 523
                 };
                 throw wex;
@@ -166,8 +166,10 @@ namespace WinAGI.Engine {
             for (int i = 0; i < CopyLoops.Count; i++) {
                 if (CopyLoops[i].MirrorPair < 0) {
                     // if this is a secondary loop, cel collection has to 
-                    // be set to same as primary
-                    CopyLoops[i].mCelCol = CopyLoops[CopyLoops[i].MirrorLoop].mCelCol;
+                    // be set to same as primary (use mLoopCol because
+                    // CopyLoops doesn't have a loop collection yet so
+                    // MirrorLoop method would throw an exception)
+                    CopyLoops[i].mCelCol = CopyLoops[mLoopCol[i].MirrorLoop].mCelCol;
                 }
             }
             return CopyLoops;

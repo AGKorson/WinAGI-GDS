@@ -43,6 +43,7 @@ namespace WinAGI.Engine {
             wavPlayer.Reset();
             bPlayingWAV = false;
             bPlayingMIDI = false;
+            soundPlaying = null;
         }
     #endregion
     }
@@ -156,7 +157,7 @@ namespace WinAGI.Engine {
                 // close the sound
                 _ = mciSendString("close all", null, 0, 0);
                 // raise the 'done' event
-                soundPlaying.OnSoundComplete(blnSuccess);
+                soundPlaying?.OnSoundComplete(blnSuccess);
                 // reset the flag
                 bPlayingMIDI = false;
                 // release the object
@@ -185,7 +186,7 @@ namespace WinAGI.Engine {
             // check for error
             if (rtn != 0) {
                 _ = mciGetErrorString(rtn, strError, 255);
-                WinAGIException wex = new(LoadResString(526).Replace(
+                WinAGIException wex = new(EngineResourceByNum(526).Replace(
                     ARG1, strError.ToString())) {
                     HResult = WINAGI_ERR + 526,
                 };
@@ -203,7 +204,7 @@ namespace WinAGI.Engine {
                 soundPlaying = null;
                 // close sound
                 _ = mciSendString("close all", null, 0, 0);
-                WinAGIException wex = new(LoadResString(526).Replace(
+                WinAGIException wex = new(EngineResourceByNum(526).Replace(
                     ARG1, strError.ToString())) {
                     HResult = WINAGI_ERR + 526,
                 };
@@ -444,10 +445,10 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="sound">The AGI Sound to play.</param>
         public void PlayWAVSound(Sound sound) {
+            StopAllSound();
             soundPlaying = sound;
             soundFormat = sound.SndFormat;
 
-            StopAllSound();
             // Now play the Wave file.
             MemoryStream memoryStream = new(sound.WAVData);
             playerThread = new Thread(() => PlayWaveStreamAndWait(memoryStream));
@@ -894,7 +895,7 @@ namespace WinAGI.Engine {
                         if (rtn != 0) {
                             StringBuilder strError = new(255);
                             _ = mciGetErrorString(rtn, strError, 255);
-                            WinAGIException wex = new(LoadResString(526).Replace(
+                            WinAGIException wex = new(EngineResourceByNum(526).Replace(
                                 ARG1, strError.ToString())) {
                                 HResult = WINAGI_ERR + 526,
                             };

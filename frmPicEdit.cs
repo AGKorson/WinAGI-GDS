@@ -1356,7 +1356,7 @@ namespace WinAGI.Editor {
             case PicEditorMode.Edit:
                 if (UndoCol.Count != 0) {
                     mnuUndo.Enabled = true;
-                    mnuUndo.Text = "Undo " + Editor.Base.LoadResString(PICUNDOTEXT + (int)UndoCol.Peek().Action);
+                    mnuUndo.Text = "Undo " + Editor.Base.EditorResourceByNum(PICUNDOTEXT + (int)UndoCol.Peek().Action);
                     // some commands need 's' added to end if more than one command to undo
                     switch (UndoCol.Peek().Action) {
                     case DelCmd or AddCmd or CutCmds or PasteCmds or MoveCmds or FlipH or FlipV:
@@ -4766,7 +4766,7 @@ namespace WinAGI.Editor {
             picPriority.Refresh();
 
             if (StopReason != 0) {
-                spStatus.Text = Editor.Base.LoadResString(STOPREASONTEXT + StopReason);
+                spStatus.Text = Editor.Base.EditorResourceByNum(STOPREASONTEXT + StopReason);
                 StopReason = 0;
             }
             else {
@@ -5091,7 +5091,7 @@ namespace WinAGI.Editor {
             // check for a saved background image
             if (EditPicture.BkgdFileName.Length != 0) {
                 try {
-                    BkgdImage = new(Path.GetFullPath(EditPicture.BkgdFileName, EditGame.ResDir));
+                    BkgdImage = new(Path.GetFullPath(EditPicture.BkgdFileName, EditGame.SrcResDir));
                     if (EditPicture.BkgdVisible) {
                         tsbBackground.Checked = true;
                     }
@@ -5173,7 +5173,7 @@ namespace WinAGI.Editor {
                 }
                 RefreshTree(AGIResType.Picture, PictureNumber);
                 if (WinAGISettings.AutoExport.Value) {
-                    EditPicture.Export(EditGame.ResDir + EditPicture.ID + ".agp");
+                    EditPicture.Export(EditGame.SrcResDir + EditPicture.ID + ".agp");
                     // reset ID (non-game id gets saved by export...)
                     EditPicture.ID = EditGame.Pictures[PictureNumber].ID;
                 }
@@ -5321,8 +5321,8 @@ namespace WinAGI.Editor {
                     Text = CHG_MARKER + Text;
                 }
                 if (EditPicture.ID != oldid) {
-                    if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
-                        SafeFileMove(EditGame.ResDir + oldid + ".agp", EditGame.ResDir + EditGame.Pictures[NewResNum].ID + ".agp", true);
+                    if (File.Exists(EditGame.SrcResDir + oldid + ".agp")) {
+                        SafeFileMove(EditGame.SrcResDir + oldid + ".agp", EditGame.SrcResDir + EditGame.Pictures[NewResNum].ID + ".agp", true);
                     }
                 }
             }
@@ -5438,7 +5438,7 @@ namespace WinAGI.Editor {
                 // add missing end
                 EditPicture.WriteByte(0xFF);
                 // add 'end' node to list
-                lstCommands.Items.Add(Editor.Base.LoadResString(DRAWFUNCTIONTEXT + 11));
+                lstCommands.Items.Add(Editor.Base.EditorResourceByNum(DRAWFUNCTIONTEXT + 11));
                 lstCommands.Items[^1].Tag = lngPos;
                 MarkAsChanged();
                 // restore cursor

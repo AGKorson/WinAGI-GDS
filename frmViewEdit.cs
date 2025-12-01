@@ -2666,7 +2666,7 @@ namespace WinAGI.Editor {
                 }
                 RefreshTree(AGIResType.View, ViewNumber);
                 if (WinAGISettings.AutoExport.Value) {
-                    EditView.Export(EditGame.ResDir + EditView.ID + ".agv");
+                    EditView.Export(EditGame.SrcResDir + EditView.ID + ".agv");
                     // reset ID (non-game id gets changed by export...)
                     EditView.ID = EditGame.Views[ViewNumber].ID;
                 }
@@ -2799,8 +2799,8 @@ namespace WinAGI.Editor {
                     Text = CHG_MARKER + Text;
                 }
                 if (EditView.ID != oldid) {
-                    if (File.Exists(EditGame.ResDir + oldid + ".agp")) {
-                        SafeFileMove(EditGame.ResDir + oldid + ".agp", EditGame.ResDir + EditGame.Views[NewResNum].ID + ".agp", true);
+                    if (File.Exists(EditGame.SrcResDir + oldid + ".agp")) {
+                        SafeFileMove(EditGame.SrcResDir + oldid + ".agp", EditGame.SrcResDir + EditGame.Views[NewResNum].ID + ".agp", true);
                     }
                 }
             }

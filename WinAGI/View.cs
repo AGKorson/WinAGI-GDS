@@ -170,6 +170,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="NewView"></param>
         private void InitView(View NewView = null) {
+            WarnData = ["", "", "", "", "", "", ""];
             if (NewView is null) {
                 // single loop, single cel, one pixel
                 mLoopCol = new Loops(this);
@@ -185,7 +186,6 @@ namespace WinAGI.Engine {
                 mLoopCol = NewView.mLoopCol.Clone(this);
             }
             mPalette = defaultPalette.Clone();
-            WarnData = ["", "", "", "", "", "", ""];
         }
 
         /// <summary>

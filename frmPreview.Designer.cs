@@ -793,7 +793,8 @@ namespace WinAGI.Editor {
             tbbZoomIn.ImageTransparentColor = System.Drawing.Color.Magenta;
             tbbZoomIn.Name = "tbbZoomIn";
             tbbZoomIn.Size = new System.Drawing.Size(23, 22);
-            tbbZoomIn.Text = "toolStripButton1";
+            tbbZoomIn.Text = "Zoom In";
+            tbbZoomIn.ToolTipText = "Zoom In";
             tbbZoomIn.Click += tbbZoomIn_Click;
             // 
             // tbbZoomOut

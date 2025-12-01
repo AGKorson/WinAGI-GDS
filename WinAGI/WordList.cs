@@ -75,18 +75,30 @@ namespace WinAGI.Engine {
             tmpGroup = new WordGroup { mGroupNum = 9999 };
             tmpGroup.AddWordToGroup("rol");
             mGroupCol.Add(9999, tmpGroup);
-
         }
 
         /// <summary>
         /// Instantiates a list of AGI words from a file that are not attached
         /// to a game.
         /// </summary>
-        public WordList(string filename) {
+        public WordList(string filename, bool sierrasrc) {
             mInGame = false;
             mResFile = filename;
             mIsChanged = true;
-            Load(filename);
+            if (sierrasrc) {
+                (string msg, bool ok) = LoadWordsText(filename);
+                if (!ok) {
+                    Error = ResourceErrorType.WordsTokNoData;
+                    ErrData[0] = msg;
+                }
+                else {
+                    // Sierra's word compiler can return OK, but with warnings
+                    WarnData[0] = msg;
+                }
+            }
+            else {
+                Load(filename);
+            }
         }
         #endregion
 
@@ -534,11 +546,294 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
+        /// Loads a text file that is in Sierra's format for WORDS.TOK source files.
+        /// </summary>
+        /// <param name="loadfile"></param>
+        /// <returns>int value of -1 if OK, otherwise, a string with error
+        /// information, and the line number where the error occurred.</returns>
+        private (string, bool) LoadWordsText(string loadfile) {
+            string filetext;
+            mLoaded = true;
+            // open the file
+            if (!File.Exists(loadfile)) {
+                return ("missing file", false);
+            }
+            //// check for readonly
+            //if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+            //    return ("file is readonly", 0);
+            //}
+            try {
+                filetext = File.ReadAllText(loadfile);
+            }
+            catch (Exception ex) {
+                return ("file access error: " + ex.Message, false);
+            }
+            WordList words = new();
+            // clear group 0 and 9999; only group 1 is pre-set
+            words.RemoveGroup(0);
+            words.RemoveGroup(9999);
+            int pos = 0, linenumber = 1;
+            string token = "", retval = "";
+
+            int type = 6;
+            while (true) {
+                if (!GetNextCmd(ref type)) {
+                    // fatal error
+                    return (retval, false);
+                }
+                if (type == 8) {
+                    // done
+                    break;
+                }
+                if (type == 7) {
+                    SkipToNextLine();
+                    type = 6;
+                    continue;
+                }
+                switch (type) {
+                case 1:
+                    // .d command
+                    type = 4;
+                    if (!GetNextCmd(ref type)) {
+                        // fatal error
+                        return (retval, false);
+                    }
+                    if (type == 7) {
+                        SkipToNextLine();
+                        type = 6;
+                        continue;
+                    }
+                    string wordtext = token;
+                    type = 5;
+                    if (!GetNextCmd(ref type)) {
+                        // fatal error
+                        return (retval, false);
+                    }
+                    if (type == 7) {
+                        SkipToNextLine();
+                        type = 6;
+                        continue;
+                    }
+                    int groupnum = 0;
+                    char ch = token[0];
+                    while (ch >= '0' && ch <= '9') {
+                        groupnum = groupnum * 10 + (ch - 0x30);
+                        if (token.Length > 1) {
+                            token = token[1..];
+                            ch = token[0];
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    // make sure group is not in use
+                    if (words.GroupExists(groupnum)) {
+                        // error
+                        retval += "line " + linenumber + ": " +
+                            groupnum.ToString() + " already used for " +
+                            words.GroupByNumber(groupnum).GroupName + "\n";
+                        // in Sierra's compiler, this error doesn't
+                        // skip to end of line
+                        break;
+                    }
+                    // make sure word not already in use
+                    if (words.WordExists(wordtext)) {
+                        // error
+                        retval += "line " + linenumber + ": " +
+                            "word already defined: " + wordtext + "\n";
+                    }
+                    else {
+                        words.AddWord(wordtext, groupnum);
+                    }
+                    SkipToNextLine();
+                    break;
+                case 2:
+                    // .s command
+                    type = 4;
+                    if (!GetNextCmd(ref type)) {
+                        // error
+                        return (retval, false);
+                    }
+                    if (type == 7) {
+                        SkipToNextLine();
+                        type = 6;
+                        continue;
+                    }
+                    wordtext = token;
+                    type = 4;
+                    if (!GetNextCmd(ref type)) {
+                        // error
+                        return (retval, false);
+                    }
+                    if (type == 7) {
+                        SkipToNextLine();
+                        type = 6;
+                        continue;
+                    }
+                    if (!words.WordExists(token)) {
+                        // error
+                        retval += "line " + linenumber + ": word not defined \"" +
+                            token + "\"\n";
+                        SkipToNextLine();
+                        break;
+                    }
+                    // make sure word not already in use
+                    if (words.WordExists(wordtext)) {
+                        // error
+                        retval += "line " + linenumber + ": " +
+                            "word already defined: " + wordtext + "\n";
+                    }
+                    else {
+                        words.AddWord(wordtext, words[token].Group);
+                    }
+                    SkipToNextLine();
+                    break;
+                case 3:
+                    // .i command
+                    type = 4;
+                    if (!GetNextCmd(ref type)) {
+                        // error
+                        return (retval, false);
+                    }
+                    wordtext = token;
+                    if (words.WordExists(wordtext)) {
+                        // error
+                        retval += "line " + linenumber + ": " +
+                            "word already defined: " + wordtext + "\n";
+                    }
+                    else {
+                        words.AddWord(wordtext, 0);
+                    }
+                    SkipToNextLine();
+                    break;
+                }
+                type = 6;
+            }
+            CloneFrom(words);
+            return (retval, true);
+
+            bool GetNextCmd(ref int type) {
+                // type indicates next expected token type:
+                //    4=wordtext, 5=grpnum, 6=nextcmd
+                // if successful, returns true and updates
+                // type to next expected token type
+                // if unsuccessful, returns false and sets type to 0
+                if (!GetNextToken()) {
+                    if (type == 6) {
+                        // ok- just exit
+                        type = 8;
+                        return true;
+                    }
+                    // error - end processing
+                    type = 0;
+                    retval += "line " + linenumber + ": unexpected end of file";
+                    return false;
+                }
+                switch (type) {
+                case 4:
+                    // only valid if first char is a lower case letter
+                    if (token[0] < 'a' || token[0] > 'z') {
+                        // error
+                        type = 7;
+                        retval += "line " + linenumber + ": word required: " + token + "\n";
+                        return true;
+                    }
+                    break;
+                case 5:
+                    // first digit must be a number
+                    if (token[0] < '0' || token[0] > '9') {
+                        type = 7;
+                        retval += "line " + linenumber + ": number required: " + token + "\n";
+                        return true;
+                    }
+                    break;
+                case 6:
+                    // first char must be '.'
+                    if (token[0] != '.') {
+                        type = 7;
+                        retval += "line " + linenumber + ": command required: " + token + "\n";
+                        return true;
+                    }
+                    switch (token) {
+                    case ".d":
+                        type = 1;
+                        break;
+                    case ".s":
+                        type = 2;
+                        break;
+                    case ".i":
+                        type = 3;
+                        break;
+                    default:
+                        type = 7;
+                        retval += "line " + linenumber + ": unknown command: " + token + "\n";
+                        return true;
+                    }
+                    break;
+                }
+                return true;
+            }
+
+            bool GetNextToken() {
+                bool start = false;
+                token = "";
+                while (pos < filetext.Length) {
+                    char ch = filetext[pos++];
+                    if (ch >= 'A' && ch <= 'Z') {
+                        // convert to lower case
+                        ch = (char)(ch + 32);
+                    }
+                    switch (ch) {
+                    case '\t':
+                    case '\r':
+                    case ' ':
+                        if (start) {
+                            return true;
+                        }
+                        break;
+                    case '\n':
+                        linenumber++;
+                        break;
+                    case '[':
+                        SkipToNextLine();
+                        break;
+                    default:
+                        if (ch == '$') {
+                            ch = ' ';
+                        }
+                        else {
+                            if (ch >= 'A' && ch <= 'Z') {
+                                // convert to lower case
+                                ch = (char)(ch + 32);
+                            }
+                        }
+                        token += ch;
+                        start = true;
+                        break;  
+                    }
+                };
+                return false;
+            }
+
+            void SkipToNextLine() {
+                // sierra's parser has a bug that will continue past
+                // end of file; we will not replicate that behavior
+                while (pos < filetext.Length) {
+                    if (filetext[pos++] == '\n') {
+                        linenumber++;
+                        return;
+                    }
+                }
+            }
+        }
+
+        ///
+        /// <summary>
         /// Unloads this word list if in a game. Word lists not in a game
         /// are always loaded.
         /// </summary>
         public void Unload() {
-            if (!mLoaded) {
+            if (!mLoaded || !mInGame) {
                 // ignore
                 return;
             }
@@ -624,28 +919,28 @@ namespace WinAGI.Engine {
                         wordtext = Encoding.GetEncoding(CodePage).GetBytes(tmpWord.WordText);
                         // upper chase characters not allowed
                         if (wordtext.Any(ch => ch >= 65 && ch <= 90)) {
-                            throw new WinAGIException(LoadResString(549).Replace(
+                            throw new WinAGIException(EngineResourceByNum(549).Replace(
                                 ARG1, tmpWord.WordText)) {
                                 HResult = WINAGI_ERR + 549,
                             };
                         }
                         if (tmpWord.WordText.AsSpan().IndexOfAny(s_inv) >= 0) {
-                            throw new WinAGIException(LoadResString(550).Replace(
+                            throw new WinAGIException(EngineResourceByNum(550).Replace(
                                 ARG1, tmpWord.WordText)) {
                                 HResult = WINAGI_ERR + 550,
                             };
                         }
-                        if (parent is not null || !parent.PowerPack) {
+                        if (parent is null || !parent.PowerPack) {
                             // extended characters not allowed unless using powerpack
                             if (wordtext.Any(ch => ch >127)) {
-                                throw new WinAGIException(LoadResString(551).Replace(
+                                throw new WinAGIException(EngineResourceByNum(551).Replace(
                                     ARG1, tmpWord.WordText)) {
                                     HResult = WINAGI_ERR + 551,
                                 };
                             }
                             // first char must be a letter unless powerpack is used
                             if (wordtext[0] < 97 || wordtext[0] > 122) {
-                                throw new WinAGIException(LoadResString(552).Replace(
+                                throw new WinAGIException(EngineResourceByNum(552).Replace(
                                     ARG1, tmpWord.WordText)) {
                                     HResult = WINAGI_ERR + 552,
                                 };
@@ -736,7 +1031,7 @@ namespace WinAGI.Engine {
                 SafeFileMove(tempFile, CompileFile, true);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.Message).Replace(
                     ARG2, tempFile)) {
                     HResult = WINAGI_ERR + 502,
@@ -775,7 +1070,7 @@ namespace WinAGI.Engine {
                 SafeFileMove(strTempFile, CompileFile, true);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.Message).Replace(
                     ARG2, strTempFile)) {
                     HResult = WINAGI_ERR + 502,
@@ -990,7 +1285,7 @@ namespace WinAGI.Engine {
             ArgumentOutOfRangeException.ThrowIfNegative(GroupNumber, nameof(GroupNumber));
             ArgumentOutOfRangeException.ThrowIfGreaterThan(GroupNumber, MAX_GROUP_NUM, nameof(GroupNumber));
             if (!GroupExists(GroupNumber)) {
-                WinAGIException wex = new(LoadResString(515)) {
+                WinAGIException wex = new(EngineResourceByNum(515)) {
                     HResult = WINAGI_ERR + 515
                 };
                 throw wex;
@@ -1069,13 +1364,13 @@ namespace WinAGI.Engine {
             WordText = WordText.LowerAGI();
             // check to see if word is already in collection,
             if (mWordCol.ContainsKey(WordText)) {
-                WinAGIException wex = new(LoadResString(513)) {
+                WinAGIException wex = new(EngineResourceByNum(513)) {
                     HResult = WINAGI_ERR + 513
                 };
                 throw wex;
             }
             if (Group < 0 || Group > MAX_GROUP_NUM) {
-                WinAGIException wex = new(LoadResString(514)) {
+                WinAGIException wex = new(EngineResourceByNum(514)) {
                     HResult = WINAGI_ERR + 514
                 };
                 throw wex;
@@ -1099,7 +1394,7 @@ namespace WinAGI.Engine {
         public void RemoveWord(string aWord) {
             WinAGIException.ThrowIfNotLoaded(this);
             if (!mWordCol.TryGetValue(aWord, out AGIWord value)) {
-                WinAGIException wex = new(LoadResString(516)) {
+                WinAGIException wex = new(EngineResourceByNum(516)) {
                     HResult = WINAGI_ERR + 516
                 };
                 throw wex;

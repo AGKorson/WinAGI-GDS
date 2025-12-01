@@ -949,9 +949,9 @@ namespace WinAGI.Editor {
                 menulogic.Load();
             }
             // if existing text has the menu editor header
-            if (menulogic.SourceText.Contains(LoadResString(102), StringComparison.CurrentCulture)) {
+            if (menulogic.SourceText.Contains(EditorResourceByNum(102), StringComparison.CurrentCulture)) {
                 // remove it
-                menulogic.SourceText = menulogic.SourceText.Replace(LoadResString(102), "");
+                menulogic.SourceText = menulogic.SourceText.Replace(EditorResourceByNum(102), "");
             }
             // find the starting and ending pos of the menu
             if (HasMenu(menulogic.SourceText, ref lngMenuPos, ref lngSubmitPos)) {
@@ -996,9 +996,9 @@ namespace WinAGI.Editor {
                         Place end = fctb.Selection.End;
                         FastColoredTextBoxNS.Range vr = fctb.VisibleRange;
                         // if existing text has the menu editor header
-                        if (fctb.Text.Contains(LoadResString(102), StringComparison.CurrentCulture)) {
+                        if (fctb.Text.Contains(EditorResourceByNum(102), StringComparison.CurrentCulture)) {
                             // remove it
-                            fctb.Text = fctb.Text.Replace(LoadResString(102), "");
+                            fctb.Text = fctb.Text.Replace(EditorResourceByNum(102), "");
                         }
                         // find the starting and ending pos of the menu
                         if (HasMenu(fctb.Text, ref lngMenuPos, ref lngSubmitPos)) {
@@ -1447,7 +1447,7 @@ namespace WinAGI.Editor {
             string sItemEnd = ");" + Environment.NewLine;
 
             // add header
-            string retval = LoadResString(102);
+            string retval = EditorResourceByNum(102);
 
             foreach (TreeNode node in tvwMenu.Nodes) {
                 // add menu text

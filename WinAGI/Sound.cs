@@ -192,7 +192,7 @@ namespace WinAGI.Engine {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
                 if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.WAV) {
-                    WinAGIException wex = new(LoadResString(542)) {
+                    WinAGIException wex = new(EngineResourceByNum(542)) {
                         HResult = WINAGI_ERR + 542,
                     };
                     throw wex;
@@ -218,7 +218,7 @@ namespace WinAGI.Engine {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
                 if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.MIDI) {
-                    WinAGIException wex = new(LoadResString(542)) {
+                    WinAGIException wex = new(EngineResourceByNum(542)) {
                         HResult = WINAGI_ERR + 542,
                     };
                     throw wex;
@@ -544,7 +544,7 @@ namespace WinAGI.Engine {
                 tmpRes.WriteWord(0xFFFF);
             }
             catch (Exception e) {
-                WinAGIException wex = new(LoadResString(511).Replace(ARG1, e.Message)) {
+                WinAGIException wex = new(EngineResourceByNum(511).Replace(ARG1, e.Message)) {
                     HResult = WINAGI_ERR + 511
                 };
                 wex.Data["exception"] = e;
@@ -705,7 +705,7 @@ namespace WinAGI.Engine {
         private void ExportAsMIDI(string MIDIFile) {
             // only pcjr and IIgs midi can be exported as midi
             if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.MIDI) {
-                WinAGIException wex = new(LoadResString(542)) {
+                WinAGIException wex = new(EngineResourceByNum(542)) {
                     HResult = WINAGI_ERR + 542,
                 };
                 throw wex;
@@ -743,7 +743,7 @@ namespace WinAGI.Engine {
             int lngSize;
 
             if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.WAV) {
-                WinAGIException wex = new(LoadResString(542)) {
+                WinAGIException wex = new(EngineResourceByNum(542)) {
                     HResult = WINAGI_ERR + 542,
                 };
                 throw wex;
@@ -889,7 +889,7 @@ namespace WinAGI.Engine {
 
             // only agi format can be exported as script
             if (mFormat != SoundFormat.AGI) {
-                WinAGIException wex = new(LoadResString(542)) {
+                WinAGIException wex = new(EngineResourceByNum(542)) {
                     HResult = WINAGI_ERR + 542,
                 };
                 throw wex;
@@ -1227,9 +1227,9 @@ namespace WinAGI.Engine {
         /// sound will stop ALL sound.
         /// </summary>
         public void StopSound() {
-            if (!mLoaded) {
-                return;
-            }
+            //if (!mLoaded) {
+            //    return;
+            //}
             // stop all modes
             StopAllSound();
         }
@@ -1242,6 +1242,9 @@ namespace WinAGI.Engine {
             // only ingame resources can be unloaded
             if (!mInGame) {
                 return;
+            }
+            if (this == soundPlaying) {
+                StopAllSound();
             }
             base.Unload();
             mIsChanged = false;

@@ -442,7 +442,7 @@ namespace WinAGI.Editor {
             string currentfile = bkgdSettings.FileName;
             if (currentfile.Length != 0) {
                 try {
-                    BkgdImage = new(Path.GetFullPath(currentfile, EditGame.ResDir));
+                    BkgdImage = new(Path.GetFullPath(currentfile, EditGame.SrcResDir));
                 }
                 catch (Exception ex) {
                     ErrMsgBox(ex, "File error - unable to load this image.",
@@ -545,7 +545,7 @@ namespace WinAGI.Editor {
                     MDIMain.OpenDlg.FilterIndex = 7;
                     break;
                 }
-                MDIMain.OpenDlg.InitialDirectory = Path.GetFullPath(bkgdSettings.FileName, EditGame.ResDir);
+                MDIMain.OpenDlg.InitialDirectory = Path.GetFullPath(bkgdSettings.FileName, EditGame.SrcResDir);
             }
             else {
                 MDIMain.OpenDlg.Title = "Choose a Background Image for this Picture";
@@ -557,7 +557,7 @@ namespace WinAGI.Editor {
                 return false;
             }
             DefaultResDir = Common.Base.JustPath(MDIMain.OpenDlg.FileName);
-            bkgdSettings.FileName = Path.GetRelativePath(EditGame.ResDir, MDIMain.OpenDlg.FileName);
+            bkgdSettings.FileName = Path.GetRelativePath(EditGame.SrcResDir, MDIMain.OpenDlg.FileName);
             try {
                 BkgdImage = new(MDIMain.OpenDlg.FileName);
             }

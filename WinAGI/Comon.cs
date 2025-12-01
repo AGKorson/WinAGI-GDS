@@ -109,7 +109,7 @@ namespace WinAGI.Common {
 
         [DoesNotReturn]
         private static void ThrowResourceNotLoaded() {
-            WinAGIException wex = new("Resource not loaded") {
+            WinAGIException wex = new(EngineResourceByNum(501)) {
                 HResult = WINAGI_ERR + 501,
             };
             throw wex;
@@ -291,7 +291,7 @@ namespace WinAGI.Common {
                 }
             }
             catch (Exception) {
-                WinAGIException wex = new(LoadResString(548).Replace(ARG1, destDirName)) {
+                WinAGIException wex = new(EngineResourceByNum(548).Replace(ARG1, destDirName)) {
                     HResult = WINAGI_ERR + 548,
                 };
                 wex.Data["targetdir"] = destDirName;
@@ -335,6 +335,12 @@ namespace WinAGI.Common {
             //
             // If the lines are not there and they should be, add them. If there
             // and not neeeded, remove them.
+            //
+            // only fan syntax uses auto includes
+            if (game.SierraSyntax) {
+                return logicsource;
+            }
+
             int line, insertpos = -1, idpos = -1, reservedpos = -1, globalspos = -1;
             int badidpos = -1, badreservedpos = -1, badglobalspos = -1;
             changed = false;
@@ -828,32 +834,30 @@ namespace WinAGI.Common {
             if (checkname.Any(ch => ch > 127 || ch < 32)) {
                 return DefineNameCheck.BadChar;
             }
-            // check against regular commands
-            for (int i = 0; i < Commands.ActionCount; i++) {
-                if (checkname == Commands.ActionCommands[i].Name) {
-                    return DefineNameCheck.ActionCommand;
-                }
-            }
-            // check against test commands
-            // TODO: for sierra syntax, skip cmdname check?
-            for (int i = 0; i < Commands.TestCount; i++) {
-                if (checkname == Commands.TestCommands[i].Name) {
-                    return DefineNameCheck.TestCommand;
-                }
-            }
-            // check against compiler keywords
-            if (checkname is "if" or "else" or "goto") {
-                return DefineNameCheck.KeyWord;
-            }
-            // if the name starts with any of these letters
-            // (OK for sierra syntax)
             if (!sierrasyntax) {
+                // check against regular commands
+                for (int i = 0; i < Commands.ActionCount; i++) {
+                    if (checkname == Commands.ActionCommands[i].FanName) {
+                        return DefineNameCheck.ActionCommand;
+                    }
+                }
+                // check against test commands
+                for (int i = 0; i < Commands.TestCount; i++) {
+                    if (checkname == Commands.TestCommands[i].FanName) {
+                        return DefineNameCheck.TestCommand;
+                    }
+                }
+                // check or argument markers
                 if ("vfmoiswc".Any(checkname.StartsWith)) {
                     if (checkname.Right(checkname.Length - 1).IsNumeric()) {
                         // can't have a name that's a valid marker
                         return DefineNameCheck.ArgMarker;
                     }
                 }
+            }
+            // check against compiler keywords
+            if (checkname is "if" or "else" or "goto") {
+                return DefineNameCheck.KeyWord;
             }
             // if no error conditions, it's OK
             return DefineNameCheck.OK;
@@ -1005,21 +1009,6 @@ namespace WinAGI.Common {
         }
 
         /// <summary>
-        /// Replaces the fist intance of a search string in the target string.
-        /// </summary>
-        /// <param name="text"></param>
-        /// <param name="search"></param>
-        /// <param name="replace"></param>
-        /// <returns></returns>
-        public static string ReplaceFirst(this string text, string search, string replace) {
-            int pos = text.IndexOf(search);
-            if (pos < 0) {
-                return text;
-            }
-            return text.Substring(0, pos) + replace + text.Substring(pos + search.Length);
-        }
-
-        /// <summary>
         /// Replaces the first instance of a search string in the target string
         /// beginning at the specified position.
         /// </summary>
@@ -1100,7 +1089,7 @@ namespace WinAGI.Common {
         /// <param name="strText"></param>
         /// <returns></returns>
         internal static List<string> SplitLines(this string strText) {
-            return strText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None).Cast<string>().ToList();
+            return strText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None).Cast<string>().ToList();
         }
 
         public static string SingleSpace(this string input) {

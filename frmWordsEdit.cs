@@ -217,7 +217,7 @@ namespace WinAGI.Editor {
 
             // load the merge list
             try {
-                MergeList = new(MDIMain.OpenDlg.FileName);
+                MergeList = new(MDIMain.OpenDlg.FileName, false);
                 ProgressWin.pgbStatus.Maximum = MergeList.WordCount;
             }
             catch (Exception ex) {
@@ -454,7 +454,7 @@ namespace WinAGI.Editor {
             mnuESep1.Visible = true;
             if (UndoCol.Count > 0) {
                 mnuEUndo.Enabled = true;
-                mnuEUndo.Text = "Undo " + LoadResString(WORDSUNDOTEXT + (int)UndoCol.Peek().Action);
+                mnuEUndo.Text = "Undo " + EditorResourceByNum(WORDSUNDOTEXT + (int)UndoCol.Peek().Action);
             }
             else {
                 mnuEUndo.Enabled = false;
@@ -1123,7 +1123,12 @@ namespace WinAGI.Editor {
             GLogFindLoc = FindLocation.All;
             GFindSynonym = dgGroups.Focused;
             GFindGrpNum = EditGroupNumber;
-            GFindText = '"' + EditWordText + '"';
+            if (EditGame is null || !EditGame.SierraSyntax) {
+                GFindText = '"' + EditWordText + '"';
+            }
+            else {
+                GFindText = EditWordText.Replace(' ', '$');
+            }
             SearchType = AGIResType.Words;
             FindingForm.SetForm(FindFormFunction.FindWordsLogic, true);
             // to avoid unwanted change in form function, don't assign text
@@ -1321,6 +1326,9 @@ namespace WinAGI.Editor {
                     int selitem = info.RowIndex;
                     if (selitem >= dgGroups.Rows.Count) {
                         selitem = dgGroups.Rows.Count - 1;
+                    }
+                    if (selitem < 0) {
+                        return;
                     }
                     if (EditGroupIndex != selitem) {
                         UpdateSelection(EditWordList.GroupByIndex(selitem).GroupNum, 0, true);
@@ -1956,22 +1964,65 @@ namespace WinAGI.Editor {
             return true;
         }
 
+        /// <summary>
+        /// Loads importfile, and replaces existing WORDS.TOK in this editor.
+        /// </summary>
         public void ImportWords(string importfile) {
-            // load importfile, and replace existing words.tok
-
             WordList tmpList;
 
             MDIMain.UseWaitCursor = true;
-            try {
-                tmpList = new(importfile);
+            bool sierrasrc = Path.GetFileName(importfile).Equals("words.txt", StringComparison.OrdinalIgnoreCase);
+            tmpList = new(importfile, sierrasrc);
+            if (sierrasrc) {
+                if (tmpList.Error != ResourceErrorType.NoError) {
+                    MessageBox.Show(MDIMain,
+                        tmpList.ErrData[0],
+                        "Unable to Import Sierra Words Source File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\commands\\sierra_wordcompiler.htm");
+                    return;
+                }
+                else if (tmpList.WarnData[0].Length > 0) {
+                    MessageBox.Show(MDIMain,
+                        tmpList.WarnData[0],
+                        "Abnomalies detected in Sierra Words Source File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        WinAGIHelp, "htm\\commands\\sierra_wordcompiler.htm");
+                }
             }
-            catch (Exception ex) {
-                ErrMsgBox(ex, "An error occurred during import:",
-                    ex.StackTrace,
-                    "Import WORDS.TOK File Error");
-                MDIMain.UseWaitCursor = false;
-                return;
+            else {
+                if (tmpList.Error != ResourceErrorType.NoError) {
+                    string errmsg = "";
+                    switch (tmpList.Error) {
+                    case ResourceErrorType.WordsTokNoFile:
+                        errmsg = "RE19: " + EngineResources.RE19;
+                        break;
+                    case ResourceErrorType.WordsTokIsReadOnly:
+                        errmsg = "RE20: " + EngineResources.RE20;
+                        break;
+                    case ResourceErrorType.WordsTokAccessError:
+                        errmsg = "RE21: " + EngineResources.RE21.Replace(
+                        ARG1, tmpList.ErrData[0]);
+                        break;
+                    case ResourceErrorType.WordsTokNoData:
+                        errmsg = "RE22: " + EngineResources.RE22;
+                        break;
+                    case ResourceErrorType.WordsTokBadIndex:
+                        errmsg = "RE23: " + EngineResources.RE23;
+                        break;
+                    }
+                    MessageBox.Show(MDIMain,
+                        errmsg,
+                        "Unable to Open WORDS.TOK File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors_resource.htm");
+                    return;
+                }
             }
+            MDIMain.UseWaitCursor = true;
             // replace current wordlist
             EditWordList = tmpList;
             EditWordListFilename = importfile;
@@ -1984,6 +2035,36 @@ namespace WinAGI.Editor {
             tbbUndo.Enabled = false;
             MarkAsChanged();
             MDIMain.UseWaitCursor = false;
+            if (tmpList.Warnings != 0) {
+                string warnmsg = "Anomalies were detected in this WORDS.TOK file:\n";
+                if ((tmpList.Warnings & 1) == 1) {
+                    warnmsg += "\nRW20: " + EngineResources.RW20;
+                }
+                if ((tmpList.Warnings & 2) == 2) {
+                    warnmsg += "\nRW21: " + EngineResources.RW21;
+                }
+                if ((tmpList.Warnings & 4) == 4) {
+                    warnmsg += "\nRW22: " + EngineResources.RW22;
+                }
+                if ((tmpList.Warnings & 8) == 8) {
+                    warnmsg += "\nRW23: " + EngineResources.RW23;
+                }
+                if ((tmpList.Warnings & 16) == 16) {
+                    warnmsg += "\nRW24: " + EngineResources.RW24;
+                }
+                if ((tmpList.Warnings & 32) == 32) {
+                    warnmsg += "\nRW25: " + EngineResources.RW25;
+                }
+                if ((tmpList.Warnings & 64) == 64) {
+                    warnmsg += "\nRW26: " + EngineResources.RW26;
+                }
+                MessageBox.Show(MDIMain,
+                    warnmsg,
+                    "Words.Tok File Import Warnings",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning, 0, 0,
+                    WinAGIHelp, "htm\\winagi\\warnings_resource.htm");
+            }
         }
 
         public void SaveWords() {
@@ -2235,7 +2316,9 @@ namespace WinAGI.Editor {
                     }
                 }
                 SelectGroup(EditGroupIndex);
-                SelectWord(EditWordGroupIndex);
+                if (EditWordGroupIndex >= 0) {
+                    SelectWord(EditWordGroupIndex);
+                }
             }
             else {
                 dgGroups.Rows[0].Cells[0].Value = (EditGroupNumber.ToString() + ":").PadRight(6) + EditWordList.GroupByIndex(EditGroupIndex).GroupName;
@@ -2253,6 +2336,10 @@ namespace WinAGI.Editor {
         }
 
         public void SelectWord(int wordindex) {
+            if (dgWords.Rows.Count == 0) {
+                Debug.Assert(wordindex == -1);
+                return;
+            }
             dgWords.Rows[wordindex].Selected = true;
             if (wordindex >= dgWords.FirstDisplayedScrollingRowIndex &&
                 wordindex < dgWords.FirstDisplayedScrollingRowIndex + dgWords.DisplayedRowCount(false)) {

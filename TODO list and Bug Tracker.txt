@@ -89,7 +89,7 @@ AudioPlayer       PlayMIDISound             526       media player error
 Cel               AllCelData/set            524       array Width is invalid
 Cel               AllCelData/set            524       array Height is invalid
 
-Cels              Add                       508       invalid insert pos
+Cels              Add                       553       invalid insert pos
 Cels              Remove                    522       invalid remove pos
 
 InventoryList     Add                       501       resource not loaded
@@ -115,7 +115,7 @@ Logic             CloneFrom                 501       this resource not loaded
 Logic             CloneFrom                 501       source resource not loaded
 Logic             Compile                   501       resource not loaded
 Logic             Compile                   525       compiling not allowed if not in game
-Logic             Compile                   507       no source code (empty)
+Logic             Compile                   554       no source code (empty)
 Logic             ExportSource              501       resource not loaded
 Logic             ExportSource              502       file error during export
 Logic             Save                      501       resource not loaded

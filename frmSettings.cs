@@ -1803,6 +1803,10 @@ namespace WinAGI.Editor {
             if (token.IsCancellationRequested) {
                 return; // exit if the task was cancelled
             }
+            // make sure form is still open
+            if (IsDisposed || !IsHandleCreated) {
+                return;
+            }
             // update the comboboxes with the found monospace fonts
             cmbEditFont.BeginInvoke(() => {
                 cmbEditFont.Items.Clear();
@@ -2293,7 +2297,7 @@ namespace WinAGI.Editor {
             rtfPreview.Range.SetStyle(prevCommentStyle, CommentStyleRegEx1, RegexOptions.Multiline);
             rtfPreview.Range.SetStyle(prevCommentStyle, CommentStyleRegEx2, RegexOptions.Multiline);
             rtfPreview.Range.SetStyle(prevStringStyle, StringStyleRegEx);
-            rtfPreview.Range.SetStyle(prevKeyWordStyle, KeyWordStyleRegEx);
+            rtfPreview.Range.SetStyle(prevKeyWordStyle, FanKeyWordStyleRegEx);
             rtfPreview.Range.SetStyle(prevTestCmdStyle, TestCmdStyleRegex);
             rtfPreview.Range.SetStyle(prevActionCmdStyle, @"\b(set\.view|toggle|print)\b"); // ActionCmdStyleRegEx);
             rtfPreview.Range.SetStyle(prevInvalidCmdStyle, @"\ballow.menu\b"); // InvalidCmdStyleRegEx);

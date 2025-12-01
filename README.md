@@ -53,6 +53,8 @@ WinAGI is a full featured game development system, that includes editors which p
 
   
 ### History:
+**alpha21.2** Refactored ImportGame and OpenGame functions to fully support Sierra syntax; added Help information for importing and opening to match updated features,; updated Help on all open/import game errors and warnings
+  
 **alpha21.1** Begin rewrite of help file. Refactored all game and resource errors and warnings. Updated resource load and save functions to improve error and warning handlers. Linked errors and warnings to help file topics. Refactored logic compiler and moved Sierra compiler to a separate class. 
 
 **alpha21.0** Text Screen editor is complete. Fixed a few bugs in other editors, and did a lot of code cleanup and refactoring.

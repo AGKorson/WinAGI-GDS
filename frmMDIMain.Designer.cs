@@ -1971,8 +1971,8 @@
         private ToolStripSeparator mnuTSep1;
         internal ToolStripMenuItem mnuTLayout;
         internal ToolStripMenuItem mnuTGlobals;
-        private ToolStripMenuItem mnuTMenuEditor;
-        private ToolStripMenuItem mnuTReserved;
+        internal ToolStripMenuItem mnuTMenuEditor;
+        internal ToolStripMenuItem mnuTReserved;
         private ToolStripMenuItem mnuTSnippets;
         private ToolStripMenuItem mnuTPalette;
         internal ToolStripMenuItem mnuTWarning;
@@ -2030,9 +2030,9 @@
         internal ToolStripButton btnExportRes;
         private ToolStripSeparator btnSep4;
         internal ToolStripButton btnLayoutEd;
-        private ToolStripButton btnMenuEd;
+        internal ToolStripButton btnMenuEd;
         private ToolStripButton btnTextEd;
-        private ToolStripButton btnGlobals;
+        internal ToolStripButton btnGlobals;
         private ToolStripSeparator btnSep5;
         private ToolStripButton btnHelp;
         private ContextMenuStrip cmsResource;

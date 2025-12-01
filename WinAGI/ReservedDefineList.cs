@@ -44,7 +44,7 @@ namespace WinAGI.Engine {
             ArgumentNullException.ThrowIfNull(parent, "parent");
             this.parent = parent;
             propfile = parent.agGameProps;
-            filename = parent.agResDir + "reserved.txt";
+            filename = parent.agSrcResDir + "reserved.txt";
             // set up defaults
             InitReservedDefineList();
             GetResDefOverrides();
@@ -740,8 +740,7 @@ namespace WinAGI.Engine {
         public void SaveList(bool force) {
             
             if (parent is not null && !parent.IncludeReserved) {
-                // should never happen
-                Debug.Assert(false);
+                // don't save if not auto-including
                 return;
             }
             // only need to update if file is missing, OR if any of the defines

@@ -63,7 +63,7 @@ namespace WinAGI.Common {
                 if (File.Exists(filename)) {
                     // existing file can't be write-protected
                     if ((File.GetAttributes(filename) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                        WinAGIException wex = new(LoadResString(539).Replace(ARG1, Filename)) {
+                        WinAGIException wex = new(EngineResourceByNum(539).Replace(ARG1, Filename)) {
                             HResult = WINAGI_ERR + 539,
                         };
                         wex.Data["badfile"] = Filename;
@@ -79,7 +79,7 @@ namespace WinAGI.Common {
                 }
                 // file can't be readonly
                 if ((File.GetAttributes(filename) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                    WinAGIException wex = new(LoadResString(539).Replace(ARG1, Filename)) {
+                    WinAGIException wex = new(EngineResourceByNum(539).Replace(ARG1, Filename)) {
                         HResult = WINAGI_ERR + 539,
                     };
                     wex.Data["badfile"] = Filename;
@@ -95,7 +95,7 @@ namespace WinAGI.Common {
                 fsConfig = new FileStream(Filename, mode);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.HResult.ToString()).Replace(
                     ARG2, Filename)) {
                     HResult = WINAGI_ERR + 502,
@@ -515,7 +515,7 @@ namespace WinAGI.Common {
             }
             catch (Exception ex) {
                 // file access error
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.HResult.ToString()).Replace(
                     ARG2, Filename)) {
                     HResult = WINAGI_ERR + 502,

@@ -171,7 +171,7 @@ namespace WinAGI.Engine {
                 VOLWriter.Write(AddRes.Data, 0, AddRes.Data.Length);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(528)) {
+                WinAGIException wex = new(EngineResourceByNum(528)) {
                     HResult = WINAGI_ERR + 528,
                 };
                 fsVOL?.Dispose();
@@ -211,7 +211,7 @@ namespace WinAGI.Engine {
                     }
                     catch (Exception e) {
                         Clear();
-                        WinAGIException wex = new(LoadResString(528)) {
+                        WinAGIException wex = new(EngineResourceByNum(528)) {
                             HResult = WINAGI_ERR + 528
                         };
                         wex.Data["exception"] = e;
@@ -230,7 +230,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 // if no volume found, means all 16 are full
-                WinAGIException wex1 = new(LoadResString(517)) {
+                WinAGIException wex1 = new(EngineResourceByNum(517)) {
                     HResult = WINAGI_ERR + 517
                 };
                 throw wex1;
@@ -459,7 +459,7 @@ namespace WinAGI.Engine {
                 }
             }
             // if no room in any VOL file, raise an error
-            WinAGIException wex = new(LoadResString(517)) {
+            WinAGIException wex = new(EngineResourceByNum(517)) {
                 HResult = WINAGI_ERR + 517
             };
             throw wex;
@@ -518,7 +518,7 @@ namespace WinAGI.Engine {
                 bwVOL?.Dispose();
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(528)) {
+                WinAGIException wex = new(EngineResourceByNum(528)) {
                     HResult = WINAGI_ERR + 528,
                 };
                 fsVOL?.Dispose();
@@ -597,7 +597,7 @@ namespace WinAGI.Engine {
             }
             // check for readonly
             if ((File.GetAttributes(strDirFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-                WinAGIException wex = new(LoadResString(539).Replace(ARG1, strDirFile)) {
+                WinAGIException wex = new(EngineResourceByNum(539).Replace(ARG1, strDirFile)) {
                     HResult = WINAGI_ERR + 539,
                 };
                 wex.Data["badfile"] = strDirFile;
@@ -611,7 +611,7 @@ namespace WinAGI.Engine {
                 }
             }
             catch (Exception e) {
-                WinAGIException wex = new(LoadResString(541)) {
+                WinAGIException wex = new(EngineResourceByNum(541)) {
                     HResult = WINAGI_ERR + 541,
                 };
                 wex.Data["exception"] = e;
@@ -661,7 +661,7 @@ namespace WinAGI.Engine {
                     return;
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(541)) {
+                    WinAGIException wex = new(EngineResourceByNum(541)) {
                         HResult = WINAGI_ERR + 541,
                     };
                     wex.Data["exception"] = e;
@@ -725,7 +725,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(541)) {
+                    WinAGIException wex = new(EngineResourceByNum(541)) {
                         HResult = WINAGI_ERR + 541,
                     };
                     wex.Data["exception"] = e;
@@ -810,7 +810,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 catch (Exception e) {
-                    WinAGIException wex = new(LoadResString(541)) {
+                    WinAGIException wex = new(EngineResourceByNum(541)) {
                         HResult = WINAGI_ERR + 541,
                     };
                     wex.Data["exception"] = e;

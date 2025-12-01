@@ -697,25 +697,22 @@
     <value>Error %1 occurred while setting game ID</value>
   </data>
   <data name="504" xml:space="preserve">
-    <value>%1 is not a valid AGI game directory.</value>
+    <value>'%1' is not a valid AGI game directory.</value>
   </data>
   <data name="505" xml:space="preserve">
-    <value>%1 is not a valid directory file.</value>
+    <value>'%1' is not a valid directory file.</value>
   </data>
   <data name="506" xml:space="preserve">
     <value>This AGI version is not supported by WinAGI.</value>
   </data>
-  <data name="507" xml:space="preserve">
+  <data name="554" xml:space="preserve">
     <value>No source code to compile.</value>
   </data>
-  <data name="508" xml:space="preserve">
+  <data name="553" xml:space="preserve">
     <value>Maximum number of cels exceeded in loop %1.</value>
   </data>
   <data name="509" xml:space="preserve">
     <value>Unhandled error %1 while expanding resource.</value>
-  </data>
-  <data name="501" xml:space="preserve">
-    <value>Property or method not available until object is loaded.</value>
   </data>
   <data name="511" xml:space="preserve">
     <value>Error in CompileSound method(%1)</value>
@@ -772,10 +769,10 @@
     <value>File access error in VOL file</value>
   </data>
   <data name="529" xml:space="preserve">
-    <value>Missing wag file (%1)</value>
+    <value>Missing game property file (%1)</value>
   </data>
   <data name="530" xml:space="preserve">
-    <value>Unsupported wag version</value>
+    <value>Invalid game property file version (%1)</value>
   </data>
   <data name="531" xml:space="preserve">
     <value>Can't renumber; new number is already in use</value>
@@ -796,16 +793,16 @@
     <value>Can't create new game in a directory that already has AGI game files</value>
   </data>
   <data name="537" xml:space="preserve">
-    <value>Invalid GameID in game properties file</value>
+    <value>Game property file does not contain a valid GameID.</value>
   </data>
   <data name="538" xml:space="preserve">
-    <value>Invalid Interpreter Version in game properties file</value>
+    <value>%1 is not a valid AGI interpreter version.</value>
   </data>
   <data name="539" xml:space="preserve">
-    <value>%1 is read only</value>
+    <value>Game property file '%1' is read only</value>
   </data>
   <data name="540" xml:space="preserve">
-    <value>File access error when opening WAG file</value>
+    <value>File access error when reading game property file - %1: %2</value>
   </data>
   <data name="542" xml:space="preserve">
     <value>Invalid sound playback format</value>
@@ -827,10 +824,6 @@
   </data>
   <data name="4088" xml:space="preserve">
     <value>Include file cannot be this logic's source code file</value>
-  </data>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="default_resdef" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Resources\reserved.txt;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="4089" xml:space="preserve">
     <value>%1 is a required #include file for this logic</value>
@@ -1157,7 +1150,7 @@
     <value>Directory '%1' not found</value>
   </data>
   <data name="541" xml:space="preserve">
-    <value>File access error in DIR file</value>
+    <value>File access error when reading %1 - %2: %3</value>
   </data>
   <data name="547" xml:space="preserve">
     <value>Error accessing wag file (%1)</value>
@@ -1179,5 +1172,60 @@
   </data>
   <data name="4091" xml:space="preserve">
     <value>Undefined word %1 in said command</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="GAMEDEFS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GAMEDEFS.h;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="SYSDEFS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SYSDEFS.h;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="DW17" xml:space="preserve">
+    <value>%3 command %1 not defined (%2)</value>
+  </data>
+  <data name="DW13" xml:space="preserve">
+    <value>Screen object value is greater than game's MaxScreenObj (%1)</value>
+  </data>
+  <data name="DW14" xml:space="preserve">
+    <value>String number is greater than maximum allowed value for the target game version (%1)</value>
+  </data>
+  <data name="DW15" xml:space="preserve">
+    <value>Controller number is greater than maximum usable value for the target game version (%1)</value>
+  </data>
+  <data name="DW16" xml:space="preserve">
+    <value>Word argument number is greater than maximum usable value (10)</value>
+  </data>
+  <data name="DE10" xml:space="preserve">
+    <value>Unexpected end of input</value>
+  </data>
+  <data name="DE11" xml:space="preserve">
+    <value>Valid reference to WORDS.TOK is missing</value>
+  </data>
+  <data name="DE12" xml:space="preserve">
+    <value>Word group %1 does not exist in WORDS.TOK</value>
+  </data>
+  <data name="DW18" xml:space="preserve">
+    <value>Message %1 is not referenced in logic source code</value>
+  </data>
+  <data name="DW19" xml:space="preserve">
+    <value>Unable to create separate message file for %1; messages are defined in the source (error: %2)</value>
+  </data>
+  <data name="DW20" xml:space="preserve">
+    <value>Unable to create gamedefs.h file (error: %1)</value>
+  </data>
+  <data name="RE27" xml:space="preserve">
+    <value>Unable to import resource for %1 %2 from Sierra source files (%3)</value>
+  </data>
+  <data name="508" xml:space="preserve">
+    <value>A critical game file (%1) is missing.</value>
+  </data>
+  <data name="507" xml:space="preserve">
+    <value>UNHANDLED ERROR %1: %2\n\n" + %3</value>
+  </data>
+  <data name="555" xml:space="preserve">
+    <value>Invalid data in game property file.</value>
+  </data>
+  <data name="501" xml:space="preserve">
+    <value>Property or method not available until object is loaded.</value>
   </data>
 </root>

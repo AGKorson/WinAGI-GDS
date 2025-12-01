@@ -507,8 +507,13 @@ namespace WinAGI.Engine {
             mResID = parent.agGameProps.GetSetting(resType.ToString() + resNum, "ID", "", true);
             if (mResID.Length == 0) {
                 // ID not found; save default ID
-                mResID = resType.ToString() + resNum;
-                parent.WriteGameSetting(mResID, "ID", mResID, resType.ToString() + "s");
+                if (parent.SierraSyntax && ResType == AGIResType.Logic) {
+                    mResID = "RM" + resNum;
+                }
+                else {
+                    mResID = resType.ToString() + resNum;
+                }
+                parent.WriteGameSetting(resType.ToString() + resNum, "ID", mResID, resType.ToString() + "s");
             }
             mDescription = parent.agGameProps.GetSetting(resType.ToString() + resNum, "Description", "");
         }
@@ -865,7 +870,7 @@ namespace WinAGI.Engine {
             // resources with major errors can't be exported
             if (Error != ResourceErrorType.NoError &&
                 Error != ResourceErrorType.FileIsReadonly) {
-                WinAGIException wex = new(LoadResString(519)) {
+                WinAGIException wex = new(EngineResourceByNum(519)) {
                     HResult = WINAGI_ERR + 519,
                 };
                 throw wex;
@@ -879,7 +884,7 @@ namespace WinAGI.Engine {
                 fsExport.Write(mData, 0, mData.Length);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
                     ARG1, ex.Message).Replace(
                     ARG2, ExportFile)) {
                     HResult = WINAGI_ERR + 502,
@@ -921,7 +926,7 @@ namespace WinAGI.Engine {
                 fsImport = new FileStream(ImportFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             }
             catch (Exception ex) {
-                WinAGIException wex = new(LoadResString(502).Replace(ARG1, ImportFile)) {
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(ARG1, ImportFile)) {
                     HResult = WINAGI_ERR + 502,
                 };
                 wex.Data["exception"] = ex;
@@ -929,7 +934,7 @@ namespace WinAGI.Engine {
             }
             // if file is empty
             if (fsImport.Length == 0) {
-                WinAGIException wex = new(LoadResString(521).Replace(ARG1, ImportFile)) {
+                WinAGIException wex = new(EngineResourceByNum(521).Replace(ARG1, ImportFile)) {
                     HResult = WINAGI_ERR + 521,
                 };
                 throw wex;
@@ -1277,7 +1282,7 @@ namespace WinAGI.Engine {
             string retval;
             do {
                 intNo++;
-                retval = parent.agResDir + "New" + ResType.ToString() + intNo + ".ag" + ResType.ToString().ToLower()[0];
+                retval = parent.agSrcResDir + "New" + ResType.ToString() + intNo + ".ag" + ResType.ToString().ToLower()[0];
             }
             while (File.Exists(retval));
             return retval;

@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using WinAGI.Engine;
 using static WinAGI.Engine.AGIResType;
-using static WinAGI.Engine.Base;
+using static WinAGI.Engine.AGIGame;
 using static WinAGI.Editor.Base;
 using static WinAGI.Common.Base;
 using System.Text;
@@ -27,16 +27,15 @@ namespace WinAGI.Common {
             string strError = "";
             bool blnWarnings = false;
             int lngErr;
-            NewGameResults argval = (NewGameResults)e.Argument;
+            GameParams argval = (GameParams)e.Argument;
             bool Loaded;
 
             updating = false;
             try {
-                // create new game  (newID, version, directory resouredirname and template info)
-                EditGame = new AGIGame(argval.NewID, argval.Version, argval.GameDir, argval.ResDir, argval.SrcExt, argval.TemplateDir);
+                // create new game
+                EditGame = new(argval);
                 // no errors, means game was successfully created
                 Loaded = true;
-                // blnWarnings = true;
             }
             catch (Exception ex) {
                 // error always causes failure
@@ -134,7 +133,7 @@ namespace WinAGI.Common {
                                 }
                             }
                         }
-                        SafeFileMove(EditGame.GameDir + "globals.txt", EditGame.ResDir + "globals.txt", true);
+                        SafeFileMove(EditGame.GameDir + "globals.txt", EditGame.SrcResDir + "globals.txt", true);
                     }
                 }
                 // show selection in preview, if needed
@@ -154,8 +153,8 @@ namespace WinAGI.Common {
             ProgressWin.Close();
             ProgressWin.Dispose();
             MDIMain.Refresh();
-            NewResults = (NewGameResults)e.Result;
-            if (NewResults.Failed) {
+            GameParams NewGameArgs = (GameParams)e.Result;
+            if (NewGameArgs.Failed) {
                 // remove everything from target directory
                 foreach (string file in Directory.GetFiles(EditGame.GameDir)) {
                     try {
@@ -165,7 +164,7 @@ namespace WinAGI.Common {
                         // ignore errors
                     }
                 }
-                foreach (string file in Directory.GetFiles(EditGame.ResDir)) {
+                foreach (string file in Directory.GetFiles(EditGame.SrcResDir)) {
                     try {
                         File.Delete(file);
                     }
@@ -174,18 +173,18 @@ namespace WinAGI.Common {
                     }
                 }
                 try {
-                    Directory.Delete(EditGame.ResDir);
+                    Directory.Delete(EditGame.SrcResDir);
                 }
                 catch {
                     // ignore errors
                 }
-                ErrMsgBox(NewResults.Error,
+                ErrMsgBox(NewGameArgs.Error,
                     "Unable to create new game.",
-                    NewResults.Error.StackTrace,
+                    NewGameArgs.Error.StackTrace,
                     "New AGI Game Error");
             }
             else {
-                if (NewResults.Warnings) {
+                if (NewGameArgs.Warnings) {
                     MessageBox.Show(
                         MDIMain,
                         "Some errors and/or anomalies in resource data were encountered in the template.",
@@ -198,7 +197,6 @@ namespace WinAGI.Common {
 
         #region OpenGame
         public static void OpenGameDoWork(object sender, DoWorkEventArgs e) {
-            string strError = "";
             bool blnWarnings = false;
             LoadGameResults argval = (LoadGameResults)e.Argument;
             bool blnLoaded;
@@ -206,12 +204,7 @@ namespace WinAGI.Common {
             updating = false;
             try {
                 // if game can't be loaded, constructor ALWAYS returns error
-                if (argval.Mode == 0) {
-                    EditGame = new AGIGame(OpenGameMode.File, argval.Source);
-                }
-                else {
-                    EditGame = new AGIGame(OpenGameMode.Directory, argval.Source);
-                }
+                EditGame = new AGIGame(argval.Parameters);
                 // no errors, means game loaded OK
                 blnLoaded = true;
                 blnWarnings = EditGame.LoadWarnings;
@@ -221,67 +214,37 @@ namespace WinAGI.Common {
                 // ALWAYS release the game object if it fails to load
                 EditGame = null;
                 blnLoaded = false;
+                argval.ErrorCode = wex.HResult & 0xffff;
+                argval.ErrorMsg = wex.Message;
                 switch (wex.HResult & 0xffff) {
                 case 504:
-                    // Not a valid AGI directory
-                    // ["baddir"] = string gamedir
-                    strError = $"Invalid or missing directory file " +
-                        $"'{Path.GetFileName((string)wex.Data["baddir"])}'";
-                    break;
+                    // invalid game directory
                 case 505:
                     // invalid DIR file
-                    // ["baddir"] = string DIRfile
-                    strError = $"'{wex.Data["baddir"]}' is an invalid directory file.";
-                    break;
                 case 506:
-                    // invalid interpreter version - couldn't find correct version from the AGI
-                    // files
-                    strError = wex.Message;
-                    break;
+                    // unsupported interpreter version
                 case 529:
-                    strError = $"Missing game property file ({wex.Data["badfile"]}).";
+                    // missing game property file
                     break;
                 case 530:
-                    if (wex.Data["badversion"].ToString().Length > 0) {
-                        strError = $"Invalid WINAGI game file version ({wex.Data["badversion"]}).";
-                    }
-                    else {
-                        strError = $"Invalid WINAGI property file ({wex.Data["badfile"]}).";
-                    }
-                    break;
+                    // invalid game property file version
+                case 555:
+                    // invalid data in game property file
                 case 537:
-                    // missing gameID in wag file
-                    strError = "Game property file does not contain a valid GameID.";
-                    break;
+                    // invalid gameID in game property file
                 case 538:
-                    // invalid intVersion in wag file
-                    strError = $"{wex.Data["badversion"]} is not a valid Interpreter Version.";
-                    break;
+                    // unsupported AGI version in game property file
                 case 539:
-                    // game file is readonly
-                    // ["badfile"] = string filename
-                    strError = $"Game file ({Path.GetFileName((string)wex.Data["badfile"])}) is readonly";
+                    // game property file is readonly
                     break;
                 case 540:
                     // file error accessing WAG
-                    // ["exception"] = Exception ex
-                    strError = $"File access error when reading WAG file - " +
-                        $"{((WinAGIException)wex.Data["exception"]).HResult}: " +
-                        $"{((WinAGIException)wex.Data["exception"]).Message}";
-                    break;
                 case 541:
                     // DIR file access error
-                    // ["exception"] Exception = ex
-                    // ["dirfile"] = string dirfile
-                    strError = $"An error occurred while trying to access " +
-                        $"{Path.GetFileName((string)wex.Data["dirfile"])}:\n\n" +
-                        $"{((WinAGIException)wex.Data["exception"]).HResult}: " +
-                        $"{((WinAGIException)wex.Data["exception"]).Message}";
-                    break;
                 default:
                     // shouldn't ever happen...
                     Debug.Assert(false);
-                    strError = "WinAGI ERROR: " + (wex.HResult & 0xffff).ToString() +
+                    argval.ErrorMsg = "WinAGI ERROR: " + (wex.HResult & 0xffff).ToString() +
                         " - " + wex.Message;
                     break;
                 }
@@ -292,7 +255,9 @@ namespace WinAGI.Common {
                 EditGame = null;
                 blnLoaded = false;
                 // file not found:
-                strError = $"A critical game file ({Path.GetFileName((string)fex.Data["missingfile"])}) is missing.";
+                argval.ErrorCode = 508;
+                argval.ErrorMsg = EditorResourceByNum(508).Replace(
+                    ARG1, Path.GetFileName((string)fex.Data["missingfile"]));
             }
             catch (Exception ex) {
                 // errors always causes failure to load
@@ -300,15 +265,18 @@ namespace WinAGI.Common {
                 EditGame = null;
                 blnLoaded = false;
                 // unknown error
-                strError = "UNKNOWN: " + ex.HResult.ToString("x8") + " - " + ex.Message + "\n\n" + ex.StackTrace;
+                argval.ErrorCode = 507;
+                argval.ErrorMsg = EditorResourceByNum(507).Replace(
+                    ARG1, ex.HResult.ToString("x8")).Replace(
+                    ARG2, ex.Message).Replace(
+                    ARG3, ex.StackTrace);
             }
             if (blnLoaded) {
-                bgwOpenGame.ReportProgress(50, "Game " + (argval.Mode == 0 ? "loaded" : "imported") + " successfully, setting up editors");
+                bgwOpenGame.ReportProgress(50, "Game " + (argval.Parameters.Mode == 0 ? "loaded" : "imported") + " successfully, setting up editors");
                 argval.Warnings = blnWarnings;
             }
             else {
                 argval.Failed = true;
-                argval.ErrorMsg = strError;
             }
             e.Result = argval;
         }
@@ -359,14 +327,14 @@ namespace WinAGI.Common {
                         "Updating WAG File to New Version",
                         MessageBoxButtons.OK);
                     try {
-                        Directory.CreateDirectory(EditGame.ResDir[..^1] + "_BACKUP");
+                        Directory.CreateDirectory(EditGame.SrcResDir[..^1] + "_BACKUP");
                     }
                     catch {
                         // ignore exceptions
                     }
-                    foreach (string file in Directory.GetFiles(EditGame.ResDir, "*.lgc")) {
+                    foreach (string file in Directory.GetFiles(EditGame.SrcResDir, "*.lgc")) {
                         try {
-                            File.Copy(file, EditGame.ResDir[..^1] + "_BACKUP\\" + Path.GetFileName(file), true);
+                            File.Copy(file, EditGame.SrcResDir[..^1] + "_BACKUP\\" + Path.GetFileName(file), true);
                         }
                         catch {
                         }
@@ -385,7 +353,7 @@ namespace WinAGI.Common {
                         }
                     }
                     // move globals file
-                    SafeFileMove(EditGame.GameDir + "globals.txt", EditGame.ResDir + "globals.txt", true);
+                    SafeFileMove(EditGame.GameDir + "globals.txt", EditGame.SrcResDir + "globals.txt", true);
                 }
                 break;
             default:
@@ -400,21 +368,25 @@ namespace WinAGI.Common {
             ProgressWin.Close();
             ProgressWin.Dispose();
             // refresh results
-            LoadResults = (LoadGameResults)e.Result;
+            LoadGameResults LoadResults = (LoadGameResults)e.Result;
             if (LoadResults.Failed) {
                 MessageBox.Show(
                     MDIMain,
                     LoadResults.ErrorMsg,
-                    "Unable to " + (LoadResults.Mode == 0 ? "Open" : "Import") + " Game",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "Unable to " + (LoadResults.Parameters.Mode == OpenGameMode.File ? "Open" : "Import") + " Game",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error, 0, 0,
+                    WinAGIHelp, "htm\\winagi\\loadgameerrors.htm#err" + LoadResults.ErrorCode.ToString());
             }
             else {
                 if (LoadResults.Warnings) {
                     MessageBox.Show(
                         MDIMain,
                         "Some errors and/or anomalies in resource data were encountered.",
-                        "Anomalies Detected During " + (LoadResults.Mode == 0 ? "Load" : "Import"),
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        "Anomalies Detected During " + (LoadResults.Parameters.Mode == OpenGameMode.File ? "Load" : "Import"),
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        WinAGIHelp, "");
                 }
             }
         }
@@ -474,8 +446,15 @@ namespace WinAGI.Common {
                 }
                 break;
             case GameCompileStatus.CompileObjects:
-                CompStatusWin.lblStatus.Text = "Compiling OBJECT";
-                CompStatusWin.pgbStatus.Value++;
+                switch (compInfo.InfoType) {
+                case InfoType.Resources:
+                    CompStatusWin.lblStatus.Text = "Compiling OBJECT";
+                    CompStatusWin.pgbStatus.Value++;
+                    break;
+                case InfoType.ClearWarnings:
+                    MDIMain.ClearWarnings(compInfo.ResType, compInfo.ResNum);
+                    break;
+                }
                 break;
             case GameCompileStatus.AddResource:
                 switch (compInfo.InfoType) {

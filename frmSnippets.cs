@@ -360,7 +360,7 @@ namespace WinAGI.Editor {
             range.SetStyle(CommentStyle, CommentStyleRegEx1, RegexOptions.Multiline);
             range.SetStyle(CommentStyle, CommentStyleRegEx2, RegexOptions.Multiline);
             range.SetStyle(StringStyle, StringStyleRegEx);
-            range.SetStyle(KeyWordStyle, KeyWordStyleRegEx);
+            range.SetStyle(KeyWordStyle, FanKeyWordStyleRegEx);
             range.SetStyle(InvalidCmdStyle, InvalidCmdStyleRegEx);
             range.SetStyle(TestCmdStyle, TestCmdStyleRegex);
             range.SetStyle(ActionCmdStyle, ActionCmdStyleRegEx);

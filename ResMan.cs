@@ -1,5 +1,4 @@
-﻿using EnvDTE;
-using FastColoredTextBoxNS;
+﻿using FastColoredTextBoxNS;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -19,6 +18,7 @@ using static WinAGI.Common.API;
 using static WinAGI.Common.Base;
 using static WinAGI.Common.BkgdTasks;
 using static WinAGI.Editor.frmPicEdit;
+using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.ArgType;
 using static WinAGI.Engine.Base;
@@ -94,12 +94,20 @@ namespace WinAGI.Editor {
         public static string CommentStyleRegEx1 = @"\[.*$";
         public static string CommentStyleRegEx2 = @"//.*$";
         public static string StringStyleRegEx = @"""""|"".*?[^\\\n]""|"".*";
-        public static string KeyWordStyleRegEx = @"\bif\b|\belse\b|\bgoto\b|#define\b|#include\b|#message\b";
-        public static string TestCmdStyleRegex = @"\b(" +
+        public static string FanKeyWordStyleRegEx = @"(?<![$%\.])(?<![A-Za-z0-9_])(" +
+                @"if|else|goto|#define|#include|#message)\b(?![$%\.])";
+
+        public static string SierraKeyWordStyleRegEx = @"(?<![A-Za-z0-9_])(" +
+                @"%include|%tokens|%test|%action|%flag|%var|%object|%define|%message|%view|" +
+                @"#include|#tokens|#test|#action|#flag|#var|#object|#define|#message|#view|" +
+                @"goto|if|else|FLAG|OBJECT|MSG|WORD|NUM|MSGNUM|VIEW|VAR|ANY|WORDLIST" +
+                @")\b";
+
+        public static string TestCmdStyleRegex = @"(?<![#$%\.])\b(" +
                 @"center\.posn|compare\.strings|controller|equaln|equalv|greatern|greaterv|has|" +
                 @"have\.key|isset|issetv|lessn|lessv|obj\.in\.box|obj\.in\.room|posn|right\.posn|" +
-                @"said)\b";
-        public static string ActionCmdStyleRegEx = @"\b(" +
+                @"said)\b(?![#$%\.])";
+        public static string ActionCmdStyleRegEx = @"(?<![#$%\.])\b(" +
                 @"accept\.input|add\.to\.pic|add\.to\.pic\.v|addn|addv|adj\.ego\.move\.to\.x\.y|" +
                 @"allow\.menu|animate\.obj|assignn|assignv|block|call\.v|call|cancel\.line|" +
                 @"clear\.lines|clear\.text\.rect|close\.dialogue|close\.window|configure\.screen|" +
@@ -129,7 +137,7 @@ namespace WinAGI.Editor {
                 @"status\.line\.off|status\.line\.on|status|step\.size|step\.time|stop\.cycling|" +
                 @"stop\.motion|stop\.sound|stop\.update|submit\.menu|subn|subv|text\.screen|" +
                 @"toggle\.v|toggle\.monitor|toggle|trace\.info|trace\.on|unanimate\.all|unblock|" +
-                @"unknowntest19|version|wander|word\.to\.string)\b";
+                @"unknowntest19|version|wander|word\.to\.string)\b(?![#$%\.])";
         public static string InvalidCmdStyleRegEx = @"";
         public static string NumberStyleRegEx = @"\b\d+\b";
         public static string ArgIdentifierStyleRegEx = @"\b[vfscimo]\d{1,3}\b";
@@ -951,26 +959,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        public struct NewGameResults {
-            public string NewID;
-            public string Version;
-            public string GameDir;
-            public string ResDir;
-            public string SrcExt;
-            public string TemplateDir;
-            public bool Failed;
-            public Exception Error;
-            public bool Warnings;
-        }
-
-        public struct LoadGameResults {
-            public int Mode;
-            public string Source;
-            public bool Failed;
-            public string ErrorMsg;
-            public bool Warnings;
-        }
-
         public struct CompileGameResults {
             public CompileMode Mode;
             public bool Warnings;
@@ -1026,8 +1014,8 @@ namespace WinAGI.Editor {
         internal static string ProgramDir;
         internal static string DefaultResDir; // location to start searches for resources
         internal static string BrowserStartDir = "";  // location to start searches for game files
-        internal static NewGameResults NewResults;
-        internal static LoadGameResults LoadResults;
+        //internal static NewGameParams NewGameArgs;
+        //internal static LoadGameResults LoadResults;
         internal static CompileGameResults CompGameResults;
         internal static AGISettings WinAGISettings = new();
         internal static PicTestInfo PicEditTestSettings = new();
@@ -1122,7 +1110,6 @@ namespace WinAGI.Editor {
 
         // others
         internal static Form HelpParent = null;
-
         #endregion
 
         #region Global Static Methods
@@ -1778,20 +1765,23 @@ namespace WinAGI.Editor {
                     return;
                 }
             }
-            if (OpenGame(0, ThisGameFile)) {
+
+            GameParams gameparams = new();
+            gameparams.Mode = OpenGameMode.File;
+            gameparams.GameFile = ThisGameFile;
+            if (OpenGame(gameparams)) {
                 // reset browser start dir to this dir
                 // BrowserStartDir = JustPath(ThisGameFile);
             }
         }
 
-        public static void OpenDIR() {
+        public static void ImportGame() {
             string strMsg;
             string ThisGameDir;
 
             // get a directory for importing
-            MDIMain.FolderDlg.Description = "Select the directory of the game you wish to import:";
-            MDIMain.FolderDlg.AutoUpgradeEnabled = false;
-            DialogResult result = MDIMain.FolderDlg.ShowDialog(MDIMain);
+            frmImportProperties importprops = new();
+            DialogResult result = importprops.ShowDialog(MDIMain);
             if (result == DialogResult.OK) {
                 ThisGameDir = MDIMain.FolderDlg.SelectedPath;
                 if (ThisGameDir.Length == 0) {
@@ -1804,15 +1794,39 @@ namespace WinAGI.Editor {
                 // if a game file exists
                 if (File.Exists(ThisGameDir + "*.wag")) {
                     // confirm the import
-                    strMsg = "This directory already has a WinAGI game file. Do you still want to import the game in this directory?" +
-                             Environment.NewLine + Environment.NewLine + "The existing WinAGI game file will be overwritten if it has the same name as the GameID found in this directory's AGI VOL and DIR files.";
-
-                    if (MessageBox.Show(strMsg, "WinAGI Game File Already Exists", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.Cancel) {
+                    strMsg = "This directory already has a WinAGI game file. Do " +
+                        "you still want to import the game in this directory?\n\n" +
+                        "The existing WinAGI game file will be overwritten if it " +
+                        "has the same name as the GameID found in this directory's " +
+                        "AGI VOL and DIR files.";
+                    if (MessageBox.Show(MDIMain,
+                        strMsg, 
+                        "WinAGI Game File Already Exists", 
+                        MessageBoxButtons.OKCancel, 
+                        MessageBoxIcon.Question) == DialogResult.Cancel) {
                         return;
                     }
                 }
+                // pass game info and template info
+                GameParams gameparams = new() {
+                    Mode = OpenGameMode.Directory,
+                    GameDir = ThisGameDir,
+                    SrcResDir = importprops.txtResDir.Text,
+                    SrcExt = importprops.txtSrcExt.Text,
+                    TemplateDir = "",
+                    SierraSyntax = importprops.chkSierraSyntax.Checked,
+                    CodePage = int.Parse(importprops.cmbCodePage.Text[..3]),
+                    Failed = false,
+                    Error = null,
+                    Warnings = false
+                };
+                if (!gameparams.SierraSyntax) {
+                    gameparams.IncludeGlobals = importprops.chkGlobals.Checked;
+                    gameparams.IncludeIDs = importprops.chkResourceIDs.Checked;
+                    gameparams.IncludeReserved = importprops.chkResDefs.Checked;
+                }
                 // open the game in this directory
-                if (OpenGame(1, ThisGameDir)) {
+                if (OpenGame(gameparams)) {
                     // reset browser start dir to this dir
                     BrowserStartDir = ThisGameDir;
                 }
@@ -1826,27 +1840,20 @@ namespace WinAGI.Editor {
                 }
 
                 // set default resource file directory to game source file directory
-                DefaultResDir = EditGame.ResDir;
+                DefaultResDir = EditGame.SrcResDir;
 
                 strMsg = "Game file '" + EditGame.GameID + ".wag'  has been created.\n\n";
-                if (EditGame.ResDirName == "") {
+                if (EditGame.SrcResDirName == "") {
                     // means resdir couldn't be created
                     strMsg += "Unable to create a resource subdirectory. " +
                         "Logic source files and exported resources will be " +
                         "stored in the game directory.";
                 }
                 else {
-                    if (EditGame.ResDirName != DefResDir) {
-                        strMsg += "The existing subdirectory '" +
-                            EditGame.ResDirName + "' will be used ";
-                    }
-                    else {
-                        strMsg += "The subdirectory '" + EditGame.ResDirName +
-                            "' has been created ";
-                    }
-                    strMsg += "to store logic source files and exported resources. " +
-                    "You can change the source directory for this game on the Game " +
-                    "Properties dialog.";
+                    strMsg += "The subdirectory '" + EditGame.SrcResDirName +
+                        "' will be used to store logic source files and " +
+                        "exported resources. You can change the source directory " +
+                        "for this game on the Game Properties dialog.";
                 }
                 MessageBox.Show(MDIMain,
                     strMsg,
@@ -1870,10 +1877,8 @@ namespace WinAGI.Editor {
             }
         }
 
-        public static bool OpenGame(int mode, string gameSource) {
+        public static bool OpenGame(GameParams opengameparams) {
             // opens a game by directory or wag file depending on mode
-            // mode 0 == open source as a wag file
-            // mode 1 == open source as a sierra game directory;
 
             if (EditGame is not null) {
                 // close game, if user allows
@@ -1893,16 +1898,16 @@ namespace WinAGI.Editor {
             ProgressWin.StartPosition = FormStartPosition.CenterParent;
             ProgressWin.pgbStatus.Visible = false;
             // show loading msg in status bar
-            MDIMain.spStatus.Text = (mode == 0 ? "Loading" : "Importing") + " game; please wait...";
-            // pass mode and source
-            LoadResults = new() {
-                Mode = mode,
-                Source = gameSource,
+            MDIMain.spStatus.Text = (opengameparams.Mode == OpenGameMode.File ? "Loading" : "Importing") + " game; please wait...";
+            // pass mode and other parameters
+            LoadGameResults results = new() {
+                Parameters = opengameparams,
                 Failed = false,
                 ErrorMsg = "",
                 Warnings = false
+
             };
-            bgwOpenGame.RunWorkerAsync(LoadResults);
+            bgwOpenGame.RunWorkerAsync(results);
             // idle until the worker is done;
             ProgressWin.ShowDialog();
             // reset cursor
@@ -1911,13 +1916,13 @@ namespace WinAGI.Editor {
             if (EditGame is not null) {
                 AddToMRU(EditGame.GameFile);
                 BrowserStartDir = EditGame.GameDir;
-                DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
+                DefaultResDir = EditGame.GameDir + EditGame.SrcResDirName + "\\";
                 // build ID lookup table
                 BuildIDefLookup();
                 if (ActionCount < 182) {
                     InvalidCmdStyleRegEx = @"\b(";
                     for (int i = ActionCount; i < 182; i++) {
-                        InvalidCmdStyleRegEx += Engine.Commands.ActionCommands[i].Name.Replace(".", "\\.");
+                        InvalidCmdStyleRegEx += Engine.Commands.ActionCommands[i].FanName.Replace(".", "\\.");
                         if (i != 181) {
                             InvalidCmdStyleRegEx += @"|";
                         }
@@ -1933,10 +1938,11 @@ namespace WinAGI.Editor {
                 if (MDIMain.pnlWarnings.Visible) {
                     MDIMain.HideWarningList(true);
                 }
+                results.Failed = true; 
             }
             UpdateTBGameBtns();
             MDIMain.spStatus.Text = "";
-            return !LoadResults.Failed;
+            return !results.Failed;
         }
 
         public static bool CloseThisGame() {
@@ -2171,7 +2177,9 @@ namespace WinAGI.Editor {
             MDIMain.btnCloseGame.Enabled = EditGame is not null;
             MDIMain.btnRun.Enabled = EditGame is not null;
             MDIMain.btnImportRes.Enabled = EditGame is not null;
-            MDIMain.btnLayoutEd.Enabled = EditGame is not null;
+            MDIMain.mnuTLayout.Enabled = MDIMain.btnLayoutEd.Enabled = EditGame is not null && EditGame.UseLE;
+            MDIMain.mnuTMenuEditor.Enabled = MDIMain.btnMenuEd.Enabled = EditGame is null || !EditGame.SierraSyntax;
+            MDIMain.mnuTReserved.Enabled = EditGame is null || !EditGame.SierraSyntax;
         }
 
         internal static void UpdateTBResourceBtns(AGIResType restype, bool ingame, bool changed, int resnum) {
@@ -2550,7 +2558,10 @@ namespace WinAGI.Editor {
                 return;
             }
             // attempt to open this game
-            if (OpenGame(0, strMRU[Index])) {
+            GameParams gameparams = new();
+            gameparams.Mode = OpenGameMode.File;
+            gameparams.GameFile = strMRU[Index];
+            if (OpenGame(gameparams)) {
                 // reset browser start dir to this dir
                 // BrowserStartDir = JustPath(strMRU[Index]);
             }
@@ -3113,7 +3124,7 @@ namespace WinAGI.Editor {
             }
             catch (Exception ex) {
                 switch (ex.HResult) {
-                case WINAGI_ERR + 507:
+                case WINAGI_ERR + 554:
                     // no data to compile
                     MessageBox.Show(MDIMain,
                         "Nothing to compile!",
@@ -3311,10 +3322,9 @@ namespace WinAGI.Editor {
         }
 
         public static void NewAGIGame(bool UseTemplate) {
-            string strVer = "";
-            string strDescription = "";
-            string strTemplateDir = "";
-            int i;
+            string version = "";
+            string description = "";
+            string templateDir = "";
 
             frmGameProperties propform = new(GameSettingFunction.New);
             if (UseTemplate) {
@@ -3330,19 +3340,19 @@ namespace WinAGI.Editor {
                     return;
                 }
                 if (templateform.ShowDialog(MDIMain) == DialogResult.OK) {
-                    strTemplateDir = Application.StartupPath + "\\Templates\\" + templateform.lstTemplates.Text;
-                    strDescription = templateform.txtDescription.Text;
-                    strVer = templateform.txtVersion.Text;
+                    templateDir = Application.StartupPath + "\\Templates\\" + templateform.lstTemplates.Text;
+                    description = templateform.txtDescription.Text;
+                    version = templateform.txtVersion.Text;
                 }
                 templateform.Dispose();
-                if (strTemplateDir.Length == 0) {
+                if (templateDir.Length == 0) {
                     return;
                 }
                 // some properties are preset based on template
-                propform.cmbVersion.Text = strVer;
+                propform.cmbVersion.Text = version;
                 propform.cmbVersion.Enabled = false;
-                propform.txtGameDescription.Text = strDescription;
-                for (i = 0; i < propform.cmbCodePage.Items.Count; i++) {
+                propform.txtGameDescription.Text = description;
+                for (int i = 0; i < propform.cmbCodePage.Items.Count; i++) {
                     if (int.Parse(((string)propform.cmbCodePage.Items[i])[..3]) == templateform.CodePage) {
                         propform.cmbCodePage.SelectedIndex = i;
                         break;
@@ -3357,7 +3367,6 @@ namespace WinAGI.Editor {
             }
             // now get properties from user
             if (propform.ShowDialog() == DialogResult.OK) {
-                // if word or Objects Editor open
                 if (EditGame is not null) {
                     // close game, if user allows
                     if (!CloseThisGame()) {
@@ -3375,19 +3384,27 @@ namespace WinAGI.Editor {
                 // show newgame msg in status bar
                 MDIMain.spStatus.Text = "Creating new game" + (UseTemplate ? " from template" : "") + "; please wait...";
                 // pass game info and template info
-                NewResults = new() {
-                    NewID = propform.txtGameID.Text,
+                GameParams newgameparams = new() {
+                    Mode = OpenGameMode.New,
+                    ID = propform.txtGameID.Text,
                     Version = propform.cmbVersion.Text,
                     GameDir = propform.DisplayDir,
-                    ResDir = propform.txtResDir.Text,
+                    SrcResDir = propform.txtResDir.Text,
                     SrcExt = propform.txtSrcExt.Text,
-                    TemplateDir = strTemplateDir,
+                    TemplateDir = templateDir,
+                    SierraSyntax = propform.chkSierraSyntax.Checked,
+                    CodePage = int.Parse(propform.cmbCodePage.Text[..3]),
                     Failed = false,
                     Error = null,
                     Warnings = false
                 };
+                if (!newgameparams.SierraSyntax) {
+                    newgameparams.IncludeGlobals = propform.chkGlobals.Checked;
+                    newgameparams.IncludeIDs = propform.chkResourceIDs.Checked;
+                    newgameparams.IncludeReserved = propform.chkResDefs.Checked;
+                }
                 // run the worker to create the new game
-                bgwNewGame.RunWorkerAsync(NewResults);
+                bgwNewGame.RunWorkerAsync(newgameparams);
                 // idle until the worker is done;
                 ProgressWin.ShowDialog();
                 // reset cursor
@@ -3468,7 +3485,7 @@ namespace WinAGI.Editor {
                     // set default directory
                     BrowserStartDir = EditGame.GameDir;
                     // set default text file directory to game source file directory
-                    DefaultResDir = EditGame.GameDir + EditGame.ResDirName + "\\";
+                    DefaultResDir = EditGame.GameDir + EditGame.SrcResDirName + "\\";
                     // build ID lookup table
                     BuildIDefLookup();
 
@@ -3605,7 +3622,7 @@ namespace WinAGI.Editor {
 
         public static void ChangeResDir(string newDirName) {
             // validate new dir before changing it
-            if (string.Compare(EditGame.ResDirName, newDirName, true) == 0 || newDirName.Length == 0) {
+            if (string.Compare(EditGame.SrcResDirName, newDirName, true) == 0 || newDirName.Length == 0) {
                 return;
             }
             if (Path.GetInvalidFileNameChars().Any(newDirName.Contains)) {
@@ -3616,7 +3633,7 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Error);
                 return;
             }
-            if (EditGame.GameDir == EditGame.ResDir) {
+            if (EditGame.GameDir == EditGame.SrcResDir) {
                 // copy resource files, source files, defines (txt) to
                 // new directory
                 try {
@@ -3660,7 +3677,7 @@ namespace WinAGI.Editor {
                 }
                 // try renaming the resource dir
                 try {
-                    Directory.Move(EditGame.ResDir, EditGame.GameDir + newDirName);
+                    Directory.Move(EditGame.SrcResDir, EditGame.GameDir + newDirName);
                 }
                 catch (Exception ex) {
                     ErrMsgBox(ex,
@@ -3669,7 +3686,7 @@ namespace WinAGI.Editor {
                         "Unable to change ResDir");
                 }
             }
-            EditGame.ResDirName = newDirName;
+            EditGame.SrcResDirName = newDirName;
 
             static void MoveFiles(string newDirName, string pattern) {
                 foreach (var srcFile in Directory.EnumerateFiles(EditGame.GameDir, pattern, SearchOption.TopDirectoryOnly)) {
@@ -3826,10 +3843,46 @@ namespace WinAGI.Editor {
         public static void OpenGlobals(bool ForceLoad = false) {
             string strFileName;
             frmGlobals frmNew;
-
+            // Sierra syntax games use sysdefs.h instead of globals.txt
+            if (EditGame is not null && EditGame.SierraSyntax) {
+                // check open text editors for sysdefs.h
+                foreach (frmLogicEdit txtform in LogicEditors) {
+                    if (txtform.FormMode== LogicFormMode.Text &&
+                        string.Compare(txtform.TextFilename, EditGame.SrcResDir + "sysdefs.h", true) == 0) {
+                        // just shift focus
+                        txtform.Select();
+                        return;
+                    }
+                }
+                // check for sysdefs.h file
+                if (File.Exists(EditGame.SrcResDir + "sysdefs.h")) {
+                    OpenTextFile(EditGame.SrcResDir + "sysdefs.h");
+                }
+                else {
+                    // offer to make a default file
+                    if (MessageBox.Show(MDIMain,
+                        "'sysdefs.h' is missing from the resource directory.\n" +
+                        "Would you like to create a default 'sysdefs.h' file now?",
+                        "Create sysdefs.h File?",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) == DialogResult.Yes) {
+                        try {
+                            string defaultSysDefs = WinAGI.EngineResources.SYSDEFS;
+                            File.WriteAllText(EditGame.SrcResDir + "sysdefs.h", defaultSysDefs);
+                            OpenTextFile(EditGame.SrcResDir + "sysdefs.h");
+                        }
+                        catch (Exception ex) {
+                            ErrMsgBox(ex,
+                                "An exception occurred when trying to create the default 'sysdefs.h' file.",
+                                ex.StackTrace,
+                                "Unable to Create sysdefs.h File");
+                        }
+                    }
+                }
+                return;
+            }
             // if a game is loaded and NOT forcing...
-            // open editor if not yet in use
-            // or switch to it if it's already open
+            // open editor if not yet in use or switch to it if it's already open
             if (EditGame is not null && !ForceLoad) {
                 if (GEInUse) {
                     GlobalsEditor.Activate();
@@ -3841,15 +3894,15 @@ namespace WinAGI.Editor {
                 else {
                     MDIMain.UseWaitCursor = true;
                     // use the game's default globals file
-                    strFileName = EditGame.ResDir + "globals.txt";
+                    strFileName = EditGame.SrcResDir + "globals.txt";
                     // look for global file
                     if (!File.Exists(strFileName)) {
                         // TODO: move defines.txt conversion to the GlobalList object
                         // look for a defines.txt file in the resource directory
-                        if (File.Exists(EditGame.ResDir + "defines.txt")) {
+                        if (File.Exists(EditGame.SrcResDir + "defines.txt")) {
                             // copy it to globals.txt
                             try {
-                                File.Copy(EditGame.ResDir + "defines.txt", strFileName);
+                                File.Copy(EditGame.SrcResDir + "defines.txt", strFileName);
                             }
                             catch {
                                 // ignore if error (a new file will be created)
@@ -3910,7 +3963,7 @@ namespace WinAGI.Editor {
         }
 
         public static void OpenLayout() {
-            if (EditGame is null) {
+            if (EditGame is null || EditGame.SierraSyntax) {
                 return;
             }
             if (LEInUse) {
@@ -4036,7 +4089,7 @@ namespace WinAGI.Editor {
             switch (ResType) {
             case AGIResType.Logic:
                 oldID = EditGame.Logics[OldResNum].ID;
-                oldResFile = EditGame.ResDir + EditGame.Logics[OldResNum].ID + ".agl";
+                oldResFile = EditGame.SrcResDir + EditGame.Logics[OldResNum].ID + ".agl";
                 EditGame.Logics.Renumber(OldResNum, NewResNum);
                 strCaption = ResourceName(EditGame.Logics[NewResNum], true);
                 newID = EditGame.Logics[NewResNum].ID;
@@ -4046,21 +4099,21 @@ namespace WinAGI.Editor {
                 break;
             case AGIResType.Picture:
                 oldID = EditGame.Pictures[OldResNum].ID;
-                oldResFile = EditGame.ResDir + EditGame.Pictures[OldResNum].ID + ".agp";
+                oldResFile = EditGame.SrcResDir + EditGame.Pictures[OldResNum].ID + ".agp";
                 EditGame.Pictures.Renumber(OldResNum, NewResNum);
                 strCaption = ResourceName(EditGame.Pictures[NewResNum], true);
                 newID = EditGame.Pictures[NewResNum].ID;
                 break;
             case AGIResType.Sound:
                 oldID = EditGame.Sounds[OldResNum].ID;
-                oldResFile = EditGame.ResDir + EditGame.Sounds[OldResNum].ID + ".ags";
+                oldResFile = EditGame.SrcResDir + EditGame.Sounds[OldResNum].ID + ".ags";
                 EditGame.Sounds.Renumber(OldResNum, NewResNum);
                 strCaption = ResourceName(EditGame.Sounds[NewResNum], true);
                 newID = EditGame.Sounds[NewResNum].ID;
                 break;
             case AGIResType.View:
                 oldID = EditGame.Views[OldResNum].ID;
-                oldResFile = EditGame.ResDir + EditGame.Views[OldResNum].ID + ".agv";
+                oldResFile = EditGame.SrcResDir + EditGame.Views[OldResNum].ID + ".agv";
                 EditGame.Views.Renumber(OldResNum, NewResNum);
                 strCaption = ResourceName(EditGame.Views[NewResNum], true);
                 newID = EditGame.Views[NewResNum].ID;
@@ -4168,16 +4221,16 @@ namespace WinAGI.Editor {
                 case AGIResType.Logic:
                     // logic source file handled automatically when ID changes,
                     // this function handles the compiled resource file
-                    strOldResFile = EditGame.ResDir + EditGame.Logics[ResNum].ID + ".agl";
+                    strOldResFile = EditGame.SrcResDir + EditGame.Logics[ResNum].ID + ".agl";
                     break;
                 case AGIResType.Picture:
-                    strOldResFile = EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp";
+                    strOldResFile = EditGame.SrcResDir + EditGame.Pictures[ResNum].ID + ".agp";
                     break;
                 case AGIResType.Sound:
-                    strOldResFile = EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags";
+                    strOldResFile = EditGame.SrcResDir + EditGame.Sounds[ResNum].ID + ".ags";
                     break;
                 case AGIResType.View:
-                    strOldResFile = EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv";
+                    strOldResFile = EditGame.SrcResDir + EditGame.Views[ResNum].ID + ".agv";
                     break;
                 }
             }
@@ -4252,7 +4305,7 @@ namespace WinAGI.Editor {
                             switch (ResType) {
                             case AGIResType.Logic:
                                 DialogResult result;
-                                if (!strOldID.Equals(frmeditprop.NewID, StringComparison.OrdinalIgnoreCase) && File.Exists(EditGame.ResDir + frmeditprop.NewID + "." + EditGame.SourceExt)) {
+                                if (!strOldID.Equals(frmeditprop.NewID, StringComparison.OrdinalIgnoreCase) && File.Exists(EditGame.SrcResDir + frmeditprop.NewID + "." + EditGame.SourceExt)) {
                                     // import existing, or overwrite it?
                                     result = MessageBox.Show(MDIMain,
                                        "There is already a source file with the name '" + frmeditprop.NewID + "." +
@@ -4269,7 +4322,7 @@ namespace WinAGI.Editor {
                                     // bit of a hack..
                                     // move the new file to the old file
                                     // then ID change will move it back
-                                    SafeFileMove(EditGame.ResDir + frmeditprop.NewID + "." + EditGame.SourceExt, EditGame.Logics[ResNum].SourceFile, true);
+                                    SafeFileMove(EditGame.SrcResDir + frmeditprop.NewID + "." + EditGame.SourceExt, EditGame.Logics[ResNum].SourceFile, true);
                                 }
                                 // change id (which automatically renames source file,
                                 // including overwriting an existing file
@@ -4369,16 +4422,16 @@ namespace WinAGI.Editor {
                     // just change the filename
                     switch (ResType) {
                     case AGIResType.Logic:
-                        SafeFileMove(strOldResFile, EditGame.ResDir + ResID + "." + EditGame.SourceExt, true);
+                        SafeFileMove(strOldResFile, EditGame.SrcResDir + ResID + "." + EditGame.SourceExt, true);
                         break;
                     case AGIResType.Picture:
-                        SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".agp", true);
+                        SafeFileMove(strOldResFile, EditGame.SrcResDir + ResID + ".agp", true);
                         break;
                     case AGIResType.Sound:
-                        SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".ags", true);
+                        SafeFileMove(strOldResFile, EditGame.SrcResDir + ResID + ".ags", true);
                         break;
                     case AGIResType.View:
-                        SafeFileMove(strOldResFile, EditGame.ResDir + ResID + ".agv", true);
+                        SafeFileMove(strOldResFile, EditGame.SrcResDir + ResID + ".agv", true);
                         break;
                     }
                 }
@@ -4439,7 +4492,7 @@ namespace WinAGI.Editor {
             }
             else {
                 if (InGame) {
-                    MDIMain.SaveDlg.FileName = Path.GetFileName(EditGame.ResDir + ThisLogic.ID + "." + EditGame.SourceExt);
+                    MDIMain.SaveDlg.FileName = Path.GetFileName(EditGame.SrcResDir + ThisLogic.ID + "." + EditGame.SourceExt);
                 }
                 else {
                     // non-game IDs are filenames
@@ -4539,14 +4592,14 @@ namespace WinAGI.Editor {
             switch (ResType) {
             case AGIResType.Logic:
                 // logic sourcefile already handled by ID change
-                SafeFileMove(EditGame.ResDir + EditGame.Logics[ResNum].ID + ".agl", EditGame.ResDir + EditGame.Logics[ResNum].ID + "_OLD" + ".agl", true);
+                SafeFileMove(EditGame.SrcResDir + EditGame.Logics[ResNum].ID + ".agl", EditGame.SrcResDir + EditGame.Logics[ResNum].ID + "_OLD" + ".agl", true);
                 try {
                     if (File.Exists(OldFileName)) {
-                        File.Move(OldFileName, EditGame.ResDir + EditGame.Logics[ResNum].ID + ".agl");
+                        File.Move(OldFileName, EditGame.SrcResDir + EditGame.Logics[ResNum].ID + ".agl");
                     }
                     else {
                         if (WinAGISettings.AutoExport.Value) {
-                            EditGame.Logics[ResNum].Export(EditGame.ResDir + EditGame.Logics[ResNum].ID + ".agl");
+                            EditGame.Logics[ResNum].Export(EditGame.SrcResDir + EditGame.Logics[ResNum].ID + ".agl");
                         }
                     }
                 }
@@ -4563,14 +4616,14 @@ namespace WinAGI.Editor {
                 }
                 break;
             case AGIResType.Picture:
-                SafeFileMove(EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp", EditGame.ResDir + EditGame.Pictures[ResNum].ID + "_OLD" + ".agp", true);
+                SafeFileMove(EditGame.SrcResDir + EditGame.Pictures[ResNum].ID + ".agp", EditGame.SrcResDir + EditGame.Pictures[ResNum].ID + "_OLD" + ".agp", true);
                 try {
                     if (File.Exists(OldFileName)) {
-                        File.Move(OldFileName, EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp");
+                        File.Move(OldFileName, EditGame.SrcResDir + EditGame.Pictures[ResNum].ID + ".agp");
                     }
                     else {
                         if (WinAGISettings.AutoExport.Value) {
-                            EditGame.Pictures[ResNum].Export(EditGame.ResDir + EditGame.Pictures[ResNum].ID + ".agp");
+                            EditGame.Pictures[ResNum].Export(EditGame.SrcResDir + EditGame.Pictures[ResNum].ID + ".agp");
                         }
                     }
                 }
@@ -4583,14 +4636,14 @@ namespace WinAGI.Editor {
                 }
                 break;
             case AGIResType.Sound:
-                SafeFileMove(EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags", EditGame.ResDir + EditGame.Sounds[ResNum].ID + "_OLD" + ".ags", true);
+                SafeFileMove(EditGame.SrcResDir + EditGame.Sounds[ResNum].ID + ".ags", EditGame.SrcResDir + EditGame.Sounds[ResNum].ID + "_OLD" + ".ags", true);
                 try {
                     if (File.Exists(OldFileName)) {
-                        File.Move(OldFileName, EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags");
+                        File.Move(OldFileName, EditGame.SrcResDir + EditGame.Sounds[ResNum].ID + ".ags");
                     }
                     else {
                         if (WinAGISettings.AutoExport.Value) {
-                            EditGame.Sounds[ResNum].Export(EditGame.ResDir + EditGame.Sounds[ResNum].ID + ".ags");
+                            EditGame.Sounds[ResNum].Export(EditGame.SrcResDir + EditGame.Sounds[ResNum].ID + ".ags");
                         }
                     }
                 }
@@ -4603,16 +4656,16 @@ namespace WinAGI.Editor {
                 }
                 break;
             case AGIResType.View:
-                SafeFileMove(EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv", EditGame.ResDir + EditGame.Views[ResNum].ID + "_OLD" + ".agv", true);
+                SafeFileMove(EditGame.SrcResDir + EditGame.Views[ResNum].ID + ".agv", EditGame.SrcResDir + EditGame.Views[ResNum].ID + "_OLD" + ".agv", true);
                 try {
                     // if file already exists, rename it,
                     // otherwise use export to create it
                     if (File.Exists(OldFileName)) {
-                        File.Move(OldFileName, EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv", true);
+                        File.Move(OldFileName, EditGame.SrcResDir + EditGame.Views[ResNum].ID + ".agv", true);
                     }
                     else {
                         if (WinAGISettings.AutoExport.Value) {
-                            EditGame.Views[ResNum].Export(EditGame.ResDir + EditGame.Views[ResNum].ID + ".agv");
+                            EditGame.Views[ResNum].Export(EditGame.SrcResDir + EditGame.Views[ResNum].ID + ".agv");
                         }
                     }
                 }
@@ -5304,10 +5357,8 @@ namespace WinAGI.Editor {
             }
             // then global defines
             if (EditGame is not null) {
-                for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
-                    if (EditGame.GlobalDefines[i].Name == text) {
-                        return EditGame.GlobalDefines[i].Value;
-                    }
+                if (EditGame.GlobalDefines.ContainsName(text)) {
+                    return EditGame.GlobalDefines[text].Value;
                 }
             }
             // lastly, check for reserved defines option (if not looking for a resourceID)
@@ -5593,7 +5644,7 @@ namespace WinAGI.Editor {
                 if (ValidateID("pic" + idtext[2..], "") == 0) {
                     tmpPic.ID = "pic" + idtext[2..];
                     if (EditGame.Pictures.Contains(picnumber)) {
-                        strFile = EditGame.ResDir + EditGame.Pictures[picnumber].ID + ".agp";
+                        strFile = EditGame.SrcResDir + EditGame.Pictures[picnumber].ID + ".agp";
                         UpdateResFile(AGIResType.Picture, picnumber, strFile);
                     }
                 }
@@ -6011,16 +6062,75 @@ namespace WinAGI.Editor {
             frmObjectEdit frmNew;
             InventoryList tmpList;
 
+            bool sierrasrc = Path.GetFileName(ImportObjFile).Equals("object.txt", StringComparison.OrdinalIgnoreCase);
             MDIMain.UseWaitCursor = true;
             if (ImportObjFile.Length != 0) {
-                tmpList = new(ImportObjFile);
+                tmpList = new(ImportObjFile, sierrasrc);
+                MDIMain.UseWaitCursor = false;
+                if (tmpList.Error != ResourceErrorType.NoError) {
+                    if (sierrasrc) {
+                        MessageBox.Show(MDIMain,
+                            tmpList.ErrData[0],
+                            "Unable to Import Sierra Object Source File",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error, 0, 0,
+                            WinAGIHelp, "htn\\commands\\sierra_objectcompiler.htm");
+                    }
+                    else {
+                        string errmsg = "";
+                        switch (tmpList.Error) {
+                        case ResourceErrorType.ObjectNoFile:
+                            errmsg = "RE13: " + EngineResources.RE13;
+                            break;
+                        case ResourceErrorType.ObjectIsReadOnly:
+                            errmsg = "RE14: " + EngineResources.RE14;
+                            break;
+                        case ResourceErrorType.ObjectAccessError:
+                            errmsg = "RE15: " + EngineResources.RE15.Replace(
+                                ARG1, tmpList.ErrData[0]);
+                            break;
+                        case ResourceErrorType.ObjectNoData:
+                            errmsg = "RE16: " + EngineResources.RE16;
+                            break;
+                        case ResourceErrorType.ObjectDecryptError:
+                            errmsg = "RE17: " + EngineResources.RE17;
+                            break;
+                        case ResourceErrorType.ObjectBadHeader:
+                            errmsg = "RE18: " + EngineResources.RE18;
+                            break;
+                        }
+                        MessageBox.Show(MDIMain,
+                            errmsg,
+                            "Unable to Open OBJECT File",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error, 0, 0,
+                            WinAGIHelp, "htm\\winagi\\errors_resource.htm");
+                    }
+                    return;
+                }
             }
             else {
                 tmpList = [];
             }
+            MDIMain.UseWaitCursor = true;
             frmNew = new();
             if (frmNew.LoadOBJECT(tmpList)) {
                 frmNew.Show();
+                if (tmpList.Warnings != 0) {
+                    string warnmsg = "Anomalies were detected in this OBJECT file:\n";
+                    if ((tmpList.Warnings & 1) == 1) {
+                        warnmsg += "\nRW18: " + EngineResources.RW18;
+                    }
+                    if ((tmpList.Warnings & 2) == 2) {
+                        warnmsg += "\nRW19: " + EngineResources.RW19;
+                    }
+                    MessageBox.Show(MDIMain,
+                        warnmsg,
+                        "OBJECT File Import Warnings",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\warnings_resource.htm");
+                }
             }
             else {
                 frmNew.Close();
@@ -6096,19 +6206,59 @@ namespace WinAGI.Editor {
             frmWordsEdit frmNew;
             WordList tmpList;
 
-            // show wait cursor
+            bool sierrasrc = Path.GetFileName(ImportWordFile).Equals("words.txt", StringComparison.OrdinalIgnoreCase);
             MDIMain.UseWaitCursor = true;
             if (ImportWordFile.Length != 0) {
-                try {
-                    tmpList = new(ImportWordFile);
+                tmpList = new(ImportWordFile, sierrasrc);
+                MDIMain.UseWaitCursor = false;
+                if (sierrasrc) {
+                    if (tmpList.Error != ResourceErrorType.NoError) {
+                        MessageBox.Show(MDIMain,
+                            tmpList.ErrData[0],
+                            "Unable to Import Sierra Words Source File",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error, 0, 0,
+                            WinAGIHelp, "htm\\commands\\sierra_wordcompiler.htm");
+                        return;
+                    }
+                    else if (tmpList.WarnData[0].Length > 0) {
+                        MessageBox.Show(MDIMain,
+                            tmpList.WarnData[0],
+                            "Abnomalies detected in Sierra Words Source File",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information, 0, 0,
+                            WinAGIHelp, "htm\\commands\\sierra_wordcompiler.htm");
+                    }
                 }
-                catch (Exception ex) {
-                    ErrMsgBox(ex, 
-                        "An error occurred during import:",
-                        ex.StackTrace,
-                        "Import WORDS.TOK File Error");
-                    MDIMain.UseWaitCursor = false;
-                    return;
+                else {
+                    if (tmpList.Error != ResourceErrorType.NoError) {
+                        string errmsg = "";
+                        switch (tmpList.Error) {
+                        case ResourceErrorType.WordsTokNoFile:
+                            errmsg = "RE19: " + EngineResources.RE19;
+                            break;
+                        case ResourceErrorType.WordsTokIsReadOnly:
+                            errmsg = "RE20: " + EngineResources.RE20;
+                            break;
+                        case ResourceErrorType.WordsTokAccessError:
+                            errmsg = "RE21: " + EngineResources.RE21.Replace(
+                            ARG1, tmpList.ErrData[0]);
+                            break;
+                        case ResourceErrorType.WordsTokNoData:
+                            errmsg = "RE22: " + EngineResources.RE22;
+                            break;
+                        case ResourceErrorType.WordsTokBadIndex:
+                            errmsg = "RE23: " + EngineResources.RE23;
+                            break;
+                        }
+                        MessageBox.Show(MDIMain,
+                            errmsg,
+                            "Unable to Open WORDS.TOK File",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error, 0, 0,
+                            WinAGIHelp, "htm\\winagi\\errors_resource.htm");
+                        return;
+                    }
                 }
             }
             else {
@@ -6117,6 +6267,36 @@ namespace WinAGI.Editor {
             frmNew = new();
             if (frmNew.LoadWords(tmpList)) {
                 frmNew.Show();
+                if (tmpList.Warnings != 0) {
+                    string warnmsg = "Anomalies were detected in this WORDS.TOK file:\n";
+                    if ((tmpList.Warnings & 1) == 1) {
+                        warnmsg += "\nRW20: " + EngineResources.RW20;
+                    }
+                    if ((tmpList.Warnings & 2) == 2) {
+                        warnmsg += "\nRW21: " + EngineResources.RW21;
+                    }
+                    if ((tmpList.Warnings & 4) == 4) {
+                        warnmsg += "\nRW22: " + EngineResources.RW22;
+                    }
+                    if ((tmpList.Warnings & 8) == 8) {
+                        warnmsg += "\nRW23: " + EngineResources.RW23;
+                    }
+                    if ((tmpList.Warnings & 16) == 16) {
+                        warnmsg += "\nRW24: " + EngineResources.RW24;
+                    }
+                    if ((tmpList.Warnings & 32) == 32) {
+                        warnmsg += "\nRW25: " + EngineResources.RW25;
+                    }
+                    if ((tmpList.Warnings & 64) == 64) {
+                        warnmsg += "\nRW26: " + EngineResources.RW26;
+                    }
+                    MessageBox.Show(MDIMain,
+                        warnmsg,
+                        "Words.Tok File Import Warnings",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\warnings_resource.htm");
+                }
             }
             else {
                 frmNew.Close();
@@ -6239,13 +6419,13 @@ namespace WinAGI.Editor {
                 break;
             case AGIResType.Objects:
                 MDIMain.OpenDlg.Title = mode + "OBJECT File";
-                MDIMain.OpenDlg.Filter = "AGI OBJECT files|OBJECT|All files (*.*)|*.*";
+                MDIMain.OpenDlg.Filter = "AGI OBJECT files|OBJECT|Sierra Object Source|object.txt|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
                 MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Objects", sOPENFILTER, 1);
                 break;
             case AGIResType.Words:
                 MDIMain.OpenDlg.Title = mode + "WORDS.TOK File";
-                MDIMain.OpenDlg.Filter = "AGI WORDS.TOK files|WORDS.TOK|All files (*.*)|*.*";
+                MDIMain.OpenDlg.Filter = "AGI WORDS.TOK files|WORDS.TOK|Sierra Words Source|words.txt|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
                 MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Words", sOPENFILTER, 1);
                 break;
@@ -6617,10 +6797,67 @@ namespace WinAGI.Editor {
         public static void OpenOBJECT(string filename) {
             InventoryList invlist;
 
-            invlist = new(filename);
+            bool sierrasrc = Path.GetFileName(filename).Equals("object.txt", StringComparison.OrdinalIgnoreCase);
+            invlist = new(filename, sierrasrc);
+            if (invlist.Error != ResourceErrorType.NoError) {
+                if (sierrasrc) {
+                    MessageBox.Show(MDIMain,
+                        invlist.ErrData[0],
+                        "Unable to Import Sierra Object Source File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\commands\\sierra_objectcompiler.htm");
+                }
+                else {
+                    string errmsg = "";
+                    switch (invlist.Error) {
+                    case ResourceErrorType.ObjectNoFile:
+                        errmsg = "RE13: " + EngineResources.RE13;
+                        break;
+                    case ResourceErrorType.ObjectIsReadOnly:
+                        errmsg = "RE14: " + EngineResources.RE14;
+                        break;
+                    case ResourceErrorType.ObjectAccessError:
+                        errmsg = "RE15: " + EngineResources.RE15.Replace(
+                            ARG1, invlist.ErrData[0]);
+                        break;
+                    case ResourceErrorType.ObjectNoData:
+                        errmsg = "RE16: " + EngineResources.RE16;
+                        break;
+                    case ResourceErrorType.ObjectDecryptError:
+                        errmsg = "RE17: " + EngineResources.RE17;
+                        break;
+                    case ResourceErrorType.ObjectBadHeader:
+                        errmsg = "RE18: " + EngineResources.RE18;
+                        break;
+                    }
+                    MessageBox.Show(MDIMain,
+                        errmsg,
+                        "Unable to Open OBJECT File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors_resource.htm");
+                }
+                return;
+            }
             frmObjectEdit frm = new();
             if (frm.LoadOBJECT(invlist)) {
                 frm.Show();
+                if (invlist.Warnings != 0) {
+                    string warnmsg = "Anomalies were detected in this OBJECT file:\n";
+                    if ((invlist.Warnings & 1) == 1) {
+                        warnmsg += "\nRW18: " + EngineResources.RW18;
+                    }
+                    if ((invlist.Warnings & 2) == 2) {
+                        warnmsg += "\nRW19: " + EngineResources.RW19;
+                    }
+                    MessageBox.Show(MDIMain,
+                        warnmsg,
+                        "OBJECT File Import Warnings",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\warnings_resource.htm");
+                }
             }
             else {
                 frm.Close();
@@ -6648,10 +6885,89 @@ namespace WinAGI.Editor {
         public static void OpenWORDSTOK(string filename) {
             WordList wordlist;
 
-            wordlist = new(filename);
+            bool sierrasrc = Path.GetFileName(filename).Equals("WORDS.txt", StringComparison.OrdinalIgnoreCase);
+            wordlist = new(filename, sierrasrc);
+            if (sierrasrc) {
+                if (wordlist.Error != ResourceErrorType.NoError) {
+                    MessageBox.Show(MDIMain,
+                        wordlist.ErrData[0],
+                        "Unable to Import Sierra Words Source File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\commands\\sierra_wordcompiler.htm");
+                }
+                else if (wordlist.WarnData[0].Length > 0) {
+                    MessageBox.Show(MDIMain,
+                        wordlist.WarnData[0],
+                        "Abnomalies detected in Sierra Words Source File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information, 0, 0,
+                        WinAGIHelp, "htm\\commands\\sierra_wordcompiler.htm");
+                }
+            }
+            else {
+                if (wordlist.Error != ResourceErrorType.NoError) {
+                    string errmsg = "";
+                    switch (wordlist.Error) {
+                    case ResourceErrorType.WordsTokNoFile:
+                        errmsg = "RE19: " + EngineResources.RE19;
+                        break;
+                    case ResourceErrorType.WordsTokIsReadOnly:
+                        errmsg = "RE20: " + EngineResources.RE20;
+                        break;
+                    case ResourceErrorType.WordsTokAccessError:
+                        errmsg = "RE21: " + EngineResources.RE21.Replace(
+                        ARG1, wordlist.ErrData[0]);
+                        break;
+                    case ResourceErrorType.WordsTokNoData:
+                        errmsg = "RE22: " + EngineResources.RE22;
+                        break;
+                    case ResourceErrorType.WordsTokBadIndex:
+                        errmsg = "RE23: " + EngineResources.RE23;
+                        break;
+                    }
+                    MessageBox.Show(MDIMain,
+                        errmsg,
+                        "Unable to Open WORDS.TOK File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\errors_resource.htm");
+                    return;
+                }
+            }
             frmWordsEdit frm = new();
             if (frm.LoadWords(wordlist)) {
                 frm.Show();
+                if (wordlist.Warnings != 0) {
+                    string warnmsg = "Anomalies were detected in this WORDS.TOK file:\n";
+                    if ((wordlist.Warnings & 1) == 1) {
+                        warnmsg += "\nRW20: " + EngineResources.RW20;
+                    }
+                    if ((wordlist.Warnings & 2) == 2) {
+                        warnmsg += "\nRW21: " + EngineResources.RW21;
+                    }
+                    if ((wordlist.Warnings & 4) == 4) {
+                        warnmsg += "\nRW22: " + EngineResources.RW22;
+                    }
+                    if ((wordlist.Warnings & 8) == 8) {
+                        warnmsg += "\nRW23: " + EngineResources.RW23;
+                    }
+                    if ((wordlist.Warnings & 16) == 16) {
+                        warnmsg += "\nRW24: " + EngineResources.RW24;
+                    }
+                    if ((wordlist.Warnings & 32) == 32) {
+                        warnmsg += "\nRW25: " + EngineResources.RW25;
+                    }
+                    if ((wordlist.Warnings & 64) == 64) {
+                        warnmsg += "\nRW26: " + EngineResources.RW26;
+                    }
+                    MessageBox.Show(MDIMain,
+                        warnmsg,
+                        "Words.Tok File Import Warnings",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, 0, 0,
+                        WinAGIHelp, "htm\\winagi\\warnings_resource.htm");
+                }
             }
             else {
                 frm.Close();
@@ -6749,7 +7065,7 @@ namespace WinAGI.Editor {
                 return;
             }
 
-            string strPicFile = EditGame.ResDir + EditGame.Pictures[PicNum].ID + ".agp";
+            string strPicFile = EditGame.SrcResDir + EditGame.Pictures[PicNum].ID + ".agp";
             // remove it from game
             EditGame.Pictures.Remove(PicNum);
 
@@ -6814,7 +7130,7 @@ namespace WinAGI.Editor {
                 return;
             }
 
-            string strSoundFile = EditGame.ResDir + EditGame.Sounds[SoundNum].ID + ".ags";
+            string strSoundFile = EditGame.SrcResDir + EditGame.Sounds[SoundNum].ID + ".ags";
             // remove it from game
             EditGame.Sounds.Remove(SoundNum);
 
@@ -6872,7 +7188,7 @@ namespace WinAGI.Editor {
                 return;
             }
 
-            string strViewFile = EditGame.ResDir + EditGame.Views[ViewNum].ID + ".agv";
+            string strViewFile = EditGame.SrcResDir + EditGame.Views[ViewNum].ID + ".agv";
             EditGame.Views.Remove(ViewNum);
             switch (WinAGISettings.ResListType.Value) {
             case ResListType.TreeList:
@@ -6925,7 +7241,7 @@ namespace WinAGI.Editor {
             switch (WinAGISettings.ResListType.Value) {
             case ResListType.TreeList:
                 foreach (TreeNode tmpNode in HdrNode[0].Nodes) {
-                    if (File.Exists(EditGame.ResDir + EditGame.Logics[(byte)tmpNode.Tag].ID + "." + EditGame.SourceExt)) {
+                    if (File.Exists(EditGame.SrcResDir + EditGame.Logics[(byte)tmpNode.Tag].ID + "." + EditGame.SourceExt)) {
                         tmpNode.ForeColor = Color.Red;
                     }
                 }
@@ -6983,7 +7299,7 @@ namespace WinAGI.Editor {
             }
             if (blnNoFile) {
                 // use the default template
-                strLogic = LoadResString(101);
+                strLogic = EditorResourceByNum(101);
                 // apply code style
                 //       if (test())F0{
                 //           action();
@@ -7141,6 +7457,7 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Information);
                         MDIMain.UseWaitCursor = false;
+                        ClosedLogics = false;
                         return;
                     }
                 }
@@ -7199,18 +7516,25 @@ namespace WinAGI.Editor {
                             // check if it occurs before the current found position
                             FoundPos = -1;
                             for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
-                                lngPossFind = searchFCTB.Text.IndexOf(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR, SearchPos);
+                                string synonym;
+                                if (EditGame is null || !EditGame.SierraSyntax) {
+                                    synonym = QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR;
+                                }
+                                else {
+                                    synonym = WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i].Replace(' ', '$');
+                                }
+                                    lngPossFind = searchFCTB.Text.IndexOf(synonym, SearchPos);
                                 // validate it's a word arg
                                 if (lngPossFind > 0) {
                                     if (IsVocabWord(lngPossFind, searchFCTB.Text)) {
                                         if (FoundPos == -1) {
                                             FoundPos = lngPossFind;
-                                            FindText = QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR;
+                                            FindText = synonym;
                                         }
                                         else {
                                             if (lngPossFind < FoundPos) {
                                                 FoundPos = lngPossFind;
-                                                FindText = QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR;
+                                                FindText = synonym;
                                             }
                                         }
                                     }
@@ -7873,7 +8197,7 @@ namespace WinAGI.Editor {
 
         public static string InstrumentName(int instrument) {
             // returns the name of an instrument as a string
-            return LoadResString(INSTRUMENTNAMETEXT + instrument);
+            return EditorResourceByNum(INSTRUMENTNAMETEXT + instrument);
         }
 
         /// <summary>
@@ -7925,7 +8249,7 @@ namespace WinAGI.Editor {
             // show errmsg baed on agi resource error level
             string strErrMsg;
 
-            strErrMsg = ErrMsg1 + Environment.NewLine + Environment.NewLine + ErrNum + ": " + LoadResString(ErrNum);
+            strErrMsg = ErrMsg1 + Environment.NewLine + Environment.NewLine + ErrNum + ": " + EditorResourceByNum(ErrNum);
             if (ErrMsg2.Length > 0) {
                 strErrMsg = strErrMsg + Environment.NewLine + Environment.NewLine + ErrMsg2;
             }
@@ -8075,7 +8399,7 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public static string LoadResString(int index) {
+        public static string EditorResourceByNum(int index) {
             // this function is just a handy way to get resource strings by number
             // instead of by stringkey
             try {
@@ -8288,6 +8612,11 @@ namespace WinAGI.Editor {
             // check for 'get' cmd
             // check for 'put' cmd
 
+            // sierra syntax always matches
+            if (EditGame is not null && EditGame.SierraSyntax) {
+                return true;
+            }
+
             int argcount = 0;
             AGIToken cmd = FindPrevCmd(strText, WinAGIFCTB.TokenFromPos(strText, lngStartPos), ref argcount);
             if (cmd.Type != AGITokenType.Identifier) {
@@ -8314,6 +8643,11 @@ namespace WinAGI.Editor {
         }
 
         internal static bool IsVocabWord(int lngStartPos, string strText) {
+            // sierra syntax always matches
+            if (EditGame is not null && EditGame.SierraSyntax) {
+                return true;
+            }
+
             int argcount = 0;
             AGIToken cmd = FindPrevCmd(strText, WinAGIFCTB.TokenFromPos(strText, lngStartPos), ref argcount);
             return cmd.Type == AGITokenType.Identifier && cmd.SubType == TokenSubtype.TestCmd && cmd.Number == 14;
@@ -8495,13 +8829,13 @@ namespace WinAGI.Editor {
         public static int CommandNum(string strCmdName) {
             // check for test command
             for (int retval = 0; retval < 20; retval++) {
-                if (strCmdName == TestCommands[retval].Name) {
+                if (strCmdName == TestCommands[retval].FanName) {
                     return retval + 200;
                 }
             }
             // look for action command
             for (int retval = 0; retval < 182; retval++) {
-                if (strCmdName == ActionCommands[retval].Name) {
+                if (strCmdName == ActionCommands[retval].FanName) {
                     return retval;
                 }
             }
@@ -8650,6 +8984,62 @@ namespace WinAGI.Editor {
             return lines;
         }
 
+        public static DialogResult ShowInputDialog(Form owner, string title, string info, ref string input) {
+            int offset = 0;
+            Form inputBox = new Form();
+            inputBox.StartPosition = FormStartPosition.CenterParent;
+            inputBox.FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            inputBox.MinimizeBox = false;
+            inputBox.MaximizeBox = false;
+            inputBox.ShowInTaskbar = false;
+            if (info.Length > 0) {
+                offset = 20;
+                inputBox.ClientSize = new(200, 70 + offset);
+                Label labelInfo = new() {
+                    Size = new System.Drawing.Size(inputBox.ClientSize.Width - 10, 15),
+                    Location = new System.Drawing.Point(5, 5),
+                    Text = info
+                };
+                inputBox.Controls.Add(labelInfo);
+            }
+            else {
+                inputBox.ClientSize = new(200, 70);
+            }
+            inputBox.Text = title;
+
+            TextBox textBox = new() {
+                Size = new System.Drawing.Size(inputBox.ClientSize.Width - 10, 23 + offset),
+                Location = new System.Drawing.Point(5, 5+ offset),
+                Text = input
+            };
+            inputBox.Controls.Add(textBox);
+
+            Button okButton = new() {
+                DialogResult = DialogResult.OK,
+                Name = "okButton",
+                Size = new System.Drawing.Size(75, 23),
+                Text = "&OK",
+                Location = new System.Drawing.Point(inputBox.ClientSize.Width - 160, 39 + offset)
+            };
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new() {
+                DialogResult = DialogResult.Cancel,
+                Name = "cancelButton",
+                Size = new System.Drawing.Size(75, 23),
+                Text = "&Cancel",
+                Location = new System.Drawing.Point(inputBox.ClientSize.Width - 80, 39 + offset)
+            };
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog(owner);
+            input = textBox.Text;
+            return result;
+        }
+
         #region Export Functions
         public static void ExportGameResource(AGIResType restype, int resnum) {
             // default filename is always resource ID and restype extension
@@ -8708,7 +9098,7 @@ namespace WinAGI.Editor {
                 exportdir = FullDir(MDIMain.FolderDlg.SelectedPath);
             }
             else {
-                exportdir = EditGame.ResDir;
+                exportdir = EditGame.SrcResDir;
             }
             MDIMain.UseWaitCursor = true;
             ProgressWin = new(MDIMain) {
@@ -8728,7 +9118,7 @@ namespace WinAGI.Editor {
                     logic.Load();
                 }
                 // source code (if not resourcedir)
-                if (!exportdir.Equals(EditGame.ResDir)) {
+                if (!exportdir.Equals(EditGame.SrcResDir)) {
                     // TODO: need to add back sourceerror property
                     // TODO: should readonly resources be exportable?
                     if (logic.Error == ResourceErrorType.NoError) {
@@ -9276,7 +9666,7 @@ namespace WinAGI.Editor {
                 // skip if errors (readonly is OK)
                 if (ThisPic.Error == ResourceErrorType.NoError ||
                     ThisPic.Error == ResourceErrorType.FileIsReadonly) {
-                    ExportImg(ThisPic, EditGame.ResDir + ThisPic.ID + strExt, lngFormat, lngMode, lngZoom);
+                    ExportImg(ThisPic, EditGame.SrcResDir + ThisPic.ID + strExt, lngFormat, lngMode, lngZoom);
                 }
                 if (!blnLoaded) {
                     ThisPic.Unload();
@@ -9380,62 +9770,6 @@ namespace WinAGI.Editor {
                 MessageBox.Show("Image saved successfully.", "Export Picture Image", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 MDIMain.UseWaitCursor = false;
             }
-        }
-
-        public static DialogResult ShowInputDialog(Form owner, string title, string info, ref string input) {
-            int offset = 0;
-            Form inputBox = new Form();
-            inputBox.StartPosition = FormStartPosition.CenterParent;
-            inputBox.FormBorderStyle = FormBorderStyle.FixedToolWindow;
-            inputBox.MinimizeBox = false;
-            inputBox.MaximizeBox = false;
-            inputBox.ShowInTaskbar = false;
-            if (info.Length > 0) {
-                offset = 20;
-                inputBox.ClientSize = new(200, 70 + offset);
-                Label labelInfo = new() {
-                    Size = new System.Drawing.Size(inputBox.ClientSize.Width - 10, 15),
-                    Location = new System.Drawing.Point(5, 5),
-                    Text = info
-                };
-                inputBox.Controls.Add(labelInfo);
-            }
-            else {
-                inputBox.ClientSize = new(200, 70);
-            }
-            inputBox.Text = title;
-
-            TextBox textBox = new() {
-                Size = new System.Drawing.Size(inputBox.ClientSize.Width - 10, 23 + offset),
-                Location = new System.Drawing.Point(5, 5+ offset),
-                Text = input
-            };
-            inputBox.Controls.Add(textBox);
-
-            Button okButton = new() {
-                DialogResult = DialogResult.OK,
-                Name = "okButton",
-                Size = new System.Drawing.Size(75, 23),
-                Text = "&OK",
-                Location = new System.Drawing.Point(inputBox.ClientSize.Width - 160, 39 + offset)
-            };
-            inputBox.Controls.Add(okButton);
-
-            Button cancelButton = new() {
-                DialogResult = DialogResult.Cancel,
-                Name = "cancelButton",
-                Size = new System.Drawing.Size(75, 23),
-                Text = "&Cancel",
-                Location = new System.Drawing.Point(inputBox.ClientSize.Width - 80, 39 + offset)
-            };
-            inputBox.Controls.Add(cancelButton);
-
-            inputBox.AcceptButton = okButton;
-            inputBox.CancelButton = cancelButton;
-
-            DialogResult result = inputBox.ShowDialog(owner);
-            input = textBox.Text;
-            return result;
         }
         #endregion
         #endregion

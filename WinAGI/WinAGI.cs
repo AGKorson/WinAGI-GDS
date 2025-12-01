@@ -88,34 +88,37 @@ namespace WinAGI.Engine {
 
     public enum ResourceErrorType {
         NoError,
-        FileNotFound, // -1
-        FileIsReadonly, // -2
-        FileAccessError, // -3
-        InvalidLocation, // -4
-        InvalidHeader, // -5
-        DecompressionError, // -6
-        LogicSourceIsReadonly, // -7
-        LogicSourceAccessError, // -8
+        FileNotFound,
+        FileIsReadonly,
+        FileAccessError,
+        InvalidLocation,
+        InvalidHeader,
+        DecompressionError,
+        LogicSourceIsReadonly,
+        LogicSourceAccessError,
         LogicSourceDecompileError,
-        SoundNoData, // -9
-        SoundBadTracks, // -10
+        SoundNoData,
+        SoundBadTracks,
         SoundCantConvert,
-        ViewNoData, // -11
-        ViewNoLoops, // -12
-        ObjectNoFile, // -13
-        ObjectIsReadOnly, // -14
-        ObjectAccessError, // -15
-        ObjectNoData, // -16
-        ObjectDecryptError, // -17
-        ObjectBadHeader, // -18
-        WordsTokNoFile, // -19
-        WordsTokIsReadOnly, // -20
-        WordsTokAccessError, // -21
-        WordsTokNoData, // -22
-        WordsTokBadIndex, // -23
-        GlobalsNoFile, // -24
-        GlobalsIsReadOnly, // -25
-        GlobalsAccessError, // -26
+        ViewNoData,
+        ViewNoLoops,
+        ObjectNoFile,
+        ObjectIsReadOnly,
+        ObjectAccessError,
+        ObjectNoData,
+        ObjectDecryptError,
+        ObjectBadHeader,
+        WordsTokNoFile,
+        WordsTokIsReadOnly,
+        WordsTokAccessError,
+        WordsTokNoData,
+        WordsTokBadIndex,
+        DefinesNoFile,
+        DefinesReadOnly,
+        DefinesAccessError,
+        DefinesLevelLimit,
+        DefinesCircularReference,
+        SierraResourceError,
     }
 
     public enum LogicErrorLevel {
@@ -232,13 +235,22 @@ namespace WinAGI.Engine {
         OutofBounds,  // 2 = Value is not byte(0-255) or marker value is not byte
         BadArgNumber, // 3 = Value contains an invalid argument Value (controller, string, word)
         NotAValue,    // 4 = Value is not a string, number or argument marker
-        Reserved,     // 5 = Value is already defined by a reserved name
-        Global,       // 6 = Value is already defined by a global name
+        Reserved,     // 5 = Value is already defined by a reserved name (FAN syntax only)
+        Global,       // 6 = Value is already defined by a global name (FAN syntax only)
     }
 
     public enum OpenGameMode {
+        /// <summary>
+        /// Opens an existing game using a WAG file
+        /// </summary>
         File,
+        /// <summary>
+        /// Opens an existing game by importing AGI game files
+        /// </summary>
         Directory,
+        /// <summary>
+        /// Creates and opens a new a game 
+        /// </summary>
         New,
     }
 
@@ -265,10 +277,11 @@ namespace WinAGI.Engine {
         CheckLogic,
         Compiling,      // compiling a logic during game compilation
         Compiled,       // logic is successfully compiled
+        DecodingAllLogics, // decoding all logics during an import
         Decompiling,    // decompiling logics during an import
         CheckCRC,       // checking CRCs during load
         Finalizing,
-        Done            // pass-back value indicating all is well
+        Done,            // pass-back value indicating all is well
     };
 
     public enum CompileStatus {
@@ -322,24 +335,57 @@ namespace WinAGI.Engine {
     }
 
     public struct TWinAGIEventInfo {
-        public EventType Type = EventType.Info;              // type of data being reported - error/warning/info/TODO
-        public InfoType InfoType = InfoType.Initialize;           // sub-type for game load warnings ??? is this even needed anymore???
-        public AGIResType ResType = AGIResType.Game;          // resource type, if applicable to warning or error
-        public byte ResNum = 0;                 // resource number for logics,pics,views,sounds
-        public string ID = "";                   // warning or error number (could be alphanumeric)
-        public string Text = "";                 // info, warning or error msg
-        public string Line = "";                 // line number for comp/decomp errors and warnings
-        public string Module = "";               // module filename, if comp error occurs in an #include file or resID
-        public string Filename = "";             // full name of file, including path, if an include file
-        public object Data;                      // generic field used for various data purposes
+        /// <summary>
+        /// type of data being reported - error/warning/info/TODO
+        /// </summary>
+        public EventType Type = EventType.Info;
+        /// <summary>
+        /// sub-type for game load warnings
+        /// </summary>
+        public InfoType InfoType = InfoType.Initialize;
+        /// <summary>
+        /// resource type, if applicable to warning or error
+        /// </summary>
+        public AGIResType ResType = AGIResType.Game;
+        /// <summary>
+        /// resource number for logics,pics,views,sounds
+        /// </summary>
+        public byte ResNum = 0;
+        /// <summary>
+        /// warning or error number (could be alphanumeric)
+        /// </summary>
+        public string ID = "";
+        /// <summary>
+        /// info, warning or error msg
+        /// </summary>
+        public string Text = "";
+        /// <summary>
+        /// line number for comp/decomp errors and warnings
+        /// </summary>
+        public string Line = "";
+        /// <summary>
+        /// module filename, if comp error occurs in an #include file or resID
+        /// </summary>
+        public string Module = "";
+        /// <summary>
+        /// full name of file, including path, if an include file
+        /// </summary>
+        public string Filename = "";
+        /// <summary>
+        /// generic field used for various data purposes
+        /// </summary>
+        public object Data;
         public TWinAGIEventInfo() {
 
         }
     }
 
     public struct CommandStruct {
-        public string Name;
+        public string FanName = "";
         public ArgType[] ArgType;
+        public CommandStruct() {
+            ArgType = [];
+        }
     }
     public struct PictureBackgroundSettings {
         public string FileName;
@@ -605,7 +651,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        public static string LoadResString(int index) {
+        public static string EngineResourceByNum(int index) {
             try {
                 return EngineResources.ResourceManager.GetString(index.ToString());
             }
@@ -620,7 +666,7 @@ namespace WinAGI.Engine {
                 return SierraLogicCompiler.CompileSierraLogic(SourceLogic);
             }
             else {
-                return FanLogicCompiler.CompileFanLogic(SourceLogic);
+                return FanLogicCompiler.CompileLogic(SourceLogic);
             }
         }
     }
