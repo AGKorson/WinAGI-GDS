@@ -1,0 +1,44 @@
+<html>
+    <head><title>Logic Decompiler Warnings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h1>Logic Decompiler Warnings</h1>
+        <p>Decompiler warnings are generated when certain conditions are detected when analyzing the <a href="..\agi\logics.htm#commands">raw byte codes</a> from a <a href="..\agi\logics.htm">logic</a> resource. Warnings do not prevent WinAGI from decompiling the logic, but indicate situations which you may want to address in the resulting code.</p>
+        <p>The warnings identified by WinAGI will be added inline to the decompiled source code at the position where they are found. In addition, the warnings are added to the <a href="warninglist.htm">Warnings and Errors List</a>. You can double click on a warning to open the affected logic and be taken to the location of the warning.</p>
+        <p>None of the warnings identified during decompiling will prevent you from <a href="compilinglogics.htm">recompiling the logic</a>. You can ignore them if you wish by just deleting the warning line from your source code.</p>
+        <p>Detailed explanations of each warning that may be encountered are provided below.</p>
+        <p>Where decompile warning messages include dynamic text, such as a resource type, or resource number, the dynamic text is represented by '&lt;' and '&gt;' characters, for example '&lt;restype&gt;'.</p>
+        <p>The &lt;pos&gt; argument points to the byte index position of the invalid value in the raw byte code. It is provided in case you wish to examine the data in a hex editor to further study the logic.</p>
+        <p>&nbsp;</p>
+      <h3><a href="warnings\dw01.htm">DW01: Invalid message &lt;msgnum&gt; at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="warnings\dw02.htm">DW02: Invalid word &lt;wordnum&gt; resource index &lt;pos&gt;</a></h3>
+      <h3><a href="warnings\dw03.htm">DW03: Invalid inventory item &lt;itemnum&gt; at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="warnings\dw04.htm">DW04: Reference to null inventory item ('?') at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="warnings\dw05.htm">DW05: Non-unique inventory item '&lt;itemtext&gt;' at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="warnings\dw06.htm">DW06: Unknowntest19 at resource index &lt;pos&gt; is only valid in Amiga AGI versions</a></h3>
+      <h3><a href="warnings\dw07.htm">DW07: This block at resource index &lt;pos&gt; contains no commands</a></h3>
+      <h3><a href="warnings\dw08.htm">DW08: Block end at resource index &lt;pos&gt; is outside nested block (jump location &lt;jumppos&gt;)</a></h3>
+      <h3><a href="warnings\dw09.htm">DW09: Command '&lt;cmdname&gt;' at resource index &lt;pos&gt; is not valid for selected interpreter version (&lt;versionnum&gt;)</a></h3>
+      <h3><a href="warnings\dw10.htm">DW10: &lt;resource&gt; in '&lt;cmdname&gt;' command at resource index &lt;pos&gt; does not exist</a></h3>
+      <h3><a href="warnings\dw11.htm">DW11: quit command at resource index &lt;pos&gt; coded with no argument</a></h3>
+      <h3><a href="warnings\dw12.htm">DW12: return command is missing at end of logic</a></h3>
+      <h3><a href="warnings\dw13.htm">DW13: Screen object value is greater than game's MaxScreenObj (%1)</a></h3>
+      <h3><a href="warnings\dw14.htm">DW14: String number is greater than maximum allowed value for the target game version (%1)</a></h3>
+      <h3><a href="warnings\dw15.htm">DW15: Controller number is greater than maximum usable value for the target game version (%1)</a></h3>
+      <h3><a href="warnings\dw16.htm">DW16: Word number is greater than maximum usable value (10)</a></h3>
+      <h3><a href="warnings\dw17.htm">DW17: &lt;type&gt; command &lt;number&gt; not defined (&lt;name&gt;)</a></h3>
+      <h3><a href="warnings\dw18.htm">DW18: Message &lt;number&gt; is not referenced in logic source code</a></h3>
+      <h3><a href="warnings\dw19.htm">DW19: Unable to create separate message file for &lt;logic&gt;; messages are defined in the source (error: &lt;message&gt;)</a></h3>
+      <h3><a href="warnings\dw20.htm">DW20: Unable to create gamedefs.h file (error: &lt;message&gt;)</a></h3>
+      <h3><a href="warnings\dw21.htm">DW21: Consecutive 'NOT' operators detected at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="warnings\dw21.htm">DW22: No test commands in '<code>if</code>' or 'OR' block at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="warnings\dw21.htm">DW23: WORDS.TOK file not found; group number used as placeholder</a></h3>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

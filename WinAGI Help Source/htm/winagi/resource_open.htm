@@ -1,0 +1,47 @@
+<html>
+	<head><title>Opening Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Opening Resources</h1>
+			<p>To open a resource that already exists, double-click the resource in the <a href="resourcetree.htm">resource list</a>, use the Open Resource command on the Resources menu, or the Open Resource buttons on the main toolbar.</p>
+			<p>&nbsp;</p>
+		<h3>Opening <a href="..\agi\logics.htm">Logic</a>/<a href="..\agi\pictures.htm">Picture</a>/<a href="..\agi\sounds.htm">Sound</a>/<a href="..\agi\views.htm">View</a> Resources</h3>
+			<p>&nbsp;<img alt="Open Logic Button" src="..\..\graphics\tbOLog.bmp" width="32" height="32">&nbsp;
+			<img alt="Open Picture Button" src="..\..\graphics\tbOPic.bmp" width="32" height="32">&nbsp; 
+			<img alt="Open View Button" src="..\..\graphics\tbOView.bmp" width="32" height="32">&nbsp;
+			<img alt="Open Sound Button" src="..\..\graphics\tbOSnd.bmp" width="32" height="32"></p>
+			<p>If a game is NOT open:</p>
+			<blockquote>
+				<p>A dialog window will open, allowing you to select the resource file you wish to open. Once you select a file, it will open in the appropriate editor.</p>
+			</blockquote>
+			<p>If a game IS open:</p>
+      <blockquote>
+        <p>The Open Resource command only opens resources that exist in your game. A dialog window will open, allowing you to select an existing resource. Once selected, the appropriate editor will open.</p>
+        <p>You can also open a resource in your game for editing by double-clicking it in the <a href="resourcetree.htm">Resource List</a>, or by double-clicking on the <a href="preview.htm">Preview Window</a>.</p>
+        <p>If you want to open a resource from a file but don't want to add it to your game (for example, maybe you want to open a view file so you can copy a loop into one of your views), use the <a href="resource_import.htm">Import</a> command on the Resource menu.</p>
+        <p>For logic resources, the Open Resource command opens the logic's source code file. The source code file must be located in the game's resource directory. The name for the source code file must is the logic's <a href="managingresources.htm#resourceids">Resource ID</a> with the game's <a href="prop_general.htm#defext">source file extension</a>.
+       <h3><a name="decompiling">Decompiling Logics</a></h3>
+        <p>When WinAGI opens a <a href="..\agi\logics.htm">logic</a> <a href="editor_logic.htm">source</a> for editing, if the source code file does not exist (such as when first <a href="importgame.htm">importing an existing AGI game</a>) WinAGI will decompile the logic by analyzing the <a href="..\agi\logics.htm#commands">raw byte codes</a> from the logic resource and store the resulting source code in the game's resource directory.</p>
+        <p>The appearance of the decompiled code can be adjusted by changing the options available in the Decompiler section on the <a href="settings_logic2.htm">Logics (2)</a> tab of the <a href="settings.htm">Settings</a> window.</p>
+      </blockquote>
+		<h3>Opening <a href="..\agi\object.htm">OBJECT</a> and <a href="..\agi\words.htm">WORDS.TOK</a> files</h3>
+			<p>&nbsp;<img alt="Open OBJECT Button" src="..\..\graphics\tbOObj.bmp" height="32" width="32"> 
+				<img alt="Open WORDS.TOK Button" src="..\..\graphics\tbOWords.bmp" height="32" width="32"></p>
+			<p>If a game is NOT open:</p>
+			<blockquote>
+				<p>This command opens an existing OBJECT file or WORDS.TOK file in an editor. You will be shown a dialog for selecting the file you want to open.</p>
+			</blockquote>
+			<p>If a game IS open:</p>
+			<blockquote>
+				<p>The open OBJECT file and open WORDS.TOK file commands only open the files in the open game.</p>
+				<p>If you want to open an OBJECT file or WORDS.TOK file other than the one in the open game, use the <a href="resource_import.htm">Import</a> command on the Resource menu.</p>
+			</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5060</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5060</h2>
+    <h3>Controller argument value is not within expected range (0 - 49)</h3>
+    <p class="indent_n">Assigning a <a href="..\..\agi\controllers.htm">controller</a> value greater than 49 will result in AGI overwriting memory used by other AGI processes, as well as unexpected behavior of the controller. When AGI evaluates <a href="..\..\agi\keyboard.htm">key input</a>, keys assigned to controllers above 49 will write data outside the controller table, which can interfere with <a href="..\..\agi\sounds.htm">sound</a> playback and the internal <a href="..\..\agi\grafdisp.htm#priority">priority</a> table. Similarly, when using the <a href="..\..\commands\cmd_controller.htm"><b>controller</b></a> test command with invalid controller values, AGI will read invalid data outside the controller table. See the <a href="..\..\agi\controllers.htm">Controllers</a> topic for additional information.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

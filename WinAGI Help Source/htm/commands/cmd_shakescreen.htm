@@ -1,0 +1,47 @@
+<html>
+	<head><title>Action Command: shake.screen</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>shake.screen</h1>
+		<p>The <b>shake.screen</b> 'shakes' the screen by rapidly offsetting the image by a few pixels horizontally and vertically a few times.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>shake.screen(<a href="syntax_fan.htm#argtypes">byt</a> COUNT);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>'Shaking' offsets the <a href="..\agi\grafdisp.htm">graphics</a> image back and forth by a few pixels. This is useful to provide feedback to the player for earthquakes, crashes, etc.</p>
+			<p>AGI creates the shake effect by first making an offset copy of the current graphics display. The offset is four pixels down and four pixels to the right. Then, using video synchronization as the timer, AGI swaps the displayed video four times in approximately 0.45 seconds. This is repeated <b>COUNT</b> times.</p>
+			<p>Once shaking starts, it cannot be interrupted. Using large values of <b>COUNT</b> is not advised because of this. For example, a value of 255 will shake the screen for approximately two minutes.</p>
+			<p>Using a value of zero is not a good idea. Contrary to previous reports, it will not shake the screen indefinitely, but it will shake the screen for approximately 8 hours. This is due to a bug in the shake function that decrements the count value before checking if it is zero; decrementing a two-byte value of zero results in a value of 65535, which corresponds to approximately 8 hours of shaking.</p>
+			<p>The <b>shake.screen</b> command can be used on the <a href="..\agi\textdisp.htm">text</a> screen. In this case, the screen will flash for the same amount of time, without any displacement.</p>
+			<p>The specifics on how AGI shakes the screen for <a href="..\agi\graphics.htm">HGC, CGA</a> and non-MSDOS platforms has not been fully studied, but is presumed to be similar to the above described behavior found in the EGA version of AGI.</p>
+			<p>There is a fan-modified version of the AGI executable that uses the <b>shake.screen</b> command to change the color palette used in AGI. This was done to give game designers more color options. The modification would identify values of <b>COUNT</b> >=100 and treat them as palette changes, instead of screen shakes. If you encounter a fan made game with <b>COUNT</b> values from 100 through 109, it was likely intended to be run on the fan-modified AGI version.</p> 
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>#define f99 earthquake
+if(isset(earthquake))
+  {
+  <b>shake.screen(4);</b>
+  reset(earthquake);
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">110 (0x6E)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

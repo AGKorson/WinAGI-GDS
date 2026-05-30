@@ -1,0 +1,26 @@
+<html>
+	<head><title>Logic Compiler Error 6008</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6008</h2>
+    <h3>Invalid command number in &lt;commandtype&gt; command preprocessor statement</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">This error indicates the byte value assigned to the <a href="..\..\commands\syntax_sierra.htm#actions">action</a> or <a href="..\..\commands\syntax_sierra.htm#tests">test</a> command is not a valid AGI command number.</p>
+    <p class="indent_n">The maximum AGI action command value depends on the <a href="..\prop_general.htm#intversion">target interpreter version</a>. Attempting to define a command that is not valid for the game's target <a href="..\..\agi\versions.htm">version</a> will raise this error.</p>
+    <p class="indent_n">AGI test command values are limited to 1 - 18 for all AGI versions.</p> 
+    <p class="indent_n">To correct this error, you need to ensure you have the correct command number. If the error is due to a command not supported for the game's target interpreter version, you can use the <a href="..\prop_general.htm">Game Properties</a> dialog to adjust the version to one that does support the command in question.</p> 
+      <blockquote>
+      <pre> [ assume InterpreterVersion == 2.089
+%action set.menu(MSGNUM) 156  [ <font color="red"><b>NOT OK</b></font>; set.menu not available in v2.089
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

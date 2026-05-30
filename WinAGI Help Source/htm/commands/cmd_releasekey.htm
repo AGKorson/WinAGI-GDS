@@ -1,0 +1,42 @@
+<html>
+	<head><title>Action Command: release.key</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>release.key</h1>
+			<p>The <b>release.key</b> command restores ego control keys to normal mode.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>release.key();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>By default, when AGI starts, pressing and releasing a <a href="..\agi\keyboard.htm#egodir">direction key</a> starts <a href="..\agi\interface.htm#ego">ego</a> moving. Ego will continue moving until a different direction key, or the 'stop' key ('5' on the numeric keyboard) is pressed.</p>
+			<p>The <a href="cmd_holdkey.htm"><b>hold.key</b></a> command changes this behavior such that while a direction key is pressed, ego will move in that direction. As soon as the key is released, ego will stop. The player must hold the key down for ego to keep moving.</p>
+			<p>The <b>release.key</b></a> command restores normal ego control behavior.</p>
+			<p>Although the <a href="cmd_releasekey.htm"><b>hold.key</b></a> command was available beginning in <a href="..\agi\version2.htm#2903">version 2.903</a>, the <b>release.key</b> command was not added until <a href="..\agi\version3.htm#3002098">version 3.002.098</a>. This means that if you use the <b>hold.key</b> command in an earlier version, you will not be able to go back to the default behavior for ego direction keys.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>hold.key; [ sets key behavior to hold mode
+...
+<b>release.key();</b> [  resets key behavior to normal</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 3.002.098 and above.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">181 (0xB5)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="cmd_holdkey.htm"><b>hold.key</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

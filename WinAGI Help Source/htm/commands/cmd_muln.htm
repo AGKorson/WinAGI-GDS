@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: mul.n</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>mul.n</h1>
+			<p>The <b>mul.n</b> command multiplies a variable with a number.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>mul.n(<a href="syntax_fan.htm#argtypes">var</a> vA, <a href="syntax_fan.htm#argtypes">byt</a> B);</p>
+			<p>vA = vA * B;</p>
+			<p>vA *= B;</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Because <a href="..\agi\variables.htm">variables</a> are 8 bit unsigned numbers, if the result of the multiplication exceeds 255, the result 'wraps around'. For example, if v50 currently equals 200, the statement:</p>
+	<pre><code>mul.n(v50, 2);</code></pre>
+			<p>will result in a value for v50 of 144 (200 * 2 = 400; 400 - 256 = 144). This can be represented mathematically as <b>vA</b> = (<b>vA</b> * <b>B</b>) mod 256.</p>
+			<p>Note that this command uses the 'dot' notation (i.e. <b>mul.n</b> vs. <b>muln</b>  unlike the original set of mathematical commands.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v50 = 5; 
+<b>mul.n(v50, 3);</b>  [ v50 now equals 150
+v50 = v50 * 3;  [ v50 now equals 194 (450 - 256)
+v50 *= 3;       [ v50 now equals 70 (582 - 256 * 2)</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 2.411 and above.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">165 (0xA5)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_math.htm">Mathematical Commands</a></p>
+			<p><a href="cmd_mulv.htm"><b>mul.v</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

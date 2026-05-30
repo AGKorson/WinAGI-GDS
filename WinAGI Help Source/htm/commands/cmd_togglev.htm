@@ -1,0 +1,39 @@
+<html>
+	<head><title>Action Command: toggle.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>toggle.v</h1>
+			<p>The <b>toggle.v</b> command toggles a <a href="..\agi\flags.htm">flag</a>'s value indirectly.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>toggle.v(<a href="syntax_fan.htm#argtypes">var</a> vA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Toggles flag <b>fB</b> (from FALSE to TRUE or TRUE to FALSE), where <b>B</b> is the value of <b>vA</b>.</p>
+			<p>Changing values of <a href="..\agi\flags.htm#reserved">reserved flags</a> can have unpredictable results, and should be done carefully.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v50 = 99;
+set.v(v50);     [ f99 is now TRUE
+<b>toggle.v(v50)</b>;  [ f99 is now FALSE</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">17 (0x11)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_flags.htm">Flag Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

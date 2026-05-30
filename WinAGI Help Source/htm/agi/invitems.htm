@@ -1,0 +1,34 @@
+<html>
+	<head><title>Inventory Items</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Inventory Items</h1>
+			<p>The inventory item data type is an unsigned eight bit number stored in the <a href="object.htm">OBJECT</a> file. Inventory items usually represent items that a player may pick up and carry during the game. Most inventory items have a corresponding <a href="views.htm">view</a> that is used to draw the item on the game screen. A close up view of the item is usually included as well, so that when a player 'looks' at the item, they can see a detailed image of it, including a short description. The <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a> command is used to display a close up view of an inventory item.</p>
+			<p>Each inventory item is identified by a number, and includes a text field with the inventory item's name/description, and a one-byte numerical value used to denote the 'location' or '<a href="pictures.htm#room">room</a>' of the item.</p>
+		<h3>Room Number</h3>
+			<p>The location byte associated with an item can be used to track the <a href="pictures.htm#room">room</a> in which an item is located. You can use the <a href="..\commands\cmds_invitems.htm">inventory item commands</a>, such as <a href="..\commands\cmd_get.htm"><b>get</b></a>, <a href="..\commands\cmd_drop.htm"><b>drop</b></a>, <a href="..\commands\cmd_put.htm"><b>put</b></a> to manipulate the room value during game play. AGI does not automatically do anything with the assigned room number; i.e., inventory items are not displayed when the current room changes to match the room assigned to an inventory item.  </p>
+			<p>The value 255 has special meaning for the room number. Inventory items with a room number of 255 are considered to be in the player's 'inventory', i.e. <a href="interface.htm#ego">ego</a> is 'carrying' them. The <a href="..\commands\cmd_has.htm"><b>has</b></a> test command returns TRUE if an item's room number equals 255.</p>
+		<h3><a name="inventory">Inventory</a> Status</h3>
+			<p>AGI includes a built in feature that will list all inventory items currently in <a href="interface.htm#ego">ego's</a> possession (i.e. have a room number of 255). The <a href="..\commands\cmd_status.htm"><b>status</b></a> command will switch AGI to <a href="textdisp.htm">text mode</a> and display "You are carrying" and then list all items being carried.</p>
+			<img src="..\..\graphics\inv.bmp" width="600" alt="Inventory Display Screen"> 
+			<p>If <a href="flags.htm#reserved">reserved flag</a> <a href="f13.htm">f13 (inventory selection enabled)</a> is set to TRUE, the inventory screen enables the player to select an item. The player uses the cursor keys to highlight an item. Pressing ENTER chooses the item, and closes the screen. Pressing ESC cancels the selection, and closes the screen.</p>
+			<img src="..\..\graphics\invsel.bmp" width="600" alt="Inventory Selection Screen"> 
+			<p>If the player selects an item, the item number will be stored in <a href="variables.htm#reserved">reserved variable</a> <a href="v25.htm">v25 (selected inventory item)</a>. If the player cancels by pressing ESC, AGI stores a value of 255 in v25.</p>
+			<p>When displaying the item text, AGI does not format it, so you can't use format codes. However, if you use the <a href="messages.htm#format">'%o#' format code</a> in a <a href="..\commands\cmd_print.htm"><b>print</b></a> or <a href="..\commands\cmd_display.htm"><b>display</b></a> command, format codes embedded in the item text will work. For example, if item1 is '%v100 gold pieces', v100 = 50, and item1 is in player inventory, the <a href="..\commands\cmd_status.htm"><b>status</b></a> command will show:</p>
+			<p><pre><code>%v100 gold pieces</code></pre></p>
+			<p>but using <code>v99 = 1; print("%o99");</code> will show:</p>
+			<p><pre><code>50 gold pieces</code></pre></p>
+			<p>There is a practical limit to 44 items that can be in ego's inventory. If more there are more than 44, the <a href="..\commands\cmd_status.htm"><b>status</b></a> command will try to display items to invalid cursor positions on the inventory screen, which will often result in <a href="errors.htm#runtime">crashing AGI</a>.</p>
+		<h3><a name="item0">Item 0</a></h3>
+			<p>The first item (index 0) in most Sierra games is a null character (a single question mark'?'), and is treated as a null item. Other item indexes that aren't used by the game are also set to this null character. Assigning the first item to null character is not required, but most fan-based games continue the tradition of having item 0 be a null item.</p>
+			<p>One reason to avoid using zero as a valid item number is that AGI uses a value of zero for <a href="variables.htm#reserved">reserved variable</a> <a href="v25.htm">v25 (selected inventory item)</a> if there are no items in the player's inventory and the player presses ENTER on the <a href="..\commands\cmd_status.htm">status</a> screen.</p>
+			<p>Similarly, you should avoid using item number 255. Pressing ESC  on the <a href="..\commands\cmd_status.htm">status</a> screen (canceling the selection) puts the value 255 in v25 (selected inventory item). It is not a big concern, though, because it is extremely unlikely a game would ever have that many items.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

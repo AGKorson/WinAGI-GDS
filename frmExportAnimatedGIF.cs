@@ -1,0 +1,518 @@
+﻿using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+using WinAGI.Engine;
+using static WinAGI.Editor.Base;
+
+namespace WinAGI.Editor {
+    public partial class frmExportAnimatedGIF : Form {
+        int formMode;
+        Engine.View exportview;
+        Loop exportloop;
+        Picture exportpic;
+        public GifOptions SelectedGifOptions;
+        bool visOn, XYDraw;
+        byte cel;
+        int pos;
+        int MaxW, MaxH;
+        const int VG_MARGIN = 4;
+
+        public frmExportAnimatedGIF(Engine.View gifview, int loopnum) {
+            InitializeComponent();
+            InitForm(gifview, loopnum);
+        }
+
+        public frmExportAnimatedGIF(Picture picture) {
+            InitializeComponent();
+            InitForm(picture);
+        }
+
+        #region Event Handlers
+        private void frmExportViewLoopOptions_FormClosing(object sender, FormClosingEventArgs e) {
+            if (formMode == 0) {
+                exportview.Unload();
+                exportview = null;
+            }
+            else {
+                exportpic.Unload();
+                exportpic = null;
+            }
+            timer1.Stop();
+        }
+
+        private void frmExportAnimatedGIF_HelpRequested(object sender, HelpEventArgs hlpevent) {
+            if (formMode == 1) {
+                Help.ShowHelp(HelpParent, WinAGIHelp, "htm\\winagi\\resource_export.htm#picgif");
+            }
+            else {
+                Help.ShowHelp(HelpParent, WinAGIHelp, "htm\\winagi\\resource_export.htm#exportviews");
+            }
+            hlpevent.Handled = true;
+        }
+
+        private void cmdCancel_Click(object sender, EventArgs e) {
+            DialogResult = DialogResult.Cancel;
+            Hide();
+
+        }
+
+        private void cmdOK_Click(object sender, EventArgs e) {
+            if (formMode == 0) {
+                // copy new options back to global options
+                // (the global variable is used as starting point for the 
+                // next export action)
+                DefaultVGOptions = SelectedGifOptions;
+            }
+            DialogResult = DialogResult.OK;
+            Hide();
+        }
+
+        private void tbAlignLeft_Click(object sender, EventArgs e) {
+            tbAlignHorizontal.Image = tbAlignLeft.Image;
+            SelectedGifOptions.HAlign = 0;
+            UpdateAlignmentLabel();
+            DisplayCel();
+            timer1.Stop();
+            timer1.Start();
+        }
+
+        private void tbAlignRight_Click(object sender, EventArgs e) {
+            tbAlignHorizontal.Image = tbAlignRight.Image;
+            SelectedGifOptions.HAlign = 1;
+            UpdateAlignmentLabel();
+            DisplayCel();
+            timer1.Stop();
+            timer1.Start();
+        }
+
+        private void tbAlignTop_Click(object sender, EventArgs e) {
+            tbAlignVertical.Image = tbAlignTop.Image;
+            SelectedGifOptions.VAlign = 0;
+            UpdateAlignmentLabel();
+            DisplayCel();
+            timer1.Stop();
+            timer1.Start();
+        }
+
+        private void tbAlignBottom_Click(object sender, EventArgs e) {
+            tbAlignVertical.Image = tbAlignBottom.Image;
+            SelectedGifOptions.VAlign = 1;
+            UpdateAlignmentLabel();
+            DisplayCel();
+            timer1.Stop();
+            timer1.Start();
+        }
+
+        private void chkTrans_CheckedChanged(object sender, EventArgs e) {
+            SelectedGifOptions.Transparency = chkTrans.Checked;
+            if (chkTrans.Checked) {
+                picCel.BackColor = SystemColors.Control;
+            }
+            else {
+                picCel.BackColor = exportloop[cel].Palette[(int)exportloop[cel].TransColor];
+            }
+            // force update
+            DisplayCel();
+        }
+
+        private void chkLoop_CheckedChanged(object sender, EventArgs e) {
+            SelectedGifOptions.Cycle = chkLoop.Checked;
+        }
+
+        private void udScale_ValueChanged(object sender, EventArgs e) {
+            SelectedGifOptions.Zoom = (int)udScale.Value;
+            if (formMode == 0) {
+                picCel.Width = MaxW * SelectedGifOptions.Zoom * 2;
+                picCel.Height = MaxH * SelectedGifOptions.Zoom;
+                CheckScrollbars();
+                DisplayCel();
+            }
+        }
+
+        private void udScale_Enter(object sender, EventArgs e) {
+            cmdOK.Select();
+        }
+
+        private void udDelay_ValueChanged(object sender, EventArgs e) {
+            SelectedGifOptions.Delay = (int)udDelay.Value;
+            timer1.Interval = 10 * (int)udDelay.Value;
+        }
+
+        private void udDelay_Enter(object sender, EventArgs e) {
+            cmdOK.Select();
+        }
+
+        private void VScroll1_Scroll(object sender, ScrollEventArgs e) {
+            picCel.Top = -VScroll1.Value;
+        }
+
+        private void HScroll1_Scroll(object sender, ScrollEventArgs e) {
+            picCel.Left = -HScroll1.Value;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e) {
+            // advance cel number for this loop
+            byte cmd;
+            switch (formMode) {
+            case 0:
+                // loop
+                cel++;
+                if (cel == exportloop.Cels.Count) {
+                    cel = 0;
+                    if (!SelectedGifOptions.Cycle) {
+                        timer1.Interval += 1500;
+                    }
+                }
+                else {
+                    timer1.Interval = 10 * SelectedGifOptions.Delay;
+                }
+                DisplayCel();
+                break;
+            case 1:
+                // picture
+                do {
+                    pos++;
+                    if (pos >= exportpic.Size) {
+                        // reset to beginning of picture
+                        pos = -1;
+                        break;
+                    }
+                    cmd = exportpic.Data[pos];
+
+                    switch (cmd) {
+                    case 240:
+                        XYDraw = false;
+                        visOn = true;
+                        pos++;
+                        break;
+                    case 241:
+                        XYDraw = false;
+                        visOn = false;
+                        break;
+                    case 242:
+                        XYDraw = false;
+                        pos++;
+                        break;
+                    case 243:
+                        XYDraw = false;
+                        break;
+                    case 244:
+                    case 245:
+                        XYDraw = true;
+                        pos += 2;
+                        break;
+                    case 246:
+                    case 247:
+                    case 248:
+                    case 250:
+                        XYDraw = false;
+                        pos += 2;
+                        break;
+                    case 249:
+                        XYDraw = false;
+                        pos++;
+                        break;
+                    default:
+                        // skip second coordinate byte, unless
+                        // currently drawing X or Y lines
+                        if (!XYDraw) {
+                            pos++;
+                        }
+                        break;
+                    }
+                }
+                while ((cmd >= 240 && cmd < 244) || cmd == 249 || !visOn);
+                // show pic drawn up to this point
+                exportpic.DrawPos = pos;
+                ShowAGIBitmap(picGrid, exportpic.VisualBMP, 1);
+                picGrid.Refresh();
+                break;
+            }
+        }
+
+        private void cmbLoop_SelectedIndexChanged(object sender, EventArgs e) {
+            exportloop = exportview[cmbLoop.SelectedIndex];
+            DisplayCel();
+            timer1.Stop();
+            timer1.Start();
+        }
+        #endregion
+
+        #region Methods
+        private void InitForm(Engine.View view, int startloop) {
+            // display the loop, and set preview using default export settings
+
+            Text = "Export Loop As Animated GIF";
+            formMode = 0;
+            bool loaded = view.Loaded;
+            if (!loaded) {
+                view.Load();
+            }
+            exportview = view.Clone();
+            if (!loaded) {
+                view.Unload();
+            }
+            if (startloop < 0) {
+                startloop = 0;
+            }
+            else if (startloop >= view.Loops.Count) {
+                startloop = view.Loops.Count - 1;
+            }
+            exportloop = exportview[startloop];
+            cmbLoop.Items.Clear();
+            for (int i = 0; i < view.Loops.Count; i++) {
+                cmbLoop.Items.Add($"Loop {i}");
+            }
+            if (view.Loops.Count == 1) {
+                cmbLoop.Enabled = false;
+            }
+            SelectedGifOptions = DefaultVGOptions;
+            if (SelectedGifOptions.Cycle) {
+                chkLoop.Checked = true;
+            }
+            else {
+                chkLoop.Checked = false;
+            }
+            udDelay.Text = SelectedGifOptions.Delay.ToString();
+            timer1.Interval = 10 * SelectedGifOptions.Delay;
+            timer1.Enabled = true;
+            UpdateAlignmentLabel();
+            if (SelectedGifOptions.HAlign == 1) {
+                tbAlignHorizontal.Image = tbAlignRight.Image;
+            }
+            if (SelectedGifOptions.VAlign == 0) {
+                tbAlignVertical.Image = tbAlignTop.Image;
+            }
+            if (SelectedGifOptions.Transparency) {
+                chkTrans.Checked = true;
+            }
+            else {
+                chkTrans.Checked = false;
+            }
+            if (chkTrans.Checked) {
+                DrawTransGrid(picCel, 0, 0);
+                DrawTransGrid(picGrid, picCel.Left % 10, picCel.Top % 10);
+            }
+            else {
+                picGrid.CreateGraphics().Clear(BackColor);
+            }
+            udScale.Text = SelectedGifOptions.Zoom.ToString();
+            MaxW = 0;
+            MaxH = 0;
+            for (int i = 0; i < exportloop.Cels.Count; i++) {
+                if (exportloop[i].Width > MaxW) {
+                    MaxW = exportloop[i].Width;
+                }
+                if (exportloop[i].Height > MaxH) {
+                    MaxH = exportloop[i].Height;
+                }
+            }
+
+            // set size of view holder
+            picCel.Width = MaxW * 2 * SelectedGifOptions.Zoom;
+            picCel.Height = MaxH * SelectedGifOptions.Zoom;
+            // force back to upper, left
+            picCel.Top = VG_MARGIN;
+            picCel.Left = VG_MARGIN;
+            cmbLoop.SelectedIndex = startloop;
+            CheckScrollbars();
+        }
+
+        private void InitForm(Picture picture) {
+
+            Text = "Export Picture As Animated GIF";
+            formMode = 1;
+            bool loaded = picture.Loaded;
+            if (!loaded) {
+                picture.Load();
+            }
+            exportpic = picture.Clone();
+            if (!loaded) {
+                picture.Unload();
+            }
+            exportpic.StepDraw = true;
+
+            // hide the alignment toolbar, scrollbars and transparency options
+            toolStrip1.Visible = false;
+            chkTrans.Visible = false;
+            lblAlign.Visible = false;
+            VScroll1.Visible = false;
+            HScroll1.Visible = false;
+            picCel.Visible = false;
+            label3.Visible = false;
+            cmbLoop.Visible = false;
+            chkLoop.Checked = true;
+            pos = -1;
+            SelectedGifOptions = new();
+            SelectedGifOptions.Zoom = 1;
+            SelectedGifOptions.Delay = 1;
+            SelectedGifOptions.Cycle = true;
+            if (SelectedGifOptions.Cycle) {
+                chkLoop.Checked = true;
+            }
+            else {
+                chkLoop.Checked = false;
+            }
+            udScale.Text = SelectedGifOptions.Zoom.ToString();
+            udDelay.Text = SelectedGifOptions.Delay.ToString();
+            picGrid.Top -= 13;
+            picGrid.Height -= 95;
+            chkLoop.Top -= 95;
+            lblScale.Top -= 95;
+            label1.Top -= 95;
+            udScale.Top -= 95;
+            udDelay.Top -= 95;
+            label2.Top -= 95;
+            cmdCancel.Top -= 125;
+            cmdOK.Top -= 125;
+            Height -= 125;
+
+            timer1.Interval = 10 * SelectedGifOptions.Delay;
+            timer1.Enabled = true;
+        }
+
+        void CheckScrollbars() {
+            // shrink grid if cel is small
+            if (picCel.Width + 2 * VG_MARGIN < 322) {
+                picGrid.Width = picCel.Width + 2 * VG_MARGIN;
+            }
+            else {
+                picGrid.Width = 322;
+            }
+            if (picCel.Height + 2 * VG_MARGIN < 265) {
+                picGrid.Height = picCel.Height + 2 * VG_MARGIN;
+            }
+            else {
+                picGrid.Height = 265;
+            }
+
+            // Scrollbar math:
+            // ACT_SZ = size of the area being scrolled; usually the image size + margins
+            // WIN_SZ = size of the window area; the container's client size
+            // SV_MAX = maximum value that scrollbar can have; this puts the scroll bar
+            //          and scrolled image at farthest position
+            // LG_CHG = LargeChange property of the scrollbar
+            // SB_MAX = actual Maximum property of the scrollbar, to avoid out-of-bounds errors
+            //
+            //      SV_MAX = ACT_SZ - WIN_SZ 
+            //      SB_MAX = SV_MAX + LG_CHG + 1
+            //
+            // when including margins, the calculations are modified to:
+            //      ACT_SZ = MGN + IMG_SZ + MGN
+            //      SB_MIN = -MGN
+            //      SV_MAX = ACT_SZ - WIN_SZ + SB_MIN
+            //             = MGN + IMG_SZ + MGN + SB_MIN - WIN_SZ
+            //             = MGN + IMG_SZ + MGN - MGN - WIN_SZ
+            //      SV_MAX = IMG_SZ - WIN_SZ + MGN
+
+            HScroll1.Visible = picCel.Width > picGrid.Width - 2 * VG_MARGIN;
+            VScroll1.Visible = picCel.Height > picGrid.Height - 2 * VG_MARGIN;
+            if (HScroll1.Visible) {
+                // (LargeChange value can't exceed Max value, so set Max to high enough
+                // value so it can be calculated correctly later)
+                HScroll1.Maximum = picGrid.Width;
+                HScroll1.SmallChange = (int)(picGrid.Width * LG_SCROLL);
+                HScroll1.LargeChange = (int)(picGrid.Width * SM_SCROLL);
+                int SV_MAX = picCel.Width - picGrid.Width + VG_MARGIN;
+                // Max value: = desired actual Max + LargeChange - 1
+                HScroll1.Maximum = SV_MAX + HScroll1.LargeChange - 1;
+                int newscroll = HScroll1.Value;
+                if (newscroll < -VG_MARGIN) {
+                    HScroll1.Value = -VG_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    HScroll1.Value = SV_MAX;
+                }
+                picCel.Left = -HScroll1.Value;
+            }
+            else {
+                picCel.Left = VG_MARGIN;
+                HScroll1.Value = -VG_MARGIN;
+            }
+
+            if (VScroll1.Visible) {
+                VScroll1.Maximum = picGrid.Height;
+                VScroll1.SmallChange = (int)(picGrid.Height * LG_SCROLL);
+                VScroll1.LargeChange = (int)(picGrid.Height * SM_SCROLL);
+                int SV_MAX = picCel.Height - picGrid.Height + VG_MARGIN;
+                VScroll1.Maximum = SV_MAX + VScroll1.LargeChange - 1;
+                int newscroll = VScroll1.Value;
+                if (newscroll < -VG_MARGIN) {
+                    VScroll1.Value = -VG_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    VScroll1.Value = SV_MAX;
+                }
+                picCel.Top = -VScroll1.Value;
+            }
+            else {
+                VScroll1.Value = -VG_MARGIN;
+                picCel.Top = VG_MARGIN;
+            }
+            return;
+        }
+
+        void DisplayCel() {
+            // this function copies the bitmap Image
+            // from bytLoop.bytCel into the view Image box,
+            // and resizes it to be correct size
+            int tgtX, tgtY, tgtH, tgtW;
+
+            // if height and/or width are zero, just exit (can happen when
+            // configuring form at startup)
+            if (picCel.Width == 0 || picCel.Height == 0) {
+                return;
+            }
+            tgtW = exportloop[cel].Width * 2 * SelectedGifOptions.Zoom;
+            tgtH = exportloop[cel].Height * SelectedGifOptions.Zoom;
+            if (SelectedGifOptions.HAlign == 0) {
+                tgtX = 0;
+            }
+            else {
+                tgtX = picCel.Width - tgtW;
+            }
+            if (SelectedGifOptions.VAlign == 0) {
+                tgtY = 0;
+            }
+            else {
+                tgtY = picCel.Height - tgtH;
+            }
+            picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+            using Graphics g = Graphics.FromImage(picCel.Image);
+            g.Clear(picCel.BackColor);
+            // set correct interpolation mode
+            g.InterpolationMode = InterpolationMode.NearestNeighbor;
+            g.PixelOffsetMode = PixelOffsetMode.Half;
+            g.DrawImage(chkTrans.Checked ? exportloop[cel].TransImage : exportloop[cel].CelImage, tgtX, tgtY, tgtW, tgtH);
+            if (chkTrans.Checked) {
+                // draws single pixel dots spaced 10 pixels apart over transparent pixels only
+                Bitmap b = new(picCel.Image);
+                for (int i = 0; i < picCel.Width; i += 10) {
+                    for (int j = 0; j < picCel.Height; j += 10) {
+                        if (b.GetPixel(i, j).ToArgb() == picCel.BackColor.ToArgb()) {
+                            g.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
+                        }
+                    }
+                }
+            }
+        }
+
+        void UpdateAlignmentLabel() {
+            lblAlign.Text = "Align: ";
+            if (SelectedGifOptions.VAlign == 0) {
+                lblAlign.Text += "Top, ";
+            }
+            else {
+                lblAlign.Text += "Bottom, ";
+            }
+            if (SelectedGifOptions.HAlign == 0) {
+                lblAlign.Text += "Left";
+            }
+            else {
+                lblAlign.Text += "Right";
+            }
+        }
+        #endregion
+    }
+}

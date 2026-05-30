@@ -1,0 +1,18 @@
+<html>
+	<head><title>Reserved Variable v24</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v24: Input Line Maximum Length</h1>
+			<p>AGI uses this this variable to set the maximum length of <a href="grafdisp.htm#input">input line</a>. every time a key-press is read from the <a href="interface.htm#queue">input queue</a>, AGI checks the value of this variable to determine if there is room for the character on the input line. The input line is limited to the lower value of v24 or 40 minus the length of the input prompt. (This is to make sure the input never goes past the end of the row.) All key-presses that would exceed this limit are discarded by AGI. </p>
+			<p>When AGI <a href="starting.htm">starts</a>, v24 is set to 41 as a default.</p>
+			<p>There is a minor bug in AGI that will cause the cursor on the input line to jump up one row in certain situations if v24 is set to a value long enough for the cursor to reach the right edge (column 39). To prevent this, you should set v24 so that the cursor character never reaches the last column of your input line. See the <a href="keyboard.htm#inputline">Input Line</a> discussion in the <a href="keyboard.htm">Keyboard Input</a> topic for additional details.</p>
+			<p>This variable was not reserved by AGI and had no effect in <a href="version2.htm#2089">version 2.089</a>.</p>
+			<p>Attempting to use this variable for other purposes is not recommended, unless your game does not use text input.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

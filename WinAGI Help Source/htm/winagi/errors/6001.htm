@@ -1,0 +1,19 @@
+<html>
+	<head><title>Logic Compiler Error 6001</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6001</h2>
+    <h3>Include file stack overflow; limit is five</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">This error indicates the nesting level of <a href="..\..\commands\syntax_sierra.htm#include">include files</a> is too large. Nesting means the number of times one included file references another include file - for example if a logic includes "file1.txt", and file1.txt includes "file2.txt", the nesting level of file2.txt is two. To maintain compatibility with Sierra's compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, the nesting level limit is five. </p>
+    <p class="indent_n">To correct this error you will need to reconfigure your include files so the nesting level is five or less.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

@@ -1,0 +1,46 @@
+<html>
+	<head><title>Action Command: sound</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>sound</h1>
+			<p>The <b>sound</b> command plays a loaded <a href="..\agi\sounds.htm">sound resource</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>sound(<a href="syntax_fan.htm#argtypes">byt</a> SOUNDNUM, <a href="syntax_fan.htm#argtypes">flg</a> fDONE);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>When the <b>sound</b> command is called, AGI first checks to see if another sound is already playing. If so, AGI stops that sound (setting its 'done' <a href="..\agi\flags.htm">flag</a> to TRUE). Then <a href="..\agi\flags.htm">flag</a> <b>fDONE</b> is reset to FALSE.</p>
+			<p>Then, AGI validates that <a href="..\agi\sounds.htm">sound</a> resource <b>SOUNDNUM</b> is <a href="cmd_loadsound.htm">loaded</a>. If it is not,  AGI raises <a href="..\agi\errorlist.htm#trap9">trappable error #9</a> and the command ends without doing anything else.</p>
+			<p>If the sound is valid, AGI then activates a vector function that begins asynchronously playing the sound (meaning it plays in the background while AGI continues to  run through <a href="..\agi\cycle.htm">interpreter cycles</a>).</p>
+			<p>If <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f9.htm">f9 (sound enabled)</a> is false, the sound won't play, but the check for f9 does not occur until after the vector function tries to play the sound; it immediately cancels playback of sound and then sets <a href="..\agi\flags.htm">flag</a> <b>fDONE</b> to true.</p>
+			<p>When the sound stops playing for any reason (usually by reaching the end of the resource, or by issuing the <b><a href="cmd_stopsound.htm">stop.sound</a></b> command) flag <b>fDONE</b> is set to TRUE. Other situations that will stop a sound from playing and set the 'done' flag are resetting <a href="..\agi\f9.htm">f9 (sound enabled)</a> to FALSE or using a <a href="cmd_pause.htm"><b>pause</b></a>, <a href="cmd_quit.htm"><b>quit</b></a>, <a href="cmd_newroom.htm"><b>new.room</b></a>, <a href="cmd_newroomv.htm"><b>new.room.v</b></a>, <a href="cmd_restartgame.htm"><b>restart.game</b></a>, <a href="cmd_restoregame.htm"><b>restore.game</b></a> or <a href="cmd_savegame.htm"><b>save.game</b></a> command. If any <a href="..\agi\errors.htm#trappable">trappable error</a> is raised, the sound will also stop and set flag <b>fDONE</b> set to TRUE.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>load.sound(22);
+<b>sound(22, f99);</b>
+if(isset(f99))
+  {
+  print("sound is done playing.");
+  reset(f99);
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">99 (0x63)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_sounds.htm">Sound Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

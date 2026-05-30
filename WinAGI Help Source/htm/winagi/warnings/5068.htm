@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5068</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5068</h2>
+    <h3>The message box window may not draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39</h3>
+    <p class="indent_n">AGI does not validate the values passed for COL and MAXWIDTH to the <a href="..\..\commands\cmd_printat.htm"><b>print.at</b></a> command. When drawing a message box, a red border is included which takes up one row space above the message, one row space below, one column width to right and one column width to left. The actual width of the message box is determined by AGI based on how it splits the message to fit over multiple lines.  If the split results in the right border being greater than 39, or if COL is less than 2 there won't be enough room to draw the border correctly, which will result in distorted and misaligned borders that affect the entire screen. See the <a href="..\..\commands\cmd_printat.htm"><b>print.at</b></a> for additional details.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

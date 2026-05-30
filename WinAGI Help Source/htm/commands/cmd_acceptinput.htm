@@ -1,0 +1,43 @@
+<html>
+	<head><title>Action Command: accept.input</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>accept.input</h1>
+			<p>The <b>accept.input</b> command displays the <a href="..\agi\keyboard.htm#inputline">input line</a> and allows a player to enter text input.</p>
+			<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>accept.input();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <a href="..\agi\keyboard.htm#inputline">input line</a> is hidden by default when AGI <a href="..\agi\starting.htm">starts</a>, and needs to be enabled with <b>accept.input</b>. When called, <b>accept.input</b> immediately draws the input line on the row specified by the most recent <a href="cmd_configurescreen.htm"><b>configure.screen</b></a> command, using the current <a href="..\agi\keyboard.htm#prompt">display prompt</a> and <a href="..\agi\keyboard.htm#cursor">cursor character</a>. When the input line is displayed, any text that was on the line at the time it was hidden will be displayed as well.</p>
+			<p>Use the <b><a href="cmd_preventinput.htm">prevent.input</a></b> command to hide the input line.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>prevent.input(); [ input prompt is hidden, and player cannot enter text input 
+...
+<b>accept.input();</b> [ input prompt is restored/redisplayed, including any text
+                       [ that was on it when it was hidden</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">120 (0x78)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_system.htm">System Commands</a></p>
+			<p><a href="cmd_preventinput.htm"><b>prevent.input</b></a></p>
+			<p><a href="cmd_configurescreen.htm"><b>configure.screen</b></a></p>
+			<p><a href="..\agi\keyboard.htm">Keyboard Input</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

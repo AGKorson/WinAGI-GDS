@@ -1,0 +1,58 @@
+<html>
+	<head><title>Picture Background Image</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-picture.gif" width="460" height="72" border="0" alt="AGI Picture Information"></td>
+			</tr>
+		</table>
+		<h1>Using a Picture Background Image</h1>
+			<p>The first time you click the background tool, you will be prompted to select an image. Once you have selected an image, the Background Configuration dialog box appears:</p>
+			<p>&nbsp;</p>
+			<MAP name="bkgd">
+				<area shape="rect" alt="Load Image" coords="515,42,618,68" href="#load">
+				<area shape="rect" alt="Stretch to Fit" coords="515,78,618,104" href="#stretch">
+				<area shape="rect" alt="Full Size" coords="515,114,618,140" href="#full">
+				<area shape="rect" alt="Scale" coords="13,397,65,417" href="#scale">
+				<area shape="rect" alt="Options" coords="74,398,630,410" href="#options">
+				<area shape="rect" alt="Transparency" coords="527,156,605,323" href="#trans">
+				<area shape="rect" coords="12,42,332,209" href="#display">
+			</MAP>
+			<p>&nbsp;<img usemap="#bkgd" src="..\..\graphics\picbkgd.jpg" border="0" width="630"></p>
+			<p>&nbsp;</p>
+		<h3><a name="load">Load Image</a></h3>
+			<p>Use the Load Image button to select a new background image. Once selected, the image will be shown in the preview window, and will default to Stretch to Fit, with transparency of 50%. Any valid image file can be used as a background, including jpeg, bitmap, gif, png, etc.</p>
+			<p>&nbsp;</p>
+		<h3><a name="stretch">Stretch to Fit</a></h3>
+			<p>Clicking this button will automatically resize the background image to fit within the picture drawing window, in other words, to 320 pixels by 168 pixels.</p>
+			<p>The <a href="#display">example image display</a> will adjust as well.</p>
+			<p>&nbsp;</p>
+		<h3><a name="full">Full Size</a></h3>
+			<p>The Full Size button will resize the background image to its full size. This is useful if you have a portion of the image you want to use as a background that is already the size you want. </p>
+			<p>The <a href="#display">example image display</a> will adjust as well.</p>
+			<p>&nbsp;</p>
+		<h3><a name="trans">Transparency</a></h3>
+			<p>To make it easier to trace your background image, you can set the transparency of your drawn picture so the background image shows through your drawn picture.</p>
+			<p>After you've drawn some parts of your picture, and especially after you start filling in areas with the <a href="drawingpictures.htm#fill">Fill</a> tool, it might get difficult to continue tracing. You can use the transparency feature to let the background show through drawn pixels.</p>
+			<p>The default value for transparency is 50%.</p>
+			<p>To adjust transparency, slide the control button up or down. The example display will automatically adjust to give you an idea of how the transparency will appear in the editor.</p>
+			<p>&nbsp;</p>
+		<h3><a name="scale">Display Image Scale</a></h3>
+		  <p>To assist in fine tuning the placement and size of the background, you can choose one of three scale values (100%, 200%, 300%). Scrollbars are provided so you can view the entire image area while making adjustments.</p>
+      <p>&nbsp;</p>
+		<h3><a name="options">Background Options</a></h3>
+		  <p>You can choose to include the background image in the visual image, priority image or both by using the provided check boxes.</p>
+		  <p>There is also an option to treat the default colors (white on the visual screen, red on priority screen) as always transparent. Depending on the situation you may find it easier to do tracing with this setting on or off as needed.</p>
+      <p>&nbsp;</p>
+		<h3><a name="display">Example Image Display</a></h3>
+			<p>Your draw image, in its current state, will display as an overlay on top of the background image. The picture image is bordered by a dashed line to make it easier to see how it will relate to the background.</p>
+			<p>The size of the background image and position of the picture can be adjusted to get the desired alignment. Click and drag within the dashed line that represents the picture image to change the position of the picture relative to the background. Or click and drag the background outside the dashed line to move the background image.</p>
+			<p>To resize the background, click and drag the right or bottom edge of the image. </p>
+			<p>When you are satisfied with the size, position and transparency of the background, click OK to accept the changes.</p>
+			<p>Note that when you save an <a href="resource_addremove.htm">in-game</a> picture, your background settings are saved as well. The next time you open the picture for editing, the background will also be loaded according to the previous settings. If the background image file is no longer available, the background settings get reset.</p>
+			<p>You can remove a background image and reset background settings to default at any time by using the 'Remove Background' option on the Edit menu.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

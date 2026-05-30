@@ -1,0 +1,78 @@
+<html>
+	<head><title>Global Defines</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-global.gif" width="460" height="72" border="0" alt="WinAGI Global Defines"></td>
+			</tr>
+		</table>
+		<h1>Global Defines</h1>
+			<p>Global defines are <a href="..\commands\syntax_fan.htm#defines">defines</a> that need to be available in all game <a href="..\agi\logics.htm">logics</a> (but not defines that represent <a href="reservednames.htm">reserved variables and flags</a>, or <a href="managingresources.htm#resourceids">resource IDs</a>, which are managed separately).</p>
+			<p>WinAGI provides a table-based editor to easily manage your global defines. It will automatically update the <a href="..\commands\syntax_fan.htm#include">include</a> file 'globals.txt' and add it to all your logics.</p>
+			<p>If you do not want to use this feature, you can deselect the <a href="prop_general.htm#autoinclude">auto-include Global Defines</a> option on the the <a href="properties.htm">Game Properties</a> dialog.</p>
+			<p>&nbsp;</p>
+		<h1><a name="editor">Global Defines Editor</a></h1>
+			<p>The Global Defines Editor contains a simple grid with three columns, for define names, define values and comments. The last line of the grid (with a dot) in the Row Header is the 'Insert New' row. The currently selected define is marked by a triangle in the Row Header.</p>
+			<map name="globaledit">
+				<area shape="rect" alt="Row Header" coords="9,33,32,336">
+				<area shape="rect" alt="Column Header" coords="33,33,667,61">
+				<area shape="rect" alt="Names" coords="33,62,232,336">
+				<area shape="rect" alt="Values" coords="233,62,361,336">
+				<area shape="rect" alt="Comments" coords="362,62,667,336">
+				<area shape="rect" alt="'Insert New' Row" coords="9,337,667,361">
+			</map>
+			<p><img alt="" usemap="#globaledit" src="..\..\graphics\globaledit.jpg" width="695"></p>
+			<p>To select an individual cell, click on it. To select the entire row, click on the Row Header for the desired row. You can select multiple rows by clicking and dragging on the Row Header. You can also select multiple rows by holding down the Shift key and using the up and down arrow keys.</p>
+		<h2>Opening Global Define Files</h2>
+			<p>To open a global defines file, use the Global Defines command on Tools menu or use the toolbar button.</p>
+			<p>If a game is loaded and your game is using the <a href="prop_general.htm#autoinclude">auto-include Global Defines</a> feature, the toolbar button will always open or switch to your game's global defines file. Using the Tools menu command will open the game's global defines file if it is not open. If you want to open another global define file in addition to your game file (maybe you want to copy or cut and paste from another file), using the menu command a second time will prompt you to enter a file for opening.</p>
+			<p>If a game is not loaded, or if your game is not using the auto-include Global Defines feature, you will always be prompted for a file to open when using either the menu command or the toolbar button.</p>
+			<p>Global defines are stored in text files, with each define entry using the <a href="..\commands\syntax_fan.htm#defines">standard format for defines</a>. For an open game, the file is always named 'globals.txt' and is located in the game's <a href="managingresources.htm#resdir">resource directory</a>. Do not rename or move it; if WinAGI can't find it, a new, blank file will be created.</p>
+			<p>You can also open any other include file that has a list of defines in the editor. It provides an alternative to using a text editor and manually managing define entries.</p>
+			<p>&nbsp;</p>
+		<h2><a name="new">Adding</a> New Global Defines</h2>
+			<p>To add a new define, do one of the following:</p>
+			<ul><ul>
+				<li>right-click on any row, and choose Insert Row command</li>
+				<li>double-click on the Name cell on the 'Insert New' row at the bottom</li>
+				<li>select the 'Insert New' row at bottom, and press Enter key</li>
+			</ul></ul>
+			<p>Enter the new name, press Enter or Tab to accept, then enter the new value. Press Enter to finish, or press Tab to enter a comment to go with the define.</p>
+			<p>Press Escape while entering the new name to cancel the new entry.</p>
+			<p>&nbsp;</p>
+		<h3><a name="comments">Comments</a></h3>
+			<p>You can also add comments to your define values. These can be helpful to remind you of the purpose and usage of your various defines. Comments are optional.</p>
+			<p>You can hide the comment column by using the 'Hide Comments' command on the edit menu, or by dragging the column splitter between value and comment to the far right. To restore the comment column use the 'Show Comments' command.</p>
+			<p>The comments column is displayed by default when the defines file is opened. If you don't plan on using comments, you can change the default to openn with the comments column hidden by changing the <a href="settings_logic2.htm#showcmt">Show Comment Column</a> property in the <a href="settings.htm">Game Settings</a> dialog.</p>
+			<p>Because comments are typically much longer than just a name or value, you can hover the cursor over a selected comment and WinAGI will show a tooltip window with the entire text of the comment. </p>
+			<p><img alt="" src="..\..\graphics\globalcmt.jpg" width="463"></p>
+		<h2><a name="file">Add</a> from File</h2>
+			<p>You can also add the entire contents of an existing defines file to the current editor. Use the Add from File command on the Resources menu. WinAGI will parse the file, and add any defines that it finds. If a define is found that already exists in your global file, you will be given an opportunity to ignore it, or to add it (which will overwrite the existing define). If any items are unable to be added for any reason, you will get a status message after the file is added.</p>
+			<p>&nbsp;</p>
+		<h2><a name="edit">Editing</a> Global Defines</h2>
+			<p>To edit an existing define name, value or comment, double-click its cell, then make your changes. Define names <a href="..\commands\syntax_fan.htm">must not include invalid characters</a>. Define values must be a valid number, <a href="..\commands\syntax_fan.htm#markers">argument marker</a>, or a literal string.</p>
+			<p>If a define name matches a <a href="reservednames.htm">reserved name</a>, or a resource ID, you will be asked to confirm that you want to override the reserved name. If you do override it, the define name is displayed with dark orange text over a light yellow background to make it easy to see that it is an override.</p>
+			<p><img alt="" src="..\..\graphics\globalovrd.jpg" width="386"></p>
+			<p>&nbsp;</p>
+		<h2>Cut/Copy/Delete/Paste</h2>
+			<p>Use the edit menu for cutting, copying, deleting or pasting defines. Use the Clear List command to delete all global defines at once.</p>
+			<p>When pasting, WinAGI automatically determines if the clipboard contains defines cut or copied from a global editor, or if it contains regular text. If the clipboard is regular text (for example, if cut from a logic) the Paste option will only be enabled if the text consists of lines of properly formatted define entries (i.e. '#define name val [ comment') The Paste option will not be available if the clipboard format is not correct.</p>
+		<h3><a name="errors">Invalid Defines</a></h3>
+			<p>When editing, WinAGI will prevent you from intentionally creating an invalid define entry. However, when pasting, a define value may get added that has error conditions such as invalid characters or invalid argument marker values. If so, the value will be highlighted in red until you correct the issue.</p>
+			<p>Valid <a href="..\agi\controllers.htm">controller</a> argument values are c0 through c49 (c39 in some early versions. Similarly, valid <a href="..\agi\strings.htm">string</a> argument values are s0 through s23 (s11 for a few specific versions). If a controller or string argument value in the list uses a value outside the valid range, it will be highlighted with dark orange text on a yellow background.</p>
+			<p>&nbsp;</p>
+		<h2><a name="sort">Sorting</a></h2>
+			<p>As you add defines to your list you may want to change the order they are in to help with organization. Defines can be easily moved around the list by dragging them - select the row or rows you want to move, then click and hold on the Row Header of the selected row. Drag it up or down until it is in the location where you want it to stay then release.</p>
+			<p>You can also adjust the order by cutting a row or rows and then pasting them in the desired location.</p>
+			<p>You can sort the list of defines by double-clicking on one of the Column Headers. Click it again to reverse the sort.</p>
+		<h2><a name="findinlogics">Find in Logics</a></h2>
+			<p>The Find in Logics command on the Edit menu allows you to search for a global define name in all of your <a href="..\agi\logics.htm">logic</a> resources. To use this feature, select the define name you wish to search for, then choose the Find in Logics command from the Edit menu.</p>
+		<h2>Undo</h2>
+		  <p>WinAGI also includes an undo feature for global edits. Undo is accessible from the Edit menu, or by pressing CTRL+Z. A very handy feature if you change your mind about the edits and changes you've made.</p>
+		<h2><a name="autoupdate">Automatic Updates</a></h2>
+		  <p>When you save an in-game global defines file, you can choose to have WinAGI automatically update all logic source files in your game to reflect your new list of global defines. For changes to existing defines, WinAGI will replace all instances of the old name with the new name. For new defines with values other than text-strings or numbers, WinAGI will also replace all instances of the value with its new name.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

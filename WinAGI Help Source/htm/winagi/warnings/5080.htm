@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5080</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5080</h2>
+    <h3>Setting COL to >39 in the get.string command will cause the PROMPT to appear in unexpected location</h3>
+    <p class="indent_n">Valid range for COL argument in the <a href="..\..\commands\cmd_getstring.htm"><b>get.string</b></a> is 0 - 39. If you pass a column value greater than 39, the first character of the prompt string will be placed slightly below the desired ROW value, with a vertical offset in pixels equal to INT(COL/40), in a column equal to the COL value MOD 40. The rest of the prompt will be left adjusted, one row below the desired ROW value. You should edit your logic to use a valid COL value.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

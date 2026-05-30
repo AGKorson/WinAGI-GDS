@@ -1,0 +1,85 @@
+<html>
+	<head><title>Menu Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-menu-e.gif" width="460" height="72" border="0" alt="WinAGI Menu Editor"></td>
+			</tr>
+		</table>
+		<h1>Menu Editor</h1>
+			<p>The Menu Editor is used to create and edit <a href="..\agi\menu.htm">AGI menus</a>.</p>
+			<p>To open the Menu Editor, use the Menu Editor command on the Tools menu, or use the main toolbar button.</p>
+			<p>If a game is loaded, WinAGI will look for an existing menu in your game logics. If found, you will have the option to edit the game's menu, or open the <a href="#defaultmenu">default menu</a>. If no game is loaded, the default menu will open automatically.</p>
+
+			<p>When looking for an existing menu structure to edit, WinAGI expects to find a series of <b><a href="..\commands\cmd_setmenu.htm">set.menu</a></b> commands and <b><a href="..\commands\cmd_setmenuitem.htm">set.menu.item</a></b> commands, ending with a <b><a href="..\commands\cmd_submitmenu.htm">submit.menu</a></b> command. Typically, the menu structure is located in <a href="..\agi\logics.htm#logic0">logic 0</a>, and there is normally only one menu structure set up in a game. If you game has multiple menu structures, only the first one found will be editable in the Menu Editor.</p>
+		<h2>Menu Editor Components</h2>
+			<p>For a description of the various components of the Menu Editor window, click on the area of interest:</p>
+			<map name="menuedit">
+				<area shape="rect" alt="Toolbar" coords="8,31,157,61" href="#toolbar">
+				<area shape="rect" alt="Menu Tree" coords="8,62,191,362" href="#tree">
+				<area shape="rect" alt="Property Window" coords="8,368,191,430" href="#properties">
+				<area shape="rect" alt="Menu Preview Area" coords="196,31,836,430" href="#preview">
+			</map>
+			<p><img src="..\..\graphics\menuedit.jpg" usemap="#menuedit" border="0" width="844"></p>
+		<h3><a name="toolbar">Toolbar</a></h3>
+			<p>Several common actions for creating/editing menus are included as toolbar buttons for easy access. See the topics below for how to use these actions.</p>
+		<h3><a name="tree">Menu Tree</a></h3>
+			<p>The menu tree displays the current menu system in a hierarchical structure.</p>
+			<p>Click on a menu or menu item to select it. Or use the arrow keys. The up and down keys will select menu items in the current menu. The right and left arrows move from menu to menu.</p>
+		<h3><a name="preview">Menu Preview</a></h3>
+			<p>The menu preview area shows the menu as it will appear in your game.</p>
+			<p>The background will be the first <a href="..\agi\pictures.htm">picture</a> in your game, if a game is loaded. If a game is not currently loaded, the background will be a black screen with a sample text display.</p>
+			<p>You can change the displayed background picture by double-clicking on the background or using the Change Background command on the Resource menu. Then choose the picture you would like to use as a background.</p>
+		<h3><a name="properties">Property Window</a></h3>
+			<p>The caption (and assigned <a href="..\agi\controllers.htm">controller</a>, if a menu item is selected) are displayed in the property window. Double-click a property to edit it.</p>
+			<p>If the Controller property of a menu item is blank (such as with a newly added item), the menu item will display in red text in the treeview to remind you it needs to have a controller assigned.</p>
+		<h3><a name="conditions">Conditions</a></h3>
+			<p>In most cases, menus and menu items are added without conditions. But sometimes you may want to only add certain menu items or menu items if certain conditions are met. Common examples are Debug menus, which are often only added if a debug flag is set, or a menu item to <a href="..\commands\cmd_togglemonitor.htm">toggle the monitor</a>, which is only added if the game is running on a PC with a CGA monitor.</p>
+			<p>You can use the Condition property for this purpose. For menus, if the Condition property is not blank, then the menu and all its items will be placed in an if block, using the Condition text as the argument of the if statement. All subsequent menus will also be in the if block until a menu with a blank or different Condition is found. For example, if the Condition for the Debug menu is "isset(f30)", when WinAGI saves the menu, it will look like this:</p>
+<blockquote><pre>if (isset(f30))
+    {
+    set.menu("Debug");
+    set.menu.item("Debug Help        ", cDebugHelp);
+    set.menu.item("Ego Info   &lt;Alt-E&gt;", cShowEgo);
+    set.menu.item("Pri Screen &lt;Alt-P&gt;", cShowPriority);
+    set.menu.item("Memory     &lt;Alt-M&gt;", cShowMem);
+    }</pre></blockquote>
+    	<p>You can also set a Condition for individual menu items. All items with the same Condition will be placed in the same if block. For example, use a Condition of "machineType == PC && monitorType &lt; 2" for the toggle monitor menu item to get this result:</p>
+<blockquote><pre>...
+set.menu.item("Sound On/Off &lt;F2&gt;", cToggleSound);
+if (machineType == PC && monitorType &lt; 2)
+    {
+    set.menu.item("Color/BW &lt;Ctrl R&gt;", cToggleMonitor);
+    }
+set.menu.item("Clock On/Off &lt;F6&gt;", cClock);
+...</pre></blockquote>
+		<h2><a name="insert">Inserting</a> Menus and Menu Items</h2>
+			<img alt="" src="..\..\graphics\emi_insert.ico" align="left" width="32">
+			<p>To insert a menu, select an existing menu, then use the Insert Menu command on the Edit menu (or use the toolbar button).</p>
+			<p>WinAGI will prevent you from adding too many menus in order to ensure the menus will fit on the AGI screen, which is limited to 40 columns of text.</p>
+			<p>To insert a menu item, select an existing menu item on the menu where you want another menu item, then use the Insert Menu Item command on the Edit menu (or use the toolbar button).</p>
+			<p>WinAGI limits the number of menu items in a menu to 22 so they will fit on the screen.</p>
+		<h2><a name="delete">Deleting</a> Menus and Menu Items</h2>
+			<img alt="" src="..\..\graphics\emi_clear.ico" border="0" align="left" width="32">
+			<p>Use the Delete command (or toolbar button) to delete menu items and menus. If you delete a menu, all the items in that menu will also be deleted.</p>
+		<h2><a name="edit">Editing</a> Menus and Menu Items</h2>
+			<p>Double-click on the menu or menu item you wish to edit, either on the menu tree, preview area, or on the property window. Make changes (in the property window), then press Enter. To cancel an edit, press Escape.</p>
+			<p>WinAGI will automatically add spaces (padding) to menu items so they are all the same length.</p>
+			<p>To create a menu separator, enter at least one minus sign (-) or leave the caption blank. WinAGI will automatically add enough minus signs to create the menu separator. When other items on this menu are updated, the separator will automatically shorten or lengthen.</p>
+		<h3><a name="order">Menu/Menu Item Order</a></h3>
+			<p><img alt="" src="..\..\graphics\emi_up.ico" align="left" width="32"> <img alt="" src="..\..\graphics\emi_down.ico" align="left" width="32"> To change the order of menu items use the Move Up and Move Down commands. You can also move menus left or right by using these commands.</p>
+		<h3><a name="autoalign">Auto-align Shortcut Keys</a></h3>
+			<p>WinAGI can automatically right adjust any shortcut key assignments by inserting extra spaces  between the menu caption and the shortcut key. Shortcut keys must be included inside '&gt;' and '&lt;' brackets for AGI to automatically align them. You can toggle this feature by using the Right Align Hot Keys command on the Resource menu.</p>
+			<p><b>NOTE:</b> Adding a shortcut key to a menu item DOES NOT create the actual shortcut in your game. You must assign shortcut keys in your logic code using the <b><a href="..\commands\cmd_setkey.htm">set.key</a></b> command.</p>
+		<h2><a name="save">Saving</a> Menus</h2>
+			<p>If editing an existing game's menu, use the Update Source Logic command to insert the menu back into the logic it was extracted from. It will replace the existing menu (including all lines between the first <b><a href="..\commands\cmd_setmenu.htm">set.menu</a></b> command and the <b><a href="..\commands\cmd_submitmenu.htm">submit.menu</a></b> command.</p>
+			<p>Use the Save As Default command to replace the current 'default_menu.txt' file with the current menu structure.</p>
+			<p><img alt="" src="..\..\graphics\emi_copy.ico" align="left" width="32"> You can also use the Copy to Clipboard command on the Edit menu (or use the toolbar button) to place the current menu system on the clipboard. You can then paste it into a logic or text file and then add additional customizations.</p>
+		<h2><a name="defaultmenu">Default Menu</a></h2>
+			<p>A default menu is stored in the WinAGI program directory as a text file with the name 'default_menu.txt'. If a game is not loaded, or if you choose not to edit your game's menu structure, the default menu is loaded when the Menu Editor is opened.</p>
+			<p>The Restore to Default command will discard the current menu system in the editor, and load the default menu system.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

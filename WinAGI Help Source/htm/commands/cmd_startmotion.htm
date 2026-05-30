@@ -1,0 +1,52 @@
+<html>
+	<head><title>Action Command: start.motion</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>start.motion</h1>
+			<p>The <b>start.motion</b> command sets a screen object's movement mode to 'normal' and if the object is ego, also sets the ego to player control mode.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>start.motion(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command sets <a href="..\agi\screenobjs.htm">screen object</a>  <b>oA</b>'s <a href="object_moving.htm">movement mode</a> to 'normal'. If the screen object is the <a href="..\agi\interface.htm#ego">ego object</a> (o0) it also switches to <a href="..\agi\interface.htm#playercontrol">player control</a> mode. </p>
+			<p>While in normal motion mode, an object will not move until it is given a direction via the <a href="cmd_setdir.htm"><b>set.dir</b></a> command. It will continue moving until it reaches an obstacle, the edge of the screen, a new direction via command, or is stopped using the <a href="cmd_stopmotion.htm"><b>stop.motion</b></a> command.</p>
+			<p>Unlike the other movement modes, changing to 'normal' does not modify the <a href="object_initialize.htm#updating">updating property</a>. The <a href="object_cycling.htm">cycling property</a> is also not modified by the <b>normal.motion</b> command.</p>
+			<p>This command is identical to the <b><a href="cmd_normalmotion.htm">normal.motion</a></b> command, except that it also switches ego to <a href="..\agi\interface.htm#playercontrol">player control</a> mode. The <b><a href="cmd_normalmotion.htm">normal.motion</a></b> command does not automatically switch ego control mode.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>stop.motion(ego); [ ego stops moving, and switches to program control
+<b>start.motion(ego);</b> [ ego begins moving again, and player control is restored
+[ equivalent code
+normal.motion(ego);
+player.control();
+...
+[ for non-ego objects these two lines do EXACTLY the same thing
+start.motion(o1);
+normal.motion(o1);
+</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">78 (0x4E)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_normalmotion.htm">normal.motion</a></b></p>
+			<p><b><a href="cmd_playercontrol.htm">player.control</a></b></p>
+			<p><b><a href="cmd_stopmotion.htm">stop.motion</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

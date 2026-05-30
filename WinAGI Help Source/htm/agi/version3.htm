@@ -1,0 +1,42 @@
+<html>
+	<head><title>AGI Version 3</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>AGI Version 3</h1>
+			<p>The third and final version of the AGI interpreter came out for only a short while before the Sierra Creative Interpreter (SCI) hit the scene. Only a couple of games were written to use the version 3 interpreter, as Sierra began the switch to SCI around the same time version 3 was being introduced.</p>
+			<p>Beginning with version 3, the <a href="resources.htm">resource</a> <a href="dir.htm">directory</a> files were combined into a single file, and the directory file and <a href="vol.htm">VOL</a> file names included the <a href="components.htm#gameid">game ID</a>. Up to 16 VOL files were available. Also, <a href="encryption.htm#compression">compression</a> was used to reduce the size of resources (although the resource formats did not change). Version 3 also encrypted the <a href="object.htm">OBJECT file</a> before adding it to <a href="save.htm">save game</a> files.</p>
+		  <p> There are five known public releases of AGI version 3:</p>
+		  <ul><ul>
+		  	<li><a name="3002086"><b>Version 3.002.086</b></a></li>
+					<p>The first version 3 interpreter. This version increased the number of <a href="..\commands\cmds_category.htm">commands</a> to 178, with addition of <a href="..\commands\cmd_hidemouse.htm"><b>hide.mouse</b></a> and <a href="..\commands\cmd_allowmenu.htm"><b>allow.menu</b></a> commands.</p>
+					<p>The <a href="pictures.htm#brusherrors">plot command bug</a> for the size 1 circle brush used in plot commands reappeared because the data were modified again, but incorrectly. All version 3 interpreters would retain this bug.</p>
+					<p>The <a href="sounds.htm">sound</a> <a href="agisound.htm#dissolve">dissolve</a> length was slightly increased.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="3002098"><b>Version 3.002.098</b></a></li>
+					<p>Version 3.002.098 introduced three <a href="mouse.htm">mouse</a> related commands, although none of them had functionality in MSDOS. The <a href="..\commands\cmd_releasekey.htm"><b>release.key</b></a> command was also added.</p>
+					<p>It also fixed the bug in the <a href="screenobjs.htm#autoloop">auto loop</a> feature, and <a href="flags.htm">flag</a> <a href="f20.htm">f20 (force autoloop)</a> was designated as a <a href="flags.htm#reserved">reserved flag</a>.</p>
+					<p>The <a href="..\commands\object_priority.htm#fixed">bug for determining object drawing order</a> in the <a href="..\commands\cmd_setpribase.htm"><b>set.pri.base</b></a> command was fixed.</p>
+					<p>The code that converts pixel position into the correct offset in video card memory was modified for Tandy computers with non-EGA video cards.</p> 
+					<p>There was a minor refactoring of the trace function, but it did not have any functional change.</p> 
+					<p>&nbsp;</p>
+		  	<li><a name="3002102"><b>Version 3.002.102</b></a></li>
+		  	 <p>This version had no functional changes. Two data elements in the <a href="components.htm#agidata">AGIDATA.OVL</a> were moved to a different location.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="3002107"><b>Version 3.002.107</b></a></li>
+		  		<p>In this version, the only change was to the save and restore game functions. The code that reads the disk drive looking for existing saved games is run twice; once with all VOL files open, then again with all VOL files closed. The change doesn't do anything useful; it just wastes time repeating the same code. It is unclear why this change was made.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="3002149"><b>Version 3.002.149</b></a></li>
+					<p>In the last version of AGI made by Sierra, the number of <a href="strings.htm">strings</a> allocated was reduced to 12, down from 24. Presumably this was done to increase available memory for other resources.</p>
+					<p>The <a href="components.htm#overlays">overlay files</a> were refactored by moving code that was in IBM_OBJS.OVL and HGC_OBJS.OVL into the main executable file. HGC font data were moved from the <a href="components.htm#hgcfont">HGC_FONT file</a> into the HGC_GRAF.OVL overlay file.</p>
+					<p>The <a href="..\commands\cmd_closedialogue.htm"><b>close.dialogue</b></a> and <a href="..\commands\cmd_opendialogue.htm"><b>open.dialogue</b></a> commands were disabled. The commands were directed to a null function (calls to these two commands had no effect).</p>
+					<p>The insufficient memory error message was shortened from the descriptive "Sorry, your computer does not have enough memory to play this game. 256K of RAM is required." to just "ERROR: Insufficient memory."</p>
+		  </ul></ul>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

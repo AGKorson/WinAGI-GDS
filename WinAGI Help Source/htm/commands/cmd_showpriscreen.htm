@@ -1,0 +1,44 @@
+<html>
+	<head><title>Action Command: show.pri.screen</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>show.pri.screen</h1>
+			<p>The <b>show.pri.screen</b> command displays the current room's priority screen on the display monitor.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>show.pri.screen();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command <a href="..\agi\cycle.htm#pausing">pauses</a> the game, and displays the current <a href="..\agi\pictures.htm#room">room</a>'s <a href="..\agi\pictures.htm#priority">priority screen</a>. The displayed image includes the effects on priority by all <a href="..\agi\screenobjs.htm">screen objects</a>, <a href="cmd_addtopic.htm"><b>add.to.pic</b></a> commands, <a href="cmd_overlaypic.htm"><b>overlay.pic</b></a> commands, etc. Pressing the ESC or RETURN key will resume the game, and switch back to the visual screen.</p>
+			<p>If the <b>show.pri.screen</b> is used on the <a href="cmd_textscreen.htm">text screen</a>, the game is still paused until ESC or RETURN is pressed, but nothing happens to the display. 
+			<p>This command was typically used during debugging, to allow programmers to verify proper interaction of <a href="..\agi\screenobjs.htm">screen objects</a> with the background <a href="..\agi\pictures.htm">picture</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>#define debug_mode f82
+if(isset(debug_mode) && said("show", "pri"))
+  {
+  <b>show.pri.screen();</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">29 (0x1D)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_debug.htm">Debugging Commands</a></p>
+			<p><a href="..\commands\object_priority.htm">Priority Screen</a></p>
+			<p><a href="..\agi\debug.htm">AGI Debugging Information</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

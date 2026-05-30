@@ -1,0 +1,79 @@
+<html>
+	<head><title>Words Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-words-e.gif" width="460" height="72" border="0" alt="WinAGI WORDS.TOK Editor"></td>
+			</tr>
+		</table>
+		<h1>Words Editor</h1>
+			<p>Use the Words Editor to edit <a href="..\agi\words.htm">WORDS.TOK files</a> in WinAGI.</p>
+		<h2>Words Editor Components</h2>
+
+		<h2>Mode</h2>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\ewi_bygroup.ico"> The default mode for the Words Editor is the group-edit mode. This mode displays all groups in the group list on the left, and the words in the selected group on the right.</p>
+			<map name="groupmodemap">
+				<area shape="rect" alt="Toolbar" coords="8,31,280,52" href="#toolbar">
+				<area shape="rect" alt="Group List" coords="13,80,271,359" href="#grouplist">
+				<area shape="rect" alt="Word List" coords="278,80,536,359" href="#wordlist">
+			</map>
+			<p><img src="..\..\graphics\groupmode.jpg" usemap="#groupmodemap" border="0" width="551"></p>
+		  <p>The mode indicator shows a 'G' when in group-edit mode.</p>
+		  <p>&nbsp;</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\ewi_byword.ico"> The words-list mode displays all the words on the right, and shows only the group number of the selected word on the left. This mode makes is easy to quickly find words in the list.</p>
+			<map name="wordmodemap">
+				<area shape="rect" alt="Toolbar" coords="8,31,280,52" href="#toolbar">
+				<area shape="rect" alt="Group List" coords="13,80,271,106" href="#grouplist">
+				<area shape="rect" alt="Word List" coords="278,80,536,359" href="#wordlist">
+			</map>
+			<p><img src="..\..\graphics\wordmode.jpg" usemap="#wordmodemap" border="0" width="551"></p>
+			<p>The mode indicator shows a 'W' when in word-edit mode.</p>
+			<p>Click the mode indicator on the toolbar to switch between modes.</p>
+		<h2><a name="toolbar">Toolbar</a></h2>
+			<p>The toolbar provides buttons for standard edit commands. There are also buttons for toggling the edit mode, adding new words and new groups, and shortcuts to the <a href="#find">Find</a> command and the <a href="#findinlogics">Find in Logics</a> command.</p>
+		<h2><a name="grouplist">Group List</a></h2>
+			<p>In group-edit mode, the group list shows all word groups in this WORDS.TOK file, in numerical order. The first word of the group (group name) is included to help identify the group.</p>
+			<p>In word-edit mode, only the group number and group name of the currently selected word are displayed in the group list.</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\ewi_addgrp.ico"> To add new group, select a group then click Add Group command on edit menu, or use the new group toolbar button.</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\tbDelete.bmp"> To delete a group, select it, choose delete from edit menu or use delete on the toolbar.</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\tbCopy.bmp">&nbsp;<img width="32" alt="" src="..\..\graphics\tbCut.bmp"> If you want to copy a group (or cut it) so you can paste it in another word editor, use the Copy Group (or Cut Group) command on the Edit menu.</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\tbPaste.bmp"> The paste menu will be enabled if a group is on the clipboard. When a group is pasted, WinAGI assigns it to the lowest available group number. You can edit the group number after pasting. If any of the words being pasted are already in the word list, they will be skipped.</p>
+			<p>To change a group number, double click the group. Enter the new number and press enter. If you attempt to use an existing number, the group will reset back to its original number. Valid group numbers are 0 to 65535.</p>
+		<h2><a name="wordlist">Words List</a></h2>
+			<p>The word list shows all the words in a group in alphabetical order. Words are always displayed as lower case, because they are not case sensitive. In group-edit mode, only words that are in the currently selected group are displayed. In word-edit mode all words in the WORDS.TOK file are displayed.</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\ewi_addwrd.ico"> To add new word, select select the group that you want the word added to, and then click the word list. Use the Add Word command on edit menu, or use the new group toolbar button.</p>
+			<p>When adding or entering words, WinAGI will enforce character restrictions. It is possible that a word added in original Sierra games have invalid characters though. (Sierra's WORDS.TOK compiler did not check for invalid characters.) If an existing word does have invalid characters, the word and its group will show in red. When editing, you must remove the invalid characters to save the word text.</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\tbDelete.bmp"> To delete a word, select it, choose delete from edit menu or use delete on the toolbar.</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\tbCopy.bmp">&nbsp;<img width="32" alt="" src="..\..\graphics\tbCut.bmp"> If you want to copy a word (or cut it) so you can paste it in another group or in another WORDS.TOK editor, use the Copy Group (or Cut Group) command on the Edit menu. When a word is cut or copied, you can also paste into logic editors.</p>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\tbPaste.bmp"> The paste menu will be enabled if a word is on the clipboard. When a word is pasted, it is added to the currently selected group. If the word already exists in a different group, you will be asked to confirm its replacement.</p>
+			<p>In group-edit mode you can easily move a word from one group to another by dragging it. Drag the word over the group list, and release the mouse button when the cursor is over 
+			the target group.</p>
+			<blockquote>
+				<p><STRONG>TIP</STRONG>: You can also drag words from the Words Editor to any logic editor.</p>
+			</blockquote>
+		<h3>Undo</h3>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\tbUndo.bmp"> All edit operations in the Word Editor can be undone by using the Undo toolbar button or edit menu option.</p>
+		<h2><a name="reserved">Reserved Word Groups</a></h2>
+		    <p>Word groups 0, 1, and 9999 are <a href="..\agi\words.htm#reserved">reserved</a> word groups. They cannot be deleted or renumbered. Words can be added to and removed from group 0, but not to group 1 or group 9999.</p>
+		    <p>The words assigned to group 1 ("anyword") and group 9999 ("rol") aren't actually words like in normal groups, but are used by the logic compiler to generate the correct code when a logic is compiled. Technically speaking, these groups don't need an actual word assigned to them. They can always be referenced by their number in <a href="..\commands\cmd_said.htm"><b>said</b></a> commands. However, it is longstanding tradition to use the words "anyword" and "rol" for these groups. This is not mandatory, and if you really want to, you can delete or change these placeholder words (if, for example, you wanted to be able to use "anyword" or "rol" as usable input in a game). But it strongly recommended that you don't, unless you fully understand all the implications.</p>
+		<h2><a name="clear">Clear Word List</a></h2>
+			<p>If you want to delete all words and groups and reset the list, use the Clear Word List command. All groups except group 0 ("a"), group 1 ("anyword") and group 9999 ("rol") are removed. This can be undone if you change your mind.</p>
+		<h2><a name="merge">Merge Words from File</a></h2>
+			<p>If you have an existing WORDS.TOK file that you would like to incorporate into your list, you can use the Merge Words from File command. Choose the file you want to merge from, and WinAGI will automatically copy all words and groups from that file into your list. If any words in the merge file match words currently in your list, WinAGI will skip them if they are in the same word group, and will move them to match the group of the merged file if they are different.</p>
+		<h2><a name="find">Find Command</a></h2>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\ewi_find.ico"> The Find command allows you to search the WORDS.TOK file for a particular word or phrase. You can also use Replace to change words or word portions in the list.</p>
+		<h2><a name="findinlogics">Find In Logics Command</a></h2>
+			<p><img width="32" alt="" src="..\..\graphics\ewi_findinlogic.ico"> The Find in Logics command on the Edit menu allows you to search for a vocabulary word in all of your logic resources. To use this feature, select the word you wish to search for, then choose the Find in Logics command.</p>
+			<p>WinAGI will search all logics in your game for the selected word:</p>
+			<ul><ul>
+				<li>If you select an individual word from the word list of a group, then WinAGI assumes you want to search for that specific word.</li>
+				<li>If you select a group, WinAGI assumes you want to search for the first word in the group.</li>
+			</ul></ul>
+			</p>
+			<p>In either case, you can choose to search for just the selected word or all words in a group (synonyms) by using the 'Include Synonyms' option on the Find dialog. With this option enabled, WinAGI will find all instances of all words in this group.</p>
+			<p>The generally accepted method for using words in <a href="..\agi\logics.htm">logic</a> source code is to use the first word, or 'group' word in the <a href="..\commands\cmd_said.htm"><b>said</b></a> command, but this is not strictly enforced. You can use any valid word in the group and WinAGI will be able to compile your code correctly.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,17 @@
+<html>
+	<head><title>Reserved Variable v25</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v25: Selected Inventory Item</h1>
+			<p>AGI sets v25 to the index number of the <a href="object.htm#items">inventory item</a> selected from the inventory screen (when called by the <a href="..\commands\cmd_status.htm"><b>status</b></a> command with <a href="flags.htm#reserved">reserved flag</a> <a href="f13.htm">f13 (inventory selection enabled)</a> set to TRUE). If no object is selected, (i.e. the player presses ESC), AGI puts a value of 255 in v25. The index number of the selected object can then be used to display a view of the object.</p>
+			<p>When  the <a href="..\commands\cmd_status.htm"><b>status</b></a> command is called, if v25 value matches an object in inventory, it will be the default selected object.</p>
+			<p>This variable was not reserved by AGI and had no effect in <a href="version2.htm#2089">version 2.089</a> and <a href="version2.htm#2272">version 2.272</a>.</p>
+			<p>Attempting to use this variable for other purposes is not recommended, unless your game does not use the <a href="..\commands\cmd_status.htm"><b>status</b></a> command for object selection.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

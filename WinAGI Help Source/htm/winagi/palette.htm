@@ -1,0 +1,50 @@
+<html>
+	<head><title>Modify Color Palette</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+			<p><b>NOTE:</b> Changing colors in WinAGI while editing your game has no effect on the colors used by AGI when the game is running unless using advanced features as described below.</p>
+		<h1>Color Limitations in AGI</h1>
+			<p>AGI's original color palette is limited to sixteen colors (not including the rarely used limited palettes for HGC and CGA in RGB mode). See the <a href="..\agi\graphics.htm#agicolors">AGI Color Palette</a> topic for additional information.</p>
+			<p>There is a fan made 'hack' to AGI, called AGIPAL, that allows you to change palette colors using the <a href="..\commands\cmd_shakescreen.htm"><b>shake.screen</b></a> command. Nick Sonneveld's AGI emulator <a href="https://agidev.com/projects/nagi" target="_blank">NAGI</a>, in version 2.09 and later, also supports use of modified color palettes.</p>
+			<p>The <a href="powerpack.htm">AGI Power Pack</a> also provides the ability to change color palettes.</p>
+		<h1>Custom Color Palette</h1>
+			<p>If you want to design a game that uses its own color palette for special effects, WinAGI provides you the ability to change the colors in the palette while you are designing your game.</p>
+			<p>To access the Modify Color Palette dialog, use the Color Palette option on the <a href="workingwith_tools.htm">Tools menu</a>.</p>
+			<p>When a game is loaded, the custom colors chosen with the Custom Color Palette tool will apply only to the loaded game. To change the default colors to use when a new game is created, or when no game is loaded, open the Custom Color Palette tool when no game is loaded.</p>
+			<p>&nbsp;</p>
+			<map name="palette">
+				<area shape="rect" alt="Grid display of all current colors in the palette." coords="16,46,203,233" href="#grid">
+				<area shape="rect" alt="Default AGI color defined by Sierra" coords="77,243,110,270" href="#defcol">
+				<area shape="rect" alt="Current color of this index in this palette" coords="111,243,140,270" href="#curcol">
+				<area shape="rect" alt="Color value as Hex", coords="272,224,367,319" href="#hexvalue">
+				<area shape="rect" alt="Allows you to load a palette from a file" coords="220,44,416,80" href="#load">
+				<area shape="rect" alt="Allows you to save a palette to a file" coords="220,97,416,133" href="#save">
+				<area shape="rect" alt="Restores all colors to their default values" coords="220,150,416,186" href="#defpal">
+				<area shape="rect" alt="Change Color button" coords="149,244,175,271" href="#curcol">
+			</map>
+			<p>&nbsp;<img id="IMG1" src="..\..\graphics\palette.jpg" usemap="#palette" border="0" width="430"></p>
+			<p>&nbsp;</p>
+		<h2><a name="grid"></a>Palette Display Grid</h2>
+			<p>All sixteen colors in the current palette are displayed in a grid. Select a color index by clicking it. The default color for this index is shown below along side the current color. Click the change color button to display the Select Color dialog, which allows you to select a new color.</p>
+		<h2><a name="defcol"></a>Default Color</h2>
+			<p>The default color for each color index in the palette is defined by the original Sierra AGI, and shown in the left side of the color selection box.</p>
+		<h2><a name="curcol"></a>Current Color</h2>
+			<p>The current color for each color index is shown in the right side of the color selection box. To change the current color, Click the Change Color button (the small button with the ellipsis [...]). Alternatively, you can double-click a color in the display grid to edit a color.</p>
+		<h2><a name="hexvalue">Color Value as Hex String</a></h2>
+			<p>The 24 bit and <a href="..\agi\graphics.htm#agicolors">18 bit</a> hex values of the selected color are displayed here for reference.</p>
+		<h2><a name="load"></a>Load Palette</h2>
+			<p>NAGI version 2.09 and higher provide the capability to run games with different color palettes. The colors are defined in the <b><EM>nagi.ini</EM></b> file that should exist in your game's directory. WinAGI makes it easy to coordinate the color palette used by allowing you to import and export the color palette settings directly from/to any nagi.ini file. Use the Load Palette button to select a <EM><b>nagi.ini</b></EM> file from which to extract a color palette.</p>
+		<h2><a name="save"></a>Save Palette</h2>
+			<p>Once you have a palette that you are satisfied with, you can easily add them to a <EM><b>nagi.ini</b></EM> file by using the Save Palette command.</p>
+			<p>(The file used to load a palette doesn't have to be a full nagi.ini file; it can be any text file as long as long as it has the color data in the correct format. Similarly, you can save the palette to any text file; the save function will add the data in the correct nagi.ini format. Also, nagi uses the British spelling 'colour' instead of 'color', in case you are examining the files in a text editor, looking for the palette data.)</p>
+		<h2><a name="defpal"></a>Restore Default Palette</h2>
+			<p>If you make changes to your color palette, then later decide you want to go back to the original AGI palette, use this option to reset all sixteen colors back to their default values.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

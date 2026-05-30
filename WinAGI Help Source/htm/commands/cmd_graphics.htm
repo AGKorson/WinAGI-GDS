@@ -1,0 +1,41 @@
+<html>
+	<head><title>Action Command: graphics</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>graphics</h1>
+			<p>The <b>graphics</b> command displays the graphics screen.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>graphics();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The default display screen when AGI starts is the <a href="..\agi\grafdisp.htm">graphics screen</a>. If the display is switched using the <a href="cmd_textscreen.htm"><b>text.screen</b></a> command, use the <b>graphics</b> command to switch it back.</p>
+			<p>If the graphics screen is already active, using this command refreshes the display.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>text.screen(); [ switch to text screen
+...
+<b>graphics();</b>    [ done with text screen; switch back to graphics</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">107 (0x6B)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><a href="..\agi\graphics.htm">Graphics and Text Displays in AGI</a></p>
+			<p><a href="cmd_textscreen.htm"><b>text.screen</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

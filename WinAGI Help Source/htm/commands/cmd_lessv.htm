@@ -1,0 +1,53 @@
+<html>
+	<head><title>Test Command: lessv</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>lessv</h1>
+			<p>The <b>lessv</b> command compares the values of two <a href="..\agi\variables.htm">variables</a>. It returns TRUE if the value of the first variable is less than the value of the second variable.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>lessv(<a href="syntax_fan.htm#argtypes">var</a> vA, <a href="syntax_fan.htm#argtypes">var</a> vB)</p>
+			<p>vA &lt; vB</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Test commands are only valid in an <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> statement.</p>
+			<p>This statement can be combined with the <a href="..\agi\logics.htm#not">NOT</a> operator to create a 'greater than or equal to' test.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>if(<b>lessv(v50, v51)</b>)
+  {
+  print("v50 is less than v51");
+  }
+
+if(v50 &lt; v51)  [ alternate syntax
+  {
+  print("v50 is less than v51");
+  }
+
+if(v50 &gt;= v51) [ equivalent to 'if(!lessv(v50, v51))'
+  {
+  print ("v50 is greater than or equal to v51");
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">4 (0x04)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_test.htm">Test Commands</a>
+			</p>
+			<p><a href="cmd_lessn.htm"><b>lessn</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

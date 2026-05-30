@@ -1,0 +1,323 @@
+<html>
+	<head><title>PICTURE Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>PICTURE Resources</h1>
+			<p>Picture resources are used for backgrounds and other full screen images. Pictures in AGI games are not stored as bitmaps. Instead they're stored as coordinates and vectors, which get converted into the desired image when AGI loads the picture resource. For relatively small images with a small color palette, vector based images almost always take up less space than would a bitmap image of the same picture.</p>
+		<h3><a name="room">Rooms</a></h3>
+			<p>In AGI each portion of the game that had its own background image was referred to as a 'room'. This notation was used regardless of whether or not the area represented an actual interior room, or an area outside a building. The concept of 'room' is used by the interpreter to manage when to change the background image and associated <a href="logics.htm">logic</a> script as the player moves <a href="screenobjs.htm#ego">ego</a> throughout the game. Although not strictly required, picture resources and logic resources for the same room should normally have the same number; there are a number of AGI commands and internal functions that expect this, and will cause errors or unexpected behavior if the programmer is not aware. The term 'room' is often used interchangeably to refer to either the picture resource or the logic resource, depending on context.</p>
+			<p>AGI tracks the current room by number in <a href="variables.htm#reserved">reserved variable</a> <a href="v0.htm">v0 (current room)</a>. Valid room numbers go from 1 to 255. Using zero as a room number is not possible, because AGI reserves the value 0 to indicate that a game has just been started and no room has been chosen yet. Also <a href="logics.htm#logic0">logic 0</a> is specifically reserved as the main game logic resource that is run in every <a href="cycle.htm">interpreter cycle</a>. It is possible to include a picture with resource number of zero in an AGI game, it just cannot be associated with a room.</p> 
+		<h3><a name="visual">Visual Screen</a></h3>
+			<p>AGI actually uses two images, the visual image and the priority image to create the 3-D game effect.</p>
+			<p>The visual image is what the player sees. This image acts as the background that <a href="screenobjs.htm">screen objects</a> (sprites) are drawn on to provide the animation of the game. The default background color for the visual image is white; all visual image pixels of a blank picture are white.</p>
+		<h3><a name="priority">Priority Screen</a></h3>
+			<p>The priority image is not displayed for the player to see. Instead, this image is used to assign <a href="grafdisp.htm#priority">priority</a> values to areas and items drawn on the background. The priority values are then used by AGI when drawing <a href="screenobjs.htm">screen objects</a> to determine whether they are 'in front of' or 'behind' things drawn on the visual image. The default pixel color for the priority image is red (representing the lowest priority).  See the <a href="grafdisp.htm#priority">3-D Game on 2-D Display</a> topic for a detailed discussion of how these two screens create the illusion of a three dimensional playing area.</p>
+		<h2><a name="picfmt">PICTURE Resource Format</a></h2>
+			<p>Each picture resource contains a five byte (7 byte in the case of version 3 games) <a href="resources.htm#headers">header</a>.</p>
+			<p>The picture specific data follow the header, and consist of a series of drawing command byte codes and coordinate data. The picture data are processed byte by byte to build the finished picture's visual and priority screens. Byte values of 0xF0 or greater represent the various drawing actions. Data following the codes are arguments representing colors and coordinates. Some of the actions have a set number of arguments, others have an unlimited number of arguments. The special code 0xFF marks	the end of the picture data.</p>
+			<p><img alt="Picture Resource Layout" width="505" src="..\..\graphics\picres.bmp"></p>
+			<p><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Figure 1: Picture Resource Layout</b></p>
+            <p>To process picture data, AGI used a simple loop function that would read resource data one byte at a time, looking for drawing commands. If the byte was a valid command, AGI would process subsequent bytes as data until a byte value greater than 239 was encountered, indicating another drawing command. The loop continues until an end-of-picture command 0xFF is reached.</p>
+		<h2><a name="drawcmds">Drawing Commands</a></h2>
+			<p>Pictures are drawn using twelve different drawing actions: </p>
+			<blockquote>
+			<p>
+				<table id="Table2" cellSpacing="1" cellPadding="1" border="1">
+					<tr>
+						<td align="middle" width="200"><b>Byte code</b></td>
+						<td width="400"><b>&nbsp;Draw Action</b></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF0</td>
+						<td>&nbsp;<a href="#f0">Set Visual Color</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF1</td>
+						<td>&nbsp;<a href="#f1">Disable Visual Draw</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF2</td>
+						<td>&nbsp;<a href="#f2">Set Priority Color</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF3</td>
+						<td>&nbsp;<a href="#f3">Disable Priority Draw</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF4</td>
+						<td>&nbsp;<a href="#f4">Y Corner</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF5</td>
+						<td>&nbsp;<a href="#f5">X Corner</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF6</td>
+						<td>&nbsp;<a href="#f6">Absolute Line (long line)</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF7</td>
+						<td>&nbsp;<a href="#f7">Relative Line (short line)</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF8</td>
+						<td>&nbsp;<a href="#f8">Flood Fill</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF9</td>
+						<td>&nbsp;<a href="#f9">Pen Size and Style</a></td>
+					</tr>
+					<tr>
+						<td align="middle">0xFA</td>
+						<td>&nbsp;<a href="#fA">Plot with Pen</a></td>
+					</tr>
+          <tr>
+              <td align="middle">0xFF</td>
+              <td>&nbsp;<a href="#ff">End of Picture</a></td>
+          </tr>
+				</table>
+			</p>
+			</blockquote>
+      <p>Values greater than 0xFA are not valid commands. If a resource did have an invalid command value, AGI just ignored it and moved on to the next byte.</p>
+		<h3><a name="plot">Plot</a> Commands</h3>
+			<p>Early versions of AGI did not include the pen plotting commands (drawing codes <a href="#f9">0xF9</a> and <a href="#fA">0xFA</a>). These commands were first introduced in <a href="version2.htm#2411">version 2.411</a>, but in that version, <a href="#f9">pen size/style (0xF9)</a> did not actually do anything (the argument byte was just ignored) and the <a href="#fA">plot command (0xFA)</a> would just draw a single pixel. Beginning with <a href="version2.htm#2425">version 2.425</a>, the full plot features, including changing the size and shape of the pen and dual fill modes, was available.</p>
+		<h2>Drawing Command Descriptions</a></h2>
+		<p><b><a name="f0">0xF0: Set Visual Color</a></b></p>
+			<blockquote><p><EM>Function:</EM> Changes the current drawing color for the visual image and enables subsequent actions to draw to the visual image. This command takes a single argument, which is the <a href="graphics.htm#agicolors">color index</a> of the desired color. All subsequent drawing commands drawn to the visual image will use this color until another Set Visual Color command is encountered or until a Disable Visual Draw command is encountered.</p>
+			<p><EM>Example:</EM> <code><b>F0 0D</b></code> changes visual image drawing color to light magenta and enables drawing to the visual image.</p>
+      <p>Only the lower nibble (4 bytes) of the visual color index is used for the new color (giving a value of 0 - 15). If the color byte was greater than 15, there is a bug in AGI that combines ('OR's) the upper nibble of the visual color index with the priority color value.</p>
+			</blockquote>
+			<p>&nbsp;</p>
+		<p><b><a name="f1">0xF1</a>: Disable Visual Draw</b></p>
+			<blockquote><p><EM>Function:</EM> Disables drawing to the visual image. This is done whenever there is something which only needs to be drawn on the priority image such as the control lines. There are no arguments for this action.</p></blockquote>
+			<p>&nbsp;</p>
+		<p><b><a name="f2">0xF2</a>: Set Priority Color</b></p>
+			<blockquote><p><EM>Function:</EM> Changes the current drawing color for the priority image and enables subsequent actions to draw to the priority image. This command takes a single argument, which is the <a href="graphics.htm#agicolors">color index</a> of the desired color. All subsequent drawing commands drawn to the priority image will use this color until another Set Priority Color command is encountered or until a Disable Priority Draw command is encountered.</p>
+			<p><EM>Example:</EM> <code><b>F2 04</b></code> changes priority image drawing color to red and enables drawing to the priority image.</p>
+            <p>Unlike the visual color, AGI just ignores the upper nibble of the color index byte.</p></blockquote>
+			<p>&nbsp;</p>
+		<p><b><a name="f3">0xF3</a>: Disable Priority Draw</b></p>
+			<blockquote><p><EM>Function:</EM> Disables drawing to the priority image. This is done whenever there is something which only needs to be drawn on the picture image such as the finer details of the background. There are no arguments for this action.</p></blockquote>
+			<p>&nbsp;</p>
+			<p><EM>The following two actions are called 'corner' actions because they do not draw diagonal lines at all but instead alternate from horizontal line to vertical line (or vice versa) giving rise to a series of right angled corners.</EM></p>
+		<p><b><a name="f4">0xF4</a>: Y Corner</b></p>
+			<blockquote><p><EM>Function:</EM> The first two arguments for this action are the coordinates of the starting position on the screen in the order x and then y. The remaining arguments are in the order y1, x1, y2, x2, ...</p>
+			<p>For this command the y value is the first to be changed. This action does not end until a byte of 0xF0 or above is encountered. A line is drawn after each byte is encountered. X values greater than 159 and Y values greater than 167 are automatically adjusted to fit.</p>
+			<p><EM>Example:</EM> <code><b>F4 10 10 08 20 10 30 02 22 ...</b></code></p>
+			<p class="indent_n">&nbsp;<img alt="X Corner Example" src="..\..\graphics\ycorner.gif" width="196"></p></blockquote>
+			<p>&nbsp;</p>
+		<p><b><a name="f5">0xF5</a>: X corner</b></p>
+			<blockquote><p><EM>Function:</EM> The first two arguments for this action are the coordinates of the starting position on the screen in the order x and then y. The remaining arguments are in the order x1, y1, x2, y2, ...</p>
+			<p>The x value is the first to be changed. This action does not end until a byte of 0xF0 or above is encountered. A line is drawn after each byte is encountered. X values greater than 159 and Y values greater than 167 are automatically adjusted to fit.</p>
+			<p><EM>Example:</EM> <code><b>F5 22 02 30 10 20 8 10 ...</b></code></p>
+			<p class="indent_n">&nbsp;<img alt="Y Corner Example" src="..\..\graphics\xcorner.gif" width="196"></p></blockquote>
+			<p>&nbsp;</p>
+		<p><b><a name="f6">0xF6</a>: Absolute Line</b></p>
+			<blockquote><p><EM>Function:</EM> Draws lines between points. The first two arguments are the starting coordinates. The remaining arguments are in groups of two which give the coordinates of the next location to draw a line to. There can be any number of arguments but there should always be an even number. This action does not end until a byte of 0xF0 or above is encountered. A line is drawn after each pair of coordinates is encountered. X values greater than 159 and Y values greater than 167 are automatically adjusted to fit.</p>
+			<p><EM>Example:</EM> <code><b>F6 30 50 34 51 38 53 ...</b></code></p>
+			<p>This sequence draws a line from (48, 80) to (52, 81), and a line from (52, 81) 	to (56, 83).</p></blockquote>
+			<p>&nbsp;</p>
+		<h3>AGI Line Drawing Algorithm</h3>
+			<p>There are many different algorithms for drawing lines. When implementing a program to display AGI pictures, it is imperative that the line algorithm you use EXACTLY matches Sierra's, as a single pixel out of place could cause fills to overflow or not work at all. The AGI Specifications give an example of an algorithm that is similar to Sierra's, but it uses floating point arithmetic, and is only a simulation of the AGI algorithm. Here is an algorithm that exactly matches Sierra's (based on an analysis of the disassembled interpreter code) and uses only integer arithmetic:</p>
+<pre><code>void drawline(int X1, int Y1, int X2, int Y2) 
+  { 
+  [ assumes X1 != X2 and Y1 != Y2
+  
+  int xPos, yPos, DX, DY, vDir, hDir;
+  int XC, YC, MaxDelta, i;
+  
+  [ determine delta x/delta y and direction
+  DY = Y2 - Y1; vDir = (DY&lt;0? -1, 1);
+  DX = X2 - X1; hDir = (DX&lt;0? -1, 1);
+  
+  [ invert DX and DY if they are negative
+  if(DX &lt; 0) DX *= -1;
+  if(DY &lt; 0) DY *= -1;
+  
+  [ set starting pixel
+  pset(X1,Y1);
+  xPos = X1; yPos = Y1;
+
+  [ set up the loop, depending on which direction is largest
+  if(DX &gt;= DY)
+    {
+    MaxDelta = DX;
+    YC = DX / 2;
+    XC = 0;
+    }
+  else 
+    {
+    MaxDelta = DY;
+    XC = DY / 2;
+    YC = 0;
+    }
+  [ draw line
+  for(i == 1; i == MaxDelta; i++)
+    {
+    YC += DY;
+    if(YC &gt;= MaxDelta)
+      {
+      YC -= MaxDelta;
+      yPos += vDir;
+      }
+    XC += DX;
+    if(XC &gt;= MaxDelta)
+      {
+      XC -= MaxDelta;
+      xPos += hDir;
+      }
+    pset(xpos, ypos);
+    }
+  }</code></pre>
+			<p>&nbsp;</p>
+		<p><b><a name="f7">0xF7</a>: Relative Line</b></p>
+			<blockquote><p><EM>Function:</EM> Draw short lines, using relative values, meaning that the byte value gives displacements which are relative from the current location. The first two arguments are the starting coordinate. For the starting coordinate, an X value greater than 159 and Y value greater than 167 are automatically adjusted to fit. Each subsequent byte that follows determines the relative displacement to the next coordinate. The upper four bits of the offset byte correspond to the X direction offset, and the lower four bits correspond to the Y direction offset:</p>
+			<p><table id="Table3" cellSpacing="1" cellPadding="1" border="1">
+				<tr>
+					<td width="60" align="middle">Sign</td>
+					<td align="middle" width="180" colSpan="3">XDisp</td>
+					<td width="60" align="middle">Sign</td>
+					<td align="middle" width="180" colSpan="3">YDisp</td>
+				</tr>
+				<tr>
+					<td align="middle" width="60">7</td>
+					<td align="middle" width="60">6</td>
+					<td align="middle" width="60">5</td>
+					<td align="middle" width="60">4</td>
+					<td align="middle" width="60">3</td>
+					<td align="middle" width="60">2</td>
+					<td align="middle" width="60">1</td>
+					<td align="middle" width="60">0</td>
+				</tr>
+			</table></p>
+			<p>Note that the first bit of each offet is used to determine the direction; if the bit is set (1), then the offset is treated as a negative value; if the bit is cleared (0), then it is treated as a positive value. This gives a displacement range of between -7 and +7 in the Y direction and -6 and +7 in the X direction (if the x displacement were 7, and the sign bit is set, this would correspond to a value &gt;= 0xF0, so -7 is not possible for the x displacement.) This action does not end until a byte of 0xF0 or above is encountered.</p>
+			<p><EM>Example:</EM><code><b>F7 10 10 23 40 CE ...</b></code></p>
+			<p>This sequence draws a line from (16, 16) to (18, 19) to (22, 19) to (18, 13) to (18, 20):</p>
+            <p>
+            	<table id="Table5" cellspacing="1" cellPadding="1" border="1">
+					<tr>
+						<td align="middle" width="200"><b>Byte Value</b></td>
+						<td width="400"><b>&nbsp;Description of Byte Action</b></td>
+					</tr>
+					<tr>
+						<td align="middle">0xF7</td>
+						<td>&nbsp;command byte that begins relative line draw</td>
+					</tr>
+					<tr>
+						<td align="middle">0x10</td>
+						<td>&nbsp;the starting X value; = 16</td>
+					</tr>
+					<tr>
+						<td align="middle">0x10 </td>
+						<td>&nbsp;the starting Y value; = 16</td>
+					</tr>
+					<tr>
+						<td align="middle">0x23</td>
+						<td>&nbsp;1st relative coordinate = 00100011 in binary</br>&nbsp;X offset is 0010: first bit = 0 means positive direction, distance is 010 binary = 2</br>&nbsp;Y offset is 0011: first bit = 0 means positive direction, distance is 011 binary = 3</td>
+					</tr>
+					<tr>
+						<td align="middle">0x40</td>
+						<td>&nbsp;2nd relative coordinate = 01000000 in binary</br>&nbsp;X offset is 0100: first bit = 0 means positive direction, distance is 100 binary = 4</br>&nbsp;Y offset is 0000, which means no change in Y</td>
+					</tr>
+					<tr>
+						<td align="middle">0xCE</td>
+						<td>&nbsp;3rd relative coordinate = 11001110 in binary</br>&nbsp;X offset is 1010: first bit = 1 means negative direction, distance is 100 binary = 4</br>&nbsp;Y offset is 1110: first bit = 1 means negative direction, distance is 110 binary = 6.</td>
+					</tr>
+				</table>
+			</p>
+		</blockquote>
+			<p>&nbsp;</p>
+		<p><b><a name="f8">0xF8</a>: Flood Fill</b></p>
+			<blockquote><p><EM>Function:</EM> Completely fills an area starting from the coordinates passed as arguments. Arguments are given in groups of two bytes which give the coordinates of the location to start the fill at. Because there are two images, flood fill for AGI pictures behaves a little different than traditional flood fill routines. If only picture drawing is enabled then AGI flood fills from that location on the picture image to all pixels locations that it can reach which are white in color. The boundary is given by any pixels which are not white. Flood fill will NOT fill an area that is already a non-white color; it will only fill white pixels. If the starting coordinate is non-white, no pixels are changed.</p>
+			<p>If only priority drawing is enabled, then AGI flood fills from that location on the priority image to all pixels that it can reach which are red in color. The boundary in this case is given by any pixels which are not red. It will only fill red pixels. If the starting coordinate is not red, no pixels are changed.</p>
+			<p>If both picture drawing and priority drawing are enabled, then AGI flood fills both images. The visual image is filled the same as described above. However, on the priority image AGI not only looks for a boundary on the priority image, but also stops if it reaches a boundary that exists on the picture image even if it does not exist on the priority image.</p>
+      <p>The flood fill algorithm uses AGI's internal <a href="memory.htm#stack">stack space</a>, which means that if the fill area is very complex, with lots of nooks and crannies, it is possible to blow the stack and crash AGI.</p></blockquote>
+			<p>&nbsp;</p>
+		<p><b><a name="f9">0xF9</a>: Pen Size and Style</b></p>
+			<blockquote><p><EM>Function:</EM> Change the characteristics of the pattern plotted by drawing action 0xFA. If argument value bit 5 is not set, then the pattern is a solid shape. If bit 5 is set, then the pattern is like a splatter. Bit 4 selects whether the brush is a circle or a rectangle. Bits 0-2 give the size of the shape which will be a value from 0 to 7. Bits 3, 6 and 7 are ignored.</p>
+			<table id="Table4" height="48" cellSpacing="1" cellPadding="1" border="1">
+				<tr>
+					<td align="middle" width="80">7</td>
+					<td align="middle" width="80">6</td>
+					<td align="middle" width="80">5</td>
+					<td align="middle" width="80">4</td>
+					<td align="middle" width="80">3</td>
+					<td align="middle" width="80">2</td>
+					<td align="middle" width="80">1</td>
+					<td align="middle" width="80">0</td>
+				</tr>
+				<tr>
+					<td align="middle">--</td>
+					<td align="middle">--</td>
+					<td align="middle">Style</td>
+					<td align="middle">Shape</td>
+					<td align="middle">--</td>
+					<td align="middle" colSpan="3">Size</td>
+				</tr>
+			</table>
+			<p><a name="brusherrors">The actual size and shape</a> of the plot brush varied in the first several versions of AGI. When the commands were first added in <a href="version2.htm#2411">version 2.411</a>, the 0xF9 command did not do anything, so the brush was a single solid pixel. In <a href="version2.htm#2425">version 2.425</a>, the pen size and style were enabled, but there were three bugs in how the brushes were configured:</p>
+			<ul><ul>
+				<li>The pen was not reset before drawing a picture; this meant that if another picture was drawn later, the starting pen would be the last value from the previous picture, not the default of solid circle of size zero.</li>
+				<li>The algorithm to calculate the brush placement had an error which resulted in the larger brushes being off-center.</li>
+				<li>The mask data for brush size 1 was missing the bottom row of data, so circle brush size 1 was not drawn correctly.</li>
+			</ul></ul>
+			<img alt="Square Brushes" src="..\..\graphics\squaresv2425.jpg" width="729" border="1">
+			<img alt="Circle Brushes" src="..\..\graphics\circlesv2425.jpg" width="729" border="1">
+			<p>&nbsp;</p>
+			<p>In <a href="version2.htm#2426">version 2.426</a> the pen reset bug was fixed, and the circle masks were refactored, but the circle 1 brush was still missing data. This affected the shape of circle 1.</p> 
+			<img alt="Circle 1 Brush" src="..\..\graphics\circle1v2426.jpg" width="228" border="1">
+			<p>&nbsp;</p>
+			<p>In <a href="version2.htm#2435">version 2.435</a>, the brush placement error was fixed, but the circle 1 bug remained.</p>
+			<img alt="Square Brushes" src="..\..\graphics\squaresv2435.jpg" width="729" border="1">
+			<img alt="Circle Brushes" src="..\..\graphics\circlesv2435.jpg" width="729" border="1">
+			<p>&nbsp;</p>
+			<p>The circle 1 bug was fixed in <a href="version2.htm#2439">version 2.439</a>. The rest of the version 2 AGI releases all used the correct brush size and shape.</p>
+			<img alt="Circle Brushes" src="..\..\graphics\circle1v2439.jpg" width="228" border="1">
+			<p>In <a href="version3.htm#3002086">version 3.002.086</a>, the circle 1 brush data was changed again, but it was done incorrectly, resulting in the brush shape once again being incorrect.</p>
+			<img alt="Circle 1 Brush" src="..\..\graphics\circle1v3.jpg" width="228" border="1">
+			<p>The incorrect circle 1 brush remained the same for all version 3 releases.</p>
+		</blockquote>
+			<p>&nbsp;</p>
+		<p><b><a name="fA">0xFA</a>: Plot with Pen</b> </p>
+      <blockquote>
+      <p><EM>Function:</EM> Plots points with the pen defined with drawing action 0xF9. If the pen style is set to solid, then the arguments are just a list of coordinates to be plotted. If the pen style is set to splatter brush (texture), then the arguments are in groups of three with the first argument giving the texture number and the other two giving the coordinates. The texture number determines in what way the pixels will splatter within the defined shape.</p>
+			<p>If the coordinates passed to the plot action would result in the selected pen shape extending past any edge of the picture (for example, a size &gt;1 with x value = 0 and/or y value = 0), AGI will automatically adjust the coordinate position so the entire brush shape will fit.</p>
+      <p><a name="edgebug"><b>NOTE:</b></a> there is a bug in AGI that miscalculates the bounding edge when checking the right edge. The check incorrectly uses a value of 160 in the calculation, instead of 159. So if the pen position is too far to the right, the adjusted position will result in the right column of pen pixels using an x value of 160, and will wrap around to the left edge (because of how the [x,y] coordinates are converted into a buffer offset). The bug exists in all <a href="versions.htm">versions</a> of AGI.</p>
+      </blockquote>
+			<p>&nbsp;</p>
+      <p><b><a name="texture">Texture Data</a></b></p>
+			<p>The texture patterns used by AGI are derived from the following algorithm:</p>
+<pre><code>[ read starting pattern from picture data stream
+pattern = picdata() | 1         [ force first bit to '1' by 'ORing' with 1
+[ set starting pixel to first pixel on top row of desired pen shape
+do
+  {
+  newPatt = pattern &gt;&gt; 1        [ shift right once
+  if((pattern &amp; 1) == 1)    [ if original bit0 is set, 'readjust' new pattern
+    {    
+    newPatt = newPatt ^ 0xB8    [ by XORing it with 0xB8
+    }
+  pattern = newPatt
+  if((pattern &amp; 3) == 2)  [ only draw if bit 1 is set and bit 0 is cleared
+    { 
+    [ draw this pixel
+    }
+  [ move to next pixel, in left-to-right, top-to-bottom order
+  }
+while !done //loop until all pixels in desired pen shape are tested</code></pre>
+			<p>Note that the algorithm first sets bit 0 to '1'('ORing' the pattern value with 1) before it starts drawing pixels. This forces the very first check of the pattern to always update (by XORing with 0xB8).</p>
+			<p>The AGI Specifications file describes the texture patterns as a series of 256 bits with offset values for each pattern number. The pattern bits and offset values are derived from the above algorithm.</p>
+			<p>When a texture pattern is drawn in the shape of a circle, the circle isn't just a cut-out of the equivalent square. The pattern fills the shape of the circle pixel by pixel; corner pixels are ignored. The following diagram illustrates this:</p>
+			<p><img alt="Splatter" src="..\..\graphics\splatter.bmp" width="514"></p>
+		<p>&nbsp;</p>
+    <p><b><a name="ff">0xFF: End of Picture</a></b></p>
+       <blockquote><p><EM>Function:</EM> Indicates the end of picture data. AGI immediately stops processing commands, and finishes the picture. Usually the last byte of the resource is the end of picture command. If the command occurs before the end of the resource, subsequent data are ignored. If a resource does not end with this command, AGI will continue reading data from memory past the resource, which will likely result in unexpected behavior.</p></blockquote>
+        <p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

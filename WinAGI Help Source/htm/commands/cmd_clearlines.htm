@@ -1,0 +1,41 @@
+<html>
+	<head><title>Action Command: clear.lines</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>clear.lines</h1>
+		<p>The <b>clear.lines</b> command clears a range of text lines.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>clear.lines(<a href="syntax_fan.htm#argtypes">byt</a> TOP, <a href="syntax_fan.htm#argtypes">byt</a> BTM, <a href="syntax_fan.htm#argtypes">byt</a> COLOR);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command can be used on both the <a href="..\agi\textdisp.htm">text screen</a> and the <a href="..\agi\grafdisp.htm">graphics screen</a>. On the graphics screen, if any of the lines are within the displayed picture, the picture will be blanked out on the affected rows, but will be restored if an object moves past the cleared area.</p>
+			<p>This command clears lines from row <b>TOP</b> to row <b>BTM</b>. AGI does not validate the <b>TOP</b> and <b>BTM</b> values; if either <b>TOP</b> or <b>BTM</b> &gt; 24, or <b>BTM</b> &lt; <b>TOP</b>, the results will be unpredictable.</p>
+			<p>On the graphics screen, the color used to clear the lines is specified by <b>COLOR</b>. If <b>COLOR</b> is 0, the lines are cleared to black. if <b>COLOR</b> in nonzero, white is used to clear the lines. Keep in mind that if any screen objects move over the cleared area, the screen will revert back to the original pixels once the object has moved past; the cleared area is not stored in memory.</p>
+			<p>On the text screen, the color argument <b>COLOR</b> is ignored. The lines are always cleared to black.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>clear.lines(5, 10, 0)</b>;</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">105 (0x69)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><a href="..\agi\textdisp.htm">AGI Text Screen</a></p>
+			<p><b><a href="cmd_cleartextrect.htm">clear.text.rect</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

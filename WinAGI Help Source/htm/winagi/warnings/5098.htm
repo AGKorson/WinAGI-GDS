@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5098</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5098</h2>
+    <h3>Negative numbers are converted to unsigned 2s complement value</h3>
+    <p class="indent_n">In most cases, AGI treats all byte values as unsigned numbers. The <a href="..\..\commands\cmd_reposition.htm"><b>reposition</b></a> command however, treats its argument values as signed values, ranging from -128  to +127. To make it easier to write source code, WinAGI will take negative numbers and convert them automatically to the appropriate unsigned value. This warning is displayed as a reminder that a negative number was used in source code. If not being used in conjunction with the <b>reposition</b> command, you should avoid use of negative numbers.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

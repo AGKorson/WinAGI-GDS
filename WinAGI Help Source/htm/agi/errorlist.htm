@@ -1,0 +1,118 @@
+<html>
+	<head><title>List of Trappable Errors</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>List of Trappable Errors</h1>
+	<h2><a name="trap1">Error #1</a>: view not loaded in <b>discard.view</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid view number that was detected</p>
+		<p class="indent_n">This error is raised if you attempt to discard a <a href="views.htm">view</a> using the <a href="..\commands\cmd_discardview.htm"><b>discard.view</b></a> (or <a href="..\commands\cmd_discardviewv.htm"><b>discard.view.v</b></a>) command when the view is not loaded. This usually means the programmer entered the wrong view number by mistake. It could also mean the commands are out of order, or perhaps the <b>discard.view</b> command was called twice on the same view.</p>
+		<p class="indent_n">This error is also raised if an unloaded <a href="views.htm">view</a> is discarded during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap2">Error #2</a>: invalid screen object number in <b>set.view</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid screen object number that was detected</p>
+		<p class="indent_n">In version 2.089 only, AGI checks to see if the <a href="screenobjs.htm">screen object</a> number passed to the internal setview function (which is called by the <a href="..\commands\cmd_setview.htm"><b>set.view</b></a>, <a href="..\commands\cmd_setviewv.htm"><b>set.view.v</b></a>, <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a>, <a href="..\commands\cmd_showobjv.htm"><b>show.obj.v</b></a>, <a href="..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> and <a href="..\commands\cmd_addtopicv.htm"><b>add.to.pic.v</b></a> commands) is less than or equal to the <a href="screenobjs.htm#maxscreenobj">MaxScreenObj</a> value. If it is not, i.e. the object number is invalid, AGI raises this error.</p>
+		<p class="indent_n">This error is also raised if an invalid <a href="screenobjs.htm">screen object</a> number is encountered while setting a <a href="views.htm">view</a> during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p class="indent_n"><b>NOTE:</b> This error is only trapped in AGI <a href="versions.htm">version</a> 2.089.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap3">Error #3</a>: view not loaded in <b>set.view</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid view number that was detected</p>
+		<p class="indent_n">When assigning a <a href="views.htm">view</a> to a <a href="screenobjs.htm">screen object</a> in the internal setview function (which is called by the <a href="..\commands\cmd_setview.htm"><b>set.view</b></a>, <a href="..\commands\cmd_setviewv.htm"><b>set.view.v</b></a>, <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a>, <a href="..\commands\cmd_showobjv.htm"><b>show.obj.v</b></a>, <a href="..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> and <a href="..\commands\cmd_addtopicv.htm"><b>add.to.pic.v</b></a> commands), AGI raises this error if the <a href="views.htm">view</a> is not loaded. You must load the view before using it.</p>
+		<p class="indent_n">This error is also raised if an unloaded view is encountered while setting a view during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap4">Error #4</a>: invalid screen object number in <b>set.loop</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid screen object number that was detected</p>
+		<p class="indent_n">In version 2.089 only, AGI checks to see if the <a href="screenobjs.htm">screen object</a> number passed to the internal setloop function (which is called by the <a href="..\commands\cmd_setloop.htm"><b>set.loop</b></a>, <a href="..\commands\cmd_setloopv.htm"><b>set.loop.v</b></a>, <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a>, <a href="..\commands\cmd_showobjv.htm"><b>show.obj.v</b></a>, <a href="..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> and <a href="..\commands\cmd_addtopicv.htm"><b>add.to.pic.v</b></a> commands) is less than or equal to the <a href="screenobjs.htm#maxscreenobj">MaxScreenObj</a> value. If it is not, i.e. the object number is invalid, AGI raises this error.</p>
+		<p class="indent_n">This error is also raised if an invalid <a href="screenobjs.htm">screen object</a> number is encountered while setting a <a href="views.htm#loop">loop</a> during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p class="indent_n"><b>NOTE:</b> This error is only trapped in AGI <a href="versions.htm">version</a> 2.089.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap5">Error #5</a>: invalid loop number in <b>set.loop</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the screen object that the loop was being assigned to</p>
+		<p class="indent_n">When assigning a <a href="views.htm#loop">loop</a> to a <a href="screenobjs.htm">screen object</a> in the internal setloop function (which is called by the <a href="..\commands\cmd_setloop.htm"><b>set.loop</b></a>, <a href="..\commands\cmd_setloopv.htm"><b>set.loop.v</b></a>, <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a>, <a href="..\commands\cmd_showobjv.htm"><b>show.obj.v</b></a>, <a href="..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> and <a href="..\commands\cmd_addtopicv.htm"><b>add.to.pic.v</b></a> commands), AGI raises this error if the <a href="views.htm#loop">loop</a> is not valid (i.e. the assigned loop number exceeds the assigned view's maximum number of loops).</p>
+		<p class="indent_n"><b>NOTE:</b> There is a bug in AGI in the code that checks for this error. <a href="views.htm#loop">Loop</a> numbers start at zero, and valid value run from 0 to the loop count-1. So loop values equal to the loop count should return this error. But instead, AGI only raises this error if the loop number is GREATER than the loop count. This means that if you pass a loop value that is exactly equal to the loop count, AGI thinks it is a valid loop number, and will attempt to load invalid loop data, which will almost always crash AGI.</p> 
+		<p class="indent_n">This error is also raised if an invalid <a href="views.htm#loop">loop</a> number is encountered while assigning a loop during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap6">Error #6</a>: view not assigned in <b>set.loop</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the screen object that the view was being assigned to</p>
+		<p class="indent_n">When assigning a <a href="views.htm#loop">loop</a> to a <a href="screenobjs.htm">screen object</a> in the internal setloop function (which is called by the <a href="..\commands\cmd_setloop.htm"><b>set.loop</b></a>, <a href="..\commands\cmd_setloopv.htm"><b>set.loop.v</b></a>, <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a>, <a href="..\commands\cmd_showobjv.htm"><b>show.obj.v</b></a>, <a href="..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> and <a href="..\commands\cmd_addtopicv.htm"><b>add.to.pic.v</b></a> commands), AGI raises this error if there is not a valid <a href="views.htm">view</a> already assigned to the screen object. You must first assign a view before attempting to set a loop.</p>
+		<p class="indent_n">This error is also raised if an unassigned <a href="views.htm">view</a> is encountered while assigning a loop during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap7">Error #7</a>: invalid screen object number in <b>set.cel</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid screen object number that was detected</p>
+		<p class="indent_n">In version 2.089 only, AGI checks to see if the <a href="screenobjs.htm">screen object</a> number passed to the internal setcel function (which is called by the <a href="..\commands\cmd_setcel.htm"><b>set.cel</b></a>, <a href="..\commands\cmd_setcelv.htm"><b>set.cel.v</b></a>, <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a>, <a href="..\commands\cmd_showobjv.htm"><b>show.obj.v</b></a>, <a href="..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> and <a href="..\commands\cmd_addtopicv.htm"><b>add.to.pic.v</b></a> commands) is less than or equal to the <a href="screenobjs.htm#maxscreenobj">MaxScreenObj</a> value. If it is not, i.e. the object number is invalid, AGI raises this error.</p>
+		<p class="indent_n">This error is also raised if an invalid <a href="screenobjs.htm">screen object</a> number is encountered while setting a <a href="views.htm#cel">cel</a> during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p class="indent_n"><b>NOTE:</b> This error is only trapped in AGI <a href="versions.htm">version</a> 2.089.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap8">Error #8</a>: invalid cel number in <b>set.cel</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the screen object that the cel was being assigned to</p>
+		<p class="indent_n">When assigning a <a href="views.htm#cel">cel</a> to a <a href="screenobjs.htm">screen object</a> in the internal setcel function (which is called by the <a href="..\commands\cmd_setcel.htm"><b>set.cel</b></a>, <a href="..\commands\cmd_setcelv.htm"><b>set.cel.v</b></a>, <a href="..\commands\cmd_setloop.htm"><b>set.loop</b></a>, <a href="..\commands\cmd_setloopv.htm"><b>set.loop.v</b></a>, <a href="..\commands\cmd_setview.htm"><b>set.view</b></a>, <a href="..\commands\cmd_setviewv.htm"><b>set.view.v</b></a>, <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a>, <a href="..\commands\cmd_showobjv.htm"><b>show.obj.v</b></a>, <a href="..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> and <a href="..\commands\cmd_addtopicv.htm"><b>add.to.pic.v</b></a> commands), AGI raises this error if the <a href="views.htm#cel">cel</a> is not valid (i.e. the assigned cel number exceeds the assigned view's maximum number of cels for the assigned loop).</p>
+		<p class="indent_n">This error is also raised if an invalid <a href="views.htm#cel">cel</a> number is encountered while assigning a cel during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap9">Error #9</a>: sound not loaded in <b>sound</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid sound number that was detected</p>
+		<p class="indent_n">If the <a href="sounds.htm">sound</a> referenced in a <a href="..\commands\cmd_sound.htm"><b>sound</b></a> command has not been <a href="..\commands\cmd_loadsound.htm">loaded</a>, AGI raises this error. You must first load a sound before you can play it.</p> 
+		<p>&nbsp;</p>
+	<h2><a name="trap10">Error #10</a>: view not assigned in <b>set.cel</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the screen object that the view was being assigned to</p>
+		<p class="indent_n">When assigning a <a href="views.htm#cel">cel</a> to a <a href="screenobjs.htm">screen object</a> in the internal setcel function (which is called by the <a href="..\commands\cmd_setcel.htm"><b>set.cel</b></a>, <a href="..\commands\cmd_setcelv.htm"><b>set.cel.v</b></a>, <a href="..\commands\cmd_setloop.htm"><b>set.loop</b></a>, <a href="..\commands\cmd_setloopv.htm"><b>set.loop.v</b></a>, <a href="..\commands\cmd_setview.htm"><b>set.view</b></a>, <a href="..\commands\cmd_setviewv.htm"><b>set.view.v</b></a>, <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a>, <a href="..\commands\cmd_showobjv.htm"><b>show.obj.v</b></a>, <a href="..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> and <a href="..\commands\cmd_addtopicv.htm"><b>add.to.pic.v</b></a> commands), AGI raises this error if there is not a valid <a href="views.htm">view</a> already assigned to the screen object. You must first assign a view before attempting to set a loop.</p>
+		<p class="indent_n">This error is also raised if an unassigned <a href="views.htm">view</a> is encountered while assigning a loop during <a href="restore.htm">restoration</a> of a <a href="save.htm">saved game</a>. This is unlikely though, unless the save game file is corrupted.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap11">Error #11</a>: script buffer overflow</h2>
+		<p class="indent_n"><b>v18 value:</b> the current script buffer size</p>
+		<p class="indent_n">In order to properly <a href="restore.htm">restore a game</a> from a save game file, AGI tracks the loading and unloading of <a href="resources.htm">resources</a> in a <a href="scripts.htm">'script'</a> buffer. If the number of script entries exceeds the size of the script buffer, this error is raised. See the <a href="scripts.htm">AGI Scripts</a> topic for additional information on managing scripts.</p> 
+		<p>&nbsp;</p>
+	<h2><a name="trap12">Error #12</a>: invalid screen object number in <b>erase</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid screen object number that was detected</p>
+		<p class="indent_n">AGI checks to see if the <a href="screenobjs.htm">screen object</a> number passed to the <a href="..\commands\cmd_erase.htm"><b>erase</b></a> command is less than or equal to the <a href="screenobjs.htm#maxscreenobj">MaxScreenObj</a> value. If it is not, i.e. the object number is invalid, AGI raises this error.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap13">Error #13</a>: invalid screen object number in <b>animate.obj</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid screen object number that was detected</p>
+		<p class="indent_n">AGI checks to see if the <a href="screenobjs.htm">screen object</a> number passed to the <a href="..\commands\cmd_animateobj.htm"><b>animate.obj</b></a> command is less than or equal to the <a href="screenobjs.htm#maxscreenobj">MaxScreenObj</a> value. If it is not, i.e. the object number is invalid, AGI raises this error.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap14">Error #14</a>: invalid message number</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid message number that was detected</p>
+		<p class="indent_n">If AGI tries to access an <a href="..\commands\syntax_fan.htm#messages">undeclared</a> <a href="messages.htm">message</a> (such as when <a href="..\commands\cmd_print.htm">printing</a>, <a href="menu.htm">setting menus and menu items</a>, or other commands or functions that need to access messages) that is <b>less</b> than the <a href="..\agi\logics.htm">logic</a> message count, AGI raises this error. This error can easily be avoided by <a href="..\commands\syntax_fan.htm#messages">declaring</a> 'null' messages for any message numbers that aren't going to be used. WinAGI automatically declares null messages for any messages that are not explicitly declared in a logic.</p>
+		<p class="indent_n">Note that if the undeclared message number is <b>greater</b> than the logic message count, no error is raised, and AGI will attempt to access an invalid memory location, <a href="errors.htm#msgerr">resulting in unexpected data being displayed</a>.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap15">Error #15</a>: invalid test command</h2>
+		<p class="indent_n"><b>v18 value:</b> not used; set to zero</p>
+		<p class="indent_n">This error is raised if AGI encounters a test command value greater than 38 while processing a <a href="logics.htm#tests">logic</a>. The reason this value is 38, even though there are only 19 valid test commands (including the undocumented <a href="..\commands\cmd_returnfalse.htm"><b>return.false</b></a> command), is because of a bug; in the source code for AGI, Sierra calcuated the maximum number of valid test commands by dividing the size of the command jump table by 2, but there are actually four bytes per entry in that table. So using a test command byte value from 19 to 37 won't cause a trappable error, but instead will result in AGI <a href="errors.htm#test">using invalid memory to try and process the test</a>, which will almost always crash AGI.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap16">Error #16</a>: invalid action command</h2>
+		<p class="indent_n"><b>v18 value:</b> not used; set to zero</p>
+		<p class="indent_n">If AGI encounters an <a href="logics.htm#actions">action command</a> value that is greater than the number of valid AGI commands for that <a href="versions.htm">version</a>, AGI raises this error. The number of action commands grew steadily with subsequent versions; version 2.089 had 155 valid AGI action commands, while the last version, 3.002.0149, had 181 action commands. Backwards compatibility occasionally becomes an issue if a game designed for a later version is run on an earlier version which doesn't have all the commands that later version had. This error check is likely to help programmers detect if a player is using the wrong interpreter version.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap17">Error #17</a>: not used</h2>
+		<p>This error code was not used in AGI. Some early versions of AGI Specifications list this error code as occurring when the <a href="..\commands\cmd_startupdate.htm"><b>start.update</b></a> command was called with an invalid <a href="screenobjs.htm">screen object number</a>, but no <a href="versions.htm">AGI versions</a> (2.089 and above) use this error code.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap18">Error #18</a>: picture not loaded in <b>draw.pic</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid picture number that was detected</p>
+		<p class="indent_n">If the value passed to the <a href="..\commands\cmd_drawpic.htm"><b>draw.pic</b></a> command is for a <a href="pictures.htm">picture</a> that hasn't been previously <a href="..\commands\cmd_loadpic.htm">loaded</a>, AGI raises this error. Make sure a <a href="pictures.htm">picture</a> is loaded before trying to draw it to the screen.</p>
+		<p class="indent_n">This error is also raised if the <a href="..\commands\cmd_overlaypic.htm"><b>overlay.pic</b></a> command is called on a picture that is not loaded.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap19">Error #19</a>: invalid screen object number in <b>draw</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid screen object number that was detected</p>
+		<p class="indent_n">AGI checks to see if the <a href="screenobjs.htm">screen object</a> number passed to the <a href="..\commands\cmd_draw.htm"><b>draw</b></a> command is less than or equal to the <a href="screenobjs.htm#maxscreenobj">MaxScreenObj</a> value. If it is not, i.e. the object number is invalid, AGI raises this error.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap20">Error #20</a>: invalid cel data in <b>draw</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the screen object number that was passed to the <b>draw</b> command</p>
+		<p class="indent_n">AGI checks that a <a href="screenobjs.htm">screen object</a> has a valid pointer to <a href="views.htm#cel">cel</a> data before drawing it to the screen with the <a href="..\commands\cmd_draw.htm"><b>draw</b></a> command. If the cel data are invalid (usually due to not <a href="..\commands\cmd_setview.htm">assigning a view</a>) this error is raised.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap21">Error #21</a>: invalid picture number in <b>discard.pic</b> command</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid picture number that was detected</p>
+		<p class="indent_n">If the value passed to the <a href="..\commands\cmd_discardpic.htm"><b>discard.pic</b></a> command is for a <a href="pictures.htm">picture</a> that hasn't been previously <a href="..\commands\cmd_loadpic.htm">loaded</a>, AGI raises this error. Don't try to discard a picture that hasn't been loaded.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap22">Error #22</a>: not used</h2>
+		<p>This error code was not used in AGI. Some early versions of AGI Specifications list this error code as occurring during certain situations involving the <a href="..\commands\cmd_setscanstart.htm"><b>set.scan.start</b></a> command, but no <a href="versions.htm">AGI versions</a> (2.089 and above) use this error code.</p>
+		<p>&nbsp;</p>
+	<h2><a name="trap23">Error #23</a> (0x17): invalid inventory item number</h2>
+		<p class="indent_n"><b>v18 value:</b> the invalid inventory item number that was detected</p>
+		<p class="indent_n">When using commands that access <a href="object.htm#items">inventory items</a> such as <a href="..\commands\cmd_get.htm"><b>get</b></a>, <a href="..\commands\cmd_put.htm"><b>put</b></a> and <a href="..\commands\cmd_drop.htm"><b>drop</b></a>, AGI checks the item number, and if it exceeds the number of items in the <a href="object.htm">OBJECT</a> file, this error is raised.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Error 6017</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6017</h2>
+    <h3>Invalid action command '&lt;token&gt;'</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">This error indicates the compiler was expecting an <a href="..\..\commands\syntax_sierra.htm#actions">action command</a> or <a href="..\..\agi\variables.htm">variable</a> as part of an <a href="..\..\commands\syntax_sierra.htm#alternateactions">alternate syntax</a> statement, but an unexpected token such as a number was found. This is usually caused by a syntax error in source code. Check you code carefully, and correct as needed.</p>
+      <blockquote>
+      <pre>v1 = 5;
+123      [ <font color="red"><b>NOT OK</b></font>, another command is expected, not a number
+v2 = 6;
+...</pre></blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+<html>
+	<head><title>Logic Compiler Warning 7008</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7008</h2>
+    <h3>Using '!=' when a test is already negated will toggle the NOT status</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Sierra syntax allows the NOT operator (!) to be placed in front of <a href="..\..\commands\syntax_sierra.htm#alternatetests">alternate syntax</a> test commands. In Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, using the binary operator '!=' when a test is already negated just adds a second 'NOT byte' (0xFD). For example:</p>
+      <blockquote><pre><code>SOURCE                 BYTE CODE
+if (v85 == 2)          FF 01 55 02 FF
+if (!v85 == 2)         FF FD 01 55 02 FF
+if (v85 != 2)          FF FD 01 55 02 FF
+if (!v85 != 2)         FF FD FD 01 55 02 FF</code></pre></blockquote>
+    <p class="indent_n">When AGI processes the NOT byte value, it toggles an internal flag. Which means two consecutive NOT bytes will cancel each other out.</p>
+      <blockquote><pre>v85 = 2;
+if (!v85 != 2)   [ this will return TRUE</pre>
+      </blockquote>
+    <p class="indent_n">You should edit your source code to use no more than one NOT byte when it compiles.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

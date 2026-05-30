@@ -1,0 +1,2 @@
+#define IDH_CMDS 1001
+#define IDH_REFERENCE 1002

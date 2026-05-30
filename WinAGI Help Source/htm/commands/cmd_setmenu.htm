@@ -1,0 +1,60 @@
+<html>
+	<head><title>Action Command: set.menu</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>set.menu</h1>
+		<p>The <b>set.menu</b> command adds a menu to the menu system.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.menu(<a href="syntax_fan.htm#argtypes">msg</a> mA);</p>
+			<p>set.menu("menu text");</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>In AGI menus are the displayed along the top of the <a href="..\agi\menu.htm">menu bar</a>, and each menu may have zero or more menu items, which are the drop-down list of items to choose from. The <b>set.menu</b> command adds new menu <b>mA</b> to the menu structure. Menus will be displayed on the menu bar in the order that they are added with the <b>set.menu</b> command. A single space is added between each menu.</p>
+			<p>The items that will be in the drop down list for the menu must be added in order immediately after the menu is created. The order of menus and menu items cannot be changed once they are created.</p>
+			<p>Care should be taken to ensure all the menus added will fit on the menu bar. A single space is added between menu entries, so for the menus to fit, the total number of characters in all menus plus the number of menus should not exceed 40. If there are too many menu entries, or if they are too wide, the extra menu characters will wrap around into the next row, and the menu's items will be aligned to the right edge of the screen.</p>
+			<p>Unlike menu items, menus are not selectable, i.e. they cannot be assigned to <a href="..\agi\controllers.htm">controllers</a>. One or more <a href="cmd_setmenuitem.htm"><b>set.menu.item</b></a> commands should follow the <b>set.menu</b> command. Menus with no items added will be disabled automatically by AGI and cannot be selected.</p>
+			<p>Calls to <b>set.menu</b> after the menu system is added (by calling the <a href="cmd_submitmenu.htm"><b>submit.menu</b></a> command) are ignored.</p>
+			<p>Do not include a line break in a menu; the extra lines will display on the line below the menu, and will not automatically erase, unless covered up by another menu selection.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ build a simple menu system
+<b>set.menu("Info");</b>
+set.menu.item("About   ", c0);
+set.menu.item("Help    ", c1);
+<b>set.menu("File");</b>
+set.menu.item("Save Game      &lt;F5&gt;", c2);
+set.menu.item("Restore Game   &lt;F7&gt;", c3);
+set.menu.item("-------------------", c20);
+set.menu.item("Restart Game   &lt;F9&gt;", c4);
+set.menu.item("-------------------", c20);
+set.menu.item("Quit        &lt;Alt Z&gt;", c5);
+[ disable the separators
+disable.item(c20);
+
+[ submit menu to agi
+submit.menu()</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 2.411 and above.</p>
+		<p>This command was actually added in <a href="..\agi\versions.htm">version 2.272</a>, but it did not do anything - it was a null function. Code to support menus was not added to the command until version 2.411.</p> 
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">156 (0x9C)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="..\agi\menu.htm">Menus in AGI</a></p>
+			<p><a href="cmd_setmenuitem.htm"><b>set.menu.item</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

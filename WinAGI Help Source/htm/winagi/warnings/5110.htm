@@ -1,0 +1,18 @@
+<html>
+	<head><title>Logic Compiler Warning 5110</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5110</h2>
+    <h3>Cel width less than 3 will not draw control box correctly</h3>
+    <p class="indent_n">There is a bug in the code that the <a href="..\..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> command uses to draw the control box when the margin property is three or less. If the width of the <a href="..\..\agi\views.htm#cel">cel</a> being added is one pixel wide, the control line will draw 255 pixels (which will obviously extend over several lines). If the width is exactly two, AGI will try to draw a line of 64K pixels, which overflows AGI's memory and crashes AGI.</p>
+    <p class="indent_n">This warning is raised if you attempt to add a cel with a width of 2 or less and also include a control box. You should either use a cel with a width of at least 3, or pass a margin value greater than 3 (which will mean no control box will be drawn).</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

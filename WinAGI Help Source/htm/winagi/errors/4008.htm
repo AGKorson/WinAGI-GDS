@@ -1,0 +1,26 @@
+<html>
+	<head><title>Logic Compiler Error 4008</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4008</h2>
+    <h3>'}' not at end of any command blocks</h3>
+    <p class="indent_n">Curly braces are used to designate blocks of code to be executed as part of an <a href="..\..\commands\syntax_fan.htm#ifelse">if statement or else statement</a>. They cannot be used anywhere else. This is often caused by cutting and pasting errors.</p>
+    <p class="indent_n">Using indentation in your source code can help spot this error.</p>
+    <p>&nbsp;</p>
+    <blockquote>
+      <pre>if (v99 == 1)
+    {
+    v100 = 2;
+  }
+}  [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+    </blockquote>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

@@ -1,0 +1,1968 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<!-- Sitemap 1.0 -->
+</HEAD><BODY>
+<ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="adding resources">
+		<param name="Name" value="Adding and Removing Resources">
+		<param name="Local" value="htm\winagi\resource_addremove.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="AGI colors">
+		<param name="Name" value="AGI Graphics">
+		<param name="Local" value="htm\agi\graphics.htm#colors">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="AGI overview">
+		<param name="Name" value="AGI Overview">
+		<param name="Local" value="htm\agi\overview.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="designer property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_version.htm#designer">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="commands">
+		<param name="Name" value="Commands Overview">
+		<param name="Local" value="htm\commands\Commands.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="Test">
+			<param name="Name" value="Test Commands">
+			<param name="Local" value="htm\commands\cmds_test.htm">
+			</OBJECT>
+		<ul>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="center.posn">
+				<param name="Name" value="Test Command: center.posn">
+				<param name="Local" value="htm\commands\cmd_centerposn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="compare.strings">
+				<param name="Name" value="Test Command: compare.strings">
+				<param name="Local" value="htm\commands\cmd_comparestrings.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="controller">
+				<param name="Name" value="Test Command: controller">
+				<param name="Local" value="htm\commands\cmd_controller.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="equaln">
+				<param name="Name" value="Test Command: equaln">
+				<param name="Local" value="htm\commands\cmd_equaln.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="equalv">
+				<param name="Name" value="Test Command: equalv">
+				<param name="Local" value="htm\commands\cmd_equalv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="greatern">
+				<param name="Name" value="Test Command: greatern">
+				<param name="Local" value="htm\commands\cmd_greatern.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="greaterv">
+				<param name="Name" value="Test Command: greaterv">
+				<param name="Local" value="htm\commands\cmd_greaterv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="has">
+				<param name="Name" value="Test Command: has">
+				<param name="Local" value="htm\commands\cmd_has.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="have.key">
+				<param name="Name" value="Test Command: have.key">
+				<param name="Local" value="htm\commands\cmd_havekey.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="isset">
+				<param name="Name" value="Test Command: isset">
+				<param name="Local" value="htm\commands\cmd_isset.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="issetv">
+				<param name="Name" value="Test Command: issetv">
+				<param name="Local" value="htm\commands\cmd_issetv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="lessn">
+				<param name="Name" value="Test Command: lessn">
+				<param name="Local" value="htm\commands\cmd_lessn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="lessv">
+				<param name="Name" value="Test Command: lessv">
+				<param name="Local" value="htm\commands\cmd_lessv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="obj.in.box">
+				<param name="Name" value="Test Command: obj.in.box">
+				<param name="Local" value="htm\commands\cmd_objinbox.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="obj.in.room">
+				<param name="Name" value="Test Command: obj.in.room">
+				<param name="Local" value="htm\commands\cmd_objinroom.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="posn">
+				<param name="Name" value="Test Command: posn">
+				<param name="Local" value="htm\commands\cmd_posn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="right.posn">
+				<param name="Name" value="Test Command: right.posn">
+				<param name="Local" value="htm\commands\cmd_rightposn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="said">
+				<param name="Name" value="Test Command: said">
+				<param name="Local" value="htm\commands\cmd_said.htm">
+				</OBJECT>
+		</ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="Action">
+			<param name="See Also" value="Action">
+			</OBJECT>
+		<ul>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="accept.input">
+				<param name="Name" value="Action Command: accept.input">
+				<param name="Local" value="htm\commands\cmd_acceptinput.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="add.to.pic">
+				<param name="Name" value="Action Command: add.to.pic">
+				<param name="Local" value="htm\commands\cmd_addtopic.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="add.to.pic.v">
+				<param name="Name" value="Action Command: add.to.pic.v">
+				<param name="Local" value="htm\commands\cmd_addtopicv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="addn">
+				<param name="Name" value="Action Command: addn">
+				<param name="Local" value="htm\commands\cmd_addn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="addv">
+				<param name="Name" value="Action Command: addv">
+				<param name="Local" value="htm\commands\cmd_addv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="allow.menu">
+				<param name="Name" value="Action Command: allow.menu">
+				<param name="Local" value="htm\commands\cmd_allowmenu.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="animate.obj">
+				<param name="Name" value="Action Command: animate.obj">
+				<param name="Local" value="htm\commands\cmd_animateobj.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="assignn">
+				<param name="Name" value="Action Command: assignn">
+				<param name="Local" value="htm\commands\cmd_assignn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="assignv">
+				<param name="Name" value="Action Command: assignv">
+				<param name="Local" value="htm\commands\cmd_assignv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="block">
+				<param name="Name" value="Action Command: block">
+				<param name="Local" value="htm\commands\cmd_block.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="call">
+				<param name="Name" value="Action Command: call">
+				<param name="Local" value="htm\commands\cmd_call.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="call.v">
+				<param name="Name" value="Action Command: call.v">
+				<param name="Local" value="htm\commands\cmd_callv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="cancel.line">
+				<param name="Name" value="Action Command: cancel.line">
+				<param name="Local" value="htm\commands\cmd_cancelline.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="clear.lines">
+				<param name="Name" value="Action Command: clear.lines">
+				<param name="Local" value="htm\commands\cmd_clearlines.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="clear.text.rect">
+				<param name="Name" value="Action Command: clear.text.rect">
+				<param name="Local" value="htm\commands\cmd_cleartextrect.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="close.dialogue">
+				<param name="Name" value="Action Command: close.dialogue">
+				<param name="Local" value="htm\commands\cmd_closedialogue.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="close.window">
+				<param name="Name" value="Action Command: close.window">
+				<param name="Local" value="htm\commands\cmd_closewindow.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="configure.screen">
+				<param name="Name" value="Action Command: configure.screen">
+				<param name="Local" value="htm\commands\cmd_configurescreen.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="current.cel">
+				<param name="Name" value="Action Command: current.cel">
+				<param name="Local" value="htm\commands\cmd_currentcel.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="current.loop">
+				<param name="Name" value="Action Command: current.loop">
+				<param name="Local" value="htm\commands\cmd_currentloop.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="current.view">
+				<param name="Name" value="Action Command: current.view">
+				<param name="Local" value="htm\commands\cmd_currentview.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="cycle.time">
+				<param name="Name" value="Action Command: cycle.time">
+				<param name="Local" value="htm\commands\cmd_cycletime.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="decrement">
+				<param name="Name" value="Action Command: decrement">
+				<param name="Local" value="htm\commands\cmd_decrement.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="disable.item">
+				<param name="Name" value="Action Command: disable.item">
+				<param name="Local" value="htm\commands\cmd_disableitem.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="discard.pic">
+				<param name="Name" value="Action Command: discard.pic">
+				<param name="Local" value="htm\commands\cmd_discardpic.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="discard.sound">
+				<param name="Name" value="Action Command: discard.sound">
+				<param name="Local" value="htm\commands\cmd_discardsound.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="discard.view">
+				<param name="Name" value="Action Command: discard.view">
+				<param name="Local" value="htm\commands\cmd_discardview.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="discard.view.v">
+				<param name="Name" value="Action Command: discard.view.v">
+				<param name="Local" value="htm\commands\cmd_discardviewv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="display">
+				<param name="Name" value="Action Command: display">
+				<param name="Local" value="htm\commands\cmd_display.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="display.v">
+				<param name="Name" value="Action Command: display.v">
+				<param name="Local" value="htm\commands\cmd_displayv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="distance">
+				<param name="Name" value="Action Command: distance">
+				<param name="Local" value="htm\commands\cmd_distance.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="div.n">
+				<param name="Name" value="Action Command: div.n">
+				<param name="Local" value="htm\commands\cmd_divn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="div.v">
+				<param name="Name" value="Action Command: div.v">
+				<param name="Local" value="htm\commands\cmd_divv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="draw">
+				<param name="Name" value="Action Command: draw">
+				<param name="Local" value="htm\commands\cmd_draw.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="draw.pic">
+				<param name="Name" value="Action Command: draw.pic">
+				<param name="Local" value="htm\commands\cmd_drawpic.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="drop">
+				<param name="Name" value="Action Command: drop">
+				<param name="Local" value="htm\commands\cmd_drop.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="echo.line">
+				<param name="Name" value="Action Command: echo.line">
+				<param name="Local" value="htm\commands\cmd_echoline.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="enable.item">
+				<param name="Name" value="Action Command: enable.item">
+				<param name="Local" value="htm\commands\cmd_enableitem.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="end.of.loop">
+				<param name="Name" value="Action Command: end.of.loop">
+				<param name="Local" value="htm\commands\cmd_endofloop.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="erase">
+				<param name="Name" value="Action Command: erase">
+				<param name="Local" value="htm\commands\cmd_erase.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="fence.mouse">
+				<param name="Name" value="Action Command: fence.mouse">
+				<param name="Local" value="htm\commands\cmd_fencemouse.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="fix.loop">
+				<param name="Name" value="Action Command: fix.loop">
+				<param name="Local" value="htm\commands\cmd_fixloop.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="follow.ego">
+				<param name="Name" value="Action Command: follow.ego">
+				<param name="Local" value="htm\commands\cmd_followego.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="force.update">
+				<param name="Name" value="Action Command: force.update">
+				<param name="Local" value="htm\commands\cmd_forceupdate.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="get">
+				<param name="Name" value="Action Command: get">
+				<param name="Local" value="htm\commands\cmd_get.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="get.dir">
+				<param name="Name" value="Action Command: get.dir">
+				<param name="Local" value="htm\commands\cmd_getdir.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="get.num">
+				<param name="Name" value="Action Command: get.num">
+				<param name="Local" value="htm\commands\cmd_getnum.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="get.posn">
+				<param name="Name" value="Action Command: get.posn">
+				<param name="Local" value="htm\commands\cmd_getposn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="get.priority">
+				<param name="Name" value="Action Command: get.priority">
+				<param name="Local" value="htm\commands\cmd_getpriority.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="get.room.v">
+				<param name="Name" value="Action Command: get.room.v">
+				<param name="Local" value="htm\commands\cmd_getroomv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="get.string">
+				<param name="Name" value="Action Command: get.string">
+				<param name="Local" value="htm\commands\cmd_getstring.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="get.v">
+				<param name="Name" value="Action Command: get.v">
+				<param name="Local" value="htm\commands\cmd_getv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="graphics">
+				<param name="Name" value="Action Command: graphics">
+				<param name="Local" value="htm\commands\cmd_graphics.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="hide.mouse">
+				<param name="Name" value="Action Command: hide.mouse">
+				<param name="Local" value="htm\commands\cmd_hidemouse.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="hold.key">
+				<param name="Name" value="Action Command: hold.key">
+				<param name="Local" value="htm\commands\cmd_holdkey.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="ignore.blocks">
+				<param name="Name" value="Action Command: ignore.blocks">
+				<param name="Local" value="htm\commands\cmd_ignoreblocks.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="ignore.horizon">
+				<param name="Name" value="Action Command: ignore.horizon">
+				<param name="Local" value="htm\commands\cmd_ignorehorizon.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="ignore.objs">
+				<param name="Name" value="Action Command: ignore.objs">
+				<param name="Local" value="htm\commands\cmd_ignoreobjs.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="increment">
+				<param name="Name" value="Action Command: increment">
+				<param name="Local" value="htm\commands\cmd_increment.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="init.disk">
+				<param name="Name" value="Action Command: init.disk">
+				<param name="Local" value="htm\commands\cmd_initdisk.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="init.joy">
+				<param name="Name" value="Action Command: init.joy">
+				<param name="Local" value="htm\commands\cmd_initjoy.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="last.cel">
+				<param name="Name" value="Action Command: last.cel">
+				<param name="Local" value="htm\commands\cmd_lastcel.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="lindirectn">
+				<param name="Name" value="Action Command: lindirectn">
+				<param name="Local" value="htm\commands\cmd_lindirectn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="lindirectv">
+				<param name="Name" value="Action Command: lindirectv">
+				<param name="Local" value="htm\commands\cmd_lindirectv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="load.logics">
+				<param name="Name" value="Action Command: load.logics">
+				<param name="Local" value="htm\commands\cmd_loadlogics.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="load.logics.v">
+				<param name="Name" value="Action Command: load.logics.v">
+				<param name="Local" value="htm\commands\cmd_loadlogicsv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="load.pic">
+				<param name="Name" value="Action Command: load.pic">
+				<param name="Local" value="htm\commands\cmd_loadpic.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="load.sound">
+				<param name="Name" value="Action Command: load.sound">
+				<param name="Local" value="htm\commands\cmd_loadsound.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="load.view">
+				<param name="Name" value="Action Command: load.view">
+				<param name="Local" value="htm\commands\cmd_loadview.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="load.view.v">
+				<param name="Name" value="Action Command: load.view.v">
+				<param name="Local" value="htm\commands\cmd_loadviewv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="log">
+				<param name="Name" value="Action Command: log">
+				<param name="Local" value="htm\commands\cmd_log.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="menu.input">
+				<param name="Name" value="Action Command: menu.input">
+				<param name="Local" value="htm\commands\cmd_menuinput.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="mouse.posn">
+				<param name="Name" value="Action Command: mouse.posn">
+				<param name="Local" value="htm\commands\cmd_mouseposn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="move.obj">
+				<param name="Name" value="Action Command: move.obj">
+				<param name="Local" value="htm\commands\cmd_moveobj.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="move.obj.v">
+				<param name="Name" value="Action Command: move.obj.v">
+				<param name="Local" value="htm\commands\cmd_moveobjv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="mul.n">
+				<param name="Name" value="Action Command: mul.n">
+				<param name="Local" value="htm\commands\cmd_muln.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="mul.v">
+				<param name="Name" value="Action Command: mul.v">
+				<param name="Local" value="htm\commands\cmd_mulv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="new.room">
+				<param name="Name" value="Action Command: new.room">
+				<param name="Local" value="htm\commands\cmd_newroom.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="new.room.v">
+				<param name="Name" value="Action Command: new.room.v">
+				<param name="Local" value="htm\commands\cmd_newroomv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="normal.cycle">
+				<param name="Name" value="Action Command: normal.cycle">
+				<param name="Local" value="htm\commands\cmd_normalcycle.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="normal.motion">
+				<param name="Name" value="Action Command: normal.motion">
+				<param name="Local" value="htm\commands\cmd_normalmotion.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="number.of.loops">
+				<param name="Name" value="Action Command: number.of.loops">
+				<param name="Local" value="htm\commands\cmd_numberofloops.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="obj.status.v">
+				<param name="Name" value="Action Command: obj.status.v">
+				<param name="Local" value="htm\commands\cmd_objstatusv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="object.on.anything">
+				<param name="Name" value="Action Command: object.on.anything">
+				<param name="Local" value="htm\commands\cmd_objectonanything.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="object.on.land">
+				<param name="Name" value="Action Command: object.on.land">
+				<param name="Local" value="htm\commands\cmd_objectonland.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="object.on.water">
+				<param name="Name" value="Action Command: object.on.water">
+				<param name="Local" value="htm\commands\cmd_objectonwater.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="observe.blocks">
+				<param name="Name" value="Action Command: observe.blocks">
+				<param name="Local" value="htm\commands\cmd_observeblocks.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="observe.horizon">
+				<param name="Name" value="Action Command: observe.horizon">
+				<param name="Local" value="htm\commands\cmd_observehorizon.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="observe.objs">
+				<param name="Name" value="Action Command: observe.objs">
+				<param name="Local" value="htm\commands\cmd_observeobjs.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="open.dialogue">
+				<param name="Name" value="Action Command: open.dialogue">
+				<param name="Local" value="htm\commands\cmd_opendialogue.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="overlay.pic">
+				<param name="Name" value="Action Command: overlay.pic">
+				<param name="Local" value="htm\commands\cmd_overlaypic.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="parse">
+				<param name="Name" value="Action Command: parse">
+				<param name="Local" value="htm\commands\cmd_parse.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="pause">
+				<param name="Name" value="Action Command: pause">
+				<param name="Local" value="htm\commands\cmd_pause.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="player.control">
+				<param name="Name" value="Action Command: player.control">
+				<param name="Local" value="htm\commands\cmd_playercontrol.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="pop.script">
+				<param name="Name" value="Action Command: pop.script">
+				<param name="Local" value="htm\commands\cmd_popscript.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="position">
+				<param name="Name" value="Action Command: position">
+				<param name="Local" value="htm\commands\cmd_position.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="position.v">
+				<param name="Name" value="Action Command: position.v">
+				<param name="Local" value="htm\commands\cmd_positionv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="prevent.input">
+				<param name="Name" value="Action Command: prevent.input">
+				<param name="Local" value="htm\commands\cmd_preventinput.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="print">
+				<param name="Name" value="Action Command: print">
+				<param name="Local" value="htm\commands\cmd_print.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="print.at">
+				<param name="Name" value="Action Command: print.at">
+				<param name="Local" value="htm\commands\cmd_printat.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="print.at.v">
+				<param name="Name" value="Action Command: print.at.v">
+				<param name="Local" value="htm\commands\cmd_printatv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="print.v">
+				<param name="Name" value="Action Command: print.v">
+				<param name="Local" value="htm\commands\cmd_printv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="program.control">
+				<param name="Name" value="Action Command: program.control">
+				<param name="Local" value="htm\commands\cmd_programcontrol.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="push.script">
+				<param name="Name" value="Action Command: push.script">
+				<param name="Local" value="htm\commands\cmd_pushscript.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="put">
+				<param name="Name" value="Action Command: put">
+				<param name="Local" value="htm\commands\cmd_put.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="put.v">
+				<param name="Name" value="Action Command: put.v">
+				<param name="Local" value="htm\commands\cmd_putv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="quit">
+				<param name="Name" value="Action Command: quit">
+				<param name="Local" value="htm\commands\cmd_quit.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="random">
+				<param name="Name" value="Action Command: random">
+				<param name="Local" value="htm\commands\cmd_random.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="release.key">
+				<param name="Name" value="Action Command: release.key">
+				<param name="Local" value="htm\commands\cmd_releasekey.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="release.loop">
+				<param name="Name" value="Action Command: release.loop">
+				<param name="Local" value="htm\commands\cmd_releaseloop.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="release.priority">
+				<param name="Name" value="Action Command: release.priority">
+				<param name="Local" value="htm\commands\cmd_releasepriority.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="reposition">
+				<param name="Name" value="Action Command: reposition">
+				<param name="Local" value="htm\commands\cmd_reposition.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="reposition.to">
+				<param name="Name" value="Action Command: reposition.to">
+				<param name="Local" value="htm\commands\cmd_repositionto.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="reposition.to.v">
+				<param name="Name" value="Action Command: reposition.to.v">
+				<param name="Local" value="htm\commands\cmd_repositiontov.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="reset">
+				<param name="Name" value="Action Command: reset">
+				<param name="Local" value="htm\commands\cmd_reset.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="reset.scan.start">
+				<param name="Name" value="Action Command: reset.scan.start">
+				<param name="Local" value="htm\commands\cmd_resetscanstart.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="reset.v">
+				<param name="Name" value="Action Command: reset.v">
+				<param name="Local" value="htm\commands\cmd_resetv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="restart.game">
+				<param name="Name" value="Action Command: restart.game">
+				<param name="Local" value="htm\commands\cmd_restartgame.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="restore.game">
+				<param name="Name" value="Action Command: restore.game">
+				<param name="Local" value="htm\commands\cmd_restoregame.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="return">
+				<param name="Name" value="Action Command: return">
+				<param name="Local" value="htm\commands\cmd_return.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="reverse.cycle">
+				<param name="Name" value="Action Command: reverse.cycle">
+				<param name="Local" value="htm\commands\cmd_reversecycle.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="reverse.loop">
+				<param name="Name" value="Action Command: reverse.loop">
+				<param name="Local" value="htm\commands\cmd_reverseloop.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="rindirect">
+				<param name="Name" value="Action Command: rindirect">
+				<param name="Local" value="htm\commands\cmd_rindirect.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="save.game">
+				<param name="Name" value="Action Command: save.game">
+				<param name="Local" value="htm\commands\cmd_savegame.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="script.size">
+				<param name="Name" value="Action Command: script.size">
+				<param name="Local" value="htm\commands\cmd_scriptsize.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set">
+				<param name="Name" value="Action Command: set">
+				<param name="Local" value="htm\commands\cmd_set.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.cel">
+				<param name="Name" value="Action Command: set.cel">
+				<param name="Local" value="htm\commands\cmd_setcel.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.cel.v">
+				<param name="Name" value="Action Command: set.cel.v">
+				<param name="Local" value="htm\commands\cmd_setcelv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.cursor.char">
+				<param name="Name" value="Action Command: set.cursor.char">
+				<param name="Local" value="htm\commands\cmd_setcursorchar.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.Dir">
+				<param name="Name" value="Action Command: set.Dir">
+				<param name="Local" value="htm\commands\cmd_setDir.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.game.id">
+				<param name="Name" value="Action Command: set.game.id">
+				<param name="Local" value="htm\commands\cmd_setgameid.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.horizon">
+				<param name="Name" value="Action Command: set.horizon">
+				<param name="Local" value="htm\commands\cmd_sethorizon.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.key">
+				<param name="Name" value="Action Command: set.key">
+				<param name="Local" value="htm\commands\cmd_setkey.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.loop">
+				<param name="Name" value="Action Command: set.loop">
+				<param name="Local" value="htm\commands\cmd_setloop.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.loop.v">
+				<param name="Name" value="Action Command: set.loop.v">
+				<param name="Local" value="htm\commands\cmd_setloopv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.menu">
+				<param name="Name" value="Action Command: set.menu">
+				<param name="Local" value="htm\commands\cmd_setmenu.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.menu.item">
+				<param name="Name" value="Action Command: set.menu.item">
+				<param name="Local" value="htm\commands\cmd_setmenuitem.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.pri.base">
+				<param name="Name" value="Action Command: set.pri.base">
+				<param name="Local" value="htm\commands\cmd_setpribase.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.priority">
+				<param name="Name" value="Action Command: set.priority">
+				<param name="Local" value="htm\commands\cmd_setpriority.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.priority.v">
+				<param name="Name" value="Action Command: set.priority.v">
+				<param name="Local" value="htm\commands\cmd_setpriorityv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.scan.start">
+				<param name="Name" value="Action Command: set.scan.start">
+				<param name="Local" value="htm\commands\cmd_setscanstart.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.simple">
+				<param name="Name" value="Action Command: set.simple">
+				<param name="Local" value="htm\commands\cmd_setsimple.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.string">
+				<param name="Name" value="Action Command: set.string">
+				<param name="Local" value="htm\commands\cmd_setstring.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.text.attribute">
+				<param name="Name" value="Action Command: set.text.attribute">
+				<param name="Local" value="htm\commands\cmd_settextattribute.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.upper.left">
+				<param name="Name" value="Action Command: set.upper.left">
+				<param name="Local" value="htm\commands\cmd_setupperleft.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.v">
+				<param name="Name" value="Action Command: set.v">
+				<param name="Local" value="htm\commands\cmd_setv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.view">
+				<param name="Name" value="Action Command: set.view">
+				<param name="Local" value="htm\commands\cmd_setview.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="set.view.v">
+				<param name="Name" value="Action Command: set.view.v">
+				<param name="Local" value="htm\commands\cmd_setviewv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="shake.screen">
+				<param name="Name" value="Action Command: shake.screen">
+				<param name="Local" value="htm\commands\cmd_shakescreen.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="show.mem">
+				<param name="Name" value="Action Command: show.mem">
+				<param name="Local" value="htm\commands\cmd_showmem.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="show.mouse">
+				<param name="Name" value="Action Command: show.mouse">
+				<param name="Local" value="htm\commands\cmd_showmouse.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="show.obj">
+				<param name="Name" value="Action Command: show.obj">
+				<param name="Local" value="htm\commands\cmd_showobj.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="show.obj.v">
+				<param name="Name" value="Action Command: show.obj.v">
+				<param name="Local" value="htm\commands\cmd_showobjv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="show.pic">
+				<param name="Name" value="Action Command: show.pic">
+				<param name="Local" value="htm\commands\cmd_showpic.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="show.pri.screen">
+				<param name="Name" value="Action Command: show.pri.screen">
+				<param name="Local" value="htm\commands\cmd_showpriscreen.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="sound">
+				<param name="Name" value="Action Command: sound">
+				<param name="Local" value="htm\commands\cmd_sound.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="start.cycling">
+				<param name="Name" value="Action Command: start.cycling">
+				<param name="Local" value="htm\commands\cmd_startcycling.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="start.motion">
+				<param name="Name" value="Action Command: start.motion">
+				<param name="Local" value="htm\commands\cmd_startmotion.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="start.update">
+				<param name="Name" value="Action Command: start.update">
+				<param name="Local" value="htm\commands\cmd_startupdate.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="status">
+				<param name="Name" value="Action Command: status">
+				<param name="Local" value="htm\commands\cmd_status.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="status.line.off">
+				<param name="Name" value="Action Command: status.line.off">
+				<param name="Local" value="htm\commands\cmd_statuslineoff.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="status.line.on">
+				<param name="Name" value="Action Command: status.line.on">
+				<param name="Local" value="htm\commands\cmd_statuslineon.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="step.size">
+				<param name="Name" value="Action Command: step.size">
+				<param name="Local" value="htm\commands\cmd_stepsize.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="step.time">
+				<param name="Name" value="Action Command: step.time">
+				<param name="Local" value="htm\commands\cmd_steptime.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="stop.cycling">
+				<param name="Name" value="Action Command: stop.cycling">
+				<param name="Local" value="htm\commands\cmd_stopcycling.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="stop.motion">
+				<param name="Name" value="Action Command: stop.motion">
+				<param name="Local" value="htm\commands\cmd_stopmotion.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="stop.sound">
+				<param name="Name" value="Action Command: stop.sound">
+				<param name="Local" value="htm\commands\cmd_stopsound.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="stop.update">
+				<param name="Name" value="Action Command: stop.update">
+				<param name="Local" value="htm\commands\cmd_stopupdate.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="submit.menu">
+				<param name="Name" value="Action Command: submit.menu">
+				<param name="Local" value="htm\commands\cmd_submitmenu.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="subn">
+				<param name="Name" value="Action Command: subn">
+				<param name="Local" value="htm\commands\cmd_subn.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="subv">
+				<param name="Name" value="Action Command: subv">
+				<param name="Local" value="htm\commands\cmd_subv.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="text.screen">
+				<param name="Name" value="Action Command: text.screen">
+				<param name="Local" value="htm\commands\cmd_textscreen.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="toggle">
+				<param name="Name" value="Action Command: toggle">
+				<param name="Local" value="htm\commands\cmd_toggle.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="toggle.monitor">
+				<param name="Name" value="Action Command: toggle.monitor">
+				<param name="Local" value="htm\commands\cmd_togglemonitor.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="toggle.v">
+				<param name="Name" value="Action Command: toggle.v">
+				<param name="Local" value="htm\commands\cmd_togglev.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="trace.info">
+				<param name="Name" value="Action Command: trace.info">
+				<param name="Local" value="htm\commands\cmd_traceinfo.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="trace.on">
+				<param name="Name" value="Action Command: trace.on">
+				<param name="Local" value="htm\commands\cmd_traceon.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="unanimate.all">
+				<param name="Name" value="Action Command: unanimate.all">
+				<param name="Local" value="htm\commands\cmd_unanimateall.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="unblock">
+				<param name="Name" value="Action Command: unblock">
+				<param name="Local" value="htm\commands\cmd_unblock.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="version">
+				<param name="Name" value="Action Command: version">
+				<param name="Local" value="htm\commands\cmd_version.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="wander">
+				<param name="Name" value="Action Command: wander">
+				<param name="Local" value="htm\commands\cmd_wander.htm">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="word.to.string">
+				<param name="Name" value="Action Command: word.to.string">
+				<param name="Local" value="htm\commands\cmd_wordtostring.htm">
+				</OBJECT>
+		</ul>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="component files">
+		<param name="Name" value="AGI Components">
+		<param name="Local" value="htm\agi\components.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="compiler errors">
+		<param name="Name" value="WinAGI Compiler Errors">
+		<param name="Local" value="htm\winagi\errors_compiler.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="compiling games">
+		<param name="Name" value="Working with AGI Games">
+		<param name="Local" value="htm\winagi\compilegames.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="compiling logics">
+		<param name="Name" value="Logic Editor">
+		<param name="Local" value="htm\winagi\editor_logic.htm#compile">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="control lines">
+		<param name="Name" value="AGI Graphics">
+		<param name="Local" value="htm\agi\graphics.htm#controllines">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="creating new games">
+		<param name="Name" value="Working with AGI Games">
+		<param name="Local" value="htm\winagi\newgame.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="creating new resources">
+		<param name="Name" value="Creating New Resources">
+		<param name="Local" value="htm\winagi\resource_new.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="custom tools">
+		<param name="Name" value="Custom Tools">
+		<param name="Local" value="htm\winagi\customtools.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="data types">
+		<param name="Name" value="Data Types">
+		<param name="Local" value="htm\agi\data.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="controllers">
+			<param name="Name" value="Player Interface">
+			<param name="Local" value="htm\agi\interface.htm#controllers">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="flags">
+			<param name="Name" value="Data Types">
+			<param name="Local" value="htm\agi\data.htm#flags">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="messages">
+			<param name="Name" value="Data Types">
+			<param name="Local" value="htm\agi\data.htm#messages">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="screen objects">
+			<param name="Name" value="Data Types">
+			<param name="Local" value="htm\agi\data.htm#screenobjects">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="strings">
+			<param name="Name" value="Data Types">
+			<param name="Local" value="htm\agi\data.htm#strings">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="user-entered words">
+			<param name="Name" value="Data Types">
+			<param name="Local" value="htm\agi\data.htm#words">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="variables">
+			<param name="Name" value="Data Types">
+			<param name="Local" value="htm\agi\data.htm#variables">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="decompiling logics">
+		<param name="Name" value="Opening Resources">
+		<param name="Local" value="htm\winagi\resource_open.htm#decompiling">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="decompiler settings">
+		<param name="Name" value="Decompiler Settings">
+		<param name="Local" value="htm\winagi\settings_logic2.htm#decompsettings">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="DIR files">
+		<param name="Name" value="AGI Game Resources">
+		<param name="Local" value="htm\agi\resources.htm#vol">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="encryption">
+		<param name="Name" value="Memory and Encryption">
+		<param name="Local" value="htm\agi\memory.htm#encryption">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="exporting resources">
+		<param name="Name" value="Exporting Resources">
+		<param name="Local" value="htm\winagi\resource_export.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="file compression">
+		<param name="Name" value="Memory and Encryption">
+		<param name="Local" value="htm\agi\memory.htm#compression">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="file extensions">
+		<param name="Name" value="File Extensions">
+		<param name="Local" value="htm\winagi\files.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game about property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_version.htm#about">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game description property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_version.htm#description">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game directory property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_general.htm#gamedir">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game executable property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_platform.htm#executable">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="GameID property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_general.htm#gameid">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game IDs and the interpreter executable">
+		<param name="Name" value="AGI Components">
+		<param name="Local" value="htm\agi\components.htm#gameid">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game loaders">
+		<param name="Name" value="AGI Components">
+		<param name="Local" value="htm\agi\components.htm#gameloader">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#gameprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game properties dialog">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\properties.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game resources">
+		<param name="Name" value="AGI Game Resources">
+		<param name="Local" value="htm\agi\resources.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="logics">
+			<param name="See Also" value="LOGIC resources">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="pictures">
+			<param name="See Also" value="PICTURE resources">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="sounds">
+			<param name="See Also" value="SOUND resources">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="views">
+			<param name="See Also" value="VIEW resources">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="inventory objects">
+			<param name="See Also" value="OBJECT File">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="vocabulary words">
+			<param name="See Also" value="WORDS.TOK File">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="game templates">
+			<param name="Name" value="Template Games">
+			<param name="Local" value="htm\winagi\templates.htm">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="game version property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_version.htm#gameversion">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="general settings">
+		<param name="Name" value="General Settings">
+		<param name="Local" value="htm\winagi\settings_general.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="global defines">
+		<param name="Name" value="Global Defines">
+		<param name="Local" value="htm\winagi\editor_globals.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="graphics in AGI">
+		<param name="Name" value="AGI Graphics">
+		<param name="Local" value="htm\agi\graphics.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="graphics display mode">
+		<param name="Name" value="AGI Graphics">
+		<param name="Local" value="htm\agi\graphics.htm#graphicsdisplay">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="importing resources">
+		<param name="Name" value="Importing Resources">
+		<param name="Local" value="htm\winagi\resource_import.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="interpreter cycle">
+		<param name="Name" value="Interpreter Cycle">
+		<param name="Local" value="htm\agi\cycle.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="interpreter version property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_general.htm#intversion">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="inventory items">
+		<param name="Name" value="Objects Editor">
+		<param name="Local" value="htm\winagi\editor_object.htm#itemtable">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="joystick input">
+		<param name="Name" value="Player Interface">
+		<param name="Local" value="htm\agi\interface.htm#joystick">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="keyboard input">
+		<param name="Name" value="Player Interface">
+		<param name="Local" value="htm\agi\interface.htm#keyboard">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="keyboard shortcuts">
+		<param name="Name" value="Keyboard Shortcuts">
+		<param name="Local" value="htm\winagi\shortcuts.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="layout editor">
+		<param name="Name" value="Layout Editor">
+		<param name="Local" value="htm\winagi\editor_layout.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="layout settings">
+		<param name="Name" value="Layout Settings">
+		<param name="Local" value="htm\winagi\settings_layout.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="editing layouts">
+		<param name="Name" value="Creating and Editing Layouts">
+		<param name="Local" value="htm\winagi\editinglayouts.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="logic properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#logicprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="LOGIC resources">
+		<param name="Name" value="LOGIC Resources">
+		<param name="Local" value="htm\agi\logics.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="action commands">
+			<param name="Name" value="LOGIC Resources">
+			<param name="Local" value="htm\agi\logics.htm#actions">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="if/else/goto statements">
+			<param name="Name" value="LOGIC Resources">
+			<param name="Local" value="htm\agi\logics.htm#ifelse">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="test commands">
+			<param name="Name" value="LOGIC Resources">
+			<param name="Local" value="htm\agi\logics.htm#tests">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="logic settings">
+		<param name="Name" value="Logic Settings">
+		<param name="Local" value="htm\winagi\settings_logic.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="logics collection properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#logicsprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="messages">
+		<param name="Name" value="LOGIC Resources">
+		<param name="Local" value="htm\agi\logics.htm#messages">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="memory management">
+		<param name="Name" value="Memory and Encryption">
+		<param name="Local" value="htm\agi\memory.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="menu editor">
+		<param name="Name" value="Menu Editor">
+		<param name="Local" value="htm\winagi\editor_menu.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="menus">
+		<param name="Name" value="Player Interface">
+		<param name="Local" value="htm\agi\interface.htm#menus">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="mouse input">
+		<param name="Name" value="Player Interface">
+		<param name="Local" value="htm\agi\interface.htm#mouse">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="music primer">
+		<param name="Name" value="Music Primer">
+		<param name="Local" value="htm\winagi\musicprimer.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="music track">
+		<param name="Name" value="Sound Editor">
+		<param name="Local" value="htm\winagi\editor_sound.htm#musictrack">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="noise track">
+		<param name="Name" value="Sound Editor">
+		<param name="Local" value="htm\winagi\editor_sound.htm#noisetrack">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="objects editor">
+		<param name="Name" value="Objects Editor">
+		<param name="Local" value="htm\winagi\editor_object.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="duplicate items">
+			<param name="Name" value="Objects Editor">
+			<param name="Local" value="htm\winagi\editor_object.htm#duplicates">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="encryption">
+			<param name="Name" value="Objects Editor">
+			<param name="Local" value="htm\winagi\editor_object.htm#encryption">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="find in logics">
+			<param name="Name" value="Objects Editor">
+			<param name="Local" value="htm\winagi\editor_object.htm#findinlogics">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="max screen objects">
+			<param name="Name" value="Objects Editor">
+			<param name="Local" value="htm\winagi\editor_object.htm#maxscreenobj">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="OBJECT File">
+		<param name="Name" value="OBJECT File">
+		<param name="Local" value="htm\agi\object.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="object list properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#objprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="opening games">
+		<param name="Name" value="Working with AGI Games">
+		<param name="Local" value="htm\winagi\opengame.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="opening resources">
+		<param name="Name" value="Opening Resources">
+		<param name="Local" value="htm\winagi\resource_open.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="parsing text">
+		<param name="Name" value="Player Interface">
+		<param name="Local" value="htm\agi\interface.htm#parser">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="picture editor">
+		<param name="Name" value="Picture Editor">
+		<param name="Local" value="htm\winagi\editor_picture.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="drawing tools">
+			<param name="Name" value="Drawing Pictures">
+			<param name="Local" value="htm\winagi\drawingpictures.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="editing pictures">
+			<param name="Name" value="Manipulating Picture Drawing Commands">
+			<param name="Local" value="htm\winagi\manipulatecommands.htm">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="picture properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#picsndprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="PICTURE resources">
+		<param name="Name" value="PICTURE Resources">
+		<param name="Local" value="htm\agi\pictures.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="Drawing Commands">
+			<param name="See Also" value="Drawing Commands">
+			</OBJECT>
+		<ul>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Set Visual Pen">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f0">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Disable Visual Pen">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f1">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Set Priority Pen">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f2">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Disable Priority Pen">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f3">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Y Corner">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f4">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="X Corner">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f5">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Absolute (Long) Line">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f6">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Relative (Short) Line">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f7">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Fill">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f8">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Set Pen">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#f9">
+				</OBJECT>
+			<li> <OBJECT type="text/sitemap">
+				<param name="Name" value="Plot with Pen">
+				<param name="Name" value="PICTURE Resources">
+				<param name="Local" value="htm\agi\pictures.htm#fA">
+				</OBJECT>
+		</ul>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="picture settings">
+		<param name="Name" value="Picture Settings">
+		<param name="Local" value="htm\winagi\settings_picture.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="picture test mode">
+		<param name="Name" value="Picture Editor Test Mode">
+		<param name="Local" value="htm\winagi\viewtestmode.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="pictures collection properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#hdrsprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="player interface">
+		<param name="Name" value="Player Interface">
+		<param name="Local" value="htm\agi\interface.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="power pack">
+		<param name="Name" value="Power Pack">
+		<param name="Local" value="htm\agi\powerpack.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="preview window">
+		<param name="Name" value="Previewing Resources">
+		<param name="Local" value="htm\winagi\preview.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="logics">
+			<param name="Name" value="Previewing Resources">
+			<param name="Local" value="htm\winagi\previewlogic.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="pictures">
+			<param name="Name" value="Previewing Resources">
+			<param name="Local" value="htm\winagi\previewpic.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="sounds">
+			<param name="Name" value="Previewing Resources">
+			<param name="Local" value="htm\winagi\previewsound.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="views">
+			<param name="Name" value="Previewing Resources">
+			<param name="Local" value="htm\winagi\previewview.htm">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="priorities, overview">
+		<param name="Name" value="AGI Graphics">
+		<param name="Local" value="htm\agi\graphics.htm#priority">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="priority bands">
+		<param name="Name" value="AGI Graphics">
+		<param name="Local" value="htm\agi\graphics.htm#bands">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="rebuilding VOL files">
+		<param name="Name" value="Working with AGI Games">
+		<param name="Local" value="htm\winagi\compilinggames.htm#rebuild">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="removing resources">
+		<param name="Name" value="Adding and Removing Resources">
+		<param name="Local" value="htm\winagi\resource_addremove.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="reserved define names">
+		<param name="Name" value="Reserved Define Names">
+		<param name="Local" value="htm\winagi\reservednames.htm#variables">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="reserved flags">
+		<param name="Name" value="Reserved Variables and Flags">
+		<param name="Local" value="htm\agi\reservednames.htm#flags">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="reserved variables">
+		<param name="Name" value="Reserved Variables and Flags">
+		<param name="Local" value="htm\agi\reservednames.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resource heap">
+		<param name="Name" value="Memory and Encryption">
+		<param name="Local" value="htm\agi\memory.htm#heap">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resource tree">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resource directory">
+		<param name="Name" value="Managing Resources">
+		<param name="Local" value="htm\winagi\managingresources.htm#resdir">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resource directory property">
+		<param name="Name" value="Game Properties">
+		<param name="Local" value="htm\winagi\prop_general.htm#resdir">
+		<param name="Name" value="Managing Resources">
+		<param name="Local" value="htm\winagi\managingresources.htm#resdir">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resource IDs">
+		<param name="Name" value="Managing Resources">
+		<param name="Local" value="htm\winagi\managingresources.htm#resourceids">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resource numbers">
+		<param name="Name" value="Managing Resources">
+		<param name="Local" value="htm\winagi\managingresources.htm#resnum">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resources, adding">
+		<param name="Name" value="Adding and Removing Resources">
+		<param name="Local" value="htm\winagi\resource_addremove.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resources, creating new">
+		<param name="Name" value="Creating New Resources">
+		<param name="Local" value="htm\winagi\resource_new.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resources, exporting">
+		<param name="Name" value="Exporting Resources">
+		<param name="Local" value="htm\winagi\resource_export.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resources, importing">
+		<param name="Name" value="Importing Resources">
+		<param name="Local" value="htm\winagi\resource_import.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resources, opening">
+		<param name="Name" value="Opening Resources">
+		<param name="Local" value="htm\winagi\resource_open.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resources, removing">
+		<param name="Name" value="Adding and Removing Resources">
+		<param name="Local" value="htm\winagi\resource_addremove.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="resources, saving">
+		<param name="Name" value="Saving Resources">
+		<param name="Local" value="htm\winagi\resource_save.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="restarting games">
+		<param name="Name" value="Restarting an AGI Game">
+		<param name="Local" value="htm\agi\restart.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="restoring games">
+		<param name="Name" value="Restoring an AGI Game">
+		<param name="Local" value="htm\agi\restore.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="room,0">
+		<param name="Name" value="Memory and Encryption">
+		<param name="Local" value="htm\agi\memory.htm#room0">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="running games">
+		<param name="Name" value="Working with AGI Games">
+		<param name="Local" value="htm\winagi\runninggames.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="said command, explained">
+		<param name="Name" value="Player Interface">
+		<param name="Local" value="htm\agi\interface.htm#said">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="save as">
+		<param name="Name" value="Saving Resources">
+		<param name="Local" value="htm\winagi\resource_save.htm#saveas">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="save file format">
+		<param name="Name" value="Saving an AGI Game">
+		<param name="Local" value="htm\agi\save.htm#format">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="saving games">
+		<param name="Name" value="Saving an AGI Game">
+		<param name="Local" value="htm\agi\save.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="sound properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#picsndprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="saving resources">
+		<param name="Name" value="Saving Resources">
+		<param name="Local" value="htm\winagi\resource_save.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="sound in AGI">
+		<param name="Name" value="AGI Sound System">
+		<param name="Local" value="htm\agi\agisound.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="settings window">
+		<param name="Name" value="Settings">
+		<param name="Local" value="htm\winagi\settings.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="general settings">
+			<param name="Name" value="General Settings">
+			<param name="Local" value="htm\winagi\settings_general.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="logic settings">
+			<param name="Name" value="Logic Settings">
+			<param name="Local" value="htm\winagi\settings_logic.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="compiler and decompiler settings">
+			<param name="Name" value="Compiler and Decompiler Settings">
+			<param name="Local" value="htm\winagi\settings_logic2.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="picture settings">
+			<param name="Name" value="Picture Settings">
+			<param name="Local" value="htm\winagi\settings_picture.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="sound settings">
+			<param name="Name" value="Sound Settings">
+			<param name="Local" value="htm\winagi\settings_sound.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="view settings">
+			<param name="Name" value="View Settings">
+			<param name="Local" value="htm\winagi\settings_view.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="layout settings">
+			<param name="Name" value="Layout Settings">
+			<param name="Local" value="htm\winagi\settings_layout.htm">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="shortcut keys">
+		<param name="Name" value="Keyboard Shortcuts">
+		<param name="Local" value="htm\winagi\shortcuts.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="Sound Editor">
+		<param name="Name" value="Sound Editor">
+		<param name="Local" value="htm\winagi\editor_sound.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="editing sounds">
+			<param name="Name" value="Creating and Editing Sounds">
+			<param name="Local" value="htm\winagi\creatingsounds.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="key">
+			<param name="Name" value="Sound Editor">
+			<param name="Local" value="htm\winagi\editor_sound.htm#key">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="TPQN">
+			<param name="Name" value="Sound Editor">
+			<param name="Local" value="htm\winagi\editor_sound.htm#tpqn">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="virtual keyboard">
+			<param name="Name" value="Sound Editor">
+			<param name="Local" value="htm\winagi\editor_sound.htm#keyboard">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="sound settings">
+		<param name="Name" value="Sound Settings">
+		<param name="Local" value="htm\winagi\settings_sound.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="sound resource save formats">
+		<param name="Name" value="Saving Resources">
+		<param name="Local" value="htm\winagi\resource_save.htm#soundformats">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="SOUND resources">
+		<param name="Name" value="SOUND Resources">
+		<param name="Local" value="htm\agi\sounds.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="sounds collection properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#hdrsprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="staff, music">
+		<param name="Name" value="Sound Editor">
+		<param name="Local" value="htm\winagi\editor_sound.htm#staves">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="template games">
+		<param name="Name" value="Template Games">
+		<param name="Local" value="htm\winagi\templates.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="test view">
+		<param name="Name" value="Picture Editor Test Mode">
+		<param name="Local" value="htm\winagi\viewtestmode.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="testing games">
+		<param name="Name" value="Working with AGI Games">
+		<param name="Local" value="htm\winagi\runnininggames.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="text display mode">
+		<param name="Name" value="AGI Graphics">
+		<param name="Local" value="htm\agi\graphics.htm#textdisplay">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="text editor">
+		<param name="Name" value="Text Editor">
+		<param name="Local" value="htm\winagi\editor_text.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="text screen editor">
+		<param name="Name" value="Text Screen Editor">
+		<param name="Local" value="htm\winagi\editor_textscreen.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="ticks per quarter note">
+		<param name="Name" value="Sound Editor">
+		<param name="Local" value="htm\winagi\editor_sound.htm#tpqn">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="tools">
+		<param name="Name" value="Working with Tools">
+		<param name="Local" value="htm\winagi\workingwith_tools.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="versions of AGI">
+		<param name="Name" value="AGI Interpreter Versions">
+		<param name="Local" value="htm\agi\versions.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="view editor">
+		<param name="Name" value="View Editor">
+		<param name="Local" value="htm\winagi\editor_view.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="drawing cels">
+			<param name="Name" value="Drawing View Cels">
+			<param name="Local" value="htm\winagi\drawingcels.htm">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="editing views">
+			<param name="Name" value="Managing Loops and Cels">
+			<param name="Local" value="htm\winagi\managingviews.htm">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="view properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#viewprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="VIEW resources">
+		<param name="Name" value="VIEW Resources">
+		<param name="Local" value="htm\agi\views.htm">
+		</OBJECT>
+	<ul>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="transparency">
+			<param name="Name" value="VIEW Resources">
+			<param name="Local" value="htm\agi\views.htm#transparency">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="mirroring">
+			<param name="Name" value="VIEW Resources">
+			<param name="Local" value="htm\agi\views.htm#mirror">
+			</OBJECT>
+		<li> <OBJECT type="text/sitemap">
+			<param name="Name" value="view description">
+			<param name="Name" value="VIEW Resources">
+			<param name="Local" value="htm\agi\views.htm#description">
+			</OBJECT>
+	</ul>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="view settings">
+		<param name="Name" value="View Settings">
+		<param name="Local" value="htm\winagi\settings_view.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="views collection properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#hdrsprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="VOL files">
+		<param name="Name" value="AGI Game Resources">
+		<param name="Local" value="htm\agi\resources.htm#vol">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="word list properties">
+		<param name="Name" value="Resource Tree">
+		<param name="Local" value="htm\winagi\resourcetree.htm#wordsprop">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="WORDS.TOK File">
+		<param name="Name" value="WORDS.TOK File">
+		<param name="Local" value="htm\agi\words.htm">
+		</OBJECT>
+	<li> <OBJECT type="text/sitemap">
+		<param name="Name" value="words editor">
+		<param name="Name" value="Words Editor">
+		<param name="Local" value="htm\winagi\editor_words.htm">
+		</OBJECT>
+</ul>
+</BODY></HTML>

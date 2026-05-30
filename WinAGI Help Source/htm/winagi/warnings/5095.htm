@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5095</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5095</h2>
+    <h3>Commands after a <b>new.room</b> or <b>new.room.v</b> command are always ignored by AGI</h3>
+    <p class="indent_n">As soon as AGI encounters a <a href="..\..\commands\cmd_newroom.htm"><b>new.room</b></a> or <a href="..\..\commands\cmd_newroomv.htm"><b>new.room.v</b></a> command, it stops processing the current <a href="..\..\agi\logics.htm">logic</a>, resets AGI for the new <a href="..\..\agi\pictures.htm#room">room</a>, and then starts a new <a href="..\..\agi\cycle.htm">interpreter cycle</a>. Commands that follow a <b>new.room</b> command will never get executed and should be removed, as they just take up space and serve no function.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

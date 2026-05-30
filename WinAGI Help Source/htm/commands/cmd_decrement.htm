@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: decrement</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>decrement</h1>
+			<p>The <b>decrement</b> command decreases a variable's value by one.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>decrement(<a href="syntax_fan.htm#argtypes">var</a> vA);</p>
+			<p>--vA;</p>
+			<p>vA--;</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Unlike the <a href="cmd_subn.htm"><b>subn</b></a> command, the <b>decrement</b> command does not wrap around. If the value of vA is already 0, executing the <b>decrement</b> command has no effect; the value will remain at 0.</p>
+			<p>When using the alternate syntax <code>vA = vA - 1;</code> or <code>vA -= 1;</code> WinAGI will compile an <a href="cmd_subn.htm"><b>subn</b></a> command. If you want to use the <b>decrement</b> command, you must use the alternate syntax <code>--vA;</code> or <code>vA--;</code>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v50 = 1;
+<b>decrement(v50);</b> [ v50 now equals 0
+--v50;          [ v50 still equals 0
+v50 = v50 - 1;  [ WinAGI compiles this as a decrement command so v50 still equals 0
+subn(v50,1);    [ now v50 equals 255</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n"> (0x02)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_math.htm">Mathematical Commands</a></p>
+			<p><a href="cmd_increment.htm"><b>increment</b></a></p>
+			<p><a href="cmd_subn.htm"><b>subn</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

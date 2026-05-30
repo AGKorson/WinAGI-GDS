@@ -1,0 +1,16 @@
+<html>
+	<head><title>Reserved Variable v12</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v12: Elapsed Game Time: Minutes</h1>
+			<p>Along with <a href="v11.htm">v11 (seconds)</a>, <a href="v13.htm">v13 (hours)</a> and <a href="v14.htm">v14 (days)</a>, AGI uses these four variables to track total runtime of a game session. Game programmers can access them to manage elements of their game that are based on time, such as having an event happen after a certain amount of time has gone by.</p>
+			<p>AGI updates its <a href="cycle.htm#clock">internal clock</a> (and the timing variables) in each <a href="cycle.htm">interpreter cycle</a>, and will only <a href="cycle.htm#pausing">pause the internal clock</a> for the <a href="..\commands\cmd_pause.htm"><b>pause</b></a>, <a href="..\commands\cmd_savegame.htm"><b>save</b></a> and <a href="..\commands\cmd_restoregame.htm"><b>restore</b></a> commands.</p>
+			<p>Attempting to use these variables for other purposes is not recommended, because AGI overwrites them continuously.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

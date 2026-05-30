@@ -1,0 +1,40 @@
+<html>
+	<head><title>Managing Loops and Cels</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-view.gif" width="460" height="72" border="0" alt="AGI View Information"></td>
+			</tr>
+		</table>
+		<h1>Managing Loops and Cels</h1>
+			<p><a href="..\agi\views.htm">Views</a> are made up of a series of <a href="..\agi\views.htm#loop">loops</a>. Each loop is in turn made up of a series of <a href="..\agi\views.htm">cels</a>.</p>
+			<p>A view must have at least one loop, and each loop must have at least one cel. WinAGI will not let you delete the last cel from a loop or the last loop from a view.</p>
+		<h2>Loops</h2>
+			<p>&nbsp;<img alt="" src="..\..\graphics\loop.ico" border="0" width="32"></p>
+			<p>To add, delete, or modify a loop, first select a loop in the <a href="editor_view.htm#viewtree">View Tree</a>.</p>
+			<p>Use the Insert Loop command on the Edit menu to add a new loop. The new loop will be inserted ABOVE the currently selected loop. To add a loop to the end, select the Loop End marker.</p>
+			<p>&nbsp;<img alt="" src="..\..\graphics\tbDelete.bmp" border="0" width="32"> 
+			<img alt="" src="..\..\graphics\evi_cut.ico" border="0" width="32">&nbsp;<img alt="" src="..\..\graphics\evi_copy.ico" border="0" width="32"> <img alt="" src="..\..\graphics\evi_paste.ico" border="0" width="32"> Delete the loop by using the Delete command on the Edit menu, or by using the Delete toolbar button. You can cut a loop, or make a copy of a loop that can be pasted in another view, or in a different position of the current view.</p>
+		<blockquote><ADDRESS>
+			<p><b>TIP</b>: To change the order of loops in a view, cut the loop from its existing position, then paste it in the desired position.</p>
+		</ADDRESS></blockquote>
+			<p>Use the Clear Loop command on the Edit menu to automatically delete all cels in a loop, leaving a single cel one pixel wide and one pixel high.</p>
+		<h3><a name="mirror">Mirrored Loops</a></h3>
+			<p>You can designate a loop to be a <a href="..\agi\views.htm#mirror">mirror</a> of another loop by choosing the desired loop in the Mirror Loop property in the properties window. This will delete all cels currently in the loop, and replace them with the mirrored cels from its mirror pair. Editing cels in a mirrored loop will automatically update cels in its mirror. </p>
+			<p>If you want to unlink a mirrored pair of loops, select 'none' for the MirrorLoop property of either loop. After 'unmirroring', the cels in both loops will remain unchanged, and can then be edited separately.</p>
+			<p>Only loops 0 through 7 can be part of a mirror pair.</p>
+			<p><a href="..\agi\version2.htm#2089">Version 2.089</a> does not support loop mirroring. If the view being edited is from a <a href="prop_general.htm#intversion">version 2.089 game</a>, loops cannot be mirrored. If a view that has loops is already in a version 2.089 game (or added to the game), WinAGI will automatically remove the mirror property and save each loop independently when the view is saved in the View Editor.</p>
+		<h2>Cels</h2>
+			<p>&nbsp;<img alt="" src="..\..\graphics\cel.ico" border="0" width="32"></p>
+			<p>To add, delete, or modify a cel, first select a cel in the <a href="editor_view.htm#viewtree">View Tree</a>.</p>
+			<p>Use the Insert Cel command on the Edit menu to add a new cel. The new cel will be inserted ABOVE the currently selected cel. To add a cel to the end, select the Cel End marker.</p>
+			<p>&nbsp;<img alt="" src="..\..\graphics\tbDelete.bmp" border="0" width="32"> <img alt="" src="..\..\graphics\evi_cut.ico" border="0" width="32">&nbsp;<img alt="" src="..\..\graphics\evi_copy.ico" border="0" width="32"> <img alt="" src="..\..\graphics\evi_paste.ico" border="0" width="32"> Delete the cel by using the Delete command on the Edit menu, or by using the Delete toolbar button. You can cut a cel, or make a copy of a cel that can be pasted in another view, or in a different loop or position in the current view.</p>
+		<blockquote><ADDRESS>
+			<b>TIP</b>: To change the order of cels in a loop, cut the cel from its existing position, then paste it in the desired position.
+		</ADDRESS></blockquote>
+			<p>Use the Clear Cel command on the Edit menu to reset a cel to a one pixel wide and one pixel high cel.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

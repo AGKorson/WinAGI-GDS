@@ -1,0 +1,19 @@
+<html>
+    <head><title>Resource Load Warning RW24</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Resource Load Warning RW24</h2>
+      <h3>Upper case characters detected in one or more words</h3>
+      <p class="indent_n">When <a href="..\..\agi\keyboard.htm#parser">parsing player input</a>, AGI converts all characters in the <a href="..\..\agi\keyboard.htm#inputline">input line</a> to lower case before checking against the words in WORDS.TOK. Therefore, it is impossible to match input to a word that has upper case characters in it.</p>
+      <p class="indent_n">The format that AGI uses to store words in the file do not prevent the inclusion of capital letters. Sierra's tool for compiling <a href="..\..\agi\words.htm">WORDS.TOK</a> files (<a href="..\..\commands\sierra_wordcompiler.htm">WORDS.EXE</a>) did enforce lower case, but not all fan created tools do.</p>
+      <p class="indent_n">The affected words do not cause any errors, but they should be removed, as they serve no purpose and waste space in the file.</p>
+      <p class="indent_n">WinAGI will not allow you to compile a WORDS.TOK file that has upper case characters in it. You will need to delete the offending words first.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

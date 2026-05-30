@@ -1,0 +1,46 @@
+<html>
+	<head><title>Action Command: load.logics.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>load.logics.v</h1>
+			<p>The <b>load.logics.v</b> command indirectly loads a <a href="..\agi\logics.htm">logic</a> resource onto the <a href="..\agi\memory.htm#heap">memory heap</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>load.logics.v(<a href="syntax_fan.htm#argtypes">var</a> vLOGICNUM);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command loads <a href="..\agi\logics.htm">logic</a> <b>B</b>, where <b>B</b> equals the value of <b>vLOGICNUM</b>, onto the <a href="..\agi\memory.htm#heap">memory heap</a>, keeping it  in memory permanently until it gets unloaded (by ending the game, <a href="..\agi\restart.htm">restarting</a>, <a href="..\agi\restore.htm">restoring</a>, or entering a <a href="cmd_newroom.htm"><b>new room</b></a>). This avoids having to load and unload it each time it is called with the <a href="cmd_call.htm"><b>call</b></a> command.</p>
+			<p>There is no 'discard logic' command to unload a logic once it is loaded.</p>
+			<p>AGI adds a script entry to the <a href="..\agi\scripts.htm">script stack</a> each time a <a href="..\agi\logics.htm">logic</a> resource is loaded.</p>
+			<p>If you attempt to load a <a href="..\agi\logics.htm">logic</a> that does not exist, AGI will raise a <a href="..\agi\errors.htm#invalidres">runtime error</a> and crash.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v50 = 75;
+call.v(v50);        [ loads and executes logic 75, unloading it after returning
+<b>load.logics.v(v50);</b> [  loads logic, and adds script entry
+call.v(v50);        [ executes logic, but does not unload it after returning</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">21 (0x15)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_flowcontrol.htm">Flow Control Commands</a></p>
+			<p><a href="cmd_call.htm"><b>call</b></a></p>
+			<p><a href="cmd_loadlogics.htm"><b>load.logics</b></a></p>
+			<p><a href="..\agi\memory.htm">Memory Management</a></p>
+			<p><a href="..\agi\scripts.htm">AGI Scripts</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

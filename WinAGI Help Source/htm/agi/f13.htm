@@ -1,0 +1,18 @@
+<html>
+	<head><title>Reserved Flag f13</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f13: Inventory Selection Enabled</h1>
+			<p>Flag f13 affects the behavior of the <a href="..\commands\cmd_status.htm"><b>status</b></a> command. When f13 is set to TRUE, the <b>status</b> command will display all <a href="object.htm#items">inventory items</a> currently in the player's inventory, and allow the player to use cursor keys to select an object. When f13 is reset to FALSE, the inventory items are displayed only; nothing can be selected.</p>
+			<p>See the <a href="..\commands\cmd_status.htm"><b>status</b></a> command topic for additional information.</p>
+			<p>This flag was not reserved by AGI and had no effect in <a href="version2.htm#2089">version 2.089</a> and <a href="version2.htm#2272">version 2.272</a>.</p>
+			<p>This flag can be used for any purpose without affecting AGI, but just be aware that the value of f13 will affect calls to the <a href="..\commands\cmd_status.htm"><b>status</b></a> command.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

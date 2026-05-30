@@ -1,0 +1,31 @@
+<html>
+	<head><title>Platform Game Properties</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Platform Game Properties</h1>
+			<map name="props">
+				<area shape="rect" alt="Run Game Platform" coords="28,80,380,265" href="#platform">
+				<area shape="poly" alt="Platform Executable File" coords="23,285,136,285,136,300,379,300,379,343,23,343" href="#executable">
+				<area shape="poly" alt="Command Line Options" coords="23,346,211,346,211,362,379,362,379,385,23,385" href="#options">
+			</map>
+			<p><img src="..\..\graphics\propplatform.jpg" usemap="#props" border="0" width="406"></p>
+		<h2><a name="platform">Run Game Platform</a></h2>
+			<p>WinAGI is a game editor, NOT an interpreter; if you want to run an AGI game, you will need to find an interpreter or an emulator. If you do have an interpreter platform, you can configure WinAGI to automatically use that platform to run your game in order to test it. Currently, WinAGI supports the following platforms:</p>
+			<p class="indent_n"><b><a href="https://www.dosbox.com" target="_blank">DosBox</a></b>: DosBox is not an interpreter, but with it, you can run your game using an original Sierra MSDOS interpreter. <a name="dosexec">When you select this option,</a> you will need to designate the actual DOS executable file to run in DosBox (usually a <a href="..\agi\components.htm#gameloader">loader file</a> such as 'sierra.com', or an <a href="..\agi\components.htm#encryption">unencrypted</a> <a href="..\agi\components.htm#agifile">interpreter 'agi.exe' file</a>). WinAGI will automatically include the correct command line parameter to run the game in the current game directory. Please note that you must have a Sierra MSDOS interpreter with all required <a href="..\agi\components.htm">support files</a> to run your game in DOSBox.</p>
+			<p class="indent_n"><b><a href="https://www.scummvm.org" target="_blank">ScummVM</a></b>: If you have ScummVM installed, you can configure WinAGI to use it to run your game during testing. WinAGI will automatically include the correct command line parameter to run your game.</p>
+			<p class="indent_n"><b><a href="https://github.com/lanceewing/agile" target="_blank">AGILE</a></b>: AGILE is an AGI engine written in C# by Lance Ewing.</p>
+			<p class="indent_n"><b><a href="https://agidev.com/projects/nagi" target="_blank">NAGI</a></b>: You can use NAGI to run a game during testing, but it is not as flexible as other platforms. NAGI will only run correctly if the NAGI program files are actually located in the game directory, so if you select this option, WinAGI will automatically identify the executable file as being "n.exe" in your game directory. Also, NAGI does not accept command line options, so that field is disabled when NAGI is selected.</p>
+			<p>If you have an emulator platform other than one of these, use the 'Other' option. It will be up to you to manually enter the correct information in the Command Line Options field in order to correctly run your game.</p>
+		<h2><a name="executable">Platform Executable File</a></h2>
+			<p>You must specify the actual executable file in order to run a game on a particular platform. Use this option to find the file and select it. Note that when you change platforms (by clicking on a different option button), this field and the options field is automatically cleared (unless you are choosing the 'other' option) to make sure the correct executable file gets identified for your chosen platform.</p>
+		<h2><a name="options">Platform Command Line Options</a></h2>
+			<p>This field allows you to add extra command line options that will we included when WinAGI starts the selected platform to run a game. For information on a particular platform's command line options, see that program's documentation. NAGI does not accept command line options, so this field is not available when NAGI is selected as a platform.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

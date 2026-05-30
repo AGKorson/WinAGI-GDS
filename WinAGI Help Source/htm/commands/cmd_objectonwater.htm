@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: object.on.water</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>object.on.water</h1>
+		<p>The <b>object.on.water</b> command restricts a screen object to water (areas with priority of 3).</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>object.on.water(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p><a href="..\agi\screenobjs.htm">Screen object</a> <b>oA</b>'s entire baseline is restricted to <a href="..\agi\grafdisp.htm#water">water</a> (i.e. areas where <a href="..\agi\grafdisp.htm#priority">priority</a> pixels equal 3). At the start of the next <a href="..\agi\cycle.htm">interpreter cycle</a> after <b>object.on.water</b> is executed, AGI will <a href="object_position.htm#shuffling">shuffle</a> the position of the object if any pixel of its baseline is NOT on water.</p>
+			<p>The <b>object.on.water</b> and <a href="cmd_objectonland.htm"><b>object.on.land</b></a> commands do not work on the <a href="..\agi\interface.htm#ego">ego</a> object. Although ego will be repositioned if not on water by shuffling as described above, at the <A>end</a> of each <a href="..\agi\cycle.htm">interpreter cycle</a> AGI automatically clears any land or water restriction.</p>
+			<p><b>DO NOT</b> use the <b>object.on.water</b> and <a href="cmd_objectonland.htm"><b>object.on.land</b></a> commands on a <a href="..\agi\screenobjs.htm">screen object</a> at the same time; they do not cancel each other out. If both commands are active on the same object, AGI will lock up, because it will enter a never ending loop trying to find a position. Make sure you use the <a href="cmd_objectonanything.htm"><b>object.on.anything</b></a> command before switching between <b>object.on.water</b> and <a href="cmd_objectonland.htm"><b>object.on.land</b></a>.</p> 
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>#define fish o1
+...  [ initialize object
+<b>object.on.water(fish);</b> [ of course!</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">64 (0x40)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<b>
+				<p><b><a href="cmd_objectonanything.htm">object.on.anything</a></b></p>
+			</b>
+			<p><b><a href="cmd_objectonland.htm">object.on.land</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

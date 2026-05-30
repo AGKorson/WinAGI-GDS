@@ -1,0 +1,22 @@
+<html>
+	<head><title>Logic Compiler Error 6027</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6027</h2>
+    <h3>Too many goto statements</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">This error is raised when there are too many <a href="..\..\commands\syntax_sierra.htm#goto"><code><b>goto</b></code></a> statements associated with a <a href="..\..\commands\syntax_sierra.htm#goto">label</a> that has not yet been defined.</p>
+    <p class="indent_n">When the compiler processes a goto statement, if the label comes AFTER the goto statement, the compiler cannot calculate the jump value so it uses a placeholder and saves the location where the jump value will go. If multiple goto statements use the same label, each location is saved as described. Once the label is found, the compiler fills in the jump values for the goto statements using the stored locations.</p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, the number of jump locations that can be saved for an undefined label location is 19.</p>
+    <p class="indent_n">Once the label is defined, jump values do not need to be saved, so the number of gotos is no longer limited.</p>
+    <p class="indent_n">To clear this error, you will need to refactor your code to use fewer goto statements.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

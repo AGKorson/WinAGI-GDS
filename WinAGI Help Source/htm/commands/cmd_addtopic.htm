@@ -1,0 +1,59 @@
+<html>
+	<head><title>Action Command: add.to.pic</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>add.to.pic</h1>
+		<p>The <b>add.to.pic</b> command allows you to add a view to the visual picture screen in memory.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>add.to.pic(<a href="syntax_fan.htm#argtypes">byt</a> VIEWNUM, <a href="syntax_fan.htm#argtypes">byt</a> LOOP, <a href="syntax_fan.htm#argtypes">byt</a> CEL, <a href="syntax_fan.htm#argtypes">byt</a> X, <a href="syntax_fan.htm#argtypes">byt</a> Y, <a href="syntax_fan.htm#argtypes">byt</a> PRI, <a href="syntax_fan.htm#argtypes">byt</a> MGN);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Cel <b>CEL</b> of loop <b>LOOP</b> of <a href="..\agi\views.htm">view</a> <b>VIEWNUM</b> is drawn on the picture at <b>X</b>, <b>Y</b> with a priority of <b>PRI</b>. The priority argument can be used to add views behind other parts of the picture. Use <a href="cmd_addtopicv.htm"><b>add.to.pic.v</b></a> to add a cel to the screen using variable values.</p>
+			<p> if the <b>LOOP</b> value does not point to a valid <a href="..\agi\views.htm#loop">loop</a>, AGI raise <a href="..\agi\errorlist.htm#trap6">trappable error #6</a>.  
+			<p>The location is validated to ensure the view is not added so that any part of it Is off the screen. It does this by using the <a href="object_position.htm#shuffling">shuffling</a> method for object placement, but ignores other objects and the horizon.</p>
+			<p>If <b>PRI</b> is zero, the priority is set automatically according to the <b>Y</b> value. Use a <b>PRI</b> value of 3 through 15 to force the priority to a specific value. If the <b>PRI</b> value is 1 or 2, the view won't show on the visual screen but the view's control line box (if <b>MGN</b> argument is 0, 1, 2, or 3) will still be drawn.</p>
+			<p>Use the <b>MGN</b> property if you want the added view to include a control box. If <b>MGN</b> is 0, 1, 2 or 3, AGI draws a box on the priority screen. If <b>MGN</b> is any other value, no box is drawn. The box is drawn so the bottom line is on the view's bottom row, and the top line is on the last row that has the same priority, or the top of the object, whichever is lower on the screen. So if you add a view with a <b>Y</b> position at the bottom of a priority band you'll get a taller box than if you add it near the top of a band. If you position it on the top row of a priority band, you'll get a line instead of a box.</p>
+			<p>You should limit the values for <b>PRI</b> and <b>MGN</b> arguments to less then or equal to 15. If you don't, you may get unexpected results; AGI uses the following formula for calculating the actual values for PRI and <b>MGN</b> based on the passed argument values:</p>
+			<table id="Table4" cellSpacing="1" cellPadding="2" width="100%" border="0">
+				<tr>
+					<td class="code" width="100%"><font face="Courier new">PRI(actual) = PRI(argument) AND 0x0F<BR/>
+					MGN(actual) = PRI(argument)&gt;&gt;4 OR (MGN(argument) AND 0x0F)</font></td>
+				</tr>
+			</table>
+			<p>Do <b>not</b> use cels with widths less than three pixels if you want to draw a control box; AGI's algorithm to draw the control box has a bug in it that draws a line across the entire screen if width is 1 or crashes the game if width is 2.</p>
+			<p>The view must be loaded before you use it with <b>add.to.pic</b> or AGI will raise <a href="..\agi\errorlist.htm#trap3">trappable error #3</a>. Use the <a href="cmd_loadview.htm"><b>load.view</b></a> command to load a view.</p>
+			<p>Unless the view resource is needed for something else, you should <a href="cmd_discardview.htm">discard</a> it after adding it to the picture, in order to limit <a href="..\agi\memory.htm">memory</a> usage.</p>
+			<p>AGI adds a script entry to the <a href="..\agi\scripts.htm">script stack</a> each time <b>add.to.pic</b> is executed.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>load.view(9); [ ensure view is loaded
+<b>add.to.pic(9, 0, 0, 20, 120, 14, 2);</b>
+[   first cel of first loop of view 9
+[   is added to current picture at position (20, 120)
+[   with priority 14, and an alarm line (MARGIN = 2)
+[   is drawn along bottom row of the cel on the priority screen
+
+discard.view(9);  [ discard view after adding it</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">122 (0x7A)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Objects/View Commands</a></p>
+			<p><a href="cmd_addtopicv.htm"><b>add.to.pic.v</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,79 @@
+<html>
+	<head><title>Action Command: clear.text.rect</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>clear.text.rect</h1>
+			<p>The <b>clear.text.rect</b> command clears a rectangular text area on the screen.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>clear.text.rect(<a href="syntax_fan.htm#argtypes">byt</a> R1, <a href="syntax_fan.htm#argtypes">byt</a> C1, <a href="syntax_fan.htm#argtypes">byt</a> R2, <a href="syntax_fan.htm#argtypes">byt</a> C2, <a href="syntax_fan.htm#argtypes">byt</a> COLOR);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command can be used on both the <a href="..\agi\textdisp.htm">text screen</a> and the <a href="..\agi\grafdisp.htm">graphics screen</a>.</p>
+			<p>The command clears a rectangular area from row <b>R1</b>, column <b>C1</b> to row <b>R2</b>, column <b>C2</b>. AGI does not validate the argument values, so if either row argument is &gt;24, or either column argument is &gt;39, or <b>R2</b> &lt; <b>R1</b> or <b>C2</b> &lt; <b>C1</b>, the results will be unpredictable.</p>
+			<p>If the area cleared will encompass the entire row (<b>C1</b> = 0 and <b>C2</b> = 39), it is more efficient to use the <a href="cmd_clearlines.htm"><b>clear.lines</b></a> command.</p>
+			<p>On the <a href="..\agi\grafdisp.htm">graphics screen</a>, the color used to clear the area is specified by <b>COLOR</b>. If <b>COLOR</b> is 0, the lines are cleared to black. if <b>COLOR</b> in nonzero, white is used to clear the area. Keep in mind that if any screen objects move over the cleared area, the screen will revert back to the original pixels once the object has moved past; the cleared area is not stored in memory.</p>
+			<p>On the <a href="..\agi\textdisp.htm">text screen</a>, the color argument <b>COLOR</b> is ignored. The area is always cleared to black.</p> 
+			<p>If you want the cleared area to have a color other than black or white, a workaround, using a single space message and the <b><a href="cmd_displayv.htm">display.v</a></b>
+			command, is demonstrated in the example below.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>clear.text.rect(2, 2, 10, 20, 0);</b></code></pre>
+<pre><code>[ a simple method to clear text on the text screen with
+[ a non-black background color
+[ this could be put in a separate logic, and called when
+[ necessary in lieu of the clear.text.rect command
+
+#message 255 " "  [ single space
+#define R1     v201
+#define C1     v202
+#define R2     v203
+#define C2     v204
+#define row    v205
+#define col    v206
+#define msg    v207
+
+msg = 255;            [ value of message index
+[ validate start row/col &lt;= end row/col
+if (R1 &lt;= R2 && C1 &lt;= C2)
+   {
+   row = R1;          [ starting row
+   :RowLoop
+      col = C1;       [ starting column
+      :ColLoop
+         display.v(row, col, msg);
+      col++;
+      if (col &lt;= C2)
+         {
+         goto(ColLoop);
+         }
+   row++;
+   if (row &lt;= R2)
+      {
+      goto(RowLoop);
+      }
+   }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">154 (0x9A)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><a href="..\agi\textdisp.htm">Text Display Mode</a></p>
+			<p><a href="..\agi\grafdisp.htm">Graphics Display Mode</a></p>
+			<p><b><a href="cmd_clearlines.htm">clear.lines</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

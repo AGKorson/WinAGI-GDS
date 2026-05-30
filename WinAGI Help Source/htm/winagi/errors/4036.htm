@@ -1,0 +1,25 @@
+<html>
+	<head><title>Logic Compiler Error 4036</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4036</h2>
+    <h3>Invalid preprocessor symbol '&lt;symbol&gt;'</h3>
+    <p class="indent_n">The only valid preprocessor symbols are <b>#include</b>, <b>#define</b> and <b>#message</b>. This error indicates a token was encountered beginning with a '#' that is not a valid token. Tokens are case sensitive.</p>
+    <p class="indent_n">This error is also raised if '%' character is used with normal syntax preprocessor tokens. Although allowed in <a href="..\..\commands\syntax_sierra.htm">original Sierra syntax</a>, valid preprocessor symbols in AGI fan syntax can only start with '#'.</p>
+      <blockquote>
+      <pre>#defien var2   v100  [ <font color="red"><b>NOT OK</b></font>; misspelled 'define'
+#INCLUDE "file1.txt"   [ <font color="red"><b>NOT OK</b></font>; not all lower case
+%message 1 "Hello world."   [ <font color="red"><b>NOT OK</b></font> in Fan syntax
+#define var1    v99  [ OK
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

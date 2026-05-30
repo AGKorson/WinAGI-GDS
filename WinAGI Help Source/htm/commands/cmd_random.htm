@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: random</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>random</h1>
+			<p>The <b>random</b> command generates a random number within a specified range.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>random(<a href="syntax_fan.htm#argtypes">byt</a> LOWER, <a href="syntax_fan.htm#argtypes">byt</a> UPPER, <a href="syntax_fan.htm#argtypes">var</a> vRESULT);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The value of variable <b>vRESULT</b> is set to a pseudo random number between <b>LOWER</b> and <b>UPPER</b> inclusive. The algorithm  that AGI uses to generate random numbers is:</p>
+<pre><code>if (rndseed == 0)
+  {
+  rndseed = current_clock_count; [ use internal clock count as starting seed 
+  }
+rndseed = (rndseed * 0x7C4D) mod 0xFFFF + 1;
+vRESULT = LOWER + rndseed mod (UPPER - LOWER + 1);</code></pre>
+			<p>To work correctly, <b>UPPER</b> must be greater than or equal to <b>LOWER</b>. If If <b>LOWER</b> is greater than <b>UPPER</b>, then the returned value will be in the range 0 - 255. If  <b>LOWER</b> is exactly = <b>UPPER</b> + 1, it causes a divide by zero situation, which will <a href="..\agi\errors.htm">crash AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>random(0, 10, v50);</b>
+print("%v50 is greater than or equal to 0 "
+      "AND less than or equal to 10");</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">130 (0x82)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_math.htm">Mathematical Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

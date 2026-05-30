@@ -1,0 +1,25 @@
+<html>
+	<head><title>Logic Compiler Error 6007</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6007</h2>
+    <h3>Number expected in &lt;preprocessortype&gt; preprocessor statement,'&lt;token&gt;' is not a number</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To properly define an <a href="..\..\commands\syntax_sierra.htm#actions">action</a> or <a href="..\..\commands\syntax_sierra.htm#tests">test</a> command, you must include the byte value to be assigned to the command immediately after the <a href="..\..\commands\syntax_sierra.htm#sierraargtypes">argument</a> list. This error indicates something other than a number (or a define name that has a number value) was found after the argument list.</p>
+    <p class="indent_n">You will need to edit the command declaration to include the correct byte value.</p>
+      <blockquote>
+      <pre>%action assignn(VAR, NUM)   [ <font color="red"><b>NOT OK</b></font>; missing number
+%action assignv(VAR, VAR) v2  [ <font color="red"><b>NOT OK</b></font>; not a number
+%action addn(VAR, NUM) 3  [ OK
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

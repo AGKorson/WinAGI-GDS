@@ -1,0 +1,59 @@
+<html>
+	<head><title>Action Command: reposition</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>reposition</h1>
+			<p>The <b>reposition</b> command changes the position of a screen object currently drawn on the screen by an amount relative to its current position.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>reposition(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">var</a> vDX, <a href="syntax_fan.htm#argtypes">var</a> vDY);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The position of <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b> is changed to (X + <b>vDX</b>, Y + <b>vDY</b>) where X and Y are its current coordinates. The values of <b>vDX</b> and <b>vDY</b> are treated as 8 bit signed numbers (values &gt;= 128 are negative number, i.e. 255 = -1, 254 = -2, etc.) Mathematically this is represented as <code>delta = value - 256</code>.</p>
+			<p>The new location is validated using the <a href="object_position.htm#shuffling">shuffle</a> function.</p>
+			<p>The WinAGI compiler allows negative numbers to be assigned to variables to facilitate use of the <b>reposition</b> command. The negative number is automatically converted to the correct unsigned 8-bit value. Other AGI compilers may not support this feature. But you shouldn't be using them any way, since WinAGI is so much better.</p>
+			<p>The <b>reposition</b> command erases the object from its old location before redrawing it in its new location. </p>
+			<p><a href="..\agi\screenobjs.htm">Screen objects</a> that are repositioned are not moved in the next <a href="..\agi\cycle.htm">interpreter cycle</a> when all screen objects are moved based on their current direction. The object will continue moving normally in subsequent cycles. The screen object's <a href="object_cycling.htm">cycling</a> is not affected by the <b>reposition</b> command.</p>
+			<p>This command can be executed on a <a href="..\agi\screenobjs.htm">screen object</a> that has been <a href="cmd_animateobj.htm">initialized</a> but not yet <a href="cmd_draw.htm">drawn</a>. In this case it will reposition the object without redrawing it.</p>
+			<p>Use the <a href="cmd_repositionto.htm"><b>reposition.to</b></a> and <a href="cmd_repositiontov.htm"><b>reposition.to.v</b></a> commands to change an object's position using absolute coordinates.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ move an object down 32 pixels, over 8 pixels
+v255 = 8;
+v201 = 0;
+v201 = v201 - v255;  [ convert to negative value
+v255 = 32;
+v202 = 0;
+v202 = v202 - v255;  [ convert to negative value
+<b>reposition(o4, v201, v202);</b>  [ make the move
+
+[ in WinAGI you can do this:
+v201 = -8;
+v202 = -32;
+<b>reposition(o4, v201, v202);</b></code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">40 (0x28)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_position.htm">position</a></b></p>
+			<p><b><a href="cmd_positionv.htm">position.v</a></b></p>
+			<p><b><a href="cmd_repositionto.htm">reposition.to</a></b></p>
+			<p><b><a href="cmd_repositiontov.htm">reposition.to.v</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

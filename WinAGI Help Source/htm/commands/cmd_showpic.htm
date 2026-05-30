@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: show.pic</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>show.pic</h1>
+			<p>The <b>show.pic</b> command copies the visual screen created in memory onto the actual display screen.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>show.pic();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>AGI does not draw <a href="..\agi\pictures.htm">picture</a> resources directly to the screen. The <a href="cmd_drawpic.htm"><b>draw.pic</b></a> command creates the picture image in shadow memory, which is copied to the video display memory by the <b>show.pic</b> command.</p>
+			<p>The <b>show.pic</b> command resets <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f15.htm">f15 (no pause windows)</a> before the image is displayed. It is not known why Sierra felt it was necessary to add this.</p>
+			<p>If the <a href="..\agi\textdisp.htm">text screen</a> is currently active, the <b>show.pic</b> command will not change the display mode to the <a href="..\agi\grafdisp.htm">graphics screen</a>.</p>
+			<p>See the <a href="concepts_pictures.htm">Working with Pictures</a> topic for additional information on drawing and displaying picture resources.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ load and display the current room's picture:
+load.pic(currentRoom); [ first load the picture resource
+draw.pic(currentRoom); [ then draw the picture to memory
+discard.pic(currentRoom); [ resource no longer needed, so discard it
+...
+<b>show.pic();</b> [ now display the picture on screen</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">26 (0x1A)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_pictures.htm">Picture Commands</a></p>
+			<p><a href="concepts_pictures.htm">Working with Pictures</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

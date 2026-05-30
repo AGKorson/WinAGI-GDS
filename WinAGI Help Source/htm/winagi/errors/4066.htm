@@ -1,0 +1,21 @@
+<html>
+	<head><title>Logic Compiler Error 4066</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4066</h2>
+    <h3>A valid test command must follow a NOT operator</h3>
+    <p class="indent_n">An <a href="..\..\commands\syntax_fan.htm#ifelse"><b>if block</b></a> cannot be closed by a ')' if a <a href="..\..\commands\syntax_fan.htm#not">NOT operator (!)</a> is currently active. You must either delete the NOT operator, or add a valid <a href="..\..\commands\syntax_fan.htm#tests">test command</a> immediately after the NOT operator.</p>
+    <blockquote>
+      <pre>if (!)   [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+<html>
+	<head><title>Logic Compiler Error 6022</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6022</h2>
+    <h3><b>said</b> command arguments must not be enclosed in quotes</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm#wordlist">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Sierra syntax requires the arguments in <a href="..\..\commands\cmd_said.htm"><b>said</b></a> commands to be the word text, not the <a href="..\..\agi\words.htm#wordgroups">word group number</a>, without surrounding quotes and with the '$' character used to represent a space character.</p>
+    <p class="indent_n">To clear this error, remove the quote marks from the word text and replace any spaces with the '$' character.</p>
+      <blockquote>
+      <pre>if (said(9999)) {   [ <font color="red"><b>NOT OK</b></font>, must be a word text value
+...
+if (said("rol")) {  [ <font color="red"><b>NOT OK</b></font>, word must not include quotes
+...
+if (said(save game)) [ <font color="red"><b>NOT OK</b></font> (assumes "save game" is a valid word)
+...
+if (said(rol)) {    [ OK
+...
+if (said(save$game)) {   [ OK
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

@@ -1,0 +1,35 @@
+<html>
+	<head><title>Working with Text</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>Working with Text</h1>
+			<p>AGI provides the capability to work with textual data on the <a href="..\agi\grafdisp.htm">graphics screen</a> (where the background picture and objects are drawn), and also on a separate <a href="..\agi\textdisp.htm">text only screen</a>.</p>
+			<p>To switch to the text screen, use the <b><a href="cmd_textscreen.htm">text.screen</a></b> command. The text screen uses a separate area of memory, so the graphics screen is not lost while in text mode. Use the <b><a href="cmd_graphics.htm">graphics</a></b> command to switch back to the graphics mode.</p>
+		<h2>Text on the Text Screen</h2>
+			<p>You shouldn't use the <b><a href="cmd_print.htm">print</a></b> command on the text screen; it only prints black text on a white background, with no border, and will not automatically clear the screen</p>
+			<p>The <b><a href="cmd_display.htm">display</a></b> and <b><a href="cmd_displayv.htm">display.v</a></b> commands will display text with the foreground and background colors as set by the <b><a href="cmd_settextattribute.htm">set.text.attribute</a></b> command. Both the foreground and background can be set to any of the sixteen colors available in AGI.</p>
+			<p>The <b><a href="cmd_clearlines.htm">clear.lines</a></b> and <b><a href="cmd_cleartextrect.htm">clear.text.rect</a></b> commands will always set the background to black; the color argument is ignored for the text screen. A sample workaround is provided in the <b><a href="cmd_cleartextrect.htm">clear.text.rect</a></b> topic to clear the text screen so it matches the background color selected with <b><a href="cmd_settextattribute.htm">set.text.attribute</a></b>.</p>
+			<p>While it is possible, the text mode should not be used to show <a href="..\agi\menu.htm">menus</a>. The menu items are only visible when selected, no borders are drawn, and the menu does 
+			not clear itself from the screen when it is dismissed.</p>
+			<p>If enabled, the <a href="..\agi\keyboard.htm#inputline">input line</a> will work on the text screen. However, a minor glitch in AGI causes the input line to move to the top of the screen without the <a href="..\agi\keyboard.htm#prompt">prompt</a> or <a href="..\agi\keyboard.htm#cursor">cursor</a> when the <b>text.screen</b> command is called (instead of the position defined by the <b><a href="cmd_configurescreen.htm">configure.screen</a></b> command). A workaround is to use the <b><a href="cmd_preventinput.htm">prevent.input</a></b> command just before switching to text mode, then calling the <b><a href="cmd_acceptinput.htm">accept.input</a></b> command immediately afterward. This forces the input line to its correct position.</p>
+		<h2>Text on the Graphics Screen</h2>
+			<p>Text can also be displayed on the graphics screen. The primary command for displaying text is the <b><a href="cmd_print.htm">print</a></b> command and its variants.</p>
+			<p>Text displayed via the print command includes a thin red line border. The foreground color is always black, and the background color is always white. The window will clear itself from the screen when it is dismissed.</p>
+			<p>There are three modes available for dismissing the print window:</p>
+			<ul>
+				<li>If <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f15.htm">f15 (no pause windows)</a> is reset (FALSE) and <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v21.htm">v21 (window close time)</a> = 0, game play is halted and the window remains until the player presses the ENTER or ESC key. This the default behavior.</li>
+				<li>If <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f15.htm">f15 (no pause windows)</a> is reset (FALSE) and <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v21.htm">v21 (window close time)</a> &gt; 0, game play is halted and the window remains open until v21 * 0.5 seconds elapse, or until the player presses the ENTER or ESC key, whichever comes first.</li>
+				<li>If <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f15.htm">f15 (no pause windows)</a> is set to TRUE game play continues while the message is displayed. The value of <a href="..\agi\v21.htm">v21 (window close time)</a> is ignored. Use the <b><a href="cmd_closewindow.htm">close.window</a></b> command to dismiss the window.</li>
+			</ul>
+		 	<p>Flag f15 is reset to FALSE and v21 is set to 0 after each <b>print</b> command executes. This means that every time you want a message to automatically disappear after a set time, you must set f15 and reassign the desired delay time.</p>
+			<p>The <b><a href="cmd_display.htm">display</a></b> and <b><a href="cmd_displayv.htm">display.v</a></b> commands work the same as on the text screen. However, the color choices are limited. The background color can only be black or white. If the background color is white, the foreground color is black, regardless of what was set by the <a href="cmd_settextattribute.htm"><b>set.text.attribute</b></a> command. If the background color is black, then the text is displayed with the foreground color as set by the <b>set.text.attribute</b> command.</p>
+			<p>There is a simple hack you can use if you want to display black text on colored background on the graphics screen. Use the <b><a href="cmd_settextattribute.htm">set.text.attribute</a></b> command with a value of 0 for background color, and a foreground color &gt;= to 128. Due to a bug in AGI, this will result in black text on a colored background, with the color being determined by the lower nibble (lower 4 bits) of the foreground value. Note that <a href="..\agi\agifont.htm#extended">extended characters</a> won't draw correctly in this scenario, and there is no way to get any other colored foreground to show; it can only be black.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

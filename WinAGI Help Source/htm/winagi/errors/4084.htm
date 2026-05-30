@@ -1,0 +1,29 @@
+<html>
+	<head><title>Logic Compiler Error 4084</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4084</h2>
+    <h3>')' expected after command arguments</h3>
+    <p class="indent_n">The compiler did not find a closing parenthesis. All <a href="..\..\commands\syntax_fan.htm#actions">commands</a> must include opening and closing parentheses '( )' around argument values. The parentheses are required even if the command doesn't have any arguments.</p>
+    <blockquote>
+      <pre>addn(v99, 1;   [ <font color="red"><b>NOT OK</b></font>; missing ')'
+return;   [ <font color="red"><b>NOT OK</b></font>; missing '()'
+...</pre>
+    </blockquote>
+    <p class="indent_n">This error also occurs when including too many arguments in a command:</p>
+    <blockquote>
+      <pre>addn(v99, 1, 1);   [ <font color="red"><b>NOT OK</b></font>; addn only takes 2 arguments
+...</pre>
+    </blockquote>
+    <p class="indent_n">To clear the error, check your code and confirm the correct number of arguments are included and the ending ')' is included.</p>
+
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

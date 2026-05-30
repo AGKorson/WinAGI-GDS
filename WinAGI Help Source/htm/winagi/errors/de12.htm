@@ -1,0 +1,18 @@
+<html>
+    <head><title>Logic Source Decompiler Error DE12</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Error DE12</h2>
+      <h3>Word group &lt;number&gt; does not exist in WORDS.TOK</h3>
+      <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+      <p class="indent_n">This error is raised when the decompiler finds an invalid <a href="..\..\agi\words.htm#wordgroups">word group number</a> while decompiling a <a href="..\..\commands\cmd_said.htm"><b>said</b></a> command. Sierra syntax requires the argument to be the word text, but because the word does not exist, the word group number is used as a place holder.</p>
+      <p class="indent_n">This error may occur if the <a href="..\..\agi\words.htm">WORDS.TOK</a> file used to decompile the <a href="..\..\agi\logics.htm">logic</a> is not the same as the one originally used to create the logic. It could also mean either the logic or the WORDS.TOK file is corrupted. You should examine the logic and WORDS.TOK file carefully and make corrections as needed.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

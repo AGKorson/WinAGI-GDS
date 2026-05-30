@@ -1,0 +1,49 @@
+<html>
+	<head><title>Action Command: trace.on</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>trace.on</h1>
+			<p>The <b>trace.on</b> command turns the debugger trace mode on.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>trace.on();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <b>trace.on</b> command switches the <a href="..\agi\cycle.htm">interpreter cycle</a> to <a href="..\agi\tracer.htm">trace mode</a>.</p>
+			<p>Trace mode must first be enabled (by setting <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f10.htm">f10 (command tracer enabled)</a>). Using <b>trace.on</b> when f10 is FALSE will have no effect.</p>
+			<p>The <a href="cmd_traceinfo.htm"><b>trace.info</b></a> command is normally used prior to entering trace mode to adjust the location of the trace window and identify a logic that contains the text values of each AGI command. It is not required though.</p>
+			<p>Once enabled, there is no equivalent 'trace.off' command. The only way to exit trace mode is to use the SCROLL LOCK key, which acts as a toggle for trace mode. Keep in mind that this means that if f10 is TRUE, the player can also enter trace mode by pressing the SCROLL LOCK key.</p>
+			<p>For a detailed discussion of how the trace mode works, see the <a href="..\agi\tracer.htm">AGI Command Tracer</a> topic.</p>
+			<p>When the trace mode is active, if a <b>trace.on</b> command is encountered, a bug in AGI improperly sets the logic command data stream pointer, which usually results in crashing AGI.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>set(enableTrace); [ enable trace mode
+if(said("trace"))
+  {
+  trace.info(TracerLogic, 1, 10);  [ assume TracerLogic is a valid logic ID
+  <b>trace.on();</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">149 (0x95)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_debug.htm">Debugging Commands</a></p>
+			<p><a href="cmd_traceinfo.htm"><b>trace.info</b></a></p>
+			<p><a href="..\agi\debug.htm">AGI Debugging Information</a></p>
+			<p><a href="..\agi\tracer.htm">AGI Command Tracer</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,48 @@
+<html>
+	<head><title>Action Command: animate.obj</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>animate.obj</h1>
+			<p>The <b>animate.obj</b> command initializes a <a href="..\agi\screenobjs.htm">screen object</a> so it can be used on screen.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>animate.obj(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Screen objects must be initialized with the <b>animate.obj</b> command before they can be used in any other commands. Commands that are run on an uninitialized screen objects will interact with invalid data. If you attempt to read data from an uninitialized screen object (by using commands such as <a href="cmd_getposn.htm"><b>get.posn</b></a>), AGI will not raise an error; but it will return invalid data, which should not be relied on in your logic script. Using commands that set screen object parameters (such as <a href="cmd_setdir.htm"><b>set.dir</b></a>) will also not raise any errors, but will essentially have no effect, as AGI ignores uninitialized screen objects as it goes through the <a href="..\agi\cycle.htm">interpreter cycle</a>.</p>
+			<p>If <b>animate.obj</b> is executed on an object that has already been animated, the command does nothing.</p>
+			<p>When a <a href="..\agi\screenobjs.htm">screen object</a> is initialized, all screen object <a href="..\agi\sobjtable.htm#flagtable">bit field flags</a> are cleared, except for UPDATE, CYCLE, and ANIMATED flags. This enables the screen object for <a href="object_initialize.htm#updating">updating</a> and <a href="object_cycling.htm">cycling</a>. The screen object's <a href="object_moving.htm">movement mode</a> and <a href="object_cycling.htm">cycle mode</a> are both set to 'normal', and its direction is set to 'STOPPED'.</p>
+			<p>All other screen object data are left unchanged. If you are re-using a <a href="..\agi\screenobjs.htm">screen object</a> in the same <a href="..\agi\pictures.htm#room">room</a>, this means you must be sure to set all other object properties manually after re-animating, otherwise AGI will use the previous values, which may result in unexpected results.</p> 
+			<p>If the screen object number <b>oA</b> exceeds the <a href="..\agi\screenobjs.htm#maxscreenobj">max screen object</a> count, AGI will raise <a href="..\agi\errorlist.htm#trap13">trappable error #13</a>.</p>
+			<p>If you call the <b>animate.obj</b> command on a screen object that is already initialized, the command is ignored.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ basic steps needed to create
+[ and display a screen object
+<b>animate.obj(o2);</b>
+load.view(4);
+set.view(o2,4);
+position(o2,80,120);
+draw(o2);</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n"> 33 (0x21)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><a href="concepts_objs.htm">Working with Screen Objects</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,17 @@
+<html>
+	<head><title>Reserved Variable v7</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1><a name="v7">v7</a>: Maximum Score</h1>
+			<p>AGI provides built-in score tracking that programmers can use to provide immediate feedback to players as they progress through a game. When a player does something important, the programmer can adjust the value of <a href="variables.htm#reserved">reserved variable</a> <a href="v3.htm">v3 (current score)</a> to update the player's current score. To provide feedback on overall progress, AGI uses reserved variable v7 as the player's maximum score.</p>
+			<p>If the status line <a href="..\commands\cmd_statuslineoff.htm">is visible</a>, the maximum score, along with the current score, is displayed on the <a href="grafdisp.htm#statusline">status line</a> in the format "Score: xx of yy" where xx is <a href="v3.htm">v3 (current score)</a> and yy is v7 (maximum score).</p>
+			<p>Maximum score is usually set by the programmer when a game is first loaded, but it can be changed at any time if desired. Unlike  changes to v3 (current score), changing v7 (maximum score) does not automatically update the status line. </p>
+			<p>This variable can be used for any purpose, just keep in mind that its value will be displayed on the status bar.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

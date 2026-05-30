@@ -1,0 +1,92 @@
+<html>
+	<head><title>General Settings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>General Settings</h1>
+			<map name="settings">
+				<area shape="rect" alt="Logic Settings" coords="66,41,111,61" href="settings_logic.htm">
+				<area shape="rect" alt="Logic(2) Settings" coords="112,41,174,61" href="settings_logic2.htm">
+				<area shape="rect" alt="Picture Settings" coords="175,41,228,61" href="settings_picture.htm">
+				<area shape="rect" alt="Sound Settings" coords="229,41,279,61" href="settings_sound.htm">
+				<area shape="rect" alt="View Settings" coords="280,41,327,61" href="settings_view.htm">
+				<area shape="rect" alt="Layout Settings" coords="328,41,374,61" href="settings_layout.htm">
+				<area shape="rect" alt="Resource List Type" coords="42,97,226,120" href="#reslist">
+				<area shape="rect" alt="Display Resources by Number" coords="42,131,214,144" href="#resnum">
+				<area shape="poly" alt="Resource Name Format" coords="42,163,163,163,163,178,225,178,225,201,42,201" href="#format">
+				<area shape="rect" alt="Include Resource Numbers" coords="42,212,200,224" href="#includenum">
+				<area shape="poly" alt="Default Resource Directory" coords="30,250,173,250,173,265,233,265,233,288,30,288" href="#resdir">
+				<area shape="rect" alt="Default MaxScreenObj" coords="34,294,238,315" href="#maxscreenobj">
+				<area shape="rect" alt="Max VOL.0 Size" coords="34,328,236,349" href="#maxvol0">
+				<area shape="rect" alt="Reset Warnings" coords="30,399,202,412" href="#resetmsgs">
+				<area shape="rect" alt="Show Preview" coords="272,99,413,112" href="#preview">
+				<area shape="rect" alt="Preview Window ZOrder" coords="289,128,441,154" href="#prevwinzorder">
+				<area shape="rect" alt="Hide Preview on Lost Focus" coords="289,170,425,195" href="#hideprevwin">
+				<area shape="rect" alt="Auto Export Resources" coords="254,230,437,243" href="#autoexport">
+				<area shape="rect" alt="Back up Resources" coords="254,262,434,296" href="#backupresources">
+				<area shape="rect" alt="Show Splash Screen" coords="254,306,429,319" href="#splash">
+				<area shape="rect" alt="Open Last Game" coords="254,341,455,354" href="#lastgame">
+				<area shape="rect" alt="Show Warning List on Open" coords="254,378,425,391" href="#showwarngrid">
+			</map>
+			<p><img src="..\..\graphics\settings-general.jpg" usemap="#settings" border="0" width="500"></p>
+		<h2><a name="reslist">Resource List Type</a></h2>
+			<p>Select the type of <a href="resourcetree.htm">resource list</a> to display as a panel on the left of the main WinAGI window. You can choose between a tree list view, or a combobox/list view. Select none to hide the resource list panel.</p>
+			<p>&nbsp;</p>
+		<h2><a name="resnum">Display Resources by Number</a></h2>
+			<p>The default for WinAGI is to display resources in the resource list by their <a href="managingresources.htm#resourceids">resource ID</a>.</p>
+			<p>If you don't want to use resource IDs, enable this option to display resources by number instead.</p>
+			<p>&nbsp;</p>
+		<h2><a name="format">Resource Name Format</a></h2>
+			<p>When the Display Resources by Number option is set, use the Resource Name Format drop down list to choose the format for resources. The available formats are essentially the same as those found in AGI Studio.</p>
+			<p>&nbsp;</p>
+		<h2><a name="includenum">Include Resource Number on Resource List</a></h2>
+			<p>If using resource IDs, select this option to include the resource number in the caption for each resource. This can be useful if you want to easily look up a number for a given resource, without having to select it.</p>
+			<p>&nbsp;</p>
+		<h2><a name="resdir">Default Resource Directory</a></h2>
+			<p>When a new game is created, or an existing game is opened in WinAGI for the first time, the <a href="managingresources.htm#resdir">resource directory</a> is the subdirectory that WinAGI will create and use for source code files and exported resources.</p>
+			<p>&nbsp;</p>
+		<h2><a name="splash">Show Splash Screen</a></h2>
+			<p>When checked, the WinAGI splash screen is shown at startup. Clear this option to skip the splash screen.</p>
+			<p>&nbsp;</p>
+		<h2><a name="lastgame">Open Most Recent Game</a></h2>
+			<p>When checked, the most recently edited game will be opened when WinAGI is executed. This is very useful if you are working with one game all the time.</p>
+			<p>&nbsp;</p>
+		<h2><a name="showwarngrid">Show Warning List on Open</a></h2>
+			<p>When a game is opened, if there are any errors or warnings, the <a href="warninglist.htm">Warnings and Errors List</a> will be displayed if this option is set.</p>
+			<p>&nbsp;</p>
+		<h2><a name="preview">Show Preview Window</a></h2>
+			<p>When checked, <a href="..\agi\logics.htm">logic</a>, <a href="..\agi\pictures.htm">picture</a>, <a href="..\agi\sounds.htm">sound</a> and <a href="..\agi\views.htm">view</a> resources are shown in a <a href="preview.htm">preview window</a> when a game is loaded.</p>
+			<p>This option is only available if the Show Resource List option is checked.</p>
+			<p>&nbsp;</p>
+		<h2><a name="prevwinzorder">Selection Brings Preview Window to Top of ZOrder</a></h2>
+			<p>When checked, choosing a resource in the <a href="resourcetree.htm">resource list</a> will force the preview window to the top of the zorder. (Meaning the preview window will move to to the front, and display on top of all other WinAGI windows.)</p>
+			<p>This option is only available if the Show Preview Window option is checked.</p>
+			<p>&nbsp;</p>
+		<h2><a name="hideprevwin">Hide Preview Window on Lost Focus</a></h2>
+			<p>This option will hide the <a href="preview.htm">preview window</a> when you are working with editors (i.e., when the preview window loses focus). This keeps the <a href="preview.htm">preview window</a> from being a distraction while working on resources. When you click on a resource node or the <a href="resourcetree.htm#propwindow">property window</a> in the <a href="resourcetree.htm">resource list</a>, the <a href="preview.htm">preview window</a> will be re-displayed, and will move to front, on top of all other windows.</p>
+			<p>This option is only available if the Show Preview Window option is checked.</p>
+			<p>&nbsp;</p>
+		<h2><a name="autoexport">Automatically Export Resources</a></h2>
+			<p>When checked, the <a href="resource_export.htm#autoexport">Auto Export Feature</a> is enabled.</p>
+			<p>&nbsp;</p>
+		<h2><a name="backupresources">Backup Resource Files When Removing From Game</a></h2>
+			<p>When checked, this option will automatically export the resource being deleted to the game's <a href="managingresources.htm#resdir">resource directory</a>. This is useful if you are not using the Auto Export feature and you want to preserve any resources that you decide to remove from your game. Note that this only affects <a href="..\agi\pictures.htm">picture</a>, <a href="..\agi\sounds.htm">sound</a> and <a href="..\agi\views.htm">view</a> resources; <a href="..\agi\logics.htm">logic</a> source code is not affected, and should always remain in your game's resource directory even if the logic is removed.</p>
+			<p>&nbsp;</p>
+		<h2><a name="maxscreenobj">Default MaxScreenObjects</a></h2>
+			<p>When creating a new <a href="..\agi\object.htm">OBJECT</a> file, WinAGI will use this value for the default <a href="..\agi\screenobjs.htm#maxscreenobj">Max Screen Object</a> value.</p>
+			<p>&nbsp;</p>
+		<h2><a name="maxvol0">Maximum VOL.0 Size</a></h2>
+			<p>Most original Sierra AGI games were distributed on floppy disks. When run directly from the floppy disks (instead of from a hard drive) AGI expects each disk to include a copy of VOL.0 along with the <a href="..\agi\vol.htm">volume file</a> matching the disk number. Also, the first disk contained all the <a href="..\agi\components.htm">interpreter files</a>, the <a href="..\agi\object.htm">OBJECT</a> and <a href="..\agi\words.htm">WORDS.TOK</a> files and other files needed to install the game. As a result, VOL.0 was usually much smaller than the maximum allowable size.</p>
+			<p>This property allows you to specify a smaller size for VOL.0. Since games today are rarely put on floppies (and even if they are, they are even less likely to be played directly from a floppy drive), this property is not of much use. It is provided more for nostalgia than anything else.</p>
+			<p>&nbsp;</p>
+		<h2><a name="resetmsgs">Reset Message Box Warnings</a></h2>
+			<p>Several message box warnings in WinAGI allow you to choose an option to not show the warning anymore. Set this property to force WinAGI to reset all message box warnings so you will see them again.</p>
+			<p>Choosing this option will also reset all ignored <a href="warninglist.htm#ignorewarn">compiler warnings</a> to their default status.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

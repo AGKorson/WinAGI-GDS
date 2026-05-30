@@ -1,0 +1,76 @@
+<html>
+	<head><title>WORDS.TOK File</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+      </tr>
+    </table>
+    <h1>WORDS.TOK File</h1>
+    <p>The WORDS.TOK file contains the games vocabulary words, i.e. the dictionary of words that AGI understands. These words are stored along with a word number which is used by the <a href="..\commands\cmd_said.htm"><b>said</b></a> test command as argument values for that command. Many words can have the same word number which basically means that these words are synonyms for each other as far as the game is concerned.</p>
+    <p>An AGI 'word' is not limited to single 'regular word', i.e. a sequence of ASCII characters separated by a space. An AGI 'word' can include more than one 'regular word'. For example, "red" can be an AGI word, "door" can be another AGI word, and "red door" can be a third AGI word. When AGI <a href="keyboard.htm#parser">parses</a> player input, it will find the longest AGI 'word' that matches; so if the player entered "open red door", AGI would parse that as {"open","red door"}, not {"open", "red", "door"}. But "open red barn door" would parse as {"open", "red", "barn", "door"}.</p>
+    <p><a name="wordgroups">Each word</a> has a number associated with it, called the word group number. More than one word can have the same word group number. This allows the programmer to manage synonyms without having to write separate code for each possible word choice. For example, if "hit", "punch" and "strike" all have the same word group number, it won't matter if the player types "hit the guard", "punch the guard" or "strike the guard"; the programmer only needs to test for one of them with the <a href="..\commands\cmd_said.htm"><b>said</b></a> command and they all will match the test.</p>
+    <h3><a name="16bit">16 Bit Word Numbers</a></h3>
+    <p>Vocabulary words are unique in AGI in that they are 16 bit values, instead of 8 bit values. This is obviously necessary because the number of words a player may want to enter are certainly going to be greater than 256 in almost every case.</p>
+    <h3><a name="charlimits">Character Limits</a></h3>
+    <p>Because of the way that words are stored in the file, all words MUST begin with a letter, a-z. Words are always stored as lower case in the list. Although the first character must be a letter, other characters, including numbers and symbols that are not removed during <a href="keyboard.htm#parser">parsing</a>, are allowed.</p>
+    <h2>File Format</h2>
+    <p>The file uses a unique compression scheme to store words. Words are stored in alphabetic order which is required for the compression method to work.</p>
+    <p>The WORDS.TOK file is comprised of a header section and a data section. </p>
+    <p>The header section is always 52 bytes long. This header contains a two byte entry for every letter of the alphabet. It is essentially an index which gives the starting location of the words beginning with the corresponding letter.</p>
+    <p>An important thing to note is that the 16 bit words are big-endian (HI-LO). The little endian (LO-HI) byte order convention used everywhere else in the AGI system is not used here. For example, (0x00, 0x24) means 0x0024, not 0x2400.</p>
+    <p>All offsets are taken from the beginning of the file. If no words start with a particular letter, then the offset in that field will be 0x0000.</p>
+    <p><a name="compression">In</a> the data section, words are stored in a compressed way in which each word will use part of the previous word as a starting point for itself. For example, "forearm" and "forest" both have the prefix "fore". If "forest" comes immediately after "forearm", then the data for "forest" will specify that it start with the first four characters of the previous word, then continue on with the additional characters that are not common to the previous word. This method provides a very efficient way to quickly find a matching word, or to confirm there is no match. </p>
+    <p>The last character of each word has the most significant bit set to mark it as the last character. This means it is not possible to use extended characters (byte values &gt; 127) as vocabulary words.</p>
+    <p>The format of word entries is as follows:</p>
+    <table id="Table2" cellSpacing="1" cellPadding="1" border="1">
+      <tr>
+        <td width="120" align="middle"><b>Byte</b></td>
+        <td width="850"><b>&nbsp;Meaning</b></td>
+      </tr>
+      <tr>
+        <td align="middle" style="vertical-align:middle">0</td>
+        <td>&nbsp;Number of characters to include from start of previous word (n)</td>
+      </tr>
+      <tr>
+        <td align="middle">1</td>
+        <td>&nbsp;(Value XOR 0x7F) = ASCII value of character n + 1</td>
+      </tr>
+      <tr>
+        <td align="middle">2</td>
+        <td>&nbsp;(Value XOR 0x7F) = ASCII value of character n + 2</td>
+      </tr>
+      <tr>
+        <td align="middle">...</td>
+        <td>&nbsp;</td>
+      </tr>
+      <tr>
+        <td align="middle">c</td>
+        <td>&nbsp;(Value XOR 0xFF) = ASCII value of last character</td>
+      </tr>
+      <tr>
+        <td align="middle">c + 1</td>
+        <td>&nbsp;High byte of word group number</td>
+      </tr>
+      <tr>
+        <td align="middle">c + 2</td>
+        <td>&nbsp;Low byte of word group number</td>
+      </tr>
+    </table>
+    <p>If a word does not use any part of the previous word, then the prefix field is equal to zero. This will always be the case for the first word starting with a new letter. AGI uses this feature to know when to stop searching; if the index value ever drops back zero during a search, AGI knows that it has finished searching all words that start with the same letter, and that no match has been found.</p>
+    <p>The last byte in the file should also be a zero value (0x00); it indicates to the search function that there are no more words in the list. If the trailing zero is missing, the word search function will continue looking at data from the <a href="memory.htm#heap">heap</a> that immediately follows the WORDS.TOK file (the <a href="object.htm">OBJECT</a> file), thinking it is valid word data; eventually, a null value will be found, which AGI interprets as the end of words. In most cases, this will happen without the player ever even knowing, because there is almost always a zero value byte in the OBJECT file's header. That byte will cause the word search to end.</p>
+    <p>Even in the unlikely event that there are more than 85 inventory items (which means the header WON'T have a zero value byte), it would be even more unlikely that the rest of the OBJECT file header and item data would contain the exact characters needed to create a false word match before a zero value is eventually encountered.</p>
+    <h2><a name="reserved">Reserved Word Group Numbers</a></h2>
+    <p>Every word is associated with a number that AGI uses in conjunction with the <a href="..\commands\cmd_said.htm"><b>said</b></a> command to evaluate player input. The actual values of numbers assigned to word groups have no significance, with the exception of three special word group numbers:</p>
+    <ul>
+      <li><b>Group 0:</b> Words assigned a group number of 0 will be ignored by the compiler. This allows the player to type in text in a more natural way without requiring AGI to give special meaning to every word a player might type. For example, "throw the rock at the dog" would be parsed as "THROW", "ROCK", "DOG" if the words "the" and "at" have word number 0. AGI automatically considers the single letter words "a" and "i" as group 0 words even if they are not explicitly assigned a value of 0 in the WORDS.TOK file. However, you can override this automatic behavior by assigning them to any non-zero group.</li>
+      <li><b>Group 1:</b> This group number is reserved by AGI to act as a place holder for any word. When this word group number is used in the <b><a href="..\commands\cmd_said.htm">said</a></b> command, AGI will consider the entered word a match regardless of the actual word group value. See the <b><a href="..\commands\cmd_said.htm">said</a></b> command for details.</li>
+      <li><b><a href="..\commands\sierra_wordcompiler.htm#9999">Group 9999</a>:</b> This group number is reserved by AGI to act as a place holder for all the remaining words in the player input. When this word group number is used in the <b><a href="..\commands\cmd_said.htm">said</a></b> command, AGI will immediately stop evaluating words, and return a result based on the words evaluated up to that point. See the <b><a href="..\commands\cmd_said.htm">said</a></b> command for details. </li>
+    </ul>
+    <p>Most AGI game editors will include the words "anyword" and "rol" in the WORDS.TOK file to represent groups 1 and 9999 respectively. Strictly speaking, this is not required, but is done because most compilers need to find a match in WORDS.TOK to compile a logic. WinAGI treats "anyword" and "rol" as keywords, and will always compile a logic that uses them, even if they aren't included in the WORDS.TOK file literally.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

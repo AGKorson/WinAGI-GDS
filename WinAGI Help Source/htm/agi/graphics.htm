@@ -1,0 +1,355 @@
+<html>
+	<head><title>AGI Graphics</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Graphics and Text Displays in AGI</h1>
+			<p>AGI used two display modes; a <a href="grafdisp.htm">graphical</a> mode that displays <a href="pictures.htm">pictures</a> and <a href="screenobjs.htm">screen object</a> animations, and a <a href="textdisp.htm">text only mode.</a></p>
+		<h1>Graphics Adapters Supported by AGI</h1>
+			<p>In the 1980s, when AGI was created, displays were very limited in their capabilities and resolution compared with modern displays. When AGI was first released, there were three common display adapters for the IBM PC: the Hercules Graphics Card (HGC), the Color Graphics Adapter (CGA) and the Enhanced Graphics Adapter (EGA). The Video Graphics Adapter (VGA) became available several years later, near the end of AGI's run.</p>
+			<p>Display details included below focus on the IBM PC and its allowable graphics cards. Information for other platforms is not covered in detail.</p>
+			<p>The <a href="components.htm">overlay files</a> that came with AGI handled the task of converting AGI graphical output data into display specific format. AGI would load the appropriate overlay files based on the detected (or <a href="starting.htm#switches">specified</a>) graphics controller.</p>
+		<h3><a name="hgc">Hercules Graphics Card (HGC)</a></h3>
+			<p>The HGC was a monochrome graphics card (supporting green, amber, or, less often, black and white monitors). It included both a text mode (80 x 25) and a graphics mode (720 x 348). In order to display a text screen of 40 x 25, AGI ran HGC in graphics mode and used custom code to display text, requiring a separate file that contained the font glyph data. Also,there was a significant loss of detail when playing games on an HGC display since AGI used 16 different colors, which HGC had to simulate by dithering pixels.</p>
+		<h3><a name="cga">Color Graphics Adapter (CGA)</a></h3>
+			<p>The CGA graphics controller was IBM's own graphics controller that competed with the HGC. While it offered up to sixteen colors (in most modes, it could only display four of the sixteen colors at a time), it actually had less resolution (640 x 200 graphics) and thus its text modes were more blocky.</p>
+			<p>AGI used the 320 x 200 graphics mode which could only display four colors. The graphics mode had two built in palettes: black-cyan-magenta-white (CGA palette) and blue-green-red-brown (RGB palette). AGI used the 40 x 25 text mode when displaying the <a href="textdisp.htm#cga">text screen</a>.</p>
+		<h3><a name="ega">Enhanced Graphics Adapter (EGA)</a></h3>
+			<p>The most common display adapter (and the one that took advantage of all features in AGI) was the EGA. The EGA graphics card was capable of displaying 16 colors simultaneously (out of a palette of 64), and had resolutions up to 640 x 350. AGI used the 320 x 200 display resolution with 16 colors for graphics and the 40 x 25 text mode on EGA displays.</p>
+		<h3><a name="vga">Video Graphics Adapter (VGA)</a></h3>
+			<p>AGI could also run on the later VGA displays. Although VGA offered better resolution and color palette choices, when run on a PC, AGI used the VGA card's EGA compatible mode and ran with the same resolution and colors as EGA when displayed on a VGA system.</p>
+			<p>When run on a PS/2 with a VGA card, AGI used the VGA card's higher resolution for text characters, with each character drawn to an 8 x 16 pixel grid, instead of 8 x 8 as with EGA. Text was still limited to 25 rows of 40 columns.</p>
+		<h1><a name="agicolors">AGI Color Palette</a></h1>
+			<p>In all display modes, AGI used sixteen colors internally. Resources reference the colors by index. AGI would determine what the actual color to be displayed would be depending on whatever display mode was active. For EGA displays, sixteen distinct colors were displayed. On CGA displays, AGI used dithering of the four available colors in the active palette to create sixteen shades. The HGC display, being monochrome, used texturing to simulate sixteen colors.</p>
+			<p>On the EGA display, RGB values used 6 bit numbers, not 8 bit numbers. The original (default) color values for EGA, with corresponding 8 bit values (to allow for modern graphics applications to match) are:
+		<p>
+			<table id="egacolorvalues" cellSpacing="1" cellPadding="1" border="1">
+				<tr>
+					<td align="middle" width="120" rowSpan="2"><b>Color<BR/>Index</b></td>
+					<td style="vertical-align:middle" width="200" colSpan="1" rowSpan="2"><b>&nbsp;Name</b></td>
+					<td style="vertical-align:middle" width="480" align="middle" colSpan="3" rowSpan="1"><b>6 Bit RGB Values</b></td>
+					<td style="vertical-align:middle" width="480" align="middle" colSpan="3" rowSpan="1"><b>8 Bit RGB Values</b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="160"><b>Red</b></td>
+					<td align="middle" width="160"><b>Green</b></td>
+					<td align="middle" width="160"><b>Blue</b></td>
+					<td align="middle" width="160"><b>Red</b></td>
+					<td align="middle" width="160"><b>Green</b></td>
+					<td align="middle" width="160"><b>Blue</b></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">0</td>
+					<td style="vertical-align:middle">&nbsp;black</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">1</td>
+					<td style="vertical-align:middle" >&nbsp;blue</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">2</td>
+					<td style="vertical-align:middle">&nbsp;green</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">3</td>
+					<td style="vertical-align:middle">&nbsp;cyan</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">4</td>
+					<td style="vertical-align:middle">&nbsp;red</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">5</td>
+					<td style="vertical-align:middle">&nbsp;magenta</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x80</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">6</td>
+					<td style="vertical-align:middle">&nbsp;brown</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">7</td>
+					<td style="vertical-align:middle">&nbsp;light gray</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0x2A</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+					<td style="vertical-align:middle" align="middle">0xA0</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">8</td>
+					<td style="vertical-align:middle">&nbsp;dark gray</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">9</td>
+					<td style="vertical-align:middle">&nbsp;light blue</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">10</td>
+					<td style="vertical-align:middle">&nbsp;light green</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x00</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">11</td>
+					<td style="vertical-align:middle">&nbsp;light cyan</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">12</td>
+					<td style="vertical-align:middle">&nbsp;light red</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">13</td>
+					<td style="vertical-align:middle">&nbsp;light magenta</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">14</td>
+					<td style="vertical-align:middle">&nbsp;yellow</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x15</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+					<td style="vertical-align:middle" align="middle">0x50</td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">15</td>
+					<td style="vertical-align:middle">&nbsp;white</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0x3F</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+					<td style="vertical-align:middle" align="middle">0xFF</td>
+				</tr>
+			</table>
+		</p>
+
+			<p>Samples of the sixteen colors in each of the graphics mode are shown below:</p>
+		<p>
+			<table id="Table4" cellSpacing="1" cellPadding="1" border="1">
+				<tr>
+					<td align="middle" width="120" rowSpan="2"><b>Color<BR/>Index</b></td>
+					<td style="vertical-align:middle" width="200" colSpan="1" rowSpan="2"><b>&nbsp;Name</b></td>
+					<td style="vertical-align:middle" width="120" colSpan="1" rowSpan="2" align="middle"><b>EGA</b></td>
+					<td style="vertical-align:middle" width="120" colSpan="1" rowSpan="2" align="middle"><b>CGA-0 (CGA)</b></td>
+					<td style="vertical-align:middle" width="120" colSpan="1" rowSpan="2" align="middle"><b>CGA-1 (RGB)</b></td>
+					<td style="vertical-align:middle" width="120" colSpan="1" rowSpan="2" align="middle"><b>HGC</b></td>
+				</tr>
+				<tr>
+					<td></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">0</td>
+					<td style="vertical-align:middle">&nbsp;black</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega00.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb00.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga00.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc00.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">1</td>
+					<td style="vertical-align:middle" >&nbsp;blue</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega01.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb01.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga01.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc01.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">2</td>
+					<td style="vertical-align:middle">&nbsp;green</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega02.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb02.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga02.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc02.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">3</td>
+					<td style="vertical-align:middle">&nbsp;cyan</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega03.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb03.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga03.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc03.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">4</td>
+					<td style="vertical-align:middle">&nbsp;red</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega04.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb04.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga04.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc04.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">5</td>
+					<td style="vertical-align:middle">&nbsp;magenta</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega05.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb05.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga05.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc05.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">6</td>
+					<td style="vertical-align:middle">&nbsp;brown</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega06.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb06.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga06.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc06.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">7</td>
+					<td style="vertical-align:middle">&nbsp;light gray</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega07.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb07.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga07.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc07.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">8</td>
+					<td style="vertical-align:middle">&nbsp;dark gray</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega08.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb08.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga08.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc08.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">9</td>
+					<td style="vertical-align:middle">&nbsp;light blue</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega09.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb09.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga09.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc09.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">10</td>
+					<td style="vertical-align:middle">&nbsp;light green</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega10.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb10.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga10.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc10.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">11</td>
+					<td style="vertical-align:middle">&nbsp;light cyan</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega11.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb11.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga11.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc11.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">12</td>
+					<td style="vertical-align:middle">&nbsp;light red</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega12.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb12.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga12.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc12.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">13</td>
+					<td style="vertical-align:middle">&nbsp;light magenta</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega13.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb13.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga13.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc13.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">14</td>
+					<td style="vertical-align:middle">&nbsp;yellow</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega14.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb14.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga14.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc14.bmp" width="50"></td>
+				</tr>
+				<tr>
+					<td style="vertical-align:middle" align="middle">15</td>
+					<td style="vertical-align:middle">&nbsp;white</td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\ega15.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\rgb15.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\cga15.bmp" width="50"></td>
+					<td  style="vertical-align:middle" align="middle"><img src="..\..\graphics\hgc15.bmp" width="50"></td>
+				</tr>
+			</table>
+		</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

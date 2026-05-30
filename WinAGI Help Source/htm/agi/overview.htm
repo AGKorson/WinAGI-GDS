@@ -1,0 +1,33 @@
+<html>
+	<head><title>AGI Overview</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+      </tr>
+    </table>
+    <h1>Overview of AGI</h1>
+    <h2>A Short History</h2>
+    <p>AGI (Adventure Game Interpreter) was the Sierra's first large scale game interpreter. Unlike games where the game resources (pictures, sprites (or views), sounds, scripts, etc) were embedded or compiled in the program's executable file, AGI instead used an interpreter that read <a href="resources.htm">game resources</a> from a set of resource files. This made it easy for Sierra to create new games, as all they had to do was create a new set of resource files for each new game.</p>
+    <p>Over the years, AGI was modified and improved. There were three major <a href="..\agi\versions.htm">versions</a> (not many well known games were version 1; WinAGI only supports version 2 and 3 games).</p>
+    <h2><a name="platforms">Plaforms</a></h2>
+    <p>AGI ran on several platforms. Sierra originally created King's Quest I, the first AGI game, for the IBM PCJr. The PCJr ended up as a flop, but Sierra developed AGI to run on other platforms, such as the Tandy 1000, Apple II, Macintosh, Atari, Amiga, and of course, MSDOS on the IBM PC. The huge success of Sierra's games on these other platforms is now a matter of history.</p>
+    <p>Sierra intentionally dsigned AGI to use (mostly) platform independent game <a href="resources.htm">resources</a> (images, scripts, animations, etc.) This allowed them to easily produce games that ran on multiple platforms once they created each platform's executable and support files to read the resources.</p>
+    <p>WinAGI currently only provides support for creating and editing resources for the MSDOS platform. The reference information in this help file is predominantly aimed at the MSDOS platform implementation of AGI.</p>
+    <h2>AGI Architecture</h2>
+    <p>AGI <a href="components.htm">components</a> typically included the main executable file, a loader file, and supporting files for various graphics displays, sound and other low level support. At the time Sierra created AGI, there wasn't anything else like it. To protect their intellectual property, Sierra employed <a href="components.htm#gameloader">copy protection</a> and <a href="encryption.htm">encryption</a> for the main interpreter executable file.</p>
+    <p>AGI games are sometimes described as 3D graphical adventures, meaning the player could move their character around the screen and in front of and behind objects. Players could use the keyboard and joystick (and on non-MSDOS platforms in later versions, the mouse) <a href="interface.htm">to control the main character</a> in the game. This character was know as <a href="interface.htm#ego">'ego'</a>.</p>
+    <p>The <a href="graphics.htm">graphics</a> in AGI were low resolution (160 x 200). The screen image that players would see in a game were comprised of two main elements, background pictures, and sprites (or views, as they are known in AGI).</p>
+    <p>Many players were never aware that AGI actually had four <a href="agisound.htm">sound channels</a>. On MSDOS based systems, AGI only played one channel through the internal speaker. Other platforms supported all four channels of sound.</p>
+    <p>AGI works in a loop, or continuous cycle. In each <a href="cycle.htm">interpreter cycle</a> AGI handles <a href="interface.htm">player input</a> (via keyboard, joystick, and/or mouse), assesses current game state by checking various <a href="data.htm">variables and flags</a>, repositions <a href="screenobjs.htm">screen objects</a> and redraws the display. Scripts (called <a href="logics.htm">logics</a>) are then processed. Logics contain the commands that control the overall game play.</p>
+    <h2>Resources</h2>
+    <p>Along with <a href="logics.htm">logics</a>, the other resources included in an AGI game are the background images (called <a href="pictures.htm">pictures</a>), sprites (animated graphics associated with screen objects called <a href="views.htm">views</a>) and <a href="sounds.htm">sounds</a>.</p>
+    <p>Resources are stored in sequentially numbered <a href="vol.htm">volume</a> files. Each game has a <a href="dir.htm">directory</a> file that AGI uses to locate each resource within the volume files. In version 2 games, a separate directory file for each of the four main resource types is used. Version 3 games combine all directory files into a single file.</p>
+    <p>AGI games also include <a href="words.htm">WORDS.TOK</a> file that contains a list of the words that a player can use to interact with the game. AGI compares the text that a player types against this list, and acts on them according to commands in logics.</p>
+    <p>The final resource used by AGI is the <a href="object.htm">OBJECT</a> file. Here 'object' refers to the items that a player can pick up and carry, not the screen objects that are associated with views. These objects are referred to as <a href="invitems.htm">inventory items</a> to avoid confusion with <a href="screenobjs.htm">screen objects</a>.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

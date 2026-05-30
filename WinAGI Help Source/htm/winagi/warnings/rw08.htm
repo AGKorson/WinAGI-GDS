@@ -1,0 +1,17 @@
+<html>
+    <head><title>Resource Load Warning RW08</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Resource Load Warning RW08</h2>
+      <h3>Picture &lt;number&gt; has extra data past the end of resource</h3>
+      <p class="indent_n"><a href="..\..\agi\pictures.htm">Picture</a> resources must always end with a <a href="..\..\agi\pictures.htm#ff">DRAWING END</a> byte (0xff). AGI needs that to know when to stop processing drawing commands. Once the end of drawing is reached, AGI stops processing data from the picture resource. If there are extra data following the DRAWING END byte, the extra data will always be ignored. They just waste space in memory, and should be removed.</p>
+      <p class="indent_n">Opening and saving the picture in WinAGI will fix this anomaly.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

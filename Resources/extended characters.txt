@@ -1,0 +1,114 @@
+
+[ Code Page 437 MS DOS
+print("ÇüéâäàåçêëèïîìÄÅ"
+      "ÉæÆôöòûùÿÖÜ¢£¥₧ƒ"
+      "áíóúñÑªº¿⌐¬½¼¡«»"
+      "░▒▓│┤╡╢╖╕╣║╗╝╜╛┐"
+      "└┴┬├─┼╞╟╚╔╩╦╠═╬╧"
+      "╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀"
+      "αßΓπΣσµτΦΘΩδ∞φε∩"
+      "≡±≥≤⌠⌡÷≈°∙·√ⁿ²■");
+
+// Code Page 737 Greek II
+print("ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠ"
+      "ΡΣΤΥΦΧΨΩαβγδεζηθ"
+      "ικλμνξοπρσςτυφχψ"
+      "░▒▓│┤╡╢╖╕╣║╗╝╜╛┐"
+      "└┴┬├─┼╞╟╚╔╩╦╠═╬╧"
+      "╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀"
+      "ωάέήϊίόύϋώΆΈΉΊΌΎ"
+      "Ώ±≥≤ΪΫ÷≈°∙·√ⁿ²■");
+
+// Code Page 775 Baltic Rim
+print("ĆüéāäģåćłēŖŗīŹÄÅ"
+      "ÉæÆōöĢ¢ŚśÖÜø£Ø×¤"
+      "ĀĪóŻżź”¦©®¬½¼Ł«»"
+      "░▒▓│┤ĄČĘĖ╣║╗╝ĮŠ┐"
+      "└┴┬├─┼ŲŪ╚╔╩╦╠═╬Ž"
+      "ąčęėįšųūž┘┌█▄▌▐▀"
+      "ÓßŌŃõÕµńĶķĻļņĒŅ’"
+      "±“¾¶§÷„°∙·¹³²■"); // F0 is non-printable
+
+// Code Page 850 Latin I
+print("ÇüéâäàåçêëèïîìÄÅ"
+      "ÉæÆôöòûùÿÖÜø£Ø×ƒ"
+      "áíóúñÑªº¿®¬½¼¡«»"
+      "░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐"
+      "└┴┬├─┼ãÃ╚╔╩╦╠═╬¤"
+      "ðÐÊËÈıÍÎÏ┘┌█▄¦Ì▀"
+      "ÓßÔÒõÕµþÞÚÛÙýÝ¯´"
+      "±‗¾¶§÷¸°¨·¹³²■"); // F0 is non-printable
+
+//  Code Page 858 Latin I (with Eurosign)
+print("ÇüéâäàåçêëèïîìÄÅ"
+      "ÉæÆôöòûùÿÖÜø£Ø×ƒ"
+      "áíóúñÑªº¿®¬½¼¡«»"
+      "░▒▓│┤ÁÂÀ©╣║╗╝¢¥┐"
+      "└┴┬├─┼ãÃ╚╔╩╦╠═╬¤"
+      "ðÐÊËÈ€ÍÎÏ┘┌█▄¦Ì▀"
+      "ÓßÔÒõÕµþÞÚÛÙýÝ¯´"
+      "±‗¾¶§÷¸°¨·¹³²■"); // F0 is non-printable
+
+// Code Page 852 Slavic Eastern Europe (Latin II)
+print("ÇüéâäůćçłëŐőîŹÄĆ"
+      "ÉĹĺôöĽľŚśÖÜŤťŁ×č"
+      "áíóúĄąŽžĘę¬źČş«»"
+      "░▒▓│┤ÁÂĚŞ╣║╗╝Żż┐"
+      "└┴┬├─┼Ăă╚╔╩╦╠═╬¤"
+      "đĐĎËďŇÍÎě┘┌█▄ŢŮ▀"
+      "ÓßÔŃńňŠšŔÚŕŰýÝţ´"
+      "˝˛ˇ˘§÷¸°¨˙űŘř■"); // F0 is non-printable
+
+// Code Page 855 Cyrillic I
+print("ђЂѓЃёЁєЄѕЅіІїЇјЈ"
+      "љЉњЊћЋќЌўЎџЏюЮъЪ"
+      "аАбБцЦдДеЕфФгГ«»"
+      "░▒▓│┤хХиИ╣║╗╝йЙ┐"
+      "└┴┬├─┼кК╚╔╩╦╠═╬¤"
+      "лЛмМнНоОп┘┌█▄Пя▀"
+      "ЯрРсСтТуУжЖвВьЬ№"
+      "ыЫзЗшШэЭщЩчЧ§■"); // F0 is non-printable
+
+
+// Code Page 857 Turkish
+print("");
+
+
+A  NT    E   poker bet
+E  PI    C   legendary
+C  OL    A   soda flavor
+A  JA    R   partially open
+R  AI    N   shower
+N  AM    E   identifier
+E  DI    T   make changes
+T  RI    P   stumble
+P  US    H   shove
+H  OP    E   anticipation
+E  CH    O   reverberate
+O  KR    A   vegetable
+
+tryrelaxium.com
+tryspikedetox.com/fox15
+
+bronchiecstasis ?
+
+
+ (or var, flag, '(', ')', '!')
+4021 = Invalid symbol '%1' in if statement
+4090 = Incorrect token type '%1' in if statement
+4091 = Action command '%1' not valid in if statement
+4092 = Undefined token '%1' in if statement
+
+fixes:
+- fixed/improved compiler status msgs and canceling
+- adjusted variable names to c# convention, not vb 
+- added multiline support to search form
+- fixed bugs in find/replace/replaceall
+- added error handlers to settingsfile save to reduce file access interference
+- more sierrasyntax support- msgcleanup, 
+
+ip: fix warnings for include files(in fan and sierra...)
+
+todo:
+- replacing in non-game text files limited to single file
+- fix errors for bad args in sierrasyntax

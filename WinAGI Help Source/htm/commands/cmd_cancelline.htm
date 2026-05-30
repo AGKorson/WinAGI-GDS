@@ -1,0 +1,38 @@
+<html>
+	<head><title>Action Command: cancel.line</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>cancel.line</h1>
+		<p>The <b>cancel.line</b> command clears any text that is on the input line.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>cancel.line();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>AGI clears the <a href="..\agi\keyboard.htm#inputline">input line</a> by sending backspace characters to the line until the cursor is at the beginning of the line. The line is cleared even if it is not visible (after using the <a href="cmd_preventinput.htm"><b>prevent.input</b></a> command).</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>cancel.line();</b></code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">138 (0x8A)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_system.htm">System Commands</a></p>
+			<p><a href="cmd_acceptinput.htm"><b>accept.input</b></a></p>
+			<p><a href="cmd_preventinput.htm"><b>prevent.input</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

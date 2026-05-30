@@ -1,0 +1,95 @@
+<html>
+	<head><title>AGI Sound System</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Sound in AGI</h1>
+			<p>There were two main formats for sound resources in AGI - MSDOS, Tandy and Macintosh versions of AGI games used a custom sound format based on the architecture of the IBM <a href="..\agi\sounds.htm#pcjr">PCJr</a> sound chip, and Apple IIgs supported digitally sampled PCM sound effects and 16 channel MIDI playback.</p>
+			<p>Although sound in the PCJr chip-based format consisted of four channels which could play sounds at different levels of attenuation (volume), many players were not aware of this; the IBM PC (arguably the most popular platform) was only capable of playing one note at a time through the PC speaker, and only at one volume level, so AGI only played the main melody music channel on PCs.</p>
+
+		<h2>IBM PCJr Sound Generation</h2>
+			<p><a name="pcjr">AGI was originally designed for the IBM PCJr. Sierra wrote the AGI sound engine to specifically take advantage of the IBM PCJr sound hardware. The format of <a href="sounds.htm">sound</a> resources in AGI exactly matches the format of the data stream that was sent to the PCJr's sound hardware. After the demise of the PCJr, Sierra opted to keep the same format for sound resources for all subsequent versions of AGI. It was not until AGI's successor, the Sierra Creative Interpreter (SCI) arrived around 1989 that sound capabilities were finally updated.</p>
+			<p>The heart of sound generation in the IBM PCJr was the Texas Instruments (TI) SN76496A sound generator chip. The chip was capable of generating three channels (voices) of tone, and one noise channel simultaneously. All four channels had independent 4 bit volume control (15 levels, plus off). The three tone generators operated on independently selected frequencies. The noise generator had three pre-selected frequencies, and could also 'borrow' the frequency of the third tone generator.</p>
+		<h3><a name="tone">Tone Generation</a></h3>
+			<p>A tone was produced on a channel by passing the sound chip a 3-bit register address and then a 10-bit frequency divisor. The register address specifies which channel the tone will be produced on. This was done through port 192 on the IBM PCjr by sending it 2 bytes in the following format:</p>
+		<blockquote><code><pre><b>First Byte
+7  6  5  4  3  2  1  0</b>
+1  .  .  .  .  .  .  .      Identifies first byte (command byte)
+.  R0 R1 .  .  .  .  .      Register number in T1 chip (0, 1, 2, 3).
+.  .  .  0 .  .  .  .       Data type (0 = frequency data)
+.  .  .  .  F6 F7 F8 F9     4 of 10-bits in frequency count.
+
+<b>Second Byte
+7  6  5  4  3  2  1  0</b>
+0  .  .  .  .  .  .  .      Identifies second byte (completing byte)
+.  X  .  .  .  .  .  .      Unused, ignored.
+.  .  F0 F1 F2 F3 F4 F5     6 of 10-bits in frequency count.
+
+<b>Register Addresses:
+R0      R1      </b>
+ 0       0                  Holds voice 1 frequency number.
+ 0       1                  Holds voice 2 frequency number.
+ 1       0                  Holds voice 3 frequency number.
+		</pre></code></blockquote>
+			<p><a name="freqdivisor">The actual frequency</a> produced is the 10-bit frequency divisor given by F0 to F9 divided into 1/32 of the system clock frequency (3.579 MHz) which turns out to be 111,860 Hz. Keeping all this in mind, the following is the formula for calculating the frequency:</p>
+		<blockquote><code><pre>f = 111860 / (((Byte2 &amp; 0x3F) &lt;&lt; 4) + (Byte1 &amp; 0x0F))</pre></code></blockquote>
+		<p>&nbsp;</p>
+		<h3><a name="attenuation">Attenuation</a></h3>
+			<p>Each channel in the T1 sound chip has an independent sound-level control, which is calculated in terms of decibels of attenuation, or softening. There are four bits uses to control the volume. These bits, labeled A0 through A3, can be set independently or added together to produce sixteen volume levels as shown below:</p>
+			<blockquote><code><pre><b>A0 A1 A2 A3        Value        Attenuation (decibels)</b>
+ .  .  .  1          1                    2
+ .  .  1  .          2                    4
+ .  1  .  .          4                    8
+ 1  .  .  .          8                   16
+ 1  1  1  1                           Volume off
+		</pre></code></blockquote>
+		<p>&nbsp;</p>
+		<p>When a bit is set on, the sound is attenuated (reduced) by a specific amount: either 2, 4, 8, or 16 decibels. When all four bits are set on, the sound is turned completely off. When all four bits are off, the sound is at its fullest volume.</p>
+		<p>The attenuation is set by sending a byte of the following format to the T1 sound chip:</p>
+		<blockquote><code><pre><b>7  6  5  4  3  2  1  0</b>
+1  .  .  .  .  .  .  .      Identifies first byte (command byte)
+.  R0 R1 .  .  .  .  .      Register number in T1 chip (0, 1, 2, or 3).
+.  .  .  1  .  .  .  .      Data type (1 = attenuation).
+.  .  .  .  A0 A1 A2 A3     4 attenuation bits
+
+<b>   Register Addresses:
+R0      R1</b>
+ 0       0                  Holds voice 1 attenuation
+ 0       1                  Holds voice 2 attenuation
+ 1       0                  Holds voice 3 attenuation
+ 1       1                  Holds noise voice attenuation
+			</pre></code></blockquote>
+			<p>&nbsp;</p>
+			<p>In addition to being able to adjust the attenuation of individual notes, AGI also inlcudes an overall attenuation factor that can be used to adjust sound level globally. <a href="variables.htm#reserved">Reserved variable</a> <a href="v23.htm">v23 (sound attenuation)</a> can be set to an value between 0 (full volume, no attenuation) to 15 (muted, max attenuation) to control the volume of sound output. (Remember that on PC, there is no attenuation, regardless of channel settings or v23 value.)</p>
+			<p>&nbsp;</p>
+		<h3><a name="noise">Noise Generator</a></h3>
+			<p>There are two modes for the noise operation, besides the four frequency selections. One, called periodic noise, produces a steady sound; the other, called white noise, produces a hissing sound. These two modes are controlled by a bit known as the FB bit. When FB is 0, the periodic noise is generated; when FB is 1, the white noise is produced.</p>
+			<p><a name="noisefreq">Two bits</a>, known as NF0 and NF1, control the frequency at which the noise generator works. Three of the four possible combinations of NF0 and NF1 set an independent noise frequency based on the timer. The fourth combination borrows the frequency from the third of the three pure voices made by the tone 
+			generators:</p>
+			<blockquote><code><pre><b> NF0  NF1       Noise Frequency</b>
+  0    0         1,193,180 / 512 = 2330
+  0    1         1,193,180 / 1024 = 1165
+  1    0         1,193,180 / 2048 = 583
+			</pre></code></blockquote>
+			<p>The noise frequency is set by sending a byte of the following format to the T1 sound chip:</p>
+			<blockquote><code><pre><b>7  6  5  4  3  2  1  0</b>
+1  .  .  .  .  .  .  .      Identifies first byte (command byte)
+.  1  1  .  .  .  .  .      Register number in T1 chip (3 = noise register)
+.  .  .  0  .  .  .  .      Data type (0 = frequency data)
+.  .  .  .  X  .  .  .      Unused, ignored; can be set to 0 or 1
+.  .  .  .  .  FB .  .      1 for white noise, 0 for periodic
+.  .  .  .  .  . NF0 NF1    2 noise frequency control bits
+			</pre></code></blockquote>
+		<h3><a name="dissolve">Attenuation and Note Dissolving</a></h3>
+		    <p>As discussed above, when running on a Tandy or PCJr, each tone sent to the SN76496A chip could be adjusted for volume by sending attenuation data. Beginning in <a href="version2.htm#2272">version 2.272</a>, a global volume control was added. Reserved <a href="variables.htm">variable</a> <a href="v23.htm">v23</a> was combined with the attenuation value for each note as it was played.</p>
+		    <p>Beginning in <a href="version2.htm#2903">version 2.903</a>, Sierra added an additional feature to Tandy and PCJr sounds that had each note start at a slightly higher volume and then quickly (after approximately one second) reduce to a slightly lower level for the duration of the tone. This is referred to as dissolving. In <a href="version3.htm">version 3</a>, the dissolve time was lengthened slightly, to approximately 1.25 seconds.</p>
+		<h2>Apple IIgs Sound Generation</h2>
+			<p>The Apple IIgs had a much more sophisticated sound system that was capable of playing 16 channels of MIDI sound as well as playing PCM sound samples (aka WAV files). Sound resources were formatted to provide raw MIDI data or PCM data directly to the sound system, without needing any conversion.</p> 	
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,65 @@
+<html>
+	<head><title>Action Command: print</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>print</h1>
+			<p>The <b>print</b> command displays a message in a window.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>print(<a href="syntax_fan.htm#argtypes">msg</a> mMSG);</p>
+			<p>print("message text");</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The text of <a href="..\agi\messages.htm">message</a> <b>mMSG</b> is displayed in a bordered window. The background color is always white, and the foreground color is always black.</p>
+			<p>AGI will center the window on the screen, and if the message is more than 30 characters long, AGI will automatically add line breaks.</p>
+			<p><a href="..\agi\flags.htm#reserved">Reserved flag</a> <a href="..\agi\f15.htm">f15 (no pause windows)</a> and reserved variable <a href="..\agi\v21.htm">v21 (window close time)</a> determine how the <b>print</b> command affects game play:</p>
+			<ul><ul><li><b>f15 reset to FALSE and v21 == 0</b> (the default condition): displayed windows (including those shown by the <b>print</b> command) <a href="..\agi\cycle.htm#pausing">pause</a> the game cycle, and remain until the player presses ENTER or ESC key. Although the game cycle is paused, the internal clock does not stop, and clock variables <a href="..\agi\v11.htm">v11</a>, <a href="..\agi\v12.htm">v12</a>, <a href="..\agi\v13.htm">v13</a>, <a href="..\agi\v14.htm">v14</a> will continue to update.</li>
+			<li><b>f15 reset to FALSE and v21 > 0</b>: the window will also pause the game cycle, and will be dismissed when the player presses ENTER or ESC key, or after v21 * 0.5 seconds, whichever comes first.</li>
+			<li><b>f15 is set to TRUE (v21 is ignored)</b>: the game cycle is NOT paused, and the window remains open indefinitely. The message window stays open and game play continues until a <a href="cmd_closewindow.htm"><b>close.window</b></a> command is called to dismiss the message, or another message is displayed.</li></ul></ul>
+			<p>After every time a window is displayed (including by using the <b>print</b> command), if f15 is TRUE, it is reset to FALSE and variable v21 is not modified.  If f15 is FALSE, variable v21 is reset to 0.</p>
+			<p>(In <a href="..\agi\version2.htm#2089">version 2.089</a> only, reserved flag f15 is not used; message windows will never print without pausing.)</p>
+			<p>Messages can contain special format codes to enhance the output. See the <a href="..\agi\messages.htm#format">Message Format Codes</a> topic for details on available message codes.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ format code examples
+v50 = 99;
+print("%v50 bottles of beer on the wall"); 
+[ will show on screen as  "99 bottles of beer on the wall"
+
+#message 3 " again."
+print("You got killed%m3");
+[ will show on screen as "You got killed again."
+
+s1 = "20 years"
+print("You are %s1 old.");
+[ will show on screen as "You are 20 years old."
+
+[ player enters "eat dirt"
+print("Why eat %w2?");
+[ will show on screen as "Why eat dirt?"</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">101 (0x65)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><a href="..\agi\messages.htm#format">Message Format Codes</a></p>
+			<p><b><a href="cmd_printv.htm">print.v</a></b></p>
+			<p><b><a href="cmd_printat.htm">print.at</a></b></p>
+			<p><b><a href="cmd_printatv.htm">print.at.v</a></b></p>
+			<p><b><a href="cmd_display.htm">display</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

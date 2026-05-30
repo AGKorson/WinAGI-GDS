@@ -1,0 +1,48 @@
+<html>
+	<head><title>Action Command: configure.screen</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>configure.screen</h1>
+		<p>The <b>configure.screen</b> command sets the location of the play area (<a href="..\agi\grafdisp.htm">visual graphic screen</a>), <a href="..\agi\keyboard.htm#inputline">input line</a> and <a href="..\agi\grafdisp.htm#statusline">status line</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>configure.screen(<a href="syntax_fan.htm#argtypes">byt</a> PLAYTOP, <a href="syntax_fan.htm#argtypes">byt</a> INPUTLINE, <a href="syntax_fan.htm#argtypes">byt</a> STATUSLINE);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The units for the three arguments are in screen lines (0 - 24 range).</p>
+			<p>When AGI starts, the default values for <b>PLAYTOP</b>, <b>INPUTLINE</b> and <b>STATUSLINE</b> are 0, 21, 23 respectively. Most Sierra AGI game did not use these values.</p>
+			<p><b>PLAYTOP</b> is the top line of the playing area (the actual background picture). The default value is 0, but it is usually set to 1. If it is left at 0, the <a href="..\agi\menu.htm">menu bar</a> will cover up the first eight rows of pixels when it is displayed.</p>
+			<p><b>PLAYTOP</b> should always be limited to a value between 0 and 4, since the playing area is 168 pixels high (21 lines). Setting it to 5 or higher will result in portions of the playing area being off screen, and unpredictable graphical output.</p>
+			<p>The <a href="..\agi\grafdisp.htm#input">input line</a> location is set by <b>INPUTLINE</b>. The default position is row 23, and most Sierra games put the input line just below the bottom of the screen, usually on row 22.</p>
+			<p>The default position of the <a href="..\agi\grafdisp.htm#statusline">status line</a> is row 21, just below the background picture. Most Sierra games used a value of 0, so the status line would show on the same row that the <a href="..\agi\menu.htm">menu bar</a> is on. Note that the menu bar cannot be moved; it will always display on line 0.</p>
+			<p>Normally, the <b>configure.screen</b> command is called once, when a game first starts. Once called, the configuration will stay set, even if a <a href = "..\agi\restart.htm">game restart</a> or <a href="..\agi\restore.htm">game restore</a> occurs. But <b>configure.screen</b> can be called any time in a game if a change is desired.</p>
+			<p>If the playing area is relocated while a picture is currently being displayed, AGI does not erase the existing picture; it will draw the picture at the new location, and there will be portions of the previous picture visible above or below the current picture. Use the <b><a href="cmd_clearlines.htm">clear.lines</a></b> or <b><a href="cmd_cleartextrect.htm">clear.text.rect</a></b> to clear those unwanted areas.</p>
+			<p>When using <b>configure.screen</b> while a game is in progress, be aware that the <a href="..\agi\keyboard.htm#inputline">input line</a> does not immediately change location when <b>configure.screen</b> is run. This is because <b>configure.screen</b> does not change the current cursor location; it only changes the stored value that AGI uses to reset the input line. The cursor location is adjusted to match the value of the input line when the line is reset after a player presses ENTER or when a <a href="cmd_newroom.htm"><b>new.room</b></a> or <a href="cmd_graphics.htm"><b>graphics</b></a> command is encountered.</p>
+			<p>The input line location is also accessed by several other commands, including <a href="cmd_acceptinput.htm"><b>accept.input</b></a>, <a href="cmd_preventinput.htm"><b>prevent.input</b></a>, <a href="cmd_echoline.htm"><b>echo.line</b></a>, and <a href="cmd_getnum.htm"><b>get.num</b></a>. If you change the location of the input line using the <b>configure.screen</b> command, these commands will not work properly until the input line is reset, because the cursor and input line location will not match.</p>
+			<p>Avoid using values for these arguments that result in either the input line or status line being displayed inside the play area. The results will be unpredictable. Also, avoid using values greater than 24 for input line or status line; if you do, the screen will not display correctly due to buffer overflows in the functions where AGI draws the input line and status line.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>configure.screen(1, 22, 0);</b> [ typical configuration with status line 
+                            [ on top and input line on bottom, just below the play area</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">111 (0x6F)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><a href="..\agi\grafdisp.htm">Graphics Display</a>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

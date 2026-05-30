@@ -1,0 +1,78 @@
+<html>
+	<head><title>Music Primer</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-sound.gif" width="460" height="72" border="0" alt="AGI Sound Information"></td>
+			</tr>
+		</table>
+		<h1>Music Primer</h1>
+			<p>This topic is intended to be a very basic introduction to the music grand staff, and how it is used in the WinAGI Sound Editor. Keep in mind it was written by someone who has had no formal training in music. But hopefully, it is reasonably accurate.</p>
+			<p>If you need additional help understanding music notation, there are many online resources available. Use your favorite search engine to find answers to any questions you may have.</p>
+		<h2>The Grand Staff</h2>
+			<p><img alt="" src="..\..\graphics\agi_grandscalex3.bmp" align="left" width="180"></p>
+			<p>WinAGI uses the grand staff to display music notes. The grand staff includes an 	upper staff where notes above middle C are normally displayed, and a lower staff where notes below middle C are normally displayed.</p>
+			<p>Middle C is the note that is approximately in the middle of a regular 88 key piano. In WinAGI, middle C is assigned to octave 4.</p>
+			<p>On the grand staff, middle C is located one full line below the bottom of the treble staff. It is also located one full line above the top line of the bass staff.</p>
+			<p>In AGI, the lowest possible note is note A in the second octave. The highest note is note G in the ninth octave.</p>
+			<p>The curly ampersand-like symbol on the treble staff is called the treble clef. The backwards C shaped symbol on the bass staff is called the bass clef.</p>
+		<h2>Measures and Time Signature</h2>
+			<p>Notes are divided into equal lengths of times, called measures. Measures are marked on the staves by a vertical line.</p>
+			<p>The time signature defines the amount and type of notes that each measure contains, and consists of two numbers. The first number represents the number of notes per measure. The second number represents the the size of each beat (4 means each beat is a quarter note, 8 means each beat is an eighth note, etc.)</p>
+			<p>The two most common time signatures are 4:4 and 3:4. (There are many other time signatures, but this primer won't address them.)</p>
+			<p>In WinAGI, there is not a practical use for time signatures, so all music is drawn as if it were in 4:4 time. The time signature would normally be drawn on the staff right after the clef. WinAGI doesn't draw it since it doesn't provide any usefulness.</p>
+		<h2>Music Notes</h2>
+			<p>The basis for musical notes is the whole note. It is represented by an open circle:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note16.bmp"></p>
+			<p>A half note is represented by an open circle with a vertical stem:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note8.bmp"></p>
+			<p>If a single dot is placed after the half note, it then becomes a three-quarter note. If it has two dots after it, it is a seven-eighths note:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note12.bmp">&nbsp;&nbsp;<img width="83"alt="" src="..\..\graphics\note14.bmp"></p>
+			<p>A quarter note is represented by a solid circle with a vertical stem:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note4.bmp"></p>
+			<p>If a single dot is placed after it, it becomes a three-eighths note. With two dots, it becomes a seven-sixteenths note:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note6.bmp">&nbsp;&nbsp;<img width="83"alt="" src="..\..\graphics\note7.bmp"></p>
+			<p>An eighth note is represented by a quarter note that has a single flag at the end of the vertical stem:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note2.bmp"></p>
+			<p>If a single dot is placed after it, it becomes a three-sixteenths note:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note3.bmp"></p>
+			<p>Finally, a sixteenth note is represented by a quarter note with two flags at the end of the vertical stem:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note1.bmp"></p>
+			<p>WinAGI does not support notes smaller than a sixteenth.</p>
+			<p>Other note lengths are represented by a combination of notes with a 'tie' connecting them:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\note10.bmp"></p>
+			<p>The tied notes are treated as a single note with a length equal to the sum of the individual notes.</p>
+		<h2>Accidentals</h2>
+			<p>There are twelve notes in an octave, but only eight of them are represented by letters. They correspond to the white keys on a piano keyboard and are called natural notes. The other five notes in an octave correspond to the black keys and are called sharp or flat, depending on which direction you read them from.</p>
+			<p>Sharp notes are natural notes that are one step higher:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\sharp.bmp"></p>
+			<p>Flat notes are natural notes that are one step lower:</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\flat.bmp"></p>
+			<p>For example, the black key between notes C and D can be called either C sharp (C#) or D flat (Db):</p>
+			<p>&nbsp;<img width="83"alt="" src="..\..\graphics\sharpandflat.bmp" align="absMiddle"> These refer to the same note.</p>
+			<p>To represent sharps and flats on the staff, you include the sharp or flat note directly in front of the note. The marks are called accidentals.</p>
+		<h2>Keys</h2>
+			<p>There are lots of different keys that music can be written in. Keys are represented by including combinations of sharp or flat marks at the beginning of the staff</p>
+			<p>&nbsp;<img alt="" width="101" src="..\..\graphics\key.bmp" align="middle"> Key signature for A Major</p>
+			<p>By using keys, you don't have to include the accidental marks in front of every note. Any note on a line or space that the key already has marked as flat or sharp is assumed to be flat or sharp as well.</p>
+			<p>If you want to play a natural note, but the note is pre-marked in the current key to be either flat or sharp, you include the natural accidental so you know to use the real note, not the sharpened or flattened note:</p>
+			<p>&nbsp;<img alt="" width="83"src="..\..\graphics\natural.bmp"></p>
+			<p>WinAGI includes key signatures for 15 basic major keys.</p>
+		<h2>Rests</h2>
+			<p>Rests, or periods where no notes are played can also be represented on the staff.</p>
+			<p>A whole rest (equal in length to a whole note) is represented by a small solid rectangle hanging off the second line of a staff:</p>
+			<p>&nbsp;<img alt="" width="83"src="..\..\graphics\rest16.bmp"></p>
+			<p>A half rest is represented by a small solid rectangle that rests on TOP of the middle line of a staff:</p>
+			<p>&nbsp;<img alt="" width="83"src="..\..\graphics\rest8.bmp"></p>
+			<p>A quarter rest note is represented by a squiggly vertical line:</p>
+			<p>&nbsp;<img alt="" width="83"src="..\..\graphics\rest4.bmp"></p>
+			<p>An eighth rest note is represented by a slash with a small dot attached to the top:</p>
+			<p>&nbsp;<img alt="" width="83"src="..\..\graphics\rest2.bmp"></p>
+			<p>A sixteenth rest note is represented by a slash with two small dots attached:</p>
+			<p>&nbsp;<img alt="" width="83"src="..\..\graphics\rest1.bmp"></p>
+			<p>Just like notes, the length of rests can be adjusted by including dots or using ties.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

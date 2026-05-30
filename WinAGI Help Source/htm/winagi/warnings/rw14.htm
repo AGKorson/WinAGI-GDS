@@ -1,0 +1,25 @@
+<html>
+    <head><title>Resource Load Warning RW14</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Resource Load Warning RW14</h2>
+      <h3>Loop &lt;number&gt; in view &lt;number&gt; has invalid mirror assignment</h3>
+      <p class="indent_n"><a href="..\..\agi\views.htm#loop">Loop</a> <a href="..\..\agi\views.htm#mirror">mirroring</a> in AGI is accomplished by having two loops use the same <a href="..\..\agi\views.htm#cel">cel</a> data, with each shared cel having a special bit set so AGI knows to flip the cel when the loop changes. To be a valid mirror pair, a loop must:</p>
+      <ul><ul>
+        <li>have loop index value less than eight;</li>
+        <li>share cel data with exactly one other loop;</li>
+        <li>have each cel include the mirror bit marker;</li>
+      </ul></ul>
+      <p class="indent_n">In addition, <a href="..\..\agi\views.htm">views</a> from <a href="..\..\agi\versions.htm">version</a> <a href="..\..\agi\version2.htm#2089">2.089</a> do not support mirroring. If a <a href="..\..\agi\views.htm">view</a> in a version 2.089 is detected with mirroring, this warning is also shown.</p>
+      <p class="indent_n">This warning indicates WinAGI found a loop that is not a properly formatted mirror loop. Possible causes include the mirror bit marker is not set in all cels, more than two loops sharing the same loop data, loops with an index value larger than seven.</p>
+      <p class="indent_n">These anomalies usually don't cause a problem in AGI. The AGI engine would usually just skip over them so the view's creators didn't even know the view was not formatted correctly. There are a few  Sierra games that are known to have views with some of these anomalies.</p>
+      <p class="indent_n">WinAGI will treat the affected loops as though they are not mirrored. Opening and then saving the view in WinAGI will update the view with correct formatting and will clear the warning.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

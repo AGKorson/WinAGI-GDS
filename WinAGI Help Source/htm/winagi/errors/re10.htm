@@ -1,0 +1,18 @@
+<html>
+    <head><title>Resource Load Error RE10</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Resource Load Error RE10</h2>
+      <h3>Sound &lt;number&gt; has one or more invalid track pointers</h3>
+      <p class="indent_n">This error is raised if WinAGI detects a track offset pointer that is beyond the end of the <a href="..\..\agi\sounds.htm#pcjr">sound</a> resource. If you attempt to play this sound in AGI, the interpreter will read data from the erroneous location in <a href="..\..\agi\memory.htm">memory</a>, with unpredictable results.</p>
+      <p class="indent_n">WinAGI will ignore the invalid pointer and clear the affected track. Any tracks with valid pointers will still be loaded. There are several known instances of Sierra games where sounds have invalid track pointers.</p>
+      <p class="indent_n">Opening and saving the sound in WinAGI will correct this anomaly.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

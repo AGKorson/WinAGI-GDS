@@ -1,0 +1,472 @@
+<html>
+	<head><title>Reserved Define Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Reserved Define Names</h1>
+			<p>WinAGI automatically manages <a href="..\commands\syntax_fan.htm#defines">define names</a> to represent <a href="..\agi\data.htm#reserved">reserved values</a> such as <a href="..\agi\variables.htm#reserved">reserved variables</a> and <a href="..\agi\flags.htm#reserved">reserved flags</a> that have pre-defined meaning in AGI, as well as several universal numerical constants. WinAGI creates and automatically adds the file 'reserved.txt' as an <a href="..\commands\syntax_fan.htm#include">include file</a> to all game <a href="..\agi\logics.htm">logics</a>.</p>
+			<p>If you do not want to use this feature, you can deselect the <a href="prop_general.htm#autoinclude">auto-include Reserved Defines</a> option on the <a href="properties.htm">Game Properties</a> dialog.</p>
+			<p>When editing logics, use the <a href="editor_logic.htm#resdef">List Defines</a> command to display the reserved defines, along with global and local, in a list box to easily select them.</p>
+		<h3><a name="editor">Reserved Define Editor</a></h3>
+			<p>The names that are used by the reserved defines can be edited, if you prefer different names other than the WinAGI defaults.</p>
+			<p>To change reserved define names, open the Reserved Defines Editor from the Tools menu. A dialog box will display the list of reserved defines:</p> 
+			<p><img src="..\..\graphics\resdefines.jpg" width="396"></p>
+			<p>You can edit the names for the listed variables, flags and constants. The values are NOT editable. Any names that are changed will be displayed in red text so they are easy to see.</p>
+			<p><img src="..\..\graphics\resoverride.jpg" width="396"></p>
+			<p>Use the 'Reset' button to restore WinAGI's default values for all reserved define names.</p>
+		<h2><a name="autoupdate">Automatic Updates</a></h2>
+		  <p>When you save changes to the reserved defines list, you can choose to have WinAGI automatically update all logic source files in your game to reflect the new names. WinAGI will replace all instances of the old name with the new name.</p>
+			<p>&nbsp;</p>
+		<h2>Default Reserved Names</h2>
+			<p>The following tables list the WinAGI default reserved names and their associated values.</p>
+			<p>
+			<table id="Table2" cellSpacing="1" cellPadding="1" width="585" border="1">
+				<tr>
+					<td width="300"><b>Reserved Define Name</b></td>
+					<td align="middle"><b>Define Value</b></td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;&nbsp;&nbsp;<b><EM><a href="..\agi\variables.htm" name="variables">Variables</a></EM></b></td>
+				</tr>
+				<tr>
+					<td width="300">currentRoom</td>
+					<td align="middle"><a href="..\agi\v0.htm">v0</a></td>
+				</tr>
+				<tr>
+					<td width="300">previousRoom</td>
+					<td align="middle"><a href="..\agi\v1.htm">v1</a></td>
+				</tr>
+				<tr>
+					<td width="300">edgeEgoHit</td>
+					<td align="middle"><a href="..\agi\v2.htm">v2</a></td>
+				</tr>
+				<tr>
+					<td width="300">currentScore</td>
+					<td align="middle"><a href="..\agi\v3.htm">v3</a></td>
+				</tr>
+				<tr>
+					<td width="300">objHitEdge</td>
+					<td align="middle"><a href="..\agi\v4.htm">v4</a></td>
+				</tr>
+				<tr>
+					<td width="300">edgeObjHit</td>
+					<td align="middle"><a href="..\agi\v5.htm">v5</a></td>
+				</tr>
+				<tr>
+					<td width="300">egoDir</td>
+					<td align="middle"><a href="..\agi\v6.htm">v6</a></td>
+				</tr>
+				<tr>
+					<td width="300">maxScore</td>
+					<td align="middle"><a href="..\agi\v7.htm">v7</a></td>
+				</tr>
+				<tr>
+					<td width="300">memoryLeft</td>
+					<td align="middle"><a href="..\agi\v8.htm">v8</a></td>
+				</tr>
+				<tr>
+					<td width="300">unknownWord</td>
+					<td align="middle"><a href="..\agi\v9.htm">v9</a></td>
+				</tr>
+				<tr>
+					<td width="300">animationInterval</td>
+					<td align="middle"><a href="..\agi\v10.htm">v10</a></td>
+				</tr>
+				<tr>
+					<td width="300">elapsedSeconds</td>
+					<td align="middle"><a href="..\agi\v11.htm">v11</a></td>
+				</tr>
+				<tr>
+					<td width="300">elapsedMinutes</td>
+					<td align="middle"><a href="..\agi\v12.htm">v12</a></td>
+				</tr>
+				<tr>
+					<td width="300">elapsedHours</td>
+					<td align="middle"><a href="..\agi\v13.htm">v13</a></td>
+				</tr>
+				<tr>
+					<td width="300">elapsedDays</td>
+					<td align="middle"><a href="..\agi\v14.htm">v14</a></td>
+				</tr>
+				<tr>
+					<td width="300">dblClickDelay</td>
+					<td align="middle"><a href="..\agi\v15.htm">v15</a></td>
+				</tr>
+				<tr>
+					<td width="300">currentEgoView</td>
+					<td align="middle"><a href="..\agi\v16.htm">v16</a></td>
+				</tr>
+				<tr>
+					<td width="300">errorNumber</td>
+					<td align="middle"><a href="..\agi\v17.htm">v17</a></td>
+				</tr>
+				<tr>
+					<td width="300">errorParameter</td>
+					<td align="middle"><a href="..\agi\v18.htm">v18</a></td>
+				</tr>
+				<tr>
+					<td width="300">lastChar</td>
+					<td align="middle"><a href="..\agi\v19.htm">v19</a></td>
+				</tr>
+				<tr>
+					<td width="300">machineType</td>
+					<td align="middle"><a href="..\agi\v20.htm">v20</a></td>
+				</tr>
+				<tr>
+					<td width="300">printTimeout</td>
+					<td align="middle"><a href="..\agi\v21.htm">v21</a></td>
+				</tr>
+				<tr>
+					<td width="300">numberOfVoices</td>
+					<td align="middle"><a href="..\agi\v22.htm">v22</a></td>
+				</tr>
+				<tr>
+					<td width="300">attenuation</td>
+					<td align="middle"><a href="..\agi\v23.htm">v23</a></td>
+				</tr>
+				<tr>
+					<td width="300">inputLength</td>
+					<td align="middle"><a href="..\agi\v24.htm">v24</a></td>
+				</tr>
+				<tr>
+					<td width="300">selectedItem</td>
+					<td align="middle"><a href="..\agi\v25.htm">v25</a></td>
+				</tr>
+				<tr>
+					<td width="300">monitorType</td>
+					<td align="middle"><a href="..\agi\v26.htm">v26</a></td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td width="300"><b>Reserved Define Name</b></td>
+					<td align="middle"><b>Define Value</b></td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;&nbsp;&nbsp;<b><EM><a href="..\agi\flags.htm" name="flags">Flags</EM></b> </a></td>
+				</tr>
+				<tr>
+					<td width="300">egoOnWater</td>
+					<td align="middle"><a href="..\agi\f0.htm">f0</a></td>
+				</tr>
+				<tr>
+					<td width="300">egoHidden</td>
+					<td align="middle"><a href="..\agi\f1.htm">f1</a></td>
+				</tr>
+				<tr>
+					<td width="300">haveInput</td>
+					<td align="middle"><a href="..\agi\f2.htm">f2</a></td>
+				</tr>
+				<tr>
+					<td width="300">egoHitSpecial</td>
+					<td align="middle"><a href="..\agi\f3.htm">f3</a></td>
+				</tr>
+				<tr>
+					<td width="300">haveMatch</td>
+					<td align="middle"><a href="..\agi\f4.htm">f4</a></td>
+				</tr>
+				<tr>
+					<td width="300">newRoom</td>
+					<td align="middle"><a href="..\agi\f5.htm">f5</a></td>
+				</tr>
+				<tr>
+					<td width="300">gameRestarted</td>
+					<td align="middle"><a href="..\agi\f6.htm">f6</a></td>
+				</tr>
+				<tr>
+					<td width="300">noScript</td>
+					<td align="middle"><a href="..\agi\f7.htm">f7</a></td>
+				</tr>
+				<tr>
+					<td width="300">enableDblClick</td>
+					<td align="middle"><a href="..\agi\f8.htm">f8</a></td>
+				</tr>
+				<tr>
+					<td width="300">soundOn</td>
+					<td align="middle"><a href="..\agi\f9.htm">f9</a></td>
+				</tr>
+				<tr>
+					<td width="300">enableTrace</td>
+					<td align="middle"><a href="..\agi\f10.htm">f10</a></td>
+				</tr>
+				<tr>
+					<td width="300">hasNoiseChannel</td>
+					<td align="middle"><a href="..\agi\f11.htm">f11</a></td>
+				</tr>
+				<tr>
+					<td width="300">gameRestored</td>
+					<td align="middle"><a href="..\agi\f12.htm">f12</a></td>
+				</tr>
+				<tr>
+					<td width="300">enableItemSelect</td>
+					<td align="middle"><a href="..\agi\f13.htm">f13</a></td>
+				</tr>
+				<tr>
+					<td width="300">enableMenu</td>
+					<td align="middle"><a href="..\agi\f14.htm">f14</a></td>
+				</tr>
+				<tr>
+					<td width="300">leaveWindow</td>
+					<td align="middle"><a href="..\agi\f15.htm">f15</a></td>
+				</tr>
+				<tr>
+					<td width="300">noPromptRestart</td>
+					<td align="middle"><a href="..\agi\f16.htm">f16</a></td>
+				</tr>
+				<tr>
+					<td width="300">forceAutoloop</td>
+					<td align="middle"><a href="..\agi\f20.htm">f20</a></td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;&nbsp;&nbsp;<b><EM><a href="..\agi\v2.htm" name="edgecodes">Edge Codes</a></EM></b></td>
+				</tr>
+				<tr>
+					<td width="300">NOT_HIT</td>
+					<td align="middle">0</td>
+				</tr>
+				<tr>
+					<td width="300">TOP_EDGE</td>
+					<td align="middle">1</td>
+				</tr>
+				<tr>
+					<td width="300">RIGHT_EDGE</td>
+					<td align="middle">2</td>
+				</tr>
+				<tr>
+					<td width="300">BOTTOM_EDGE</td>
+					<td align="middle">3</td>
+				</tr>
+				<tr>
+					<td width="300">LEFT_EDGE</td>
+					<td align="middle">4</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td width="300"><b>Reserved Define Name</b></td>
+					<td align="middle"><b>Define Value</b></td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;&nbsp;&nbsp;<EM><b><a href="..\commands\object_moving.htm" name="objdirection">Object Direction</a></b></EM>
+					</td>
+				</tr>
+				<tr>
+					<td width="300">STOPPED</td>
+					<td align="middle">0</td>
+				</tr>
+				<tr>
+					<td width="300">UP</td>
+					<td align="middle">1</td>
+				</tr>
+				<tr>
+					<td width="300">UP_RIGHT</td>
+					<td align="middle">2</td>
+				</tr>
+				<tr>
+					<td width="300">RIGHT</td>
+					<td align="middle">3</td>
+				</tr>
+				<tr>
+					<td width="300">DOWN_RIGHT</td>
+					<td align="middle">4</td>
+				</tr>
+				<tr>
+					<td width="300">DOWN</td>
+					<td align="middle">5</td>
+				</tr>
+				<tr>
+					<td width="300">DOWN_LEFT</td>
+					<td align="middle">6</td>
+				</tr>
+				<tr>
+					<td width="300">LEFT</td>
+					<td align="middle">7</td>
+				</tr>
+				<tr>
+					<td width="300">UP_LEFT</td>
+					<td align="middle">8</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;&nbsp;&nbsp;<b><EM><a href="..\agi\v26.htm" name="videomodes">Monitor Type</EM></b></a></td>
+				</tr>
+				<tr>
+					<td width="300">CGA</td>
+					<td align="middle">0</td>
+				</tr>
+				<tr>
+					<td width="300">RGB</td>
+					<td align="middle">1</td>
+				</tr>
+				<tr>
+					<td width="300">MONO</td>
+					<td align="middle">2</td>
+				</tr>
+				<tr>
+					<td width="300">EGA</td>
+					<td align="middle">3</td>
+				</tr>
+				<tr>
+					<td width="300">VGA</td>
+					<td align="middle">4</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;&nbsp;&nbsp;<b><EM><a href="..\agi\v20.htm">Machine Type</a></EM></b></td>
+				</tr>
+				<tr>
+					<td width="300">PC</td>
+					<td align="middle">0</td>
+				</tr>
+				<tr>
+					<td width="300">PCJR</td>
+					<td align="middle">1</td>
+				</tr>
+				<tr>
+					<td width="300">TANDY</td>
+					<td align="middle">2</td>
+				</tr>
+				<tr>
+					<td width="300">APPLEII</td>
+					<td align="middle">3</td>
+				</tr>
+				<tr>
+					<td width="300">ATARI</td>
+					<td align="middle">4</td>
+				</tr>
+				<tr>
+					<td width="300">AMIGA</td>
+					<td align="middle">5</td>
+				</tr>
+				<tr>
+					<td width="300">MACINTOSH</td>
+					<td align="middle">6</td>
+				</tr>
+				<tr>
+					<td width="300">CORTLAND</td>
+					<td align="middle">7</td>
+				</tr>
+				<tr>
+					<td width="300">PS2</td>
+					<td align="middle">8</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;</td>
+				</tr>
+				<tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;&nbsp;&nbsp;<b><EM><a name="colors">AGI Colors</a></EM></b></td>
+				</tr>
+				<tr>
+					<td width="300">BLACK</td>
+					<td align="middle">0</td>
+				</tr>
+				<tr>
+					<td width="300">BLUE</td>
+					<td align="middle">1</td>
+				</tr>
+				<tr>
+					<td width="300">GREEN</td>
+					<td align="middle">2</td>
+				</tr>
+				<tr>
+					<td width="300">CYAN</td>
+					<td align="middle">3</td>
+				</tr>
+				<tr>
+					<td width="300">RED</td>
+					<td align="middle">4</td>
+				</tr>
+				<tr>
+					<td width="300">MAGENTA</td>
+					<td align="middle">5</td>
+				</tr>
+				<tr>
+					<td width="300">BROWN</td>
+					<td align="middle">6</td>
+				</tr>
+				<tr>
+					<td width="300">LT_GRAY</td>
+					<td align="middle">7</td>
+				</tr>
+				<tr>
+					<td width="300">DK_GRAY</td>
+					<td align="middle">8</td>
+				</tr>
+				<tr>
+					<td width="300">LT_BLUE</td>
+					<td align="middle">9</td>
+				</tr>
+				<tr>
+					<td width="300">LT_GREEN</td>
+					<td align="middle">10</td>
+				</tr>
+				<tr>
+					<td width="300">LT_CYAN</td>
+					<td align="middle">11</td>
+				</tr>
+				<tr>
+					<td width="300">LT_RED</td>
+					<td align="middle">12</td>
+				</tr>
+				<tr>
+					<td width="300">LT_MAGENTA</td>
+					<td align="middle">13</td>
+				</tr>
+				<tr>
+					<td width="300">YELLOW</td>
+					<td align="middle">14</td>
+				</tr>
+				<tr>
+					<td width="300">WHITE</td>
+					<td align="middle">15</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;</td>
+				</tr>
+				<tr>
+					<td width="585" colSpan="2">&nbsp;&nbsp;&nbsp;<b><EM><a name="otherdefines">Other Reserved Defines</a></EM></b></td>
+				</tr>
+				<tr>
+					<td width="300">ego</td>
+					<td align="middle">o0</td>
+				</tr>
+				<tr>
+					<td width="300" style="vertical-align:middle"><a name="gameversion">gameVersionMsg</a></td>
+					<td align="middle">Value of <a href="prop_version.htm#gameversion">GameVersion</a> property</td>
+				</tr>
+				<tr>
+					<td width="300" style="vertical-align:middle"><a name="gameabout">gameAboutMsg</a></td>
+					<td align="middle">Value of <a href="prop_version.htm#about">GameAbout</a> property</td>
+				</tr>
+				<tr>
+					<td width="300" style="vertical-align:middle"><a name="gameid">gameID</a></td>
+					<td align="middle"> Value of <a href="prop_general.htm#gameid">GameID</a>  property</td>
+				</tr>
+				<tr>
+					<td width="300" style="vertical-align:middle">numberOfItems</td>
+					<td align="middle">Current number of inventory items in <a href="..\agi\object.htm">OBJECT</a> file</td>
+				</tr>
+				<tr>
+					<td width="300">inputPrompt</td>
+					<td align="middle">s0</td>
+				</tr>
+			</table>
+		</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

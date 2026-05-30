@@ -1,0 +1,18 @@
+<html>
+	<head><title>Reserved Variable v23</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v23: Sound Attenuation</h1>
+			<p>For Tandy systems, this variable is used as a global volume control. However, the value acts as an attenuation, not volume level. This means a value of zero attenuation plays <a href="sounds.htm">sounds</a> at maximum value, and a value of 15 attenuation mutes all sounds. If the value is set higher than 15, AGI will use only the lower nibble, or in other words, the attenuation is set to <code>v26 mod 16</code>.</p>
+			<p>On the Tandy, the value of v23 is added to each note's attenuation value to determine the total attenuation on a note by note basis. If the combined attenuation is greater than or equal to 15, the note is muted. </p>
+			<p>On PC systems, this variable is not used by AGI. Sounds will play at regular volume through the speaker regardless of the value of v23.</p>
+			<p>This variable was not reserved by AGI and had no effect in <a href="version2.htm#2089">version 2.089</a>.</p>
+			<p>If no sounds will be used in a game, or if the game is made for a PC, this variable can be used for any purpose without causing problems in AGI.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

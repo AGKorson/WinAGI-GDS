@@ -1,0 +1,29 @@
+<html>
+	<head><title>Advanced Game Properties</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Advanced Game Properties</h1>
+			<map name="props">
+				<area shape="rect" alt="Alternate Code Page" coords="28,217,372,240" href="#codepage">
+				<area shape="rect" alt="Sierra Syntax" coords="28,385,185,398" href="#sierrasrc">
+			</map>
+		<p><img src="..\..\graphics\propadvanced.jpg" usemap="#props" border="0" width="406"></p>
+		<h2><a name="codepage">Alternate Code Page Support</a></h2>
+			<p>AGI has very limited support for <a href="..\agi\agifont.htm#extended">extended characters</a>, and does not directly support the use of non-English language keyboard layouts and character <a href="..\agi\agifont.htm#codepage">code pages</a> in other languages. Although AGI doesn't directly support code pages other than 437, it is possible to run AGI in MSDOS with other code pages. This only affects the glyphs used for extended characters. WinAGI includes a code page property that allows you to use a non-English code page during game development that will show extended characters in your selected language in all resource editors. The <a href="charmap.htm">Character Map</a> will adjust automatically to show the correct extended character glyphs when the code page is changed.</p>
+			<p>Unless you intend to create a game that use extended characters from code pages other than the default (which is not easy), there is no reason to change the code page setting.</p>
+			<p>You can get more information on this topic, as well as ask additional questions by visiting the <a href="https://sciprogramming.com/community/index.php?board=15.0" target="_blank">AGI Programming Techniques</a> online forum.</p>
+		<h2><a name="sierrasrc">Original Sierra Logic Syntax Support</a></h2>
+			<p>When <a href="compilinglogics.htm">compiling</a> <a href="..\agi\logics.htm">logics</a>, WinAGI by default uses the established '<a href="..\commands\syntax_fan.htm">fan syntax</a>', originally developed around the time the first AGI fan tools were created. If you want to switch to the same syntax that Sierra used, or if you are interested in compiling original Sierra source code, you can check this box to use <a href="..\commands\syntax_sierra.htm">original Sierra syntax</a> for compiling logics.</p>
+			<p>When importing with Sierra syntax, WinAGI can work with either VOL and DIR files, or individual resources that are stored in Sierra's standard folder structure (with logic source files named like "RM0.CG" in a 'SRC' sub directory, pictures named like "PIC.0" in a 'PIC' directory, sounds named like "SND.0" in a 'SND' directory and views named like "VIEW.0" in a 'VIEW' directory.) This means you can import original Sierra source files in their original state, as well as any fully compiled game with decompiled source in Sierra syntax.</p>
+			<p>&nbsp;</p>
+		<h2>Power Pack Support</h2>
+			<p>Although there is no checkbox on the Game Properties dialog, WinAGI does include a <a href="powerpack.htm">Power Pack</a> support option. This option provides additional capabilities for WinAGI's resource editors that are specifically designed to assist with programming games that use the Power Pack features. See the <a href="powerpack.htm">Power Pack</a> topic for more information.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

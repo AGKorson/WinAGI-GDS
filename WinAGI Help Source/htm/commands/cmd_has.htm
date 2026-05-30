@@ -1,0 +1,52 @@
+<html>
+	<head><title>Test Command: has</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>has</h1>
+			<p>The <b>has</b> command returns TRUE if the specified inventory item is in the player's inventory (i.e. the item's room number equals 255).</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>has(<a href="..\agi\object.htm">itm</a> iA)</p>
+			<p>has("item")</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Test commands are only valid in an <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> statement.</p>
+			<p>If an <a href="..\agi\invitems.htm">inventory item's</a> <a href="..\agi\pictures.htm#room">room</a> <a href="..\agi\object.htm#objroomnum">number</a> is 255 it means the object has been 'picked up' and is in the player's inventory. The <b>has</b> command checks the room number value of item <b>iA</b> and returns true if it equals 255. This is basically a shortcut equivalent to the <b><a href="cmd_objinroom.htm">obj.in.room</a></b> command if testing for room 255.</p>
+			<p>This statement can be combined with the <a href="..\agi\logics.htm#not">NOT</a> operator to create a 'not in inventory' test.</p>
+			<p>If <a href="..\agi\invitems.htm">inventory item</a> <b>iA</b> is not valid (the number exceeds the total number of inventory items in the <a href="..\agi\object.htm">OBJECT</a> file), AGI will raise <a href="..\agi\errorlist.htm#trap23">trappable error #23</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>if(<b>has(i12)</b>)
+  {   
+  print("you already have item 12");
+  }
+
+[ equivalent code:
+v50=255;
+if obj.in.room(i12, v50))
+  {
+  print("you already have item 12");
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">9 (0x09)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_test.htm">Test Commands</a></p>
+			<p><a href="cmds_invitems.htm">Inventory Item Commands</a></p>
+			<p><a href="cmd_objinroom.htm"><b>obj.in.room</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

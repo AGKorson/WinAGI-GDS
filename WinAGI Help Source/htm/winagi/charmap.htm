@@ -1,0 +1,23 @@
+<html>
+	<head><title>Character Map</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="Character Map Tool"></td>
+			</tr>
+		</table>
+		<h1>Character Map Selector Tool</h1>
+			<p>Use the Character Map Selector Tool to easily insert extended characters when editing AGI resources.</p>
+		<h2><a name="extchar">Extended Character Support</a></h2>
+			<p>Although it was extremely rare to see in Sierra games, AGI does provide limited support for use of <a href="..\agi\agifont.htm">extended character codes</a> that allow display of extended characters (characters 128 - 255) from the MSDOS default <a href="..\agi\agifont.htm#codepage">code page</a> (437 - US/English). Most modern text editors default to a modern code page (Unicode or Windows standard) which can result in displayed text showing garbled characters for extended characters. However, WinAGI automatically supports code page 437 and will convert byte values in AGI resources to the correct character glyphs (and also convert extended character glyphs to the correct byte value when adding them to resources). If a character is detected that is not supported in the current code page, WinAGI will insert a '?' character in its place.</p>
+			<p>Because of the way AGI <a href="..\agi\agifont.htm#drawchar">draws character glyphs on screen</a>, extended characters will not display properly in <a href="..\commands\cmd_print.htm"><b>print</b></a> messages or <a href="..\agi\menu.htm">menus</a>. When using the <a href="..\commands\cmd_display.htm"><b>display</b></a> command on the <a href="..\agi\grafdisp.htm">graphics</a> screen, extended characters will only display correctly if the background color is black. On the <a href="..\agi\textdisp.htm">text screen</a>, extended characters will always display correctly.</p>
+		<h2><a name="charmap">Character Map</a></h2>
+			<p>WinAGI includes a Character Map tool that can be used to easily add extended codes to resource editors and tools that deal with text to be displayed or manipulated in AGI.</p>
+			<p><img alt="Character Map Tool" src="..\..\graphics\charmap.jpg" width="389"></p>
+			<p>In editors that use text, the tool can be accessed by using the 'Character Map' menu item on the Edit menu, clicking the Character Map toolbar button (on <a href="editor_logic.htm">Logic</a> and <a href="editor_text.htm">Text</a> Editors only), or by pressing CTRL+INSERT. Double-click any character to add it to the selection box. Clicking the Insert button will add the selected characters to the resource editor at the current cursor position. Non-printable characters (those with byte values &lt;32, 127, 255) don't have glyphs in most modern fonts, so WinAGI automatically inserts a <a href="..\commands\syntax_fan.htm#xcodes">compiler escape code</a> for these characters.</p>
+			<p>Keep in mind that even though AGI will accept extended character codes in AGI game text, properly displaying them in a game can be a challenge. See the <a href="..\agi\agifont.htm">Extended Characters</a> topic for more information.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

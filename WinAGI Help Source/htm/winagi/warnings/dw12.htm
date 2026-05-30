@@ -1,0 +1,17 @@
+<html>
+    <head><title>Logic Source Decompiler Warning DW12</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Warning DW12</h2>
+      <h3>return command is missing at end of logic</h3>
+      <p class="indent_n">Normally all <a href="..\..\agi\logics.htm">logics</a> should end with a <a href="..\..\commands\cmd_return.htm"><b>return</b></a> command. This warning indicates that the decompiled logic does not. This isn't necessarily a problem if the last <a href="..\..\commands\commands.htm">command</a> is <b>quit</b> (several Sierra games did this) or if the logic never gets to the end (i.e. there are branches earlier in the <a href="..\..\agi\logics.htm">logic</a> that always exit early). Regardless, it is bad coding practice to leave out the ending <b>return</b> command.</p>
+      <p class="indent_n">When recompiling, WinAGI will enforce the requirement to include the ending <b>return</b> command by raising an error (or by adding it automatically if using <a href="..\..\commands\syntax_sierra.htm">Sierra Syntax</a>).</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

@@ -1,0 +1,25 @@
+<html>
+	<head><title>Working with Pictures</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</TABLE>
+		<h1>Working with Pictures</h1>
+			<p>The steps necessary to get a <a href="..\agi\pictures.htm">picture</a> background displayed on the screen should always be done in this order:</p>
+			<ul><ul>
+				<li>load the picture resource (<b><a href="cmd_loadpic.htm">load.pic</a></b>);</li>
+				<li>draw the picture to memory (<b><a href="cmd_drawpic.htm">draw.pic</a></b>);</li>
+				<li>discard the picture resource (<b><a href="cmd_discardpic.htm">discard.pic</a></b>);</li>
+				<li>other commands that manipulate the image, such as <b><a href="cmd_overlaypic.htm">overlay.pic</a></b>;</li>
+				<li>finally, show the visual screen on the actual screen (<b><a href="cmd_showpic.htm">show.pic</a></b>).</li>
+			</ul></ul>
+			<p>The arguments for the picture commands are always <a href="..\agi\variables.htm">variables</a>; there are no equivalent commands that take numbers. Usually, these commands are used to draw the current <a href="..\agi\pictures.htm#room">room</a>, which is stored in <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v0.htm">v0</a>.</p>
+			<p>If you want to draw a picture other than the current room, store the resource number in another variable, then use the picture commands on that variable.</p>
+			<p>Use the <b><a href="cmd_overlaypic.htm">overlay.pic</a></b> command if you want to draw a picture without first clearing the existing screen. An excellent example of using the <b>overlay.pic</b> command can be found in Gold Rush!, where the <b>overlay.pic</b> command is used to generate random forest scenes.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

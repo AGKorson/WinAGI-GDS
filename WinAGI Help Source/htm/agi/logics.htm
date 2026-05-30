@@ -1,0 +1,182 @@
+<html>
+	<head><title>LOGIC Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>LOGIC Resources</h1>
+			<p>The heart of Sierra's Adventure Game Interpreter is the LOGIC resource. Logic resources are scripts that contain the code that makes up the game. Each <a href="pictures.htm#room">room</a> typically has a <a href="pictures.htm">picture</a> to represent the graphical image of the room, and a logic script that governs what can take place in that room.</p>
+			<p>When Sierra created the scripts for its games, they used a text based code editor that used a special AGI script language. An example of a logic script from King's Quest 4 room 7 follows:</p>
+<blockquote><pre><code>if(said( open, door))       [ must be close enough
+{
+   if(posn( ego, 86, 120, 106, 133))
+   {
+      if(!night)
+      {
+         if( door.open)
+         {
+            print("The door is already open");
+         }
+         else
+         {
+            set( game.control);
+            set.priority( ego, 11);
+            start.update( door);
+            end.of.loop( door, door.done);
+         }
+      }
+      else
+      {
+         print("You can't -- it's locked");
+      }
+   }
+   else
+   {
+      set( notCloseEnough);
+   }
+}</code></pre>
+		</blockquote>
+			<p>&nbsp;</p>
+			<p>However, logic scripts are not stored in text format in the game resources. Instead, each command, variable, and program flow element is converted into pseudo code which AGI can understand.</p>
+		<h1>LOGIC Resource Format</h1>
+			<p>Each logic resource contains a five byte (7 byte in the case of version 3 games) <a href="resources.htm#headers"> header</a>.</p>
+			<p>The logic pseudo-code data follow the header. The first two bytes of the logic resource are an offset pointer to the beginning of the <a href="messages.htm">message</a> text section. Following the offset bytes is the logic byte-code section. At the end of the logic byte-code section is the message text section. Figure 1 shows how the logic resource components are arranged in the logic resource.</p>
+			<p>&nbsp;</p>
+			<p><img alt="Logic Resource Layout" width="505" src="..\..\graphics\logicres.bmp"></p>
+			<p><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Figure 1: Logic Resource Layout</b></p>
+		<h3><a name="logic0">Logic 0</a></h3>
+			<p>The first logic in a game, with index of 0, is unique. This logic is automatically loaded when AGI <a href="starting.htm">starts</a>, and is stored permanently in memory as part of the <a href="memory.htm#room0">room.0</a> section on the memory <a href="memory.htm#heap">heap</a>. Since it is already loaded, you should not attempt to <a href="..\commands\cmd_loadlogics.htm">load</a> logic 0 within your game. Also, do not use the <a href="..\commands\cmd_call.htm"><b>call</b></a> command on logic 0; it will <a href="errors.htm">crash AGI</a> due to recursive looping.</p>
+		<h3><a name="scan">Scan Start</a></h3>
+			<p>Normally, when a logic is executed, AGI begins processing commands starting at the beginning of the logic. In some cases, you may want to skip over commands on subsequent calls, instead of always starting at the beginning. You can use the <a href="..\commands\cmd_setscanstart.htm"><b>set.scan.start</b></a> command to change the starting location when a logic is executed. When a <b>set.scan.start</b> is encountered, AGI stores the current location in a scan start table; subsequent calls to this logic will begin processing commands immediately after the <b>set.scan.start</b> command. Use the <a href="..\commands\cmd_resetscanstart.htm"><b>reset.scan.start</b></a> to restore the scan start back to the beginning of the logic.</p>
+		<h2><a name="commands">Logic Byte-code Section</a></h2>
+			<p>The logic byte-code section starts immediately after the header and continues until the start of the message text section has been reached. There are three types of codes used in a logic script. There are action command codes, test command codes, and program flow control codes.</p>
+		<h3><a name="actions">Action Command Codes</a></h3>
+			<p>The first set of codes is the AGI action command set. They range in value from 0 to 181 (0x00 to 0xB5). Although the maximum command value is 181, not all versions used that many commands. See the <a href="versions.htm">AGI Versions</a>	section for details on the highest command value used for different versions.</p>
+			<p>Each command value performs a specific action. Some commands have no arguments, others may have as many as 7. When writing source code, there is a corresponding text value associated with each code. For example, "load.pic" corresponds to byte code 0x18 and has one argument; "get.posn" corresponds to byte code 0x27 and has three arguments. Detailed information on each command is available in the <a href="..\commands\cmds_category.htm">AGI Commands</a> section.</p>
+			<p>If AGI encounters a command byte-code that is higher than the max number of allowed commands, it raises <a href="errorlist.htm#trap16">trappable error #16</a>.</p>
+		<h3><a name="tests">Test Command Codes</a></h3>
+			<p>The second set of codes is the test command set. <a href="..\commands\cmds_test.htm">Test commands</a> range in value from 0 to 18 (0x00 to 0x12) and the number did not change between versions. Just like action commands, some test commands had one or more arguments. Unlike action commands, test commands return a boolean value after AGI evaluates the the arguments. Test commands are used only when AGI has shifted to condition checking mode.</p>
+			<p>In what appears to be a bug, the number AGI uses to test for <a href="errorlist.htm#trap15">invalid test commands</a> is 38, even though there are only 18 valid commands. This means that if an invalid test command value between 18 and 38 is encountered, AGI will crash, instead of raising the trappable error.</p>
+		<h3><a name="ifelse">Program Flow Control Commands</a></h3>
+			<p>The third set of commands contain program flow control commands. There are four control commands that range in value from 252 to 255 (0xFC to 0xFF). These codes allow AGI to enter a condition checking mode (so different actions can be taken depending on result of a condition evaluation) and to jump to different positions in the script. The codes translate as</p>
+		<blockquote><pre><code>   FF      if 
+   FE      else (or goto) 
+   FD      not
+   FC      or</code></pre>
+		</blockquote>
+			<p>The <code><b>if</b></code> code acts like a set of 'brackets', i.e. the code that makes up the conditional evaluation has an <code><b>if</b></code> code at the beginning of the evaluation code and another <code><b>if</b></code> code at the end. The following example will illustrate this:</p>
+		<blockquote><pre><code>   FF      'if' conditions start
+   07      code 07 = 'isset' test command
+   05      code 05 = flag 5
+   FF      'if' conditions end</code></pre>
+		</blockquote>
+			<p>The above can be represented in source code as:</p>
+		<blockquote><pre><code>if(isset(f5))</code></pre></blockquote>
+			<p>which tests whether flag number 5 is set.</p>
+			<p>When the second <code><b>if</b></code> code is encountered AGI switches back to command mode. It then reads the next two bytes. These two bytes contain an offset value. If AGI evaluated the condition in the <code><b>if</b></code> statement to be TRUE, AGI ignores the offset, and continues processing commands. If the condition evaluated as FALSE, then AGI will use the offset value to jump over the 'if true' set of commands, as in the following example:</p>
+		<blockquote><pre><code>FF 07 05 FF   if(isset(5))
+84 00         {                 [for 0x0084 bytes
+18 00           load.pic(0);
+19 00           draw.pic(0);
+1B 00           discard.pic(0);
+ ...             ...
+              }                 [end of code block; 0x0084 bytes counted.</code></pre>
+		</blockquote>
+		<h3> <a name="condition">Multiple <code><b>if</b></code> Conditions</a></h3>
+			<p>More than one test command is allowed in an <code><b>if</b></code> statement. When multiple test commands are included in an <code><b>if</b></code> statement, they must all evaluate TRUE for the if statement to evaluate TRUE, i.e. the boolean AND operator applies. Use the  &amp;&amp; operator in source code to show 'AND'ed test commands.</p>
+			<p><a name="not">The NOT operator</a> (0xFD) tells AGI to toggle the result of the test command that follows. If the following test command returns TRUE, AGI makes it FALSE, and the <code><b>if</b></code> test fails, and vice versa. Use the '!' operator in source code to show 'NOT'ed test commands.</p>
+			<p><a name="or">The OR operator</a> (0xFC) tells AGI to evaluate as TRUE if any of the following test commands evaluate as TRUE. The OR operator is used in pairs similar to the <code><b>if</b></code> code. This allows AGI to skip past subsequent commands once one is found that returns a TRUE value; AGI reads in bytes until the ending 'OR' code is found.</p>
+			<p>All these codes can be combined to create complex <code><b>if</b></code> statements. Some examples of different combinations of boolean operations on test commands is shown below:</p>
+		<blockquote><pre><code>FF 07 55 FF                         if(isset(f85))                               [ one condition tested
+FF FD 07 55 FF                      if(!isset(f85))                              [ one condition NOTed 
+FF 07 55 07 56 FF                   if(isset(f85) &amp;&amp; isset(f86))                 [ multiple conditions, ANDed
+FF FC 07 55 07 56 FC FF             if((isset(f85) || isset(f86))                [ multiple conditions ORed
+FF FC 07 55 07 56 FC FD 07 57 FF    if((isset(f85) || isset(f86)) &amp;&amp; !isset(f87))  [ combination</code></pre>
+		</blockquote>
+            <p>One major limitation in the way that AGI handles 'OR' and 'AND' operations is that you cannot create tests that group multiple 'ANDed' commands with an 'OR' command, for example</p>
+        <blockquote><pre><code>if((isset(f85) && isset(f86)) || isset(f87)) [ INVALID SYNTAX</code></pre></blockquote>
+            <p> is not allowed. To create this test using allowed AGI syntax you would have to use multiple <code><b>if</b></code> statements:</p>
+        <blockquote><pre><code>if(isset(f85) && isset(f86))
+   {
+   goto DOIT
+   }
+if(isset(f87))
+DOIT:
+   {
+   [ do stuff 
+   }</code></pre></blockquote>
+		<h3><a name="elseandgoto">Else and Goto Statements</a></h3>
+			<p>Code 0xFE is a bit unusual in that it can act as a <code><b>goto</b></code> statement, but is also used in conjunction with the if statement to act as an <code><b>else</b></code> statement. The operation that AGI performs when it encounters the 0xFE value is to read the next two bytes as an offset, then jump to that new position. This is why this code is referred to as the <code><b>goto</b></code> statement.</p>
+			<p>When used in conjunction with an <code><b>if</b></code> statement, this code acts as an else statement. To create an <code><b>if ... else</b></code> construct, the compiler includes a <code><b>goto</b></code> statement at the end of the commands to be evaluated if the condition is true. The offset value of this <code><b>goto</b></code> statement is the length of commands that are executed if the condition is false (i.e., the else block). An example illustrates this concept best:</p>
+		<blockquote><pre><code>
+FF 07 E7 FF         if(isset(f231))
+05 00                 {
+65 0F                 print("The door is already open.");
+                      }
+FE                  else
+11 00                 {
+0C 24                 set(f36);
+77                    prevent.input();
+3B 05                 start.update(o5);
+03 98 03              assignn(v152, 3);
+4C 05 98              cycle.time(o5, v152);
+49 05 E8              end.of.loop(o5, f232);
+63 46 9A              sound(70, f154);
+END:                  }</code></pre>
+		</blockquote>
+			<p>This is functionally equivalent to:</p>
+		<blockquote><pre><code>FF 07 E7 FF        if(isset(f231)) 
+05 00                {
+65 0F                print("The door is already open.");
+FE 11 00             goto END
+                     }
+0C 24               set(f36);
+77                  prevent.input();
+3B 05               start.update(o5);
+03 98 03            assignn(v152, 3);
+4C 05 98            cycle.time(o5, v152);
+49 05 E8            end.of.loop(o5, f232);
+63 46 9A            sound(70, f154);
+:END</code></pre>
+		</blockquote>
+		<h2><a name="messages">Message Text Section</a></h2>
+			<p>All text that can be printed to the screen from within a logic script is stored in at the end of the logic resource. In version 2 games, and in version 3 games where logics are not compressed, the message text section is <a href="encryption.htm#msg">encrypted</a>. In version 3 games when the logics are <a href="encryption.htm#compression">compressed</a>, the message text section is not encrypted.</p>
+			<p>Messages are referenced by their index position at the end of the logic. The first message is index 1, the second is index 2, etc. The maximum number of messages is 255 (1 - 255).</p>
+			<p>The format of the text section is as follows:</p>
+		<table id="Table2" cellSpacing="1" cellPadding="1" width="800" border="1">
+			<tr>
+				<td width="100"><b>Byte</b></td>
+				<td><b>Meaning</b></td>
+			</tr>
+			<tr>
+				<td align="middle">0</td>
+				<td>Number of messages</td>
+			</tr>
+			<tr>
+				<td align="middle">1 - 2</td>
+				<td>Pointer to end of messages</td>
+			</tr>
+			<tr>
+				<td align="middle">3 - 4<BR/>
+					...</td>
+				<td style="vertical-align:middle">A list of offsets which point to each 
+					of the messages.</td>
+			</tr>
+			<tr>
+				<td align="middle">??</td>
+				<td>Start of the text data. From this point the messages are encrypted (if version 
+					2); in their unencrypted form, each message is separated by a null character 
+					(0x00)</td>
+			</tr>
+		</table>
+			<p>Messages are not required to be assigned in sequential order; you can skip over message numbers. In this case, the message header stores a value of zero for the text pointer. If a logic attempts to access message that is undefined in this manner, AGI will raise <a href="errorlist.htm#trap14">trappable error #14</a>.</p>
+			<p><a name="nozero">Note</a> that there is no message with index value of 0; this is because the reference point for the message start offsets is byte 2 (the location following the number of messages byte) of the message section data. The next two bytes, which would be the bytes that a message index of zero would use, instead are used by AGI to mark the end of the message section (so the decryption function knows where to stop).  Therefore, zero is not a valid index for messages. If you attempt to reference a message with index of 0, the results will be unpredictable, and may crash AGI.</p>
+			<p><a name="msgerror">If</a> you attempt to reference a message with an index value greater than the number of messages in a logic (for example, if the highest message index is 40, and you attempt to use message with index value of 41), AGI will not <a href="errors.htm">raise an error</a>. Instead, it returns a pointer value of zero to the function that displays text, which will then use an invalid memory location to try and display the message, resulting in unpredictable behavior, possibly <a href="errors.htm">crashing AGI</a>.</p>
+			<p>See the <a href="messages.htm">Messages Data Type</a> topic for information on how to AGI logics interact with messages.</p> 
+		<p>&nbsp;</p>
+        <p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

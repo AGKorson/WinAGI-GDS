@@ -1,0 +1,41 @@
+<html>
+	<head><title>Action Command: last.cel</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>last.cel</h1>
+			<p>The <b>last.cel</b> command stores the last cel number of an object's current loop in a <a href="..\agi\variables.htm">variable</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>last.cel(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">var</a> vB);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Variable <b>vB</b> is set to the last cel number of screen object <b>oA</b>'s current loop. Because the first cel is numbered 0, the last cel will be the cel count - 1.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, the returned value will be meaningless.</p>
+		<h2>Example</h2>
+<pre><code><b>last.cel(o0, v51);</b>  [ v51 is set to last cel of ego's current loop</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">49 (0x31)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_currentcel.htm">current.cel</a></b></p>
+			<p><b><a href="cmd_currentloop.htm">current.loop</a></b></p>
+			<p><b><a href="cmd_currentview.htm">current.view</a></b></p>
+			<p><b><a href="cmd_setcel.htm">set.cel</a></b></p>
+			<p><b><a href="cmd_setcelv.htm">set.cel.v</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

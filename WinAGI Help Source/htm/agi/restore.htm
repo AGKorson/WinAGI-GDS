@@ -1,0 +1,23 @@
+<html>
+	<head><title>Restoring an AGI Game</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Restoring</h1>
+			<p>Restoring a game is accomplished by calling the <b><a href="..\commands\cmd_restoregame.htm">restore.game</a></b> command. The player is prompted to choose a directory, and one of the save games located in the directory. Unlike the <a href="save.htm">save game</a> list which shows all 12 slots, the restore games list only includes slots if a valid game file exists in the directory.</p>
+			<img src="..\..\graphics\restore.bmp" width="583" alt="Restore Game List Box">
+			<p>While the restore dialog is shown, AGI also <a href="cycle.htm#pausing">pauses the internal game clock</a>.</p>
+			<p>Restoring a game copies the game state, <a href="screenobjs.htm">screen object</a> table, <a href="object.htm">inventory item</a> data, <a href="scripts.htm">script</a> table and <a href="logics.htm#scan">scan start</a> list from the saved game file into AGI's memory. <a href="variables.htm#reserved">Reserved variables</a> <a href="v20.htm">v20 (computer type)</a>, <a href="v26.htm">v26 (monitor type)</a>, <a href="v22.htm">v22 (sound channel count)</a> and <a href="flags.htm#reserved">reserved flag</a> <a href="f11.htm">f11 (noise channel available)</a> are restored to match current hardware capabilities.</p>
+			<p>AGI then steps through the <a href="scripts.htm">script</a> table, and performs the <a href="resources.htm">resource</a> actions (loading, unloading, etc.). At this point, the AGI interpreter memory heap is now completely restored.</p>
+			<p>When restoring a game, AGI forces <a href="..\agi\views.htm">view</a> resources to reload even if they are already loaded; in all other instances (such as when loading a resource with a load command), if the resource is already loaded, the load function returns without doing anything. It is not clear why view resources are forced to reload during a restore. It may have something to do with <a href="..\agi\views.htm#mirror">mirrored loop</a> effects, but this hasn't been confirmed. There's no real in-game consequence to this behavior, so game programmers can safely ignore it.</p>
+			<p><a href="flags.htm#reserved">Reserved flag</a> <a href="f12.htm">f12 (game restored)</a> is set to TRUE. All <a href="vol.htm">VOL</a> files are closed (they will be re-opened as soon as the next <a href="resources.htm">resource</a> is loaded).</p>
+			<p>All <a href="menu.htm">menu</a> items are re-enabled (meaning you will need to re-disable any items that you want disabled), and AGI starts a new <a href="cycle.htm">cycle</a>.</p>
+			<p>The state of the <a href="grafdisp.htm#statusline">status line</a> (on or off) is not a parameter in the save game file, so it is not affected during a restore.</p>
+	<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

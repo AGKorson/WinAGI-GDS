@@ -1,0 +1,87 @@
+<html>
+	<head><title>Action Command: stop.cycling</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>stop.cycling</h1>
+			<p>The <b>stop.cycling</b> command stops an object from <a href="object_cycling.htm">cycling</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>stop.cycling(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+		<p>&nbsp;</p>
+			<p>The <b>stop.cycling</b> command disables <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b>'s <a href="object_cycling.htm">cycling property</a>. It does not change the <a href="object_cycling.htm#cyclemode">cycling mode</a>. When the cycling property is disabled, the object's <a href="..\agi\views.htm#cel">cel</a> will not change.</p>
+			<p>Use the <b><a href="cmd_startcycling.htm">start.cycling</a></b> command to re-enable the cycling property.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ AGI doesn't automatically stop cycling objects
+[ when they stop moving; we have to do it manually
+
+#define egoX v38
+#define egoY v39
+#define oldEgoX v40
+#define oldEgoY v41
+#define oldEgoDir v42
+#define neverAnimateEgo f30
+#define alwaysAnimateEgo f31
+#define STOPPED 0
+
+get.posn(ego, egoX, egoY); [ get ego's current position
+
+if(alwaysAnimateEgo) 
+  {
+  [ force cycling regardless of direction or motion type
+  start.cycling(ego);
+  }
+else
+  {
+  if((egoDir == STOPPED || neverAnimateEgo)) 
+    {
+    [ if not moving, or no cycling is forced, stop cycling
+    <b>stop.cycling(ego);</b>
+    }
+  else
+    {
+    [ check to see if ego has stopped moving
+    if(egoDir == oldEgoDir && 
+        egoX == oldEgoX && 
+        egoY == oldEgoY) 
+      {
+      [ ego hasn't moved or changed direction since last cycle
+      <b>stop.cycling(ego);</b>
+      }
+    else
+      {
+      [ ego is moving compared to last cycle; enable cycling
+     start.cycling(ego);
+      }
+    }
+  }
+  
+[ save ego motion data to compare in next cycle
+oldEgoX = egoX;
+oldEgoY = egoY;
+oldEgoDir = egoDir;</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">70 (0x46)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_startcycling.htm">start.cycling</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

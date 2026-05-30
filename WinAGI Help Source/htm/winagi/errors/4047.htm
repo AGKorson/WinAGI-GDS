@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Error 4047</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4047</h2>
+    <h3>A label marker (:) is expected after a label</h3>
+    <p class="indent_n">The compiler encountered a token that is defined as a label, but it does not have the trailing marker (:).</p>
+    <blockquote>
+      <pre>goto(label1);
+...
+label1   [ <font color="red"><b>NOT OK</b></font>; missing ':'
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

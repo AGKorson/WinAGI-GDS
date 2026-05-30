@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: ignore.horizon</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>ignore.horizon</h1>
+			<p>The <b>ignore.horizon</b> command allows an object to go above the horizon.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>ignore.horizon(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <a href="..\agi\grafdisp.htm#horizon">horizon</a> is an invisible horizontal line with a default value of 36. Normally, <a href="..\agi\screenobjs.htm">screen objects</a> cannot go above the horizon. The <b>ignore.horizon</b> command allows screen object <b>oA</b> to go past the horizon, all the way to the top of the screen. Use the <b><a href="cmd_observehorizon.htm">observe.horizon</a></b> command to restore normal behavior.</p>
+			<p>Use the <b><a href="cmd_sethorizon.htm">set.horizon</a></b> command to adjust the location of the horizon.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>set.horizon(42);      [ adjust horizon
+<b>ignore.horizon(o1);</b>   [ object 1 is now allowed above horizon
+...
+observe.horizon(o1);  [ object 1 is NOT allowed above horizon</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">61 (0x3D)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_observehorizon.htm">observe.horizon</a></b></p>
+			<p><b><a href="cmd_sethorizon.htm">set.horizon</a></b></p>
+			<p><b><a href="cmd_ignoreblocks.htm">ignore.blocks</a></b></p>
+			<p><b><a href="cmd_ignoreobjs.htm">ignore.objs</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

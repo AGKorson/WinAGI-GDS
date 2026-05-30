@@ -1,0 +1,141 @@
+<html>
+	<head><title>Action Command: set.text.attribute</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>set.text.attribute</h1>
+			<p>The <b>set.text.attribute</b> command sets the foreground and background color for the display commands.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.text.attribute(<a href="syntax_fan.htm#argtypes">byt</a> FG, <a href="syntax_fan.htm#argtypes">byt</a> BG);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command sets the foreground and background <a href="..\agi\graphics.htm#agicolors">colors</a> used by AGI to display text with the <a href="cmd_display.htm"><b>display</b></a> or <a href="cmd_displayv.htm"><b>display.v</b></a> commands to <b>FG</b> and <b>BG</b> respectively. The <a href="..\agi\keyboard.htm#inputline">input line</a> also uses the foreground and background colors set by this command. The default foreground color is white, and the default background color is black for both the <a href="..\agi\grafdisp.htm">graphics screen</a> and the <a href="..\agi\textdisp.htm">text screen</a>.</p>
+			<p>The <b>set.text.attribute</b> command combines the <b>FG</b> and <b>BG</b> into a single value, with the <b>FG</b> value in the lower nibble (lower four bits) and the <b>BG</b> in the upper nibble (higher four bits). When text is drawn on the screen, this single byte value is passed to the DOS function that draws the text on the screen.</p>
+			<p>When the <a href="..\agi\textdisp.htm">text screen</a> is active, the DOS function that draws the character on the screen uses the attribute values as expected; setting the text foreground to <b>FG</b> and the text background to <b>BG</b>. This is why all combinations of colors are possible on the text screen.</p>
+			<p>On the <a href="..\agi\grafdisp.htm">graphics</a> screen, because of the way that DOS interprets the combined attribute value, it is impossible to have a text background color other than black or white. AGI deals with this by adjusting the colors passed to <b>set.text.attribute</b> as follows: when <b>BG</b> is black, the <b>FG</b> can be any other color and is not modified;  but if <b>BG</b> is any value other than black, AGI changes the background color to white and sets the foreground color to black, ignoring the passed <b>FG</b> value completely. See the <a href="..\agi\agifont.htm#textcolors">Text Color Options</a> discussion in the <a href="..\agi\agifont.htm">Font and Character Codes in AGI</a> topic for a detailed explanation.</p>
+			<p>In general, color settings are retained when switching between the graphics screen and the text screen, but there are a few nuances. First of all, when using the graphics screen, the background color that is kept by the system is either black or white as described above; the actual value passed is not kept by the system. If you switch to the text screen, the background value will also be black or white. You will need to rerun the <b>set.text.attribute</b> command to get any other background color. The foreground color is retained when switching to the text screen (even if it shows as black due to a white background on the graphics screen).</p>
+			<p>When switching from the text screen to the graphics screen, AGI will keep the previously set foreground color, but it always resets background to black.</p>
+			<p>On the <a href="..\agi\graphics.htm">Hercules Graphics Card (HGC)</a> display, there are only two colors available (black and white). When displaying text (on either screen) if the set foreground value is less than or equal to the set background value, AGI draws black text on a white background, otherwise it draws white text on  black background.</p>
+			<p>The <a href="..\agi\textdisp.htm#cga">text screen</a> on a Color Graphics Adapter (CGA) display supports sixteen colors, so it will show all combinations of background and foreground color just like Enhanced Graphics Adapter (EGA) displays. On the <a href="..\agi\graphics.htm#cga">graphics screen</a>, CGA only has four colors in two available palettes (default CGA palette and alternate RGB palette). AGI uses a table to choose foreground text colors when the background is black. If background is not black, AGI uses black foreground on white background regardless of current background/foreground color settings, same as EGA displays):</p>
+			<table id="Table1" cellspacing="1" cellpadding="1" width="650">
+				<tr>
+					<td align="middle" width="250"><b>Foreground Color</b></td>
+					<td align="middle" style="vertical-align:bottom" width="200"><b>CGA-0 (CGA)</b></td>
+					<td align="middle" style="vertical-align:bottom" width="200"><b>CGA-1 (RGB)</b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">0 (black)</td>
+					<td align="middle" width="200">black</td>
+					<td align="middle" width="200">black</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">1 (blue)</td>
+					<td align="middle" width="200">green</td>
+					<td align="middle" width="200">cyan</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">2 (green)</td>
+					<td align="middle" width="200">green</td>
+					<td align="middle" width="200">cyan</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">3 (cyan)</td>
+					<td align="middle" width="200">green</td>
+					<td align="middle" width="200">cyan</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">4 (red)</td>
+					<td align="middle" width="200">red</td>
+					<td align="middle" width="200">magenta</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">5 (magenta)</td>
+					<td align="middle" width="200">red</td>
+					<td align="middle" width="200">magenta</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">6 (brown)</td>
+					<td align="middle" width="200">red</td>
+					<td align="middle" width="200">magenta</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">7 (light gray)</td>
+					<td align="middle" width="200">brown</td>
+					<td align="middle" width="200">white</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">8 (dark gray)</td>
+					<td align="middle" width="200">brown</td>
+					<td align="middle" width="200">white</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">9 (light blue)</td>
+					<td align="middle" width="200">green</td>
+					<td align="middle" width="200">cyan</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">10 (light green)</td>
+					<td align="middle" width="200">green</td>
+					<td align="middle" width="200">cyan</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">11 (light cyan)</td>
+					<td align="middle" width="200">red</td>
+					<td align="middle" width="200">magenta</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">12 (light red)</td>
+					<td align="middle" width="200">red</td>
+					<td align="middle" width="200">magenta</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">13 (light magenta)</td>
+					<td align="middle" width="200">red</td>
+					<td align="middle" width="200">magenta</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">14 (yellow)</td>
+					<td align="middle" width="200">red</td>
+					<td align="middle" width="200">magenta</td>
+				</tr>
+				<tr>
+					<td align="middle" width="250">15 (white)</td>
+					<td align="middle" width="200">brown</td>
+					<td align="middle" width="200">white</td>
+				</tr>
+			</table>
+			<p><a name="hack">Using</a> values for <b>FG</b> and <b>BG</b> greater than 15 will not cause AGI to crash, but may result in unexpected results. AGI uses only the lower nibble (four least significant bits) of each number to determine the actual colors to display. Internally, AGI combines the <b>FG</b> and <b>BG</b> values into a single 8 bit number that is used by the text drawing functions. Because of the way the numbers are combined, it is actually possible to draw black text on non-black backgrounds on the <a href="..\agi\grafdisp.htm">graphics</a> screen. If <b>FG</b> is greater than 128 and <b>BG</b> is zero, AGI will use the higher nibble (upper four bits) of <b>FG</b> as the background color, and calls to <a href="cmd_display.htm"><b>display</b></a> and <a href="cmd_displayv.htm"><b>display.v</b></a> will draw black text on colored background. Using the <a href="cmd_textscreen.htm"><b>text.screen</b></a> command when this is the case will also clear the text screen to the 'hacked' foreground color.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>text.screen();
+<b>set.text.attribute(1, 14);</b>
+display(5, 5, "message text"); [ this will display blue text on a yellow background
+pause();
+graphics();
+<b>set.text.atrribute(1, 14);</b>
+display(5, 5, "message text"); [ this will display black text on white background
+pause();
+<b>set.text.attribute(1, 0)</b>;
+display(5, 5, "message text"); [ this will display blue text on black background
+</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">109 (0x6D)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

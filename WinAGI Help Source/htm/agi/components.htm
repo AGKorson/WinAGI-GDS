@@ -1,0 +1,69 @@
+<html>
+	<head><title>AGI Components</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>AGI Component Files</h1>
+			<p><a name="about"></a>There</a> are two types of files that make up an AGI game package, the interpreter files and the <a href="resources.htm">game resource</a> files. The game resource files, which are platform independent, are described in the <a href="resources.htm">Game Resources</a> section.</p>
+			<p>The interpreter files are platform dependent. The MSDOS version was the most popular and best known interpreter. The platform-specific files for the MSDOS interpreter are:</p>
+			<ul><ul>
+				<li><a name="agifile"><code><b>agi</b></code></a>: This is the main interpreter file for the MSDOS platform. It contains all the routines for the various AGI commands. In most commercial releases, this file was <a href="#encryption">encrypted</a> with an encryption key that was embedded on a special track on the original game disks, and had to be decrypted by a loader file each time the game was run. When not encrypted, the file was named <code><b>agi.exe</b></code>.The size of the file varied from 34Kb in early <a href="versions.htm">version 2</a>, growing to 40Kb in <a href="versions.htm">version 3</a>.</li>
+				<li><a name="agidata"><code><b>agidata.ovl</b></code></a>: In MSDOS, this overlay file contains various bits of data for the AGI such as interpreter error messages and jump tables for the AGI commands inside the AGI file. It is a small file, about 7K bytes (slightly larger in later versions). It is not known for certain why this needed to be a separate file, as it could easily have been combined into a single executable file with the main AGI file. The most likely reason was to allow for some customization between different platforms (but since non-MSDOS versions of AGI have not been analyzed in as much detail as MSDOS versions, this has not been confirmed).</li>
+				<li><code><b>sierra.com</b></code>: In MSDOS, this is the loader which loads (and in many cases would decrypt) the interpreter executable file. When games were installed to a hard drive, the installation batch file would often rename this file with the initials of the game (i.e. <code><b>kq1.com</b></code>, <code><b>sq1.com</b></code>, etc.) In version 1, this file was called <code><b>load</b></code>.</li>
+				<li><a name="overlays"><code><b>*_graf.ovl</b></code></a>: One of these five overlay files was loaded when AGI started to provide platform specific <a href="graphics.htm">graphics</a> related subroutines for each display type (HGC, CGA, EGA, VGA). After detecting the attached video display, AGI would load the appropriate overlay into memory.</li>
+				<li><code><b>*_objs.ovl</b></code>: Beginning with <a href="versions.htm">version 2.411</a>, AGI moved the graphics subroutines for managing screen objects to a separate overlay file; one for monochrome (HGC) display, and one for all others.</li>
+				<li><code><a name="hgcfont"><b>hgc_font</b></a></code>: For versions supporting HGC, this file contains <a href="agifont.htm#font">character glyph</a> data for displaying characters on screen.</li>
+			</ul></ul>
+			<p>&nbsp;</p>
+			<p>Details on interpreter files for other platforms are not included in this help file.</p>
+		<h2><a name="gameloader">Game Loaders and Copy Protection</a></h2>
+			<p>The game loader for MSDOS based games was an important part of an AGI game. In most games, the actual interpreter file, <code><b>agi</b></code>, was encrypted, as a form of copy protection. The loader file, in conjunction with a specially formatted track 6 on the original Sierra disks that supposedly was not possible to copy using MSDOS disk commands, would decrypt the file, load it into memory, and execute it. An interesting side note is that track 6 was the same for all AGI games. So, when asked to supply an original disk, any disk would work for any game. However, although track 6 was the same for all games, the key value was not. The key offset was then used as a starting point on the special track 6 data, and varied from game to game.</p>
+			<p>Beginning with the version 3 games, Sierra began to move away from copy protection based on original disks and 'secret' disk data (determined hackers and software pirates eventually found ways to bypass the encryption.) Instead, copy protection based on information found in accompanying game materials became more common. For example, in Gold Rush!, the player had to answer a question with an answer that was found in a paperback book that was included with the game.</p>
+			<p>When no encryption was needed, the loader file wasn't always present. If no loader file was included, the interpreter executable file was not encrypted, and was run directly to begin the game.</p>
+			<p>When a loader is executed, it first checks to see if the interpreter executable file is encrypted. It does this by checking the first two bytes of the file. if they are the characters 'M' 'Z' (hex values 0x4D, 0x54 - which is the MSDOS executable file marker), the loader assumes the file is not encrypted. If not, the loader attempts to decrypt the file.</p>
+		<h3><a name="encryption">Decrypting the Interpreter File</a></h3>
+			<p>To decrypt the interpreter executable file, the loader first needed a 128 byte decryption key. The key could either be embedded in the loader file (if the copy protection was removed) or would be read from track 6 of an original Sierra game disk.</p>
+			<p>The beginning of the loader included a short copyright notice, then the string "keyOfs", then a two-byte key offset code. After that were a string of 128 'k' characters (if the program was either copy-protected, or not encrypted) or 128 bytes of key data (if the key was embedded). A stack space followed (identified by 256 's' characters).</p>
+			<p>If the key was not embedded (the loader would check for the character 'k' in the first byte of the key space) then the loader would retrieve the encryption key data from the special track 6 of an original game disk.</p>
+			<p>Once the key was located, the decryption process used is relatively straightforward:</p>
+		<blockquote><ol>
+			<li>The CARRY bit is zeroed. Set the file pointer to the beginning of encrypted AGI file data. Set key pointer to first byte of the key.</li>
+			<li>XOR current byte of file data with current key byte.</li>
+			<li>Rotate current key byte one bit to the right, including the CARRY bit.</li>
+			<li>Increment key pointer and file data pointer.
+			<li>Repeat step 2 until 128 bytes are decrypted.</li>
+			<li>If last rotate resulted in a '1' bit being carried, that bit is ORed into bit 7 of the first key byte.</li>
+			<li>Reset key pointer to beginning of key. Move file data pointer up 128 bytes.
+			<li>If the end of the AGI file has not been reached, go back to step 2.</li>
+		</ol></blockquote>
+		<h3>Determining the Encryption Key</h3>
+			<p>For anyone looking to determine the encryption key without an original disk, it actually turns out to be quite trivial due to the characteristics of the resulting decrypted AGI executable. The decrypted AGI file contains a section of all 0x00 values that spans bytes 257 to 384. Since the encryption is a simple XOR function, the corresponding bytes in the encrypted file are exactly<b>*</b> the entire key for the third iteration of decryption. To determine the original key, just rotate the value three bits back to the left. (A utility called AGI Decrypter is available from the <a href="https://github.com/AGKorson/AGI-Decrypter" target="_blank">creator of WinAGI</a> that uses this method to decrypt any version 2 or 3 MSDOS Sierra game).</p>
+			<p>&nbsp;</p>
+			<p class="indent"><b>*</b>If you look closely, you will notice that there is actually a bug in Sierra's decryption algorithm. The CARRY bit is not reset at the start of each loop, and the last bit is only put back into the first byte if the bit is a '1'. This means that at the end of a loop, if the previous loop's last bit (which is now the first byte's most significant bit) was a '1', and the current loop's last bit is a '0', the '1' is not changed back to a '0' - it stays permanently changed to a '1'.</p>
+			<p class="indent">The effect of this is that all the bytes of the key will eventually get all their '0' bits changed to '1' bits, if there are enough iterations of key rotation. This does NOT affect the decryption process since the file was encrypted using the same algorithm, bugs and all. But it does add a tiny complication to breaking the key. After rotating the extracted key data to the left, you need to check the last two bits of the last byte in the key. If those two bits are both '1', then it is possible that the correct value for that byte needs to have bit 1 cleared (i.e. in binary, it should end in 'xxxxxx01', not 'xxxxxx11'). It is easy to determine the correct value of the last key byte, because byte 128 of the <b>DE</b>crypted file is always a zero. So you can just compare the value of byte 128 in the <b>EN</b>crypted file to the last byte of the key; if they don't match, just replace the last byte of the key with byte 128 of the <b>EN</b>crypted file. (AGI Decrypter does this check and always gets the correct key when decrypting a file.)</p>
+		<h3><a name="gameid">Game IDs and Interpreter Executable</a></h3>
+			<p>Each interpreter executable file contained a built-in GameID string that changed from game to game. The <b><a href="..\commands\cmd_setgameid.htm">set.game.id</a></b> command, when called, would compare its argument value against the built-in ID. If the IDs did not match, AGI would immediately quit, without prompting or warning. It appears that this was done to prevent players from using the incorrect interpreter file to run AGI games.</p>
+			<p>In <a href="versions.htm">version 3</a> games, AGI also uses the built-in GameID value as a prefix for the <a href="dir.htm">directory</a> file and <a href="vol.htm">volume</a> files.</p>
+		<h3><a name="fangameid">Dealing with Game IDs in Fan-written Games</a></h3>
+			<p>In order to use existing AGI interpreter files with fan-written games, the GameID issue can be addressed in three different ways:</p>
+			<p><b>Method 1:</b> (The hard way.) Use the same technique that Sierra used. Modify the AGI executable file so the built-in GameID matches the ID of the new game. This can be done with a simple hex editor, if you know where to find the built-in ID. Here are a few examples of some game ID's and the data 
+			following them:</p>
+				<ul>
+					<li>Police Quest: <TT class="literal">'P' 'Q' '\x0' 'e' 'I' 'D' 'X'</TT></li>
+					<li>Mother Goose: <TT class="literal">'M' 'G' '\x0' 'e' 'I' 'D' 'X'</TT></li>
+					<li>Manhunter 2: <TT class="literal">'M' 'H' '2' '\x0' 'I' 'D' 'X'</TT></li>
+					<li>XMAS Demo: <TT class="literal">'X' 'M' 'A' 'S' '\x0' 'D' 'X'</TT></li>
+					<li>Leisure Suit Larry: <TT class="literal">'L' 'L' 'L' 'L' 'L' '\x0' 'X'</TT></li>
+				</ul>
+			<p>The game ID itself is the null terminated string that ends at the '\x0'. The text that follows it is of no significance, it is simply to fill in the gap although it is useful when searching for the game ID because, as you can see, this text is always <TT class="literal">"eIDX"</TT> (presumably from ``GameIDX'' before being overwritten by the actual ID) or a suffix of it (i.e. <TT class="literal">"IDX"</TT>, <TT class="literal">"DX"</TT>, or <TT class="literal">"X"</TT>). For most games, the game ID is two or three characters which means that you will be able to rely on the <TT class="literal">"IDX"</TT> string being there for these games.</p>
+			<p>Because version 3 games require the built in GameID from the interpreter to load the directory and VOL files, fan made games will need to use this approach or they will not run.</p>
+			<p><b>Method 2:</b> (An easier way.) The above method will still have the problem where using the wrong interpreter file will crash the game. An easier way to avoid the gameid issue is to never call <b><a href="..\commands\cmd_setgameid.htm">set.game.id</a></b> in the first place. Since the command never checks the game's ID against the interpreter executable file's ID, no error is generated, and AGI runs just fine. The downside to this method is that save games will not append the GameID to savegame file names (i.e. they will be 'sg.1', 'sg.2', etc.). This method won't work for fan-written version 3 games.</p>
+			<p><b>Method 3:</b> (The easiest way.) But an even easier method is to use a modern AGI emulator, such as <a href="https://github.com/lanceewing/agile" target="_blank">AGILE</a>, <a href="https://agidev.com/projects/nagi" target="_blank">NAGI</a> or <a href="https://www.scummvm.org" target="_blank">ScummVM</a>. Emulators don't perform the GameID check, and they have added benefits of improved memory management, native support for newer operating systems, and other enhancements. Additionally, most newer interpreters are able to support fan-written version 3 games with no problems.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

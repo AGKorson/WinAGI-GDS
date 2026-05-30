@@ -1,0 +1,24 @@
+<html>
+	<head><title>Logic Compiler Error 4076</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4076</h2>
+    <h3>OR operator must be within brackets</h3>
+    <p class="indent_n">When tests are <a href="..\..\commands\syntax_fan.htm#andor">OR'ed</a> ('||'), they must be enclosed in parentheses. For example,</p>
+    <blockquote>
+      <pre>if(  <b>(</b>v98 == 98 || v99 == 99<b>)</b>  ) [ OK
+...
+if(  v98 == 98 || v99 == 99  )    [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+    </blockquote>
+    <p class="indent_n">This compiler error indicates OR'ed <a href="..\..\commands\cmds_test.htm">test commands</a> have not been enclosed in brackets.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

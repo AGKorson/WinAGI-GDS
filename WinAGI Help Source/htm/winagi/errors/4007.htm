@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Error 4007</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4007</h2>
+    <h3>'}' expected</h3>
+    <p class="indent_n">This error occurs when the end of the file is reached and one or more if and/or else blocks  do not have a closing curly brace. This is often caused by cutting and pasting errors.</p>
+    <p class="indent_n">Using indentation in your source code can help spot this error.</p>
+    <blockquote>
+      <pre>if (v99 == 1) {
+    v100 = 1;
+return(); [ end-of-file  <font color="red"><b>NOT OK</b></font> missing '}'</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

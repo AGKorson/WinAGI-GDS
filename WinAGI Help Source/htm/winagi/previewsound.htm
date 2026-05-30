@@ -1,0 +1,23 @@
+<html>
+	<head><title>Previewing Sounds</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Previewing Sounds</h1>
+			<p><img alt="Sound Preview" src="..\..\graphics\prevsound.jpg" width="495"></p>
+			<p>WinAGI can preview standard <a href="..\agi\sounds.htm#pcjr">PC/PCJr</a> based sounds as well as Apple IIgs <a href="..\agi\sounds.htm#pcm">PCM</a> and <a href="..\agi\sounds.htm#midi">MIDI</a> sounds. IIgs PCM (digital sound samples) and IIgs MIDI sounds are played directly without any formatting or processing.</p>
+			<p> For PC/PCJr sounds, WinAGI provides two playback modes to preview <a href="..\agi\sounds.htm">sounds</a> in your game: a <a href="..\agi\sounds.htm#pcjr">PCJr</a> emulator which is the closest approximation of what the sound would have been like on the original IBM PCJr; and a MIDI conversion, which allows you to select MIDI instruments for each channel. (The PC Speaker emulator is currently not available; using the PCJr mode, with tracks 1, 2 and noise muted provides a close approximation.)</p>
+			<p>When the sound is loaded into the preview window, the Instrument and Mute settings are set to the sound's properties. Once loaded, you can adjust these values as needed while previewing the sound. (Changes to the Instrument and Mute settings in the preview window do not cause an update to the sound's properties.)</p>
+			<p>Each track can be individually <a href="editor_sound.htm#mute">muted</a>, allowing you to listen to any combination of tracks. </p>
+			<p>In MIDI playback mode, the Instrument settings can be changed for each of the three tone tracks. However, the noise track is preset to the the 'Seashore' instrument to simulate white noise, and the "Harpsichord' instrument to simulate the tone noise. (Because MIDI instrument sounds are sound card dependent, the results are very inconsistent across different systems, so the noise channel may not sound very good when previewing it as MIDI in WinAGI.)</p>
+			<p>In PCJr emulator mode, only the mute settings can be applied to the previewed sound.</p>
+			<p>Click the play button to start playing the sound. Click the stop button to stop it. The sound will automatically stop playing if another resource is chosen for preview, or if you switch to another window.</p>
+			<p>NOTE: The Instrument and Mute properties are WinAGI specific properties, and do not have an effect on your compiled game.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,38 @@
+<html>
+	<head><title>Compiling Logics</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+			</tr>
+		</table>
+		<h1>Compiling Logics</h1>
+			<p>WinAGI tracks the compile state of your logic source files. If the source changes the Compiled property of the source code is reset to FALSE. If you are using the <a href="previewlogic.htm">preview window</a>, the logic will appear with a light red background to indicate it is not compiled. In the resource tree, uncompiled logics are displayed in red text.</p>
+			<p>You can easily compile all logics that are currently marked as uncompiled by choosing the <a href="compilinggames.htm#compilechanged">Compile Changed Logics</a> command from the Game menu.</p>
+			<p>Individual logics can be compiled when opened in a <a href="editor_logic.htm">Logic Editor</a> by choosing the compile toolbar button or menu item.</p> 
+		<h2>Scope and Hierarchy of Defines</h2>
+			<p>When the compiler encounters an <a href="..\commands\syntax_fan.htm#argtypes">argument value</a> that is not a number, argument marker or literal string (i.e. '99', 'v1', 'f5', "look" etc.) it will look for a <a href="..\commands\syntax_fan.htm#defines">define name</a> in the following order:</p>
+			<ul><ol>
+				<li>Locally defined names for the logic being compiled</li>
+				<li><a href="editor_globals.htm">Global define names</a></li>
+				<li><a href="managingresources.htm#resourceids">Resource IDs</a></li>
+				<li><a href="reservednames.htm">Reserved Names (a special group of defines for <a href="..\agi\data.htm#reserved">reserved values</a> that have preset purposes in AGI)</a></li>
+			</ol></ul>
+			<p>This means you can override a reserved name with a resource ID, or a globally defined name with a locally defined name, etc.</p>
+			<p>WinAGI will generate warnings for defines if the name is a reserved name, or if the value is already defined by another reserved name.</p>
+		<h2><a name="errlevel">Error Detection Level</a></h2>
+			<p>When a logic source file is compiled, WinAGI will check for errors and warnings. The error detection level of the compiler can be adjusted on the <a href="settings_logic.htm">Logics</a> tab of the <a href="settings.htm">Settings</a> window. There are two possible settings:</p>
+			<ul><ul>
+				<li>Low - as long as the compiler can create executable code, it won't return errors or warnings.</li>
+				<li>Medium - the compiler will create code, but if it detects conditions that could potentially cause errors in the logic once it is executed by AGI, it generates warnings indicating where potential problems exist.</li>
+			</ul></ul>
+			<p>If any errors are found, they will be displayed in the <a href="warninglist.htm">Warnings and Errors List</a>.
+			<p>In addition to errors, any unusual conditions or items of interest will also be displayed as warnings in the <a href="warninglist.htm">Warnings and Errors List</a>.</p>
+			<p>If no errors are encountered, WinAGI writes the compiled resource to your game files.</p>
+		<h2>Support for Original Sierra Source Code Syntax</h2>
+    	<p>The syntax rules used by WinAGI (which are compatible with the original <a name="..\commands\syntax_fan.htm">fan syntax</a> created in AGI Studio) differ slightly from the <a name="..\commands\syntax_sierra.htm">syntax rules used by Sierra</a>'s original MSDOS based compiler <a href="..\commands\sierra_logiccompiler.htm">CG.EXE</a>. WinAGI does provide the option to use Sierra original syntax rules instead of the fan-based syntax rules. To access this feature, select the <a href="prop_advanced.htm#sierrasrc">Use Sierra Syntax</a> option on the <a href="properties.htm">Game Properties Dialog</a>. </p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

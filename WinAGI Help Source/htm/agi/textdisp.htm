@@ -1,0 +1,29 @@
+<html>
+	<head><title>Text Display</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>AGI Text Display Mode</h1>
+			<p>The text display mode is used to display text on the screen when graphical data are not required. A help screen is a common use for the text mode. The inventory item status screen also uses the text mode. To switch to the text mode, use the <b><a href="..\commands\cmd_textscreen.htm">text.screen</a></b> command. Every time the text screen is displayed, it is cleared, using the current background color value. The default background color when AGI starts is black. Regardless of the graphics card, the resolution in text mode is 40 columns by 25 rows.</p>
+		<h3><a name="hgc">Hercules Graphics Card (HGC)</a></h3>
+			<p>On the HGC display, each character is 16 pixels wide by 14 pixels high. If the foreground color is less than or equal to the background color, the text will display as black text on white foreground. Otherwise the text will display as white text on a black foreground.</p>
+		<h3><a name="cga">Color Graphics Adapter (CGA)</a></h3>
+			<p>On the CGA display, the characters are the same size as in the graphics mode (8 pixels wide by 8 pixels high). Unlike the graphics mode, all sixteen colors are available for foreground and background color, just like on the EGA display.</a>
+		<h3><a name="ega">Enhanced Graphics Adapter (EGA)</a></h3>
+			<p>On the EGA display, each character is 8 pixels wide by 16 pixels high in text mode. Although the characters have more available pixels than on the graphics screen, they are still rather blocky text characters. Both the foreground and background can be set to any of the sixteen colors available in AGI using the <a href="..\commands\cmd_settextattribute.htm"><b>set.text.attribute</b></a> command.</p>
+		<h3><a name="vga">Video Graphics Adapter (VGA)</a></h3>
+			<p>When used on the IBM PC, the VGA display used the EGA compatibility mode. Its graphics and text characteristics were identical to the EGA card.</p>
+		<h2>Text Mode Properties</h2>
+			<p>The text display mode uses separate memory space from the <a href="grafdisp.htm">graphics display</a>. This means that when in text mode, you can still run commands that affect the graphics display, such as adding or moving objects, changing views, etc. even though the graphics display is not visible. Once you are finished with the text mode, the <a href="..\commands\cmd_graphics.htm"><b>graphics</b></a> command will switch back to the <a href="grafdisp.htm">graphics display</a>, and resume the game, continuing with the the graphic display's current state. While the text mode is active, the normal <a href="cycle.htm">interpreter cycle</a> continues, but no <a href="screenobjs.htm">screen objects</a> are <a href="..\commands\object_initialize.htm#updating">updated</a>.</p>
+			<p>Only commands that are specifically designed for use with the text screen should be used while displaying the text screen. While it is possible, the text mode should not be used to show menus, print messages and receive commands from the player. Because the text mode does not automatically clear the screen after text is displayed, these features are difficult to manage on the text screen.</p>
+			<p>The text mode is also used when the <a href="..\commands\cmd_status.htm"><b>status</b></a> command is used to display <a href="object.htm#items">inventory items</a>. After dismissing the <b>status</b> screen AGI always goes back to the graphics screen, regardless of which mode was active when the command was called.</p>
+		<h3>Fonts and Characters</h3>
+			<p>AGI used the default font included in MSDOS to display text characters on screen. See the <a href="agifont.htm">Font and Character Codes in AGI</a> topic for details on how AGI managed drawing characters on screen.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

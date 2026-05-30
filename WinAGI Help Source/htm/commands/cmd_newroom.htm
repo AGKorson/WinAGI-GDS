@@ -1,0 +1,70 @@
+<html>
+	<head><title>Action Command: new.room</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>new.room</h1>
+			<p>The <b>new.room</b> command changes the current room number and forces an update.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>new.room(<a href="syntax_fan.htm#argtypes">byt</a> ROOMNUM);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <b>new.room</b> command causes AGI to halt execution of the current script. The current <a href="..\agi\pictures.htm#room">room</a> number is changed to <b>ROOMNUM</b>. The resources on the memory <a href="..\agi\memory.htm#heap">heap</a> are dumped (with the exception of <a href="..\agi\logics.htm#logic0">logic 0</a>). The following actions are then taken to switch to the new room:</p>
+				<ul><ul>
+					<li>if a <a href="..\agi\sounds.htm">sound</a> is playing, it is stopped and the <a href="cmd_sound.htm">'done' flag</a> is set to TRUE;</li>
+					<li>the memory <a href="..\agi\memory.htm#heap">heap</a> is cleared by resetting the memory pointer to <a href="..\agi\memory.htm#room0">room.0</a>;</li>
+					<li>the <a href="..\agi\keyboard.htm">keyboard</a> buffer and <a href="..\agi\joystick.htm">joystick</a> status are cleared;</li>
+					<li>the <a href="..\agi\scripts.htm">script table</a> is cleared;</li>
+					<li>the <a href="..\agi\sobjtable.htm">screen objects table</a> is cleared - for each <a href="..\agi\screenobjs.htm">screen object</a>, the DRAWN and ANIMATED <a href="..\agi\sobjtable.htm#flagtable">bit field flags</a> are cleared and the UPDATE bit field flag is set; the <a href="object_moving.htm#stepsize">step size</a>, <a href="object_moving.htm#steptime">step time</a>, step counter, <a href="object_cycling.htm#cycletime">cycle time</a> and cycle counter <a href="..\agi\sobjtable.htm">properties</a> are set to 1; pointers for <a href="..\agi\views.htm#cel">cel</a> data, <a href="..\agi\views.htm">view</a> data and background data are all set to zero; all other bit field flags and object properties are unaffected;</li>
+					<li>all <a href="..\agi\resources.htm">resource</a> <a href="..\agi\memory.htm#linklists">linked lists</a> are cleared;</li>
+					<li><a href="..\agi\interface.htm#ego">ego</a> is set to <a href="..\agi\interface.htm#playercontrol">player control</a>;</li>
+					<li>if a <a href="concepts_obstacles.htm#blocks">block</a> is set, it is cleared;</li>
+					<li><a href="..\agi\grafdisp.htm#horizon">horizon</a> is set to default value of 36;</li>
+					<li><a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v0.htm">v0 (current room)</a> is copied to reserved variable <a href="..\agi\v1.htm">v1 (previous room)</a>;</li>, and v0 is set to <b>ROOMNUM</b>;</li>
+					<li><a href="..\agi\variables.htm#reserved">reserved variables</a> <a href="..\agi\v4.htm">v4 (object touching edge)</a> and <a href="..\agi\v5.htm">v5 (object edge code)</a> are set to zero;</li>
+					<li><a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v16.htm">v16 (ego view number)</a> is set to current <a href="..\agi\interface.htm#ego">ego</a> <a href="..\agi\views.htm">view</a> number;</li>
+					<li>all open <a href="..\agi\vol.htm">VOL files</a> are closed (they will automatically be reopened when the <a href="..\agi\logics.htm">logic</a> for this <a href="..\agi\pictures.htm#room">room</a> is loaded);</li>
+					<li>the <a href="..\agi\logics.htm">logic</a> for current room (<a href="..\agi\v0.htm">v0</a>) is loaded (note that the logic is loaded, but is not <a href="cmd_call.htm">called</a> automatically; you should use the <a href="cmd_callv.htm"><b>call.v</b></a> command in <a href="..\agi\logics.htm#logic0">logic 0</a> to call the room's logic in each cycle);</li>
+					<li>if a <a href="..\agi\tracer.htm#logic">trace logic</a> is specified, it gets loaded;</li>
+					<li>if <a href="..\agi\interface.htm#ego">ego</a> was touching an edge on the previous screen, it is positioned to opposite side of the new <a href="..\agi\pictures.htm#room">room</a> ( i.e. if ego touched right edge, it is moved to left edge);</li>
+					<li><a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v2.htm">v2 (ego edge code)</a> is set to zero;</li>
+					<li><a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f5.htm">f5 (new room)</a> is set to TRUE;</li>
+					<li>the <a href="..\agi\controllers.htm#flagtable">controller flag table</a> is cleared;</li>
+					<li>the <a href="..\agi\grafdisp.htm#statusline">status line</a>, if enabled, is redrawn;</li>
+					<li>if the <a href="..\agi\grafdisp.htm#input">input line</a> is enabled, it is redrawn, any text already on the input line before the <b>new.room</b> call is maintained;</li>
+					<li><a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v9.htm">v9 (unknown word number)</a> is set to zero;</li>
+					<li><a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f2.htm">f2 (input received)</a> is reset to FALSE (but reserved flag <a href="..\agi\f4.htm">f4 (said found match)</a> is not modified; this appears to be a minor bug, but it usually not an issue);</li>
+					<li>the current score (<a href="..\agi\v3.htm">v3</a>) is cached;</li>
+					<li>the interpreter cycle is then continued by jumping to the point where <a href="..\agi\logics.htm#logic0">logic 0</a> is executed.</li>
+				</ul></ul>
+			<p>Keep in mind that the <b>new.room</b> command interrupts the <a href="..\agi\cycle.htm">interpreter cycle</a>, so any commands after a <b>new.room</b> command will never get executed.</p>
+			<p>Also note that the <b>new.room</b> command does not affect the current <a href="..\agi\graphics.htm">graphics display mode</a>; it will remain in the same mode.</p>
+			<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ typical code that changes rooms when ego reaches an edge
+if (edgeEgoHit == LEFT) 
+  {
+  <b>new.room(75);</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">18 (0x12)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_flowcontrol.htm">Flow Control Commands</a></p>
+			<p><a href="cmd_newroomv.htm"><b>new.room.v</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

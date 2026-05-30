@@ -1,0 +1,22 @@
+<html>
+	<head><title>Logic Compiler Error 4092</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4092</h2>
+    <h3>Undefined token '&lt;tokentext&gt;' in '<code>if</code>' statement</h3>
+    <p class="indent_n">This compiler error is raised when the compiler expects a <a href="..\..\commands\cmds_test.htm">test command</a>, or a <a href="..\..\agi\variables.htm">variable</a> or <a href="..\..\agi\flags.htm">flag</a> as part of an <a href="..\..\commands\syntax_fan.htm#alternatetests">alternate syntax</a>, but an undefined token is encountered. This is most likely caused by typographical errors, but can also occur if the <a href="..\prop_general.htm#autoinclude">Use Reserved Define Names</a> property is disabled for <a href="..\..\agi\logics.htm">logics</a> that previously used reserved names. Check the spelling of test commands and variable names, re-enable the Use Reserved Define Names option, or add a <a href="..\editor_globals.htm">global</a> or local <a href="..\..\commands\syntax_fan.htm#defines">define name</a> to correct this.</p>
+    <blockquote>
+      <pre>#define avar   v99
+if (avra == 0)  [ <font color="red"><b>NOT OK</b></font>; misspelled 'avar'
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

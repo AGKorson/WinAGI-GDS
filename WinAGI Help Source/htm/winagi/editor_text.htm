@@ -1,0 +1,30 @@
+<html>
+	<head><title>Text Editor and Include Files</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-text-e.gif" width="460" height="72" border="0" alt="WinAGI Text Editor"></td>
+			</tr>
+		</table>
+		<h1>Text Editor</h1>
+			<p>The Text Editor provides basic text editing functionality. It is useful for editing <a href="#includefiles">included files</a> or any text file you wish to edit without having to leave WinAGI.</p>
+			<p>The Text Editor is nearly identical to the <a href="editor_logic.htm">Logic Editor</a>, with the following differences:</p>
+			<ul><ul>
+				<li>Text files cannot be <a href="editor_logic.htm#compile">compiled</a>.</li>
+				<li><a href="editor_logic.htm#syntaxhighlighting">Syntax Highlighting</a> is optional for text files. Use the <a href="settings_logic.htm#textsyntax">Enable Text Syntax Highlighting</a> option on the Logics tab in the <a href="settings.htm">Settings dialog</a> to toggle syntax highlighting for text files.</li>
+				<li>The <a href="editor_logic.htm#definetips">Define Tooltips</a> feature, <a href="editor_logic.htm#resdef">List Defines</a> command and <a href="editor_logic.htm#quickedit">Resource Quick Edit</a> command are only available if a text file is designated as an <a href="#includefiles">include file</a>.</li>
+				<li>The <a href="editor_logic.htm#msgcleanup">Message Cleanup Tool</a> is not available for text files.</li>
+			</ul></ul>
+		<h1><a name="includefiles">Include Files</a></h1>
+			<p>The most common use of text files is to put <a href="..\commands\syntax_fan.htm#defines">define</a> statements that will be used in multiple <a href="..\agi\logics.htm">logics</a> in a single file and then add the contents of the that file to logics by using the <a href="..\commands\syntax_fan.htm#include">#include</a> preprocessor statement. This makes it much easier to manage defines throughout a game.</p>
+			<p>Although they are not resources, WinAGI allows you to add include files to your game to help manage them, just like game resources. They are displayed in the <a href="resourcetree.htm">resource list</a>, and can be <a href="preview.htm">previewed</a> in the same way that logic source files are previewed.</p>
+			<p>IMPORTANT: Include files are not required to be added to your game to use them in a logic source. Any #include statement in a source file will work even if the file is not added to you game as an include. Adding them to a game helps manage the files and allows WinAGI to provide features such as showing <a href="editor_logic.htm#definetips">define tooltips</a> and <a href="editor_logic.htm#resdef">define lists</a>.</p>
+			<p>To add a text file as an include, open the file in a text editor, then choose the Add to Game command on the resource menu. You can remove an include file by using the Remove from Game command.</p>
+			<p>Designating a file as an include does not automatically add it to logic source code. You have to add it with the <a href="..\commands\syntax_fan.htm#include">#include</a> statement. Similarly, removing a file from the includes list does not delete it, nor remove #include entries.</p>
+		<h3><a name="autoinclude">Auto Include</a></h3>
+		  <p>When using the <a href="prop_general.htm#autoinclude">Auto Include</a> feature for <a href="managingresources.htm#resourceids">resource IDs</a>, <a href="reservednames.htm">reserved defines</a> or <a href="editor_globals.htm">global defines</a>, the files will be listed as includes in the game's resource list, but they are handled differently. "globals.txt" can only be viewed and edited in the <a href="editor_globals.htm">Global Defines Editor</a>. "reserved.txt" can only be edited in the <a href="reservednames.htm">Reserved Defines Tool</a>. "resourceids.txt" is managed internally by WinAGI and cannot be edited or viewed.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

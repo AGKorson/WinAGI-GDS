@@ -1,0 +1,449 @@
+<html>
+	<head><title>Programming Menus and Key Controllers</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</TABLE>
+		<h1>Programming Menus and Keyboard Shortcuts</h1>
+			<p><a href="..\agi\menu.htm">Menus</a> and keyboard shortcut keys supplement the <a href="..\agi\keyboard.htm#inputline">text input line</a> for <a href="..\agi\interface.htm">player interaction</a> with the game. Menus and keyboard shortcuts are assigned to <a href="..\agi\controllers.htm">controllers</a> that generate trappable events when the menu items are selected or the shortcut keys are pressed.</p>
+			<p>There are 50 <a href="..\agi\controllers.htm">controllers</a> available (numbered from 0-49) to which menu items and shortcut keys can be assigned. To test whether the menu item or shortcut was selected, use the <b><a href="cmd_controller.htm">controller</a></b> test command.</p>
+		<h2>Setting Up Menus</h2>
+			<p>Detailed information on how menus work in AGI can be found in the <a href="..\agi\menu.htm">
+				Menus</a> topic.</p>
+			<p>When creating menus, keep the following points in mind:</p>
+			<ul><ul>
+				<li>If you create a menu in a logic other than logic 0, that logic (and any other resources loaded at the time) get stuck on the <a href="..\agi\memory.htm">memory heap</a>, wasting memory.</li>
+				<li>Only one menu can be created per game. Once you execute the <b><a href="cmd_submitmenu.htm">submit.menu</a></b> command, no changes, additions or deletions can be made. Subsequent calls to <b>submit.menu</b> will have no effect other than to reset the <a href="..\agi\memory.htm#room0">room.0</a> pointer, resulting in more wasted space on the <a href="..\agi\memory.htm">memory heap</a>.</li>
+				<li>The first menu item added to each menu determines the width of the menu borders. Make sure you pad the first item if necessary so the menu borders are wide enough for all items to display properly on the menu.</li>
+				<li>Multiple menu items and keyboard shortcuts can be assigned to the same 	controller. For example, a menu item called "Quit" and a keyboard shortcut CTRL+Q can both be assigned to controller c1. Testing for controller c1 will return TRUE if the menu item is selected, or if the shortcut is pressed.</li>
+			</ul></ul>
+		<h2><a name="keys">Setting Up Keyboard Shortcuts</a></h2>
+			<p>Keyboard shortcuts are assigned to controllers using the <b><a href="cmd_setkey.htm">set.key</a></b> command. When assigning keyboard combinations to controllers, keep the following in mind:</p>
+			<ul><ul>
+				<li>The <a href="..\agi\keyboard.htm#egodir">ego control movement keys</a> (arrow keys, home, end, page up, page down) have built-in functionality in AGI and cannot be assigned to controllers. If you use <b><a href="cmd_setkey.htm">set.key</a></b> on these keys, they will take up space in the <a href="..\agi\controllers.htm">controller assignment table</a> but will never activate.</li>
+				<li>Assigning keys that have special functions in AGI, such as RETURN, SPACE, ESC, is possible, but also may result in unpredictable behavior.</li>
+				<li>Some keys on modern keyboards were not available on keyboards when AGI was created (e.g. F11, F12). Attempts to assign these keys to controllers usually will fail. Limit key assignments to keys available on the original equipment.</li>
+				<li>When assigned to a controller, the interpreter will not process the key for text input. The key press is replaced by the controller in the <a href="..\agi\interface.htm#queue">input queue</a>. Also the<b><a href="cmd_havekey.htm">have.key</a></b> command will not trap keys that are assigned to controllers.</li>
+				<li>Although there is room for 50 keyboard controller assignments, only 39 can actually be assigned (beginning with <a href="..\agi\versions.htm">version</a> 3.002.149 this was changed to 49). If you use the <b><a href="cmd_setkey.htm">set.key</a></b> command after 39 controllers have already been assigned, it will be ignored.</li>
+				</ul></ul>
+			<p>&nbsp;</p>
+			<p>Key presses are captured by AGI as either a two-byte keyboard scan code or a two-byte ASCII code. If the key-press represents one of the original 7-bit ASCII characters, MSDOS passes the ASCII value; if it is not an ASCII character, the scan code is passed. AGI compares key-presses to assignments in the <a href="..\agi\controllers.htm">controller assignment table</a> to determine if a controller has been activated. This means that key information passed by the <b><a href="cmd_setkey.htm">set.key</a></b> command must be in the same format as key-press information captured by MSDOS. If the key-press is an ASCII code, the first byte contains the ASCII code, and the second byte is zero. If the key-press is a keyboard scan code, the first byte is zero, and the second byte is the scan code.</p>
+			<p>ASCII values and keyboard scan codes that can be assigned with the <b><a href="cmd_setkey.htm">set.key</a></b> command are listed in the following table:</p>
+		<blockquote>
+			<table id="Table2" cellSpacing="1" cellPadding="1" width="750" border="1">
+				<tr>
+					<td align="center" colspan="3"><b>ASCII Codes</b></td>
+				</tr>
+				<tr>
+					<td align="center" width="120" colSpan="1" rowSpan="1"><b>First Byte</b></td>
+					<td align="center" width="120"><b>Second Byte</b></td>
+					<td width="600"><b>&nbsp;Key/Combination Description</b></td>
+				</tr>
+				<tr>
+					<td align="center">1 - 26</td>
+					<td align="center">0</td>
+					<td>&nbsp;CTRL+A - CTRL+Z</td>
+				</tr>
+				<tr>
+					<td align="center">8</td>
+					<td align="center">0</td>
+					<td>&nbsp;Backspace (or CTRL+H)</td>
+				</tr>
+				<tr>
+					<td align="center">9</td>
+					<td align="center">0</td>
+					<td>&nbsp;Tab (or CTRL+I)</td>
+				</tr>
+				<tr>
+					<td align="center">10</td>
+					<td align="center">0</td>
+					<td>&nbsp;CTRL+ENTER or CTRL+J</td>
+				</tr>
+				<tr>
+					<td align="center">13</td>
+					<td align="center">0</td>
+					<td>&nbsp;ENTER (or CTRL+M)</td>
+				</tr>
+				<tr>
+					<td align="center">27</td>
+					<td align="center">0</td>
+					<td>&nbsp;ESC (or CTRL+[)</td>
+				</tr>
+				<tr>
+					<td align="center">28</td>
+					<td align="center">0</td>
+					<td>&nbsp;CTRL+\</td>
+				</tr>
+				<tr>
+					<td align="center">29</td>
+					<td align="center">0</td>
+					<td>&nbsp;CTRL+]</td>
+				</tr>
+				<tr>
+					<td align="center">30</td>
+					<td align="center">0</td>
+					<td>&nbsp;CTRL+6</td>
+				</tr>
+				<tr>
+					<td align="center">31</td>
+					<td align="center">0</td>
+					<td>&nbsp;CTRL+'-'</td>
+				</tr>
+				<tr>
+					<td align="center">32</td>
+					<td align="center">0</td>
+					<td>&nbsp;Space</td>
+				</tr>
+				<tr>
+					<td align="center">33</td>
+					<td align="center">0</td>
+					<td>&nbsp;!</td>
+				</tr>
+				<tr>
+					<td align="center">34</td>
+					<td align="center">0</td>
+					<td>&nbsp;"</td>
+				</tr>
+				<tr>
+					<td align="center">35</td>
+					<td align="center">0</td>
+					<td>&nbsp;#</td>
+				</tr>
+				<tr>
+					<td align="center">36</td>
+					<td align="center">0</td>
+					<td>&nbsp;$</td>
+				</tr>
+				<tr>
+					<td align="center">37</td>
+					<td align="center">0</td>
+					<td>&nbsp;%</td>
+				</tr>
+				<tr>
+					<td align="center">38</td>
+					<td align="center">0</td>
+					<td>&nbsp;&</td>
+				</tr>
+				<tr>
+					<td align="center">39</td>
+					<td align="center">0</td>
+					<td>&nbsp;'</td>
+				</tr>
+				<tr>
+					<td align="center">40</td>
+					<td align="center">0</td>
+					<td>&nbsp;(</td>
+				</tr>
+				<tr>
+					<td align="center">41</td>
+					<td align="center">0</td>
+					<td>&nbsp;)</td>
+				</tr>
+				<tr>
+					<td align="center">42</td>
+					<td align="center">0</td>
+					<td>&nbsp;*</td>
+				</tr>
+				<tr>
+					<td align="center">43</td>
+					<td align="center">0</td>
+					<td>&nbsp;+</td>
+				</tr>
+				<tr>
+					<td align="center">44</td>
+					<td align="center">0</td>
+					<td>&nbsp;,</td>
+				</tr>
+				<tr>
+					<td align="center">45</td>
+					<td align="center">0</td>
+					<td>&nbsp;-</td>
+				</tr>
+				<tr>
+					<td align="center">46</td>
+					<td align="center">0</td>
+					<td>&nbsp;.</td>
+				</tr>
+				<tr>
+					<td align="center">47</td>
+					<td align="center">0</td>
+					<td>&nbsp;/</td>
+				</tr>
+				<tr>
+					<td align="center">48 - 57</td>
+					<td align="center">0</td>
+					<td>&nbsp;0 - 9</td>
+				</tr>
+				<tr>
+					<td align="center">58</td>
+					<td align="center">0</td>
+					<td>&nbsp;:</td>
+				</tr>
+				<tr>
+					<td align="center">59</td>
+					<td align="center">0</td>
+					<td>&nbsp;;</td>
+				</tr>
+				<tr>
+					<td align="center">60</td>
+					<td align="center">0</td>
+					<td>&nbsp;&lt;</td>
+				</tr>
+				<tr>
+					<td align="center">61</td>
+					<td align="center">0</td>
+					<td>&nbsp;=</td>
+				</tr>
+				<tr>
+					<td align="center">62</td>
+					<td align="center">0</td>
+					<td>&nbsp;&gt;</td>
+				</tr>
+				<tr>
+					<td align="center">63</td>
+					<td align="center">0</td>
+					<td>&nbsp;?</td>
+				</tr>
+				<tr>
+					<td align="center">64</td>
+					<td align="center">0</td>
+					<td>&nbsp;@</td>
+				</tr>
+				<tr>
+					<td align="center">65 - 90</td>
+					<td align="center">0</td>
+					<td>&nbsp;SHIFT+A - SHIFT+Z</td>
+				</tr>
+				<tr>
+					<td align="center">91</td>
+					<td align="center">0</td>
+					<td>&nbsp;[</td>
+				</tr>
+				<tr>
+					<td align="center">92</td>
+					<td align="center">0</td>
+					<td>&nbsp;\</td>
+				</tr>
+				<tr>
+					<td align="center">93</td>
+					<td align="center">0</td>
+					<td>&nbsp;]</td>
+				</tr>
+				<tr>
+					<td align="center">94</td>
+					<td align="center">0</td>
+					<td>&nbsp;^</td>
+				</tr>
+				<tr>
+					<td align="center">95</td>
+					<td align="center">0</td>
+					<td>&nbsp;_</td>
+				</tr>
+				<tr>
+					<td align="center">96</td>
+					<td align="center">0</td>
+					<td>&nbsp;`</td>
+				</tr>
+				<tr>
+					<td align="center">97 - 122</td>
+					<td align="center">0</td>
+					<td>&nbsp;a - z</td>
+				</tr>
+				<tr>
+					<td align="center">123</td>
+					<td align="center">0</td>
+					<td>&nbsp;{</td>
+				</tr>
+				<tr>
+					<td align="center">124</td>
+					<td align="center">0</td>
+					<td>&nbsp;|</td>
+				</tr>
+				<tr>
+					<td align="center">125</td>
+					<td align="center">0</td>
+					<td>&nbsp;}</td>
+				</tr>
+				<tr>
+					<td align="center">126</td>
+					<td align="center">0</td>
+					<td>&nbsp;~</td>
+				</tr>
+				<tr>
+					<td colspan="3">&nbsp;</td>
+				</tr>
+				<tr>
+					<td align="center" colspan="3"><b>Keyboard Scan Codes</b></td>
+				</tr>
+				<tr>
+					<td align="center" width="200" colSpan="1" rowSpan="1"><b>First Byte</b></td>
+					<td align="center" width="200"><b>Second Byte</b></td>
+					<td width="600"><b>&nbsp;Key/Combination Description</b></td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">15</td>
+					<td>&nbsp;SHIFT+Tab</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">16 - 25</td>
+					<td>&nbsp;ALT+Q, W, E, R, T, Y, U, I, O, P</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">30 - 38</td>
+					<td>&nbsp;ALT+A, S, D, F, G, H, J, K, L</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">44 - 50</td>
+					<td>&nbsp;ALT+Z, X, C, V, B, N, M</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">59 - 68</td>
+					<td>&nbsp;F1 - F10</td>
+				</tr>
+				<tr>
+					<td align="center"><font color="red">0</font></td>
+					<td align="center"><font color="red">71</font></td>
+					<td><font color="red">&nbsp;HOME*</font></td>
+				</tr>
+				<tr>
+					<td align="center"><font color="red">0</font></td>
+					<td align="center"><font color="red">72</font></td>
+					<td><font color="red">&nbsp;UP ARROW*</font></td>
+				</tr>
+				<tr>
+					<td align="center"><font color="red">0</font></td>
+					<td align="center"><font color="red">73</font></td>
+					<td><font color="red">&nbsp;PAGE UP*</font></td>
+				</tr>
+				<tr>
+					<td align="center"><font color="red">0</font></td>
+					<td align="center"><font color="red">75</font></td>
+					<td><font color="red">&nbsp;LEFT ARROW*</font></td>
+				</tr>
+				<tr>
+					<td align="center"><font color="red">0</font></td>
+					<td align="center"><font color="red">77</font></td>
+					<td><font color="red">&nbsp;RIGHT ARROW*</font></td>
+				</tr>
+				<tr>
+					<td align="center"><font color="red">0</font></td>
+					<td align="center"><font color="red">79</font></td>
+					<td><font color="red">&nbsp;END*</font></td>
+				</tr>
+				<tr>
+					<td align="center"><font color="red">0</font></td>
+					<td align="center"><font color="red">80</font></td>
+					<td><font color="red">&nbsp;DOWN ARROW*</font></td>
+				</tr>
+				<tr>
+					<td align="center"><font color="red">0</font></td>
+					<td align="center"><font color="red">81</font></td>
+					<td><font color="red">&nbsp;PAGE DOWN*</font></td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">82</td>
+					<td>&nbsp;INS</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">83</td>
+					<td>&nbsp;DEL</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">84 - 93</td>
+					<td>&nbsp;SHIFT+F1 - SHIFT+F10</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">94 - 103</td>
+					<td>&nbsp;CTRL+F1 - CTRL+F10</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">104 - 113</td>
+					<td>&nbsp;ALT+F1 - ALT+F10</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">115</td>
+					<td>&nbsp;CTRL+LEFT</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">116</td>
+					<td>&nbsp;CTRL+RIGHT</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">117</td>
+					<td>&nbsp;CTRL+END</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">118</td>
+					<td>&nbsp;CTRL+PAGE DOWN</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">119</td>
+					<td>&nbsp;CTRL+HOME</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">120 - 131</td>
+					<td>&nbsp;ALT+1, 2, 3, 4, 5, 6, 7, 8, 9, 0, -, =</td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">132</td>
+					<td>&nbsp;CTRL+PAGE UP</td>
+				</tr>
+			</TABLE>
+		<p>*These codes can not actually be assigned as they are used for moving the <a href="..\agi\interface.htm#ego">ego object</a> (o0) around, but are listed here for completeness.</p>
+		</blockquote>
+		<p>Although it doesn't really affect game play, keep in mind that any <a href="..\agi\agifont.htm">non-printable ASCII values</a> (1 - 31) not assigned to controllers will display a character on the <a href="..\agi\keyboard.htm#inputline">input line</a> if the player uses them.</p>
+	<h3><a name="joystickbuttons">Joystick Buttons</a></h3>
+		<p>Joystick button presses can also be assigned using the <b><a href="cmd_setkey.htm">set.key</a></b> command. In this case, the first byte passed must always be a one (1), and the second byte identifies which button and whether it is a single click or double click of the button:</p>
+		<blockquote>
+			<table id="Table3" cellSpacing="1" cellPadding="1" width="750" border="1">
+				<tr>
+					<td align="center" width="120"><b>First Byte</b></td>
+					<td align="center" width="120"><b>Second Byte</b></td>
+					<td width="600"><b>&nbsp;Button Press</b></td>
+				</tr>
+				<tr>
+					<td align="center">1</td>
+					<td align="center">1</td>
+					<td>&nbsp;Left button single click</td>
+				</tr>
+				<tr>
+					<td align="center">1</td>
+					<td align="center">2</td>
+					<td>&nbsp;Right button single click</td>
+				</tr>
+				<tr>
+					<td align="center">1</td>
+					<td align="center">3</td>
+					<td>&nbsp;Left button double click</td>
+				</tr>
+				<tr>
+					<td align="center">1</td>
+					<td align="center">4</td>
+					<td>&nbsp;Right button double click</td>
+				</tr>
+			</TABLE>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

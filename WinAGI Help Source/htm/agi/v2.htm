@@ -1,0 +1,23 @@
+<html>
+	<head><title>Reserved Variable v2</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v2: Ego Border Edge Code</h1>
+			<p>In every <a href="cycle.htm">interpreter cycle</a>, AGI sets the value of v2 based on the current location of <a href="interface.htm#ego">ego</a>. As long as ego is not touching an edge, v2 is set to a value of 0. When ego touches (hits) one of the edges, v2 is set to indicate which edge was touched:</p>
+			<ul><ul>
+				<li>0 = Touched nothing</li>
+				<li>1 = <a href="grafdisp.htm#horizon">Horizon</a> (or top edge of screen if ego is <a href="..\commands\cmd_ignorehorizon.htm">ignoring horizon</a>)</li>
+				<li>2 = Right edge of screen</li>
+				<li>3 = Bottom edge of screen</li>
+				<li>4 = Left edge of screen</li>
+			</ul></ul>
+			<p>This primary use for this variable is to determine when to change <a href="pictures.htm#room">rooms</a> as <a href="interface.htm#ego">ego</a> moves about in the game. If the value of v2 is non-zero, <a href="logics.htm">logic</a> code can use the value of v2 to change to the appropriate <a href="pictures.htm#room">room</a> using the <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command.</p>
+			<p>Attempting to use this variable for other purposes is not recommended, because AGI overwrites it in each interpreter cycle.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

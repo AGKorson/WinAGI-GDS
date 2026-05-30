@@ -1,0 +1,50 @@
+<html>
+	<head><title>Test Command: have.key</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>have.key</h1>
+			<p>The <b>have.key</b> command returns TRUE if the value of <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v19.htm">v19</a> &gt; 0.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>have.key()</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Test commands are only valid in an <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> statement.</p>
+			<p>While this command is often described as detecting the presence of key presses, it is more accurate to state that the <b>have.key</b> command returns TRUE if the value of <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v19.htm">v19</a> &gt; 0. Specifically, AGI first checks v19; if it is greater than 0, it immediately returns TRUE. If not, AGI then checks the keyboard buffer; if an ASCII value is in the buffer, that value is copied to v19, and then <b>have.key</b> returns TRUE. If no key is found in the buffer, <b>have.key</b> returns FALSE.</p>
+			<p>Only ASCII values will trigger the <b>have.key</b> command; scan codes (such as function keys or ALT key combos) will not. Also, AGI does not reset the value of v19 after calling <b>have.key</b>; it will continue to return TRUE until v19 is reset to zero at the beginning of the next <a href="..\agi\cycle.htm">interpreter cycle</a> (or if reset manually by logic code).</p>
+			<p>Joystick button presses are converted into ASCII values (13 for button 1 and 27 for button 2), and will therefore cause <b>have.key</b> to return TRUE.</p>
+			<p>When calling <b>have.key</b> as part of a loop to wait for a key-press, you should first reset the value of v19 to zero, in case there is already a key-press recorded in the current <a href="..\agi\cycle.htm">interpreter cycle</a>. Also, because the <b>have.key</b> command drops all input except keypresses, <a href="..\agi\interface.htm#ego">ego</a> <a href="..\agi\keyboard.htm#egodir">direction keys</a> and <a href="..\agi\controllers.htm">controllers</a> cannot be activated in a loop that uses <b>have.key</b> to wait for a keypress.</p>
+			<p>If you manually assign a non-zero value to v19 prior to calling the <b>have.key</b> command, it will return TRUE even though no key was actually pressed.</p>
+			<p>This statement can be combined with the <a href="..\agi\logics.htm#not">NOT</a> operator to test for no keys having been pressed.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ a simple loop to check for keyboard activity
+v19 = 0; [ clear the key value before starting the loop
+StartLoop:
+if(<b>!have.key()</b>)
+  {
+  goto(StartLoop);
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">13 (0x0D)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_test.htm">Test Commands</a></p>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="..\agi\keyboard.htm">Keyboard Input</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

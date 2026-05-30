@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5082</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5082</h2>
+    <h3>'object.on.land', 'object.on.water' and 'object.on.anything' have no effect on ego object</h3>
+    <p class="indent_n">Normally, <a href="..\..\commands\cmd_objectonwater.htm"><b>object.on.water</b></a> and <a href="..\..\commands\cmd_objectonland.htm"><b>object.on.land</b></a> are used to restrict a screen object to just <a href="..\..\agi\grafdisp.htm#water">water</a> or just land, respectively. Although you can use these commands on <a href="..\..\agi\interface.htm#ego">ego</a>, they have no practical effect, because at the end of each <a href="..\..\agi\cycle.htm">interpreter cycle</a>, AGI resets the <a href="..\..\agi\sobjtable.htm">object flags</a> for ego that limit objects to water or land only. Using the <a href="..\..\commands\cmd_objectonanything.htm"><b>object.on.anything</b></a> command on ego has no effect for the same reason, since <a href="..\..\agi\interface.htm#ego">ego</a> is always allowed on anything due to the forced reset of the water and land flags.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

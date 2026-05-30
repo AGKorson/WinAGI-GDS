@@ -1,0 +1,464 @@
+<html>
+	<head><title>AGI Logic SIERRA Syntax</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body>
+		<a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+<h1>AGI Logic SIERRA Syntax</h1>
+		<p>The details of Sierra's original syntax for AGI were not determined until after the <a href="syntax_fan.htm">fan syntax</a> was established. It wasn't until Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a> was fully disassembled that original Sierra syntax was fully understood.</p>
+    <h2>Syntax Overview</h2>
+    <p>Sierra syntax is also based on the C family of languages. Unlike <a href="syntax_fan.htm">Fan syntax</a>, the command names are not predefined; each command must be declared before it is used in the source code.</p>
+    <p>There are fewer argument types in Sierra syntax, but the the option to define substitutes for arguments is the same. As with <a href="syntax_fan.htm">Fan syntax</a>, all commands and tokens are case sensitive.</p>
+    <p>Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a> has several bugs that allow for some unusual/unexpected results in certain situations. To maintain full compatibility with Sierra's compiler, WinAGI mimics these results, but provides warnings an/or error messages as appropriate.</p>
+
+<h2><a name="token">Tokens</a></h2>
+    <p>A token is defined as a group of one or more characters separated by a separator character or another symbol token. Characters are limited to byte values; the source code text is converted to original MSDOS (code page 437) encoding prior to compiling. Tokens are case sensitive.</p>
+    <p>The compiler runs a single pass through the source code, processing tokens to determine how to convert source code text to byte code output. </p>
+    <p>The compiler recognizes five token types: <a href="#separators"><b>separators</b></a>, <a href="#symbols"><b>symbols</b></a>, <a href="#numbers"><b>numbers</b></a> <a href="#strings"><b>literal strings</b></a> and <a href="#identifiers"><b>identifiers</b></a>. The first character of a token determines its type.</p>
+
+  <h3><a name="separators">Separator Tokens</a></h3>
+    <p>The space ' ', tab '\x09', carriage return ('\r' or '\x0d') and new line ('\n' or '\x0a') are the primary separator characters. When looking for the start of a new token these characters are skipped. They also mark the end of a token.</p>
+    <p>The '[' character marks the start of a <a href="#comment">comment</a>. When looking for the start of a new token this token all characters following a '[' are skipped until a new line '\x0a' character is found.</p>
+    <p><a name="eofmarker"></a>To maintain compatibility with Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a>, non-printing character '\x1a' is treated as an 'end-of-file' character. If encountered when looking for the start of a new token, compiling ends immediately and the rest of the source code is ignored.</p>
+  <h3><a name="symbols">Symbol Tokens</a></h3>
+    <p>If the first character of a token is one of these characters:</p>
+          <blockquote>
+            <code>!&()+,-:;&lt;=&gt;@{|}</code>
+          </blockquote>
+    <p>the token is a symbol. Most symbol tokens are just a single character. However, the compiler will check the next character and return the following as two-character tokens:</p>
+          <blockquote>
+            <code>++, --, +=, -=, ==, @=, =@, &&, ||</code>
+          </blockquote>
+    <p>In most cases, the compiler does not evaluate the character after identifying a one or two character symbol token. This means symbol tokens also act as separators. The '@', '&amp;' and '|' characters are exceptions. If the start character is '@', '&amp;' or '|' and is not the "@=", "&&" or "||" token, then compiler will add number and identifier characters to the token until a separator or symbol character is encountered. The resulting token is still treated as a symbol. This means it is not possible to have identifier tokens start with the '@', '&amp;' or '|' characters.</p>
+    <p>Another exception is the '-' character. If the next character is a digit, the token type is changed to a number and processed as described below, returning a negative number.</p>
+    <p>There is a bug associated with the '&amp;' and '|' characters; if not part of a "&amp;&amp;" or "||" token, adding a '&amp;' or '|' character to any other token (unless inside a <a href="#strings">literal string</a> or <a href="#comment">comment</a>) will cause the compiler to enter an infinite loop and freeze. To maintain compatibility with Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a>, the characters '&amp;' and '|' are not allowed in any token except "&amp;&amp;" and "||" and literal strings. Any other use will raise an error.</p>
+
+  <h3><a name="numbers">Number Tokens</a></h3>
+    <p>If the first character of a token is a digit (0-9), or if it is a '-' and the next character is a digit, the token is a number. The compiler will add characters to the token until a separator or symbol character is found. The token is converted into a value by reading digits off the token until a non-number character is reached. The value is converted to a two byte signed integer, then only the lower byte is kept.</p>
+    <blockquote>
+      <pre>123         [ number token with value of 123
+234abc567   [ number token with value of 234
+1.001       [ number token with value of 1
+256         [ number token with value of 0
+-1          [ number token with value of 255</pre>
+    </blockquote>
+    <p>The message number parameter in the <a href="#message"><code><b>%message</b></code></a> preprocessor statement is the one exception- the message number is not converted to a byte value before it is validated.</p>
+  <h3><a name="strings">Literal String Tokens</a></h3>
+    <p>If the first character is a quote mark '"' the token is a literal string. Literal strings are only used as the message text parameter of the <a href="#message"><code><b>%message</b></code></a> preprocessor. The token will include all characters up to the next <a href="#escape">non-escaped</a> '"' character.</p>
+    <p>Line breaks inside the literal string are ignored, which make it easy to split the message text over multiple lines for readability:</p>
+    <blockquote>
+      <pre>%message 4 "You
+ can't
+ do
+ that
+ now."
+[ same as '%message 4 "You can't do that now."'</pre>
+    </blockquote>
+    <p>To maintain compatibility with Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a>, '\x1a' characters inside a literal string are converted to character '\xff'.</p>
+
+  <h3><a name="identifiers">Identifier Tokens</a></h3>
+    <p>A token starting with any other character (includes letters A-Z and a-z, symbol characters <code>#$%'*./?\]^_`~ </code>, extended characters (&gt;= '\x7f') and non-printable characters &lt;= '\x1f' (except '\x0a', '\x0d' and '\x1a')). The token will include all characters up to the next separator or symbol token. Character '\x1a' acts as a separator character.</p>
+    <p>In most cases, the identifier token is then checked against the <a href="#defines">defines</a> list and replaced with type and value of the matching define. However the following situations will NOT convert an identifier token:</p>
+    <ul><ul> 
+       <li><a href="#include"><code><b>%include</b></code></a> filename parameter</li>
+       <li><a href="#tokens"><code><b>%tokens</b></code></a> filename parameter</li>
+       <li><a href="#goto"><code><b>goto</b></code></a> destination</li>
+       <li><a href="#actions"><code><b>%action</b></code></a> or <a href="#tests"><code><b>%test</b></code></a> name parameter</li>
+       <li><a href="#defines"><code><b>%define</b></code></a>, <a href="#object"><code><b>%object</b></code></a>, <a href="#var"><code><b>%var</b></code></a>, <a href="#flag"><code><b>%flag</b></code></a>, <a href="#view"><code><b>%view</b></code></a> name parameter</li>
+       <li><a href="cmd_said.htm"><b>said</b></a> word arguments</li>
+    </ul></ul>
+
+<h2><a name="keywords">Keyword Tokens</a></h2>
+    <p>There are only three built-in keywords: <code><b>if</b></code>, <code><b>else</b></code>, and <code><b>goto</b></code>.</p>
+    <ul><ul>
+      <li><a href="#ifelse"><code><b>if</b></code></a></li>
+      <li><a href="#ifelse"><code><b>else</b></code></a></li>
+      <li><a href="#goto"><code><b>goto</b></code></a></li>
+    </ul></ul>
+
+  <h3><a name="ifelse">Conditional Statements</a> (<code><b>if</b></code> and <code><b>if ... else</b></code> blocks)</h3>
+    <p>An <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> block will execute one or more commands only if the condition of the <code><b>if</b></code> statement is TRUE. The test commands must be enclosed in parentheses '()', and the action commands to be executed must be enclosed in curly brackets '{}':</p>
+    <blockquote>
+      <pre>if (&lt;test commands&gt;)
+  {
+  &lt;action commands&gt;
+  }</pre>
+    </blockquote>
+    <p><a name="andor">Multiple tests</a> within the same <code><b>if</b></code> statement must be separated by &amp;&amp; (representing 'AND') or || (representing 'OR'). When test commands are to be ORred together, they must be placed in parentheses. If test commands are to be ANDed together, they must not be placed in parentheses:</p>
+    <blockquote>
+      <pre>if(<b>(</b>&lt;test1&gt; || &lt;test2&gt;<b>)</b>) [  ORed tests in parentheses
+  ......
+
+if(&lt;test1&gt; &amp;&amp; &lt;test2&gt;)  [  ANDed tests not in parentheses
+  ......
+
+if(&lt;test1&gt; &amp;&amp; (&lt;test2&gt; || &lt;test3&gt;)) [ combination of ANDed and ORed tests 
+  ......
+
+if(<b>(</b>&lt;test1&gt; &amp;&amp; &lt;test2&gt;<b>)</b> || &lt;test3&gt;)   [ <font color="red"><b>NOT OK</b></font>; ORed tests are not in parentheses</pre>
+    </blockquote>
+    <p>An <code><b>if ... else</b></code> block is similar to the <code><b>if</b></code> block, but will execute one block of action commands if the <code><b>if</b></code> statement is TRUE, and a different block of action commands if the <code><b>if</b></code> statement is FALSE:</p>
+    <blockquote>
+      <pre>if (&lt;test commands&gt;)
+  {
+  &lt;action commands if test is TRUE&gt;
+  }
+else
+  {
+  &lt;action commands if test is FALSE&gt;
+  }</pre>
+    </blockquote>
+    <p>Normally, the <code><b>else</b></code> keyword is used as described above, in conjunction with the <code><b>if</b></code> keyword. However, Sierra syntax allows the <code><b>else</b></code> keyword to be used as a substitute for the <code><b>goto</b></code> keyword, if the <code><b>else</b></code> keyword does not immediately follow the closing curly brace of an <code><b>if</b></code> block:</p>
+    <blockquote>
+      <pre>&lt;action commands&gt;
+else  [ ALLOWED - else command that does not follow an if block
+  {
+    &lt;skipped action commands&gt;
+  }
+
+[ equivalent code:
+&lt;action commands&gt;
+goto label1
+    &lt;skipped action commands&gt;
+:label1</pre>
+    </blockquote>
+    <p>Although this use of else is allowed, it should be avoided as it is bad coding practice.</p>
+  <h3><a name="goto"><code><b>goto</b></code> Statements</a></h3>
+    <p>The <code><b>goto</b></code> keyword is used to transfer the processing of commands to a new location in the logic script. It takes a single parameter, the name of a label. The label must NOT be enclosed in parentheses:</p>
+    <blockquote>
+      <pre>goto Label1   [ OK
+
+goto(Label2)  [ <font color="red"><b>NOT OK</b></font></pre>
+    </blockquote>
+    <p>Labels are 'markers' that are used by the <code><b>goto</b></code> command to control program flow. The label must begin with a single colon character. Unlike <a href="syntax_fan.htm#goto">Fan syntax</a> labels cannot end with a colon. White space is allowed between the colon and the label name, but they must both be on the same line, or a null label will be created.</p>
+    <blockquote>
+      <pre>:Label1 [ OK
+Label2: [ <font color="red"><b>NOT OK</b></font>
+: Label3 [ OK
+:
+Label4 [ <font color="red"><b>NOT OK</b></font></pre>
+    </blockquote>
+    <p>There is a limit of 50 labels that can be added to a single logic. More than that will cause an error.</p>
+
+<h2>Preprocessor Tokens</h2>
+    <p><a name="preprocessor"></a>In addition to keywords, there are also ten 'pre-processor' tokens. These tokens start with '%' or '#' and are compiler commands which tell the compiler how to handle other tokens it will encounter later. Note that there are two versions of each, with either the '#' or '%' character to start. There is no difference between them; the compiler just offers the flexibility to use either format.</p>
+    <ul><ul>
+      <li><a href="#include"><code><b>%include</b></code> or <code><b>#include</b></code></a></li>
+      <li><a href="#tokens"><code><b>%tokens</b></code> or <code><b>#tokens</b></code></a></li>
+      <li><a href="#actions"><code><b>%action</b></code> or <code><b>#action</b></code></a></li>
+      <li><a href="#tests"><code><b>%test</b></code> or <code><b>#test</b></code></a></li>
+      <li><a href="#flag"><code><b>%flag</b></code> or <code><b>#flag</b></code></a></li>
+      <li><a href="#var"><code><b>%var</b></code> or <code><b>#var</b></code></a></li>
+      <li><a href="#object"><code><b>%object</b></code> or <code><b>#object</b></code></a></li>
+      <li><a href="#view"><code><b>%view</b></code> or <code><b>#view</b></code></a></li>
+      <li><a href="#message"><code><b>%message</b></code> or <code><b>#message</b></code></a></li>
+      <li><a href="#defines"><code><b>%define</b></code> or <code><b>#define</b></code></a></li>
+    </ul></ul>
+
+  <h3><a name="include">Including files</a></h3>
+    <p>You can include (embed) another file in your logic source code by using the <code><b>#include</b></code> or <code><b>%include</b></code> token. The filename of the file to be included follows the command, and must be enclosed in quotation marks.The filename can include path information, including relative path notation. Wildcard characters are not supported. The compiler requires the backslash character to be 'escaped', i.e. use "\\" to represent a single '\'. If the file does not include path information, it is assumed to be in the same directory as the source code file:</p>
+    <blockquote>
+      <pre>%include "file1.txt"
+%include "c:\\documents\\file2.txt"
+%include "..\\file3.txt"
+%include "c:\file4.txt"  [ <font color="red"><b>NOT OK</b></font>
+%include "*.txt"  [ <font color="red"><b>NOT OK</b></font></pre>
+    </blockquote>
+    <p>Included files can be nested (for example "file1.txt" can include "file2.txt" and "file2.txt" can include "file3.txt" etc.) but there is a limit of 5 layers of nesting. More than that will cause an error.</p>
+
+  <h3>Referencing WORDS.TOK file</h3>
+    <p><a name="tokens"></a>The compiler requires a reference to the game's <a href="..\agi\words.htm">WORDS.TOK</a> file to be able to process <a href="cmd_said.htm"><b>said</b></a> commands. The <code><b>#tokens</b></code> or <code><b>%tokens</b></code> preprocessor token takes a path to the file as the only argument:</p>
+    <blockquote>
+      <pre>%tokens "..\\WORDS.TOK"</pre>
+    </blockquote>
+    <p>The filename doesn't have to be WORDS.TOK, but it must be a valid AGI word file. It must be enclosed in double-quotes. It can include path information, but not wildcards. The compiler requires the backslash character to be 'escaped', i.e. use "\\" to represent a single '\'. If the file does not include path information, it is assumed to be in the same directory as the source code file.</p>
+    <p>If you do not assign a WORDS.TOK file with the <code><b>%tokens</b></code> preprocessor token, the compiler will raise an error when it tries process a <b>said</b> command.</p>
+
+  <h3><a name="actions">Action Command Tokens</a></h3>
+    <p><a href="cmds_name.htm">Action commands</a> represent the user program functions that are available in AGI. Each action command is converted to the appropriate byte value that gets stored in the logic's compiled pseudo-code. Action commands are specified by the command name followed by parentheses which contain the arguments, separated by commas. The parentheses are required even if there are no arguments. Action commands have no return value.</p>
+    <p>Unlike <a href="syntax_fan.htm">Fan syntax</a>, action command names are not predefined; each command must be defined using the <code><b>#action</b></code> or <code><b>%action</b></code> token:</p>
+      <blockquote>
+        <pre>%action addn(VAR, NUM) 5
+%action cancel.line() 138</pre>
+      </blockquote>
+    <p>The first parameter is the desired name of the action command, followed by <a href="#sierraargtypes">argument types</a> in parentheses separated by commas. The last parameter is the bytecode value of the command to be assigned when the action command is used. If there are no arguments to the command the parentheses are still required.</p>
+    <p>The number of arguments in the command declaration must match what the interpreter uses:</p>
+      <blockquote>
+        <pre>%action addn() 5  [ <font color="red"><b>NOT OK</b></font>; addn command needs two arguments</pre>
+      </blockquote>
+    <p>The argument types used should match the actual argument types that the command uses at runtime. For example, command 5, the '<a href="cmd_addn.htm">addn</a>' command, should use (VAR, NUM) as argument types, since the command adds a numeric value to a variable.</p>
+    <p>As long as the number of commands match, though, you can technically use any argument type (except WORDLIST) for any of the arguments in the command:</p>
+      <blockquote>
+        <pre>%action addn(VIEW, OBJECT) 5  [ OK, but crazy!
+%view   a_view     5
+%object an_object 10
+addn(a_view, an_object); [ OK; compiles without error</pre>
+      </blockquote>
+    <p>Although the example above will compile, and when run in AGI it will actually add 10 to variable 5, there is little practical value in using constructs such as this.</p>
+
+  <h3><a name="alternateactions">Alternate Action Syntax</a></h3>
+    <p>Substitutions for the following action commands are available:</p>
+    <blockquote>
+      <pre><a href="cmd_increment.htm">increment</a>(v30);       ++v30;
+<a href="cmd_decrement.htm">decrement</a>(v30);       --v30;  
+<a href="cmd_assignn.htm">assignn</a>(v30,4);       v30 = 4;
+<a href="cmd_assignv.htm">assignv</a>(v30,v32);     v30 = v32;
+<a href="cmd_addn.htm">addn</a>(v30,4);          v30 += 4;
+<a href="cmd_addv.htm">addv</a>(v30,v32);        v30 += v32;
+<a href="cmd_subn.htm">subn</a>(v30,4);          v30 -= 4;
+<a href="cmd_subv.htm">subv</a>(v30,v32);        v30 -= v32;
+<a href="cmd_lindirectn.htm">lindirectn</a>(v30,4);    v30 @= 4;
+<a href="cmd_lindirectv.htm">lindirectv</a>(v30,v32);  v30 @= v32;
+<a href="cmd_rindirect.htm">rindirect</a>(v30,v32);   v30 =@ v32;
+</pre>
+    </blockquote>
+    <p>Note that there are significant differences between <a href="syntax_fan.htm#alternateactions">Fan syntax</a> and Sierra syntax regarding alternate syntax options:</p>
+  <ul><ul>
+    <li><b>increment</b>/<b>decrement</b> have only one allowed form</li>
+    <li>addition and subtraction don't allow the long form</li>
+    <li>no substitute for multiplication/division commands</li>
+    <li>indirection uses a different assignment operator</li>
+  </ul></ul>
+    <p>Importantly, when using alternate action syntax, the substituted commands must be declared with exactly the same name as the <a href="syntax_fan.htm">Fan syntax</a> version:</p>
+      <blockquote>
+        <pre>%action AddN(VAR, NUM) 5  [ not the same as 'addn'
+v30 += 4; [ <font color="red"><b>NOT OK</b></font>; command 5 must be declared as 'addn'</pre>
+      </blockquote>
+
+  <h3><a name="tests">Test Command Tokens</a></h3>
+    <p>Test commands return a value of true or false are only used with the <code><b>if</b></code> keyword. As with action commands, arguments for the command must be enclosed in parentheses, separated by a comma, and the parentheses are required even if there are no arguments for the command.</p>
+    <p>Unlike <a href="syntax_fan.htm">Fan syntax</a>, test command names are not predefined; each command must be defined using the <code><b>#test</b></code> or <code><b>%test</b></code> token:</p>
+      <blockquote>
+        <pre>%test equaln(VAR, NUM) 1
+%test isset(FLAG) 7
+%test have.key() 13</pre>
+      </blockquote>
+    <p>The first parameter is the desired name of the test command, followed by <a href="#sierraargtypes">argument types</a> in parentheses separated by commas. The last parameter is the bytecode value of the command to be assigned when the test command is used. If there are no arguments to the command the parentheses are still required.</p>
+    <p>The number of arguments in the command declaration must match what the interpreter uses:</p>
+      <blockquote>
+        <pre>%test equaln() 1  [ <font color="red"><b>NOT OK</b></font>; equaln command needs two arguments</pre>
+      </blockquote>
+    <p><a name="not">An</a> exclamation point (!) placed in front of a command signifies a NOT, which toggles the result of the test command:</p>
+    <blockquote>
+      <pre>if (!isset(f7)) ......
+if (!have.key()) ......</pre>
+    </blockquote>
+
+  <h3><a name="alternatetests">Alternate Test Syntax</a></h3>
+    <p>Substitutions for the following test commands are available:</p>
+    <blockquote>
+      <pre><a href="cmd_equaln.htm">equaln</a>(v30, 4)        [ v30 == 4
+<a href="cmd_equalv.htm">equalv</a>(v30, v32)      [ v30 == v32
+<a href="cmd_greatern.htm">greatern</a>(v30, 4)      [ v30 &gt; 4
+<a href="cmd_greaterv.htm">greaterv</a>(v30, v32)    [ v30 &gt; v32
+<a href="cmd_lessn.htm">lessn</a>(v30, 4)         [ v30 &lt; 4
+<a href="cmd_lessv.htm">lessv</a>(v30, v32)       [ v30 &lt; v32
+!equaln(v30, 4)       [ v30 != 4
+!equalv(v30, v32)     [ v30 != v32</pre>
+    </blockquote>
+    <p><a href="..\agi\flags.htm">Flags</a> can be tested by just using the name of the flag, as an alternative to the <a href="cmd_isset.htm"><b>isset</b></a> command:</p>
+    <blockquote>
+      <pre>if (f6) .....  [  same as if (isset(f6))</pre>
+    </blockquote>
+    <p><a href="..\agi\variables.htm">Variables</a> can be tested as either TRUE (&gt; 0) or FALSE(== 0) by just using the name of the variable:</p>
+    <blockquote>
+      <pre>if (v0) .....  [  same as 'if (greatern(v0, 0))' or 'if (v0 &gt; 0)'</pre>
+    </blockquote>
+    <p>Note that there are several differences between <a href="syntax_fan.htm#alternatetests">Fan syntax</a> and Sierra syntax regarding alternate syntax options. First of all, in Sierra syntax the NOT operator is allowed before an alternate syntax test:</p>
+    <blockquote>
+      <pre>if (!v30 == 4) ..... [ same as 'if (!equaln(v30, 4))' or 'if (v30 != 4))'
+if (!f6) .....  [  same as if (!isset(f6))
+if (!v30 &gt; 4) .....  [  same as if (!greatern(v30, 4))
+if (!v0) .....  [  same as 'if (!greatern(v0, 0))'</pre>
+    </blockquote>
+    <p>Unlike <a href="syntax_fan.htm#alternatetests">Fan syntax</a>, there is no alternate form for negated versions of <b>greatern</b>, <b>greaterv</b>, <b>lessn</b> and <b>lessv</b>:</p>
+    <blockquote>
+      <pre>if (v30 &lt;= 4) ..... [ <font color="red"><b>NOT OK</b></font>
+if (!v30 &gt; 4) .....  [  OK</pre>
+    </blockquote>
+    <p>In alternate test syntax only, tokens declared as <a href="#object">%object</a> can be used in test commands that use the NUM type argument. This works in alternate syntax only, not in the regular command syntax:</p>
+    <blockquote>
+      <pre>%object ego 0
+if (v30 == ego) .....  [  OK; same as 'if (v30 == 0)'
+if (equaln(v30, ego) .....  [ <font color="red"><b>NOT OK</b></font></pre>
+    </blockquote>
+    <p>When negating alternate forms of <b>equaln</b> and <b>equalv</b>, white space is allowed between the NOT operator and the '=' symbol:</p>
+    <blockquote>
+      <pre>if (v30 !     = 0) .....  [ OK in Sierra syntax</pre>
+    </blockquote>
+
+  <h3>The <a name="said"><b>said</b></a> Command</h3>
+    <p>The <a href="cmd_said.htm"><b>said</b></a> test command is the only AGI command that uses the <a href="#wordlist">WORDLIST</a> argument type. The number of arguments in a <b>said</b> command can vary (but must be at least 1). The arguments are words from the <a href="..\agi\words.htm">WORDS.TOK</a> file, without quotes:</p>
+    <blockquote>
+      <pre>if (said(look)) .....
+if (said(open, door)) .....</pre>
+    </blockquote>
+    <p>If a word includes a space character, use the '$' character in place of the space:</p>
+    <blockquote>
+      <pre>if (said(look$at)) .....</pre>
+    </blockquote>
+    <p>Unlike <a href="syntax_fan.htm#said">Fan syntax</a>, word <a href="..\agi\words.htm#wordgroups">group numbers</a> are not allowed as arguments in <b>said</b> command:</p>
+    <blockquote>
+      <pre>if (said(4, 80)) .....   [ <font color="red"><b>NOT OK</b></font></pre>
+    </blockquote>
+
+  <h3><a name="flag">Flag Tokens</a></h3>
+    <p><a href="#flagarg">FLAG</a> arguments require a token that is declared with the <code><b>%flag</b></code> or <code><b>#flag</b></code> preprocessor token. The first parameter is the desired flag name, and the second parameter is the byte value of the flag assigned to the token.</p>
+    <blockquote>
+      <pre>%action set(FLAG) 12
+%flag flag99   99
+set(flag99);
+
+%var var99   99
+set(var99); [ <font color="red"><b>NOT OK</b></font>; wrong argument type
+set(99); [ <font color="red"><b>NOT OK</b></font>; also wrong argument type</pre>
+    </blockquote>
+
+  <h3><a name="var">Variable Tokens</a></h3>
+    <p><a href="#vararg">VAR</a> arguments require a token that is declared with the <code><b>%var</b></code> or <code><b>#var</b></code> preprocessor token. The first parameter is the desired variable name, and the second parameter is the byte value of the variable assigned to the token.</p>
+    <blockquote>
+      <pre>%action assignn(VAR, NUM) 3
+%var var99   99
+assignn(var99, 4);
+
+%flag flag99   99
+assignn(flag99, 4); [ <font color="red"><b>NOT OK</b></font>; wrong argument type
+assignn(99, 4); [ <font color="red"><b>NOT OK</b></font>; also wrong argument type</pre>
+    </blockquote>
+
+  <h3><a name="object">Object Tokens</a></h3>
+    <p><a href="#objectarg">OBJECT</a> arguments require a token that is declared with the <code><b>%object</b></code> or <code><b>#object</b></code> preprocessor token. The first parameter is the desired variable name, and the second parameter is the byte value of the object assigned to the token.</p>
+    <blockquote>
+      <pre>%action animate.obj(OBJECT) 33
+%object ego 0
+animate.obj(ego);
+
+%flag flag99   99
+animate.obj(flag99); [ <font color="red"><b>NOT OK</b></font>; wrong argument type
+animate.obj(0); [ <font color="red"><b>NOT OK</b></font>; also wrong argument type</pre>
+    </blockquote>
+    <p>Original Sierra syntax used the term 'object' to refer to both <a href="..\agi\screenobjs.htm">screen objects</a> and <a href="..\agi\invitems.htm">inventory items</a>. When programming in Sierra syntax it is up to the programmer to recognize the difference and make sure the correct arguments are used in commands.</p> 
+    <blockquote>
+      <pre>%action animate.obj(OBJECT) 33
+%action get(OBJECT) 92
+%object pirate 1
+%object dagger 2
+animate.obj(pirate);
+get(dagger);
+
+[ this will work but probably is not what was intended
+animate.obj(<b>dagger</b>);
+get(<b>pirate</b>);</pre>
+    </blockquote>
+    <p>Unlike <a href="syntax_fan.htm#text">Fan syntax</a>, inventory items cannot be referenced by the item name in quotes:</p>
+    <blockquote>
+      <pre>%action get(OBJECT) 92
+get("dagger"); [ <font color="red"><b>NOT OK</b></font></pre>
+    </blockquote>
+
+  <h3><a name="view">View Tokens</a></h3>
+    <p><b>%view</b> or <b>#view</b></a>:</p>
+    <p><a href="#viewarg">VIEW</a> arguments require a token that is declared with the <code><b>%view</b></code> or <code><b>#view</b></code> preprocessor token. The first parameter is the desired view name, and the second parameter is the byte value of the view assigned to the token.</p>
+    <blockquote>
+      <pre>%action load.view(VIEW) 30
+%view deadEgo   23
+load.view(deadEgo);
+
+%flag flag99   99
+load.view(flag99); [ <font color="red"><b>NOT OK</b></font>; wrong argument type
+load.view(23); [ <font color="red"><b>NOT OK</b></font>; also wrong argument type</pre>
+    </blockquote>
+
+  <h3><a name="message">Message Text Declarations</a></h3>
+    <p><a href="#msgnumarg">MSGNUM</a> arguments require a token that is declared with the <code><b>%message</b></code> or <code><b>#message</b></code> preprocessor token. Unlike other preprocessor tokens, there is no token name parameter. The first parameter is the byte value of the message and the second parameter is the literal text string to assign to the message number. To access the token in a command, use the number assigned. You cannot use the literal string as an argument.</p>
+    <blockquote>
+      <pre>%message 4 "You can't do that now."
+%action print(MSGNUM) 101
+
+print( 4);  [ OK
+print("You can't do that now.");  [ <font color="red"><b>NOT OK</b></font>
+print( 5);   [ <font color="red"><b>NOT OK</b></font>; message 5 not declared</pre>
+    </blockquote>
+    <p>To maintain compatibility with Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a>, the value of the message number parameter is NOT <a href="#numbers">converted to a byte value</a>. The actual number value must be &gt;= 1 and &lt;= 255.</p>
+    <p>Also, note that there is <a href="..\agi\logics.htm#nozero">no message 0</a>; message numbers start at 1. Attempting to declare a number zero message will cause an error.  When assigning numbers, you are not required to assign them sequentially. The compiler will automatically assign a null pointer for any messages that skipped over and not explicitly assigned.</p>
+    <p>Messages are also limited to 999 characters. If a message exceeds this, an error is raised. This condition most likely means there is a missing ending quote mark for the message.</p>
+
+  <h3><a name="escape">Compiler Escape Character and Special Characters</a></h3>
+    <p>To include certain special characters, the compiler uses the backslash '\' as an 'escape' character. Valid compiler escape codes include: </p>
+    <ul><ul>
+        <li><b>\n</b> - Inserts a 'new-line' character (ascii code '0x0A')</li>
+        <li><b>\"</b> - Inserts a double quote character (ascii code '0x22'); needed because the compiler normally treats a double quote character as a string delimiter</li>
+        <li><b>\\</b> - Inserts a backslash character (ascii code '0x5C');
+    <p>If the character following the escape character '\' is not one of the above, the escape character '\' is ignored, but the following character is kept.</p>
+    <p>Because AGI also treats the backslash as a <a href="..\agi\messages.htm#escape">runtime escape character</a>, there are several situations that need special sequences to display certain characters:</p>
+    <ul><ul>
+        <li><b>\\\\</b> - Inserts a single backslash when <a href="cmd_print.htm">printing</a> or displaying text; when the string is compiled, the four backslashes become two backslashes in the actual message text used by AGI, and then when AGI draws the message text on the screen it interprets the first backslash as the runtime escape character, and then displays only the second backslash.</li>
+        <li><b>\\%</b> - Inserts a percent sign (ascii code '\x25') when printing or displaying text; normally when AGI encounters a percent sign, it treats it as a <a href="..\agi\messages.htm#format">special format code</a>. To display a percent sign, it must be preceded by a <a href="..\agi\messages.htm#escape">runtime escape code</a> (requiring "\\" in the source code)</li>
+        <li><b>"\\ "</b> - Inserts a non-breaking space. When AGI formats a message to display when using <b>print</b> commands, it automatically inserts line breaks between words so text does not extend past the print area margins. It will not insert a line break between words separated with a non-breaking space.</li>
+    </ul></ul>
+    <p>Within a message text argument, only standard ASCII characters (1-255) may be used. Characters above 127 and less than 32 are not fully supported by AGI, but can be used if the programmer understands the <a href="..\agi\agifont.htm">restrictions and limitations</a>. Most AGI development tools do not provide a means to easily add these characters, although WinAGI does.</p>
+  <h3><a name="defines">Generic Defined Tokens</a></h3>
+    <p>To improve the readability of source code and to provide flexibility, any number, symbol or previously declared token can be assigned a name using the <code><b>#define:</b></code> or <code><b>%define</b></code> preprocessor token. The first parameter is the desired token name and the second parameter is the number, symbol or token that it will represent.</p>
+    
+      <pre>%define ONE    1
+%var v100   100
+%define temp    v100</pre>
+    
+    <p>You can also 're-define' a token:</p>
+    <pre>%var v200   200
+%define lvar1  v200
+%define counter  lvar1
+addn(counter, 1); [ same as addn(lvar1, 1) or addn(v200, 1)</pre>
+    <p>Symbols can be nested in this manner as deep as you want. As long as each symbol is defined before it is referenced, the compiler will continue substituting define values until it reaches a predefined token type (NUM, FLAG, VAR, etc.)</p>
+    <p>Define values can also be literal strings that you can assign to messages:</p>
+      <pre>%define m1 "a message"
+%message 1 m1</pre>
+    <p>Define values can also be keywords, preprocessor tokens, argument type token or symbols. Although there is little practical value, it does allow constructs such as:</p>
+      <pre>%define #DEF #define
+#DEF IF if
+#DEF THEN {
+#DEF ENDIF }
+IF (isset(f1)) THEN
+    ++v1;
+ENDIF</pre>
+
+<h2><a name="sierraargtypes">Argument Types</a></h2>
+    <p>When declaring <a href="#actions">action</a> and <a href="#tests">test</a> commands, the command's arguments must be designated as one of seven different argument types. When compiling the command, the compiler expects a token with a type that matches the designated argument type.</p>
+        <ul><ul>
+          <li><a name="numarg"><b>NUM</b></a>: Use this argument type when you want a command to use a <a href="#numbers">numeric</a> argument.</li>
+
+          <li><a name="flagarg"><b>FLAG</b></a>: Use this argument type when you want a command to use a <a href="#flag">flag</a> argument.</li>
+
+          <li><a name="vararg"><b>VAR</b></a>: Use this argument type when you want a command to use a <a href="#var">variable</a> argument.</li>
+
+          <li><a name="viewarg"><b>VIEW</b></a>: Use this argument type when you want a command to use a <a href="#view">view</a> argument.</li>
+
+          <li><a name="objectarg"><b>OBJECT</b></a>: Use this argument type when you want a command to use an <a href="#view">object</a> argument. Note that he OBJECT argument type is used in original Sierra syntax for both <a href="..\agi\screenobjs.htm">screen objects</a> and <a href="..\agi\invitems.htm">inventory items</a>. Care must be taken by the programmer to keep them straight, because the compiler won't do it for you.</li>
+
+          <li><a name="msgnumarg"><b>MSGNUM</b></a>: Use this argument type when you want a command to use a <a hrefd="#message">message number</a> as an argument value.</li>
+
+          <li><a name="wordlist"><b>WORDLIST</b></a>: This argument type is only used by the <a href="cmd_said.htm"><b>said</b></a> command. It acts as a placeholder for one or more words from the <a href="..\agi\words.htm">WORDS.TOK</a> file.</li>
+        </ul></ul>
+        <p>There are three additional argument types that the compiler recognizes but you should NOT use them in command declarations: <a name="anyarg"><b>ANY</b></a>, <a name="msgarg"><b>MSG</b></a> and <b><a name="wordarg">WORD</a></b>. They are only included as defined types in WinAGI to maintain compatibility with Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a>.</p>
+
+<h2><a name="separators">Command Terminators and Argument Separators</a></h2>
+    <p>Unlike <a href="syntax_fan.htm#cmdterminator">Fan syntax</a>, a terminating ';' character is not required after action commands. Using it is a good coding practice, but the compiler always ignores the ';' between action commands.</p>
+            <pre>equaln(v99, 1);
+equaln(v99, 2) [ OK; ';' not required
+; equaln(v99, 2); ; ; [ OK ';' characters are ignored</pre>
+    <p>In Sierra syntax, commas and semi-colons are treated exactly the same. For example</p>
+            <pre>addn(v1, 2);
+addn(v1; 2),</pre>
+    <p>will both compile correctly.</p>
+<h2><a name="comment">Comments</a></h2>
+    <p>In-line comments are set off by a single open square bracket character '['. All characters are ignored until a new line character or the end of file is reached.</p>
+      <pre>addn(v99, 1); [ Rest of line is ignored</pre>
+    <p>Sierra syntax does not support the double-slash comment marker (//) or block comments (/* ... */).</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

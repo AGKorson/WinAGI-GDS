@@ -1,0 +1,28 @@
+<html>
+	<head><title>Importing an AGI Game</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Importing an AGI Game</h1>
+		<h2><a name="import">Importing Games</a></h2>
+		    <p>Any existing AGI game (Sierra or fan made) can be imported for editing in WinAGI. To work with an existing game in WinAGI you need to first import it using the Import Game command.</p>
+		    <p>A limited number of <a href="properties.htm">properties</a> can be set when importing, using the Import Game dialog:</p>
+			<p><img id="IMG1" src="..\..\graphics\importproperties.jpg" border="0" width="483"></a></p>
+			<p>&nbsp;</p>
+			<ul>
+				<li><b>Import Directory</b>: Select the directory of the game you wish to import. This directory must contain the game's <a href="..\agi\dir.htm">DIR</a>, <a href="..\agi\vol.htm">VOL</a>, <a href="..\agi\object.htm">OBJECT</a> and <a href="..\agi\words.htm">WORDS.TOK</a> files.</li>
+				<li><b>Resource Directory Name</b>: This is the directory that WinAGI will use to store decompiled <a href="..\agi\logics.htm">logic</a> source files, as well as <a href="..\commands\syntax_fan.htm#include">include files</a> and exported resources. If the directory does not exist WinAGI will create it.</li>
+				<li><b>Logic Source File Extension</b>: WinAGI will use this extension for the game's logic source files. The default is '.lgc'. Other common choices are '.txt' or '.cg', but you can use any valid file extension.</li>
+				<li><b>Auto-Include <a href="managingresources.htm#resourceids">ResourceIDs</a>, <a href="reservednames.htm">Reserved Defines</a>, <a href="editor_globals.htm">Global Defines</a></b>: Use these checkboxes to change the behavior of WinAGI's auto-include features. See the <a href="prop_general.htm#autoinclude">Properties</a> dialog help topic for more information.</li>
+				<li><b>Advanced</b>: Click the Advanced button to see options to change the target character <a href="prop_advanced.htm#codepage">code page</a>, or to import a game using <a href="prop_advanced.htm#sierrasrc">Sierra's original syntax</a>. These options are rarely needed, but are available if desired.</li>
+			</ul>
+			<p>&nbsp;</p>
+		    <p>After importing, WinAGI will create a game property file for the game. You can then make adjustments to the game's properties using the <a href="properties.htm">Properties</a> command on the Game menu. Once created, use the game property file to open the game in subsequent sessions.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

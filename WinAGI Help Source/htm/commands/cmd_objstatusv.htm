@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: obj.status.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>obj.status.v</h1>
+			<p>The <b>obj.status.v</b> command displays information about a screen object.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>obj.status.v(<a href="syntax_fan.htm#argtypes">var</a> vA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command is normally used only by the game programmer while <a href="..\agi\debug.htm">debugging</a> a game. It displays a message box that includes basic information about <a href="..\agi\screenobjs.htm">screen object</a> <b>B</b>, where <b>B</b> is the value of <b>vA</b>, including the object's current position (x,y); its size (xsize, ysize); current <a href="..\agi\grafdisp.htm#priority">priority</a> value (pri); and current <a href="object_moving.htm#stepsize">step size</a> (stepsize). The message is formatted as follows:</p>
+<pre><code>Object #:
+x: #  xsize: #
+y: #  ysize: #
+pri: #
+stepsize: #</code></pre>
+			<p>This information can be useful to the game programmer in order to fine tune game play.</p>
+			<p>AGI does not validate that <b>vA</b> points to a valid <a href="..\agi\screenobjs.htm">screen object</a>. If you execute this command on a screen object that has not been properly initialized, AGI will display random data from an undefined location in memory.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v50 = 0;
+<b>obj.status.v(v50);</b>  [ displays information about ego</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">133 (0x85)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_debug.htm">Debugging Commands</a></p>
+			<p><a href="..\agi\debug.htm">AGI Debugging Information</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,39 @@
+<html>
+	<head><title>Action Command: mouse.posn</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>mouse.posn</h1>
+			<p>The <b>mouse.posn</b> command polls the mouse for its current position.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>mouse.posn(<a href="syntax_fan.htm#argtypes">var</a> vA, <a href="syntax_fan.htm#argtypes">var</a> vB);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Details of <a href="..\agi\mouse.htm">mouse input</a> on non-PC systems has not been fully explored.</p>
+			<p><b>NOTE:</b> In the PC version of AGI, this command points to a null function, but the null function does not accept arguments. If you use this command on a PC, AGI will treat the argument values intended for this command as the byte value for the next command, which will almost always <a href="..\agi\errors.htm#incompatible">crash AGI</a>. Do NOT use this command if you intend to run your game on a PC platform.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>mouse.posn(v50, v51);</b>
+print("mouse position is (%v50, %v51)");</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 3.002.098 and above.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">180 (0xB4)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="..\agi\mouse.htm">Mouse Input</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

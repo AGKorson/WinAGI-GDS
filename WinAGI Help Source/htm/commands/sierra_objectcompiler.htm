@@ -1,0 +1,85 @@
+<html>
+<head>
+  <title>Sierra's OBJECT File Compiler</title>
+  <link href="..\styles\coUA.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+  <a name="_top"></a>
+  <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+    <tr>
+      <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+    </tr>
+  </table>
+  <h1>Sierra's OBJECT File Compiler</h1>
+  <p>The original tool that Sierra used to create the <a href="..\agi\object.htm">OBJECT</a> file in AGI games was a simple MSDOS program called MKOBJ.EXE. The most recent publicly released version of MKOBJ.EXE is 2.10, with a copyright date of 1986.</p>
+  <h2>Usage</h2>
+  <p>MKOBJ.EXE is a native MSDOS program. Its usage is:</p>
+  <blockquote>
+    <pre>mkobj</pre>
+  </blockquote>
+  <p>MKOBJ.EXE has no optional settings or arguments. It requires a text file named "object.txt" to be in the same folder, and that text file must contain inventory item name and room data.</p>
+  <p>MKOBJ.EXE uses a very primitive parser; double quote marks are used to delimit text strings; numbers can only be positive integers; spaces, tabs and line breaks are used to separate tokens. Commas or semicolons can optionally be used to separate parameters.</p>
+  <p>When an error is encountered, processing stops immediately, and no output file is created.</p>
+
+  <h2>object.txt Source File Format</h2>
+  <p>The source file, "object.txt", must be a simple text file. Data entries consist of a single line of text that begin with one of two keywords <b><code>.numani</code></b> and <b><code>.obj</code></b>. Each entry must be on a separate line. Comments can be added by using the '[' character.</p>
+    <pre>[
+[       TYPICAL OBJECT SOURCE FILE
+[
+
+[************* ANIMATED OBJECTS
+.numani 16
+
+[************* INVENTORY OBJECTS
+.obj    1,  "item1 name", 34    [ comment
+.obj    2,  "item2 name", 0</pre>
+  <p>The <code><b>.numani</b></code> token is used to set the <a href="..\agi\screenobjs.htm#maxscreenobj">maximum screen object</a> value for the game. Almost all Sierra games used a value of 16, but any byte value will work. To conserve memory, the value should be as low as possible based on the number of animated objects that the game uses.</p>
+  <p>The <code><b>.obj</b></code> token is used to add <a href="..\agi\invitems.htm">inventory items</a> to the OBJECT file. The syntax to use is:</p>
+    <pre>.obj object#, "item name", startroom#</pre>
+  <p>Commas are not required to separate the parameters, but if used, must be placed immediately after the number or name parameter without any spaces. Any extraneous commas will cause an error. The item name is not required to be enclosed in quotes, unless the item name contains spaces, commas, semicolons new line characters or quote marks. To include a quote mark in the item name, use the '\' character:</p>
+    <pre>.obj 1, "item \"in-quote\" name", 0</pre>
+  <p>Keywords and their parameters must all be on one line. If there are line breaks between parameters MKOBJ.EXE will raise an error and immediately quit.</p>
+
+  <h2>Bugs and Anomalies</h2>
+  <p>MKOBJ.EXE always adds the null item ("?") as the first item in the item list, whether it is actually used or not. Any item number that was not explicitly assigned a name and starting room will be assigned to the null item name with a starting room value of zero.</p>
+  <p>The <b><code>.numani</code></b> command is not required; if it is not included, MKOBJ.EXE will use a value of zero for the <a href="..\agi\screenobjs.htm#maxscreenobj">maximum screen object</a> value.
+  <p>MKOBJ.EXE treats comma characters and semi-colon characters exactly the same.</p>
+      <pre>.obj 1; "itemname"; 0 [ OK</pre>
+  <p>If the number parameter of the <b><code>.numani</code></b> command or the start room parameter of the <b><code>.obj</code></b> command is greater than 255, the number will be converted to a byte value. Negative numbers will raise an error.</p>
+  <p>The item number parameter of the <b><code>.obj</code></b> command is NOT converted to a byte value; the programmer must make sure it is not greater than 255. If the value is greater than 255, MKOBJ.EXE will create an item name table of the same value (i.e. if item number parameter is 300, there will be 300 item entries in the output file). Any items with a number greater than 255 can't be accessed by AGI, and will just waste memory when the game is run.</p> 
+  <p>If more than one item is added with the same number, only the item name of the last entry will be assigned to that number; the other item name strings will still be added to the list, but will just waste space as they won't be referenced by any item number.</p>
+  <p>MKOBJ.EXE converts all cases of "\x0d\x0a" to just "\x0a". In other words, all carriage-return-linefeed pairs are replaced with just a linefeed. However, if the '\x0d' character is not followed by a '\x0a' character, it is not removed, and will cause MKOBJ.EXE to raise an unrecognized token error.</p>
+  <p>The '\x1a' character is treated as an 'end of file' token. When MKOBJ.EXE loads data from the source file, it will stop reading data immediately after the '\x1a' character; no more data from the file will be processed.</p>
+  <p>The text parser in MKOBJ.EXE is very simplistic. It handles separator characters (',' and ';') and double quotes ('"') in a non-standard manner that leads to some unusual behaviors:</p>
+  <ul><ul>
+    <li>When getting the next token from the input text, MKOBJ.EXE first skips all space and tab characters. Then it add characters to the token until it reaches a tab, space, semicolon, comma or newline '\n', and then returns the token. This means a ';' or ',' that follows white space will return a null length token. If a number was expected, the null token will raise an error. If an item name was expected, MKOBJ.EXE will use the null item text. Some examples:</li>
+      <pre>.obj 1, "itemname1"  , 0 [ <font color="red"><b>NOT OK</b></font></pre>
+    <p>Because of the space between "itemname1" and the comma, MKOBJ.EXE will read the comma as a null token when it expects the start room parameter. This will cause an error.</p>
+      <pre>.obj 2,
+"itemname2", 0 [ <font color="red"><b>NOT OK</b></font></pre>
+    <p>The line break between the first comma and "itemname2" will be interpreted as the item name, and then the "itemname2" token will raise the "not a number" error.</p>
+      <pre>.obj 3   , "itemname3, 0 [ <font color="red"><b>NOT OK</b></font></pre>
+    <p>In this example, the comma between '3' and "itemname3" is read as a null token, which MKOBJ.EXE will treat as the "?" item; then it reads the "itemname3" token as the start room parameter which causes a 'not a number' error.</p>
+      <pre>.obj 4 ,  0 [ OK</pre>
+    <p>This example is OK; the comma is read as a null item. This is the same as</p>
+      <pre>.obj 4 "?",  0 [ OK</pre>
+
+    <li>Double quotes ('"') are used to delimit strings of text for item names. They are only required if the item name needs to include a space, double quote or newline character. However, the starting and ending quotes are never included in the returned token. The read function automatically skips them before returning the token to the parser. Also, an ending double quote does NOT end a token; the read function continues to add characters until a space, tab, newline, ',' or ';' character is found.</li>
+      <pre>abc returns abc
+"abc" returns abc
+"ab"cd returns abcd
+"ab"c, returns abc
+"123" returns 123</pre>
+    <p>This allows entries such as this:</p>
+      <pre>".obj" "3" itemname,  0 [ OK</pre>
+  </ul></ul>
+  <p>Item names can include the newline ('\x0a') character.</p>
+      <pre>.obj 3 "line1\nline2",  0 [ OK</pre>
+  <p>Although allowed, you should not include newline characters in item names. The extra line breaks interfere with the placing of text when the <a href="..\agi\invitems.htm#inventory">inventory item screen</a> is displayed.</p>
+  <p>The read function in MKOBJ.EXE has a bug in how it handles comments. When the '[' character is encountered, the read function skips to the end of the line, but it does not increment the line counter, which is used when displaying errors. The displayed line of an error will be off by the number of comment lines that are between the start of the file and the actual line of the error.</p>
+  </p>
+  <p>&nbsp;</p>
+  <p align="right"><font size="1">v3.0.0</font></p>
+  <p>&nbsp;</p>
+</body>
+</html>

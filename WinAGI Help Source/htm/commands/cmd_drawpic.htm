@@ -1,0 +1,46 @@
+<html>
+	<head><title>Action Command: draw.pic</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>draw.pic</h1>
+			<p>The <b>draw.pic</b> command creates the visual and priority screens in memory, using the data in the specified <a href="..\agi\pictures.htm">picture</a> resource.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>draw.pic(<a href="syntax_fan.htm#argtypes">var</a> vPICNUM);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <b>draw.pic</b> command converts the drawing commands in the <a href="..\agi\pictures.htm">picture</a> resource specified by <a href="..\agi\variables.htm">variable</a> <b>vPICNUM</b> into the actual <a href="..\agi\grafdisp.htm">visual and priority screen images</a>. The images are drawn in a <a href="..\agi\memory.htm">memory</a> buffer, but is not copied to the actual system video display memory. The images are not displayed on screen with this command. To actually display the image on screen, use the <a href="cmd_showpic.htm"><b>show.pic</b></a> command.</p>
+			<p>If the picture passed in <b>vA</b> has not been loaded, calling <b>draw.pic</b> will raise <a href="..\agi\errorlist.htm#trap18">trappable error #18</a>.</p>
+			<p>AGI adds a script entry to the <a href="..\agi\scripts.htm">script stack</a> each time a <b>draw.pic</b> command is executed.</p>
+			<p>See the <a href="concepts_pictures.htm">Working with Pictures</a> topic for additional information.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ load and display the current room's picture:
+load.pic(currentRoom);    [ first load the picture resource
+<b>draw.pic(currentRoom);</b>    [ then draw the picture to memory
+discard.pic(currentRoom); [ resource no longer needed, so discard it
+...
+show.pic();               [ now display the picture on screen</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">25 (0x19)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_pictures.htm">Picture Commands</a></p>
+			<p><a href="concepts_pictures.htm">Working with Pictures</a></p>
+			<p><a href="cmd_showpic.htm"><b>show.pic</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

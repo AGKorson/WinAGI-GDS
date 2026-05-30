@@ -1,0 +1,51 @@
+<html>
+	<head><title>Logic Compiler Error 6016</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6016</h2>
+    <h3>'&lt;commandtype&gt;' command not defined</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, when using <a href="..\..\commands\syntax_sierra.htm#alternateactions">alternate syntax</a> for action and test commands, the commands must be declared with the exact spelling (and all lower case) as indicated below:</p> 
+    <p class="indent_n"><b>Action Commands:</b></p>
+    <ul><ul>
+     <li><a href="..\..\commands\cmd_increment.htm"><b>increment</b></a></li>
+     <li><a href="..\..\commands\cmd_decrement.htm"><b>decrement</b></a></li>
+     <li><a href="..\..\commands\cmd_assignn.htm"><b>assignn</b></a></li>
+     <li><a href="..\..\commands\cmd_assignv.htm"><b>assignv</b></a></li>
+     <li><a href="..\..\commands\cmd_addn.htm"><b>addn</b></a></li>
+     <li><a href="..\..\commands\cmd_addv.htm"><b>addv</b></a></li>
+     <li><a href="..\..\commands\cmd_subn.htm"><b>subn</b></a></li>
+     <li><a href="..\..\commands\cmd_subv.htm"><b>subv</b></a></li>
+     <li><a href="..\..\commands\cmd_lindirectn.htm"><b>lindirectn</b></a></li>
+     <li><a href="..\..\commands\cmd_lindirectv.htm"><b>lindirectv</b></a></li>
+     <li><a href="..\..\commands\cmd_rindirect.htm"><b>rindirect</b></a></li>
+   </ul></ul>
+   <p class="indent_n"><b>Test Commands:</b></p>
+   <ul><ul>
+     <li><a href="..\..\commands\cmd_equaln.htm"><b>equaln</b></a></li>
+     <li><a href="..\..\commands\cmd_equalv.htm"><b>equalv</b></a></li>
+     <li><a href="..\..\commands\cmd_lessn.htm"><b>lessn</b></a></li>
+     <li><a href="..\..\commands\cmd_lessv.htm"><b>lessv</b></a></li>
+     <li><a href="..\..\commands\cmd_greatern.htm"><b>greatern</b></a></li>
+     <li><a href="..\..\commands\cmd_greaterv.htm"><b>greaterv</b></a></li>
+     <li><a href="..\..\commands\cmd_isset.htm"><b>isset</b></a></li>
+   </ul></ul>
+    <p class="indent_n">To correct this error, you will need to add a define for the specified command that has the correct spelling.</p>
+      <blockquote>
+      <pre>%action Addn(VAR, NUM) 1   [ uppercase 'A' instead of lowercase 'a'
+v99 += 1;   [ <font color="red"><b>NOT OK</b></font>, addn command not defined correctly
+...
+%test equal.n(VAR, NUM) 1 [ not spelled as 'equaln'
+if (v99 == 1) {    [ <font color="red"><b>NOT OK</b></font>, equaln command not defined correctly
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

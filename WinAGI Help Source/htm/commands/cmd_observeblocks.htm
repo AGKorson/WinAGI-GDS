@@ -1,0 +1,48 @@
+<html>
+	<head><title>Action Command: observe.blocks</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>observe.blocks</h1>
+			<p>The <b>observe.blocks</b> command prevents an object from crossing the boundary of a block or a conditional control line.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>observe.blocks(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>If <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b> was previously set to ignore <a href="concepts_obstacles.htm#blocks">blocks</a> (using the <a href="cmd_ignoreblocks.htm"><b>ignore.blocks</b></a> command), the <b>observe.blocks</b> command restores normal behavior.</p>
+			<p>In addition to observing blocks, this command will also cause objects to observe conditional <a href="..\agi\grafdisp.htm#controllines">control lines</a> (pixels with <a href="..\agi\grafdisp.htm#priority">priority</a> of 1 on the priority screen).</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>block(25, 25, 100, 100);   [ create a block
+ignore.blocks(o1);         [ object 1 will ignore the block
+...
+<b>observe.blocks(o1);</b>        [ now object 1 will observe the block
+...
+unblock();                 [ remove the block</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">89 (0x59)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><a href="cmd_block.htm"><b>block</b></a></p>
+			<p><a href="cmd_unblock.htm"><b>unblock</b></a></p>
+			<p><a href="cmd_ignoreblocks.htm"><b>ignore.blocks</b></a></p>
+			<p><a href="concepts_obstacles.htm">Managing Obstacles</a></p>
+			<p><a href="..\agi\grafdisp.htm#controllines">Control Lines</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

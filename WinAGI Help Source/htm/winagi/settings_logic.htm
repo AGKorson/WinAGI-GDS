@@ -1,0 +1,85 @@
+<html>
+	<head><title>Logic Settings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Logic Settings</h1>
+			<map name="settings">
+				<area shape="rect" alt="General Settings" coords="12,41,65,61" href="settings_general.htm">
+				<area shape="rect" alt="Logic(2) Settings" coords="112,41,174,61" href="settings_logic2.htm">
+				<area shape="rect" alt="Picture Settings" coords="175,41,228,61" href="settings_picture.htm">
+				<area shape="rect" alt="Sound Settings" coords="229,41,279,61" href="settings_sound.htm">
+				<area shape="rect" alt="View Settings" coords="280,41,327,61" href="settings_view.htm">
+				<area shape="rect" alt="Layout Settings" coords="328,41,374,61" href="settings_layout.htm">
+				<area shape="poly" alt="Preview Font Settings" coords="30,78,108,78,108,84,466,84,466,128,30,128" href="#previewfont">
+				<area shape="poly" alt="Editor Font Settings" coords="30,144,93,144,93,149,466,149,466,194,30,194" href="#editorfont">
+				<area shape="rect" alt="Enable Logic Syntax Highlighting" coords="30,207,276,220" href="#highlight">
+				<area shape="rect" alt="Enable Text Syntax Highlighting" coords="30,234,268,247" href="#textsyntax">
+				<area shape="rect" alt="Preview Styles" coords="44,385,277,409" href="#preview">
+				<area shape="poly" alt="Syntax Highlight Styles" coords="30,261,160,261,160,266,290,266,290,421,30,421" href="#highstyles">
+				<area shape="rect" alt="Default Logic Source File Extension" coords="312,209,471,232" href="#defext">
+				<area shape="rect" alt="Enable Code Snippets" coords="310,256,444,269" href="#snippets">
+				<area shape="rect" alt="Enable Argument Tooltips" coords="310,278,452,291" href="#autoquick">
+				<area shape="rect" alt="Enable Define Tooltips" coords="310,300,447,313" href="#showdefinetips">
+				<area shape="rect" alt="Show Document Map" coords="310,322,445,335" href="#docmap">
+				<area shape="rect" alt="Show Line Numbers" coords="310,344,436,357" href="#linenumbers">
+				<area shape="rect" alt="Maximize Editor Window" coords="310,366,463,379" href="#maximize">
+				<area shape="rect" alt="Tab Width" coords="356,394,466,416" href="#tabwidth">
+			</map>
+			<p><img src="..\..\graphics\settings-logic.jpg" usemap="#settings" border="0" width="500"></p>
+		<h2><a name="previewfont">Preview Font</a></h2>
+			<p>The logic <a href="previewlogic.htm">preview window</a> is a simple text box. It does not use syntax highlighting. Change the font name and font size of the preview window here. The background for the preview window can't be changed; WinAGI will automatically use a light green background to indicate a <a href="..\agi\logics.htm">logic</a> that is <a href="compilinglogics.htm">compiled</a>, and light red to indicate a logic which has source code changes that have not been compiled.</p>
+		<h2><a name="editorfont">Editor Font</a></h2>
+			<p>Select the font name and size for the <a href="editor_logic.htm">logic editor</a>. The Logic Editor font name and size are also used in the <a href="editor_text.htm">Text Editor</a>, <a href="editor_words.htm">WORDS.TOK editor</a>, <a href="editor_object.htm">OBJECT editor</a>, <a href="editor_globals.htm">Global Defines Editor</a> and <a href="editor_layout.htm">Layout Editor</a>.</p>
+			<p>&nbsp;</p>
+		<h2><a name="highlight">Enable Syntax Highlighting</a></h2>
+			<p>Logic Syntax highlighting allows you to specify different colors and attributes for different syntax elements. Syntax highlighting for <a href="..\agi\logics.htm">logics</a> is enabled by default, but it can be disabled by clearing this check box. When disabled, all text in <a href="editor_logic.htm">logic editors</a> will use the 'Normal' settings for foreground color and attributes.</p>
+		<h2><a name="highstyles">Syntax Highlighting Styles</a></h2>
+			<p>The color, bold style and italics style can be set individually for each syntax element. Select a syntax element in the list, then use the color button and check boxes to select a new color, set bold style and/or set italics style. The eleven syntax elements are:</p>
+			<p class="indent"><b>Normal</b>: symbols, brackets, etc</p>
+			<p class="indent"><b>Comment</b>: comments are ignored by the compiler</p>
+			<p class="indent"><b>Strings</b>: literal text strings offset by double quote marks</p>
+			<p class="indent"><b>Keywords</b>: <code>if</code>, <code>else</code>, <code>goto</code>, <code>#define</code>, <code>#message</code>, <code>#include</code></p>
+			<p class="indent"><b>Test Commands</b>: AGI <a href="..\commands\cmds_test.htm">test commands</a></p>
+			<p class="indent"><b>Action Commands</b>: AGI <a href="..\commands\cmds_category.htm">action commands</a></p>
+			<p class="indent"><b>Invalid Commands</b>: commands that are not valid based on the game's current <a href="prop_general.htm#intversion">target interpreter version</a></p>
+			<p class="indent"><b>Numbers</b>: numbers, as in 1, 2, 3, etc.</p>
+			<p class="indent"><b>Argument Markers</b>: <a href="..\commands\syntax_fan.htm#markers">argument markers</a> such as v99, f100, o2, etc.</p>
+			<p class="indent"><b>Define Names</b>: identifiers that are declared as <a href="..\commands\syntax_fan.htm#defines">define names</a></p>
+			<p class="indent"><b>Background</b>: to set the background color of the editor; bold and italics properties do not apply</p>
+			<p><a name="preview">Use the preview button</a> to show a sample of text to see how your selected styles will look in the logic editor.</p>
+			<p>&nbsp;</p>
+		<h2><a name="textsyntax">Highlight Syntax in Text Files</a></h2>
+			<p>Sets the default behavior for the <a href="editor_text.htm">Text Editor</a>. When checked, <a href="editor_logic.htm#syntaxhighlighting">syntax highlighting</a> is enabled when Text Editors are first opened.</p>
+			<p>&nbsp;</p>
+		<h2><a name="defext">Default Logic Source File Extension</a></h2>
+			<p>The extension for logic source files is added to new and imported source files, as well as decompiled logics. This can be changed for each game individually on the <a href="prop_general.htm#defext">Game Properties</a> dialog. If you always want to use a different extension for all your games, you can set that default here.</p>
+			<p>&nbsp;</p>
+		<h2><a name="snippets">Enable Code Snippets</a></h2>
+			<p>When this option is enabled, you can use <a href="snippets.htm">code snippets</a> to easily insert commonly used code fragments in <a href="..\agi\logics.htm">logics</a>.</p>
+			<p>&nbsp;</p>
+		<h2><a name="autoquick">Show Argument Tooltips</a></h2>
+			<p>This option enables or disables the <a href="editor_logic.htm#argtooltips">Argument Tooltips</a> feature for the <a href="editor_logic.htm">Logic Editor</a>.</p>
+			<p>&nbsp;</p>
+		<h2><a name="showdefinetips">Show Define Tooltips</a></h2>
+			<p>This option enables or disables the display of <a href="editor_logic.htm#definetips">define tips</a> when hovering over defines in the <a href="editor_logic.htm">Logic Editor</a>.</p>
+			<p>&nbsp;</p>
+		<h2><a name="docmap">Show Document Map</a></h2>
+			<p>When enabled, Logic Editors and Text Editors will show the <a href="editor_logic.htm#docmap">document map</a> panel by default.</p>
+			<p>&nbsp;</p>
+		<h2><a name="linenumbers">Show Line Numbers</a></h2>
+			<p>When enabled, Logic Editors and Text Editors will show the <a href="editor_logic.htm#linenumbers">line number</a> column by default.</p>
+			<p>&nbsp;</p>
+		<h2><a name="maximize">Maximize Editor on Open</a></h2>
+			<p>When enabled, the <a href="editor_logic.htm">Logic Editor</a> will automatically resize to fill the WinAGI program window.</p>
+			<p>&nbsp;</p>
+		<h2><a name="tabwidth">Tab Width</a></h2>
+			<p>The tab width property determines the number of spaces inserted when the Tab key is pressed in the <a href="editor_logic.htm">Logic Editor</a> and <a href="editor_text.htm">Text Editor</a>.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

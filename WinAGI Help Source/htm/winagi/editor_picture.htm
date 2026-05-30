@@ -1,0 +1,76 @@
+<html>
+	<head><title>Picture Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-picture-e.gif" width="460" height="72" border="0" alt="WinAGI Picture Editor"></td>
+			</tr>
+		</table>
+		<h1>Picture Editor</h1>
+			<p>Use the Picture Editor to create and edit <a href="..\agi\pictures.htm">AGI Picture resources</a>.</p>
+			<p>See the <a href="drawingpictures.htm">Drawing Pictures</a> topic for help with using drawing command tools to create pictures.</p>
+			<p>See the <a href="manipulatecommands.htm">Manipulating Commands</a> topic for help with manipulating commands to edit and adjust drawing commands.</p>
+			<p>To use an image file as a background that you can trace over to draw your picture, see the <a href="picbkgd.htm">Picture Background Image</a> topic.</p>
+			<p>See the <a href="viewtestmode.htm">View Testing Mode</a> and <a href="texttestmode.htm">Text Testing Mode</a> topics for help with WinAGI's testing modes.</p>
+		<h2>Picture Editor Components</h2>
+			<p>For a description of the various components of the Picture Editor window, click on the area of interest:</p>
+			<map name="picedit">
+				<area shape="rect" alt="Toolbar" coords="8,31,524,61" href="#toolbar">
+				<area shape="rect" alt="Command List" coords="8,70,109,265" href="#commandlist">
+				<area shape="rect" alt="Coordinate List" coords="8,227,109,375" href="#coordlist">
+				<area shape="rect" alt="Position" coords="9,377,85,397" href="#position">
+				<area shape="rect" alt="Pen Color Palette" coords="8,404,522,437" href="#palette">
+				<area shape="rect" alt="Drawing Surface" coords="116,63,520,402" href="#drawsurface">
+			</map>
+			<p>&nbsp;<img src="..\..\graphics\picedit.jpg" usemap="#picedit" border="0" width="532"></p>
+			<p>&nbsp;</p>
+		<h2><a name="toolbar">Toolbar</a></h2>
+			<p>The toolbar allows you to switch between <a href="drawingpictures.htm">edit mode</a> for drawing pictures and <a href="texttestmode.htm">text</a> and <a href="viewtestmode.htm">view</a> test modes. You can also select drawing tools for use on the drawing surface. Tools for <a href="manipulatecommands.htm#editcmds"> manipulating selected drawing commands</a>, such as undoing, cutting, copying, pasting, and flipping are also available here.</p>
+			<p>&nbsp;</p>
+		<h2><a name="commandlist">Command List</a></h2>
+			<p>The <a href="..\agi\pictures.htm#drawcmds">draw commands</a> that make up the picture are listed here. The currently selected command will determine where subsequent commands are added when drawing tools are used; when you click on a command in the list, the first new draw commands will be inserted BEFORE the selected command (it pushes all commands down). After that, subsequent commands are inserted AFTER, with each command following the previous one.</p>
+			<p>The End command is just a placeholder to mark the end of the picture; it can't be deleted or moved.</p>
+			<p>Select multiple commands by dragging the mouse over commands in the list (or by holding down the shift key and using cursor keys).</p>
+			<p>When selected, a bounding rectangle is shown in the drawing area to indicate the extent of commands selected.</p>
+		<h3><a name="picerrors">Errors in Picture Resources</a></h3>
+			<p>While it is extremely rare, you may encounter <a href="..\agi\pictures.htm">picture</a> resources with <a href="..\agi\pictures.htm#f0">invalid color values</a> or <a href="..\agi\pictures.htm#picfmt">invalid draw commands</a>. Sierra was notorious for failing to check for errors in AGI, which includes the drawing functions that read the data from picture resources. In most cases, AGI ignores bad data that it encounters, so the picture still draws as expected. But when editing those resources, the errors need to be dealt with. WinAGI displays invalid commands in red text and marks any invalid data that it encounters with the tag 'ERR'. WinAGI ignores the bad data in the same way that AGI does. You should delete/replace that bad data if you intend to use the picture in your game. (For an example of bad picture data, check out Manhunter I, picture 86.)</p>
+			<p>Because AGI <a href="..\agi\pictures.htm#plot">did not support plot commands</a> in versions <a href="..\agi\version2.htm#2089">2.089</a> and <a href="..\agi\version2.htm#2272">2.272</a> (and only partially in version <a href="..\agi\version2.htm#2411">2.411</a>), picture resources in those versions will show plot and plotstyle commands in red and marked as errors as well. The commands are ignored in those versions, but should be removed as they waste space.</p>
+			<p>&nbsp;</p>
+		<h2><a name="coordlist">Coordinate List</a></h2>
+			<p>When a command is selected in the command list, all the coordinates for the command are shown in the coordinate list. Select a coordinate to edit it. A flashing cursor will be shown on the drawing surface that can be dragged to reposition the coordinate.</p>
+		<h3><a name="cursor">Cursor Options</a></h3>
+			<p>WinAGI has two cursor marker options. The original WinAGI flashing cursor highlights just the selected coordinate with a color changing block which is easy to see and select.</p> 
+			<p>&nbsp;<img alt="WinAGI cursor" src="..\..\graphics\w-cursor.bmp" width="163">&nbsp;&nbsp;<img alt="'X' cursor" src="..\..\graphics\x-cursor.bmp" width="163"></p>
+			<p><a name="xmarker">There</a> is also an 'X' style cursor, which highlights all coordinates in the command with a small 'X' and a small flashing square over the selected coordinate. In the 'X' style cursor mode, you can select other coordinates in the command by clicking on the 'X' in the drawing surface. To change between the two cursor modes, go to the <a href="settings_picture.htm">Picture Settings</a> options page.</p>
+			<p>The color of the 'X' can be changed by pressing CTRL and clicking on the desired color on the <a href="#palette">Pen Color Palette</a>.  CTRL + left-click will change the color of the markers on the visual screen; CTRL + right-click will change the color of the markers on the priority screen.</p>
+			<p>&nbsp;</p>
+		<h2><a name="drawsurface">Drawing Surface</a></h2>
+			<p>The drawing surface can display the <a href="..\agi\grafdisp.htm#priority">visual picture</a>, the <a href="..\agi\grafdisp.htm#priority">priority picture</a> or both. Scroll bars are included as needed.</p>
+			<p>You can draw commands on either picture surface, regardless of <a href="#palette">current pen settings</a>. WinAGI will add the commands to the correct picture (visual or priority) automatically. For example, if you want to trace something to add control lines, you can position the cursor on the visual screen to aid in tracing, but the command line will only be added to the priority screen.</p>
+		<h3><a name="splitter">Splitter Bar</a></h3>
+			<p>When both pictures are visible, drag the splitter between them to change the size of each picture.</p>
+			<p><img alt="" src="..\..\graphics\picsplit.jpg" width="187"></p>
+			<p>When moving the splitter, you will notice that it stops moving when a minimum window size is reached for either picture. If you continue dragging the mouse all the way to the top or all the way to the bottom, the splitter will 'snap' up or down, which will completely hide one of the pictures.</p>
+			<p>You can then swap the visual and priority pictures by right-clicking the drawing surface and choosing the swap picture command.</p>
+			<p>To switch back to split picture display, just drag the splitter back toward the middle of the drawing area.</p>
+		<h3><a name="pribands">Priority Bands</a></h3>
+			<p>To aid in placing picture elements, you can display thin lines, color coded to the respective priority value that shows where each <a href="..\agi\grafdisp.htm#bands">priority band</a> begins. You can toggle these by choosing Show|Hide Priority Bands command on the Edit menu.</p>
+			<p>If editing a picture that is in a game for a <a href="..\agi\versions.htm">version</a> that supports the <a href="..\commands\cmd_setpribase.htm"><b>set.pri.base</b></a> command, you can also adjust the priority base using the Priority Base command on the Edit menu; WinAGI will then draw the priority band lines according to the selected base. This feature is automatically disabled for games that are in earlier version 2 games that don't support adjusting the priority base.</p>
+		<h3><a name="drawpics">Drawing Pictures</a></h3>
+			<p>See the <a href="drawingpictures.htm">Drawing Pictures</a> topic for details on how to add draw commands to pictures.</p>
+			<p>&nbsp;</p>
+		<h2>Scale Control</h2>
+			<p>&nbsp;<img alt="" src="..\..\graphics\tbZoomIn.bmp" width="32">&nbsp;<img alt="" src="..\..\graphics\tbZoomOut.bmp" width="32"> Use the scale control toolbar buttons to adjust the scale of the pictures. You can also use the mouse wheel to scale in or out.</p>
+			<p>&nbsp;</p>
+		<h2><a name="palette">Pen Color Palette</a></h2>
+			<p>The current status of the drawing pens is shown on the color palette. The letter 'V' for visual and 'P' for priority provide a visual display of the current pen status.</p>
+			<p>To insert a pen color change, click on the desired color. (The 'X' box on the left represents setting the pen to off). Left clicking will change the visual pen color. Right clicking will change the priority pen color.</p>
+			<p>If the currently selected command is a pen command of the same type, WinAGI will just change the current pen to the newly selected value. This helps eliminate unnecessary commands. If you want to force a new command instead of changing the current command hold down the SHIFT key when selecting the new color.</p>
+			<p>The pen palette can also be used to change the color of the coordinate markers when using the <a href="#xmarker">'X' coordinate mode</a> by pressing CTRL and clicking on the desired color. CTRL + left-click will change the color of the markers on the visual screen; CTRL + right-click will change the color of the markers on the priority screen.</p>
+		<h2><a name="position">Data Position</a></h2>
+			<p>The position of the selected command in the picture data is provided here. It can't be edited.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

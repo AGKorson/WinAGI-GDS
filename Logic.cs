@@ -1,0 +1,863 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using WinAGI.Common;
+using static WinAGI.Common.Base;
+using static WinAGI.Engine.Base;
+
+namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that represents an AGI Logic resource, with WinAGI extensions.
+    /// </summary>
+    public class Logic : AGIResource {
+        #region Members
+        internal string mSourceFile = "";
+        private string mSourceText = "";
+        internal uint mCompiledCRC;
+        private uint mCRC;
+        private int mCodeSize;
+        private bool mSourceChanged;
+        private bool mIsRoom;
+        private int mCodePage = Base.CodePage;
+        private static readonly string[] separator = ["\r\n", "\r", "\n"];
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Initializes a new AGI logic resource that is not in a game.
+        /// </summary>
+        public Logic() : base(AGIResType.Logic) {
+            // not in a game so resource is always loaded
+            mLoaded = true;
+            InitLogic();
+            // use a default ID
+            mResID = "NewLogic";
+        }
+
+        /// <summary>
+        /// Internal constructor to initialize a new or cloned logic resource being added to an AGI game.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="NewLogic"></param>
+        internal Logic(AGIGame parent, byte ResNum, Logic NewLogic = null) : base(AGIResType.Logic) {
+            base.InitInGame(parent, ResNum);
+            InitLogic(NewLogic);
+            if (ResNum == 0) {
+                // make sure isroom flag is false
+                mIsRoom = false;
+            }
+            mCodePage = parent.agCodePage;
+        }
+
+        /// <summary>
+        /// Internal constructor to add a new logic resource during initial game load.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="ResNum"></param>
+        /// <param name="VOL"></param>
+        /// <param name="Loc"></param>
+        internal Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.Logic) {
+            // adds a logic from dir/vol files, setting its resource 
+            // location properties, and reads properties from the wag file
+
+            // set up base resource
+            base.InitInGame(parent, AGIResType.Logic, ResNum, VOL, Loc);
+            // get rest of properties
+            mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
+            mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
+            SourceFile = Path.Combine(parent.agSrcResDir, mResID + "." + parent.agSrcFileExt);
+            if (ResNum == 0) {
+                // logic0 can never be a room
+                mIsRoom = false;
+            }
+            else {
+                mIsRoom = parent.agGameProps.GetSetting("Logic" + ResNum, "IsRoom", false);
+            }
+        }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets or sets the resource ID for this logic. The source code file for
+        /// in-game resources is automatically renamed to match the new ID.
+        /// </summary>
+        public override string ID {
+            get => base.ID;
+            set {
+                // save old to be able to rename the source file
+                string oldID = base.ID;
+                base.ID = value;
+                if (mInGame && oldID is not null && oldID.Length > 0 && oldID != value) {
+                    SafeFileMove(Path.Combine(parent.agSrcResDir, oldID + "." + parent.agSrcFileExt), Path.Combine(parent.agSrcResDir, base.ID + "." + parent.agSrcFileExt), true);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the compiled CRC value for this logic's source code. The compiled
+        /// CRC is set when a logic is compiled, indicating the compiled logic byte code
+        /// is a true representation of the source code.
+        /// </summary>
+        public uint CompiledCRC {
+            get => mCompiledCRC;
+            internal set => mCompiledCRC = value;
+        }
+
+        /// <summary>
+        /// Gets or sets a flag that is used by the WinAGI layout editor to determine which
+        /// logics are treated as 'rooms' and are displayed in the layout.
+        /// </summary>
+        public bool IsRoom {
+            get {
+                return mIsRoom;
+            }
+            set {
+                if (mIsRoom != value) {
+                    // ignore if in a game and logic 0
+                    if (mInGame && (Number == 0)) {
+                        return;
+                    }
+                    mIsRoom = value;
+                    // update game file if in a game
+                    parent?.WriteGameSetting("Logic" + Number, "IsRoom", mIsRoom, "Logics", true);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets a flag that indicates if changes in the source code for this logic have
+        /// not been saved to file.
+        /// </summary>
+        public bool SourceChanged {
+            get {
+                if (mLoaded) {
+                    return mSourceChanged;
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the name of the source code file for this logic.
+        /// </summary>
+        public string SourceFile {
+            get {
+                if (mInGame) {
+                    return Path.Combine(parent.agSrcResDir, this.ID + "." + parent.SourceExt);
+                }
+                else {
+                    return mSourceFile;
+                }
+            }
+            set {
+                // ignore if in a game
+                if (!mInGame) {
+                    if (!IsValidFilename(Path.GetFileName(value))) {
+                        throw new ArgumentException("invalid file name", value);
+                    }
+                    mSourceFile = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the error level for the source code file.
+        /// </summary>
+        public ResourceErrorType SourceError {
+            get; internal set;
+        }
+
+        /// <summary>
+        /// Gets or sets the CRC value for this logic's source code. The CRC value is 
+        /// used to track the compiled status of the logic.
+        /// </summary>
+        public uint CRC {
+            get => mCRC;
+            internal set {
+                if (mLoaded) {
+                    mCRC = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the size of the logic byte code minus the message data.
+        /// </summary>
+        public int CodeSize {
+            get {
+                WinAGIException.ThrowIfNotLoaded(this);
+                return mCodeSize;
+            }
+            internal set {
+                mCodeSize = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets the compiled status for this logic. A logic is considered compiled
+        /// if the CRC for the current source code matches the CRC for the last
+        /// compiled source code. Logics that are not in a game are never considered
+        /// compiled.
+        /// </summary>
+        public bool Compiled {
+            get {
+                // CRCs will only be equal if compiled successfully
+                return mInGame && mCRC == mCompiledCRC;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the source code text for this logic. The source code
+        /// text can be compiled to convert it into AGI byte code data.
+        /// </summary>
+        public string SourceText {
+            get {
+                return mSourceText;
+            }
+            set {
+                mSourceText = string.Join(NEWLINE, value.Split(separator, StringSplitOptions.None));
+                // remove excess blank lines, leaving just one
+                int length = mSourceText.Length;
+                if (length > 1) {
+                    for (int i = 1; i < length; i++) {
+                        if (mSourceText[^i..][0] != '\n') {
+                            break;
+                        }
+                        // i=1 means no cr
+                        // i=2 means one cr
+                        // i=3 means two cr
+                        // etc.
+                        // if more than one found (meaning counter got
+                        // to 3 before finding non-CR)
+                        if (i > 2) {
+                            // remove the extras
+                            mSourceText = mSourceText[(length - i + 2)..];
+                        }
+                    }
+                }
+                if (mInGame) {
+                    mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
+                    mSourceChanged = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the character code page to use when converting 
+        /// characters to or from a byte stream.
+        /// </summary>
+        public int CodePage {
+            get => parent is null ? mCodePage : parent.agCodePage;
+            set {
+                if (parent is null) {
+                    // confirm new codepage is supported; error if it is not
+                    if (validcodepages.Contains(value)) {
+                        mCodePage = value;
+                    }
+                    else {
+                        throw new ArgumentOutOfRangeException("CodePage", "Unsupported or invalid CodePage value");
+                    }
+                }
+                else {
+                    // ignore; the game sets codepage
+                }
+            }
+        }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// This method is used by the ExtractResources function to do the initial load of
+        /// logic resource data without loading the source code text file.
+        /// </summary>
+        internal void LoadNoSource() {
+            // load the base resource data
+            base.Load();
+            if (Error != ResourceErrorType.NoError &&
+                Error != ResourceErrorType.FileIsReadonly) {
+                // return a blank logic resource
+                ErrClear();
+            }
+            // code size is message offset value plus two
+            mCodeSize = ReadWord(0) + 2;
+            mIsChanged = false;
+            mSourceChanged = false;
+        }
+
+        /// <summary>
+        /// Loads this logic resource by reading its data from the VOL file. Only
+        /// applies to logics in a game. Non-game logics are loaded when they are
+        /// instantiated and remain loaded until disposed.
+        /// </summary>
+        public override void Load() {
+            if (mLoaded) {
+                return;
+            }
+            // only ingame logics can be unloaded, so
+            // this must be an ingame logic
+            Debug.Assert(mInGame);
+            LoadNoSource();
+            // load the sourcetext
+            LoadSource();
+        }
+
+        /// <summary>
+        /// Unloads this logic resource. Data elements are undefined and non-accessible
+        /// while unloaded. Only logics that are in a game can be unloaded.
+        /// </summary>
+        public override void Unload() {
+            if (!mInGame) {
+                return;
+            }
+            base.Unload();
+            mSourceChanged = false;
+            mSourceText = "";
+        }
+
+        /// <summary>
+        /// Initializes a new logic resource when first instantiated. If NewLogic is null, 
+        /// a blank logic resource is created. If NewLogic is not null, it is cloned into
+        /// the new logic.
+        /// </summary>
+        /// <param name="NewLogic"></param>
+        private void InitLogic(Logic NewLogic = null) {
+            if (NewLogic is null) {
+                // set default resource data by clearing
+                Clear();
+                // to avoid having compile property read true if both values are 0,
+                // set compiledCRC to -1 on initialization
+                CompiledCRC = 0xffffffff;
+                CRC = 0;
+            }
+            else {
+                // copy base properties
+                NewLogic.CloneTo(this);
+                // copy logic properties
+                mIsRoom = NewLogic.mIsRoom;
+                mLoaded = NewLogic.mLoaded;
+                mCompiledCRC = NewLogic.mCompiledCRC;
+                mCRC = NewLogic.mCRC;
+                mSourceText = NewLogic.mSourceText;
+                mSourceChanged = NewLogic.mSourceChanged;
+                SourceFile = NewLogic.SourceFile;
+            }
+        }
+
+        /// <summary>
+        /// Creates an exact copy of this Logic resource.
+        /// </summary>
+        /// <returns>The Logic resource this method creates.</returns>
+        public Logic Clone() {
+            // only loaded logics can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+
+            Logic CopyLogic = new();
+            // copy base properties
+            base.CloneTo(CopyLogic);
+            // add WinAGI items
+            CopyLogic.mIsRoom = mIsRoom;
+            CopyLogic.mLoaded = mLoaded;
+            CopyLogic.mCompiledCRC = mCompiledCRC;
+            CopyLogic.mCRC = mCRC;
+            CopyLogic.mSourceText = mSourceText;
+            CopyLogic.mSourceChanged = mSourceChanged;
+            CopyLogic.SourceFile = SourceFile;
+            CopyLogic.mCodePage = mCodePage;
+            CopyLogic.Error = Error;
+            CopyLogic.SourceError = SourceError;
+            CopyLogic.Warnings = Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                CopyLogic.ErrData[i] = ErrData[i];
+                CopyLogic.WarnData[i] = WarnData[i];
+            }
+            return CopyLogic;
+        }
+
+        /// <summary>
+        /// Copies properties from SourceLogic into this logic.
+        /// </summary>
+        /// <param name="SourceLogic"></param>
+        public void CloneFrom(Logic SourceLogic) {
+            // only loaded logics can be cloned
+            WinAGIException.ThrowIfNotLoaded(this);
+            WinAGIException.ThrowIfNotLoaded(SourceLogic);
+
+            // copy base properties
+            base.CloneFrom(SourceLogic);
+            // add WinAGI items
+            mIsRoom = SourceLogic.mIsRoom;
+            mLoaded = SourceLogic.mLoaded;
+            mCompiledCRC = SourceLogic.mCompiledCRC;
+            mCRC = SourceLogic.mCRC;
+            mSourceText = SourceLogic.mSourceText;
+            mSourceChanged = SourceLogic.mSourceChanged;
+            SourceFile = SourceLogic.SourceFile;
+            mCodePage = SourceLogic.mCodePage;
+            Error = SourceLogic.Error;
+            SourceError = SourceLogic.SourceError;
+            Warnings = SourceLogic.Warnings;
+            for (int i = 0; i < ErrData.Length; i++) {
+                ErrData[i] = SourceLogic.ErrData[i];
+                WarnData[i] = SourceLogic.WarnData[i];
+            }
+            return;
+        }
+
+        /// <summary>
+        /// Clears out source code text and clears the resource data.
+        /// </summary>
+        public override void Clear() {
+            WinAGIException.ThrowIfNotLoaded(this);
+            base.Clear();
+            // set default resource data
+            mData = [0x01, 0x00, 0x00, 0x00];
+            // byte0 = low byte of msg section offset (relative to byte 2)
+            // byte1 = high byte of msg section offset
+            // byte2 = first byte of code data (a single return)
+            // byte3 = first byte of msg section = # of messages
+
+            // clear the source code by setting it to 'return' command
+            mSourceText = "return();" + NEWLINE;
+            if (mInGame) {
+                // reset crcs
+                mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
+                mCompiledCRC = mCRC;
+            }
+            mSourceChanged = true;
+            mCodeSize = 3;
+        }
+
+        /// <summary>
+        /// Exports a logic soure code; ingame only (since only ingame logics can be compiled)
+        /// </summary>
+        /// <param name="ExportFile"></param>
+        public void ExportSource(string ExportFile) {
+            WinAGIException.ThrowIfNotLoaded(this);
+            try {
+                File.WriteAllText(ExportFile, mSourceText);
+            }
+            catch (Exception ex) {
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
+                    ARG1, ex.Message).Replace(
+                    ARG2, ExportFile)) {
+                    HResult = WINAGI_ERR + 502
+                };
+                wex.Data["exception"] = ex;
+                throw wex;
+            }
+        }
+
+        /// <summary>
+        /// Imports a logic from a file into this resource. This will overwrite current source
+        /// text with decompiled resource. Use ImportSource to import source code directly.
+        /// </summary>
+        /// <param name="ImportFile"></param>
+        public override void Import(string ImportFile) {
+            try {
+                base.Import(ImportFile);
+                // load the source code by decompiling
+                LoadSource(true);
+            }
+            catch {
+                throw;
+            }
+            mSourceChanged = false;
+        }
+
+        public void ImportNoSource(string importfile) {
+            try {
+                base.Import(importfile);
+            }
+            catch {
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sierra syntax imports need to load the logic without loading source code.
+        /// </summary>
+        /// <param name="ImportFile"></param>
+        internal void ImportResource(string ImportFile) {
+            try {
+                base.Import(ImportFile);
+            }
+            catch {
+                throw;
+            }
+            mSourceChanged = false;
+
+        }
+        /// <summary>
+        /// Imports a an existing source code file into this logic resource. It does not 
+        /// compile the logic so the resource data remains unchanged.
+        /// </summary>
+        /// <param name="ImportFile"></param>
+        public void ImportSource(string ImportFile) {
+            ArgumentException.ThrowIfNullOrWhiteSpace(nameof(ImportFile));
+            if (!File.Exists(ImportFile)) {
+                throw new FileNotFoundException("Import file not found", ImportFile);
+            }
+            if (mInGame) {
+                // replace source text with file contents, then save the source
+                try {
+                    mSourceText = File.ReadAllText(ImportFile);
+                    SaveSource();
+                }
+                catch {
+                    // pass along error
+                    throw;
+                }
+            }
+            else {
+                // change file name to match the import file
+                SourceFile = ImportFile;
+                LoadSource();
+                // set ID to the filename without extension;
+                // the calling function will take care or reassigning it later, if needed
+                // (for example, if the new logic will be added to a game)
+                mResID = Path.GetFileNameWithoutExtension(ImportFile);
+                if (mResID.Length > 64) {
+                    mResID = mResID.Left(64);
+                }
+                if (mInGame && NotUniqueID(this)) {
+                    // create one
+                    int i = 0;
+                    string baseid = mResID;
+                    do {
+                        mResID = baseid + "_" + i++.ToString();
+                    }
+                    while (NotUniqueID(this));
+                }
+            }
+            // reset changed flag
+            mSourceChanged = false;
+        }
+
+        /// <summary>
+        /// Loads the source code text file for this logic. If logic is not
+        /// in a game, calling code must make sure filename is set before 
+        /// calling this method.
+        /// </summary>
+        /// <param name="Decompile"></param>
+        public void LoadSource(bool Decompile = false) {
+            uint tmpCRC = 0;
+            // assume no errors
+            SourceError = ResourceErrorType.NoError;
+
+            if (mInGame && !Decompile) {
+                // check that file exists; if not, look for alternate filename
+                // formats, and move/rename as needed
+                if (!File.Exists(SourceFile)) {
+                    if (File.Exists(Path.Combine(parent.agSrcResDir, "logic" + Number + ".txt"))) {
+                        File.Move(Path.Combine(parent.agSrcResDir, "logic" + Number + ".txt"), SourceFile);
+                    }
+                    else if (File.Exists(Path.Combine(parent.agSrcResDir, mResID + ".txt"))) {
+                        File.Move(Path.Combine(parent.agSrcResDir, mResID + ".txt"), SourceFile);
+                    }
+                    else {
+                        if (parent.agSierraSyntax) {
+                            if (File.Exists(Path.Combine(parent.agSrcResDir, "RM" + Number + ".cg"))) {
+                                File.Move(Path.Combine(parent.agSrcResDir, "RM" + Number + ".cg"), SourceFile);
+                            }
+                            else {
+                                // default file does not exist
+                                // AGI Studio file does not exist
+                                // CG file does not exist
+                                // force decompile
+                                Decompile = true;
+                            }
+                        }
+                        else {
+                            // default file does not exist
+                            // AGI Studio file does not exist
+                            // force decompile
+                            Decompile = true;
+                        }
+                    }
+                }
+            }
+            bool decompOK = false;
+            // if forcing decompile
+            if (Decompile) {
+                if (Error == ResourceErrorType.NoError ||
+                    Error == ResourceErrorType.FileIsReadonly) {
+                    // get source code by decoding the resource raw data
+                    (mSourceText, decompOK) = LogicDecoder.DecodeLogic(this);
+                    SourceError = decompOK ? ResourceErrorType.NoError : ResourceErrorType.LogicSourceDecompileError;
+                }
+                else {
+                    // if base failed to load, there is nothing to decompile
+                    mSourceText = "return();" + NEWLINE;
+                }
+            }
+            else {
+                // calling function should verify file exists before
+                // trying to load a source
+                Debug.Assert(File.Exists(SourceFile));
+                // check for readonly
+                if ((File.GetAttributes(SourceFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
+                    SourceError = ResourceErrorType.LogicSourceIsReadonly;
+                    ErrData[0] = mSourceText;
+                    ErrData[1] = mResID;
+                    // file can still be loaded
+                }
+                try {
+                    mSourceText = File.ReadAllText(SourceFile);
+                }
+                catch (Exception e) {
+                    SourceError = ResourceErrorType.LogicSourceAccessError;
+                    ErrData[0] = e.Message;
+                    ErrData[1] = mResID;
+                    mSourceText = "return();" + NEWLINE;
+                    // force uncompile state
+                    mCRC = 0;
+                    mCompiledCRC = 0xffffffff;
+                    return;
+                }
+            }
+            // replace tabs with indent spaces
+            if (mSourceText.Contains('\t')) {
+                mSourceText = mSourceText.Replace("\t", " ");
+            }
+            // calculate source crc
+            if (mInGame) {
+                if (!Decompile || decompOK) {
+                    tmpCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
+                }
+                if (mCRC != tmpCRC) {
+                    // update crc
+                    mCRC = tmpCRC;
+                    parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics", true);
+                }
+                // if decompiling, also save the source and the compiled crc
+                if (Decompile) {
+                    SaveSource();
+                    if (decompOK) {
+                        mCompiledCRC = tmpCRC;
+                    }
+                    else {
+                        // force uncompile state
+                        mCompiledCRC = 0xffff;
+                    }
+                    parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics", true);
+                }
+            }
+            else {
+                // update crc
+                mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
+            }
+            mSourceChanged = false;
+        }
+
+        public void UpdateAutoIncludes() {
+            if (!mInGame) {
+                return;
+            }
+            bool changed = false, unload = false;
+            if (!mLoaded) {
+                LoadSource();
+                unload = true;
+            }
+            if (!parent.agSierraSyntax) {
+                mSourceText = RefreshAutoIncludes(mSourceText, parent, ref changed);
+            }
+            if (changed) {
+                mCRC = CRC32(Encoding.Unicode.GetBytes(mSourceText));
+                parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics");
+                SaveSource();
+            }
+            if (unload) {
+                Unload();
+            }
+        }
+
+        /// <summary>
+        /// Saves the source code text for this logic to a file. If in a game,
+        /// target file is predefined as the logic's sourcefile. If not in a game
+        /// the target file can be specified as a parameter. If blank, the
+        /// current sourcefile name is assumed.
+        /// </summary>
+        /// <param name="SaveFile"></param>
+        public void SaveSource(string SaveFile = "") {
+            if (SaveFile.Length == 0) {
+                if (!mInGame) {
+                    ArgumentException.ThrowIfNullOrWhiteSpace(SaveFile);
+                }
+                SaveFile = SourceFile;
+            }
+            try {
+                File.WriteAllText(SaveFile, mSourceText);
+            }
+            catch (Exception ex) {
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
+                    ARG1, ex.Message).Replace(
+                    ARG2, SaveFile)) {
+                    HResult = WINAGI_ERR + 502
+                };
+                wex.Data["exception"] = ex;
+                throw wex;
+            }
+            mSourceChanged = false;
+            if (InGame) {
+                parent.WriteGameSetting("Logic" + Number, "CRC32", "0x" + mCRC.ToString("x8"), "Logics", true);
+                parent.agLastEdit = DateTime.Now;
+            }
+            else {
+                mResID = Path.GetFileName(SaveFile);
+            }
+        }
+
+        /// <summary>
+        /// Compiles the source code for this logic and saves the resource. Only logics
+        /// in a game can be compiled.
+        /// </summary>
+        public bool Compile() {
+            // TODO: currently nongame logics can't be compiled
+
+            WinAGIException.ThrowIfNotLoaded(this);
+            if (!mInGame) {
+                // for now, only ingame logics can be compiled
+                WinAGIException wex = new(EngineResourceByNum(525)) {
+                    HResult = WINAGI_ERR + 525
+                };
+                throw wex;
+            }
+            if (mSourceText.Length == 0) {
+                WinAGIException wex = new(EngineResourceByNum(554)) {
+                    HResult = WINAGI_ERR + 554
+                };
+                throw wex;
+            }
+            try {
+                bool compiled = CompileLogic(this);
+                // reset added include file list
+                AddedIncludes.Clear();
+                if (compiled) {
+                    Debug.Assert(mIsChanged);
+                    parent.SaveProperties();
+                    base.Save();
+                    return true;
+                }
+                else {
+                    // force uncompiled state
+                    mCompiledCRC = 0xffffffff;
+                    parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics", true);
+                    return false;
+                }
+            }
+            catch {
+                // reset added include file list
+                AddedIncludes.Clear();
+                // force uncompiled state
+                mCompiledCRC = 0xffffffff;
+                parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics", true);
+                // pass it along
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Saves properties of this logic to the game's WAG file.
+        /// </summary>
+        public void SaveProps() {
+            if (mInGame) {
+                string section = "Logic" + Number;
+                parent.WriteGameSetting(section, "ID", ID, "Logics");
+                parent.WriteGameSetting(section, "Description", Description);
+                parent.WriteGameSetting(section, "CRC32", "0x" + mCRC.ToString("x8"));
+                parent.WriteGameSetting(section, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"));
+                parent.WriteGameSetting(section, "IsRoom", mIsRoom.ToString());
+                PropsChanged = false;
+            }
+        }
+
+        /// <summary>
+        /// If INGAME: <br/>
+        /// Same as SaveSource. To update an igame logic resource, use the 
+        /// Compile method.<br />
+        /// If NOT INGAME:<br />
+        /// Saves this logic resource to its resource file specified by FileName.
+        /// This does NOT save the source file; use SaveSource to do that.
+        /// </summary>
+        /// <param name="SaveFile"></param>
+        public new void Save() {
+            // regardless of ingame status, should never save resource
+            // using base; only way to do that should be through compiling
+            // and only ingame resources can be compiled (for now)
+            WinAGIException.ThrowIfNotLoaded(this);
+            if (PropsChanged && mInGame) {
+                SaveProps();
+            }
+            SaveSource();
+        }
+
+        /// <summary>
+        /// Saves the warnings list for this logic resource to the game's property
+        /// file. If saveit is false, the warnings are updated in the game properties
+        /// object only, not saved to file.
+        /// </summary>
+        /// <param name="warningList"></param>
+        public void SaveWarnings(List<WinAGIEventInfo> warningList, bool saveit = true) {
+            Debug.Assert(warningList is not null);
+            Debug.Assert(mInGame);
+            // serialize by using tabs between elements and
+            // vertical tabs between each warning/error item
+            string warnings = "";
+            bool first = true;
+            if (warningList.Count > 0) {
+                foreach (WinAGIEventInfo warning in warningList) {
+                    if (first) {
+                        first = false;
+                    }
+                    else {
+                        warnings += "\v";
+                    }
+                    warnings += (warning.Type == EventType.LogicCompileError ? "0" : "1") + '\t' +
+                        warning.ID + '\t' +
+                        warning.Text + '\t' +
+                        warning.Line.ToString() + '\t' +
+                        warning.Module + '\t' +
+                        warning.Filename;
+                }
+                warnings = CompressToBase64(warnings);
+            }
+            parent.WriteGameSetting("Logic" + Number, "Warnings", warnings, "Logics", saveit);
+        }
+
+        public List<WinAGIEventInfo> LoadWarnings() {
+            List<WinAGIEventInfo> warningList = [];
+            string warnings = parent.agGameProps.GetSetting("Logic" + Number, "Warnings", "", true);
+            if (warnings.Length > 0) {
+                warnings = DecompressFromBase64(warnings);
+                if (warnings.Length == 0) {
+                    return warningList;
+                }
+                string[] items = warnings.Split(["\v"], StringSplitOptions.None);
+                foreach (string item in items) {
+                    string[] elements = item.Split('\t');
+                    if (elements.Length == 6) {
+                        WinAGIEventInfo warning = new() {
+                            ResNum = Number,
+                            ResType = AGIResType.Logic,
+                            Type = elements[0] == "0" ? EventType.LogicCompileError : EventType.LogicCompileWarning,
+                            ID = elements[1],
+                            Text = elements[2],
+                            Line = int.Parse(elements[3]),
+                            Module = elements[4],
+                            Filename = elements[5]
+                        };
+                        warningList.Add(warning);
+                    }
+                }
+            }
+            return warningList;
+        }
+        #endregion
+    }
+}

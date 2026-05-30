@@ -1,0 +1,16 @@
+<html>
+	<head><title>Reserved Flag f7</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f7: Script Table Entry Disabled</h1>
+			<p>Most commands that involve loading or unloading <a href="resources.htm">resources</a> are tracked by AGI by writing to a <a href="scripts.htm">script table</a> so that games can be properly <a href="restore.htm">restored</a>. When f7 is to TRUE, AGI will not write entries to the <a href="scripts.htm">script table</a>. This means that when a game is restored, any resources loaded/unloaded while f7 is TRUE will not be loaded/unloaded when a game is restored. See the <a href="scripts.htm">AGI Scripts</a> topic for details of what scripts are and how they work in AGI.</p>
+			<p>Attempting to use this flag for other purposes is not recommended unless you will not include <a href="..\commands\cmd_restoregame.htm"><b>restore.game</b></a> commands in your game, because it will interfere with script management, possibly <a href="errors.htm">crashing AGI</a> when restarting or restoring games.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

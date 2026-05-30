@@ -1,0 +1,26 @@
+<html>
+	<head><title>Logic Compiler Warning 5002</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5002</h2>
+    <h3>Or brackets unnecessary for a single test command</h3>
+    <p class="indent_n">The code will compile and run as expected, but if you only have a single <a href="..\..\commands\syntax_fan.htm#tests">test command</a>, the OR brackets (extra parentheses) are unnecessary.</p>
+     <blockquote>
+      <pre>[ this will compile:
+if ( <b>(</b>isset(f99)<b>)</b> ) {
+...
+
+[ but this is better:
+if ( isset(f99) ) {
+...</pre>
+    </blockquote>
+   <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

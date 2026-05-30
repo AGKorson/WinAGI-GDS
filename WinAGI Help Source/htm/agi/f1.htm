@@ -1,0 +1,18 @@
+<html>
+	<head><title>Reserved Flag f1</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f1: Ego is Obscured</h1>
+			<p>AGI sets this flag during every <a href="cycle.htm">interpreter cycle</a> when updating the position of <a href="interface.htm#ego">ego</a>. If every pixel of the cel assigned to ego is not drawn because it is either transparent, or is of lower priority than the background <a href="pictures.htm">picture</a>, then no pixels of ego will be visible. In this case, AGI sets flag f1 to TRUE. If at least one pixel of ego is visible, then AGI sets flag f1 to FALSE.</p>
+			<p>This can be useful in case you need to have your code respond in a specific way in case ego is hidden.</p>
+			<p>Note that if ego is not <a href="..\commands\cmd_animateobj.htm">animated</a>, it does not get updated. So flag f1 won't be modified during interpreter cycles when ego is not animated.</p>
+			<p>Attempting to use this flag for other purposes is not recommended, because AGI overwrites it in every <a href="cycle.htm">interpreter cycle</a> when updating ego. If you never use ego in your game, then you could use this flag without any concerns.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

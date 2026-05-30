@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5081</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5081</h2>
+    <h3>Test command 'return.false()' is not compatible with AGIStudio</h3>
+    <p class="indent_n">There is an undocumented <a href="..\..\commands\cmds_test.htm">test command</a> in AGI with a byte code value of zero. The function (called <a href="..\..\commands\cmd_returnfalse.htm"><b>return.false</b></a>), does nothing and returns a value of false. It has no practical value, but WinAGI will compile it, as it will run without raising a <a href="..\..\agi\errors.htm#runtime">runtime error</a>. However, AGI Studio does not recognize it as a valid command. If you try to use this source code in AGI Studio, <b>return.false</b> will generate an unknown command compiler error. Also, if you decompile a logic that uses <b>return.false</b>, AGI Studio will identify it as a corrupt logic. It's best if you don't use AGI Studio anyway, since WinAGI is so vastly superior in all respects.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

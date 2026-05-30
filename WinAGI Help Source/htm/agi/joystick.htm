@@ -1,0 +1,24 @@
+<html>
+	<head><title>Joystick Input</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Joystick Input</h1>
+		<p>In addition to <a href="keyboard.htm">keyboard input</a>, AGI contained support for joysticks for most platforms as a means to move the ego character around the screen. The Macintosh and Amiga versions of AGI do not appear to support the joystick (this has not been confirmed, though); this is probably because these platforms had a mouse instead.</p>
+		<p>To use the joystick in MSDOS versions, AGI first needs to initialize it; this is done with the <b><a href="..\commands\cmd_initjoy.htm">init.joy</a></b> command. This command verifies a joystick is attached, and if one is found, it prompts the player to center the joystick in order to calibrate it.</p>
+		<h3>Joystick Movement</h3>
+		<p>Once calibrated, AGI maintains an internal counter that is set to nine CPU <a href="starting.htm#ticks">clock ticks</a>. In each <a href="cycle.htm">interpreter cycle</a>, if enough time has passed (at least nine ticks), AGI polls the joystick to see if it is moved far enough away from center to generate a movement command.</p>
+		<p>When the joystick is polled and change in direction is detected, AGI converts the joystick position into the corresponding <a href="keyboard.htm#egodir">ego movement direction</a> value and adds that value to the <a href="interface.htm#queue">input queue</a>.
+		<h3>Joystick Buttons</h3>
+		<p>Unlike joystick position, AGI polls the status of joystick buttons in every <a href="cycle.htm">interpreter cycle</a>. Joystick button presses get added to the <a href="interface.htm#queue">input queue</a> in the same format as a key-press. However, instead of a ASCII value or scan code, a special two-byte code is added. The first byte always has a value of 1, and the second byte is 1, 2, 3 or 4, to represent single click of A button, single click of B button, 'double-click' of A button, or 'double-click' of B button respectively.</p>
+		<p>AGI includes the ability to detect and respond to 'double-clicks' of the joystick buttons. If <a href="flags.htm#reserved">reserved flag</a> <a href="f8.htm">f8 (double click enabled)</a> is set (TRUE), double-click detection is enabled. If f8 is not set (FALSE), all button presses are detected as single clicks.</p>
+		<p>The delay time which determines whether a second button press is treated as a new single click or as a double-click is set by <a href="variables.htm#reserved">reserved variable</a> <a href="v15.htm">v15 (double-click speed)</a>. The delay time is 0.05 seconds times the value of v15. Setting v15 to 0 has the same effect as setting flag f8 to FALSE (i.e. all button presses are treated as single clicks).</p>
+		<p>During the regular interpreter cycle, joystick button presses do not have any built-in functionality; they must be assigned to a <a href="controllers.htm">controller</a> or they are ignored.</p>
+		<p>When a dialog box or menu is displayed, the A button (single or double-click) is automatically treated the same as pressing the RETURN key, and the B button (single or double-click) is automatically treated as pressing the ESC key. Joystick movement will change the highlighted <a href="menu.htm">menu</a> item, the same as the <a href="keyboard.htm#egodir">ego movement keys</a>. </p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

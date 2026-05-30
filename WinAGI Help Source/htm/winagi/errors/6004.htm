@@ -1,0 +1,24 @@
+<html>
+	<head><title>Logic Compiler Error 6004</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6004</h2>
+    <h3>'&lt;definename&gt;' is already defined; duplicate define names are not allowed</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, define names (those set by <a href="..\..\commands\syntax_sierra.htm#object"><b>%object</b></a>, <a href="..\..\commands\syntax_sierra.htm#var"><b>%variable</b></a>, <a href="..\..\commands\syntax_sierra.htm#flag"><b>%flag</b></a>, <a href="..\..\commands\syntax_sierra.htm#view"><b>%view</b></a> and <a href="..\..\commands\syntax_sierra.htm#defines"><b>%define</b></a>) must be unique. You will need to adjust the affected define names as needed to make them all unique.</p>
+      <blockquote>
+      <pre>%var v99   99
+...
+%define v99   99   [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

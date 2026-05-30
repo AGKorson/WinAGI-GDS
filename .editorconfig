@@ -1,0 +1,2 @@
+[*.Designer.cs]
+dotnet_diagnostic.SYSLIB0011.severity = none

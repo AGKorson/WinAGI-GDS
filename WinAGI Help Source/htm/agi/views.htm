@@ -1,0 +1,163 @@
+<html>
+	<head><title>VIEW Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1><a name="view">VIEW Resources</a></h1>
+			<p>VIEW resources contain the graphics information used to display <a href="screenobjs.htm">screen objects</a> (sprites) on the <a href="grafdisp.htm">graphics screen</a>. Unlike the <a href="pictures.htm">picture</a> resources which are full-screen background images, view resources are smaller <EM>sprites</EM> used in the game as animations and objects. They are also stored as bitmaps, whereas pictures are stored in vector format.</p>
+			<p>Each view resource consists of one or more <EM><a href="#loop">loops</a></EM>. Each loop in the resource consists of one or more stored bitmaps (<EM><a href="#cel">cels</a></EM>). Several animations can be stored in one view, or a view can just be used for a single bitmap.</p>
+		<h2>VIEW Resource Format</h2>
+			<p>Each VIEW resource contains a five byte (7 byte in the case of version 3 games) <a href="resources.htm#headers">header</a>.</p>
+			<blockquote><p>Note: Except when noted otherwise, 16 bit data is stored in little endian format (i.e. the value has the least significant byte stored first, and the most significant byte stored second). Most word values in AGI are stored like this, but not all.</p></blockquote>
+			<p>The view data consists of a view specific header followed by loop data for each <a href="#loop">loop</a>. The view header tells AGI how many loops are in the view and contains offsets to the location of the view description (if there is one) and offsets to the starting position of each loop in the view. Two loop offsets can point to the same loop data. This is done when you want to use <a href="#mirror">mirroring</a>.</p>
+			<p>Each <a href="#loop">loop</a> data section starts with a loop header, which tells AGI how many <a href="#cel">cels</a> are in the loop, followed by cel data. Cel data consists of a cel header, which contains size, transparency and mirroring information. The actual cel data follows the cel header. The <a href="#viewdesc">view description</a>, if there is one, is located at the end of all cel data. Figure 1 shows how view components are arranged in a view resource.</p>
+			<p><img alt="View Resource Layout" src="..\..\graphics\viewres.bmp" width="505"></p>
+			<p class="indent_n"><b>Figure 1: View Resource Layout</b></p>
+			<p>&nbsp;</p>
+			<p>Details on header information for view components is shown below:</p>
+			<table id="Table2" cellSpacing="1" cellPadding="1" width="800" border="1">
+				<tr>
+					<td align="middle" colSpan="2"><b><font size="2">View Header</font></b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="90"><b>Byte</b></td>
+					<td><b>Meaning</b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">0</td>
+					<td>Unused (in earlier versions it was the step size for the view)</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">1</td>
+					<td>Unused (in earlier versions it was the step time for the view)</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">2</td>
+					<td>Number of loops (255 maximum)</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">3 - 4</td>
+					<td>Position of description (Both bytes are 0 if there is no description)</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">5 - 6</td>
+					<td>Offset to start of first loop data</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">...</td>
+					<td>Offsets for any other loops follow, up to number of loops given in byte 2</td>
+				</tr>
+			</table>
+			<p>In <a href="versions.htm">versions</a> prior to 2.089, <a href="..\commands\object_moving.htm#stepsize">step size</a> and <a href="..\commands\object_moving.htm#steptime">step time</a> properties were stored in each view as the first two bytes of the header. When these properties were moved to the <a href="sobjtable.htm">screen object structure</a>, the view header was not changed. So the first two bytes of the view header are always ignored in all version 2 and 3 interpreters.</p>
+			<p>&nbsp;</p>
+			<table id="Table4" cellSpacing="1" cellPadding="1" width="800" border="1">
+				<tr>
+					<td align="middle" colSpan="2"><b><font size="2">Loop Header</font></b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="90"><b>Byte</b></td>
+					<td><b>Meaning</b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">0</td>
+					<td>Number of cels in this loop (255 maximum)</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">1 - 2</td>
+					<td>Offset to start of first cel data (relative to byte 0 of this loop)</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">...</td>
+					<td>Offsets for any other cels follow, up to the number of cels given in byte 2</td>
+				</tr>
+			</table>
+			<p>&nbsp;</p>
+			<table id="Table3" cellSpacing="1" cellPadding="1" width="800" border="1">
+				<tr>
+					<td align="middle" colSpan="2"><b><font size="2">Cel Header</font></b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="90"><b>Byte</b></td>
+					<td><b>Meaning</b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">0</td>
+					<td>Width of cel in AGI pixels</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">1</td>
+					<td>Height of cel in AGI pixels</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">2</td>
+					<td>Transparency and mirroring</td>
+				</tr>
+			</table>
+
+		<h2><a name="loop">Loops</a></h2>
+			<p>Loops are collections of bitmaps (<a href="#cel">cels</a>) that typically represent frames of an animated <a href="screenobjs.htm">screen object's</a> movement; when displayed sequentially, the loop of cels provides the animation that gives life to the <a href="screenobjs.htm">screen object</a>. Loops can also be used to store collections of bitmaps for any purpose; AGI provides commands that allow for easy manipulation and display of cels in order to improve the graphical presentation of a game.</p>
+			<p>The maximum number of loops supported by AGI is 255 (0-254). It is not 256, because AGI uses a byte value to represent the loop count; 255 is the largest integer that can be represented, and since loop numbers are zero-based (first loop is 0, second loop is 1, etc), the 255th loop would have an index of 254, the largest possible index.</p>
+		<h3><a name="mirror">Loop Mirroring</a></h3>
+			<p>Mirroring was introduced beginning in <a href="version2.htm#2272">version 2.272</a>. With mirroring, all the <a href="#cel">cels</a> of one loop are a mirror image of the corresponding cels in another loop. Although you could do this manually by drawing one loop and then copying and pasting all the cels to another loop and flipping them horizontally, AGI can do this automatically with the mirroring feature. This is useful if you have an animation of a character walking left and right -- with just one loop of the right-walking animation, mirroring can provide the left-walking animation. Another advantage of cel mirroring is to save space -- it doesn't make much difference these days, but back when AGI was written the games were designed to run on 256K systems which meant that memory had to be used as efficiently as possible.</p>
+			<p>Mirroring is done by having both loops share the same <a href="#cel">cel</a> data. The upper four bits of the 3rd byte in the cel header tell AGI whether the cel is in a mirrored loop, and which loop the cel data currently is set to:</p>
+			<table id="Table5" cellSpacing="1" cellPadding="1" width="800" border="1">
+				<tr>
+					<td align="middle" width="90"><b>Bit</b></td>
+					<td><b>&nbsp;Meaning</b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">7</td>
+					<td>0: Cel not mirrored<BR/>1: Cel is mirrored</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90">6-5-4</td>
+					<td>Loop currently using this cel</td>
+				</tr>
+			</table>
+			<p>Note that the mirror loop number is only three bits wide; meaning only loops 0 through 7 can be mirrored.</p>
+			<p>When AGI needs to display a cel, it looks at  bit 7 to see if its loop is mirrored or not. If it is, then it checks the loop number (bits 4-6) -- if this is NOT the same as the current loop, then it flips the cel before displaying it.</p>
+			<p>To flip a cel, AGI creates a new set of data by flipping the order of the individual data <a href="#celdata">chunks</a> for each row. AGI then overwrites the existing cel data with the new data and updates the cel header mirror/transparency byte with the current loop. When drawn in screen, the cel will now show the flipped version.</p>
+			<p>If the current loop is changed back to the original loop number, the cell header will tell AGI to flip the cel data back, using the same process.</p>
+			<p>Because the number of bytes needed to encode a cel can change when it flips, the cel data section in the resource must be large enough to hold whichever image has the larger data size. Figure 3 shows an example making this easier to see:</p>
+			<p><img alt="Mirroring Cel Data" src="..\..\graphics\mirror.bmp" width="645"></p>
+			<p class="indent_n"><b>Figure 3: Mirroring Cel Data</b></p>
+			<p>The left-facing image uses 34 bytes to encode the pixel data. But the right-facing image needs 35 bytes. When stored in a resource, if the left-facing cel data is used without an extra byte for padding, when AGI flips it, the right-facing data will overflow one byte into the next cel or loop in the resource. This will almost always cause AGI to crash. Sierra's view editor (and WinAGI) will always determine the size of both images in mirrored cels and make sure the resource is sized correctly to avoid errors.</p>
+		<h3><a name="autoloop">Autoloop Feature</a></h3>
+			<p>To facilitate managing loops for <a href="screenobjs.htm">screen objects</a> that represent moving characters, AGI has a built-in feature to automatically change the loop based on which direction the object is moving. See the <a href="screenobjs.htm#autoloop">Auto Loop</a> topic for details.</p>
+		<h3>Non-mirroring Loop Sharing</h3>
+			<p>It is allowable for two or more loops to use the same data without being a mirror. In that case, the mirror bit for the cels is NOT set, and both loops will always show the same cels without flipping. There are a few known cases of this in Sierra games. In most cases, there is no value in doing this, but if needed, it is allowed.</p>
+			<p>&nbsp;</p>
+		<h2><a name="cel">Cels</a></h2>
+			<p>The individual bitmaps that make up loops are called cels. A cel can have a maximum width of 160 pixels and maximum height of 168 pixels, the same size as the <a href="grafdisp.htm">graphics</a> screen. The maximum number of cels per loop is also 255 (0-254), for the same reason that <a href="#loop">loops</a> are limited.</p>
+		<h3><a name="transparency">Transparency</a></h3>
+			<p>The least significant four bits of byte 2 in the cel header contain the transparency <a href="graphics.htm#agicolors">color index</a> for the cel. This allows irregular shapes to be drawn on the screen even though the cel is rectangular. When the view is drawn on the screen, AGI will not draw any pixels of the cel that match the transparency color, allowing the screen background to show through. Figure 2 shows how transparency works:</p>
+			<p><img alt="Transparency Demo" src="..\..\graphics\transparency.bmp" width="457"></p>
+			<p class="indent_n"><b>Figure 2: Transparency Demo</b></p>
+			<p>All cels have a transparent color, so if you want an opaque cel then you must set the transparent color to one that is not used in the cel.</p>
+		<h3><a name="celdata">Cel Data</a></h3>
+			<p>The actual image data for each cel is stored using run length encoding (RLE) compression. This means that instead of having one byte for each pixel, each byte specifies a chunk of pixels in a row that are the same color. Each time color changes in a row, a new chunk is stored. The end of each row is marked by a byte with value of zero.</p>
+			<p>Each chunk byte uses the first four bits as the <a href="graphics.htm#agicolors">color index</a>, and the last four bits determine the number of pixels in the chunk.</p>
+			<p>Example: <code>AX BY CZ 00</code></p>
+			<p>This line will have:
+			<ul>
+				<li>X pixels of color A (<code>AX</code>)
+				<li>Y pixels of color B (<code>BY</code>)
+				<li>Z pixels of color C (<code>CZ</code>)
+				<li>end of the line (<code>00</code>)
+				</li>
+			</ul>
+			<p>&nbsp;</p>
+			<p>If the last chunk does not include enough pixels to complete the row, AGI will automatically assign the transparent color to any pixels remaining. For example, if C was the transparent color in the above example, AGI uses <code>AX BY 00</code>. This also helps reduce the size of views in memory.</p>
+			<p>This method of compression is not very efficient if there are a lot of single pixels in the image (e.g. a view showing static on a TV screen), but in most cases it does save a fair amount of space.</p>
+			<p>&nbsp;</p>
+		<h2><a name="viewdesc"></a><a name="description">View Description</a></h2>
+			<p>Views are often used in the game to provide a close up image of <a href="invitems.htm">inventory items</a> that a player might pick up during the game. AGI provides a 'view description' property for views that can be used in conjunction with the <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a> command to display description text in addition to showing the item's image. The description text is stored unencrypted at the end of the cel data, and terminated by a null character. The new line code ('\xA') can be used in the view description if you want hard carriage returns in the text.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

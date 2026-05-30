@@ -1,0 +1,162 @@
+<html>
+	<head><title>Logic Source Compiler Warnings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h1>Logic Source Compiler Warnings</h1>
+      <p>Even when WinAGI is able to successfully compile a logic, it may detect situations which are likely to cause <a href="..\agi\errors.htm#runtime">errors</a> at runtime, or that might cause the AGI engine to crash. If the <a href="compilinglogics.htm#errlevel">error detection level</a> is set to Medium, WinAGI will display warnings in the <a href="warninglist.htm">Errors and Warnings List</a> after compiling.</p>
+      <p>Compiler warnings beginning '5xxx' apply to all logics regardless of syntax being used. Warnings beginning '7xxx' apply only to logics using original Sierra syntax.</p>
+      <p>For detailed information on syntax rules, see the <a href="..\commands\syntax_fan.htm">AGI Fan Syntax</a> and <a href="..\commands\syntax_sierra.htm">Sierra Syntax</a> topics.</p>
+      <p>Where warning messages include dynamic text, such as an unknown command, or argument values, the dynamic text is represented by '&lt;' and '&gt;' characters, for example '&lt;definename&gt;'.</p>
+      <p>&nbsp;</p>
+    <h3><a href="warnings\5001.htm">5001: This command block contains no commands</a></h3>
+    <h3><a href="warnings\5002.htm">5002: Or brackets unnecessary for a single test command</a></h3>
+    <h3><a href="warnings\5003.htm">5003: Ambiguous inventory item for argument &lt;number&gt;</a></h3>
+    <h3><a href="warnings\5004.htm">5004: '?' is the AGI default marker for an undefined inventory item</a></h3>
+    <h3><a href="warnings\5005.htm">5005: undefined inventory item for argument &lt;number&gt;</a></h3>
+    <h3><a href="warnings\5006.htm">5006: Object number exceeds MaxScreenObject value (&lt;number&gt;)</a></h3>
+    <h3><a href="warnings\5007.htm">5007: String argument value is not within expected range (0 - &lt;number&gt;)</a></h3>
+    <h3><a href="warnings\5008.htm">5008: Word argument value is not within expected range (1 - 10)</a></h3>
+    <h3><a href="warnings\5009.htm">5009: Low values for script size will most likely cause a trappable error</a></h3>
+    <h3><a href="warnings\5010.htm">5010: Using call command on logic 0 can cause game to crash</a></h3>
+    <h3><a href="warnings\5011.htm">5011: using clear.line command with bottom &lt; top and/or either value &gt; 24 will have unpredictable results</a></h3>
+    <h3><a href="warnings\5012.htm">5012: Using room 0 in the new.room command will crash AGI</a></h3>
+    <h3><a href="warnings\5013.htm">5013: Attempting to load a logic that does not exist will crash AGI</a></h3>
+    <h3><a href="warnings\5014.htm">5014: Attempting to load a sound that does not exist will crash AGI</a></h3>
+    <h3><a href="warnings\5015.htm">5015: Attempting to load a view that does not exist will crash AGI</a></h3>
+    <h3><a href="warnings\5016.htm">5016: '<code>if</code>' block has no test commands</a></h3>
+    <h3><a href="warnings\5017.htm">5017: '&lt;name&gt;' (&lt;number&gt;) is normally a read-only variable; changing it could have unexpected results</a></h3>
+    <h3><a href="warnings\5018.htm">5018: '&lt;variable&gt;' shouldn't be assigned a value &gt; &lt;number&gt;, or unexpected results will occur</a></h3>
+    <h3><a href="warnings\5019.htm">5019: Unknown word number (&lt;value&gt;) in said command</a></h3>
+    <h3><a href="warnings\5020.htm">5020: One or more block coordinates are off screen (X &gt; 159 and/or Y &gt; 167)</a></h3>
+    <h3><a href="warnings\5021.htm">5021: Unable to validate add.to.pic arguments because view &lt;number&gt; cannot be loaded; check your code and your view for errors</a></h3>
+    <h3><a href="warnings\5022.htm">5022: Duplicate include file &lt;filename1&gt;</a></h3>
+    <h3><a href="warnings\5023.htm">5023: Object position is off screen (X &gt; 159 and/or Y &gt; 167)</a></h3>
+    <h3><a href="warnings\5024.htm">5024: Attempting to discard a view that does not exist will cause a runtime error</a></h3>
+    <h3><a href="warnings\5025.htm">5025: '&lt;name&gt;' (&lt;number&gt;) is normally a read-only flag; changing it could have unexpected results</a></h3>
+    <h3><a href="warnings\5026.htm">5026: Ego direction cannot be set using the set.dir command</a></h3>
+    <h3><a href="warnings\5027.htm">5027: Using follow.ego command on ego has no effect</a></h3>
+    <h3><a href="warnings\5028.htm">5028: Define '&lt;name1&gt;' redefines '&lt;name2&gt;'</a></h3>
+    <h3><a href="warnings\5029.htm">5029: Using color values &gt; 15 may have unpredictable results</a></h3>
+    <h3><a href="warnings\5030.htm">5030: Dividing by zero will cause AGI to crash</a></h3>
+    <h3><a href="warnings\5031.htm">5031: '&lt;token&gt;' is already defined as a global name</a></h3>
+    <h3><a href="warnings\5032.htm">5032: '&lt;token&gt;' is already defined as a reserved name</a></h3>
+    <h3><a href="warnings\5033.htm">5033: '&lt;token1&gt;' is already defined by '&lt;token2&gt;'</a></h3>
+    <h3><a href="warnings\5034.htm">5034: '&lt;token&gt;' is overriding a global define</a></h3>
+    <h3><a href="warnings\5035.htm">5035: '&lt;token&gt;' is overriding a reserved define</a></h3>
+    <h3><a href="warnings\5036.htm">5036: Variable is being assigned to itself</a></h3>
+    <h3><a href="warnings\5037.htm">5037: Attempting to set a view that does not exist will cause a runtime error</a></h3>
+    <h3><a href="warnings\5038.htm">5038: Position is off screen (X &gt; 159 and/or Y &gt; 167)</a></h3>
+    <h3><a href="warnings\5039.htm">5039: Using script.size command outside logic 0 wastes memory</a></h3>
+    <h3><a href="warnings\5040.htm">5040: Referencing a logic that does not exist will crash AGI</a></h3>
+    <h3><a href="warnings\5041.htm">5041: Setting the horizon less than 16 is unusual</a></h3>
+    <h3><a href="warnings\5042.htm">5042: Setting the horizon greater than 120 is unusual</a></h3>
+    <h3><a href="warnings\5043.htm">5043: Setting the horizon greater than 166 will crash AGI</a></h3>
+    <h3><a href="warnings\5044.htm">5044: TOP argument is too large; portions of the play area will be off-screen, and graphics functions will be unpredictable</a></h3>
+    <h3><a href="warnings\5045.htm">5045: Using move.obj on ego automatically forces program control mode</a></h3>
+    <h3><a href="warnings\5046.htm">5046: If HEIGHT is less than 2, AGI resets it to 2 automatically</a></h3>
+    <h3><a href="warnings\5047.htm">5047: 'OR' block has no test commands</a></h3>
+    <h3><a href="warnings\5048.htm">5048: INPUTLINE and STATUSLINE are the same, which is usually not desired</a></h3>
+    <h3><a href="warnings\5049.htm">5049: INPUTLINE and/or STATUSLINE are inside the graphic display area; this is usually not desired</a></h3>
+    <h3><a href="warnings\5050.htm">5050: Setting PRIORITY to &lt; 4 or &gt; 15 may cause unexpected results</a></h3>
+    <h3><a href="warnings\5051.htm">5051: X2 - X1 should be &gt;= 2 and Y2 - Y1 should be &gt;= 2; this block will not behave as expected</a></h3>
+    <h3><a href="warnings\5052.htm">5052: If ROW &gt;= 25 the prompt string is drawn at current text cursor location (both ROW and COL arguments are ignored)</a></h3>
+    <h3><a href="warnings\5053.htm">5053: Using new.room command on a non-existent room will crash AGI</a></h3>
+    <h3><a href="warnings\5054.htm">5054: Using random command with lower bound &gt; upper bound will have unexpected results</a></h3>
+    <h3><a href="warnings\5055.htm">5055: Assigning a large number to animation interval (v10) is highly unusual</a></h3>
+    <h3><a href="warnings\5056.htm">5056: LENGTH is &gt; max string length</a></h3>
+    <h3><a href="warnings\5057.htm">5057: Using zero as shake.screen argument will cause eight hours of shaking</a></h3>
+    <h3><a href="warnings\5058.htm">5058: Large values for shake.screen command are unusual</a></h3>
+    <h3><a href="warnings\5059.htm">5059: This 'shake.screen' command appears to be an AGIPAL palette change; don't use original interpreter to run this game</a></h3>
+    <h3><a href="warnings\5060.htm">5060: Controller argument value is not within expected range (0 - 49)</a></h3>
+    <h3><a href="warnings\5061.htm">5061: Using show.obj command with an invalid view will raise a trappable error</a></h3>
+    <h3><a href="warnings\5062.htm">5062: Target position is off screen (X &gt; 159 and/or Y &gt; 167)</a></h3>
+    <h3><a href="warnings\5063.htm">5063: The ROW and HEIGHT combination specified will not fit on the screen</a></h3>
+    <h3><a href="warnings\5064.htm">5064: Using add.to.pic command with an invalid view will raise a trappable error</a></h3>
+    <h3><a href="warnings\5065.htm">5065: The set.key parameters are not a valid ASCII code or KEY code</a></h3>
+    <h3><a href="warnings\5066.htm">5066: Assigning keycode values that correspond to normal input keys may result in unpredictable behavior in AGI</a></h3>
+    <h3><a href="warnings\5067.htm">5067: The message box won't draw correctly if ROW &gt; 22</a></h3>
+    <h3><a href="warnings\5068.htm">5068: The message box window may not draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39</a></h3>
+    <h3><a href="warnings\5069.htm">5069: Invalid cursor position for clear.text.rect command; must be in upper-left/lower-right format</a></h3>
+    <h3><a href="warnings\5070.htm">5070: Invalid cursor position values for clear.text.rect command; R1 &amp; R2 must be &lt;=24; C1 &amp; C2 must be &lt;=39</a></h3>
+    <h3><a href="warnings\5071.htm">5071: Using a value &gt; 167 for set.pri.base results in entire screen being priority 4</a></h3>
+    <h3><a href="warnings\5072.htm">5072: One or more test command coordinates are offscreen (X &gt; 159 and/or Y &gt; 167)</a></h3>
+    <h3><a href="warnings\5073.htm">5073: X1 should be &lt;= X2 and Y1 should be &lt;=Y2; this test command will not behave as expected</a></h3>
+    <h3><a href="warnings\5074.htm">5074: Message is null (0 length)</a></h3>
+    <h3><a href="warnings\5075.htm">5075: '&lt;command&gt;' is not a supported command for this game's interpreter version</a></h3>
+    <h3><a href="warnings\5076.htm">5076: Attempting to call a logic that does not exist will cause AGI to crash</a></h3>
+    <h3><a href="warnings\5077.htm">5077: Using a reserved variable in '&lt;command&gt;' may cause unexpected behavior</a></h3>
+    <h3><a href="warnings\5078.htm">5078: Using a reserved flag in '&lt;command&gt;' may cause unexpected behavior</a></h3>
+    <h3><a href="warnings\5079.htm">5079: Setting PRIORITY to 1, 2 or 3, or > 15 in add.to.pic command may cause unexpected results</a></h3>
+    <h3><a href="warnings\5080.htm">5080: Setting COL to >39 in the get.string command will cause the PROMPT to appear in unexpected location</a></h3>
+    <h3><a href="warnings\5081.htm">5081: Test command 'return.false()' is not compatible with AGIStudio</a></h3>
+    <h3><a href="warnings\5082.htm">5082: 'object.on.land', 'object.on.water' and 'object.on.anything' have no effect on ego object</a></h3>
+    <h3><a href="warnings\5083.htm">5083: '&lt;word&gt;' is a Group 0 word, which is always ignored by AGI, so it will never be detected by the 'said' command</a></h3>
+    <h3><a href="warnings\5084.htm">5084: Attempting to play a sound that does not exist will cause a trappable error</a></h3>
+    <h3><a href="warnings\5085.htm">5085: Using add.to.pic command with an invalid loop will raise a trappable error</a></h3>
+    <h3><a href="warnings\5086.htm">5086: Using add.to.pic command with an invalid cel will raise a trappable error</a></h3>
+    <h3><a href="warnings\5087.htm">5087: &lt;command&gt; has no functionality in MSDOS AGI interpreter</a></h3>
+    <h3><a href="warnings\5088.htm">5088: &lt;command&gt; is incompatible with MSDOS AGI interpreter</a></h3>
+    <h3><a href="warnings\5089.htm">5089: Recursively calling a logic can crash AGI</a></h3>
+    <h3><a href="warnings\5090.htm">5090: Undefined message (&lt;messagenumber&gt;); null value assumed</a></h3>
+    <h3><a href="warnings\5091.htm">5091: Using m0 as a message value will cause an error</a></h3>
+    <h3><a href="warnings\5092.htm">5092: Unless resetting after responding to an error, &lt;variable&gt; should normally be treated as read-only</a></h3>
+    <h3><a href="warnings\5093.htm">5093: Using control characters 8 or 13 in message text will result in incorrectly displayed messages</a></h3>
+    <h3><a href="warnings\5094.htm">5094: Messages with extended characters (128-255)  won't display correctly in most circumstances</a></h3>
+    <h3><a href="warnings\5095.htm">5095: Commands after a new.room or new.room.v command are always ignored by AGI</a></h3>
+    <h3><a href="warnings\5096.htm">5096: Using a long input prompt is unusual and will limit player input</a></h3>
+    <h3><a href="warnings\5097.htm">5097: Commands after a return() command are always ignored by AGI</a></h3>
+    <h3><a href="warnings\5098.htm">5098: Negative numbers are converted to unsigned 2s complement value</a></h3>
+    <h3><a href="warnings\5099.htm">5099: INPUTLINE and/or STATUSLINE &gt; 24 will result in undesirable effects on graphics screen</a></h3>
+    <h3><a href="warnings\5100.htm">5100: COLOR value other than 0 is treated as 15</a></h3>
+    <h3><a href="warnings\5101.htm">5101: MGN values &gt; 15 will cause unexpected results in add.to.pic command</a></h3>
+    <h3><a href="warnings\5102.htm">5102: Object will never catch ego if DISTANCE &lt;= 1</a></h3>
+    <h3><a href="warnings\5103.htm">5103: Using a value of 1 for MAXWIDTH will crash AGI</a></h3>
+    <h3><a href="warnings\5104.htm">5104: Print message window may not display correctly if MAXWIDTH &gt; 36</a></h3>
+    <h3><a href="warnings\5105.htm">5105: Print window will use default value of 30 if MAXWIDTH = 0</a></h3>
+    <h3><a href="warnings\5106.htm">5106: When UPPER = LOWER, result will always be the same</a></h3>
+    <h3><a href="warnings\5107.htm">5107: If LOWER = UPPER + 1, AGI will crash due to 'Divide by 0' error</a></h3>
+    <h3><a href="warnings\5108.htm">5108: The word '%1' is not in WORDS.TOK, but AGI automatically assigns it to group 0</a></h3>
+    <h3><a href="warnings\5109.htm">5109: Cursor position is off screen (ROW &gt; 24 and/or COL &gt; 39)</a></h3>
+    <h3><a href="warnings\5110.htm">5110: Cel width less than 3 will not draw control box correctly</a></h3>
+    <h3><a href="warnings\5111.htm">5111: Commands after a forced quit() command are always ignored by AGI</a></h3>
+    <h3><a href="warnings\5112.htm">5112: Using submit.menu command outside logic 0 wastes memory</a></h3>
+    <h3><a href="warnings\5113.htm">5113:	Menu "&lt;menutext&gt;" has no items assigned to it</a></h3>
+    <h3><a href="warnings\5114.htm">5114: Menu "&lt;menutext&gt;" has too many items</a></h3>
+    <h3><a href="warnings\5115.htm">5115: submit.menu() called before any menus added</a></h3>
+    <h3><a href="warnings\5116.htm">5116: more than one submit.menu() command is unnecessary</a></h3>
+    <h3><a href="warnings\5117.htm">5117: set.menu() and set.menu.item() commands are ignored after submit.menu() is called</a></h3>
+    <h3><a href="warnings\5118.htm">5118: menu item "&lt;itemtext&gt;" text width exceeds menu display width</a></h3>
+    <h3><a href="warnings\5119.htm">5119: More than ten words in said command are ignored</a></h3>
+    <h3><a href="warnings\5120.htm">5120: >One or more characters are not supported in this code page</a></h3>
+    <p>&nbsp;</p>
+    <h2>Sierra Syntax Warnings</h2>
+    <h3><a href="warnings\7001.htm">7001: WORDS.TOK has already been loaded</a></h3>
+    <h3><a href="warnings\7002.htm">7002: Action command &lt;number&gt; (&lt;name&gt;) not supported in the AGI version for this game</a></h3>
+    <h3><a href="warnings\7003.htm">7003: Numerical values outside byte range will be converted to a byte value</a></h3>
+    <h3><a href="warnings\7004.htm">7004: Reserved &lt;flag/variable&gt; is normally read-only; changing it could have unexpected results</a></h3>
+    <h3><a href="warnings\7005.htm">7005: View &lt;number&gt; does not exist; accessing it in code will cause an error</a></h3>
+    <h3><a href="warnings\7006.htm">7006: Consecutive NOT operators (!) will toggle the NOT status</a></h3>
+    <h3><a href="warnings\7007.htm">7007: Non-numeric characters in this token will be ignored (&lt;tokenvalue&gt;)</a></h3>
+    <h3><a href="warnings\7008.htm">7008: Using '!=' when a test is already negated toggles the NOT status</a></h3>
+    <h3><a href="warnings\7009.htm">7009: return command not needed at end of logic source</a></h3>
+    <h3><a href="warnings\7010.htm">7010: '&lt;token&gt;' is an object being used as a number</a></h3>
+    <h3><a href="warnings\7011.htm">7011: Null label name is allowed, but unusable</a></h3>
+    <h3><a href="warnings\7012.htm">7012: '&lt;type&gt;' token found when expecting a command; the token will be ignored</a></h3>
+    <h3><a href="warnings\7013.htm">7013: said command word arguments will automatically be converted to lower case</a></h3>
+    <h3><a href="warnings\7014.htm">7014: Character '\x1a' forces end of file; no text after this character will be processed</a></h3>
+    <h3><a href="warnings\7015.htm">7015: Character '\x1a' gets changed to '\ff' when added to literal string</a></h3>
+    <h3><a href="warnings\7016.htm">7016: Character '\x1a' treated as a token separator when token length &gt; 0</a></h3>
+    <h3><a href="warnings\7017.htm">7017: Unexpected '<code>else</code>' keyword will be treated as '<code>goto</code>'</a></h3>
+    <h3><a href="warnings\7018.htm">7018: Using ',' as a line terminator is allowed but not preferred</a></h3>
+    <h3><a href="warnings\7019.htm">7019: Using ';' as an argument separator is allowed, but not preferred</a></h3>
+    <h3><a href="warnings\7020.htm">7020: Tokens beginning with '@', '&amp;' or '|' are considered symbols, not identifiers</a></h3>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

@@ -1,0 +1,52 @@
+<html>
+	<head><title>Variables</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Variables</h1>
+			<p>The variable data type is an unsigned eight-bit number equivalent to a byte, or unsigned char. There are 256 variables in memory numbered from 0 to 255. To AGI, the variables are identified by their index in the variable table. In most compilers, variables are represented in source code by the letter 'v' and their index number (i.e. v0, v1, etc.)</p>
+			<p>Variables are used to store and manipulate numeric data in support of the game, and are often used as arguments in arithmetic commands such as addition and multiplication. Many AGI commands have alternate versions that use variable parameters instead of hard coded numbers (constants) to provide great flexibility to the game programmer to manage the game flow.</p>
+			<p>Because the variable data type is unsigned, it is important for programmers to be careful when using arithmetic commands. AGI does not check for overflow conditions when doing arithmetic. So if the result of arithmetic is greater than 255 or a negative value, AGI returns the modulus, i.e.</p>
+			<blockquote><pre>result = (a +/- b) Mod 256)</pre></blockquote>
+			<p>As an example, if v100 = 10, and you add 250, the new value stored in v100 will be</p>
+			<blockquote><pre>10 + 250 = 260; 260 - 256 = 4</pre></blockquote>
+			<p>Similarly, if v100 = 15, and you subtract 22, the new value stored in v100 will be</p>
+			<blockquote><pre>15 - 22 = -7; -7 + 256 = 249</pre></blockquote>
+			<h2><a name="reserved">Reserved Variables</a></h2>
+			<p>The first 27 variables (v0 - v26) are used internally by AGI, and should not be used for storing game data. Doing so may cause unexpected behavior by AGI, including potentially <a href="errors.htm">fatal errors</a>. In some cases, a game programmer may need to directly manipulate these reserved variables to achieve specific game effects, but great care should be taken to avoid creating unexpected results or errors.</p>
+		<blockquote>	
+		<h3><a href="v0.htm">v0: Current Room Number</a></h3>
+		<h3><a href="v1.htm">v1: Previous Room Number</a></h3>
+		<h3><a href="v2.htm">v2: Ego Edge Code</a></h3>
+		<h3><a href="v3.htm">v3: Current Score</a></h3>
+		<h3><a href="v4.htm">v4: Object Touching Edge</a></h3>
+		<h3><a href="v5.htm">v5: Object Edge Code</a></h3>
+		<h3><a href="v6.htm">v6: Ego Direction</a></h3>
+		<h3><a href="v7.htm">v7: Maximum Score</a></h3>
+		<h3><a href="v8.htm">v8: Pages of Free Memory</a></h3>
+		<h3><a href="v9.htm">v9: Unknown Word Number</a></h3>
+		<h3><a href="v10.htm">v10: Interpreter Cycle Delay Time</a></h3>
+		<h3><a href="v11.htm">v11: Elapsed Game Time: Seconds</a></h3>
+		<h3><a href="v12.htm">v12: Elapsed Game Time: Minutes</a></h3>
+		<h3><a href="v13.htm">v13: Elapsed Game Time: Hours</a></h3>
+		<h3><a href="v14.htm">v14: Elapsed Game Time: Days</a></h3>
+		<h3><a href="v15.htm">v15: Joystick Button Double Click Speed</a></h3>
+		<h3><a href="v16.htm">v16: Ego View Number</a></h3>
+		<h3><a href="v17.htm">v17: Interpreter Error Code</a></h3>
+		<h3><a href="v18.htm">v18: Additional Error Information</a></h3>
+		<h3><a href="v19.htm">v19: Pressed Key Code</a></h3>
+		<h3><a href="v20.htm">v20: Computer Type</a></h3>
+		<h3><a href="v21.htm">v21: Message Window Delay Time</a></h3>
+		<h3><a href="v22.htm">v22: Sound Channel Count</a></h3>
+		<h3><a href="v23.htm">v23: Sound Attenuation</a></h3>
+		<h3><a href="v24.htm">v24: Input Line Maximum Length</a></h3>
+		<h3><a href="v25.htm">v25: Selected Inventory Item</a></h3>
+		<h3><a href="v26.htm">v26: Monitor Type</a></h3>
+	</blockquote>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

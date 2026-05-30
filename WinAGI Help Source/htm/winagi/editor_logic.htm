@@ -1,0 +1,159 @@
+<html>
+	<head><title>Logic Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-logic-e.gif" width="460" height="72" border="0" alt="WinAGI Logic Editor"></td>
+			</tr>
+		</table>
+		<h1>Logic Editor</h1>
+			<p>The Logic Editor allows you to create and edit source code for <a href="..\agi\logics.htm">logic</a> resources.</p>
+			<map name="logedit">
+				<area shape="rect" alt="Toolbar" coords="8,31,527,63" href="#toolbar">
+				<area shape="rect" alt="Document Map" coords="454,64,528,397" href="#docmap">
+				<area shape="rect" alt="Line Numbers" coords="8,68,50,380" href="#linenumbers">
+				<area shape="rect" alt="Editing Area" coords="51,68,432,380">
+			</map>
+			<p>&nbsp;<img src="..\..\graphics\logicedit.jpg" usemap="#logedit" border="0" width="537"></p>
+			<p>&nbsp;</p>
+		<h2><a name="linenumbers">Line Numbers</a></h2>
+			<p>The editor includes the option to display line numbers in a column to the left of the editing area. The first line is numbered zero. The line number column can be toggled on or off by using the Edit menu command or by pressing CTRL+SHIFT+N.</p>
+			<p>&nbsp;</p>
+		<h2><a name="docmap">Document Map</a></h2>
+			<p>The document map is a miniature display of the text to the right of the editing area that shows the relative position of the editor window to the entire text. You can click anywhere on the map to immediately jump to that location. You can also drag the map like a scrollbar to quickly navigate through the text. The document map can be toggled on or off by using the Edit menu command or by pressing CTRL+SHIFT+M.</p>
+			<p>&nbsp;</p>
+		<h2>Navigation</h2>
+			<p>&nbsp;<img alt="Back" src="..\..\graphics\tbBack.bmp" height="32" width="32">&nbsp; <img alt="Forward" src="..\..\graphics\tbForward.bmp" height="32" width="32"> Use the naigation buttons to move the insertion point to previous locations or to return to a more recent location from a previous location.</p>
+			<p>&nbsp;</p>
+		<h2><a name="toolbar">Toolbar</a></h2>
+			<p>The toolbar contains button shortcuts for all basic editing commands, as well as buttons for common commands applicable to logic source code editing.</p>
+			<p>&nbsp;</p>
+		<h3>Editing Tools</h3>
+			<p>&nbsp;<img alt="Cut" src="..\..\graphics\tbCut.bmp" height="32" width="32">&nbsp; <img alt="Copy" src="..\..\graphics\tbCopy.bmp" height="32" width="32">&nbsp; <img alt="Paste" src="..\..\graphics\tbPaste.bmp" height="32" width="32">&nbsp; <img alt="Delete" src="..\..\graphics\tbDelete.bmp" height="32" width="32">&nbsp; <img alt="Undo" src="..\..\graphics\tbUndo.bmp" height="32" width="32">&nbsp; <img alt="Redo" src="..\..\graphics\tbRedo.bmp" height="32" width="32"> The logic editor is a typical text based editor. Basic text editing commands (cut, copy, paste, delete) are available. You can also drag and drop text into and out of the text area. The Logic Editor supports multi-level undo and redo.</p>
+			<p></p>
+		<h3><a name="find">Find/Find Next/Replace</a></h2>
+			<p>&nbsp;<img alt="" src="..\..\graphics\tbFind.bmp" height="32" width="32"> Use the Find command on the Edit menu (or the toolbar button) to search for text.</p>
+			<p>The find window will remain on top of all WinAGI editors until you dismiss it by clicking Cancel.</p>
+			<p><img alt="Logic Search Window" src="..\..\graphics\logicfind.jpg" width="495"></p>
+			<p>Enter the search string in the 'Find what:' text box. WinAGI does not support wild card searches.</p>
+			<p>The search scope can be one of the following: the current logic, all logics currently open for editing, or all logics in your game.</p>
+			<ul><ul>
+				<li>Current Logic: searches only the currently active open logic editor</li>
+				<li>All Open Files: searches all open logic editors and text editors</li>
+				<li>All Logics in Game: only available if a game is open; searches all logics in a game whether they are open for editing or not; any open text editors are skipped</li>
+			</ul></ul>
+			<p>The direction of the search can be set to:</p>
+			<ul><ul>
+				<li>Down: searches until end of file is reached</li>
+				<li>Up: searches in reverse, until beginning of file is reached</li>
+				<li>All: searches forward, until end of file is reached, loops back to the beginning of the search scope, then continues until starting point of search is reached</li>
+			</ul></ul>
+		<h3><a name="indent">Indent/Outdent</a></h3>
+			<p>&nbsp; <img alt="Block Indent" src="..\..\graphics\indent.bmp" height="32" width="32"> &nbsp; <img alt="Block Outdent" src="..\..\graphics\outdent.bmp" height="32" width="32"> Using indentation to manage blocks of code is essential to writing good, readable source code. To easily change the indentation level to multiple lines, use the Block Indent and Block Outdent functions. In addition to the toolbar buttons, you can also use shortcuts (TAB key for block indent, SHIFT+TAB for block outdent).</p>
+		<h3><a name="blockcomment">Commenting</a> and Uncommenting Code Blocks</h3>
+			<p>&nbsp; <img alt="Comment Block" src="..\..\graphics\tbComment.bmp" height="32" width="32"> &nbsp; <img alt="Uncomment Block" src="..\..\graphics\tbUncomment.bmp" height="32" width="32"> You can easily comment out multiple lines of code by using the Block Comment action. WinAGI will insert a comment marker '[' in front of all lines currently selected in the code window. Use the Uncomment Block action to remove any comment markers from the selected lines.</p>
+		<h3><a name="extchar">Extended Character Support</a></h3>
+			<p>&nbsp; <img alt="Character Chooser" src="..\..\graphics\tbChrMap.bmp" height="32" width="32"> Although it was extremely rare to see in Sierra games, AGI does provide limited support for use of <a href="..\agi\agifont.htm">extended character codes</a>. Use the <a href="charmap.htm">Character Map Tool</a> (on the toolbar or Edit menu) or press CTRL+INS if you want to insert an extended character into a logic resource.</p>
+		<h3><a name="msgcleanup">Message Cleanup Tool</a></h3>
+			<p>&nbsp; <img height="32" alt="" src="..\..\graphics\tbMsg.bmp" width="32"> AGI uses the <a href="..\agi\messages.htm">message data type</a> for displaying text messages on screen. As described in the <a href="..\commands\syntax_fan.htm">syntax rules</a>, messages can be assigned a specific number using the <a href="..\commands\syntax_fan.htm#messages"><b>#message</b></a> precompiler command, but this is not required. In commands that take messages as arguments, you can refer to the message by number ('m1', 'm2', etc.) or with a literal string.</p>
+			<p>If you have entered a large amount of source code and used literal strings to define messages, you can use the Message Cleanup Tool command to re-build the defined message list for your logic.</p>
+			<p>The Message Cleanup Tool will scan your code for literal message strings, assign them a number, and create a <b>#message</b> entry for you automatically, and use that number in the compiled resource.</p>
+			<p>You also have the option to have any existing defined messages removed if they are not being used in the logic. NOTE: if your source code references messages indirectly, via the "%m" format code, do NOT use the 'remove unused messages option, as you may unintentionally delete messages that are used within other messages!</p>
+		<h3><a name="compile">Compiling Logics</a></h3>
+			<p>&nbsp;<img height="32" alt="" src="..\..\graphics\tbCompile.bmp" width="32"> Use the Compile command (or the toolbar button) to compile the source code of the logic being edited.</p>
+			<p>See the <a href="compilinglogics.htm">Compiling Logics</a> topic for detailed information on compiling logics.</p>
+		<h2><a name="syntaxhighlighting">Syntax Highlighting</a></h2>
+			<p>WinAGI provides automatic syntax highlighting commonly found in code editors for source code in the Logic Editor. You can adjust the colors used for the different language components on 
+			the <a href="settings_logic.htm">Logics</a> tab of the <a href="settings.htm">Settings</a> window.</p>
+		<h2><a name="argtooltips">Argument Tooltips</a></h2>
+			<p>The Argument Tooltips feature displays the syntax for AGI commands. When you enter the name of a valid command, the syntax is shown immediately below the current line, with the first argument in bold. After you enter the first argument value, the second argument appears in bold, and so on.</p>
+			<p><img alt="" src="..\..\graphics\autoquickinfo.jpg" width="403"></p>
+			<p>You can enable or disable this feature on the <a href="settings_logic.htm">Logics</a> tab of the <a href="settings.htm">Settings</a> window.</p>
+		<h2><a name="cmds">Inserting Commands</a></h2>
+		  <p>To get a display of all available AGI commands, you can use the List Commands feature (from the context menu, or keyboard shortcut CTRL+SHIFT+J). You can then select a command from the list to add it automatically.</p>
+		<h2><a name="resdef">Inserting Defines</a></h2>
+			<p>To make it easier to insert <a href="..\commands\syntax_fan.htm#defines">defines</a> when coding, use the List Defines command. You can use the context menu (right click on the logic editor, and select the command from the pop-up context menu) or use keyboard shortcut (CTRL+J).</p>
+			<p><img alt="" src="..\..\graphics\listdefines.jpg" border="0" width="336"></p>
+			<p>Hovering the mouse pointer over the listbox will show what the define represents. Each define is represented by an icon that includes a red dot for <a href="reservednames.htm">reserved defines</a>, a blue dot for <a href="editor_globals.htm">global defines</a>, and no dot for local defines:</p>
+		<blockquote>
+			<p>
+				<table id="Table1" cellSpacing="1" cellPadding="1" width="450" border="1">
+					<tr>
+						<td><b>Define Type</b></td>
+						<td align="middle"><b>Icon</b></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle">Number</td>
+						<td vailgn="center" align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_lnum.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle">Literal String</td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_ldefstr.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle"><a href="..\agi\controllers.htm">Controller</a></td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_lctrl.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle"><a href="..\agi\flags.htm">Flag</a></td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_lflag.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle"><a href="..\agi\object.htm">Inventory Item</a></td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_liobj.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle"><a href="..\agi\messages.htm">Message</a></td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_lmsg.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle"><a href="..\agi\screenobjs.htm">Screen Object</a></td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_lsobj.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle"><a href="..\agi\strings.htm">String</a></td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_lstr.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle"><a href="..\agi\variables.htm">Variable</a></td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_lvar.ico" height="24" width="24" border="0"></td>
+					</tr>
+					<tr>
+						<td style="vertical-align:middle"><a href="..\agi\words.htm">Word</a></td>
+						<td align="middle" colSpan="1" rowSpan="1"><img alt="" src="..\..\graphics\def_lword.ico" height="24" width="24" border="0"></td>
+					</tr>
+				</table>
+			</p>
+		</blockquote>
+		<h2><a name="definetips">Define Tooltips</a></h2>
+			<p>If you hover the mouse cursor over a <a href="reservednames.htm">reserved define</a>, <a href="editor_globals.htm">global define</a>, or local define name in logic source code, WinAGI will display a tool tip that shows the value of the define name. This feature can be disabled on the <a href="settings_logic.htm">Logics</a> tab of the <a href="settings.htm">Settings</a> window.</p>
+		<h2><a name="quickedit">Resource Quick Edit</a></h2>
+			<p>WinAGI provides a handy shortcut to open other resources referenced in source code. You can select the 'Open &lt;resource&gt; for Editing' option from the Edit menu (or press CTRL+SHIFT+E) when the cursor is on any <a href="managingresources.htm#resourceids">Resource ID</a>. You can also hold the CTRL key and double-click a resource ID to open it for editing.</p>
+			<p>This feature also works on <a href="..\commands\syntax_fan.htm#include">#include files</a>, as long as the file name points to a valid file.</p>
+		<h2><a name="snippets">Code Snippets</a></h2>
+			<p>If you have blocks of text that you find yourself typing over and over, you can create a code snippet as a shortcut to enter the text into your logic. Use the <a href="snippets.htm">Snippet Manager</a> dialog to create, edit or delete your snippets.</p>
+			<p>An alternate way to create a snippet is to select the text you want to reuse and use the Create Snippet menu item or keyboard shortcut (CTRL+SHIFT+T). This will open the Snippet Manager and add a new snippet using the selected text as the snippet value.</p>
+			<p>To insert a snippet, you can use the Insert Snippet menu item or keyboard shortcut (CTRL+SHIFT+T), or more easily, just type the snippet name in the text editor, surrounded by hashtags, for example:</p>
+			<blockquote>
+				<p><code>#newroompic#</code></p>
+			</blockquote>
+			<p>will insert the text assigned to the snippet named 'newroompic' at the current cursor location. If the inserted text is multi-line, WinAGI will auto-indent subsequent lines to the same level as the starting insertion point.</p>
+			<p>You can also include arguments in your snippets. In your snippet value text, use argument placeholders ('%1', '%2', etc.). In the snippet shortcut, add your desired argument values in parentheses, separated by commas, following the snippet name. For example:</p>
+			<blockquote>
+				<p><code>#exitleft(rm.LeftRoom)#</code></p>
+			</blockquote>
+			<p>will replace all instances of '%1' with 'rm.LeftRoom' in the snippet value text before inserting it at current cursor location.</p>
+			<p>More information on snippets can be found in the <a href="snippets.htm">Logic Code Snippets</a> topic.</p>
+		<h2><a name="TODO">TODO Entries</a></h2>
+			<p>To help manage tasks that need to be done during game development, WinAGI allows you to create TODO items. To create a TODO item, add a comment to your logic code followed by 'TODO: '. Everything following the colon is treated as a TODO item.</p>
+			<p>When the logic is saved, all TODO items are added to the <a href="warninglist.htm">Warnings and Errors List</a>. You can easily navigate to TODO items by double-clicking them just like warnings and errors.</p>
+		<h2>Integration with Layout Editor</h2>
+			<p>The logic editor and the <a href="editor_layout.htm">Layout Editor</a> are closely 
+			integrated. When you make and save changes to a logic source file, any changes 
+			in exits (i.e. using the <b><a href="..\commands\cmd_newroom.htm">new.room</a></b> command) will be automatically saved to the game's layout file, and will show up in the layout editor.</p>
+			<p>When changes to the layout editor are saved, WinAGI will automatically add or comment out code for any exits that have changed. See the <a href="editor_layout.htm">Layout Editor</a> topic for more information on this excellent feature.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

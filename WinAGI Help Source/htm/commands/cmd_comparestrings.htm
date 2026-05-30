@@ -1,0 +1,47 @@
+<html>
+	<head><title>Test Command: compare.strings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>compare.strings</h1>
+		<p>The <b>compare.strings</b> test command compares two <a href="..\agi\strings.htm">strings</a>. It returns TRUE if the strings are the same.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>compare.strings(<a href="syntax_fan.htm#argtypes">str</a> sA, <a href="syntax_fan.htm#argtypes">str</a> sB)</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Test commands are only valid in an <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> statement.</p>
+			<p>This statement can be combined with the '<a href="..\agi\logics.htm#not"><code><b>NOT</b></code></a>' operator to create a 'strings not equal' test.</p>
+			<p>In <a href="..\agi\version2.htm#2089">version 2.089</a> only, the two strings are first converted to lower case, all multiple space character sequences are reduced to a single space character before doing the compare.</p>
+			<p>In all other versions, the comparison of <b>sA</b> and <b>sB</b> is not case-sensitive, and the following characters are ignored: space, tab, period, comma, semicolon, colon, single-quote, exclamation point, and dash. If you are not aware of this, you may struggle in trying to understand why your code is not working as expected.</p>
+			<p>There is a major bug in versions 2.272 through 2.239 that incorrectly returns true if string sB is longer than string sA and characters match up to the end of sA. For example, if sA = "ab" and sB = "abcd", the function will incorrectly return TRUE. This bug was fixed in version 2.440.</p>
+			<p>AGI does not check that <b>sA</b> and <b>sB</b> are valid <a href="..\agi\strings.htm">strings</a>. If an invalid string number is used (the limit is 24 [s0 - s23], except for <a href="..\agi\versions.htm">versions</a> 2.089, 2.272 and 3.002.149, which have a limit of 12 [s0 - s11]) AGI will read data from memory used for other purposes, and the returned value will be meaningless.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>set.string(s1, "Some Text");
+set.string(s2, "   some:TEXT!");
+if(<b>compare.strings(s1, s2)</b>)
+  { 
+  print("SURPRISE! these two strings are the same!");
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">15 (0x0F)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_test.htm">Test Commands</a></p>
+			<p><a href="cmds_strings.htm">String Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

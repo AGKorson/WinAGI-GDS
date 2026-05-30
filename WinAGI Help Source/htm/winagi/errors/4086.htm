@@ -1,0 +1,20 @@
+<html>
+	<head><title>Logic Compiler Error 4086</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4086</h2>
+    <h3>Invalid word argument '&lt;argval&gt;' - must be integer value (0-65535)</h3>
+    <p class="indent_n">When passing a <a href="..\..\agi\words.htm">vocabulary word</a> argument to the <a href="..\..\commands\cmd_said.htm"><b>said</b></a> command as a number, it must be an unsigned 16 bit number. If the number is negative, or too large, this error gets raised.</p>
+    <blockquote>
+      <pre>if (said(-99) [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+    </blockquote>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

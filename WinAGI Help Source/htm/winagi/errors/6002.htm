@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Error 6002</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6002</h2>
+    <h3>WORDS.TOK filename '&lt;name&gt;' is missing or invalid</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">The preprocessor command <a href="..\..\commands\syntax_sierra.htm#tokens"><b>%tokens</b></a> requires a valid path and filename to the game's <a href="..\..\agi\words.htm">WORDS.TOK</a> file. This error indicates the filename is either missing, or is not a valid filename, or points to a file other than the WORDS.TOK file for the game being edited.</p>
+    <p class="indent_n">Filenames can use relative paths. In most cases, you should use the name "..\\words.tok" (remembering to use the double-slash so the parser properly recognizes it), assuming source file with the <b>%tokens</b> preprocesser command is located in your game's <a href="..\managingresources.htm#resdir">resource directory</a>.</p>
+      <blockquote>
+      <pre>%tokens "..\\worsd.tok" [ <font color="red"><b>NOT OK</b></font>; misspelled 'words.tok'
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

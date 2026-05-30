@@ -1,0 +1,23 @@
+<html>
+	<head><title>Object Priority</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</TABLE>
+		<h1>Object Priority</h1>
+			<p>To simulate a 3-D environment, AGI assigns all objects a <a href="..\agi\grafdisp.htm#priority">priority</a>. The background picture includes a separate <a href="..\agi\pictures.htm#priority">priority screen</a> that is used in conjunction with objects' priorities to create the illusion of 3-D.</p>
+			<p>By default, objects get assigned a priority automatically based on their vertical position. Objects with a higher priority are displayed on top of objects with a lower priority. Different parts of a picture can also be given different priorities. So something in the far distance would have a priority of 4 (everything else would go on top of this) and something right at the front of the screen would have a priority of 15 (nothing will go on top of this except objects with a priority of 15).</p>
+			<p>To set an object’s <a href="..\agi\grafdisp.htm#priority">priority</a> so it will remain constant wherever the objects is on screen, use the <b><a href="cmd_setpriority.htm">set.priority</a></b> or <b><a href="cmd_setpriorityv.htm">set.priority.v</a></b> commands. To change it back so the priority is dependent on the object’s position, use the <b><a href="cmd_releasepriority.htm">release.priority</a></b> command.</p>
+			<p>When two or more objects overlap, the one with the highest priority is drawn on top. If they have the same priority, the object with the higher y value (closest in 3-D) is drawn on top. If they have the same y value then the one with the higher index number is drawn on top.</p>
+			<p><a name="fixed">Objects</a> that have a fixed priority are assigned a virtual Y value so they can be drawn in the correct order with all other objects.</p>
+			<p>The <a href="cmd_setpribase.htm"><b>set.pri.base</b></a> command, added in <a href="..\agi\version2.htm#2936">version 2.936</a> included a bug in the code that determines the virtual Y value that would always return a value of 168, so the object would always draw on top of other objects with the same priority. The error only shows up when using a custom priority base with an object that has a fixed priority and another object without fixed priority is in the same priority band. The bug was fixed in <a href="..\agi\version3.htm#3002098">version 3.002.098</a>.</p>
+			<p>An object’s priority can be determined using the <b><a href="cmd_getpriority.htm">get.priority</a></b> command.</p>
+		<h3>Avoid Invalid Priority Values</h3>
+			<p>If you use an invalid value in a <b><a href="cmd_setpriority.htm">set.priority</a></b> or <b><a href="cmd_setpriorityv.htm">set.priority.v</a></b> command, you will get unexpected behavior. The algorithm that AGI uses to draw an object uses only the lower nibble (i.e. lower four bits, i.e., PRIORITY(actual)=PRIORITY(value) &amp; 0x0F), for setting the priority value for the object. But there is a bug in the function that AGI uses to determine the order in which to draw <a href="..\agi\screenobjs.htm">objects</a>. Objects with a fixed priority are assumed by AGI to have an 'effective' Y value based on the priority value, but AGI's algorithm for determining the order based on Y values has a bug which uses the whole byte. The effect of this is that objects with  priority values &gt; 22 won't draw on screen at all.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

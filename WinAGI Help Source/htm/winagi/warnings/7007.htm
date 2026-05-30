@@ -1,0 +1,24 @@
+<html>
+	<head><title>Logic Compiler Warning 7007</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7007</h2>
+    <h3>Non-numeric characters in this token will be ignored (&lt;tokenvalue&gt;)</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, tokens that start with a number digit will include all characters, even non-numeric, until a separator character is found. The value of the token is determined by the numeric digits up until the first non-numeric character. All other characters in the token are ignored.</p>
+      <blockquote>
+      <pre>%define anum 123abc456   [ OK, same as '%define anum 123'
+v99 +=0xa; [ same as 'v99 += 0;' it does not convert '0xa' to '10'
+...</pre>
+      </blockquote>
+    <p class="indent_n">Usually, this warning indicates a syntax error. You should check your source code carefully, and edit as necessary to correct the condition.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

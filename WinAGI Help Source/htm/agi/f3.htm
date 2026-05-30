@@ -1,0 +1,18 @@
+<html>
+	<head><title>Reserved Flag f3</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f3: Ego on Signal Line</h1>
+			<p>AGI sets or clears this flag during every <a href="cycle.htm">interpreter cycle</a> when updating the position of <a href="interface.htm#ego">ego</a>. If any pixel of the baseline of ego is on a <a href="grafdisp.htm#controllines">signal line</a> (pixels with <a href="grafdisp.htm#priority">priority</a> value of 2), this flag is set to TRUE. If no pixels are on a signal line, this flag is set false.</p>
+			<p>This can be useful to detect when <a href="interface.htm#ego">ego</a> is at certain locations in a <a href="pictures.htm#room">room</a> without stopping its motion.</p>
+			<p>Note that if ego is not <a href="..\commands\cmd_animateobj.htm">animated</a>, it does not get updated. So flag f3 won't be modified during interpreter cycles when ego is not animated.</p>
+			<p>Attempting to use this flag for other purposes is not recommended, because AGI overwrites it in every <a href="cycle.htm">interpreter cycle</a> when updating ego. If you never use ego in your game, then you could use this flag without any concerns.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

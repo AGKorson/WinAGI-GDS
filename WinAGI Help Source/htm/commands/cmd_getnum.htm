@@ -1,0 +1,42 @@
+<html>
+	<head><title>Action Command: get.num</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>get.num</h1>
+			<p>The <b>get.num</b> command prompts the player to enter a number.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>get.num(<a href="syntax_fan.htm#argtypes">msg</a> mPROMPT, <a href="syntax_fan.htm#argtypes">var</a> vB);</p>
+			<p>get.num("prompt", <a href="syntax_fan.htm#argtypes">var</a> vB);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Unlike the <a href="cmd_getstring.htm"><b>get.string</b></a> command which allows customizing the input location, the <b>get.num</b> function always uses the <a href="..\agi\keyboard.htm#inputline">input line</a>, substituting the <a href="..\agi\messages.htm">message</a> <b>mPROMPT</b> as the <a href="..\agi\keyboard.htm#prompt">input prompt</a> and using the existing <a href="..\agi\keyboard.htm#cursor">cursor</a> character. Input is limited to three characters.</p>
+			<p>When the player presses the ENTER key, the input is converted to an byte value and assigned to variable <b>vB</b>. Leading spaces are ignored. Characters are processed until the first non-numeric character is found. For example, "1a2" will be converted to 1. If a value greater than 255 is entered, only the lower eight bits of the number are used (i.e. <b>vB</b> = inputval MOD 256).</p>
+			<p>If the player presses the ESC key, <b>vB</b> is set to 0.</p>
+			<p>If input is currently disabled (by using the <a href="cmd_preventinput.htm"><b>prevent.input</b></a> command, <b>get.num</b> will still use the input line and get a number, but the input line will not be cleared from the screen afterward. The text will stay displayed on the input line until input is re-enabled (using the <a href="cmd_acceptinput.htm"><b>accept.input</b></a> command) or the screen is redrawn by encountering a <a href="cmd_newroom.htm"><b>new.room</b></a> command or <a href="cmd_graphics.htm"><b>graphics</b></a> command.</p>
+			<p>When running on a system using the Hercules Graphics Card (HGC), the <b>get.num</b> command uses an input box similar to the normal <a href="..\agi\keyboard.htm#hgcinput">HGC input box</a>. The <a href="cmd_opendialogue.htm"><b>open.dialogue</b></a> command will cause the <b>get.num</b> command to operate the same as on other systems, as described above.</p>
+
+		<h2>Example</h2>
+<pre><code><b>get.num("Enter your age: ", v99);</b></code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">118 (0x76)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_math.htm">Mathematical Commands</a></p>
+			<p><a href="cmd_getstring.htm"><b>get.string</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

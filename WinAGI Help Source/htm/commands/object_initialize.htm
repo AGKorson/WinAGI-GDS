@@ -1,0 +1,32 @@
+<html>
+	<head><title>Initializing Objects</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</TABLE>
+		<h1>Initializing Objects</h1>
+			<p>All screen objects (including <a href="..\agi\interface.htm#ego">ego</a>) must be initialized before they can be manipulated and used in a game. There are four basic steps that must be followed:</p>
+			<p class="indent2">1. <EM><U>Animate the object.</U></EM></p>
+			<p class="indent2">The <b><a href="cmd_animateobj.htm">animate.obj</a></b> command initializes the object, setting up AGI to use it in subsequent commands. The number of objects is limited by the <a href="..\agi\screenobjs.htm#maxscreenobj">Maximum Screen Objects</a> value taken from the game's <a href="..\agi\object.htm">OBJECT file</a>. This value cannot be changed at runtime, but can be adjusted during game creation. More objects means more calculations during each interpreter cycle, which slows down AGI (this is not a significant concern on modern computer systems though).</p>
+			<p class="indent2">2. <EM><U>Position the object on screen. </U></EM></p>
+			<p class="indent2">The default values for the object's coordinates are (0,0). Set the initial position of the object with the <b><a href="cmd_position.htm">position</a></b> or <b><a href="cmd_positionv.htm">position.v</a></b> commands.</p>
+			<p class="indent2">3. <EM><U>Assign a view/loop/cel to the object.</U></EM></p>
+			<p class="indent2">The visual image used by the object to actually display it on screen comes from a <a href="..\agi\views.htm">view resource</a>. A view resource is assigned to the object with the <b><a href="cmd_setview.htm">set.view</a></b> or <b><a href="cmd_setviewv.htm">set.view.v</a></b> command. You should assign the view before any other actions other than positioning are taken on the object. You must have the view loaded in memory (<b><a href="cmd_loadview.htm">load.view</a></b> or <b><a href="cmd_loadviewv.htm">load.view.v)</a></b> before you assign it.</p>
+			<p class="indent2">By default, the <a href="..\agi\views.htm#loop">loop</a> and <a href="..\agi\views.htm#cel">cel</a> of a new object are zero. If you need to assign a specific loop and/or cel other than 0/0 to an object, you should do that AFTER positioning it. This is because when a loop or cel is assigned, AGI will <a href="object_cycling.htm#validatepos">validate</a> that the dimensions of the newly assigned cel fit on screen. Since a newly intialized screen object has a position of (0, 0), AGI will adjust the y value so the object doesn't overlap the top edge and set the internal '<a href="..\agi\sobjtable.htm#reposition">repositioned</a>' flag and your object will not move on the next interpreter cycle. Positioning after this happens won't reset the internal 'repositioned' flag. While this is usually not noticeable, it can cause unexpected results if you are relying on precise location/movement of an object within your <a href="..\agi\logics.htm">logic</a> code. (Note that if the cel is exactly one pixel high, this discussion wouldn't apply.)</p>
+			<p class="indent2">It is possible to assign the same view to more than one object. This can be used to create 'herds' of objects. The alligators in the King's Quest I moat are a good example.</p>
+			<p class="indent2">4. <EM><U>Draw the object. </U></EM></p>
+			<p class="indent2">This is done using the <b><a href="cmd_draw.htm">draw</a></b> command. The object will not be visible until it is drawn to the screen. If you later need to remove it from the screen, use the <b><a href="cmd_erase.htm">erase</a></b> command. When drawing objects, the object's location (set by <b><a href="cmd_position.htm">position</a></b> or <b><a href="cmd_positionv.htm">position.v</a></b>) is validated using a method called '<a href="object_position.htm#shuffling">shuffling</a>' to ensure the object is not drawn outside the playable area, on a control line or on another object (if the object is not ignoring other objects).</p>
+		<h2><a name="updating">Updating Property</a></h2>
+			<p>Objects are automatically updated in each <a href="..\agi\cycle.htm">interpreter cycle</a> while the <a href="..\agi\grafdisp.htm">graphics display</a> is active. Updating means the objects are both <a href="object_moving.htm">moved</a> and <a href="object_cycling.htm">cycled</a> according to their settings. The updating property is enabled by default when objects are initialized. The updating property of an object can be changed by using the <a href="cmd_stopupdate.htm"><b>stop.update</b></a> and <a href="cmd_startupdate.htm"><b>start.update</b></a> commands.</p>
+			<p>When updating is disabled, the object will not move or cycle automatically, and all non-updating objects get drawn before all updating objects. </p>
+			<p>You can manually change its position or displayed cel by using the appropriate commands. However, it will not update on the screen unless its update property is set, or if a <a href="cmd_forceupdate.htm"><b>force.update</b></a> or <a href="cmd_overlaypic.htm"><b>overlay.pic</b></a> command is used.</a></p>
+			<p>Because of the way that AGI handles <a href="..\agi\memory.htm#bitmaps">background bitmaps behind objects</a>, changes made to a non-updating object will result in 'ghost' images if any command that affects heap memory is used..</p>
+			<p>When updating is enabled, cycling can be independently enabled or disabled by using the <a href="cmd_startcycling.htm"><b>start.cycling</b></a> and <a href="cmd_stopcycling.htm"><b>stop.cycling</b></a> commands. See the <a href="object_cycling.htm">Cycling Objects</a> topic for additional information on cycling.</p>
+			<p>Keep in mind that the <a href="cmd_draw.htm"><b>draw</b></a> command always sets an object's update property to TRUE, so when you are initializing an object that you want updating disabled, you must call the <a href="cmd_stopupdate.htm"><b>stop.update</b></a> command AFTER the <b>draw</b> command.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

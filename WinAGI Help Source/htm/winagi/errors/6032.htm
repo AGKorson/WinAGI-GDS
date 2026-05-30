@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Error 6032</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6032</h2>
+    <h3>'<code>if</code>' block must have at least one test command</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Although AGI allows <a href="..\..\commands\syntax_sierra.htm#ifelse"><code><b>if</b></code></a> blocks with no <a href="..\..\commands\syntax_sierra.htm#tests">test commands</a> when processing a <a href="..\..\agi\logics.htm">logic</a> at run time, Sierra's logic compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a> will raise an error when it detects an empty <code><b>if</b></code> block.</p>
+    <p>To maintain compatibility with CG.EXE, WinAGI also raises this error for empty <code><b>if</b></code> blocks. You will need to edit your code to add test commands, or remove the empty blocks.</p>
+      <blockquote>
+      <pre>if () {  [ <font color="red"><b>NOT OK</b></font>; not allowed in Sierra syntax
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

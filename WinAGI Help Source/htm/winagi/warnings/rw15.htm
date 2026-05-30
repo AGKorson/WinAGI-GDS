@@ -1,0 +1,18 @@
+<html>
+    <head><title>Resource Load Warning RW15</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Resource Load Warning RW15</h2>
+      <h3>Loop &lt;number&gt; in view &lt;number&gt; shares cel data with another loop but is not a mirror</h3>
+      <p class="indent_n"><a href="..\..\agi\views.htm#loop">Loop</a> <a href="..\..\agi\views.htm#mirror">mirroring</a> in AGI is accomplished by having two loops use the same <a href="..\..\agi\views.htm#cel">cel</a> data, with each shared cel having a special bit set so AGI knows to flip the cel when the loop changes.</p>
+      <p class="indent_n">This warning indicates WinAGI found a loop that is sharing data with another loop, but the mirror bit marker is not set for any of the cels. Both loops will work without errors in AGI and will look exactly the same, but there aren't many practical reasons for having identical loops in a <a href="..\..\agi\views.htm">view</a>.</p>
+      <p class="indent_n">Opening and then saving the view in WinAGI will update the view with correct formatting and will clear the warning.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

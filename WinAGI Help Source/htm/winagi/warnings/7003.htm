@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Warning 7003</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7003</h2>
+    <h3>Numerical values outside byte range will be converted to a byte value</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, all numbers that are outside byte range (0 - 255) will be converted to a byte value. The conversion is applied by returning only the eight lowest bits of the number (i.e. BYTEVAL = NUMBER ^ 255).</p>
+    <p class="indent_n">Since there aren't many situations where using numbers larger than a byte value is useful, this warning most likely indicates a syntax error or extra unintended digit. You should check your code carefully to be sure the number in your source code is the number you intended to use.</p>
+      <blockquote>
+      <pre>v99 = 257;   [ will compile as 'v99 = 1;'
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

@@ -1,0 +1,44 @@
+<html>
+	<head><title>Action Command: addv</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>addv</h1>
+			<p>The <b>addv</b> command adds the values of two variables, and stores the result in the first variable.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>addv(<a href="syntax_fan.htm#argtypes">var</a> vA, <a href="syntax_fan.htm#argtypes">var</a> vB);</p>
+			<p>vA = vA + vB;</p>
+			<p>vA += vB;</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Because <a href="..\agi\variables.htm">variables</a> are 8 bit unsigned numbers, if the result of the addition exceeds 255, the result 'wraps around'. For example, if v50 currently equals 200, and v51 has a value of 60, the statement:</p>
+	<pre><code>addv(v50, v51);</code></pre>
+			<p>will result in a value for v50 of 4 (200 + 60 = 260; 260 - 256 = 4). This can be represented mathematically as <b>vA</b> = (<b>vA</b> + <b>vB</b>) % 0x100.</p>
+		<h2>Example</h2>
+<pre><code>v50 = 100;
+v51 = 100;
+<b>addv(v50, v51);</b>  [ v50 now equals 200
+v50 = v50 + v51; [ v50 now equals 44 (300 - 256)
+v50 += v51;      [ v50 now equals 144</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">6 (0x06)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_math.htm">Mathematical Commands</a></p>
+			<p><a href="cmd_addn.htm"><b>addn</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

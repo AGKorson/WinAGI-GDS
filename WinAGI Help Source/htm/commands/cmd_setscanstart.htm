@@ -1,0 +1,47 @@
+<html>
+	<head><title>Action Command: set.scan.start</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>set.scan.start</h1>
+		<p>The <b>set.scan.start</b> command sets the entry point for a logic script.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.scan.start();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>When the <b>set.scan.start</b> command is executed, AGI stores the current script position of the running <a href="..\agi\logics.htm">logic</a> in a <a href="..\agi\logics.htm#scan">scan start table</a>, and subsequent calls to this logic will start at that stored position, instead of starting at the beginning.</p>
+			<p>This could be useful if a logic has a large section at the beginning that only needs to be executed once. At the end of that section, the <b>set.scan.start</b> command can be used to make AGI skip over the initialization section on subsequent iterations.</p>
+			<p>Use the <a href="cmd_resetscanstart.htm"><b>reset.scan.start</b></a> command to reset the entry point back to the beginning of the logic.</p>
+			<p>In the following example, you will only see the first message one time. After that, the logic begins execution at the second print statement. If flag f99 is set to TRUE at some point, the scan point is reset back to the beginning, and the next iteration will show the first command again.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>print("this is first command.");
+<b>set.scan.start();</b>   [ subsequent calls to this logic will start at the 
+                    [ command following this call to set.scan.start
+print("this is second command.");
+if(isset(f99))
+  {
+  reset.scan.start();
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">145 (0x91)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_flowcontrol.htm">Flow Control Commands</a></p>
+			<p><a href="cmd_resetscanstart.htm"><b>reset.scan.start</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

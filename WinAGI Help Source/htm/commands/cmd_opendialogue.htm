@@ -1,0 +1,42 @@
+<html>
+	<head><title>Action Command: open.dialogue</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>open.dialogue</h1>
+		<p>The <b>open.dialogue</b> command affects how <a href="cmd_getstring.htm"><b>get.string</b></a> and <a href="cmd_getnum.htm"><b>get.num</b></a> commands operate when AGI is run on an HGC system.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>open.dialogue();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The default behavior for <a href="cmd_getstring.htm"><b>get.string</b></a> and <a href="cmd_getnum.htm"><b>get.num</b></a> commands on an HGC monitor is to display an input box, similar to the one used for normal <a href="..\agi\keyboard.htm#inputline">player input</a>. The <b>open.dialogue</b> command will cause <b>get.string</b> and <b>get.num</b> to operate the same way as on other displays. Use the <a href="cmd_closedialogue.htm"><b>close.dialogue</b></a> to restore default behavior.</p>
+			<p>This command has no effect if called while running on a non-HGC monitor. AGI will just ignore it. Unless you are intending to run on an HGC monitor, this command has no usefulness.</p>
+			<p>In the last <a href="..\agi\versions.htm">version</a> of AGI (<a href="..\agi\version3.htm#3002149">3.002.149</a>), support for the <a href="cmd_closedialogue.htm"><b>close.dialogue</b></a> and <b>open.dialogue</b> commands was removed. The commands were directed to a null function, and calls to these two commands had no effect.</p>
+			<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>open.dialogue();</b>
+get.string</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 2.411 and above, except version 3.002.149.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">163 (0xA3)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><b><a href="cmd_closedialogue.htm">close.dialogue</a></b></p>
+			<p><a href="cmd_getstring.htm"><b>get.string</b></a></p>
+			<p><a href="cmd_getnum.htm"><b>get.num</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

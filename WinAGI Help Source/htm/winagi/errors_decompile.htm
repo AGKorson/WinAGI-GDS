@@ -1,0 +1,31 @@
+<html>
+    <head><title>Logic Decompiler Errors</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h1>Logic Decompiler Errors</h1>
+        <p>When analyzing the <a href="..\agi\logics.htm#commands">raw byte codes</a> from a <a href="..\agi\logics.htm">logic</a> resource, if WinAGI is unable to fully decompile the resource, a decompilation error is generated. Depending on the error, the resource may be partially decompiled.</p>
+        <p>Detailed explanations of each error that may be encountered are provided below.</p>
+        <p>Where decompile warning messages include dynamic text, such as a resource type, or resource number, the dynamic text is represented by '&lt;' and '&gt;' characters, for example '&lt;restype&gt;'.</p>
+        <p>The &lt;pos&gt; argument points to the byte index position of the invalid value in the raw byte code. It is provided in case you wish to examine the data in a hex editor to further study the logic.</p>
+        <p>&nbsp;</p>
+      <h3><a href="errors\de01.htm">DE01: Logic contains no data to decompile</a></h3>
+      <h3><a href="errors\de02.htm">DE02: Invalid test command byte code (&lt;code&gt;) found at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="errors\de03.htm">DE03: Invalid action command byte code (&lt;code&gt;) found at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="errors\de04.htm">DE04: Block end at resource index &lt;pos&gt; is past end of resource; adjusted to end</a></h3>
+      <h3><a href="errors\de05.htm">DE05: Destination for '<code>goto</code>' at resource index &lt;pos&gt; is past end of logic; adjusted to end</a></h3>
+      <h3><a href="errors\de06.htm">DE06: Expected block end does not align with calculated block end at resource index &lt;pos&gt;</a></h3>
+      <h3><a href="errors\de07.htm">DE07: Message section has an invalid end-of-text marker</a></h3>
+      <h3><a href="errors\de08.htm">DE08: Message &lt;msgnum&gt; has an invalid offset (resource index &lt;pos&gt;)</a></h3>
+      <h3><a href="errors\de09.htm">DE09: Invalid message section data</a></h3>
+      <h3><a href="errors\de10.htm">DE10: Unexpected end of input</a></h3>
+      <h3><a href="errors\de11.htm">DE11: Valid reference to WORDS.TOK is missing</a></h3>
+      <h3><a href="errors\de12.htm">DE12: Word group &lt;number&gt; does not exist in WORDS.TOK</a></h3>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

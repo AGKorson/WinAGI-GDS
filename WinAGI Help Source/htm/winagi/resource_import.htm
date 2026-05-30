@@ -1,0 +1,51 @@
+<html>
+	<head><title>Importing Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Importing Resources</h1>
+		<p>The Import Resources command is only available if a game is loaded.</p>
+		<p>&nbsp;</p>
+		<h3>Importing <a href="..\agi\logics.htm">Logic</a>/<a href="..\agi\pictures.htm">Picture</a>/<a href="..\agi\sounds.htm">Sound</a>/<a href="..\agi\views.htm">View</a>&nbsp;Resources</h3>
+			<p>&nbsp; <img alt="Open Logic Button" src="..\..\graphics\tbILog.bmp" height="32" width="32">&nbsp;<img alt="Open Picture Button" src="..\..\graphics\tbIPic.bmp" height="32" width="32">&nbsp;<img alt="Open View Button" src="..\..\graphics\tbIView.bmp" height="32" width="32">&nbsp;<img alt="Open Sound Button" src="..\..\graphics\tbISnd.bmp" height="32" width="32"></p>
+			<p>WinAGI allows you to import existing resources into your game. You can import them as a new resource, or to replace/overwrite an existing resource.</p>
+		<h4>Import and Overwrite</h4>
+			<p>To overwrite an existing resource, the resource must be opened for editing. Use the Import Resource menu item or the Import Resource toolbar button, select the desired resource file (of the same resource type) and answer 'Yes' when asked if you want to overwrite. The imported resource will replace the current resource you are editing. Importing a resource cannot be undone.</p>
+		<h4>Import As New Resource</h4>
+			<p>If you choose the Import command for a resource type that does not match the active editor, OR if you answer 'No' when asked if you want to overwrite, the Import Resource dialog is shown:</p>
+			<img src="..\..\graphics\importres.jpg" alt="Import Resource Dialog" width="470">
+			<p>Select the <a href="managingresources.htm#resnum">resource number</a> you want for the imported resource. You can also choose a <a href="managingresources.htm#resourceids">resource ID</a> and add a description. The default  <a href="managingresources.htm#resourceids">resource ID</a> is the filename of the imported resource. Click OK and the resource is imported into your game and opened for editing.</p>
+			<p>You can also choose to NOT import the resource, and just open it for editing by clicking the 'Open Don't Import' button. The resource will open in an editor, but won't be added to your game. This is useful if you want to interact with a resource that is not part of your game. For example, if you want to copy a loop or cel from an existing view to add to one of your game's views.</p>
+		  <p>&nbsp;</p>
+		<h3><a name="importsound">Importing Sounds</a></h3>
+		  <p>WinAGI provides limited support for importing and converting MIDI files, as well as files created with the MSDOS tool <a href="https://github.com/jthlim/impulse-tracker" target="_blank">Impulse Tracker</a> (*.IT) and MOD files (from programs such as <a href="https://en.wikipedia.org/wiki/Protracker" target="_blank">ProTracker</a>). The conversions are based on the <a href="https://github.com/SinusPi/any2agi" target="_blank">it2agi.pl Perl script</a>, version 0.2.7, originally written by Nat Budin (with some code provided by <a href="https://github.com/lanceewing" target="_blank">Lance Ewing</a>), and updated by <a href="https://github.com/SinusPi" target="_blank">Adam 'Sinus' Skawinski</a>. </p>
+			<img src="..\..\graphics\importmidi.jpg" alt="Import MIDI Dialog" width="318">
+		  <p>MIDI import options include:</p>
+		  <ul><ul>
+		  	<li>Input channels: here you can map the channels in the input MIDI file to the <a href="..\agi\sounds.htm#pcjr">AGI tracks</a> (0, 1, 2, noise) of the converted sound. For MIDI files, channels are numbered 0, 1, 2, etc. Channel nine is typically the percussion track, which is usually used as the noise channel. Leaving a channel blank will result in no notes being added to the specified track.</li>
+		  	<li>Polyphonic mode: maps to the '--midipoly' option in the Perl script. Default is to use monophonic MIDI tracks; use this option to input polyphonic tracks.</li>
+		  	<li>Remap noise channel: maps to the '--nomidiremap' option in the Perl script. Default is to remap drum notes in the MIDI file to predetermined note values. Check this option if you do not want to do that. See the Perl script in-line comments for more detailed information.</li>
+      </ul></ul>
+			<img src="..\..\graphics\importit.jpg" alt="Import IT/MOD Dialog" width="318">
+		  <p>IT/MOD import options include:</p>
+		  <ul><ul>
+		  	<li>Input channels: here you can map the channels in the input IT or MOD file to the AGI tracks (0, 1, 2, noise) of the converted sound. For IT/MOD files, channels are numbered 1, 2, 3, etc. Leaving a channel blank will result in no notes being added to the specified track.</li>
+		  	<li>Use exact source tempo: maps to the '--tempo-exact' option in the Perl script. When true, this option forces exact tempo, at the cost of jittery playback. See the Perl script in-line comments for more detailed information.</li>
+		  	<li>Auto drum-off length: maps to the '--auto-drum-offs n' option in the Perl script. When true, it automatically terminates notes on the noise channel after the specified number of ticks. Useful when converting input files that use short samples and don't bother terminating them, which would turn into long noise notes in AGI.</li>
+		  	<li><a name="force">Instrument forced notes</a>: maps to the '--instr x note y' option in the Perl script. Format is 'x1, y1, x2, y2, ... xN, yN'. Each instrument/note pair must be separated by a comma. This option forces instrument xN to play only note yN. Useful to force a drum-like instrument to play only valid AGI drum notes. See the Perl script in-line comments for more detailed information.</li>
+		  	<li><a name="shift">Instrument shifts</a>: maps to the '--instr x shift y' option in the Perl script. Format is 'x1, y1, x2, y2, ... xN, yN'. Each instrument/shift pair must be separated by a comma. This option shifts (transposes) instrument xN by yN semitones. Use when input samples were recorded in a weird pitch, and notes in the input were written to match that. Or, use +12 or -12 to transpose by an octave.</li>
+      </ul></ul>
+      <p>The Perl script which this feature is based on may be more current than the one which WinAGI uses, and may have more options than the built-in WinAGI implementation.</p>
+		  <p>&nbsp;</p>
+		<h3><a name="importfile">Importing</a> <a href="..\agi\object.htm">OBJECT</a>, <a href="..\agi\words.htm">WORDS.TOK</a> files</h3>
+			<p>There is not a button on the main toolbar for importing OBJECT and WORDS.TOK files. Use the Import Resource command on the Resources menu.</p>
+			<p>Choose the file you want to import by using the Open File dialog window. After you select the file to import, WinAGI will ask if you want to replace your existing in-game file with the one you selected to import; clicking Yes will complete the import operation.</p>
+			<p>If you click No, the open game's existing OBJECT or WORDS.TOK file is not affected; the file you just selected for import will be opened for editing. This could be useful if you wanted to open an existing file to cut and paste some objects or words into your game.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

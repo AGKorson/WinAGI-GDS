@@ -1,0 +1,39 @@
+<html>
+	<head><title>Action Command: get.room.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>get.room.v</h1>
+			<p>The <b>get.room.v</b> command copies an <a href="..\agi\invitems.htm">inventory item's</a> <a href="..\agi\pictures.htm#room">room</a> <a href="..\agi\object.htm#objroomnum">number</a> to a variable.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>get.room.v(<a href="syntax_fan.htm#argtypes">var</a> vA, <a href="syntax_fan.htm#argtypes">var</a> vB);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Variable <b>vB</b> is set to the <a href="..\agi\object.htm#objroomnum">room number</a>
+			of item <b>iC</b>, where <b>C</b> = <b>vA</b>.</p>
+			<p>If the <a href="..\agi\invitems.htm">inventory item</a> is not valid (the number exceeds the total number of inventory items in the <a href="..\agi\object.htm">OBJECT</a> file), AGI will raise <a href="..\agi\errorlist.htm#trap23">trappable error #23</a>.</p>
+			<p>Note that there is not an equivalent 'number' version of the <b>get.room.v</b> command (i.e. no <b>get.room</b> that takes a number as an argument.)</p>
+		<h2>Example</h2>
+<pre><code>v50 = 21;
+<b>get.room.v(v50, v51);</b>   [ v51 now equals room number for item 21</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">97 (0x61)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_invitems.htm">Inventory Item Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

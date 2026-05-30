@@ -1,0 +1,51 @@
+<html>
+	<head><title>Action Command: set.priority</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>set.priority</h1>
+			<p>The <b>set.priority</b> command sets an object's priority, and disables automatic priority assignment.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.priority(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">byt</a> PRI);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The default behavior for <a href="..\agi\screenobjs.htm">screen objects</a> is to <a href="..\agi\grafdisp.htm#bands">automatically assign</a> <a href="..\agi\grafdisp.htm#priority">priority</a> based on position. The <b>set.priority</b> command sets screen object oA’s priority to PRI and disables the automatic priority assignment.</p>
+			<p>To change the screen object back so the priority is automatically updated based on the object’s position, use the <b><a href="cmd_releasepriority.htm">release.priority</a></b> command.</p>
+			<p>Valid values for PRI are 3 - 15, with the following considerations:</p>
+			<ul>
+				<li>If PRI is 15, in addition to having a static priority value of 15, the screen object will also ignore all <a href="concepts_obstacles.htm#controllines">control lines</a> and <a href="concepts_obstacles.htm#blocks">blocks</a>.</li>
+				<li>If PRI is less than 3, the object will not be drawn on the screen, as these values correspond to <a href="..\agi\grafdisp.htm#controllines">control lines</a> and are not actually priority values; the object will still exist; it can still move about the screen, and it will cause <a href="concepts_obstacles.htm#onobject">collisions</a> with other objects - it will just be invisible.</li>
+				<li>If PRI is 3, the object will only be visible when on '<a href="..\agi\grafdisp.htm#water">water</a>' pixels.</li>
+			</ul>
+			<p>Do not use values of PRI greater than 15. The function that AGI uses to draw objects on the screen uses only the lower nibble (lowest four bits) of the priority value. For values greater than 15 this means priority equals PRI modulus 16, which would normally still allow for objects to be given a valid priority value and be drawn on the screen. However, any object with an assigned priority greater than 22 will disappear from the screen. In each <a href="..\agi\cycle.htm">interpreter cycle</a> AGI uses objects' priority value to determine the order to draw them, so overlapping objects get drawn correctly. Objects with a fixed priority are given a 'virtual' y-position, so they get drawn in the right place. The virtual y-position is calculated as a two-byte word, so priorities above 22 get converted to a value that is above 255, which is the value that AGI tests against to determine if an object gets added to the screen. So objects with priority greater than 22 never get drawn.</p>
+			<p>In AGI <a href="..\agi\versions.htm">versions</a> with the <a href="cmd_setpribase.htm"><b>set.pri.base</b></a> command, when a custom priority is set, AGI uses a different function without a bug to draw the objects, so objects with priority greater than 22 would still draw on screen, but with a virtual y-position of 167, meaning they will always be drawn on top of all other objects.</p>
+			<p>If used to set the priority of the <a href="..\agi\interface.htm#ego">ego object</a> (o0) to 15, then <a href="..\agi\flags.htm#reserved">reserved flags</a> <a href="..\agi\f0.htm">f0 (ego on water)</a> and <a href="..\agi\f3.htm">f3 (ego touching signal line)</a> will no longer be set when these conditions occur. If ego's priority is released, or set to a value less than 15, it returns to normal behavior.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>#define bird o4
+	...  [ initialize object
+<b>set.priority(bird, 15);</b> [ the bird flies in front of everything</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">54 (0x36)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_releasepriority.htm">release.priority</a></b></p>
+			<p><b><a href="cmd_setpriorityv.htm">set.priority.v</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,47 @@
+<html>
+	<head><title>Action Command: subn</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>subn</h1>
+			<p>The <b>subn</b> command subtracts a numerical value from a variable.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>subn(<a href="syntax_fan.htm#argtypes">var</a> vA, <a href="syntax_fan.htm#argtypes">byt</a> B);</p>
+			<p>vA = vA - B;</p>
+			<p>vA -= B;</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Because <a href="..\agi\variables.htm">variables</a> are 8 bit unsigned numbers, if the result of the subtraction is less than 0, the result 'wraps around'. For example, if v50 currently equals
+			20, the statement:</p>
+	<pre><code>subn(v50, 25);</code></pre>
+			<p>will result in a value for v50 of 251 (20 - 25 = -5; -5 + 256 = 251).</p>
+			<p>NOTE: <b><code>subn(vA, 1)</code></b> is NOT the same as <b><code>decrement(vA)</code></b>. The <a href="cmd_decrement.htm"><b>decrement</b></a> command does not wrap around like the <b>subn</b> command.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v50 = 40;
+<b>subn(v50, 25);</b>  [ v50 now equals 15
+v50 = v50 - 25; [ v50 now equals 246 (-10 + 256)
+v50 -= 25;      [ v50 now equals 221</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">7 (0x07)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_math.htm">Mathematical Commands</a></p>
+			<p><a href="cmd_subv.htm"><b>subv</b></a></p>
+			<p><a href="cmd_decrement.htm"><b>decrement</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

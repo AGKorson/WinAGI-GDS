@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Error 6015</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6015</h2>
+    <h3>Using message number of zero will corrupt the compiled logic</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Due to the way AGI manages <a href="..\..\agi\encryption.htm#msg">encryption of message data</a> in <a href="..\..\agi\logics.htm">logic</a> resources, there is no <a href="..\..\agi\messages.htm">message</a> with index of zero. Although Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a> will compile it without displaying an error, the logic will actually have a corrupted message data section.</p>
+    <p class="indent_n">You will need to renumber the message to a value between 1 and 255 to clear this error.</p>
+      <blockquote>
+      <pre>%message "BAD MESSAGE" 0  [ <font color="red"><b>NOT OK</b></font>; will corrupt the output data
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

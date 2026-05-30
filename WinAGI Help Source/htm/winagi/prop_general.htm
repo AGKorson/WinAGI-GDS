@@ -1,0 +1,51 @@
+<html>
+	<head><title>General Game Properties</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>General Game Properties</h1>
+			<map name="props">
+				<area shape="poly" alt="Game ID" coords="28,80,75,80,75,96,114,96,114,119,28,119" href="#gameid">
+				<area shape="rect" alt="Target Interpreter Version" coords="229,81,380,119" href="#intversion">
+				<area shape="poly" alt="Game Directory" coords="28,170,115,170,115,187,379,187,379,210,28,210" href="#gamedir">
+				<area shape="rect" alt="Resource Directory" coords="28,241,179,280" href="#resdir">
+				<area shape="poly" alt="Source File Extension" coords="229,241,376,241,376,251,316,251,316,280,28,280" href="#defext">
+				<area shape="rect" alt="Auto Include" coords="28,303,290,356" href="#autoinclude">
+				<area shape="rect" alt="Use Layout Editor" coords="28,371,140,384" href="#uselayouted">
+			</map>
+			<p><img src="..\..\graphics\propgeneral.jpg" border="0" usemap="#props" width="406"></p>
+		<h2><a name="gameid">GameID</a></h2>
+			<p>The WinAGI <a href="..\agi\components.htm#gameid">GameID</a> is used by WinAGI to identify a game you are working on. For version 3 games, the GameID is the prefix for the directory files and volume files. The GameID defaults to "AGI" for new games.</p>
+			<blockquote>
+				<p><b>Note:</b> The GameID property is not directly associated with the <a href="..\commands\cmd_setgameid.htm"><b>set.game.id</b></a> AGI command. Changing the GameID property will not affect any <b>set.game.id</b> commands in your game. For help with avoiding game ID issues, see <a href="..\agi\components.htm#gameid">Game IDs and Loaders</a>.</p>
+			</blockquote>
+			<p>For version 2 games, the GameID property can be up to six alphanumerical characters long. This is a limitation of the old DOS '8.3' file naming convention. The file name for saved game files was 'SG' plus the game ID with extensions of 001, 002, etc. This meant the game ID could be no longer than six characters.</p>
+			<p>For version 3 games, the GameID property is limited to five characters. The directory file for a version 3 game includes the three-character sequence "DIR" which leaves five characters available for the GameID.</p>
+			<p>The GameID property can be accessed in <a href="editor_logic.htm">logic source</a> code through a <a href="reservednames.htm#gameid">reserved define name</a>. When logics are compiled, the reserved name is replaced with the GameID text.</p>
+		<h2><a name="intversion">Target Interpreter Version</a></h2>
+			<p>This is the <a href="..\agi\versions.htm">interpreter version</a> that your game is designed to use. It must be one of the nineteen known AGI release versions. If you are creating a game from a template, this will be a read-only property. If you are creating a new blank game, you may choose any version, and WinAGI will correctly format the DIR and VOL files based on the major version selected. Please note setting this property DOES NOT copy any interpreter files to your game directory, or prevent you from running your game with any other interpreter version. It is merely used by WinAGI to manage game properties such as <a href="..\agi\vol.htm">VOL</a> and <a href="..\agi\dir.htm">DIR</a> file naming, <a href="..\agi\object.htm">OBJECT</a> file encryption, and <a href="..\commands\commands.htm">AGI command</a> syntax.</p>
+			<p>If you are editing an existing game, changing the <a href="..\agi\versions.htm">interpreter version</a> from one major version to another (from 2 to 3 or vice versa) will result in a complete rebuild of VOL and DIR files to the correct format based on the new version.</p>
+			<p>For WinAGI, your choice here will only determine the style of the <a href="..\agi\vol.htm">VOL</a> and <a href="..\agi\dir.htm">DIR</a> files (based on which major version you select), and the AGI command set.</p>
+			<p>The number of <a href="..\commands\commands.htm">AGI commands</a> available in <a href="..\agi\logics.htm">logic</a> resources varies with the AGI <a href="..\agi\versions.htm">version</a>. In WinAGI, if you choose a version that does not support all the AGI commands, a syntax error will be generated for any commands encountered in your source code that are not supported in the selected version.</p>
+			<p>Keep in mind that version 3 games needs an interpreter file that has a built-in GameID that matches your game's GameID. You will need to modify an interpreter file with a hex editor to match your GameID, unless you are planning to run your game with an AGI emulator such as <a href="https://github.com/lanceewing/agile" target="_blank">AGILE</a>, <a href="https://www.scummvm.org" target="_blank">ScummVM</a> or <a href="https://agidev.com/projects/nagi" target="_blank">NAGI</a>.</p>
+			<p>See the <a href="..\agi\versions.htm">AGI Interpreter Versions</a> topic in the AGI Reference for more information on the differences in AGI versions.</p>
+		<h2><a name="gamedir">Game Directory</a></h2>
+			<p>The directory where the game files are located. For a new game, your game files will be created here. For new games, the directory must not already contain a WinAGI game file or an existing AGI game (<a href="..\agi\vol.htm">VOL</a> and <a href="..\agi\dir.htm">DIR</a> files).</p>
+			<p>If you are editing an existing game's properties, the game directory property is read-only.</p>
+		<h2><a name="resdir">Resource Directory</a></h2>
+			<p>The name of the <a href="managingresources.htm#resdir">subdirectory</a> in the game directory where logic source files will be stored. This is also the default directory for exporting other resources.</p>
+			<p>If this property is changed for an existing game, files in the old directory will be moved to the new directory automatically.</p>
+		<h2><a name="defext">Source File Extension</a></h2>
+			<p>This is the file extension that will be added by default to you game source files.</p>
+		<h2><a name="autoinclude">Auto Include ResourceIDs / Reserved Defines / Global Defines</a></h2>
+		  <p>WinAGI can automatically create and manage <a href="editor_text.htm#includefiles">include files</a> to add <a href="..\commands\syntax_fan.htm#defines">defines</a> for <a href="managingresources.htm#resourceids">resource IDs</a>, <a href="reservednames.htm">reserved variables and flags</a>, and <a href="editor_globals.htm">global defines</a> that need to be accessible in all logics. When enabled, WinAGI will automatically create and manage the specified include file, and add the appropriate include statement to the beginning of every logic. Each auto include option can be toggled individually if you prefer to manage these types of defines manually.</p>
+		<h2><a name="uselayouted">Use Layout Editor</a></h2>
+		  <p>If you want to use the <a href="editor_layout.htm">Layout Editor</a> to assist in managing how the rooms in your game are connected, enable this option.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

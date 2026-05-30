@@ -1,0 +1,27 @@
+<html>
+	<head><title>Logic Compiler Error 6028</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6028</h2>
+    <h3>Using '&' or '|' in tokens other than " &&" or "||" will crash Sierra's compiler</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Due to a bug in Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, the characters '&' and '|' should never be appended to another token. They must always be separated by a space, tab character or new line character.</p>
+    <p class="indent_n">If a token tries to add one of these characters, CG.EXE will enter an infinite loop and freeze up. To To maintain compatibility with CG.EXE, WinAGI will raise this error when one of these characters are appended to another token.</p>
+    <p class="indent_n">You will need to remove the '&' or '|' character from your source code in order to clear this error.</p>
+       <blockquote>
+      <pre>#define badtoken abc&   [ <font color="red"><b>NOT OK</b></font>, will crash CG.EXE
+addn(v99, 1&);   [ <font color="red"><b>NOT OK</b></font>, will crash CG.EXE
+v99 =& 1;    [ <font color="red"><b>NOT OK</b></font>, will crash CG.EXE
+if (v99 == 1 &| v99 == 2)   [ <font color="red"><b>NOT OK</b></font>, will crash CG.EXE
+...</pre>
+      </blockquote>
+   <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

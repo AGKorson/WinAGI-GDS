@@ -1,0 +1,46 @@
+<html>
+    <head><title>Logic Source Decompiler Warning DW08</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Warning DW08</h2>
+      <h3>Block end at resource index &lt;pos&gt; is outside nested block (jump location &lt;jumppos&gt;)</a></h3>
+      <p class="indent_n">This warning is raised when an <a href="..\..\agi\logics.htm#ifelse">if-block</a> inside another if-block has an end-if location that is past the end-if location of the first if-block. This is easier to see with an example:</p>
+<blockquote><pre>
+[ if decompiled literally, the code would be this:
+if (TestA) {
+    command1;
+    if (TestB) {
+        command2;
+}  [ end-if TestA
+command3;
+        <font color="red"><b>} [ end-if TestB</b></font>
+command4;
+[ the syntax rules for AGI source code does not allow you to put 
+[ the end-if for TestB past the end-if for TestA
+</pre></blockquote>
+      <p class="indent_n">Even though the <a href="..\..\agi\logics.htm#commands">logic byte code</a> can't be decompiled into readable source code, it will actually work when AGI processes the logic. Since it can't be decompiled literally, WinAGI will add an else and goto statement that results in valid source code that does exactly the same thing:</p>
+      <blockquote>
+        <pre>[ WinAGI creates an equivalent else-goto construct that
+[ exactly mimics the existing byte code effect
+if (TestA) {
+    command1;
+    if (TestB) {
+        command2;
+        <b>} else {
+        goto(Label1);</b>
+    }
+}
+command3;
+:Label1
+command4;</pre>
+      </blockquote>
+      <p class="indent_n">You should confirm that the <a href="..\..\agi\vol.htm">VOL</a> file containing this <a href="..\..\agi\logics.htm">logic</a> is not corrupt. Regardless, you will need to carefully examine the decompiled source code, and adjust the code as necessary before recompiling.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

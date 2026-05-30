@@ -1,0 +1,40 @@
+<html>
+	<head><title>Action Command: hide.mouse</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>hide.mouse</h1>
+			<p>The <b>hide.mouse</b> command hides the mouse cursor.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>hide.mouse(<a href="syntax_fan.htm#argtypes">byt</a> A);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>For non-PC versions, this command hides the mouse cursor. Use the <a href="cmd_showmouse.htm"><b>show.mouse</b></a> command to restore the mouse cursor after hiding it with this command. The exact purpose of argument <b>A</b> is not known.</p>
+			<p>The <b>hide.mouse</b> command was available beginning in <a href="..\agi\versions.htm">version</a> 3.002.086, but <b>show.mouse</b> was not added until version 3.002.098. Why Sierra chose to do this is unknown.</p>
+			<p><b>NOTE:</b> In the PC version of AGI, this command points to a null function, but the null function does not accept arguments. If you use this command on a PC, AGI will treat the argument value intended for this command as the byte value for the next command, which will almost always crash AGI. Do NOT use this command if you intend to run your game on a PC platform.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>hide.mouse</b>(0);  [ no mouse?
+...
+show.mouse(0); [ is it back?</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 3.002.086 and above.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">176 (0xB0)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

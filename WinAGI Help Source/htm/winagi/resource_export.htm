@@ -1,0 +1,68 @@
+<html>
+	<head><title>Exporting Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Exporting Resources</h1>
+			<p>Exporting a resource allows you to save a resource as a separate resource file outside of an AGI <a href="..\agi\vol.htm">VOL file</a>, or for some resource types, as a different file format.</p>
+			<p>Exporting a resource does NOT affect your game. It just makes a copy of it.</p>
+			<p>&nbsp;</p>
+		<h3>Export vs. Save As...</h3>
+			<p>The Export command is similar to <a href="resource_save.htm#saveas">Save As...</a> command. Both allow you to save a resource to a file.</p>
+			<p>The difference is that resources that are in a game can be exported. Resources that are NOT in a game can be saved as a different filename.</p>
+			<p>&nbsp;</p>
+		<h3><a name="exportlogics">Exporting Logics</a></h3>
+			<p>When you choose to export a <a href="..\agi\logics.htm">logic</a>, you are given the opportunity to export the actual compiled logic resource (*.agl files), the source code (*.lgc files) or both.</p>
+			<p>&nbsp;</p>
+		<h3><a name="exportpics">Exporting Pictures</a></h3>
+			<p>In addition to exporting <a href="..\agi\pictures.htm">pictures</a> as AGI resource files, you can also save the picture image as a graphic image in BMP, JPG, GIF, TIFF or PNG format.</p>
+			<img src="..\..\graphics\exportpic.jpg" border="0" alt="Export Picture Images" width="407">
+			<p>When you select the Picture Image option, the dialog box expands to give you additional options for saving:</p>
+			<img src="..\..\graphics\exportpicimg.jpg" border="0" alt="Export Picture Images" width="407">
+			<p>You can choose to export the Visual image, the Priority image, or both. If you choose both, WinAGI will add "_P" to the name you choose for the Visual image and use that for the priority image. You can also choose to scale up the image before saving.</p>
+			<p>You can also right click any picture resource in the tree list, and choose the <EM>Save Picture Image As... </EM>command on the Resource menu as a short cut to the export picture image dialog.</p>
+			<p><a name="picgif"><b>Export as Animated GIF</b></a>: Pictures can be exported as an animated GIF that shows the picture being drawn step by step. Use the Export Picture as Animated Gif item on the Resource menu.</p>
+			<img src="..\..\graphics\exportpicgif.jpg" border="0" alt="Export Picture as Animated GIF" width="577">
+			<p>Options available include:</p>
+			<ul><ul>
+				<li>Scale: Sets the scale for the GIF. Note that the preview window does NOT indicate relative size; view the resulting GIF to determine if the scale chosen is satisfactory.</li>
+				<li>Continuous Loop: When checked, the resulting GIF will cycle continuously. When cleared, the GIF will cycle once, then stop on last cel.</li>
+				<li>Delay: Adjusts the time delay between cels in the GIF, in hundredths of a second increment. The preview window provides a reasonably accurate representation of the chosen delay time.</li>
+			</ul></ul>
+			<p><b>Export All Images:</b> You can easily save the images for all your picture resources with a single command. When you select the Pictures node in the <a href="resourcetree.htm">Resource List</a>, you can use the <EM>Export All Picture Images </EM> command on the <EM>Resource</EM> menu. All picture images will be exported to your game's resource directory using the options you choose.</p>
+			<p>&nbsp;</p>
+		<h3><a name="exportsounds">Exporting Sounds</a></h3>
+			<p>When you choose to export a <a href="..\agi\sounds.htm">sound</a>, there are four formats available:</p>
+			<img src="..\..\graphics\exportsound.jpg" border="0" alt="Export Sound" width="388">
+			<ul><ul>
+				<li>AGI Native Sound Resource (*.ags) - this format stores resources as native AGI sound resources.</li>
+				<li>MIDI compatible conversion (*.mid) - WinAGI can save a sound as a MIDI file. Channels that are marked as muted in the preview window or in the editor window will not be in the output. Sounds can be saved as MIDI files, but WinAGI cannot read and convert MIDI files to AGI sound resources.</li>
+				<li>PCM/WAVE compatible conversion (*.wav) - WinAGI can also convert the sound to a wave file which emulates the sound output of the <a href="..\agi\agisound.htm#pcjr">original IBM PCJr sound chip</a>.</li> 
+				<li>AGI Sound Script (*.ass) - this format saves a resource as a sound script. The sound script format has been established by <a href="http://www.agidev.com" target="_blank">Nick Sonneveld</a>. WinAGI can read and write to sound script files.</li>
+			</ul></ul>
+			<p>&nbsp;</p>
+		<h3><a name="exportviews">Exporting Views</a></h3>
+			<p>There are no other formats available to export <a href="..\agi\views.htm">view</a> resources, however, view <a href="..\agi\views.htm#loop">loops</a> can be exported as animated GIFs. When a loop is selected in either the View Editor or the Preview Window, choose <EM>Export Loop as GIF</EM> command on the <EM>Resources</EM> menu. </p>
+			<img src="..\..\graphics\exportloop.jpg" border="0" width="559">
+			<p><a name="options">Options</a> available include:</p>
+			<ul><ul>
+				<li><a name="horzalign">Horizontal alignment</a>: Adjusts the alignment of cels, if not all the same width, in the GIF. Choices are align right or align left.</li>
+				<li><a name="vertalign">Vertical alignment</a>: Adjusts the alignment of cels, if not all the same height, in the GIF. Choices are align top or align bottom.</li>
+				<li><a name="scale">Scale</a>: Sets the scale for the GIF. Note that the preview window does NOT indicate relative size; view the resulting GIF to determine if the scale chosen is satisfactory.</li>
+				<li><a name="transparency">Transparency</a>: When checked, the transparency color for the loop will be treated as transparent in the resulting GIF. If not checked, the transparency color will be included as a non-transparent color.</li>
+				<li><a name="cloop">Continuous Loop</a>: When checked, the resulting GIF will cycle continuously. When cleared, the GIF will cycle once, then stop on last cel.</li>
+				<li><a name="delay">Delay</a>: Adjusts the time delay between cels in the GIF, in hundredths of a second increment. The preview window provides a reasonably accurate representation of the chosen delay time.</li>
+			</ul></ul>
+			<p>&nbsp;</p>
+		<h2><a name="autoexport">Auto Export Feature</a></h2>
+			<p>The Auto Export feature automatically exports your picture, sound and view resources every time you edit them. You can enable or disable this feature on the <a href="settings_general.htm">General</a> tab of the <a href="settings.htm">Settings</a>
+			window.</p>
+			<p>WinAGI uses the resource ID as the filename when auto exporting. If you change the <a href="managingresources.htm#resourceids">resource ID</a>, WinAGI will automatically change the name of the corresponding resource file, if one exists.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

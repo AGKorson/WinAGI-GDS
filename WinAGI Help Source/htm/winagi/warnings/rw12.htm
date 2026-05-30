@@ -1,0 +1,17 @@
+<html>
+    <head><title>Resource Load Warning RW12</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Resource Load Warning RW12</h2>
+      <h3>Sound &lt;number&gt; has one or more tracks missing end of track marker</h3>
+      <p class="indent_n">All tracks in a <a href="..\..\agi\agisound.htm#pcjr">PCJr</a> <a href="..\..\agi\sounds.htm">sound</a> resource must end with a note length value of 0xffff (two 0xff bytes in a row). That is how AGI knows to stop reading notes from the resource for the given track. If a track does not have the ending track marker, AGI would continue reading data from the heap outside of the sound, leading to unexpected results.</p>
+      <p class="indent_n">When WinAGI detects a missing end of track marker, it automatically adds it when opening the sound for <a href="..\editor_sound.htm">editing</a>. Saving the sound will then clear this warning.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

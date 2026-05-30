@@ -1,0 +1,246 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using WinAGI.Common;
+using static WinAGI.Engine.Base;
+
+namespace WinAGI.Engine {
+    /// <summary>
+    /// A class that holds all the picture resources in an AGI game.
+    /// </summary>
+    public class Pictures : IEnumerable<Picture> {
+        #region Members
+        readonly AGIGame parent;
+        #endregion
+
+        #region Constructors
+        /// <summary>
+        /// Initializes the pictures collection for the specified game.
+        /// </summary>
+        /// <param name="parent"></param>
+        internal Pictures(AGIGame parent) {
+            this.parent = parent;
+        }
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the list of pictures in this game.
+        /// </summary>
+        public SortedList<int, Picture> Col { get; private set; } = [];
+
+        /// <summary>
+        /// Gets the picture with the specified index value from this list of pictures.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException"></exception>
+        public Picture this[int index] {
+            get {
+                if (index < 0 || index > 255 || !Contains(index)) {
+                    throw new IndexOutOfRangeException();
+                }
+                return Col[index];
+            }
+        }
+
+        /// <summary>
+        /// Gets the number of pictures in this AGI game.
+        /// </summary>
+        public int Count {
+            get {
+                return Col.Count;
+            }
+        }
+
+        /// <summary>
+        /// Gets the highest index in use in this pictures collection.
+        /// </summary>
+        public int Max {
+            get {
+                int max = 0;
+                if (Col.Count > 0)
+                    max = Col.Keys[Col.Count - 1];
+                return max;
+            }
+        }
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Called by the load game methods for the initial loading of
+        /// resources into this pictures collection.
+        /// </summary>
+        /// <param name="resnum"></param>
+        /// <param name="volnum"></param>
+        /// <param name="location"></param>
+        internal void InitLoad(byte resnum, sbyte volnum, int location) {
+            Picture newResource = new(parent, resnum, volnum, location);
+            newResource.Load();
+            Col.Add(resnum, newResource);
+            // leave it loaded, so error level can be addressed by loader
+        }
+
+        /// <summary>
+        /// Returns true if a picture with the specified number exists in this game.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <returns></returns>
+        public bool Contains(int ResNum) {
+            return Col.ContainsKey(ResNum);
+        }
+
+        /// <summary>
+        /// Adds a picture to this game. If NewPicture is null a blank picture is 
+        /// added, otherwise the added picture is cloned from NewPicture.
+        /// </summary>
+        /// <param name="ResNum"></param>
+        /// <param name="NewPicture"></param>
+        /// <returns>A reference to the newly added picture.</returns>
+        public Picture Add(byte ResNum, Picture NewPicture = null) {
+            Picture agResource;
+            int nextnum = 0;
+            string id, baseid;
+            if (Contains(ResNum)) {
+                WinAGIException wex = new(EngineResourceByNum(520)) {
+                    HResult = WINAGI_ERR + 520
+                };
+                throw wex;
+            }
+            // create new ingame picture
+            agResource = new Picture(parent, ResNum, NewPicture);
+            if (NewPicture is null) {
+                id = "Picture" + ResNum;
+            }
+            else {
+                id = agResource.ID;
+            }
+            baseid = id;
+            while (NotUniqueID(id, parent)) {
+                nextnum++;
+                id = baseid + "_" + nextnum;
+            }
+            Col.Add(ResNum, agResource);
+            // force flags so save function will work
+            agResource.IsChanged = true;
+            agResource.PropsChanged = true;
+            // save new picture to add it to VOL file
+            agResource.Save();
+            FanLogicCompiler.setIDs = false;
+            return agResource;
+        }
+
+        /// <summary>
+        /// Removes the specified picture from this game.
+        /// </summary>
+        /// <param name="Index"></param>
+        public void Remove(byte Index) {
+            if (Col.TryGetValue(Index, out Picture value)) {
+                // need to clear the directory file first
+                VOLManager.UpdateDirFile(value, true);
+                Col.Remove(Index);
+                // remove all properties from the wag file
+                parent.agGameProps.DeleteSection("Picture" + Index);
+                // remove ID from compiler list
+                FanLogicCompiler.setIDs = false;
+            }
+        }
+
+        /// <summary>
+        /// Removes all pictures from this game. Does not update WAG file.
+        /// </summary>
+        internal void Clear() {
+            Col = [];
+        }
+
+        /// <summary>
+        /// Changes the index number of a picture in this game.
+        /// </summary>
+        /// <param name="OldPicture"></param>
+        /// <param name="NewPicture"></param>
+        public void Renumber(byte OldPicture, byte NewPicture) {
+            Picture tmpPic;
+            int nextnum = 0;
+            string id, baseid;
+
+            if (OldPicture == NewPicture) {
+                return;
+            }
+            // verify old number exists
+            if (!Col.TryGetValue(OldPicture, out tmpPic)) {
+                throw new IndexOutOfRangeException("picture does not exist");
+            }
+            // verify new number is not in collection
+            if (Col.ContainsKey(NewPicture)) {
+                WinAGIException wex = new(EngineResourceByNum(531)) {
+                    HResult = WINAGI_ERR + 531
+                };
+                throw wex;
+            }
+            // remove old picture
+            parent.agGameProps.DeleteSection("Picture" + OldPicture);
+            Col.Remove(OldPicture);
+            VOLManager.UpdateDirFile(tmpPic, true);
+            // adjust ID if it is default
+            if (tmpPic.ID.ToLower() == "picture" + OldPicture) {
+                id = baseid = tmpPic.ID[..7] + NewPicture;
+                while (NotUniqueID(id, parent)) {
+                    id = baseid + "_" + nextnum;
+                    nextnum++;
+                }
+                tmpPic.ID = id;
+            }
+            // add it back with new number
+            tmpPic.Number = NewPicture;
+            Col.Add(NewPicture, tmpPic);
+            VOLManager.UpdateDirFile(tmpPic);
+            tmpPic.SaveProps();
+            FanLogicCompiler.setIDs = false;
+        }
+        #endregion
+
+        #region Enumeration
+        PictureEnum GetEnumerator() {
+            return new PictureEnum(Col);
+        }
+        IEnumerator IEnumerable.GetEnumerator() {
+            return (IEnumerator)GetEnumerator();
+        }
+        IEnumerator<Picture> IEnumerable<Picture>.GetEnumerator() {
+            return (IEnumerator<Picture>)GetEnumerator();
+        }
+
+        /// <summary>
+        /// Implements enumeration for the Pictures class
+        /// </summary>
+        internal class PictureEnum : IEnumerator<Picture> {
+            public SortedList<int, Picture> _pictures;
+            int position = -1;
+            public PictureEnum(SortedList<int, Picture> list) {
+                _pictures = list;
+            }
+            object IEnumerator.Current => Current;
+            public Picture Current {
+                get {
+                    try {
+                        return _pictures.Values[position];
+                    }
+                    catch (IndexOutOfRangeException) {
+                        throw new InvalidOperationException();
+                    }
+                }
+            }
+            public bool MoveNext() {
+                position++;
+                return (position < _pictures.Count);
+            }
+            public void Reset() {
+                position = -1;
+            }
+            public void Dispose() {
+                _pictures = null;
+            }
+        }
+        #endregion
+    }
+}

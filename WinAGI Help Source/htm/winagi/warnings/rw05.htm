@@ -1,0 +1,17 @@
+<html>
+    <head><title>Resource Load Warning RW05</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Resource Load Warning RW05</h2>
+      <h3>Picture &lt;number&gt; is missing its 'end-of-resource' marker and may be corrupt</h3>
+      <p class="indent_n">The <a href="..\..\agi\pictures.htm">picture</a> resource does not end with an 'end of picture' marker (byte value of 255). Although WinAGI knows to stop at the end of the resource, when AGI<a href="..\..\commands\cmd_drawpic.htm">draws the picture</a>, it will continue to read data in memory beyond the end of the resource until it finds a byte of 255. This would most likely result in corrupted visual image.</p>
+      <p class="indent_n">Opening and saving the picture in WinAGI will correct this anomaly.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

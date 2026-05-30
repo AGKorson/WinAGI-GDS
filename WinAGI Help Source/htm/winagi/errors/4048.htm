@@ -1,0 +1,21 @@
+<html>
+	<head><title>Logic Compiler Error 4048</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4048</h2>
+    <h3>Invalid message number in message declaration (must be 1-255)</h3>
+    <p class="indent_n"><a href="..\..\agi\messages.htm">Message</a> numbers in a <a href="..\..\commands\syntax_fan.htm#messages"><b>#message</b></a> preprocessor declaration are limited to the range (1-255). This compiler error is raised if you attempt to use a value outside this limit.</p>
+    <blockquote>
+      <pre>#message 300 "Hello world."  [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

@@ -1,0 +1,56 @@
+<html>
+	<head><title>Action Command: text.screen</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>text.screen</h1>
+		<p>The <b>text.screen</b> command switches the AGI display to text mode.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>text.screen();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <b>text.screen</b> command switches AGI to the <a href="..\agi\textdisp.htm">text display</a> mode. This mode displays text only; no graphics. The text screen uses separate memory, so the graphics screen is not lost when the text mode is active. When the text display is activated, it is cleared to a black background (if the background color is black [value of 0]), or white, if background color is any other value. (See the <a href="cmd_settextattribute.htm#hack"><b>set.text.attribute</b></a> command for a workaround to clear the text screen to other colors).</p>
+			<p>When in text screen mode, all <a href="..\agi\cycle.htm#update">graphics updates</a> are paused, but AGI's <a href="..\agi\cycle.htm#clock">internal clock</a> continues to run.</p>
+			<p>Use the <a href="cmd_graphics.htm"><b>graphics</b></a> command to switch back to the graphics screen after you are done with text mode.</p>
+			<p>The text mode should only be used to display text on the screen, and not to display <a href="..\agi\menu.htm">menus</a>, show messages with the <a href="cmd_print.htm"><b>print</b></a> commands, or attempt to manipulate graphics.</p>
+			<p>Technically, menus can be activated while in text mode, but they do not display properly. Similarly, the print commands will show messages on the text screen except they do not have a border, and do not clear the screen when the player presses a key.</p>
+			<p>It is possible to allow player input while the text mode is active. However, there are a couple of quirks:</p>
+			<blockquote>
+			<ol>
+				<li>The input line will always default to the top line when the text mode is first activated. After the player enters some input, the input line will move back to its normal position (as defined in the <b><a href="cmd_configurescreen.htm">configure.screen</a></b> command).</li>
+			</ol>
+			<p class="indent_n">A workaround to this is to use the <a href="cmd_preventinput.htm"><b>prevent.input</b></a> command just before switching to text mode, then calling the <a href="cmd_acceptinput.htm"><b>accept.input</b></a> command immediately afterward. This forces the input line to its correct position.</p>
+			<OL start="2">
+				<li>When clearing areas on the text screen (via the <a href="cmd_clearlines.htm"><b>clear.lines</b></a> and <a href="cmd_cleartextrect.htm"><b>clear.text.rect</b></a> commands) the background color is ALWAYS set to black. The color argument for these commands is ignored in text mode.</li>
+			</ol>
+			<p class="indent_n">The <a href="cmd_cleartextrect.htm"><b>clear.text.rect</b></a> topic includes sample code that provides a workaround for this.</p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>prevent.input();  [ disable input prior to switch
+<b>text.screen();</b>    [ switch to text mode
+accept.input();   [ force input line back to proper position</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">106 (0x6A)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><a href="..\agi\textdisp.htm">AGI Text Screen</a></p>
+			<p><b><a href="cmd_graphics.htm">graphics</a></b></p>
+			<p><b><a href="cmd_cleartextrect.htm">clear.text.rect</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

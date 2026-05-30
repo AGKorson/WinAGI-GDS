@@ -1,0 +1,42 @@
+<html>
+	<head><title>Encryption and Compression</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1><a name="encryption">Encryption in AGI</a></h1>
+			<p>There are three areas where encryption was used in AGI: the main executable file was encrypted in most games (to provide copy protection); the <a href="object.htm">OBJECT</a> file for most games was encrypted; and the message section of logic resources was also encrypted in version 2 games.</p>
+			<p>The encryption algorithm used to encrypt the main executable is described in detail in the <a href="components.htm#encryption">Components</a> topic.</p>	
+		<h3><a name="object_encryption">OBJECT File Encryption</a></h3>
+			<p>Beginning with <a href="versions.htm">version 2.411</a>, AGI encrypted the <a href="object.htm">OBJECT</a> file. The encryption used a very simple scheme. Every eleven bytes of the file were XOR'ed with the string "Avis Durgan". To decrypt the file, simply repeat the operation (XOR the encrypted file with "Avis Durgan" to get the decrypted file.)</p>
+		<h3><a name="msg">Message Encryption</a></h3>
+			<p>The message section of <a href="logics.htm">logics</a> was also encrypted with the "Avis Durgan" string in version 2 games, probably to prevent players from 'cheating' by examining the volume files with a hex editor. In version 3, the message section wasn't encrypted, most likely because logics were compressed, which provided the same masking effect as encryption in version 2.
+		</p>
+		<h1><a name="compression">Compression in AGI</a></h1>
+			<p>Compression of files and resources in AGI was fairly limited. In version 2 games, none of the resources were compressed; they were stored in the VOL files at full size. Most version 2 games did not exceed 2 or three 1.44 MByte floppy disks, so this was not a problem.</p>
+			<p>In version 3, though, games were getting more complex, with more and bigger resources, and size began to be an issue. Version 3 introduced compression for resources in the VOL files.</p>
+		<h3>LZW Compression for Resources</h3>
+			<p>The compression used with version 3 games is an adaptive form of LZW. (LZW compresses data by representing previously encountered strings of text as single codes. When these strings are encountered again, the code can be stored instead. More detailed information can be found on the Internet.) It starts by using 9 bit codes and when the code space is full, it progresses on to 10 bits and so on. As with normal LZW, codes 0-255 represent the standard ASCII characters. The next two codes have a special meaning:</p>
+			<p><ul>
+				<li>256 is used as a start over code. The table is cleared, the number of bits set back to 9, and the process begins again with the next code being 258.</li>
+				<li>257 tells AGI that it has reached the end of the resource.</li>
+			</ul></p>
+			<p>Code 256 seems to be the first code stored in all compressed resources. This is probably just to make sure everything is initialized for beginning the compression process. As was mentioned above, the first code used for the LZW table itself is code 258. From there it stores pairs of prefix codes and appended characters for each table entry until it reaches code 512 at which stage it switches to storing the codes using 10 bits and then 11 and so on. It appears that it will never get to 12 bits because code 256 always seems to turn up just before it needs to switch up to 12 bits, i.e. when code 2048 is required. Whether there is ever a case where code 256 does not intervene, it has not yet been determined.</p>
+		<h3><a name="piccomp">Picture Resource Compression</a></h3>
+			<p><a href="logics.htm">Logic</a>, <a href="sounds.htm">sound</a> and <a href="views.htm">view</a> resources in version 3 games used LZW compression. Interestingly, <a href="pictures.htm">pictures</a> did not. Pictures instead used a different compression method that actually did not provide significant size savings. The reason for the different compression for pictures is not known. Picture compression took advantage of the fact that AGI is limited to 16 colors. Since the arguments for the two set pen commands (0xF0 and 0xF2) could be stored in a nibble (a four bit number), the lead nibble was skipped in version 3 picture resources. The following example illustrates:</p>
+			<pre>Original picture codes:  F0 <b><font color="red">06</b></font> F8 12 45 F0 <b><font color="red">07</font></b> F2 05 F8 14 67 ...
+Compressed picture code: F0 6F 81 24 5F 07 F2 05 F8 14 67 ...</pre>
+			<p>The amount of reduction realized with this compression scheme is usually not very significant. No reason has been found as to why <a href="pictures.htm">pictures</a> use this unusual compression scheme.</p>
+			<p>AGI determines if a resource needs to be decompressed by comparing the size of the resource in the <a href="vol.htm">VOL</a> file against the uncompressed size. If they are different, it then checks bit 7 of the <a href="resources.htm#headers">header</a> byte containing the <a href="vol.htm">VOL</a> number. If bit 7 is cleared (0), AGI assumes the resource uses LZW compression; if the bit is set (1) AGI decompresses the resource using the picture compression method. Although never seen in a Sierra game, it is actually possible to use LZW encryption for picture resources by not setting bit 7 in the header.</p>
+		<blockquote>
+			<p><b>NOTE:</b> Since space is no longer an issue for modern computer systems, WinAGI does not compress new or modified version 3 resources.</p>
+		</blockquote>
+		<h3>Cel Data and WORDS.TOK Compression</h3>
+			<p>Two other instances where compression is used in AGI are in <a href="views.htm">View</a> resources, where cel bitmap data is stored with run-length encoding, which is a form of compression, and the <a href="words.htm">WORDS.TOK</a> file, which uses a substitution scheme where words are stored alphabetically, and subsequent words don't repeat common characters from the previous word. Details on the compression for <a href="views.htm#celdata">cel data</a> and <a href="words.htm">WORDS.TOK</a> file can be found in their respective topics.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

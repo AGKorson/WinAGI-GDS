@@ -1,0 +1,81 @@
+<html>
+	<head><title>Drawing Pictures</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-picture.gif" width="460" height="72" border="0" alt="AGI Picture Information"></td>
+			</tr>
+		</table>
+		<h1>Drawing Pictures</h1>
+			<p><img alt="" src="..\..\graphics\tbPicEdit.bmp" align="left" width="32">The picture editor must be in the Edit mode to add drawing commands to the picture. 	Select the Edit mode by clicking the Edit mode toolbar button (or by disabling the test mode on the Resource menu).</p>
+			<p>&nbsp;</p>
+		<h2><a name="displaymode">Display Mode</a></h2>
+			<p><img alt="" src="..\..\graphics\tbFullDraw.bmp" align="left" width="32">The default display mode is step draw, which only draws the picture up to the currently selected command. When the drawing tool is either <a href="#select">Select </a> or <a href="#areaselect">Area Select</a>, the currently selected command is also drawn, allowing it to be edited. If any other drawing tool is selected, all draw commands PRECEDING the selected tool are drawn; new commands inserted at this point will push the selected command down (i.e. they come BEFORE the current selected command).</p>
+			<p>You can switch to full draw mode by clicking the full draw toolbar button. In full draw mode, the entire picture is always drawn, regardless of which command is currently selected. This can be very useful to quickly check the effects of inserting a new command or editing an existing command.</p>
+			<p>&nbsp;</p>
+		<h2><a name="bkgd">Background</a></h2>
+			<p><img alt="" src="..\..\graphics\tbBackground.bmp" align="left" width="32">You can use the background tool to add a background image which can then be traced. Clicking the background tool button will toggle the background on and off. See the <a href="picbkgd.htm">Using a Background Image</a> topic for details on how to select and configure a background image.</p>
+			<p>Note that when you save an <a href="resource_addremove.htm">in-game</a> picture, your background settings are saved as well.</p>
+			<p>&nbsp;</p>
+			<p><img alt="" src="..\..\graphics\statuspicedit.jpg" border="0" width="561"></p>
+			<p>While drawing, the main status bar will display useful information. The current image scale, mode, and selected tool are displayed in the first three panels. The current cursor position, and priority band of that position are displayed in the three panels to the right.</p>
+			<p>&nbsp;</p>
+		<h2>Drawing Tools</h2>
+			<p>To add drawing commands to your picture, first <a href="editor_picture.htm#palette">select a pen color</a> for the visual screen, or the priority screen or both.</p>
+			<p>The next step is to select a drawing tool. The drawing tools available in WinAGI are the <a href="#select">Select</a>, <a href="#areaselect">Area Select</a>, <a href="#absline">Absolute Line</a>, <a href="#relline">Relative Line</a>, <a href="#cornerline">Corner Line</a>, <a href="#rectangle">Rectangle</a>, <a href="#trapezoid">Trapezoid</a>, <a href="#ellipse">Ellipse</a>, <a href="#fill">Fill</a> and <a href="#plot">Plot</a>.</p>
+			<p>&nbsp;</p>
+		<h3><a name="select">Select</a></h3>
+			<p><img alt="" src="..\..\graphics\tbSelect.bmp" align="left" width="32"></p>
+			<p>The Select tool is the default tool. No drawing tool is active. With the Select tool, you can use the left mouse button to drag the drawing surface around, if it does not fit within the editor window.</p>
+			<p>If a drawing command that has coordinates is currently highlighted, the select tool allows you to edit individual coordinates. See the <a href="manipulatecommands.htm#editcoord">Editing Coordinates</a> topic for additional information.</p>
+			<p>Also, selecting a coordinate in the coordinate list will always automatically switch to the Select tool.</p>
+			<p>&nbsp;</p>
+		<h3><a name="areaselect">Area Select</a></h3>
+			<p><img alt="" src="..\..\graphics\tbAreaSelect.bmp" align="left" width="32"></p>
+			<p>The Area Select tool is used to copy a rectangular area of the picture to the clipboard as a bitmap. Left click and drag to select an area. Use the Copy Selection command on the edit menu to copy the selected area to the clipboard.</p>
+			<p>The selected area is stored on the clipboard as a standard bitmap, and can be pasted in a view cel. This can be useful when you are making views that have to line up precisely with an area of a picture. Area Select the area where the view will go, then paste the area into your view. Now draw on top of the pasted data to create your view.</p>
+			<p><img alt="" src="..\..\graphics\statuspiceditsel.jpg" border="0" width="772"></p>
+			<p>The anchor (starting) point of the area, and the entire block coordinates are also displayed on the status bar for reference. You can right click either of these status entries to copy the value as text to paste in a logic editor to easily add argument values to commands such as <a href="..\commands\cmd_getposn.htm"><b>get.posn()</b></a>, <a href="..\commands\cmd_objinbox.htm"><b>obj.in.box()</b></a>, etc.</p>
+			<p>&nbsp;</p>
+		<h3><a name="absline">Absolute Line</a></h3>
+			<p><img alt="" src="..\..\graphics\tbAbsLine.bmp" align="left" width="32"></p>
+			<p>Use this tool to draw lines of any direction and length. Once selected, left click on the drawing surface to place the starting coordinate. Continue left-clicking on new coordinates to draw additional line segments. Right-click on the drawing surface or select another tool to stop drawing.</p>
+			<p>&nbsp;</p>
+		<h3><a name="relline">Relative Line</a></h3>
+			<p><img alt="" src="..\..\graphics\tbRelLine.bmp" align="left" width="32"></p>
+			<p>For lines where the length of each segment is short, use the relative line tool. Set the starting point, and draw segments by left-clicking, the same as absolute lines. Each segment is limited to +/- 7 units in both directions from the previous point. WinAGI will automatically limit each segment for you to prevent causing an error. Right-click or select another tool to stop drawing.</p>
+			<p>&nbsp;</p>
+		<h3><a name="cornerline">Corner Line</a></h3>
+			<p><img alt="" src="..\..\graphics\tbCornerLine.bmp" align="left" width="32"></p>
+			<p>Corner lines are a series of alternating horizontal and vertical lines. If the first segment is horizontal, the line is called an 'X Corner'; if it is vertical, it is called a 'Y Corner'. Left-click to set the starting point. Depending on how you move the mouse, the first segment can be horizontal or vertical. WinAGI will automatically restrict subsequent segments to the correct orientation. Right-click or select another tool to stop drawing.</p>
+			<p>&nbsp;</p>
+		<h3><a name="rectangle">Rectangle</a></h3>
+			<p><img alt="" src="..\..\graphics\tbRectangle.bmp" align="left" width="32"></p>
+			<p>The rectangle tool is a shortcut tool that makes it easy to draw squares and  rectangles. Left-click to set one corner. Then move the mouse and left-click again at the opposite corner. WinAGI adds a Corner command that includes all four segments to create the rectangle.</p>
+			<p>&nbsp;</p>
+		<h3><a name="trapezoid">Trapezoid</a></h3>
+			<p><img alt="" src="..\..\graphics\tbTrapezoid.bmp" align="left" width="32"></p>
+			<p>Use the trapezoid tool to easily draw floor and ceiling outlines. Left click to set one corner. WinAGI will automatically create a trapezoid centered in the picture using an Absolute Line command.</p>
+			<p>&nbsp;</p>
+		<h3><a name="ellipse">Ellipse</a></h3>
+			<p><img alt="" src="..\..\graphics\tbEllipse.bmp" align="left" width="32"></p>
+			<p>The ellipse tool is a very handy tool for drawing circles and ovals. Left click to set one corner. Move the mouse and left-click at the opposite corner. WinAGI will create four absolute line segments to draw the ellipse in four 90 degree arcs.</p>
+			<p>&nbsp;</p>
+		<h3><a name="fill">Fill</a></h3>
+			<p><img alt="" src="..\..\graphics\tbFill.bmp" align="left" width="32"></p>
+			<p>Use the fill tool to fill an area with a color. The behavior of the fill tool depends on 
+			current pen status:</p>
+			<ul><ul><ul>
+				<li>if only the visual pen is enabled, the fill tool fills the visual screen in all directions from the starting point until a non-white color is encountered;</li>
+				<li>if only the priority pen is enabled, the fill tool fills the priority screen in all directions until a non-red (priority value of 4) is encountered;</li>
+				<li>if both pens are enabled, the fill tool will fill the visual screen in all directions from the starting point until a non-white color is encountered. The priority screen is filled to match the exact same shape as the visual screen, regardless of any boundaries on the priority screen.</li>
+			</ul></ul></ul>
+		<h3><a name="plot">Plot</a></h3>
+			<p><img alt="" src="..\..\graphics\tbPlot.bmp" align="left" width="32"></p>
+			<p>Use the plot tool to add round or square brush strokes to a picture. The plot tool is used 
+			in conjunction with the Plot Shape and Plot Size tool dropdowns (located at the right end of the toolbar). To change the shape or size, choose the desired option from the dropdown. Make a new selection, and the main toolbar will update to indicate the newly selected plot effect. For detailed information about plot styles and sizes, see the <a href="..\agi\pictures.htm#f9">Pen Size and Style</a> command topic.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,27 @@
+<html>
+	<head><title>Logic Compiler Warning 7011</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7011</h2>
+    <h3>Null label name is allowed, but unusable</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, WinAGI allows you to use a null value for a <a href="..\..\commands\syntax_sierra.htm#goto">label</a> name. The null label has no usefulness, because it is impossible to write a <a href="..\..\commands\syntax_sierra.htm#goto">goto</a> command to use it.</p>
+    <p class="indent_n">Allowing the null label is likely a bug in CG.EXE. A null label is created if the character immediately following the ':' character is a separator (space, tab, new line), number or symbol.</p>
+      <blockquote>
+      <pre>v99 += 1;
+:          [ creates a null label, but you can't use it
+v99 += 2;
+...</pre>
+      </blockquote>
+    </p>
+    <p class="indent_n">If this warning is raised, it most likely represents a typo in your code. You should review and update your code as necessary to eliminate null labels.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

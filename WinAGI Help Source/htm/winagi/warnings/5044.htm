@@ -1,0 +1,18 @@
+<html>
+	<head><title>Logic Compiler Warning 5044</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5044</h2>
+    <h3>TOP argument is too large; portions of the play area will be off-screen, and graphics functions will be unpredictable</h3>
+    <p class="indent_n">The value for TOP should not be greater than three, or the graphics window in AGI will be off screen. Values passed to the <b><a href="..\..\commands\cmd_configurescreen.htm">configure.screen</a></b> are in text rows. Each text row is eight pixels high. The entire screen resolution is 640 x 200. This means there are 25 text rows available (8 pixels times 25 rows equals 200 pixels total). Like graphics screen coordinates, text row and column values are zero-based, meaning top row is row 0, bottom row is row 24.</p>
+    <p class="indent_n"> Since the graphics window in AGI is 168 pixels (equivalent to 21 text rows), setting TOP higher than three will mean that some portion of the graphics window will be off screen, resulting in unpredictable behavior by AGI when drawing and displaying the graphics window.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

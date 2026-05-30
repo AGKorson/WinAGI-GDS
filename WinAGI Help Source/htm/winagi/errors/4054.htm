@@ -1,0 +1,30 @@
+<html>
+	<head><title>Logic Compiler Error 4054</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4054</h2>
+    <h3>Nothing allowed on line after preprocessor declaration</h3>
+    <p class="indent_n">Preprocessor commands (<b>#include</b>, <b>#define</b>, <b>#message</b>) must be declared on a single line by themselves. Comment are allowed, but nothing else.</p>
+    <blockquote>
+      <pre>#include "file1.txt"   [ OK - one preprocessor command, and a comment
+...
+#include "file1.txt" #include "file2.txt"  [ <font color="red"><b>NOT OK</b></font>; each
+                      [ preprocessor command must be on its own line
+...
+#define v220 tempvar1; [ <font color="red"><b>NOT OK</b></font>, don't use semicolon line-end marker
+...
+#define v221 tempvar2 = 1;   [ <font color="red"><b>NOT OK</b></font>, can't combine define and commands
+...
+#define v224 tempvar5  [ OK, single preprocessor with nothing after
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

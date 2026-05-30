@@ -1,0 +1,48 @@
+<html>
+	<head><title>Action Command: show.mem</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>show.mem</h1>
+		<p>The <b>show.mem</b> command displays information on memory usage.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>show.mem();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command is typically used during debugging to help manage <a href="..\agi\memory.htm">memory</a> usage. When called, <b>show.mem</b> displays a message box that shows the following memory usage statistics:</p>
+			<ul><ul>
+				<li><b>Heapsize</b> -- The total amount of memory available for use by the memory <a href="..\agi\memory.htm#heap">heap</a>. For PC interpreter platform, this is 64KB minus the size of the <a href="..\agi\components.htm#agidata">AGIDATA.OVL</a> overlay file).</li>
+				<li><b>Now</b> and <b>Max</b> -- The current and all time maximum amount of memory allocated to resources.</li>
+				<li><b>Room.0, etc</b> -- The size of the permanently loaded resources on the heap (known as '<a href="..\agi\memory.htm#room0">room.0 resources</a>'), such as <a href="..\agi\logics.htm#logic0">logic 0</a>, DIR files, object table, menus, etc. (This line is only shown in <a href="..\agi\versions.htm">versions</a> 2.903 and above.)</li>
+				<li><b>Max script:</b> The all time maximum number of <a href="..\agi\scripts.htm">script</a> entries made during the course of the game.</li>
+			</ul></ul>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>if(said("show", "mem"))
+  {
+  <b>show.mem();</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">135 (0x87)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_debug.htm">Debugging Commands</a></p>
+			<p><a href="..\agi\debug.htm">AGI Debugging Information</a></p>
+			<p><a href="..\agi\memory.htm">Memory Management in AGI</a></p>
+			<p>&nbsp;</p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

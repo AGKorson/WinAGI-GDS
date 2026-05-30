@@ -1,0 +1,18 @@
+<html>
+	<head><title>Logic Compiler Warning 5023</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5023</h2>
+    <h3>Object position is off screen (X &gt; 159 and/or Y &gt; 167)</h3>
+    <p class="indent_n">Positioning an object with coordinates that are off screen will not cause a <a href="..\..\agi\errors.htm#runtime">runtime error</a>, but when AGI validates the position, it first moves it to the edge (i.e. x=159 or y=167) and uses the <a href="..\..\commands\object_position.htm#shuffling">shuffle function</a> to determine a position for the object that fits on the screen and doesn't overlap other objects or control lines. This can result in very unexpected results, due to the spiral method used by shuffle function.</p>
+    <p class="indent_n"><b>NOTE:</b> this warning also applies to objects whose X position plus width or Y position plus height exceed the values of 159 or 167 respectively. WinAGI cannot detect this at compile time, but be aware that unexpected positioning of objects can be due to this condition.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

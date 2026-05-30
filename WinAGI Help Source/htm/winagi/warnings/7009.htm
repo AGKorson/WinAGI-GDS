@@ -1,0 +1,19 @@
+<html>
+	<head><title>Logic Compiler Warning 7009</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7009</h2>
+    <h3><b>return</b> command not needed at end of logic source</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, WinAGI automatically adds an ending <a href="..\..\commands\cmd_return.htm"><b>return</b></a> command byte code (0x00) to the end of a <a href="..\..\agi\logics.htm">logic</a> after compiling. If you include a <b>return</b> command at the end of your source code the output code for the logic will contain an extra return byte code.</p>
+    <p class="indent_n">The extra byte doesn't cause a problem. But it does waste space and is not necessary. You should remove the extra <b>return</b> command from your source code.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

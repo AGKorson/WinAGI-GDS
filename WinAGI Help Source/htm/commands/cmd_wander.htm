@@ -1,0 +1,51 @@
+<html>
+	<head><title>Action Command: wander</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>wander</h1>
+			<p>The <b>wander</b> command sets a screen object's <a href="object_moving.htm">movement mode</a> to 'wander' meaning it will randomly move around the screen.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>wander(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <a href="object_moving.htm">movement mode</a> of <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b> is set to 'wander'. While wandering, AGI will randomly change the direction and distance the object travels. The initial distance is set to a random number &gt;=6 and &lt;=50. If the object encounters any <a href="concepts_obstacles.htm">obstacle</a> (such as a horizon, screen edge, control line, block, etc.), it chooses a new random direction and checks the current distance counter value. If the counter is less than six, a new random distance counter  (6 to 50) is chosen.</p>
+			<p>However, in what appears to bug, if the counter reaches zero without hitting an obstacle, the counter gets set to 255, and not a random value. The function then chooses a new random direction. The effect of this is that objects are more likely to go long distances until they hit an edge, and shorter distances are much rarer. This is usually not noticeable because most games tend to have relatively small areas for objects to move in and several obstacles that the object can interact with.</p>
+			<p>There is another bug in the wander function when the object is moving diagonally and hits the right or left edge. In this case, instead of considering it an 'obstacle' and changing a new random direction, the object will continue moving up or down along the edge; since the loop for diagonal movement is the left/right facing loop, the object appears to 'moonwalk'.</p>
+			<p>Setting the movement mode to 'wander' will automatically enable the object for <a href="object_initialize.htm#updating">updating</a> if not currently enabled. The <a href="object_cycling.htm">cycling property</a> is not modified by the <b>wander</b> command.</p>
+			<p>If <b>oA</b> is <a href="..\agi\interface.htm#ego">ego</a>, it automatically switches to <a href="..\agi\interface.htm#programcontrol">program control mode</a>.</p>
+			<p>If the <b><a href="cmd_setdir.htm">set.dir</a></b> command is executed while an object is wandering, it will move in the assigned direction until the random function chooses a new direction.</p>
+			<p>Do not use movement modes (<a href="cmd_moveobj.htm"><b>move.obj</b></a>, <a href="cmd_followego.htm"><b>follow.ego</b></a> or <b>wander</b>) and one-time cycling modes (<a href="cmd_endofloop.htm"><b>end.of.loop</b></a> and <a href="cmd_reverseloop.htm"><b>reverse.loop</b></a>) on an object at the same time. The byte in the <a href="..\agi\sobjtable.htm">screen object data table</a> that AGI uses to store the <b>fDONE</b> flag is also used by the cycling modes. If you use a movement mode command while a one-time cycle command is active, the flag number gets overwritten, and when the object finishes cycling, the wrong flag will be set.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<h2>Example</h2>
+<pre><code>#define f68 drunk
+if(isset(drunk))
+  {
+  <b>wander(ego);</b>  [ ego will wander aimlessly
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">84 (0x54)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_followego.htm">follow.ego</a></b></p>
+			<p><b><a href="cmd_moveobj.htm">move.obj</a></b></p>
+			<p><a href="cmd_moveobjv.htm"><b>mov.obj.v</b></a></p>
+			<p><b><a href="cmd_normalmotion.htm">normal.motion</a></b></p>
+			<p><b><a href="cmd_setdir.htm">set.dir</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5067</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5067</h2>
+    <h3>The message box won't draw correctly if ROW &gt; 22</h3>
+    <p class="indent_n">AGI does not validate the value passed for ROW. When drawing a message box, a red border is included which takes up one row space above the message, one row space below, one column width to right and one column width to left. Therefore, if ROW plus the number of displayed lines of text exceeds 23, the message box won't draw correctly. Assuming a minimum line count of one, ROW must be &lt;=22 (or lower if more lines of text are in the message box), otherwise the message box will be distorted and have misaligned borders that affect the entire screen. See the <a href="..\..\commands\cmd_printat.htm"><b>print.at</b></a> for additional details.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

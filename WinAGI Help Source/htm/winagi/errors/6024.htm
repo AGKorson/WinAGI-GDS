@@ -1,0 +1,20 @@
+<html>
+	<head><title>Logic Compiler Error 6024</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6024</h2>
+    <h3>'&lt;includefile&gt;' already included</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">This error indicates the file you are attempting to <a href="..\..\commands\syntax_sierra.htm#include">include</a> has already been included and processed.  Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a> does not check if a file has already been included, so attempting to include it again would raise duplicate definition errors for all of the defines and declarations in the file. WinAGI uses this error instead to minimize error entries and provide more clarity.</p>
+    <p class="indent_n">This error often comes up when using nested includes and forgetting which includes are in which file. For example,if all your logics include 'gamedefs.h', and 'gamedefs.h' includes 'sysdefs.h', and you then add a separate entry in your logic code to also include 'sysdefs.h', this error will be raised.</p>
+    <p class="indent_n">To clear the error, remove the duplicate include entry.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

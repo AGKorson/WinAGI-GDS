@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: unblock</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>unblock</h1>
+			<p>The <b>unblock</b> command removes a block that was set up by the <a href="cmd_block.htm"><b>block</b></a> command.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>unblock();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <a href="cmd_block.htm"><b>block</b></a> command adds an invisible rectangle to the screen that act similarly to a <a href="..\agi\grafdisp.htm#controllines">conditional control line</a>. The <b>unblock</b> command removes the block.</p>
+			<p>See the <a href="concepts_obstacles.htm#blocks">Blocks</a> discussion in the <a href="concepts_obstacles.htm">Managing Obstacles</a> topic for more information.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>block(25, 25, 100, 100); [ create a block
+ignore.block(o1); [ object 1 will ignore the block
+...
+observe.block(o1); [ now object 1 will observe the block
+...
+<b>unblock(); [ remove the block</b></code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">91 (0x5B)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><a href="cmd_block.htm"><b>block</b></a></p>
+			<p><a href="cmd_ignoreblocks.htm"><b>ignore.blocks</b></a></p>
+			<p><a href="cmd_observeblocks.htm"><b>observe.blocks</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

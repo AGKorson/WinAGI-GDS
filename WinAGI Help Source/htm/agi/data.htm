@@ -1,0 +1,39 @@
+<html>
+	<head><title>Data Types</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1><a name="datatypes"></a>Data Types</h1>
+			<p>AGI uses the commands in <a href="logics.htm">logic</a> resources to manipulate the various data types to make the game work. Commands are used to load and unload resources, draw background pictures, create and animate objects that appear on the screen, etc.  Data such as variables and boolean flags are used by commands to track game events and facilitate complex manipulation of resources.</p>
+			<p>Internal data types used by AGI include variables, flags, screen objects, strings, player-entered words, and controllers. <a href="resources.htm">Game resources</a> (<a href="logics.htm">logics</a>, <a href="pictures.htm">pictures</a>, <a href="sounds.htm">sounds</a>, <a href="views.htm">views</a>, <a href="object.htm">inventory items</a>, and <a href="words.htm">vocabulary words</a>) represent external data types used by AGI. Messages are a subset of logic data that are also used by AGI.</p>
+			<p>AGI provides storage space for internally managed data types (variables, flags, screen objects, strings, player-entered words and controllers). Messages are a special type of string data that are associated with and stored externally in <a href="logics.htm">logic</a> resources. 
+		<h3><a href="variables.htm">Variables </a></h3>
+			<p class="indent">Variables represent numeric data used in AGI games. Note that some variables (0 - 26) are <a href="variables.htm#reserved">reserved</a> by AGI to manage internal game functions; all others are free to be used by the programmer for storing and manipulating game related data.</p>
+		<h3><a href="flags.htm">Flags </a></h3>
+			<p class="indent">Flags are used to manage game state information; they are boolean data and can represent either 'true' or 'false'. Note that some flags (0 - 16) are <a href="flags.htm#reserved">reserved</a> by AGI to manage internal game functions; all others are free to be used by the programmer for storing and manipulating game related data.</p>
+		<h3><a href="screenobjs.htm">Screen Objects</a></h3>
+			<p class="indent">Screen objects represent the actual sprites that are displayed on the screen to represent movable in-game objects, such as the player character (<a href="interface.htm#ego">ego</a>), other characters, etc.</p>
+		<h3><a href="strings.htm">Strings</a></h3>
+			<p class="indent">AGI makes a small number of strings available for use within AGI. The available options to manipulate them are small, but there are several useful features associated with strings in an AGI game.</p>
+		<h3><a href="pwords.htm">Player-entered Words</a></h3>
+			<p class="indent">When a player types a command and presses &lt;ENTER&gt;, AGI parses the input, and makes the words typed available for use by AGI.</p>
+		<h3><a href="controllers.htm">Controllers</a></h3>
+			<p class="indent">Controllers are used to provide keyboard shortcuts and menu interactions within an AGI game.</p>
+		<h3><a href="resources.htm">Resources</a></h3>
+			<p class="indent">Details for <a href="logics.htm">logic</a>, <a href="pictures.htm">picture</a>, <a href="sounds.htm">sound</a>, and <a href="views.htm">view</a> resource data types can be found in their respective topics.</p>
+		<h3><a href="invitems.htm">Inventory Items</a></h3>
+			<p class="indent">Inventory items, sometimes called inventory objects, should not be confused with screen objects. Inventory items are things that <a href="interface.htm#ego">ego</a> can 'pick up' and carry. AGI provides a list of all available inventory items in the <a href="object.htm">OBJECT</a> file.</p>
+		<h3><a href="words.htm">Vocabulary Words</a></h3>
+			<p class="indent">All the words that a player might use when typing input to play the game are included in the <a href="words.htm">WORDS.TOK</a> file.</p>
+		<h3><a href="messages.htm">Messages</a></h3>
+			<p class="indent">Messages are an external data type, stored within <a href="logics.htm">logic</a> resources.</p>
+		<h2><a name="reserved">Reserved Values</a></h2>
+		    <p>Several values among the various data types have special meaning to the interpreter and are considered 'reserved'. In most cases, these values (<a href="variables.htm#reserved">variables v0-v26</a>, <a href="flags.htm#reserved">flags f0-16 and f20</a>, <a href="screenobjs.htm#ego">screen object o0</a>, <a href="strings.htm#prompt">string s0</a>) should not be used by a game programmer unless their reserved usage is fully understood.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

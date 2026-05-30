@@ -1,0 +1,67 @@
+<html>
+	<head><title>Managing Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Managing Resources</h1>
+			<p>WinAGI includes commands for <a href="resource_new.htm">creating</a>, <a href="resource_open.htm">opening</a>, <a href="resource_save.htm">saving</a>, <a href="resource_import.htm">importing</a> and <a href="resource_export.htm">exporting</a> all AGI resource types. Deleting resources from a game is done by simply selecting or opening the resource and choosing 'Remove from Game' menu option.</p>
+			<p>The way that WinAGI manages resources depends on whether or not a game is currently open:</p>
+			<ul><ul>
+				<li>If a game is open, WinAGI resource commands such as New, Import, Open, assume you are working with the resources that are actually included in your game (i.e. they are in one of the VOL files).</li>
+				<li>If a game is NOT open, WinAGI will only allow you to manage resources that are in individual resource files.</li>
+			</ul></ul>
+			<p>As you add and remove resources to your game, WinAGI will automatically expand or contract the <a href="..\agi\dir.htm">directory (DIR)</a> files based on the number of resources. This helps keep <a href="..\agi\memory.htm">memory usage</a> to a minimum if you plan to run your game with an original MSDOS interpreter.</p>
+			<p>&nbsp;</p>
+			<p>All in-game <a href="..\agi\resources.htm">resources</a> have the following properties: resource number, resource ID, and description.</p>
+		<h3><a name="resnum">Resource Numbers</a></h3>
+			<p><a href="..\agi\logics.htm">Logic</a>, <a href="..\agi\pictures.htm">picture</a>, <a href="..\agi\sounds.htm">sound</a> and <a href="..\agi\views.htm">view</a> resources are identified internally by the AGI interpreter by their resource number. The resource number corresponds to the index position of a resource in its <a href="..\agi\dir.htm">directory (DIR)</a> file. You can change the resource number for a resource by using the Renumber Resource command, which opens the Renumber Resource dialog window:</p>
+			<p><img alt="Renumber Resource Dialog" src="..\..\graphics\renumres.jpg" width="230"></p>
+			<p>The list will only show numbers that are NOT currently in use. Select the new number you want from the list, then click OK. WinAGI will automatically update the VOL files and DIR files with the new resource number. The resource ID is NOT changed when a resource is renumbered.</p>
+			<p>If renumbering a logic resource that is marked as a <a href="..\agi\pictures.htm#room">room</a>, you can also automatically update the room's picture number.</p>
+		<h3><a name="resourceids">Resource IDs</a></h3>
+			<p>WinAGI introduces the concept of resource IDs as a way to easily track your game resources (logics, pictures, sounds, views) so you can remember each resource's purpose. When browsing your resources in the <a href="resourcetree.htm">Resource List</a>, resource IDs make it is much easier to find a resource you are looking for.</p>
+			<p>WinAGI will automatically create and maintain an include file with your game's resource IDs, and will automatically add this file as an include file in all your game's logic source files.</p>
+			<p>If you do not want to use this feature, you can deselect the <a href="prop_general.htm#autoinclude">auto-include Resource IDs</a> option on the <a href="properties.htm">Game Properties</a> dialog.</p>
+			<p>Resource IDs improve readability of logic code. The WinAGI compiler treats resource IDs just like <a href="..\commands\syntax_fan.htm#defines">defined names</a>. When it encounters a resource ID, it substitutes the appropriate resource number, just like a define entry.</p>
+			<p>For example, if view 4 in your game has the ID "vw.Snake", you can write code as follows:</p>
+			<pre><code>set.view(o1, vw.Snake);</code></pre>
+			<p>Or perhaps logic 94 is your death handling logic. If its ID is "lgc.DeathHandler", you can use this code to call it:</p>
+			<pre><code>call(lgc.DeathHandler);</code></pre>
+			<p>Maybe sound 1 is your game's theme music. Set its ID to "m.Theme" and use the 
+				following code:</p>
+			<pre><code>load.sound(m.Theme);
+play.sound(m.Theme, f99);</code></pre>
+			<p>Resource IDs are also used in the name of logic source code files, and as the default filename for resources you choose to export (for example, DeathHandler.lgc).</p>
+			<p>Resource IDs can contain letters, numbers, and some special characters. No spaces are allowed. Resource IDs are case-sensitive, so for example "LOGIC1" is not the same as "logic1". Resource IDs must conform to the following rules:</p>
+			<ul><ul>
+				<li>ID can't be numeric</li>
+				<li>ID can't be an <a href="..\commands\cmds_category.htm#actions">AGI action command</a></li>
+				<li>ID can't be an <a href="..\commands\cmds_test.htm">AGI test command</a>	</li>
+				<li>ID can't be a compiler keyword (if, else, goto, etc)</li>
+				<li>ID can't be a <a href="..\commands\syntax_fan.htm#argtypes">data type</a> marker (v1, f2, o3, etc)</li>
+				<li>ID must be unique (i.e. no other resources can share same ID)</li>
+				<li>Name can only include letters, numbers, the underscore, and '!', '@', '$', '%' characters</li>
+			</ul></ul>
+		<h3><a name="descriptions">Description</a></h3>
+			<p>All resources include a description property. It is only used by WinAGI to provide information to the game programmer, and is entirely optional.</p>
+		<h3><a name="editing">Editing Resource IDs and Descriptions</a></h3>
+			<p>You can change resource IDs and resource descriptions in an existing resource by using the ID/Description command on the Resource menu. The Change ID/Description dialog window will be displayed:</p>
+			<p><img alt="Change ID/Description Dialog" src="..\..\graphics\editid.jpg" width="295"></p>
+			<p>If you change a resource ID, WinAGI will automatically update the name of the corresponding resource file in your <a href="#resdir">resource directory</a>, if one exists. For example, if you have a logic that has an ID of "Logic3", the source code file in your resource file will be named "Logic3.lgc". If you change the resource ID to "rmHallway", WinAGI will automatically change the source code filename to "rmHallway.lgc".</p>
+			<p>WinAGI can also automatically update all logics in your game with the new name. If the "Update Logics" option is set when you change a resource ID, WinAGI will search all logics in your game, and replace the old resource ID with the new ID.</p>
+			<p>Click OK after making your changes. If you attempt to enter an invalid resource ID, WinAGI will ask you to correct it before allowing you to continue.</p>
+		<h3><a name="resdir">Resource Directory</a></h3>
+			<p>The main game files are the *DIR, VOL.*, OBJECT, and WORDS.TOK files. When working with a game, your in-game resources will be stored in the VOL files that make up your game.</p>
+			<p>The resource directory is a sub directory in your game directory where logic source code files (*.lgc or *.txt) are stored.</p>
+			<p>It is also the default directory for any <a href="resource_export.htm">exported resources</a>.</p>
+			<p>If you have the <a href="resource_export.htm#autoexport">AutoExport feature</a> enabled, this is the directory where resource files are are automatically stored.</p>
+			<p>You can change the <a href="prop_general.htm#resdir">resource directory</a> for this game on the <a href="properties.htm">Game Properties</a> dialog.</p>
+			<p>The default resource directory (when creating new games) can be changed on the <a href="settings_general.htm">General</a> tab of the <a href="settings.htm">Settings</a> form.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

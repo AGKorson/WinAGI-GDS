@@ -1,0 +1,23 @@
+<html>
+    <head><title>Logic Source Decompiler Warning DW21</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Warning DW21</h2>
+      <h3>Consecutive 'NOT' operators detected at resource index &lt;pos&gt;</h3>
+      <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+      <p class="indent_n">AGI actually allows consecutive NOT byte codes ('\xfd').</p>
+      <blockquote><pre><code>BYTE CODE               ORIGINAL SOURCE         DECOMPILED CODE
+FF FD FD 07 55 FF       if (!!isset(f85))       if (isset(f85))
+FF FD FD FD 07 55 FF    if (!!!isset(f85))      if (!isset(f85))</code></pre></blockquote>
+      <p class="indent_n">Each extra '\xfd' byte will toggle the NOT status; meaning two NOTs will result in the test passing if it is TRUE, three NOTs will pass if the test is FALSE, etc.</p>
+      <p class="indent_n">This warning indicates WinAGI detected consecutive NOT bytes when decompiling a <a href="..\..\agi\logics.htm">logic</a>. The decompiled source will match the net effect of the extra NOT bytes.</p>
+      <p class="indent_n">Most likely the original source code had a syntax error, but it is possible the logic is corrupt. You should examine the decompiled source carefully to confirm it is as expected.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

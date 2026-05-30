@@ -1,0 +1,16 @@
+<html>
+	<head><title>Reserved Flag f8</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f8: Joystick Double-Click Enabled</h1>
+			<p>When <a href="joystick.htm">joystick input</a> is enabled, AGI uses flag f8 to enable or disable 'double-clicks' of the two joystick buttons. When f8 is set to TRUE, AGI will use the delay set by reserved variable <a href="v15.htm">v15 (double-click speed)</a> as the delay between button clicks which should be treated as a double-click. A <a href="controllers.htm">controller</a> can then be assigned to the double-click action. If f8 is reset to FALSE, then all clicks of joystick buttons are treated as single clicks regardless of the delay time between button presses. See the <a href="joystick.htm">Joystick Input</a> topic for additional details.</p>
+			<p>If you never intend to allow users to a joystick, you can use this flag for any purpose without affecting AGI.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

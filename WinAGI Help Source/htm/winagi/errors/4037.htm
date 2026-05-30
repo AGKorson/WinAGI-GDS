@@ -1,0 +1,24 @@
+<html>
+	<head><title>Logic Compiler Error 4037</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4037</h2>
+    <h3>Incorrect type for argument &lt;number&gt;: '&lt;define_name&gt;' is not a &lt;type&gt;</h3>
+    <p class="indent_n">If the compiler detects  a <a href="..\..\commands\syntax_fan.htm#defines">define name</a> of the wrong <a href="..\..\commands\syntax_fan.htm#argtypes">argument type</a>, this compiler error is raised. This usually means the wrong argument was used by accident, or perhaps a typographical error. Replace the argument with a define name or <a href="..\..\commands\syntax_fan.htm#markers">argument marker</a> of the correct type to correct this error.</p>
+    <blockquote>
+      <pre>#define aflag   f99
+#define avariable   v99
+assignn(aflag, 0);  [ <font color="red"><b>NOT OK</b></font>; expecting a variable
+assignn(avariable, 0);  [ OK
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

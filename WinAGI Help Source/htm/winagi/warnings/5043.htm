@@ -1,0 +1,18 @@
+<html>
+	<head><title>Logic Compiler Warning 5043</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5043</h2>
+    <h3>Setting the horizon greater than 166 will crash AGI</h3>
+    <p class="indent_n">The acceptable range for the <a href="..\..\agi\grafdisp.htm#horizon">horizon</a> is 0 - 166. Passing a value greater than 166 will cause AGI to lock up as soon as it tries to draw any object to the screen, because the <a href="..\..\commands\object_position.htm#shuffling">shuffle function</a> that AGI uses to determine the final position of every object will go into an infinite loop. AGI doesn't actually crash, but because of the infinite loop, the only thing you can do is to force AGI to quit.</p>
+    <p class="indent_n">Note that AGI automatically resets the horizon to 36 every time a new room is loaded. See the <a href="..\..\agi\grafdisp.htm#horizon">Horizon</a> topic for for information.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

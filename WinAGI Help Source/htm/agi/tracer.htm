@@ -1,0 +1,43 @@
+<html>
+	<head><title>AGI Command Tracer</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Trace Mode</h1>
+			<p>AGI includes a command trace mode that can be used to assist in debugging an AGI game. When trace mode is enabled, AGI steps through <a href="logics.htm">logics</a>, one <a href="logics.htm#commands">command</a> at a time, displaying the command, and the results (TRUE or FALSE) of any <a href="logics.htm#tests">test commands</a>. Tracing is enabled by setting <a href="flags.htm#reserved">reserved flag</a> <a href="f10.htm">f10 (tracer enabled)</a> to TRUE. Once enabled, pressing the SCROLL LOCK key toggles the command tracer - press once to begin tracing; press again to close the tracer and process logics in real time.</p>
+			<p>The <a href="..\commands\cmd_traceon.htm"><b>trace.on</b></a> command will also begin tracing. There is no equivalent 'trace.off' command; the only way to exit trace mode is to press the SCROLL LOCK key. Once in trace mode, resetting <a href="f10.htm">f10 (tracer enabled)</a> will not exit trace mode either.</p>
+			<p>While tracing commands, AGI <a href="cycle.htm#pausing">pauses</a> after each command; press any key advance to the next command.</p>
+			<p>When a <a href="..\commands\cmd_return.htm"><b>return</b></a> command is reached, the tracer does not display it. It continues with the command following the <a href="..\commands\cmd_call.htm"><b>call</b></a> command (or in the case of <a href="logics.htm#logic0">logic 0</a>, it begins a new cycle with the first command in logic 0). AGI actually includes code to display the 'return' command in the tracer window, but due to a bug, that code never gets executed.</p>
+			<p>You can also press the '+' key (either on numeric keypad, or on the regular keyboard position) to run until the next <a href="..\commands\cmd_call.htm"><b>call</b></a> command or to the end of the current <a href="cycle.htm">interpreter cycle</a>, whichever comes first. Tracing then continues with the first command of next logic.</p>
+		<h3><a name="logic">Trace Logic</a></h3>
+			<p>Before enabling trace mode, the <b><a href="..\commands\cmd_traceinfo.htm">trace.info</a></b> command should be used to initialize it. This sets the top row and height of the tracer window, and also identifies a logic that AGI will use to display the command names as text values.</p>
+			<p>AGI uses the <a href="messages.htm">messages</a> in the trace logic to display command names. For <a href="logics.htm#actions">action commands</a>, the message with the index corresponding to the identified command is used as the command name. For <a href="logics.htm#tests">test commands</a>, messages are offset by either 160 (in <a href="versions.htm">versions</a> 2.089 and 2.272) or 240; in other words, message 160 (or 240 for higher versions) corresponds to test command 0 and so on.</p>
+			<p>The trace logic is not automatically loaded when the <b>trace.info</b> command is executed, so you should load it before enabling tracer mode. Load the trace logic from logic 0; if you load it in a logic called by logic 0, the trace logic will get discarded from memory when that logic is discarded. The trace logic also gets automatically loaded whenever a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command is encountered or a game is restarted.</p>
+			<p>It is not necessary to use <b>trace.info</b>, but if it is not used then the command names will not be displayed in the trace window (only the <a href="logics.htm#commands">command</a> byte values will be displayed) and the default position and height of the tracer window will be 1 and 15 respectively.</p>
+		<h3>The Trace Window</h3>
+			<p>The trace mode steps through the game's <a href="logics.htm">logic</a> <a href="logics.htm#commands">commands</a>, one command at a time. It displays a large message box on which the commands that are being executed get displayed.</p>
+			<p>The trace window is drawn as a large message box. The height and top row are set by passing values to the <b><a href="..\commands\cmd_traceinfo.htm">trace.info</a></b> command. If the height parameter is less than two, AGI automatically sets it to 2. Since the trace window covers a large part of the screen, it can be useful to use different values for height and top to observe how different parts of the screen are working.</p>
+			<p>There are three bugs in the trace window code. First, when AGI reaches the point in the <a href="cycle.htm">interpreter cycle</a> where graphics are updated, any screen objects that are covered by the trace window are drawn on top of the trace window. When the trace window adds a new row, all pixels in the window are shifted up, including the redrawn objects. You may not be able to read some of the previous commands due to this.</p>
+			<p><a name="bug">Another bug</a> is that the graphic routine that draws the trace window uses the offset of the main <a href="grafdisp.htm#graphicsdisplay">graphics window</a> (set with the <b><a href="..\commands\cmd_configurescreen.htm">configure.screen</a></b> command) twice. The window draws correctly only when the graphics window top is set to row 1; any other value will result in the tracer window being drawn incorrectly.</p>
+			<p>An example trace mode output with after using <code>configure.screen(1, 22, 0);</code> (top row of graphics screen set to 1) looks like this:</p>
+			<img src="..\..\graphics\trace.bmp" width="618" alt="Trace Window">
+			<p>Here is the same window after using <code>configure.screen(3, 24, 0);</code> (top row of graphics screen set to 3):</p>
+			<img src="..\..\graphics\badtrace.bmp" width="618" alt="Bad Trace Window">
+			<p>The line of <code>=</code> characters shows the start of an <a href="cycle.htm">interpreter cycle</a>. The number to left of the colon is the <a href="logics.htm">logic</a> number being traced.</p>
+			<p>Each line displays the <a href="logics.htm#commands">command</a> being executed (using the corresponding message from the trace logic if loaded, or the index number of the command if not) followed by the arguments passed to the command in parentheses. For commands that have any <a href="variables.htm">variable</a> arguments, the numeric values of the variables are displayed directly beneath the passed arguments.</p>
+			<p><a name="traceargs">Information</a> on the number and type of arguments (number or variable) are stored in a table in the AGIDATA.OVL file.</p>
+			<p>In this example, the test command <code>if(v29 == 7)</code> shows on the first line as</p>
+			<p><code>equaln(29,7)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:F</code></p>
+			<p>The actual value of v27 is 0, so below that AGI displays</p>
+			<p><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(0, 7)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:F</code></p>
+			<p>For <a href="logics.htm#tests">test commands</a>, An <code>F</code> or <code>T</code> is displayed at the end of a line to show if the test evaluated as 'false' or 'true'. The tracer always displays just the test command result; it will not display a <a href="logics.htm#condition">'NOT'</a> operator. If the test includes <a href="logics.htm#condition">'OR' or 'AND'</a> operators, each test evaluated will display on a separate line in the tracer, with no indication that it was part of an 'OR' or 'AND' operation.</p>
+			<p>Using the tracing mode can be a good way to get a feel for what happens in each cycle of interpretation.</p>
+			<p>There is one additional bug with the trace mode. If the trace mode is already active and another <a href="..\commands\cmd_traceon.htm"><b>trace.on</b></a> command is encountered, AGI improperly sets the logic command data stream pointer, which usually results in crashing AGI.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

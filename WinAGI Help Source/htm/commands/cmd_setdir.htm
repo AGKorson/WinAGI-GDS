@@ -1,0 +1,49 @@
+<html>
+	<head><title>Action Command: set.dir</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</TABLE>
+		<h1>set.dir</h1>
+			<p>The <b>set.dir</b> command sets the direction of motion for an object.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.dir(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">var</a> vDIR);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+		<p>&nbsp;</p>
+			<p>The direction of <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b> is set to the value of <a href="..\agi\variables.htm">variable</a> <b>vDIR</b>.</p>
+			<p><img alt="Object Direction" src="..\..\graphics\objdir.bmp" width="415"></p>
+			<p><b>vDIR</b> should be &gt;= 0 and &lt;= 8. Using a value greater than 8 will cause AGI to <a href="..\agi\errors.htm">crash</a> when the <a href="..\agi\screenobjs.htm#autoloop">autoloop</a> feature tries to set a <a href="..\agi\views.htm#loop">loop</a>. If the autoloop feature is disabled, direction values greater than 8 are still problematic, because AGI uses a lookup table to determine how to adjust the X and Y coordinates of a <a href="..\agi\screenobjs.htm">screen object</a> based on direction; values greater than 8 exceed the table boundaries and use data meant for other purposes, resulting in unpredictable behavior in object motion. </p>
+			<p>Changing the direction does not change the <a href="object_moving.htm#movemode">movement mode</a>. For <a href="cmd_moveobj.htm"><b>move.obj</b></a>, <a href="cmd_moveobjv.htm"><b>move.obj.v</b></a> and <a href="cmd_followego.htm"><b>follow.ego</b></a> modes, changing direction with <b>set.dir</b> doesn't work, because AGI will automatically change direction back to keep the screen object moving toward its target.</p>
+			<p>You cannot set the <a href="..\agi\interface.htm#ego">ego object</a>'s direction with the <b>set.dir</b> command, not even when it is in <a href="cmd_programcontrol.htm">program control</a> mode. To change ego's direction, you have to change the value of <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v6.htm">v6  (ego direction)</a>.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v52 = 3;
+<b>set.dir(o3, v52);</b>  [ now object 3 will move to right</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">86 (0x56)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_followego.htm">follow.ego</a></b></p>
+			<p><b><a href="cmd_getdir.htm">get.dir</a></b></p>
+			<p><b><a href="cmd_moveobj.htm">move.obj</a></b></p>
+			<p><b><a href="cmd_moveobjv.htm">move.obj.v</a></b></p>
+			<p><b><a href="cmd_normalmotion.htm">normal.motion</a></b></p>
+			<p><b><a href="cmd_wander.htm">wander</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

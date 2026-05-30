@@ -1,0 +1,84 @@
+<html>
+	<head><title>Screen Objects</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Screen Objects</h1>
+			<p>The screen object data type (sometimes called a VIEW object; not to be confused with a <a href="views.htm">view</a> resource) represents the animated sprites that are controlled by AGI. Unlike variables and flags, screen objects must be explicitly created in order to access them in AGI. Each screen object must be initialized, assigned a loaded <a href="views.htm">view</a> resource, positioned on the screen and then drawn in order to appear on screen.</p>
+			<p>Screen objects are represented in source code by the letter 'o' and their index number (i.e. o0, o1, etc.)</p>
+ 		<h3><a href="sobjtable.htm">Screen Object Table</a></h3>
+			<p>Each screen object is represented by a structured block of memory that contains all the data associated with the object. AGI creates a table of screen object structures on start up which is then accessed as needed while AGI is running. See the <a href="sobjtable.htm">Screen Object Data Structure</a> Topic for details on the information stored in AGI for each screen object.</p>
+		<h3><a name="maxscreenobj">Maximum Screen Objects</a></h3>
+			<p>The size of the screen object table is set by the Maximum Screen Objects property of the game's <a href="object.htm#format">OBJECT</a> file. AGI allocates <a href="memory.htm">memory</a> for the screen object table based on the Maximum Screen Objects value when the game starts. The size of the table cannot be adjusted after that.</p>
+			<p>The screen object table size is always one plus the actual value of Maximum Screen Objects, i.e. if maximum is set to 10, the table will actually hold 11 objects. This is because the first object (o0, known as <a href="interface.htm#ego">ego</a>) is always allocated a space in the screen object table. Due to <a href="memory.htm">memory</a> and performance limitations, you should try to limit the Maximum Screen Objects to as low a value as possible. You can even use a value of zero, which would mean that the only object that would be usable would be the <a href="#ego">ego</a> object. A common value in many Sierra games for Maximum Screen Objects was 16.</p>
+		<h3><a name="ego"></a>Ego</h3>
+			<p>The first screen object in the <a href="sobjtable.htm">table</a> (o0) is reserved by AGI to function as the character that represents the player in the game. This is the screen object which the player can control, moving around the screen as they progress through the game.</p>
+			<p>In AGI, this screen object (o0) is referred to as "<a href="interface.htm#ego">ego</a>". AGI provides commands and functionality specifically for ego that is unique from other screen objects. It is the only screen object that can be set to allow <a href="interface.htm#playercontrol">player control</a> via the <a href="keyboard.htm#egodir">keyboard</a>, <a href="joystick.htm">joystick</a> and/or <a href="mouse.htm">mouse</a>. None of the other objects can be controlled directly by the player.</p>
+		<h3>Loop Assignment to Screen Objects</h3>
+			<p>In order to actually display a screen object on screen, a <a href="views.htm">view</a> must be assigned using the <a href="..\commands\cmd_setview.htm"><b>set.view</b></a> command. In each <a href="cycle.htm">interpreter cycle</a>, AGI displays each cel in the currently assigned loop successively, which creates the illusion of movement. See the <a href="..\commands\concepts_objs.htm">Working with Screen Objects</a> topic for additional information.</p>
+		<h3><a name="autoloop">Auto Loop Feature</a></h3>
+			<p>If the view assigned to a screen object has 2, 3 or 4 loops, AGI will automatically assign a <a href="views.htm#loop">loop</a> based on the direction the object is moving. For example, when walking to the right, show a right facing loop, when walking toward the horizon, show a rear view loop, etc. When a screen object's direction changes, AGI assigns a loop as follows:
+		<table id="tbl_auto" cellSpacing="1" cellPadding="1" border="1">
+			<tr>
+				<td width="300" align="middle" style="vertical-align:middle"><b>&nbsp;Direction</b></td>
+				<td width="300" align="middle"><b>New Loop</b><br/>(2,3 loops)</td>
+				<td width="300" align="middle"><b>New Loop</b><br/>(4 loops)</td>
+			</tr>
+			<tr>
+				<td>0 - STOPPED</td>
+				<td align="middle">no change</td>
+				<td align="middle">no change</td>
+			</tr>
+			<tr>
+				<td>1 - UP</td>
+				<td align="middle">no change</td>
+				<td align="middle">3</td>
+			</tr>
+			<tr>
+				<td>2 - UP_RIGHT</td>
+				<td align="middle">0</td>
+				<td align="middle">0</td>
+			</tr>
+			<tr>
+				<td>3 - RIGHT</td>
+				<td align="middle">0</td>
+				<td align="middle">0</td>
+			</tr>
+			<tr>
+				<td >4 - DOWN_RIGHT</td>
+				<td align="middle">0</td>
+				<td align="middle">0</td>
+			</tr>
+			<tr>
+				<td>5 - DOWN</td>
+				<td align="middle">no change</td>
+				<td align="middle">2</td>
+			</tr>
+			<tr>
+				<td>6 - DOWN_LEFT</td>
+				<td align="middle">1</td>
+				<td align="middle">1</td>
+			</tr>
+			<tr>
+				<td>7 - LEFT</td>
+				<td align="middle">1</td>
+				<td align="middle">1</td>
+			</tr>
+			<tr>
+				<td>8 - UP_LEFT</td>
+				<td align="middle">1</td>
+				<td align="middle">1</td>
+			</tr>
+		</table>
+			<p>If the view has only one or more than four loops, AGI will not automatically assign loops based on direction. However, in AGI <a href="versions.htm">version</a> 3.002.098 and above, reserved flag <a href="f20.htm">f20 (force auto-loop)</a> can be set to force the auto-loop behavior even if there are more than four loops in the view. (There is a bug that was introduced in <a href="version2.htm#2936">version 2.936</a> that makes all views automatically update no matter how many loops they have. The bug was fixed in <a href="version3.htm#3002098">version 3.002.098</a>.)</p>
+			<p>The auto-loop feature can be disabled by using the <a href="..\commands\cmd_fixloop.htm"><b>fix.loop</b></a> command. Also, there is a bug in all versions of AGI that will disable the auto-loop feature if <a href="..\commands\object_moving.htm#steptime">step time</a> is set to 0.</p>
+		<h3>Screen Object Number Validation</h3>
+			<p>It is important to be aware that AGI is notorious for failing to validate values passed to commands. In the case of screen objects, beginning in version 2.272, most of the AGI commands no longer verify that the value passed for screen objects is less than or equal to the maximum (exceptions are the <a href="..\commands\cmd_erase.htm"><b>erase</b></a>, <a href="..\commands\cmd_animateobj.htm"><b>animate.obj</b></a>, <a href="..\commands\cmd_restoregame.htm"><b>restore.game</b></a> and <a href="..\commands\cmd_draw.htm"><b>draw</b></a> commands). This means that when an invalid screen object value is passed to a command, AGI will attempt to read or write data in memory that is outside the screen object table. This will most certainly result in wildly unpredictable results, and usually ends up crashing AGI. As a game programmer it is extremely important that you verify all commands involving screen objects are passed a valid value. See the <a href="errors.htm">Internal Error Handling</a> topic for additional information on how AGI handles errors in logic code.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

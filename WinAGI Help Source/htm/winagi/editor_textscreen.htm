@@ -1,0 +1,60 @@
+<html>
+	<head><title>Text Screen Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Text Screen Editor</h1>
+			<p>To assist with creating <a href="..\agi\textdisp.htm">text screen</a> displays in you game (for example, help screens), WinAGI includes the Text Screen Editor. It provides a simple WYSIWYG (what you see is what you get) editor where you can add text and set colors to create text displays. You can then copy the necessary AGI commands (<a href="..\commands\cmd_settextattribute.htm"><b>set.text.attribute</b></a>, <a href="..\commands\cmd_display.htm"><b>display</b></a>) to create the text output in AGI which you can then paste into your <a href="..\agi\logics.htm">logic</a> source code. Text screen data can be saved to a file, which can later be opened for additional editing.</p>
+			<p>For a description of the various components of the Menu Editor window, click on the area of interest:</p>
+			<map name="textscreenedit">
+				<area shape="rect" alt="Toolbar" coords="8,31,630,62" href="#toolbar">
+				<area shape="rect" alt="Text Screen Display" coords="14,65,653,464" href="#drawsurface">
+				<area shape="rect" alt="Menu Preview Area" coords="8,481,681,522" href="#palette">
+			</map>
+			<p><img src="..\..\graphics\textscreenedit.jpg" usemap="#textscreenedit" border="0" width="684"></p>
+		<h2><a name="drawsurface">Text Screen Display</a></h2>
+			<p>The text screen display shows an AGI text screen where text is displayed with the font and colors that are available in AGI. </p>
+			<p>When the entire display doesn't fit in the editing window, scrollbars are automatically displayed. You can also press the SHIFT key with the left mouse button to drag the screen as needed.</p>
+		<h3><a name="marks">Text Markers</a></h3>
+			<p>To assist with aligning text, small text markers appear at the lower right corner of each character position. You can toggle these marks off and on using the Show/Hide Text Marks command on the Edit menu.</p>
+		<h2><a name="palette">Color Palette</a></h2>
+			<p>The color palette is used to set the background and foreground colors of text. When typing text (or pasting unformatted text) the attributes that will be applied are indicated by 'B' for background and 'F' for foreground. Left click to select a background color, and right click to select a foreground color.</p>
+			<p>When text is selected, the palette changes to indicate the colors of the selection, 'b' and 'f'. If the selection has multiple colors, then no indicator is shown. Selecting colors by clicking will set the colors of the selection (the default colors are not affected, and will re-appear once the text is deselected).</p>
+		<h2><a name="toolbar">Toolbar</a></h2>
+			<p>Standard text edit commands as well as scaling commands are located on the toolbar.</p>
+		<h3><a name="mode">Typing Mode: Overwrite/Insert</a></h3>
+			<p>&nbsp; <img alt="Overwrite" src="..\..\graphics\et_ovr.bmp" width="32">&nbsp; <img alt="Insert" src="..\..\graphics\et_ins.bmp" width="32"> When editing test, with INSert mode active, typing new characters or pasting will insert the characters, moving existing characters to the right. Any text pushed past the right edge is lost. OVeRwrite mode will replace existing characters as the cursor passes over them without moving existing characters. Backspace and Delete will also erase characters without affecting surrounding text.</p>
+		<h3><a name="edit">Editing Tools</a></h3>
+			<p>&nbsp; <img alt="Cut" src="..\..\graphics\tbCut.bmp" width="32"> &nbsp; <img alt="Copy" src="..\..\graphics\tbCopy.bmp" width="32"> &nbsp; <img alt="Paste" src="..\..\graphics\tbPaste.bmp" width="32"> &nbsp; <img alt="Delete" src="..\..\graphics\tbDelete.bmp" width="32"> &nbsp; <img alt="Clear" src="..\..\graphics\et_clear.bmp" width="32"> Editing tools work just like any other text editor. You can select, copy cut or delete text. You can paste text copied from other editors or other programs.</p>
+			<p>When pasting, text copied from the text screen editor will include the text's back- and fore-ground colors. Text copied from another source will use the current colors. </p>
+			<p>The Clear tool is similar to the Delete tool, except it is only is enabled when a selection is made, and it only clears all the characters in the selection; it will not collapse the selection like the Delete key in Insert mode does.</p>
+			<p><b>NOTE:</b> Currently, there is no undo capability in the text screen editor.</p>
+		<h3><a name="copycmds">Copy as AGI Commands Tool</a></h3>
+			<p>&nbsp; <img alt="Copy Commands" src="..\..\graphics\et_cmd.bmp" width="32"> &nbsp; After building the text screen, you can easily create logic code to recreate it in your game by using the Copy Commands tool. This tool will copy the necessary <a href="..\commands\cmd_settextattribute.htm"><b>set.text.attribute</b></a>, <a href="..\commands\cmd_display.htm"><b>display</b></a> commands to the clipboard. You can then paste them into your logic source code.</p>
+			<p>If there is no selection, the commands copied will build the entire screen. If a block of characters is selected, then only that block will get converted to commands.</p>
+		<h3><a name="pastecmds">Paste as AGI Commands Tool</a></h3>
+		    <p>If you have existing source code for displaying text, you can copy it and then use the Paste Commands tool to add it to the current display. The paste function will extract <a href="..\commands\cmd_settextattribute.htm"><b>set.text.attribute</b></a> and <a href="..\commands\cmd_display.htm"><b>display</b></a> commands and add the corresponding text in the designated colors to the display screen. Any text added will overwrite any existing text.</p>
+		    <p>Any lines in the source that have errors will be ignored. Any lines that have invalid argument values will be ignored. The message argument in <b>display</b> commands must be a string value (can't be '<a href="..\commands\syntax_fan.htm#argtypes">m##</a>' or a <a href="..\commands\syntax_fan.htm#defines">define</a> ). All text must be on one line - <a href="..\commands\syntax_fan.htm#concat">concatenated text</a> will be ignored. <a href="..\agi\messages.htm#format">Special format codes</a> are also ignored.</p>
+		<h3><a name="background">Background Picture</a></h3>
+			<p>you can load a background...</p>
+
+
+
+			
+		<h3><a name="extchar">Extended Character Support</a></h3>
+			<p>&nbsp; <img alt="Character Chooser" src="..\..\graphics\tbChrMap.bmp" width="32"> &nbsp;Although it was extremely rare to see in Sierra games, AGI does properly display all <a href="..\agi\agifont.htm">extended characters</a>. Use the <a href="charmap.htm">Character Map Tool</a> (on the toolbar or Edit menu, or press CTRL+INS) if you want to add an extended character to the display.</p>
+		<h3>Scale Control</h3>
+			<p>&nbsp; <img alt="" src="..\..\graphics\eli_zoomin.ico" width="32">&nbsp; <img alt="" src="..\..\graphics\eli_zoomout.ico" width="32"> Use the scale controls to control the scale of the layout editor. The mouse wheel can also be used to adjust scale.</p>
+		<h2>Status Bar</h2>
+			<p><img src="..\..\graphics\statustxtscreen.jpg" border="0" width="715"></p>
+		  <p>The status bar displays the current scale factor, as well as the mouse position (row/column). The status of the Shift, Num Lock and INS keys are also displayed.</p>
+		<h2><a name="save">Saving Text Screen Data to File</a></h2>
+		  <p>Use the Save Text Layout and Save As commands to save the current state of the text screen. The data will be saved in a custom format file with a 'tsd' extension. You can then use the Open Text Layout command at a later time to retrieve the text screen data and continue editing.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

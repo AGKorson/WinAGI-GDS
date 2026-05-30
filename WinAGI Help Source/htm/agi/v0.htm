@@ -1,0 +1,15 @@
+<html>
+	<head><title>Reserved Variable v0</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v0: Current Room Number</h1>
+			<p>The current <a href="pictures.htm#room">room</a> number is set every time the <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> or <a href="..\commands\cmd_newroomv.htm"><b>new.room.v</b></a> command is called. v0 is set to the value passed. Typically, this value is then used to <a href="..\commands\cmd_loadpic.htm">load</a> and the <a href="pictures.htm">picture</a> background. There may also be times where <a href="logics.htm">logic</a> code needs to know the number of the current room.</p>
+			<p>Attempting to use this variable for other purposes is not recommended, because AGI will overwrite it every time the current room is changed.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

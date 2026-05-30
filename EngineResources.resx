@@ -1,0 +1,1357 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="4001" xml:space="preserve">
+    <value>'(' expected at start of if statement</value>
+  </data>
+  <data name="4002" xml:space="preserve">
+    <value>'goto' argument must be enclosed in parentheses</value>
+  </data>
+  <data name="4003" xml:space="preserve">
+    <value>Complex variable math statements are not allowed</value>
+  </data>
+  <data name="4004" xml:space="preserve">
+    <value>Undefined token '%3' for argument %1: expected %2</value>
+  </data>
+  <data name="4005" xml:space="preserve">
+    <value>';' expected at end of statement</value>
+  </data>
+  <data name="4006" xml:space="preserve">
+    <value>'{' not allowed unless following 'if' or 'else'</value>
+  </data>
+  <data name="4007" xml:space="preserve">
+    <value>'}' expected</value>
+  </data>
+  <data name="4008" xml:space="preserve">
+    <value>'}' not at end of any command blocks</value>
+  </data>
+  <data name="4009" xml:space="preserve">
+    <value>'}' required before 'else'</value>
+  </data>
+  <data name="4010" xml:space="preserve">
+    <value>'%1' is already defined in this logic</value>
+  </data>
+  <data name="4011" xml:space="preserve">
+    <value>'%1' is a compiler reserved word, and cannot be redefined</value>
+  </data>
+  <data name="4013" xml:space="preserve">
+    <value>'%1' is an AGI action command, and cannot be redefined</value>
+  </data>
+  <data name="4014" xml:space="preserve">
+    <value>'%1' is an AGI test command and cannot be redefined</value>
+  </data>
+  <data name="4015" xml:space="preserve">
+    <value>'%1' is %2, and cannot be used as a label</value>
+  </data>
+  <data name="4016" xml:space="preserve">
+    <value>Duplicate label name '%1'</value>
+  </data>
+  <data name="4018" xml:space="preserve">
+    <value>'==' is a comparison operator and cannot be used for variable, flag or string assignment</value>
+  </data>
+  <data name="4019" xml:space="preserve">
+    <value>AND operator (&amp;&amp;) not allowed within brackets</value>
+  </data>
+  <data name="4020" xml:space="preserve">
+    <value>AND operator (&amp;&amp;) or end of if statement expected</value>
+  </data>
+  <data name="4021" xml:space="preserve">
+    <value>Invalid symbol '%1' in if statement</value>
+  </data>
+  <data name="4022" xml:space="preserve">
+    <value>Local define argument value out of range</value>
+  </data>
+  <data name="4023" xml:space="preserve">
+    <value>Unexpected symbol (%1) or syntax error in assignment statement</value>
+  </data>
+  <data name="4024" xml:space="preserve">
+    <value>Brackets too deep in 'if' statement</value>
+  </data>
+  <data name="4025" xml:space="preserve">
+    <value>Incorrect type or syntax error in unary (++/--) statement</value>
+  </data>
+  <data name="4026" xml:space="preserve">
+    <value>Comma expected after argument %1 in %2 command</value>
+  </data>
+  <data name="4027" xml:space="preserve">
+    <value>'(' expected before command arguments</value>
+  </data>
+  <data name="4028" xml:space="preserve">
+    <value>Could not find include file '%1'</value>
+  </data>
+  <data name="4029" xml:space="preserve">
+    <value>Block quotes (/* ... */) are not supported in WinAGI</value>
+  </data>
+  <data name="4030" xml:space="preserve">
+    <value>'{' must follow an 'if' or 'else' statement</value>
+  </data>
+  <data name="4031" xml:space="preserve">
+    <value>Missing argument %1 in %2 command: (expected: %3)</value>
+  </data>
+  <data name="4032" xml:space="preserve">
+    <value>Error accessing include file '%1'</value>
+  </data>
+  <data name="4033" xml:space="preserve">
+    <value>Expected test command, but found closing bracket</value>
+  </data>
+  <data name="4034" xml:space="preserve">
+    <value>Syntax error in string assignment</value>
+  </data>
+  <data name="4035" xml:space="preserve">
+    <value>Include filename missing or invalid</value>
+  </data>
+  <data name="4036" xml:space="preserve">
+    <value>Invalid preprocessor symbol '%1'</value>
+  </data>
+  <data name="4037" xml:space="preserve">
+    <value>Incorrect type for argument %1: '%3' is not a %2</value>
+  </data>
+  <data name="4038" xml:space="preserve">
+    <value>'%1' is not a valid inventory item</value>
+  </data>
+  <data name="4039" xml:space="preserve">
+    <value>Invalid value for argument %1 (must be between 0-255)</value>
+  </data>
+  <data name="4040" xml:space="preserve">
+    <value>Syntax error at argument %1: expected %2</value>
+  </data>
+  <data name="4017" xml:space="preserve">
+    <value>Incorrect type for argument %1: expected a %2</value>
+  </data>
+  <data name="4041" xml:space="preserve">
+    <value>Non-integer numbers are not allowed</value>
+  </data>
+  <data name="4042" xml:space="preserve">
+    <value>Invalid define statement - define name cannot be blank</value>
+  </data>
+  <data name="4043" xml:space="preserve">
+    <value>Invalid define statement - define name cannot be argument marker</value>
+  </data>
+  <data name="4044" xml:space="preserve">
+    <value>Invalid define statement - define name cannot be numeric</value>
+  </data>
+  <data name="4045" xml:space="preserve">
+    <value>Invalid define statement - define value cannot be blank</value>
+  </data>
+  <data name="4048" xml:space="preserve">
+    <value>Invalid message number in message declaration (must be 1 - 255)</value>
+  </data>
+  <data name="4049" xml:space="preserve">
+    <value>Invalid operator in 'if' statement</value>
+  </data>
+  <data name="4050" xml:space="preserve">
+    <value>Invalid string value</value>
+  </data>
+  <data name="4056" xml:space="preserve">
+    <value>Invalid use of 'else'</value>
+  </data>
+  <data name="4057" xml:space="preserve">
+    <value>Unexpected end of input</value>
+  </data>
+  <data name="4058" xml:space="preserve">
+    <value>Invalid variable operator</value>
+  </data>
+  <data name="4070" xml:space="preserve">
+    <value>Variable or number value expected; '%1' is not a variable or number</value>
+  </data>
+  <data name="4071" xml:space="preserve">
+    <value>Maximum number of messages exceeded (limit is 255 per logic)</value>
+  </data>
+  <data name="4072" xml:space="preserve">
+    <value>Message %1 is already assigned</value>
+  </data>
+  <data name="4073" xml:space="preserve">
+    <value>Invalid negative argument value</value>
+  </data>
+  <data name="4074" xml:space="preserve">
+    <value>Missing label definition</value>
+  </data>
+  <data name="4075" xml:space="preserve">
+    <value>NOT operator can only be placed directly in front of a command</value>
+  </data>
+  <data name="4054" xml:space="preserve">
+    <value>Nothing allowed on line after preprocessor declaration</value>
+  </data>
+  <data name="4076" xml:space="preserve">
+    <value>OR operator must be within brackets</value>
+  </data>
+  <data name="4077" xml:space="preserve">
+    <value>OR operator or closing bracket expected</value>
+  </data>
+  <data name="4053" xml:space="preserve">
+    <value>Preprocessor commands do not use ';' as ending character</value>
+  </data>
+  <data name="4078" xml:space="preserve">
+    <value>Invalid assignment operator in indirect assignment</value>
+  </data>
+  <data name="4082" xml:space="preserve">
+    <value>Unknown action command '%1'</value>
+  </data>
+  <data name="4055" xml:space="preserve">
+    <value>Invalid define value '%1'</value>
+  </data>
+  <data name="4060" xml:space="preserve">
+    <value>'%1' is not a valid comparison operator</value>
+  </data>
+  <data name="4083" xml:space="preserve">
+    <value>Logic source code is empty</value>
+  </data>
+  <data name="4084" xml:space="preserve">
+    <value>')' expected after command arguments</value>
+  </data>
+  <data name="4085" xml:space="preserve">
+    <value>Invalid variable or number value '%1' in arithmetic statement</value>
+  </data>
+  <data name="4086" xml:space="preserve">
+    <value>Invalid word argument '%1' - must be integer value (0-65535)</value>
+  </data>
+  <data name="4087" xml:space="preserve">
+    <value>Incorrect syntax for indirection assignment</value>
+  </data>
+  <data name="5001" xml:space="preserve">
+    <value>This command block contains no commands</value>
+  </data>
+  <data name="5003" xml:space="preserve">
+    <value>Ambiguous inventory item for argument %1</value>
+  </data>
+  <data name="5004" xml:space="preserve">
+    <value>'?' is the AGI default marker for an undefined inventory item</value>
+  </data>
+  <data name="5005" xml:space="preserve">
+    <value>Undefined inventory item for argument %1</value>
+  </data>
+  <data name="5006" xml:space="preserve">
+    <value>Object number exceeds MaxScreenObject value  (%1)</value>
+  </data>
+  <data name="5007" xml:space="preserve">
+    <value>String argument value is not within expected range (0 - %1)</value>
+  </data>
+  <data name="5008" xml:space="preserve">
+    <value>Word argument value is not within expected range (1 - 10)</value>
+  </data>
+  <data name="5009" xml:space="preserve">
+    <value>Low values for script size will most likely cause a trappable error</value>
+  </data>
+  <data name="5010" xml:space="preserve">
+    <value>Using call command on logic 0 can cause game to crash</value>
+  </data>
+  <data name="5011" xml:space="preserve">
+    <value>Using clear.line command with bottom &lt; top and/or either value &gt; 24 will have unpredictable results</value>
+  </data>
+  <data name="5012" xml:space="preserve">
+    <value>Using room 0 in the new.room command will crash AGI</value>
+  </data>
+  <data name="5013" xml:space="preserve">
+    <value>Attempting to load a logic that does not exist will cause AGI to crash</value>
+  </data>
+  <data name="5014" xml:space="preserve">
+    <value>Attempting to load a sound that does not exist will cause AGI to crash</value>
+  </data>
+  <data name="5015" xml:space="preserve">
+    <value>Attempting to load a view that does not exist will cause AGI to crash</value>
+  </data>
+  <data name="5017" xml:space="preserve">
+    <value>'%1' (%2) is normally a read-only variable; changing it could have unexpected results</value>
+  </data>
+  <data name="5018" xml:space="preserve">
+    <value>'%1' shouldn't be assigned a value &gt; %2, or unexpected results will occur</value>
+  </data>
+  <data name="5019" xml:space="preserve">
+    <value>Undefined word group number(%1) in said command </value>
+  </data>
+  <data name="5020" xml:space="preserve">
+    <value>One or more block coordinates are off screen (X &gt; 159 and/or Y &gt; 167)</value>
+  </data>
+  <data name="5021" xml:space="preserve">
+    <value>Unable to validate add.to.pic arguments because view %1 cannot be loaded; check your code and your view for errors</value>
+  </data>
+  <data name="5023" xml:space="preserve">
+    <value>Object position is off screen (X &gt; 159 and/or Y &gt; 167)</value>
+  </data>
+  <data name="5024" xml:space="preserve">
+    <value>Attempting to discard a view that does not exist will cause a trappable error</value>
+  </data>
+  <data name="5025" xml:space="preserve">
+    <value>'%1' (%2) is normally a read-only flag; changing it could have unexpected results</value>
+  </data>
+  <data name="5026" xml:space="preserve">
+    <value>Ego direction cannot be set using the set.dir command</value>
+  </data>
+  <data name="5027" xml:space="preserve">
+    <value>Using follow.ego command on ego has no effect</value>
+  </data>
+  <data name="5029" xml:space="preserve">
+    <value>Using color values &gt; 15 may have unpredictable results</value>
+  </data>
+  <data name="5030" xml:space="preserve">
+    <value>Dividing by zero will cause AGI to crash</value>
+  </data>
+  <data name="5031" xml:space="preserve">
+    <value>'%1' is already defined as a global name</value>
+  </data>
+  <data name="5032" xml:space="preserve">
+    <value>'%1' is already defined as a reserved name</value>
+  </data>
+  <data name="5033" xml:space="preserve">
+    <value>'%1' is already defined by '%2'</value>
+  </data>
+  <data name="5034" xml:space="preserve">
+    <value>'%1' is overriding a global define</value>
+  </data>
+  <data name="5035" xml:space="preserve">
+    <value>'%1' is overriding a reserved define</value>
+  </data>
+  <data name="5036" xml:space="preserve">
+    <value>Variable is being assigned to itself</value>
+  </data>
+  <data name="5037" xml:space="preserve">
+    <value>Attempting to set a view that does not exist will cause a trappable error</value>
+  </data>
+  <data name="5038" xml:space="preserve">
+    <value>Position is off screen (X &gt; 159 and/or Y &gt; 167</value>
+  </data>
+  <data name="5039" xml:space="preserve">
+    <value>Using script.size command outside logic 0 wastes memory</value>
+  </data>
+  <data name="5040" xml:space="preserve">
+    <value>Referencing a logic that does not exist will crash AGI</value>
+  </data>
+  <data name="5041" xml:space="preserve">
+    <value>Setting the horizon less than 16 is unusual</value>
+  </data>
+  <data name="5042" xml:space="preserve">
+    <value>Setting the horizon greater than 120 is unusual</value>
+  </data>
+  <data name="5043" xml:space="preserve">
+    <value>Setting the horizon greater than 167 may cause unexpected results</value>
+  </data>
+  <data name="5044" xml:space="preserve">
+    <value>TOP argument is too large; portions of the play area will be off-screen, and graphics functions will be unpredictable</value>
+  </data>
+  <data name="5045" xml:space="preserve">
+    <value>Using move.obj on ego automatically forces program control mode</value>
+  </data>
+  <data name="5046" xml:space="preserve">
+    <value>If HEIGHT is less than 2, AGI resets it to 2 automatically</value>
+  </data>
+  <data name="5112" xml:space="preserve">
+    <value>Using submit.menu command outside logic 0 wastes memory</value>
+  </data>
+  <data name="5048" xml:space="preserve">
+    <value>INPUTLINE and STATUSLINE are the same, which is usually not desired</value>
+  </data>
+  <data name="5049" xml:space="preserve">
+    <value>INPUTLINE and/or STATUSLINE are inside the graphic display; this is usually not desired</value>
+  </data>
+  <data name="5050" xml:space="preserve">
+    <value>Setting PRIORITY to &lt; 4 or &gt; 15  may cause unexpected results</value>
+  </data>
+  <data name="5051" xml:space="preserve">
+    <value>X2 - X1 should be &gt;= 2 and Y2 - Y1 should be &gt;= 2; this block will not behave as expected</value>
+  </data>
+  <data name="5052" xml:space="preserve">
+    <value>If ROW &gt;= 25 the prompt string is drawn at current text cursor location (both ROW and COL arguments are ignored)</value>
+  </data>
+  <data name="5053" xml:space="preserve">
+    <value>Using new.room command on a non-existent room will crash AGI</value>
+  </data>
+  <data name="5054" xml:space="preserve">
+    <value>Using random command with lower bound &gt; upper bound will have unexpected results</value>
+  </data>
+  <data name="5055" xml:space="preserve">
+    <value>Assigning a large number to 'cycle_delay' (v10) is highly unusual</value>
+  </data>
+  <data name="5056" xml:space="preserve">
+    <value>LENGTH is &gt; max string length</value>
+  </data>
+  <data name="5058" xml:space="preserve">
+    <value>Large values for shake.screen command are unusual</value>
+  </data>
+  <data name="5059" xml:space="preserve">
+    <value>This 'shake.screen' command appears to be an AGIPAL palette change; don't use original interpreter to run this game</value>
+  </data>
+  <data name="5109" xml:space="preserve">
+    <value>Cursor position is off screen (ROW &gt; 24 and/or COL &gt; 39)</value>
+  </data>
+  <data name="5060" xml:space="preserve">
+    <value>Controller argument value is not within expected range (0 - 49)</value>
+  </data>
+  <data name="5061" xml:space="preserve">
+    <value>Using show.obj command with an invalid view will generate a trappable error</value>
+  </data>
+  <data name="5062" xml:space="preserve">
+    <value>Target position is off screen (X &gt; 159 and/or Y &gt; 167)</value>
+  </data>
+  <data name="5063" xml:space="preserve">
+    <value>The ROW and HEIGHT combination specified will not fit on the screen</value>
+  </data>
+  <data name="5064" xml:space="preserve">
+    <value>Using add.to.pic command with an invalid view will generate a trappable error</value>
+  </data>
+  <data name="5065" xml:space="preserve">
+    <value>set.key parameters are not a valid ASCII code or KEY code</value>
+  </data>
+  <data name="5066" xml:space="preserve">
+    <value>Assigning keycode values that correspond to normal input keys may result in unpredictable behavior in AGI</value>
+  </data>
+  <data name="5067" xml:space="preserve">
+    <value>The message box won't draw correctly if ROW &gt; 22</value>
+  </data>
+  <data name="5068" xml:space="preserve">
+    <value>The message box may not draw correctly if COL &lt; 2 or (COL + MAXWIDTH) &gt; 39</value>
+  </data>
+  <data name="5069" xml:space="preserve">
+    <value>Invalid cursor position for clear.text.rect command; must be in upper-left/lower-right format</value>
+  </data>
+  <data name="5070" xml:space="preserve">
+    <value>Invalid cursor position values for clear.text.rect command; R1 &amp; R2 must be &lt;=24; C1 &amp; C2 must be &lt;=39</value>
+  </data>
+  <data name="5071" xml:space="preserve">
+    <value>Using a value &gt; 167 for set.pri.base results in entire screen being priority 4</value>
+  </data>
+  <data name="5072" xml:space="preserve">
+    <value>One or more test command coordinates are offscreen (X &gt; 159 and/or Y &gt; 167)</value>
+  </data>
+  <data name="5073" xml:space="preserve">
+    <value>X1 should be &lt;= X2 and Y1 should be &lt;= Y2; this test command will not behave as expected</value>
+  </data>
+  <data name="5074" xml:space="preserve">
+    <value>Message is null (0 length)</value>
+  </data>
+  <data name="5075" xml:space="preserve">
+    <value>'%1' is not a supported command for this game's interpreter version</value>
+  </data>
+  <data name="5076" xml:space="preserve">
+    <value>Attempting to call a logic that does not exist will cause AGI to crash</value>
+  </data>
+  <data name="5077" xml:space="preserve">
+    <value>Using a reserved variable in '%1' command may cause unexpected behavior</value>
+  </data>
+  <data name="5078" xml:space="preserve">
+    <value>Using a reserved flag in '%1' command may cause unexpected behavior</value>
+  </data>
+  <data name="5079" xml:space="preserve">
+    <value>Setting PRIORITY to 1, 2 or 3, or &gt; 15 in add.to.pic command may cause unexpected results</value>
+  </data>
+  <data name="5080" xml:space="preserve">
+    <value>Setting COL to &gt; 39 in the get.string command will cause the PROMPT to appear in unexpected location</value>
+  </data>
+  <data name="5081" xml:space="preserve">
+    <value>Test command 'return.false()' is not compatible with AGIStudio</value>
+  </data>
+  <data name="5082" xml:space="preserve">
+    <value>'object.on.land', 'object.on.water' and 'object.on.anything' have no effect on ego object</value>
+  </data>
+  <data name="5083" xml:space="preserve">
+    <value>'%1' is a Group 0 word, which is always ignored by AGI, so it will never be detected by the 'said' command</value>
+  </data>
+  <data name="5084" xml:space="preserve">
+    <value>Attempting to play a sound that does not exist will cause a trappable error</value>
+  </data>
+  <data name="5085" xml:space="preserve">
+    <value>Using add.to.pic command with an invalid loop will generate a trappable error</value>
+  </data>
+  <data name="5086" xml:space="preserve">
+    <value>Using add.to.pic command with an invalid cel will generate a trappable error</value>
+  </data>
+  <data name="5087" xml:space="preserve">
+    <value>%1 command has no functionality in MSDOS AGI interpreter</value>
+  </data>
+  <data name="5088" xml:space="preserve">
+    <value>%1 command is incompatible with MSDOS AGI interpreter</value>
+  </data>
+  <data name="5089" xml:space="preserve">
+    <value>Recursively calling a logic can crash AGI</value>
+  </data>
+  <data name="5090" xml:space="preserve">
+    <value>Undefined message (m%1); null value assumed</value>
+  </data>
+  <data name="5091" xml:space="preserve">
+    <value>Using m0 as a message value will cause an error</value>
+  </data>
+  <data name="5092" xml:space="preserve">
+    <value>Unless resetting after responding to an error, '%1' should normally be treated as read-only</value>
+  </data>
+  <data name="5093" xml:space="preserve">
+    <value>Using control characters 8 or 13 in message text will result in incorrectly displayed messages</value>
+  </data>
+  <data name="5094" xml:space="preserve">
+    <value>Messages with extended characters (128-255)  won't display correctly in most circumstances</value>
+  </data>
+  <data name="5095" xml:space="preserve">
+    <value>Commands after a new.room() or new.room.v() command are always ignored by AGI</value>
+  </data>
+  <data name="5096" xml:space="preserve">
+    <value>Using a long input prompt is unusual and will limit player input</value>
+  </data>
+  <data name="5097" xml:space="preserve">
+    <value>Commands after a return command are always ignored by AGI</value>
+  </data>
+  <data name="5098" xml:space="preserve">
+    <value>Negative numbers are converted to unsigned 2s complement value</value>
+  </data>
+  <data name="5099" xml:space="preserve">
+    <value>INPUTLINE and/or STATUSLINE &gt; 24 will result in undesirable effects on graphics screen</value>
+  </data>
+  <data name="5100" xml:space="preserve">
+    <value>COLOR value other than 0 is treated as 15</value>
+  </data>
+  <data name="5101" xml:space="preserve">
+    <value>MGN values &gt; 15 will cause unexepected results in add.to.pic command</value>
+  </data>
+  <data name="5102" xml:space="preserve">
+    <value>Object will never catch ego if DISTANCE &lt;= 1</value>
+  </data>
+  <data name="5103" xml:space="preserve">
+    <value>Using a value of 1 for MAXWIDTH will crash AGI</value>
+  </data>
+  <data name="5104" xml:space="preserve">
+    <value>Print window will not display correctly if MAXWIDTH &gt; 36</value>
+  </data>
+  <data name="5105" xml:space="preserve">
+    <value>Print window will use default value of 30 if MAXWIDTH = 0</value>
+  </data>
+  <data name="5106" xml:space="preserve">
+    <value>When UPPER = LOWER, result will always be the same</value>
+  </data>
+  <data name="5107" xml:space="preserve">
+    <value>If LOWER = UPPER + 1, AGI will crash due to 'Divide by 0' error</value>
+  </data>
+  <data name="5108" xml:space="preserve">
+    <value>The word '%1' is not in WORDS.TOK, but AGI automatically assigns it to group 0</value>
+  </data>
+  <data name="5002" xml:space="preserve">
+    <value>Or brackets unnecessary for a single test command</value>
+  </data>
+  <data name="6001" xml:space="preserve">
+    <value>Include file stack overflow; limit is five</value>
+  </data>
+  <data name="502" xml:space="preserve">
+    <value>Error %1 occurred while trying to access %2.</value>
+  </data>
+  <data name="503" xml:space="preserve">
+    <value>Error %1 occurred while setting game ID</value>
+  </data>
+  <data name="504" xml:space="preserve">
+    <value>'%1' is not a valid AGI game directory.</value>
+  </data>
+  <data name="505" xml:space="preserve">
+    <value>'%1' is not a valid directory file.</value>
+  </data>
+  <data name="506" xml:space="preserve">
+    <value>This AGI version is not supported by WinAGI.</value>
+  </data>
+  <data name="554" xml:space="preserve">
+    <value>No source code to compile.</value>
+  </data>
+  <data name="553" xml:space="preserve">
+    <value>Maximum number of cels exceeded in loop %1.</value>
+  </data>
+  <data name="509" xml:space="preserve">
+    <value>Unhandled error %1 while expanding resource.</value>
+  </data>
+  <data name="511" xml:space="preserve">
+    <value>Error in CompileSound method(%1)</value>
+  </data>
+  <data name="512" xml:space="preserve">
+    <value>Can't add item; maximum number of objects already in OBJECT file</value>
+  </data>
+  <data name="513" xml:space="preserve">
+    <value>Can't add word; it already exists</value>
+  </data>
+  <data name="514" xml:space="preserve">
+    <value>Can't add word; invalid group number</value>
+  </data>
+  <data name="515" xml:space="preserve">
+    <value>Can't delete wordgroup; it does not exist</value>
+  </data>
+  <data name="516" xml:space="preserve">
+    <value>Can't delete word; it does not exist</value>
+  </data>
+  <data name="517" xml:space="preserve">
+    <value>Maximum number of VOL files exceeded - GAME IS TOO BIG!!!</value>
+  </data>
+  <data name="518" xml:space="preserve">
+    <value>Incompatible AGI version: WinAGI only works with versions 2 and 3</value>
+  </data>
+  <data name="519" xml:space="preserve">
+    <value>Can't export file; unable to load resource data</value>
+  </data>
+  <data name="520" xml:space="preserve">
+    <value>Can't create new resource; index already in use</value>
+  </data>
+  <data name="521" xml:space="preserve">
+    <value>No data to import</value>
+  </data>
+  <data name="522" xml:space="preserve">
+    <value>Can't delete last cel in a loop</value>
+  </data>
+  <data name="523" xml:space="preserve">
+    <value>Can't delete last loop in a view</value>
+  </data>
+  <data name="524" xml:space="preserve">
+    <value>Invalid data format for cel data</value>
+  </data>
+  <data name="525" xml:space="preserve">
+    <value>Only logics in a game can be compiled</value>
+  </data>
+  <data name="526" xml:space="preserve">
+    <value>Media player error: %1</value>
+  </data>
+  <data name="527" xml:space="preserve">
+    <value>directory '%1' has no wag files</value>
+  </data>
+  <data name="528" xml:space="preserve">
+    <value>File access error in VOL file</value>
+  </data>
+  <data name="529" xml:space="preserve">
+    <value>Missing game property file (%1)</value>
+  </data>
+  <data name="530" xml:space="preserve">
+    <value>Invalid game property file version (%1)</value>
+  </data>
+  <data name="531" xml:space="preserve">
+    <value>Can't renumber; new number is already in use</value>
+  </data>
+  <data name="532" xml:space="preserve">
+    <value>Invalid sound script file</value>
+  </data>
+  <data name="533" xml:space="preserve">
+    <value>Unable to copy template files to game directory due to error: %1</value>
+  </data>
+  <data name="534" xml:space="preserve">
+    <value>Unable to open the newly created game due to error: %1</value>
+  </data>
+  <data name="535" xml:space="preserve">
+    <value>Can't create new game in a directory that already has a wag file</value>
+  </data>
+  <data name="536" xml:space="preserve">
+    <value>Can't create new game in a directory that already has AGI game files</value>
+  </data>
+  <data name="537" xml:space="preserve">
+    <value>Game property file does not contain a valid GameID.</value>
+  </data>
+  <data name="538" xml:space="preserve">
+    <value>%1 is not a valid AGI interpreter version.</value>
+  </data>
+  <data name="539" xml:space="preserve">
+    <value>Game property file '%1' is read only</value>
+  </data>
+  <data name="540" xml:space="preserve">
+    <value>File access error when reading game property file - %1: %2</value>
+  </data>
+  <data name="542" xml:space="preserve">
+    <value>Invalid sound playback format</value>
+  </data>
+  <data name="5047" xml:space="preserve">
+    <value>'OR' block has no test commands</value>
+  </data>
+  <data name="5016" xml:space="preserve">
+    <value>'if' block has no test commands</value>
+  </data>
+  <data name="5110" xml:space="preserve">
+    <value>Cel width less than 3 will not draw control box correctly</value>
+  </data>
+  <data name="5111" xml:space="preserve">
+    <value>Commands after a forced quit() command are always ignored by AGI</value>
+  </data>
+  <data name="5022" xml:space="preserve">
+    <value>Duplicate include file (%1)</value>
+  </data>
+  <data name="4088" xml:space="preserve">
+    <value>Include file cannot be this logic's source code file</value>
+  </data>
+  <data name="4089" xml:space="preserve">
+    <value>%1 is a required #include file for this logic</value>
+  </data>
+  <data name="4052" xml:space="preserve">
+    <value>Invalid string value, unable to concatenate</value>
+  </data>
+  <data name="5028" xml:space="preserve">
+    <value>Define '%1' redefines %2 '%3'</value>
+  </data>
+  <data name="4061" xml:space="preserve">
+    <value>Invalid flag assignment, value must be 'true' or 'false'</value>
+  </data>
+  <data name="5057" xml:space="preserve">
+    <value>Using zero as shake.screen argument will cause eight hours of shaking</value>
+  </data>
+  <data name="4062" xml:space="preserve">
+    <value>'%1' is a test command and is only valid inside an 'if' block</value>
+  </data>
+  <data name="4063" xml:space="preserve">
+    <value>'%1' is an argument marker, can only be used as an argument to a valid AGI action or test command</value>
+  </data>
+  <data name="4064" xml:space="preserve">
+    <value>%1 detected when command expected</value>
+  </data>
+  <data name="4065" xml:space="preserve">
+    <value>Invalid use of 'NOT' operator</value>
+  </data>
+  <data name="4066" xml:space="preserve">
+    <value>A valid test command must follow a NOT operator</value>
+  </data>
+  <data name="4067" xml:space="preserve">
+    <value>Undefined word '%1' in said command</value>
+  </data>
+  <data name="4068" xml:space="preserve">
+    <value>'{' encountered when expecting action command</value>
+  </data>
+  <data name="4069" xml:space="preserve">
+    <value>Include files must be enclosed in double quotes</value>
+  </data>
+  <data name="4047" xml:space="preserve">
+    <value>A label marker (:) is expected after a label name</value>
+  </data>
+  <data name="4051" xml:space="preserve">
+    <value>String value expected in message declaration</value>
+  </data>
+  <data name="4079" xml:space="preserve">
+    <value>Indirection marker is only valid when using alternate syntax assignment</value>
+  </data>
+  <data name="4081" xml:space="preserve">
+    <value>Syntax error in indirection assignment</value>
+  </data>
+  <data name="4080" xml:space="preserve">
+    <value>Indirection marker is only valid with variables</value>
+  </data>
+  <data name="5113" xml:space="preserve">
+    <value>Menu "%1" has no items assigned to it</value>
+  </data>
+  <data name="5114" xml:space="preserve">
+    <value>Menu "%1" has too many items</value>
+  </data>
+  <data name="5115" xml:space="preserve">
+    <value>submit.menu called before any menus added</value>
+  </data>
+  <data name="5116" xml:space="preserve">
+    <value>More than one submit.menu() command is unnecessary</value>
+  </data>
+  <data name="5117" xml:space="preserve">
+    <value>set.menu and set.menu.item commands are ignored after submit.menu is called</value>
+  </data>
+  <data name="5118" xml:space="preserve">
+    <value>Menu item "%1" text width exceeds menu display width</value>
+  </data>
+  <data name="4046" xml:space="preserve">
+    <value>Defines '%1' and '%2' make a circular reference</value>
+  </data>
+  <data name="4059" xml:space="preserve">
+    <value>Source code must end with a return command</value>
+  </data>
+  <data name="DW01" xml:space="preserve">
+    <value>Invalid message m%1 at resource index %2</value>
+  </data>
+  <data name="DW02" xml:space="preserve">
+    <value>Invalid word %1 at resource index %2</value>
+  </data>
+  <data name="DW03" xml:space="preserve">
+    <value>Invalid inventory item i%1 at resource index %2</value>
+  </data>
+  <data name="DW04" xml:space="preserve">
+    <value>Reference to null inventory item ('?') at resource index %2</value>
+  </data>
+  <data name="DW05" xml:space="preserve">
+    <value>Non-unique inventory item '%1' at resource index %2</value>
+  </data>
+  <data name="DW06" xml:space="preserve">
+    <value>Unknowntest19 at resource index %2 is only valid in Amiga AGI versions</value>
+  </data>
+  <data name="DW07" xml:space="preserve">
+    <value>This block at resource index %2 contains no commands</value>
+  </data>
+  <data name="DE04" xml:space="preserve">
+    <value>Block end at resource index %2 is past end of resource; adjusted to end</value>
+  </data>
+  <data name="DW08" xml:space="preserve">
+    <value>Block end at resource index %2 is outside nested block (jump location %1)</value>
+  </data>
+  <data name="DW09" xml:space="preserve">
+    <value>Command '%1' at resource index %2 is not valid for selected interpreter version (%3)</value>
+  </data>
+  <data name="DW10" xml:space="preserve">
+    <value>%1 in '%3' command at resource index %2 does not exist</value>
+  </data>
+  <data name="DW11" xml:space="preserve">
+    <value>quit command at resource index %2 coded with no argument</value>
+  </data>
+  <data name="DE05" xml:space="preserve">
+    <value>Destination for 'goto' at resource index %2 is past end of logic; adjusted to end</value>
+  </data>
+  <data name="DE06" xml:space="preserve">
+    <value>Expected block end does not align with calculated block end at resource index %2</value>
+  </data>
+  <data name="DW12" xml:space="preserve">
+    <value>return command is missing at end of logic</value>
+  </data>
+  <data name="DE07" xml:space="preserve">
+    <value>Message section has an invalid end-of-text marker</value>
+  </data>
+  <data name="DE08" xml:space="preserve">
+    <value>Message %1 has an invalid offset (resource index %2)</value>
+  </data>
+  <data name="DE09" xml:space="preserve">
+    <value>Invalid message section data</value>
+  </data>
+  <data name="RW05" xml:space="preserve">
+    <value>Picture %1 is missing its 'end-of-resource' marker and may be corrupt</value>
+  </data>
+  <data name="RW06" xml:space="preserve">
+    <value>Picture %1 has at least one invalid color assignment - picture may be corrupt</value>
+  </data>
+  <data name="RW07" xml:space="preserve">
+    <value>Picture %1 has at least one invalid command byte - picture may be corrupt</value>
+  </data>
+  <data name="RW08" xml:space="preserve">
+    <value>Picture %1 has extra data past the end of resource</value>
+  </data>
+  <data name="RW12" xml:space="preserve">
+    <value>Sound %1 has one or more tracks with missing end of track marker</value>
+  </data>
+  <data name="RW19" xml:space="preserve">
+    <value>View %1 has an invalid view description pointer</value>
+  </data>
+  <data name="RW20" xml:space="preserve">
+    <value>Invalid text pointer encountered in OBJECT file</value>
+  </data>
+  <data name="RW21" xml:space="preserve">
+    <value>First item is not the null '?' item</value>
+  </data>
+  <data name="RW22" xml:space="preserve">
+    <value>Abnormal word index table</value>
+  </data>
+  <data name="RW23" xml:space="preserve">
+    <value>Unexpected WORDS.TOK end of file</value>
+  </data>
+  <data name="RW24" xml:space="preserve">
+    <value>Upper case characters detected in one or more words</value>
+  </data>
+  <data name="RE26" xml:space="preserve">
+    <value>File access error, unable to read globals.txt file (%1)</value>
+  </data>
+  <data name="RE24" xml:space="preserve">
+    <value>globals.txt file not found</value>
+  </data>
+  <data name="RE25" xml:space="preserve">
+    <value>globals.txt file is read only</value>
+  </data>
+  <data name="RW03" xml:space="preserve">
+    <value>Unable to create resource directory '%1'</value>
+  </data>
+  <data name="RW04" xml:space="preserve">
+    <value>Error while loading WAG file; some properties not loaded. (Error %1: %2)</value>
+  </data>
+  <data name="RW01" xml:space="preserve">
+    <value>%1 portion of DIR file is larger than expected; it may be corrupted</value>
+  </data>
+  <data name="RW02" xml:space="preserve">
+    <value>%1DIR file is larger than expected; it may be corrupted</value>
+  </data>
+  <data name="RE01" xml:space="preserve">
+    <value>%1 %2 is in a VOL file (%3) that does not exist</value>
+  </data>
+  <data name="RE02" xml:space="preserve">
+    <value>%1 %2 is in a VOL file (%3) marked read only</value>
+  </data>
+  <data name="RE03" xml:space="preserve">
+    <value>%1 %2 is invalid due to file access error (%3)</value>
+  </data>
+  <data name="RE04" xml:space="preserve">
+    <value>%1 %2 has an invalid location (%3) in volume file %4</value>
+  </data>
+  <data name="RE05" xml:space="preserve">
+    <value>%1 %2 has an invalid resource header at location %3 in %4</value>
+  </data>
+  <data name="RE07" xml:space="preserve">
+    <value>Logic %1 source file (%2) is marked read only</value>
+  </data>
+  <data name="RE08" xml:space="preserve">
+    <value>Logic %1 source file (%2) is invalid due to file access error</value>
+  </data>
+  <data name="RE09" xml:space="preserve">
+    <value>Sound %1 contains no data</value>
+  </data>
+  <data name="RE10" xml:space="preserve">
+    <value>Sound %1 has one or more invalid track pointers</value>
+  </data>
+  <data name="RE11" xml:space="preserve">
+    <value>View %1 contains no data</value>
+  </data>
+  <data name="RW13" xml:space="preserve">
+    <value>View %1 has an invalid data pointer for loop %2</value>
+  </data>
+  <data name="RW14" xml:space="preserve">
+    <value>Loop %2 in view %1 has invalid mirror assignment</value>
+  </data>
+  <data name="RW15" xml:space="preserve">
+    <value>Loop %2 in view %1 shares cel data with another loop but is not a mirror</value>
+  </data>
+  <data name="RW17" xml:space="preserve">
+    <value>View %1 has an invalid cel pointer for cel %2 of loop %3</value>
+  </data>
+  <data name="RW18" xml:space="preserve">
+    <value>View %1 has invalid cel data for cel %2 of loop %3</value>
+  </data>
+  <data name="RE13" xml:space="preserve">
+    <value>OBJECT file is missing</value>
+  </data>
+  <data name="RE14" xml:space="preserve">
+    <value>OBJECT is read only</value>
+  </data>
+  <data name="RE15" xml:space="preserve">
+    <value>File access error, unable to read OBJECT file (%1)</value>
+  </data>
+  <data name="RE16" xml:space="preserve">
+    <value>OBJECT file contains no data</value>
+  </data>
+  <data name="RE17" xml:space="preserve">
+    <value>Invalid data in OBJECT file, unable to decrypt</value>
+  </data>
+  <data name="RE18" xml:space="preserve">
+    <value>Invalid OBJECT file header, unable to read item data</value>
+  </data>
+  <data name="RE19" xml:space="preserve">
+    <value>WORDS.TOK file is missing</value>
+  </data>
+  <data name="RE20" xml:space="preserve">
+    <value>WORDS.TOK is read only</value>
+  </data>
+  <data name="RE21" xml:space="preserve">
+    <value>File access error, unable to read WORDS.TOK file (%1)</value>
+  </data>
+  <data name="RE22" xml:space="preserve">
+    <value>WORDS.TOK file contains no data</value>
+  </data>
+  <data name="RE23" xml:space="preserve">
+    <value>Invalid word index table in WORDS.TOK</value>
+  </data>
+  <data name="DE01" xml:space="preserve">
+    <value>Logic contains no data to decompile</value>
+  </data>
+  <data name="DE02" xml:space="preserve">
+    <value>Invalid test command byte code (%1) found at resource index %2</value>
+  </data>
+  <data name="DE03" xml:space="preserve">
+    <value>Invalid action command byte code (%1) found at resource index %2</value>
+  </data>
+  <data name="RE06" xml:space="preserve">
+    <value>Unable to expand %1 %2 at location %3 in %4</value>
+  </data>
+  <data name="RE12" xml:space="preserve">
+    <value>View %1 has no loops</value>
+  </data>
+  <data name="RW11" xml:space="preserve">
+    <value>Sound %1 has one or more zero-length notes</value>
+  </data>
+  <data name="RW25" xml:space="preserve">
+    <value>Ignored characters detected in WORDS.TOK</value>
+  </data>
+  <data name="RW26" xml:space="preserve">
+    <value>One or more duplicate words encountered</value>
+  </data>
+  <data name="RW27" xml:space="preserve">
+    <value>Multiple group 1 words</value>
+  </data>
+  <data name="RW28" xml:space="preserve">
+    <value>Multiple group 9999 words</value>
+  </data>
+  <data name="RW30" xml:space="preserve">
+    <value>globals.txt file has one or more invalid entries</value>
+  </data>
+  <data name="RW16" xml:space="preserve">
+    <value>Loop %2 of view %1 has no cels</value>
+  </data>
+  <data name="543" xml:space="preserve">
+    <value>multiple WAG files found</value>
+  </data>
+  <data name="544" xml:space="preserve">
+    <value>template is missing resource directory</value>
+  </data>
+  <data name="545" xml:space="preserve">
+    <value>Unable to move resource directory (%1)</value>
+  </data>
+  <data name="546" xml:space="preserve">
+    <value>Unable to create wag file (%1)</value>
+  </data>
+  <data name="548" xml:space="preserve">
+    <value>Unable to copy directory (%1)</value>
+  </data>
+  <data name="510" xml:space="preserve">
+    <value>Directory '%1' not found</value>
+  </data>
+  <data name="541" xml:space="preserve">
+    <value>File access error when reading %1 - %2: %3</value>
+  </data>
+  <data name="547" xml:space="preserve">
+    <value>Error accessing wag file (%1)</value>
+  </data>
+  <data name="RW29" xml:space="preserve">
+    <value>Invalid data in WORDS.TOK at position %1</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="GAMEDEFS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\GAMEDEFS.h;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="SYSDEFS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\SYSDEFS.h;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="DW17" xml:space="preserve">
+    <value>%3 command %1 not defined (%2)</value>
+  </data>
+  <data name="DW13" xml:space="preserve">
+    <value>Screen object value is greater than game's MaxScreenObj (%1)</value>
+  </data>
+  <data name="DW14" xml:space="preserve">
+    <value>String number is greater than maximum allowed value for the target game version (%1)</value>
+  </data>
+  <data name="DW15" xml:space="preserve">
+    <value>Controller number is greater than maximum usable value for the target game version (%1)</value>
+  </data>
+  <data name="DW16" xml:space="preserve">
+    <value>Word argument number is greater than maximum usable value (10)</value>
+  </data>
+  <data name="DE10" xml:space="preserve">
+    <value>Unexpected end of input</value>
+  </data>
+  <data name="DE11" xml:space="preserve">
+    <value>Valid reference to WORDS.TOK is missing</value>
+  </data>
+  <data name="DE12" xml:space="preserve">
+    <value>Word group %1 does not exist in WORDS.TOK</value>
+  </data>
+  <data name="DW18" xml:space="preserve">
+    <value>Message %1 is not referenced in logic source code</value>
+  </data>
+  <data name="DW19" xml:space="preserve">
+    <value>Unable to create separate message file for %1; messages are defined in the source (error: %2)</value>
+  </data>
+  <data name="DW20" xml:space="preserve">
+    <value>Unable to create gamedefs.h file (error: %1)</value>
+  </data>
+  <data name="RE27" xml:space="preserve">
+    <value>Unable to import resource for %1 %2 from Sierra source files (%3)</value>
+  </data>
+  <data name="508" xml:space="preserve">
+    <value>A critical game file (%1) is missing.</value>
+  </data>
+  <data name="507" xml:space="preserve">
+    <value>UNHANDLED ERROR %1: %2\n\n" + %3</value>
+  </data>
+  <data name="555" xml:space="preserve">
+    <value>Invalid data in game property file.</value>
+  </data>
+  <data name="501" xml:space="preserve">
+    <value>Property or method not available until object is loaded.</value>
+  </data>
+  <data name="6002" xml:space="preserve">
+    <value>WORDS.TOK filename %1</value>
+  </data>
+  <data name="6003" xml:space="preserve">
+    <value>WORDS.TOK filename must be enclosed in quotes</value>
+  </data>
+  <data name="7001" xml:space="preserve">
+    <value>WORDS.TOK has already been loaded</value>
+  </data>
+  <data name="6004" xml:space="preserve">
+    <value>'%1' is already defined; duplicate define names are not allowed</value>
+  </data>
+  <data name="6005" xml:space="preserve">
+    <value>Argument lists must be enclosed in parentheses</value>
+  </data>
+  <data name="6006" xml:space="preserve">
+    <value>Invalid argument type or syntax error in %1 preprocessor statement</value>
+  </data>
+  <data name="7002" xml:space="preserve">
+    <value>Action command %1 (%2) not supported in the AGI version for this game</value>
+  </data>
+  <data name="6007" xml:space="preserve">
+    <value>Number expected in %1 preprocessor statement,'%2' is not a number</value>
+  </data>
+  <data name="6008" xml:space="preserve">
+    <value>Invalid command number in %1 command preprocessor statement</value>
+  </data>
+  <data name="6009" xml:space="preserve">
+    <value>Invalid argument list in 'said' command preprocessor statement</value>
+  </data>
+  <data name="6010" xml:space="preserve">
+    <value>Invalid argument type in %1 command preprocessor statement</value>
+  </data>
+  <data name="6011" xml:space="preserve">
+    <value>Argument list mismatch in %1 command preprocessor statement</value>
+  </data>
+  <data name="6012" xml:space="preserve">
+    <value>Invalid name in %1 preprocessor statement</value>
+  </data>
+  <data name="6013" xml:space="preserve">
+    <value>Message text is too long</value>
+  </data>
+  <data name="6014" xml:space="preserve">
+    <value>Invalid define value '%1'</value>
+  </data>
+  <data name="7003" xml:space="preserve">
+    <value>Numerical values outside byte range will be converted to a byte value</value>
+  </data>
+  <data name="7004" xml:space="preserve">
+    <value>Reserved %1 is normally read-only; changing it could have unexpected results</value>
+  </data>
+  <data name="7005" xml:space="preserve">
+    <value>View %1 does not exist; accessing it in code will cause an error</value>
+  </data>
+  <data name="6015" xml:space="preserve">
+    <value>Using message number of zero will corrupt the compiled logic</value>
+  </data>
+  <data name="6016" xml:space="preserve">
+    <value>'%1' command not defined</value>
+  </data>
+  <data name="6017" xml:space="preserve">
+    <value>Invalid action command '%1'</value>
+  </data>
+  <data name="6018" xml:space="preserve">
+    <value> Fan syntax assignment statement not supported in Sierra syntax</value>
+  </data>
+  <data name="6019" xml:space="preserve">
+    <value>Right indirection only valid with variable arguments</value>
+  </data>
+  <data name="5119" xml:space="preserve">
+    <value>More than ten words in said command are ignored</value>
+  </data>
+  <data name="7006" xml:space="preserve">
+    <value>Consecutive NOT operators (!) will toggle the NOT status</value>
+  </data>
+  <data name="6020" xml:space="preserve">
+    <value>WORDS.TOK file not loaded with %tokens preprocessor</value>
+  </data>
+  <data name="6021" xml:space="preserve">
+    <value>Numbers are not valid arguments for the said command</value>
+  </data>
+  <data name="6022" xml:space="preserve">
+    <value>said command arguments must not be enclosed in quotes</value>
+  </data>
+  <data name="6023" xml:space="preserve">
+    <value>Undefined message (%1)</value>
+  </data>
+  <data name="6024" xml:space="preserve">
+    <value>'%1' already included</value>
+  </data>
+  <data name="7007" xml:space="preserve">
+    <value>Non-numeric characters in this token will be ignored (%1)</value>
+  </data>
+  <data name="7008" xml:space="preserve">
+    <value>Using '!=' when a test is already negated will toggle the NOT status</value>
+  </data>
+  <data name="7009" xml:space="preserve">
+    <value>return command not needed at end of logic source</value>
+  </data>
+  <data name="7010" xml:space="preserve">
+    <value>'%1' is an object being used as a number</value>
+  </data>
+  <data name="6025" xml:space="preserve">
+    <value>Maximum number of label entries exceeded</value>
+  </data>
+  <data name="7011" xml:space="preserve">
+    <value>Null label name is allowed, but unusable</value>
+  </data>
+  <data name="6026" xml:space="preserve">
+    <value>'%1' is a key word or default compiler define name</value>
+  </data>
+  <data name="6027" xml:space="preserve">
+    <value>Too many 'goto' statements</value>
+  </data>
+  <data name="6028" xml:space="preserve">
+    <value>Using '&amp;' or '|' in tokens other than "&amp;&amp;" or "||" will crash Sierra's compiler</value>
+  </data>
+  <data name="7012" xml:space="preserve">
+    <value>'%1' token found when expecting a command; the token will be ignored</value>
+  </data>
+  <data name="7013" xml:space="preserve">
+    <value>said command word arguments will automatically be converted to lower case</value>
+  </data>
+  <data name="7014" xml:space="preserve">
+    <value>Character '\x1a' forces end of file; no text after this character will be processed</value>
+  </data>
+  <data name="7015" xml:space="preserve">
+    <value>Character '\x1a' gets changed to '\ff' when added to literal string</value>
+  </data>
+  <data name="7016" xml:space="preserve">
+    <value>Character '\x1a' treated as a token separator when token length &gt; 0</value>
+  </data>
+  <data name="6029" xml:space="preserve">
+    <value>Too many levels of nested code blocks</value>
+  </data>
+  <data name="7017" xml:space="preserve">
+    <value>Unexpected 'else' keyword will be treated as 'goto'</value>
+  </data>
+  <data name="6030" xml:space="preserve">
+    <value>'%1' cannot be used as a label</value>
+  </data>
+  <data name="6031" xml:space="preserve">
+    <value>'%1' is already in use as a define name and cannot be used as a label</value>
+  </data>
+  <data name="4012" xml:space="preserve">
+    <value>Label '%1' not found</value>
+  </data>
+  <data name="7018" xml:space="preserve">
+    <value>Using ',' as a line terminator is allowed but not preferred</value>
+  </data>
+  <data name="7019" xml:space="preserve">
+    <value>Using ';' as an argument separator is allowed, but not preferred</value>
+  </data>
+  <data name="6032" xml:space="preserve">
+    <value>'if' block must have at least one test command</value>
+  </data>
+  <data name="DW21" xml:space="preserve">
+    <value>Consecutive 'NOT' operators detected at resource index %1</value>
+  </data>
+  <data name="6033" xml:space="preserve">
+    <value>'OR' block must have at least one test command</value>
+  </data>
+  <data name="DW22" xml:space="preserve">
+    <value>No test commands in 'if' or 'OR' block at resource index %1</value>
+  </data>
+  <data name="549" xml:space="preserve">
+    <value>Unsupported WinAGI version in template</value>
+  </data>
+  <data name="550" xml:space="preserve">
+    <value>Invalid WinAGI version in template</value>
+  </data>
+  <data name="5120" xml:space="preserve">
+    <value>One or more characters are not supported in this code page</value>
+  </data>
+  <data name="DW23" xml:space="preserve">
+    <value>WORDS.TOK file not found; group number used as placeholder</value>
+  </data>
+  <data name="7020" xml:space="preserve">
+    <value>Tokens beginning with '@', '&amp;' or '|' are considered symbols, not identifiers</value>
+  </data>
+  <data name="4090" xml:space="preserve">
+    <value>Incorrect token type '%1' in 'if' statement</value>
+  </data>
+  <data name="4091" xml:space="preserve">
+    <value>Action command '%1' not valid in 'if' statement</value>
+  </data>
+  <data name="4092" xml:space="preserve">
+    <value>Undefined token '%1' in 'if' statement</value>
+  </data>
+  <data name="RW09" xml:space="preserve">
+    <value>Plot and PlotStyle draw commands are not valid in versions 2.089 and 2.272</value>
+  </data>
+  <data name="RW10" xml:space="preserve">
+    <value>PlotStyle draw command is ignored in version 2.411</value>
+  </data>
+</root>

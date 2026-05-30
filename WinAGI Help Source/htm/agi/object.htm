@@ -1,0 +1,39 @@
+<html>
+	<head><title>OBJECT File</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>OBJECT File</h1>
+			<p><a name="items">The OBJECT</a> file contains a list of all <a href="invitems.htm">inventory items</a> that are available to the player during a game. Inventory items usually represent items that a player may pick up and carry during the game. For each item, the file stores the starting <a href="pictures.htm#room">room</a> location and the name of the inventory item. See the <a href="invitems.htm">Inventory Items</a> topic for a more in depth discussion of how inventory items are used within AGI.</p>
+			<p>A copy of the OBJECT file was included on every floppy disk that was part of a Sierra game. This is because AGI needs the original file whenever a game is <a href="..\agi\restart.htm">restarted</a>.</p>
+		<h2><a name="format">File Format</a></h2>
+			<p>The OBJECT file structure consists of</p>
+			<ul><ul>
+			<li> a 3 byte file header</li>
+			<li> a table of item entries; each entry is three bytes</li>
+			<li> a series of null-terminated strings, containing the text values of the items</li>
+			</ul></ul>
+			<p>In <a href="versions.htm">versions</a> <a href="version2.htm#2089">2.089</a> and <a href="version2.htm#2272">2.272</a>, the OBJECT file was not encrypted. This meant a curious player could view the file in a hex editor, and possibly see spoilers about what the game might have for items. Beginning in <a href="version2.htm#2411">version 2.411</a>, Sierra began using a simple <a href="encryption.htm">encryption</a> algorithm to hide the file contents from prying eyes.</p>
+		<h3>File Header</h3>
+			<p>The first two bytes of the file header are an offset to the start of text data, measured from byte 3 (i.e. the 3 byte header is ignored). This offset is used by AGI when enumerating through objects so it knows when it has reached the last object.</p>
+			<p><a name="maxscreenobj"></a>The third byte of the header is the <a href="screenobjs.htm#maxscreenobj">maximum screen objects</a> value, that determines the maximum number of <a href="screenobjs.htm">screen objects</a> that can be loaded at one time during the game.</p>
+		<h3>Item Entries</h3>
+			<p>Following the header was a table of 3-byte values, one for each inventory item in the list. The first two bytes of each entry are an offset to the location of the inventory item's text value. Just like the header offset, all offsets are taken from the start of the item table (not the start of the file). The third byte of each entry is the location (<a href="pictures.htm#room">room</a> number) for the item.</p>
+		<h3>Item Text Data</h3>
+			<p>The text data section follows the item entries and is simply a list of NULL terminated strings. The offsets in each table entry point to the first character of each assigned string.</p>
+		<h2><a name="nullitem">Null Items</a></h2>
+			<p>The first string in the text section is always a single question mark, that serves as the 'null' item for any items that are considered undefined or unused. The first inventory item (index 0) in most Sierra games is set to the null item (notable exceptions are the two Manhunter games). Other item indexes that aren't used by the game also use the null item. Setting the first item to the null item is not required, but most fan-based games continue the tradition of assigning the null item to item 0. (The null item is always included, even if it is not used by any item in the game.)</p>
+			<p>Because AGI uses a byte value internally for inventory items, the maximum number of items that can be included in an OBJECT file is 256 (items 0-255).</p>
+		<h2><a name="objroomnum">Item Location</a></h2>
+			<p>The item location field is usually used to store the room number where an item can be found. It is not required that it be used in this manner. For example, setting an item's location to 1 does not make the item actually 'appear' in room 1. The programmer is still required to write code that makes the item 'appear' in the room.</p>
+			<p>The special value 255 (0xFF) is used by the item location field to determine which items the player has in inventory (i.e. the item has been 'picked up').</p>
+		<h2><a name="amiga">Amiga OBJECT File Format</a></h2>
+		    <p>The OBJECT file in Amiga games had a slightly different format. The header in the file was four bytes, with the same data as in MSDOS but padded with an extra zero byte. The entries in the item data were also four bytes instead of three, again with an extra zero byte added to the end of the entry. The rest of the file followed the exact same format as an MSDOS OBJECT file.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

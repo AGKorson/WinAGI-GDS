@@ -1,0 +1,52 @@
+<html>
+	<head><title>Action Command: draw</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>draw</h1>
+			<p>The <b>draw</b> command draws an object on the visual screen so it will be visible in subsequent <a href="..\agi\cycle.htm">interpreter cycles</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>draw(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>A <a href="..\agi\screenobjs.htm">screen object</a> will not appear on the <a href="..\agi\grafdisp.htm">graphics screen</a> until the object is drawn using the <b>draw</b> command. Prior to drawing, the screen object should be <a href="cmd_animateobj.htm">initialized</a>, assigned a <a href="..\agi\views.htm">view</a>, and <a href="object_position.htm">positioned</a>.</p>
+			<p>If screen object <b>oA</b> is not properly initialized when the <b>draw</b> command is executed, AGI will try to access invalid memory while trying to position and draw the object, with unpredictable results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+			<p>If a view has not been assigned to screen object <b>oA</b>, AGI will raise <a href="..\agi\errorlist.htm#trap20">trappable error #20</a>.</p>
+			<p>When the <b>draw</b> command is executed, AGI first checks that the object's number is less than or equal to the <a href="..\agi\screenobjs.htm#maxscreenobj">max screen object</a> number; if not, it raises <a href="..\agi\errorlist.htm#trap19">trappable error #19</a>.</p>
+			<p>Once the object number is validated, AGI enables it for <a href="object_initialize.htm#updating">updating</a> (if not already enabled). This means that if you want stop updating the object, you must call <a href="cmd_stopupdate.htm"><b>stop.update</b></a> AFTER the <b>draw</b> command, not before.</p>
+			<p>After enabling updates, the draw command validates the object's position using the <a href="object_position.htm#shuffling">shuffling</a> method. The object is then added to the screen, where it will be visible and updated in subsequent <a href="..\agi\cycle.htm">interpreter cycles</a>. 
+			<p>If the <b>draw</b> command is used on an object that is already visible AGI ignores the command.</p>
+			<p>Use the <b><a href="cmd_erase.htm">erase</a></b> command to erase a <a href="..\agi\screenobjs.htm">screen object</a> from the screen.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>animate.obj(o5); [ initialize first
+load.view(8);
+set.view(o5, 8);
+position(o5, 72, 144);
+<b>draw(o2);</b>  [ draw it AFTER initializing</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">35 (0x23)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_animateobj.htm">animate.obj</a></b></p>
+			<p><b><a href="cmd_erase.htm">erase</a></b></p>
+			<p><b><a href="cmd_loadview.htm">load.view</a></b></p>
+			<p><b><a href="cmd_position.htm">position</a></b></p>
+			<p><b><a href="cmd_setview.htm">set.view</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

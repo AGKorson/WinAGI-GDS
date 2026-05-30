@@ -1,0 +1,52 @@
+<html>
+	<head><title>Action Command: show.obj</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>show.obj.v</h1>
+			<p>The <b>show.obj.v</b> command indirectly displays a <a href="..\agi\views.htm">view</a> representing an <a href="..\agi\invitems.htm">inventory item</a> and its description.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>show.obj.v(<a href="syntax_fan.htm#argtypes">var</a> vVIEWNUM);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The game is <a href="..\agi\cycle.htm#pausing">paused</a>, and <a href="..\agi\views.htm#cel">cel</a> 0 of <a href="..\agi\views.htm#loop">loop</a> 0 of <a href="..\agi\views.htm">view</a> <b>B</b>, where <b>B</b> is the value of <b>vVIEWNUM</b>, is shown centered at the bottom of the screen. The <a href="..\agi\views.htm#viewdesc">view description</a> is displayed above in a message box. Pressing any key erases the object and its definition, and play resumes.</p>
+			<p>Despite its name, the <b>show.obj.v</b> command is not associated with <a href="..\agi\screenobjs.htm">screen objects</a>. In this context 'obj' refers to things a player may 'acquire' during a game, known as '<a href="..\agi\invitems.htm">inventory items</a>'. Note that the view number displayed is completely independent; it is not automatically linked in any way to inventory item numbers.</p>
+			<p>The <b>show.obj.v</b> command is most often used to display a close up image (cel 0 of loop 0) of <a href="..\agi\invitems.htm">inventory items</a> that a player might pick up during the game.  AGI displays the cel without any border, so if a border is desired it must be included in the cel's image. The cel is drawn with <a href="..\agi\grafdisp.htm#priority">priority</a> of 15. AGI will mask out <a href="..\agi\views.htm#transparency">transparent colors</a> just like any other view, so the transparent color is usually set to a color that is not used by the cel.</p>
+			<p>Unlike most AGI commands involving <a href="..\agi\views.htm">view</a> resources, the view does not need to be loaded first. AGI searches all currently loaded views, and if the view needed is not found, it will load it automatically. If an error occurs while loading the view, AGI will display a message of "Not now" and AGI will move to the next <a href="..\agi\logics.htm">logic</a> command without taking any further action. If there is insufficient memory to draw the cel on the screen, AGI will skip the image and just display the view description.</p>
+			<p>A common use of <b>show.obj.v</b> is to display the image of an item selected from the inventory item <a href="cmd_status.htm"><b>status</b></a> screen.</p>
+			<p>You should not use the <b>show.obj.v</b> command on views that do not have a <a href="..\agi\views.htm#viewdesc">view description</a> attached. AGI does not validate that a valid description exists, and if there is not one, AGI will use an invalid pointer and display meaningless characters.</p>
+			<p>If you attempt to show a <a href="..\agi\views.htm">view</a> that does not exist, AGI will raise a <a href="..\agi\errors.htm#invalidres">runtime error</a> and crash.</p>
+			<p>There is a bug in the <a href="..\agi\tracer.htm#traceargs">tracer data</a> for the <b>show.obj.v</b> command. The command takes a variable as the input, but the tracer data entry has the wrong value, so the tracer treats it as a number and won't display the value of <b>vVIEWNUM</b> in the tracer window.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>selectedItem = 0; [ make sure nothing is pre-selected
+set(inv_select_enabled);  [ enable selection
+status();
+if(selectedItem !=0 && selectedItem != 255)  [ if something was selected
+  {
+  v90 = selectedItem;
+  v90 += 200; [ item views are offset by 200
+  <b>show.obj.v(v90);</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 2.411 and above.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">162 (0xA2)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_invitems.htm">Inventory Item Commands</a></p>
+			<p><a href="cmd_showobj.htm"><b>show.obj</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

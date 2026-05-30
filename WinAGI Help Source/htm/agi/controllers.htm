@@ -1,0 +1,42 @@
+<html>
+	<head><title>Controllers</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1><a name="controllers">Controllers</h1>
+			<p>Controllers can be assigned to keyboard shortcuts, joystick buttons, and menu items. Controllers are used by AGI to take specific actions based on <a href="keyboard.htm">keyboard input</a> or <a href="menu.htm">menu</a> selections or <a href="joystick.htm">joystick input</a>.</p>
+		<h3><a name="catable">Controller Assignment Table</a></h3>
+			<p>AGI allocates two different but related a tables in memory to manage controllers. A controller assignment table is allocated to hold keyboard and joystick controller assignments.</p>
+			<p>The controller assignment table is not indexed; i.e. the first controller assignment does not have to be for controller 0. Each assignment in the table includes its associated controller number, regardless of its position in the assignment table, as well as the key press/joystick information that will trigger the controller. the last entry in the table has to remain null (all zeroes) so the controller search function knows when to stop checking. This means the number of available assignments is one less than the array space allotted.</p>
+			<p>In <a href="versions.htm">versions</a> <a href="version2.htm#2089">2.089</a> and <a href="version2.htm#2272">2.272</a>, the table has room for 40 controller assignments (only 39 are usable); beginning with version <a href="version2.htm#2411">2.411</a> the table was increased to allow 50 (49 usable) controller assignments.</p>
+		<h3><a name="evaltable">Controller Evaluation Table</a></h3>
+			<p>A separate evaluation table is allocated for tracking when controllers are activated.</p>
+			<p>When a particular controller is triggered, this table is updated so the <b><a href="..\commands\cmd_controller.htm">controller</a></b> test command can identify it. The evaluation table IS indexed; i.e., the first byte corresponds to controller 0, second byte to controller 1, and so on.</p>
+			<p><a name="bug">In</a> <a href="versions.htm">versions</a> <a href="version2.htm#2089">2.089</a> and <a href="version2.htm#2272">2.272</a>, the table is 30 bytes (meaning valid controller numbers are 0 through 29). It is not known why the assignment table had room for 40 entries, but the evaluation table only supported 30 controllers - it was likely a bug. In all other versions, it is 50 bytes (controllers 0 through 49), the same as the number of possible controller assignments.</p>
+		<h2><a name="keyboard">Keyboard Controllers</a></h2>
+			<p>Keyboard combinations, i.e. shortcut keys, are assigned to controllers using the <b><a href="..\commands\cmd_setkey.htm">set.key</a></b> command. Note that even though there is room for 50 controller assignments in the controller assignment table, if you attempt to assign more than 39 controllers, AGI ignores additional calls to <b><a href="..\commands\cmd_setkey.htm">set.key</a></b>. (It is not clear why this limitation exists; Sierra may have had a reason, or it could be a bug. In AGI Version 3.002.149, the limit changed to 49, still one short of the maximum of 50 available slots in the controller assignment table.)</p>
+			<p>When a key combination is assigned to a controller with <b><a href="..\commands\cmd_setkey.htm">set.key</a></b>, AGI stores the assignment in the next available space in the controller assignment table, storing both the controller number and the key-press assignment. The controller number should be less than or equal to 49 or the controller will not work correctly when evaluated with the <a href="..\commands\cmd_controller.htm"><b>controller</b></a> due to a buffer overflow. Key-press information is stored in the same format that key-presses are added to the <a href="interface.htm#queue">input queue</a>, i.e. as either an ASCII value or a keyboard scan code.</p>
+			<p>Whenever a key-press is detected, AGI checks all the entries in the controller assignment table. If a match for the key-press is found, the input is converted to the assigned controller activation, which gets added to the <a href="interface.htm#queue">input queue</a> in place of the key-press.</p>
+			<p>Note that the check for <a href="keyboard.htm#egodir">ego direction keys</a> occurs before the controller check, so it is not possible to assign a controller to the ego direction keys.</p>
+			<p>&nbsp;</p>
+		<h2><a name="joystick">Joystick Controllers</a></h2>
+			<p><a href="joystick.htm">Joystick buttons</a> can also be assigned to controllers using <b><a href="..\commands\cmd_setkey.htm">set.key</a></b> command. When joystick buttons are pressed, AGI will search the controller assignment table and add controller input in the same manner as with key presses.</p>
+			<p>&nbsp;</p>
+		<h2><a name="menu">Menu Controllers</a></h2>
+			<p>Controllers are assigned to <a href="menu.htm">menu items</a> in a different manner. Instead of storing the controller information in the controller assignment table where key-press controller information is stored, menu controller information is stored along with other menu item information. When the <b><a href="..\commands\cmd_setmenuitem.htm">set.menu.item</a></b> command is called, AGI stores the menu item information - caption text, parent menu, pointers to next and previous menu item and controller value - in a 14 byte menu item header that gets added to the <a href="memory.htm#heap">memory heap</a>. When a menu item is selected, AGI adds the corresponding controller to the <a href="interface.htm#queue">input queue</a>.</p>
+			<p>&nbsp;</p>
+		 <h2><a name="flagtable">Responding to Controllers</a></h2>
+			<p>When a controller input entry is read from the <a href="interface.htm#queue">input queue</a>, the corresponding byte flag in the <a href="#evaltable">controller evaluation table</a> is set to true for the current <a href="cycle.htm">interpreter cycle</a> (at the beginning of each cycle, the entire controller evaluation table is cleared). 
+			<p>To determine if a particular controller has been activated, use the <b><a href="..\commands\cmd_controller.htm">controller</a></b> test command. The <b>controller</b> test returns TRUE if the corresponding controller evaluation table entry is set.</p>
+			<p>&nbsp;</p>
+		 <h2>Assigning Duplicate Controllers to Multiple Inputs</h2>
+			<p>Note that it is possible to assign more than one key combination or menu to the same controller. For example, you can assign a function key, a CTRL+key combination and a menu item to one controller so they all trigger the same action. Additional information on how controllers are used in <a href="..\agi\logics.htm">logics</a>, including details on useful ASCII values and keyboard scan codes can be found in the <a href="..\commands\concepts_menukey.htm">Programming Menus and Keyboard Shortcuts</a> topic.</p>
+			<p>Assigning the same key press combination to more than one controller is allowed, but just wastes a controller assignment entry. As soon as AGI finds a valid match in the controller assignment table, it stops checking, so only the first assignment will trigger a controller event.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

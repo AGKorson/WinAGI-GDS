@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "WinAGI GDS": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\Andy\\OneDrive\\AGI Stuff\\C#Tests"
+    },
+    "Console Mode": {
+      "commandName": "Project"
+    }
+  }
+}

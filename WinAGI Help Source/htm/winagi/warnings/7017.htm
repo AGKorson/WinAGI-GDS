@@ -1,0 +1,41 @@
+<html>
+	<head><title>Logic Compiler Warning 7017</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7017</h2>
+    <h3>Unexpected '<code>else</code>' keyword will be treated as '<code>goto</code>'</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Unlike most modern compilers, Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a> does not restrict the usage of the <a href="..\..\commands\syntax_sierra.htm#keywords"><code><b>else</b></code></a> keyword to <a href="..\..\commands\syntax_sierra.htm#keywords"><code><b>if</b></code> ... <code><b>else</b></code></a> blocks. At the <a href="..\..\agi\logics.htm#elseandgoto">byte code level</a>, the <code><b>else</b></code> keyword is identical to the <code><b>goto</b></code> keyword. When CG.EXE encounters an <code><b>else</b></code> statement that does not immediately follow the closing block marker ('}') of an <code><b>if</b></code> block, it treats the <code><b>else</b></code> command as a <code><b>goto</b></code>, with the jump position set to the end of the <code><b>else</b></code> block.</p>
+      <blockquote>
+      <pre>if (v99 == 1) {
+    v99 = 2;
+}
+else { [ normal expected use of 'else'
+    v99 = 3;
+}
+else { [ abnormal use of 'else'; allowed in Sierra syntax
+    v99 = 4;
+}
+
+[ equivalent code:
+if (v99 == 1) {
+    v99 = 2;
+}
+else {
+    v99 = 3;
+}
+goto _label1
+    v99 = 4;
+:_label1</pre>
+      </blockquote>
+    <p class="indent_n">To maintain compatibility with CG.EXE, WinAGI allows the same behavior. However, there is no practical value, and it is a very bad coding practice. You should review your code and replace the non-standard <code><b>else</b></code> statement with an appropriate <code><b>goto</b></code> statement and <a href="..\..\commands\syntax_sierra.htm#goto">label</a>.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

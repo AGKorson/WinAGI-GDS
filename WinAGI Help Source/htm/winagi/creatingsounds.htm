@@ -1,0 +1,44 @@
+<html>
+	<head><title>Creating and Editing Sounds</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-sound.gif" width="460" height="72" border="0" alt="AGI Sound Information"></td>
+			</tr>
+		</table>
+		<h1>Creating and Editing Sounds</h1>
+			<p>With the WinAGI Sound Editor, you have complete control over the creation and editing of <a href="..\agi\sounds.htm">sound</a> resources. You can also <a href="#play">play the sound</a> right from the editor to test the results of your edits.</p>
+			<p>WinAGI provides two properties you can use to make your sounds look more like actual sheet music, thus improving readability. These properties are WinAGI specific; they do not have any effect on the sound resource when it is played in a game.</p>
+		<h2>Key</h2>
+			<p>The Key property allows you to choose a major key for your <a href="..\agi\sounds.htm">sound</a> resource. See the <a href="musicprimer.htm">music primer</a> for a more thorough discussion of music keys.</p>
+		<h2><a name="tpqn">Ticks Per Quarter Note</a></h2>
+			<p>The Ticks Per Quarter Note property is used to set how many AGI time ticks are associated with a quarter note as displayed on the staff. This property does not affect the duration of notes. It determines which note symbol is used for different durations. For example, if TPQN is 16, an AGI note lasting 32 ticks will be displayed as a half note. If TPQN is 8, the same 32 tick note will be displayed as a whole note.</p>
+			<p>
+		<h2>Adding Notes</h2>
+			<p>To add notes to a sound track, the track must be selected, and the insertion point must be enabled. You can either click on a track at the point you wish to insert a note, or you can click on a note in the <a href="editor_sound.htm#notelist">note list</a> to set the insertion point.</p>
+		<h3><a name="keyboard">Virtual Keyboard</a></h3>
+			<p>To insert a note at the current insertion point, click on the virtual keyboard. A new note, with the duration and attenuation set according to the settings in the <a href="editor_sound.htm#notecontrol">note control</a> section is inserted at the cursor position.</p>
+			<p>If you select one or more notes, inserting a new note will automatically delete the selection and insert the new note in its place.</p>
+		<h3>Computer Keyboard</h3>
+			<p>You can also enter notes via the computer's keyboard. Pressing the letters A-G will insert the corresponding note for the current octave. To add a sharpened note, hold down the shift key and press the desired note. For flattened notes, enter the equivalent sharp note. (See the <a href="musicprimer.htm">music primer</a>	for a more thorough discussion on sharp, flat and natural notes - written by a guy who doesn't play a musical instrument, so keep that in mind).</p>
+			<p>The current octave is identified on the virtual keyboard by bold letters. Use the "&lt;" and "&gt;" keys to shift the current octave up and down.</p>
+			<p>For the noise channel, use the number keys 1-4 to enter periodic tone notes. Use SHIFT+1 - SHIFT+4 to enter white noise notes.</p>
+			<p>&nbsp;</p>
+		<h2>Editing Notes</h2>
+			<p>To make changes to an existing note, highlight it in the note list it first (by clicking on it in the note list, or by clicking on the staff). The note does not need to be selected (i.e. highlighted in reverse on the staff); it only needs to be the highlighted note in the note list. If more than one note is selected, the note tree will always highlight the first selected note, and the properties window will display properties for the first selected note.</p>
+			<p>Make the desired changes in the <a href="editor_sound.htm#properties">properties window</a> to change the highlighted note. Changes will automatically update the note on its staff. </p>
+			<p>&nbsp;</p>
+		<h2><a name="edit">Cutting/Copying/Pasting/Deleting Notes</a></h2>
+			<p><img alt="" src="..\..\graphics\tbCut.bmp" width="32">&nbsp;&nbsp;<img alt="" src="..\..\graphics\esi_copy.ico" width="32">&nbsp;&nbsp;<img alt="" src="..\..\graphics\esi_paste.ico" width="32">&nbsp;&nbsp;<img alt="" src="..\..\graphics\tbDelete.bmp" width="32"> In addition to making changes to existing notes, you can also cut, copy, paste and delete notes. To select multiple notes, click on the first note, then hold down the shift key, and click the last note. Or hold down the shift key and use the cursor keys to select notes.</p>
+			<p>Once selected, you can cut copy or delete notes by using the toolbar buttons, or by using the edit menu commands.</p>
+			<p>When pasting notes, WinAGI will not allow you to paste music notes in the noise track, or vice versa.</p>
+			<p><a name="shift">&nbsp;</a><img alt="" src="..\..\graphics\esi_volup.ico" width="32">&nbsp;&nbsp;<img alt="" src="..\..\graphics\esi_voldown.ico" width="32">&nbsp;&nbsp;<img alt="" src="..\..\graphics\esi_shiftup.ico" width="32">&nbsp;&nbsp;<img alt="" src="..\..\graphics\esi_shiftdown.ico" width="32"> The toolbar also has buttons to make it easy to increase or decrease the attenuation of a group of selected notes. You can also shift a group of selected notes up or down the scale easily by using the toolbar buttons.</p>
+			<p>&nbsp;</p>
+		<h2><a name="play">Playing Sounds</a></h2>
+			<p>WinAGI currently provides two playback modes so you can listen to your sounds as you are editing them: a <a href="..\agi\sounds.htm#pcjr">PCJr</a> emulator which is the closest approximation of what the sound would have been like on the original IBM PCJr; and a MIDI conversion, which allows you to select MIDI instruments for each channel.</p>
+			<p>To play your sound, you can press the Play Sound button on the toolbar, or choose the Play Sound command from the Edit menu. You can isolate specific tracks by toggling the <a href="editor_sound.htm#mute">mute</a> property of each track individually. To stop the sound before it finishes, press the Stop button. The sound will also stop if you switch to a different editor window, or to the preview window.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,39 @@
+<html>
+	<head><title>Logic Compiler Error 6014</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6014</h2>
+    <h3>Invalid define value '&lt;token&gt;'</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">When using the <a href="..\..\commands\syntax_sierra.htm#defines"><b>#define</b></a> preprocessor token, the value assigned can be a number, a literal string, a symbol, or a previously defined token name. If the value is an undefined identifier, this error will be raised.</p>
+    <p class="indent_n">Using the symbol ':' as a define value will also raise this error. While Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a> will allow you do do this, if you try to use ":" as a define name in your source code, CG.EXE will crash with a buffer overflow error.</p>
+      <blockquote>
+      <pre>[ order of defines does matter:
+%define avar bvar   [ <font color="red"><b>NOT OK</b></font>; bvar not defined yet
+%define bvar 1
+...
+%define bvar 1
+%define avar bvar  [ OK; avar and bvar will both have a value of '1'
+...
+[ literal strings are allowed
+%define msgtext "a message"  [ OK
+%message 1 msgtext           [ this will compile as '%message 1 "a message"'
+...
+[ you can create defines for most symbols
+%define equals ==    [ OK, but not very useful
+if (v1 equals 1) {   [ this will compile as 'v1 == 1'
+}
+...
+[ but : is not allowed
+%define colon :   [ <font color="red"><b>NOT OK</b></font></pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

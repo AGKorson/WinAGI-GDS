@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5107</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5107</h2>
+    <h3>If LOWER = UPPER + 1, AGI will crash due to 'Divide by 0' error</h3>
+    <p class="indent_n">The formula that AGI uses to calculate random numbers with the <a href="..\..\commands\cmd_random.htm"><b>random</b></a> command does not validate the input values before doing a divide operation. If LOWER equals UPPER + 1, a divide by zero error will occur; AGI will hang up and stop running. You should correct this error by using values of LOWER and UPPER that avoid this combination.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

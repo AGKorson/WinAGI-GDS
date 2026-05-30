@@ -1,0 +1,26 @@
+<html>
+	<head><title>Logic Compiler Error 6018</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6018</h2>
+    <h3>Fan syntax assignment statement not supported in Sierra syntax</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Sierra syntax does not support all forms of <a href="..\..\commands\syntax_sierra.htm#alternateactions">alternate syntax</a> that <a href="..\..\commands\syntax_fan.htm">Fan syntax</a> supports. Sierra's alternate syntax for <a href="..\..\commands\cmd_increment.htm"><b>increment</b></a> and <a href="..\..\commands\cmd_decrement.htm"><b>decrement</b></a> requires the '++' or '--' symbol to appear before the <a href="..\..\agi\variables.htm">variable</a>; it cannot come after the variable. Also, Sierra syntax does not support any alternate syntax for the <a href="..\..\commands\cmd_muln.htm"><b>mul.n</b></a>, <a href="..\..\commands\cmd_mulv.htm"><b>mul.v</b></a>, <a href="..\..\commands\cmd_divn.htm"><b>div.n</b></a>, and <a href="..\..\commands\cmd_divv.htm"><b>div.v</b></a> commands. You must use the full command syntax for those commands.</p>
+      <blockquote>
+      <pre>v99++;   [ <font color="red"><b>NOT OK</b></font> in Sierra syntax; OK in Fan syntax
+v99 *= 2;   [ <font color="red"><b>NOT OK</b></font> in Sierra syntax; OK in Fan syntax
+...
+++v99;   [ OK in Sierra syntax and Fan syntax
+muln(v99, 2);   [ OK in Sierra syntax and Fan syntax
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

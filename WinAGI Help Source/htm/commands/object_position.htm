@@ -1,0 +1,37 @@
+<html>
+	<head><title>Positioning Objects</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>Positioning Objects</h1>
+			<p>As dicussed above in the <a href="object_initialize.htm">initialization</a> section, the <b><a href="cmd_position.htm">position</a></b> and <b><a href="cmd_positionv.htm">position.v</a></b> commands set the initial position for an object before it is drawn on the screen.</p>
+			<p>When positioning objects, you need to remember that the 'anchor point' for objects is the lower left corner of the current cel. Be sure to adjust the coordinates passed to positioning commands to allow for the height and width of your object.</p>
+			<p>The x and y coordinates of the object are not checked when set with <b>position</b> or <b>position.v</b>. Validation doesn't happen until a <a href="cmd_draw.htm"><b>draw</b></a> command is used on the object. The position is then checked using the <a href="#shuffling">'shuffling'</a> function.</p>
+			<p>After the object has been drawn, it is possible to reposition the object. However, do NOT use the <b><a href="cmd_position.htm">position</a></b> and <b><a href="cmd_positionv.htm">position.v</a></b> commands. For objects that are already visible on the screen, use the <b><a href="cmd_reposition.htm">reposition</a></b>, <b><a href="cmd_repositionto.htm">reposition.to</a></b> and <b><a href="cmd_repositiontov.htm">reposition.to.v</a></b> commands instead.</p>
+			<p>The reposition commands will erase the object from its current location before redrawing it in its new location; the <b>position</b> commands do not.</p>
+			<p>The <b><a href="cmd_repositionto.htm">reposition.to</a></b> and <b><a href="cmd_repositiontov.htm">reposition.to.v</a></b> commands are similar to the <b><a href="cmd_position.htm">position</a></b> and <b><a href="cmd_positionv.htm">position.v</a></b> commands. You can pass a set of new coordinates for the object and it will get repositioned during the next <a href="..\agi\cycle.htm">interpreter cycle</a> update.</p>
+			<p>The <b><a href="cmd_reposition.htm">reposition</a></b> command is slightly different; it takes as arguments horizontal and vertical offsets from the object's current position, instead of absolute values. The argument values are treated as signed 8 bit numbers, so negative offsets up to -127 can be achieved. More details are available in the remarks section of the <b><a href="cmd_reposition.htm">reposition</a></b> command topic.</p>
+			<p>The objects are not updated on screen until the start of the next <a href="..\agi\cycle.htm">interpreter cycle</a> (or until a <b><a href="cmd_forceupdate.htm">force.update</a></b> command is issued), so any changes you make to an object's position or appearance will not take affect until then.</p>
+		<h3><a name="shuffling">Shuffling</a></h3>
+			<p>When objects are first drawn on the screen (with the <a href="cmd_draw.htm"><b>draw</b></a> command) or repositioned, AGI validates the position to ensure an object is placed within the playing area (not overlapping any edge, or the horizon, if not ignoring it), is not on a <a href="..\agi\grafdisp.htm#controllines">control line</a>, complies with <a href="concepts_obstacles.htm#landwater">land/water restrictions</a> and does not <a href="concepts_obstacles.htm#onobject">collide with another object</a> (if observing objects).</p>
+			<p>The validation technique used by AGI is known as 'shuffling'. When called by AGI to validate an object position, the shuffling function first checks to see if the object's position is valid by checking:</p>
+			<ul><ul>
+				<li>if the object is in the playing area (meaning X + Width &lt; 160, Y < 167 and Y - Height &gt;= 0);</li>
+				<li>if the object is not on a <a href="..\agi\grafdisp.htm#controllines">unconditional control line</a> or conditional control line (if <a href="cmd_observeblocks.htm">observing blocks</a>); and </li>
+				<li> if the object does not <a href="concepts_obstacles.htm#onobject">collide with another object</a>  (if <a href="cmd_observeobjs.htm">observing objects</a>) </li>
+			</ul></ul>
+			<p>If the object's position is validated as OK, the shuffling function returns without modifying the object's position. If it is not, it begins moving the object around the starting point in a counter-clockwise spiral until it finds a point that is valid. The object is then placed at this position.</p>
+			<p><b>NOTE:</b> Because of the 'jump' portion in the algorithm that AGI uses to validate that an object does not <a href="concepts_obstacles.htm#onobject">collide with another object</a>, repositioning can sometimes yield unexpected results. If the new position of an object is below (Y value is higher) than another object, and their baselines overlap, AGI considers this to be an object collision, and will shuffle the object until it finds a valid position. This is only an issue during repositioning; this does not occur when an object is drawn for the first time because the <b>position</b> and <b>position.v</b> commands set the object's previous position to match its current position.</p>
+		<h3>Interacting with object positions</h3>
+			<p>During game play, it may be important to be aware of objects' positions. The <b><a href="cmd_getposn.htm">get.posn</a></b> command is used to determine the current coordinates of an object. These values can then be used to take actions based on the object's position.</p>
+			<p>There are also four test commands that can be used to analyze an object's position. The <b><a href="cmd_posn.htm">posn</a></b>, <b><a href="cmd_rightposn.htm">right.posn</a></b>, <b><a href="cmd_centerposn.htm">center.posn</a></b> and <b><a href="cmd_objinbox.htm">obj.in.box</a></b> commands all compare an object's position to a specified rectangular area, and return TRUE if the object is inside the box.</p>
+			<p>The difference between the commands is how they determine what 'in the box' means. The <b><a href="cmd_posn.htm">posn</a></b> command uses the anchor point in the test; the <b><a href="cmd_centerposn.htm">center.posn</a></b> and <b><a href="cmd_rightposn.htm">right.posn</a></b> use the bottom-center point, and bottom-right point, respectively. The <b><a href="cmd_objinbox.htm">obj.in.box</a></b> command checks that the entire bottom line is within the area.</p>
+			<p>These commands are very useful to be able to trigger certain events if an object approaches a given area of the screen. For example, if ego gets close enough to a door, you might want to make the door automatically open.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

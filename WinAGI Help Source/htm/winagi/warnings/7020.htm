@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Warning 7020</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7020</h2>
+    <h3>Tokens beginning with '@', '&amp;' or '|' are considered symbols, not identifiers</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a> has a bug which treats all tokens beginning with '@', '&amp;' or '|' as <a href="..\..\commands\syntax_sierra.htm#symbols">symbols</a>, not <a href="..\..\commands\syntax_sierra.htm#identifiers">identifiers</a>. This means those tokens could never be used as a define name (only identifiers can be a name) or any other value because the compiler will never recognize them as a valid symbol. You will need to adjust the token to use a different starting character.</p> 
+      <blockquote>
+      <pre>%define @abc  99 [ <font color="red"><b>NOT OK</b></font>; name can't be a symbol
+%define abc   @v99 [ compiles, but of no value
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

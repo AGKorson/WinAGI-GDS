@@ -1,0 +1,39 @@
+<html>
+	<head><title>Action Command: stop.sound</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</TABLE>
+		<h1>stop.sound</h1>
+			<p>The <b>stop.sound</b> command stops a sound resource that is playing.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>stop.sound();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>If a <a href="..\agi\agisound.htm">sound</a> is currently playing, this command will stop it, and set the done <a href="..\agi\flags.htm">flag</a> associated with the sound to TRUE. If no sound is currently playing, this command does nothing.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>load.sound(20);
+sound(20, f199);
+...
+<b>stop.sound();</b>  [ f199 is now set to TRUE</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">100 (0x64)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_sounds.htm">Sound Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

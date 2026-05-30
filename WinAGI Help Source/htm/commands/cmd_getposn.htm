@@ -1,0 +1,42 @@
+<html>
+	<head><title>Action Command: get.posn</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>get.posn</h1>
+			<p>The <b>get.posn</b> command copies a screen object's current X and Y position values into variables.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>get.posn(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">var</a> vX, <a href="syntax_fan.htm#argtypes">var</a> vY);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Variables <b>vX</b> and <b>vY</b> are set to the current coordinates of screen object <b>oA</b>. AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, the returned values will be meaningless.</p>
+		<h2>Example</h2>
+<pre><code><b>get.posn(o1, v51, v52);</b>
+print("Object position is %v51, %v52");</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">39 (0x27)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_position.htm">position</a></b></p>
+			<p><b><a href="cmd_positionv.htm">position.v</a></b></p>
+			<p><b><a href="cmd_reposition.htm">reposition</a></b></p>
+			<p><b><a href="cmd_repositionto.htm">reposition.to</a></b></p>
+			<p><b><a href="cmd_repositiontov.htm">reposition.to.v</a></b></p>
+			<p>&nbsp;</p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

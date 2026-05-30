@@ -1,0 +1,149 @@
+<html>
+	<head><title>Logic Source Compiler Errors</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h1>Logic Source Compiler Errors</h1>
+      <p>The compiler errors identified in this list represent conditions in source code that prevent successful compilation. Errors must be fixed in order to successfully <a href="compilinglogics.htm">compile the source</a>.</p>
+      <p>Compiler errors are displayed in red to easily distinguish them from warnings. Minor errors don't stop the compiler, so all minor errors in a logic are identified in a single pass. This makes it easier and more efficient to make corrections. All errors are added to the <a href="warninglist.htm">Errors and Warnings List</a>.</p>
+      <p>Compiler errors beginning '4xxx' apply to all logics regardless of syntax being used. Errors beginning '6xxx' apply only to logics using original Sierra syntax.</p>
+      <p>For detailed information on syntax rules, see the <a href="..\commands\syntax_fan.htm">AGI Fan Syntax</a> and <a href="..\commands\syntax_sierra.htm">Sierra Syntax</a> topics.</p>
+      <p>Where compiler error messages include dynamic text, such as an unknown command, or define names that have errors, the dynamic text is represented by '&lt;' and '&gt;' characters, for example '&lt;definename&gt;'.</p>
+      <p>&nbsp;</p>
+    <h3><a href="errors\4001.htm">4001: '(' expected at start of '<code>if</code>' statement</a></h3>
+    <h3><a href="errors\4002.htm">4002: goto argument must be enclosed in parentheses</a></h3>
+    <h3><a href="errors\4003.htm">4003: Complex variable math statements are not allowed</a></h3>
+    <h3><a href="errors\4004.htm">4004: Undefined token '&lt;token_text&gt;' for argument &lt;number&gt;: expected  &lt;type&gt;</a></h3>
+    <h3><a href="errors\4005.htm">4005: ';' expected at end of statement</a></h3>
+    <h3><a href="errors\4006.htm">4006: '{' not allowed unless following '<code>if</code>' or '<code>else</code>'</a></h3>
+    <h3><a href="errors\4007.htm">4007: '}' expected</a></h3>
+    <h3><a href="errors\4008.htm">4008: '}' not at end of any command blocks</a></h3>
+    <h3><a href="errors\4009.htm">4009: '}' required before '<code>else</code>'</a></h3>
+    <h3><a href="errors\4010.htm">4010: '&lt;definename&gt;' is already defined in this logic</a></h3>
+    <h3><a href="errors\4011.htm">4011: '&lt;definename&gt;' is a compiler reserved word, and cannot be redefined</a></h3>
+    <h3><a href="errors\4012.htm">4012: Label '&lt;labelname&gt;' not found</a></h3>
+    <h3><a href="errors\4013.htm">4013: '&lt;definename&gt;' is an AGI action command, and cannot be redefined</a></h3>
+    <h3><a href="errors\4014.htm">4014: '&lt;definename&gt;' is an AGI test command, and cannot be redefined</a></h3>
+    <h3><a href="errors\4015.htm">4015: '&lt;label&gt;' is a &lt;tokentype&gt;, and cannot be used as a label</a></h3>
+    <h3><a href="errors\4016.htm">4016: Duplicate label name '&lt;label&gt;'</a></h3>
+    <h3><a href="errors\4017.htm">4017: Incorrect type for argument &lt;number&gt;: expected a &lt;type&gt;</a></h3>
+    <h3><a href="errors\4018.htm">4018: '==' is a comparison operator and cannot be used for variable, flag or string assignment</a></h3>
+    <h3><a href="errors\4019.htm">4019: AND operator (&amp;&amp;) not allowed within brackets</a></h3>
+    <h3><a href="errors\4020.htm">4020: AND operator (&amp;&amp;) or end of '<code>if</code>' statement expected</a></h3>
+    <h3><a href="errors\4021.htm">4021: Invalid symbol '&lt;definevalue&gt;' in '<code>if</code>' statement</a></h3>
+    <h3><a href="errors\4022.htm">4022: Local define argument value out of range</a></h3>
+    <h3><a href="errors\4023.htm">4023: Unexpected symbol (&lt;definevalue&gt;) or syntax error in assignment statement</a></h3>
+    <h3><a href="errors\4024.htm">4024: Brackets too deep in '<code>if</code>' statement</a></h3>
+    <h3><a href="errors\4025.htm">4025: Incorrect type or syntax error in unary (++/--) statement</a></h3>
+    <h3><a href="errors\4026.htm">4026: Comma expected after argument &lt;number&gt; in command &lt;commandname&gt;</a></h3>
+    <h3><a href="errors\4027.htm">4027: '(' expected before command arguments</a></h3>
+    <h3><a href="errors\4028.htm">4028: Could not find include file '&lt;filename&gt;'</a></h3>
+    <h3><a href="errors\4029.htm">4029: Block quotes (/* ... */) are not supported in WinAGI</a></h3>
+    <h3><a href="errors\4030.htm">4030: '{' must follow an '<code>if</code>' or '<code>else</code>' statement</a></h3>
+    <h3><a href="errors\4031.htm">4031: Missing argument &lt;argnum&gt; in &lt;commandname&gt; command: (expected: &lt;type&gt;)</a></h3>
+    <h3><a href="errors\4032.htm">4032: Error accessing include file '&lt;filename&gt;'</a></h3>
+    <h3><a href="errors\4033.htm">4033: Expected test command, but found closing bracket</a></h3>
+    <h3><a href="errors\4034.htm">4034: Syntax error in string assignment</a></h3>
+    <h3><a href="errors\4035.htm">4035: Include filename missing or invalid</a></h3>
+    <h3><a href="errors\4036.htm">4036: Invalid preprocessor symbol '&lt;symbol&gt;'</a></h3>
+    <h3><a href="errors\4037.htm">4037: Incorrect type for argument &lt;number&gt;: '&lt;define_name&gt;' is not a &lt;type&gt;</a></h3>
+    <h3><a href="errors\4038.htm">4038: &lt;item&gt; is not a valid inventory item</a></h3>
+    <h3><a href="errors\4039.htm">4039: Invalid argument value for argument &lt;number&gt; (must be between 0-255)</a></h3>
+    <h3><a href="errors\4040.htm">4040: Syntax error at argument &lt;number&gt;: expected &lt;type&gt;</a></h3>
+    <h3><a href="errors\4041.htm">4041: Non-integer numbers are not allowed</a></h3>
+    <h3><a href="errors\4042.htm">4042: Invalid define statement - define name cannot be blank</a></h3>
+    <h3><a href="errors\4043.htm">4043: Invalid define statement - define name cannot be argument marker</a></h3>
+    <h3><a href="errors\4044.htm">4044: Invalid define statement - define name cannot be numeric</a></h3>
+    <h3><a href="errors\4045.htm">4045: Invalid define statement - define value cannot be blank</a></h3>
+    <h3><a href="errors\4046.htm">4046: Defines &lt;define1&gt; and &lt;define2&gt; are a circular reference</a></h3>
+    <h3><a href="errors\4047.htm">4047: A label marker (:) is expected after a label</a></h3>
+    <h3><a href="errors\4048.htm">4048: Invalid message number in message declaration (must be 1-255)</a></h3>
+    <h3><a href="errors\4049.htm">4049: Invalid operator in '<code>if</code>' statement</a></h3>
+    <h3><a href="errors\4050.htm">4050: Invalid string value</a></h3>
+    <h3><a href="errors\4051.htm">4051: String value expected in message declaration</a></h3>
+    <h3><a href="errors\4052.htm">4052: Invalid string value; unable to concatenate</a></h3>
+    <h3><a href="errors\4053.htm">4053: Preprocessor commands do not use ';' as ending character</a></h3>
+    <h3><a href="errors\4054.htm">4054: Nothing allowed on line after preprocessor declaration</a></h3>
+    <h3><a href="errors\4055.htm">4055: Invalid define value '&lt;token&gt;'</a></h3>
+    <h3><a href="errors\4056.htm">4056: Invalid use of '<code>else</code>'</a></h3>
+    <h3><a href="errors\4057.htm">4057: Unexpected end of input</a></h3>
+    <h3><a href="errors\4058.htm">4058: Invalid variable operator</a></h3>
+    <h3><a href="errors\4059.htm">4059: Source code must end with a return command</a></h3>
+    <h3><a href="errors\4060.htm">4060: '&lt;symbol&gt;' is not a valid comparison operator</a></h3>
+    <h3><a href="errors\4061.htm">4061: Invalid flag assignment, value must be 'true' or 'false'</a></h3>
+    <h3><a href="errors\4062.htm">4062: '&lt;command&gt;' is a test command and is only valid inside an '<code>if</code>' statement</a></h3>
+    <h3><a href="errors\4063.htm">4063: '&lt;token&gt;' is an argument marker, can only be used as an argument to a valid AGI action or test command</a></h3>
+    <h3><a href="errors\4064.htm">4064: &lt;invalid token&gt; detected when command expected</a></h3>
+    <h3><a href="errors\4065.htm">4065: 'NOT' operator not valid after previous 'NOT'</a></h3>
+    <h3><a href="errors\4066.htm">4066: A valid test command must follow a NOT operator</a></h3>
+    <h3><a href="errors\4067.htm">4067: Undefined word '&lt;wordtext&gt;' in said command</a></h3>
+    <h3><a href="errors\4068.htm">4068: '{' encountered when expecting action command</a></h3>
+    <h3><a href="errors\4069.htm">4069: Include files must be enclosed in double quotes</a></h3>
+    <h3><a href="errors\4070.htm">4070: Variable or number value expected; '&lt;token&gt;' is not a variable or number</a></h3>
+    <h3><a href="errors\4071.htm">4071: Maximum number of messages exceeded (limit is 255 per logic)</a></h3>
+    <h3><a href="errors\4072.htm">4072: Message &lt;number&gt; is already assigned</a></h3>
+    <h3><a href="errors\4073.htm">4073: Invalid negative argument value</a></h3>
+    <h3><a href="errors\4074.htm">4074: Missing label definition</a></h3>
+    <h3><a href="errors\4075.htm">4075: NOT operator can only be placed directly in front of a command</a></h3>
+    <h3><a href="errors\4076.htm">4076: OR operator must be within brackets</a></h3>
+    <h3><a href="errors\4077.htm">4077: OR operator or closing bracket expected</a></h3>
+    <h3><a href="errors\4078.htm">4078: Invalid assignment operator in indirect assignment</a></h3>
+    <h3><a href="errors\4079.htm">4079: Indirection marker is only valid when using alternate syntax assignment</a></h3>
+    <h3><a href="errors\4080.htm">4080: Indirection marker is only valid with variables</a></h3>
+    <h3><a href="errors\4081.htm">4081: Syntax error in indirection assignment</a></h3>
+    <h3><a href="errors\4082.htm">4082: Unknown action command '&lt;token&gt;'</a></h3>
+    <h3><a href="errors\4083.htm">4083: Logic source code is empty</a></h3>
+    <h3><a href="errors\4084.htm">4084: ')' expected after command arguments</a></h3>
+    <h3><a href="errors\4085.htm">4085: Invalid variable or number value '&lt;define_name&gt;' in arithmetic statement</a></h3>
+    <h3><a href="errors\4086.htm">4086: Invalid word argument '&lt;argval&gt;' - must be integer value (0-65535)</a></h3>
+    <h3><a href="errors\4087.htm">4087: Incorrect syntax for indirection assignment</a></h3>
+    <h3><a href="errors\4088.htm">4088: Include file cannot be this logic's source code file</a></h3>
+    <h3><a href="errors\4089.htm">4089: &lt;filename&gt; is a required #include file for this logic</a></h3>
+    <h3><a href="errors\4090.htm">4090: Incorrect token type '%1' in '<code>if</code>' statement</a></h3>
+    <h3><a href="errors\4091.htm">4091: Action command '%1' not valid in '<code>if</code>' statement</a></h3>
+    <h3><a href="errors\4092.htm">4092: Undefined token '%1' in '<code>if</code>' statement</a></h3>
+      <p>&nbsp;</p>
+    <h2>Sierra Syntax Errors</h2>
+      <p>These errors are only applicable when using <a href="..\commands\syntax_sierra.htm">Sierra Syntax</a> to compile logics.</p>
+    <h3><a href="errors\6001.htm">6001: Include file stack overflow; limit is five</a></h3>
+    <h3><a href="errors\6002.htm">6002: WORDS.TOK filename '&lt;name&gt;' is missing or invalid/a></h3>
+    <h3><a href="errors\6003.htm">6003: WORDS.TOK filename must be enclosed in quotes</a></h3>
+    <h3><a href="errors\6004.htm">6004: '&lt;definename&gt;' is already defined; duplicate define names are not allowed</a></h3>
+    <h3><a href="errors\6005.htm">6005: Argument lists must be enclosed in parentheses</a></h3>
+    <h3><a href="errors\6006.htm">6006: Invalid argument type or syntax error in &lt;commandtype&gt; preprocessor statement</a></h3>
+    <h3><a href="errors\6007.htm">6007: Number expected in &lt;preprocessortype&gt; preprocessor statement,'&lt;token&gt;' is not a number</a></h3>
+    <h3><a href="errors\6008.htm">6008: Invalid command number in &lt;commandtype&gt; command preprocessor statement</a></h3>
+    <h3><a href="errors\6009.htm">6009: Invalid argument list in 'said' command preprocessor statement</a></h3>
+    <h3><a href="errors\6010.htm">6010: Invalid argument type in &lt;commandtype&gt; command preprocessor statement</a></h3>
+    <h3><a href="errors\6011.htm">6011: Argument list mismatch in &lt;commandtype&gt; command preprocessor statement</a></h3>
+    <h3><a href="errors\6012.htm">6012: Invalid name in &lt;preprocessortype&gt; preprocessor statement</a></h3>
+    <h3><a href="errors\6013.htm">6013: Message text is too long</a></h3>
+    <h3><a href="errors\6014.htm">6014: Invalid define value '&lt;token&gt;'</a></h3>
+    <h3><a href="errors\6015.htm">6015: Using message number of zero will corrupt the compiled logic</a></h3>
+    <h3><a href="errors\6016.htm">6016: '&lt;commandtype&gt;' command not defined</a></h3>
+    <h3><a href="errors\6017.htm">6017: Invalid action command '&lt;token&gt;'</a></h3>
+    <h3><a href="errors\6018.htm">6018: Fan syntax assignment statement not supported in Sierra syntax</a></h3>
+    <h3><a href="errors\6019.htm">6019: Right indirection only valid with variable arguments</a></h3>
+    <h3><a href="errors\6020.htm">6020: WORDS.TOK file not loaded with %tokens preprocessor</a></h3>
+    <h3><a href="errors\6021.htm">6021: Numbers are not valid arguments for the said command</a></h3>
+    <h3><a href="errors\6022.htm">6022: said command arguments must not be enclosed in quotes</a></h3>
+    <h3><a href="errors\6023.htm">6023: Undefined message (&lt;messagenum&gt;)</a></h3>
+    <h3><a href="errors\6024.htm">6024: '&lt;includefile&gt;' already included</a></h3>
+    <h3><a href="errors\6025.htm">6025: Maximum number of label entries exceeded</a></h3>
+    <h3><a href="errors\6026.htm">6026: '&lt;token&gt;' is a key word or default compiler define name</a></h3>
+    <h3><a href="errors\6027.htm">6027: Too many goto statements</a></h3>
+    <h3><a href="errors\6028.htm">6028: Using '&' or '|' in tokens other than " &&" or "||" will crash Sierra's compiler</a></h3>
+    <h3><a href="errors\6029.htm">6029: Too many levels of nested code blocks</a></h3>
+    <h3><a href="errors\6030.htm">6030: &lt;labelname&gt; cannot be used as a label</a></h3>
+    <h3><a href="errors\6031.htm">6031: >&lt;labelname&gt; is already in use as a define name and cannot be used as a label</a></h3>
+    <h3><a href="errors\6032.htm">6032: '<code>if</code>' block must have at least one test command</a></h3>
+    <h3><a href="errors\6033.htm">6033: 'OR' block must have at least one test command</a></h3>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

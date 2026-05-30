@@ -1,0 +1,44 @@
+<html>
+	<head><title>Action Command: prevent.input</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>prevent.input</h1>
+			<p>The <b>prevent.input</b> command hides the <a href="..\agi\keyboard.htm#prompt">input prompt</a> and prevents the player from entering keyboard input on the input line.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>prevent.input();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>If there is any text on the <a href="..\agi\keyboard.htm#inputline">input line</a>, it remains there even when the input line gets hidden. Even though the input line is hidden, key presses will still be converted to <a href="..\agi\controllers.htm">controllers</a>, and <A hef="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v19.htm">v19 (pressed key code)</a> is still updated every time a key is pressed. However nothing get added to the hidden input line.</p>
+			<p>The <b>prevent.input</b> command does not prevent the <a href="cmd_getnum.htm"><b>get.num</b></a> and <a href="cmd_getstring.htm"><b>get.string</b></a> commands from getting player input. Those commands work even when <b>prevent.input</b> is active.</p>
+			<p>Use the <a href="cmd_acceptinput.htm"><b>accept.input</b></a> command to restore the input prompt.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>prevent.input();</b>
+[ input prompt is hidden, and player cannot enter text input 
+...
+accept.input();
+[ input prompt is restored/redisplayed, including any text
+[ that was on it when it was hidden</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">119 (0x77)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_system.htm">System Commands</a></p>
+			<p><a href="cmd_acceptinput.htm"><b>accept.input</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

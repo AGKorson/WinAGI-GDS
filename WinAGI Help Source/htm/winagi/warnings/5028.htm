@@ -1,0 +1,22 @@
+<html>
+	<head><title>Logic Compiler Warning 5028</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5028</h2>
+    <h3>Define '&lt;name1&gt;' redefines '&lt;name2&gt;'</h3>
+    <p class="indent_n">The define value of 'name1' is 'name2', which means that 'name1' will use the same value as 'name2'. This is allowed, but may not be what was intended. </p>
+    <blockquote>
+      <pre>#define avar  v99
+#define bvar  avar  [ same as #define bvar  v99
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

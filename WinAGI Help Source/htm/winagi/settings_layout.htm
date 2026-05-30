@@ -1,0 +1,64 @@
+<html>
+	<head><title>Layout Settings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Layout Settings</h1>
+			<map name="settings">
+				<area shape="rect" alt="General Settings" coords="12,41,65,61" href="settings_general.htm">
+				<area shape="rect" alt="Logic Settings" coords="66,41,111,61" href="settings_logic.htm">
+				<area shape="rect" alt="Logic(2) Settings" coords="112,41,174,61" href="settings_logic2.htm">
+				<area shape="rect" alt="Picture Settings" coords="175,41,228,61" href="settings_picture.htm">
+				<area shape="rect" alt="Sound Settings" coords="229,41,279,61" href="settings_sound.htm">
+				<area shape="rect" alt="View Settings" coords="280,41,327,61" href="settings_view.htm">
+				<area shape="rect" alt="Use Layout Editor" coords="41,99,236,111" href="#uselayout">
+				<area shape="rect" alt="Synchronize with Resource List" coords="41,124,222,136" href="#synchres">
+				<area shape="rect" alt="Snap to Grid" coords="41,149,124,161" href="#snaptogrid">
+				<area shape="rect" alt="Show Grid Lines" coords="41,174,140,186" href="#showgrid">
+				<area shape="rect" alt="Display Picture Thumbnail" coords="41,199,143,211" href="#displaypic">
+				<area shape="poly" alt="Default Scale" coords="326,101,406,101,406,95,451,95,451,117,406,117,406,109,326,109" href="#zoom">
+				<area shape="poly" alt="Minor Grid Spacing" coords="337,134,406,134,406,128,451,128,451,150,406,150,406,142,337,142" href="#gridspacing">
+				<area shape="poly" alt="Major Grid Spacing" coords="337,160,406,160,406,154,451,154,451,176,406,176,406,168,337,168" href="#gridspacing">
+				<area shape="rect" alt="Display Hidden Exits" coords="317,199,439,211" href="#hidden">
+				<area shape="rect" alt="Layout Editor Options" coords="30,80,466,220" href="#options">
+				<area shape="rect" alt="Object Element" coords="43,254,163,362" href="#element">
+				<area shape="rect" alt="Element Color" coords="43,377,163,401" href="#color">
+				<area shape="rect" alt="Layout Preview" coords="188,254,450,402" href="#preview">
+				<area shape="rect" alt="Object Color Settings" coords="30,237,466,417" href="#colors">
+			</map>
+			<p><img src="..\..\graphics\settings-layout.jpg" usemap="#settings" border="0" width="500"></p>
+			<p>&nbsp;</p>
+		<h2><a name="options">Editor Options</a></h2>
+		<h3><a name="uselayout">Use Layout Editor For New Games</a></h3>
+			<p>If you never plan to use the <a href="editor_layout.htm">layout editor</a>, select this option. This disables the Layout Editor by default when a new game is created. You can always re-enable the Layout Editor later for any game by going to the <a href="prop_general.htm#uselayouted">Game Properties</a> dialog.</p>
+		<h3><a name="synchres">Synchronize with Resource List</a></h3>
+			<p>Select this option to have the layout editor <a href="editor_layout.htm#synchres">synchronized</a> with the <a href="resourcetree.htm">resource tree</a>. When synchronized, selecting a room's logic in the resource tree will automatically scroll the layout editor surface so the room is visible in the editor window. This makes it easier to navigate large, complex layouts quickly.</p>
+		<h3><a name="snaptogrid">Snap to Grid</a></h3>
+			<p>When this option is enabled, objects will automatically snap to the nearest <a href="#gridspacing">minor grid</a> location. This option works whether the grid is being displayed or not. This helps align objects such as <a href="editor_layout.htm#rooms">rooms</a>, <a href="editor_layout.htm#comments">comments</a>, and <a href="editor_layout.htm#transpts">transfer points</a>.</p>
+		<h3><a name="showgrid">Show Grid Lines</a></h3>
+			<p>When this option is enabled, the layout editor will display dotted lines on the drawing surface to show <a href="#gridspacing">minor and major grid lines</a>. The major grid lines are slightly darker than the minor grid lines. If you do not want to see the grid lines, disable this option.</p>
+		<h3><a name="displaypic">Display Picture Thumbnails</a></h3>
+			<p>When enabled, adding new rooms or showing existing logics as rooms will include a thumbnail image of the room's associated picture (the <a href="..\agi\pictures.htm">picture resource</a> with the same number as this room). If the picture does not exist, the room will remain blank.</p>
+			<p>This option only affects the default setting, when new rooms are added. You can always toggle each room's picture property separately on the layout.</p> 
+		<h3><a name="zoom">Default Scale</a></h3>
+			<p>You can set the default scale factor to use when <a href="editor_layout.htm">extracting a layout</a>. The minimum is one; the maximum is nine.</p>
+		<h3><a name="gridspacing">Grid Spacing</a></h3>
+			<p>To aid in the alignment of objects, you can use grid lines. grid lines are displayed as light dotted lines placed at regular intervals. Major grid lines are slightly darker and have a spacing that is a multiple of minor grid spacing. When using the Snap to Grid option, objects will snap to the nearest minor grid line, even if the grid is not visible.</p>
+			<p>Minor grid spacing can be set to increments of 0.05, with a minimum grid value of 0.05 and a maximum of 1.00. Major grid spacing must be an integral multiple of the minor grid spacing.</p>
+			<p>&nbsp;</p>
+		<h2><a name="colors">Object Color Settings</a></h2>
+			<p>The colors used to draw layout editor elements are fully customizable.</p>
+		<h3><a name="element">Element</a></h3>
+			<p>Select an element from the list to change its color. Elements include the fill attribute and outline attribute for each object type (<a href="editor_layout.htm#rooms">Room</a>, <a href="editor_layout.htm#transpts">Transfer Point</a>, <a href="editor_layout.htm#comments">Comment</a>, <a href="editor_layout.htm#errpts">Error Point</a> and <a href="editor_layout.htm#exits">Exits</a>).</p>
+		<h3><a name="color">Color</a></h3>
+			<p>The current color of the selected element is shown in the color box. Click the browse button to change the color.</p>
+		<h3><a name="preview">Layout Preview</a></h3>
+			<p>A sample layout that shows how all elements will look with the selected colors. The preview is updated each time the value of the layout property is changed.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

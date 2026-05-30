@@ -1,0 +1,91 @@
+<html>
+	<head><title>Test Command: said</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>said</h1>
+			<p>The <b>said</b> command is used to evaluate the input entered by the player. It returns TRUE if the player entered text that matches the pattern specified by the argument values.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>said(WORDGRPNUM1, WORDGRPNUM2, ...)</p>
+			<p>said("word1", "word2", ...)</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Test commands are only valid in an <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> statement.</p>
+			<p>The <b>said</b> command compares its arguments against the <a href="..\agi\keyboard.htm#parser">parsed input</a>.</p>
+			<p>The <b>said</b> test command is unique from all other AGI commands in two respects. First the argument values are 16 bit numbers, not 8 bit. Second, the number of arguments is variable (but must be at least one).</p>
+			<p>The actual arguments stored in compiled code include the number of arguments in the command as an 8 bit number, followed by the 16 bit word group numbers. The compiler does not require the programmer to enter the number of words; it automatically calculates the total number of words, and inserts it into the compiled code during compilation.</p>
+			<p>The argument values are 16 bit numbers because they are compared against the <a href="..\agi\words.htm#wordgroups">word group numbers</a> that are stored in the <a href="..\agi\words.htm">WORDS.TOK</a> file. The compiler will accept numbers as the word group arguments, or literal text values that correspond to words in the WORDS.TOK file. The compiler will insert the corresponding word group number into the compiled code automatically.</p>
+			<p>When the <b>said</b> command executes, AGI first checks <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f2.htm">f2 (input received)</a> to determine if the player has entered any input. If not, the <b>said</b> command returns FALSE. It then checks reserved flag <a href="..\agi\f4.htm">f4 (said found match)</a> to determine if a previous <b>said</b> test has already accepted the player's input. If so, the <b>said</b> command returns FALSE.</p>
+			<p>After verifying that the player has entered input and that the input has not yet been accepted, AGI enters a loop to check the words in the <b>said</b> command against the words entered by the player (and stored in the <a href="..\agi\pwords.htm"> player-entered word data arrays</a>).</p>
+			<p>If the word in the <b>said</b> command matches the corresponding player-entered word, AGI moves to the next word. If all words match, and the number of words entered by the player match the number of words match the number of words being tested in the <b>said</b> command, then <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f4.htm">f4 (said found match)</a> is set to TRUE and the command returns a value of TRUE. Otherwise, the command returns a value of FALSE as soon as it finds a word that doesn't match.</p>
+			<p>There are two special word values that can be used in the said command. If the test word value in the <b>said</b> command equals 1 ("anyword"), then it automatically matches the next word in the <a href="..\agi\pwords.htm"> player-entered word data array</a> regardless of its actual value. If the test word value in the <b>said</b> command equals 9999 ("rol") then it matches the next word and the rest of the line is ignored.</p>
+			<p>Some examples illustrate how the <b>said</b> command works:</p>
+		<code>
+			<p>Player types "LOOK AT THE BRICK WALL"</p>
+			<p>After parsing, the player-entered words are "look", "brick", "wall"</p>
+			<ul>
+				<li>said("look") returns FALSE (number of words are different)</li>
+				<li>said("look", "down", "floor") returns FALSE (second word doesn't match)</li>
+				<li>said("look", "brick", "wall") returns TRUE (all words match)</li>
+				<li>said("look", "anyword", "wall") returns TRUE (second word matches regardless of what player entered)</li>
+				<li>said("look", "rol") returns TRUE (rest of line matches regardless of what 
+			player entered)</li>
+			</ul>
+		</code>
+		    <p>Because the parser always finds the longest string of text when looking for words, you may get unexpected results if you don't pay attention to synonyms and your <b>said</b> commands. For example, if "word1", "word2" are defined as two different word groups, "word1 word2" is a synonym of "word1", and player inputs "WORD1 WORD2":</p>
+		<code>
+			<ul>
+				<li>said("word1") returns TRUE ("word1 word2" is in same group as "word1")</li>
+				<li>said("word1", "rol") returns TRUE ("rol" matches even if no words follow)</li>
+				<li>said("word1", "word2") returns FALSE (parser treats entire input as a single word)</li>
+				<li>said("word1", "anyword") returns FALSE (parser treats entire input as a single word)</li>
+			</ul>
+		</code>
+			<p>As mentioned above, words from <a href="..\agi\words.htm#wordgroups">wordgroup</a> 0 are ignored by AGI, and normally don't return TRUE in a <b>said</b> command. However, there is a bug in AGI which will cause <code>said(0)</code> to return TRUE when an unknown word is detected. When the unknown word is detected, a zero is stored in the <a href="..\agi\pwords.htm"> player-entered word data array</a> at the location of the unknown word; the <b>said</b> command will consider this a match for wordgroup 0, and return TRUE.</p> 
+			<p>The <b>said</b> test command can be combined with the '<a href="..\agi\logics.htm#not"><code><b>NOT</b></code></a>' operator to test if the player did not type a specific phrase.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>if(<b>said(2124)</b>)  [ assume word number 2124 = "look")
+  {
+  print("You look around and see nothing of interest.");
+  }
+
+if(<b>said("look")</b>)  [ same as above, but using literal text instead of number
+  {
+  print("You look around and see nothing of interest.");
+  }
+
+[ use "rol" (9999) and "anyword" (1) for special cases
+if(<b>said("look", "anyword")</b>) [ doesn't matter what the next word is that comes after "look"
+  {
+  print("It looks ok."); 
+  }
+
+if(<b>said("look", "rol")</b>) [ any number of words after "look" is OK (even zero)
+  {
+  print("Ignore that.");
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">14 (0x0E)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_test.htm">Test Commands</a>
+			</p>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="..\agi\keyboard.htm#parser">Parsing and the <b>said</b> Command</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,93 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+
+		<!-- WinForms -->
+		<UseWindowsForms>true</UseWindowsForms>
+		<EnableWindowsTargeting>true</EnableWindowsTargeting>
+		<SupportedOSPlatformVersion>6.1</SupportedOSPlatformVersion>
+
+		<!-- App metadata -->
+		<RootNamespace>WinAGI.Editor</RootNamespace>
+		<StartupObject>WinAGI.Editor.Program</StartupObject>
+		<ApplicationIcon>fWinAGI32.ico</ApplicationIcon>
+		<AssemblyName>WinAGI</AssemblyName>
+
+		<!-- Versioning (safe, no duplicate attributes) -->
+		<VersionPrefix>3.0.0</VersionPrefix>
+		<VersionSuffix>beta.0</VersionSuffix>
+
+		<!-- Designer / build behavior -->
+		<ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+
+		<!-- IMPORTANT: allow MSBuild to generate assembly attributes -->
+		<!-- These MUST remain enabled to avoid CA1416 -->
+		<!-- (so do NOT add GenerateAssemblyInfo=false again) -->
+
+		<!-- Optional: silence CA1416 entirely -->
+		<NoWarn>$(NoWarn);CA1416</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="FastColoredTextBox" Version="2.16.29" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="fWinAGI32.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
+		<PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="17.14.40260" />
+		<PackageReference Include="NAudio" Version="2.3.0" />
+		<PackageReference Include="System.IO.Hashing" Version="10.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Resource Include="fWinAGI32.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="EngineResources.Designer.cs">
+			<DependentUpon>EngineResources.resx</DependentUpon>
+			<DesignTime>true</DesignTime>
+			<AutoGen>true</AutoGen>
+		</Compile>
+		<Compile Update="EditorResources.Designer.cs">
+			<DesignTime>true</DesignTime>
+			<AutoGen>true</AutoGen>
+			<DependentUpon>EditorResources.resx</DependentUpon>
+		</Compile>
+		<Compile Update="Properties\Settings.Designer.cs">
+			<DesignTimeSharedInput>true</DesignTimeSharedInput>
+			<AutoGen>true</AutoGen>
+			<DependentUpon>Settings.settings</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="EngineResources.resx">
+			<SubType>Designer</SubType>
+			<LastGenOutput>EngineResources.Designer.cs</LastGenOutput>
+			<Generator>ResXFileCodeGenerator</Generator>
+			<CustomToolNamespace>WinAGI.Engine</CustomToolNamespace>
+		</EmbeddedResource>
+		<EmbeddedResource Update="EditorResources.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>EditorResources.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Properties\Settings.settings">
+			<Generator>SettingsSingleFileGenerator</Generator>
+			<LastGenOutput>Settings.Designer.cs</LastGenOutput>
+		</None>
+	</ItemGroup>
+
+</Project>

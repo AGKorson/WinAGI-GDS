@@ -1,0 +1,44 @@
+<html>
+    <head><title>Game and Resource Errors</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h1>Game and Resource Errors</h1>
+        <p>When WinAGI <a href="importgame.htm">imports</a> or <a href="opengame.htm">opens</a> an AGI game, it does a full scan of the <a href="..\agi\dir.htm">directory</a> and <a href="..\agi\vol.htm">volume</a> files to confirm all <a href="..\agi\resources.htm">resources</a> are valid. <a href="editor_logic.htm">Source code files</a> are also scanned to confirm there are no major errors. Any issues found are displayed as errors or warnings. Errors represent conditions that must be addressed before the game files and/or resources can be edited or compiled.</p>
+        <p>Detailed explanations of each error that may be encountered are provided below.</p>
+        <p>Where resource error messages include dynamic text, such as a resource type, or detailed error information, the dynamic text is represented by '&lt;' and '&gt;' characters, for example '&lt;restype&gt;'.</p>
+        <p>&nbsp;</p>
+      <h3><a href="errors\re01.htm">RE01: &lt;restype&gt; &lt;number&gt; is in a VOL file (&lt;volfile&gt;) that does not exist</a></h3>
+      <h3><a href="errors\re02.htm">RE02: &lt;restype&gt; &lt;number&gt; is in a VOL file (&lt;volfile&gt;) marked readonly</a></h3>
+      <h3><a href="errors\re03.htm">RE03: &lt;restype&gt; &lt;number&gt; is invalid due to file access error (&lt;volfile&gt;)</a></h3>
+      <h3><a href="errors\re04.htm">RE04: &lt;restype&gt; &lt;number&gt; has an invalid location (&lt;location&gt;) in volume file &lt;volfile&gt;</a></h3>
+      <h3><a href="errors\re05.htm">RE05: &lt;restype&gt; &lt;number&gt; has an invalid resource header at location &lt;location&gt; in volume file  &lt;number&gt;</a></h3>
+      <h3><a href="errors\re06.htm">RE06: Unable to expand &lt;restype&gt; &lt;number&gt; at location &lt;location&gt; in &lt;volfile&gt;</a></h3>
+      <h3><a href="errors\re07.htm">RE07: Logic &lt;number&gt; source file (&lt;filename&gt;) is marked readonly</a></h3>
+      <h3><a href="errors\re08.htm">RE08: Logic &lt;number&gt; source file (&lt;filename&gt;) is invalid due to file access error</a></h3>
+      <h3><a href="errors\re09.htm">RE09: Sound &lt;number&gt; contains no data</a></h3>
+      <h3><a href="errors\re10.htm">RE10: Sound &lt;number&gt; has one or more invalid track pointers</a></h3>
+      <h3><a href="errors\re11.htm">RE11: View &lt;number&gt; contains no data</a></h3>
+      <h3><a href="errors\re12.htm">RE12: View &lt;number&gt; has no loops</a></h3>
+      <h3><a href="errors\re13.htm">RE13: OBJECT file is missing</a></h3>
+      <h3><a href="errors\re14.htm">RE14: OBJECT is readonly</a></h3>
+      <h3><a href="errors\re15.htm">RE15: File access error, unable to read OBJECT file (&lt;errortext&gt;)</a></h3>
+      <h3><a href="errors\re16.htm">RE16: OBJECT file contains no data</a></h3>
+      <h3><a href="errors\re17.htm">RE17: Invalid data in OBJECT file, unable to decrypt</a></h3>
+      <h3><a href="errors\re18.htm">RE18: Invalid OBJECT file header, unable to read item data</a></h3>
+      <h3><a href="errors\re19.htm">RE19: WORDS.TOK file is missing</a></h3>
+      <h3><a href="errors\re20.htm">RE20: WORDS.TOK is readonly</a></h3>
+      <h3><a href="errors\re21.htm">RE21: File access error, unable to read WORDS.TOK file (&lt;errortext&gt;)</a></h3>
+      <h3><a href="errors\re22.htm">RE22: WORDS.TOK file contains no data</a></h3>
+      <h3><a href="errors\re23.htm">RE23: Invalid word index table in WORDS.TOK</a></h3>
+      <h3><a href="errors\re24.htm">RE24: globals.txt file not found</a></h3>
+      <h3><a href="errors\re25.htm">RE25: globals.txt file is read only</a></h3>
+      <h3><a href="errors\re26.htm">RE26: File access error, unable to read globals.txt file (&lt;errortext&gt;)</a></h3>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

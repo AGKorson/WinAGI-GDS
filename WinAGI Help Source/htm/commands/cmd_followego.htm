@@ -1,0 +1,51 @@
+<html>
+	<head><title>Action Command: follow.ego</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>follow.ego</h1>
+			<p>The <b>follow.ego</b> command sets a screen object's <a href="object_moving.htm">movement mode</a> to 'follow ego', meaning it will always move toward the <a href="..\agi\interface.htm#ego">ego</a> object (o0).</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>follow.ego(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">byt</a> DISTANCE, <a href="syntax_fan.htm#argtypes">flg</a> fCAUGHT);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Screen object <b>oA</b> begins moving toward <a href="..\agi\interface.htm#ego">ego</a>. AGI calculates the direction to move based on distance (calculated the same as with the <a href="cmd_distance.htm"><b>distance</b></a> command) from ego. The direction is always diagonal, until the object is either directly horizontal or vertical to ego; the object then moves orthogonally to finish the move. For example, if the vertical distance to ego is 5 pixels and the horizontal distance is 25 pixels, the object will move diagonally for five steps and then horizontally for 20 steps. Keep in mind that the direction gets recalculated in each cycle, based on where ego is, so if ego is moving, the direction will adjust accordingly.</p>
+			<p>If an <a href="concepts_obstacles.htm">obstacle</a> is encountered, the object will move in a random direction for a few <a href="..\agi\cycle.htm">interpreter cycles</a> before trying again to follow ego. If the distance to ego is greater than the object's current step size, a random value between distance and step size is used. Otherwise, the value used is equal to step size.</p>
+			<p>Setting the movement mode to 'follow ego' will automatically enable the object for <a href="object_initialize.htm#updating">updating</a> if not currently enabled. The <a href="object_cycling.htm">cycling property</a> is not modified by the <b>follow.ego</b> command.</p>
+			<p>Flag <b>fCAUGHT</b> is reset to FALSE when the command is executed.</p>
+			<p>If <b>DISTANCE</b> is zero, AGI uses object oA's current <a href="object_moving.htm#stepsize">step size</a> as the <b>DISTANCE</b> value. When the object is less than <b>DISTANCE</b> pixels of ego's position, the object will stop moving, flag <b>fCAUGHT</b> is set, and the object switches to 'normal' <a href="object_moving.htm">movement mode</a>.</p>
+			<p>If the <b>DISTANCE</b> is 1 (or if <b>DISTANCE</b> is 0 and the object's current step size is 1), the object will never reach ego, unless either object is set to ignore other objects using the <a href="cmd_ignoreobjs.htm"><b>ignore.objs</b></a> command.</p>
+			<p>If the <b><a href="cmd_setdir.htm">set.dir</a></b> command is used when an object is following ego, the object will move in the new direction for one <a href="..\agi\cycle.htm">interpreter cycle</a> before AGI changes the direction back toward ego.</p> 
+			<p>You can use the <b>follow.ego</b> command on the ego object itself, but it will instantaneously reach its destination on the next cycle, and switch back to 'normal' movement mode.</p>
+			<p>Do not use movement modes (<a href="cmd_moveobj.htm"><b>move.obj</b></a>, <b>follow.ego</b> or <a href="cmd_wander.htm"><b>wander</b></a>) and one-time cycling modes (<a href="cmd_endofloop.htm"><b>end.of.loop</b></a> and <a href="cmd_reverseloop.htm"><b>reverse.loop</b></a>) on an object at the same time. The byte in the <a href="..\agi\sobjtable.htm">screen object data table</a> that AGI uses to store the <b>fDONE</b> flag is also used by the cycling modes. If you use a movement mode command while the a one-time cycle command is active, the flag number gets overwritten, and when the object finishes cycling, the wrong flag will be set.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>follow.ego(o1, 2, f99);</b> [ object will begin moving toward ego
+if(isset(f99)) 
+    {
+    print("TAG! You're it!")
+    reset(f99);
+    }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">83 (0x53)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_setdir.htm">set.dir</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

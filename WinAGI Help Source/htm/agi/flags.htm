@@ -1,0 +1,40 @@
+<html>
+	<head><title>Flags</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Flags</h1>
+			<p>The flag data type is a single bit boolean number; flag values can be either 1 (TRUE) or 0 (FALSE).  There are 256 flags in memory numbered from 0 to 255. As with variables, flags are identified by their index in the flag table, and are represented in source code by the letter 'f' and their index number (i.e. f0, f1, etc.)</p>
+			<p>Flags are primarily used to indicate the status of events. For example, a flag can be used to indicate if a door in the game is open or closed, or if sound is enabled or disabled.</p>
+			<p>Flags are also used in several commands to indicate completion of an action, or attainment of a goal, such as a <a href="screenobjs.htm">screen object</a> reaching a desired position.</p>
+		<h2><a name="reserved">Reserved Flags</a></h2>
+			<p>The first 17 flags (f0 - f16)  and f20 (in version 3.002.102 and higher) are used internally by AGI, and should not be used for storing game data. Doing so may cause unexpected behavior, including potentially fatal errors. In some cases, a game programmer may need to directly manipulate these reserved flags to achieve specific game effects, but great care should be taken to avoid creating unexpected results or errors.</p>
+			<BlOCKQUOTE>
+			<h3><a href="f0.htm">f0: Ego on Water</a></h3>
+			<h3><a href="f1.htm">f1: Ego is Obscured</a></h3>
+			<h3><a href="f2.htm">f2: Input Received</a></h3>
+			<h3><a href="f3.htm">f3: Ego on Signal Line</a></h3>
+			<h3><a href="f4.htm">f4: Said Found Match</a></h3>
+			<h3><a href="f5.htm">f5: New Room</a></h3>
+			<h3><a href="f6.htm">f6: Game Restarted</a></h3>
+			<h3><a href="f7.htm">f7: Script Disabled</a></h3>
+			<h3><a href="f8.htm">f8: Joystick Double-Click Enabled</a></h3>
+			<h3><a href="f9.htm">f9: Sound On</a></h3>
+			<h3><a href="f10.htm">f10: Command Tracer Enabled</a></h3>
+			<h3><a href="f11.htm">f11: Noise Channel Available</a></h3>
+			<h3><a href="f12.htm">f12: Game Restored</a></h3>
+			<h3><a href="f13.htm">f13: Inventory Selection Enabled</a></h3>
+			<h3><a href="f14.htm">f14: Menu Enabled</a></h3>
+			<h3><a href="f15.htm">f15: Message Windows Don't Pause Game</a></h3>
+			<h3><a href="f16.htm">f16: Auto-restart</a></h3>
+			<h3><a href="f20.htm">f20: Forced Auto-Loop Selection</a></h3>
+			</BlOCKQUOTE>
+			<p>It is not known why flags f17-f19 were skipped when the 'forced auto-loop' reserved flag was added. Flags f17-f19 do not have any special meaning in any interpreter <a href="versions.htm">version</a>.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

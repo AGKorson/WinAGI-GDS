@@ -1,0 +1,17 @@
+<html>
+    <head><title>Logic Source Decompiler Warning DW05</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Warning DW05</h2>
+      <h3>Non-unique inventory item '&lt;itemtext&gt;' at resource index &lt;pos&gt;</h3>
+      <p class="indent_n">This warning is raised when the decompiler detects more than one <a href="..\..\agi\object.htm">inventory item</a> in the game's <a href="..\..\agi\object.htm">OBJECT</a> file with the same name text.</p>
+      <p class="indent_n">There are some Sierra AGI games known to intentionally have multiple <a href="..\..\agi\object.htm">items</a> with the same name. But multiple same namr items could also mean there is a problem with the game's <a href="..\..\agi\object.htm">OBJECT</a> file. It does not create an error condition. It does mean that your source code must refer to the item by its number, not its name; WinAGI will adjust the decompiled source code automatically.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

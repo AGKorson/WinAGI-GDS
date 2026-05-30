@@ -1,0 +1,39 @@
+<html>
+	<head><title>Action Command: reset.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>reset.v</h1>
+			<p>The <b>reset.v</b> command indirectly changes a <a href="..\agi\flags.htm">flag</a>'s value to FALSE.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>reset.v(<a href="syntax_fan.htm#argtypes">var</a> vA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+		    <p><a href="..\agi\flags.htm">Flag</a> <b>B</b>, where <b>B</b> = <b>vA</b>, is reset to FALSE.</p>
+			<p>Changing values of <a href="..\agi\flags.htm#reserved">reserved flags</a> can have unpredictable results, and should be done carefully.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v50 = 99;
+reset.v(v50);  [ now flag f99 is FALSE</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">16 (0x10)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_flags.htm">Flag Commands</a></p>
+			<p><a href="cmd_reset.htm"><b>reset</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

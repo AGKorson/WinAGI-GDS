@@ -1,0 +1,18 @@
+<html>
+    <head><title>Logic Source Decompiler Error DE06</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Error DE06</h2>
+      <h3>Expected block end does not align with calculated block end at resource index &lt;pos&gt;</h3>
+      <p class="indent_n">This warning is raised when the calculated end of a <a href="..\..\agi\logics.htm#ifelse">block</a> is in the middle of another AGI <a href="..\..\commands\commands.htm">command</a>. For example, if the calculated end of a block is at position 100, but there is an AGI command at position 99 that has three arguments, the next valid command is at position 103; jumping to position 100 will most likely end up crashing AGI.</p>
+      <p class="indent_n">This is likely due to a corrupt <a href="..\..\agi\logics.htm">logic</a> <a href="..\..\agi\resources.htm">resource</a>, or an error that existed in the original Sierra release disks. If it is an original error, it probably is in abandoned code that never gets run, otherwise the error would probably been identified long ago.</p>
+      <p class="indent_n">WinAGI ignores the misalignment and will continue to decompile the logic. You should confirm that the <a href="..\..\agi\vol.htm">VOL</a> file containing this logic is not corrupt. Regardless, you will need to carefully examine the decompiled source code, and adjust the code as necessary before recompiling.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

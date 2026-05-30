@@ -1,0 +1,18 @@
+<html>
+	<head><title>Reserved Flag f0</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f0: Ego on Water</h1>
+			<p>AGI sets this flag during every <a href="cycle.htm">interpreter cycle</a> when updating the position of <a href="interface.htm#ego">ego</a>. If the entire baseline of ego is on water (pixels with priority value of 3), this flag is set to TRUE. If one or more pixels have any other priority value, this flag is set false.</p>
+			<p>This can be useful to know when <a href="interface.htm#ego">ego</a> is on a water area in your game, which you can then respond to in code, for example, to switch to a 'swimming' <a href="views.htm">view</a>.</p>
+			<p>Note that if ego is not <a href="..\commands\cmd_animateobj.htm">animated</a>, it does not get updated. So flag f0 won't be modified during interpreter cycles when ego is not animated.</p>
+			<p>Attempting to use this flag for other purposes is not recommended, because AGI overwrites it in every <a href="cycle.htm">interpreter cycle</a> when updating ego. If you never use ego in your game, then you could use this flag without any concerns.</p>
+			<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,48 @@
+<html>
+	<head><title>Action Command: distance</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>distance</h1>
+			<p>The <b>distance</b> command calculates the distance between two <a href="..\agi\screenobjs.htm">screen objects</a>, and stores the result in a <a href="..\agi\variables.htm">variable</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>distance(<a href="syntax_fan.htm#argtypes">obj</a> oA,<a href="syntax_fan.htm#argtypes">obj</a> oB, <a href="syntax_fan.htm#argtypes">var</a> vC);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Variable <b>vC</b> is set to distance between screen objects <b>oA</b> and <b>oB</b>. The distance calculated in NOT the shortest straight line between the two objects. Instead, AGI uses the following formula:</p>
+		<blockquote>
+			<p><b><font face="Courier New" size="2">d = Abs(y1 - y2) + Abs((x1 + w1 / 2) - (x2 + w2 / 2))</font></b></p>
+		</blockquote>
+		<p>where</p>
+			<p class="indent">d = distance</p>
+			<p class="indent">x1, y1, w1 = horizontal position, vertical position and width of screen object <b>oA</b></p>
+			<p class="indent">x2, y2, w2 = horizontal position, vertical position and width of screen object <b>oB</b></p>
+			<p>Basically, this means that AGI calculates the distance by adding the difference in horizontal position of the objects' center points to the difference in the objects' vertical positions. (When calculating the center points, results round down, i.e. if width is 13, then width / 2 = 6).</p>
+			<p>If either object is not on screen (or not <a href="cmd_draw.htm">drawn</a>), distance is set to 255.</p>
+			<p>Due to a bug in <a href="..\agi\version2.htm">versions 2.089 and 2.272</a>, if the calculated distance is greater than 255, the returned value is converted to a byte value; i.e., value of 256 returns 0, 257 returns 1, etc. In version 2.411 and above, the bug was fixed and values above 255 are returned as 254.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ object 0 is at (110, 100); width is 6
+[ object 1 is at (98, 161); width is 13
+<b>distance(o0, o1, v50);</b>  [ v50 now equals 70</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">69 (0x45)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,22 @@
+<html>
+	<head><title>Logic Compiler Error 4020</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4020</h2>
+    <h3>AND operator (&amp;&amp;) or end of '<code>if</code>' statement expected</h3>
+    <p class="indent_n">This compiler error indicates the compiler is expecting the <a href="..\..\commands\syntax_fan.htm#ifelse"><code><b>if</b></code> statement</a> to end (a closing parenthesis) or an AND operator ('&amp;&amp;') to compare commands. For example</p>
+    <blockquote>
+      <pre>if(v99 == 99 &amp;&amp; v100 == 100  v101 == 101) [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+    </blockquote>
+    <p class="indent_n">The third test command (v101 == 101) isn't separated by an AND operator.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

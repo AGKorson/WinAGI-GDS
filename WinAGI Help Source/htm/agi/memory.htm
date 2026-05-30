@@ -1,0 +1,222 @@
+<html>
+	<head><title>Memory Management in AGI</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1><a name="memory">Memory Management</a></h1>
+		<p>When the interpreter executable file loads, it also loads overlay files that contain platform-specific code (primarily associated with graphics subroutines) and data such as game state information (<a href="variables.htm">variables</a>, <a href="flags.htm">flags</a>, <a href="controllers.htm">controllers</a>, etc.) and other data used internally by AGI.</p>
+		<p>At the end of the program code section, AGI then allocates memory space for data and resources needed during game play (called the heap). For <a href="versions.htm">version 3</a> only, AGI allocates a small block of memory to hold the LZW dictionaries needed to facilitate uncompressing resources after the heap. Finally, AGI sets up a buffer to hold <a href="pictures.htm">picture</a> information. When drawing pictures to the display screen, AGI first builds the picture in this buffer, and then transfers the buffer to the appropriate video memory.</p>
+		<p><img alt="Memory Map" src="..\..\graphics\memory.bmp" width="557"></p>
+	<h2><a name="heap">Resource Heap</a></h2>
+		<p>AGI allocates a block of memory, called the heap that is approximately 57KB (technically, it is 64KB - sizeof(<a href="components.htm#agidata">AGIDATA.OVL</a> file) and varies slightly from version to version).
+		<p>The heap is where AGI stores resources needed during the game; everything from the <a href="dir.htm">directory (DIR)</a> files, to <a href="logics.htm">logics</a>, <a href="pictures.htm">pictures</a>, <a href="sounds.htm">sounds</a>, <a href="views.htm">views</a> resources; menus, script table, the screen object table, etc. When AGI needs to add something to the heap, if the amount of space needed for a resource is larger than the free memory currently available, AGI <a href="errors.htm">generates an error</a> and crashes.</p>
+		<p>Here is a detailed description of items on the heap:</p>
+		<table id="Table2" cellSpacing="1" cellPadding="1" border="1">
+			<tr>
+				<td width="100"><b>Order</b></td>
+				<td width="200"><b>Description</b></td>
+				<td width="300"><b>Size</b></td>
+			</tr>
+			<tr>
+				<td align="center">0</td>
+				<td>Stack</td>
+				<td>2560(0xA00) bytes</td>
+			</tr>
+			<tr>
+				<td align="center">1</td>
+				<td><a href="dir.htm">DIR</a> file data</td>
+				<td>sizeof(DIR files)</td>
+			</tr>
+			<tr>
+				<td align="center">2</td>
+				<td><a href="words.htm">WORDS.TOK</a> file</td>
+				<td>sizeof(WORDS.TOK file)</td>
+			</tr>
+			<tr>
+				<td align="center">3</td>
+				<td><a href="object.htm">OBJECT</a> file</td>
+				<td>sizeof(OBJECT file)</td>
+			</tr>
+			<tr>
+				<td align="center">4</td>
+				<td><a href="sobjtable.htm">Sreen Object Table</a></td>
+				<td>43(0x2B) bytes * (<a href="screenobjs.htm#maxscreenobj">MaxSObj</a> + 1)</td>
+			</tr>
+			<tr>
+				<td align="center">5</td>
+				<td><a href="logics.htm#logic0">Logic 0</a></td>
+				<td>HdrSize + sizeof(logic 0 resource)</td>
+			</tr>
+			<tr>
+				<td>
+					<DIV align="center">6</DIV>
+				</td>
+				<td><a href="scripts.htm#scripttable">script table</a></td>
+				<td>2 * script size</td>
+			</tr>
+			<tr>
+				<td align="center">7</td>
+				<td style="vertical-align:middle;"><a href="menu.htm">menu</a></td>
+				<td>18 (0x12) * menu count + 15 (0x0E) * menu item count&nbsp;</td>
+			</tr>
+			<tr><td align="center">---</td><td>&nbsp;&nbsp;------------</td><td>&nbsp;&nbsp;------------------------</td></tr>
+			<TR >
+				<td align="center">8</td>
+				<td>loaded resources(<a href="logics.htm">logics</a>, <a href="pictures.htm">pics</a>, <a href="sounds.htm">sounds</a>,<a href="views.htm">views</a>)</td>
+				<td>HdrSize + sizeof(resource) for each resource</td>
+			</tr>
+			<tr>
+				<td align="center">9</td>
+				<td>bitmap buffer for non-updated objects</td>
+				<td>(HdrSize + width * height) for each object</td>
+			</tr>
+			<tr>
+				<td align="center">10</td>
+				<td>bitmap buffer for updated objects</td>
+				<td>(HdrSize + width * height) for each object</td>
+			</tr>
+		</table>
+		<p>The first three items on the heap are setup during AGI <a href="starting.htm">startup</a>, and are never changed. Beginning with the <a href="object.htm">OBJECT</a> file, the rest of the heap items are allocated and unallocated as needed during game play. Note that the script table and menu data can be loaded in either order, depending which is coded to come first.</p>
+	<h3><a name="stack">Internal Stack</a></h3>
+		<p class="indent">The first block of memory that AGI allocates on the heap is for an internal stack (to manage interpreter program flow and DOS based machine code activity) of 2560 bytes. AGI regularly checks to make sure the stack has not been over-filled, as that would mean that other memory locations may have been corrupted. If AGI detects the stack is blown, AGI will raise a <a href="errors.htm">runtime error</a> and crash AGI.</p>
+	<h3>DIR files</h3>
+		<p class="indent">The next thing AGI does on startup is to store a byte-for-byte copy of the <a href="dir.htm">directory (DIR)</a> files on the heap. This allows AGI to quickly identify the location of <a href="resources.htm">resources</a> without having to constantly use file operations. The DIR files take up at most 3KB, but usually are much smaller, depending on the total number of resources that are included in the game.</p>
+	<h3>WORDS.TOK</h3>
+		<p class="indent">The last thing AGI does on startup is to store a copy of the <a href="words.htm">WORDS.TOK</a> file. This is also done to eliminate the need for constant file operations when AGI needs to access the word list for <a href="keyboard.htm#parser">parsing of player input</a>.</p>
+	<h3>OBJECT file</h3>
+		<p class="indent"> The <a href="object.htm">OBJECT</a> file is loaded during game state initialization, which happens after AGI is first loaded, and anytime a game is <a href="restart.htm">restarted</a>. The reason this happens as part of game state initialization, and not AGI startup is because changes in <a href="object.htm#items">inventory item</a> status are made directly to the copy of OBJECT file in memory. When restarting a game, the OBJECT file has to be reloaded to reset it.</p>  
+	<h3>Screen Object Table</h3>
+		<p class="indent">The size of the screen object table is actually 43 * (<a href="..\agi\screenobjs.htm#maxscreenobj">MaxScreenObject</a>+1); this is because MaxScreenObject is the <b>index</b> of the last allowable screen object. For example, if MaxScreenObj=1, then two <a href="screenobjs.htm">screen objects</a> (o0, o1) are allowed. To avoid wasting memory, you should set MaxScreenObject to as low as possible.</p>
+	<h3>Logic 0</h3>
+		<p class="indent">The first <a href="logics.htm">logic</a>, <a href="logics.htm#logic0">Logic 0</a>, is the last thing loaded during game state initialization. It always remains loaded. Save memory by keeping logic 0 down to the bare minimum that needs to be kept in memory for the whole game. Load/unload other logics as needed.</p>
+	<h3>Script Entries Table</h3>
+		<p class="indent">To facilitate <a href="restore.htm">restoration</a> of <a href="save.htm">saved games</a>, AGI uses a '<a href="scripts.htm">script</a>' system to track the loading, unloading and usage of certain <a href="resources.htm">resources</a>. Script data are stored in a script table that is stored on the heap. </p>
+		<p class="indent">The script table is initialized on the heap when the first <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command is called. Before the script table is set resources are NOT tracked as they are loaded/unloaded; this is never a concern, as it is highly unlikely to save/restore a game before the first <b>new.room</b> command. By default, AGI allocates space for 50 script entries. This value can be changed by calling the <a href="..\commands\cmd_scriptsize.htm"><b>script.size</b></a> command <b>before</b> the first <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command. AGI adjusts the <a href="#room0">room.0</a> pointer so the script table is permanently loaded on the heap. Once the script table is set, it cannot be changed; the memory initially set for the script table will not change once set. See the <a href="scripts.htm">AGI Scripts</a> Topic for additional information.</p>
+	<h3>Menus</h3>
+		<p class="indent"><a href="menu.htm">Menus</a> and menu items are stored on the heap permanently using the <a href="..\commands\cmd_setmenu.htm"><b>set.menu</b></a> and <a href="..\commands\cmd_setmenuitem.htm"><b>set.menu.item</b></a> commands. After the menu is completely loaded, calling the <b><a href="..\commands\cmd_setmenu.htm">set.menu</a></b> command locks the menu information on the heap, by resetting the <a href="#room0">room.0</a> pointer. Once set, menus can't be altered. For maximum efficiency, menus should be set before loading any other resources, otherwise those resources will be wasted space once the room.0 pointer is set. See the <a href="menu.htm">Menus in AGI</a> Topic for additional information.</p>
+	<h3><a name="room0">Room.0 Resources</a></h3>
+		<p class="indent">The first seven items on the heap are designated as 'room.0' resources. This block of memory can never be freed during the game. These resources are always accessible, and are shared between rooms. The other resources on the heap are separated from room.0 resources with a special pointer, which points to the end of the room.0 resources. The room.0 pointer is set when AGI initializes, once the <a href="logics.htm#logic0">Logic 0</a> resource is loaded. It is also adjusted when the <a href="scripts.htm">script table</a> is set, and when a <a href="menu.htm">menu</a> is submitted as described above.</p>
+		<p class="indent">Whenever a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command is encountered, AGI clears all other loaded resources by resetting the memory pointer to the room.0 pointer. This makes it extremely easy to manage memory during the game as rooms change.</p>
+	<h3><a name="resheap">Resources on the Heap</a></h3>
+		<p class="indent">AGI treats loaded <a href="resources.htm">resources</a> like a stack, in the sense that as resources are loaded, they are placed in memory in the order loaded, and AGI keeps a pointer to the next available memory point. Whenever a resource is unloaded, the pointer is reset to the location of the unloaded resource. This means that when you load and discard resources in AGI, you have to be careful to ensure that resources are discarded in the reverse order that they were loaded. A resource discarded in the wrong order will unintentionally discard other resources that were loaded after it. When another resource is subsequently loaded, it will be loaded on top of those other resources, which, if you then attempt to access, will result in unpredictable behavior.</p>
+		<p>&nbsp;</p>
+		<p class="indent"><b><a name="linklists">Resource</a> Linked Lists: </b>AGI also maintains linked lists for each resource type (<a href="logics.htm">logics</a>, <a href="pictures.htm">pictures</a>, <a href="sounds.htm">sounds</a>, <a href="views.htm">views</a>). The starting point for each list is a 'null' <a href="#header">header</a> stored within AGI's internal data (not on the heap). When the first resource of a given type is loaded, a pointer to the first resource is stored in the list header; from that point, AGI can start with the list header, then quickly step through each loaded resource to find a particular resource. Discarding resources out of order will also result in the linked lists pointing to invalid memory locations.</p>
+	<h3><a name="bitmaps">Screen Object Background Bitmaps</a></h3>
+		<p class="indent">The last data stored on the memory heap are screen object background bitmaps. These bitmaps store original background <a href="pictures.htm">picture</a> information underneath <a href="views.htm">views</a> that are displayed as <a href="screenobjs.htm">objects</a>. This is so AGI can restore the background as objects move about the screen. Larger screen objects need more memory for storing background information. These data are constantly updated so AGI handles them differently from other memory on the heap, by always putting them at the end of the heap. Whenever a resource is added to the heap, AGI first saves all bitmap information back to the screen buffer and destroys the bitmap data list. Once the newly loaded resource is saved to the heap, the bitmap data list is reconstructed and screen objects are restored back to the screen buffer. Because of this process, the bitmap data are always at the end of the heap.</p>
+		<p class="indent">There are two separate bitmap tables that AGI maintains; one for objects that get updated on each cycle, and one for objects that are not regularly updated. Although the bitmap tables are rebuilt every time heap memory needs adjusting, only updating objects are actually redrawn on the screen. This can lead to unexpected results if a non-updated object is repositioned, because it won't get redrawn on the screen automatically, but the background bitmap stored in the table will reference the new position. If the original location gets covered by another object or a print window, the object will 'disappar' from that location; if the new location is covered, then the object will 'appear' at the new location.</p>
+	<h2><a name="header">Resource Headers</a></h2>
+		<p><a href="resources.htm">Resources</a> (including <a href="menu.htm">menu entries and menu item entries</a>) are allocated a small 'header' in memory that AGI uses to manage the resource. The header size varies depending on the item, from 5 bytes to 18 bytes. AGI allocates the header, populates it with the information it needs to manage the resource, then loads the resource after the header.</p>
+		<table id="Table1" cellSpacing="1" cellPadding="1" width="1950" border="1">
+			<tr>
+				<td align="center" width="150" rowspan="2" style="vertical-align:middle"><b>Resource</b></td>
+				<td align="center" colspan="18"><b>Byte</b></td>
+			</tr>
+			<tr>
+				<td align="center" width="100"><b>0</b></td>
+				<td align="center" width="100"><b>1</b></td>
+				<td align="center" width="100"><b>2</b></td>
+				<td align="center" width="100"><b>3</b></td>
+				<td align="center" width="100"><b>4</b></td>
+				<td align="center" width="100"><b>5</b></td>
+				<td align="center" width="100"><b>6</b></td>
+				<td align="center" width="100"><b>7</b></td>
+				<td align="center" width="100"><b>8</b></td>
+				<td align="center" width="100"><b>9</b></td>
+				<td align="center" width="100"><b>10</b></td>
+				<td align="center" width="100"><b>11</b></td>
+				<td align="center" width="100"><b>12</b></td>
+				<td align="center" width="100"><b>13</b></td>
+				<td align="center" width="100"><b>14</b></td>
+				<td align="center" width="100"><b>15</b></td>
+				<td align="center" width="100"><b>16</b></td>
+				<td align="center" width="100"><b>17</b></td>
+			</tr>
+			<tr>
+				<td style="vertical-align:middle">&nbsp;Logic</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*next logic</td>
+				<td align="center" style="vertical-align:middle">logic number</td>
+				<td align="center" style="vertical-align:middle">message count</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*code start</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*scan start</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*message start</td>
+				<td align="center" colspan="8" class="white"></td>
+			</tr>
+			<tr>
+				<td style="vertical-align:middle">&nbsp;Picture</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*next picture</td>
+				<td align="center" style="vertical-align:middle">picture number</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*picture data</td>
+				<td align="center" colspan="13" class="white"></td>
+			</tr>
+			<tr>
+				<td style="vertical-align:middle">&nbsp;Sound</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*next sound</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">sound number</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*sound data</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*track 0 data</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*track 1 data</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*track 2 data</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*noise track data</td>
+				<td align="center" colspan="4" class="white"></td>
+			</tr>
+			<tr>
+				<td style="vertical-align:middle">&nbsp;View</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*next view</td>
+				<td align="center" style="vertical-align:middle">view number</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*view data</td>
+				<td align="center" colspan="13" class="white"></td>
+			</tr>
+			<tr>
+				<td style="vertical-align:middle">&nbsp;Bkgd BMP</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*next bmp</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*previous bmp</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*screen object</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">left</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">top</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">width</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">height</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*bmp data</td>
+				<td align="center" colspan="2" width="200"class="white"></td>
+			</tr>
+			<tr>
+				<td style="vertical-align:middle">&nbsp;Menu</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*next menu</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*previous menu</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*menu text</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">row</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">column</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">enabled</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*first item</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*current item</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">item count</td>
+			</tr>
+			<tr>
+				<td style="vertical-align:middle" >&nbsp;Menu Item</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*next item</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*previous item</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">*menu item text</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">item number</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">column</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">enabled</td>
+				<td align="center" colspan="2" width="200" style="vertical-align:middle">controller</td>
+				<td align="center" colspan="4" class="white"></td>
+			</tr>
+		</table>
+		<p>Entries marked with an asterisk (*) indicate a memory address pointer to the specified item. It is not known why the sound header uses two bytes to track the resource number, while all others use a single byte; a single byte should have been sufficient.</p>
+		<p>The first two bytes of every header are used to point to the 'next' resource, as part of AGI's <a href="#linklists">linked list</a> structure. Whenever a new resource is loaded, the header of the last resource is modified to point to the header of the newly loaded resource. This allows AGI to quickly step through all resources of a given type when looking for a particular resource.</p>
+	<h2>Tracking Memory Usage</h2>
+		<p>Because memory management was such a critical issue for AGI games (due to the limited amount of memory available), Sierra included a feature to monitor memory and <a href="scripts.htm">script</a> usage. The <b><a href="..\commands\cmd_showmem.htm">show.mem</a></b> command will display detailed memory information, including the size of the heap, the amount of memory allocated to <a href="#room0">room.0</a> resources, the current memory usage, and the highest memory usage. It also displays the highest number of <a href="scripts.htm">script</a> entries encountered. During game development, this information can be extremely useful in managing resources to avoid memory issues during game play.</p>
+		<p><a href="variables.htm#reserved">Reserved variable</a> <a href="v8.htm">v8 (free memory)</a> can be used to track the amount of free memory in real time. AGI updates v8 every time memory is allocated or freed. The value of v8 is the amount of free memory available divided by 256 (rounded down).</p>
+		<p>Useless trivia note: All versions of AGI have two unused functions that allow for saving and restoring the current memory pointer. These appear to be left over from very early versions but were never deleted even though they are never used by AGI.</p>
+	<h2>Memory Leaks</h2>
+		<p>There are several situations that you must avoid to prevent AGI from 'orphaning' chunks of memory which result in less space available for your running your game. There are two main types of leaks - those caused by resetting the room.0 pointer when unneeded resources are loaded, and those caused by the normal memory pointer being reset improperly.</p>
+		<p>To avoid resetting the <a href="#room0">room.0</a> pointer improperly, you need to make sure no unnecessary resources are loaded prior to calling the <a href="..\commands\cmd_scriptsize.htm"><b>script.size</b></a> and <a href="..\commands\cmd_submitmenu.htm"><b>submit.menu</b></a> commands. Also, due to a bug in the <b>submit.menu</b> command, avoid any code that calls <b>submit.menu</b> more than once; the command does not affect the current menu at all, but it will reset the room.0 pointer. An example of this error existed in the original AGI Studio template game, when players were allowed to teleport to room 0 - this caused the initialization logic to run again (including <b>submit.menu</b>) which cause the tracer logic to be trapped in memory.</p>
+		<p>There is a bug in the <a href="..\commands\cmd_call.htm"><b>call</b></a> and <a href="..\commands\cmd_callv.htm"><b>call.v</b></a> commands that will cause a memory leak by improperly resetting the memory pointer if a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> or <a href="..\commands\cmd_newroomv.htm"><b>new.room.v</b></a> command is called from within a logic that was not previously loaded. To avoid this, you need to be sure that <b>new.room</b> commands are never called unless the logic it is called from (and all logics in the call stack) is explicitly loaded before being called. See the <a href="..\commands\cmd_call.htm"><b>call</b></a> command for more details.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

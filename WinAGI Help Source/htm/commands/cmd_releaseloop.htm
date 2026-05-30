@@ -1,0 +1,46 @@
+<html>
+	<head><title>Action Command: release.loop</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>release.loop</h1>
+			<p>The <b>release.loop</b> command re-enables the auto loop select feature for a screen object.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>release.loop(<a href="syntax_fan.htm#argtypes">obj</a> oA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>AGI includes a feature that <a href="..\agi\screenobjs.htm#autoloop">automatically changes</a> a screen object's <a href="..\agi\views.htm#loop">loop</a> based in its direction of motion. This made it much simpler for dealing with characters that need to change profiles as they move about the screen.</p>
+			<p>The <b>release.loop</b> command re-enables the auto loop select feature for <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b>, if it has been disabled by the <a href="cmd_fixloop.htm"><b>fix.loop</b></a> command.</p>
+			<p>If the screen object is already using the auto loop select feature, <b>release.loop</b> has no effect.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>#define dancer o4 
+...  [ initialize  and draw object
+set.loop(dancer, 2);  [ face  forward 
+fix.loop(dancer);     [ begin dancing, always face forward
+...              
+<b>release.loop(dancer);</b> [ done dancing</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">46 (0x2E)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_fixloop.htm">fix.loop</a></b></p>
+			<p><a href="..\agi\screenobjs.htm#autoloop">Auto Loop Feature</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

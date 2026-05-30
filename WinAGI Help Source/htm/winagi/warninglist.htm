@@ -1,0 +1,37 @@
+<html>
+	<head><title>Errors and Warnings List</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+      </tr>
+    </table>
+    <h1>Errors and Warnings List</h1>
+    <p>The Errors and Warnings List displays all warnings and errors encountered when working on an AGI game. Each entry includes the error or warning number, a description, and the resource number and line number where the error or warning occurred, if applicable. If an error or warning is found in an <a href="..\commands\syntax_fan.htm#include">included file</a>, the name of the include file will be shown here to aid in finding the code that generated the error or warning.</p>
+    <p><img alt="Errors and Warnings List" src="..\..\graphics\warninglist.jpg" width="462"></p>
+    <p>The Warnings and Error List will display:</p>
+    <ul>
+      <ul>
+        <li><a href="errors_resource.htm">Game and Resource Errors</a></li>
+        <li><a href="warnings_resource.htm">Game and Resource Warnings</a></li>
+        <li><a href="errors_decompile.htm">Logic Source Decompiler Errors</a></li>
+        <li><a href="warnings_decompile.htm">Logic Source Decompiler Warnings</li>
+        <li><a href="errors_compiler.htm">Logic Source Compiler Errors</a></li>
+        <li><a href="warnings_compiler.htm">Logic Source Compiler Warnings</a></li>
+        <li>Logic Source '<a href="editor_logic.htm#TODO">TODO</a>' entries</li>
+      </ul>
+    </ul>
+    <p>The list will automatically display whenever a condition arises that adds a new item to the list. You can hide the list by using the Hide Warning List option on the <a href="workingwith_tools.htm">Tools</a> menu. You can re-display it from the same menu.</p>
+    <h2>Filter and Sort Options</h2>
+    <p>The list includes filtering and sorting capabilities to help manage your list. You can toggle the display of errors, warnings and TODO items by clicking on the count label at the top of the list. You can also change the scope of errors from the default (all items across all files) to only those that apply to the currently selected resource, all open resources, or only logics.</p>
+    <p>Right-click any column header to change the sort order of the list.</p>
+    <p>You can double-click on a TODO,  error or warning entry for a logic source file to automatically open the logic source to the line at which the error or warning occurred.</p>
+    <p>For additional information related to an error or warning, select it then right-click and choose Help from the context menu (or press F1). The WinAGI help file will open to the appropriate page and display information on the selected error or warning.</p>
+    <h3><a name="ignorewarn">Ignoring Individual Warnings</a></h3>
+    <p>If you don't want to lower the <a href="compilinglogics.htm#errlevel">Error Detection Level</a>, but also don't want to see certain warnings, you can choose to ignore warnings individually. To ignore a warning, right click on the warning you want to ignore, then choose "Ignore Warning" from the popup menu. Note that this will cause WinAGI to not show this particular warning again for any logics you compile in any game. You can reset ignored warnings back to normal by using the Reset Message Box Warnings" option on the <a href="settings_general.htm">General</a> tab of the <a href="settings.htm">Settings</a> dialog.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

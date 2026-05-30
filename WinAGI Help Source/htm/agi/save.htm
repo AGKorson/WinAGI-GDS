@@ -1,0 +1,78 @@
+<html>
+	<head><title>Saving an AGI Game</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1><a name="saving">Saving Games</a></h1>
+			<p>Saving a game (by using the <b><a href="..\commands\cmd_savegame.htm">save.game</a></b> command) writes the current game state, including all information about loaded <a href="resources.htm">resources</a>, <a href="variables.htm">variables</a>, <a href="flags.htm">flags</a>, etc. to disk so it can be <a href="restore.htm">restored</a> later.</p>
+			<p>AGI prompts the player for a directory (the default is the current directory, if running from a hard drive), then searches the selected directory for any existing save game files.</p>
+			<img src="..\..\graphics\save.bmp" width="535" alt="Save Game Directory Dialog Box">
+			<p>While the save dialog is shown, AGI also <a href="cycle.htm#pausing">pauses the internal game clock</a> in all <a href="..\agi\versions.htm">versions</a> except <a href="..\agi\version2.htm#2089">2.089</a>.</p>
+			<p>Each saved game is stored in a separate file. The number of save game files is limited to twelve. Each file has a description stored as the first data field that is displayed to the player when selecting game 'slots'. AGI also checks that the <a href="components.htm#gameid">game ID</a> stored in the save game file matches the current interpreter <a href="components.htm#gameid">game ID</a> or it does not add the save game file to the display list. Choosing a slot prompts the player to enter a description. Choosing an existing game slot will write over that existing save game file.</p>
+			<img src="..\..\graphics\savelist.bmp" width="584" alt="Save Game List Box">
+			<p>The naming convention for saved games is the <a href="components.htm#gameid">game ID</a> concatenated with "SG", with a file extension that contains the save game file number. As an example, King's Quest I save games would be "KQ1SG.1", "KQ1SG.2", ... up to "KQ1SG.12". If the <a href="components.htm#gameid">game ID</a> has not been set, the save games will simply be "SG.1", "SG.2", etc.</p>
+			<p>The <a href="..\commands\cmd_setsimple.htm"><b>set.simple</b></a> command can be used to change the behavior of save and <a href="restore.htm">restore</a> functions. When <b>set.simple</b> is called with a <a href="strings.htm">string</a> argument that contains a non-zero length text string, AGI uses that string as the default save game description. Calls to <a href="..\commands\cmd_savegame.htm"><b>save.game</b></a>/<a href="..\commands\cmd_restoregame.htm"><b>restore.game</b></a> will automatically save/restore the first save game file in the current save game directory that matches the default save game description. Calling <b><a href="..\commands\cmd_setsimple.htm">set.simple</a></b> with a string argument that is a null string returns normal save/restore functionality. Note that the <b><a href="..\commands\cmd_setsimple.htm">set.simple</a></b> command is available on AGI <a href="versions.htm">versions</a> 2.903 and above.</p>
+			<p>When saving or <a href="restore.htm">restoring</a>, AGI first freezes the <a href="cycle.htm#clock">internal clock</a>, and changes the <a href="messages.htm#escape">runtime escape character</a> to '@', so the backslash (\) will display correctly for game directories. If a <a href="sounds.htm">sound</a> is playing, it is also stopped during save/restore operations.</p>
+		<h3><a name="format">Save Game Format</a></h3>
+			<p>Saved games consist of the following data fields:</p>
+			<p><table id="Table2" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="300"><b>Size</b></td>
+					<td width="700"><b>Data</b></td>
+				</tr>
+				<tr>
+					<td>31 bytes</td>
+					<td>The description displayed by AGI when choosing a game slot; a null terminated string, padded with extra null characters as needed.</td>
+				</tr>
+				<tr>
+					<td>2 bytes</td>
+					<td>Size of Game State Section</td>
+				</tr>
+				<tr>
+					<td>
+						<p>version dependent; (1505 bytes for 2.917)</p>
+					</td>
+					<td>A memory dump of game state section in <a href="memory.htm">memory</a>. Includes <a href="components.htm#gameid">game ID</a>, <a href="variables.htm">variables</a>, <a href="flags.htm">flags</a>, <a href="controllers.htm">controllers</a>, and other game state data.</td>
+				</tr>
+				<tr>
+					<td>2 bytes</td>
+					<td>Size of Object Table Section</td>
+				</tr>
+				<tr>
+					<td>43 bytes times number of <a href="screenobjs.htm">screen objects</a> currently animated</td>
+					<td>A memory dump of the entire <a href="sobjtable.htm">screen objects table</a>.</td>
+				</tr>
+				<tr>
+					<td>2 bytes</td>
+					<td>Size of Inventory Objects Section</td>
+				</tr>
+				<tr>
+					<td>3 bytes times number of objects plus string data for each object</td>
+					<td>An unencrypted copy of the game's <a href="object.htm">OBJECT</a> file data including any modifications to room information made by <a href="..\commands\cmd_get.htm"><b>get</b></a>, <a href="..\commands\cmd_put.htm">put</b></a> and <a href="..\commands\cmd_drop.htm">drop</b></a> commands (except it does not include the two byte header and the <a href="..\agi\screenobjs.htm#maxscreenobj">MaxScreenObject</a> byte). In <a href="versions.htm">version 3</a> games, the OBJECT file is encrypted before being added to the save game file.</td>
+				</tr>
+				<tr>
+					<td>2 bytes</td>
+					<td>Size of Script Table Section</td>
+				</tr>
+				<tr>
+					<td>2 bytes times the max script size</td>
+					<td>A memory dump of the <a href="scripts.htm">script table</a> data.</td>
+				</tr>
+				<tr>
+					<td>2 bytes</td>
+					<td>Size of Scan Start List Section (not used in <a href="version2.htm#2089">version 2.089</a>)</td>
+				</tr>
+				<tr>
+					<td>4 bytes times number of loaded logics + 8</td>
+					<td>A four byte marker (0x00000000) marks the start of this section; then, for each loaded <a href="logics.htm">logic</a>, the logic number (as a 16 bit word) and its current <a href="logics.htm#scan">scan point</a> (as a 16 bit offset from the logic start); another four byte marker (0xFFFF0000) marks the end of this section</td>
+				</tr>
+			</table></p>
+			<p>Scan start data was not added to save games until <a href="version2.htm#2272">version 2.272</a>. The <a href="logics.htm#scan">scan start</a> table is created new each time a game is saved. AGI only allocated space for 30 entries in the table. In the highly unlikely event that you have more than 30 logics loaded when you save a game, the scan table will overflow into space used by AGI to display memory related messages and the memory pointers, which will <a href="errors.htm">crash AGI</a>.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

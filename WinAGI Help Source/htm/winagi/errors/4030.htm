@@ -1,0 +1,24 @@
+<html>
+	<head><title>Logic Compiler Error 4030</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4030</h2>
+    <h3>'{' must follow an '<code>if</code>' or '<code>else</code>' statement</h3>
+    <p class="indent_n">All <a href="..\..\commands\syntax_fan.htm#actions">action commands</a> following an <a href="..\..\commands\syntax_fan.htm#ifelse"><code><b>if</b></code></a> or <code><b>else</b></code> statement must be enclosed in curly brackets '{ }'. This compiler error indicates that the starting curly bracket is missing.</p>
+    <blockquote>
+      <pre>if (v99 == 0)
+    v100 = 1;  [ <font color="red"><b>NOT OK</b></font>; missing '{'
+    ...
+    }
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

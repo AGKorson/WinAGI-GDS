@@ -1,0 +1,78 @@
+<html>
+	<head><title>Test Command: controller</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>controller</h1>
+			<p>The <b>controller</b> test command returns TRUE if a <a href="..\agi\menu.htm">menu</a> item or <a href="..\agi\controllers.htm#keyboard">key</a> assigned to the <a href="..\agi\controllers.htm">controller</a> has been selected or pressed during the current <a href="..\agi\cycle.htm">interpreter cycle</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>controller(<a href="..\agi\controllers.htm">ctl</a> cA)</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Test commands are only valid in an <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> statement.</p>
+			<p>This test command can be combined with the '<a href="..\agi\logics.htm#not"><code><b>NOT</b></code></a>' operator to test for a controller NOT being selected.</p>
+			<p>AGI checks the <a href="..\agi\controllers.htm#evaltable">controller evaluation table</a> entry for <b>cA</b> and returns TRUE if the controller has been activated. If more than one menu or keyboard entry is assigned to the controller, it does not matter which one is selected/pressed. Any of them will cause the <b>controller</b> command to return TRUE.</p>
+			<p>AGI clears all controllers at the beginning of each <a href="..\agi\cycle.htm">interpreter cycle</a>.</p>
+			<p>AGI does not validate the argument <b>cA</b> to be sure it points to a valid <a href="..\agi\controllers.htm">controller</a>. If <b>cA</b> is invalid, when AGI accesses the <a href="..\agi\controllers.htm#flagtable">controller evaluation table</a>, it will overflow and read invalid memory, leading to unpredictable results.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ build a simple menu system
+set.menu("Info");
+set.menu.item("About   ", c0);
+set.menu.item("Help    ", c1);
+set.menu("File");
+set.menu.item("Save Game      &lt;F5&gt;", c2);
+set.menu.item("Restore Game   &lt;F7&gt;", c3);
+set.menu.item("-------------------", c20);
+set.menu.item("Restart Game   &lt;F9&gt;", c4);
+set.menu.item("-------------------", c20);
+set.menu.item("Quit        &lt;Alt Z&gt;", c5);
+[ disable the separators
+disable.item(c20);
+
+[ submit menu to agi
+submit.menu()
+
+[ create keyboard shortcuts
+set.key(0, 63, c2); [  'F5'
+set.key(0, 65, c3); [  'F7'
+set.key(0, 67, c4); [  'F9'
+set.key(26, 0, c5); [  'Alt-Z'
+
+[ test for menu or keyboard selections
+if(<b>controller</b>(c2)
+  {
+  [ save game
+  save.game();
+  }
+
+if(<b>controller</b>(c3)
+  {
+  [ restore game
+  restore.game()
+  }
+...</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">12 (0x0C)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_test.htm">Test Commands</a>
+			</p>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="..\agi\controllers.htm">Controllers</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

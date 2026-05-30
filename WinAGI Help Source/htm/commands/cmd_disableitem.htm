@@ -1,0 +1,62 @@
+<html>
+	<head><title>Action Command: disable.item</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>disable.item</h1>
+			<p>The <b>disable.item</b> command grays out a menu item and disables it so it cannot be selected.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>disable.item(<a href="syntax_fan.htm#argtypes">ctl</a> cA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command will disable all <a href="..\agi\menu.htm">menu</a> items that match the <a href="..\agi\controllers.htm">controller</a> passed as an argument. Disabled items are 'grayed out' when the menu is displayed, so the player cannot select them. Use the <a href="cmd_enableitem.htm"><b>enable.item</b></a> command to enable a menu item that is disabled.</p>
+			<p>If the item is already disabled, or the controller is not assigned to a menu item, this command has no effect.</p>
+			<p>If multiple menu items use <a href="..\agi\controllers.htm">controller</a> <b>cA</b>, all of them will be disabled when using the <b>disable.item</b> command.</p>
+			<p>Do not use the <b>disable.item</b> command unless a <a href="..\agi\menu.htm">menu</a> has already been created. AGI will attempt to read invalid data, which at best will have no effect, but could potentially <a href="..\agi\errors.htm">crash AGI</a>.</p>
+			<p>All menu items are re-enabled whenever a game is <a href="..\agi\restart.htm">restarted</a>. Any menu items that need to be disabled permanently (such as separators) will need to be disabled again after a game is restarted.</p>
+			<p>Don't forget to properly handle <a href="..\agi\controllers.htm#keyboard">keyboard controllers</a> that may be assigned to the same controller number; the <b>disable.item</b> command does not disable keyboard controllers.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ build a simple menu system
+set.menu("Info");
+set.menu.item("About   ", c0);
+set.menu.item("Help    ", c1);
+set.menu("File");
+set.menu.item("Save Game      &lt;F5&gt;", c2);
+set.menu.item("Restore Game   &lt;F7&gt;", c3);
+set.menu.item("-------------------", c20);
+set.menu.item("Restart Game   &lt;F9&gt;", c4);
+set.menu.item("-------------------", c20);
+set.menu.item("Quit        &lt;Alt Z&gt;", c5);
+
+set.key(19, 0, c2); [ CTRL+S assigned to 'save game' controller
+<b>disable.item(c20);</b>  [ disable the separators
+<b>disable.item(c2);</b>   [ also disable saving
+[ submit menu to agi
+submit.menu()
+[ menu item for 'Save Game' is disabled, but if user 
+[ presses CTRL+S, controller c2 will be set to TRUE</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 2.411 and above. </p>
+		<p>This command was actually added in <a href="..\agi\versions.htm">version 2.272</a>, but it did not do anything - it was a null function. Code to support menus was not added to the command until version 2.411.</p> 
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">160 (0xA0)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="cmd_enableitem.htm">enable.item</a></p>
+			<p><a href="..\agi\menu.htm">Menus in AGI</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

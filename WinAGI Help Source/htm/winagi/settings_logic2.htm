@@ -1,0 +1,98 @@
+<html>
+  <head><title>Logic Settings - Page 2</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+	  	<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Logic Settings - Page 2</h1>
+			<map name="settings">
+				<area shape="rect" alt="General Settings" coords="12,41,65,61" href="settings_general.htm">
+				<area shape="rect" alt="Logic Settings" coords="66,41,111,61" href="settings_logic.htm">
+				<area shape="rect" alt="Picture Settings" coords="175,41,228,61" href="settings_picture.htm">
+				<area shape="rect" alt="Sound Settings" coords="229,41,279,61" href="settings_sound.htm">
+				<area shape="rect" alt="View Settings" coords="280,41,327,61" href="settings_view.htm">
+				<area shape="rect" alt="Layout Settings" coords="328,41,374,61" href="settings_layout.htm">
+				<area shape="rect" alt="Compiler Error Dection Level" coords="38,100,159,142" href="#compilererror">
+				<area shape="rect" alt="Auto Display Warning List" coords="39,150,195,162" href="#autowarn">
+				<area shape="rect" alt="Always Include Resource IDs" coords="260,99,426,111" href="#includeids">
+				<area shape="rect" alt="Always Include Reserved Defines" coords="260,124,446,136" href="#includeresdef">
+				<area shape="rect" alt="Always Include Global Defines" coords="260,149,435,161" href="#includeglobals">
+				<area shape="rect" alt="Show Comment Column" coords="47,218,225,230" href="#showcmt">
+				<area shape="rect" alt="Display Messages After Code" coords="50,278,256,290" href="#messages">
+				<area shape="rect" alt="Show Alternate Syntax" coords="50,303,234,315" href="#altsyntax">
+				<area shape="rect" alt="Show Reserved Names" coords="50,328,282,340" href="#resvar">
+				<area shape="rect" alt="Messages by Number" coords="50,353,349,365" href="#msgsbynum">
+				<area shape="rect" alt="Items by Number" coords="50,378,364,390" href="itemsbynum">
+				<area shape="rect" alt="Words by Number" coords="50,403,387,415" href="#wordsbynum">
+				<area shape="poly" alt="Code Style" coords="349,275,410,275,410,290,454,290,454,312,349,312" href="#codestyle">
+			</map>
+			<p><img src="..\..\graphics\settings-logic2.jpg" usemap="#settings" border="0" width="500"></p>
+
+		<h2><a name="compilererror">Compiler Error Level</a></h2>
+			<p>The <a href="compilinglogics.htm#errlevel">error detection level</a> of the compiler determines how the compiler responds when it detects errors or ambiguity. There are two settings:</p>
+			<ul><ul>
+				<li>Low - as long as the compiler can create executable code, it won't return errors. No checks are made for conditions that will or may cause runtime errors.</li>
+				<li>Medium - the compiler will create code, but if it detects conditions that could potentially cause errors at runtime when executed by AGI, it generates warnings indicating where potential problems exist.</li>
+			</ul></ul>
+			<p>&nbsp;</p>
+		<h2><a name="autowarn">Auto Display Warning List</a></h2>
+			<p>When this option is set, if the <a href="warninglist.htm">Warning List</a> is not already visible, it will be automatically be displayed whenever a warning or error entry is added such as during <a href="compilinglogics.htm">logic compilation</a>.</p>
+			<p>&nbsp;</p>
+		<h2><a name="autowarn">Auto Include Default Options</a></h2>
+			<p>These settings control the default values for the <a href="prop_general.htm#autoinclude">auto-include defines properties</a> when <a href="newgame.htm">creating new games</a>:</p>
+		<h3><a name="includeids">Always Include Resource IDs</a></h3>
+			<p>This option sets the default value for the Include Resource IDs property for new games. If you never intend to include <a href="managingresources.htm#resourceids">Resource IDs</a> in new games you create you can clear this option. (You can still enable the property when creating each new game; this option only affects the default value when the New Game properties dialog is first displayed.)</p>
+		<h3><a name="includeresdef">Always Include Reserved Defines</a></h3>
+			<p>This option sets the default value for the Include Reserved Defines property for new games. If you never intend to include <a href="reservednames.htm">reserved defines</a> in new games you create you can clear this option. (You can still enable the property when creating each new game; this option only affects the default value when the New Game properties dialog is first displayed.)</p>
+		<h3><a name="includeglobals">Always Include Global Defines</a></h3>
+			<p>This option sets the default value for the Include Global Defines property for new games. If you never intend to include <a href="editor_globals.htm">global defines</a> in new games you create you can clear this option. (You can still enable the property when creating each new game; this option only affects the default value when the New Game properties dialog is first displayed.)</p>
+			<p>&nbsp;</p>
+		<h2>Globals Editor Settings</h2>
+		  	<p>The <a href="editor_globals.htm">globals editor</a> is used to edit <a href="..\commands\syntax_fan.htm#defines">defines</a> that are available to all logics in a game.</p>
+		<h3><a name="showcmt">Show Comment Column</a></h3>
+		  	<p>When this option selected, the comment column will be visible by default every time you open the globals editor. If you never want to use comments, you can deselect this option so the comment column won't be visible. You can always show/hide the comment field as you wish once the editor is open.</p>
+			<p>&nbsp;</p>
+		<h2><a name="decompsettings">Decompiler Settings</a></h2>
+			<p>These settings control how WinAGI decompiles existing logics:</p>
+		<h3><a name="messages">Display Messages After Code</a></h3>
+			<p>If messages are shown as literal strings in commands, set this option to also list all messages at the end of the decompiled code, as message declarations, using the <a href="..\commands\syntax_fan.htm#messages"><b>#message</b> preprocessor statement</a>.</p>
+		<h3><a name="altsyntax">Show Alternate Syntax</a></h3>
+			<p>Some commands have alternate syntax. For example:</p>
+<blockquote><pre>assignn(v200, 5);</pre></blockquote>
+			<p>can also be represented as</p>
+<blockquote><pre>v200 = 5;</pre></blockquote>
+			<p>When this option is enabled, WinAGI uses the alternate syntax for these commands. See the <a href="..\commands\syntax_fan.htm">Syntax Rules</a> topic for the complete list of alternate syntax for <a href="..\commands\syntax_fan.htm#alternateactions">action commands</a> and for <a href="..\commands\syntax_fan.htm#alternatetests">test commands</a>.</p>
+		<h3><a name="resvar">Show Reserved Variable and Flag Names</a></h3>
+			<p>When this option is enabled, the decompiler inserts reserved define names for <a href="..\agi\variables.htm#reserved">variable</a> and <a href="..\agi\flags.htm#reserved">flag</a> arguments that are reserved for use by AGI.</p>
+		<h3><a name="msgsbynum">Display Messages by Number</a></h3>
+		    <p>When this option is enabled, the decompiler will insert literal strings as <a href="..\agi\messages.htm">message arguments</a> in decompiled code, i.e.,</p>
+<blockquote><pre>print("This is a message.");</pre></blockquote>
+			<p>When unchecked, message arguments will be represented by their <a href="..\commands\syntax_fan.htm#markers">argument marker</a> (i.e. 'm1', 'm2', etc.)</p> 
+		<h3><a name="itemsbynum">Display Inventory Items by Number</a></h3>
+			<p>When this option is enabled, WinAGI will use the text of <a href="..\agi\invitems.htm">inventory items</a> as the argument value for relevant commands in decompiled code. When unchecked, inventory items will be represented by their <a href="..\commands\syntax_fan.htm#markers">argument marker</a> (i.e. 'i1', 'i2', etc.)</p>
+		<h3><a name="wordsbynum">Display Words by Number</a></h3>
+			<p>When this option is enabled, WinAGI will use the text of first <a href="..\agi\words.htm">word</a> in the word's <a href="..\agi\words.htm#wordgroups">group as the argument value in <a href="..\commands\cmd_said.htm"><b>said</b></a> commands. When unchecked, vocabulary words will be represented by their group number.</p>
+		<h3><a name="codestyle">Decompiler Code Style</a></h3>
+			<p>WinAGI currently supports three different styles for formatting output code when decompiling:</p>
+			<ul><ul>
+				<li><b>Default</b></li>
+				<p>open braces '{' placed on new line, indented</p>
+			  <p>closing braces  '}' placed on new line, indented</p>
+			  <p><code>else</code> keyword placed on new line, not indented</p>
+			  <li>Alternate 1</li>
+			    <p>opening braces '{' placed on same line as <code>if</code> or <code>else</code> keyword</p>
+					<p>closing braces '}' placed on new line, not indented</p>
+			    <p><code>else</code> keyword placed on new line, not indented</p>
+		  	<li>Alternate 2</li>
+		  	  <p>opening braces '{' placed on same line as <code>if</code> or <code>else</code> keyword</p>
+		      <p>closing braces '}' placed on new line, not indented</p>
+		      <p><code>else</code> keyword placed on same line as closing brace</p>
+      </ul></ul>
+      <p>The style <a href="settings_logic.htm">Preview</a> button will display sample decoded text in the selected style</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

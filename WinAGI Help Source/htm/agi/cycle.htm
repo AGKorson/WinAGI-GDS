@@ -1,0 +1,51 @@
+<html>
+	<head><title>Interpreter Cycle</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>The Interpreter Cycle</h1>
+			<p>The heart of AGI is the interpreter cycle. Once the game <a href="starting.htm">starts and initializes</a> AGI, it enters a loop that continually repeats until the player quits the game. During each cycle, AGI performs the following actions:</p>
+			<ul><ul>
+				<li><a name="clock">sets</a> a delay by checking the internal clock until desired time has passed; the delay is n times 1/20 second, where n is the value of <a href="variables.htm#reserved">reserved variable</a> <a href="v10.htm">v10 (animationInterval)</a>; for example, if v10==5, then there would be a quarter second (5/20) delay between cycles; AGI also updates the clock variables <a href="v11.htm">v11 (seconds)</a>, <a href="v12.htm">v12 (minutes)</a>, <a href="v13.htm">v13 (hours)</a>, and <a href="v14.htm">v14 (days)</a> for each clock cycle; AGI then checks the <a href="memory.htm#stack">stack</a> (if it is blown, an error message is displayed and then AGI immediately ends);</li>
+				<li>clears the keyboard buffer and the <a href="controllers.htm#flagtable">controller activation table</a>;</li>
+				<li>resets <a href="flags.htm#reserved">reserved flags</a> <a href="f2.htm">f2 (input received)</a> and <a href="f4.htm">f4 (said found match)</a>;</li>
+				<li>polls the <a href="joystick.htm">joystick</a>, if one is present;</li>
+				<li>clears <a href="variables.htm#reserved">reserved variables</a> <a href="v19.htm">v19 (pressed key code)</a> and <a href="v9.htm">v9 (unknown word number)</a> by setting them to 0;</li>
+				<li>handles input on the <a href="interface.htm">input queue</a> by:</li>
+				<ul>
+					<li>storing key presses in <a href="variables.htm#reserved">reserved variable</a> <a href="v19.htm">v19 (pressed key code)</a>;</li>
+					<li>changing <a href="interface.htm#ego">ego</a> direction if a <a href="keyboard.htm#egodir">direction control key</a> is pressed - <a href="variables.htm#reserved">reserved variable</a> <a href="v6.htm">v6 (ego direction)</a> is set to the new direction, and, if under <a href="interface.htm#playercontrol">player control</a>, <a href="..\commands\object_moving.htm#movemode">movement mode</a> is forced to <a href="..\commands\cmd_normalmotion.htm">normal motion</a>;</li>
+					<li>setting the appropriate byte flag in the <a href="controllers.htm#flagtable">controller flag table</a> to true if a <a href="controllers.htm">controller</a> input is read.</li>
+				</ul>
+				<li>updates <a href="interface.htm#ego">ego</a> direction, based on current <a href="interface.htm#playercontrol">control mode</a>:</li>
+				<ul>
+					<li><a href="interface.htm#playercontrol">player control</a>: sets direction parameter of ego's <a href="sobjtable.htm">screen object table entry</a> to match the value of  <a href="variables.htm#reserved">reserved variable</a> <a href="v6.htm">v6 (ego direction)</a></li>
+					<li><a href="interface.htm#programcontrol">program control</a>: sets <a href="variables.htm#reserved">reserved variable</a> <a href="v6.htm">v6 (ego direction)</a> to match the value of the direction parameter of ego's <a href="sobjtable.htm">screen object table entry</a></li>
+				</ul>
+				<li>for all screen objects for which <b><a href="..\commands\cmd_animateobj.htm">animate.obj</a></b> , <b><a href="..\commands\cmd_startupdate.htm">start.update</a></b> and <b><a href="..\commands\cmd_draw.htm">draw</a></b> commands were issued, directions of motion are recalculated;</li>
+				<li>caches current score (<a href="v3.htm">v3</a>) and sound state (<a href="f9.htm">f9</a>);</li>
+				<li><a href="logics.htm#logic0">Logic 0</a> is executed as well as any <a href="logics.htm">logics</a> it calls which, in turn, can call other logics; if a <b><a href="..\commands\cmd_newroom.htm">new.room</a></b> or <b><a href="..\commands\cmd_newroomv.htm">new.room.v</a></b> command is executed, the cycle is interrupted. All resources are removed from memory, various game parameters are reset, and the cycle continues by jumping back to execute <a href="logics.htm#logic0">logic 0</a> again. For a detailed description of the steps taken when AGI encounters a new <a href="pictures.htm#room">room</a>, see the <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command;</li>
+				<li>the direction value in the <a href="sobjtable.htm">screen object table entry</a> for <a href="interface.htm#ego">ego</a> is set to the value in <a href="v6.htm">v6</a> regardless of control mode (which is why the <a href="..\commands\commands.htm"><b>set.dir</b></a> command never works for ego);</li>
+				<li>if <a href="v3.htm">v3 (current score)</a> or <a href="f9.htm">f9 (sound on)</a> have changed (by comparing to values cached before <a href="logics.htm">logics</a> were run), then <a href="grafdisp.htm">status line</a> is updated;</li>
+				<li><a href="variables.htm#reserved">reserved variables</a> <a href="v4.htm">v4 (object touching edge)</a> and <a href="v5.htm">v5 (object edge code)</a> are set to 0;</li>
+				<li><a href="flags.htm#reserved">reserved flags</a> <a href="f5.htm">f5 (new room)</a>, <a href="f6.htm">f6 (game restarted)</a> and <a href="f12.htm">f12 (game restored)</a> are all reset to FALSE;</li>
+				<li><a name="update">if</a> in <a href="grafdisp.htm">graphics mode</a>, all <a href="screenobjs.htm">screen objects</a> that are flagged for <a href="..\commands\object_initialize.htm#updating">updating</a> are updated (for each screen object, AGI sets the <a href="screenobjs.htm#autoloop">correct loop</a>, moves it according to its <a href="..\commands\object_moving.htm#movemode">movement mode</a>, cycles it according to its <a href="..\commands\object_cycling.htm#cyclemode">cycle mode</a>, and then redraw it on the graphics screen).</li>
+			</ul></ul>
+			<p>The cycle then repeats.</p>
+		<h2><a name="pausing">Pausing Game Cycle vs Pausing Clock</a></h2>
+			<p>There are multiple ways to pause the game cycle, such as using <a href="menu.htm">menus</a>, showing the <a href="..\commands\cmd_status.htm">inventory screen</a>, <a href="restart.htm">restarting</a>, <a href="save.htm">saving</a> or <a href="restart.htm">restoring</a> a game, displaying messages with the <a href="..\commands\cmd_print.htm"><b>print</b></a> command, etc. However, in most of these cases, although the interpreter cycle is paused while the activity is resolved, the game's internal clock continues to move.</p>
+			<p>There are only three instances where AGI will pause the internal clock in addition to pausing the game cycle:</p>
+			<ul><ul>
+				<li><a href="..\commands\cmd_pause.htm"><b>pause</b></a> command</li>
+				<li><a href="..\commands\cmd_savegame.htm"><b>save</b></a> command</li>
+				<li><a href="..\commands\cmd_restoregame.htm"><b>restore</b></a> command</li>
+			</ul></ul>
+			<p>If your game relies on timing elements specifically tied to the internal clock, you need to consider these factors to avoid unexpected results.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

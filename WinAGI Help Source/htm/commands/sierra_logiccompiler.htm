@@ -1,0 +1,135 @@
+<html>
+<head>
+  <title>Sierra's Logic Script Compiler</title>
+  <link href="..\styles\coUA.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+  <a name="_top"></a>
+  <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+    <tr>
+      <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+    </tr>
+  </table>
+  <h1>Sierra's Logic Script Compiler</h1>
+  <p>Sierra AGI game programmers used a tool named CG.EXE to convert their text based script source into logic byte code. It appears to have been in use since the early days of AGI, probably being written around the time of AGI version 1. The key feature of CG.EXE is that it did not have AGI's command syntax built in- it required each script to include command definitions, which CG.EXE would use to generate the desired byte code.</p>
+  <p>Only one version of CG.EXE, v3.14, has been made public. This reference is specific to that version.</p>
+  <h2>Using CG.EXE</h2>
+  <p>The file creation date of CG.EXE is 1984, which coincides with early version 2 of AGI. It does not appear that it was ever updated, even as AGI progressed through version 3. Most likely this is because there was no difference in logic resource structure, the additional commands added in later versions was easily handled by CG.EXE.</p>
+  <p>CG.EXE is a native MSDOS program. The usage form is:</p>
+  <blockquote>
+    <pre>cg room [room...] [-o output_directory] [-b buffer_size] [-v]</pre>
+  </blockquote>
+  <p>There are three possible command switches:</p>
+  <ul><ul>
+    <li><b><code>-o</code></b>: Sets the output directory (where the compiled logic files will be saved). The default is the current directory. The output directory can be any legal MSDOS directory name, including relative paths. If the argument is not valid directory name, CG.EXE will quit with an error. If the argument is a valid directory name, but does not exist, CG.EXE will run, but will raise an error at the end when it can't write the output files.</li>
+    <li><b><code>-b</code></b>: Adjusts the file write buffer size - The default is 1000h (4K). There's really no reason to change this, but it can be adjusted if desired. If the argument following the <b><code>-b</code></b> switch is non-numeric or missing, a value of zero is used, which will cause CG.EXE to fail immediately. Larger values means disk writes are minimized, but take up more memory.</li>
+    <li><b><code>-v</code></b>: Sets 'verbose' mode. This switch does not take an argument. When used, it causes the output to display additional information, including the number of symbols and messages found in the source file, and information on the symbol hash table.</li>
+  </ul></ul>
+  <p>Arguments (command switches and source files) can be in any order. Each argument, including source code files ('room') must be separated by one or more spaces. Filenames have to be valid MSDOS filenames (no long-filenames) and can include path info and wildcard characters ('?' and '*').</p>
+  <p>If no arguments are passed, the usage information is displayed. If no source files are passed (only one or more command switches) the program switches to console mode, and source files can then be typed in separately. Pressing ENTER adds a file to the list, pressing CTRL+Z and then ENTER sends that list to the program, which are then processed.</p>
+  <p>Source filenames without an extension are assumed to have the '.cg' extension. If specified, any extension will work just fine. You can also pass a list of files by preceding the file that has the list with the '@' symbol; i.e. <code>cg @roomlist.txt</code> will open the file <code>roomlist.txt</code> and read each line of the file as an input source file name. You can also specify DOS environment variables 'HEAD' and 'TAIL', which are added to the beginning and end of the file list passed on the command line.</p>
+  <p>Each source file's name (not extension) must include a number, or CG.EXE will throw an error. The output file for a source is always the sourcefile truncated at the first number, with the number as the extension. For example, 'logic1.cg' output is 'logic.1', 'log2a3.txt' becomes 'log.2', etc.</p>
+  <p>The maximum number of source files that can be compiled at one time (including those specified by name, by wildcard and in file lists) is 200, which seems odd since AGI allows up to 256 logics in a game.</p>
+  <p>CG.EXE processes each source file separately. The sequence of actions is:</p>
+  <ul><ul>
+    <li>parse input file name, build output file name</li>
+    <li>reset compiler parameters</li>
+    <li>open source file and assign to buffer space</li>
+    <li>create output file (overwriting any existing file) and assign to buffer space</li>
+    <li>initialize the hash table, adding predefined symbols</li>
+    <li>allocate space for output, and for AGI messages</li>
+    <li>compile the source (errors are displayed as they are encountered)</li>
+    <li>close the output file</li>
+    <li>display results, including total number of errors encountered</li>
+    <li>repeat for next source file</li>
+  </ul></ul>
+  <h2>Feature Summary</h2>
+  <p>Error detection in CG.EXE is limited to basic syntax checks. If it can create output without a major error (mismatched brackets, misspellings, etc.) it does quietly and continues. Even if an error is encountered, CG.EXE skips over the erroneous source an continues. It will then display a list of all found errors.</p>
+  <p>There are no error checks on the output. No errors or warnings are given if the compiled code would cause runtime errors. Programmers were expected to avoid errors by self-checking their code.</p>
+  <p>Sierra's compiler is intentionally designed to allow for changes/additions to the action and test commands without needing to rebuild CG.EXE itself. CG.EXE only manages the syntax used to access the commands; the commands themselves all need to be declared for every file that is compiled.</p>
+  <p>CG.EXE converts all unknown tokens (those that are not numbers or symbols) it encounters into a hash value (by summing the ascii values of all characters in the token, and then returning that value MOD 203). This value is then compared against entries in CG.EXE's token hash table to determine what it represents. If more than one token has the same hash value, CG.EXE creates linked lists for each hash value to avoid conflicts. If the number of tokens is too large such that all memory is used up to hold them, CG.EXE will throw an error and quit. Tokens are case sensitive.</p>
+  <p>On startup, the following tokens are added to the hash table: %include, %tokens, %test, %action, %flag, %var, %object, %define, %message, %view, #include, #tokens, #test, #action, #flag, #var, #object, #define, #message, #view, goto, if, else, FLAG, OBJECT, MSG, WORD, NUM, MSGNUM, VIEW, VAR, ANY, WORDLIST. These can be broken down into three groups:</p>
+      <ul><ul>
+        <li><b>Preprocessor</b> symbols: The symbols starting with '%' or '#' are compiler commands that add symbols to the hash table which tell CG.EXE how to handle other symbols it will encounter later. Note that there are two versions of each, with either the '#' or '%' character to start. There is no difference between them; CG.EXE just offers the flexibility to use either format. The purpose and use of these tokens is explained in detail in the <a href="syntax_sierra.htm">Sierra Syntax</a> topic.</li>
+        <li><b>Keyword</b> tokens: '<code>if</code>', '<code>else</code>' and '<code>goto</code>' are used to <a href="syntax_sierra.htm#ifelse">control program flow</a>.</li>
+        <li><b>Argument type</b> tokens: 'NUM', 'FLAG', 'VAR', 'OBJECT', 'VIEW', 'MSGNUM' and 'WORDLIST' tokens are used to assign argument types to commands.</li>
+        <p>'MSG' is legacy type, and should never be used, as no token will ever match it. It is likely left over from an earlier version of AGI.</p>
+        <p>'WORD' is legacy type as well. It matches a single word from <a href="..\agi\words.htm">WORDS.TOK</a>. In very early versions of AGI, there were separate versions of the <a href="cmd_said.htm"><b>said</b></a> command that accepted only one or two words:</p>
+          <pre>%test said1(WORD) .....
+%test said2(WORD, WORD) .....</pre>
+        <p>When the current <b>said</b> command was added to AGI, with the ability to have a variable number of words, the 'WORD' type became obselete so CG.EXE was revised to use the 'WORDLIST' type instead. But the 'WORD' type was not removed.</p>
+        <p>The 'ANY' type matches any of the other types except WORD, WORDLIST. You can actually use it in a command declaration, and when compiling any type of argument will work:</p>
+          <pre>%action Increment(ANY) 1
+%var v1 1
+%flag f1 1
+%object o1 1
+%view vw1 1
+Increment(1); [ OK
+Increment(v1); [ OK; same as Increment(1)
+Increment(f1); [ OK; same as Increment(1)
+Increment(o1); [ OK; same as Increment(1)
+Increment(vw1); [ OK; same as Increment(1)</pre>
+        <p>Its exact purpose is unknown. It doesn't show up in any source files for original Sierra games, and there is no documentation explaining what it is for. Although it can be used in source code without error, it should be avoided, as it is better to use strongly typed arguments.</p>
+      </ul></ul>
+      <p>In most cases, if an error is detected in the source code, CG.EXE will skip to the the end of the line and continue. This lets the compiler find multiple errors in a source file in one pass.</p>
+
+  <h2>Bugs and Anomalies</h2>
+  <p>There are a number of bugs in CG.EXE, as well as some unusual coding practices that can lead to unexpected results if specialized source code fragments are used ('hacks' or anomalies if you will). Some of the more interesting and potentially impactful ones are presented here, in no particular order.</p>
+    <ul><ul> 
+      <li>Character '\x1a' is unusual in how CG.EXE handles it when it is encountered in a source file. When looking for a token, '\x1a' acts as end-of-file marker, meaning it stops reading data (as if it had reached the end of the file). Any additional text after '\x1a' is ignored.</li>
+      <p>However, there is a bug in how CG.EXE handles this character when building a <a href="syntax_sierra.htm#strings">literal string token</a> (i.e. when a double quote mark is found). The internal read function in CG.EXE normally returns the ascii value of the next character it finds. But when '\x1a' is found, it returns '\xffff', which is supposed to trigger the end of input. When building the string, the return value is converted to a byte value ('\xff') and added to the string. This also means that if the last token in a file is a literal string without an ending double-quote, CG.EXE will read data beyond the end of the file looking for a closing double-quote, which almost always causes a 'message too long' error.</p>
+      <li>When <a href="syntax_sierra.htm#goto">goto commands</a> use a destination label that has not yet been found in source code, CG.EXE builds a temporary array to track the proper location so once the label is found, the jump values can be inserted in the correct locations. CG.EXE has a limit of 19 jumps that can be unresolved. If more than that are in the source code, an error will be raised. Once the label is found, there is no limit on the number of goto commands that can use any given label.</li>
+      <li>The <a href="syntax_sierra.htm#defines"><b><code>%define</code></b></a> preprocessor allows any token to be re-defined. This means it is possible to re-define symbols ("==", "{", ";" etc.) and predefined <a href="syntax_sierra.htm#keywords">keywords</a>, <a href="syntax_sierra.htm#preprocessor">preprocessors</a> and argument types ("if", "#action", "FLAG", etc.) There is no practical use for this, and was probably never intended.</li>
+      <li>There is a major bug in how the '&' and '|' characters are handled. If CG.EXE's parser has already determined a token type and is checking additional characters, if the next character is '&' or '|', it gets put back in the queue, resulting in an infinite loop that freezes the program.</li>
+          <pre>a || b && c [ does not crash CG.EXE
+abcd||  [ no space between 'd' and '|' will crash CG.EXE
+= & [ space good- will not crash
+=&  [ no space bad- will crash CG.EXE
+|&   &| [ both of these combinations will crash CG.EXE
+
+[ a practical example - this looks like it should work:
+if (v99 > 1&& v99 < 10) { [ <font color="red"><b>NOT OK</b></font>
+[ but without a space between '1' and '&' it will crash CG.EXE
+[ this line will compile:
+if (v99 > 1 && v99 < 10) { [ OK</pre>
+      <p>The effect of this is that using '&amp;' or '|' inside any token other than the "&&" and "||" operators will put CG.EXE in an infinite loop and freeze.</p>
+      <p>Tokens can start with the '&amp;' or '|' character, but the resulting token is considered a symbol, so it can't be used as a define name or any other purpose.</p>
+      <li>Unlike all other cases involving number tokens, the message number parameter of the <a href="syntax_sierra.htm#message"><b><code>%message</code></b></a> preprocessor is NOT converted to a byte value. Instead, the 16 bit value is used. If it is greater than 255 or negative an error is raised. But if it is zero, (which should not be allowed) CG.EXE will use an invalid memory location when creating the message section of the logic which corrupts the output. If the value is negative, CG.EXE will raise an error, but no error is raised if the value is zero so the corrupted output is mistakenly treated by CG.EXE as a successful compilation.</li>
+      <li>CG.EXE will raise an error if the length of a message is greater than 999 characters. It is extremely unlikely that a programmer would intentionally use a message that's even a fraction of that. (The entire screen in AGI could hold 1000 characters- 25 rows of 40 columns.) This check was probably added to catch situations when an ending quote mark is missing.</li>
+      <li>If the last token of a logic is a literal string that is missing its end quote mark, CG.EXE will overflow the input buffer and read invalid data until an end quote mark is found or the 999 character limit is reached. If there happens to be a end quote mark in the invalid data, the message will include the extra characters from the invalid data.</li>
+      <li>CG.EXE allows multiple consecutive NOT symbols (!) in <a href="syntax_sierra.htm#ifelse"><b><code>if</code></b> blocks</a>. This bug can lead to hard to find errors, since at runtime AGI toggles the 'NOT' status with each NOT token:</li>
+        <pre>%flag f99 99
+reset(f99);
+if (!!isset(f99)) { [ extra '!'; same as 'if(isset(f99))'
+  %message 1 "Flag 99 is reset."
+  print( 1);
+}</pre>
+      <p>In the example above, the message will never be displayed.</p>
+      <li>The 'not equal operator' "!=" is the only one that CG.EXE treats as two separate tokens, which means you can include white space between the characters. ('!    =' is the same as '!='.) This was probably an oversight when CG.EXE was written.</li>
+      <li>Although '!=' is allowed as the 'NOT' version of '==', CG.EXE does not include 'NOT' versions of '&lt;' and '&gt;', i.e. there are no "&gt;=" or "&lt;=" operators.</li>
+      <li>There is a bug in the handling of the '@' character. CG.EXE treats it as a symbol character (so "@=" is correctly treated as a symbol). But if the character following the '@' is not '=' or a separator, CG.EXE will build a token that looks like an identifier, but is treated as a symbol:</li>
+        <pre>%define @sometoken 99 [ <font color="red"><b>NOT OK</b></font>; name can't be a symbol
+%define sometoken @99 [ OK; compiles but the token can't be used for anything</pre>
+      <p>This bug also applies to tokens beginning with '&amp;' and '|'.</p>
+      <li>Because of a bug in number parsing, CG.EXE will skip any non-numeric characters that immediately follow the number without white space. The number value will use the number digits up until the first non-numeric character is found.:</li>
+        <pre>%define anum 99abc [ same as '%define anum 99'</pre>
+      <li>In <a href="syntax_sierra.htm#alternatetests">alternate test syntax</a> tokens declared as <a href="syntax_sierra.htm#object"><b><code>%object</code></b></a> can be used where the argument type is a number. This is useful when testing reserved variable <a href="..\agi\v5.htm">v5 (Object Edge Code)</a>. However, it does not work when using normal test command syntax.</li>
+        <pre>%object ego 0
+if (v5 == ego) [ OK; same as 'if (v5 == 0)'
+if (equaln(v5, ego)) [ <font color="red"><b>NOT OK</b></font>; wrong argument type</pre>
+      <li>In what appears to be a bug, the symbol tokens '(', ')' and '{' are ignored when CG.EXE is expecting a command or keyword. These tokens should not be allowed in this situation.</li>
+      <li>In CG.EXE's handling of the ':' character to locate labels, when a ':' character is found CG.EXE sets the token type to a label, then gets the next full numeric or identifier token, as long as it is on the same line. If nothing else is on the line, a null value is assigned to the label, but no error is raised. If the token is numeric, it will be added as a label name. But since null and numeric tokens cannot be used in the <code>goto</code></b> statement, null and numeric labels can never be used.</li>
+      <li>Do not try to <a href="syntax_sierra.htm#defines"><b><code>%define</code></b></a> a colon, (<code>%define colon :</code>). The define will work, but if you try to use it CG.EXE will crash.</li>
+      <li>If the parameter of a <b><code>goto</code></b> statement is a defined name, CG.EXE confuses the define data as label data, which leads to invalid jump values. This bug will lead to corrupt logic code, so programmers should be careful to avoid using a define name in a <b><code>goto</code></b> statement.</li>
+      <li>If the source file ends with an if or else block that is missing its closing curly brace '}', CG.EXE provides a warning, but doesn't consider it as an error. If the missing brace is part of an <a href="syntax_sierra.htm#ifelse"><b><code>if</code></b></a> block, the jump value assigned to the <b><code>if</code></b> block will not be updated with the correct value.</li>
+      <li>If an <a href="syntax_sierra.htm#ifelse"><b><code>else</code></b></a> statement is found that doesn't immediately follow the closing curly brace of an <b><code>if</code></b> block, CG.EXE does not raise an error. Instead, it treats the <b><code>else</code></b> as a <b><code>goto</code></b>, where the jump-to location is set to the closing curly brace of the else block. This appears to be a bug.</li>
+      <li>If CG.EXE attempts to process a <a href="cmd_said.htm"><b>said</b></a> command before <a href="..\agi\words.htm">WORDS.TOK</a> is loaded with the <a href="syntax_sierra.htm#tokens">%tokens</a> preprocessor, instead of raising an error, it will enter an infinite loop and lock up.</li>
+      <li>When processing <a href="syntax_sierra.htm#alternateactions">alternate action syntax</a> and <a href="syntax_sierra.htm#alternatetests">alternate test syntax</a> statements, CG.EXE actually inserts the matching command token into the data stream, as if it had been typed in the source code and then compiles that symbol. This means that commands with alternate syntax must be declared with the exact spelling that CG.EXE uses when it inserts them.</li>
+        <pre>v99 = 1; [ CG.EXE changes this to 'assignn(v99, 1)'</pre>
+      <p>If the declared command is not spelled exactly the same, a 'command not found' error is raised.</p>
+  </ul></ul>
+  <p>&nbsp;</p>
+  <p align="right"><font size="1">v3.0.0</font></p>
+  <p>&nbsp;</p>
+</body>
+</html>

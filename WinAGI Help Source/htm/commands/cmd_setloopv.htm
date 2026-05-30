@@ -1,0 +1,55 @@
+<html>
+	<head><title>Action Command: set.loop.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>set.loop.v</h1>
+		<p>The <b>set.loop.v</b> command assigns a loop to a screen object indirectly.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.loop.v(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">var</a> vLOOP);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The current <a href="..\agi\views.htm#loop">loop</a> of <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b> is set to <b>B</b> where <b>B</b> is the value of <a href="..\agi\variables.htm">variable</a> <b>vLOOP</b>.</p>
+			<p>A <a href="..\agi\views.htm">view</a> must be be assigned to the object first. If a view is not assigned, AGI raises <a href="..\agi\errorlist.htm#trap6">trappable error #6</a>. If <b>vLOOP</b> is not a valid loop number, i.e. it exceeds the maximum number of available loops in the view, AGI raises <a href="..\agi\errorlist.htm#trap5">trappable error #5</a>.</p>
+			<p>Be aware that there is a bug in all versions of AGI affecting the check for valid loop numbers. AGI only returns <a href="..\agi\errorlist.htm#trap5">trappable error #5</a> if the value of <b>vLOOP</b> is GREATER than the total number of loops in the view. However, since loops are zero based (first loop is 0, second loop is one, etc.), the last valid loop would be total loop count minus one. If <b>vLOOP</b> is EQUAL to the loop count, AGI doesn't raise an error, but the loop number is actually invalid, and using it will almost always end up in <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+			<p>After changing the loop, AGI checks to see if the current <a href="..\agi\views.htm#cel">cel</a> value of the screen object is now greater than the last cel in newly assigned loop. If it is, the cel is reset to 0. If the current cel value is still valid, it is not changed, and no position check is made.</p>
+			<p>If the cel is changed, it forces a check of the screen object's position; see the <a href="object_cycling.htm#validatepos"><b>Cycling Objects</b></a> topic for details on the cel position check. If the position check results in the object being moved to avoid being off-edge, it will not update its position on the next <a href="..\agi\cycle.htm">interpreter cycle</a>. This usually has no noticeable effect, but in some situations where precise positioning and motion are needed, it could cause unexpected behavior.</p>
+			<p>In <a href="..\agi\versions.htm">version</a> 2.089 only, AGI raises <a href="..\agi\errorlist.htm#trap4">trappable error #4</a> if object number <b>oA</b> is invalid. In all later versions, AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ typical code to add a static view indirectly
+animate.obj(o1);
+load.view(8);
+set.view(o1, 8);
+v50 = 1;
+<b>set.loop.v(o1, v50);</b>
+set.cel(o1, 2);
+position(o1, 20, 132);
+stop.cycling(o1);
+draw(o1);</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">44 (0x2C)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_setcel.htm">set.cel</a></b></p>
+			<p><b><a href="cmd_setcelv.htm">set.cel.v</a></b></p>
+			<p><b><a href="cmd_setloop.htm">set.loop</a></b></p>
+			<p><b><a href="cmd_setview.htm">set.view</a></b></p>
+			<p><b><a href="cmd_setviewv.htm">set.view.v</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

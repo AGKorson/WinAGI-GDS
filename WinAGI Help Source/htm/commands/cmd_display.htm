@@ -1,0 +1,53 @@
+<html>
+	<head><title>Action Command: display</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>display</h1>
+			<p>The <b>display</b> command displays text at a specified row and column.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>display(<a href="syntax_fan.htm#argtypes">byt</a> ROW, <a href="syntax_fan.htm#argtypes">byt</a> COL, <a href="syntax_fan.htm#argtypes">msg</a> mMSG);</p>
+			<p>display(<a href="syntax_fan.htm#argtypes">byt</a> ROW, <a href="syntax_fan.htm#argtypes">byt</a> COL, "message text");</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command takes numbers as arguments. <a href="cmd_displayv.htm"><b>display.v</b></a> also displays text, but all arguments are <a href="..\agi\variables.htm">variables</a>.</p>
+			<p>The text of message mMSG is displayed at row <b>ROW</b> and column <b>COL</b>, using the background and foreground colors set by the most recent <b><a href="cmd_settextattribute.htm">set.text.attribute</a></b> command. Note that unlike the <b><a href="cmd_print.htm">print</a></b> commands, the <b>display</b> command does not include a border around the message text. Expected values for <b>ROW</b> are 0 - 24 and expected values for <b>COL</b> are 0 - 39.</p>
+			<p>The <b>display</b> command is mostly used on the <a href="..\agi\textdisp.htm">text screen</a>. Typical uses for the text screen are to display help screens, or passages of text from in-game items such as books, letters, etc.</p>
+			<p>The <b>display</b> command will also display text messages on the <a href="..\agi\grafdisp.htm">graphics screen</a>. Care must be taken in this case, because the text does not automatically clear afterward. Also, if a <a href="..\agi\screenobjs.htm">screen object</a> moves over the displayed text, the text will be erased pixel by pixel as the the object moves past. The programmer should take care to be sure the displayed text will not be accidentally erased by moving objects.</p>
+			<p>Unlike the <a href="cmd_printat.htm"><b>print.at</b></a> command, the <b>ROW</b> value is not adjusted for the <a href="cmd_configurescreen.htm">picture top setting</a>. This allows text on the graphics screen to be added above or below the picture.</p>
+			<p>A typical use of the <b>display</b> command on the graphics screen is to add text to credit screens, or maybe to provide changing text on signs or such.</p>
+			<p>In <a href="..\agi\version2.htm#2089">versions 2.089</a> and <a href="..\agi\version2.htm#2272">2.272</a>, if the background color is anything other than black, the area under the displayed text on the graphics screen is not cleared, and the text glyphs are XORed with the underlying image pixels. (See the <a href="..\agi\agifont.htm#textcolors">Text Color Options</a> topic for a detailed explanation.) In all other versions, displayed text will show correctly on the graphics screen with a black background, or white background (if the background value is set to anything other than black.)</p>
+			<p>If you pass a row value greater than 24, your text will not display at all. If you pass a column value greater than 39, the first character of the display message will be placed slightly below the desired <b>ROW</b> value, with a vertical offset in pixels equal to INT(<b>COL</b>/40), in a column equal to the <b>COL</b> value MOD 40, and the rest of the display message will be left aligned, one row below the desired <b>ROW</b> value.</p>
+			<p>If the displayed text is more than one line, and one or more of the lines extends past line 24, those lines will not be displayed at all.</p>
+			<p>Display text longer than 40 characters will have automatic line breaks added (word wrapping), but the breaks do NOT take into account the starting position of the text. This means that if you use a column value other than zero, the breaks will not work as expected.</p>
+			<p>AGI will also limit the number of rows of displayed text to 20, but the check is only made if a line break is inserted due to word wrapping; if lines are added using a carriage return, the limit is not checked.</p>
+			<p>Although it rarely comes up, be aware that if your displayed message includes any backspace characters ('\x08'), AGI behaves strangely if the cursor position where the backspace occurs is in column 0. If the cursor row is less than or equal to 21, then the backspace is ignored; the backspace only works correctly (by moving to column 39 in the previous row) if the cursor row is greater than 21.</p>
+			<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>text.screen();             [ change to text screen so we can use all colors
+set.text.attribute(3, 0);  [ cyan text on black background
+<b>display(6, 10, "Burma Shave");</b></code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">103 (0x67)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><b><a href="cmd_displayv.htm">display.v</a></b></p>
+			<p><b><a href="cmd_settextattribute.htm">set.text.attribute</a></b></p>
+			<p><a href="..\agi\graphics.htm">Graphics and Text in AGI</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,84 @@
+<html>
+	<head><title>AGI Game Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>AGI Game Resources</h1>
+			<p>Resources are the game-specific information that makes up an AGI game. AGI loads and unloads resources as necessary during game play to make the game work. The resources that are used by AGI include:</p>
+		<blockquote>
+		<h2><a href="logics.htm">Logics</a></h2>
+			<p>Logics contain the commands that control the overall game play.</p>
+		<h2><a href="pictures.htm">Pictures</a></h2>
+			<p>Scenery and background images are known as picture resources in AGI.</p>
+		<h2><a href="sounds.htm">Sounds</a></h2>
+			<p>Sound resources are used for background music and sound effects.</p>
+		<h2><a href="views.htm">Views</a></h2>
+			<p>Animated graphics (sprites) that represent moving people, animals, and other objects are called views in AGI.</p>
+		<h2><a href="words.htm">WORDS.TOK File</a></h2>
+			<p>This resource contains a list of words that a player can use to interact with the game via the keyboard.</p>
+		<h2><a href="object.htm">OBJECT File</a></h2>
+			<p>The OBJECT file contains a list of text strings that identify all the things that a player can pick up (add to inventory) in a game.</p>
+		</blockquote>
+		<h3><a href="vol.htm">Volume</a> and <a href="dir.htm">Directory</a> Files</h3>
+			<p>With the exception of the words list (<a href="words.htm">WORDS.TOK</a>) and the inventory items list (<a href="object.htm">OBJECT</a>), all AGI resources are kept in storage files known as <a href="vol.htm">'VOL' files</a>. Separate <a href="dir.htm">directory files</a> provide the location information so AGI can extract resources as needed.</p>
+		<h3><a name="headers">Resource Headers</a></h3>
+			<p>To facilitate loading, each resource in the VOL file has a header which includes a signature to verify a valid resource and size information.</p>
+			<p>In version 2 games, the resource header was five bytes:</p>
+		<blockquote><p>
+		<table id="Table2"cellSpacing="1" cellPadding="1" width="800" border="1">
+		<tr>
+			<td align="middle" width="150"><b>Byte</b></td>
+			<td align="middle"><b>Meaning</b></td>
+		</tr>
+		<tr>
+			<td align="middle" style="vertical-align:middle">0 - 1</td>
+			<td>File signature (0x12, 0x34)</td>
+		</tr>
+		<tr>
+			<td align="middle" style="vertical-align:middle">2</td>
+			<td>VOL file number that contains this resource</td>
+		</tr>
+		<tr>
+			<td align="middle" style="vertical-align:middle">3 - 4</td>
+			<td>Length of resource (not including the 5 byte header) (LO-HI)</td>
+		</tr>
+		</table>
+		</p></blockquote>
+			<p>The signature and VOL number were used to validate the resource; if neither matched, AGI assumed the wrong disk was loaded, and would prompt the user to insert the correct disk.</p>
+			<p>Version 3 games introduced <a href="encryption.htm#compression">compression</a>, so 
+			the header for resources was expanded to seven bytes:</p>
+		<blockquote><p>
+		<table id="Table3" cellSpacing="1" cellPadding="1" width="800" border="1">
+		<tr>
+			<td align="middle" width="150"><b>Byte</b></td>
+			<td align="middle"><b>Meaning</b></td>
+		</tr>
+		<tr>
+			<td align="middle" style="vertical-align:middle">0 - 1</td>
+			<td>File signature (0x12, 0x34)</td>
+		</tr>
+		<tr>
+			<td align="middle" style="vertical-align:middle">2</td>
+			<td>VOL file that contains this resource  (bit 7 set if resource is a compressed <a href="pictures.htm">picture</a>)</td>
+		</tr>
+		<tr>
+			<td align="middle" style="vertical-align:middle">3 - 4</td>
+			<td>Uncompressed size of resource (LO-HI)</td>
+		</tr>
+		<tr>
+			<td align="middle" style="vertical-align:middle">5 - 6</td>
+			<td>Compressed size of resource (not including the 7 byte header) (LO-HI)</td>
+		</tr>
+		</table>
+		</p></blockquote>
+			<p>The header contains the size of the resource in the VOL file (compressed size) as well as the size of the resource once uncompressed.  Most of the resources in version 3 games were <a href="encryption.htm#compression">compressed</a>, but some of them were not. AGI determines whether the resource is compressed by comparing the values of the two sizes given in the header information. If they are equal, then it knows that the resource is stored uncompressed. If the sizes do not match (or if bit 7 of the volume byte is set, indicating a <a href="pictures.htm">picture</a> is compressed), then AGI knows the resource is compressed, and uncompresses it.</p>
+			<p>As described in the <a href="encryption.htm#compression">Compression</a> topic, AGI uses a form of LZW compression for <a href="logics.htm">logics</a>, <a href="sounds.htm">sounds</a>, and <a href="views.htm">views</a>, and a form of <a href="encryption.htm#piccomp">run length encoding</a> for <a href="pictures.htm">pictures</a>. Bit 7 of header byte 2 is used by AGI to determine which form of compression is used for a given resource. If the bit is set, then the compressed resource is a <a href="pictures.htm">picture</a> resource. If it is not, either the resource is not compressed, or it is a compressed <a href="logics.htm">logic</a>, <a href="sounds.htm">sound</a> or <a href="views.htm">view</a>.</p>
+			<p>Although there are no known examples from Sierra games, there is nothing preventing a <a href="pictures.htm">picture</a> resource from being compressed using the same LZW compression as the other resources; if bit 7 of header byte two is not set and the file sizes are different, AGI would decompress it using the LZW process.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

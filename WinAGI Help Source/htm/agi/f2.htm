@@ -1,0 +1,20 @@
+<html>
+	<head><title>Reserved Flag f2</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f2: Text Input Entered by Player</h1>
+			<p>When AGI <a href="keyboard.htm#parser">parses player input</a> (after the player presses the ENTER key), AGI sets this flag to TRUE if at least one valid word is found, or if any unknown words are found. By checking for this flag, a game programmer is able to respond to user input in code.</p>
+			<p>When the <a href="..\commands\cmd_said.htm"><b>said</b></a> command is called, AGI first checks to see if the player has entered anything to test. If flag f2 is FALSE, the <b>said</b> command returns FALSE without doing anything else.</p>
+			<p>At the beginning of each <a href="cycle.htm">interpreter cycle</a>, and every time a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command is called, AGI resets f2 to FALSE.  AGI also resets f2 to FALSE when the <a href="..\commands\cmd_parse.htm"><b>parse</b></a> command is called, before it parses the target <a href="strings.htm">string</a>.</p>
+			<p>Flag f2 and <a href="f4.htm">flag f4 (said found match)</a> are used together by AGI to manage evaluation of player <a href="keyboard.htm#parser">input</a>. When f2 (input received) is TRUE, the <a href="..\commands\cmd_said.htm"><b>said</b></a> command will check player input for the <a href="words.htm">words</a> passed as arguments. If a match is found, AGI then sets f4 to TRUE, so future calls to <b>said</b> command in the same interpreter cycle exit without doing anything.</p>
+			<p>If you are writing advanced code, you may need to manipulate the values of f2 and f4 to achieve certain effects. For example, after a call to the <b>said</b> command returns TRUE, you can reset f4 to FALSE so that subsequent <b>said</b> commands will also look for a match.</p>
+			<p>Attempting to use this flag for other purposes is not recommended, because AGI overwrites it in every <a href="cycle.htm">interpreter cycle</a>.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

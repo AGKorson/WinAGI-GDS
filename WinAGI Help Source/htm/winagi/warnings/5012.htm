@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5012</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5012</h2>
+    <h3>Using room 0 in the new.room command will crash AGI</h3>
+    <p class="indent_n">You should not use room 0 as the argument value for the <a href="..\..\commands\cmd_newroom.htm"><b>new.room</b></a> command. Since most games will use the <a href="..\..\commands\cmd_callv.htm"><b>call.v</b></a> command in each cycle to run the <a href="..\..\agi\logics.htm">logic</a> code for the current room, this will result in AGI recursively calling logic 0 until the <a href="..\..\agi\memory.htm#stack">stack</a> eventually gets blown and AGI quits.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

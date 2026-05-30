@@ -1,0 +1,28 @@
+<html>
+	<head><title>Logic Compiler Warning 7010</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7010</h2>
+    <h3>'&lt;token&gt;' is an object being used as a number</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, WinAGI allows a token <a href="..\..\commands\syntax_sierra.htm#object">defined as an object</a> to be used as a number argument in <a href="..\..\commands\syntax_sierra.htm#actions">commands</a> but only when using <a href="..\..\commands\syntax_sierra.htm#alternatetests">alternate syntax</a>. This is mostly useful when testing <a href="..\..\agi\variables.htm#reserved">reserved variable</a> <a href="..\..\agi\v4.htm">v4 (object touching edge)</a>. But it will work for all alternate syntax commands, both action and test.</p>
+      <blockquote>
+      <pre>%var    v4    4
+%object obj   1
+if (v4 == obj) {  [ OK, same as 'if (v4 == 1) {'
+if (equaln(v4, obj) { [ <font color="red"><b>NOT OK</b></font>
+v4 += obj;  [ OK, same as 'v4 += 1'
+addn(v4, obj); [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+      </blockquote>
+    <p class="indent_n">Unless you are intentionally using the object token as a number, you should check your source code and edit it as needed to use the correct token or number in the affected command.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

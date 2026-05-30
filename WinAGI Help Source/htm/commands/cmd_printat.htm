@@ -1,0 +1,59 @@
+<html>
+	<head><title>Action Command: print.at</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>print.at</h1>
+			<p>The <b>print.at</b> command displays a message in a window at a specified location.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>print.at(<a href="syntax_fan.htm#argtypes">msg</a> mMSG, <a href="syntax_fan.htm#argtypes">byt</a> ROW, <a href="syntax_fan.htm#argtypes">byt</a> COL, <a href="syntax_fan.htm#argtypes">byt</a> MAXWIDTH);</p>
+			<p>print.at("message text", <a href="syntax_fan.htm#argtypes">byt</a> ROW, <a href="syntax_fan.htm#argtypes">byt</a> COL, <a href="syntax_fan.htm#argtypes">byt</a> MAXWIDTH);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The text of <a href="..\agi\messages.htm">message</a> <b>mMSG</b> is displayed in a bordered window. The background color is always white, and the foreground color is always black.</p>
+			<p>The window is positioned so the upper left corner of the text is placed at row <b>ROW</b>, column <b>COL</b>. The <b>ROW</b> value is relative to the top row of the <a href="..\agi\grafdisp.htm">background picture image</a>, so for example, if you <a href="cmd_configurescreen.htm">configured the screen</a> with a PLAYTOP value of 1, then a <b>ROW</b> value of 5 will print on screen line 6.</p>
+			<p>The width and height of the window is determined by the length of the formatted message and the <b>MAXWIDTH</b> argument. If zero is passed for <b>MAXWIDTH</b>, it defaults to 30. The message is formatted to add line breaks such that no text extends further than <b>MAXWIDTH</b>. If the length of the text is &lt;= <b>MAXWIDTH</b> - 1, the text will fit on one line and the actual width will be the total text length plus one. If the text is too long to fit on one line, AGI will automatically add line breaks, and the total width will be one more than the length of the longest line of text, up to MAXWIDTH. If there are no spaces and the text is longer than MAXWIDTH AGI will force a break and set the width to <b>MAXWIDTH</b>.</p>
+			<p>When determining values for <b>ROW</b>, <b>COL</b> and <b>MAXWIDTH</b>, the programmer should ensure the window will fit on the screen. If the combination of <b>ROW</b>, <b>COL</b> and <b>MAXWIDTH</b> results in any part of the window falling outside the picture boundaries, the window borders and text will not display properly. Specifically:</p>
+			<p class="indent_n">- You should not use a <b>MAXWIDTH</b> value of 1 as this may <a href="..\agi\errors.htm">crash AGI</a>.</p>
+			<p class="indent_n">- If <b>COL</b> &lt;= 1 the window will not draw correctly because there is not enough room to draw the left window border correctly;</p>
+			<p class="indent_n">- If <b>COL</b> plus the actual width is &gt;= 39 the window will not draw correctly because there is not enough room to draw the right window border;</p>
+			<p class="indent_n">- If <b>ROW</b> plus the number of displayed lines &gt; 23, the window will not draw correctly due to overlapping off the bottom edge of the screen;</p>
+			<p class="indent_n">- If any part of the window extends beyond the <a href="..\agi\grafdisp.htm">background picture image</a>, it may not clear correctly. For example, using a value for <b>ROW</b> of 0 will erase part of the <a href="..\agi\grafdisp.htm#statusline">status line</a> if the status line is also set to display on row 0.</p>
+			<p>&nbsp;</p>
+			<p><a href="..\agi\flags.htm#reserved">Reserved flag</a> <a href="..\agi\f15.htm">f15 (no pause windows)</a> and reserved variable <a href="..\agi\v21.htm">v21 (window close time)</a> determine how the <b>print.at</b> command affects game play:</p>
+			<ul><ul><li><b>f15 reset to FALSE and v21 == 0</b> (the default condition): displayed windows (including those shown by the <b>print.at</b> command) <a href="..\agi\cycle.htm#pausing">pause</a> the game cycle, and remain until the player presses ENTER or ESC key. Although the game cycle is paused, the internal clock does not stop, and clock variables <a href="..\agi\v11.htm">v11</a>, <a href="..\agi\v12.htm">v12</a>, <a href="..\agi\v13.htm">v13</a>, <a href="..\agi\v14.htm">v14</a> will continue to update.</li>
+			<li><b>f15 reset to FALSE and v21 > 0</b>: the window will also pause the game cycle, and will be dismissed when the player presses ENTER or ESC key, or after v21 * 0.5 seconds, whichever comes first.</li>
+			<li><b>f15 is set to TRUE (v21 is ignored)</b>: the game cycle is NOT paused, and the window remains open indefinitely. The message window stays open and game play continues until a <a href="cmd_closewindow.htm"><b>close.window</b></a> command is called to dismiss the message, or another message is displayed.</li></ul></ul>
+			<p>After every time a window is displayed (including by using the <b>print.at</b> command), if f15 is TRUE, it is reset to FALSE and variable v21 is not modified.  If f15 is FALSE, variable v21 is reset to 0.</p>
+			<p>(In <a href="..\agi\version2.htm#2089">version 2.089</a> only, reserved flag f15 is not used; message windows will never print without pausing.)</p>
+			<p>Messages can contain special format codes to enhance the output. See the <a href="..\agi\messages.htm#format">Message Format Codes</a> topic for details on available message codes.</p>
+			<p>In <a href="..\agi\versions.htm">versions</a> <a href="..\agi\version2.htm#2089">2.089</a> and <a href="..\agi\version2.htm#2272">2.272</a> the number of arguments AGI uses when displaying <a href="..\agi\tracer.htm#traceargs">trace</a> information for <b>print.at</b> is mistakenly set to 3, so when tracing commands in those versions, the trace window will only show the first three arguments. The bug only affects what gets displayed during tracing; the commands still execute correctly. The bug was fixed in version 2.411.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>print.at("The snake eyes you warily.", 8, 18, 15);</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">151 (0x97)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_display.htm">Display Commands</a></p>
+			<p><a href="..\agi\messages.htm#format">Message Format Codes</a></p>
+			<p><b><a href="cmd_print.htm">print</a></b></p>
+			<p><b><a href="cmd_printv.htm">print.v</a></b></p>
+			<p><b><a href="cmd_printatv.htm">print.at.v</a></b></p>
+			<p><b><a href="cmd_display.htm">display</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

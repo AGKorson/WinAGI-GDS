@@ -1,0 +1,41 @@
+<html>
+	<head><title>Action Command: pause</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>pause</h1>
+			<p>The <b>pause</b> command pauses the game until the player presses ENTER or ESC key.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>pause();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>A message box is displayed that says "Game paused. Press Enter to continue." Pressing ENTER or ESC will dismiss the window and the game will continue.</p>
+			<p>When the game is paused using the <b>pause</b> command, the interpreter's <a href="..\agi\cycle.htm#pausing">internal clock is also paused</a>. If a <a href="..\agi\sounds.htm">sound</a> is playing, it is stopped.</p>
+			<p><a href="..\agi\flags.htm#reserved">Reserved flag</a> <a href="..\agi\f15.htm">f15 (no pause windows)</a> and <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v21.htm">v21 (window close time)</a> affect the pause window the same as any other message box. This means if you set f15 and then use <b>pause</b>, the message box will be displayed, but the game won't actually pause.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>pause();</b> [ game play is paused; internal clock is paused
+[ similar print command:
+print("      Game paused.\n"
+      "Press Enter to continue."); [ game play is paused, but clock continues to run</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">136 (0x88)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_system.htm">System Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

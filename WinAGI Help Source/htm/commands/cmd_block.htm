@@ -1,0 +1,57 @@
+<html>
+	<head><title>Action Command: block</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>block</h1>
+			<p>The <b>block</b> command sets up an invisible rectangular block that can restrict screen object movement.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>block(<a href="syntax_fan.htm#argtypes">byt</a> X1, <a href="syntax_fan.htm#argtypes">byt</a> Y1, <a href="syntax_fan.htm#argtypes">byt</a> X2, <a href="syntax_fan.htm#argtypes">byt</a> Y2);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p><a href="..\agi\screenobjs.htm">Screen objects</a> are not allowed to cross into or out of the bounding rectangle created by the <b>block</b> command, unless an <b><a href="cmd_ignoreblocks.htm">ignore.blocks</a></b> command has been executed for that object. If an object is inside the block when the block is created, it will not be allowed to move on or outside the block. If the object is outside the block, it will not be allowed to move inside it, but it will move onto the block. Note that this means a screen object can 'jump' over a block if its <a href="object_moving.htm#stepsize">step size</a> is large enough.</p>
+			<p>See the <a href="concepts_obstacles.htm#blocks">Blocks</a> discussion in the <a href="concepts_obstacles.htm">Managing Obstacles</a> topic for additional information.</p>
+			<p>AGI uses the leftmost pixel of the object's baseline to compare to the block coordinates.</p>
+			<p>AGI expects the coordinates to be in upper-left to lower-right format. <b>X1</b> <i>must</i> be less than <b>X2</b> and <b>Y1</b> <i>must</i> be less than <b>Y2</b>, or the block will be invalid, and will never prevent object movement.</p>
+			<p>The bounding rectangle must be more than two pixels wide AND more than two pixels high, otherwise there will be no 'interior' area, and the block will have no effect.</p>
+			<p>There can only be one block on the screen at a time. If the <b>block</b> command is executed when a block already exists, the new block will replace the old one.</p>
+			<p>The <a href="cmd_unblock.htm"><b>unblock</b></a> command will remove a block from the screen.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>block(25, 25, 100, 100);</b> [ create a block
+ignore.block(o1);        [ object 1 will ignore the block
+...
+observe.block(o1);       [ now object 1 will observe the block
+...
+unblock();               [ remove the block
+...
+[ examples of blocks that will NOT work
+block(100, 100, 25, 25); [ coordinates are in wrong order; this block will never work
+...
+block(25, 25, 100, 26);  [ difference is Y value is too small so this block will never work
+</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">90 (0x5A)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><a href="cmd_unblock.htm"><b>unblock</b></a></p>
+			<p><a href="cmd_ignoreblocks.htm"><b>ignore.blocks</b></a></p>
+			<p><a href="cmd_observeblocks.htm"><b>observe.blocks</b></a></p>
+			<p><a href="concepts_obstacles.htm#blocks">Managing Obstacles</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

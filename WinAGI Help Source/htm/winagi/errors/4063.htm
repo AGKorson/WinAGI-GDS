@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Error 4063</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4063</h2>
+    <h3>'&lt;token&gt;' is an argument marker, can only be used as an argument to a valid AGI action or test command</h3>
+    <p class="indent_n">There are no <a href="..\..\commands\syntax_fan.htm#alternateactions">alternate syntax</a> coding options that use argument types for <a href="..\..\agi\messages.htm">messages</a> (m##), <a href="..\..\agi\screenobjs.htm">screen objects</a> (o##) <a href="..\..\agi\invitems.htm">inventory items</a> (i##) <a href="..\..\agi\pwords.htm">player entered words</a> (w##) or <a href="..\..\agi\controllers.htm">controllers</a> (c##). This type of argument is only valid when used in a valid AGI <a href="..\..\commands\commands.htm">action</a> or <a href="..\..\commands\cmds_test.htm">test command</a>.</p>
+    <blockquote>
+      <pre>v99 = 1;  [ OK; alternate for 'equaln(v99, 1);'
+m1 = "a message";   [ <font color="red"><b>NOT OK</b></font>; use #message preprocessor
+c1 = "Save Game";  [ <font color="red"><b>NOT OK</b></font>; use set.menu.item() command
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

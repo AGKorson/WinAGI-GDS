@@ -1,0 +1,18 @@
+<html>
+	<head><title>Player Entered Words</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Player Entered Words</h1>
+		<p>This data type refers to an array of numbers and a matching array of text entries that correspond to the <a href="keyboard.htm#parser">parsed list</a> of words that are typed by a player. Word values are represented in source code by the letter 'w' and their index (i.e. w0, w1, w2, etc.)</p>
+		<p>This data type should not be confused with the vocabulary words list that is provided in the <a href="words.htm">WORDS.TOK</a> resource file, although it is related. The parser puts the text of each parsed word in the word text array and compares them to the words in WORDS.TOK. The word number array is filled with the numbers that correspond to entries in the <a href="words.htm">WORDS.TOK</a> list. The word number array is used internally by AGI when the <b><a href="..\commands\cmd_said.htm">said</a></b> command is processed. Arguments in the <b><a href="..\commands\cmd_said.htm">said</a></b> command are compared against the numbers in the word number array to determine if player input matches.</p>
+		<p>The words data arrays are filled by AGI's <a href="keyboard.htm#parser">parser</a> each time the player presses the ENTER key. The arrays can hold up to 10 words; if more than 10 are entered, only the first 10 are kept; the rest are discarded.</p>
+		<p>An important programming note regarding the use of player entered words in AGI commands is that the word values are referenced by their index, with the first word being index 0, the second being index 1, etc. This is somewhat confusing, since <a href="variables.htm#reserved">reserved variable</a> <a href="v9.htm">v9 (unknown word number)</a> and the <b><a href="..\commands\cmd_print.htm">print</a></b> command <a href="messages.htm#format">format code</a> for words expect the first word to be "w1", not "w0". For example, if the first word in the array is "LOOK", and the second word is "DOOR", passing a value of '1' to the <a href="..\commands\cmd_wordtostring.htm"><b>word.to.string</b></a> will assign the text value "DOOR" to a string, but using "%w1" in a message will result in the text value "LOOK" being inserted into the message.</p>
+		<p>WinAGI handles this by requiring word arguments to be 'one-based' in the logic editor, and then converts them to 'zero-based' on compilation, to maintain consistency with the <a href="..\commands\cmd_print.htm"><b>print</a></b> command format codes.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

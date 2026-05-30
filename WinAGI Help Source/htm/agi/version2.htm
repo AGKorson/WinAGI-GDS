@@ -1,0 +1,83 @@
+<html>
+	<head><title>AGI Version 2</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+    <h1>AGI Version 2</h1>
+			<p>AGI Version 2 is the one most familiar to AGI enthusiasts and was used for the majority of Sierra's games. The main distinguishing features of version 2 support for the 16 color <a href="graphics.htm">EGA card</a> (but still keeping the original 160 x 200 resolution), separate <a href="dir.htm">directory files</a>, no <a href="encryption.htm#compression">compression</a> of <a href="resources.htm">resources</a>, no <a href="components.htm#gameid">game ID</a> added to <a href="vol.htm">VOL file and DIR file names</a>, and VOL files limited to 5 (VOL.0 - VOL.4).</p>
+		  <p>There are fourteen known public releases of AGI version 2:</p>
+		  <ul><ul>
+		  	<li><a name="2089"><b>Version 2.089</b></a></li>
+		  		<p>The first version 2 interpreter was able to <a href="starting.htm#hardware">detect and run on the IBM PC, IBM PCJr and the Tandy 1000</a>. It included support for the <a href="graphics.htm">CGA and EGA video cards</a>. In CGA mode, it defaulted to the first color palette of 'black-cyan-magenta-white'. There was no option to force computer type and monitor type with command line arguments. This version did not support the Hercules Graphics Card (HGC) and monitor type was not tracked in variable <a href="v26.htm">v26</a>.</p>
+					<p><a href="pictures.htm">Picture</a> resources did not include the <a href="pictures.htm#plot">plot feature</a>. Non-MSDOS systems did not support a <a href="v23.htm">global volume control</a> for <a href="sounds.htm">sounds</a>. <a href="views.htm">Views</a> in this version did not use the <a href="views.htm#mirror">mirroring</a> feature. The <a href="object.htm">OBJECT</a> file was not encrypted.</p>
+					<p>Space was allocated to store 40 keyboard <a href="controllers.htm#keyboard">controller</a> assignments but there is a bug in the code that only allocates space for 30 controllers in the evaluation table. The number of <a href="strings.htm">strings</a> available was 12. Message box windows could not be displayed <a href="..\commands\cmd_print.htm">without pausing game play</a>. Black was the only background color that would properly <a href="..\commands\cmd_display.htm">display</a> text on the graphics screen. The <a href="grafdisp.htm#statusline">status line</a> text used the phrase "Sound is on/Sound is off".</p>
+					<p>This version included 155 <a href="..\commands\cmds_category.htm#actions">action commands</a>. The <a href="..\commands\cmd_quit.htm"><b>quit</b></a> command had no arguments. The <a href="..\commands\cmd_status.htm"><b>status</b></a> command did not support selecting <a href="invitems.htm">inventory items</a> (they could only be listed). The <a href="..\commands\cmd_restartgame.htm"><b>restart.game</b></a> command did not support a 'no prompt' mode. The offset for evaluation commands in the debugging <a href="tracer.htm">tracer</a> feature was set at 160. The <a href="..\commands\cmd_distance.htm"><b>distance</b></a> command had a bug in it that returned incorrect values when distance was greater than 255.</p>
+					<p>The number key pad '5' button did not stop ego movement; to stop required pressing the direction key matching current ego movement. The <a href="keyboard.htm#inputline">input line</a> width was fixed and could not be modified. This version did not include <a href="menu.htm">menus</a>. <a href="logics.htm">Scan start</a> information was not added to <a href="save.htm">saved games</a>.</p>
+					<p><a href="variables.htm#reserved">Reserved variables</a> only included v0 through v22, and <a href="flags.htm#reserved">reserved flags</a> only included f0 through f12. The 'o#' <a href="messages.htm#format">message format code</a> was not available.</p>
+					<p>&nbsp;</p>
+				<li><a name="2272"><b>Version 2.272</b></a></li>
+					<p>The <a href="views.htm#mirror">mirroring</a> feature for <a href="views.htm">view</a> loops was added.	</p>
+					<p>Use of the '5' key on the number keypad to stop ego motion was added. A bug was introduced in this version that stored a value of 3 in <a href="variables.htm#reserved">reserved variable</a> <a href="v22.htm">v22 (sound channel count)</a> regardless of the <a href="v20.htm">computer type</a>. Beginning in this version <a href="logics.htm">scan start</a> information was added to <a href="save.htm">saved games</a>. The <a href="grafdisp.htm#statusline">status line</a> text was changed to show "Sound: on/Sound: off".</p>
+					<p>Version 2.272 increased the number of <a href="..\commands\cmds_category.htm">commands</a> to 161, including all the <a href="menu.htm">menu</a> commands, but none of them did anything; they were just placeholder commands so menus were still unavailable. The <a href="..\commands\cmd_quit.htm"><b>quit</b></a> command was modified to use a byte value argument, allowing the game programmer to give the player an option to cancel the quit action. A bug was introduced in the <a href="..\commands\cmd_comparestrings.htm"><b>compare.strings</b></a> command (incorrectly handling strings of different length). </p>
+					<p><a href="variables.htm#reserved">Reserved variables</a> <a href="v23.htm">v23</a> and <a href="v24.htm">v24</a> were added. The 'o#' <a href="messages.htm#format">message format code</a> was added. </p>
+					<p>&nbsp;</p>
+		  	<li><a name="2411"><b>Version 2.411</b></a></li>
+					<p>Support for the <a href="graphics.htm#hgc">HGC video card</a> was added. The <a href="components.htm#overlays">overlay</a> files for managing graphics routines was split into multiple files. Support for <a href="starting.htm#command">command line options</a> was added. </p>
+					<p>Version 2.411 introduced a limited implementation of the <a href="pictures.htm#plot">plot drawing commands</a> for <a href="pictures.htm">picture</a> resources. Beginning with this version, the <a href="encryption.htm#object_encryption">OBJECT</a> file was encrypted. </p>
+					<p>This version increased the number of <a href="..\commands\cmds_category.htm">commands</a> to 170. The bug in the <a href="..\commands\cmd_distance.htm"><b>distance</b></a> command was fixed.</p>
+					<p><a href="menu.htm">Menus</a> were available for the first time. <a href="..\commands\cmd_muln.htm">Multiplication</a> and <a href="..\commands\cmd_divn.htm">division</a> commands were added. The offset for evaluation commands in the debugging <a href="tracer.htm">tracer</a> feature was increased to 240 to allow for the greater number of action commands. </p>
+					<p>Changes in the text functions to support menus enabled both black and white as valid background colors when <a href="..\commands\cmd_display.htm">displaying</a> text on the graphics screen. The bug that limited <a href="controllers.htm#bug">controllers</a> to 30 was fixed, making all 50 controllers available. The number of <a href="strings.htm">strings</a> increased from 12 to 24. </p>
+					<p><a href="variables.htm#reserved">Reserved variables</a> <a href="v25.htm">v25</a> and <a href="v26.htm">v26</a>, and <a href="flags.htm#reserved">reserved flags</a> <a href="f13.htm">f13</a>, <a href="f14.htm">f14</a> and <a href="f15.htm">f15</a> were added.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2425"><b>Version 2.425</b></a></li>
+					<p>In 2.425, the the <a href="pictures.htm#plot">plot drawing commands</a> were expanded to allow for changing the size, shape and style of the plot pen, but there were <a href="pictures.htm#brusherrors">several minor bugs</a> in the implementation.</p>
+					<p>Reserved flag <a href="f16.htm">f16</a> was added to allow <a href="restart.htm">automatic restarting</a>. The bug in assigning <a href="variables.htm#reserved">reserved variable</a> <a href="v22.htm">v22 (sound channel count)</a> was fixed.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2426"><b>Version 2.426</b></a></li>
+		  		<p>The plot drawing function was refactored  to fix the pen reset bug but did not fix <a href="pictures.htm#brusherrors">the other two bugs</a>.</p>  
+					<p>&nbsp;</p>
+		  	<li><a name="2435"><b>Version 2.435</b></a></li>
+		  	  <p>Another attempt to fix the <a href="pictures.htm#brusherrors">bugs in the plot drawing functions</a>, but still not completely successful.</p>
+		  	  <p>Minor changes were made to the PCJr sound functions to improve efficiency.</p>
+        	<p>File and disk error messages were adjusted to include extra line break between the error message and the 'Press ESC to quit' text.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2439"><b>Version 2.439</b></a></li>
+		  		<p>The code for the <a href="..\commands\cmd_restoregame.htm"><b>restore.game</b></a> command was modified to check if a <a href="..\agi\screenobjs.htm">screen object</a> has a valid <a href="..\agi\views.htm">view</a> loaded before checking if the object should be animated.</p>
+		  		<p>The <a href="pictures.htm#brusherrors">plot command bug</a> with missing data in the circle size 1 brush was finally fixed.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2440"><b>Version 2.440</b></a></li>
+		  		<p>In this version the <a href="..\commands\cmd_comparestrings.htm"><b>compare.string</b></a> bug that was introduced in version 2.272 was fixed.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2903"><b>Version 2.903</b></a></li>
+					<p>The next version with significant changes was 2.903, which added <a href="..\commands\cmds_category.htm">commands</a> to manage <a href="scripts.htm">scripts</a>, <a href="..\commands\cmd_setsimple.htm"><b>set.simple</b></a> and <a href="..\commands\cmd_holdkey.htm"><b>hold.key</b></a> for a total of 174 commands. Note that the <a href="..\commands\cmd_releasekey.htm"><b>release.key</b></a> command was not added until <a href="version3.htm#3002098">version 3.002.098</a>.</p>
+					<p>This version added support for the <a href="starting.htm#hardware">PS/2 computer</a> with the <a href="graphics.htm#vga">VGA display</a>. However, a minor bug was introduced in the video detection function that would incorrectly set the computer and monitor to the PS/2 with VGA for some PC models.</p>
+					<p>The <a href="sounds.htm">sound</a> <a href="agisound.htm#dissolve">playback function</a> for Tandy and PCJr sounds added a 'dissolve' feature that had each note start at a slightly higher volume and then quickly (after approximately one second) reduce to a slightly lower level for the duration of the tone.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2911"><b>Version 2.911</b></a></li>
+		  		<p>The code for reading in <a href="starting.htm#command">command line parameters</a> was refactored, but this ended up introducing a bug which caused AGI to actually ignore ALL parameters.</p>
+		  		<p>A disk reset command was added to the code used for opening all <a href="vol.htm">VOL files</a>, although the reason why is not fully understood.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2912"><b>Version 2.912</b></a></li>
+		  		<p>This version removed the disk reset command added in version 2.911, presumably because they decided it wasn't really necessary after all.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2915"><b>Version 2.915</b></a></li>
+		  		<p>The bug in the video hardware check for PS/2 and VGA that was introduced in version 2.903, and the bug in the command line parameter function from version 2.911 were fixed.</p>
+		  		<p>The message for disk errors when saving a game was modified to include write protection as a possible cause.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2917"><b>Version 2.917</b></a></li>
+					<p>This was one of the most popular versions used by Sierra. No less than six Sierra games were released with this interpreter version.</p>
+	  			<p>In this version, the <a href="..\commands\cmd_newroom.htm">new room function</a> was modified to close all <a href="vol.htm">VOL files</a>. Also when calculating video offsets when drawing pixels, an additional check was added for <a href="starting.htm#hardware">Tandy</a> when running on a non-EGA monitor.</p>
+					<p>&nbsp;</p>
+		  	<li><a name="2936"><b>Version 2.936</b></a></li>
+					<p>This was the last version 2 release. It added two commands, <a href="..\commands\cmd_setpribase.htm"><b>set.pri.base</b></a> and <a href="..\commands\cmd_discardsound.htm"><b>discard.sound</b></a>.</p>
+					<p>The <b>set.pri.base</b> command included a <a href="..\commands\object_priority.htm#fixed">minor bug in the code</a> that determines the correct order to draw objects when updating the screen.</p>
+					<p>This version also introduced a bug in the graphics update function that results in the <a href="screenobjs.htm#autoloop">auto loop</a> feature changing loops for all views, regardless of the number of loops. In previous versions, views with more than four loops would not automatically update.</p>
+		  </ul></ul>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

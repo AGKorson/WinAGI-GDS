@@ -1,0 +1,89 @@
+<html>
+	<head><title>AGI Scripts</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>AGI Scripts</h1>
+			<p>Scripts are used to keep track of <a href="resources.htm">resources</a> that are loaded when a game is <a href="save.htm">saved</a> or <a href="restore.htm">restored</a>. During the course of a game, as <a href="logics.htm">logics</a>, <a href="pictures.htm">pictures</a>, <a href="views.htm">views</a> and <a href="sounds.htm">sounds</a> are loaded, script entries are added. Then, when a game is saved, AGI saves the script entries so these resources can be properly re-loaded when the game is restored. Script items also track other picture and view actions, such as unloading, adding to pictures, overlays, etc.</p>
+			<p>AGI stores script information in a table on the memory <a href="memory.htm#heap">heap</a>, which is accessed as needed during save and restore operations.</p> 
+		<h2><a name="scripttable">Script Table</a></h2>
+			<p>The default script table size is 50 items (100 bytes). This can be changed using the <b><a href="..\commands\cmd_scriptsize.htm">script.size</a></b> command, but only once, and only if called before any <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> commands are called. Once the table size is set (by calling <b>script.size</b> or after the first <b>new.room</b> call), it cannot be changed.</p>
+			<p>If you use the <b>script.size</b> command after the script table has already been set the size is not actually changed, but the max script size value that AGI uses to determine when a <a href="errorlist.htm#trap11">script overflow error (#11)</a> is raised will be set to the new value. If the new value is larger than the current table size, AGI will allow script entries above the actual limit, which will overwrite memory locations used by other loaded resources, resulting in unpredictable behavior, and most likely <a href="errors.htm">crash AGI</a>.</p>
+			<p>AGI allocates two bytes of <a href="memory.htm">memory</a> for each script item in the script table. The first byte indicates the type of script activity, the second indicates the associated resource number. The script table is included in the <a href="memory.htm#room0">room.0</a> portion of the memory <a href="memory.htm#heap">heap</a>.</p>
+		<h2>Script Item Types</h2>
+			<p>There are nine resource activities that are tracked in the AGI script:</p>
+			<p>
+			<table id="Table2" cellSpacing="0" cellPadding="0" border="1">
+				<tr>
+					<td align="center" width="180"><b>Script Activity #</b></td>
+					<td align="center" width="360" style="vertical-align:middle"><b>AGI Command</b></td>
+				</tr>
+				<tr>
+					<td align="center">0</td>
+					<td align="center">load.logic</td>
+				</tr>
+				<tr>
+					<td align="center">1</td>
+					<td align="center">load.view</td>
+				</tr>
+				<tr>
+					<td align="center">2</td>
+					<td align="center">load.pic</td>
+				</tr>
+				<tr>
+					<td align="center">3</td>
+					<td align="center">load.sound</td>
+				</tr>
+				<tr>
+					<td align="center">4</td>
+					<td align="center">draw.pic</td>
+				</tr>
+				<tr>
+					<td align="center">5</td>
+					<td align="center">add.to.pic*</td>
+				</tr>
+				<tr>
+					<td align="center">6</td>
+					<td align="center">discard.pic</td>
+				</tr>
+				<tr>
+					<td align="center">7</td>
+					<td align="center">discard.view</td>
+				</tr>
+				<tr>
+					<td align="center">8</td>
+					<td align="center">overlay.pic</td>
+				</tr>
+			</table>
+			</p>
+			<ADDRESS>
+			<p>*add.to.pic actually uses 4 script table entries (total of eight bytes) as follows:</p>
+			<p class="indent">byte 0: script activity number (5)</p>
+			<p class="indent">byte 1: not used</p>
+			<p class="indent">byte 2: view number</p>
+			<p class="indent">byte 3: loop number</p>
+			<p class="indent">byte 4: cel number</p>
+			<p class="indent">byte 5: x position</p>
+			<p class="indent">byte 6: y position</p>
+			<p class="indent">byte 7: priority</p>
+			</ADDRESS>
+		<h2>Script Management</h2>
+			<p>Each time AGI encounters one of these 9 commands, a script entry is added. It is extremely unlikely to happen, but you should never use one of these commands before the script table is set, as AGI will attempt to store the script entry at an invalid memory location.</p>
+			<p>AGI maintains a pointer the current script entry. If the number of script entries exceeds the script table size, AGI raises <a href="errorlist.htm#trap11">trappable error #11</a>. The script pointer is reset to zero each time a <b><a href="..\commands\cmd_newroom.htm">new.room</a></b> or <b><a href="..\commands\cmd_newroomv.htm">new.room.v</a></b> command is called.</p>
+			<p>During the course of the game, AGI tracks the highest script count, which can be displayed with the <b><a href="..\commands\cmd_showmem.htm">show.mem</a></b> command. This value can be used when <a href="debug.htm">debugging</a> to help determine the optimal script size.</p>
+		<h3>Disabling Script Entries</h3>
+			<p>In some cases, it may be desirable to execute commands but not have them add script entries. For example, if a <a href="logics.htm">logic</a> repeatedly executes code that loads a <a href="views.htm">view</a>, uses it in some manner, then unloads it, a script overflow could easily be encountered.</p>
+			<p>Writing to the script table can be disabled by setting <a href="flags.htm#reserved">reserved flag</a> <a href="f7.htm">f7 (script disabled)</a> to TRUE. When this flag is set, no script entries are made to the script table.</p>
+		<h3>Pushing and Popping Scripts</h3>
+			<p>In addition to the block script flag, there are two commands, <b><a href="..\commands\cmd_pushscript.htm">push.script</a></b> and <b><a href="..\commands\cmd_popscript.htm">pop.script</a></b> that can be used to manage scripts. These two commands are only available in AGI versions 2.903 and above.</p>
+			<p>Despite their names, the <b><a href="..\commands\cmd_pushscript.htm">push.script</a></b> and <b><a href="..\commands\cmd_popscript.htm">pop.script</a></b> functions are not stack functions. Pushing the script will save the current script table position. If <b><a href="..\commands\cmd_pushscript.htm">push.script</a></b> is called multiple times, it will overwrite the stored script position each time it is called. Pushing the script does not affect subsequent additions of commands to the script table.</p>
+			<p>Popping the script restores the script table position, which effectively deletes all entries int the table past the restored position. After calling <b><a href="..\commands\cmd_popscript.htm">pop.script</a></b>, subsequent script entries will be made starting at the restored position. It is important that <b><a href="..\commands\cmd_pushscript.htm">push.script</a></b> be called BEFORE <b><a href="..\commands\cmd_popscript.htm">pop.script</a></b>. Popping the script position without first pushing it could result in unpredictable results since the memory location where the script position is stored may contain an unknown value.</p>
+			<p>Because AGI relies on the script entries to correctly <a href="save.htm">save</a> and <a href="restore.htm">restore</a> games, it is important to exercise caution when manipulating scripts.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

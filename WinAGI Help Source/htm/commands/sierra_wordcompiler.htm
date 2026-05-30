@@ -1,0 +1,90 @@
+<html>
+<head>
+  <title>Sierra's WORDS.TOK File Compiler</title>
+  <link href="..\styles\coUA.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+  <a name="_top"></a>
+  <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+    <tr>
+      <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+    </tr>
+  </table>
+  <h1>Sierra's WORDS.TOK File Compiler</h1>
+  <p>The original tool that Sierra used to create the <a href="..\agi\words.htm">WORDS.TOK</a> file in AGI games was a simple MSDOS program called WORDS.EXE. The most recent publicly released version of WORDS.EXE is 3.02, with a copyright date of 1984.</p>
+  <h2>Usage</h2>
+  <p>WORD.EXE is a native MSDOS program. Its usage is:</p>
+  <blockquote>
+    <pre>word</pre>
+  </blockquote>
+  <p>WORD.EXE has no optional settings or arguments. It requires a text file named "words.txt" to be in the same folder, and that text file must contain the word list to be converted to the WORDS.TOK format.</p>
+  <p>WORD.EXE uses a very primitive parser; numbers can only be positive integers; spaces, tabs and line breaks are used to separate parameters.</p>
+  <p>When an error is encountered, WORDS.EXE will ignore the entry with the error and attempt to continue.</p>
+
+  <h2>words.txt Source File Format</h2>
+  <p>The source file, "words.txt", must be a simple text file. Data entries consist of statements using one of three keywords: <b><code>.d</code></b>, <b><code>.i</code></b> and <b><code>.s</code></b>. Comments can be added by using the '[' character.</p>
+    <pre>[
+[       TYPICAL WORDS.TOK SOURCE FILE
+[
+
+.d  rol         9999
+
+.d  look           2
+.s  show        look
+.s  see         look
+.s  read        look
+.s  examine     look
+
+.i  an          [ articles
+.i  the
+.i  mine        [ pronouns
+.i  my
+.i  we</pre>
+  <p>The 'define' keyword <b><code>.d</code></b> is used to add a new <a href="..\agi\words.htm#wordgroups">word group</a>. The first parameter is the word text, the second parameter is the word group number. The only separator allowed between parameter is white space (spaces, tabs, new lines). Unlike Sierra's <a href="sierra_logiccompiler.htm">logic compiler</a> and <a href="sierra_objectcompiler.htm">object compiler</a>, the comma and semicolon are NOT used as separators. </p>
+  <p>Words are NOT enclosed in quotes; using quotes around words will cause an error. The '$' character is used to represent a space character in word text:</p>
+    <pre>.d look$in  3  [ represents 'look in'</pre>
+  <p>Both the word text and the word group number must not already be in use or an error will be raised.</p>
+  <p><a href="..\agi\words.htm#reserved">Group 1</a> is pre-defined by the compiler and the word "anyword" is assigned to it. You cannot use the <b><code>.d</code></b> keyword to add a group 1.</p>
+
+  <p>To allow the players flexibility when entering text into AGI's <a href="..\agi\keyboard.htm#parser">text parser</a>, use the <b><code>.s</code></b> keyword to add synonyms for words which have already been assigned a group number. The synonym will be assigned to the same group as the existing word. The first parameter is the word text of the synonym, and the second parameter is the word text of the existing word. The associated word must already exist in the list or an error will be raised.</p>
+    <pre>.s examine   look  [ 'examine' will use same group number as 'look'
+.s show   examine   [ OK to use a synonym to add a synonym</pre>
+
+  <p>The 'ignore' keyword <b><code>.i</code></b> is used to add words to the <a href="..\agi\words.htm#reserved">'ignored' group</a> (group number zero). The lone parameter is the word text of the word being added. The word text must not already exist in the word list or an error will be raised.</p>
+    <pre>.i     the</pre>
+  <p>Using the <b><code>.i</code></b> keyword will add a group number 0 if it has not already been added. You can add an ignored word to group zero using the <b><code>.d</code></b> keyword, but only if the <b><code>.i</code></b> keyword has not yet been used. You can also use the <b><code>.s</code></b> keyword to add ignored words.</p>
+    <pre>.d   an   0   [ same as '.i   an'
+.i   the   [ same as '.s   the   an'</pre>
+  <p>The words 'a' and 'i' are not automatically added, but they don't need to be included in the words.txt source file because at run time AGI automatically assigns them a group number of zero even if they are not included in WORDS.TOK.</p>
+  <p>Using the <b><code>.i</code></b> keyword is equivalent to using the <b><code>.s</code></b> keyword with a word from of zero.</p>
+
+  <p>All tokens, including keywords and word text tokens, are case-insensitive. All text characters are converted to lower case before the token is processed by the compiler. This ensures there are no upper case characters in the words added to <a href="..\agi\words.htm">WORDS.TOK</a> file.</p>
+    <pre>.D LOOK  2  [ same as '.d look  2'</pre>
+  <p>Each define, ignore and synonym statement can be split over multiple lines, but you cannot put multiple statements on the same line. WORDS.TXT ignores all characters on a line after it finishes processing a command.</p>
+    <pre>.d aword 123       .d bword 124 [ 'bword' define will never get processed</pre>
+
+  <h2>Bugs and Anomalies</h2>
+  <p><a name="9999">Group</a> numbers are converted to a 16 bit unsigned integer value (0 - 65355). However the internal buffer for managing which groups are in use only has room for group numbers 0 - 9999. Using a group number outside this value will not throw an error, but it will result in a corrupted output file because of a buffer overflow. The value 9999 is arbitrary and not a limit of AGI itself; if properly constructed, a <a href="..\agi\words.htm">WORDS.TOK</a> file can actually use any valid unsigned integer value as a word group and AGI will handle it without error. (WinAGI allows use of group numbers greater than 9999.)</p>
+  <p>There is a bug in the comment handler in WORDS.EXE. When a '[' character is encountered, WORDS.EXE skips to the end of the line, increments the line counter, then continues checking characters beginning on the next line. This means you need to make sure to always precede the '[' character with white space, or you may get unexpected results.</p>
+    <pre>.d aword  1234[ badcomment
+.d bword  1235
+
+[ WORDS.EXE reads this as:
+.d aword 1234.d
+bword 1235</pre>
+  <p>Another bug related to comments is that the comment marker '[' is actually not required at the end of a define, ignore, or synonym statement. Once WORDS.EXE successfully finishes processing the statement, it skips all characters until another new line '\n' is found. However, if an error occurs, the rest of the line is NOT skipped.</p>
+    <pre>.d aword 123       .d bword 124 [ 'bword' define will never get processed
+.d aword xxx       .d bword 124 [ 'aword' raises error, 'bword' gets added</pre>
+  <p>If the last line of the source file 'words.txt' is a comment, it should include a line break ("\r\n") at the end. If the line break is not included, WORDS.EXE will raise an error (but the file is still created sucessfully.)</p>
+  <p>Do NOT use a word that is longer than 39 characters. WORDS.EXE will cause a buffer overflow when trying to read the word which will freeze and crash the program.</p>
+  <p>WORDS.EXE automatically adds the word "anyword" to group 1 when it starts up.</p>
+  <p>The newline character ('\x0a' or '\n') does not act as a token separator; it just increments the line count to manage error messages. However, the carriage return character ('\x0d' or '\r') does act as a token separator. Since it was common practice in the days of Sierra to use the string "\r\n" as a line break, this effect is not noticeable. If you create the source file 'words.txt' in an editor that uses only '\n' as a line break you will get unexpected results.</p>
+  <p>WORDS.EXE will raise an error if you try to start a word with anything other than a letter a-z. However, it will add any and all characters after that, even if they are characters that <a href="..\agi\keyboard.htm#parser">AGI will not process at runtime</a>. The programmer is responsible to make sure no unallowed characters are included in word text.</p>
+    <pre>.d run-run!  2  [ will compile, but will never match in a <a href="cmd_said.htm">said</a> command</pre>
+  <p>When reading numbers for the <b><code>.d</code></b> group number parameter, WORDS.EXE returns all characters until a separator is found, then converts all valid digits at the start of the token into a number value.</p>
+    <pre>.d look 2abc  [ same as '.d look 2'</pre>
+  <p>&nbsp;</p>
+  <p align="right"><font size="1">v3.0.0</font></p>
+  <p>&nbsp;</p>
+</body>
+</html>

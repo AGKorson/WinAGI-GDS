@@ -1,0 +1,32 @@
+<html>
+	<head><title>Reserved Variable v19</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v19: Pressed Key Code</h1>
+			<p>When polling the keyboard at the beginning of each <a href="cycle.htm">interpreter cycle</a>, AGI first resets v19 to zero. Then, if an ASCII value <a href="keyboard.htm">key-press</a> is read from the <a href="interface.htm#queue">input queue</a>, the ASCII value is placed in variable v19. v19 is also set when the <a href="..\commands\cmd_havekey.htm"><b>have.key</b></a> command checks the keyboard buffer.</p>
+			<p>The <b>have.key</b> command is often used to create loops that wait for a keypress. Just testing the value of v19 is not sufficient, because it only gets updated at the beginning of each cycle, or when <b>have.key</b> is called:</p>
+<pre><code>[ this loop won't work
+wait:
+if(<b>v19 != 0</b>) [ will never be true, even if a key is pressed
+  {
+  goto(wait);
+  }
+...
+[ this is correct way to check for a keypress
+v19 = 0; [ clear the key value first
+wait2:
+if(<b>!have.key()</b>)
+  {
+  goto(wait2);
+  }
+...</code></pre>
+			<p>Only ASCII values are stored in v19. Keypresses that don't generate an ASCII code (function keys, shift, alt or control, etc.) are not captured in v19. Any ASCII keys that are assigned to controllers will also not be captured in v19.</p>
+			<p>Attempting to use this variable for other purposes is not recommended; it gets updated with each key-press; it gets overwritten every time the player pressed a key on the keyboard.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

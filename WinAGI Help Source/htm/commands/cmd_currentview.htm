@@ -1,0 +1,42 @@
+<html>
+	<head><title>Action Command: current.view</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>current.view</h1>
+			<p>The <b>current.view</b> command stores the number of the view currently assigned to an object in a variable.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>current.view(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">var</a> vB);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Variable <b>vB</b> is set to the <a href="..\agi\views.htm">view</a> number for <a href="..\agi\screenobjs.htm">object</a> <b>oA</b>.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, the returned value is meaningless.</p>
+		<h2>Example</h2>
+<pre><code><b>current.view(o0, v52);</b>  [ v52 now equals the view number assigned to ego</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">52 (0x34)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="concepts_objs.htm">Working with Screen Objects</a></p>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_currentcel.htm">current.cel</a></b></p>
+			<p><b><a href="cmd_currentloop.htm">current.loop</a></b></p>
+			<p><b><a href="cmd_lastcel.htm">last.cel</a></b></p>
+			<p><b><a href="cmd_setview.htm">set.view</a></b></p>
+			<p><b><a href="cmd_setviewv.htm">set.view.v</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

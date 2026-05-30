@@ -1,0 +1,17 @@
+<html>
+    <head><title>Logic Source Decompiler Error DE07</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Error DE07</h2>
+      <h3>Message section has an invalid end-of-text marker</h3>
+      <p class="indent_n">The first two bytes of the <a href="..\..\agi\logics.htm#messages">message address table</a> in a compiled AGI <a href="..\..\agi\logics.htm">logic</a> are a pointer to the end of the message section. AGI needs this value so it can properly <a href="..\..\agi\encryption.htm#msg">decrypt</a> the messages when the logic is loaded. In a properly formatted AGI logic, this value should always correspond with the end of the logic data.</p>
+      <p class="indent_n">This warning indicates the message end pointer is not the expected value. It most likely means the logic data is corrupt. WinAGI will reset the pointer to the expected value, but the messages may not be decompiled correctly. You should examine the decompiled source code closely, make any corrections needed, then recompile to fix this issue.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

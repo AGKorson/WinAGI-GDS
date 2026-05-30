@@ -1,0 +1,41 @@
+<html>
+	<head><title>Action Command: restore.game</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>restore.game</h1>
+			<p>The <b>restore.game</b> command restores a game from a previously saved game file.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>restore.game();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command displays a window that allows a player to choose a previously saved game (using the <b><a href="cmd_savegame.htm">save.game</a></b> command) and restore it. Restoring a game reads all the game state information from the save file.</p>
+			<p>See the <a href="..\agi\restore.htm">Restoring Games</a> topic for detailed information on how AGI restores games.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>if (said("restore"))
+  {
+  <b>restore.game();</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">126 (0x7E)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_system.htm">System Commands</a></p>
+			<p><b><a href="cmd_savegame.htm">save.game</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

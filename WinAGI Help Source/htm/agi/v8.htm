@@ -1,0 +1,15 @@
+<html>
+	<head><title>Reserved Variable v8</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v8: Pages of Free Memory</h1>
+			<p>The memory available for game resources in AGI was limited to approximately 57 KBytes due to limitations in hardware and software available at the time AGI was created. To assist game programmers in managing memory and avoid crashing due to exceeding available memory, AGI uses v8 to store the number of 256 byte 'pages' of memory (i.e., v8=free memory/256, rounded down) that are available at any given time. For additional information on memory management in AGI, see the <a href="memory.htm">Memory Management</a> topic.</p>
+			<p>Attempting to use this variable for other purposes is not recommended, because AGI overwrites it every time resources are loaded or unloaded in memory.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,41 @@
+<html>
+	<head><title>Cycling Objects</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>Cycling Objects</h1>
+			<p>The animation of a <a href="..\agi\screenobjs.htm">screen object</a> is called "cycling". This is the successive display of several cels from the same loop in order. When you initialize an object, it cycles the cels in the first loop (loop 0) by default. To change the loop number, use the <b><a href="cmd_setloop.htm">set.loop</a></b> command. To change the speed of cycling, use the <b><a href="cmd_cycletime.htm">cycle.time</a></b> command.</p>
+			<p>Objects must be enabled for <a href="object_initialize.htm#updating">updating</a> in order to cycle. In addition, each object maintains a separate cycling property that must also be enabled. Both updating and cycling properties are enabled by default when a screen object is <a href="object_initialize.htm">initialized</a>.</p>
+		<h3><a name="cycletime">Cycle Time</a></h3>
+			<p>The cycle time property determines how often an object's <a href="..\agi\views.htm#cel">cel</a> is changed. In each <a href="..\agi\cycle.htm">interpreter cycle</a>, AGI counts down on a <a href="..\agi\sobjtable.htm#cyclecounter">cycle counter</a>; when the counter reaches zero, the object's cel is cycled according to the current cycle mode and the counter is reset to the cycle time.</p>
+			<p>Every time a <a href="cmd_newroom.htm"><b>new.room</b></a> or <a href="cmd_newroomv.htm"><b>new.room.v</b></a> command is called, cycle time for all objects is set to default value of one. Cycle time can be changed with the <b><a href="cmd_cycletime.htm">cycle.time</a></b> command. Cycle time can be set to zero, in which case the object will not cycle its cel, regardless of the assigned cycle mode.</p>
+			<p>Don't confuse cycle time with <a href="object_moving.htm#steptime">step time</a>. Cycle time determines how often the object's <a href="..\agi\views.htm#cel">cel</a> changes. Step time determines how often an object moves.</p>
+			<p>It is also important to understand that cycling and motion occur independently. When an object stops moving (either by setting its direction to zero, or by encountering an <a href="concepts_obstacles.htm">obstacle</a>) it will continue to cycle. This means the programmer has to manually stop cycling when the object stops moving, otherwise the object will continue to cycle in place. It is surprising that Sierra did not include built-in functionality to automatically start/stop cycling for moving objects (similar to how AGI <a href="..\agi\screenobjs.htm#autoloop">automatically assigns loops</a> to moving objects). For sample code that shows how to manage synchronizing cycling and movement for the <a href="..\agi\interface.htm">ego</a> object, see the <a href="cmd_stopcycling.htm"><b>stop.cycling</b></a> command topic.</p>
+		<h3><a name="validatepos">Cel Position Validation</a></h3>
+			<p>When the new cel is assigned to the object, AGI validates that the cel will still fit on screen. If the new width or height would result in the object being over the right or top edge respectively, AGI automatically repositions it on the edge. AGI then sets the internal '<a href="..\agi\sobjtable.htm#reposition">repositioned</a>' flag which means the object will not move in the next interpreter cycle.</p>
+			<p>After checking the edges, if the object got repositioned for overlapping the top edge, AGI then checks that the object fits below the <a href="..\agi\grafdisp.htm#horizon">horizon</a> (if the object is not <a href="cmd_ignorehorizon.htm">ignoring the horizon</a>). This check is actually unnecessary, since the object's position is always checked during the graphics update portion of the <a href="..\agi\cycle.htm">interpreter cycle</a> and will be moved below the horizon if needed at that time.</p>
+			<p>This position check is not the same as the <a href="object_position.htm#shuffling">shuffle</a> function that AGI uses in other situations to validate screen position of screen objects, such as during collision checks.</p>
+		<h3>Auto Loop Feature</h3>
+			<p>To facilitate changing the profile of the object as it moves about the screen, AGI has a built-in feature that automatically assigns a loop based on the object's direction of motion. For example, when walking to the right, show a right-facing profile, when walking to the rear, show a rear view, etc. See the <a href="..\agi\screenobjs.htm#autoloop">Autoloop</a> topic for additional information.</p>
+		<h3><a name="cyclemode">Cycle Modes</a></h3>
+			<p>There</a> are four modes of cycling available to an object:</p>
+			<p class="indent2"><U><EM>Forward Cycle</EM></U></p>
+			<p class="indent2">In the forward cycle mode, the cels are displayed in increasing numerical order, i.e., cel 0, then cel 1, etc. After the last cel is reached, AGI goes back to cel 0 and starts over. The view will continue to cycle indefinitely. This is the default mode. Use the <b><a href="cmd_normalcycle.htm">normal.cycle</a></b> command to switch back to this mode.</p>
+			<p class="indent2"><U><EM>Reverse Cycle</EM></U></p>
+			<p class="indent2">In the reverse cycle mode, the cels are displayed in decreasing numerical order, i.e., cel X, cel X-1, etc. (where X is last cel). After the first cel is reached, AGI goes back to cel X and starts over. The view will continue to cycle indefinitely. Use the <b><a href="cmd_reversecycle.htm">reverse.cycle</a></b> command to switch to this mode.</p>
+			<p class="indent2"><U><EM>End of Loop</EM></U></p>
+			<p class="indent2">In this mode, the cels cycle in the forward direction, but once the last cel is shown, cycling stops. Use the <b><a href="cmd_endofloop.htm">end.of.loop</a></b> command to switch to this mode.</p>
+			<p class="indent2"><U><EM>Reverse Loop</EM></U></p>
+			<p class="indent2">In this mode, the cels cycle in the reverse direction, but once the first cel is shown, cycling stops. Use the <b><a href="cmd_reverseloop.htm">reverse.loop</a></b> command to switch to this mode.</p>
+			<p>&nbsp;</p>
+			<p>When changing modes, the current cel for the object is not reset. The cycling will begin at the current cel, and continue in the direction determined by the new cycle mode. You may need to manually set the cel so the animation works correctly. This is most important for the <b><a href="cmd_endofloop.htm">end.of.loop</a></b> and <b><a href="cmd_reverseloop.htm">reverse.loop</a></b> commands. For example, if the current cel is the last cel, and you switch to <b><a href="cmd_endofloop.htm">end.of.loop</a></b> mode, nothing will happen because the object is already showing the last cel.</p>
+			<p>Cycling can be disabled by using the <a href="cmd_stopcycling.htm"><b>stop.cycling</b></a> command and re-enabled with the <a href="cmd_startcycling.htm"><b>start.cycling</b></a> command.</p>
+			<p>If you want to display a single cel without animation, set the loop number and cel number you want to display using the <a href="cmd_setloop.htm"><b>set.loop</b></a> and <a href="cmd_setcel.htm"><b>set.cel</b></a> commands and then use the <a href="cmd_stopcycling.htm"><b>stop.cycling</b></a> command.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0 </font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

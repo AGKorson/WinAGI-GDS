@@ -1,0 +1,52 @@
+<html>
+	<head><title>Action Command: status</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>status</h1>
+			<p>The <b>status</b> command displays the inventory screen.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>status();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The inventory screen is a <a href="..\agi\textdisp.htm">text mode</a> screen that lists all <a href="..\agi\invitems.htm">inventory items</a> that are currently in the player's inventory (meaning they have a <a href="..\agi\pictures.htm#room">room</a> <a href="..\agi\object.htm#objroomnum">number</a> value of 255). The items are displayed in two columns, with the left column left-justified and the right column right-justified. The screen includes header text "You are carrying:" centered on the top line. If there are no items in the player's inventory, "Nothing" is displayed, centered just below the header. The colors for the inventory screen are always black text on a white background; the <a href="cmd_settextattribute.htm"><b>set.text.attribute</b></a> command does not affect the inventory screen.</p>
+			<p>There are two modes for the inventory screen, depending on the value of <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f13.htm">f13 (inventory selection enabled)</a>. If f13 (inventory selection enabled) is reset to FALSE, AGI halts the game while the inventory screen is displayed, until the player presses any key. The game then returns to the <a href="..\agi\grafdisp.htm">graphics</a> screen and resumes.</p>
+			<p>If f13 (inventory selection enabled) is set to TRUE, the inventory screen enables the player to select an item. The player can use the cursor keys to highlight an item. Pressing ENTER chooses the item, while pressing ESC cancels the selection. AGI then returns to the <a href="..\agi\grafdisp.htm">graphics</a> screen and resumes.</p>
+			<p><a href="..\agi\variables.htm#reserved">Reserved variable</a> <a href="..\agi\v25.htm">v25 (selected inventory item)</a> is set to selected item's index from the <a href="..\agi\object.htm">OBJECT file</a>. If ESC was pressed, v25 is set to 255. If there is nothing to select, v25 is set to 0. Note that if v25 is set to the index number of any item in the player's inventory prior to calling <b>status</b>, that item will be selected by default when the inventory screen is displayed</p>
+			<p>In <a href="..\agi\version2.htm#2089">versions</a> 2.089 and 2.272, reserved flag f13 and reserved variable v25 are not used; the <b>status</b> command will only display the list of items for viewing (the same as if f13 is false).</p>
+			<p>Be careful when using the <b>status</b> command when the <a href="..\agi\textdisp.htm">text screen</a> is active. Because of the way AGI handles color settings, the <b>status</b> command will clear the screen to black (not white) and doesn't display the header, but the items still show as black text on white background. After the <b>status</b> screen is dismissed, AGI will also go back to the <a href="..\agi\grafdisp.htm">graphics</a> screen even if <b>status</b> is called from the text screen.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>reset(inv_select_enabled);
+<b>status();</b>  [ just  displays inventory; no selection possible
+...
+set(inv_select_enabled);  [ enable selection
+selectedItem = 0; [ make sure nothing is pre-selected
+status();
+if(selectedItem !=0 && selectedItem != 255) [ if something was selected
+  {
+  v90 = selectedItem;
+  v90 += 200; [ item views are offset by 200
+  <b>show.obj.v(v90);</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">124 (0x7C)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_invitems.htm">Inventory Item Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

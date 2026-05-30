@@ -1,0 +1,49 @@
+<html>
+	<head><title>Action Command: menu.input</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>menu.input</h1>
+			<p>The <b>menu.input</b> command brings up the <a href="..\agi\menu.htm">menu</a> at the beginning of the next <a href="..\agi\cycle.htm">interpreter cycle</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>menu.input();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>You must create and submit a <a href="..\agi\menu.htm">menu</a> in order for <b>menu.input</b> command to work. If <b>menu.input</b> is called before a menu has been created and submitted, AGI will access invalid data while trying to display the menu, which will most likely <a href="..\agi\errors.htm">crash AGI</a>.</p>
+			<p>When the <b>menu.input</b> command executes, it first checks the value of <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f14.htm">f14 (menu enabled)</a>; if f14 is FALSE, the command does nothing. If f14 is TRUE, <b>menu.input</b> sets an internal flag that tells AGI to display the menu at the start of the next <a href="..\agi\cycle.htm">interpreter cycle</a>. (See the <a href="cmd_allowmenu.htm"><b>allow.menu</b></a> command for additional information on controlling menus in later <a href="..\agi\versions.htm">versions</a> of AGI.)</p>
+			<p>Once the menu is displayed, the interpreter cycle is <a href="..\agi\cycle.htm#pausing">paused</a> until the player selects an item from the menu, or presses the ESC key to exit without selecting. If a menu item was selected, its corresponding <a href="..\agi\controllers.htm#menu">controller</a> is added to the <a href="..\agi\interface.htm#queue">input queue</a>.</p>
+			<p>The most common method used by Sierra to display the menu was to assign the ESC key to a <a href="..\agi\controllers.htm#keyboard">keyboard controller</a>, which would then call the <b>menu.input</b> command. However, you could just as easily assign a different key if desired.</p>
+			<p>The <b>menu.input</b> command should only be executed on the <a href="..\agi\grafdisp.htm">graphics screen</a>. Calling this command on the <a href="..\agi\textdisp.htm">text screen</a> is possible, but menus will not display correctly. You should disable menus by setting <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f14.htm">f14 (menu enabled)</a> to FALSE whenever you are displaying the text screen.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ assume menu has been created
+submit.menu();       [ sets up the menu so it can be accessed
+set(f14);            [ enable menu
+... 
+if(controller(c25))  [ assume c25 is assigned to the ESC key
+  {
+  <b>menu.input();</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 2.411 and above.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">161 (0xA1)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="..\agi\menu.htm">Menus in AGI</a></p>
+			<p><a href="cmd_allowmenu.htm"><b>allow.menu</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

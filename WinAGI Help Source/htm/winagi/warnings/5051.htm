@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5051</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5051</h2>
+    <h3>X2 - X1 should be &gt;= 2 and Y2 - Y1 should be &gt;= 2; this block will not behave as expected</h3>
+    <p class="indent_n">AGI expects X2 to be greater than X1 by more than one pixel (and also Y2 to be greater than Y2 by more than one pixel. AGI does not check for this when you create a <a href="..\..\commands\concepts_obstacles.htm#blocks">block</a> with the <a href="..\..\commands\cmd_block.htm"><b>block</b></a> command. When the interpreter tests if any <a href="..\..\agi\screenobjs.htm">object</a> attempts to cross into or out of the block, it will always return false for a block that is not set up correctly. You should check your source code and edit it so the coordinates are correctly passed.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

@@ -1,0 +1,52 @@
+<html>
+	<head><title>Objects Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-object-e.gif" width="460" height="72" border="0" alt="WinAGI OBJECT Editor"></td>
+			</tr>
+		</table>
+		<h1>Objects Editor</h1>
+			<p>Use the Objects Editor to edit <a href="..\agi\object.htm">OBJECT files</a> in WinAGI.</p>
+		<h2>Objects Editor Components</h2>
+			<map name="objmap">
+				<area shape="rect" alt="Max Screen Objects" coords="235,32,518,59" href="#maxscreenobj">
+				<area shape="rect" alt="Inventory Item Table" coords="8,60,518,366" href="#itemtable">
+			</map>
+			<p><img src="..\..\graphics\objectedit.jpg" usemap="#objmap" border="0" width="527"></p>
+		<h2><a name="itemtable">Inventory Item Table</a></h2>
+			<p><a href="..\agi\object.htm">Inventory items</a> in the <a href="..\agi\object.htm">OBJECT</a> file are listed in numerical order. Each item has a description and a starting <a href="..\agi\pictures.htm#room">room</a> number.</p>
+			<p>Items are numbered sequentially. Item numbers cannot be edited.</p>
+			<p>The first item (<a href="..\agi\invitems.htm#item0">Item #0</a>) is by default a single question mark, representing no item. This is not strictly required though, and it can be edited if desired.</p>
+		<h3><a name="new">Adding</a> Items</h3>
+			<p>Add an item by using the Add Item command on the Edit menu. A new item is added to the end of the item list, and is automatically selected for editing.</p>
+		<h3><a name="delete">Deleting</a> Items</h3>
+			<p>To delete an item, select it, then use the Delete Item command on the Edit menu.</p>
+			<p>If the item is the last item in the list, it will be removed.</p>
+			<p>If it it not the last item, it is not actually deleted, since this would change the item number for the items that follow it. Instead, the item is changed to the <a href=
+				"..\agi\object.htm#nullitem">null item</a> (a single question mark), and its starting room is set to zero. </p>
+			<p><a name="clear">Use</a> the Clear Object List menu command to delete all items. This removes all items, except item #0, hich is set to the null item.</p>
+		<h3><a name="edit">Editing</a> Items</h3>
+			<p>To edit an item description or starting <a href="..\agi\pictures.htm#room">room</a> number, double-click it (or select it, then use the Edit Item command on the Edit menu). Make any changes, then press enter to accept the changes. To cancel editing, press the ESC key.</p>
+			<p>You can change item 0 to something other than the null item, but it is usually best to leave it.</p>
+			<p>Although it was extremely rare to see in Sierra games, AGI does provide limited support for use of <a href="..\agi\agifont.htm">extended character codes</a>. Use the <a href="charmap.htm">Character Map Tool</a> (on the Edit menu, or press CTRL+INS) if you want to use an extended character in an inventory item description.</p>
+		<h3><a name="duplicates">Duplicate Items</a></h3>
+			<p>If you edit an item so that it is a duplicate of an existing item, you will get a warning, and be asked if you wish to keep the duplicate.</p>
+			<p>AGI does not prohibit having inventory items with identical description text. However, the compiler will be unable to determine which item you really mean if a duplicate item is used in a <a href="..\agi\logics.htm">logic</a>.</p>
+			<p>If you must have duplicate items, you should refer to them by their item number (i.e. 'i1', 'i2', etc.) instead of with a literal text string.</p>
+		<h2><a name="find">Find</a> and Replace</h2>
+			<p>Use the Find and Replace commands on the Edit menu to search and replace inventory items. The search is limited to the OBJECTS file.</p>
+		<h2><a name="findinlogics">Find in Logics</a></h2>
+			<p>The Find in Logics command on the Edit menu allows you to search for an inventory item in all of your <a href="..\agi\logics.htm">logic</a> resources. To use this feature, select the item you wish to search for, then choose the Find in Logics command.</p>
+			<p>WinAGI will search all logics in your game for the selected item.</p>
+		<h2><a name="maxscreenobj">Maximum Screen Objects</a></h2>
+			<p>The <a href="..\agi\screenobjs.htm#maxscreenobj">Maximum Screen Objects</a> property sets the maximum number of <a href="..\agi\screenobjs.htm">screen objects</a> that can be in use at one time during the course of a game. This value is stored in the game's OBJECT file.</p>
+			<p>To edit this value, just select the text box, and enter the new value. Remember that a higher number will consume more memory. You should set this value to the minimum number necessary needed.</p>
+		<h2><a name="encryption">Encryption</a></h2>
+			<p>In the original AGI Interpreters, OBJECT files were <a href="..\agi\encryption.htm#object_encryption">encrypted</a> in <a href="..\agi\versions.htm">version 2.411</a> and above.</p>
+			<p>If the OBJECT file being edited is part of a game, WinAGI will automatically set the file encryption to the correct value. If you want to manage the encryption state manually, use the Encryption command on the Resources menu that allows you to toggle the file encryption.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

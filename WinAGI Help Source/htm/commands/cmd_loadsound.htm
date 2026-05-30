@@ -1,0 +1,47 @@
+<html>
+	<head><title>Action Command: load.sound</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>load.sound</h1>
+			<p>The <b>load.sound</b> command loads a <a href="..\agi\sounds.htm">sound resource</a> on to the <a href="..\agi\memory.htm">memory heap</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>load.sound(<a href="syntax_fan.htm#argtypes">byt</a> SOUNDNUM);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command loads <a href="..\agi\sounds.htm">sound</a> <b>SOUNDNUM</b> onto the <a href="..\agi\memory.htm#heap">memory heap</a>. <a href="..\agi\sounds.htm">Sound</a> resources must be loaded before being <a href="cmd_sound.htm">played</a>. If you try to play a sound before it is loaded, AGI will raise <a href="..\agi\errorlist.htm#trap9">trappable error #9</a>.</p> 
+			<p>In early <a href="..\agi\versions.htm">versions</a> of AGI, there was no way to unload a sound resource once it was loaded. Beginning with <a href="..\agi\version2.htm#2936">version 2.936</a>, AGI included a <a href="cmd_discardsound.htm"><b>discard.sound</b></a> command that allows a programmer to unload unneeded sound resources, but <b>only in non-PC versions of AGI</b>; in the PC version, this command points to a null function that doesn't do anything, and in fact will usually cause AGI to crash; see the <a href="cmd_discardsound.htm"><b>discard.sound</b></a> command for details.</p>
+			<p>AGI adds a script entry to the <a href="..\agi\scripts.htm">script stack</a> each time a <a href="..\agi\sounds.htm">sound</a> resource is loaded.</p>
+			<p>If you attempt to load a <a href="..\agi\sounds.htm">sound</a> that does not exist, AGI will raise a <a href="..\agi\errors.htm#invalidres">runtime error</a> and crash.</p>
+		<h2>Example</h2>
+<pre><code>[ assume the resource ID for a sound is 'Theme'
+<b>load.sound(Theme);</b>
+sound(Theme, f55);
+if(isset(f55)) 
+  {
+  reset(f55);
+  print("Thank you for listening to our theme song!");
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">98 (0x62)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_sounds.htm">Sound Commands</a></p>
+			<p><a href="..\agi\memory.htm">Memory Management</a></p>
+			<p><a href="..\agi\scripts.htm">AGI Scripts</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

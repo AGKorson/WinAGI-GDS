@@ -1,0 +1,45 @@
+<html>
+	<head><title>Action Command: get.string</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>get.string</h1>
+			<p>The <b>get.string</b> command prompts the player to enter a string that can then be manipulated in logic scripts.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>get.string(<a href="syntax_fan.htm#argtypes">str</a> sA, <a href="syntax_fan.htm#argtypes">msg</a> mPROMPT, <a href="syntax_fan.htm#argtypes">byt</a> ROW, <a href="syntax_fan.htm#argtypes">byt</a> COL, <a href="syntax_fan.htm#argtypes">byt</a> LEN);</p>
+			<p>get.string(<a href="syntax_fan.htm#argtypes">str</a> sA, "prompt", <a href="syntax_fan.htm#argtypes">byt</a> ROW, <a href="syntax_fan.htm#argtypes">byt</a> COL, <a href="syntax_fan.htm#argtypes">byt</a> LEN);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <b>get.string</b> command lets the programmer designate a location for the prompt and player input, instead of using the existing <a href="..\agi\keyboard.htm#inputline">input line</a> like the <a href="cmd_getnum.htm"><b>get.num</b></a> command does. Message <b>mPROMPT</b> is used as the prompt, and is displayed at text column <b>COL</b>, row <b>ROW</b>. If <b>ROW</b> is greater than 24, then both <b>COL</b> and <b>ROW</b> values are ignored, and the prompt will be displayed a the current <a href="..\agi\keyboard.htm#inputline">input line</a> location.</p>
+			<p>The last argument, <b>LEN</b>, is the maximum number of characters that the player can enter. <b>LEN</b> is limited to 40. If a value greater than 40 is passed, AGI ignores it and uses 40. AGI does not check to see if the total amount of space used for input (length of the prompt, plus the <b>COL</b> value, plus the <b>LEN</b> value) exceeds 40; if it does, the input will wrap around to column 0 of the next row, which may not be what was desired. </p>
+			<p>AGI does not automatically clear the prompt from the screen; it remains on the screen in the same way that text drawn by the <a href="cmd_display.htm"><b>display</b></a> command remains. Calling the <a href="cmd_graphics.htm"><b>graphics</b></a> command will refresh the display and clear the prompt.</p>
+			<p>If the prompt is drawn on top of the <a href="..\agi\keyboard.htm#inputline">input line</a>, this may cause confusion if the player had text on the input line prior to the <b>get.string</b> call. The previous text will still exist on the line, but it won't be visible. An easy workaround to this is to call the <a href="cmd_preventinput.htm"><b>prevent.input</b></a> and <a href="cmd_acceptinput.htm"><b>accept.input</b></a> commands immediately after you use <b>get.string</b> to clear and restore the input line.</p>
+			<p>There is a minor bug in AGI that causes the input line to be offset by one space after calling the <b>get.string</b> command when a <a href="..\agi\keyboard.htm#cursor">cursor</a> character is being used. When AGI restores the input line after displaying the <b>get.string</b> prompt, it uses the position of the cursor, which is actually one space beyond the location of the last actual character. It will appear to the player that there is a space there when in reality there is not. This can be avoided by calling the <a href="cmd_preventinput.htm"><b>prevent.input</b></a> and <a href="cmd_acceptinput.htm"><b>accept.input</b></a> commands immediately after you use <b>get.string</b>.
+			<p>When running on a system using the Hercules Graphics Card (HGC), the <b>get.string</b> command normally uses an input box similar to the normal <a href="..\agi\keyboard.htm#hgcinput">HGC input box</a>. The <a href="cmd_opendialogue.htm"><b>open.dialogue</b></a> command will cause the <b>get.string</b> command to operate the same as on other systems, as described above.</p>
+			<p>AGI does not check that <a href="..\agi\strings.htm">string</a> <b>sA</b> is valid. If an invalid string number is used (the limit is 24 [s0 - s23], except for <a href="..\agi\versions.htm">versions</a> 2.089, 2.272 and 3.002.149, which have a limit of 12 [s0 - s11]) AGI will overwrite areas of memory used for other purposes, which may result in <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>get.string(s5, "Password?", 1, 0, 12);</b>
+print("The password is '%s5'.");</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">115 (0x73)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_strings.htm">String Commands</a></p>
+			<p><a href="cmd_getnum.htm"><b>get.num</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

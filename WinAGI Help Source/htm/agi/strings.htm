@@ -1,0 +1,21 @@
+<html>
+	<head><title>Strings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Strings</h1>
+			<p>The string data type is used to hold small amounts of text that may change throughout the course of a game. This makes them different from <a href="messages.htm">messages</a>; messages cannot be altered by AGI at runtime; they are read-only.</p>
+			<p>The number of strings available in AGI is 24 (s0 - s23), except for <a href="versions.htm">versions</a> 2.089, 2.272 and 3.002.149, which have a limit of 12 (s0 - s11). Currently, there is no explanation as to why these versions have a different string count.</p>
+			<p>Each string in AGI can be up to 40 character long (including a null terminator).</p>
+			<p>Strings are represented in source code by the letter 's' and their index (i.e. s0, s1, etc.) String values can be changed directly by the player through keyboard input (<a href="..\commands\cmd_getstring.htm"><b>get.string</b></a> command), or by converting messages or words typed by the player (<a href="..\commands\cmd_setstring.htm"><b>set.string</b></a> and <a href="..\commands\cmd_wordtostring.htm"><b>word.to.string</b></a> commands).</p>
+			<p>There are only a few commands that use strings, including the <a href="..\commands\cmd_parse.htm"><b>parse</b></a> command and <a href="..\commands\cmd_comparestrings.htm"><b>compare.strings</b></a> test command in addition to those already mentioned.</p>
+		<h3><a name="prompt">Reserved String s0</a></h3>
+			<p>The first string, s0, is special in that it is reserved for the player input prompt. See the <a href="keyboard.htm#prompt">Input Prompt and Cursor</a> topic for more information.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

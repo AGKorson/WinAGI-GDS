@@ -1,0 +1,61 @@
+<html>
+	<head><title>Picture Settings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Picture Settings</h1>
+<map name="settings">
+				<area shape="rect" alt="General Settings" coords="12,41,65,61" href="settings_general.htm">
+				<area shape="rect" alt="Logic Settings" coords="66,41,111,61" href="settings_logic.htm">
+				<area shape="rect" alt="Logic(2) Settings" coords="112,41,174,61" href="settings_logic2.htm">
+				<area shape="rect" alt="Sound Settings" coords="229,41,279,61" href="settings_sound.htm">
+				<area shape="rect" alt="View Settings" coords="280,41,327,61" href="settings_view.htm">
+				<area shape="rect" alt="Layout Settings" coords="328,41,374,61" href="settings_layout.htm">
+				<area shape="rect" alt="Preview Scale" coords="61,112,121,112,121,107,184,107,184,121,121,129,121,121,61,121" href="#zoom">
+				<area shape="rect" alt="Editor Scale"  coords="61,141,121,141,121,136,184,136,184,158,121,158,121,150,61,150" href="#zoom">
+				<area shape="rect" alt="Default Image Scale" coords="30,80,240,172" href="#zoom">
+				<area shape="rect" alt="Split Window" coords="51,222,140,234" href="#splitwindow">
+				<area shape="rect" alt="Full Window" coords="51,247,137,259" href="#fullwindow">
+				<area shape="rect" alt="Priority Bands" coords="51,292,176,304" href="#pribands">
+				<area shape="rect" alt="Drawing Surface Options" coords="30,187,240,329" href="#drawingsurface">
+				<area shape="rect" alt="Flashing Box" coords="51,363,137,375" href="#cursor">
+				<area shape="rect" alt="'X' Markers" coords="51,388,124,400" href="#cursor">
+				<area shape="rect" alt="Coordinate Cursor Style" coords="30,343,240,423" href="#cursor">
+				<area shape="rect" alt="Ignore Horizon" coords="290,99,387,111" href="#testoptions">
+				<area shape="rect" alt="Ignore Blocks" coords="290,124,379,136" href="#testoptions">
+				<area shape="rect" alt="Object on Anything" coords="324,150,446,162" href="#testoptions">
+				<area shape="rect" alt="Object on Land" coords="324,175,424,187" href="#testoptions">
+				<area shape="rect" alt="Object on Water" coords="324,200,429,212" href="#testoptions">
+				<area shape="rect" alt="Cycle at Rest" coords="290,233,376,245" href="#testoptions">
+				<area shape="poly" alt="Horizon" coords="294,266,356,266,356,260,398,260,398,281,356,281,356,274,294,274" href="#testoptions">
+				<area shape="poly" alt="Object Priority" coords="290,297,369,297,369,312,446,312,446,334,290,334" href="#testoptions">
+				<area shape="poly" alt="Speed" coords="290,354,324,354,324,370,446,370,446,391,290,391" href="#testoptions">
+				+13,0
+				<area shape="rect" alt="Default Test Options" coords="256,81,466,418" href="#testoptions">
+			</map>
+			<p><img src="..\..\graphics\settings-picture.jpg" usemap="#settings" border="0" width="500"></p>
+		<h2><a name="zoom">Default Image Scale</a></h2>
+			<p>You can set the default image scale factor for both the <a href="previewpic.htm">preview window</a> and the <a href="editor_picture.htm">picture editor</a>. Use the drop down box to select one of the available scale options. The minimum scale is 100%. For the preview window the maximum is 1000%; the editor maximum is 2000%.</p>
+			<p>&nbsp;</p>
+		<h2><a name="drawingsurface">Drawing Surface Defaults</a></h2>
+		<h3><a name="splitwindow">Split Window</a></h3>
+			<p>When this option is enabled, the drawing surface is initially split in two when a <a href="editor_picture.htm">picture editor</a> is opened, showing both the <a href="..\agi\grafdisp.htm#priority">visual and priority pictures</a>. Drag the splitter to adjust the size of the two drawing areas.</p>
+		<h3><a name="fullwindow">Full Window</a></h3>
+			<p>When the Full Window option is enabled, the picture editor drawing surface shows the visual picture only; the splitter is positioned at the bottom of the drawing surface. Right click the drawing surface to toggle between <a href="..\agi\grafdisp.htm#priority">visual and priority pictures</a>, or drag the splitter to shift back to split mode.</p>
+		<h3><a name="pribands">Show Priority Bands</a></h3>
+			<p>When this option is enabled, the <a href="editor_picture.htm#pribands">priority bands</a> are turned on by default when a <a href="editor_picture.htm">picture editor</a> is first opened.</p>
+			<p>&nbsp;</p>
+		<h2><a name="cursor">Coordinate Cursor Style</a></h2>
+			<p>There are two options for cursor display when editing picture commands. The flashing box cursor highlights a selected coordinate's position with a small solid box that cycles through all colors. No other coordinates in the current drawing command are highlighted.</p>
+			<p>The 'X' cursor option highlights a selected coordinate with a small square outline which also cycles through all colors, and all other coordinates have 'x' markers to highlight their location. See the <a href="editor_picture.htm#cursor">Cursor Options</a> topic for additional information.</p>
+			<p>&nbsp;</p>
+		<h2><a name="testoptions">Default Picture Editor View Test Options</a></h2>
+			<p>Set the default values for the picture test options here. See the <a href="viewtestmode.htm#testoptions">Test Options</a> section of the <a href="viewtestmode.htm">Picture Editor View Test Mode</a> topic for details on picture test options.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

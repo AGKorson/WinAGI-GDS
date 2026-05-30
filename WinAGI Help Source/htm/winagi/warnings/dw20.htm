@@ -1,0 +1,19 @@
+<html>
+    <head><title>Logic Source Decompiler Warning DW20</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Warning DW20</h2>
+      <h3>Unable to create gamedefs.h file (error: &lt;message&gt;)</h3>
+      <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+      <p class="indent_n">Sierra's original code writers always used a separate file, usually called 'gamedefs' or 'gamedefs.h' to declare <a href="..\..\agi\variables.htm">variables</a>, <a href="..\..\agi\flags.htm">flags</a> and other <a href="..\..\commands\syntax_sierra.htm#defines">defines</a> that would be used across all <a href="..\..\agi\logics.htm">logics</a> in the game.</p>
+      <p class="indent_n">When decompiling all logics during a <a href="..\importgame.htm">game import</a>, WinAGI will do the same thing, creating a 'gamedefs' file with defines that are global in scope.</p>
+      <p class="indent_n">This warning is raised if WinAGI encounters an error while trying to create the 'gamedefs' file. You should use the information from the error message to determine the problem, correct it and attempt to re-import the game. Otherwise, you will need to manually create the 'gamedefs' file.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

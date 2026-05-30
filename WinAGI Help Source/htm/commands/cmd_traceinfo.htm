@@ -1,0 +1,50 @@
+<html>
+	<head><title>Action Command: trace.info</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>trace.info</h1>
+			<p>The <b>trace.info</b> command sets up the trace mode.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>trace.info(<a href="syntax_fan.htm#argtypes">byt</a> LOGNUM, <a href="syntax_fan.htm#argtypes">byt</a> TOP, <a href="syntax_fan.htm#argtypes">byt</a> HEIGHT);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <b>trace.info</b> command is usually run before activating <a href="..\agi\tracer.htm">trace mode</a>, and sets the position of the trace window using the <b>TOP</b> value, with a window height set by the <b>HEIGHT</b> value. <b>TOP</b> and <b>HEIGHT</b> are in units of text rows (0 - 24). It also identifies <a href="..\agi\logics.htm">logic</a> <b>LOGNUM</b> as the source for trace commands as <a href="..\agi\messages.htm">messages</a>.</p>
+			<p>If <b>trace.info</b> is not called before using the <a href="..\agi\tracer.htm">trace mode</a>, the default location of the trace window is text row 1, and the default height is 15 rows. If the <a href="..\agi\tracer.htm">trace mode</a> is enabled before a <b>new.room</b> command is executed, the trace window will display commands as numbers as if the <b>trace.info</b> command was never called.</p>
+			<p>Keep in mind that due to a <a href="..\agi\tracer.htm#bug">bug in AGI</a>, using any value for <b>TOP</b> except 1 will result in the trace window being drawn incorrectly; it does not affect the performance of the tracer function, it just looks bad.</p>
+			<p>To have the tracer display commands with text (instead of the command number), tracer logic <b>LOGNUM</b> should contain all AGI commands as <a href="..\agi\messages.htm">messages</a>. The number of the message corresponds to the action command with the same byte-code (i.e. message 1 should be "increment", message 2 should be "decrement", etc.) Test commands get an offset of either 220 (for <a href="..\agi\versions.htm">versions</a> 2.089 and 2.272) or 240 (for all other versions), i.e. message 241 should be "equaln", message 242 should be "equalv", etc.</p>
+			<p>The <b>trace.info</b> command does not load the trace logic <b>LOGNUM</b>. Before using the <a href="cmd_traceon.htm"><b>trace.on</b></a> command, the trace logic must be loaded, or the trace window will display incorrect logic number information due to a bug in the trace function. While the trace mode is active and a valid logic number was passed to <b>trace.info</b>, AGI will automatically load the tracer logic after any <a href="cmd_newroom.htm"><b>new.room</b></a> command is executed.</p>
+			<p>For a detailed discussion of how the trace mode works, see the <a href="..\agi\tracer.htm">AGI Command Tracer</a> topic.</p>
+			<p>If <a href="..\agi\logics.htm">logic</a> <b>LOGNUM</b> does not exist, AGI will raise a <a href="..\agi\errors.htm#invalidres">runtime error</a> and crash when it tries to load the logic.</p>
+			<p>Using values of <b>TOP</b> and <b>HEIGHT</b> that are greater than 24 will result in a garbled display.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>set(enableTrace); [ enable trace mode
+if(said("trace"))
+  {
+  <b>trace.info(TracerLogic, 1, 10);</b>  [ assume TracerLogic is a valid logic ID
+  trace.on();
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+			<p class="indent_n">150 (0x96)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_debug.htm">Debugging Commands</a></p>
+			<p><a href="..\agi\debug.htm">AGI Debugging Information</a></p>
+			<p>&nbsp;</p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

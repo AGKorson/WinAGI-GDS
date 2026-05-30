@@ -1,0 +1,89 @@
+<html>
+	<head><title>Layout Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-layout-e.gif" width="460" height="72" border="0" alt="WinAGI Layout Editor"></td>
+			</tr>
+		</table>
+		<h1>Layout Editor</h1>
+			<p>The layout editor is used to plan the basic <a href="..\agi\pictures.htm#room">room</a> layout of your game. It can be very useful during the design stage of your game, fleshing out the overall flow of the game from room to room. It can also serve as a 'map' of your finished game, showing how all the rooms in your game are connected to one another.</p>
+			<p>If you don't intend to use the layout editor, you can disable it (on the <a href="settings_layout.htm">Layout</a> tab of the Settings window). When disabled, WinAGI will not add <a href="#commenttags">comment tags</a> to your logic files, and you will not be able to run the Layout Editor tool.</p>
+			<p>For help with using the layout editor tools see the <a href="editinglayouts.htm">Editing Layouts</a> topic.</p>
+		<h2>Creating and Extracting Layouts</h2>
+		  <p>WinAGI uses a separate file that contains all metadata needed to support a game's layout. This file is stored in the game's <a href="prop_general.htm#gamedir">main directory</a>, and uses the game's <a href="prop_general.htm#gameid">GameID</a> as the file name with a 'wal' extension.</p>
+		  <p>WinAGI does not automatically create a layout file when a <a href="newgame.htm">new game is created</a>, unless the new game is created from a <a href="templates.htm">template</a> that includes a layout file.</p>
+		  <p>When the Layout Editor is opened and no game layout file exists, WinAGI will extract a layout by analyzing all logics in the game and create the layout file. Once extracted, the layout can then be <a href="editinglayouts.htm">edited as desired</a>.</p>
+		<h2><a name="components">Layout Editor Components</a></h2>
+			<p>For a description of the various components of the Layout Editor window, click on the area of interest:</p>
+			<map name="layoutedit">
+				<area shape="rect" alt="Toolbar" coords="8,32,421,61" href="#toolbar">
+				<area shape="rect" alt="Drawing Surface" coords="8,63,590,435" href="#drawsurface">
+			</map>
+			<p><img src="..\..\graphics\layouteditor.jpg" usemap="#layoutedit" border="0" width="619"></p>
+		<h3><a name="toolbar">Toolbar</a></h3>
+			<p>The toolbar provides access for tools to add and delete <a href="#rooms">rooms</a> and <a href="#exits">exits</a>, change the <a href="#isroom">IsRoom</a> property to show/hide logics as rooms, and insert <a href="#transpts">transfer points</a> and <a href="#comments">comment blocks</a>. See the <a href="editinglayouts.htm">Creating and Editing Layouts</a> for more details on how to use the tools to manage layouts.</p>
+			<p><a name="hold">Clicking</a> a Tool button once will let you add one object, then the tool will automatically switch back to the Select tool. If you press SHIFT then click the Tool button it will switch to HOLD mode. In HOLD mode, the tool remains selected until you choose another tool, or switch back to normal by clicking the same tool again. The HOLD status is indicated on the <a href="editinglayouts.htm#statusbar">status bar</a>.</p>
+			<p><img alt="" src="..\..\graphics\statuslayout2.jpg" width="227"></p>
+		<h3><a name="drawsurface">Layout Drawing Surface</a></h3>
+			<p>The drawing surface is where the graphical representation of your layout is displayed and manipulated. It includes a grid that helps with positioning items. The grid shows a light dotted dotted line as minor lines, and slightly darker major grid lines. The grid can be toggle on or off by using the Show/Hide Grid command on the Edit menu.</p>
+			<p>Whether the grid is visible or not, by default objects will 'snap' to the grid when being added or moved.</p>
+			<p>To change grid settings, including the spacing of grid lines, and the snap feature, use the <a href="settings_layout.htm">Layout</a> tab of the <a href="settings.htm">Settings</a> window.</p>
+		<h2><a name="rooms">Rooms</a></h2>
+			<p>On the layout editor, each <a href="..\agi\logics.htm">logic</a> that is associated with a '<a href="..\agi\pictures.htm#room">room</a>' in your game is drawn as a square. A room is typically any area in your game that <a href="..\agi\interface.htm#ego">ego</a> can visit. Rooms usually have a corresponding <a href="..\agi\pictures.htm">picture</a> resource.</p>
+			<p>Arrows represent connections between rooms. Each arrow corresponds to a condition test with a <b><a href="..\commands\cmd_newroom.htm">new.room</a></b> command.</p>
+			<p>For example, suppose Logic1 has the following code:</p>
+<pre>if(edgeEgoHit == RIGHT_EDGE)<BR/>    {<BR/>    new.room(Logic2);<BR/>    }<BR/></pre>
+			<p>On the layout editor, this is represented by a square for Logic1, a square for Logic2, and an arrow from the right of Logic1 to the left of Logic2:</p>
+			<p><img alt="" src="..\..\graphics\room1.jpg" width="285"></p>
+		<h3><a name="isroom">IsRoom</a> Property</h3>
+			<p>Not all logics in a game are used to represent a <a href="..\agi\pictures.htm#room">room</a>. For example, the DeathHandler, Initialization, and GameHelp logics are not associated with places that <a href="..\agi\interface.htm#ego">ego</a> can visit and don't have an associated <a href="..\agi\pictures.htm">picture</a> resource. Their IsRoom property should be set to FALSE.</p>
+			<p>The IsRoom property for a logic can be set via the <a href="resourcetree.htm#logicprop">property window</a> of the <a href="resourcetree.htm">Resource Tree</a>. It can also be set using the Show Room and Hide Room commands in the Layout Editor.</p>
+		<h3>Resource ID and Description</h3>
+			<p>When a room is selected, the <a href="managingresources.htm#resourceids">resource ID</a> and <a href="managingresources.htm#descriptions">description</a> can be edited by choosing the 'Room Properties' option on the Edit menu.</a>
+		<h3><a name="picthumb">Picture Thumbnails</a></h3>
+			<p>By default, if the room has a <a href="..\agi\pictures.htm">picture</a> resource with the same number as the room, a thumbnail image of the picture will be included on the Layout display. You can change the default behavior by using the 'Show/Hide All Pics' command on the Resource menu.</p>
+			<p>Regardless of the default setting, you can show or hide each room's picture thumbnail by using the 'Show/Hide Room Picture' command on the Edit menu. </p>
+			<p><img alt="" src="..\..\graphics\roomthumb.jpg" width="129"></p>
+			<p>Use the Edit Picture command on the Edit menu to open the room's picture for editing.</p>
+		<h2><a name="exits">Exits</a></h2>
+			<p>Arrows between two rooms represent exits. An exit is a condition test (<b><a href="..\agi\logics.htm#ifelse">if</a></b> statement) with a corresponding <b><a href="..\commands\cmd_newroom.htm">new.room</a></b> command.</p>
+			<p>There are two types of exits. Edge Exits and Other Exits.</p>
+			<p><a name="edgeexits">Edge exits</a> occur when the condition being tested is <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v2.htm">v2 (ego border code</a>). Edge exits are always drawn from the midpoint of the 'from' <a href="editor_layout.htm#rooms">room</a>'s tested edge to the midpoint of the 'to' room's opposite edge. (For example, if the test is for right edge, the arrow goes from right of 'from' room to the left of 'to' room.)</p>
+			<p><img alt="" src="..\..\graphics\exit1.jpg" width="113"></p>
+			<p><a name="otherexits">For any other condition</a>, or if WinAGI is unable to determine what condition is being tested, the exit is known as an Other Exit. Other exits are drawn slightly offset from the midpoint of the rooms' closest edges.</p>
+			<p><img alt="" src="..\..\graphics\exit2.jpg" width="103"></p>
+			<p>If the 'to' room of an exit is a logic that is not a room (its IsRoom property is FALSE), the exit is drawn as a gray dashed line pointing to nothing. This is a reminder that there is an exit, but that that it points to a 'hidden' logic.</p>
+			<p><img alt="" src="..\..\graphics\exit5.jpg" width="177"></p>
+			<p>Exits can be one way or two way. One way exits appear as a line with a single arrow head that points at the 'to' room:</p>
+			<p class="indent_n">&nbsp;&nbsp;&nbsp;&nbsp; <img alt="" src="..\..\graphics\exit3.jpg" width="140"></p>
+			<p>Two way exits appear as a line with arrow heads at both ends. A two way exit represents two exits of similar type that are exact reciprocals of each other:</p>
+			<p class="indent_n">&nbsp;&nbsp;&nbsp;&nbsp; <img alt="" src="..\..\graphics\exit4.jpg" width="140"></p>
+		<h2><a name="transpts">Transfer Points</a></h2>
+			<p>Often, you will have a layout where rooms 'wrap around', meaning that if the ego character continues moving in one direction, eventually it will 'wrap around' and reach its starting point.</p>
+			<p>In this case, no matter how you draw your room layout, one exit will have to go all the way across the entire layout.</p>
+			<p>You may have other situations in your game where exit lines cross over other logics, adding clutter, and making it difficult to understand the layout.</p>
+			<p>Transfer points allow you to break the exit into two segments. Each segment connects to a uniquely numbered pair transfer points. An exit arrow that 'goes into' one transfer point 'comes out' the other transfer point with the same number.</p>
+			<p><img alt="" src="..\..\graphics\transfer.jpg" width="165"> is same as <img alt="" src="..\..\graphics\notranspt.jpg" width="141"></p>
+			<p>Transfer points help eliminate clutter.</p>
+		<h2><a name="errpts">Error Points</a></h2>
+			<p>If an exit points to a non-existent or invalid logic, an error marker is used (triangle). You should edit error exits so they point to a valid logic or room.</p>
+			<p><img alt="" src="..\..\graphics\errpt.jpg" width="113"></p>
+		<h2><a name="comments">Comments</a></h2>
+			<p>Comment blocks (rounded rectangle) can be used to add useful notes to the layout editor.</p>
+			<p><img alt="" src="..\..\graphics\comment.jpg" width="231"></p>
+		<h2><a name="logics">Integration with Logics</a></h2>
+			<p>The layout editor and game <a href="editor_logic.htm">logics editor</a> are closely integrated. When changes to the layout editor are saved, WinAGI will automatically add or comment out code for any exits that have changed.</p>
+			<p>When you make and save changes to a logic source file, any changes in exits will be automatically reflected in the layout editor.</p>
+			<p>Use the Edit Logic command (or double-click on a <a href="#rooms">room</a> or <a href="#exits">exit</a>) to open the logic for editing. If selecting an exit, the logic editor will set the cursor to the position of the exit in the logic.</p>
+		<h2><a name="synchres">Resource List Synchronization</a></h2>
+			<p>With large layouts, it can sometimes be difficult to find a particular room. You can use the Resource List Synchronization feature to quickly locate any room in your layout. With this feature enabled, selecting a logic in the <a href="resourcetree.htm">resource tree</a> with the Layout Editor active will automatically select the corresponding room object in the editor, scrolling the window if necessary. Go to the <a href="settings_layout.htm">Layout Settings</a> tab of the <a href="settings.htm">game settings</a> to enable or disable this feature.</p>
+		<h2><a name="commenttags">Comment Tags</a></h2>
+			<p>The layout editor uses comment tags to keep track of exits in logic source code. These are in the format ##LE001##, ##LE002##, etc. You should not edit these tags. Unless you are deleting the <b><a href="..\commands\cmd_newroom.htm">new.room</a></b> command on the same line, you shouldn't delete them, either.</p>
+		<h2><a name="layoutrepair">Repairing Layouts</a></h2>
+			<p>Despite the built in integration features however, sometimes complex actions, or changes to logics that are made outside of WinAGI can cause the layout editor to get a little out of whack. Use the Repair Layout command on the Resource menu to rebuild and repair the layout.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,19 @@
+<html>
+	<head><title>Reserved Variable v21</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v21: Message Window Delay Time</h1>
+			<p>The value of <a href="variables.htm#reserved">reserved variable</a> v21 determines how long message windows (such as those displayed by the <a href="..\commands\cmd_print.htm"><b>print</b></a> command) stay open when they are displayed. If the value is zero (default), the window will remain on screen until the player dismisses it by pressing the ENTER or ESC key, and the game is <a href="cycle.htm#pausing">paused</a> while the message window is displayed.</p>
+			<p>If non-zero, the window will automatically close after 0.5 * v21 seconds. The player can still press ENTER or ESC to dismiss the window earlier than that (and the game is still paused while the message window is displayed).</p>
+			<p>AGI restores v21 to a value of zero after every message window is displayed, unless flag f15 is TRUE. This means that every time you want a message to automatically disappear after a set time, you must reassign the desired delay time.</p>
+			<p>Note that if <a href="flags.htm#reserved">reserved flag</a> <a href="f15.htm">f15 (no pause windows)</a> is set to TRUE, then the value of v21 is ignored, and the display window will remain until it is dismissed by entering a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> or a <a href="..\commands\cmd_closewindow.htm"><b>close.window</b></a> command.</p>
+			<p>This behavior applies to message windows shown using the <a href="..\commands\cmd_print.htm"><b>print</b></a> and related commands, but also will affect a lot of other game related messages, such as the <a href="..\commands\cmd_pause.htm"><b>pause</b></a>, <a href="..\commands\cmd_quit.htm"><b>quit</b></a>, <a href="..\commands\cmd_version.htm"><b>version</b></a> command messages, save/restore selection messages and others.</p>
+			<p>Attempting to use this variable for other purposes is not recommended; it gets reassigned a value of zero every time a message window is shown, which would make it effectively useless unless messages are never displayed, which is not practical in AGI.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

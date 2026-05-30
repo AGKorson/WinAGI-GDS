@@ -1,0 +1,17 @@
+<html>
+	<head><title>Logic Compiler Warning 5062</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5062</h2>
+    <h3>Target position is off screen (X &gt; 159 and/or Y &gt; 167)</h3>
+    <p class="indent_n">AGI does not check that the values passed for target position for <a href="..\..\commands\object_position.htm">position commands</a> are valid. If you pass X and/or Y values that are outside the <a href="..\..\agi\grafdisp.htm">graphics display</a> area, the <a href="..\..\agi\screenobjs.htm">object</a> will never reach its target; it will move to the closest edge and be stuck there. If you plan to use the <a href="..\..\agi\flags.htm">flag</a> that indicates the target was reached, you will need to edit your code to provide a reachable target.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

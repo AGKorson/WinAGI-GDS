@@ -1,0 +1,60 @@
+<html>
+	<head><title>Drawing View Cels</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-view.gif" width="460" height="72" border="0" alt="AGI View Information"></td>
+			</tr>
+		</table>
+		<h1>Drawing View Cels</h1>
+			<p>The drawing features available in WinAGI for drawing <a href="..\agi\views.htm#cel">cels</a> are basically the same found in most simple paint programs, such as Microsoft Paint.</p>
+			<p>In addition to standard drawing tools, you can <a href="#resizing">resize cels</a>, set the <a href="..\agi\views.htm#transparency">transparent color</a> and <a href="#flipping">flip cels and selected areas</a>.</p>
+			<p>The <a href="#statusbar">status bar</a> displays useful information while drawing cels.</p>
+			<p>&nbsp;</p>
+		<h2>Drawing Tools</h2>
+		<h3>None</h3>
+			<img alt="" src="..\..\graphics\evi_none.ico" align="left" width="32">
+			<p>If you don't want an active tool, click the None toolbar button. Mouse clicks on the drawing surface are ignored when the None tool is selected.</p>
+		<h3><a name="edit">Area Select</a></h3>
+			<img alt="" src="..\..\graphics\evi_sele.ico" align="left" width="32">
+			<p>Use the Area Select tool to select rectangular areas of the cel. Once selected, you can cut, copy or delete the selection. Use the flip commands to flip the selection.</p>
+			<p>You can also drag the selection to a different location in the cel.</p>
+			<p>The selection normally contains all the pixel data as selected, including pixels that match the cel's <a href="..\agi\views.htm#transparency">transparent color</a>. If you want the transparent color pixels to not overwrite existing pixels when you move or paste a selection, enable 'Transparent Selection' on the Edit menu. When selected, all pixels in the selection that match the cel's transparent color will not overwrite the underlying cel pixels.</p>
+		<h3>Pencil</h3>
+			<img alt="" src="..\..\graphics\evi_draw.ico" align="left" width="32">
+			<p>The Pencil tool is used to draw pixels. The color used depends on which mouse button is used. Use the <a href="editor_view.htm#palette">color palette</a> to change the colors assigned to each mouse button.</p>
+		<h3>Line</h3>
+			<img alt="" src="..\..\graphics\evi_line.ico" align="left" width="32">
+			<p>Straight lines can be drawn with the Line tool. Press down either mouse button (depending on desired color) to start a line. Drag the cursor, and release at the desired end point to finish the line.</p>
+		<h3>Rectangle</h3>
+			<img alt="" src="..\..\graphics\evi_box.ico" align="left" width="32">
+			<p>Open rectangles can be drawn using the Rectangle tool. Press down either mouse button (depending on desired color) to set the starting corner, then drag and release at desired end point to finish the rectangle.</p>
+		<h3>Filled Rectangle</h3>
+			<img alt="" src="..\..\graphics\evi_boxf.ico" align="left" width="32">
+			<p>The filled rectangle is similar to the Rectangle tool. The difference is the filled rectangle creates a solid rectangle of the chosen color.</p>
+		<h3>Fill</h3>
+			<img alt="" src="..\..\graphics\evi_fill.ico" align="left" width="32">
+			<p>Use the Fill tool to flood fill an area. The fill will extend in all directions until a different color or a boundary is reached.</p>
+		<h3>Erase</h3>
+			<img alt="" src="..\..\graphics\evi_eras.ico" align="left" width="32">
+			<p>The Erase tool is similar to the Pencil tool, except both buttons will reset cel pixels to the current <a href="#transcolor">transparent color</a> for this cel.</p>
+			<p>&nbsp;</p>
+		<h2><a name="resizing">Resizing Cels</a></h2>
+			<p>To resize <a href="..\agi\views.htm#cel">cels</a>, place the mouse cursor on the right or bottom edge of the cel. The cursor will change to allow resizing. Left click and drag the border to change the size. You can adjust height and width at same time by dragging the lower right corner.</p>
+			<p>You can also resize cels by adjusting the Width and Height properties in the Properties Window. Double-click the desired property and enter the desired value. WinAGI will limit the input to a minimum of 1 and a maximum of 160 (width) or 168 (height).</p>
+		<h2><a name="transcolor">Transparent Color</a></h2>
+			<p>The <a href="..\agi\views.htm#transparency">transparent color</a> is the color that will be 'masked out' when the cel is drawn on the screen in an AGI game. To change the transparent color, double click on the TransCol property. Choose the desired value from the drop down list.</p>
+			<p>You can also press CTRL and left click a color on the palette to change the transparency color.</p>
+		<h2><a name="flipping">Flipping</a></h2>
+			<img alt="" src="..\..\graphics\fliph.bmp" align="left" width="32"> <img alt="" src="..\..\graphics\flipv.bmp" border="0" align="left" width="32">
+			<p>Use the flip toolbar buttons to flip cels or selected cel areas horizontally or vertically.</p>
+			<p>If there is an active selection (the selection boundaries are visible and flashing), the flip tools flip the selection only.</p>
+			<p>If there is no active selection, the entire cel will be flipped.</p>
+		<h2><a name="statusbar">Status Bar</a></h2>
+			<p><img alt="" src="..\..\graphics\statusview.jpg" width="420"></p>
+			<p>When drawing <a href="..\agi\views.htm#cel">cels</a>, the status bar shows the current image scale, the current tool, and the mouse cursor coordinates.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

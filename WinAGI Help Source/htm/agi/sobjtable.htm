@@ -1,0 +1,382 @@
+<html>
+	<head><title>Screen Object Data Table</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Screen Object Data Table</h1>
+			<p>The screen object data table is an array of data structures that contain information that AGI uses to manage all aspects of screen objects in use by the game. The screen object data structure is comprised of 43 bytes of data that track the object's size and position, <a href="views.htm">view</a>/<a href="views.htm#loop">loop</a>/<a href="views.htm#cel">cel</a> data, motion control information, and a 2 byte bit-field of flags that AGI uses to manage the object's behavior. In each <a href="cycle.htm">interpreter cycle</a>, various elements of each object in the screen object table are updated. Many AGI <a href="logics.htm">logic</a> commands can also modify and/or retrieve various screen object data elements.</p>
+			<p>The screen object table is created during <a href="starting.htm#ressetup">initialization</a> when AGI loads. The size of the table is determined by the <a href="screenobjs.htm#maxscreenobj">maximum screen objects</a> value from the <a href="object.htm#maxscreenobj">OBJECT</a> file: 43 bytes times [MaxSceenObj + 1]).</p>
+			<p>The screen object table maintains all the properties of each screen object. Recently uncovered fragments of Sierra's original AGI source code revealed the original name and description for each element of the screen object table. This information is provided along with the terms in general use as originally disassembled by AGI enthusiasts.</p>
+		<h3>Screen Object Data Structure</h3>
+		<blockquote>
+		<table id="Table3" cellSpacing="1" width="1120" cellPadding="1" border="1">
+			<tr>
+				<TH style="vertical-align:middle" width="150"><b>&nbsp;Byte</b></TH>
+				<TH style="vertical-align:middle" width="580"><b>&nbsp;Meaning</b></TH>
+				<TH width="400"><b>&nbsp;Original Sierra<br/>&nbsp;Name</b></TH>
+				<TH width="400"><b>&nbsp;Original Sierra<br/>&nbsp;Description</b></TH>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">00 (0x00)</td>
+				<td width="580"><b>step time:</b> the number of cycles that occur between updates in a screen object's position during motion; if set to 0 or 1, object moves every cycle; if set to 2 or greater, the object moves every nth cycle, where n is the step time. Use the <a href="..\commands\cmd_steptime.htm"><b>step.time</b></a> command to change a screen object's step time</td>
+				<td width="400"  style="vertical-align:middle">&nbsp;movefreq</td>
+				<td width="400" style="vertical-align:middle">number of animation cycles between motion</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">01 (0x01)</td>
+				<td width="580"><b><a name="stepcounter">step counter</a>:</b> this counter is checked in each <a href="cycle.htm">interpreter cycle</a>; if the value is one, AGI determines if correct loop is being shown based on object direction (auto-loop feature); after this check, the step counter is decremented; if it reaches zero, the screen object position is updated, and the step counter is reset to step time for the next cycle</td>
+				<td width="400" style="vertical-align:middle">&nbsp;moveclk</td>
+				<td width="400" style="vertical-align:middle">number of cycles between moves of object</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">02 (0x02)</td>
+				<td width="580"><b>object number:</b> the index number of the object; AGI uses this value in several internal procedures; it is not accessible by code and is not of use to game programmers</td>
+				<td width="400" style="vertical-align:middle">&nbsp;num</td>
+				<td width="400" style="vertical-align:middle">object number</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">03-04<BR/>(0x03-0x04)</td>
+				<td width="580"><b>current x:</b> this is the current horizontal position of the object</td>
+				<td width="400" style="vertical-align:middle">&nbsp;x</td>
+				<td width="400" style="vertical-align:middle">current x coordinate</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">05-06<BR/>(0x05-0x06)</td>
+				<td width="580"><b>current y:</b> this is the current vertical position of the object</td>
+				<td width="400" style="vertical-align:middle">&nbsp;y</td>
+				<td width="400" style="vertical-align:middle">current y coordinate</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">07 (0x07)</td>
+				<td width="580"><b>current view:</b> the number of the view that is currently assigned to the object</td>
+				<td width="400" style="vertical-align:middle">&nbsp;view</td>
+				<td width="400" style="vertical-align:middle">current view number</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">08-09<BR/>(0x08-0x09)</td>
+				<td width="580"><b>view data pointer:</b> a pointer to the start of view data assigned to the object</td>
+				<td width="400" style="vertical-align:middle">&nbsp;*viewptr</td>
+				<td width="400" style="vertical-align:middle">pointer to current view</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">10 (0x0A)</td>
+				<td width="580"><b>current loop:</b> number of current loop assigned to the object</td>
+				<td width="400" style="vertical-align:middle">&nbsp;loop</td>
+				<td width="400" style="vertical-align:middle">current loop in view</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">11 (0x0B)</td>
+				<td width="580"><b>number of loops:</b> the number of loops in the assigned view</td>
+				<td width="400" style="vertical-align:middle">&nbsp;loopcnt</td>
+				<td width="400" style="vertical-align:middle">number of loops in view</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">12-13<BR/>(0x0C-0x0D)</td>
+				<td width="580"><b>loop data pointer:</b> a pointer to the start of loop data for currently assigned loop</td>
+				<td width="400" style="vertical-align:middle">&nbsp;*loopptr</td>
+				<td width="400" style="vertical-align:middle">pointer to current loop</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">14 (0x0E)</td>
+				<td width="580"><b>current cel:</b> number of current cel assigned to object</td>
+				<td width="400" style="vertical-align:middle">&nbsp;cel</td>
+				<td width="400" style="vertical-align:middle">current cell in loop</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">15 (0x0F)</td>
+				<td width="580"><b>number of cels:</b> the number of cels in the currently assigned loop</td>
+				<td width="400" style="vertical-align:middle">&nbsp;celcnt</td>
+				<td width="400" style="vertical-align:middle">number of cells in current loop</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">16-17<BR/>(0x10-0x11)</td>
+				<td width="580"><b>cel data pointer:</b> a pointer to the start of cel data for the currently assigned cel</td>
+				<td width="400" style="vertical-align:middle">&nbsp;*celptr</td>
+				<td width="400" style="vertical-align:middle">pointer to current cell</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">18-19<BR/>(0x12-0x13)</td>
+				<td width="580"><b>previous cel data pointer:</b> a pointer to previous cel data; AGI needs this to manage properly drawing cels on screen as objects move about and change cels</td>
+				<td width="400" style="vertical-align:middle">&nbsp;*prevcel</td>
+				<td width="400" style="vertical-align:middle">pointer to previous cell</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">20-21<BR/>(0x14-0x15)</td>
+				<td width="580"><b>picture data pointer:</b> a pointer the picture data that is going to be overwritten when a cel is drawn to the screen; the data is stored at the end of the memory heap and is used to restore the background when cels are moved and redrawn as objects move about the screen</td>
+				<td width="400" style="vertical-align:middle">&nbsp;save</td>
+				<td width="400" style="vertical-align:middle">pointer to background save area</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">22-23<BR/>(0x16-0x17)</td>
+				<td width="580"><b>previous x:</b> the previous horizontal position of the object; used during object movement to facilitate proper placement</td>
+				<td width="400" style="vertical-align:middle">&nbsp;prevx</td>
+				<td width="400" style="vertical-align:middle">previous x coordinate</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">24-25<BR/>(0x18-0x19)</td>
+				<td width="580"><b>previous y:</b> the previous vertical position of the object; used during object movement to facilitate proper placement</td>
+				<td width="400" style="vertical-align:middle">&nbsp;prevy</td>
+				<td width="400" style="vertical-align:middle">previous y coordinate</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">26-27<BR/>(0x1A-0x1B)</td>
+				<td width="580"><b>cel width:</b> the width, in pixels, of the current cel)</td>
+				<td width="400" style="vertical-align:middle">&nbsp;xsize</td>
+				<td width="400" style="vertical-align:middle">x dimension of current cell</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">28-29<BR/>(0x1C-0x1D)</td>
+				<td width="580"><b>cel height:</b> the height, in pixels, of the current cel</td>
+				<td width="400" style="vertical-align:middle">&nbsp;ysize</td>
+				<td width="400" style="vertical-align:middle">y dimension of current cell</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">30 (0x1E)</td>
+				<td width="580"><b><a name="stepsize">step size</a>:</b> the number of pixels a screen object will move during each movement step; if moving diagonally, step size is added to both x and y values </td>
+				<td width="400" style="vertical-align:middle">&nbsp;stepsize</td>
+				<td width="400" style="vertical-align:middle">distance object can move</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">31 (0x1F)</td>
+				<td width="580"><b><a name="cycletime">cycle time</a>:</b> the number of cycles that occur between updates in a screen object's current cel; if set to 0, the object will never change cels (the same as using the <a href="..\commands\cmd_stopcycling.htm"><b>stop.cycling</b></a> command); if set to 1 or greater, cel changes every nth cycle, where n is the cycle time. Use the <a href="..\commands\cmd_cycletime.htm"><b>cycle.time</b></a> command to change a screen object's cycle time</td>
+				<td width="400" style="vertical-align:middle">&nbsp;cyclefreq</td>
+				<td width="400" style="vertical-align:middle">time interval between cells of object</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">32 (0x20)</td>
+				<td width="580"><b><a name="cyclecounter">cycle count:</a></b> internal counter used by AGI to determine when to cycle object cel; decrements on each interpreter cycle; when zero reached, object cel is cycled, and counter is reset to cycle time</td>
+				<td width="400" style="vertical-align:middle">&nbsp;cycleclk</td>
+				<td width="400" style="vertical-align:middle">counter for determining when object cycles</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">33 (0x21)</td>
+				<td width="580"><b>object direction (heading):</b> determines the direction of movement for a screen object; can be one of nine values:<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 = stationary<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 = up<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 = up-right<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3 = right<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4 = down-right<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5 = down<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6 = down-left<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7 = left<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 8 = up-left</td>
+				<td width="400" style="vertical-align:middle">&nbsp;dir</td>
+				<td width="400" style="vertical-align:middle">object direction</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">34 (0x22)</td>
+				<td width="580"><b>object motion:</b> determines the type of motion control for the object; objects can be set to move to a specific location, wander aimlessly, or even set to follow <a href="interface.htm#ego">ego</a>; possible values for object motion are:<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 = <a href="..\commands\cmd_normalmotion.htm">normal.motion</a><BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 = <a href="..\commands\cmd_wander.htm">wander</a><BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 = <a href="..\commands\cmd_followego.htm">follow.ego</a><BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3 = <a href="..\commands\cmd_moveobj.htm">move.obj</a><BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4 = <a href="interface.htm#playercontrol">player control</a> (only <a href="interface.htm#ego">ego</a> can be set to player control)</td>
+				<td width="400" style="vertical-align:middle">&nbsp;motion</td>
+				<td width="400" style="vertical-align:middle">object motion type</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">35 (0x23)</td>
+				<td width="580"><a name="cycle"><b>cycling status</b></a>: determines how the object cycles through cels in the currently assigned loop; the default is to step through cels in order, starting with the first cel, starting over again after the last cel; other settings for cycling status are:<BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 = <a href="..\commands\cmd_normalcycle.htm">normal.cycle</a><BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 = <a href="..\commands\cmd_endofloop.htm">end.of.loop</a><BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 = <a href="..\commands\cmd_reverseloop.htm">reverse.loop</a><BR/>
+					&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3 = <a href="..\commands\cmd_reversecycle.htm">reverse.cycle</a></td>
+				<td width="400" style="vertical-align:middle">&nbsp;cycle</td>
+				<td width="400" style="vertical-align:middle">cell cycling type</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">36 (0x24)</td>
+				<td width="580"><b>priority:</b> the current assigned <a href="grafdisp.htm#priority">priority</a> for a screen object; normally calculated automatically based on the object's vertical position, but can be manually set using the <a href="..\commands\cmd_setpriority.htm"><b>set.priority</b></a> command</td>
+				<td width="400" style="vertical-align:middle">&nbsp;pri</td>
+				<td width="400" style="vertical-align:middle">priority of object</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">37-38<BR/>(0x25-0x26)</td>
+				<td width="580"><b>object flags:</b> a 16 bit field flags that AGI uses to manage objects; see table below for explanation of each bit field flag: </td>
+				<td width="400" style="vertical-align:middle">&nbsp;control</td>
+				<td width="400" style="vertical-align:middle">object control flag (bit mapped)</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">39-42<BR/>(0x27-2A)</td>
+				<td width="580"><b>motion and cycling parameters:</b> four bytes that are used as motion control and cycling data; exact purpose depends on object motion or cycle status:</td>
+				<td width="400" style="vertical-align:middle">&nbsp;parms[4]</td>
+				<td width="400" style="vertical-align:middle">space for various motion parameters</td>
+			</tr>
+			<tr>
+				<td colSpan="4"><b>move.obj</b></td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">39 (0x27)</td>
+				<td colSpan="3">x: horizontal component of target position</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">40 (0x28)</td>
+				<td colSpan="3">y: vertical component of target position</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">41 (0x29)</td>
+				<td colSpan="3">saved step size: the original step size of the object that is restored once it reaches its destination</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">42 (0x2A)</td>
+				<td colSpan="3">flag: number of flag to set when object reaches target position</td>
+			</tr>
+			<tr>
+				<td colSpan="4"><b>follow.ego</b></td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">39 (0x27)</td>
+				<td colSpan="3">distance: determines how close the object has to be to ego before the 'caught' flag is set</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">40 (0x28)</td>
+				<td colSpan="3">flag: number of flag to set if object reaches <a href="interface.htm#ego">ego</a></td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">41 (0x29)</td>
+				<td colSpan="3">count: used to help determine direction of object as it moves toward <a href="interface.htm#ego">ego</a></td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">42 (0x2A)</td>
+				<td colSpan="3">unused</td>
+			</tr>
+			<tr>
+				<td colSpan="4"><b>wander</b></td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">39 (0x27)</td>
+				<td colSpan="3">wander_count: decrements on each interpreter cycle; when it reaches zero, another random direction is chosen, and count is set to random number between 7 and 33</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">40-42<BR/>(0x28-0x2A)</td>
+				<td colSpan="3">unused</td>
+			</tr>
+			<tr>
+				<td colSpan="4"><b>end.of.loop, reverse.loop</b></td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">39 (0x27)</td>
+				<td colSpan="3">flag: number of flag to set when loop is done cycling</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle">40-42<BR/>(0x28-0x2A)</td>
+				<td colSpan="3">unused</td>
+			</tr>
+		</table>
+		</blockquote>
+			<p>NOTE: because the motion and cycling parameters are shared by motion control commands (<a href="..\commands\cmd_wander.htm"><b>wander</b></a>, <a href="..\commands\cmd_followego.htm"><b>follow.ego</b></a>, <a href="..\commands\cmd_moveobj.htm"><b>move.obj</b></a>) and cycling commands (<a href="..\commands\cmd_endofloop.htm"><b>end.of.loop</b></a>, <a href="..\commands\cmd_reverseloop.htm"><b>reverse.loop</b></a>) you will get unexpected results if you use a motion control command and a cycling command on the same object at the same time. See each command for additional information on how motion control and cycling commands interact.</p>
+		<h3><a name="flagtable">Screen Object Flags</a></h3>
+		<blockquote>
+		<table id="Table2" cellSpacing="1" width="1120" cellPadding="1" border="1">
+			<tr>
+				<td width="150" style="vertical-align:middle" align="middle"><b>Bit</b></td>
+				<td width="580" style="vertical-align:middle"><b>&nbsp;Meaning (bit is set)</b></td>
+				<td width="400"><b>&nbsp;Original<br/>&nbsp;Sierra Name</b></td>
+				<td width="400"><b>&nbsp;Original<br/>&nbsp;Sierra Description</b></td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">0</td>
+				<td width="580">When set, object will be drawn on screen; if this flag is not set, AGI will not draw the object on the screen; also, all commands affecting object movement and cycling will be ignored; use the <a href="..\commands\cmd_draw.htm"><b>draw</b></a> command to set this flag and draw the object on screen after assigning a view and positioning the object; see the <a href="..\commands\concepts_objs.htm">Working with Objects</a> topic in the Logic Command Reference section for details on how to manage screen objects</td>
+				<td width="400" style="vertical-align:middle">&nbsp;DRAWN = 0x0001</td>
+				<td width="400" style="vertical-align:middle">1 -> object is drawn on screen</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">1</td>
+				<td width="580">When set, object ignores blocks/condition lines during movement; unconditional lines will still be observed; use the <a href="..\commands\cmd_ignoreblocks.htm"><b>ignore.blocks</b></a> command to set this flag, and the <a href="..\commands\cmd_observeblocks.htm"><b>observe.blocks</b></a> command to clear this flag; by default, objects do NOT ignore blocks; see the <a href="grafdisp.htm#controllines">control line</a> topic for additional information</td>
+				<td width="400" style="vertical-align:middle">&nbsp;IGNRBLK = 0x0002</td>
+				<td width="400" style="vertical-align:middle">1 -> object ignores blocks</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">2</td>
+				<td width="580">This flag is set by the <a href="..\commands\cmd_setpriority.htm"><b>set.priority</b></a> so AGI knows not to <a href="grafdisp.htm#bands">adjust the priority automatically</a> based on screen position; it is cleared by using the <a href="..\commands\cmd_releasepriority.htm"><b>release.priority</b></a> command </td>
+				<td width="400" style="vertical-align:middle">&nbsp;FIXEDPRI = 0x0004</td>
+				<td width="400" style="vertical-align:middle">1 -> object has fixed priority</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">3</td>
+				<td width="580">This flag is set by the <a href="..\commands\cmd_ignorehorizon.htm"><b>ignore.horizon</b></a> command; when set, AGI will allow the object to move past the horizon, and all the way to the top of the screen; it is cleared by using the <a href="..\commands\cmd_observehorizon.htm"><b>observe.horizon</b></a> command</td>
+				<td width="400" style="vertical-align:middle">&nbsp;IGNRHRZ = 0x0008</td>
+				<td width="400" style="vertical-align:middle">1 -> object ignores the horizon</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">4</td>
+				<td width="580">When set, object will update its position (and loop, if <a href="screenobjs.htm#autoloop">auto-loop</a> is in effect) based on its direction and step.time; use the <a href="..\commands\cmd_stopupdate.htm"><b>stop.update</b></a> command to clear this flag and stop AGI from updating the object; by default, this flag is set to true when a screen object is initialized</td>
+				<td width="400" style="vertical-align:middle">&nbsp;UPDATE = 0x0010</td>
+				<td width="400" style="vertical-align:middle">1 -> update the object</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">5</td>
+				<td width="580">When set the object will cycle the cels in the object according to current <a href="#cycle">cycle mode</a>; for <a href="..\commands\cmd_endofloop.htm"><b>end.of.loop</b></a> and <a href="..\commands\cmd_reverseloop.htm"><b>reverse.loop</b></a>, AGI sets this flag to false when the end of the loop is reached, which stops the loop from continuing to cycle</td>
+				<td width="400" style="vertical-align:middle">&nbsp;CYCLE = 0x0020</td>
+				<td width="400" style="vertical-align:middle">1 -> cycle the object</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">6</td>
+				<td width="580">All objects must be initialized (or 'animated' in AGI speak) before they can be displayed on screen and/or manipulated. This flag is used by AGI to determine if a screen object has been correctly animated; if not, all object related commands are generally ignored. Use the <a href="..\commands\cmd_animateobj.htm"><b>animate.obj</b></a> command to animate a screen object and set this flag. By default, all objects are unanimated at start up, and every time a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> is executed.</td>
+				<td width="400" style="vertical-align:middle">&nbsp;ANIMATED = 0x0040</td>
+				<td width="400" style="vertical-align:middle">1 -> object can move</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">7</td>
+				<td width="580">When updating a screen object's movement, AGI sets this flag to TRUE if the object's position moves inside a block that is defined by the <a href="..\commands\cmd_block.htm"><b>block</b></a> command; if movement is outside the block, or there is no defined block, or if the object is set to <a href="..\commands\cmd_ignoreblocks.htm">ignore blocks</a> this flag is reset</td>
+				<td width="400" style="vertical-align:middle">&nbsp;BLOCKED = 0x0080</td>
+				<td width="400" style="vertical-align:middle">object is blocked</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">8</td>
+				<td width="580">If this flag is set to TRUE, AGI will not allow the object to move such that any pixel of its baseline is NOT on a water pixel (priority value of 3); this flag is set by executing the <a href="..\commands\cmd_objectonwater.htm"><b>object.on.water</b></a> command; it is cleared by executing the <a href="..\commands\cmd_objectonanything.htm"><b>object.on.anything</b></a> command; if both <b>object.on.water</b> and <a href="..\commands\cmd_objectonland.htm"><b>object.on.land</b></a> commands are executed on the same object, AGI will lock up, because it will enter a never ending loop trying to find a position. Make sure you use the <b>object.on.anything</b> command before switching between <b>object.on.water</b> and <b>object.on.land</b>.; also, for <a href="interface.htm#ego">ego</a>, AGI resets the water restriction flag at the end of every <a href="cycle.htm">interpreter cycle</a></td>
+				<td width="400" style="vertical-align:middle">&nbsp;PRICTRL1 = 0x0100</td>
+				<td width="400" style="vertical-align:middle">1 -> object must be on 'water' priority</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">9</td>
+				<td width="580">by default, objects are not allowed to 'pass through' or 'collide' with other objects, to simulate that the objects are three dimensional; when this flag is set, this restriction is lifted, and the object will ignore other objects when it moves; set this flag by executing the <a href="..\commands\cmd_ignoreobjs.htm"><b>ignore.objects</b></a> command; this flag is cleared by executing the <a href="..\commands\cmd_observeobjs.htm"><b>observe.objects</b></a> command. It is also reset for all objects when the <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command is executed.</td>
+				<td width="400" style="vertical-align:middle">&nbsp;IGNROBJ = 0x0200</td>
+				<td width="400" style="vertical-align:middle">1 -> object won't collide with objects</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle"><a name="reposition">10</a></td>
+				<td width="580">when an object has been manually moved to a new location by using the <a href="..\commands\cmd_reposition.htm"><b>reposition</b></a> or <a href="..\commands\cmd_repositionto.htm"><b>reposition.to</b></a> commands (or if position is adjusted due to bumping into a screen edge), AGI sets this flag so it doesn't get moved again during the movement check portion of the <a href="cycle.htm">interpreter cycle</a>; this flag has no practical value to a game programmer</td>
+				<td width="400" style="vertical-align:middle">&nbsp;REPOS = 0x0400</td>
+				<td width="400" style="vertical-align:middle">1 -> object being reposn'd in this cycle</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">11</td>
+				<td width="580">If this flag is set to TRUE, AGI will not allow the object to move such that the entire baseline is on water pixels (priority value of 3); this flag is set by executing the <a href="..\commands\cmd_objectonland.htm"><b>object.on.land</b></a> command; it is cleared by executing the <a href="..\commands\cmd_objectonanything.htm"><b>object.on.anything</b></a> command; if both <b>object.on.land</b> and <a href="..\commands\cmd_objectonwater.htm"><b>object.on.water</b></a> commands are executed on the same object, AGI will lock up, because it will enter a never ending loop trying to find a position. Make sure you use the <b>object.on.anything</b> command before switching between <b>object.on.water</b> and <b>object.on.land</b>; also, for <a href="interface.htm#ego">ego</a>, AGI resets the water restriction flag at the end of every <a href="cycle.htm">interpreter cycle</a></td>
+				<td width="400" style="vertical-align:middle">&nbsp;PRICTRL2 = 0x0800</td>
+				<td width="400" style="vertical-align:middle">1 -> object must not be entirely on water</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle"><a name="skipcycle">12</a></td>
+				<td width="580">skips cel cycling for one interpreter cycle; used by <a href="..\commands\cmd_endofloop.htm"><b>end.of.loop</b></a> and <a href="..\commands\cmd_reverseloop.htm"><b>reverse.loop</b></a> so object shows the starting cel, otherwise the object would immediately move to second cel in the loop</td>
+				<td width="400" style="vertical-align:middle">&nbsp;NOADVANC = 0x1000</td>
+				<td width="400" style="vertical-align:middle">1 -> don't advance object's cel in this loop</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">13</td>
+				<td width="580">when set, this flag tells AGI not to change the assigned loop based on the object's direction of motion (known as the <a href="screenobjs.htm#autoloop">auto-loop feature</a>); set this flag by executing the <a href="..\commands\cmd_fixloop.htm"><b>fix.loop</b></a> command, reset it by executing the <a href="..\commands\cmd_releaseloop.htm"><b>release.loop</b></a> command; by default, this flag is reset, and it is also reset for all objects when a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command is executed</td>
+				<td width="400" style="vertical-align:middle">&nbsp;FIXEDLOOP = 0x2000</td>
+				<td width="400" style="vertical-align:middle">1 -> object's loop is fixed</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">14</td>
+				<td width="580">This flag is used internally by AGI for the <a href="..\commands\cmd_followego.htm"><b>follow.ego</b></a> and <a href="..\commands\cmd_wander.htm"><b>wander</b></a> commands to manage movement of an object; it has no practical value to a game programmer</td>
+				<td width="400" style="vertical-align:middle">&nbsp;STOPPED = 0x4000</td>
+				<td width="400" style="vertical-align:middle">1 -> object did not move during last animation cycle</td>
+			</tr>
+			<tr>
+				<td width="150" align="middle" style="vertical-align:middle">15</td>
+				<td width="580">Unused in most versions; in later releases of version 3, this flag is used in conjunction with the mouse to provide 'click to move' functionality. See the <b><a href="..\commands\cmd_adjegomovetoxy.htm">adj.ego.move.to.x.y</a></b> command for more information.</td>
+				<td width="400" style="vertical-align:middle">&nbsp;unknown</td>
+				<td width="400" style="vertical-align:middle">unknown</td>
+			</tr>
+		</table>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

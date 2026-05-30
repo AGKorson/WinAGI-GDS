@@ -1,0 +1,21 @@
+<html>
+	<head><title>Reserved Variable v6</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v6: Ego Direction</h1>
+			<p>AGI uses v6 as a shortcut to access <a href="interface.htm#ego">ego</a>'s current direction of motion. Although using the <a href="..\commands\cmd_getdir.htm"><b>get.dir</b></a> command will return ego's direction, a programmer can instead simply check the value of v6 to get ego's direction.</p>
+			<p>Also, unlike other objects, ego's direction can't be set by using the <a href="..\commands\cmd_setdir.htm"><b>set.dir</b></a> command, not even when in <a href="interface.htm#programcontrol">program control</a> mode. When in program control mode, ego's direction can only be changed by changing the value of v6.</p>
+			<p>The direction of movement is determined by the value of v6 according to the following chart:</p>
+			<p><img alt="Object Direction" src="..\..\graphics\objdir.bmp" width="400"></p>
+			<p>Because of the way the <a href="cycle.htm">interpreter cycle</a> handles the ego object direction status, using <b>set.dir</b> to change ego's direction does not work (regardless of <a href="interface.htm#playercontrol">control mode</a>). The <b>set.dir</b> command modifies ego's object status in the <a href="sobjtable.htm">screen object table</a>. Then after all <a href="logics.htm">logics</a> are processed, the value in v6 is copied back to the screen object table, overwriting the value set by the <b>set.dir</b> command. </p>
+			<p>This also means that using v6 to change ego's direction will always override player's <a href="keyboard.htm#egodir">keyboard input</a> (in player control mode) and any <a href="..\commands\cmd_moveobj.htm">move</a> or <a href="..\commands\cmd_wander.htm"><b>wander</b></a> command (in program control mode).</p> 
+			<p>Do not assign a value greater than 8 to v6. The algorithm that AGI uses to convert the direction value into x and y offsets will behave unpredictably, and the <a href="screenobjs.htm#autoloop">auto-loop</a> feature will try to set a non-existent loop; either of these conditions will likely crash AGI. See the <a href="..\commands\cmd_setdir.htm"><b>set.dir</b></a> command for more details.</p>
+			<p>Do not attempt to use this variable for any other purpose.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

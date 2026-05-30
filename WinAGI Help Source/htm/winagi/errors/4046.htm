@@ -1,0 +1,32 @@
+<html>
+	<head><title>Logic Compiler Error 4046</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4046</h2>
+    <h3>Defines &lt;define1&gt; and &lt;define2&gt; make a circular reference</h3>
+    <p class="indent_n"><a href="..\..\commands\syntax_fan.htm#defines">Defines</a> are allowed to redefine other defines. For example:</p>
+    <blockquote>
+      <pre>#define avar   v99
+#define bvar   avar  [ OK, same as #define bvar v99
+...</pre>
+    </blockquote>
+    <p class="indent_n">This error is raised if the compiler detects defines with values that refer to each other such as: </p>
+    <blockquote>
+      <pre>#define avar   bvar
+#define bvar   avar  [ <font color="red"><b>NOT OK</b></font>, circular reference
+...
+#define cvar   dvar
+#define dvar   evar
+#define evar   cvar  [ also <font color="red"><b>NOT OK</b></font>, circular reference
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

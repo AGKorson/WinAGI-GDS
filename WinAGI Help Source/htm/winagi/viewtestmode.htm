@@ -1,0 +1,74 @@
+<html>
+	<head><title>Picture Editor View Test Mode</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-picture.gif" width="460" height="72" border="0" alt="AGI Picture Information"></td>
+			</tr>
+		</table>
+		<h1>Picture Editor View Test Mode</h1>
+			<p>&nbsp;<img alt="" src="..\..\graphics\tbPicTest.bmp" width="32"> The view test mode is an extremely useful feature that allows you to test how <a href="..\agi\views.htm">views</a> will interact with a <a href="..\agi\pictures.htm">picture</a>. This makes it easy to verify picture priorities are drawn correctly to eliminate priority related bugs without having to compile and run a game.</p>
+			<p>&nbsp;</p>
+			<p>To switch the picture editor to test mode, select the View Test Mode command on the Resource menu or click the Test Mode toolbar button.</p>
+			<p>When the editor enables view test mode, all editing is disabled, regardless of <a href="drawingpictures.htm#displaymode">display mode</a>. You can switch to test mode while the <a href="drawingpictures.htm#displaymode">display mode</a> is in Step Draw. Just be aware that if you use test mode while the display mode is in Step Draw, you will be seeing and testing your picture only up to the currently selected command. Normally, you will want to test views in Full Draw.</p>
+			<p>&nbsp;</p>
+			<p>&nbsp;<img alt="" src="..\..\graphics\statuspictest.jpg" border="0" width="560"></p>
+			<p>In the test mode, the main status bar shows the current image scale and mode. When the test view stops, the reason is displayed until the view is set in motion again.</p>
+			<p><a name="status">The</a> position and priority panels will display either the current cursor position, or the test view position. Press the space bar to toggle between the two. When displaying test view position information, the panels include the prefix 'v'.</p>
+		<h2><a name="testview">The Test View</a></h2>
+			<p>When entering the test mode for the first time with a <a href="..\agi\pictures.htm">picture</a>, you must choose the <a href="..\agi\views.htm">view</a> you will test with. For pictures that are part of a game, you will be asked to choose a view from within the current game. For pictures that are NOT part of a game, you must select a view resource file.</p>
+			<p>During testing, you can change the test view by selecting the Test View command on the Edit menu.</p>
+			<p>&nbsp;</p>
+		<h2>Controlling the Test View</h2>
+			<p>Place the test view on the picture by left clicking on the screen. If the test options are set to use the <a href="..\agi\grafdisp.htm#horizon">horizon</a>, the cursor changes to the no-drop icon.</p>
+			<p>To reposition the test view to a new location, just left click again, and the view will move to the new location.</p>
+			<p>You can also move the test view on the screen by using the cursor keys, just as you would in an AGI game.</p>
+			<p>If the test view encounters a boundary (edge, barrier, etc) it will stop automatically, and display the reason for stopping in the status bar.</p>
+			<p>&nbsp;</p>
+		<h2><a name="testoptions">Test Options</a></h2>
+			<p>During testing, you have full control over the behavior of the test view. Use the Test Options command on the Edit menu to display the Picture Test Options window:</p>
+			<MAP name="mapoptions">
+				<area shape="rect" alt="Horizon" coords="77,70,135,92" href="#horizon">
+				<area shape="rect" alt="Ignore Horizon" coords="27,107,127,120" href="#ignorehorizon">
+				<area shape="rect" alt="Ignore Blocks" coords="27,132,118,145" href="#ignoreblocks">
+				<area shape="rect" alt="Object Restrictions" coords="14,194,151,294" href="#objrestrictions">
+				<area shape="poly" alt="Speed" coords="179,65,217,65,217,80,281,80,281,103,179,103" href="#speed">
+				<area shape="poly" alt="Priority" coords="179,118,260,118,260,133,281,133,281,156,179,156" href="#priority">
+				<area shape="poly" alt="Loop" coords="179,171,211,171,211,186,281,186,281,209,179,209" href="#loop">
+				<area shape="poly" alt="Cel" coords="179,224,202,224,202,239,281,239,281,262,179,262" href="#cel">
+				<area shape="rect" alt="Cycle Mode" coords="179,273,266,286" href="#cyclemode">
+			</MAP>
+			<p><img src="..\..\graphics\pictestoptions.jpg" usemap="#mapoptions" border="0" width="309"></p>
+			<p>The default settings to be used when testing pictures can be changed on the <a href="settings_picture.htm">Pictures</a> tab of the <a href="settings.htm">Settings</a> window.</p>
+			<p>&nbsp;</p>
+		<h3><a name="horizon">Horizon</a></h3>
+			<p>Sets the value for the picture's <a href="..\agi\grafdisp.htm#horizon">horizon</a>. When the test view moves up on the screen, it will stop when its vertical position reaches this value (unless set to ignore the horizon).</p>
+			<p>&nbsp;</p>
+		<h3><a name="ignorehorizon">Ignore Horizon</a></h3>
+			<p>When checked, the test view will ignore the <a href="..\agi\grafdisp.htm#horizon">horizon</a> value.</p>
+			<p>&nbsp;</p>
+		<h3><a name="ignoreblocks">Ignore Blocks</a></h3>
+			<p>When checked, the test view will ignore conditional barrier lines.</p>
+			<p>&nbsp;</p>
+		<h3><a name="objrestrictions">Object Restrictions</a></h3>
+			<p>You can restrict the test view to water (priority value of 3), non-water (any priority value EXCEPT 3) or no restrictions.</p>
+			<p>&nbsp;</p>
+		<h3><a name="speed">Speed</a></h3>
+			<p>You can adjust the speed at which the test view moves and cycles. The speeds correspond roughly to the same speeds available in most AGI games.</p>
+			<p>&nbsp;</p>
+		<h3><a name="priority">Object Priority</a></h3>
+			<p>Normally, you'll want to leave the priority of the test object on automatic; as the view moves up and down the screen, its priority will automatically change. This allows you to test how well your priority screen creates the 3D illusion. If you want to force a priority on a test view, regardless of its vertical position, select the priority value you want here.</p>
+			<p>&nbsp;</p>
+		<h3><a name="loop">Test View Loop</a></h3>
+			<p>In auto mode, the loop is chosen <a href="..\agi\screenobjs.htm#autoloop">based on object direction</a>. To force the view to always use a certain loop, select it here.</p>
+			<p>&nbsp;</p>
+		<h3><a name="cel">Test View Cel</a></h3>
+			<p>If you select a specific loop, the cel dropdown box is enabled. When Auto is selected, the test view will cycle through all cels in the selected loop as it moves about the screen. If you want the test view to show a single cel regardless of movement, select it here.</p>
+			<p>&nbsp;</p>
+		<h3><a name="cyclemode">Cycle at Rest</a></h3>
+			<p>When this option is selected, the test object will stop <a href="..\commands\object_cycling.htm">cycling</a> when it is not moving. Uncheck this option to have the object cycle even when not moving.</p>
+<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

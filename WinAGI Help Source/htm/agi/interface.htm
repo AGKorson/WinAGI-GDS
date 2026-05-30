@@ -1,0 +1,43 @@
+<html>
+	<head><title>Player Interface</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Player Interface</h1>
+			<p>In the early 1980s, when AGI was created, options for player interfaces were limited. The keyboard was the primary input device, but AGI also had some limited support for joysticks, and mice.</p>
+		<h2><a name="ego">Ego</a></h2>
+			<p>AGI games were almost always played in a third person perspective, meaning the main character appeared on the screen, and was controlled by the game player. The main character was known as 'ego', represented by the first (index number 0) <a href="screenobjs.htm">screen object</a>. Ego can be controlled in either player control mode or program control mode.</p>
+		<h3><a name="playercontrol">Player Control</a></h3>
+			<p>By default, the game operates in player control mode. In this mode, ego could be moved around the screen by use of the <a href="keyboard.htm#egodir">keyboard</a>, a <a href="mouse.htm">mouse</a>, or a <a href="joystick.htm">joystick</a>. The player is in control of ego, deciding when and where to move it.</p>
+			<p>Player control mode is restored every time a game is <a href="restart.htm">restarted</a>, a <a href="..\commands\cmd_newroom.htm">new room</a> is entered, or when ego reaches its destination when using <a href="..\commands\cmd_moveobj.htm"><b>move.obj</b></a> or <a href="..\commands\cmd_moveobjv.htm"><b>move.obj.v</b></a> commands.  The <a href="..\commands\cmd_playercontrol.htm"><b>player.control</b></a> and <a href="..\commands\cmd_startmotion.htm"><b>start.motion</b></a> commands also put ego in player control mode.</p>
+		<h3><a name="programcontrol">Program Control</a></h3>
+			 <p>AGI also allows ego's motion to be controlled programmatically, just like other <a href="screenobjs.htm">screen objects</a>. While under program control, all player controls for ego are ignored, and ego can only be moved programmatically.</p>
+			 <p>To switch to program control mode, you can call the <a href="..\commands\cmd_programcontrol.htm"><b>program.control</b></a> command, or change ego's movement mode using the <a href="..\commands\cmd_moveobj.htm"><b>move.obj</b></a>, <a href="..\commands\cmd_moveobjv.htm"><b>move.obj.v</b></a> or <a href="..\commands\cmd_wander.htm"><b>wander</b></a> commands. The <a href="..\commands\cmd_stopmotion.htm"><b>stop.motion</b></a> command also switches ego to program control.</p>
+			<p>&nbsp;</p>
+		<h2><a name="queue">Input Queue</a></h2>
+			<p>From the player's perspective, there are three possible input mechanisms for player input: <a href="keyboard.htm">keyboard</a>, joystick and the mouse (only on some non-MSDOS platforms). AGI handles all input by placing key presses, <a href="mouse.htm">mouse</a> movements/clicks, and <a href="joystick.htm">joystick</a> movement/buttons into a queue as they occur; AGI then processes each input to determine what to do with it. Internally, AGI converts all player input into one of three types of input data before adding it to the input queue:</p>
+			<ul><ul>
+				<li>keyboard key presses;</li>
+				<li>ego movement commands;</li>
+				<li>and <a href="controllers.htm">controllers</a></li>.
+			</ul></ul>
+			<p>In each <a href="cycle.htm">interpreter cycle</a>, AGI processes the data added to the queue and acts on it accordingly.</p>
+			<p>&nbsp;</p>
+		<h3><a href="keyboard.htm">Keyboard Input</a></h3>
+			<p>Keyboard input includes <a href="keyboard.htm#parser">parsing text</a> entered by the player, controlling <a href="keyboard.htm#egodir">ego direction</a>, navigating <a href="menu.htm">menus</a>, and activating <a href="controllers.htm">controllers.</a></p>
+			<p>AGI uses modified system timer interrupts to read the system keyboard buffer, converts designated key presses into ego movement commands, and stores them an AGI specific queue. In each interpreter cycle, AGI then pulls key information from the AGI key queue, checks if any key presses are assigned to controllers, and then processes the keys, displaying them on the input line, if input is enabled.</p>
+			<p>AGI also uses the same queue to manage input for entering save game directories and descriptions, as well as the <a href="..\commands\cmd_getstring.htm"><b>get.string</b></a>, <a href="..\commands\cmd_getnum.htm"><b>get.num</b></a> commands. Unlike normal key processing, the function that processes input for these actions also include checks for CTRL+C and CTRL+X, clearing the line when these keys are pressed. With the input line, you need to assign a <a href="controllers.htm">controller</a> if you want that functionality.</p>
+			<p>&nbsp;</p>
+		<h3><a href="mouse.htm">Mouse Input</a></h3>
+			<p>Mouse input included ego control, but only in some non-MSDOS versions. Currently there is very little information available about mouse support in AGI.</p>
+			<p>&nbsp;</p>
+		<h3><a href="joystick.htm">Joystick Input</a></h3>
+			<p>If attached, a joystick can be used to control <a href="keyboard.htm#egodir">ego direction</a>, navigate <a href="menu.htm">menus</a> and select menu items. The buttons can also be programmed as <a href="controllers.htm">controllers.</a></p>
+			<p>Similar to key presses, AGI uses timer interrupts to periodically poll the joystick, and adds ego movement commands and button presses (as key presses using special codes) to the queue. See the <a href="joystick.htm">Joystick Input</a> topic for details.</p>
+			<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

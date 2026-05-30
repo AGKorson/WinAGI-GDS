@@ -1,0 +1,50 @@
+<html>
+	<head><title>Action Command: overlay.pic</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>overlay.pic</h1>
+			<p>The <b>overlay.pic</b> command draws a <a href="..\agi\pictures.htm">picture</a> in memory without first clearing the existing picture.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>overlay.pic(<a href="syntax_fan.htm#argtypes">var</a> vPICNUM);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p><b>overlay.pic</b> is similar to <a href="cmd_drawpic.htm"><b>draw.pic</b></a>, except the visual and priority screens are not cleared. This means that <a href="..\agi\pictures.htm">picture</a> <b>vPICNUM</b> is overlayed and drawn on top of the existing picture.</p>
+			<p>Note that because fill commands in the <a href="..\agi\pictures.htm">picture resources</a> only work on white portions of the screen, fills on the overlayed picture may not work if they overlap an area already set to a non-white color.</p>
+			<p>The <a href="cmd_showpic.htm"><b>show.pic</b></a> command must still be used to display the drawn image on the screen once the picture has been overlayed.</p>
+			<p>Attempting to overlay a <a href="..\agi\pictures.htm">picture</a> that has not been loaded will raise <a href="..\agi\errorlist.htm#trap18">trappable error #18</a>.</p>
+			<p>AGI adds a script entry to the <a href="..\agi\scripts.htm">script stack</a> each time an <b>overlay.pic</b> command is executed.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>load.pic(v0); [ load and draw the current room's picture:
+draw.pic(v0);
+discard.pic(v0);
+[ then overlay another picture on it
+v50 = 99;
+load.pic(v50);
+<b>overlay.pic(v50);</b> [ adds picture 99
+discard.pic(v50);
+...
+show.pic();</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">28 (0x1C)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_pictures.htm">Picture Commands</a></p>
+			<p><a href="concepts_pictures.htm">Working with Pictures</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

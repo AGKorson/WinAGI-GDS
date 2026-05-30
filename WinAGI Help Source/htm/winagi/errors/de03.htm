@@ -1,0 +1,18 @@
+<html>
+    <head><title>Logic Source Decompiler Error DE03</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Error DE03</h2>
+      <h3>Invalid action command byte code (&lt;code&gt;) found at resource index &lt;pos&gt;</h3>
+      <p class="indent_n">This error is raised when the decompiler is expecting a valid <a href="..\..\agi\logics.htm#actions">action command</a> or <a href="..\..\agi\logics.htm#ifelse">key word</a> control code, but instead encounters a byte code value that is neither. It is not possible to continue decompiling when this error occurs.</p>
+      <p class="indent_n">This is likely due to a corrupt logic resource, <a href="..\..\agi\vol.htm">VOL</a> or <a href="..\..\agi\dir.htm">DIR</a> file. Dependng on when the error occurred, there may be a portion of the logic source recovered, but regardless, you will need to adjust the source code will need </p>
+      <p class="indent_n">WinAGI sets the block end to the end of the resource and will try to continue decompiling. Regardless, you should confirm that the  file containing this logic is not corrupt. Regardless, you will need to carefully examine the decompiled source code, and adjust the code as necessary before recompiling.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

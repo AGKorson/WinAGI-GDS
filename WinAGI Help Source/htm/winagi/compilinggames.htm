@@ -1,0 +1,28 @@
+<html>
+	<head><title>Compiling Games</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Compiling Games</h1>
+			<p>As you add, delete, and edit the various resources in your game, the <a href="..\agi\vol.htm">volume files</a> where resources are stored eventually get more and more fragmented as WinAGI tries to find space within existing volume files to insert new and updated resources. You should compile your game before releasing it to compress the volume files, and make sure all the your logic resources are compiled from the latest changes to your source files. WinAGI provides a number of features to assist in assembling your game for testing and final release.</p>
+			<blockquote>
+			<h3><EM><a name="compilegamevslogic">Compiling Game vs. Compiling Logics</a></EM></h3>
+				<p>Compiling a game refers to the process of rebuilding the volume files and directory files to remove any slack. <a href="editor_logic.htm#compile">Compiling a logic</a> refers to the process WinAGI uses to convert the text based source code into binary code that can be read by an AGI game interpreter.</p>
+			</blockquote>
+		<h2><a name="compilegame">Compile Game</a></h2>
+			<p>When you choose the Compile option from the Game menu, WinAGI checks that all <a href="..\agi\resources.htm">resources</a> are valid and completely rebuilds the game's <a href="..\agi\vol.htm">volume</a> files and <a href="..\agi\dir.htm">directory</a> files. In addition, before <a href="..\agi\logics.htm">logic</a> resources are added the source code for each logic is run through WinAGI's <a href="compilinglogics.htm">source compiler</a> to ensure the compiled game has the most up-to-date resources. If WinAGI detects any errors (either in compiling logics, or in invalid resources), the compilation process is halted. Any warnings generated during the compilation will be displayed in the <a href="warninglist.htm">Errors and Warnings List</a>.</p>
+			<p>You can also cancel the compilation before it completes. In this case, your original volume and directory files remain as they were before the compilation started; no changes are saved if compilation is canceled.</p>
+		<h2><a name="compileto">Compile To...</a></h2>
+			<p>You can choose to compile a game to a new directory using the Compile To command. This option will recompile all <a href="..\agi\logics.htm">logics</a>, rebuild all volume files and place the resulting game files in the directory of your choice. No changes are made to any files in your original game directory.</p>
+		<h2><a name="rebuild">Rebuild VOL Files</a></h2>
+			<p>As you edit and save <a href="..\agi\resources.htm">resources</a> in your game, the changes in resource size will result in slack space in the <a href="..\agi\vol.htm">volume</a> files. To remove the slack you can use the Rebuild VOL Files command on the Game menu. Rebuilding the volume files does not recompile logics. It uses the existing resources in the current volume files and reorganizes them to eliminate slack space. As with the Compile command, the old volume and directory files are renamed in case you want to restore the original files.</p>
+		<h2><a name="compilechanged">Compile Changed Logics</a></h2>
+			<p>WinAGI automatically detects when <a href="..\agi\logics.htm">logic</a> source files are changed, thus requiring compilation. The changed logics can be compiled all at once using the Compile Changed Logics command. When using this command, the volume files are not rebuilt. The compiled logics are stored in the first VOL file with available space.</p>
+			<p>&nbsp;</p>
+			<p align="right"><font size="1">v3.0.0</font></p>
+			<p>&nbsp;</p>
+	</body>
+</html>

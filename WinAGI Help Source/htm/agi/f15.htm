@@ -1,0 +1,20 @@
+<html>
+	<head><title>Reserved Flag f15</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f15: Message Windows Don't Pause Game</h1>
+			<p>When f15 is reset to FALSE, message windows (such as when using the <a href="..\commands\cmd_print.htm"><b>print</b></a> commands) will pause the game (but not the <a href="cycle.htm#pausing">internal game clock</a>), and the window will remain open until the player dismisses it by pressing ENTER or ESC, or until the time delay set by <a href="variables.htm#reserved">reserved variable</a> <a href="v21.htm">v21 (window close time)</a> passes. This is the normal, default behavior.</p>
+			<p>When f15 is to TRUE, the game will continue with regular <a href="cycle.htm">interpreter cycles</a> while the message window is displayed. Reserved variable <a href="v21.htm">v21 (window close time)</a> is ignored. The message window will remain until another <a href="..\commands\cmd_print.htm"><b>print</b></a> command is entered, the <a href="grafdisp.htm">graphics screen</a> is re-displayed (by switching to <a href="textdisp.htm">text screen</a> and then back to graphic screen), entering a <a href="..\commands\cmd_newroom.htm">new room</a> or a <a href="..\commands\cmd_closewindow.htm"><b>close.window</b></a> command is executed.</p>
+			<p>If <a href="screenobjs.htm">screen objects</a> on screen that are covered by the message window get updated in subsequent <a href="cycle.htm">cycles</a>, the message window will be overdrawn by the updates, so careful planning of the position of windows is needed when using this feature.</p>
+			<p>AGI resets f15 to FALSE after every message window is displayed, and after every <a href="..\commands\cmd_showpic.htm"><b>show.pic</b></a> command. This means that every time you want a message to remain visible without pausing game play, you must set f15.</p> 
+			<p>This flag was not reserved by AGI and had no effect in <a href="version2.htm#2089">version 2.089</a> and <a href="version2.htm#2272">version 2.272</a>.</p>
+			<p>Attempting to use this flag for other purposes is not recommended; it gets reset to FALSE every time a message window is shown, which would make it effectively useless unless messages are never displayed, which is not practical in AGI.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

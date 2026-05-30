@@ -1,0 +1,59 @@
+<html>
+	<head><title>Logic Compiler Warning 5025</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5025</h2>
+    <h3>'&lt;name&gt;' (&lt;number&gt;) is normally a read-only flag; changing it could have unexpected results</h3>
+    <p class="indent_n">Several of the <a href="..\..\agi\flags.htm#reserved">reserved flags</a> are used by AGI to manage game state. Using them in commands where they may be altered can lead to unexpected behavior. Unless you are intentionally modifying them for a specific reason you should avoid using the following flags in commands where they may be altered:</p>
+    <table id="tblFlags" cellSpacing="1" cellPadding="1" width="375" border="2">
+      <tr>
+        <td width="100" align="center"><b>FLAG</b></td>
+        <td align="left"><b>FLAG NAME</b></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f0</ADDRESS></td>
+        <td><ADDRESS>onWater</ADDRESS></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f1</ADDRESS></td>
+        <td><ADDRESS>egoHidden</ADDRESS></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f2</ADDRESS></td>
+        <td><ADDRESS>haveInput</ADDRESS></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f3</ADDRESS></td>
+        <td><ADDRESS>egoHitSpecial</ADDRESS></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f5</ADDRESS></td>
+        <td><ADDRESS>newRoom</ADDRESS></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f6</ADDRESS></td>
+        <td><ADDRESS>gameRestarted</ADDRESS></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f8</ADDRESS></td>
+        <td><ADDRESS>enableDblClick</ADDRESS></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f11</ADDRESS></td>
+        <td><ADDRESS>hasNoiseChannel</ADDRESS></td>
+      </tr>
+      <tr>
+        <td align="center"><ADDRESS>f12</ADDRESS></td>
+        <td><ADDRESS>gameRestored</ADDRESS></td>
+      </tr>
+    </table>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

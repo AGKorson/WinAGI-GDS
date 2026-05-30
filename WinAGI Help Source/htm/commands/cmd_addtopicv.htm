@@ -1,0 +1,53 @@
+<html>
+	<head><title>Action Command: add.to.pic.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>add.to.pic.v</h1>
+		<p>The <b>add.to.pic.v</b> command allows you to add a view to the visual picture screen in memory.
+		</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>add.to.pic.v(<a href="syntax_fan.htm#argtypes">var</a> vVIEWNUM, <a href="syntax_fan.htm#argtypes">var</a> vLOOP, <a href="syntax_fan.htm#argtypes">var</a> vCEL, <a href="syntax_fan.htm#argtypes">var</a> vX, <a href="syntax_fan.htm#argtypes">var</a> vY, <a href="syntax_fan.htm#argtypes">var</a> vPRI, <a href="syntax_fan.htm#argtypes">var</a> vMGN);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Cel <b>vCEL</b> of loop <b>vLOOP</b> of <a href="..\agi\views.htm">view</a> <b>vVIEWNUM</b> is drawn on the picture at <b>vX</b>, <b>vY</b> with a priority of <b>vPRI</b>. The priority argument can be used to add views behind other parts of the picture.</p>
+			<p>This command works exactly the same as <a href="cmd_addtopic.htm"><b>add.to.pic</b></a>, except all arguments are passed as variables; see the <a href="cmd_addtopic.htm"><b>add.to.pic</b></a> command topic for detailed information on.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>load.view(9); [ ensure view is loaded
+v200 = 9;
+v201 = 0;
+v202 = 0;
+v203 = 20;
+v204 = 120;
+v205 = 14;
+v206 = 2;
+<b>add.to.pic.v(v200, v201, v202, v203, v204, v205, v206);</b>
+[   first cel of first loop of view 9
+[   is added to current picture at position (20, 120)
+[   with priority 14, and an alarm line (MARGIN = 2)
+[   is drawn along bottom row of the cel on the priority screen
+
+discard.view(9);  [ discard view after adding it</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">123 (0x7B)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Objects/View Commands</a></p>
+			<p><a href="cmd_addtopic.htm"><b>add.to.pic</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

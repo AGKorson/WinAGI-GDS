@@ -1,0 +1,20 @@
+<html>
+	<head><title>Reserved Flag f9</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f9: Sound Enabled</h1>
+			<p>When flag f9 is set to TRUE, AGI activates a vector function that will output <a href="sounds.htm">sound</a> through the system's sound hardware when the <a href="..\commands\cmd_sound.htm"><b>sound</b></a> command is called. The sound is played asynchronously, meaning it plays in the background while AGI continues to run through <a href="..\agi\cycle.htm">interpreter cycles</a>.</p>
+			<p>When flag f9 is reset to FALSE, calls to <b>sound</b> still activate the function that plays a sound, but it immediately stops, and sets the 'done' flag to TRUE.</p>
+			<p> If a sound is currently playing when f9 is reset to FALSE, AGI stops playing the sound and the 'done' flag for the sound is set to TRUE, the same as if the sound played through to the end and stopped normally. See the <a href="sounds.htm">sound resource</a> topic and <a href="..\commands\cmd_sound.htm"><b>sound</b></a> command topic for more information.</p>
+			<p>When a game is <a href="..\commands\cmd_restartgame.htm">restarted</a> or <a href="..\commands\cmd_restoregame.htm">restored</a>, the sound setting before the restart/restore is retained.</p>
+			<p>Each <a href="cycle.htm">interpreter cycle</a>, AGI checks the value of f9; if it has changed, AGI will update the sound status display in the <a href="grafdisp.htm#statusline">status line</a>, if the status line <a href="..\commands\cmd_statuslineoff.htm">is visible</a>. "Sound: on" is shown if f9 is TRUE, and "Sound: off" is shown if f9 is FALSE.</p>
+			<p>If you are not using any sound in your game, you can use this flag for any purpose. Just keep in mind that it may not have the correct value after <a href="..\commands\cmd_restartgame.htm">restarting</a> or <a href="..\commands\cmd_restoregame.htm">restoring</a> a game. Also keep in mind that its value will be displayed on the status bar if the status bar is visible.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

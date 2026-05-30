@@ -1,0 +1,19 @@
+<html>
+	<head><title>Reserved Flag f4</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f4: Said Found Match</h1>
+			<p>When the <a href="..\commands\cmd_said.htm"><b>said</b></a> command finds a match (i.e. the <a href="keyboard.htm#parser">player's input</a> matches the <a href="words.htm">words</a> passed as arguments to <b>said</b>), flag f4 is set to TRUE. This makes it easier for AGI to handle subsequent calls to <b>said</b>, because <b>said</b> automatically returns a value of FALSE if flag f4 is TRUE.</p>
+			<p>At the beginning of each <a href="cycle.htm">interpreter cycle</a> AGI resets f4 to FALSE.</p>
+			<p><a href="f2.htm">Flag f2 (input received)</a> and flag f4 are used together by AGI to manage evaluation of player <a href="keyboard.htm#parser">input</a>. When f2 is TRUE and f4 is FALSE, the <a href="..\commands\cmd_said.htm"><b>said</b></a> command will check player input for the <a href="words.htm">words</a> passed as arguments. If either f2 is FALSE (meaning there is nothing to parse), or flag f4 is TRUE (meaning <b>said</b> already has found a match) <b>said</b> will not check for input and just return false.</p>
+			<p>If you are writing advanced code, you may need to force the values of f2 and f4 to achieve certain effects. For example, after a call to the <b>said</b> command returns TRUE, you can reset f4 to FALSE so that future <b>said</b> commands in the same cycle will look for a match. See the <a href="..\commands\cmd_said.htm"><b>said</b></a> for more information and examples.</p>
+			<p>Attempting to use this flag for other purposes is not recommended, because AGI overwrites it in every <a href="cycle.htm">interpreter cycle</a>.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

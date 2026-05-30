@@ -1,0 +1,185 @@
+<html>
+	<head><title>Graphics Display</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1><a name="graphicsdisplay">AGI Graphics Display Mode</a></h2>
+			<p>In the graphics display mode, AGI displays <a href="pictures.htm">pictures</a> as a background on which the game is played. Pictures were a graphical representation of the area or '<a href="pictures.htm#room">room</a>' in which the player would interact with the game. Pictures have a resolution of 160 x 168. On most displays, AGI would use a display mode of 320 x 200, and only 16 colors were available. This is apparently a holdover from the IBM PCJr version of AGI, since the PCJr could only support 16 colors in a 160 x 200 resolution. On the newer PC displays, each AGI pixel was actually two screen pixels wide.</p>
+			<p>The Hercules Graphics Card (HGC) was a notable exception. HGC had a single graphics mode of 720 x 348. Each AGI pixel was 4 x 2 screen pixels. This resulted in black borders 40 pixels wide on each side of the screen. It also meant that on HGC screen, there was only room for a single text row above the graphics picture.</p>
+			<p>The <a href="pictures.htm">pictures</a> used as backgrounds for AGI games had a resolution of 160 x 168. This meant that there were 32 rows of pixels not used by the background on EGA and other displays using the 320 x 200 mode. This was done to allow AGI to have space above and below the graphics picture for text-based data, namely the status line, <a href="menu.htm">menus</a>, and the player input line. Normally, the backgrounds would be displayed so one 8-pixel high row of text would fit above the display, and three rows below, although this is configurable via the <b><a href="..\commands\cmd_configurescreen.htm">configure.screen</a></b> command.</p>
+			<p>On HGC, there were only 12 unused rows of pixels. AGI used these pixels as both the <a href="#statusline">status line</a> and <a href="#menu">menu line</a>; HGC did not use an <a href="#input">input line</a>, and the <b><a href="..\commands\cmd_configurescreen.htm">configure.screen</a></b> command does not do anything when called in a game using HGC.</p>
+			<p><a name="shadowvid">AGI</a> did not draw picture resources directly to video display memory. Instead, AGI used a <a href="memory.htm">memory buffer</a> to create the images, and would transfer the image to video memory when needed. The image in the buffer actually included both the <a href="pictures.htm#visual">visual</a> and the <a href="pictures.htm#priority">priority</a> screen information. Each byte in the buffer held a four bit color value for the visual screen in the lower nibble, and the priority value was stored in the upper nibble. This made it easier for the graphics routines that would manage the placement and movement of <a href="screenobjs.htm">screen objects</a>.</p>
+		<h3><a name="statusline">Status Line</a></h3>
+			<p>When enabled, the status line displays the <a href="v3.htm">current score</a> and <a href="v7.htm">maximum score</a>, and the <a href="f9.htm">sound status</a>. The score is displayed on the left edge of the status line, in the format "Score x of y" with x being <a href="v3.htm">current score</a>, and y being <a href="v7.htm">maximum score</a>. The sound status is displayed on the right, as "Sound is on" or "Sound is off" in <a href="version2.htm#2089">version 2.089</a> and "Sound:on" or "Sound:off" in all other versions. The status line is always displayed as black text on a white background. The colors cannot be changed.</p>
+			<p>By default, the status line is enabled, and set to row 21. In most Sierra games, the status line is changed to row 0 with the <a href="..\commands\cmd_configurescreen.htm"><b>configure.screen</b></a> command. The status line can be hidden or shown using the <a href="..\commands\cmd_statuslineoff.htm"><b>status.line.off</b></a> and <a href="..\commands\cmd_statuslineon.htm"><b>status.line.on</b></a> commands, respectively. After it is displayed, AGI only refreshes the status line when:</p>
+			<ul><ul>
+				<li>the <a href="..\commands\cmd_statuslineon.htm"><b>status.line.on</b></a> or <a href="..\commands\cmd_statuslineon.htm"><b>status.line.on</b></a> command is executed;</li>
+				<li>the <a href="v3.htm">current score</a> or sound status changes;</li>
+				<li>a <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a>, <a href="..\commands\cmd_restoregame.htm"><b>restore.game</b></a>, <a href="..\commands\cmd_togglemonitor.htm"><b>toggle.monitor</b></a>, or <a href="..\commands\cmd_graphics.htm"><b>graphics</b></a> command is executed;</li>
+				<li>the graphics screen is redrawn after closing a <a href="menu.htm">menu</a> or <a href="..\commands\cmd_status.htm">showing the status screen</a>;</li>
+				<li> or <a href="..\commands\cmd_togglemonitor.htm">toggling the display type</a>.</li>
+			</ul></ul>
+			<p>The status line is not automatically drawn when the <a href="textdisp.htm">text screen</a> is displayed. Once the text screen is active, AGI will show the status line if it is enabled and the score changes or sound state is toggled.</p>
+			<p>If the status line is overwritten (for example, by using the <a href="..\commands\cmd_display.htm"><b>display</b></a> command), AGI does not update it until one of the above conditions occurs.</p> 
+			<p>The current state of the status line (on or off) is not changed during a game <a href="restart.htm">restart</a> or a game <a href="restore.htm">restore</a>.</p>
+		<h3><a name="menu">Menu Line</a></h3>
+			<p>When a menu is displayed, it is always on row 0. The row cannot be changed. Unhighlighted menus and menu items are black text on a white background, and highlighted items are inverted. See the <a href="menu.htm">Menus</a> Topic for additional information.</p>
+		<h3><a name="input">Input Line</a></h3>
+			<p>The <a href="keyboard.htm#inputline">input line</a>, where the player can <a href="keyboard.htm">enter text commands</a>, is disabled when AGI starts, and must be enabled using the <a href="..\commands\cmd_acceptinput.htm"><b>accept.input</b></a> command. On non-HGC screens, the location of the input line is row 23 by default, but this can be changed using the <a href="..\commands\cmd_configurescreen.htm"><b>configure.screen</b></a> command. The colors for the input line are set by using the <a href="..\commands\cmd_settextattribute.htm"><b>set.text.attribute</b></a> command.</p> 
+			<p>By default, the entire input line is available for the player to type input. <a href="variables.htm#reserved">Reserved variable</a> <a href="v24.htm">v24</a> (input length) can be used to limit the input line to less than a full line. See the <a href="keyboard.htm#inputline">Input Line</a> discussion in the <a href="keyboard.htm">Keyboard Input</a> topic for more detailed information.</p>
+			<p>When run on HGC screens, AGI would <a href="cycle.htm#pausing">pause</a> the game, and display an input box, instead of using a dedicated line.</p>
+		<h3>Text on the Graphic Display</h3>
+			<p>In addition to graphics, as described below, text can also be displayed on the graphics screen. The <a href="..\commands\cmd_print.htm"><b>print</b></a> command is the most common method for displaying text, but will always be black text on a white background with a red border. The <a href="..\commands\cmd_display.htm"><b>display</b></a> command can be used to show different colors (with some limitations) by using the <a href="..\commands\cmd_settextattribute.htm"><b>set.text.attribute</b></a> command. When using <b>set.text.attribute</b> on the graphics screen, the background color for text is either black (if background color is set to 0) or white (if background color is set to anything else). If the background is white, the foreground will always be black, regardless of the foreground color set by <b>set.text.attribute</b>; if the background is black, then the foreground will be as set.</p>
+			<p>Due to the way AGI handles passing colors to the DOS functions that draw characters to the screen, it is actually possible to draw black text on non-black backgrounds. If a value &gt; 128 is passed as the foreground color in <a href="..\commands\cmd_settextattribute.htm"><b>set.text.attribute</b></a>, while also passing a value of black as the background color, AGI will use the higher nibble (upper four bits) of the foreground color as the background color, and calls to <a href="..\commands\cmd_display.htm"><b>display</b></a> will draw black text on colored background. (Extended characters are still garbled - see discussion in the <a href="agifont.htm">Fonts and Character Codes</a> topic.)</p> 
+			<p>The input line background and foreground colors will be the same as the colors set by the <b>set.text.attribute</b> command as described above. The default values when AGI starts are white foreground and black background.</p>
+			<p>All text display functions, including internal functions as well as AGI commands such as <a href="..\commands\cmd_print.htm"><b>print</b></a> and <a href="..\commands\cmd_display.htm"><b>display</b></a>, use a standard formatting function (presumably a standard C library format function) that uses the '%' character to allow insertion of additional text fields and numbers with a variety of formats. (This is different from the <a href="messages.htm#format">AGI special formatting codes</a>, which only apply to AGI text related commands.) Because of this, you should avoid using any '%'-'char' sequences in any text being displayed other than the supported AGI format codes. See the <a href="messages.htm#format">Message Format Codes</a> topic for additional detail.</p>
+			<p>Because the graphics screen on HGC does not have as much extra space above/below the background picture, text displayed on the graphics screen will not line up row for row the same as on an EGA display. If you plan to support HGC mode, you should make sure to test any text displays on the graphics screen to be sure it displays on both adapters as you intended.</p>
+		<h3>Character Code Limitation on Graphic Display</h3>
+			<p>As described in the <a href="agifont.htm">Fonts and Character Codes</a> topic, AGI uses the original IBM character code set to display text characters. However, on the graphics display in most cases, only original 7-bit ASCII characters get drawn correctly. 
+		<h1><a name="priority">Priority</a></h1>
+			<p>All AGI games included the same subtitle, "A Sierra 3-D Animated Adventure". To achieve the effect of 3-D, AGI uses two separate graphics images. The image normally seen on the screen during game play is called the visual image. A second image, called the priority image, exists in memory (and can be shown on screen using the <a href="..\commands\cmd_showpriscreen.htm"><b>show.pri.screen</b></a>).</p>
+			<p>The priority image uses colors to represent the priority of screen elements, so different elements (objects, characters, etc.) would appear to move in front of and behind other elements to give the illusion of 3-D. The priority image also includes <a href="#controllines">control lines</a> to do things like limit the motion of <a href="screenobjs.htm">screen objects</a>, trigger events when objects crossed certain lines, and designate areas as <a href="#water">water</a> instead of land.</p>
+			<p>The priority image uses the same sixteen colors that are on the visual image. Four colors (black, blue, green and cyan) are used to represent <a href="#controllines">control lines</a>. The other twelve represent object priority. The higher the color index, the higher the priority. The higher the priority, the closer to the 'front' of the picture the element is determined to be.</p>
+		<h3>Simulating 3-D: 3-D Game on 2-D Display</h3>
+			<p>All <a href="screenobjs.htm">screen objects</a> that are added to the screen are assigned their own priority. When AGI draws the screen object, the priority value of each pixel of the background where the object is being drawn is compared to the screen object's priority. If the screen object's priority is the same or higher than the background pixel priority, the pixel is drawn on the visual screen. If it is less, the pixel is not drawn. This is what creates the effect of objects being able to move in front of or behind objects.</p>
+			<p>The priority screen is also modified in real time to include the <a href="screenobjs.htm">screen objects</a>'s priority outline. For each pixel that is added to the visual screen, the corresponding pixel on the priority screen is set to the color of the object's priority. The exception to this is that pixels of unconditional, conditional or alarm control lines (color index of 2 or less) are never changed on the priority screen.</p>
+			<table id="Table2">
+				<tr>
+					<td class="white">
+						<p><img alt="Sample1" src="..\..\graphics\picsample1.bmp" width="248"></p>
+						<p>The tree has a priority of 11; ego is priority 12, so ego is drawn in front 
+							of the tree.</p>
+					</td>
+					<td class="white">
+						<p><img alt="Sample2" src="..\..\graphics\picsample2.bmp" width="248"></p>
+						<p>The tree is still priority 11, but now ego is priority 10, so ego is drawn 
+							behind the tree.</p>
+					</td>
+				</tr>
+			</table>
+			<p>When two or more <a href="screenobjs.htm">screen objects</a> overlap, the screen objects are added in reverse priority order, so the screen object that has the highest priority will be drawn in front of the other. If two screen objects have the same priority, the object with the higher y value (meaning it is 'closer') is drawn last. If the screen objects have the same y value, the screen objects are drawn in index order; the screen object with the higher index number is drawn in front. If a screen object has a fixed priority (by using the <a href="..\commands\cmd_setpriority.htm"><b>set.priority</b></a> command), it is assigned a 'virtual' y value based on the band that corresponds to its priority value.</p>
+		<h3><a name="bands">Priority Bands</a></h3>
+			<p>The graphics screen in AGI is divided into bands which are assigned a priority value, with the band at the top given a priority of 4, the next band priority of 5 and so on, with the bottom band given a priority of 14. As <a href="screenobjs.htm">screen objects</a> move up and down the screen, AGI automatically updates screen object priority based on the band it is within. This helps create the illusion of 3D.</p>
+		<blockquote>
+			<p>
+				<table id="Table3" cellSpacing="1" cellPadding="1" border="1">
+					<tr>
+						<td align="middle" style="vertical-align:middle" width="120"><b>Priority Band</b></td>
+						<td align="middle" style="vertical-align:middle" width="320"><b>Y Range</b></td>
+						<td align="middle" style="vertical-align:middle" width="320"><b>Color</b></td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">0*</td>
+						<td align="left" width="320">&nbsp;unconditional line</td>
+						<td align="middle">black</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">1*</td>
+						<td align="left" width="320">&nbsp;conditional line</td>
+						<td align="middle">blue</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">2*</td>
+						<td align="left" width="320">&nbsp;alarm line</td>
+						<td align="middle">green</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">3</td>
+						<td align="left" width="320">&nbsp;water</td>
+						<td align="middle">cyan</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">4</td>
+						<td align="middle" width="320">0 - 47</td>
+						<td align="middle">red</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">5</td>
+						<td align="middle" width="320">48 - 59</td>
+						<td align="middle">magenta</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">6</td>
+						<td align="middle" width="320">60 - 71</td>
+						<td align="middle">brown</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">7</td>
+						<td align="middle" width="320">72 - 83</td>
+						<td align="middle">light gray</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">8</td>
+						<td align="middle" width="320">84 - 95</td>
+						<td align="middle">dark gray</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">9</td>
+						<td align="middle" width="320">96 - 107</td>
+						<td align="middle">light blue</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">10</td>
+						<td align="middle" width="320">108 - 119</td>
+						<td align="middle">light green</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">11</td>
+						<td align="middle" width="320">120 - 131</td>
+						<td align="middle">light cyan</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">12</td>
+						<td align="middle" width="320">132 - 143</td>
+						<td align="middle">light red</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">13</td>
+						<td align="middle" width="320">144 - 155</td>
+						<td align="middle">light magenta</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">14</td>
+						<td align="middle" width="320">156 - 167</td>
+						<td align="middle">yellow</td>
+					</tr>
+					<tr>
+						<td align="middle" width="120">15</td>
+						<td align="middle" width="320">--</td>
+						<td align="middle">white</td>
+					</tr>
+					<tr>
+						<td align="left" colspan="3">&nbsp;*These values are not priority, they represent control lines</td>
+					</tr>
+				</table>
+			</p>
+		</blockquote>
+			<p>In <a href="versions.htm">version</a> 2.936 and above, the <a href="..\commands\cmd_setpribase.htm"><b>set.pri.base</b></a> command can be used to adjust the default priority bands.</p>
+			<p>There are no priority bands 0 - 2 because these values are used for <a href="#controllines">control lines</a>. Priority 3 (<a href="#water">water</a>) is the lowest priority, but is not automatically assigned to screen objects based on movement; priority 4 is the lowest priority automatically assigned based on position, and is given to background elements. All objects not 'on water' will be drawn in front of priority 4 elements regardless of their priority.</p>
+			<p>Band 15 is the highest priority. Unlike the other priority bands, it is not possible for objects to move into this band because movement is limited to 167 in the Y direction. It is possible to assign a priority of 15 to objects using the <a href="..\commands\cmd_setpriority.htm"><b>set.priority</b></a> command. Band 15 is usually used in pictures for elements that are always in front of any objects on the screen.</p>
+			<p><a href="screenobjs.htm">Screen objects</a> with a priority of 15 will always ignore all <a href="#controllines">control lines</a> and water/land restrictions regardless of their location. Similarly, if ego is given a priority of 15, it will never set the '<a href="f0.htm">ego on water</a>' or '<a href="f3.htm">ego on signal line</a>' flags.</p>
+			<p>Avoid using invalid values of priority greater than 15, as it will lead to unexpected results. See the <a href="..\commands\cmd_setpriority.htm"><b>set.priority</b></a> command for additional details on the negative effects of using invalid priority values.</p>
+			<p>When drawing background <a href="pictures.htm">pictures</a>, the artist must pay careful attention to the priority bands, placing elements so they align with the bands so that as <a href="screenobjs.htm">screen objects</a> move around the screen, the desired 3-D effect is achieved.</p>
+		<h3><a name="horizon">The Horizon</a></h3>
+			<p>Another feature of AGI that helps create a 3D feel is the horizon. When ego moves to the right or left edge, AGI will set <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="v2.htm">v2 (ego edge code)</a> so logic code can use the <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command to have ego move to other locations in a game while maintaining the effect of moving within a larger world. However, when ego moves up toward the top of the screen, simulating moving further away, the illusion won't work if ego goes all the way to the top. AGI uses a horizon value to make the 3D effect work. The default value for the horizon is 36, which is reset every time the <b>new.room</b> command is called. The horizon can be changed by using the <a href="..\commands\cmd_sethorizon.htm"><b>set.horizon</b></a> command.</p>
+		<h3><a name="controllines">Control lines</a></h3>
+			<p>Control lines are drawn on the priority screen and are used to determine how objects interact with the the background <a href="pictures.htm">picture</a>. For example, if the background includes a tree, characters shouldn't be able to walk through the tree. A control line drawn around the tree will prevent the character from doing this.</p>
+			<p>There are three different control lines that provide different interactions: black, blue and green, corresponding to color index values of 0, 1, and 2. (The color cyan [index value of 3] is typically included in control line discussion since it is a special priority value.)</p>
+			<p>The black (0) control line is an unconditional obstacle. Objects cannot cross over this control line at any time.</p>
+			<p>The blue (1) control line is a conditional obstacle. Objects won't cross over conditional lines, unless an <b><a href="..\commands\cmd_ignoreblocks.htm">ignore.blocks</a></b> command has been issued. The conditional line is useful in situations where some action is required before a <a href="screenobjs.htm">screen object</a> is allowed to cross a certain barrier, such as a door. When the door is opened, the <b><a href="..\commands\cmd_ignoreblocks.htm">ignore.blocks</a></b> command is issued; now the object can cross the control line and continue moving.</p>
+			<p>The green (2) control line is an alarm, or signal, line. The alarm line is not an obstacle. It applies only to <a href="interface.htm#ego">ego</a> , the player controlled object. When ego touches the alarm line, <a href="flags.htm#reserved">reserved flag</a> <a href="f3.htm">f3 (ego on signal line)</a> is set to TRUE. Code can be written in a <a href="logics.htm">logic</a> to respond to the event. For example, if ego touches an alarm line along a cliff, a falling sequence can be initiated.</p>
+		<h3><a name="water">Water</a></h3>
+			<p>Cyan (3) is used to represent water (or any area where you wish to confine a <a href="screenobjs.htm">screen object</a>). It usually is used to fill a whole area. Water pixels are not actually treated as 'control lines' by AGI. Instead, it is treated the same as other priority levels, one level below 4. This means that if you manually assign a priority of 3 to a screen object (using the <a href="..\commands\cmd_setpriority.htm"><b>set.priority</b></a> command), the screen object will be 'behind' (hidden) on priority 4 areas, but will be visible on 'water' areas with priority of 3.</p>
+			<p>AGI provides special handling of 'water' areas, allowing for objects to be restricted only to 'water' areas (using the <b><a href="..\commands\cmd_objectonwater.htm">object.on.water</a></b> command), or to be prevented from going entirely on to 'water' areas (using the <b><a href="..\commands\cmd_objectonland.htm">object.on.land</a></b>). 
+			<p>AGI does not prevent you from using both commands on the same <a href="screenobjs.htm">screen object</a>; if you do, AGI will freeze, because the <a href="..\commands\object_position.htm#shuffling">shuffle routine</a> that tries to find a valid position for objects that is called in each <a href="cycle.htm">interpreter cycle</a> will run in an infinite loop. AGI will also freeze if a screen object is restricted to water on a picture that has no water, or if a screen object is restricted to land on a screen that is entirely water.</p>
+		<h3>Effect of Control Lines on Priority Determination</h3>
+			<p>In AGI, priority areas and control lines are drawn on the same screen. This can lead to problems when AGI needs to know the priority of a pixel that has a control line drawn over it. The way that AGI deals with this is to search downward (increasing Y) until it finds a pixel that isn't a control line and it assumes that the pixel it is looking at is the same priority as the one it found by searching downwards. Usually this will be the pixel immediately below but if a long vertical control line is present, it could be significantly distant. This can cause noticeable visual errors. Careful drawing, and lots of testing is necessary to reduce the effects of control lines on priority.</p>
+			<p>In some games this can cause a noticeable visual error if you are aware of it. For example, you could walk behind a strip of grass that thinks it is part of the tree below it (KQ1, room 20, blue control line beside left hand tree). There are also a number of other one pixel visual errors that are virtually 	unnoticeable if you don't know they are there.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

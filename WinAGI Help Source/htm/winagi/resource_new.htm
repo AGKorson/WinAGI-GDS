@@ -1,0 +1,53 @@
+<html>
+	<head><title>Creating New Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Creating New Resources</h1>
+			<p>Use the New Resource command on the Resource menu, or the New Resource button on the main toolbar to create new resources.</p>
+		<h3>New <a href="..\agi\logics.htm">Logic</a>/<a href="..\agi\pictures.htm">Picture</a>/<a href="..\agi\sounds.htm">Sound</a>/<a href="..\agi\views.htm">View</a> Resource</h3>
+			<p>&nbsp;<img alt="New Logic Button" src="..\..\graphics\tbNLog.bmp" width="32" height="32">&nbsp;<img alt="New Picture Button" src="..\..\graphics\tbNPic.bmp" width="32" height="32">&nbsp;<img alt="New Sound Button" src="..\..\graphics\tbNSnd.bmp" width="32" height="32">&nbsp;<img alt="New View Button" src="..\..\graphics\tbNView.bmp" width="32" height="32"></p>
+			<p>If a game is NOT open:</p>
+			<blockquote>
+				<p>Choosing to create a new resource will open a new resource editor. The resource can only be saved to a file.</p>
+			</blockquote>
+			<p>If a game IS open:</p>
+			<blockquote>
+				<p>After opening a new resource editor, the New Game Resource dialog is displayed.</p>
+				<p><img alt="New Resource Dialog" src="..\..\graphics\newres.jpg" width="470"></p>
+ 				<p>Choose a <a href="managingresources.htm#resnum">resource number</a>, <a href="managingresources.htm#resourceids">resource ID</a>, and an optional description. The default ID is 'Logic#', 'Picture#', etc. where # is the desired resource number. Click OK to finish creating the resource.</p>
+				<p>If you want to create a new resource, but do not want to add it to your game, click the New Not in Game Button on the New Game Resource dialog.</p>
+			<h3>Create Matching Picture Option</h3>
+				<p><img alt="New Logic Button" src="..\..\graphics\tbNLog.bmp" align="left" height="32" width="32">For <a href="..\agi\logics.htm">logic</a> resources only, you can also choose to add a matching new <a href="..\agi\pictures.htm">picture</a> to your game at the same time. (The available resource numbers will only include those where both logic and picture resources with that number are free.)</p>
+				<p><img alt="New Logic Dialog" src="..\..\graphics\newlog.jpg" width="470"></p>
+				<p>If choose to add a matching picture, both the new logic, and a new picture with the same number will be added to the game. If your new logic ID begins with "rm.", the matching picture will use the same id with a prefix of "pic." ("rm.Test1" becomes "pic.Test1" for example). Otherwise the ID will be the default "Picture&lt;resnum&gt;".</p>
+			<h3><a name="logtemplate">Include Room Template Code Option</a></h3>
+				<p>With this option, boilerplate text for logics that is common for <a href="..\agi\pictures.htm#room">rooms</a> will be pre-loaded into the logic upon creation. The boilerplate text can be edited if desired; the text is stored in a file called "deflog.txt" in the WinAGI game directory.</p>
+				<p>The boilerplate text can include any of these field codes:</p>
+				<ul><ul><ul>
+				<li><b>~</b> (tilde): indents a line using the current setting for tabs</li>
+				<li><b>%id</b>: inserts the new logic's <a href="managingresources.htm#resourceids">ID</a></li>
+				<li><b>%desc</b>: inserts the new logic's description</li>
+				<li><b>%h</b>: inserts the current <a href="..\agi\grafdisp.htm#horizon">horizon</a> value as set in the <a href="editor_picture.htm">Picture Editor</a>'s <a href="viewtestmode.htm#horizon">View Test Mode</a> parameters</li>
+				</ul></ul></ul>
+				<p>&nbsp;</p>
+			</blockquote>
+			<h3><a name="newfile">New</a> <a href="..\agi\object.htm">OBJECT</a> File, New <a href="..\agi\words.htm">WORDS.TOK</a> file</h3>
+			<p>There is not a button on the main toolbar for creating new OBJECT and WORDS.TOK file. Use the New Resource command on the Resources menu.</p>
+			<p>If a game is NOT open:</p>
+			<blockquote>
+				<p>This command opens a new OBJECT file editor or WORDS.TOK file editor. You will be prompted to provide a filename when you save the resource.</p>
+			</blockquote>
+			<p>If a game IS open:</p>
+			<blockquote>
+				<p>After the new editor is opened, you will be asked if you want to replace the existing file with the new blank one; if you choose no, the open game's existing OBJECT or WORDS.TOK file is not affected; the new file just created will be treated as an object file not in a game. If you 
+				choose yes, the OBJECT or WORDS.TOK file is replaced with the new blank one you just opened.</p>
+			</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

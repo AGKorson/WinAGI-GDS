@@ -1,0 +1,21 @@
+<html>
+	<head><title>Logic Compiler Error 4091</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4091</h2>
+    <h3>Action command &lt;commandname&gt;' not valid in '<code>if</code>' statement </h3>
+    <p class="indent_n">This compiler error is raised when the compiler expects a <a href="..\..\commands\cmds_test.htm">test command</a> but an <a href="..\..\commands\cmds_category.htm#actions">action command</a> was encountered. Action commands are not valid inside an if statement. You will need to replace the action command with an appropriate test command.</p>
+    <blockquote>
+      <pre>if (addn(v99, 1))  [ <font color="red"><b>NOT OK</b></font>; addn is an action command
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

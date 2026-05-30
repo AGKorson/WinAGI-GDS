@@ -1,0 +1,17 @@
+<html>
+	<head><title>Reserved Flag f11</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f11: Noise Channel Available</h1>
+			<p>When AGI <a href="starting.htm">initializes</a>, it determines what the <a href="agisound.htm">sound capabilities</a> for the system it is running on. Systems other than the IBM PC had better sound support, and could play multiple channels of sound. AGI sets the value of f11 to TRUE if the system supports the <a href="agisound.htm#noise">noise channel</a>. For IBM PC, the noise channel is not available, so f11 is reset to FALSE. For Tandy, Amiga, Apple IIgs and others with more sound channels, it is set to TRUE. This variable is presumably of use to game programmers so they can provide alternate sounds depending on number of channels supported.</p>
+			<p>AGI also updates f11 every time the <a href="..\commands\cmd_restartgame.htm"><b>restart.game</b></a> command is executed.</p>
+			<p>Once it is initialized, AGI does not use this flag anymore; so it can be used for any purpose without causing problems in AGI. Just be aware that it does get reset every time a <a href="..\commands\cmd_restartgame.htm"><b>restart.game</b></a> command is executed.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,48 @@
+<html>
+	<head><title>Code Snippets</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Logic Code Snippets</h1>
+			<p>Code Snippets provide you with a very handy method for inserting commonly used large (or small) blocks of text quickly and easily. For example, you could create a snippet named 'newroompic' and assign it this text:</p>
+			<blockquote>
+				<pre><code>load.pic(currentRoom);
+draw.pic(currentRoom);
+discard.pic(currentRoom);</code></pre>
+			</blockquote>
+			<p>To insert the snippet in a <a href="..\agi\logics.htm">logic</a> <a href="editor_logic.htm">editor</a> or text editor, you can use the 'Insert Snippet' menu item on the Edit menu, the keyboard shortcut CTRL+SHIFT+T, or just enclose the snippet name inside hash tags ('#newroompic#'' for example.) WinAGI will replace the hash tags and snippet name with the assigned text.</p>
+			<p>Snippet text can be a single line, or multi-line, and can contain any characters that are allowed in logic source text, including <a href="editor_logic.htm#extchar">extended characters</a>. If the location where the snippet is inserted is indented, multi-line snippet text will also be indented to the same level.</p>
+			<p>You can also include argument tags ('%1', '%2', etc.) in your snippet text to allow for dynamic snippets. For example, if your snippet is named 'initobj' and the text is:</p>
+			<blockquote>
+				<pre><code>animate.obj(%1);
+set.view(%1, %2);
+draw(%1);</code></pre>
+			</blockquote>
+			<p>you can type '#initobj(ego, vw.Normal)#' to insert this text:</p>
+			<blockquote>
+				<pre><code>animate.obj(ego);
+set.view(ego, vw.Normal);
+draw(ego);
+</code></pre>
+			</blockquote>
+			<p>Argument tips can also be included to provide reminders about what type each argument in the snippet is. Separate each argument tip by a comma.</p>
+			<p>Error checking is minimal. If arguments are not provided, the argument tag is left in place. If too many arguments are provided, they are ignored. Null strings are allowed for argument values.</p>
+			<p>&nbsp;</p>
+		<h2><a name="snippetmgr">Snippets Manager</a></h2>
+			<p><img alt="Snippet List Mode" src="..\..\graphics\snippets.jpg" border="0" width="667"></p>
+			<p>The Snippets Manager lets you create, edit, or delete code snippets. All available snippets are displayed in a list on the right of the editor, sorted alphabetically by name. Select a snippet name in the list to display a preview of its text.</p>
+			<p>You can edit or delete any snippet by selecting it from the list box, then clicking the edit or delete button as needed. You can also edit a snippet by double-clicking on its name, argument tip, or value text boxes.</p>
+			<p><img alt="Snippet Edit Mode" src="..\..\graphics\snippetedit.jpg" border="0" width="667"></p>
+			<p>In edit mode, the snippet value text box will use the same syntax highlighting settings as logic editors. Make any desired changes to the snippet value text, name and argument tips. Click the Save Snippet button to save the changes to the snippet.</p>
+			<p>To create a new snippet, click the 'Add New Snippet' button. Give your new snippet a unique name, and type the desired value in the text box.</p>
+			<p>An alternate way to create a new snippet is to select text in a logic or text editor, then choose the 'Create Code Snippet' menu item from the editor's Edit menu. The Snippet Manager will open, with a new snippet added using the editor's selected text as the snippet value. Make any desired adjustments, assign the snippet a name, and then click 'Save Snippet'. </p>
+			<p>&nbsp;</p>
+			<p>Snippets are stored in a text file named 'snippets.txt' that is kept in the WinAGI program directory. Changes/additions/deletions to your snippets are not saved until you close the Snippet Manager.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

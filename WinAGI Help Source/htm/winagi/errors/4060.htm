@@ -1,0 +1,24 @@
+<html>
+	<head><title>Logic Compiler Error 4060</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4060</h2>
+    <h3>'&lt;symbol&gt;' is not a valid comparison operator</h3>
+    <p class="indent_n">Allowable <a href="..\..\commands\syntax_fan.htm#alternatetests">comparison operators</a> for AGI are '==', '!=', '&lt;', '&gt;', '&lt;=' and '&gt;='. This error is raised if a non-allowable symbol is detected.</p>
+    <p class="indent_n">The most likely cause is a typo in your code. Using a single equal sign instead of the double-equal, or putting the equal sign before the less-than or greater-than are common errors that you will need to correct if necessary.</p>
+    <blockquote>
+      <pre>if (v99 = 1) [ <font color="red"><b>NOT OK</b></font>
+...
+if (v99 => 1) [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

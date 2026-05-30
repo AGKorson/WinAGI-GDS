@@ -1,0 +1,71 @@
+<html>
+	<head><title>Command Line and File Extensions</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Command Line Options</h1>
+		    <p>WinAGI can include a file as a command line argument. WinAGI will open the file automatically after startup. Valid files that can included as a command line argument include OBJECT, WORDS.TOK, *.WAG, *.LGC, *.AGL, *.AGP, *.AGS, and  *.AGV.</p>
+		    <p>You can also double-click on a file with one of these extensions to start WinAGI and open/begin editing that file.</p>
+		<h1>File Explorer Drag/Drop Support</h1>
+			<p>You can drag a game's WAG file from Windows File Explorer to the main WinAGI window to open it. You can also drag and drop resource files to import them. WinAGI will automatically enable/disable drag-drop based on the file's extension.</p>
+			<p>Drag/drop is disabled by Windows if WinAGI is run as Administrator; this is a security feature of Windows. There is no need to run WinAGI as Administrator, so drag/drop should always be available.</p>
+			<p>&nbsp;</p>
+		<h1>Console Mode</h1>
+		    <p>WinAGI also includes a windowless console mode that provides limited support for importing an existing AGI game, compiling games, and exporting and importing resources.</p>
+			<p>Usage: <code>winagi.exe --console &lt;dir|gamefile&gt; actionswitches [/q]</code></p>
+			<p>valid action switches:</p>
+		    <ul><ul>
+            <li><code>/i</code>: <a href="importgame.htm">imports an existing game</a> in &lt;dir&gt; and creates new wag file with default GameID. Optional import parameters can be added as additional arguments:</li>
+            <ul><ul>
+              	<li><code>/C:#</code> sets the <a href="..\agi\agifont.htm#codepage">code page</a> (default is 437)</li>
+          		  <li><code>/E:&lt;ext&gt;</code> sets the <a href="prop_general.htm#defext">file extension</a> to use for source code files (default is 'lgc')</li>
+          		  <li><code>/R:&lt;resdir&gt;</code> sets the <a href="prop_general.htm#resdir">resource directory</a> (default is 'src')</li>
+		            <li><code>/S</code> use <a href="prop_advanced.htm#sierrasrc">Sierra syntax</a> (default is Fan syntax)</li>
+		            <li><code>/nG</code> don't <a href="prop_general.htm#autoinclude">include global variables</a> in logic source files</li>
+		            <li><code>/nR</code> don't <a href="prop_general.htm#autoinclude">include reserved words</a> in logic source files</li>
+		            <li><code>/nI</code> don't <a href="prop_general.htm#autoinclude">include resource IDs</a> in logic source files</li>
+	          </ul></ul>
+            <li><code>/c</code> does a <a href="compilinggames.htm">full game compile</a> of &lt;gamefile&gt; in its directory, replacing existing VOL and DIR files</li>
+            <li><code>/r</code> <a href="compilinggames.htm#rebuild">rebuilds VOL files</a> for &lt;gamefile&gt; without recompiling logics</li>
+            <li><code>/d</code> <a href="compilinggames.htm#compilechanged">compiles all changed logics</a> in &lt;gamefile&gt;, but doesn't rebuild VOL files"; rebuilt logics are put in the first VOL file with available space</li>
+            <li><code>/e</code> exports all resources in &lt;gamefile&gt; as individual files to the game's source directory</li>
+            <li><code>/e:L# | /e:P# | /e:V# | /e:S#</code> exports a single resource of the specified type and number in &lt;gamefile&gt; to the game's resource directory</li>
+            <li><code>/a:L# | /a:C# | /a:P# | /a:V# | /a:S#></code> adds the resource specified by &lt;resfile&gt; to &lt;gamefile&gt; as the specified type and number. Use 'L' to import a compiled logic resource and 'C' to import a text source file.
+            <li><code>/help or /?</code> displays help text explaining how to use the console mode. Must be the first parameter on the command line</li>
+            <li><code>/quiet or /q</code>: optional; suppresses all non-essential status messages. Must be last parameter on the command line.</li>
+		    </ul></ul>
+		    <p>&nbsp;</p>
+		<h1>File Extensions</h1>
+		    <p> WinAGI recognizes the following file extensions:</p>
+		<h2><img height="32" alt="" src="..\..\graphics\fWinAGI32.ico" width="32" align="left"><a name="wag">WinAGI Game File (*.wag)</a></h2>
+			<p>The information that WinAGI uses to enhance the development of a game (such as <a href="managingresources.htm#resourceids">resource IDs</a>, logic compilation status, etc.) are stored in a <a href="properties.htm">WinAGI Game File</a>. This file usually has the same name as your <a href="prop_general.htm#gameid">game ID</a>, with an extension of wag, but you can change it if you wish. The WinAGI game file is not needed to run an AGI game, it is only used by WinAGI during game development.</p>
+			<p>&nbsp;</p>
+		<h2><img height="32" alt="" src="..\..\graphics\fLayout32.ico" width="32" align="left"><a name="wal">WinAGI Layout File (*.wal)</a></h2>
+			<p>The layout file stores the layout information for an AGI game. The layout file is not needed to run an AGI game; it is only used by WinAGI during game development. This file is created and updated automatically by WinAGI. See the <a href="editor_layout.htm">Layout Editor</a> topic for more information about game layouts.</p>
+			<p>&nbsp;</p>
+		<h2><img height="32" alt="" src="..\..\graphics\fLogic32.ico" width="32" align="left"><a name="agl">Logic Resource File (*.agl)</a></h2>
+			<p>A compiled <a href="..\agi\logics.htm">logic resource</a>, extracted from an AGI game. Equivalent to LOGIC.001, LOGIC.002, etc. files in AGI Studio. Compiled logics contain the actual binary code used by AGI, not the text based source code.</p>
+			<p>&nbsp;</p>
+		<h2><img height="32" alt="" src="..\..\graphics\fLogic32.ico" width="32" align="left"><a name="lgc">Logic Source Code File (*.lgc)</a></h2>
+			<p>The source code (text file) that is used by the WinAGI compiler to generate a <a href="..\agi\logics.htm">logic resource</a>.  Equivalent to LOGIC0.TXT, LOGIC1.TXT, etc. files in AGI Studio.</p>
+			<p>&nbsp;</p>
+		<h2><img height="32" alt="" src="..\..\graphics\fPicture32.ico" width="32" align="left"><a name="agp">Picture Resource File (*.agp)</a></h2>
+			<p>A compiled <a href="..\agi\pictures.htm">picture resource</a>, extracted from an AGI game. Equivalent to PICTURE.001, PICTURE.002, etc. files in AGI Studio.</p>
+			<p>&nbsp;</p>
+		<h2><img height="32" alt="" src="..\..\graphics\fSound32.ico" width="32" align="left"><a name="ags">Sound Resource File (*.ags)</a></h2>
+			<p>A compiled <a href="..\agi\sounds.htm">sound resource</a>, extracted from an AGI game. Equivalent to SOUND.001, SOUND.002, etc. files in AGI Studio.</p>
+			<p>&nbsp;</p>
+		<h2><img height="32" alt="" src="..\..\graphics\fSound32.ico" width="32" align="left"><a name="ass">Sound Script File (*.ass)</a></h2>
+			<p>A text based script file that conforms to the sound script specifications established by Nick Sonneveld. The scripts are compatible with Nick's script-to-sound and sound-to-script tools.</p>
+		<p>&nbsp;</p>
+		<h2><img height="32" alt="" src="..\..\graphics\fView32.ico" width="32" align="left"><a name="agv">View Resource File (*.agv)</a></h2>
+			<p>A compiled <a href="..\agi\views.htm">view resource</a>, extracted from an AGI game. Equivalent to VIEW.001, VIEW.002, etc. files in AGI Studio.</p>
+			<p>&nbsp;</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

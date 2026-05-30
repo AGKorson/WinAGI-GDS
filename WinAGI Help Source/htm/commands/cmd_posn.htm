@@ -1,0 +1,49 @@
+<html>
+	<head><title>Test Command: posn</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>posn</h1>
+			<p>The <b>posn</b> test command returns TRUE if the screen coordinates of the <a href="..\agi\screenobjs.htm">screen object</a>'s bottom left pixel are within a specified region.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>posn(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">byt</a> X1, <a href="syntax_fan.htm#argtypes">byt</a> Y1, <a href="syntax_fan.htm#argtypes">byt</a> X2, <a href="syntax_fan.htm#argtypes">byt</a> Y2)</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Test commands are only valid in an <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> statement.</p>
+			<p>The position test commands (<b>posn</b>, <a href="cmd_centerposn.htm"><b>center.posn</b></a>, <a href="cmd_rightposn.htm"><b>right.posn</b></a>, and <a href="cmd_objinbox.htm"><b>obj.in.box</b></a> are used to determine if a screen object's position is within (or on the border of) a bounded area.</p>
+			<p>The reference point for the <b>posn</b> command is the left pixel of <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b>'s baseline (bottom row of the current <a href="..\agi\views.htm#cel">cel</a>), which is also the object's screen position.</p>
+			<p>The region to be tested is bounded by (<b>X1</b>, <b>Y1</b>) - (<b>X2</b>, <b>Y2</b>). The test returns TRUE if the reference point is &gt;= <b>X1</b> AND &lt;= <b>X2</b> AND &gt;= <b>Y1</b> AND &lt;= <b>Y2</b>.</p>
+			<p>Sometimes a programmer needs to test for positions relative to the center or right edge of the object. This could be done by using the <b>posn</b> command and the screen object's width and performing some additional mathematical commands. Thankfully, Sierra included the additional position test commands to make it easier to check for these conditions.</p>
+			<p>AGI expects the coordinates to be in upper-left to lower-right format. <b>X1</b> <i>must</i> be less than or equal to <b>X2</b> and <b>Y1</b> <i>must</i> be less than or equal to <b>Y2</b>, or the test will always fail.</p>
+			<p>This test command can be combined with the '<a href="..\agi\logics.htm#not"><code><b>NOT</b></code></a>' operator to test if an object is NOT in a specified region.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, the <b>posn</b> command will access invalid memory and the result of the test will be meaningless.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>if(<b>posn(o1, 0, 120, 60, 130)</b>)
+  { 
+  print("the object's lower left corner is in the box");
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">11 (0x0B)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_test.htm">Test Commands</a></p>
+			<p><a href="cmd_rightposn.htm">right.posn</a></p>
+			<p><a href="cmd_centerposn.htm">center.posn</a></p>
+			<p><a href="cmd_objinbox.htm">obj.in.box</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

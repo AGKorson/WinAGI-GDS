@@ -1,0 +1,38 @@
+<html>
+	<head><title>Saving Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Saving Resources</h1>
+			<p>When changes are made to a resource, the Save command is enabled.</p>
+			<p>&nbsp;<img alt="Save Resource Button" src="..\..\graphics\tbSave.bmp" height="32" width="32"></p>
+			<p>If a game is NOT open:</p>
+			<blockquote>
+				<p>The resource is saved to file, using its current file name. If the resource is new, and doesn't have a filename yet, the Save As dialog is opened so you can select a filename.</p>
+				<p>&nbsp;</p>
+			</blockquote>
+			<p>If a game IS open:</p>
+			<blockquote>
+				<p>If the resource you are editing is NOT part of your game, it gets saved to file as described in the previous paragraph.</p>
+				<p>If the resource IS part of your game, your game files are updated. The resource is automatically stored in the first <a href="..\agi\vol.htm">VOL</a> file that has enough room for it. The <a href="..\agi\dir.htm">DIR</a> file is automatically updated for the resource's new location.</p>
+			</blockquote>
+		<h3><a name="saveas">Save As...</a></h3>
+			<p>The Save As command is available for resources that are NOT in a game. This command allows you to save a resource to a different filename.</p>
+			<p>For resources that are in a game, the <a href="resource_export.htm">Export Resource</a> command can be used to save a resource to a file, or to save it in a format other than native AGI resource format.</p>
+			<p>&nbsp;</p>
+		<h3>Save File Format</h3>
+			<p>The default file format for saving <a href="..\agi\pictures.htm">picture</a>, <a href="..\agi\sounds.htm">sound</a>, <a href="..\agi\views.htm">view</a>, <a href="..\agi\object.htm">OBJECT</a> and <a href="..\agi\words.htm">WORDS.TOK</a> resources as files is the native AGI resource format. See the <a href="resource_export.htm">Exporting Resources</a> topic for other formats that are available for these resource types.</p>
+		<h3>Saving Logic Source Code Files and Logic Resource Files</h3>
+			<p>When it comes to saving, <a href="..\agi\logics.htm">logics</a> are slightly different from other resources.</p>
+			<p>When saved, the source code file (*.lgc or *.txt) is the actual file saved. The resource in a game's VOL file is not affected by the Save command.</p>
+			<p>Use the <a href="editor_logic.htm#compile">Compile</a> command to convert the source code into a compiled resource. Once compiled, the resource is updated in the games VOL files. Only 
+			logics in a game can be compiled.</p>
+			<p>To save the actual compiled logic resource to a file (*.agl), use the <a href="resource_export.htm#exportlogics">Export Resource</a> command.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

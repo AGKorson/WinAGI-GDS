@@ -1,0 +1,18 @@
+<html>
+    <head><title>Logic Source Decompiler Warning DW04</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Warning DW04</h2>
+      <h3>Reference to null inventory item ('?') at resource index &lt;pos&gt;</h3>
+      <p class="indent_n">Most of Sierra's AGI games use the question mark '?' to designate a null, or unused <a href="..\..\agi\object.htm">inventory item</a>. The first item, i0, is usually designated as a <a href="..\..\agi\object.htm#nullitem">null item</a>. This warning is raised when a command that uses inventory items as an argument reference a null inventory item.</p>
+      <p class="indent_n">This is possibly due to a corrupt <a href="..\..\agi\object.htm">OBJECT</a> file, or it could be due to a mistake in the original Sierra source code. It does not cause an error condition, but it is highly unusual to use the null item marker in AGI game source code.</p>
+      <p class="indent_n">You should confirm the OBJECT file is not corrupt, and also carefully examine the decompiled source code to determine if the offending code needs to be removed or corrected before recompiling.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

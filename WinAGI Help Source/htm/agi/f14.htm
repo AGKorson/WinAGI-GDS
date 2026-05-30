@@ -1,0 +1,18 @@
+<html>
+	<head><title>Reserved Flag f14</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>f14: Menus Enabled</h1>
+			<p>Flag f14 determines whether or not the <a href="..\commands\cmd_menuinput.htm"><b>menu.input</b></a> command will trigger the display of a game's <a href="menu.htm">menu</a>. If flag f14 is FALSE when <b>menu.input</b> is called, nothing will happen. If it is TRUE, then AGI will display the menu at the start of the next <a href="cycle.htm">interpreter cycle</a>.</p>
+			<p>When AGI starts, and when the <a href="..\commands\cmd_restartgame.htm"><b>restart.game</b></a> command is executed, flag f14 is reset to FALSE. You must again set it to TRUE in order to display a menu after restarting.</p>
+			<p>This flag was not reserved by AGI and had no effect in <a href="version2.htm#2089">version 2.089</a> and <a href="version2.htm#2272">version 2.272</a>.</p>
+			<p>If your game uses menus, attempting to use this flag for other purposes is not recommended, because it will interfere with menu operation. If your game will not use menus, then this flag can be used for any purpose without causing any problems.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

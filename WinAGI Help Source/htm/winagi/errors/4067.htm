@@ -1,0 +1,22 @@
+<html>
+	<head><title>Logic Compiler Error 4067</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4067</h2>
+    <h3>Undefined word '&lt;wordtext&gt;' in said command</h3>
+    <p class="indent_n">This compiler error is raised when a literal string passed as an argument to the <a href="..\..\commands\cmd_said.htm"><b>said</b></a> command is not found in the game's <a href="..\..\agi\words.htm">WORDS.TOK</a> file.</p>
+    <p class="indent_n">It most likely indicates a typo. Check the spelling of the word in the <b>said</b> command to make sure it matches a valid word in your WORDS.TOK file.</p>
+    <blockquote>
+      <pre>if (said("lok", "tree")) [ <font color="red"><b>NOT OK</b></font> assuming 'look' was intended
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

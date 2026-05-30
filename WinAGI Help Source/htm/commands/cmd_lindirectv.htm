@@ -1,0 +1,43 @@
+<html>
+	<head><title>Action Command: lindirectv</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>lindirectv</h1>
+			<p>The <b>lindirectv</b> command assigns the value of one <a href="..\agi\variables.htm">variable</a> to another indirectly.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>lindirectv(<a href="syntax_fan.htm#argtypes">var</a> vA, <a href="syntax_fan.htm#argtypes">var</a> vB);</p>
+			<p>*vA = vB;</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command is referred to as "left indirection by value". The value of variable <b>vC</b> (where <b>C</b> is the value of <b>vA</b>) is set to <b>vB</b>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v50 = 20;
+v51 = 75;
+v52 = 99;
+<b>lindirectv(v50, v51);</b>  [ now v20 = 75
+*v20 = v52;           [ now v75 = 99</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">9 (0x09)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_math.htm">Mathematical Commands</a></p>
+			<p><a href="cmd_lindirectn.htm"><b>lindirectn</b></a></p>
+			<p><a href="cmd_rindirect.htm"><b>rindirect</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,24 @@
+<html>
+	<head><title>Logic Compiler Error 4052</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4052</h2>
+    <h3>Invalid string value; unable to concatenate</h3>
+    <p class="indent_n">When concatenating <a href="..\..\commands\syntax_fan.htm#text">text string</a> values to create a larger string, each segment needs to be a text field surrounded by quote marks, with only spaces or new line characters separating them. If any of the segments do not have an ending quote mark, this error is raised.</p>
+    <blockquote>
+      <pre>#define text1 "invalid long 
+              "string" [ <font color="red"><b>NOT OK</b></font>
+#define text2 "a long "
+              "string"  [ OK
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

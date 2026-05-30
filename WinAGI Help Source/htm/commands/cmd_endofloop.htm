@@ -1,0 +1,63 @@
+<html>
+	<head><title>Action Command: end.of.loop</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>end.of.loop</h1>
+			<p>The <b>end.of.loop</b> command switches an object's <a href="object_cycling.htm">cycle mode</a> to 'end of loop'.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>end.of.loop(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">flg</a> fDONE);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>In 'end of loop' <a href="object_cycling.htm">cycle mode</a>, <a href="..\agi\screenobjs.htm">screen object</a> <b>oA</b> will cycle one time, in the forward direction, until the end of the loop is reached.</p>
+			<p>Setting the cycle mode to 'end of loop' will automatically enable the object for <a href="object_initialize.htm#updating">updating</a> if not currently enabled, and also enables the <a href="object_cycling.htm">cycling property</a>. AGI also sets an <a href="..\agi\sobjtable.htm#skipcycle">internal bit field flag</a> for this screen object so it will skip its next update in the main AGI <a href="..\agi\cycle.htm">interpreter cycle</a> - this forces the object to stay on its current cel for at least one cycle after calling <b>end.of.loop</b>.</p>
+			<p><a href="..\agi\flags.htm">Flag</a> <b>fDONE</b> is reset to FALSE when the command is executed. When the last <a href="..\agi\views.htm#cel">cel</a> is reached, <b>fDONE</b> is set to TRUE.</p>
+			<p>Changing cycle mode does not change the current <a href="..\agi\views.htm#cel">cel</a>. The new cycle mode begins with whatever cel is currently assigned to the object. If the current cel is the last cel, no cycling will occur, as the object is already at the end of the loop. Flag <b>fDONE</b> will be set in the very next interpreter cycle that updates the object.</p>
+			<p>Use the <b><a href="cmd_stopcycling.htm">stop.cycling</a></b> command to turn cycling off. The <b><a href="cmd_normalcycle.htm">normal.cycle</a></b>, <b><a href="cmd_reversecycle.htm">reverse.cycle</a></b> and <b><a href="cmd_reverseloop.htm">reverse.loop</a></b> commands can be used to switch to other cycle modes.</p>
+			<p>Do not use <b>end.of.loop</b> and movement modes (<a href="cmd_moveobj.htm"><b>move.obj</b></a>, <a href="cmd_followego.htm"><b>follow.ego</b></a> or <a href="cmd_wander.htm"><b>wander</b></a>) on a <a href="..\agi\screenobjs.htm">screen object</a> at the same time. The byte in the <a href="..\agi\sobjtable.htm">screen object data table</a> that AGI uses to store the <b>fDONE</b> flag is also used by the movement modes. If you use a movement mode command while the <b>end.of.loop</b> command is active, the flag number gets overwritten, and when the object finishes cycling, the wrong flag will be set.</p>
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If the object has not been <a href="object_initialize.htm">initialized</a> the <b>end.of.loop</b> command still sets the cycle mode to 'end of loop' and resets the flag; nothing else will happen though. If screen object number <b>oA</b> exceeds the <a href="..\agi\screenobjs.htm#maxscreenobj">maximum number of objects</a>, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">memory heap</a>, which will cause unexpected results, including possibly <a href="..\agi\errors.htm#runtime">crashing AGI</a>.</p>
+		<h2>Example</h2>
+<pre><code>#define door o7
+...
+#define door     o1
+
+[ initialize object
+...
+reverse.loop(door, f99);  [ close the door
+if(isset(f99))
+  {
+  print("The door is shut.");
+  reset(f99);
+  }
+...
+<b>end.of.loop(door, f100);</b>  [ open the door
+if(isset(f100))
+  {
+  print("The door is open.");
+  reset(f100);
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">73 (0x49)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_normalcycle.htm">normal.cycle</a></b></p>
+			<p><b><a href="cmd_reversecycle.htm">reverse.cycle</a></b></p>
+			<p><b><a href="cmd_reverseloop.htm">reverse.loop</a></b></p>
+			<p><b><a href="cmd_stopcycling.htm">stop.cycling</a></b></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

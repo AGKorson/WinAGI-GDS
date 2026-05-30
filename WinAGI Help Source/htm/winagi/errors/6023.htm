@@ -1,0 +1,29 @@
+<html>
+	<head><title>Logic Compiler Error 6023</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 6023</h2>
+    <h3>Undefined message (&lt;messagenum&gt;)</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">This error occurs if you attempt to use a <a href="..\..\agi\messages.htm">message</a> number in an <a href="..\..\commands\syntax_sierra.htm#actions">action command</a>, but haven't first declared the message using the <a href="..\..\commands\syntax_sierra.htm#message"><b>%message</b></a> preprocessor.</p>
+    <p class="indent_n">To clear this error add a message declaration for the specified message number before using it in a command.</p>
+      <blockquote>
+      <pre>%message 1 "message 1"
+%message 3 "message 3"  [ skipping message 2
+print(2); [ <font color="red"><b>NOT OK</b></font>, message not declared
+...
+print(4); [ <font color="red"><b>NOT OK</b></font>, can't use message before declaring it
+...
+%message 4 "message 4"
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

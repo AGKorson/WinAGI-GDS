@@ -1,0 +1,15 @@
+<html>
+	<head><title>Reserved Variable v3</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v3: Current Score</h1>
+			<p>AGI provides built-in score tracking that programmers can use to provide immediate feedback to players as they progress through a game. When a player does something important, the programmer can adjust the value of v3 to update the player's current score. Each <a href="cycle.htm">interpreter cycle</a>, AGI checks the value of v3; if it has changed, AGI will update the current score display in the <a href="grafdisp.htm#statusline">status line</a>, if the status line <a href="..\commands\cmd_statuslineoff.htm">is visible</a>. When AGI updates the <a href="grafdisp.htm#statusline">status line</a>, the current and maximum score is displayed as "Score: xx of yy" where xx is current score (reserved variable v3) and yy is maximum score (<a href="variables.htm#reserved">reserved variable</a> <a href="v7.htm">v7</a>).</p>
+			<p>This variable can be used for any purpose, just keep in mind that its value will be displayed on the status bar.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

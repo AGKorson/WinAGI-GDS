@@ -1,0 +1,65 @@
+<html>
+	<head><title>Manipulating Picture Drawing Commands</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-picture.gif" width="460" height="72" border="0" alt="AGI Picture Information"></td>
+			</tr>
+		</table>
+		<h1>Manipulating Picture Drawing Commands</h1>
+			<p>After a drawing command is added to a picture, it is very easy to edit, move, or delete them to fine tune your drawing. You can edit individual coordinates to reposition lines, fills and pen plots. You can also move, delete, copy, flip and paste whole commands or even groups of commands.</p>
+			<p>To manipulate commands and coordinates, the picture editor must be in edit mode; you can't manipulate commands in the test modes.</p>
+		<h2><a name="editcoord">Editing Coordinates</a></h2>
+			<p>If you want to reposition a coordinate in a drawing command, first select a command in the command list. Depending on the <a href="editor_picture.htm#cursor">cursor mode</a>, either select a coordinate from the coordinate list, or click on one of the highlighted coordinates on the drawing surface.</p>
+			<blockquote>
+				<p><b>NOTE:</b> You will see the active cursor on the visual surface only if the visual pen is active, and on the priority surface only if the priority pen is active.</p>
+			</blockquote>
+			<p>Left-click and drag the coordinate to its new desired location. Keep in mind the following:</p>
+			<ul><ul>
+				<li>For Absolute Lines, Fills, and Pen Plots, coordinates can be moved anywhere on the screen.</li>
+				<li>For Relative Lines, coordinates are limited in movement so the resulting position does not exceed +/- seven units in both directions from any coordinates that precede or follow.</li>
+				<li>For Corner Lines, moving a coordinate will adjust the line so all segments remain horizontal or vertical.</li>
+			</ul></ul>
+			<p><a name="coord_dlg">For even finer control over coordinates</a>, you can double-click on a coordinate in the coordinate list. This opens up a dialog box that allows you to enter the coordinate's X and Y values manually.</p>
+			<p>&nbsp;<img alt="Edit Coordinate" src="..\..\graphics\editcoord.jpg" width="273"></p>
+			<p>For plot commands, you can also manually select a splatter pattern for plot coordinates when the active pen is set to splatter.</p>
+			<p>&nbsp;<img alt="Edit Plot Coordinate" src="..\..\graphics\editplot.jpg" width="273"></p>
+			<p>The plot pixels will flash in the preview so you can see what's underneath them while you make adjustments to the plot settings.</p>
+			<p>There is a <a href="..\agi\pictures.htm#edgebug">bug in AGI</a> that uses 160 as edge limit when placing plot pixels. This causes pixels to wrap around to next row. There are a few original Sierra games that have this bug, so a warning is displayed when this condition is detected. WinAGI will not allow you to intentionally position a plot command if it would create this situation.</p>
+		<h2><a name="insertcoord">Inserting Coordinates</a></h3>
+			<p>You can easily add coordinates to any existing command. Select a coordinate in the command's <a href="editor_picture.htm#coordlist">coordinate list</a> and then use the Insert Coordinate item from the Edit menu or press SHIFT+INS. The inserted coordinate will be added immediately after the currently selected coordinate in the command's list with the same X and Y values. The new coordinate is automatically selected after adding, and can then be edited like any other coordinate.</p>
+		<h2><a name="editcmds">Editing Commands</a></h2>
+			<p>There are several tools and operations that can be used to manipulate commands. Select the command you desire to change by clicking on it in the <a href="editor_picture.htm#commandlist">command list</a>. If you want to select more than one command, select the first command, then press SHIFT key and click on the desired ending command. You can also hold down the SHIFT key while using the up and down arrow keys to change the selected commands.</p>
+		<h3>Changing Colors or Plot Pen Settings</h3>
+			<p>If you want to change the color used for a set of commands, select the existing Set Pen command. Choose a new color on the color palette (left button for visual, right button for priority) to change the color.</p>
+			<p>To adjust plot settings, use the same approach; select the Set Pen command you want to change, then use the pen style and pen shape toolbars to choose new settings.</p>
+		<h3>Moving Commands</h3>
+			<p>You can easily move commands around the screen.</p>
+			<p>To move a single command, select the command's first coordinate. Hold down the Control key, and left-click to drag the entire command to its new location. WinAGI will draw a bounding box to indicate the extent of the selected command, and will automatically restrict movement so the command doesn't move outside the boundaries of the picture.</p>
+			<p>To move multiple commands, left-click and drag within the displayed bounding box. WinAGI will automatically prevent you from moving the commands outside the picture boundaries.</p>
+		<h3>Cutting Commands</h3>
+			<p><img alt="" src="..\..\graphics\tbPicCut.bmp" align="left" width="32"></p>
+			<p>This copies the selected command(s) to the clipboard, then deletes them.</p>
+		<h3><a name="copycmds">Copying Commands</a></h3>
+			<p><img alt="" src="..\..\graphics\tbPicCopy.bmp" align="left" width="32">Places a copy of the selected command(s) on the clipboard. The commands can then be pasted in another place in this picture, or in a totally different picture.</p>
+		<h3>Pasting Commands</h3>
+			<p><img alt="" src="..\..\graphics\tbPicPaste.bmp" align="left" width="32">The commands on the clipboard are added at the current position. Once pasted, you can move the pasted commands to a new area of the picture as described above.</p>
+			<blockquote>
+				<p><b>NOTE</b>: When copying and pasting commands, if the commands on the clipboard do not include pen setting commands, the current pen at the insertion point will determine the size and shape used for the inserted commands. This sometimes causes unexpected results. Just make sure to include pen settings when copying commands, if possible, or insert additional Set Pen commands in front of the pasted commands.</p>
+			</blockquote>
+		<h3>Deleting Commands</h3>
+			<p><img alt="" src="..\..\graphics\tbPicDelete.bmp" align="left" width="32">Removes the currently selected command(s). Watch for unexpected results; for example, deleting a line that a future fill command uses as a border will cause the fill to spill over into other areas.</p>
+		<h3>Flipping Commands</h3>
+			<p><img alt="" src="..\..\graphics\tbPicFlipH.bmp" width="32">&nbsp;<img alt="" src="..\..\graphics\tbPicFlipV.bmp" width="32"> The 	vertical and horizontal flip tools are a very handy set of tools that allows you to flip a command or group of commands.</p>
+			<p>As an example, suppose you want to draw a path with matching statues on either side. Draw a complete statue on one side. Then select all the commands that make up the statue. Click the copy commands button. move the cursor to the end of your picture. Now paste the selected commands. Drag them to the other side of the path, and then click the Flip Horizontal tool to finish.</p>
+		<h3><a name="split">Splitting Commands</a></h3>
+			<p>Line, plot and fill commands that include multiple coordinates can be split to make it easier to manage editing your picture. To split a command, select the coordinate that you want to be the first coordinate of the new command, then use the Split menu command (there is no toolbar button). WinAGI will automatically adjust the picture commands, ending the selected command at the selected coordinate, and inserting a new command with the selected coordinate as the start point.</p>
+		<h3><a name="join">Joining Commands</a></h3>
+			<p>You can also join commands. The commands must be sequential and of the same type; you can't join a relative line to an absolute line, or a plot to a fill. Also, for line commands, the ending coordinate of the the first command must be exactly the same as the starting coordinate of the second command. If the commands meet the criteria, the Join menu command will be enabled when you select the second command.</p>
+		<h3><a name="clear">Clear Picture</a></h3>
+			<p>To quickly reset a picture, erasing all drawing commands, use the Clear Picture menu item (there is no tool bar button).</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

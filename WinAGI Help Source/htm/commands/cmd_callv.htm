@@ -1,0 +1,47 @@
+<html>
+	<head><title>Action Command: call.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>call.v</h1>
+		<p>The <b>call.v</b> command executes a logic script by reference.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>call.v(<a href="syntax_fan.htm#argtypes">var</a> vLOGICNUM);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <a href="..\agi\logics.htm">logic</a> with resource number equal to value of variable <b>vLOGICNUM</b> is executed one time. If it is not currently loaded when called, it is loaded, then executed, then unloaded after returning. If the logic does not exist, AGI will display a 'resource not found' message, and immediately <a href="..\agi\errors.htm#invalidres">quit</a>.</p>
+			<p>A <a href="..\agi\scripts.htm">script entry</a> is not made for logics that are loaded/unloaded in support of the <b>call.v</b> command.</p>
+			<p>If a logic is likely to be called more than once or twice, it is better to load it using the <b><a href="cmd_loadlogicsv.htm">load.logics.v</a></b> command. This avoids having AGI continually load and unload the same logic over and over.</p>
+			<p>If other resources are loaded in a logic that was not loaded before being called, those resources will also be unloaded after the called logic returns. If you intend to use resources loaded in a called logic after the call returns, make sure you load the logic before calling to avoid unexpected memory corruption.</p>
+			<p>There is also a bug in the code for the <b>call.v</b> command that will improperly reset AGI's heap memory pointer if a <a href="cmd_newroom.htm"><b>new.room</b></a> or <a href="cmd_newroomv.htm"><b>new.room.v</b></a> command is called from within a logic that was not explicitly loaded. Internally, AGI tracks the memory location where the temporary logic gets loaded. After the <b>new.room</b> command resets the memory pointer to room.0, control of the game loop goes back through the called logic, where AGI resets the memory pointer to where it was prior to the called logic being loaded, which will include all resources in use at that time. Memory will be correctly restored if another <a href="..\commands\cmd_newroom.htm"><b>new.room</b></a> command is encountered, but the temporary overflow condition can certainly cause unexpected memory issues if not recognized.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ assume logic #98 is error handling logic
+v50 = 98;
+if(errorNumber &gt; 0)
+  {
+  <b>call.v(v50);</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">23 (0x17)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_flowcontrol.htm">Flow Control Commands</a></p>
+			<p><a href="cmd_call.htm"><b>call</b></a></p>
+			<p><a href="cmd_loadlogicsv.htm"><b>load.logics.v</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,40 @@
+<html>
+	<head><title>Action Command: player.control</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>player.control</h1>
+			<p>The <b>player.control</b> command restores <a href="..\agi\interface.htm#playercontrol">player control</a> over the <a href="..\agi\interface.htm#ego">ego</a> <a href="..\agi\screenobjs.htm">screen object</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>player.control();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>By default, <a href="..\agi\interface.htm#ego">ego</a> (<a href="..\agi\screenobjs.htm">screen object</a> o0) is controlled by the player via the <a href="..\agi\keyboard.htm">keyboard</a>, <a href="..\agi\joystick.htm">joystick</a> and/or <a href="..\agi\mouse.htm">mouse</a>.</p>
+			<p>If ego is in program control mode (by executing the <a href="cmd_programcontrol.htm"><b>program.control</b></a> command, or by using <a href="cmd_moveobj.htm"><b>move.obj</b></a>, <a href="cmd_moveobjv.htm"><b>move.obj.v</b></a> or <a href="cmd_wander.htm"><b>wander</b></a> ), this command restores control back to the player. Ego's direction is not affected when control mode is changed.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>program.control();  [ now player cannot control ego 
+...
+<b>player.control();</b>   [ player control is restored</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">132 (0x84)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_system.htm">System Commands</a></p>
+			<p><a href="cmd_programcontrol.htm"><b>program.control</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

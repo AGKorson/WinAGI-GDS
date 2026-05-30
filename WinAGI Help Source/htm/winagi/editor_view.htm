@@ -1,0 +1,133 @@
+<html>
+	<head><title>View Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-view-e.gif" width="460" height="72" border="0" alt="WinAGI View Editor"></td>
+			</tr>
+		</table>
+		<h1>View Editor</h1>
+			<p>The WinAGI view editor makes it easy to create and edit <a href="..\agi\views.htm">view resources</a>.</p>
+			<p>See the <a href="managingviews.htm">Managing Loops and Cels</a> topic for help with adding, deleting, cutting and copying <a href="..\agi\views.htm#loop">loops</a> and <a href="..\agi\views.htm#cel">cels</a>.</p>
+			<p>See the <a href="drawingcels.htm">Drawing View Cels</a> topic for help with drawing cels, and bitmap manipulation.</p>
+		<h2>View Editor Components</h2>
+			<p>Click on the area of the View Editor window for detailed information about that component:</p>
+			<map name="components">
+				<area shape="rect" alt="Toolbar" coords="8,29,356,61" href="#toolbar">
+				<area shape="rect" alt="View Tree" coords="8,62,141,317" href="#viewtree">
+				<area shape="rect" alt="Cel Drawing Area" coords="146,62,463,388" href="#drawingarea">
+				<area shape="rect" alt="Palette" coords="8,390,668,422" href="#palette">
+				<area shape="rect" alt="Properties" coords="8,324,668,388" href="#properties">
+				<area shape="rect" alt="Preview" coords="470,62,586,388" href="#preview">
+			</map>
+			<p><img src="..\..\graphics\viewedit.jpg" usemap="#components" border="0" width="677"></p>
+			<p>&nbsp;</p>
+		<h2><a name="toolbar">Toolbar</a></h2>
+			<p>The toolbar provides easy access to several editing functions, including cut, copy, paste, delete and flip. You can adjust the scale of cels.</p>
+			<p>The toolbar is also used to select drawing tools when <a href="drawingcels.htm">drawing cels</a>.</p>
+		<h2><a name="viewtree">View Tree</a></h2>
+			<p>The view tree is a hierarchical tree list of the view, and all its <a href="..\agi\views.htm#loop">loops</a> and <a href="..\agi\views.htm#cel">cels</a>. Depending on what node you select, the properties window will display appropriate set of properties.</p>
+			<p>You can select the view node, a loop node or a cel node depending on what you want to do. You select a node by either clicking on it, or by using arrow keys to step through the tree.</p>
+			<p>Selecting a cel will also display the cel in the cel drawing area, allowing you to <a href="drawingcels.htm">draw and edit cels</a>.</p>
+		<h2><a name="drawingarea">Cel Drawing Area</a></h2>
+			<p>The cel drawing area is where you actually draw the cel. See the <a href="drawingcels.htm">Drawing Cels</a> topic for more detailed information.</p>
+			<p>&nbsp;</p>
+		<h2>Scale Control</h2>
+			<p>&nbsp;<img alt="" src="..\..\graphics\tbZoomIn.bmp" width="32">&nbsp;<img alt="" src="..\..\graphics\tbZoomOut.bmp" width="32"> Use the scale control toolbar buttons to adjust the scale of the cel. You can also use the mouse wheel to scale in or out.</p>
+			<p>The drawing area includes a grid to assist in drawing and aligning pixels. The grid can be toggled off and on from a menu item on the edit menu. You can set the default grid setting to 'off' on the <a href="settings_view.htm">View Settings</a> tab on the <a href="settings.htm">Game Settings</a> dialog.</p>
+			<p>&nbsp;</p>
+		<h2><a name="preview">Loop Preview Window</a></h2>
+			<p>The preview window lets you see in real time how your <a href="..\agi\views.htm#loop">loops</a> will look when animated. As you make changes to <a href="..\agi\views.htm#cel">cels</a>, the preview window will automatically update to show the changes. There are controls to change the scale of the displayed preview, adjust alignment, and show or hide the transparency color.</p>
+			<p>The preview background color can be changed by double-clicking on the preview background area (useful to get a feel for what a view might look like in a game). Choose one of the standard AGI colors, or use the preview window default color. For more thorough testing, you can use the <a href="viewtestmode.htm">View Test mode</a> in the <a href="editor_picture.htm">Picture Editor</a> to see exactly how your <a href="..\agi\views.htm">view</a> will interact with a particular <a href="..\agi\pictures.htm">picture</a>.</p>
+			<p>You can toggle the display of the preview window by choosing Show/Hide Preview from the Edit menu. Also, you can set the default state by changing the <a href="settings_view.htm#looppreview">Show Loop Preview</a> option on the <a href="settings_view.htm">View Settings</a> tab of the <a href="settings.htm"> Game Settings</a> dialog box to show/hide the preview window when a new view editor is opened.</p>
+		<h2><a name="palette">Palette</a></h2>
+			<p>The color palette is used to set the pen colors used when drawing <a href="..\agi\views.htm#cel">cels</a>. Left or right click on the palette to change the color for the respective button. The current colors are marked with an 'L' for the left button, and an 'R' for the right button.</p>
+			<p>The <a href="..\agi\views.htm#transparency">transparency color</a> of the current cel is indicated by a 'T' on the palette. You can easily change the transparency color by pressing Ctrl and left-clicking.</p>
+		<h2><a name="properties">Properties</a></h2>
+			<p>The properties window displays properties associated with the currently selected node in the Cel List. The following tables describe the properties available for each:</p>
+			<p>When the View Resource node is selected:</p>
+			<blockquote>
+			<table id="Table4" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="250"><b>Property</b></td>
+					<td width="600"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">ID</td>
+					<td width="600">The <a href="managingresources.htm#resourceids">Resource ID</a> for the view. Use the Edit ID/Description option on the Edit menu to change the ID.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Description</td>
+					<td width="600">The <a href="managingresources.htm#descriptions">resource description</a>
+						for the view. Use the Edit ID/Description option on the Edit menu to change the Description.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">ViewDesc</td>
+					<td width="600">The <a href="..\agi\views.htm#description">view description</a> for this view. Used only for views that are displayed when you are showing <a href="..\agi\object.htm#items">inventory items</a> with the <a href="..\commands\cmd_showobj.htm"><b>show.obj</b></a> command.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p>When a loop is selected:</p>
+			<blockquote>
+			<table id="Table5" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="250"><b>Property</b></td>
+					<td width="600"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Mirrored</td>
+					<td width="600">TRUE if this loop is a <a href="..\agi\views.htm#mirror">mirror</a> 
+						of another loop in the view. This property can't be edited directly; it updates when the MirrorLoop property changes.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">MirrorLoop</td>
+					<td width="600">The loop which is the mirror of this loop. If the loop does not have a mirror, this property displays none.</td>
+					<td align="middle" style="vertical-align:middle">N*</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Cel Count</td>
+					<td width="600">The number of cels in the loop.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			<p>* If the view is from a <a href="..\agi\version2.htm#2089">version 2.089</a> game, the MirrorLoop property is readonly, because that version does not support mirroring.</p>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p>When a cel is selected:</p>
+			<blockquote>
+			<table id="Table6" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="250"><b>Property</b></td>
+					<td width="600"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Width</td>
+					<td width="600">Width of the cel in pixels.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Height</td>
+					<td width="600">Height of the cel in pixels.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">TransCol</td>
+					<td width="600">The <a href="..\agi\views.htm#transparency">transparency color</a> for this cel. This color will be 'masked out' when the cel is drawn on the AGI game screen.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>Although it was extremely rare to see in Sierra games, AGI does provide limited support for use of <a href="..\agi\agifont.htm">extended character codes</a>. Use the <a href="charmap.htm">Character Map Tool</a> (on the Edit menu, or press CTRL+INS) if you want to use an extended character in the ViewDescription property.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

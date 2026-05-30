@@ -1,0 +1,28 @@
+<html>
+	<head><title>AGI Power Pack Support</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>AGI Power Pack Support</h1>
+		<p>The AGI Power Pack is a set of <a href="..\agi\logics.htm">logic</a> scripts that exploit a buffer overflow bug in the <a href="..\commands\cmd_setstring.htm"><b>set.string</b></a> command to add enhancements and new capabilities to the MSDOS <a href="..\agi\versions.htm">versions</a> of AGI. Mouse support, 80 column text support, sound card and MIDI music support, full color text printing, support for <a href="..\agi\agifont.htm#extended">extended characters</a> and alternate <a href="prop_advanced.htm#codepage">code pages</a>, and dozens of new commands that expand the options for game designers to create much more complex and capable games are just some of what the Power Pack offers.</p>
+		<p>Incorporating the Power Pack into a game is complex and should only be used by experienced AGI programmers. If you do want to program a game to use the Power Pack, you can configure WinAGI to provide support for the Power Pack features that affect various resource editors.</p>
+		<p>To enable Power Pack support, edit your game's <a href="properties.htm">WAG file</a>, and add this property to the General section:</p>
+<blockquote><pre>   PowerPack = True
+</pre></blockquote>
+ 		<p>When enabled, the following enhancements are available in WinAGI:</p>
+ 		<ul><ul>
+ 			<li><a href="editor_words.htm">WORDS.TOK editor</a> allows use of extended characters in words: in normal AGI, extended characters are not allowed as words because the parser only allows characters with values less than 128. The Power Pack modifies AGI so extended character words can be used. When Power Pack setting is enabled, WinAGI will allow extended characters to be used in words and will correctly format them so they will work in your Power Pack game.</li>
+ 			<li><a href="editor_picture.htm">Picture Editor</a> <a href="texttestmode.htm">Text Test mode</a> supports 80 column width: use the Screen Size menu item (or press ALT+W) in test mode to toggle the between 40 and 80 columns. Also, all colors are usable for background colors.</li>
+ 			<li><a href="editor_textscreen.htm">Text Screen Editor</a> supports 80 column width: use the Screen Size menu item (or press ALT+W) to toggle the between 40 and 80 columns.</li>
+ 			<li><a href="palette.htm">Palette Editor</a> allows copying PowerPack compatible palette string: you can right-click on the dialog background or press 'CTRL+C' to copy the current palette into a string value that can be pasted into logic source code in a format that is compatible with the Power Pack palette functions. You can also paste a Power Pack palette string to quickly set a custom palette.</li>
+ 			<li><a href="editor_menu.htm">Menu Editor</a> adds an option to display the menu structure with 80 columns of text, and provides access to the <a href="charmap.htm">Character Map</a> to allow addition of extended characters to menu text.</li>
+ 		</ul></ul>
+ 			<p>Details on Power Pack features, and how to use the various Power Pack commands can be found in the Power Pack source code and demo game. These can be found on the <a href="https://github.com/AGKorson/AGI-Power-Pack", target="_blank">AGI Power Pack</a> Github page.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

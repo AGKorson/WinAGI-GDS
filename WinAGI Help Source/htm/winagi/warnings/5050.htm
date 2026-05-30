@@ -1,0 +1,22 @@
+<html>
+	<head><title>Logic Compiler Warning 5050</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5050</h2>
+    <h3>Setting PRIORITY to &lt; 4 or &gt; 15 may cause unexpected results</h3>
+    <p class="indent_n">AGI <a href="..\..\commands\object_priority.htm">priority</a> values should be in the range 4 to 15. Using a priority value outside this range may have unexpected results.</p>
+    <p class="indent_n">When <a href="..\..\commands\object_priority.htm">priority</a> is set to 0, 1 or 2 (values that correspond to <a href="..\..\agi\grafdisp.htm#controllines">control lines</a> on the priority screen), AGI will not raise a <a href="..\..\agi\errors.htm#runtime">runtime error</a>, but the <a href="..\..\agi\screenobjs.htm">object</a> will not be displayed on the visual screen. With the <a href="..\..\commands\cmd_addtopic.htm"><b>add.to.pic</b></a> command, if you also specified a value for MARGIN (to draw a box around the base of the object), AGI will draw the box even though it won't draw the object.</p>
+    <p class="indent_n">Setting a priority value of 3 will only display pixels that are on water (i.e. the corresponding pixel on the priority screen also has value of 3).</p>
+    <p class="indent_n">There are two issues that arise from using values of <a href="..\..\commands\object_priority.htm">priority</a> greater than 15. First of all, the algorithm that AGI uses to draw an object uses only the lower nibble (i.e. lower four bits, i.e., PRIORITY(actual)=PRIORITY(value) &amp; 0x0F). In addition, there is a bug in the function that AGI uses to determine the order in which to draw <a href="..\..\agi\screenobjs.htm">objects</a>; normally, objects with lower Y values (meaning toward top of the screen and 'further away') are drawn first. Objects with a fixed priority are assumed by AGI to have an 'effective' Y value based on the priority value, using only the lower nibble - PRIORITY(actual)=PRIORITY(value) &amp; 0x0F).</p>
+    <p class="indent_n">AGI's algorithm for determining the order based on Y values has a bug, though, so that if objects with fixed priority have a priority value > 22 they won't draw on screen at all.</p>
+    <p class="indent_n">See the <a href="..\..\commands\object_priority.htm">Object Priority</a> topic for a detailed discussion on managing priorities of objects on screen.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

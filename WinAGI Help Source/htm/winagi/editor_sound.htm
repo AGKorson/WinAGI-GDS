@@ -1,0 +1,226 @@
+<html>
+	<head><title>Sound Editor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-sound-e.gif" width="460" height="72" border="0" alt="WinAGI Sound Editor"></td>
+			</tr>
+		</table>
+		<h1>Sound Editor</h1>
+			<map name="sound">
+				<area shape="rect" alt="Toolbar" coords="8,31,141,101" href="#toolbar">
+				<area shape="rect" alt="Note List" coords="8,106,137,481" href="#notelist">
+				<area shape="rect" alt="Properties" coords="8,485,137,605" href="#properties">
+				<area shape="rect" alt="Music Staves" coords="142,31,590,517" href="#staves">
+				<area shape="rect" alt="Keyboard" coords="142,542,538,605" href="#keyboard">
+				<area shape="rect" alt="Note Control" coords="538,542,575,605" href="#notecontrol">
+			</map>
+			<p>With WinAGI's Sound Editor, you can easily create and modify <a href="..\agi\sounds.htm">AGI sound resources</a>. Currently only <a href="..\agi\sounds.htm#pcjr">PC/PCJr sounds</a> are editable in WinAGI. Apple IIgs resources (<a href="..\agi\sounds.htm#pcm">PCM</a> and <a href="..\agi\sounds.htm#midi">MIDI</a>) are currently not editable, but they can be <a href="previewsound.htm">previewed</a>.</p>
+			<p>See the <a href="creatingsounds.htm">Creating &amp; Editing Sounds</a> topic for help with using sound editor commands to create and edit sounds.</p>
+			<p>See the <a href="musicprimer.htm">Music Primer</a> topic for a basic overview of the music staff notation used in the WinAGI Sound Editor.</p>
+			<p>&nbsp;</p>
+		<h2><a name="components">Sound Editor Components</a></h2>
+			<p>For a description of the Sound Editor window components, click on the area of interest:</p>
+			<p><img src="..\..\graphics\soundeditor.jpg" usemap="#sound" border="0" width="598"></p>
+		<h2><a name="toolbar">Toolbar</a></h2>
+			<p>The toolbar provides easy access to several editing functions, including staff scale control, note shifting, volume control, and cut, copy, paste, and delete commands. Play and stop buttons allow you to easily preview your sound during editing.</p>
+		<h2><a name="notelist">Note List</a></h2>
+			<p>The note list is a hierarchical list of the three music tracks, the noise track and the notes in each track. The item selected in the note list determines what editing commands are available, which track is selected, and the position in the track where editing will occur.</p>
+			<p>The note list is synchronized with the music staves. Selecting a note in the note list will automatically scroll that note into view on its staff (if the staff is visible).</p>
+			<p>
+		<h2><a name="staves">Music Staves</a></h2>
+			<p>(Plural of 'staff' is 'staves'.)</p>
+			<p>Each music staff provide a graphical display of a track's notes. Use the Visible property to show or hide the staff for any of the four available sound tracks.</p>
+			<p><a name="onetrack">You</a> can also have the editor display only the currently selected track (temporarily hiding all the others) by setting the "Show Only Selected Track" option on the Resource menu.</p>
+			<p>The currently selected track will be outlined in blue. The current note position will be marked by a flashing vertical cursor. If one or more note is selected, the selected notes will be highlighted.</p>
+			<p>If a note's length corresponds to a standard MIDI length (an eighth note, a quarter note, a half note, etc.), it will display the appropriate note symbol. If not, the note is displayed as a bar where the bar's length equals the note's length. You can force the editor to display all notes as bars by clearing the 'Use Note Bitmaps for Standard Note Lengths' option on the <a href="settings_sound.htm">Sound</a> tab of the <a href="settings.htm">Settings</a> form.</p>
+			<p>Each track includes time markers that correspond to the length (in seconds) of a whole note based on the sound's <a href="#tpqn">Ticks Per Quarter Note</a> value. Keep in mind that the AGI <a href="..\agi\agisound.htm">sound</a> format specifies the length of each note in 1/60th second units. In order to be able to display sounds as standard notes, the <a href="creatingsounds.htm#tpqn">TPQN</a> value must be a multiple of 4. This is why the time markers will never align with whole seconds.; for example, a whole note that is 64 ticks long will be 64/60 = 1.07 seconds.</p>
+	    <p><img alt="" src="..\..\graphics\muteoff.bmp" width="32"> <img alt="" src="..\..\graphics\muteon.bmp" width="32"> <a name="mute">Each</a> track also includes a mute button in the upper left corner. You can easily change a track's mute property by clicking on the track's mute button. The mute property only affects playback of the sound while it is being edited.</p>
+		<h2>Scale Control</h2>
+			<p>&nbsp;<img src="..\..\graphics\eli_zoomin.ico" align="left" width="32"><img src="..\..\graphics\eli_zoomout.ico" align="left" width="32"> You can adjust the display scale by using the scale in/scale out toolbar buttons. The minimum scale is one, maximum is three.</p>
+		<h2><a name="keyboard">Keyboard</a></h2>
+			<p>A virtual piano-style keyboard is available to enter notes. Click a key to add the note to the currently selected track at the current cursor position.</p>
+			<p>The cursor must be active to insert a note. If the selected item in the note list is the sound node (top item in the list) or one of the track nodes, the keyboard will sound the note when clicked, but nothing will be inserted.</p>
+			<p>To access keys that are not visible, use the scroll buttons to the left of the keyboard. The numbers indicate the octave of each set of notes. Octaves increase going from left to right.</p>
+			<p>When the noise track is selected, the keyboard displays a custom keyboard that allows entry of noise notes.</p>
+			<p>You can hide or show the keyboard and note control sections by selecting the Hide Keyboard and Show Keyboard commands on the Edit menu. You can also control the default value for the keyboard section on the <a href="settings_sound.htm">Sounds</a> tab of the <a href="settings.htm">Settings</a> window.</p>
+			<p>You can also enter noted directly from the keyboard by typing the desired letter ('g' through 'f'). The note played will be from the currently selected octave. To change the current octave, use the "&lt;" and "&gt;" keys.</p>
+		<h2><a name="notecontrol">Note Control</a></h2>
+			<p>In the note control section, you can set the properties of the notes being entered. This section DOES NOT modify an existing note; it affects notes that you add via the virtual or real keyboard.</p>
+			<p>The scroll bar buttons to the right of the note control area allow you to set the length of new notes. The range is from a sixteenth note up to a whole note.</p>
+			<p>The plus and minus signs above the note allow you to adjust the attenuation of the note. The color of the note indicates the attenuation. The colors match the standard AGI EGA color palette. Full volume (attenuation of 0) is black.</p>
+			<p>You can toggle between playing a note and playing a rest (silence)by using the space bar.</p>
+		<h2><a name="properties">Properties</a></h2>
+			<p>The property window displays a list of properties corresponding to the currently selected sound component. The following tables describe the properties available for each:</p>
+			<p>When the Sound Resource node is selected:</p>
+			<blockquote>
+			<table id="Table4" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="250"><b>Property</b></td>
+					<td width="600"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">ID</td>
+					<td width="600">The <a href="managingresources.htm#resourceids">Resource ID</a> for the sound.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Description</td>
+					<td width="600">The <a href="managingresources.htm#descriptions">resource description</a> for the sound.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle"><a name="key">Key</a></td>
+					<td width="600">The music key used when displaying notes on the music staff. (This is a WinAGI specific property and has no effect on the actual <a href="..\agi\sounds.htm">sound resource</a>.)</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle"><a name="tpqn">TPQN</a></td>
+					<td width="600"><a href="creatingsounds.htm#tpqn">Ticks per Quarter Note</a>- This is the number of AGI ticks that make up a quarter note as displayed on the staff. Adjusting this value does not affect the Sound resource. TPQN must be a multiple of 4, within the range of 4 to 64. (This is a WinAGI specific property and has no effect on the actual <a href="..\agi\sounds.htm">sound resource</a>.)</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Length</td>
+					<td width="600">The length of the entire sound resource, in seconds. Equal to the length in ticks divided by 60.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="musictrack">When music track node is selected:</a></p>
+			<blockquote>
+			<table id="Table5" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="250"><b>Property</b></td>
+					<td width="600"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Instrument</td>
+					<td width="600">The instrument that WinAGI will use when playing the sound as a MIDI file. It has no effect when the playback mode is PCJr emulation. (This is a WinAGI specific property and has no effect on the actual <a href="..\agi\sounds.htm">sound resource</a>.)</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Muted</td>
+					<td width="600">If TRUE, this track will not be included when the sound is previewed. (This is a WinAGI specific property and has no effect on the actual <a href="..\agi\sounds.htm">sound resource</a>.)</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Visible</td>
+					<td width="600">If TRUE, the staff for this track will be visible. A staff does not have to be visible in order to add and edit notes. This property is temporarily disabled when the <a href="#staves">Show Only Selected Track</a> option is active. (This is a WinAGI specific property and has no effect on the actual <a href="..\agi\sounds.htm">sound resource</a>.)</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Note Count</td>
+					<td width="600">The total number of notes in this track.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="noisetrack">When</a> the noise track node is selected:</p>
+			<blockquote>
+			<table id="Table6" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="250"><b>Property</b></td>
+					<td width="600"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Muted</td>
+					<td width="600">If TRUE, this track will not be included when the sound is previewed. (This is a WinAGI specific property and has no effect on the actual <a href="..\agi\sounds.htm">sound resource</a>.)</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Visible</td>
+					<td width="600">If TRUE, the staff for this track will be visible. Staves do not have to be visible in order to add and edit notes. This property is temporarily disabled when the <a href="#staves">Show Only Selected Track</a> option is active. (This is a WinAGI specific property and has no effect on the actual <a href="..\agi\sounds.htm">sound resource</a>.)</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Note Count</td>
+					<td width="600">The total number of notes in this track.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p>When a music note node is selected:</p>
+			<blockquote>
+			<table id="Table7" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="250"><b>Property</b></td>
+					<td width="600"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Freq Div</td>
+					<td width="600">The <a href="..\agi\agisound.htm#freqdivisor">frequency divisor</a> is a 10 bit number (0 - 1023) used to calculate the frequency of a tone played by the AGI interpreter.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Duration</td>
+					<td width="600">The <a href="..\agi\sounds.htm#duration">duration</a> of the note (in 1/60th second increments)
+					</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Attenuation</td>
+					<td width="600"><a href="..\agi\agisound.htm#attenuation">Attenuation</a> determines the loudness of the note. No attenuation (0) means full volume. Full attenuation (15) means the note is silent.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">MIDI Note</td>
+					<td width="600">This is the equivalent music note that corresponds to the frequency divisor value. See the music primer for more information. </td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">MIDI Octave</td>
+					<td width="600">The octave of the MIDI note. See the music primer for more information.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">MIDI Length</td>
+					<td width="600">The duration of the note as a standard MIDI length (eighth note, quarter note, etc.) If the actual duration does not correspond to a standard MIDI length, this value will be undefined.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p>When a noise note node is selected:</p>
+			<blockquote>
+			<table id="Table8" cellSpacing="1" cellPadding="1" border="1" width="1000">
+				<tr>
+					<td width="250"><b>Property</b></td>
+					<td width="600"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Type</td>
+					<td width="600">Noise notes can be either <a href="..\agi\agisound.htm#noise">periodic tone or white noise</a>.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Freq Div</td>
+					<td width="600">Noise notes can be one of three frequencies, or can borrow the frequency from track 3. See the <a href="..\agi\agisound.htm#noisefreq">AGI Sound resource</a> topic for additional information.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Duration</td>
+					<td width="600">The <a href="..\agi\sounds.htm#duration">duration</a> of the note (in 1/60th second increments)</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="250" style="vertical-align:middle">Attenuation</td>
+					<td width="600"><a href="..\agi\agisound.htm#attenuation">Attenuation</a> determines the loudness of the note. No attenuation (0) means full volume. Full attenuation (15) means the note is silent.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+			</table>
+		</blockquote>
+	<h3>WinAGI-specific Properties</h3>
+		<p>The Key, TPQN, Instrument, Muted and Visible properties are WinAGI-specific - they have no affect on the sound resource that is stored in a game's VOL files. They are provided only to help with the creation and editing of sounds.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

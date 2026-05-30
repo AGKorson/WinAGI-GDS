@@ -1,0 +1,45 @@
+<html>
+	<head><title>Reserved Variable v26</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v26: Monitor Type</h1>
+			<p>When AGI loads, if the MSDOS/PC platform is detected, AGI does an additional check to determine which monitor/video graphics card type is present. It then knows which specific graphics routines to call for displaying text and images correctly. AGI recognizes these display types:</p>
+			<table id="tblMonitor" cellSpacing="1" cellPadding="1" width="800" border="1">
+				<tr>
+					<td width="100" align="middle"><b>Value</b></td>
+					<td><b>Monitor Type</b></td>
+				</tr>
+				<tr>
+					<td width="100" align="middle">0</td>
+					<td>Color Graphics Adapter (CGA) with default Black-Cyan-Magenta-White palette (CGA)</td>
+				</tr>
+				<tr>
+					<td width="100" align="middle">1</td>
+					<td>CGA with alternate Blue-Green-Red-Brown palette (RGB))</td>
+				</tr>
+				<tr>
+					<td width="100" align="middle">2</td>
+					<td>Monochrome Hercules Graphics Card (HGC)</td>
+				</tr>
+				<tr>
+					<td width="100" align="middle">3</td>
+					<td>Enhanced Graphics Adapter (EGA)</td>
+				</tr>
+				<tr>
+					<td width="100" align="middle">4</td>
+					<td>Video Graphics Adapter (VGA; valid on PS/2 only)</td>
+				</tr>
+			</table>
+			<p>See the <a href="graphics.htm">Graphics Display</a> topic for a detailed description of video display adapters that were supported by AGI.</p>
+			<p>The monitor type variable was often used in original Sierra games to provide customized features unique to a specific monitor. AGI maintains an internal copy of monitor type value that it uses, so as long as your code does not need to know the monitor type, using v26 for another purpose does not cause problems in AGI. Just be aware that every time the <a href="..\commands\cmd_restoregame.htm"><b>restore.game</b></a> command is called, AGI resets the value of v26 to the current monitor type.</p>
+			<p>On non-MSDOS systems, it is believed that AGI does not use v26.</p>
+			<p>This variable was not reserved by AGI and had no effect in <a href="version2.htm#2089">version 2.089</a> and <a href="version2.htm#2272">version 2.272</a>.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,88 @@
+<html>
+	<head><title>Editing Layouts</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-layout-e.gif" width="460" height="72" border="0" alt="WinAGI Layout Editor"></td>
+			</tr>
+		</table>
+		<h1>Editing Layouts</h1>
+			<p><a href="#addrooms">Add</a> <a href="editor_layout.htm#rooms">rooms</a> and <a href="#moverooms">arrange them</a> based on your game design. Use the <a href="#showhide">Show or Hide Room</a> commands if you need to change a logic's <a href="editor_layout.htm#isroom">IsRoom</a> property.</p>
+			<p>Use the layout editor's <a href="editor_layout.htm#drawsurface">grid property</a> to help align <a href="editor_layout.htm#rooms">rooms</a>.</p>
+			<p>Then <a href="#addexits">add exits</a> to build the paths that connect the <a href="editor_layout.htm#rooms">rooms</a>. Make adjustments by <a href="#editexits">editing exits</a>.</p>
+			<p>Use <a href="#transpts">transfer points</a> to reduce clutter on the layout.</p>
+			<p>Add <a href="#comments">comments</a> to insert notes to aid in game development.</p>
+			<p>The <a href="#statusbar">status bar</a> displays useful information while using 
+			the layout editor.</p>
+			<p>Use the <a href="settings_layout.htm">Layout tab</a> of the <a href="settings.htm">Settings</a> window to adjust various settings specific to the Layout Editor.</p>
+		<h2>Scale Control</h2>
+			<img alt="" src="..\..\graphics\eli_zoomin.ico" align="left" width="32">  <img alt="" src="..\..\graphics\eli_zoomout.ico" align="left" width="32">
+			<p>Use the scale controls to control the scale of the layout editor. The mouse wheel can also be used to adjust scale.</p>
+		<h2><a name="addrooms">Adding Rooms</a></h2>
+			<img alt="" src="..\..\graphics\eli_room.ico" align="left" width="32">
+			<p>Use the Add Room tool to add new <a href="editor_layout.htm#rooms">room</a> to the layout (which adds a new logic to your game). Click on the drawing surface where you want the new room. The <a href="resource_addremove.htm#addnew">Add New Resource</a> dialog is shown, allowing you to assign a <a href="managingresources.htm#resnum">number</a> and <a href="managingresources.htm#resourceids">Resource ID</a>, and optionally include a matching <a href="..\agi\pictures.htm">picture</a> resource.</p>
+			<p>Use the Edit Logic command (or double-click on the room) to open the <a href="..\agi\logics.htm">logic</a> for editing.</p>
+		<h2><a name="showhide">Showing and Hiding Rooms</a></h2>
+			<img alt="" src="..\..\graphics\eli_show.ico" align="left" width="32">  <img alt="" src="..\..\graphics\eli_hide.ico" align="left" width="32">
+			<p>To toggle the <a href="editor_layout.htm#isroom">IsRoom</a> property of logics, use the Show and Hide Room commands (or toolbar buttons).</p>
+			<p><a name="hideroom">To</a> hide a <a href="editor_layout.htm#rooms">room</a>, select it , then use the Hide room command or button. (Note that you can't hide multiple selections at one time; you must select and hide them individually.)</p>
+			<p><a name="showroom">To</a> show a <a href="editor_layout.htm#rooms">room</a> that currently has its IsRoom property set to false, make sure there is nothing currently selected, then use the Show Room command or button. The room will be placed in center of drawing window. You can then move it to a new position.</p>
+		<h2><a name="moverooms">Moving Objects</a></h2>
+			<img alt="" src="..\..\graphics\eli_select.ico" align="left" width="32">
+			<p>Using the select tool, objects (<a href="editor_layout.htm#rooms">rooms</a>, <a href="editor_layout.htm#transpts">transfer points</a>, <a href="editor_layout.htm#errpts">error points</a> and <a href="editor_layout.htm#comments">comments</a>) can be moved by dragging them with the mouse.</p>
+			<p>You can select multiple objects by dragging the mouse over the objects, or by holding down the CTRL key and clicking on multiple objects.</p>
+			<p>Selection handles (small black squares) are shown around objects as they are selected. If multiple objects are selected, a selection rectangle (dotted line) is also shown. Dragging any object is a selected group will move all of them by the same relative amount.</p>
+			<p>You can also move selected objects by using the cursor keys. When pressed by themselves, each key press moves the objects one minor <a href="editor_layout.htm">grid unit</a>. Use the Shift key to move objects in larger increments (one major grid unit) or the Control key to move a single pixel at a time.</p>
+		<h2><a name="delete">Deleting Objects</a></h2>
+			<img alt="" src="..\..\graphics\eli_delete.ico" align="left" width="32">
+			<p>Use the Delete command (or toolbar button) to delete selected objects.</p>
+			<p>Deleting a <a href="editor_layout.htm#rooms">room</a> in the layout editor will actually remove the logic from your game. Make sure you really want to remove it from your game before using the Delete command. If there is a <a href="..\agi\pictures.htm">picture</a> resource with the same number associated with the logic being deleted, you are given the choice to delete it as well.</p>
+			<p>Use the <a href="#hideroom">Hide Room</a> command if you want to keep the logic in your game, but want to change its <a href="editor_layout.htm#isroom">IsRoom</a> property to false.</p>
+		<h2><a name="order">Object Order</a></h2>
+			<img alt="" src="..\..\graphics\eli_front.ico" align="left" width="32">  <img alt="" src="..\..\graphics\eli_back.ico" align="left" width="32">
+			<p>Objects are drawn in the order they are added to the layout. Normally, this isn't of concern, but if you decide to arrange objects so they overlap, the most recently added object will be on top. Use the Move Up, Move Down, Bring to Front and Send to Back edit commands to adjust the drawing order of objects.</p>
+		<h2><a name="addexits">Adding Exits</a></h2>
+			<p>To add an <a href="editor_layout.htm#exits">exit</a> between two logics, select one of the exit tools:</p>
+			<ul><ul>
+				<li><img alt="" src="..\..\graphics\eli_edge1.ico" align="middle" width="32"> One way <a href="editor_layout.htm#edgeexits">edge exit</a>. Use this tool to add a single edge exit to a logic.</li>
+				<li><img alt="" src="..\..\graphics\eli_edge2.ico" align="middle" width="32"> Two way <a href="editor_layout.htm#edgeexits">edge exit</a>. Use this tool to add reciprocal edge exits between two logics.</li>
+				<li><img alt="" src="..\..\graphics\eli_other.ico" align="middle" width="32"> <a href="editor_layout.htm#otherexits">Other exit</a>. Use this tool to add an exit that tests for a condition other than an edge code.</li>
+			</ul></ul>
+			<p>Place the cursor over the desired 'from' <a href="editor_layout.htm#rooms">room</a>. For edge exits, make sure the cursor is near the edge you wish to use. Click and drag the exit to the 'to' room. Release the mouse to add the exit.</p>
+			<p>Once added, you can use the Edit Logic command (or double-click on an exit) to open the logic to edit the source code for the exit.</p>
+		<h2><a name="editexits">Editing, Moving and Deleting Exits</a></h2>
+			<p>To move an exit, first select it. Selection handles (small black squares) are placed at each end.</p>
+			<p>Drag a selection handle to change the 'from' or 'to' <a href="editor_layout.htm#rooms">room</a> of an exit. WinAGI will automatically comment out source code or add new source code to reflect the change.</p>
+		<p><img alt="" src="..\..\graphics\twoway.jpg" width="131"></p>
+			<p>You can move two way exits as a pair or individually. To move them as a pair, click on the exit line, then drag either selection handle.</p>
+			<p><img alt="" src="..\..\graphics\oneway.jpg" width="131"></p>
+			<p>To move them individually, click on the one of the exit arrowheads, not the line. A red selection handle is shown to indicate you have selected only one direction of the two way exit. Drag either black handle to move the exit (not the red handle).</p>
+		<h2><a name="transpts">Inserting Transfer Points</a></h2>
+			<img alt="" src="..\..\graphics\eli_xfer.ico" align="left" width="32">
+			<p>To insert a <a href="editor_layout.htm#transpts">transfer point</a>, select an exit, and use the Insert Transfer Point command (or use the toolbar button).</p>
+			<p>The default location for the transfer point pair is in the middle of the selected exit. You can move them to a different location once they are added.</p>
+			<p>Double-clicking on any transfer point will automatically select the other transfer point in the pair, scrolling the drawing surface, if necessary.</p>
+		<h2><a name="comments">Adding Comments</a></h2>
+			<img alt="" src="..\..\graphics\eli_comment.ico" align="left" width="32">
+			<p>You can add <a href="editor_layout.htm#comments">comment blocks</a> to include production notes, to-do items, or explanatory remarks about your game and layout.</p>
+			<p>To add a comment, select the Add Comment tool. Click on the drawing surface to set the upper left corner, then drag the comment box to the desired size.</p>
+			<p>A text cursor is placed in the newly drawn comment box. Press the Enter key after entering comments to finish.</p>
+			<p>To edit an existing comment, double-click it to enable the text cursor.</p>
+			<p>To resize a comment, select it, then drag one of the selection handles.</p>
+		<h2><a name="statusbar">Status Bar</a></h2>
+			<p><img alt="" src="..\..\graphics\statuslayout.jpg" width="930"></p>
+			<p>The status bar displays the following information:</p>
+			<ul><ul>
+				<li>Scale: The current image scale. 1 is minimum scale; 9 is maximum scale.</li>
+				<li>Tool: The currently selected tool. If a tool is in <a href="editor_layout.htm#hold">hold mode</a>, the tool is prefaced by the word "HOLD".</li>
+				<li>Selection Information: Display depends on what is selected.</li>
+				<p>If a <a href="editor_layout.htm#rooms">room</a> is selected, its <a href="managingresources.htm#resourceids">Resource ID</a> is displayed.</p>
+				<p>If an exit is selected, the <a href="editor_layout.htm#commenttags">exit comment tags</a>, the exit type, and the from and to logics are displayed.</p>
+				<p>If a transfer point is selected, the two logics associated with the transfer are displayed.</p>
+				<li>Cursor Position: the X and Y coordinates of the cursor are displayed in the rightmost status bar panels.</li>
+			</ul></ul>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

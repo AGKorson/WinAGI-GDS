@@ -1,0 +1,39 @@
+<html>
+	<head><title>Action Command: put.v</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>put.v</h1>
+			<p>The <b>put.v</b> command indirectly sets the <a href="..\agi\pictures.htm#room">room</a> number value for an <a href="..\agi\invitems.htm">inventory item</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>put.v(<a href="syntax_fan.htm#argtypes">var</a> vITEM, <a href="syntax_fan.htm#argtypes">var</a> vROOMNUM);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The <a href="..\agi\pictures.htm#room">room</a> <a href="..\agi\object.htm#objroomnum">number</a> for <a href="..\agi\invitems.htm">inventory item</a> <b>iA</b>, where <b>A</b> = <b>vITEM</b>, is changed to <b>B</b>, where <b>B</b> = <b>vROOMNUM</b>. If the new room number is 255, it signifies the item being in the player's 'inventory'; you could use the <a href="cmd_getv.htm"><b>get.v</b></a> command instead.</p>
+			<p>Changing an inventory item's room number does not actually 'move' the item.</p>
+			<p>If the <a href="..\agi\invitems.htm">inventory item</a> is not valid (the number exceeds the total number of inventory items in the <a href="..\agi\object.htm">OBJECT</a> file), AGI will raise <a href="..\agi\errorlist.htm#trap23">trappable error #23</a>.</p>
+		<h2>Example</h2>
+<pre><code>v220 = 25;
+v221 = 30;
+<b>put.v(v220, v221);</b>  [  item i25's room number is now 30</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">96 (0x60)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_invitems.htm">Inventory Item Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

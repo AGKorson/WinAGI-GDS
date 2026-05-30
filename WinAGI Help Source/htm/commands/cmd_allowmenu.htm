@@ -1,0 +1,46 @@
+<html>
+	<head><title>Action Command: allow.menu</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>allow.menu</h1>
+		<p>The <b>allow.menu</b> command enables or disables the menu.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>allow.menu(<a href="syntax_fan.htm#argtypes">byt</a> A);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command allows for additional control over the display of <a href="..\agi\menu.htm">menus</a>. Calling the <b>allow.menu</b> command with an argument value <b>A</b> of zero resets an internal menu control flag to FALSE; using a non-zero argument sets the internal flag to TRUE. This internal flag is TRUE by default when AGI starts.</p>
+			<p>When AGI attempts to display a menu (after a call to the <a href="cmd_menuinput.htm"><b>menu.input</b></a> command with <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f14.htm">f14 (menu enabled)</a> set to TRUE), it then checks the value of the internal 'allow.menu' flag; if it is FALSE, then the menu is not displayed.</p>
+			<p>Keep in mind that once <b>menu.input</b> successfully triggers the menu, AGI will continue attempting to display the menu in every <a href="..\agi\cycle.htm">interpreter cycle</a> until is succeeds. So once menus are 're-allowed' by the <b>allow.menu</b> command the menu will immediately be displayed at the start of the next cycle. </p>
+		<h2>Example</h2>
+<pre><code>[ assume a menu has been created and submitted
+[ and f14 is set
+<b>allow.menu(0);</b>  [ menu is disabled
+menu.input(); [ this menu input command tells AGI to show the menu
+              [ but with menu disabled, it will not display the menu
+...
+<b>allow.menu(1);</b>  [ menu is re-enabled
+                       [ at the start of the next cycle, the menu
+                       [ will now be displayed</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 3.002.086 and above.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">177 (0xB1)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="..\agi\menu.htm">Menus in AGI</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

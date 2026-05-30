@@ -1,0 +1,18 @@
+<html>
+	<head><title>Logic Compiler Warning 5087</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 5087</h2>
+    <h3>&lt;command&gt; has no functionality in MSDOS AGI interpreter</h3>
+    <p class="indent_n">There are several AGI commands that were not intended to run on the MSDOS platform. The MSDOS interpreter calls a null function when one of these commands is encountered. For those commands that have no arguments, including <a href="..\..\commands\cmd_initdisk.htm"><b>init.disk</b></a>, <a href="..\..\commands\cmd_hidemouse.htm"><b>hide.mouse</b></a>, and <a href="..\..\commands\cmd_showmouse.htm"><b>show.mouse</b></a>, there is no effect, and AGI will continue processing with the next command.</p>
+    <p class="indent_n">You should remove these commands, unless you intend to run your game with a non-MSDOS AGI interpreter. Just keep in mind that WinAGI isn't designed to support that.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

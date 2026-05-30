@@ -1,0 +1,38 @@
+<html>
+	<head><title>Action Command: parse</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>parse</h1>
+			<p>The <b>parse</b> command parses a string as if it were text entered by the player.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>parse(<a href="syntax_fan.htm#argtypes">str</a> sA);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>AGI treats the text of <a href="..\agi\strings.htm">string</a> <b>sA</b> exactly the same as player entered text. <a href="..\agi\flags.htm#reserved">Reserved flags</a> <a href="..\agi\f2.htm">f2 (input received)</a> and <a href="..\agi\f4.htm">f4 (said found match)</a> are reset to FALSE. String <b>sA</b> is <a href="..\agi\keyboard.htm#parser">parsed</a>, and if all words are valid <a href="..\agi\flags.htm#reserved">reserved flag</a> <a href="..\agi\f2.htm">f2 (input received)</a> is set to TRUE. If an unknown word is encountered, <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v9.htm">v9 (invalid word number)</a> is assigned the sequence number of the word in the message that failed to match and the processing ends.</p>
+			<p>If an invalid string number is passed to the <b>parse</b> command, it is ignored and the <b>parse</b> command exits without doing anything. Also, in AGI <a href="..\agi\versions.htm">versions</a> that allocate space for 24 strings, only the first 12 strings (s0 - s11) can be parsed with the <b>parse</b> command; the command does nothing if strings s12 - s23 are passed. This appears to be a bug that Sierra never noticed or fixed.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>s5 = "look tree"; 
+<b>parse(s5);</b> [ same effect as if the player typed "look tree" on the input line</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">117 (0x75)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_strings.htm">String Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

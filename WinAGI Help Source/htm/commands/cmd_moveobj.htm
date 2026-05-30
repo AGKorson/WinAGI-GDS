@@ -1,0 +1,51 @@
+<html>
+	<head><title>Action Command: move.obj</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>move.obj</h1>
+			<p>The <b>move.obj</b> command sets a screen object's <a href="object_moving.htm">movement mode</a> to 'move object', meaning it will move toward a specified screen coordinate.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>move.obj(<a href="syntax_fan.htm#argtypes">obj</a> oA, <a href="syntax_fan.htm#argtypes">byt</a> X, <a href="syntax_fan.htm#argtypes">byt</a> Y, <a href="syntax_fan.htm#argtypes">byt</a> STEP, <a href="syntax_fan.htm#argtypes">flg</a> fDONE);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p><a href="..\agi\screenobjs.htm">Screen object</a> <b>oA</b> begins moving toward the point (<b>X</b>, <b>Y</b>). The direction is always diagonal, until the object is either directly horizontal or vertical to the target point; the object then moves orthogonally to finish the move. For example, if the vertical distance to the target is 5 pixels and the horizontal distance is 25 pixels, the object will move diagonally for five steps and then horizontally for 20 steps.</p>
+			<p>The <a href="..\agi\screenobjs.htm">screen object</a> will move <b>STEP</b> pixels each step. If <b>STEP</b> is zero, the <a href="..\agi\screenobjs.htm">screen object's</a> current <a href="object_moving.htm#stepsize">step size</a> is used. When the screen object is less than <b>STEP</b> pixels away from point (<b>X</b>, <b>Y</b>), the <a href="..\agi\screenobjs.htm">screen object's</a> direction is set to 0, flag <b>fDONE</b> is set to TRUE, and the <a href="..\agi\screenobjs.htm">screen object</a> switches to normal motion. The screen object's original step size is restored.</p>
+			<p>Setting the movement mode to 'move object' will automatically enable the <a href="..\agi\screenobjs.htm">screen object</a> for <a href="object_initialize.htm#updating">updating</a> if not currently enabled. The <a href="object_cycling.htm">cycling property</a> is not modified by the <b>move.obj</b> command.</p>
+			<p>If <b>oA</b> is <a href="..\agi\interface.htm#ego">ego</a>, it automatically switches to <a href="..\agi\interface.htm#programcontrol">program control mode</a>. It also returns to <a href="..\agi\interface.htm#playercontrol">player control mode</a> automatically when it reaches its target location.</p>
+			<p>Flag <b>fDONE</b> is reset to FALSE when the command is executed.</p>
+			<p>If you use the <b><a href="cmd_setdir.htm">set.dir</a></b> command when a screen object's motion is set to move to a point, the <a href="..\agi\screenobjs.htm">screen object</a> will move in that direction for one <a href="..\agi\cycle.htm">interpreter cycle</a>, but will begin moving toward the end point again after that.</p>
+			<p>If either <b>X</b> or <b>Y</b> are off screen (<b>X</b> &gt;= 160; <b>Y</b> &gt;= 168), the command behaves a bit differently. As soon as the <a href="..\agi\screenobjs.htm">screen object</a> reaches an edge (or the <a href="../agi/grafdisp.htm#horizon">horizon</a>), AGI will set flag <b>fDONE</b> to TRUE, and switch the screen object to normal motion, but the screen object's direction is not set to zero. If the <a href="..\agi\screenobjs.htm">screen object</a> was moving diagonally when it touched the edge, it will continue moving along the edge since its direction was not set to zero. To avoid unintentional results, it is best to avoid using invalid values for <b>X</b> and <b>Y</b>.</p>
+			<p>Do not use movement modes (<b>move.obj</b>, <a href="cmd_followego.htm"><b>follow.ego</b></a> or <a href="cmd_wander.htm"><b>wander</b></a>) and one-time cycling modes (<a href="cmd_endofloop.htm"><b>end.of.loop</b></a> and <a href="cmd_reverseloop.htm"><b>reverse.loop</b></a>) on an object at the same time. The byte in the <a href="..\agi\sobjtable.htm">screen object data table</a> that AGI uses to store the <b>fDONE</b> flag is also used by the cycling modes. If you use a movement mode command while a one-time cycle command is active, the flag number gets overwritten, and when the object finishes cycling, the wrong flag will be set.</p>
+
+			<p>AGI does not check that object number <b>oA</b> is a valid <a href="..\agi\screenobjs.htm">screen object</a>. If it is not, this command will overwrite other data on the <a href="..\agi\memory.htm#heap">heap</a>, which may cause unexpected results, including possibly <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+			<p>&nbsp;</p>
+			<p><b>WARNING</b>: If your game relies on the flag <b>fDONE</b> to be set before continuing with something, such as going to the next part of a cut scene, make sure that the <a href="..\agi\screenobjs.htm">screen object</a> will always be able to reach its destination. It is possible that it could get caught behind a barrier or something, and not be able to get where it needs to go, in which case the game will sit there forever doing nothing. This is more of a problem when the <a href="..\agi\screenobjs.htm">screen object</a> being moved is <a href="..\agi\interface.htm#ego">ego</a> - it might work fine from where you test it, but it may be possible for the player to move ego into such a position where they will get "stuck" when being moved.</p>
+		<h2>Example</h2>
+<pre><code><b>move.obj(o1, 120, 44, 2, f99);</b>
+[ object will move to the point (120, 44), 
+[ two pixels per step</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">81 (0x51)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+			<p><b><a href="cmd_moveobjv.htm">move.obj.v</a></b></p>
+			<p><b><a href="cmd_setdir.htm">set.dir</a></b></p>
+			<p>&nbsp;</p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

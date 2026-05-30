@@ -1,0 +1,54 @@
+<html>
+	<head><title>AGI Debugging</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>AGI Debugging</h1>
+			<p>When testing their games, Sierra included debug code that took advantage of AGI's debugging capabilities. Most AGI games were shipped with the debug code intact, but with the activation code removed. Some game versions were released which allowed the player to enter the debug mode.</p>
+			<p>Most of the games activate their debug modes by pushing the <code>ALT-D</code> key combination. Some games used a secret phrase to enter the debug mode.</p>
+			<ul><ul>
+				<li>Gold Rush: type 'bird man'</li>
+				<li>King's Quest 3: type 'rat shit' (in some versions <code>ALT-D</code>
+				works instead)</li>
+				<li>Police Quest: type 'stink bug'</li>
+				<li>Space Quest 2: type 'backstage' or 'dbg' (type 'tester' to bring up Roger's screen coordinates)</li>
+			</ul></ul>
+		<p>&nbsp;</p>
+		<h3>Debug features of the Interpreter</h3>
+			<p>The AGI interpreter contains several features and <a href="..\commands\cmds_debug.htm">debugging commands</a> that allow a game developers to monitor and troubleshoot their game during development. These include:</p>
+			<ul><ul>
+				<li>logging feature with the <a href="..\commands\cmd_log.htm"><b>log</b></a> command, which allows the programmer to capture information on the game that can be analyzed later to make corrections and improvements to the game;</li>
+				<li>ability to display game information such as current <a href="versions.htm">interpreter version</a> and <a href="memory.htm">memory</a> usage, useful for monitoring and making adjustments to avoid memory problems;</li>
+				<li>ability to display <a href="screenobjs.htm">screen object</a> information, which can be useful in troubleshooting interaction of objects on screen;</li>
+				<li>an option to display the <a href="grafdisp.htm#priority">priority screen</a> in order to monitor and improve the '3-D' appearance of the game; and</li> 
+				<li>a <a href="tracer.htm">command tracer</a> that allows the programmer to step through each line of code in a <a href="logics.htm">logic</a> which can be helpful in tracking down bugs.</li>
+			</ul></ul>
+		<h3>Standard Debug Mode Words</h3>
+			<p>Most of Sierra's AGI games contained a debug <a href="logics.htm">logic</a> that contained special code used for debugging. This special debug logic was fairly standard among the games, and contained the following words that could be typed by the player while debugging:</p>
+			<ul><ul>
+				<li><code>TP</code>: Teleport to another <a href="pictures.htm#room">room</a> (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, then calling <a href="..\commands\cmd_newroomv.htm"><b>new.room.v</b></a>)</li>
+				<li><code>SHOW PRIORITY</code>: Show the current room's priority bands and control lines (by calling <a href="..\commands\cmd_showpriscreen.htm"><b>show.pri.screen</b></a> command)</li>
+				<li><code>GET OBJECT</code>: Get any inventory item (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then calling <a href="..\commands\cmd_getv.htm"><b>get.v</b></a>)</li>
+				<li><code>GIMME GIMME</code>: Get all <a href="invitems.htm">inventory items</a> (by running a short loop that calls <a href="..\commands\cmd_getv.htm"><b>get.v</b></a> for all inventory items in the game)</li>
+				<li><code>SHOW FLAG</code>: Display the value of one of the 256 <a href="flags.htm">flags</a> (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then using simple <code><b>if</b></code> statement to print the flag's value)</li>
+				<li><code>SET FLAG</code>: Set one of the 256 <a href="flags.htm">flags</a> to TRUE (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then using <a href="..\commands\cmd_setv.htm"><b>set.v</b></a>)</li>
+				<li><code>RESET FLAG</code>: Reset one of the 256 <a href="flags.htm">flags</a> (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then using <a href="..\commands\cmd_resetv.htm"><b>reset.v</b></a>)
+				<li><code>SHOW VAR</code>: Display the value of one of the 256 <a href="variables.htm">variables</a> (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then printing the variable's value using the <code>%v&lt;number&gt;</code> <a href="messages.htm">message</a> <a href="messages.htm#format">format code</a>)</li>
+				<li><code>SET VAR</code>: Change the value of one of the 256 variables (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then <a href="..\commands\cmd_lindirectv.htm"><b>lindirect.v</b></a>)</li>
+				<li><code>POS</code>: Change <a href="interface.htm#ego">ego</a>'s position (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then <a href="..\commands\cmd_repositionto.htm"><b>reposition.to</b></a>)
+				<li><code>COORDINATES</code>: Display <a href="interface.htm#ego">ego</a>'s current screen coordinates (by using <a href="..\commands\cmd_getposn.htm"><b>get.posn</b></a>)</li>
+				<li><code>OBJECT</code>: Display <a href="screenobjs.htm">screen object</a> information (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then <a href="..\commands\cmd_objstatusv.htm"><b>object.status.v</b></a>)</li>
+				<li><code>OBJECT ROOM</code>: Display which <a href="pictures.htm#room">room</a> an object is found in (by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then <a href="..\commands\cmd_getroomv.htm"><b>get.room.v</b></a>)</li>
+				<li><code>LOG</code>: Write text to the log file (using the <a href="..\commands\cmd_log.htm"><b>log</b></a> command)
+				<li><code>SET PRIORITY</code>: Set the priority of <a href="interface.htm#ego">ego</a> by using <a href="..\commands\cmd_getnum.htm"><b>get.number</b></a>, and then <a href="..\commands\cmd_setpriorityv.htm"><b>set.priority.v</b></a>)</li>
+				<li><code>RELEASE PRIORITY</code>: Restore <a href="interface.htm#ego">ego</a> priority to automatic, based on position</li>
+			</ul></ul>
+			<p>WinAGI includes a debug logic in its template game that includes these basic debug functions.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

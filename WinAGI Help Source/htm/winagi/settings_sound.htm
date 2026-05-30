@@ -1,0 +1,55 @@
+<html>
+	<head><title>Sound Settings</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Sound Settings</h1>
+			<map name="settings">
+				<area shape="rect" alt="General Settings" coords="12,41,65,61" href="settings_general.htm">
+				<area shape="rect" alt="Logic Settings" coords="66,41,111,61" href="settings_logic.htm">
+				<area shape="rect" alt="Logic(2) Settings" coords="112,41,174,61" href="settings_logic2.htm">
+				<area shape="rect" alt="Picture Settings" coords="175,41,228,61" href="settings_picture.htm">
+				<area shape="rect" alt="View Settings" coords="280,41,327,61" href="settings_view.htm">
+				<area shape="rect" alt="Layout Settings" coords="328,41,374,61" href="settings_layout.htm">
+				<area shape="rect" alt="Default Scale" coords="30,81,240,170" href="#zoom">
+				<area shape="rect" alt="Default Playback Mode" coords="212,81,466,170" href="#playback">
+				<area shape="rect" alt="Reset All Sound Properties" coords="46,341,180,363" href="#resetinst">
+				<area shape="rect" alt="Default Track Settings" coords="30,187,466,369" href="#definst">
+				<area shape="rect" alt="Show Keyboard" coords="39,379,140,391" href="#keyboard">
+				<area shape="rect" alt="Disable Keyboard Sound" coords="39,404,186,416" href="#disablekybd">
+				<area shape="rect" alt="Notes as Bitmaps" coords="237,379,262,433" href="#notebitmaps">
+				<area shape="rect" alt="Maximize Selected Track" coords="237,404,252,384" href="#seltrackvis">
+			</map>
+			<p><img src="..\..\graphics\settings-sound.jpg" usemap="#settings" border="0" width="500"></p>
+		<h2><a name="zoom">Default Scale</a></h2>
+			<p>You can set the default scale factor for the <a href="editor_sound.htm#staves">staff display area</a> when a <a href="editor_sound.htm">sound editor</a> is first opened. The minimum is one; the maximum is three.</p>
+			<p>&nbsp;</p>
+		<h2><a name="playback">Default Playback Mode</a></h2>
+		  <p>WinAGI provides two options for playing sounds: a <a href="..\agi\sounds.htm#pcjr">PCJr</a> sound chip emulator, and a MIDI conversion. (The PC Speaker emulator is currently not available; using the PCJr mode, with tracks 1, 2 and noise muted provides a close approximation.) When previewing sounds, or when opening a sound for editing, the Playback mode is set to the default value. You can still change the playback mode after the sound is loaded.</p>
+		  <p>&nbsp;</p>
+		<h2><a name="definst">Default Track Settings for MIDI Playback</a></h2>
+			<p>When <a href="..\agi\sounds.htm">sounds</a> are created, or opened for the first time, they are given instrument settings that will apply when the playback mode is set to MIDI. With these settings you can assign the default instrument to play for each track and whether or not to mute the track. When a sound is opened for editing, you can make adjustments to instrument and mute properties as needed.</p>
+		<h3><a name="resetinst">Reset All Sound Properties</a></h3>
+			<p>Click this button to update all instrument and mute property values for all sounds in a game to match the currently selected default values.</p>
+			<p>&nbsp;</p>
+			<p><b>NOTE</b>: The Instrument and Mute properties are a WinAGI feature you can use to play back sounds in WinAGI; they are not used when you play a game using AGI or any other interpreter program.</p>
+			<p>&nbsp;</p>
+		<h2><a name="keyboard">Show Keyboard</a></h2>
+			<p>Use this option to control whether the <a href="editor_sound.htm#keyboard">virtual keyboard</a> is visible when a <a href="editor_sound.htm">sound editor</a> is opened.</p>
+			<p>&nbsp;</p>
+		<h2><a name="disablekybd">Disable Keyboard Sound</a></h2>
+			<p>Normally when a key is pressed on the virtual keyboard, the key's tone is played, providing audible feedback. In some situations the playback can be choppy, or you may not want the tone at all. Setting this option disables the virtual keyboard sound- no tone plays when keys are pressed on the virtual keyboard.</p>
+			<p>&nbsp;</p>
+		<h2><a name="notebitmaps">Show Notes as Bitmaps</a></h2>
+			<p>When enabled, notes that have a duration that exactly matches a standard note length (whole, half, quarter, etc.) will be drawn as a bitmap representing the note. When disabled, all notes, regardless of note length, are drawn as rectangles, with the rectangle's width equal to the note's length.</p>
+			<p>&nbsp;</p>
+		<h2><a name="seltrackvis">Maximize Selected Track</a></h2>
+			<p>When this option is enabled, the default state when opening a <a href="editor_sound.htm#onetrack">sound editor</a> is to only display the <a href="editor_sound.htm#staves">staff</a> for the the <a href="editor_sound.htm#notelist">currently selected track</a>. All other tracks are hidden, and all tracks' Visible property is ignored. This can be useful if you have a smaller display, such as a laptop, by reducing clutter as you are working on your <a href="..\agi\sounds.htm">sound resource</a>.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

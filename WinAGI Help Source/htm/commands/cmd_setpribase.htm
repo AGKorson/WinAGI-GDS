@@ -1,0 +1,41 @@
+<html>
+	<head><title>Action Command: set.pri.base</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>set.pri.base</h1>
+			<p>The <b>set.pri.base</b> command adjusts the size of the priority bands on the priority screen.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.pri.base(<a href="syntax_fan.htm#argtypes">byt</a> A);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command adjusts the size of the <a href="..\agi\grafdisp.htm#bands">priority bands</a>. The height of the base band (priority = 4)  is set to A. All other bands from 5 to 14 are then spaced evenly over the remaining area of the screen.</p>
+			<p>The default height of the base band when AGI starts is 48 (pixel rows 0 - 47). This arrangement works for most <a href="..\agi\pictures.htm#room">rooms</a> to simulate a 3-D screen, but if you have a room with a more complex perspectives, the <b>set.pri.base</b> command can be helpful.</p>
+			<p>Do not use a value greater than 158, otherwise some priority bands will be missing from the screen due to the way that AGI calculates the bands. If you use a value greater than 166, then the entire screen will be priority 4, regardless of objects' position.</p>
+			<p>This command initially included a bug in the code that determines the virtual Y value for <a href="object_priority.htm#fixed">fixed priority</a> objects so the object would always draw on top of other objects with the same priority. The error only shows up when using a custom priority base with an object that has a fixed priority and another object without fixed priority is in the same priority band. The bug was fixed in <a href="..\agi\version3.htm#3002098">version 3.002.098</a>.</p>
+
+
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>set.pri.base(60);</b> [ this widens the base band by 12 pixels</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 2.936 and above.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">174 (0xAE)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_objs-views.htm">Screen Object/View Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

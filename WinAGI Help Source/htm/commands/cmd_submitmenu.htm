@@ -1,0 +1,58 @@
+<html>
+	<head><title>Action Command: submit.menu</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>submit.menu</h1>
+		<p>The <b>submit.menu</b> command enables the use of <a href="..\agi\menu.htm">menus</a> after they have been created with the <a href="cmd_setmenu.htm"><b>set.menu</b></a> and <a href="cmd_setmenuitem.htm"><b>set.menu.item</b></a> commands.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>submit.menu();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command commits a previously created menu system to memory by setting the the <a href="..\agi\memory.htm#room0">room.0</a> memory pointer. When the menu system is submitted, AGI sets the first item of the first menu to the current item.</p>
+			<p>Do NOT call this command until a menu system has been created. If called without first creating a menu, AGI will point to an invalid memory address and <a href="..\agi\errors.htm">crash AGI</a> if you later try to access the menu with the <a href="cmd_menuinput.htm"><b>menu.input</b></a> command.</p>
+			<p>Once a menu system has been submitted, it cannot be modified. No menus or menu items can be added, modified or deleted. Future calls to <b>submit.menu</b> are ignored if a menu has already been submitted.</p>
+			<p>Do NOT call <b>submit.menu</b> more than once. AGI does not check if a menu has already been submitted when the command runs, and it will reset the <a href="..\agi\memory.htm#room0">room.0</a> memory pointer again, which will waste memory, and could lead to memory overflow.</p>
+			<p>See the <a href="..\agi\menu.htm">Menus in AGI</a> topic for additional information on how menus work in AGI.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ build a simple menu system
+set.menu("Info");
+set.menu.item("About   ", c0);
+set.menu.item("Help    ", c1);
+set.menu("File");
+set.menu.item("Save Game      &lt;F5&gt;", c2);
+set.menu.item("Restore Game   &lt;F7&gt;", c3);
+set.menu.item("-------------------", c20);
+set.menu.item("Restart Game   &lt;F9&gt;", c4);
+set.menu.item("-------------------", c20);
+set.menu.item("Quit        &lt;Alt Z&gt;", c5);
+[ disable the separators
+disable.item(c20);
+
+[ submit menu to agi
+<b>submit.menu();</b></code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in version 2.411 and above.</p>
+		<p>This command was actually added in <a href="..\agi\versions.htm">version 2.272</a>, but it did not do anything - it was a null function. Code to support menus was not added to the command until version 2.411.</p> 
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">158 (0x9E)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_input.htm">Player Input Commands</a></p>
+			<p><a href="cmd_menuinput.htm"><b>menu.input</b></a></p>
+			<p><a href="..\agi\menu.htm">Menus in AGI</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

@@ -1,0 +1,64 @@
+<html>
+	<head><title>Reserved Variable v20</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>v20: Machine Type</h1>
+			<p>When AGI loads, it does a system check to determine which computer type is running. Variable v20 is then set to match, according to the following table:</p>
+			<blockquote>
+			<p>
+				<table id="tblComp" cellSpacing="1" cellPadding="1" width="500" border="1">
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1"><b>Value</b></td>
+						<td><b>Computer Type</b></td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">0</td>
+						<td>IBM PC compatibles</td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">1</td>
+						<td>IBM PCJr</td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">2</td>
+						<td>Tandy 1000</td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">3</td>
+						<td>Apple IIe, IIc</td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">4</td>
+						<td>Atari ST</td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">5</td>
+						<td>Amiga</td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">6</td>
+						<td>Macintosh</td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">7</td>
+						<td>Cortland<b>*</b></td>
+					</tr>
+					<tr>
+						<td width="100" align="middle" colSpan="1" rowSpan="1">8<b>*</b></td>
+						<td>PS/2</td>
+					</tr>
+				</table>
+			</p>
+			</blockquote>
+			<p>Values for non-MSDOS platforms are based on original Sierra source code, with the exception of the PS/2, which was taken from an early version of fan-based AGI specifications (and has not been independently verified).</p>
+			<p> The machine type 7 was called 'Cortland' in original Sierra source code, but was marked with a question mark. Cortland was a pre-release development name of the system later named the Apple IIgs.</p>
+			<p>There are some very old references to a value of 20 as 'Amiga (OLD)', including a note in SCUMMVM calling it a rarely used old value for Amiga. This has recently been determined to be inaccurate - all known Amiga releases use a value of 5.</p>
+			<p>The computer type variable was often used in original Sierra games to provide customized features unique to a specific computer. AGI maintains an internal copy of computer type value that it uses. So as long as your code does not need to know the computer type, using v20 for another purpose does not cause problems in AGI. Just be aware that every time the <a href="..\commands\cmd_restoregame.htm"><b>restore.game</b></a> command is called, AGI resets the value of v20 to the current computer type.</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

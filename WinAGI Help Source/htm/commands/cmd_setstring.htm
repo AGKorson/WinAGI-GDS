@@ -1,0 +1,43 @@
+<html>
+	<head><title>Action Command: set.string</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>set.string</h1>
+			<p>The <b>set.string</b> command assigns the text of a message to a string.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.string(<a href="syntax_fan.htm#argtypes">str</a> sA, <a href="syntax_fan.htm#argtypes">msg</a> mB);</p>
+			<p>set.string(<a href="syntax_fan.htm#argtypes">str</a> sA, "message text");</p>
+			<p>sA = mB;</p>
+			<p>sA = "message text";</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p><a href="..\agi\strings.htm">Strings</a> are limited to 40 characters (including the null terminator). If the message text is longer than 39 characters, the string only uses the first 39 and adds a null terminator. This is one of the few situations where AGI actually checks and prevents buffer overflow.</p>
+			<p>The number of strings available in AGI is 24 (s0 - s23), except for <a href="..\agi\versions.htm">versions</a> 2.089, 2.272 and 3.002.149, which have a limit of 12 (s0 - s11).</p>
+			<p>The very first string (s0) is <a href="..\agi\strings.htm#prompt">reserved</a> by AGI as the player <a href="..\agi\keyboard.htm#prompt">input prompt</a>.</p>
+			<p>AGI does not check that sA is a valid string. If a value greater than the limit is used, AGI will write over areas of memory that contains game state data and the main program executable code. This will almost certainly <a href="..\agi\errors.htm">crash AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code><b>set.string(s5, "a sample message");</b>
+s5 = "another sample message";</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">114 (0x72)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_strings.htm">String Commands</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

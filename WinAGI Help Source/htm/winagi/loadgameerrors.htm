@@ -1,0 +1,77 @@
+<html>
+  <head><title>Load Game Errors</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body><a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+      </tr>
+    </table>
+      <h2>Load Game Errors</h2>
+      <p>If WinAGI is unable to open or import a game, it will display an error message indicating the reason the game failed to open. Additional information on each specific error is provided below.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+
+      <h3><a name="err506">506: This AGI version is not supported by WinAGI</a></h3>
+      <p class="indent_n">There were only nineteen minor version numbers of AGI; fourteen in <a href="..\agi\version2.htm">version 2</a> and five  in <a href="..\agi\version3.htm">version 3</a> released by Sierra. If the minor version for the <a href="prop_general.htm#intversion">target interpreter version</a> found in this <a href="properties.htm">game's property file</a> is not one of these versions, this error is raised. This can only happen if the file was edited manually outside of WinAGI or is corrupt. You will need to re-edit the file to change it to a supported version.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err506">507: UNHANDLED ERROR &lt;number &gt;: &lt;errormsg &gt;\n\n" +&lt;stacktrace &gt;</a></h3>
+      <p class="indent_n">This error indicates an error occurred that WinAGI did not anticipate. It may indicate a possible bug in WinAGI. The error number and message, along with the stack information should provide information on how to address the problem, or you can <a href="https://github.com/AGKorson/WinAGI-GDS/issues" target="_blank">leave a comment</a> on the WinAGI github page.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err518">518: Incompatible AGI version: WinAGI only works with versions 2 and 3</a></h3>
+      <p class="indent_n">WinAGI only supports <a href="..\agi\version2.htm">version 2</a> or <a href="..\agi\version3.htm">version 3</a> AGI games. If the <a href="prop_general.htm#intversion">target interpreter version</a> found in this <a href="properties.htm">game's property file</a> is not 2 or 3, this error is raised. This can only happen if the file was edited manually outside of WinAGI or is corrupt. You will need to re-edit the file to change it to a supported version.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err527">directory '&lt;directoryname &gt;' has no wag files</a></h3>
+      <p class="indent_n">This error indicates that WinAGI did not find a valid WinAGI game file in the specified directory. Check for the correct location of the game you want to open and try again.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err533">533: Unable to copy template files to game directory due to error: &lt;directoryname &gt;</a></h3>
+      <p class="indent_n">This error indicates WinAGI encountered an error when trying to copy the template files from the template directory to the new game directory. The error number and message should provide information you can use to address the problem.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err534">534: Unable to open the newly created game due to error: &lt;errinfo&gt;</a></h3>
+      <p class="indent_n">After creating a new game, WinAGI automatically opens it for editing. If an error was encountered while trying to open the new game, this error is raised. The error number and message should provide information you can use to address the problem.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+     <h3><a name="err535">535: Can't create new game in a directory that already has a wag file</a></h3>
+      <p class="indent_n">This error is raised if the new game directory already has a WinAGI game file in it. You will need to choose a directory that does not have an existing game file as your new game directory.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err536">536: Can't create new game in a directory that already has AGI game files</a></h3>
+      <p class="indent_n">This error is raised if the new game directory already has a AGI game files (VOL and DIR files) in it. You will need to choose a directory that does not have an existing game as your new game directory.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err543">543: multiple WAG files found</a></h3>
+      <p class="indent_n">This error is raised if a template game folder has more than one WinAGI game files in it. You will need to remove the extra game files so there is only one if you want to use this template.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err544">544: template is missing resource directory</a></h3>
+      <p class="indent_n">This error is raised if the template directory does not include a valid resource directory. Either edit the template game so it is correctly configured, or choose a different template.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err545">545: Unable to move resource directory (&lt;dirname &gt;)</a></h3>
+      <p class="indent_n">If WinAGI encounters an error when attempting to copy the resource directory from the template to a new game, this error is raised. The error number and message should provide information you can use to address the problem.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err547">547: Error accessing wag file (&lt;filename &gt;)</a></h3>
+      <p class="indent_n">This error indicates WinAGI encountered an error when trying to read data from the <a href="properties.htm">game property file</a>. The error number and message should provide information you can use to address the problem.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err548">548: Unsupported WinAGI version in template</a></h3>
+      <p class="indent_n">Template games must be WinAGI version 3. This error indicates the <a href="templates.htm">template game</a> you are trying to use is from an earlier version of WinAGI. If you want to use this game as a template, you will need to open it and upgrade it to WinAGI version 3.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+
+      <h3><a name="err547">549: Invalid WinAGI version in template</a></h3>
+      <p class="indent_n">This error indicates the WinAGI version in the <a href="templates.htm">template's</a> <a href="properties.htm">game property file</a> is not the current version (3) or an earlier version that needs to be upgraded. It most likely indicates the game file is corrupted, or is not an actual WinAGI game file. You will need to address the problem with the game file if you want to use this template.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+
+
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

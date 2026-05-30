@@ -1,0 +1,92 @@
+<html>
+	<head><title>SOUND Resources</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+      </tr>
+    </table>
+    <h1>SOUND Resources<a name="res_sound"></a></h1>
+    <p>Each sound resource contains a five byte (7 byte in the case of version 3 games) <a href="resources.htm#headers">header</a>.</p>
+    <p>The sound specific data follow the header, which varied depending on which <a href="overview.htm#platforms">platform</a> the resource was intended for. MS DOS and PCJr sounds used a format that matched PCjr hardware. Apple IIgs sounds used customized <a href="#pcm">wave</a> and <a href="#midi">midi</a> formats.</p>
+    <p>&nbsp;</p>
+    <h2><a name="pcjr">PC/PCJr Based SOUND Resource Format</a></h2>
+    <p>The format of SOUND resources in the MSDOS version of AGI is based on the sound chip in the IBM PCJr. AGI sounds contain four tracks - three tone tracks and one noise track. Details on how sound is actually generated in AGI games can be found in the <a href="agisound.htm">AGI Sound System</a> topic.</p>
+    <p>The sound specific data follow the header, which consists of an eight byte sound channel header, and four tracks of sound data. Each track contains a series of five-byte notes, and each track is terminated by two consecutive 0xFF byte codes. Figure 1 shows how the sound components are arranged in the view resource.</p>
+    <p><img alt="Sound Resource Layout" src="..\..\graphics\soundres.bmp" width="505"></p>
+    <p><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Figure 1: Sound Resource Layout</b></p>
+    <p>&nbsp;</p>
+    <p>
+      The sound header is used by AGI to determine where each track begins. The format is shown below:
+      <blockquote>
+        <p>
+          <table id="Table2" cellSpacing="1" cellPadding="1" width="560" border="1">
+            <tr>
+              <td align="middle" width="80"><b>Byte</b></td>
+              <td><b>&nbsp;Meaning</b></td>
+            </tr>
+            <tr>
+              <td align="middle" width="80" style="vertical-align:middle">0 - 1</td>
+              <td>&nbsp;Offset to first tone track</td>
+            </tr>
+            <tr>
+              <td align="middle" width="80" style="vertical-align:middle">2 - 3</td>
+              <td>&nbsp;Offset to second tone track</td>
+            </tr>
+            <tr>
+              <td align="middle" width="80" style="vertical-align:middle">4 - 5</td>
+              <td>&nbsp;Offset to third tone track</td>
+            </tr>
+            <tr>
+              <td align="middle" width="80" style="vertical-align:middle">6 - 7</td>
+              <td>&nbsp;Offset to noise track</td>
+            </tr>
+          </table>
+        </p>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p>The data in each track are stored as 5-byte notes which contains duration, frequency and attenuation (volume) data:</p>
+    <blockquote>
+      <p>
+        <table id="Table3" cellSpacing="1" cellPadding="1" width="560" border="1">
+          <tr>
+            <td align="middle" width="80"><b>Byte</b></td>
+            <td><b>&nbsp;Meaning</b></td>
+          </tr>
+          <tr>
+            <td align="middle" width="80" style="vertical-align:middle">0 - 1</td>
+            <td>&nbsp;note duration (little-endian 16 bit word) in 1/60th second increments</td>
+          </tr>
+          <tr>
+            <td align="middle" width="80" style="vertical-align:middle">2 - 3</td>
+            <td>&nbsp;frequency data (little-endian 16 bit word)</td>
+          </tr>
+          <tr>
+            <td align="middle" width="80" style="vertical-align:middle">4</td>
+            <td>&nbsp;attenuation</td>
+          </tr>
+        </table>
+      </p>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p><a name="duration">The first two bytes</a> are the duration as a 16 bit word, in 1/60th second increments. A duration value of 0xffff indicates end of track data.</p>
+    <p>The third, fourth and fifth bytes of each note are formatted as described in the <a href="agisound.htm#tone">PCJr sound format</a>. This made it easy to create sound on the PCJr because the bytes could be sent directly to the SN76496A sound generator chip. The two frequency bytes are stored in litle-endian format, meaning the second byte of frequency data actually comes before the first byte in the note data field.</p>
+    <p>Sierra chose to keep this same format for storing note data on PC/MSDOS systems as well.</p>
+    <p>Although all four channels of data are present in sound resources that are part of MSDOS games, only the first channel is used, played through the onboard PC speaker. The PC speaker also only had one volume level, so the attenuation values in sound resources (and the global <a href="v23.htm">reserved variable v23</a>) are ignored and have no effect.</p>
+    <p>&nbsp;</p>
+    <h2>Apple IIgs Based SOUND Resource Format</h2>
+    <p>Apple IIgs sound resources start with the same five byte (7 byte in the case of version 3 games) <a href="resources.htm#headers">header</a>. A variable-length IIgs specific header follows, then the sound data. The header is either 54 bytes (for PCM digital sound samples) or 2 bytes (for MIDI sound).</p>
+    <h3><a name="pcm">IIgs PCM Digital Sound Sample</a></h3>
+    <p>Pulse Code Modulation (PCM) is the method used to convert analog sound waveforms into digital signal. The digital data represents the amplitude of the analog wave at intervals defined by the sampling frequency. All Apple IIgs PCM sounds appear to use single channel, 8 bits per sample, with a sampling rate of 8,000 Hz, which provides audio performance similar to old-style analog telephones.</p>
+    <p>The first two bytes of the PCM header is always the integer value 0x0001. Bytes 8 and 9 contain the size of the data sample. The function of the rest of the data in the header is not known; most of the header appears to be identical for all resources. After the header, the raw PCM data follow, terminated with a single 0x00 byte.</p>
+    <h3><a name="midi">IIgs MIDI Sounds</a></h3>
+    <p>MIDI sound resources for IIgs are just a raw dump of MIDI data, with a single two-byte header. The value of the header is always 0x0002 to indicate a MIDI sound resource.</p>
+    <p>The MIDI data appears to be mostly fully compliant with modern MIDI formatting, but there are a few nuances. The resources always begin with program assignments (using message '0xC#') and optionally channel volumes (message '0xB#'). Although the time value of MIDI events is normally passed as a 'delta' value (meaning values greater than 127 get split up into multiple bytes), it appears that IIgs MIDI always used a single byte, even for values greater than 127.</p>
+    <p>The resources always seem to be terminated with MIDI code '0xFC' (stop sequence). In some cases, the resources include multiple '0xFC' messages, with extra data that follows, but this data appears to be unused data; the sounds always seem to stop at the first '0xFC' message.</p>
+    <p>In most Sierra IIgs games, there seem to be large number of 'null' resources that are never referenced in logics. Most of these null sounds consist of only four '0xFC' message bytes with no other data.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

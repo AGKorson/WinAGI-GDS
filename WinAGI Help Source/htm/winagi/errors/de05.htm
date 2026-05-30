@@ -1,0 +1,18 @@
+<html>
+    <head><title>Logic Source Decompiler Error DE05</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Error DE05</h2>
+      <h3>Destination for '<code>goto</code>' at resource index &lt;pos&gt; is past end of logic; adjusted to end</h3>
+      <p class="indent_n">This warning is similar to warning DC08, with the difference being that the problem is associated with a <a href="..\..\agi\logics.htm#elseandgoto">goto</a> <a href="..\..\agi\logics.htm#commands">byte code</a> instead of being in an <a href="..\..\agi\logics.htm#ifelse">if-block</a>. It is raised when a goto would jump to an invalid location past the end of the valid logic code, into the <a href="..\..\agi\logics.htm#messages">message section</a> or beyond.</p>
+      <p class="indent_n">This is likely due to a corrupt <a href="..\..\agi\logics.htm">logic</a> <a href="..\..\agi\resources.htm">resource</a>, or an error that existed in the original Sierra release disks. If it is an original error, it probably is in abandoned code that never gets run, otherwise the error would have been quickly identified.</p>
+      <p class="indent_n">You should confirm that the <a href="..\..\agi\vol.htm">VOL</a> file containing this logic is not corrupt. Regardless, you will need to carefully examine the decompiled source code, and adjust the code as necessary before recompiling.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

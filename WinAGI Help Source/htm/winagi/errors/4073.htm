@@ -1,0 +1,23 @@
+<html>
+	<head><title>Logic Compiler Error 4073</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4073</h2>
+    <h3>Invalid negative argument value</h3>
+    <p class="indent_n">WinAGI will automatically convert negative numbers into their corresponding unsigned 2's complement value. For example, '-1' is converted to '255', '-2' is converted to '254', and so on. Because all values in AGI are single bytes, negative values lower than '-128' are not allowed.</p>
+    <p class="indent_n">Negative values are only of practical use when using the <a href="..\..\commands\cmd_reposition.htm"><b>reposition</b></a> command. It is the only command in AGI that uses negative values.</p>
+    <blockquote>
+      <pre>v99 = -128; [ OK
+ v99 = -129; [ <font color="red"><b>NOT OK</b></font>; invalid negative value
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

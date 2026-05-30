@@ -1,0 +1,48 @@
+<html>
+	<head><title>Test Command: obj.in.room</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>obj.in.room</h1>
+			<p>The <b>obj.in.room</b> command returns TRUE if the specified inventory item's <a href="..\agi\pictures.htm#room">room</a> number is equal to the value of a given variable.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>obj.in.room(<a href="..\agi\object.htm">itm</a> iA, <a href="syntax_fan.htm#argtypes">var</a> vROOM)</p>
+			<p>obj.in.room("item", <a href="syntax_fan.htm#argtypes">var</a> vROOM)</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>Test commands are only valid in an <a href="..\agi\logics.htm#ifelse"><code><b>if</b></code></a> statement.</p>
+			<p>This test returns TRUE if inventory item <b>iA</b> is in the room specified by <a href="..\agi\variables.htm">variable</a> <b>vROOM</b>.</p>
+			<p>If you want to check if an item's <a href="..\agi\pictures.htm#room">room</a> <a href="..\agi\object.htm#objroomnum">number</a> is 255 (i.e. the item has been 'picked up' by the player), you can use the <b><a href="cmd_has.htm">has</a></b> command instead.</p>
+			<p>This test command can be combined with the '<a href="..\agi\logics.htm#not"><code><b>NOT</b></code></a>' operator to test if an inventory item is NOT in a specified room.</p>
+			<p>If the <a href="..\agi\invitems.htm">inventory item</a> is not valid (the number exceeds the total number of inventory items in the <a href="..\agi\object.htm">OBJECT</a> file), AGI will raise <a href="..\agi\errorlist.htm#trap23">trappable error #23</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>v99 = 25;
+if(<b>obj.in.room(i12, v99)</b>)
+  {
+  print("item 12 is in room 25");
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">10 (0x0A)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_test.htm">Test Commands</a>
+			</p>
+			<p><a href="cmds_invitems.htm">Inventory Item Commands</a></p>
+			<p><a href="cmd_has.htm"><b>has</b></a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

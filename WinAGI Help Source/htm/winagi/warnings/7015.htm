@@ -1,0 +1,26 @@
+<html>
+	<head><title>Logic Compiler Warning 7015</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7015</h2>
+    <h3>Character '\x1a' gets changed to '\xff' when added to literal string</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a> normally treats character '\x1a' as an <a href ="..\..\commands\syntax_sierra.htm#eofmarker">end-of-file (EOF) marker</a>. But if the character is inside a literal string, as in a <a href="..\..\commands\syntax_sierra.htm#message"><b>%message</b></a> declaration, it gets converted to '\xff', and does NOT end the file.</p>
+    <p class="indent_n">To maintain compatibility with CG.EXE, WinAGI will also replace '\x1a' with '\xff'.</p>
+      <blockquote>
+      <pre>[ '&rarr;' is the MSDOS glyph for character '\x1a'
+[ it may display differently depending on the editor's selected font
+
+%message 1 "AB&rarr;CD"  [ message 1 will be "AB" + '\xff' + "CD"
+...</pre>
+      </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

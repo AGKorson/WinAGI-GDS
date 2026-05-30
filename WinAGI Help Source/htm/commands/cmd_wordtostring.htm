@@ -1,0 +1,43 @@
+<html>
+	<head><title>Action Command: word.to.string</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>word.to.string</h1>
+		<p>The <b>word.to.string</b> command copies a player-entered word to a string.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>word.to.string(<a href="syntax_fan.htm#argtypes">str</a> sA, <a href="..\agi\words.htm">wrd</a> wB);</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This command copies the text of <a href="..\agi\pwords.htm">player word</a> wB into <a href="..\agi\strings.htm">string</a> sA. AGI treats words entered by the player as a zero-based array (i.e. w0 is first word, w1 is second word, etc.) However, when using the <a href="..\agi\messages.htm#wordcode">message special format code</a>, AGI treats '%w1' as the first word.</p>
+			<p>To minimize confusion when writing <a href="..\agi\logics.htm">logic</a> source code, the WinAGI compiler requires the word argument wB to be one-based, and automatically converts it to zero-based when generating the compiled code. So in the example below, w1 is first word ("look"), and w2 is the second word ("tree").</p>
+			<p>If the index of the <a href="..\agi\pwords.htm">player word</a> is not valid (for example, if the player only entered two words, and you use 'w3' as the argument value), AGI will read invalid data, resulting in meaningless output.</p>
+			<p>AGI does not check that a valid <a href="..\agi\strings.htm">string</a> argument is passed. If an invalid string number is used (the limit is 24 [s0 - s23], except for <a href="..\agi\versions.htm">versions</a> 2.089, 2.272 and 3.002.149, which have a limit of 12 [s0 - s11]) AGI will overwrite areas of memory used for other purposes, which may result in <a href="..\agi\errors.htm">crashing AGI</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ assume player enters "look tree", and both are valid AGI words
+<b>word.to.string(s1, w1);</b>  [ s1 now equals "look"
+word.to.string(s2, w2);  [ s2 now equals "tree"</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">116 (0x74)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_strings.htm">String Commands</a></p>
+			<p><a href="..\agi\pwords.htm">Player Entered Words Data Type</a></p>
+			<p><a href="..\agi\strings.htm">String Data Type</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

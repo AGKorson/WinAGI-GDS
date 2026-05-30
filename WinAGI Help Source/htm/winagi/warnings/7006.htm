@@ -1,0 +1,29 @@
+<html>
+	<head><title>Logic Compiler Warning 7006</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Warning 7006</h2>
+    <h3>Consecutive NOT operators (!) will toggle the NOT staus</h3>
+    <p class="indent_n"><b>Only applicable when using <a href="..\..\commands\syntax_sierra.htm">Sierra syntax</a>.</b></p>
+    <p class="indent_n">To maintain compatibility with Sierra's <a href="..\..\agi\logics.htm">logic</a> compiler <a href="..\..\commands\sierra_logiccompiler.htm">CG.EXE</a>, WinAGI allows multiple consecutive NOT operators in <a href="..\..\commands\syntax_sierra.htm#ifelse">if statements</a>.</p>
+    <p class="indent_n">CG.EXE compiles the extra NOT operators without error. For example:</p>
+      <blockquote><pre><code>SOURCE                 BYTE CODE
+if (isset(f85))        FF 07 55 FF
+if (!isset(f85))       FF FD 07 55 FF
+if (!!isset(f85))      FF FD FD 07 55 FF
+if (!!!isset(f85))     FF FD FD FD 07 55 FF</code></pre></blockquote>
+    <p class="indent_n">Each extra '0xFD' byte will toggle the NOT status; meaning two NOTs will result in the test passing if it is TRUE, three NOTs will pass if the test is FALSE, etc.</p>
+      <blockquote>
+      <pre>if (!!isset(f85))  [ same as 'if (isset(f85))'</pre>
+      </blockquote>
+    <p class="indent_n">The extra NOT operators are likely a syntax error, which may need to be fixed for your code to operate as you expect.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html> 

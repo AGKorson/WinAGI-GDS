@@ -1,0 +1,23 @@
+<html>
+	<head><title>Volume Files</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Volume Files</h1>
+			<p>VOL files (VOL is short for volume) act as virtual folders that hold AGI resources. There is no required order or sorting for resources stored in VOL files. Presumably, resources were stored in different VOL files to optimize calls to disk reading routines. Each VOL file contains a numeric value for the file extension to indicate the volume number (i.e. VOL.0, VOL.1, etc.)</p>
+			<p>Each time a resource needs to be loaded, AGI first checks to see if VOL 0 is open for file access. If not, AGI closes all open VOL files, then opens all VOL files in the current drive/directory. Then, if the target VOL file is not open AGI assumes the game is being run from floppy disks, and prompts the player to insert the disk that corresponds to the target VOL file.</p>
+			<p>VOL 0 was unique in that it was required to be included on each floppy disk. It was usually relatively small (tens of kilobytes). The rest of the disk space was used by the VOL number corresponding to the disk number.</p>
+			<p>When run from a hard drive, all VOL files are opened when <a href="logics.htm#logic0">logic 0</a> is loaded at <a href="starting.htm">game startup</a> so the disk swapping code never comes into play.</p> 
+		<h2>Version 2 VOL Files</h2>
+			<p><a name="limit">In version 2</a>, games were limited to a maximum of five VOL files (VOL.0 through VOL.4). AGI maintains an array of file pointers for VOL files that has room for ten file handles, but the function that loads the files only looks for files 0-4. Since most early AGI games were not large enough to need more than two or three VOL files, this never became an issue. If you create a game that tries to use a VOL file with a number greater than 4, your game will not run. Resources that have a DIR file entry point to VOL files numbered 5 through 9 will trigger an "insert the correct disk" message that can't be dismissed because of the default entries in the file pointer table; VOL file numbers above 9 will attempt to use an invalid file pointer, and will crash AGI.</p> 
+		<h2>Version 3 VOL Files</h2>
+			<p>For version 3 games, VOL file names had the <a href="components.htm#gameid">game ID</a> added to it (for example, Gold Rush! volume files were named 'GRVOL.0', 'GRVOL.1', etc.)</p>
+			<p>The VOL file limit was also raised to 16 (0-15). However, when running from floppy disks, AGI would only recognize volumes 1 through 8 as disk volumes (VOL 0 was still required on all floppies). Volumes numbered 9 or higher were treated as supplemental volumes, and were always found on a floppy with a VOL file numbered 8 or less.</p>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

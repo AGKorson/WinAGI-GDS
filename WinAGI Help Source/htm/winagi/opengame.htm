@@ -1,0 +1,28 @@
+<html>
+	<head><title>Opening Games in WinAGI</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Opening Games in WinAGI</h1>
+		<h2><a name="opening">Opening Games</a></h2>
+			<p>Use the Open Game menu command to open a WinAGI Game property file and its associated game files for editing. WinAGI expects to find the game's VOL and DIR files in the same directory as the WinAGI Game File (You can also open a game by double-clicking its game property file</a> in the Windows explorer.)</p>
+		<h3>Most Recently Used Files</h3>
+			<p>The last four games to be opened in WinAGI GDS are listed on the Games Menu. You can use these shortcuts to quickly load a recent game, without having to use the Game Open menu item.</p>
+			<p>You can also have WinAGI automatically open the last game you were working on the last time you closed WinAGI. You can enable or disable this feature by checking or clearing the "Open most recent game on startup" option on the <a href="settings_general.htm">General</a> tab of the <a href="settings.htm">Settings</a> window.</p>
+		<h3><a name="loaderrors">Game and Resource Errors and Warnings Check</a></h3>
+			<p>When a game is imported or opened, WinAGI does a full scan of the <a href="..\agi\dir.htm">directory</a> and <a href="..\agi\vol.htm">volume</a> files to confirm all <a href="..\agi\resources.htm">resources</a> are valid. If there are major errors, such as missing game files, or misconfigured game property file, the game will not load, and an error message will be displayed to explain the reason. If the game does load, minor resource errors will be displayed in the <a href="warninglist.htm">Warnings and Errors List</a>. Issues that are not errors but should still be addressed are displayed as warnings. A complete list of errors and warnings that WinAGI can detect in resource files is provided in the <a href="errors_resource.htm">Game and Resource Errors</a> and <a href="warnings_resource.htm">Game and Resource Warnings</a> topics.</p>
+			<p><a href="editor_logic.htm">Source code files</a> are also scanned to confirm there are no major errors. </p>
+			<p>&nbsp;</p>
+		<h2><a name="upgrade">Upgrading from Previous WinAGI Version</a></h2>
+			<p>Game files from version 2 of WinAGI are fully compatible with this new version. When first opened in WinAGI version 3, a version 2 <a href="properties.htm">game file</a> and all <a href="..\agi\logics.htm">logics</a> will be updated to include the additional features of WinAGI version 3.</p>
+			<p>In version 2, WinAGI used MSDOS character encoding for saved source files. Version 3 will convert the source code to use default Windows encoding, which makes the files more usable by outside editors and viewers.</p>
+			<p>In addition, all source files will be updated to add <a href="prop_general.htm#autoinclude">auto-include</a> statements. (WinAGI Version 2 did not use include files to manage <a href="managingresources.htm#resourceids">resource IDs</a>, <a href="reservednames.htm">reserved defines</a>, and <a href="editor_globals.htm">global defines</a>, which made them difficult to manage outside of WinAGI.)</p>
+
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

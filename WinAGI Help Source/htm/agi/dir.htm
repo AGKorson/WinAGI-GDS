@@ -1,0 +1,41 @@
+<html>
+	<head><title>Directory Files</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-agi.gif" width="460" height="72" border="0" alt="AGI Information"></td>
+			</tr>
+		</table>
+		<h1>Directory Files</h1>
+			<p>In order for AGI to know where in the <a href="vol.htm">VOL files</a> individual resources are stored, AGI games include directory files that contain pointers that specify the VOL file and location of each resource.</p>
+		<h3><a name="dir">Version 2 Directory Files</a></h3>
+			<p>In version 2 games, each resource type has its own directory, <code>logdir</code> for <a href="logics.htm">logics</a>, <code>picdir</code> for <a href="pictures.htm">pictures</a>, <code>snddir</code> for <a href="sounds.htm">sounds</a>, and <code>viewdir</code> for <a href="views.htm">views</a>.</p>
+			<p>Each directory file contains a series of three-byte entries for each resource. The size of the directory file can vary, but never be greater than 768 bytes (256 entries times three bytes per entry). Each 3-byte entry is of the following format:</p>
+			<p>&nbsp;</p>
+<p><blockquote><code><pre>    Byte 1           Byte 2           Byte 3
+7 6 5 4 3 2 1 0  7 6 5 4 3 2 1 0  7 6 5 4 3 2 1 0
+V V V V P P P P  P P P P P P P P  P P P P P P P P
+</pre></code></blockquote></p>
+			<p>&nbsp;</p>
+			<p>where V = VOL number and P = position (offset into VOL file).</p>
+			<p>The index of the entries corresponds to the number of a given resource. For example, if the following three byte entry is entry number 45 in the <font face="Courier New">snddir</font> directory file,</p>
+<p><blockquote><code><pre>12 3D FE
+</pre></code></blockquote>
+			<p>&nbsp;</p>
+			<p>then the sound resource with index number 45 is located at position 0x23DFE in the <code>VOL.1</code> file. In version 2, if the upper nibble of the first byte contains the value 0xF (i.e value is &gt;= 0xF0), then AGI assumes the resource does not exist. Although only the upper nibble of the first byte is checked, all version 2 Sierra games store 0xFF in all three bytes to indicate a non-existent resource.</p>
+			<p>Although the four-bit number field used in DIR files to identify the <a href="vol.htm">VOL file</a> number implied version 2 games could have up to 16 VOL files, AGI was actually limited to 5 VOL files; see the <a href="vol.htm#limit">VOL file limit</a> discussion for more information.</p> 
+		<h3>Version 3 Directory Files</h3>
+			<p>Version 3 games used a single, combined directory file, instead of four separate files. The directory filename, like version 3 VOL files, start with the <a href="components.htm#gameid">game's ID</a> followed by 'DIR', for example, 'GRDIR'.</p>
+			<p>This single file is basically the four version 2 files joined together, with an 8 byte header giving the position of each directory within the single file. There are two bytes that contain the offset in the directory file for the beginning section of each resource type in the directory file:</p>
+			<p><blockquote><code><pre>Byte 0 1 2 3 4 5 6 7
+     L L P P V V S S</pre></code></blockquote></p>
+			<p>&nbsp;</p>
+			<p>where LL = offset of <code>logdir</code>, PP = offset of <code>picdir</code>, VV = offset of <code>viewdir</code> and SS = offset of <code>snddir</code>.</p>
+			<p>Each offset is two bytes in length where the first byte is the low byte and the second byte is the high byte as is the case in the whole AGI system. For example, the first two bytes will always be 0x0800 since <code>logdir</code> immediately follows the header, which is a fixed size of eight bytes.</p>
+			<p>The format of each of the individual directory sections then follows as above for version 2 games. In version 3, AGI checks that all three bytes are 0xFF to identify invalid entries, instead of just checking the upper nibble of the first byte.</p>
+			<p>If the combined single directory file is not found when a version 3 interpreter loads a game, the interpreter will look for version 2 style directory files. There are no known version 3 games that used the separate directories, though.</p> 
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

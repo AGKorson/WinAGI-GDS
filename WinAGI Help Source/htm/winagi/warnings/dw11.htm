@@ -1,0 +1,19 @@
+<html>
+    <head><title>Logic Source Decompiler Warning DW11</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+    <body><a name="_top"></a>
+      <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+        <tr>
+          <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+        </tr>
+      </table>
+      <h2>Logic Source Decompiler Warning DW11</h2>
+      <h3>quit command at resource index &lt;pos&gt; coded with no argument</h3>
+      <p class="indent_n">This warning is raised when WinAGI determines that a quit command for a version that requires an argument is inside an if-block or else-block, but was compiled without including the extra command.</p>
+      <p class="indent_n">If WinAGI detects a mismatched <a href="..\..\agi\logics.htm#ifelse">block end</a> that is off by exactly one byte, and there is a <a href="..\..\commands\cmd_quit.htm"><b>quit</b></a> command inside the block, and the <a href="..\prop_general.htm#intversion">target interpreter version</a> requires an argument for the <b>quit</b> command, the decompiler assumes the mismatch is caused by the <b>quit</b> command missing its required argument.</p>
+      <p class="indent_n">There are several known cases of this exact problem happening in some Sierra games. The cause appears to be <a href="..\..\agi\logics.htm">logics</a> that were compiled for a version that has no arguments for the <a href="..\..\commands\cmd_quit.htm"><b>quit</b></a> command being added to a game using a newer interpreter without recompiling the logic.</p>
+      <p class="indent_n">WinAGI will add the missing argument to the <b>quit</b> command, but you should recompile the affected logic so it aligns with its target interpreter version.</p>
+      <p>&nbsp;</p>
+      <p align="right"><font size="1">v3.0.0</font></p>
+      <p>&nbsp;</p>
+    </body>
+</html>

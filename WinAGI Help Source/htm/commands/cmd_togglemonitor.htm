@@ -1,0 +1,40 @@
+<html>
+	<head><title>Action Command: toggle.monitor</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>toggle.monitor</h1>
+			<p>The <b>toggle.monitor</b> command switches between <a href="..\agi\graphics.htm#agicolors">CGA and RGB palettes</a> when running on a <a href="..\agi\graphics.htm#cga">CGA graphics card</a>.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>toggle.monitor();</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>This is only useful when AGI is running on a computer with a CGA graphics adapter (or AGI  has been <a href="..\agi\starting.htm">started</a> with the -C or -R <a href="..\agi\starting.htm#command">switches</a>). When used on non-PC systems or systems not using the CGA graphics adapter, AGI ignores this command. Curiously, AGI also ignores the <b>toggle.monitor</b> command if <a href="..\agi\variables.htm#reserved">reserved variable</a> <a href="..\agi\v0.htm">v0 (current room number)</a> equals zero.</p>
+			<p>On CGA displays, AGI supported two different <a href="..\agi\graphics.htm#agicolors">color palettes</a>. The <b>toggle.monitor</b> command swaps between the two CGA color palettes. In most Sierra games, a menu item was included (which would only be shown when running on a CGA graphics adapter) that would use the <b>toggle.monitor</b> command to switch between the two color palettes. It does not have much practical value any more, as these modes are rarely used in fan made AGI games.</p>
+		<h2>Example</h2>
+<pre><code>if(machineType == PC &amp;&amp; (monitorType == CGA || monitorType == RGB))
+  {
+  <b>toggle.monitor();</b>
+  }</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">140 (0x8C)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_system.htm">System Commands</a></p>
+			<p><a href="..\agi\graphics.htm">Graphics Display Modes</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

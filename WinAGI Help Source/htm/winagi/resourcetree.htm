@@ -1,0 +1,339 @@
+<html>
+	<head><title>Resource List</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+			</tr>
+		</table>
+		<h1>Resource List</h1>
+			<p>The Resource List is only available if a game is loaded. You can choose a list tree (which shows all resources in a hierarchical structure), a  list box  (which shows only the resources of a selected type) or no Resource List by changing the List Type option on the <a href="settings_general.htm">General</a> tab of the <a href="settings.htm">Settings</a> dialog.</p>
+			<p>The Resource List provides an easy way to manage the resources that exist in your game. The Resource List also includes a property window that displays a number of properties for the selected resource.</p>
+		<h2><a name="restree">Resource List Tree</a></h2>
+			<p><img src="..\..\graphics\restree.jpg" align="left" width="252">The tree option for the resource list uses a tree structure to display all resources in your game. The top level node represents the loaded game. Each resource type is represented by the second level of nodes. Individual resources of each type are represented as child nodes under each resource type node.</p>
+			<p>By default, the caption of each resource node is its <a href="managingresources.htm#resourceids">resource ID</a>. You can also include the resource number in the caption (see the <a href="settings_general.htm#includenum">General Settings</a> topic).</p>
+			<p>If you prefer not to use resource IDs in the list tree, you can select the Display Resources by Number option on the <a href="settings_general.htm">General</a> tab of the <a href="settings.htm">Settings</a> window. You can select the format of the displayed numbers as well.</p>
+			<p>When you select a node in the list tree, the property window will display the properties associated with the resource. For <a href="..\agi\logics.htm">logic</a> resources, if the source code has changed since the logic was last compiled, it will be displayed in the list tree with red text.</p>
+			<p>Selecting a resource will display it in the <a href="preview.htm">Preview Window</a>, if the Preview Window is visible. Properties of the selected resource are displayed in the property window just below the list tree. You can double-click a resource in the list tree to open it for editing. You can also right-click a resource to display a context menu that allows you to select a number of typical resource commands.</p>
+		<h2>Resource List Box</h2>
+			<p><img src="..\..\graphics\reslistbox.jpg" align="left" width="251">The list box option consists of a dropdown selection box, and a list box. In the dropdown selection box, you can choose the root level (by GameID), or one of the six main resource types.</p>
+			<p>For <a href="..\agi\logics.htm">Logics</a>, <a href="..\agi\pictures.htm">Pictures</a>, <a href="..\agi\sounds.htm">Sounds</a> and <a href="..\agi\views.htm">Views</a>, the list box is populated with all the resources of the chosen type.  As with the list tree, the resources can be displayed by <a href="managingresources.htm#resourceids">resource ID</a>, or by resource number. </p>
+			<p>Selecting a resource will display it in the <a href="preview.htm">Preview Window</a>, if the Preview Window is visible. Properties of the selected resource are displayed in the property window just below the list box. You can double-click a resource in the list box to open it for editing. You can also right-click a resource to display a context menu that allows you to select a number of typical resource commands.</p>
+		<h2><a name="navbar">Navigation Bar</a></h2>
+			<p>At the top of the resource list is the navigation bar. Each time you select a resource or header item in the resource list, that item is added to a stack that you can browse by clicking on the 'Back' and 'Forward' navigation buttons. This makes it very easy to quickly move back and forth among resources that you are working with.</p>
+			<p><img src="..\..\graphics\resnav.jpg" width="241"></p>
+			<p>To browse even faster through the list you can right-click and hold either navigation button to display a list of resources on the stack. Move the cursor up or down and the display will automatically scroll through the stack. Release the button on a resource to select it.</p> 
+		<h2><a name="propwindow">Property Window</a></h2>
+			<p>Properties associated with the resource currently selected in the resource tree are displayed in the property window. You can adjust the number of rows displayed by dragging the splitter bar between the property window and the resource tree. Some properties can be edited directly in the property window. Others are either read only properties, or can only be edited in a resource editor or the <a href="properties.htm">Game Properties</a> dialog.</p>
+			<p><img src="..\..\graphics\propgrid.jpg" width="250" border="1"></p>
+			<p>The following properties are displayed in the property window:</p>
+			<p>&nbsp;</p>
+			<p><a name="gameprop">When </a>the Game node is selected:</p>
+			<blockquote>
+			<table id="Table1" cellSpacing="1" cellPadding="1" width="700" border="1">
+				<tr>
+					<td width="150"><b>Property</b></td>
+					<td width="450"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">GameID</td>
+					<td width="450">See the  <a href="prop_general.htm#gameid">Game ID</a> property in the Game Properties topic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Designer</td>
+					<td width="450">See the <a href="prop_version.htm#designer">Designer</a> property in the Game Properties topic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">GameDir</td>
+					<td width="450">See the <a href="prop_general.htm#gamedir">Game Directory</a> property in the Game Properties topic.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">ResDir</td>
+					<td width="450">See the <a href="prop_general.htm#gamedir">Game Directory</a> property in the Game Properties topic. </td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">IntVer</td>
+					<td width="450">See the <a href="prop_general.htm#intversion">Target Interpreter Version</a> in the Game Properties topic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Description</td>
+					<td width="450">See the <a href="prop_version.htm#description">Game Description</a> property in the Game Properties topic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">GameVer</td>
+					<td width="450">See the <a href="prop_version.htm#gameversion">Game Version</a> property in the Game Properties topic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">GameAbout</td>
+					<td width="450">See the <a href="prop_version.htm#about">Game About</a> property in the Game Properties topic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">LayoutEditor</td>
+					<td width="450">Set this option to TRUE to use the <a href="editor_layout.htm">Layout Editor</a> to assist in setting up and modifying the relationships among the rooms in your game.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Last Date</td>
+					<td width="450">The date and time this game was last edited.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="hdrsprop">When</a> the Logics, Pictures, Sounds or Views header node is selected:</p>
+			<blockquote>
+			<table id="Table3" cellSpacing="1" cellPadding="1" width="700" border="1">
+				<tr>
+					<td width="150" style="vertical-align:middle"><b>Property</b></td>
+					<td width="450"><b>Description</b></td>
+					<td align="middle" style="vertical-align:middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Count</td>
+					<td width="450">The number of <a href="..\agi\pictures.htm">picture</a>, <a href="..\agi\sounds.htm">sound</a> or <a href="..\agi\views.htm">view</a> resources currently in 
+						the game. </td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="objprop">When </a>the OBJECT file node is selected:</p>
+			<blockquote>
+			<table id="Table4" cellSpacing="1" cellPadding="1" width="700" border="1">
+				<tr>
+					<td width="150"><b>Property</b></td>
+					<td width="450"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Obj Count</td>
+					<td width="450">The number of <a href="..\agi\invitems.htm">inventory items</a> in the game's <a href="..\agi\object.htm">OBJECT</a> file.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Description</td>
+					<td width="450">The <a href="managingresources.htm#descriptions">resource description</a>
+						for the OBJECT file.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Encrypted</td>
+					<td width="450"><a href="..\agi\encryption.htm">Encryption</a> state of the OBJECT file.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Max Obj</td>
+					<td width="450">The <a href="..\agi\screenobjs.htm#maxscreenobj">maximum number of <a href="..\agi\screenobjs.htm">screen objects</a> available for use in the game.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="wordsprop">When </a>the WORDS.TOK file node is selected:</p>
+			<blockquote>
+			<table id="Table5" cellSpacing="1" cellPadding="1" width="700" border="1">
+				<tr>
+					<td width="150"><b>Property</b></td>
+					<td width="450"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Group Count</td>
+					<td width="450">The number of word groups in the game's <a href="..\agi\words.htm">WORDS.TOK</a> file.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Word Count</td>
+					<td width="450">The total number of words in the game's WORDS.TOK file.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Description</td>
+					<td width="450">The <a href="managingresources.htm#descriptions">resource description</a> for WORDS.TOK file.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="logicprop">When </a>a logic resource node is selected:</p>
+			<blockquote>
+			<table id="Table6" cellSpacing="1" cellPadding="1" width="700" border="1">
+				<tr>
+					<td width="150"><b>Property</b></td>
+					<td width="450"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Number</td>
+					<td width="450">The <a href="managingresources.htm#resnum">resource number</a> for the selected <a href="..\agi\logics.htm">logic</a>.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">ID</td>
+					<td width="450">The <a href="managingresources.htm#resourceids">Resource ID</a> for the selected logic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Description</td>
+					<td width="450">The <a href="managingresources.htm#descriptions">resource description</a> for the selected logic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">IsRoom</td>
+					<td width="450">See the <a href="editor_layout.htm#isroom">IsRoom</a> property in the Layout Editor topic.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Compiled</td>
+					<td width="450">TRUE, if the source code has not been modified since it was last <a href="editor_logic.htm#compile">compiled</a>.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Volume</td>
+					<td width="450">The <a href="..\agi\vol.htm">VOL file</a> in which this resource is stored.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">LOC</td>
+					<td width="450">The byte offset position of this resource in its VOL file.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Size</td>
+					<td width="450">The size of this resource, in bytes.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">CodeSize</td>
+					<td width="450">The size of the logic's code section, not counting the <a href="..\agi\logics.htm#messages">message section</a>, in bytes.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="picsndprop">When </a>a picture or sound resource node is selected:</p>
+			<blockquote>
+			<table id="Table7" cellSpacing="1" cellPadding="1" width="700" border="1">
+				<tr>
+					<td width="150"><b>Property</b></td>
+					<td width="450"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Number</td>
+					<td width="450">The <a href="managingresources.htm#resnum">resource number</a> for the selected <a href="..\agi\pictures.htm">picture</a> or <a href="..\agi\sounds.htm">sound</a>.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">ID</td>
+					<td width="450">The <a href="managingresources.htm#resourceids">Resource ID</a> for the selected picture or sound.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Description</td>
+					<td width="450">The <a href="managingresources.htm#descriptions">resource description</a> for the selected picture or sound.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Volume</td>
+					<td width="450">The <a href="..\agi\vol.htm">VOL file</a> in which this resource is stored.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">LOC</td>
+					<td width="450">The byte offset position of this resource in its VOL file.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Size</td>
+					<td width="450">The size of this resource, in bytes.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="viewprop">When </a>a view resource node is selected:</p>
+			<blockquote>
+			<table id="Table8" cellSpacing="1" cellPadding="1" width="700" border="1">
+				<tr>
+					<td width="150"><b>Property</b></td>
+					<td width="450"><b>Description</b></td>
+					<td align="middle"><b>Read Only?</b></td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Number</td>
+					<td width="450">The <a href="managingresources.htm#resnum">resource number</a> for the selected <a href="..\agi\views.htm">view</a>.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">ID</td>
+					<td width="450">The <a href="managingresources.htm#resourceids">Resource ID</a> for the selected view.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Description</td>
+					<td width="450">The <a href="managingresources.htm#descriptions">resource description</a> for the selected view.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">View Desc</td>
+					<td width="450">The AGI <a href="..\agi\views.htm#viewdesc">view description</a>, if any, for this view.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Volume</td>
+					<td width="450">The <a href="..\agi\vol.htm">VOL file</a> in which this resource is stored.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">LOC</td>
+					<td width="450">The byte offset position of this resource in its VOL file.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle">Size</td>
+					<td width="450">The size of this resource, in bytes.</td>
+					<td align="middle" style="vertical-align:middle">Y</td>
+				</tr>
+			</table>
+			</blockquote>
+			<p>&nbsp;</p>
+			<p><a name="includeprop">When </a>the include header node is selected:</p>
+			<blockquote>
+			<table id="Table2" cellSpacing="1" cellPadding="1" width="700" border="1">
+				<tr>
+					<td width="150"><b>Property</b></td>
+					<td width="450"><b>Description</b></td>
+					<td align="middle"><b><b>Read Only</b>?</b></td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle"><a name="resnames">IncludeIDs</a></td>
+					<td width="450">True if <a href="managingresources.htm#resourceids">resource IDs</a> are <a href="prop_general.htm#autoinclude">automatically included</a> in logic source files.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle"><a name="resnames">IncludeReserved</a></td>
+					<td width="450">True if <a href="reservednames.htm">reserved variables and flags</a> are <a href="prop_general.htm#autoinclude">automatically included</a> in logic source files.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+				<tr>
+					<td width="150" style="vertical-align:middle"><a name="resnames">IncludeGlobals</a></td>
+					<td width="450">True if <a href="editor_globals.htm">global defines</a> are <a href="prop_general.htm#autoinclude">automatically included</a> in logic source files.</td>
+					<td align="middle" style="vertical-align:middle">N</td>
+				</tr>
+			</table>
+			</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

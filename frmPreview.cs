@@ -1,0 +1,2020 @@
+﻿using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Text;
+using System.Windows.Forms;
+using FastColoredTextBoxNS;
+using WinAGI.Engine;
+using static WinAGI.Common.Base;
+using static WinAGI.Editor.Base;
+using static WinAGI.Engine.AGIGame;
+using static WinAGI.Engine.AGIResType;
+using static WinAGI.Engine.Sound;
+
+namespace WinAGI.Editor {
+    public partial class frmPreview : Form {
+        #region Member Variables
+        private ComboBox[] cmbInst = new ComboBox[3];
+        private CheckBox[] chkTrack = new CheckBox[4];
+        const int MIN_HEIGHT = 100;
+        const int MIN_WIDTH = 100;
+
+        private int offsetX, offsetY;
+        private AGIResType prevResType;
+
+        private Logic agLogic;
+        private Picture agPic;
+        private double PicScale;
+        private bool DraggingPic;
+        private Sound agSound;
+        private long StartTime;
+        private Engine.View agView;
+        private int CurLoop, CurCel;
+        private int CelFrameW, CelFrameH;
+        public double ViewScale;
+        private bool DraggingView;
+        private int VertAlign, HorizontalAlign;
+        private bool IsTransparent = false;
+
+        // use local variables to hold visible status for scrollbars
+        // because their visible property remains false as long as
+        // the picturebox that holds them is false, even though they
+        // are set to true
+        const int PW_MARGIN = 4;
+
+        // StatusStrip Items
+        internal ToolStripStatusLabel spStatus;
+        internal ToolStripStatusLabel spCapsLock;
+        internal ToolStripStatusLabel spNumLock;
+        internal ToolStripStatusLabel spInsLock;
+        #endregion
+
+        public frmPreview() {
+            InitializeComponent();
+            InitStatusStrip();
+            // logic controls
+            rtfLogPrev.ShowLineNumbers = WinAGISettings.ShowLineNumbers.Value;
+            rtfLogPrev.Font = new Font(WinAGISettings.PreviewFontName.Value, WinAGISettings.PreviewFontSize.Value);
+            // picture controls
+            hsbPic.Minimum = -PW_MARGIN;
+            vsbPic.Minimum = -PW_MARGIN;
+            hsbPic.LargeChange = (int)(pnlPicture.Width * LG_SCROLL);
+            vsbPic.LargeChange = (int)(pnlPicImage.Height * LG_SCROLL);
+            hsbPic.SmallChange = (int)(pnlPicImage.Width * SM_SCROLL);
+            vsbPic.SmallChange = (int)(pnlPicImage.Height * SM_SCROLL);
+            hsbPic.Top = pnlPicImage.Height - hsbPic.Height;
+            vsbPic.Left = pnlPicImage.Width - vsbPic.Width;
+            fraPCorner.Width = vsbPic.Width;
+            fraPCorner.Left = vsbPic.Left;
+            fraPCorner.Height = hsbPic.Height;
+            fraPCorner.Top = hsbPic.Top;
+            SetPictureScale();
+            // sound controls
+            cmbInst[0] = cmbInst0;
+            cmbInst[1] = cmbInst1;
+            cmbInst[2] = cmbInst2;
+            chkTrack[0] = chkTrack0;
+            chkTrack[1] = chkTrack1;
+            chkTrack[2] = chkTrack2;
+            chkTrack[3] = chkTrack3;
+            for (int i = 0; i < 128; i++) {
+                cmbInst0.Items.Add(i + ": " + InstrumentName(i));
+                cmbInst1.Items.Add(i + ": " + InstrumentName(i));
+                cmbInst2.Items.Add(i + ": " + InstrumentName(i));
+            }
+            // view controls
+            tsViewPrev.ImageList = imageList1;
+            hsbView.LargeChange = (int)(pnlCel.Width * LG_SCROLL);
+            vsbView.LargeChange = (int)(pnlCel.Height * LG_SCROLL);
+            hsbView.SmallChange = (int)(pnlCel.Width * SM_SCROLL);
+            vsbView.SmallChange = (int)(pnlCel.Height * SM_SCROLL);
+            hsbView.Top = pnlCel.Height - hsbView.Height;
+            vsbView.Left = pnlCel.Width - vsbView.Width;
+            HorizontalAlign = WinAGISettings.ViewAlignH.Value;
+            VertAlign = WinAGISettings.ViewAlignV.Value;
+            fraVCorner.Width = vsbView.Width;
+            fraVCorner.Left = vsbView.Left;
+            fraVCorner.Height = hsbView.Height;
+            fraVCorner.Top = hsbView.Top;
+            VertAlign = 2;
+            SetViewScale();
+
+            cmbMotion.SelectedIndex = 0;
+            sldSpeed.Value = 5;
+            hsbView.Minimum = -PW_MARGIN;
+            vsbView.Minimum = -PW_MARGIN;
+
+            MdiParent = MDIMain;
+            SelResNum = -1;
+            PositionPreview();
+        }
+
+        #region Event Handlers
+        #region Form Event Handlers
+        private void frmPreview_Activated(object sender, EventArgs e) {
+            if (FindingForm.Visible) {
+                FindingForm.Visible = false;
+            }
+            if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
+                MDIMain.RefreshInfoGrid();
+            }
+        }
+
+        private void frmPreview_Deactivate(object sender, EventArgs e) {
+            // stop sound playback
+            if (SelResType == AGIResType.Sound) {
+                StopSoundPreview();
+            }
+            // stop cycling
+            if (tmrMotion.Enabled) {
+                // show play
+                tmrMotion.Enabled = false;
+                cmdVPlay.BackgroundImage = imageList1.Images[9];
+            }
+        }
+
+        private void frmPreview_KeyPress(object sender, KeyPressEventArgs e) {
+            KeyHandler(e);
+            e.Handled = true;
+        }
+
+        private void frmPreview_KeyDown(object sender, KeyEventArgs e) {
+            // check keys based on SHIFT/CTRL/ALT status:
+            if (!e.Shift && !e.Control && !e.Alt) {
+                // none (no SHIFT, CTRL, ALT)
+                switch (e.KeyCode) {
+                case Keys.Delete:
+                    // if a resource is selected
+                    switch (SelResType) {
+                    case AGIResType.Logic:
+                    case AGIResType.Picture:
+                    case AGIResType.Sound:
+                    case AGIResType.View:
+                        MDIMain.RemoveSelectedResource();
+                        e.Handled = true;
+                        break;
+                    case Include:
+                        // not reserved includes
+                        switch (EditGame.IncludeFiles[SelResNum].Type) {
+                        case IncludeType.Reserved:
+                        case IncludeType.ResourceIDs:
+                        case IncludeType.Globals:
+                            break;
+                        case IncludeType.Other:
+                        case IncludeType.Sysdefs:
+                        case IncludeType.Gamedefs:
+                            IncludeDefines.Remove(EditGame.IncludeFiles[SelResNum].Filename);
+                            EditGame.IncludeFiles.RemoveAt(SelResNum);
+                            MDIMain.RefreshIncludeList();
+                            break;
+                        }
+                        break;
+                    }
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                    break;
+                case Keys.F3:
+                    // nothing?
+                    break;
+                }
+            }
+            else if (e.Shift && e.Control && !e.Alt) {
+                // SHIFT + CTRL
+            }
+            else if (!e.Shift && e.Control && !e.Alt) {
+                // CTRL
+                switch (e.KeyCode) {
+                case Keys.F:
+                    if (SelResType == AGIResType.Logic ||
+                          SelResType == AGIResType.Picture ||
+                          SelResType == AGIResType.Sound ||
+                          SelResType == AGIResType.View) {
+                        // find this resid
+                        frmMDIMain.SearchForID();
+                    }
+                    e.Handled = true;
+                    break;
+                }
+            }
+        }
+
+        private void frmPreview_FormClosing(object sender, FormClosingEventArgs e) {
+            // ensure preview resources are cleared,
+            if (agLogic is not null) {
+                agLogic.Unload();
+                agLogic = null;
+            }
+
+            if (agPic is not null) {
+                agPic.Unload();
+                agPic = null;
+            }
+            if (agView is not null) {
+                agView.Unload();
+                agView = null;
+            }
+            if (agSound is not null) {
+                agSound.Unload();
+                agSound = null;
+            }
+            SavePreviewPos();
+        }
+
+        private void frmPreview_HelpRequested(object sender, HelpEventArgs hlpevent) {
+            ShowHelp();
+            hlpevent.Handled = true;
+        }
+
+        internal void SetResourceMenu() {
+            if (SelResNum == -1) {
+                mnuRExportGIF.Visible = false;
+                return;
+            }
+            switch (SelResType) {
+            case AGIResType.Picture:
+                bool err = EditGame.Pictures[SelResNum].Error != ResourceErrorType.NoError &&
+                    EditGame.Pictures[SelResNum].Error != ResourceErrorType.FileIsReadonly;
+                mnuRExportGIF.Text = "Export Picture As Animated GIF...";
+                mnuRExportGIF.Visible = true;
+                mnuRExportGIF.Enabled = !err;
+                break;
+            case AGIResType.View:
+                err = EditGame.Views[SelResNum].Error != ResourceErrorType.NoError &&
+                    EditGame.Views[SelResNum].Error != ResourceErrorType.FileIsReadonly;
+                mnuRExportGIF.Text = "Export Loop As Animated GIF...";
+                mnuRExportGIF.Visible = true;
+                mnuRExportGIF.Enabled = !err;
+                break;
+            default:
+                mnuRExportGIF.Visible = false;
+                break;
+            }
+        }
+
+        /// <summary>
+        /// Resets all resource menu items so shortcut keys can work correctly.
+        /// </summary>
+        internal void ResetResourceMenu() {
+            // currently, nothing to reset
+        }
+
+        private void mnuRExportGIF_Click(object sender, EventArgs e) {
+            switch (SelResType) {
+            case AGIResType.Picture:
+                if (EditGame.Pictures[SelResNum].Error == ResourceErrorType.NoError ||
+                    EditGame.Pictures[SelResNum].Error == ResourceErrorType.FileIsReadonly) {
+                    ExportPicAsGif(EditGame.Pictures[SelResNum]);
+                }
+                break;
+            case AGIResType.View:
+                if (EditGame.Views[SelResNum].Error == ResourceErrorType.NoError ||
+                    EditGame.Views[SelResNum].Error == ResourceErrorType.FileIsReadonly) {
+                    ExportLoopGIF(EditGame.Views[SelResNum], CurLoop);
+                }
+                break;
+            }
+        }
+        #endregion
+
+        #region Preview Logic Event Handlers
+        private void rtfLogPrev_DoubleClick(object sender, EventArgs e) {
+            if (SelResType == AGIResType.Logic) {
+                if (OpenGameLogic((byte)SelResNum)) {
+                    try {
+                        WinAGIFCTB fctb = ((frmLogicEdit)LogicEditors[LogicEditors.Count - 1]).fctb;
+                        Place start = new(0, rtfLogPrev.Selection.Start.iLine);
+                        fctb.Selection.Start = start;
+                        fctb.DoSelectionVisible();
+                    }
+                    catch {
+                        // ignore errors
+                    }
+                }
+            }
+            else {
+                OpenTextFile(EditGame.IncludeFiles[SelResNum].Filename);
+            }
+        }
+
+        private void rtfLogPrev_KeyDown(object sender, KeyEventArgs e) {
+            if (e.Handled == true) {
+                return;
+            }
+            switch (e.Modifiers) {
+            case Keys.None:
+                switch (e.KeyCode) {
+                case Keys.Delete:
+                    // it should be caught by Form_KeyDown
+                    // but just in case, ignore it
+                    e.Handled = true;
+                    break;
+                }
+                break;
+            case Keys.Alt:
+                // allow alt key combos
+                return;
+            }
+            e.Handled = true;
+        }
+
+        private void cmiSelectAll_Click(object sender, EventArgs e) {
+            rtfLogPrev.SelectAll();
+        }
+
+        private void cmiCopy_Click(object sender, EventArgs e) {
+            rtfLogPrev.Copy();
+        }
+
+        private void cmiLineNumbers_Click(object sender, EventArgs e) {
+            rtfLogPrev.ShowLineNumbers = !rtfLogPrev.ShowLineNumbers;
+            cmiLineNumbers.Text = (rtfLogPrev.ShowLineNumbers ? "Hide" : "Show") + " Line Numbers";
+        }
+        #endregion
+
+        #region Preview Picture Event Handlers
+        private void udPZoom_SelectedItemChanged(object sender, EventArgs e) {
+            if (imgPicture.Visible) {
+                double oldscale = 0;
+                Point cp = Cursor.Position;
+                if (pnlPicImage.ClientRectangle.Contains(pnlPicImage.PointToClient(cp))) {
+                    oldscale = PicScale;
+                }
+                // set zoom
+                PicScale = double.Parse(((string)udPZoom.SelectedItem)[..^1]) / 100;
+                // force update
+                DisplayPicture(oldscale);
+            }
+        }
+
+        private void optVisual_CheckedChanged(object sender, EventArgs e) {
+            // force a redraw
+            DisplayPicture();
+        }
+
+        private void pnlPicImage_Resize(object sender, EventArgs e) {
+            // position scrollbars
+            hsbPic.Width = pnlPicImage.Bounds.Width;
+            vsbPic.Height = pnlPicImage.Bounds.Height;
+            SetPScrollbars();
+        }
+
+        private void vsbPic_Scroll(object sender, ScrollEventArgs e) {
+            // position image
+            imgPicture.Top = -vsbPic.Value;
+        }
+
+        private void hsbPic_Scroll(object sender, ScrollEventArgs e) {
+            // position picture
+            imgPicture.Left = -hsbPic.Value;
+        }
+
+        private void imgPicture_DoubleClick(object sender, EventArgs e) {
+            // open picture for editing
+            OpenGamePicture((byte)SelResNum);
+        }
+
+        private void imgPicture_Validated(object sender, EventArgs e) {
+            Debug.Print("validate - did it work?");
+        }
+
+        private void imgPicture_MouseWheel(object sender, MouseEventArgs e) {
+            switch (e.Delta) {
+            case > 0:
+                // wheel down
+                if (udPZoom.SelectedIndex > 0) {
+                    udPZoom.SelectedIndex--;
+                }
+                break;
+            case < 0:
+                // wheel up
+                if (udPZoom.SelectedIndex < udPZoom.Items.Count - 1) {
+                    udPZoom.SelectedIndex++;
+                }
+                break;
+            }
+        }
+
+        private void imgPicture_MouseLeave(object sender, EventArgs e) {
+            if (this != MDIMain.ActiveMdiChild) {
+                return;
+            }
+            MainStatusBar.Items[nameof(spStatus)].Text = "";
+        }
+
+        private void imgPicture_MouseDown(object sender, MouseEventArgs e) {
+            // if either scrollbar is visible,
+            if (hsbPic.Visible || vsbPic.Visible) {
+                // set dragpic mode
+                DraggingPic = true;
+                // set pointer to custom
+                imgPicture.Cursor = Cursors.Hand;
+                // save x and Y offsets
+                offsetX = e.X;
+                offsetY = e.Y;
+            }
+        }
+
+        private void imgPicture_MouseUp(object sender, MouseEventArgs e) {
+            if (DraggingPic) {
+                // cancel dragmode
+                DraggingPic = false;
+                // reset cursor
+                imgPicture.Cursor = Cursors.Default;
+            }
+        }
+
+        private void imgPicture_MouseMove(object sender, MouseEventArgs e) {
+            if (PreviewWin != MDIMain.ActiveMdiChild) {
+                return;
+            }
+            // if left mouse button is down and either or both scrollbars are
+            // visible, scroll the image;
+            // if mouse button is up, show coordinates
+
+            if (e.Button == MouseButtons.Left) {
+                int tmpHVal = 0, tmpVVal = 0;
+                int DX = 0, DY = 0;
+
+                // if not active form
+                if (MDIMain.ActiveMdiChild != this) {
+                    return;
+                }
+
+                // if dragging picture
+                if (DraggingPic) {
+                    // always clear statusbar
+                    MainStatusBar.Items[nameof(spStatus)].Text = "";
+                    if (vsbPic.Visible) {
+                        // adjust scroll bars by amount of delta from 
+                        // starting offset (subract from scrollbar value, since
+                        // scrollbar value = - picture offset)
+                        tmpVVal = vsbPic.Value - (e.Y - offsetY);
+                        // limit to valid values
+                        if (tmpVVal < vsbPic.Minimum) {
+                            tmpVVal = vsbPic.Minimum;
+                        }
+                        else if (tmpVVal > (vsbPic.Maximum - vsbPic.LargeChange)) {
+                            tmpVVal = vsbPic.Maximum - vsbPic.LargeChange;
+                        }
+                        // adjust if it changed
+                        DY = tmpVVal - vsbPic.Value;
+                        if (DY != 0) {
+                            // set vertical scrollbar
+                            vsbPic.Value = tmpVVal;
+                        }
+                    }
+                    // repeat for horizontal scrollbar
+                    if (hsbPic.Visible) {
+                        tmpHVal = hsbPic.Value - (e.X - offsetX);
+                        // limit positions to valid values
+                        if (tmpHVal < hsbPic.Minimum) {
+                            tmpHVal = hsbPic.Minimum;
+                        }
+                        else if (tmpHVal > (hsbPic.Maximum - hsbPic.LargeChange)) {
+                            tmpHVal = hsbPic.Maximum - hsbPic.LargeChange;
+                        }
+                        DX = tmpHVal - hsbPic.Value;
+                        if (DX != 0) {
+                            // set horizontal scrollbar
+                            hsbPic.Value = tmpHVal;
+                        }
+                    }
+                    // move the image to this location
+                    if (DX != 0 || DY != 0) {
+                        imgPicture.Location = new Point(-tmpHVal, -tmpVVal);
+                    }
+                    // NEVER update offset; it's always relative to original starting point of the drag
+                }
+            }
+            else if (e.Button == MouseButtons.Right) {
+
+            }
+            else if (e.Button == MouseButtons.None) {
+                MainStatusBar.Items[nameof(spStatus)].Text = $"X: {(int)(e.X / 2 / PicScale)}    Y: {(int)(e.Y / PicScale)}";
+            }
+        }
+
+        #endregion
+
+        #region Preview Sound Event Handlers
+        private void btnPlay_Click(object sender, EventArgs e) {
+            // if nothing to play
+            if (agSound.Length == 0) {
+                // this could happen if the sound has no notes in any tracks
+                return;
+            }
+            // add hook to event handler
+            agSound.SoundComplete += This_SoundComplete;
+            btnStop.Enabled = true;
+            btnPlay.Enabled = false;
+            // disable other controls while sound is playing
+            SetMIDIControls(false);
+            try {
+                switch (agSound.SndFormat) {
+                case SoundFormat.AGI:
+                    // wav or midi, depending on button option
+                    agSound.PlaySound(optPCjr.Checked ? SoundPlaybackMode.WAV : SoundPlaybackMode.MIDI);
+                    break;
+                case SoundFormat.MIDI:
+                    // MIDI only
+                    agSound.PlaySound();
+                    break;
+                case SoundFormat.WAV:
+                    // WAV only
+                    agSound.PlaySound();
+                    break;
+                }
+            }
+            catch (Exception) {
+                tmrSound.Enabled = false;
+                // reset buttons
+                btnStop.Enabled = false;
+                picProgress.Width = 0;
+            }
+            // save current time
+            StartTime = DateTime.Now.Ticks;
+
+            // enable timer
+            tmrSound.Enabled = true;
+        }
+
+        private void tmrSound_Tick(object sender, EventArgs e) {
+            long nowTime;
+            double timeFraction = 0;
+
+            nowTime = DateTime.Now.Ticks;
+            if (agSound.Length != 0) {
+                // fraction of sound played
+                timeFraction = (nowTime - StartTime) / 10000000f / agSound.Length;
+            }
+
+            if (timeFraction >= 1 || agSound.Length == 0) {
+                tmrSound.Enabled = false;
+                picProgress.Width = pnlProgressBar.Width;
+            }
+            else {
+                picProgress.Width = (int)(pnlProgressBar.Width * timeFraction);
+            }
+        }
+
+        private void chkTrack0_CheckedChanged(object sender, EventArgs e) {
+            chkTrack_Click(0);
+        }
+
+        private void chkTrack1_CheckedChanged(object sender, EventArgs e) {
+            chkTrack_Click(1);
+        }
+
+        private void chkTrack2_CheckedChanged(object sender, EventArgs e) {
+            chkTrack_Click(2);
+        }
+
+        private void chkTrack3_CheckedChanged(object sender, EventArgs e) {
+            chkTrack_Click(3);
+        }
+
+        private void chkTrack_Click(int Index) {
+            // if disabled, just exit
+            if (!chkTrack[Index].Enabled) {
+                return;
+            }
+            // if changing
+            if (agSound.Tracks[Index].Muted == chkTrack[Index].Checked) {
+                agSound.Tracks[Index].Muted = !chkTrack[Index].Checked;
+            }
+            // redisplay length (it may have changed)
+            lblLength.Text = "Sound clip length: " + agSound.Length.ToString("0.0") + " seconds";
+            // enable play button if at least one track is NOT muted AND
+            // midi not disabled AND length > 0
+            btnPlay.Enabled = (chkTrack[0].Checked || chkTrack[1].Checked || chkTrack[2].Checked || chkTrack[3].Checked) && (agSound.Length > 0);
+        }
+
+        private void cmbInst0_SelectionChangeCommitted(object sender, EventArgs e) {
+            cmbInst_Click(0);
+        }
+
+        private void cmbInst1_SelectionChangeCommitted(object sender, EventArgs e) {
+            cmbInst_Click(1);
+        }
+
+        private void cmbInst2_SelectionChangeCommitted(object sender, EventArgs e) {
+            cmbInst_Click(2);
+        }
+
+        private void cmbInst_Click(int Index) {
+            if (agSound.Tracks[Index].Instrument != cmbInst[Index].SelectedIndex) {
+                agSound.Tracks[Index].Instrument = (byte)cmbInst[Index].SelectedIndex;
+            }
+        }
+
+        private void cmdReset_Click(object sender, EventArgs e) {
+            // reset instruments to default
+            cmbInst[0].SelectedIndex = 80;
+            cmbInst[1].SelectedIndex = 80;
+            cmbInst[2].SelectedIndex = 80;
+        }
+
+        private void btnStop_Click(object sender, EventArgs e) {
+            // stop sounds
+            StopSoundPreview();
+        }
+
+        void pnlSound_DoubleClick(object sender, EventArgs e) {
+            // open sound for editing, if standard agi
+            OpenGameSound((byte)SelResNum);
+        }
+
+        private void optPCjr_CheckedChanged(object sender, EventArgs e) {
+            SetMIDIControls(true);
+        }
+
+        private void optMIDI_CheckedChanged(object sender, EventArgs e) {
+            SetMIDIControls(true);
+        }
+
+        private void This_SoundComplete(object sender, SoundCompleteEventArgs e) {
+            // disable stop and enable play
+
+            // need to check if invoke is required- accessing the UI elements
+            // is done differently if that's the case
+            if (btnPlay.InvokeRequired) {
+                btnPlay.Invoke(new Action(() => { btnPlay.Enabled = true; }));
+                btnStop.Invoke(new Action(() => { btnStop.Enabled = false; }));
+                tmrSound.Enabled = false;
+                picProgress.Invoke(new Action(() => { picProgress.Width = pnlProgressBar.Width; }));
+                picProgress.Invoke(new Action(picProgress.Refresh));
+                // if playing MIDI, re-enable track controls
+                if (optMIDI.Checked) {
+                    for (int i = 0; i < 3; i++) {
+                        chkTrack[i].Invoke(new Action(() => { chkTrack[i].Enabled = agSound.SndFormat == SoundFormat.AGI; }));
+                        cmbInst[i].Invoke(new Action(() => { cmbInst[i].Enabled = agSound.SndFormat == SoundFormat.AGI; }));
+                    }
+                    chkTrack[3].Invoke(new Action(() => { chkTrack[3].Enabled = agSound.SndFormat == SoundFormat.AGI; }));
+                }
+                cmdReset.Invoke(new Action(() => { cmdReset.Enabled = true; }));
+                picProgress.Invoke(new Action(() => { picProgress.Width = 0; }));
+            }
+            else {
+                btnPlay.Enabled = true;
+                btnStop.Enabled = false;
+                tmrSound.Enabled = false;
+                picProgress.Width = pnlProgressBar.Width;
+                picProgress.Refresh();
+                // if playing MIDI, re-enable track controls
+                if (optMIDI.Checked) {
+                    SetMIDIControls(true);
+                }
+                picProgress.Width = 0;
+            }
+        }
+
+        #endregion
+
+        #region Preview View Event Handlers
+        private void cmdVPlay_Click(object sender, EventArgs e) {
+            // toggle motion
+            tmrMotion.Enabled = !tmrMotion.Enabled;
+
+            // set icon to match
+            if (tmrMotion.Enabled) {
+                cmdVPlay.BackgroundImage = imageList1.Images[9];
+                // reset cel, if endofloop or reverseloop motion selected
+                // begin cycling the cels, based on motion type
+                switch (cmbMotion.SelectedIndex) {
+                case 0:
+                    // normal
+                    break;
+                case 1:
+                    // reverse
+                    break;
+                case 2:
+                    // end of loop
+                    // if already on last cel
+                    if (CurCel == agView[CurLoop].Cels.Count - 1) {
+                        CurCel = 0;
+                        DisplayCel();
+                    }
+                    break;
+                case 3:
+                    // reverse loop
+                    // if already on first cel
+                    if (CurCel == 0) {
+                        CurCel = agView[CurLoop].Cels.Count - 1;
+                        DisplayCel();
+                    }
+                    break;
+                default:
+                    // nothing to do
+                    return;
+                }
+            }
+            else {
+                cmdVPlay.BackgroundImage = imageList1.Images[8];
+            }
+            picCel.Select();
+        }
+
+        private void chkTrans_Click(object sender, EventArgs e) {
+            // toggle transparency
+            IsTransparent = !IsTransparent;
+            // force update
+            DisplayCel();
+            // show or hide panel grid as needed
+            if (IsTransparent) {
+                DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
+            }
+            else {
+                pnlCel.CreateGraphics().Clear(BackColor);
+            }
+        }
+
+        private void dLoop_Click(object sender, EventArgs e) {
+            if (agView.Loops.Count > 1) {
+                // stop motion
+                tmrMotion.Enabled = false;
+                // decrement loop, wrapping around
+                CurLoop = ((CurLoop == 0) ? agView.Loops.Count - 1 : CurLoop - 1);
+                DisplayLoop();
+            }
+        }
+
+        private void uLoop_Click(object sender, EventArgs e) {
+            if (agView.Loops.Count > 1) {
+                // stop motion
+                tmrMotion.Enabled = false;
+                // increment loop, wrapping around
+                CurLoop = ((CurLoop == agView.Loops.Count - 1) ? 0 : CurLoop + 1);
+                DisplayLoop();
+            }
+        }
+
+        private void dCel_Click(object sender, EventArgs e) {
+            if (agView[CurLoop].Cels.Count > 1) {
+                // stop motion
+                tmrMotion.Enabled = false;
+                // decrement cel, wrapping around
+                CurCel = (CurCel == 0) ? agView[CurLoop].Cels.Count - 1 : CurCel - 1;
+                DisplayCel();
+            }
+        }
+
+        private void uCel_Click(object sender, EventArgs e) {
+            if (agView[CurLoop].Cels.Count > 1) {
+                // stop motion
+                tmrMotion.Enabled = false;
+                // increment cel, wrapping around
+                CurCel = (CurCel == agView[CurLoop].Cels.Count - 1) ? 0 : CurCel + 1;
+                DisplayCel();
+            }
+        }
+
+        private void tbbZoomIn_Click(object sender, EventArgs e) {
+            AdjustViewCelScale(1);
+        }
+
+        private void tbbZoomOut_Click(object sender, EventArgs e) {
+            AdjustViewCelScale(-1);
+        }
+
+        private void tbbAlignLeft_Click(object sender, EventArgs e) {
+            HorizontalAlign = 0;
+            HAlign.ImageIndex = HorizontalAlign + 2;
+        }
+
+        private void tbbAlignCenter_Click(object sender, EventArgs e) {
+            // update alignment, and redraw
+            HorizontalAlign = 1;
+            HAlign.ImageIndex = HorizontalAlign + 2;
+        }
+
+        private void tbbAlignRight_Click(object sender, EventArgs e) {
+            HorizontalAlign = 2;
+            HAlign.ImageIndex = HorizontalAlign + 2;
+        }
+
+        private void tbbTop_Click(object sender, EventArgs e) {
+            VertAlign = 0;
+            VAlign.ImageIndex = VertAlign + 5;
+        }
+
+        private void tbbMiddle_Click(object sender, EventArgs e) {
+            VertAlign = 1;
+            VAlign.ImageIndex = VertAlign + 5;
+        }
+
+        private void tbbBottom_Click(object sender, EventArgs e) {
+            VertAlign = 2;
+            VAlign.ImageIndex = VertAlign + 5;
+        }
+
+        private void sldSpeed_ValueChanged(object sender, EventArgs e) {
+            tmrMotion.Interval = 600 / sldSpeed.Value - 45;
+        }
+
+        private void hsbView_Scroll(object sender, ScrollEventArgs e) {
+            // position the cel
+            picCel.Left = -hsbView.Value;
+            if (IsTransparent) {
+                DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
+            }
+        }
+
+        private void vsbView_Scroll(object sender, ScrollEventArgs e) {
+            // position the cel
+            picCel.Top = -vsbView.Value;
+            if (IsTransparent) {
+                DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
+            }
+        }
+
+        private void pnlCel_Resize(object sender, EventArgs e) {
+            // position scrollbars
+            hsbView.Top = pnlCel.Height - hsbView.Height;
+            hsbView.Width = pnlCel.Width;
+            vsbView.Left = pnlCel.Width - vsbView.Width;
+            vsbView.Height = pnlCel.Height;
+            SetVScrollbars();
+            if (IsTransparent) {
+                DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
+                pnlCel.Refresh();
+            }
+        }
+
+        private void picCel_DoubleClick(object sender, EventArgs e) {
+            // open view for editing
+            OpenGameView((byte)SelResNum, false, CurLoop, CurCel);
+        }
+
+        private void picCel_MouseDown(object sender, MouseEventArgs e) {
+            // if either scrollbar is visible,
+            if (hsbView.Visible || vsbView.Visible) {
+                // set dragView mode
+                DraggingView = true;
+                pnlView.Cursor = Cursors.Hand;
+                // save x and Y offsets
+                offsetX = e.X;
+                offsetY = e.Y;
+            }
+        }
+
+        private void picCel_MouseUp(object sender, MouseEventArgs e) {
+            if (DraggingView) {
+                // cancel dragmode
+                DraggingView = false;
+                picCel.Cursor = Cursors.Default;
+            }
+        }
+
+        private void picCel_MouseWheel(object sender, MouseEventArgs e) {
+            switch (e.Delta) {
+            case < 0:
+                // wheel down
+                AdjustViewCelScale(-1, true);
+                break;
+            case > 0:
+                // wheel up
+                AdjustViewCelScale(1, true);
+                break;
+            }
+        }
+
+        private void picCel_MouseLeave(object sender, EventArgs e) {
+            if (this != MDIMain.ActiveMdiChild) {
+                return;
+            }
+            spStatus.Text = "";
+        }
+
+        void pnlCel_DoubleClick(object sender, EventArgs e) {
+            // let user change background color
+            frmPalette NewPalette = new(1);
+            if (NewPalette.ShowDialog(MDIMain) == DialogResult.OK) {
+                pnlCel.BackColor = NewPalette.SelColor;
+            }
+            NewPalette.Dispose();
+            // toolbars stay default gray, but that's OK
+
+            // force redraw of cel
+            DisplayCel();
+            if (IsTransparent) {
+                DrawTransGrid(pnlCel, picCel.Left % 10, picCel.Top % 10);
+                pnlCel.Refresh();
+            }
+        }
+
+        void picCel_MouseMove(object sender, MouseEventArgs e) {
+            if (this != MDIMain.ActiveMdiChild) {
+                return;
+            }
+            // if left mouse button is down and either or both scrollbars are
+            // visible, scroll the image;
+            // if mouse button is up, show coordinates
+
+            if (e.Button == MouseButtons.Left) {
+                int tmpHVal = 0, tmpVVal = 0;
+                int DX = 0, DY = 0;
+
+                if (MDIMain.ActiveMdiChild != this) {
+                    return;
+                }
+
+                if (DraggingView) {
+                    if (vsbView.Visible) {
+                        // adjust scroll bars by amount of delta from 
+                        // starting offset (subract from scrollbar value, since
+                        // scrollbar value = - picture offset)
+                        tmpVVal = vsbView.Value - (e.Y - offsetY);
+                        // limit to valid values
+                        if (tmpVVal < vsbView.Minimum) {
+                            tmpVVal = vsbView.Minimum;
+                        }
+                        else if (tmpVVal > (vsbView.Maximum - vsbView.LargeChange)) {
+                            tmpVVal = vsbView.Maximum - vsbView.LargeChange;
+                        }
+                        // adjust if it changed
+                        DY = tmpVVal - vsbView.Value;
+                        if (DY != 0) {
+                            // set vertical scrollbar
+                            vsbView.Value = tmpVVal;
+                        }
+                    }
+                    // repeat for horizontal scrollbar
+                    if (hsbView.Visible) {
+                        tmpHVal = hsbView.Value - (e.X - offsetX);
+                        // limit positions to valid values
+                        if (tmpHVal < hsbView.Minimum) {
+                            tmpHVal = hsbView.Minimum;
+                        }
+                        else if (tmpHVal > (hsbView.Maximum - hsbView.LargeChange)) {
+                            tmpHVal = hsbView.Maximum - hsbView.LargeChange;
+                        }
+                        DX = tmpHVal - hsbView.Value;
+                        if (DX != 0) {
+                            // set horizontal scrollbar
+                            hsbView.Value = tmpHVal;
+                        }
+                    }
+                    // move the image to this location
+                    if (DX != 0 || DY != 0) {
+                        picCel.Location = new Point(-tmpHVal, -tmpVVal);
+                    }
+                    // NEVER update offset; it's always relative to original starting point of the drag
+                }
+            }
+            else if (e.Button == MouseButtons.Right) {
+
+            }
+            else if (e.Button == MouseButtons.None) {
+                // show coordinates in statusbar
+                spStatus.Text = $"X: {(int)(e.X / 2 / ViewScale)}    Y: {(int)(e.Y / ViewScale)}";
+            }
+        }
+
+        private void tmrMotion_Tick(object sender, EventArgs e) {
+            // advance to next cel, depending on mode
+            switch (cmbMotion.SelectedIndex) {
+            case 0:
+                // normal
+                CurCel = (CurCel == (agView[CurLoop].Cels.Count - 1)) ? 0 : CurCel + 1;
+                break;
+            case 1:
+                // reverse
+                CurCel = (CurCel == 0) ? agView[CurLoop].Cels.Count - 1 : CurCel - 1;
+                break;
+            case 2:
+                // end of loop
+                if (CurCel == agView[CurLoop].Cels.Count - 1) {
+                    // stop motion
+                    tmrMotion.Enabled = false;
+                    return;
+                }
+                else {
+                    CurCel++;
+                }
+                break;
+            case 3:
+                // reverse loop
+                if (CurCel == 0) {
+                    // stop motion
+                    tmrMotion.Enabled = false;
+                    cmdVPlay.BackgroundImage = imageList1.Images[8];
+                    return;
+                }
+                else {
+                    CurCel--;
+                }
+                break;
+            }
+            DisplayCel();
+        }
+
+        #endregion
+        #endregion
+
+        #region Form Methods
+        private void InitStatusStrip() {
+            spStatus = MDIMain.spStatus;
+            spCapsLock = MDIMain.spCapsLock;
+            spNumLock = MDIMain.spNumLock;
+            spInsLock = MDIMain.spInsLock;
+        }
+
+        private void PositionPreview() {
+            int sngLeft, sngTop;
+            int sngWidth, sngHeight;
+            // get preview window position
+            sngWidth = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewWidth", (int)(0.4 * MDIMain.Bounds.Width));
+            if (sngWidth <= MIN_WIDTH) {
+                sngWidth = MIN_WIDTH;
+            }
+            else if (sngWidth > 0.75 * Screen.GetWorkingArea(this.Parent).Width) {
+                sngWidth = (int)(0.75 * Screen.GetWorkingArea(this.Parent).Width);
+            }
+            sngHeight = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
+            if (sngHeight <= MIN_HEIGHT) {
+                sngHeight = MIN_HEIGHT;
+            }
+            else if (sngHeight > 0.75 * Screen.GetWorkingArea(this.Parent).Height) {
+                sngHeight = (int)(0.75 * Screen.GetWorkingArea(this.Parent).Height);
+            }
+            sngLeft = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewLeft", 0);
+            if (sngLeft < 0) {
+                sngLeft = 0;
+            }
+            else {
+                if (WinAGISettings.ResListType.Value != ResListType.None) {
+                    if (sngLeft > MDIMain.Width - MDIMain.pnlResources.Width - 300) {
+                        sngLeft = MDIMain.Width - MDIMain.pnlResources.Width - 300;
+                    }
+                }
+                else {
+                    if (sngLeft > MDIMain.Width - 300) {
+                        sngLeft = MDIMain.Width - 300;
+                    }
+                }
+            }
+            sngTop = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewTop", 0);
+            if (sngTop < 0) {
+                sngTop = 0;
+            }
+            else {
+                if (sngTop > MDIMain.Bounds.Height - 300) {
+                    sngTop = MDIMain.Bounds.Height - 300;
+                }
+            }
+            // now move the form
+            Bounds = new Rectangle(sngLeft, sngTop, sngWidth, sngHeight);
+        }
+
+        public void ClearPreviewWin() {
+            // if the resource being cleared has recently been deleted
+            // we don't need to unload it, just dereference it
+            // unload view
+            if (agView is not null) {
+                if (tmrMotion.Enabled) {
+                    tmrMotion.Enabled = false;
+                }
+                // if resource exists, it should still be loaded
+                if (agView.Loaded) {
+                    agView.Unload();
+                }
+                agView = null;
+            }
+            // unload picture,
+            if (agPic is not null) {
+                // if resource exists, it should still be loaded
+                if (agPic.Loaded) {
+                    agPic.Unload();
+                }
+                agPic = null;
+            }
+            // unload sound
+            if (agSound is not null) {
+                // if resource exists, it should still be loaded
+                if (agSound.Loaded) {
+                    // unload, which also stops the sound if playing
+                    agSound.Unload();
+                }
+                agSound = null;
+                // ensure timer is off
+                tmrSound.Enabled = false;
+                // reset progress bar
+                picProgress.Width = 0;
+                btnStop.Enabled = false;
+            }
+            // unload logic
+            if (agLogic is not null) {
+                // if resource exists, it should still be loaded
+                if (agLogic.Loaded) {
+                    agLogic.Unload();
+                }
+                agLogic = null;
+            }
+            if (!Visible) {
+                return;
+            }
+            using Graphics cg = CreateGraphics();
+            cg.Clear(base.BackColor);
+            pnlLogic.Visible = false;
+            pnlPicture.Visible = false;
+            pnlSound.Visible = false;
+            pnlView.Visible = false;
+            prevResType = None;
+            // default caption
+            Text = "Preview";
+        }
+
+        public void LoadPreview(AGIResType ResType, int ResNum) {
+            // the desired resource must be loaded before showing its preview
+            MDIMain.UseWaitCursor = true;
+            // if changing restype, or showing a header
+            if (SelResType != ResType || ResNum == -1) {
+                // clear resources
+                ClearPreviewWin();
+            }
+            // always unload previous resources
+            agLogic?.Unload();
+            agPic?.Unload();
+            agView?.Unload();
+            if (agSound is not null) {
+                StopSoundPreview();
+                agSound.Unload();
+            }
+            // if one of the four main resource types and not a header
+            if ((int)ResType >= 0 && (int)ResType <= 3 && ResNum >= 0) {
+                UpdateCaption(ResType, (byte)ResNum);
+                // get size, show preview
+                switch (ResType) {
+                case AGIResType.Logic:
+                    if (PreviewLogic((byte)ResNum)) {
+                        pnlLogic.Visible = true;
+                    }
+                    else {
+                        pnlLogic.Visible = false;
+                        using Graphics cg = CreateGraphics();
+                        cg.Clear(base.BackColor);
+                        string errMsg = "SOURCE FILE ERROR: unknown error.";
+                        switch (EditGame.Logics[ResNum].SourceError) {
+                        case ResourceErrorType.LogicSourceAccessError:
+                            errMsg = "SOURCE FILE ERROR: File access error.";
+                            break;
+                        }
+                        cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
+                    }
+                    pnlPicture.Visible = pnlSound.Visible = pnlView.Visible = false;
+                    break;
+                case AGIResType.Picture:
+                    if (PreviewPic((byte)ResNum)) {
+                        pnlPicture.Visible = true;
+                    }
+                    else {
+                        pnlPicture.Visible = false;
+                        using Graphics cg = CreateGraphics();
+                        cg.Clear(base.BackColor);
+                        string errMsg = "";
+                        switch (EditGame.Pictures[ResNum].Error) {
+                        case ResourceErrorType.FileNotFound:
+                            errMsg = $"PICTURE RESOURCE ERROR: VOL File (VOL.{EditGame.Pictures[ResNum].Volume}) does not exist.";
+                            break;
+                        case ResourceErrorType.FileAccessError:
+                            errMsg = $"PICTURE RESOURCE ERROR: VOL File (VOL.{EditGame.Pictures[ResNum].Volume}) file access error.";
+                            break;
+                        case ResourceErrorType.InvalidLocation:
+                            errMsg = $"PICTURE RESOURCE ERROR: Invalid Location index ({EditGame.Pictures[ResNum].Loc}) for this resource.";
+                            break;
+                        case ResourceErrorType.InvalidHeader:
+                            errMsg = "PICTURE RESOURCE ERROR: Invalid resource header.";
+                            break;
+                        case ResourceErrorType.DecompressionError:
+                            errMsg = "PICTURE RESOURCE ERROR: Resource decompression error.";
+                            break;
+                        }
+                        cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
+                    }
+                    pnlLogic.Visible = pnlSound.Visible = pnlView.Visible = false;
+                    break;
+                case AGIResType.Sound:
+                    if (PreviewSound((byte)ResNum)) {
+                        pnlSound.Visible = true;
+                    }
+                    else {
+                        pnlSound.Visible = false;
+                        using Graphics cg = CreateGraphics();
+                        cg.Clear(base.BackColor);
+                        string errMsg = "";
+                        switch (EditGame.Sounds[ResNum].Error) {
+                        case ResourceErrorType.FileNotFound:
+                            errMsg = $"SOUND RESOURCE ERROR: VOL File (VOL.{EditGame.Sounds[ResNum].Volume}) does not exist.";
+                            break;
+                        case ResourceErrorType.FileAccessError:
+                            errMsg = $"SOUND RESOURCE ERROR: VOL File (VOL.{EditGame.Sounds[ResNum].Volume}) file access error.";
+                            break;
+                        case ResourceErrorType.InvalidLocation:
+                            errMsg = $"SOUND RESOURCE ERROR: Invalid Location index ({EditGame.Sounds[ResNum].Loc}) for this resource.";
+                            break;
+                        case ResourceErrorType.InvalidHeader:
+                            errMsg = "SOUND RESOURCE ERROR: Invalid resource header.";
+                            break;
+                        case ResourceErrorType.DecompressionError:
+                            errMsg = "SOUND RESOURCE ERROR: Resource decompression error.";
+                            break;
+                        }
+                        cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
+                    }
+                    pnlLogic.Visible = pnlPicture.Visible = pnlView.Visible = false;
+                    break;
+                case AGIResType.View:
+                    if (PreviewView((byte)ResNum)) {
+                        pnlView.Visible = true;
+                    }
+                    else {
+                        pnlView.Visible = false;
+                        using Graphics cg = CreateGraphics();
+                        cg.Clear(base.BackColor);
+                        string errMsg = "";
+                        switch (EditGame.Views[ResNum].Error) {
+                        case ResourceErrorType.FileNotFound:
+                            errMsg = $"VIEW RESOURCE ERROR: VOL File (VOL.{EditGame.Views[ResNum].Volume}) does not exist.";
+                            break;
+                        case ResourceErrorType.FileAccessError:
+                            errMsg = $"VIEW RESOURCE ERROR: VOL File (VOL.{EditGame.Views[ResNum].Volume}) file access error.";
+                            break;
+                        case ResourceErrorType.InvalidLocation:
+                            errMsg = $"VIEW RESOURCE ERROR: Invalid Location index ({EditGame.Views[ResNum].Loc}) for this resource.";
+                            break;
+                        case ResourceErrorType.InvalidHeader:
+                            errMsg = "VIEW RESOURCE ERROR: Invalid resource header.";
+                            break;
+                        case ResourceErrorType.DecompressionError:
+                            errMsg = "VIEW RESOURCE ERROR: Resource decompression error.";
+                            break;
+                        }
+                        cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
+                    }
+                    pnlLogic.Visible = pnlPicture.Visible = pnlSound.Visible = false;
+                    break;
+                }
+            }
+            // or if an include file
+            else if (ResType == AGIResType.Include) {
+                // errors handled within
+                PreviewInclude(ResNum);
+            }
+            MDIMain.UseWaitCursor = false;
+            // set restype
+            prevResType = ResType;
+        }
+
+        public void UpdateCaption(AGIResType resType, byte resNum) {
+            string resID = "";
+            // update window caption
+            Text = "Preview - " + resType + " " + resNum;
+            // if not showing by number in the prvieww list
+            if (!WinAGISettings.ShowResNum.Value) {
+                // also include the resource ID
+                switch (resType) {
+                case AGIResType.Logic:
+                    resID = EditGame.Logics[resNum].ID;
+                    break;
+                case AGIResType.Picture:
+                    resID = EditGame.Pictures[resNum].ID;
+                    break;
+                case AGIResType.Sound:
+                    resID = EditGame.Sounds[resNum].ID;
+                    break;
+                case AGIResType.View:
+                    resID = EditGame.Views[resNum].ID;
+                    break;
+                }
+                resID = "   (" + resID + ")";
+                this.Text += resID;
+            }
+        }
+
+        private void SavePreviewPos() {
+            // save preview window pos
+            WinAGISettingsFile.WriteSetting(sPOSITION, "PreviewTop", Top);
+            WinAGISettingsFile.WriteSetting(sPOSITION, "PreviewLeft", Left);
+            WinAGISettingsFile.WriteSetting(sPOSITION, "PreviewWidth", Width);
+            WinAGISettingsFile.WriteSetting(sPOSITION, "PreviewHeight", Height);
+        }
+
+        public void KeyHandler(KeyPressEventArgs e) {
+
+            // supress the ding...
+            e.Handled = true;
+
+            if (SelResNum < 0) {
+                return;
+            }
+            switch (SelResType) {
+            case AGIResType.Picture:
+                switch ((int)e.KeyChar) {
+                case 43:
+                    // +
+                    // zoom in
+                    if (udPZoom.SelectedIndex < udPZoom.Items.Count - 1) {
+                        udPZoom.SelectedIndex++;
+                    }
+                    break;
+                case 45:
+                    // -
+                    // zoom out
+                    if (udPZoom.SelectedIndex > 0) {
+                        udPZoom.SelectedIndex--;
+                    }
+                    break;
+                }
+                break;
+            case AGIResType.View:
+                switch ((int)e.KeyChar) {
+                case 32:
+                    // spacebar
+                    // toggle play/pause
+                    cmdVPlay_Click(null, null);
+                    break;
+                case 43:
+                    // +
+                    // zoom in
+                    AdjustViewCelScale(1);
+                    break;
+                case 45:
+                    // -
+                    // zoom out
+                    AdjustViewCelScale(-1);
+                    break;
+                case 65:
+                case 97:
+                    // a
+                    dCel_Click(null, null);
+                    break;
+                case 83:
+                case 115:
+                    // s
+                    uCel_Click(null, null);
+                    break;
+                case 81:
+                case 113:
+                    // q
+                    dLoop_Click(null, null);
+                    break;
+                case 87:
+                case 119:
+                    // w
+                    uLoop_Click(null, null);
+                    break;
+                }
+                break;
+            }
+        }
+
+        internal void ShowHelp() {
+            string topic = "htm\\winagi\\preview.htm";
+            if (SelResType == AGIResType.Logic ||
+                SelResType == AGIResType.Picture ||
+                SelResType == AGIResType.Sound ||
+                SelResType == AGIResType.View) {
+                topic += "#" + SelResType;
+            }
+            Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
+        }
+        #endregion
+
+        #region Preview Logic Methods
+        bool PreviewLogic(byte LogNum) {
+            agLogic = EditGame.Logics[LogNum];
+            if (!agLogic.Loaded) {
+                agLogic.Load();
+            }
+            // check for errors
+            if (agLogic.SourceError == ResourceErrorType.LogicSourceAccessError) {
+                return false;
+            }
+            // get the source code
+            // to ensure only codepage characters are displayed, convert the
+            // text to bytes, then back to text
+            rtfLogPrev.Text = Encoding.GetEncoding(agLogic.CodePage).GetString(Encoding.GetEncoding(agLogic.CodePage).GetBytes(agLogic.SourceText));
+            rtfLogPrev.DoCaretVisible();
+            // set background
+            rtfLogPrev.BackColor = agLogic.Compiled ? Color.FromArgb(0xe0, 0xff, 0xe0) : Color.FromArgb(0xff, 0xe0, 0xe0);
+            return true;
+        }
+
+        #endregion
+
+        #region Preview Picture Methods
+        bool PreviewPic(byte PicNum) {
+            agPic = EditGame.Pictures[PicNum];
+            if (!agPic.Loaded) {
+                agPic.Load();
+            }
+            // check for errors
+            if (agPic.Error != ResourceErrorType.NoError &&
+                agPic.Error != ResourceErrorType.FileIsReadonly) {
+                agPic.Unload();
+                return false;
+            }
+            DisplayPicture();
+            return true;
+        }
+
+        void DisplayPicture(double oldscale = 0) {
+            // resize picture Image holder
+            imgPicture.Width = (int)(320 * PicScale);
+            imgPicture.Height = (int)(168 * PicScale);
+
+            // if visual picture is being displayed
+            if (optVisual.Checked == true) {
+                // load visual Image
+                ShowAGIBitmap(imgPicture, agPic.VisualBMP, PicScale);
+            }
+            else {
+                // load priority Image
+                ShowAGIBitmap(imgPicture, agPic.PriorityBMP, PicScale);
+            }
+            imgPicture.Refresh();
+            // set scrollbars if necessary
+            SetPScrollbars(oldscale);
+        }
+
+        void SetPScrollbars(double oldscale = 0) {
+            bool picVSB, picHSB;
+            // Scrollbar math:
+            // ACT_SZ = size of the area being scrolled; usually the image size + margins
+            // WIN_SZ = size of the window area; the container's client size
+            // SV_MAX = maximum value that scrollbar can have; this puts the scroll bar
+            //          and scrolled image at farthest position
+            // LG_CHG = LargeChange property of the scrollbar
+            // SB_MAX = actual Maximum property of the scrollbar, to avoid out-of-bounds errors
+            //
+            //      SV_MAX = ACT_SZ - WIN_SZ 
+            //      SB_MAX = SV_MAX + LG_CHG + 1
+            //
+            // when including margins, the calculations are modified to:
+            //      ACT_SZ = MGN + IMG_SZ + MGN
+            //      SB_MIN = -MGN
+            //      SV_MAX = ACT_SZ - WIN_SZ + SB_MIN
+            //             = MGN + IMG_SZ + MGN + SB_MIN - WIN_SZ
+            //             = MGN + IMG_SZ + MGN - MGN - WIN_SZ
+            //      SV_MAX = IMG_SZ - WIN_SZ + MGN
+
+            // determine if scrollbars are necessary
+            picHSB = imgPicture.Width > (pnlPicImage.Width - 2 * PW_MARGIN);
+            picVSB = imgPicture.Height > (pnlPicImage.Height - 2 * PW_MARGIN - (picHSB ? hsbPic.Height : 0));
+            // check horizontal again(incase addition of vert scrollbar forces it to be shown)
+            picHSB = (imgPicture.Width > (pnlPicImage.Width - 2 * PW_MARGIN - (picVSB ? vsbPic.Width : 0)));
+            if (picHSB && picVSB) {
+                // move back from corner
+
+                hsbPic.Width = pnlPicImage.Width - vsbPic.Width;
+                vsbPic.Height = pnlPicImage.Height - hsbPic.Height;
+                // show corner
+                fraPCorner.Visible = true;
+            }
+            else {
+                fraPCorner.Visible = false;
+            }
+            if (picHSB) {
+                // (LargeChange value can't exceed Max value, so set Max to high enough
+                // value so it can be calculated correctly later)
+                hsbPic.Maximum = pnlPicImage.Width;
+                hsbPic.LargeChange = (int)(pnlPicImage.Width * LG_SCROLL);
+                hsbPic.SmallChange = (int)(pnlPicImage.Width * SM_SCROLL);
+                // calculate actual max (when image is fully scrolled to right)
+                int SV_MAX = imgPicture.Width - (pnlPicImage.Width - (picVSB ? vsbPic.Width : 0)) + PW_MARGIN;
+                // control MAX value equals actual Max + LargeChange - 1
+                hsbPic.Maximum = SV_MAX + hsbPic.LargeChange - 1;
+                int newscroll;
+                if (oldscale > 0) {
+                    // if cursor is over the image, use cursor pos as anchor point
+                    // the correct algebra to make this work is:
+                    //         SB1 = SB0 + (SB0 + WAN - MGN) * (SF1 / SF0 - 1)
+                    // SB = scrollbar value
+                    // WAN = panel client window anchor point (get from cursor pos)
+                    // MGN is the left/top margin
+                    // SF = scale factor (as calculated above)
+                    // -0 = previous values
+                    // -1 = new (desired) values
+                    int anchor = pnlPicImage.PointToClient(Cursor.Position).X;
+                    newscroll = (int)(hsbPic.Value + (hsbPic.Value + anchor - PW_MARGIN) * (PicScale / oldscale - 1));
+                }
+                else {
+                    newscroll = hsbPic.Value;
+                }
+                if (newscroll < -PW_MARGIN) {
+                    hsbPic.Value = -PW_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    hsbPic.Value = SV_MAX;
+                }
+                else {
+                    hsbPic.Value = newscroll;
+                }
+            }
+            else {
+                // reset to default
+                hsbPic.Value = -PW_MARGIN;
+            }
+            // readjust picture position
+            imgPicture.Left = -hsbPic.Value;
+
+            // repeat for vertical bar
+            if (picVSB) {
+                vsbPic.Maximum = pnlPicImage.Height;
+                vsbPic.LargeChange = (int)(pnlPicImage.Height * LG_SCROLL); // 90% for big jump
+                vsbPic.SmallChange = (int)(pnlPicImage.Height * SM_SCROLL); // 22.5% for small jump
+                int SV_MAX = imgPicture.Height - (pnlPicImage.Height - (picHSB ? hsbPic.Height : 0)) + PW_MARGIN;
+                vsbPic.Maximum = SV_MAX + vsbPic.LargeChange - 1;
+                int newscroll;
+                if (oldscale > 0) {
+                    int anchor = pnlPicImage.PointToClient(Cursor.Position).Y;
+                    newscroll = (int)(vsbPic.Value + (vsbPic.Value + anchor - PW_MARGIN) * (PicScale / oldscale - 1));
+                }
+                else {
+                    newscroll = vsbPic.Value;
+                }
+                if (newscroll < -PW_MARGIN) {
+                    vsbPic.Value = -PW_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    vsbPic.Value = SV_MAX;
+                }
+                else {
+                    vsbPic.Value = newscroll;
+                }
+            }
+            else {
+                vsbPic.Value = -PW_MARGIN;
+            }
+            imgPicture.Top = -vsbPic.Value;
+            // set visible properties for scrollbars
+            hsbPic.Visible = picHSB;
+            vsbPic.Visible = picVSB;
+        }
+
+        public void RefreshPic() {
+            if (agPic is null) {
+                return;
+            }
+            // unload, reload, redraw
+            agPic.Unload();
+            agPic.Load();
+            DisplayPicture();
+        }
+
+        public void SetPictureScale() {
+            PicScale = WinAGISettings.PicScalePreview.Value;
+            double scale = PicScale;
+            if (scale <= 3) {
+                scale = (int)(scale * 4) / 0.04;
+            }
+            else {
+                scale = (int)(scale * 2) / 0.02;
+            }
+            for (int i = 0; i < udPZoom.Items.Count; i++) {
+                if (scale.ToString() == ((string)udPZoom.Items[i])[..^1]) {
+                    udPZoom.SelectedIndex = i;
+                    break;
+                }
+            }
+            if (udPZoom.SelectedIndex == -1) {
+                udPZoom.SelectedIndex = 0;
+            }
+        }
+        #endregion
+
+        #region PreviewSound Methods
+        bool PreviewSound(byte SndNum) {
+            int i;
+            // assign new sound
+            agSound = EditGame.Sounds[SndNum];
+            if (!agSound.Loaded) {
+                agSound.Load();
+            }
+            // unless readonly or badtracks
+            if (agSound.Error != ResourceErrorType.NoError &&
+                agSound.Error != ResourceErrorType.FileIsReadonly &&
+                agSound.Error != ResourceErrorType.SoundBadTracks) {
+                agSound.Unload();
+                return false;
+            }
+            switch (agSound.SndFormat) {
+            case SoundFormat.AGI:
+                optMIDI.Text = "MIDI Sound";
+                optPCjr.Enabled = true;
+                // set default playback mode
+                // (currently, only PCJr and MIDI are supported
+                // PCSpeaker not yet set up)
+                switch (WinAGISettings.PlaybackMode.Value) {
+                case 1:
+                    // pcjr emulator
+                    optPCjr.Checked = true;
+                    break;
+                case 2:
+                    // midi
+                    optMIDI.Checked = true;
+                    break;
+                }
+                for (i = 0; i < 3; i++) {
+                    cmbInst[i].Enabled = optMIDI.Checked;
+                    cmbInst[i].SelectedIndex = agSound.Tracks[i].Instrument;
+                    chkTrack[i].Enabled = true;
+                    chkTrack[i].Checked = !agSound.Tracks[i].Muted;
+                }
+                chkTrack[3].Checked = !agSound.Tracks[3].Muted;
+                chkTrack[3].Enabled = true;
+                lblFormat.Text = "PC/PCjr Standard Sound";
+                break;
+            case SoundFormat.WAV:
+                optMIDI.Text = "WAV Sound";
+                optMIDI.Checked = true;
+                optPCjr.Enabled = false;
+                for (i = 0; i < 3; i++) {
+                    cmbInst[i].Enabled = false;
+                    cmbInst[i].SelectedIndex = -1;
+                    chkTrack[i].Enabled = false;
+                    chkTrack[i].Checked = false;
+                }
+                chkTrack[3].Enabled = false;
+                chkTrack[3].Checked = false;
+                lblFormat.Text = "Apple IIgs PCM Sound";
+                break;
+            case SoundFormat.MIDI:
+                optMIDI.Text = "MIDI Sound";
+                optMIDI.Checked = true;
+                optPCjr.Enabled = false;
+                for (i = 0; i < 3; i++) {
+                    cmbInst[i].Enabled = false;
+                    cmbInst[i].SelectedIndex = -1;
+                    chkTrack[i].Enabled = false;
+                    chkTrack[i].Checked = false;
+                }
+                chkTrack[3].Enabled = false;
+                chkTrack[3].Checked = false;
+                lblFormat.Text = "Apple IIgs MIDI Sound";
+                break;
+            }
+            // set length
+            lblLength.Text = "Sound clip length: " + agSound.Length.ToString("0.0") + " seconds";
+            btnPlay.Enabled = true;
+            return true;
+        }
+
+        public void StopSoundPreview() {
+            // stop sound
+            agSound?.StopSound();
+            btnPlay.Enabled = true;
+            btnStop.Enabled = false;
+            tmrSound.Enabled = false;
+            // if playing MIDI, re-enable track controls
+            if (optMIDI.Checked) {
+                SetMIDIControls(true);
+            }
+            picProgress.Width = 0;
+            picProgress.Refresh();
+            // always unhook the event handler
+            agSound.SoundComplete -= This_SoundComplete;
+        }
+
+        void SetMIDIControls(bool enabled) {
+            for (int i = 0; i < 3; i++) {
+                chkTrack[i].Enabled = enabled && agSound.SndFormat == SoundFormat.AGI;
+                cmbInst[i].Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI;
+            }
+            chkTrack[3].Enabled = enabled && agSound.SndFormat == SoundFormat.AGI;
+            cmdReset.Enabled = enabled && optMIDI.Checked && agSound.SndFormat == SoundFormat.AGI;
+        }
+        #endregion
+
+        #region Preview View Methods
+        bool PreviewView(byte ViewNum) {
+            agView = EditGame.Views[ViewNum];
+            if (!agView.Loaded) {
+                agView.Load();
+            }
+            // check for errors
+            if (agView.Error != ResourceErrorType.NoError && agView.Error != ResourceErrorType.FileIsReadonly) {
+                agView.Unload();
+                return false;
+            }
+            // show correct toolbars for alignment
+            HAlign.ImageIndex = HorizontalAlign + 2;
+            VAlign.ImageIndex = VertAlign + 5;
+
+            // display the first loop (which will display the first cel)
+            CurLoop = 0;
+            DisplayLoop();
+            return true;
+        }
+
+        void AdjustViewCelScale(int Dir, bool useanchor = false) {
+            double oldscale = useanchor ? ViewScale : 0;
+
+            if (Dir == 1) {
+                if (ViewScale < 3) {
+                    ViewScale += 0.25;
+                }
+                else if (ViewScale < 8) {
+                    ViewScale += 0.5;
+                }
+                else if (ViewScale < 15) {
+                    ViewScale += 1;
+                }
+                else {
+                    // at max
+                    return;
+                }
+            }
+            else {
+                if (ViewScale > 8) {
+                    ViewScale -= 1;
+                }
+                else if (ViewScale > 3) {
+                    ViewScale -= 0.5;
+                }
+                else if (ViewScale > 1) {
+                    ViewScale -= 0.25;
+                }
+                else {
+                    // at minimum
+                    return;
+                }
+            }
+            tsbViewScale.Text = (ViewScale * 100).ToString() + "%";
+            // now rezize cel
+            picCel.Width = (int)(CelFrameW * 2 * ViewScale);
+            picCel.Height = (int)(CelFrameH * ViewScale);
+            // set scrollbars
+            SetVScrollbars(oldscale);
+            // then redraw the cel
+            DisplayCel();
+        }
+
+        void DisplayLoop() {
+            // update loop label
+            udLoop.Text = $"Loop {CurLoop} / {agView.Loops.Count - 1}";
+            // reset cel
+            CurCel = 0;
+            if (agView[CurLoop].Cels.Count > 0) {
+                udCel.Text = "Cel 0 / " + (agView[CurLoop].Cels.Count - 1);
+            }
+            else {
+                udCel.Text = "Cel - / -";
+            }
+            // enable play/stop if more than one cel
+            cmdVPlay.Enabled = agView[CurLoop].Cels.Count > 1;
+            cmdVPlay.BackgroundImage = imageList1.Images[8];
+            // determine size of holding pic
+            CelFrameW = 0;
+            CelFrameH = 0;
+            for (int i = 0; i <= agView[CurLoop].Cels.Count - 1; i++) {
+                if (agView[CurLoop][i].Width > CelFrameW) {
+                    CelFrameW = agView[CurLoop][i].Width;
+                }
+                if (agView[CurLoop][i].Height > CelFrameH) {
+                    CelFrameH = agView[CurLoop][i].Height;
+                }
+            }
+            // old image needs to be cleared to avoid ghost images
+            // when resizing the cel image
+            picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+            picCel.Refresh();
+            if (CelFrameW > 0 && CelFrameH > 0) {
+                picCel.Width = (int)(CelFrameW * 2 * ViewScale);
+                picCel.Height = (int)(CelFrameH * ViewScale);
+                // force back to upper, left
+                picCel.Top = PW_MARGIN;
+                picCel.Left = PW_MARGIN;
+
+                // set scroll bars everytime loop is changed
+                SetVScrollbars();
+                DisplayCel();
+            }
+        }
+
+        void SetVScrollbars() {
+            SetVScrollbars(0);
+        }
+
+        void SetVScrollbars(double oldscale) {
+            // similar to picture scrollbar method; see SetPScrollbars for 
+            // more detailed comments
+            bool viewHSB, viewVSB;
+
+            viewHSB = (picCel.Width > (pnlCel.Width - 2 * PW_MARGIN));
+            viewVSB = (picCel.Height > (pnlCel.Height - 2 * PW_MARGIN - (viewHSB ? hsbView.Height : 0)));
+            viewHSB = (picCel.Width > (pnlCel.Width - 2 * PW_MARGIN - (viewVSB ? vsbView.Width : 0)));
+            if (viewHSB && viewVSB) {
+                // move back from corner
+                hsbView.Width = pnlCel.Width - vsbView.Width;
+                vsbView.Height = pnlCel.Height - hsbView.Height;
+                // show corner
+                fraVCorner.Visible = true;
+            }
+            else {
+                fraVCorner.Visible = false;
+            }
+            if (viewHSB) {
+                hsbView.Maximum = pnlCel.Width;
+                hsbView.LargeChange = (int)(pnlCel.Width * LG_SCROLL);
+                hsbView.SmallChange = (int)(pnlCel.Width * SM_SCROLL);
+                int SV_MAX = picCel.Width - (pnlCel.Width - (viewVSB ? vsbView.Width : 0)) + PW_MARGIN;
+                hsbView.Maximum = SV_MAX + hsbView.LargeChange - 1;
+                int newscroll;
+                if (oldscale > 0) {
+                    int anchor = pnlCel.PointToClient(Cursor.Position).X;
+                    newscroll = (int)(hsbView.Value + (hsbView.Value + anchor - PW_MARGIN) * (ViewScale / oldscale - 1));
+                }
+                else {
+                    newscroll = hsbView.Value;
+                }
+                if (newscroll < -PW_MARGIN) {
+                    hsbView.Value = -PW_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    hsbView.Value = SV_MAX;
+                }
+                else {
+                    hsbView.Value = newscroll;
+                }
+            }
+            else {
+                hsbView.Value = -PW_MARGIN;
+            }
+            picCel.Left = -hsbView.Value;
+            // repeeat for vertical scrollbar
+            if (viewVSB) {
+                vsbView.Maximum = pnlCel.Height;
+                vsbView.LargeChange = (int)(pnlCel.Height * LG_SCROLL);
+                vsbView.SmallChange = (int)(pnlCel.Height * SM_SCROLL);
+                int SV_MAX = picCel.Height - (pnlCel.Height - (viewHSB ? hsbView.Height : 0)) + PW_MARGIN;
+                vsbView.Maximum = SV_MAX + vsbView.LargeChange - 1;
+                int newscroll;
+                if (oldscale > 0) {
+                    int anchor = pnlCel.PointToClient(Cursor.Position).Y;
+                    newscroll = (int)(vsbView.Value + (vsbView.Value + anchor - PW_MARGIN) * (ViewScale * oldscale - 1));
+                }
+                else {
+                    newscroll = vsbView.Value;
+                }
+                if (newscroll < -PW_MARGIN) {
+                    vsbView.Value = -PW_MARGIN;
+                }
+                else if (newscroll > SV_MAX) {
+                    vsbView.Value = SV_MAX;
+                }
+                else {
+                    vsbView.Value = newscroll;
+                }
+            }
+            else {
+                vsbView.Value = -PW_MARGIN;
+            }
+            picCel.Top = -vsbView.Value;
+            // set visible properties
+            hsbView.Visible = viewHSB;
+            vsbView.Visible = viewVSB;
+        }
+
+        public bool DisplayCel() {
+            // this function copies the bitmap Image
+            // from CurLoop.CurCel into the view Image box,
+            // and resizes it to be correct size
+            int tgtX = 0, tgtY = 0, tgtH, tgtW;
+
+            // rare, but check for case of no cels in this loop
+            if (agView[CurLoop][CurCel] is null) {
+                udCel.Text = "Cel - / -";
+                picTrans.BackColor = Color.Transparent;
+                picCel.Visible = false;
+            }
+            else {
+                // update ud caption
+                udCel.Text = $"Cel {CurCel} / {agView[CurLoop].Cels.Count - 1}";
+                // set transparent color for the toolbox image
+                picTrans.BackColor = EditGame.Palette[(int)agView[CurLoop][CurCel].TransColor];
+                picCel.Visible = true;
+                // copy view Image
+                tgtW = (int)(agView[CurLoop][CurCel].Width * 2 * ViewScale);
+                tgtH = (int)(agView[CurLoop][CurCel].Height * ViewScale);
+                switch (HorizontalAlign) {
+                case 0:
+                    tgtX = 0;
+                    break;
+                case 1:
+                    tgtX = (picCel.Width - tgtW) / 2;
+                    break;
+                case 2:
+                    tgtX = picCel.Width - tgtW;
+                    break;
+                }
+                switch (VertAlign) {
+                case 0:
+                    tgtY = 0;
+                    break;
+                case 1:
+                    tgtY = (picCel.Height - tgtH) / 2;
+                    break;
+                case 2:
+                    tgtY = picCel.Height - tgtH;
+                    break;
+                }
+                // to avoid flicker, need to change the image, not just draw on it
+                picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+                using Graphics g = Graphics.FromImage(picCel.Image);
+                g.Clear(picCel.BackColor);
+                // set correct interpolation mode
+                g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = PixelOffsetMode.Half;
+                g.DrawImage(IsTransparent ? agView[CurLoop][CurCel].TransImage : agView[CurLoop][CurCel].CelImage, tgtX, tgtY, tgtW, tgtH);
+                if (IsTransparent) {
+                    // draw single pixel dots spaced 10 pixels apart over transparent pixels only
+                    Bitmap b = new(picCel.Image);
+                    for (int i = 0; i < picCel.Width; i += 10) {
+                        for (int j = 0; j < picCel.Height; j += 10) {
+                            if (b.GetPixel(i, j).ToArgb() == picCel.BackColor.ToArgb()) {
+                                g.FillRectangle(Brushes.Black, new Rectangle(i, j, 1, 1));
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        public void RefreshView() {
+            if (agView is null) {
+                return;
+            }
+            // unload and reload and redraw
+            agView.Unload();
+            agView.Load();
+            DisplayCel();
+        }
+
+        public void SetViewScale() {
+            ViewScale = WinAGISettings.ViewScalePreview.Value;
+            double scale = ViewScale * 100;
+            if (scale <= 3) {
+                scale = (int)(scale * 4) / 4;
+            }
+            else {
+                scale = (int)(scale * 2) / 2;
+            }
+            tsbViewScale.Text = scale.ToString() + "%";
+        }
+        #endregion
+
+        #region Preview Include Methods
+        void PreviewInclude(int includeindex) {
+            if (includeindex == -1) {
+                return;
+            }
+            // if not Sierra syntax, first three includes are not displayable
+            if (!EditGame.SierraSyntax) {
+                string errMsg = "";
+                if (EditGame.IncludeFiles[includeindex].Type == IncludeType.Reserved) {
+                    errMsg = "Use the Reserved Names editor to view or edit this include file. ";
+                }
+                else if (EditGame.IncludeFiles[includeindex].Type == IncludeType.ResourceIDs) {
+                    errMsg = "This include file is automatically managed by WinAGI.\nIt is readonly, and not viewable.";
+                }
+                else if (EditGame.IncludeFiles[includeindex].Type == IncludeType.Globals) {
+                    errMsg = "Use the Global Defines editor to view or edit this include file. ";
+                }
+                if (errMsg.Length > 0) {
+                    // hide the panel BEFORE drawing the text, otherwise it will
+                    // not show correctly in all cases
+                    pnlLogic.Visible = false;
+                    using Graphics cg = CreateGraphics();
+                    cg.Clear(base.BackColor);
+                    cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
+                    return;
+                }
+            }
+            // open the file and display the text
+            string text = "";
+            try {
+                text = System.IO.File.ReadAllText(EditGame.IncludeFiles[includeindex].Filename);
+            }
+            catch (Exception ex) {
+                using Graphics cg = CreateGraphics();
+                cg.Clear(base.BackColor);
+                string errMsg = $"Error loading include file:\n{ex.Message}";
+                cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
+                pnlLogic.Visible = false;
+                return;
+            }
+            // to ensure only correct codepage characters are displayed, convert the
+            // text to bytes, then back to text
+            rtfLogPrev.Text = text;
+            rtfLogPrev.DoCaretVisible();
+            pnlLogic.Visible = true;
+            // set background
+            rtfLogPrev.BackColor = Color.FromArgb(0xe0, 0xff, 0xe0);
+            return;
+        }
+        #endregion
+    }
+}

@@ -1,0 +1,43 @@
+<html>
+	<head><title>Action Command: set.game.id</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+	<body><a name="_top"></a>
+		<table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+			<tr>
+				<td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-cmd.gif" width="460" height="72" border="0" alt="AGI Command Information"></td>
+			</tr>
+		</table>
+		<h1>set.game.id</h1>
+		<p>The <b>set.game.id</b> command sets the game ID.</p>
+		<p>&nbsp;</p>
+		<h2>Syntax</h2>
+		<blockquote>
+			<p>set.game.id(<a href="syntax_fan.htm#argtypes">msg</a> mGAMEID);</p>
+			<p>set.game.id("gameid");</p>
+		</blockquote>
+		<h2>Remarks</h2>
+			<p>The game ID is a short name, up to 6 characters, that identifies the game, such as 'KQ1', 'SQ2', 'GR', 'MUMG' etc.</p>
+			<p>When the game ID is set with this command, AGI checks it against an internal game ID value that is embedded within the main interpreter file. If the values do not match, AGI quits without any warning. This was done presumably to make sure the games were not run on an incorrect version of the interpreter, as well as to discourage pirating by requiring the use of the original interpreter files.</p>
+			<p>If a game ID is set, AGI prepends it to <a href="..\agi\save.htm">save game</a> file names (e.g. 'KQ1SG.1').</p>
+			<p>See the <a href="..\agi\components.htm#gameid">GameIDs and Interpreter Executable</a> topic for additional information on how game IDs were used in Sierra games and how to manage them in fan made games.</p>
+		<p>&nbsp;</p>
+		<h2>Example</h2>
+<pre><code>[ assume the interpreter file has been modified to use 
+[ this game ID for that great fan made game 'Dungeon!'
+<b>set.game.id("DGN1");</b>  [ DUNGEON!</code></pre>
+		<p>&nbsp;</p>
+		<h2>Required <a href="..\agi\versions.htm">Interpreter Version</a></h2>
+		<p>Available in all AGI versions.</p>
+		<p>&nbsp;</p>
+		<h2>Byte-Code Value</h2>
+		<p class="indent_n">143 (0x8F)</p>
+		<p>&nbsp;</p>
+		<h2>See Also</h2>
+		<blockquote>
+			<p><a href="cmds_system.htm">System Commands</a></p>
+			<p><a href="..\agi\components.htm#gameid">Game IDs and the Interpreter Executable</a></p>
+		</blockquote>
+		<p>&nbsp;</p>
+		<p align="right"><font size="1">v3.0.0</font></p>
+		<p>&nbsp;</p>
+	</body>
+</html>

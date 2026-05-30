@@ -1,0 +1,21 @@
+<html>
+	<head><title>Logic Compiler Error 4021</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4021</h2>
+    <h3>Invalid symbol '&lt;symboltext&gt;' in '<code>if</code>' statement</h3>
+    <p class="indent_n">This compiler error is raised when the compiler expects a <a href="..\..\commands\cmds_test.htm">test command</a>, or a <a href="..\..\agi\variables.htm">variable</a> or <a href="..\..\agi\flags.htm">flag</a> as part of an <a href="..\..\commands\syntax_fan.htm#alternatetests">alternate syntax</a>, or a '(', ')' or '!' symbol, but another symbol is found. This is most likely caused by a typographical errors. Check your source code carefully, and replace the invalid symbol as appropriate.</p>
+    <blockquote>
+      <pre>if (isset(f99) += )  [ <font color="red"><b>NOT OK</b></font>; '+=' not valid
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

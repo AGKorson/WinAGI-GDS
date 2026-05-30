@@ -1,0 +1,22 @@
+<html>
+	<head><title>Logic Compiler Error 4079</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4079</h2>
+    <h3>Indirection marker is only valid when using alternate syntax assignment</h3>
+    <p class="indent_n">Variables cannot use the indirection marker (*) unless the <a href="..\..\commands\syntax_fan.htm#alternateactions">alternate syntax</a> is being used to assign a <a href="..\..\agi\variables.htm">variable</a> by indirection.</p>
+    <blockquote>
+      <pre>*v99 = 99;    [ OK
+addn(*v99, 99);   [ <font color="red"><b>NOT OK</b></font>
+...</pre>
+    </blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

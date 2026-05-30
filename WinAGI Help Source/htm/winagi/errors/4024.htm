@@ -1,0 +1,22 @@
+<html>
+	<head><title>Logic Compiler Error 4024</title><link href="..\..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\..\graphics\banner-logic.gif" width="460" height="72" border="0" alt="AGI Logic Resource"></td>
+      </tr>
+    </table>
+    <h2>Logic Compiler Error 4024</h2>
+    <h3>Brackets too deep in '<code>if</code>' statement</h3>
+    <p class="indent_n">You can only have one level of parentheses in <a href="..\..\commands\syntax_fan.htm#ifelse">if statements</a> to group OR'ed ('||') commands. This error occurs if you try to include extra parentheses inside an OR clause. For example:</p>
+    <blockquote>
+      <pre>if(  (v1==1 || <b>(</b>v2==2 || v3==3<b>)</b>)  ) [ <font color="red"><b>NOT OK</b></font>
+...
+if(  (v1==1 || v2==2 || v3==3)  ) [  OK
+...</pre></blockquote>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>
