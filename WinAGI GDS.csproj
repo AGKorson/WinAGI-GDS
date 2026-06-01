@@ -17,7 +17,7 @@
 
 		<!-- Versioning (safe, no duplicate attributes) -->
 		<VersionPrefix>3.0.0</VersionPrefix>
-		<VersionSuffix>beta.0</VersionSuffix>
+		<VersionSuffix>beta.1</VersionSuffix>
 
 		<!-- Designer / build behavior -->
 		<ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>
@@ -31,6 +31,7 @@
 
 		<!-- Optional: silence CA1416 entirely -->
 		<NoWarn>$(NoWarn);CA1416</NoWarn>
+		<Platforms>x86</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>

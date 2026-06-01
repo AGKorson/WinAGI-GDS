@@ -33,7 +33,7 @@ namespace WinAGI.Engine {
             WinAGIEventInfo warnInfo = new() {
                 InfoType = InfoType.Resources,
             };
-            game.LoadEventStatus(mode, warnInfo);
+            LoadEventStatus(mode, warnInfo);
             // set up for warnings
             warnInfo.Type = EventType.ResourceWarning;
 
@@ -181,7 +181,7 @@ namespace WinAGI.Engine {
                             ARG1, ResTypeAbbrv[(int)resType]);
                         warnInfo.Line = -1;
                         warnInfo.Module = "--";
-                        game.LoadEventStatus(mode, warnInfo);
+                        LoadEventStatus(mode, warnInfo);
                     }
                     else {
                         warnInfo.ResType = AGIResType.Game;
@@ -191,7 +191,7 @@ namespace WinAGI.Engine {
                             ARG1, ResTypeAbbrv[(int)resType]);
                         warnInfo.Line = -1;
                         warnInfo.Module = "--";
-                        game.LoadEventStatus(mode, warnInfo);
+                        LoadEventStatus(mode, warnInfo);
                     }
                     // assume the max for now
                     intResCount = 256;
@@ -211,7 +211,7 @@ namespace WinAGI.Engine {
                         warnInfo.Text = "";
                         warnInfo.Line = -1;
                         warnInfo.Module = "--";
-                        game.LoadEventStatus(mode, warnInfo);
+                        LoadEventStatus(mode, warnInfo);
                         warnInfo.Type = EventType.ResourceWarning;
                         // get location data for this resource
                         byte1 = buffer[dirOffset + resNum * 3];
@@ -309,7 +309,7 @@ namespace WinAGI.Engine {
         /// </summary>
         internal static void AddLoadError(OpenGameMode mode, AGIGame game, AGIResType resType, byte resNum, ResourceErrorType errlevel, string[] errdata) {
             WinAGIEventInfo error = ErrorByNum(resType, resNum, errlevel, errdata);
-            game.LoadEventStatus(mode, error);
+            LoadEventStatus(mode, error);
         }
 
         /// <summary>
@@ -318,7 +318,7 @@ namespace WinAGI.Engine {
         internal static void AddLoadWarning(OpenGameMode mode, AGIGame game, AGIResType resType, byte resNum, int warnings, string[] warndata) {
             List<WinAGIEventInfo> errCol = WarningsFromField(resType, resNum, warnings, warndata);
             foreach (WinAGIEventInfo warning in errCol) {
-                game.LoadEventStatus(mode, warning);
+                LoadEventStatus(mode, warning);
             }
         }
 
