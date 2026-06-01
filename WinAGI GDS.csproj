@@ -31,6 +31,7 @@
 
 		<!-- Optional: silence CA1416 entirely -->
 		<NoWarn>$(NoWarn);CA1416</NoWarn>
+		<Platforms>x86</Platforms>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -2625,7 +2625,7 @@ namespace WinAGI.Engine {
             return retval;
         }
 
-        internal void LoadEventStatus(OpenGameMode mode, WinAGIEventInfo loadInfo) {
+        internal static void LoadEventStatus(OpenGameMode mode, WinAGIEventInfo loadInfo) {
             switch (mode) {
             case OpenGameMode.New:
                 OnNewGameStatus(loadInfo);
