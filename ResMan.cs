@@ -1187,7 +1187,6 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Global Static Methods
-
         #region Game Methods
         public static void NewGame(bool useTemplate) {
             string version = "";
@@ -1357,7 +1356,7 @@ namespace WinAGI.Editor {
                     // set default directory
                     BrowserStartDir = EditGame.GameDir;
                     // set default text file directory to game source file directory
-                    DefaultResDir = Path.Combine(EditGame.GameDir, EditGame.SrcResDirName);
+                    DefaultResDir = EditGame.SrcResDir;
                     // build ID lookup table
                     BuildIDefLookup();
 
@@ -1424,7 +1423,7 @@ namespace WinAGI.Editor {
             if (EditGame is not null) {
                 AddToMRU(EditGame.GameFile);
                 BrowserStartDir = EditGame.GameDir;
-                DefaultResDir = Path.Combine(EditGame.GameDir, EditGame.SrcResDirName);
+                DefaultResDir = EditGame.SrcResDir;
                 // build ID lookup table
                 BuildIDefLookup();
                 if (ActionCount < 182) {
@@ -2420,7 +2419,6 @@ namespace WinAGI.Editor {
                 // BrowserStartDir = JustPath(ThisGameFile);
             }
         }
-
         #endregion
 
         #region Resource Methods

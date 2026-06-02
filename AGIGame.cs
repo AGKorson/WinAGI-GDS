@@ -258,8 +258,8 @@ namespace WinAGI.Engine {
                 }
                 if (agIntVersion.IsV3) {
                     try {
-                        File.Move(Path.Combine(agGameDir, Path.Combine(agGameID, "DIR")), Path.Combine(agGameDir, Path.Combine(NewID.ToUpper(), "DIR")));
-                        foreach (string volFile in Directory.EnumerateFiles(agGameDir, Path.Combine(agGameID, "VOL.*"))) {
+                        File.Move(Path.Combine(agGameDir, agGameID + "DIR"), Path.Combine(agGameDir, NewID.ToUpper() + "DIR"));
+                        foreach (string volFile in Directory.EnumerateFiles(agGameDir, agGameID + "VOL.*")) {
                             string extension = Path.GetExtension(volFile);
                             File.Move(volFile, Path.Combine(agGameDir, NewID.ToUpper() + "VOL" + extension));
                         }
@@ -885,7 +885,7 @@ namespace WinAGI.Engine {
                         WinAGIEventInfo tmpError = new() {
                             Type = EventType.GameCompileError,
                             ResType = AGIResType.Words,
-                            Text = Path.Combine("Error during compilation of WORDS.TOK (" + ex.Message, ")")
+                            Text = "Error during compilation of WORDS.TOK (" + ex.Message + ")"
                         };
                         OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                         CompleteCancel(true);
@@ -917,7 +917,7 @@ namespace WinAGI.Engine {
                         WinAGIEventInfo tmpError = new() {
                             Type = EventType.GameCompileError,
                             ResType = AGIResType.Words,
-                            Text = Path.Combine("Error while creating WORDS.TOK file (" + ex.Message, ")")
+                            Text = "Error while creating WORDS.TOK file (" + ex.Message + ")"
                         };
                         OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                         CompleteCancel(true);
@@ -972,7 +972,7 @@ namespace WinAGI.Engine {
                         WinAGIEventInfo tmpError = new() {
                             Type = EventType.GameCompileError,
                             ResType = AGIResType.Objects,
-                            Text = Path.Combine("Error during compilation of OBJECT (" + ex.Message, ")")
+                            Text = "Error during compilation of OBJECT (" + ex.Message + ")"
                         };
                         OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                         CompleteCancel(true);
@@ -1003,7 +1003,7 @@ namespace WinAGI.Engine {
                         WinAGIEventInfo tmpError = new() {
                             Type = EventType.GameCompileError,
                             ResType = AGIResType.Objects,
-                            Text = Path.Combine("Error while creating OBJECT file (" + ex.Message, ")")
+                            Text = "Error while creating OBJECT file (" + ex.Message + ")"
                         };
                         OnCompileGameStatus(GameCompileStatus.FatalError, tmpError);
                         CompleteCancel(true);
@@ -1152,7 +1152,7 @@ namespace WinAGI.Engine {
             volManager.VOLWriter.Dispose();
             // delete existing dir files
             if (newIsV3) {
-                SafeFileDelete(Path.Combine(NewGameDir, Path.Combine(gameid, "DIR")));
+                SafeFileDelete(Path.Combine(NewGameDir, gameid + "DIR"));
             }
             else {
                 SafeFileDelete(Path.Combine(NewGameDir, "LOGDIR"));
@@ -1409,7 +1409,7 @@ namespace WinAGI.Engine {
                 // assign source file extension
                 agSrcFileExt = newGame.SrcExt;
                 // create empty property file
-                agGameFile = Path.Combine(agGameDir, Path.Combine(agGameID, ".wag"));
+                agGameFile = Path.Combine(agGameDir, agGameID + ".wag");
                 agGameProps = new SettingsFile(agGameFile, FileMode.Create);
                 agGameProps.Lines.Add("# WinAGI Game Property File for " + agGameID);
                 agGameProps.Lines.Add("#");
@@ -1454,7 +1454,7 @@ namespace WinAGI.Engine {
                 if (agIntVersion.IsV3) {
                     // for v3, header should be '08 - 00 - 0B - 00 - 0E - 00 - 11 - 00
                     byte[] bytDirHdr = [8, 0, 0x0b, 0, 0x0e, 0, 0x11, 0];
-                    using FileStream fsDIR = new(Path.Combine(agGameDir, Path.Combine(agGameID, "DIR")), FileMode.OpenOrCreate);
+                    using FileStream fsDIR = new(Path.Combine(agGameDir, agGameID + "DIR"), FileMode.OpenOrCreate);
                     fsDIR.Write(bytDirHdr);
                     for (int i = 0; i < 4; i++) {
                         fsDIR.Write(bytDirData);
@@ -1521,7 +1521,7 @@ namespace WinAGI.Engine {
                     if (!File.Exists(Path.Combine(agSrcResDir, "globals.txt"))) {
                         using FileStream fs = File.Create(Path.Combine(agSrcResDir, "globals.txt"));
                         string hdr = "[\n";
-                        hdr += Path.Combine("[ global defines file for " + agGameID, "\n");
+                        hdr += "[ global defines file for " + agGameID + "\n";
                         hdr += "[\n";
                         fs.Write(Encoding.Default.GetBytes(hdr));
                         fs.Close();
@@ -1594,8 +1594,8 @@ namespace WinAGI.Engine {
                     // get wag file name (it's first[and only] element)
                     agGameFile = Directory.GetFiles(agGameDir, "*.wag")[0];
                     // rename it to match new ID
-                    File.Move(agGameFile, Path.Combine(agGameDir, Path.Combine(newGame.ID, ".wag")));
-                    agGameFile = Path.Combine(agGameDir, Path.Combine(newGame.ID, ".wag"));
+                    File.Move(agGameFile, Path.Combine(agGameDir, newGame.ID + ".wag"));
+                    agGameFile = Path.Combine(agGameDir, newGame.ID + ".wag");
                 }
                 catch (Exception ex) {
                     WinAGIException wex = new(EngineResourceByNum(533).Replace(
@@ -1618,7 +1618,7 @@ namespace WinAGI.Engine {
                     try {
                         DirectoryInfo resDir = new(agSrcResDir);
                         resDir.MoveTo(Path.Combine(agGameDir, newGame.SrcResDirName));
-                        agSrcResDir = Path.Combine(Path.Combine(agGameDir, newGame.SrcResDirName), @"\");
+                        agSrcResDir = Path.Combine(agGameDir, newGame.SrcResDirName);
                     }
                     catch (Exception e) {
                         WinAGIException wex = new(EngineResourceByNum(545).Replace(
@@ -1692,7 +1692,7 @@ namespace WinAGI.Engine {
                 // rename wal file, if present
                 foreach (string tmpWAL in Directory.GetFiles(agGameDir, "*.wal")) {
                     try {
-                        File.Move(tmpWAL, Path.Combine(agGameDir, Path.Combine(Path.GetFileNameWithoutExtension(agGameFile), ".wal")));
+                        File.Move(tmpWAL, Path.Combine(agGameDir, Path.GetFileNameWithoutExtension(agGameFile) + ".wal"));
                     }
                     catch {
                         // ignore errors
@@ -1704,7 +1704,7 @@ namespace WinAGI.Engine {
                 if (!agSierraSyntax) {
                     if (File.Exists(Path.Combine(agSrcResDir, "globals.txt"))) {
                         try {
-                            SettingsFile stlGlobals = new SettingsFile(Path.Combine(agSrcResDir, "globals.txt"), FileMode.OpenOrCreate);
+                            SettingsFile stlGlobals = new(Path.Combine(agSrcResDir, "globals.txt"), FileMode.OpenOrCreate);
                             if (stlGlobals.Lines.Count > 3) {
                                 if (stlGlobals.Lines[1].Trim().Left(1) == "[") {
                                     stlGlobals.Lines[1] = "[ global defines file for " + newGame.ID;
@@ -1793,7 +1793,7 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
             }
-            agGameFile = Path.Combine(agGameDir, Path.Combine(agGameID, ".wag"));
+            agGameFile = Path.Combine(agGameDir, agGameID + ".wag");
             // delete any existing game file
             if (File.Exists(agGameFile)) {
                 SafeFileDelete(agGameFile);
@@ -2448,8 +2448,8 @@ namespace WinAGI.Engine {
             if (mode == OpenGameMode.Directory && DecodeGameID.Length != 0) {
                 agGameID = DecodeGameID;
                 DecodeGameID = "";
-                SafeFileMove(agGameFile, Path.Combine(agGameDir, Path.Combine(agGameID, ".wag")), true);
-                agGameFile = Path.Combine(agGameDir, Path.Combine(agGameID, ".wag"));
+                SafeFileMove(agGameFile, Path.Combine(agGameDir, agGameID + ".wag"), true);
+                agGameFile = Path.Combine(agGameDir, agGameID + ".wag");
                 agGameProps.Filename = agGameFile;
                 WriteGameSetting("General", "GameID", agGameID);
             }
@@ -2476,10 +2476,12 @@ namespace WinAGI.Engine {
             bool retval = false;
 
             // try to load logics
-            WinAGIEventInfo loadInfo = new();
-            loadInfo.Type = EventType.Info;
-            loadInfo.InfoType = InfoType.Resources;
-            loadInfo.ResType = AGIResType.Logic;
+            WinAGIEventInfo loadInfo = new()
+            {
+                Type = EventType.Info,
+                InfoType = InfoType.Resources,
+                ResType = AGIResType.Logic
+            };
             LoadEventStatus(OpenGameMode.Directory, loadInfo);
 
             for (int i = 0; i < 256; i++) {
@@ -2503,7 +2505,7 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // check for a source file
-                        if (File.Exists(Path.Combine(agSrcResDir, Path.Combine("RM" + i.ToString(), ".CG")))) {
+                        if (File.Exists(Path.Combine(agSrcResDir, "RM" + i.ToString() + ".CG"))) {
                             loadInfo.ResNum = i;
                             LoadEventStatus(OpenGameMode.Directory, loadInfo);
                             Logic logic = new() {
@@ -2767,7 +2769,7 @@ namespace WinAGI.Engine {
                     filename = Path.GetFileName(Directory.GetFiles(directory, "*DIR")[0].ToUpper());
                     agGameID = filename.Left(filename.IndexOf("DIR"));
                     // check for matching VOL file;
-                    if (File.Exists(Path.Combine(directory, Path.Combine(agGameID, "VOL.0")))) {
+                    if (File.Exists(Path.Combine(directory, agGameID + "VOL.0"))) {
                         // set version3 flag
                         isV3 = true;
                     }

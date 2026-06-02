@@ -3141,7 +3141,7 @@ namespace WinAGI.Editor {
             }
             else {
                 // try the gamefile (take off the 'g', use 'l')
-                fileName = Path.Combine(EditGame.GameDir, EditGame.GameFile[..^1] + "l");
+                fileName = EditGame.GameFile[..^1] + "l";
                 if (File.Exists(fileName)) {
                     filefound = true;
                     // rename the file
@@ -3562,7 +3562,7 @@ namespace WinAGI.Editor {
                 warninglist.Insert(2, "");
 
                 try {
-                    StreamWriter sw = new StreamWriter(Path.Combine(EditGame.GameDir, "layout_errors.txt"), false, Encoding.UTF8);
+                    StreamWriter sw = new(Path.Combine(EditGame.GameDir, "layout_errors.txt"), false, Encoding.UTF8);
                     foreach (string line in warninglist) {
                         sw.WriteLine(line);
                     }
@@ -4523,7 +4523,7 @@ namespace WinAGI.Editor {
                 layoutData.InsertRange(3, errorList);
 
                 try {
-                    StreamWriter sw = new StreamWriter(Path.Combine(EditGame.GameDir, "layout_errors.txt"), false, Encoding.UTF8);
+                    StreamWriter sw = new(Path.Combine(EditGame.GameDir, "layout_errors.txt"), false, Encoding.UTF8);
                     foreach (string line in layoutData) {
                         sw.WriteLine(line);
                     }
@@ -10055,7 +10055,7 @@ namespace WinAGI.Editor {
             return false;
         }
 
-        private PointF GridPos(PointF pos) {
+        private static PointF GridPos(PointF pos) {
             return new(GridPos(pos.X), GridPos(pos.Y));
         }
 

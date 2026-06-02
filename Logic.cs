@@ -149,7 +149,7 @@ namespace WinAGI.Engine {
         public string SourceFile {
             get {
                 if (mInGame) {
-                    return Path.Combine(parent.agSrcResDir, this.ID + "." + parent.SourceExt);
+                    return Path.Combine(parent.agSrcResDir, ID + "." + parent.SourceExt);
                 }
                 else {
                     return mSourceFile;
@@ -493,6 +493,7 @@ namespace WinAGI.Engine {
             mSourceChanged = false;
 
         }
+
         /// <summary>
         /// Imports a an existing source code file into this logic resource. It does not 
         /// compile the logic so the resource data remains unchanged.
