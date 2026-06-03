@@ -22,7 +22,7 @@ namespace WinAGI.Editor {
     public partial class frmMDIMain : Form {
         #region Members
         // warning grid variables
-        private List<int> WarnGridSortOrder = [2, 3, 4, 5, 6];
+        private readonly List<int> WarnGridSortOrder = [2, 3, 4, 5, 6];
         internal InfoGridScope infoGridScope = InfoGridScope.EntireProject;
         private bool gridWarnings = true;
         private bool gridErrors = true;
@@ -291,7 +291,7 @@ namespace WinAGI.Editor {
                 // !!!
                 // statusstrip merging SUCKS... so we do it manually
                 // !!!
-                MergeStatusStrip(statusStrip1, ActiveMdiChild);
+                MergeStatusStrip(ActiveMdiChild);
             }
             // update toolbar
             if (ActiveMdiChild is null) {
@@ -1461,7 +1461,7 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
-            frmSettings frm = new frmSettings(startpage);
+            frmSettings frm = new(startpage);
             frm.ShowDialog(MDIMain);
             frm.Dispose();
             // the settings form handles all mods and updates based on settings changes
@@ -2339,34 +2339,33 @@ namespace WinAGI.Editor {
         }
 
         private void fgWarnings_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
-            EventType evt;
             for (int i = e.RowIndex; i < e.RowIndex + e.RowCount; i++) {
-                if (!Enum.TryParse<EventType>((string)fgWarnings.Rows[i].Cells[0].Value, out evt)) {
+                if (!Enum.TryParse<EventType>((string)fgWarnings.Rows[i].Cells[0].Value, out EventType evt)) {
                     continue;
                 }
                 // types Info, GameLoadError, GameCompileError don't get added
                 switch (evt) {
-                case LogicCompileError:
-                case ResourceError:
-                case DecompError:
-                    // bold, red
-                    fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold);
-                    fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Red;
-                    break;
-                case TODO:
-                    // bold, italic
-                    fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold | FontStyle.Italic);
-                    fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.DarkGray;
-                    break;
-                case LogicCompileWarning:
-                case ResourceWarning:
-                case DecompWarning:
-                    fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Regular);
-                    fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Black;
-                    break;
-                default:
-                    Debug.Assert(false);
-                    break;
+                    case LogicCompileError:
+                    case ResourceError:
+                    case DecompError:
+                        // bold, red
+                        fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold);
+                        fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Red;
+                        break;
+                    case TODO:
+                        // bold, italic
+                        fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold | FontStyle.Italic);
+                        fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.DarkGray;
+                        break;
+                    case LogicCompileWarning:
+                    case ResourceWarning:
+                    case DecompWarning:
+                        fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Regular);
+                        fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Black;
+                        break;
+                    default:
+                        Debug.Assert(false);
+                        break;
                 }
 
             }
@@ -2438,7 +2437,7 @@ namespace WinAGI.Editor {
             e.SortResult = retval;
             e.Handled = true;
 
-            int CompareValues(string a, string b, bool isnum) {
+            static int CompareValues(string a, string b, bool isnum) {
                 if (isnum) {
                     if (!int.TryParse(a.ToString(), out int val1)) {
                         val1 = -1;
@@ -2470,7 +2469,7 @@ namespace WinAGI.Editor {
             string text = e.Value.ToString();
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
             // Declare a proposed size with dimensions set to the maximum integer value.
-            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            Size proposedSize = new(int.MaxValue, int.MaxValue);
             // get size
             Size szText = TextRenderer.MeasureText(fgWarnings.CreateGraphics(), text, e.CellStyle.Font, proposedSize, flags);
             if (szText.Width > cell.Size.Width - 8) {
@@ -2839,7 +2838,7 @@ namespace WinAGI.Editor {
             else if (ActiveMdiChild is frmTextScreenEdit txtscreenForm) {
                 txtscreenForm.mnuRSave_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmFind findForm) {
+            else if (ActiveMdiChild is frmFind) {
                 Debug.Assert(false);
             }
             else {
@@ -2866,25 +2865,25 @@ namespace WinAGI.Editor {
             else if (ActiveMdiChild is frmViewEdit viewForm) {
                 viewForm.mnuRInGame_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmObjectEdit objectForm) {
+            else if (ActiveMdiChild is frmObjectEdit) {
                 Debug.Assert(false);
             }
-            else if (ActiveMdiChild is frmWordsEdit wordsForm) {
+            else if (ActiveMdiChild is frmWordsEdit) {
                 Debug.Assert(false);
             }
             else if (ActiveMdiChild is frmGlobals globalsForm) {
                 globalsForm.mnuRInGame_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmLayout layoutForm) {
+            else if (ActiveMdiChild is frmLayout) {
                 Debug.Assert(false);
             }
-            else if (ActiveMdiChild is frmMenuEdit menuForm) {
+            else if (ActiveMdiChild is frmMenuEdit) {
                 Debug.Assert(false);
             }
-            else if (ActiveMdiChild is frmTextScreenEdit txtscreenForm) {
+            else if (ActiveMdiChild is frmTextScreenEdit) {
                 Debug.Assert(false);
             }
-            else if (ActiveMdiChild is frmFind findForm) {
+            else if (ActiveMdiChild is frmFind) {
                 Debug.Assert(false);
             }
             else {
@@ -2920,16 +2919,16 @@ namespace WinAGI.Editor {
             else if (ActiveMdiChild is frmGlobals globalsForm) {
                 globalsForm.mnuRSaveAs_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmLayout layoutForm) {
+            else if (ActiveMdiChild is frmLayout) {
                 Debug.Assert(false);
             }
-            else if (ActiveMdiChild is frmMenuEdit menuForm) {
+            else if (ActiveMdiChild is frmMenuEdit) {
                 Debug.Assert(false);
             }
             else if (ActiveMdiChild is frmTextScreenEdit txtscreenForm) {
                 txtscreenForm.mnuRSaveAs_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmFind findForm) {
+            else if (ActiveMdiChild is frmFind) {
                 Debug.Assert(false);
             }
             else {
@@ -3651,9 +3650,9 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void MergeStatusStrip(StatusStrip statusstrip, Form form) {
+        private void MergeStatusStrip(Form form) {
             switch (form) {
-            case frmGlobals frmGE:
+            case frmGlobals:
                 // status
                 spCapsLock.Visible = true;
                 spNumLock.Visible = true;
@@ -3681,7 +3680,7 @@ namespace WinAGI.Editor {
                 spNumLock.Visible = true;
                 spInsLock.Visible = true;
                 break;
-            case frmMenuEdit frmME:
+            case frmMenuEdit:
                 // status
                 spCapsLock.Visible = true;
                 spNumLock.Visible = true;
@@ -3709,7 +3708,7 @@ namespace WinAGI.Editor {
                 spNumLock.Visible = false;
                 spInsLock.Visible = false;
                 break;
-            case frmPreview frmPR:
+            case frmPreview:
                 // status
                 spCapsLock.Visible = true;
                 spNumLock.Visible = true;
@@ -4209,7 +4208,7 @@ namespace WinAGI.Editor {
         /// Clears entire warning/error panel. Only used when closing a game or
         /// opening a new game.
         /// </summary>
-        private void ClearWarnings() {
+        private static void ClearWarnings() {
             infoGridTable.Clear();
         }
 
@@ -4274,7 +4273,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void HelpWarning(EventType type, string id) {
+        private static void HelpWarning(EventType type, string id) {
             // show help for the warning (or error) that is selected
             string topic = "";
 
@@ -4637,7 +4636,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void RenumberSelectedResource() {
+        private static void RenumberSelectedResource() {
             // renumbers the preview resource -
             // depending on selected type, look for an open editor first
             // if found, use that editor's function; if not found use the
@@ -4759,7 +4758,6 @@ namespace WinAGI.Editor {
                 break;
             case Include:
                 // remove it without checking for export, since includes can't be exported
-                // TODO: confirm first?
                 Debug.Assert(EditGame.IncludeFiles[SelResNum].Type != IncludeType.ResourceIDs);
                 Debug.Assert(EditGame.IncludeFiles[SelResNum].Type != IncludeType.Reserved);
                 Debug.Assert(EditGame.IncludeFiles[SelResNum].Type != IncludeType.Globals);
@@ -4844,7 +4842,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        public void EditSelectedItemProperties(int FirstProp) {
+        public static void EditSelectedItemProperties(int FirstProp) {
             // only use for resources that are NOT being edited;
             // if the resource is being edited, the editor for that
             // resource handles description, ID and number changes
@@ -5165,7 +5163,8 @@ namespace WinAGI.Editor {
 
         private void RunGame() {
             string parameters = "";
-            string errorTitle = "", errorMsg = "", errorType = "";
+
+            string errorTitle = "", errorType = "";
             bool failed;
 
             // first check for missing platform
@@ -5219,15 +5218,16 @@ namespace WinAGI.Editor {
             }
             if (CheckLogics()) {
                 // run the program if check is OK
-                Process runagi = new Process();
-                ProcessStartInfo runparams = new();
-                runparams.FileName = EditGame.Platform;
-                runparams.Arguments = parameters;
-                runparams.ErrorDialog = true;
-                runparams.ErrorDialogParentHandle = Handle;
-                //runparams.UseShellExecute = true;
-                runparams.WindowStyle = ProcessWindowStyle.Normal;
-                runparams.WorkingDirectory = EditGame.GameDir;
+                Process runagi = new();
+                ProcessStartInfo runparams = new() {
+                    FileName = EditGame.Platform,
+                    Arguments = parameters,
+                    ErrorDialog = true,
+                    ErrorDialogParentHandle = Handle,
+                    //runparams.UseShellExecute = true;
+                    WindowStyle = ProcessWindowStyle.Normal,
+                    WorkingDirectory = EditGame.GameDir
+                };
                 runagi.StartInfo = runparams;
                 try {
                     failed = !runagi.Start();
@@ -5242,6 +5242,7 @@ namespace WinAGI.Editor {
                 }
 
                 if (failed) {
+                    string errorMsg = "";
                     switch (EditGame.PlatformType) {
                     case Engine.PlatformType.DosBox:
                         errorTitle = "DosBox Error";
@@ -5260,7 +5261,7 @@ namespace WinAGI.Editor {
                         errorMsg = "this program ";
                         break;
                     }
-                    errorMsg = "Unable to run " + errorTitle + errorType + ". Make sure you " +
+                    errorMsg = "Unable to run " + errorMsg + errorType + ". Make sure you " +
                                 "have selected the correct executable file, and that any parameters " +
                                 "you included are correct.";
                     MDIMain.MsgBoxWithHelp(
@@ -5273,7 +5274,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void ShowHelp() {
+        private static void ShowHelp() {
             // called by HelpRequest event when the main form has focus
             // such as when no other child form is visible
 
@@ -5947,7 +5948,7 @@ namespace WinAGI.Editor {
                 // open a word resource
                 NewWordList(args[1]);
             }
-            else if (args[1].Right(4).ToLower() == "." + WinAGISettings.DefaultExt.Value) {
+            else if (args[1].Right(4).Equals("." + WinAGISettings.DefaultExt.Value, StringComparison.CurrentCultureIgnoreCase)) {
                 // open a logic source text file or logic resource
                 NewLogic(args[1]);
             }
@@ -5955,7 +5956,7 @@ namespace WinAGI.Editor {
                 // check for a file
                 // (first check for logic source (it is variable so can't be
                 // used in a switch statement)
-                if (args[1].Right(4).ToLower() == "." + WinAGISettings.DefaultExt.Value) {
+                if (args[1].Right(4).Equals("." + WinAGISettings.DefaultExt.Value, StringComparison.CurrentCultureIgnoreCase)) {
                     // open a logic source text file
                     NewLogic(args[1]);
                     return;

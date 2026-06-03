@@ -101,7 +101,7 @@ namespace WinAGI.Engine {
         internal string agDesigner = "";
         internal DateTime agLastEdit;
         internal string agDescription = "";
-        internal AGIVersionInfo agIntVersion = new AGIVersionInfo {
+        internal AGIVersionInfo agIntVersion = new() {
             Index = AGIVersion.v2917,
         };
         internal string agGameAbout = "";
@@ -1501,12 +1501,13 @@ namespace WinAGI.Engine {
                     }
                     catch {
                         // note the problem as a warning
-                        WinAGIEventInfo dirinfo = new();
-                        dirinfo.ResType = AGIResType.Game;
-                        dirinfo.Type = EventType.ResourceWarning;
-                        dirinfo.ID = "RW03";
-                        dirinfo.Text = EngineResources.RW03.Replace(
-                            ARG1, agSrcResDir);
+                        WinAGIEventInfo dirinfo = new() {
+                            ResType = AGIResType.Game,
+                            Type = EventType.ResourceWarning,
+                            ID = "RW03",
+                            Text = EngineResources.RW03.Replace(
+                                ARG1, agSrcResDir)
+                        };
                         OnNewGameStatus(dirinfo);
                         // use game directory
                         agSrcResDir = agGameDir;
@@ -3013,8 +3014,6 @@ namespace WinAGI.Engine {
 
         public CompileStatus CompileChangedLogics() {
             bool unloadRes;
-            WinAGIEventInfo compInfo = new();
-
             Compiling = true;
             CancelComp = false;
 

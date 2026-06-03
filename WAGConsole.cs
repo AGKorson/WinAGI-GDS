@@ -30,6 +30,7 @@ namespace WinAGI.Editor {
         private static ConsoleMode mode;
         private static int ErrCount = 0, WarnCount = 0, CompCount = 0;
         private static int logErr = 0, logWarn = 0;
+
         public static void InitConsole() {
             if (Debugger.IsAttached) {
                 Debug.WriteLine("");

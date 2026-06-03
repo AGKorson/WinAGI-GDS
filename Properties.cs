@@ -538,7 +538,7 @@ namespace WinAGI.Editor {
                     thisres = EditGame.Views[resnum];
                     break;
                 }
-                MDIMain.EditSelectedItemProperties(1);
+                frmMDIMain.EditSelectedItemProperties(1);
                 return thisres.ID;
             case "Description":
                 switch (context.Instance.ToString()) {
@@ -571,7 +571,7 @@ namespace WinAGI.Editor {
                 case "WinAGI.Editor.WordListProperties":
                     break;
                 }
-                MDIMain.EditSelectedItemProperties(1);
+                frmMDIMain.EditSelectedItemProperties(1);
                 switch (context.Instance.ToString()) {
                 case "WinAGI.Editor.InvObjProperties":
                     return EditGame.InvObjects.Description;
