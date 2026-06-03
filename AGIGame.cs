@@ -521,11 +521,16 @@ namespace WinAGI.Engine {
                 agIncludeFiles.RemoveAll(e => e.Filename.Equals(
                     Path.Combine(agSrcResDir, "reserved.txt"), StringComparison.OrdinalIgnoreCase));
                 if (value) {
-                    // add new entry for globals.txt
+                    // add new entry for reserved.txt
                     agIncludeFiles.Insert(0, new IncludeInfo {
                         Filename = Path.Combine(agSrcResDir, "reserved.txt"),
                         Type = IncludeType.ResourceIDs
                     });
+                    // initialize the reserved defines list if it doesn't already exist
+                    agReservedDefines ??= new(this);
+                }
+                else {
+                    agReservedDefines = null;
                 }
                 WriteGameSetting("Includes", "IncludeReserved", agIncludeReserved.ToString());
             }
@@ -1362,7 +1367,7 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            bool x = false; //
+            bool x = false;
             if (IsValidGameDir(newGame.GameDir, ref x)) {
                 // folder cannot have existing Sierra game files
                 WinAGIException wex = new(EngineResourceByNum(536)) {
@@ -1514,7 +1519,7 @@ namespace WinAGI.Engine {
                     }
                 }
                 if (IncludeReserved) {
-                    agReservedDefines = new(this);
+                    agReservedDefines ??= new(this);
                 }
                 // assign a globals object
                 agGlobals = new(this);
@@ -1606,11 +1611,11 @@ namespace WinAGI.Engine {
                     wex.Data["exception"] = ex;
                     throw wex;
                 }
+
                 // 2. adjust game parameters:
                 eventInfo.InfoType = InfoType.Initialize;
                 eventInfo.Text = "updating game components";
                 OnNewGameStatus(eventInfo);
-                agGameID = newGame.ID;
                 // retrieve name of the first directory as current resource dir
                 agSrcResDir = Directory.GetDirectories(agGameDir)[0];
                 agSrcResDirName = newGame.SrcResDirName;
@@ -1640,7 +1645,7 @@ namespace WinAGI.Engine {
                     };
                     throw wex;
                 }
-                // check version
+                // check WinAGI version
                 string version = agGameProps.GetSetting("General", "WinAGIVersion", "");
                 if (version.Left(4) == "1.2." || (version.Left(2) == "2.")) {
                     // template must be updated before it can be used
@@ -1658,8 +1663,6 @@ namespace WinAGI.Engine {
                     wex.Data["version"] = version;
                     throw wex;
                 }
-                // gameid
-                agGameProps.WriteSetting("General", "GameID", newGame.ID);
                 // resdir
                 agGameProps.WriteSetting("General", "ResDir", newGame.SrcResDirName);
                 // source file ext
@@ -1689,6 +1692,31 @@ namespace WinAGI.Engine {
                 agGameProps.WriteSetting("Includes", "IncludeGlobals", agIncludeGlobals);
                 agGameProps.WriteSetting("General", "SierraSyntax", agSierraSyntax);
                 agGameProps.WriteSetting("General", "CodePage", agCodePage);
+                // gameid (save oldID in case a v3 game needs files renamed)
+                string templateID = agGameProps.GetSetting("General", "GameID", "AGI").Trim();
+                agGameID = newGame.ID;
+                agGameProps.WriteSetting("General", "GameID", newGame.ID);
+                // set game version
+                agIntVersion = new() {
+                    Index = newGame.Version,
+                };
+                // if v3, rename DIR and VOL files
+                if (agIntVersion.IsV3) {
+                    try {
+                        File.Move(Path.Combine(agGameDir, templateID + "DIR"), Path.Combine(agGameDir, newGame.ID.ToUpper() + "DIR"));
+                        foreach (string volFile in Directory.EnumerateFiles(agGameDir, templateID + "VOL.*")) {
+                            string extension = Path.GetExtension(volFile);
+                            File.Move(volFile, Path.Combine(agGameDir, newGame.ID.ToUpper() + "VOL" + extension));
+                        }
+                    }
+                    catch (Exception e) {
+                        WinAGIException wex = new(EngineResourceByNum(503).Replace(ARG1, e.HResult.ToString())) {
+                            HResult = WINAGI_ERR + 503
+                        };
+                        wex.Data["exception"] = e;
+                        throw wex;
+                    }
+                }
                 agGameProps.Save();
                 // rename wal file, if present
                 foreach (string tmpWAL in Directory.GetFiles(agGameDir, "*.wal")) {
@@ -1719,6 +1747,7 @@ namespace WinAGI.Engine {
                         }
                     }
                 }
+
                 // 3. open the newly created game
                 eventInfo.InfoType = InfoType.Finalizing;
                 eventInfo.Text = "opening the new game";
@@ -1726,6 +1755,16 @@ namespace WinAGI.Engine {
                 try {
                     // finish by loading the game resources
                     FinishGameLoad(OpenGameMode.New);
+                }
+                catch (WinAGIException) {
+                    throw;
+                }
+                catch (FileNotFoundException fex) {
+                    WinAGIException wex = new(EngineResourceByNum(508).Replace(
+                        ARG1, fex.Message)) {
+                        HResult = WINAGI_ERR + 508
+                    };
+                    throw wex;
                 }
                 catch (Exception ex) {
                     WinAGIException wex = new(EngineResourceByNum(534).Replace(
@@ -2309,7 +2348,7 @@ namespace WinAGI.Engine {
             // include files
             if (agIncludeReserved) {
                 // load reserved defines
-                agReservedDefines = new(this);
+                agReservedDefines ??= new(this);
             }
             if (BkgdTasks.updating) {
                 // if there's a globals.txt file, move it
@@ -2652,7 +2691,7 @@ namespace WinAGI.Engine {
             agVocabWords = new WordList(this);
             agIncludeFiles = [];
             agReservedDefines = null;
-            agGlobals = null;// new GlobalList(this);
+            agGlobals = null;
             // clear out game properties
             agGameID = "";
             agIntVersion = new() {

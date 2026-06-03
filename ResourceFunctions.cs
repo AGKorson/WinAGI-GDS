@@ -81,9 +81,7 @@ namespace WinAGI.Engine {
             }
             // confirm vol.0 exists and is accessible
             if (!File.Exists(volFile)) {
-                FileNotFoundException fex = new FileNotFoundException(volFile);
-                fex.Data["missingfile"] = volFile;
-                throw fex;
+                throw new FileNotFoundException(volFile);
             }
             // check for readonly
             if ((File.GetAttributes(volFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {

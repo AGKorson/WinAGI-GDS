@@ -5151,6 +5151,8 @@ namespace WinAGI.Editor {
                 }
                 LogicListChange();
             }
+            // refresh include list in case they changed
+            RefreshIncludeList();
             EditGame.UseLE = propForm.chkUseLE.Checked;
             // update menu/toolbar, and hide LE if not in use anymore
             UpdateLEStatus();

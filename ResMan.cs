@@ -10175,6 +10175,7 @@ namespace WinAGI.Editor {
             NumberStyle = new ImmutableStyle(WinAGISettings.SyntaxStyle[7].Color.Value, null, WinAGISettings.SyntaxStyle[7].FontStyle.Value);
             ArgIdentifierStyle = new ImmutableStyle(WinAGISettings.SyntaxStyle[8].Color.Value, null, WinAGISettings.SyntaxStyle[8].FontStyle.Value);
             DefIdentifierStyle = new ImmutableStyle(WinAGISettings.SyntaxStyle[9].Color.Value, null, WinAGISettings.SyntaxStyle[9].FontStyle.Value);
+            SymbolStyle = new ImmutableStyle(WinAGISettings.SyntaxStyle[0].Color.Value, null, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
         }
 
         public static Regex FindTokenRegex(string token, string invalidChars) {
