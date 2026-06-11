@@ -325,7 +325,7 @@ namespace WinAGI.Engine {
                 // section start is referenced relative to byte 2 of the
                 // resource header)
                 msgSecStart = logicdata[0] + (logicdata[1] << 8) + 2;
-                if (!ReadMessages(msgSecStart, dcLogic.V3Compressed != 2)) {
+                if (!ReadMessages(msgSecStart, !dcLogic.V3Compressed)) {
                     // error message aded by ReadMessages function
                     AddWarningLines();
                     outputList.Add("return();");

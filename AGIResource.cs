@@ -62,8 +62,8 @@ namespace WinAGI.Engine {
             mInGame = false;
             mVolume = -1;
             mLoc = -1;
-            // assume no compression
-            V3Compressed = 0;
+            // assume no LZW compression
+            V3Compressed = false;
             // calling resource constructor is responsible for creating default data
         }
         #endregion
@@ -186,8 +186,7 @@ namespace WinAGI.Engine {
         /// 1 = picture compression<br />
         /// 2 = LZW compression<br />
         /// </returns>
-        public int V3Compressed {
-            // TODO: change this to bool, and clean it up
+        public bool V3Compressed {
             get; internal set;
         }
 
@@ -739,8 +738,7 @@ namespace WinAGI.Engine {
             fsVOL.Dispose();
             brVOL.Dispose();
             if (isPicture) {
-                // pictures use this decompression
-                V3Compressed = 1;
+                // pictures use custom RLE decompression
                 try {
                     mData = DecompressPicture(mData, fullSize);
                 }
@@ -759,9 +757,9 @@ namespace WinAGI.Engine {
             else {
                 if (mData.Length != fullSize) {
                     // all other resources use LZW compression
-                    V3Compressed = 2;
+                    V3Compressed = true;
                     try {
-                        mData = AGILZW.ExpandV3ResData(mData, fullSize);
+                        mData = ExpandV3ResData(mData, fullSize);
                     }
                     catch (Exception e) {
                         fsVOL.Dispose();
@@ -812,7 +810,7 @@ namespace WinAGI.Engine {
                     // update saved size
                     mSize = mData.Length;
                     // when saving in WinAGI, resource are never compressed
-                    V3Compressed = 0;
+                    V3Compressed = false;
                     mSizeInVol = mSize;
                 }
                 catch {

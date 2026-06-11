@@ -320,6 +320,207 @@ namespace WinAGI.Engine {
             }
         }
 
+        /// <summary>
+        /// Expands a v3 AGI resource that is compressed using Sierra's custom LZW
+        /// implementation.
+        /// </summary>
+        /// <param name="originalData"></param>
+        /// <param name="fullsize"></param>
+        /// <returns></returns>
+        internal static byte[] ExpandV3ResData(byte[] originalData, int fullsize) {
+            const int TABLE_SIZE = 18041;
+            const int START_BITS = 9;
+            const int MAX_BITS = 11;
+            int MaxCode;
+            uint[] Prefix = [];
+            byte[] Append = [];
+            int BitsInBuffer;
+            uint BitBuffer;
+            int OriginalSize;
+
+            int inPos = 0;
+            int outPos = 0;
+            int nextCode;
+            int codeSize;
+            uint oldCode, newCode;
+            var decodebuffer = new byte[4096];
+
+            Prefix = new uint[TABLE_SIZE];
+            Append = new byte[TABLE_SIZE];
+            byte[] output = new byte[fullsize];
+            // original size is determined by array bounds
+            OriginalSize = originalData.Length;
+            BitBuffer = 0;
+            BitsInBuffer = 0;
+
+            // initialize
+            codeSize = NewCodeSize(START_BITS);
+            nextCode = 257;
+
+            // read in the first code.
+            oldCode = ReadCode(originalData, codeSize, ref inPos);
+            // first code for SIERRA resouces should always be 256
+            if (oldCode != 256) {
+                WinAGIException wex = new(EngineResourceByNum(509).Replace(ARG1, "(invalid compression data)")) {
+                    HResult = WINAGI_ERR + 509,
+                };
+                throw wex;
+            }
+            // now begin decompressing actual data
+            newCode = ReadCode(originalData, codeSize, ref inPos);
+            // continue extracting data, until all bytes are read (or end code is reached)
+            while ((inPos <= OriginalSize) && (newCode != 0x101)) {
+                byte databyte;
+                // check for reset
+                if (newCode == 0x100) {
+                    // Restart LZW process
+                    nextCode = 258;
+                    codeSize = NewCodeSize(START_BITS);
+                    // read in the first code
+                    oldCode = ReadCode(originalData, codeSize, ref inPos);
+                    // the character Value is same as code for beginning
+                    databyte = (byte)oldCode;
+                    // write out the first character
+                    output[outPos++] = databyte;
+                    // now get next code
+                    newCode = ReadCode(originalData, codeSize, ref inPos);
+                    continue;
+                }
+                // This code checks for the special STRING+character+STRING+character+STRING
+                // case which generates an undefined code.  It handles it by decoding
+                // the last code, and adding a single Character to the end of the decode string.
+                // (new_code will ONLY return a next_code Value if the condition exists;
+                // it should otherwise return a known code, or a ascii Value)
+                int start, length;
+                if (newCode >= nextCode) {
+                    // decode the string using old code
+                    length = DecodeBytes(oldCode, decodebuffer, out start);
+                    if (length == 0) {
+                        break;
+                    }
+                    databyte = decodebuffer[start];
+                    Buffer.BlockCopy(decodebuffer, start, output, outPos, length);
+                    outPos += length;
+                    // append the character code
+                    output[outPos++] = databyte;
+                }
+                else {
+                    // decode the string using new code
+                    length = DecodeBytes(newCode, decodebuffer, out start);
+                    if (length == 0) {
+                        break;
+                    }
+                    databyte = decodebuffer[start];
+                    Buffer.BlockCopy(decodebuffer, start, output, outPos, length);
+                    outPos += length;
+                }
+                // if no more room in the current bit-code table,
+                if (nextCode > MaxCode) {
+                    // get new code size (in number of bits per code)
+                    codeSize = NewCodeSize(codeSize + 1);
+                }
+                // store code in prefix table
+                Prefix[nextCode - 257] = oldCode;
+                // store append character in table
+                Append[nextCode - 257] = databyte;
+                // increment next code pointer
+                nextCode++;
+                oldCode = newCode;
+                // get the next code
+                newCode = ReadCode(originalData, codeSize, ref inPos);
+            }
+            return output;
+
+            int DecodeBytes(uint code, byte[] scratch, out int start) {
+                // Decodes a code into bytes and writes them into the scratch buffer.
+                // The result is written at the end of the buffer so the byte order is correct.
+                // Returns the number of bytes written, and the start index in the scratch buffer.
+                int pos = scratch.Length;
+                while (code > 255) {
+                    if (code > TABLE_SIZE) {
+                        start = scratch.Length;
+                        return 0;
+                    }
+                    else {
+                        scratch[--pos] = Append[code - 257];
+                        code = Prefix[code - 257];
+                    }
+                }
+                scratch[--pos] = (byte)code;
+                start = pos;
+                return scratch.Length - pos;
+            }
+
+            uint ReadCode(byte[] data, int codeSize, ref int inPos) {
+                // This method extracts the next code Value off the input stream.
+                // Since the number of bits per code can vary between 9 and 12, we can't read in
+                // directly from the stream.
+
+                // Unlike normal LZW, the bytes are actually written so the code boundaries work
+                // from right to left, NOT left to right. For example, if the input stream needs
+                // to be split on a 9 bit boundary it will use eight bits of first byte, plus LOWEST
+                // bit of byte 2. The second code is then the upper seven bits of byte 2 and the
+                // lower 2 bits of byte 3 etc:
+                //                           byte boundaries (8 bits per byte)
+                //           byte4           byte3           byte2           byte1           byte0
+                //  ...|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0
+                //  ... x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x
+                //  ... 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0
+                //                    code3             code2             code1             code0
+                //                           code boundaries (9 bits per code)
+                //
+                // The data stream is read into a bit buffer 8 bits at a time (i.e. a single byte).
+                // Once the buffer is full of data, the input code is pulled out, and the buffer
+                // is shifted.
+                // The input data from the stream must be shifted to ensure it lines up with data
+                // currently in the buffer.
+
+                // Read bytes into the buffer until has 24 or mor bits. This ensures that the
+                // eight bits read from the input stream will fit in the buffer (which is a long
+                // integer [4 bytes==32 bits]). Also stop reading data if end of data stream is
+                // reached.
+                while ((BitsInBuffer <= 24) && (inPos < OriginalSize)) {
+                    uint worddata = data[inPos++];
+                    // shift the data to the left by enough bits so the byte being added will not
+                    // overwrite the bits currently in the buffer, and add the bits to the buffer
+                    BitBuffer |= worddata << BitsInBuffer;
+                    // increment count of how many bits are currently in the buffer
+                    BitsInBuffer += 8;
+                }
+                // The input code starts at the lowest bit in the buffer. Since the buffer has
+                // 32 bits total, we need to clear out all bits above the desired number of bits
+                // to define the code (i.e. if 9 bits, AND with 0x1FF; 10 bits,AND with 0x3FF,
+                // etc.)
+                uint retval = BitBuffer & (uint)((1 << codeSize) - 1);
+                // then shift the buffer to the right by the number of bits per code
+                BitBuffer >>= codeSize;
+                BitsInBuffer -= codeSize;
+                // return code Value
+                return retval;
+            }
+
+            int NewCodeSize(int value) {
+                // This method supports the expansion of compressed resources.
+                // It sets the size of codes which the LZW routine uses. The code size starts at
+                // 9 bits, then increases as all code tables are filled. The max code size is 11;
+                // if an attempt is made to set a code size above that, the function does nothing.
+                // 
+                // The function also recalculates the maximum number of codes available to the
+                // expand subroutine. This number is used to determine when to call this function
+                // again.
+                int retval;
+
+                if (value >= MAX_BITS) {
+                    retval = MAX_BITS;
+                }
+                else {
+                    retval = value;
+                }
+                MaxCode = (1 << retval) - 2;
+                return retval;
+            }
+        }
+
         internal static void AddCompileError(AGIResType resType, byte resNum, ResourceErrorType errlevel, string[] errdata) {
             WinAGIEventInfo error = ErrorByNum(resType, resNum, errlevel, errdata);
             GameCompileStatus errstat = GameCompileStatus.ResError;
@@ -1568,229 +1769,6 @@ namespace WinAGI.Engine {
             }
             // if nothing found, return 0
             return 0;
-        }
-        #endregion
-    }
-
-    /// <summary>
-    /// A class to provide LZW decompression support for AGI v3 resources.
-    /// </summary>
-    // TODO: move to common LZW class
-    internal static class AGILZW {
-        #region Fields
-        const int TABLE_SIZE = 18041;
-        const int START_BITS = 9;
-        private static int MaxCode;
-        private static uint[] Prefix;
-        private static byte[] Append;
-        private static int BitsInBuffer;
-        private static uint BitBuffer;
-        private static int OriginalSize;
-        #endregion
-
-        #region Methods
-        /// <summary>
-        /// Expands a v3 AGI resource that is compressed using Sierra's custom LZW
-        /// implementation.
-        /// </summary>
-        /// <param name="bytOriginalData"></param>
-        /// <param name="fullsize"></param>
-        /// <returns></returns>
-        internal static byte[] ExpandV3ResData(byte[] bytOriginalData, int fullsize) {
-            int inPos, outPos, nextCode, i;
-            uint oldCode, newCode;
-            string datatext;
-            char datachar;
-            int codeSize;
-            Prefix = new uint[TABLE_SIZE];
-            Append = new byte[TABLE_SIZE];
-            // set temporary data field
-            byte[] tempData = new byte[fullsize];
-            // original size is determined by array bounds
-            OriginalSize = bytOriginalData.Length;
-            inPos = 0;
-            outPos = 0;
-            BitBuffer = 0;
-            BitsInBuffer = 0;
-
-            // initialize
-            codeSize = NewCodeSize(START_BITS);
-            nextCode = 257;
-            datachar = (char)0;
-
-            // read in the first code.
-            oldCode = ReadCode(ref bytOriginalData, codeSize, ref inPos);
-            // first code for SIERRA resouces should always be 256
-            if (oldCode != 256) {
-                Prefix = [];
-                Append = [];
-                WinAGIException wex = new(Engine.Base.EngineResourceByNum(509).Replace(ARG1, "(invalid compression data)")) {
-                    HResult = WINAGI_ERR + 509,
-                };
-                throw wex;
-            }
-            // now begin decompressing actual data
-            newCode = ReadCode(ref bytOriginalData, codeSize, ref inPos);
-            // continue extracting data, until all bytes are read (or end code is reached)
-            while ((inPos <= OriginalSize) && (newCode != 0x101)) {
-                // check for reset
-                if (newCode == 0x100) {
-                    // Restart LZW process
-                    nextCode = 258;
-                    codeSize = NewCodeSize(START_BITS);
-                    // read in the first code
-                    oldCode = ReadCode(ref bytOriginalData, codeSize, ref inPos);
-                    // the character Value is same as code for beginning
-                    datachar = (char)oldCode;
-                    // write out the first character
-                    tempData[outPos++] = (byte)oldCode;
-                    // now get next code
-                    newCode = ReadCode(ref bytOriginalData, codeSize, ref inPos);
-                }
-                else {
-                    // This code checks for the special STRING+character+STRING+character+STRING
-                    // case which generates an undefined code.  It handles it by decoding
-                    // the last code, and adding a single Character to the end of the decode string.
-                    // (new_code will ONLY return a next_code Value if the condition exists;
-                    // it should otherwise return a known code, or a ascii Value)
-                    if ((newCode >= nextCode)) {
-                        // decode the string using old code
-                        datatext = DecodeString(oldCode);
-                        // append the character code
-                        datatext += datachar;
-                    }
-                    else {
-                        // decode the string using new code
-                        datatext = DecodeString(newCode);
-                    }
-                    // retreive the character Value
-                    datachar = datatext[0];
-                    // now send out decoded data (it's backwards in the string, so
-                    // start at end and work back to beginning)
-                    for (i = 0; i < datatext.Length; i++) {
-                        tempData[outPos++] = (byte)datatext[i];
-                    }
-                    // if no more room in the current bit-code table,
-                    if (nextCode > MaxCode) {
-                        // get new code size (in number of bits per code)
-                        codeSize = NewCodeSize(codeSize + 1);
-                    }
-                    // store code in prefix table
-                    Prefix[nextCode - 257] = oldCode;
-                    // store append character in table
-                    Append[nextCode - 257] = (byte)datachar;
-                    // increment next code pointer
-                    nextCode++;
-                    oldCode = newCode;
-                    // get the next code
-                    newCode = ReadCode(ref bytOriginalData, codeSize, ref inPos);
-                }
-            }
-            // free lzw arrays
-            Prefix = [];
-            Append = [];
-            return tempData;
-        }
-
-        /// <summary>
-        /// A method that converts a code value into its original string value.
-        /// </summary>
-        /// <param name="code"></param>
-        /// <returns></returns>
-        internal static string DecodeString(uint code) {
-            string retval = "";
-
-            while (code > 255) {
-                if (code > TABLE_SIZE) {
-                    return retval;
-                }
-                else {
-                    retval = (char)Append[code - 257] + retval;
-                    code = Prefix[code - 257];
-                }
-            }
-            retval = (char)code + retval;
-            return retval;
-        }
-
-        /// <summary>
-        /// This method extracts the next code Value off the input stream.
-        /// Since the number of bits per code can vary between 9 and 12, we can't read in
-        /// directly from the stream.
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="codeSize"></param>
-        /// <param name="inPos"></param>
-        /// <returns></returns>
-        internal static uint ReadCode(ref byte[] data, int codeSize, ref int inPos) {
-            uint worddata, retval;
-            // Unlike normal LZW, the bytes are actually written so the code boundaries work
-            // from right to left, NOT left to right. For example, if the input stream needs
-            // to be split on a 9 bit boundary it will use eight bits of first byte, plus LOWEST
-            // bit of byte 2. The second code is then the upper seven bits of byte 2 and the
-            // lower 2 bits of byte 3 etc:
-            //                           byte boundaries (8 bits per byte)
-            //           byte4           byte3           byte2           byte1           byte0
-            //  ...|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0|7 6 5 4 3 2 1 0
-            //  ... x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x x
-            //  ... 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0
-            //                    code3             code2             code1             code0
-            //                           code boundaries (9 bits per code)
-            //
-            // The data stream is read into a bit buffer 8 bits at a time (i.e. a single byte).
-            // Once the buffer is full of data, the input code is pulled out, and the buffer
-            // is shifted.
-            // The input data from the stream must be shifted to ensure it lines up with data
-            // currently in the buffer.
-
-            // Read bytes into the buffer until has 24 or mor bits. This ensures that the
-            // eight bits read from the input stream will fit in the buffer (which is a long
-            // integer [4 bytes==32 bits]). Also stop reading data if end of data stream is
-            // reached.
-            while ((BitsInBuffer <= 24) && (inPos < OriginalSize)) {
-                worddata = data[inPos++];
-                // shift the data to the left by enough bits so the byte being added will not
-                // overwrite the bits currently in the buffer, and add the bits to the buffer
-                BitBuffer |= (worddata << BitsInBuffer);
-                // increment count of how many bits are currently in the buffer
-                BitsInBuffer += 8;
-            }
-            // The input code starts at the lowest bit in the buffer. Since the buffer has
-            // 32 bits total, we need to clear out all bits above the desired number of bits
-            // to define the code (i.e. if 9 bits, AND with 0x1FF; 10 bits,AND with 0x3FF,
-            // etc.)
-            retval = (uint)(BitBuffer & ((1 << codeSize) - 1));
-            // then shift the buffer to the right by the number of bits per code
-            BitBuffer >>= codeSize;
-            BitsInBuffer -= codeSize;
-            // return code Value
-            return retval;
-        }
-
-        /// <summary>
-        /// This method supports the expansion of compressed resources.
-        /// It sets the size of codes which the LZW routine uses. The code size starts at
-        /// 9 bits, then increases as all code tables are filled. The max code size is 11;
-        /// if an attempt is made to set a code size above that, the function does nothing.
-        /// <br />
-        /// The function also recalculates the maximum number of codes available to the
-        /// expand subroutine. This number is used to determine when to call this function
-        /// again.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        internal static int NewCodeSize(int value) {
-            const int MAXBITS = 11;
-            int retval;
-
-            if (value >= MAXBITS) {
-                retval = 11;
-            }
-            else {
-                retval = value;
-                MaxCode = (1 << retval) - 2;
-            }
-            return retval;
         }
         #endregion
     }
