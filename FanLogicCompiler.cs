@@ -4318,14 +4318,6 @@ namespace WinAGI.Engine {
                     }
                     endingCmd = 0;
                 }
-                // first check for indirection
-                if (nextToken.Indirect) {
-                    // only if a variable
-                    if (nextToken.Type != Var) {
-                        // error!
-                        Debug.Assert(false);
-                    }
-                }
                 switch (nextToken.Type) {
                 case Symbol:
                     switch (nextToken.Text) {

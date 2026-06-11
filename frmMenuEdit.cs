@@ -1419,7 +1419,7 @@ namespace WinAGI.Editor {
             // if first time through, extract messages
             if (!gotMsgs) {
                 // if section start found, extract out messages
-                if (source.Contains("#message")) {
+                if (source.Contains("#message") || source.Contains("#define")) {
                     string[] sourceLines = source.Split('\r');
                     string msgText;
 
@@ -1465,6 +1465,56 @@ namespace WinAGI.Editor {
                                 messages[msgNum] = msgText;
                             } while (false);
                         }
+                        if (sourceLines[i].Contains("#define")) {
+                            // eliminate tab characters and trim the string
+                            msgText = sourceLines[i].Replace('\t', ' ');
+                            msgText = msgText.Replace("\n", "").Trim();
+                            // use do loop to skip to next line if current line isn't a define
+                            do {
+                                pos = msgText.IndexOf("#define");
+                                if (pos != 0) {
+                                    break;
+                                }
+                                msgText = msgText.Right(msgText.Length - 7).Trim();
+                                // find next space to strip off the name
+                                pos = msgText.IndexOf(' ');
+                                if (pos == -1) {
+                                    break;
+                                }
+                                string defineName = msgText.Left(pos).Trim();
+                                if (defineName.Length == 0) {
+                                    break;
+                                }
+                                string definevalue = msgText.Right(msgText.Length - pos).Trim();
+                                if (definevalue.Length == 0) {
+                                    break;
+                                }
+                                // only literal strings and message identifiers need to be tracked
+                                if (definevalue.Length > 1 && definevalue[0] == '\"' && definevalue[^1] == '\"') {
+                                    // literal string
+                                    defines.Add(new(defineName, definevalue));
+                                    break;
+                                }
+                                else {
+                                    // non-literal string; add number if a message identifier
+                                    if (definevalue.Length > 1 && definevalue[0] == 'm' && definevalue[1..].IntVal() > 0 && definevalue[1..].IntVal() <= 255) {
+                                        defines.Add(new(defineName, definevalue[1..]));
+                                    }
+                                }
+                            } while (false);
+                        }
+                    }
+                    // if any defines are message pointers, replace them with their string value
+                    for (int i = defines.Count - 1; i >= 0; i--) {
+                        if (defines[i].Value[0] != '\"') {
+                            int defineMsgNum = defines[i].Value.IntVal();
+                            if (messages[defineMsgNum].Length > 0) {
+                                defines[i] = new(defines[i].Key, messages[defineMsgNum]);
+                            }
+                        }
+                        else {
+                            defines[i] = new(defines[i].Key, defines[i].Value[1..^1]);
+                        }
                     }
                 }
                 // got messages!
@@ -1474,7 +1524,18 @@ namespace WinAGI.Editor {
             if (msgID[0] == 'm') {
                 msgNum = msgID[1..].IntVal();
                 if (msgNum > 0 && msgNum <= 255) {
+                    if (messages[msgNum] is not null) {
                         return messages[msgNum];
+                    }
+                    else {
+                        return msgID;
+                    }
+                }
+            }
+            // check local defines for a message declaration
+            foreach (var define in defines) {
+                if (define.Key == msgID) {
+                    return define.Value;
                 }
             }
 

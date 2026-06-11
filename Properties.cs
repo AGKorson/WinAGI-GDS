@@ -11,8 +11,12 @@ namespace WinAGI.Editor {
     /// Property accessors for the AGI Game object. Used on the main form to display 
     /// properties, and allows them to be edited.
     /// </summary>
+    
+    // !IMPORTANT! All properties must be public and NON-static otherwise they will
+    // not show up in the property grid. Apply other types and attributes as needed
+    // to indicate which can toggle readonly state, use dropdown lists, etc.
     public class GameProperties {
-        public static string GameID {
+        public string GameID {
             get {
                 return EditGame.GameID;
             }
@@ -28,26 +32,26 @@ namespace WinAGI.Editor {
 
         [Editor(typeof(AGIPropertyEditor),
             typeof(UITypeEditor))]
-        public static string Designer {
+        public string Designer {
             get => EditGame.Designer;
             set {
             }
         }
 
-        public static string GameDir {
+        public string GameDir {
             get => EditGame.GameDir;
         }
 
         [Editor(typeof(AGIPropertyEditor),
             typeof(UITypeEditor))]
-        public static string ResDir {
+        public string ResDir {
             get => EditGame.SrcResDirName;
             set {
             }
         }
 
         [TypeConverter(typeof(IntVerConverter))]
-        public static string IntVer {
+        public string IntVer {
             get => EditGame?.InterpreterVersion.VersionString;
             set {
                 // determine if a change was made:
@@ -59,7 +63,7 @@ namespace WinAGI.Editor {
 
         [Editor(typeof(AGIPropertyEditor),
             typeof(UITypeEditor))]
-        public static string Description {
+        public string Description {
             get => EditGame.Description;
             set {
             }
@@ -67,7 +71,7 @@ namespace WinAGI.Editor {
 
         [Editor(typeof(AGIPropertyEditor),
             typeof(UITypeEditor))]
-        public static string GameVer {
+        public string GameVer {
             get => EditGame.GameVersion;
             set {
             }
@@ -75,14 +79,14 @@ namespace WinAGI.Editor {
 
         [Editor(typeof(AGIPropertyEditor),
             typeof(UITypeEditor))]
-        public static string GameAbout {
+        public string GameAbout {
             get => EditGame.GameAbout;
             set {
             }
         }
 
         [ReadOnly(false)]
-        public static bool LayoutEditor {
+        public bool LayoutEditor {
             get => EditGame.UseLE;
             set {
                 EditGame.UseLE = value;
@@ -90,13 +94,13 @@ namespace WinAGI.Editor {
             }
         }
 
-        public static DateTime LastEdit {
+        public DateTime LastEdit {
             get => EditGame.LastEdit;
         }
     }
 
     public class LogicHdrProperties {
-        public static int Count {
+        public int Count {
             get => EditGame.Logics.Count;
         }
     }
@@ -198,7 +202,7 @@ namespace WinAGI.Editor {
     }
 
     public class PictureHdrProperties {
-        public static int Count {
+        public int Count {
             get => EditGame.Pictures.Count;
         }
     }
@@ -252,7 +256,7 @@ namespace WinAGI.Editor {
     }
 
     public class SoundHdrProperties {
-        public static int Count {
+        public int Count {
             get => EditGame.Sounds.Count;
         }
     }
@@ -305,7 +309,7 @@ namespace WinAGI.Editor {
     }
 
     public class ViewHdrProperties {
-        public static int Count {
+        public int Count {
             get => EditGame.Views.Count;
         }
     }
@@ -406,7 +410,7 @@ namespace WinAGI.Editor {
 
     public class IncludeHdrProperties {
         [ReadOnly(false)]
-        public static bool IncludeIDs {
+        public bool IncludeIDs {
             get => EditGame.IncludeIDs;
 
             set {
@@ -419,7 +423,7 @@ namespace WinAGI.Editor {
         }
 
         [ReadOnly(false)]
-        public static bool IncludeReserved {
+        public bool IncludeReserved {
             get => EditGame.IncludeReserved;
             set {
                 EditGame.IncludeReserved = value;
@@ -430,7 +434,7 @@ namespace WinAGI.Editor {
         }
 
         [ReadOnly(false)]
-        public static bool IncludeGlobals {
+        public bool IncludeGlobals {
             get => EditGame.IncludeGlobals;
             set {
                 EditGame.IncludeGlobals = value;

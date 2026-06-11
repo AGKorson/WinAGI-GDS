@@ -718,13 +718,17 @@ namespace WinAGI.Editor {
         }
 
         private void ValidateIDText() {
-            int selpos = txtGameID.SelectionStart;
-            if (selpos > 5) {
-                selpos = 5;
+            // limit gameID to 6 characters for v2 games and 5 characters for v3 games
+            int max = 6;
+            if (cmbVersion.SelectedItem is not null && cmbVersion.SelectedItem.ToString()[0] == '3') {
+                max = 5;
             }
-            // all versions limit to five characters
-            if (txtGameID.TextLength > 5) {
-                txtGameID.Text = txtGameID.Text[..5];
+            int selpos = txtGameID.SelectionStart;
+            if (selpos > max) {
+                selpos = max;
+            }
+            if (txtGameID.TextLength > max) {
+                txtGameID.Text = txtGameID.Text[..max];
             }
             // no file/folder prohibited characters, only standard ascii
             string idtext = "";

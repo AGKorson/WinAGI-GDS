@@ -6102,10 +6102,18 @@ namespace WinAGI.Editor {
                 }
                 if (SelectedCmd.Pen.PlotStyle != newstyle) {
                     // adjust plot commands
-                    ReadjustPlotCoordinates(SelectedCmd.Index, newstyle);
+                    // if not plotcmd found to adjust, use selectedindex; if a plotcmd
+                    // was found use cmd following it
+                    int idx;
+                    if (PenCmdIndex == -1) {
+                        idx = SelectedCmd.Index;
+                    }
+                    else {
+                        idx = PenCmdIndex + 1;
+                    }
+                    ReadjustPlotCoordinates(idx, newstyle);
                 }
-                if (PenCmdIndex == -1 || Force) {
-                    PenCmdIndex = SelectedCmd.Index;
+                if (PenCmdIndex == -1) {
                     InsertCommand([(byte)ChangePen, newpendata], SelectedCmd.Index);
                     SelectCommand(selectedindex + 1, 1, true);
                 }

@@ -5026,7 +5026,9 @@ namespace WinAGI.Editor {
             bgwMakePicGif.WorkerReportsProgress = true;
             MakeGifParams gifparams = new() {
                 Mode = 0,
-                Picture = picture,
+                Picture = picture.Clone(), // TODO: use a clone because StepDraw and DrawPos
+                                           // are not adjustable for in-game resources; I need
+                                           // to rethink that strategy
                 GifOptions = options,
                 Filename = MDIMain.SaveDlg.FileName
             };

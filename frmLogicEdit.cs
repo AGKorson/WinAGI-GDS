@@ -3001,18 +3001,22 @@ namespace WinAGI.Editor {
                 // use the ingame logic to save the SOURCE
                 EditGame.Logics[LogicNumber].SaveSource();
                 if (EditLogic.IsRoom && EditGame.Logics[LogicNumber].SourceText != fctb.Text) {
+                    // update the editor to match
+                    var lines = EditGame.Logics[LogicNumber].SourceText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
                     Place start = fctb.Selection.Start;
                     Place end = fctb.Selection.End;
-                    FastColoredTextBoxNS.Range vr = fctb.VisibleRange;
-                    fctb.SelectAll();
-                    //!!! this causes all warnings and errors to be deleted...
-                    fctb.SelectedText = EditGame.Logics[LogicNumber].SourceText;
-                    // force entire range highlight refresh (unless changed to just update
-                    // exits instead of replacing the logic source...
-                    AGISyntaxHighlight(fctb.Range);
+                    fctb.BeginAutoUndo();
+                    for (int i = lines.Length - 1; i >= 0; i--) {
+                        if (lines[i] != fctb.Lines[i]) {
+                            var oldLine = fctb.Lines[i];
+                            fctb.Selection.Start = new Place(0, i);
+                            fctb.Selection.End = new Place(oldLine.Length, i);
+                            fctb.InsertText(lines[i]);
+                        }
+                    }
+                    fctb.EndAutoUndo();
                     fctb.Selection.Start = start;
                     fctb.Selection.End = end;
-                    fctb.DoRangeVisible(vr);
                 }
                 if (!loaded) {
                     EditGame.Logics[LogicNumber].Unload();
