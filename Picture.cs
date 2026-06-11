@@ -220,18 +220,17 @@ namespace WinAGI.Engine {
         /// WinAGI Editor. Only applies if the picture interpreter version is 2.936 or higher.
         /// </summary>
         public byte PriBase {
-            // TODO: fix this
             get {
                 // if before v2.936, always return value of 48
-                if (parent is not null && parent.InterpreterVersion.Index < AGIVersion.v2936) {
-                    mPriBase = 48;
+                if (parent is null || parent.InterpreterVersion.Index < AGIVersion.v2936) {
+                    return 48;
                 }
                 return mPriBase;
             }
             set {
-                // if before v2.936, it's always 48
-                if (parent is not null && parent.InterpreterVersion.Index < AGIVersion.v2936) {
-                    mPriBase = 48;
+                // if before v2.936, it's always 48; no change allowed
+                if (parent is null || parent.InterpreterVersion.Index < AGIVersion.v2936) {
+                    return;
                 }
                 // max value is 158
                 else if (value > 158) {
@@ -285,26 +284,15 @@ namespace WinAGI.Engine {
         public int DrawPos {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                if (mInGame) {
-                    return -1;
-                }
-                else {
-                    return mDrawPos;
-                }
+                return mDrawPos;
             }
             set {
                 WinAGIException.ThrowIfNotLoaded(this);
-                if (mInGame) {
-                    return;
-                }
                 if (value == mDrawPos) {
                     return;
                 }
-                if (value < 0) {
+                if (value < 0 || value >= Size) {
                     mDrawPos = -1;
-                }
-                else if (value >= Size) {
-                    mDrawPos = Size - 1;
                 }
                 else {
                     mDrawPos = value;
@@ -321,18 +309,10 @@ namespace WinAGI.Engine {
         public bool StepDraw {
             get {
                 WinAGIException.ThrowIfNotLoaded(this);
-                if (mInGame) {
-                    return false;
-                }
-                else {
-                    return mStepDraw;
-                }
+                return mStepDraw;
             }
             set {
                 WinAGIException.ThrowIfNotLoaded(this);
-                if (mInGame) {
-                    return;
-                }
                 if (mStepDraw != value) {
                     mStepDraw = value;
                     mPicBMPSet = false;

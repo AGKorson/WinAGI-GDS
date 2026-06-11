@@ -332,8 +332,6 @@ namespace WinAGI.Editor {
                 picture.Load();
             }
             exportpic = picture.Clone();
-            // clone it otherwise stepdraw and drawpos can't be set 
-            // TODO: may need to revisit that strategy...
             if (!loaded) {
                 picture.Unload();
             }
