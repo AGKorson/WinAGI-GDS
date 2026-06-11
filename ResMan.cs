@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FastColoredTextBoxNS;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,13 +13,11 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using FastColoredTextBoxNS;
 using WinAGI.Common;
 using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Common.BkgdTasks;
 using static WinAGI.Editor.frmLayout;
-using static WinAGI.Editor.frmPicEdit;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.AGIResType;
 using static WinAGI.Engine.ArgType;
@@ -5038,227 +5037,154 @@ namespace WinAGI.Editor {
         }
 
         public static bool MakePicGif(Picture picture, GifOptions options, string filename) {
-
-            string tempFile;
-            int gifPos; // data that will be written to the gif file
-            int pos;
-            byte[] cmpData, picData; // data used to build then compress pic data as gif Image
-            byte cmd;
-            bool XYDraw = false, visOn = false;
-            const int MaxH = 168;
-            const int MaxW = 160;
-            byte pX, pY;
-            int framePos;
-            int chunkSize;
             bool loaded = picture.Loaded;
             if (!loaded) {
                 picture.Load();
             }
             picture.StepDraw = true;
 
-            // build header
-            byte[] gifData = new byte[255];
-            gifData[0] = 71;
-            gifData[1] = 73;
-            gifData[2] = 70;
-            gifData[3] = 56;
-            gifData[4] = 57;
-            gifData[5] = 97;
-            // add logical screen size info
-            gifData[6] = (byte)((MaxW * options.Zoom * 2) & 0xFF);
-            gifData[7] = (byte)((MaxW * options.Zoom * 2) >> 8);
-            gifData[8] = (byte)((MaxH * options.Zoom) & 0xFF);
-            gifData[9] = (byte)((MaxH * options.Zoom) >> 8);
-            // add color info
-            gifData[10] = 243; // 1-111-0-011 means:
-                               // global color table,
-                               // 8 bits per channel,
-                               // no sorting, and
-                               // 16 colors in the table
-                               // background color:
-            gifData[11] = 0;
-            // pixel aspect ratio:
-            gifData[12] = 0; // should give proper 2:1 ratio for pixels
-            for (int i = 0; i < 16; i++) {
-                gifData[13 + 3 * i] = picture.Palette[i].R;
-                gifData[14 + 3 * i] = picture.Palette[i].G;
-                gifData[15 + 3 * i] = picture.Palette[i].B;
-            }
-            // if cycling, add netscape extension to allow continuous looping
-            if (options.Cycle) {
-                // byte   1       : 33 (hex 0x21) GIF Extension code
-                // byte   2       : 255 (hex 0xFF) Application Extension Label
-                // byte   3       : 11 (hex 0x0B) Length of Application Block
-                //                  (eleven bytes of data to follow)
-                // bytes  4 to 11 : "NETSCAPE"
-                // bytes 12 to 14 : "2.0"
-                // byte  15       : 3 (hex 0x03) Length of Data static void-Block
-                //                  (three bytes of data to follow)
-                // byte  16       : 1 (hex 0x01)
-                // bytes 17 to 18 : 0 to 65535, an unsigned integer in
-                //                  lo-hi byte format. This indicate the
-                //                  number of iterations the loop should
-                //                  be executed.
-                // byte  19       : 0 (hex 0x00) a Data static void-Block Terminator.
-                gifData[61] = 0x21;
-                gifData[62] = 0xFF;
-                gifData[63] = 0xB;
-                for (int i = 0; i < 11; i++) {
-                    gifData[i + 64] = (byte)"NETSCAPE2.0"[i];
-                }
-                gifData[75] = 3;
-                gifData[76] = 1;
-                gifData[77] = 0;
-                gifData[78] = 0;
-                gifData[79] = 0;
-                // at this point, numbering is not absolute, so we need to begin tracking the data position
-                gifPos = 80;
-            }
-            else {
-                // at this point, numbering is not absolute, so we need to begin tracking the data position
-                gifPos = 61;
-            }
-            // pic data array
-            picData = new byte[(int)(MaxH * MaxW * Math.Pow(options.Zoom, 2) * 2)];
+            try {
+                using FileStream fs = new(filename, FileMode.Create, FileAccess.Write);
+                // header contains gif tag, size, and other data
+                fs.Write("GIF89a"u8);
+                // size is adjusted based on scale
+                int width = 320 * options.Zoom;
+                int height = 168 * options.Zoom;
+                WriteShort(fs, width);
+                WriteShort(fs, height);
+                // 1-111-0-011 (0xF3) means:
+                // global color table,
+                // 8 bits per channel,
+                // no sorting, and
+                // 16 colors in the table
+                fs.WriteByte(0xF3);
+                // background color
+                fs.WriteByte(0);
+                // pixel aspect ratio
+                fs.WriteByte(0);
 
-            // add frames
-            int picPos = -1;
-            do {
-                do {
-                    picPos++;
-                    if (picPos >= picture.Size) {
-                        break;
-                    }
-                    cmd = picture.Data[picPos];
-                    switch (cmd) {
-                    case 240:
-                        XYDraw = false;
-                        visOn = true;
-                        picPos++;
-                        break;
-                    case 241:
-                        XYDraw = false;
-                        visOn = false;
-                        break;
-                    case 242:
-                        XYDraw = false;
-                        picPos++;
-                        break;
-                    case 243:
-                        XYDraw = false;
-                        break;
-                    case 244 or 245:
-                        XYDraw = true;
-                        picPos += 2;
-                        break;
-                    case 246 or 247 or 248 or 250:
-                        XYDraw = false;
-                        picPos += 2;
-                        break;
-                    case 249:
-                        XYDraw = false;
-                        picPos++;
-                        break;
-                    default:
-                        // skip second coordinate byte, unless
-                        // currently drawing X or Y lines
-                        if (!XYDraw) {
+                // add global color table
+                for (int i = 0; i < 16; i++) {
+                    var c = picture.Palette[i];
+                    fs.WriteByte(c.R);
+                    fs.WriteByte(c.G);
+                    fs.WriteByte(c.B);
+                }
+
+                // if cycling, add netscape extension to allow continuous looping
+                if (options.Cycle) {
+                    // byte   1       : 33 (hex 0x21) GIF Extension code
+                    // byte   2       : 255 (hex 0xFF) Application Extension Label
+                    // byte   3       : 11 (hex 0x0B) Length of Application Block
+                    //                  (eleven bytes of data to follow)
+                    // bytes  4 to 11 : "NETSCAPE"
+                    // bytes 12 to 14 : "2.0"
+                    // byte  15       : 3 (hex 0x03) Length of Data static void-Block
+                    //                  (three bytes of data to follow)
+                    // byte  16       : 1 (hex 0x01)
+                    // bytes 17 to 18 : 0 to 65535, an unsigned integer in
+                    //                  lo-hi byte format. This indicate the
+                    //                  number of iterations the loop should
+                    //                  be executed.
+                    // byte  19       : 0 (hex 0x00) a Data static void-Block Terminator.
+                    fs.Write([0x21, 0xFF, 0x0B]);
+                    fs.Write(Encoding.ASCII.GetBytes("NETSCAPE2.0"));
+                    fs.Write([3, 1, 0, 0, 0]);
+
+                    // now add picture frames
+                    byte[] pictureData = new byte[width * height];
+                    int picPos = -1;
+                    bool XYDraw = false, visOn = false;
+                    byte cmd;
+                    do {
+                        do {
                             picPos++;
-                        }
-                        break;
-                    }
-                }
-                // exit if non-pen cmd found, and vis pen is active
-                while ((cmd >= 240 && cmd <= 244) || cmd == 249 || !visOn);
-                if (picPos >= picture.Size) {
-                    break;
-                }
-                // add picture drawn up to this point
-                picture.DrawPos = picPos;
-                byte[] bytFrameData = picture.VisData;
-
-                // expand data array if it might run out of room
-                if (gifData.Length < gifPos + 53760 * Math.Pow(options.Zoom, 2) + 256) {
-                    Array.Resize(ref gifData, (int)(gifPos + (53760 * Math.Pow(options.Zoom, 2)) + 256));
-                }
-                // add graphic control extension for this frame
-                gifData[gifPos++] = 0x21;
-                gifData[gifPos++] = 0xF9;
-                gifData[gifPos++] = 4;
-                gifData[gifPos++] = 12;   // 000-011-0-0 = reserved-restore-no user input-no transparency
-                gifData[gifPos++] = (byte)(options.Delay & 0xFF);
-                gifData[gifPos++] = (byte)((options.Delay & 0xFF) >> 8);
-                gifData[gifPos++] = 0;
-                gifData[gifPos++] = 0;
-                // add the frame data (first create frame data in separate array
-                // then compress the frame data, break it into 255 byte chunks,
-                // and add the chunks to the output
-                framePos = 0;
-                for (pY = 0; pY < MaxH; pY++) {
-                    // repeat each row based on scale factor
-                    for (int zFacH = 1; zFacH <= options.Zoom; zFacH++) {
-                        // step through each pixel in this row
-                        for (pX = 0; pX < MaxW; pX++) {
-                            // repeat each pixel based on scale factor (x2 because AGI pixels are double-wide)
-                            for (int zFacW = 1; zFacW <= options.Zoom * 2; zFacW++) {
-                                picData[framePos] = bytFrameData[pX + pY * 160];
-                                framePos++;
+                            if (picPos >= picture.Size) {
+                                break;
+                            }
+                            cmd = picture.Data[picPos];
+                            switch (cmd) {
+                            case 240:
+                                XYDraw = false;
+                                visOn = true;
+                                picPos++;
+                                break;
+                            case 241:
+                                XYDraw = false;
+                                visOn = false;
+                                break;
+                            case 242:
+                                XYDraw = false;
+                                picPos++;
+                                break;
+                            case 243:
+                                XYDraw = false;
+                                break;
+                            case 244 or 245:
+                                XYDraw = true;
+                                picPos += 2;
+                                break;
+                            case 246 or 247 or 248 or 250:
+                                XYDraw = false;
+                                picPos += 2;
+                                break;
+                            case 249:
+                                XYDraw = false;
+                                picPos++;
+                                break;
+                            default:
+                                // skip second coordinate byte, unless
+                                // currently drawing X or Y lines
+                                if (!XYDraw) {
+                                    picPos++;
+                                }
+                                break;
                             }
                         }
-                    }
-                }
-                // compress the pic data
-                cmpData = LZW.GifLZW(picData);
+                        // exit if non-pen cmd found, and vis pen is active
+                        while ((cmd >= 240 && cmd <= 244) || cmd == 249 || !visOn);
+                        if (picPos >= picture.Size) {
+                            break;
+                        }
+                        // add picture drawn up to this point
+                        picture.DrawPos = picPos;
+                        byte[] bytFrameData = picture.VisData;
+                        // add graphic control extension for this frame
+                        WriteGraphicControlExtension(fs, 0, options);
 
-                // add Image descriptor
-                gifData[gifPos++] = 0x2C;
-                gifData[gifPos++] = 0;
-                gifData[gifPos++] = 0;
-                gifData[gifPos++] = 0;
-                gifData[gifPos++] = 0;
-                gifData[gifPos++] = (byte)((MaxW * options.Zoom * 2) & 0xFF);
-                gifData[gifPos++] = (byte)((MaxW * options.Zoom * 2) >> 8);
-                gifData[gifPos++] = (byte)((MaxH * options.Zoom) & 0xFF);
-                gifData[gifPos++] = (byte)((MaxH * options.Zoom) >> 8);
-                gifData[gifPos++] = 0;
-                // add byte for initial LZW code size
-                gifData[gifPos++] = 4;
-                // add the compressed data to filestream
-                pos = 0;
-                chunkSize = 0;
-                do {
-                    if (cmpData.Length - pos > 255) {
-                        chunkSize = 255;
+                        // add the frame data
+                        int framePos = 0;
+                        for (int pY = 0; pY < 168; pY++) {
+                            // repeat each row based on scale factor
+                            for (int zFacH = 1; zFacH <= options.Zoom; zFacH++) {
+                                // step through each pixel in this row
+                                for (int pX = 0; pX < 160; pX++) {
+                                    // repeat each pixel based on scale factor (x2 because AGI pixels are double-wide)
+                                    for (int zFacW = 1; zFacW <= options.Zoom * 2; zFacW++) {
+                                        pictureData[framePos] = bytFrameData[pX + pY * 160];
+                                        framePos++;
+                                    }
+                                }
+                            }
+                        }
+                        // compress the pic data
+                        byte[] cmpData = LZW.GifLZW(pictureData);
+
+                        // add Image descriptor
+                        WriteImageDescriptor(fs, width, height);
+                        // add byte for initial LZW code size
+                        fs.WriteByte(4);
+                        // add the compressed data to filestream
+                        WriteSubBlocks(fs, cmpData);
+                        // update progress
+                        bgwMakePicGif.ReportProgress(picPos);
                     }
-                    else {
-                        chunkSize = (short)(cmpData.Length - pos);
-                    }
-                    // write chunksize
-                    gifData[gifPos++] = (byte)chunkSize;
-                    // add this chunk of data
-                    for (int j = 1; j <= chunkSize; j++) {
-                        gifData[gifPos++] = cmpData[pos++];
-                    }
+                    while (picPos < picture.Size);
+
+                    // trailer byte
+                    fs.WriteByte(0x3B);
+                    return true;
                 }
-                while (pos < cmpData.Length);
-                // end with a zero-length block
-                gifData[gifPos++] = 0;
-                // update progress
-                bgwMakePicGif.ReportProgress(picPos);
-            }
-            while (picPos < picture.Size);
-            // add trailer
-            gifData[gifPos++] = 0x3B;
-            // resize 
-            Array.Resize(ref gifData, gifPos);
-            // get temporary file
-            tempFile = Path.GetTempFileName();
-            try {
-                using FileStream fsGif = new(tempFile, FileMode.Open);
-                fsGif.Write(gifData);
-                fsGif.Dispose();
-                // move tempfile to savefile
-                File.Move(tempFile, filename, true);
             }
             catch (Exception e) {
                 bgwMakePicGif.ReportProgress(-1, e);
@@ -6005,227 +5931,136 @@ namespace WinAGI.Editor {
         }
 
         public static bool MakeLoopGif(Loop loop, GifOptions options, string exportFile) {
-            string tempFile;
-            int gifPos; // data that will be written to the gif file
-            int pos;
-            byte[] compData, celData; // data used to build then compress cel data as gif Image
-            short i, j;
-            short MaxH = 0, MaxW = 0;
-            byte hVal, wVal;
-            byte hPad, wPad;
-            byte pX, pY;
-            short zFacH, zFacW;
-            int celPos;
-            byte transcolor;
-            byte celH, celW;
-            short chunkSize;
-            // build header
-            byte[] outputData = new byte[255];
-            outputData[0] = 71;
-            outputData[1] = 73;
-            outputData[2] = 70;
-            outputData[3] = 56;
-            outputData[4] = 57;
-            outputData[5] = 97;
-            // determine size of logical screen by checking size of each cel
-            // in loop, and using Max of h/w
-            for (i = 0; i < loop.Cels.Count; i++) {
-                if (loop[i].Height > MaxH) {
-                    MaxH = loop[i].Height;
-                }
-                if (loop[i].Width > MaxW) {
-                    MaxW = loop[i].Width;
-                }
-            }
-            // add logical screen size info
-            outputData[6] = (byte)((MaxW * options.Zoom * 2) & 0xFF);
-            outputData[7] = (byte)((MaxW * options.Zoom * 2) >> 8);
-            outputData[8] = (byte)((MaxH * options.Zoom) & 0xFF);
-            outputData[9] = (byte)((MaxH * options.Zoom) >> 8);
-            // add color info
-            outputData[10] = 243; // 1-111-0-011 means:
-                                  // global color table,
-                                  // 8 bits per channel,
-                                  // no sorting, and
-                                  // 16 colors in the table
-                                  // background color:
-            outputData[11] = 0;
-            // pixel aspect ratio:
-            outputData[12] = 0; // should give proper 2:1 ratio for pixels
-
-            // add global color table
-            for (i = 0; i < 16; i++) {
-                outputData[13 + 3 * i] = loop.Parent.Palette[i].R;
-                outputData[14 + 3 * i] = loop.Parent.Palette[i].G;
-                outputData[15 + 3 * i] = loop.Parent.Palette[i].B;
-            }
-            // if cycling, add netscape extension to allow continuous looping
-            if (options.Cycle) {
-                // byte   1       : 33 (hex 0x21) GIF Extension code
-                // byte   2       : 255 (hex 0xFF) Application Extension Label
-                // byte   3       : 11 (hex 0x0B) Length of Application Block
-                //                  (eleven bytes of data to follow)
-                // bytes  4 to 11 : "NETSCAPE"
-                // bytes 12 to 14 : "2.0"
-                // byte  15       : 3 (hex 0x03) Length of Data static void-Block
-                //                  (three bytes of data to follow)
-                // byte  16       : 1 (hex 0x01)
-                // bytes 17 to 18 : 0 to 65535, an unsigned integer in
-                //                  lo-hi byte format. This indicate the
-                //                  number of iterations the loop should
-                //                  be executed.
-                // byte  19       : 0 (hex 0x00) a Data static void-Block Terminator.
-                outputData[61] = 0x21;
-                outputData[62] = 0xFF;
-                outputData[63] = 0xB;
-                for (i = 0; i < 11; i++) {
-                    outputData[i + 64] = (byte)"NETSCAPE2.0"[i];
-                }
-                outputData[75] = 3;
-                outputData[76] = 1;
-                outputData[77] = 0;
-                outputData[78] = 0;
-                outputData[79] = 0;
-                // at this point, numbering is not absolute, so we need to begin
-                // tracking the data position
-                gifPos = 80;
-            }
-            else {
-                // at this point, numbering is not absolute, so we need to begin
-                // tracking the data position
-                gifPos = 61;
-            }
-            // cel size is set to logical screen size
-            // (if cell is smaller than logical screen size, it will be padded with
-            // transparent cells)
-            celData = new byte[(int)(MaxH * MaxW * Math.Pow(options.Zoom, 2) * 2)];
-
-            // make output array large enough to hold all cel data without compression
-            Array.Resize(ref outputData, gifPos + (celData.Length + 10) * loop.Cels.Count);
-            // add each cel
-            for (i = 0; i < loop.Cels.Count; i++) {
-                // add graphic control extension for this cel
-                outputData[gifPos++] = 0x21;
-                outputData[gifPos++] = 0xF9;
-                outputData[gifPos++] = 4;
-                outputData[gifPos++] = (byte)(options.Transparency ? 13 : 12);  // 000-011-0-x = reserved-restore-no user input-transparency included
-                outputData[gifPos++] = (byte)(options.Delay & 0xFF);
-                outputData[gifPos++] = (byte)((options.Delay & 0xFF) >> 8);
-                if (options.Transparency) {
-                    outputData[gifPos++] = (byte)loop[i].TransColor;
-                }
-                else {
-                    outputData[gifPos++] = 0;
-                }
-                outputData[gifPos++] = 0;
-                // add the cel data (first create cel data in separate array
-                // then compress the cell data, break it into 255 byte chunks,
-                // and add the chunks to the output
-                // determine pad values
-                celH = loop[i].Height;
-                celW = loop[i].Width;
-                hPad = (byte)(MaxH - celH);
-                wPad = (byte)(MaxW - celW);
-                transcolor = (byte)loop[i].TransColor;
-                celPos = 0;
-
-                for (hVal = 0; hVal < MaxH; hVal++) {
-                    // repeat each row based on scale factor
-                    for (zFacH = 1; zFacH <= options.Zoom; zFacH++) {
-                        // step through each pixel in this row
-                        for (wVal = 0; wVal < MaxW; wVal++) {
-                            // repeat each pixel based on scale factor (x2 because AGI pixels are double-wide)
-                            for (zFacW = 1; zFacW <= options.Zoom * 2; zFacW++) {
-                                // depending on alignment, may need to pad:
-                                if (((hVal < hPad) && (options.VAlign == 1)) || ((hVal > celH - 1) && (options.VAlign == 0))) {
-                                    // use a transparent pixel
-                                    celData[celPos++] = transcolor;
-                                }
-                                else {
-                                    if (((wVal < wPad) && (options.HAlign == 1)) || ((wVal > celW - 1) && (options.HAlign == 0))) {
-                                        // use a transparent pixel
-                                        celData[celPos++] = transcolor;
-                                    }
-                                    else {
-                                        if (options.HAlign == 1) {
-                                            pX = (byte)(wVal - wPad);
-                                        }
-                                        else {
-                                            pX = wVal;
-                                        }
-                                        if (options.VAlign == 1) {
-                                            pY = (byte)(hVal - hPad);
-                                        }
-                                        else {
-                                            pY = hVal;
-                                        }
-                                        // use the actual pixel (adjusted for padding, if aligned to bottom or left)
-                                        celData[celPos++] = (byte)loop[i][pX, pY];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                // now compress the cel data
-                compData = LZW.GifLZW(celData);
-
-                // add Image descriptor
-                outputData[gifPos++] = 0x2C;
-                outputData[gifPos++] = 0;
-                outputData[gifPos++] = 0;
-                outputData[gifPos++] = 0;
-                outputData[gifPos++] = 0;
-                outputData[gifPos++] = (byte)((byte)(MaxW * options.Zoom * 2) & 0xFF);
-                outputData[gifPos++] = (byte)((byte)(MaxW * options.Zoom * 2) >> 8);
-                outputData[gifPos++] = (byte)((byte)(MaxH * options.Zoom) & 0xFF);
-                outputData[gifPos++] = (byte)((byte)(MaxH * options.Zoom) >> 8);
-                outputData[gifPos++] = 0;
-                // add byte for initial LZW code size
-                outputData[gifPos++] = 4;
-                // add the compressed data to filestream
-                pos = 0;
-                chunkSize = 0;
-                do {
-                    if (compData.Length - pos > 255) {
-                        chunkSize = 255;
-                    }
-                    else {
-                        chunkSize = (short)(compData.Length - pos);
-                    }
-                    // write chunksize
-                    outputData[gifPos++] = (byte)chunkSize;
-                    // add this chunk of data
-                    for (j = 1; j <= chunkSize; j++) {
-                        outputData[gifPos++] = compData[pos++];
-                    }
-                }
-                while (pos < compData.Length);
-                // end with a zero-length block
-                outputData[gifPos++] = 0;
-                // update progress
-                bgwMakePicGif.ReportProgress(i);
-            }
-            // add trailer
-            outputData[gifPos++] = 0x3B;
-            // resize 
-            Array.Resize(ref outputData, gifPos);
-
-            // get temporary file
-            tempFile = Path.GetTempFileName();
             try {
-                // open file for output
-                using FileStream fsGif = new(tempFile, FileMode.Open);
-                fsGif.Write(outputData);
-                fsGif.Dispose();
-                // move tempfile to savefile
-                File.Move(tempFile, exportFile, true);
+                using FileStream fs = new(exportFile, FileMode.Create, FileAccess.Write);
+
+                // header contains gif tag, size, and other data
+                fs.Write("GIF89a"u8);
+
+                // determine size of output frame by checking size of each cel
+                // in loop, and using Max of h/w, then adjust for scale
+                short maxH = 0, maxW = 0;
+                foreach (var cel in loop.Cels) {
+                    if (cel.Height > maxH)
+                        maxH = cel.Height;
+                    if (cel.Width > maxW)
+                        maxW = cel.Width;
+                }
+                int width = maxW * options.Zoom * 2;
+                int height = maxH * options.Zoom;
+                WriteShort(fs, width);
+                WriteShort(fs, height);
+
+                // 1-111-0-011 (0xF3) means:
+                // global color table,
+                // 8 bits per channel,
+                // no sorting, and
+                // 16 colors in the table
+                fs.WriteByte(0xF3);
+                // background color
+                fs.WriteByte(0);
+                // pixel aspect ratio
+                fs.WriteByte(0);
+
+                // add global color table
+                for (int i = 0; i < 16; i++) {
+                    var c = loop.Parent.Palette[i];
+                    fs.WriteByte(c.R);
+                    fs.WriteByte(c.G);
+                    fs.WriteByte(c.B);
+                }
+
+                // if cycling, add netscape extension to allow continuous looping
+                if (options.Cycle) {
+                    // byte   1       : 33 (hex 0x21) GIF Extension code
+                    // byte   2       : 255 (hex 0xFF) Application Extension Label
+                    // byte   3       : 11 (hex 0x0B) Length of Application Block
+                    //                  (eleven bytes of data to follow)
+                    // bytes  4 to 11 : "NETSCAPE"
+                    // bytes 12 to 14 : "2.0"
+                    // byte  15       : 3 (hex 0x03) Length of Data static void-Block
+                    //                  (three bytes of data to follow)
+                    // byte  16       : 1 (hex 0x01)
+                    // bytes 17 to 18 : 0 to 65535, an unsigned integer in
+                    //                  lo-hi byte format. This indicate the
+                    //                  number of iterations the loop should
+                    //                  be executed.
+                    // byte  19       : 0 (hex 0x00) a Data static void-Block Terminator.
+                    fs.Write([0x21, 0xFF, 0x0B]);
+                    fs.Write(Encoding.ASCII.GetBytes("NETSCAPE2.0"));
+                    fs.Write([3, 1, 0, 0, 0]);
+                }
+
+                // add all cels
+                byte[] celData = new byte[width * height];
+                foreach (var cel in loop.Cels) {
+                    WriteGraphicControlExtension(fs, (byte)cel.TransColor, options);
+                    BuildCelData(cel, options, maxW, maxH, celData);
+                    byte[] compressed = LZW.GifLZW(celData);
+                    WriteImageDescriptor(fs, width, height);
+                    fs.WriteByte(4); // LZW min code size
+                    WriteSubBlocks(fs, compressed);
+                    // update progress
+                    bgwMakePicGif.ReportProgress(cel.Index);
+                }
+                fs.WriteByte(0x3B); // trailer
+                return true;
             }
             catch (Exception e) {
                 bgwMakePicGif.ReportProgress(-2, e);
                 return false;
             }
-            return true;
+        }
+
+        private static void BuildCelData(Cel cel, GifOptions options, int maxW, int maxH, byte[] celData) {
+            // This method expands a cel to the correct size, and pads it as needed to fit
+            // the max size (based on all cels in the loop). It also aligns the cel based on
+            // the options chosen.
+            int zoomH = options.Zoom;
+            int zoomW = options.Zoom * 2;
+
+            int celW = cel.Width;
+            int celH = cel.Height;
+
+            int wPad = maxW - celW;
+            int hPad = maxH - celH;
+
+            byte trans = (byte)cel.TransColor;
+
+            int celPos = 0;
+
+            for (int h = 0; h < maxH; h++) {
+                // Determine Y once per row
+                bool rowIsPad =
+                    (options.VAlign == 1 && h < hPad) ||
+                    (options.VAlign == 0 && h >= celH);
+
+                int srcY = options.VAlign == 1 ? h - hPad : h;
+
+                for (int zh = 0; zh < zoomH; zh++) {
+                    for (int w = 0; w < maxW; w++) {
+                        bool colIsPad =
+                            (options.HAlign == 1 && w < wPad) ||
+                            (options.HAlign == 0 && w >= celW);
+
+                        int srcX = options.HAlign == 1 ? w - wPad : w;
+
+                        byte pixel;
+
+                        if (rowIsPad || colIsPad) {
+                            pixel = trans;
+                        }
+                        else {
+                            pixel = cel[srcX, srcY];
+                        }
+
+                        // write expanded pixel horizontally
+                        for (int zw = 0; zw < zoomW; zw++) {
+                            celData[celPos++] = pixel;
+                        }
+                    }
+                }
+            }
         }
         #endregion
 
@@ -8182,6 +8017,52 @@ namespace WinAGI.Editor {
                     return DefStr;
                 }
             }
+        }
+
+        private static void WriteShort(Stream s, int value) {
+            s.WriteByte((byte)(value & 0xFF));
+            s.WriteByte((byte)(value >> 8));
+        }
+
+        private static void WriteGraphicControlExtension(Stream s, byte transcolor, GifOptions options) {
+            s.WriteByte(0x21);
+            s.WriteByte(0xF9);
+            s.WriteByte(4);
+
+            s.WriteByte((byte)(options.Transparency ? 13 : 12));
+
+            s.WriteByte((byte)(options.Delay & 0xFF));
+            s.WriteByte((byte)(options.Delay >> 8));
+
+            s.WriteByte(options.Transparency ? transcolor : (byte)0);
+            s.WriteByte(0);
+        }
+
+        private static void WriteImageDescriptor(Stream s, int width, int height) {
+            s.WriteByte(0x2C);
+
+            // left/top = 0
+            s.WriteByte(0);
+            s.WriteByte(0);
+            s.WriteByte(0);
+            s.WriteByte(0);
+
+            WriteShort(s, width);
+            WriteShort(s, height);
+
+            s.WriteByte(0); // no local color table
+        }
+
+        private static void WriteSubBlocks(Stream s, byte[] data) {
+            int pos = 0;
+
+            while (pos < data.Length) {
+                int len = Math.Min(255, data.Length - pos);
+                s.WriteByte((byte)len);
+                s.Write(data, pos, len);
+                pos += len;
+            }
+            s.WriteByte(0); // terminator
         }
         #endregion
         #endregion

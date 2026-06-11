@@ -1,75 +1,73 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace WinAGI.Common {
     public static class LZW {
-        public static byte[] GifLZW(byte[] bytCelData) {
+
+        public static byte[] GifLZW(byte[] imagedata) {
             // used by picture and view export functions for creating GIFs
+            // these values based on 4 bit colorvalues (0-15) and
+            // standard GIF LZW compression format
+            const int MaxCode = 4095;
+            const int ClearCode = 16;
+            const int EndCode = 17;
+            const int FirstFreeCode = 18;
+            const int InitialCodeSize = 5;
 
-            string currentString = "";
-            // for sixteen colors, initial code size should be 5
-            int initCodeSize = 5;
-            int codeSize = initCodeSize;
-            int clearCode = 16;
-            int endCode = 17; // reserve 'end' code (clear code +1)
-            int nextCode = 18; // set pointer to next available code to end code +1
-            Dictionary<string, int> dictionary = [];
-            // prepopulate with regular characters
-            for (int i = 0; i < 16; i++) {
-                dictionary.Add(((char)i).ToString(), i);
-            }
-
-            using MemoryStream ms = new();
+            // use a memory stream with a custom bitwriter to build the output
+            using MemoryStream ms = new(Math.Max(16, imagedata.Length));
             BitWriter bw = new(ms);
 
+            int codeSize = InitialCodeSize;
+            int nextCode = FirstFreeCode;
+            Dictionary<int, int> dictionary = new(4096);
+
             // send 'clear' code to output
-            bw.WriteCode(clearCode, codeSize);
+            bw.WriteBits(ClearCode, codeSize);
+
+            int currentCode = imagedata[0];
 
             // NOW BEGIN THE COMPRESSION
-            for (int i = 0; i < bytCelData.Length; i++) {
-                // get next character
-                char currentChar = (char)bytCelData[i];
+            for (int i = 1; i < imagedata.Length; i++) {
+                // get next byte
+                int nextByte = imagedata[i];
                 // add to current string to check against table
-                string checkstring = currentString + currentChar;
-                if (dictionary.ContainsKey(checkstring)) {
-                    // checkString is already in the table; 
-                    // update current string and get next char
-                    currentString = checkstring;
+                int key = currentCode << 8 | nextByte;
+                if (dictionary.TryGetValue(key, out int existingCode)) {
+                    // key is already in the table; 
+                    // update current code and get next char
+                    currentCode = existingCode;
                 }
                 else {
-                    // checkstring does not exist, so add code
-                    // for current string to output
-                    bw.WriteCode(dictionary[currentString], codeSize);
+                    // key does not exist, so add current code to output
+                    bw.WriteBits(currentCode, codeSize);
 
-                    if (nextCode == 4096) {
+                    if (nextCode > MaxCode) {
                         // too big- clear everything; reset to initial codesize
 
                         // output clear code (MUST USE CURRENT CODESIZE!)
-                        bw.WriteCode(clearCode, codeSize);
+                        bw.WriteBits(ClearCode, codeSize);
                         // reset code size and code table
-                        codeSize = initCodeSize;
-                        dictionary = [];
-                        // prepopulate with regular characters
-                        for (int j = 0; j < 16; j++) {
-                            dictionary.Add(((char)j).ToString(), j);
-                        }
-                        nextCode = (ushort)(endCode + 1);
+                        codeSize = InitialCodeSize;
+                        dictionary.Clear();
+                        nextCode = FirstFreeCode;
                     }
                     else {
                         if (nextCode == 1 << codeSize) {
                             codeSize++;
                         }
                         // add code for checkstring
-                        dictionary.Add(checkstring, nextCode++);
+                        dictionary[key] = nextCode++;
                     }
                     // reset current string
-                    currentString = currentChar.ToString();
+                    currentCode = nextByte;
                 }
             }
-            // output last string code
-            bw.WriteCode(dictionary[currentString], codeSize);
+            // output last code
+            bw.WriteBits(currentCode, codeSize);
             // output an 'end' code
-            bw.WriteCode(endCode, codeSize);
+            bw.WriteBits(EndCode, codeSize);
             // flush the bitwriter
             bw.Flush();
 
@@ -80,14 +78,15 @@ namespace WinAGI.Common {
         private class BitWriter {
             private readonly Stream stream;
             private int bitCount;
-            private int buffer;
+            private uint buffer;
 
             public BitWriter(Stream stream) {
                 this.stream = stream;
                 buffer = 0;
+                bitCount = 0;
             }
 
-            public void WriteCode(int codevalue, int codesize) {
+            public void WriteBits(int codevalue, int codesize) {
                 // adds this codevalue to the output stream,
 
                 // as a reminder, we are using LSB packing:
@@ -96,12 +95,8 @@ namespace WinAGI.Common {
                 //     ... 8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0|8 7 6 5 4 3 2 1 0
                 //        |    code4        |    code3        |    code2        |    code1        |    code0
 
-                // if there are already bits in the buffer, shift the code before adding it to the buffer
-                if (bitCount != 0) {
-                    codevalue <<= bitCount;
-                }
-                // add code to the buffer
-                buffer |= codevalue;
+                // add code to the buffer, shifting as needed
+                buffer |= (uint)codevalue << bitCount;
                 // increment bit Count
                 bitCount += codesize;
                 // if there are at least eight bits in the buffer, we need to pull off
@@ -121,116 +116,9 @@ namespace WinAGI.Common {
                 if (bitCount > 0) {
                     stream.WriteByte((byte)buffer);
                 }
-                else {
-                    stream.WriteByte((byte)buffer);
-                }
-            }
-        }
-    }
-
-    public static class LZWai {
-        public static byte[] GifLZW(byte[] input) {
-            int maxTableSize = 4096;
-            int codeSize = 5;
-            int clearCode = 16;
-            int endCode = 17;
-            int nextCode = 18;
-
-            Dictionary<string, int> dictionary = [];
-            for (int i = 0; i < 16; i++) {
-                dictionary.Add(((char)i).ToString(), i);
-            }
-
-            string currentString = string.Empty;
-            List<byte> output = [];
-
-            byte[] tmp1, tmp2;
-            using (MemoryStream ms = new MemoryStream()) {
-                BitWriter bitWriter = new BitWriter(ms);
-                bitWriter.WriteBits(clearCode, codeSize);
-
-                foreach (byte b in input) {
-                    char currentChar = (char)b;
-                    string combinedString = currentString + currentChar;
-
-                    if (dictionary.ContainsKey(combinedString)) {
-                        currentString = combinedString;
-                    }
-                    else {
-                        bitWriter.WriteBits(dictionary[currentString], codeSize);
-                        if (nextCode < maxTableSize) {
-                            if (nextCode == (1 << codeSize)) {
-                                codeSize++;
-                            }
-                            dictionary.Add(combinedString, nextCode++);
-                        }
-
-                        currentString = currentChar.ToString();
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(currentString)) {
-                    bitWriter.WriteBits(dictionary[currentString], codeSize);
-                }
-
-                bitWriter.WriteBits(endCode, codeSize);
-                bitWriter.Flush();
-
-                output.AddRange(ms.ToArray());
-                tmp1 = ms.ToArray();
-            }
-            tmp2 = output.ToArray();
-            return output.ToArray();
-        }
-
-        private class BitWriter {
-            private readonly Stream _stream;
-            private int _currentByte;
-            private int _bitPosition;
-
-            private int _currentByte1;
-            private int _bitPosition1;
-            private int buffer;
-            public BitWriter(Stream stream) {
-                _stream = stream;
-                _currentByte = 0;
-                _bitPosition = 0;
-
-                _currentByte1 = 0;
-                _bitPosition1 = 0;
                 buffer = 0;
-            }
-
-            public void WriteBits(int value, int bitLength) {
-                int val1 = value;
-                if (_bitPosition1 != 0) {
-                    val1 <<= _bitPosition1;
-                }
-                buffer |= val1;
-                _bitPosition1 += bitLength;
-                while (_bitPosition1 >= 8) {
-                    _currentByte1 = buffer & 0xFF;
-                    buffer >>= 8;
-                    _bitPosition1 -= 8;
-                }
-
-                for (int i = 0; i < bitLength; i++) {
-                    if ((_bitPosition & 7) == 0 && _bitPosition > 0) {
-                        _stream.WriteByte((byte)_currentByte);
-                        _currentByte = 0;
-                    }
-
-                    _currentByte |= ((value >> i) & 1) << (_bitPosition & 7);
-                    _bitPosition++;
-                }
-            }
-
-            public void Flush() {
-                if (_bitPosition > 0) {
-                    _stream.WriteByte((byte)_currentByte);
-                }
+                bitCount = 0;
             }
         }
     }
-
 }
