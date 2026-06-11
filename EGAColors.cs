@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using WinAGI.Common;
 
 namespace WinAGI.Engine {
     /// <summary>
@@ -8,7 +9,7 @@ namespace WinAGI.Engine {
     /// </summary>
     [Serializable]
     public class EGAColors {
-        #region Local Members
+        #region Fields
         Color[] colorList = new Color[16];
         #endregion
 
@@ -61,45 +62,6 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Methods
-        /// <summary>
-        /// Converts the color value of the specified color to a comma delimited
-        /// string of its rgb components as hex values.
-        /// </summary>
-        /// <param name="aColor"></param>
-        /// <returns></returns>
-        public static string ColorText(Color aColor) {
-            // Converts a color into a useful string value for storing in configuration files.
-            return "0x" + aColor.R.ToString("x2") + ", 0x" + aColor.G.ToString("x2") + ", 0x" + aColor.B.ToString("x2");
-        }
-
-        /// <summary>
-        /// Converts the EGAColor for this index to a comma separated
-        /// string of hex values for the four color components.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        /// <exception cref="IndexOutOfRangeException"></exception>
-        public string ColorText(int index) {
-            if (index < 0 || index > 15) {
-                throw new IndexOutOfRangeException("bad color");
-            }
-            return ColorText(colorList[index]);
-        }
-
-        /// <summary>
-        /// Converts the EGAColor for this index to a comma separated
-        /// string of hex values for the four color components.
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        /// <exception cref="IndexOutOfRangeException"></exception>
-        public string ColorText(AGIColorIndex index) {
-            if (index < 0 || index > AGIColorIndex.White) {
-                throw new IndexOutOfRangeException("bad color");
-            }
-            return ColorText(colorList[(int)index]);
-        }
-
         /// <summary>
         /// Copies the source palette to an identical new palette.
         /// </summary>

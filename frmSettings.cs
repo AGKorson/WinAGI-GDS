@@ -18,24 +18,25 @@ using static WinAGI.Editor.frmPicEdit;
 
 namespace WinAGI.Editor {
     public partial class frmSettings : Form {
-        #region Members
+        #region Fields
         private AGISettings NewSettings = WinAGISettings.Clone();
         private PicTestInfo NewPicTestSettings = PicEditTestSettings.Clone();
         private bool resetWarnings;
-        private TextStyle prevCommentStyle;
-        private TextStyle prevStringStyle;
-        private TextStyle prevKeyWordStyle;
-        private TextStyle prevTestCmdStyle;
-        private TextStyle prevActionCmdStyle;
-        private TextStyle prevInvalidCmdStyle;
-        private TextStyle prevNumberStyle;
-        private TextStyle prevArgIdentifierStyle;
+        private readonly TextStyle prevCommentStyle;
+        private readonly TextStyle prevStringStyle;
+        private readonly TextStyle prevKeyWordStyle;
+        private readonly TextStyle prevTestCmdStyle;
+        private readonly TextStyle prevActionCmdStyle;
+        private readonly TextStyle prevInvalidCmdStyle;
+        private readonly TextStyle prevNumberStyle;
+        private readonly TextStyle prevArgIdentifierStyle;
         // dont need to preview symbols (it's only for '@=' and '=@')
-        private TextStyle prevDefIdentifierStyle;
+        private readonly TextStyle prevDefIdentifierStyle;
         private CancellationTokenSource fontSearchCts;
         #endregion
 
-        public frmSettings(int starttab = 0, string startprop = "") {
+        #region Constructors
+        public frmSettings(int starttab = 0) {
             InitializeComponent();
             MDIMain.UseWaitCursor = true;
             //    0,1,2,3=lower, 4,5,6,7=upper, 8,9,10,11=proper
@@ -108,19 +109,12 @@ namespace WinAGI.Editor {
             // setup form to match current settings
             InitForm();
             tabControl1.SelectedTab = tabControl1.TabPages[starttab];
-            if (startprop.Length > 0) {
-                try {
-                    tabControl1.SelectedTab.Controls[startprop].Select();
-                }
-                catch {
-                    // ignore errors
-                    Debug.Assert(false);
-                }
-            }
             MDIMain.UseWaitCursor = false;
         }
+        #endregion
 
-        #region Form Event Handlers
+        #region Event Handlers
+        #region Form Events
         private void frmSettings_Load(object sender, EventArgs e) {
             // load list of available monospace fonts asynchronously
             BeginFindMonoSpaceFontsAsync();
@@ -551,12 +545,12 @@ namespace WinAGI.Editor {
 
             foreach (Form frm in MDIMain.MdiChildren) {
                 // WORDS
-                if (frm is frmWordsEdit) {
-                    ((frmWordsEdit)frm).InitFonts();
+                if (frm is frmWordsEdit wordedit) {
+                    wordedit.InitFonts();
                 }
                 // OBJECTS
-                if (frm is frmObjectEdit) {
-                    ((frmObjectEdit)frm).InitFonts();
+                if (frm is frmObjectEdit objectedit) {
+                    objectedit.InitFonts();
                 }
             }
 
@@ -611,9 +605,21 @@ namespace WinAGI.Editor {
             Close();
             MDIMain.UseWaitCursor = false;
         }
+
+        private void UD_KeyDown(object sender, KeyEventArgs e) {
+            // ONLY allow up/down arrow keys to change value, ignore all other keypresses
+            if (e.KeyCode != Keys.Up && e.KeyCode != Keys.Down) {
+                e.Handled = true;
+            }
+        }
+
+        private void UD_KeyPress(object sender, KeyPressEventArgs e) {
+            // ignore all keypresses, only allow up/down arrows to change value
+            e.Handled = true;
+        }
         #endregion
 
-        #region General Tab Event Handlers
+        #region General Tab Events
         private void chkDisplayByNum_CheckedChanged(object sender, EventArgs e) {
             NewSettings.ShowResNum.Value = chkDisplayByNum.Checked;
             cmbResFormat.Enabled = NewSettings.ShowResNum.Value;
@@ -657,9 +663,9 @@ namespace WinAGI.Editor {
             }
 
             // preview checkboxes depends on tree setting
-            Frame17.Enabled = (NewSettings.ResListType.Value != ResListType.None);
+            Frame17.Enabled = NewSettings.ResListType.Value != ResListType.None;
             if (Frame17.Enabled) {
-                chkPreview.Enabled = (NewSettings.ResListType.Value != ResListType.None);
+                chkPreview.Enabled = NewSettings.ResListType.Value != ResListType.None;
                 chkShiftPreview.Enabled = NewSettings.ShowPreview.Value;
                 chkHidePreview.Enabled = NewSettings.ShowPreview.Value;
             }
@@ -715,7 +721,7 @@ namespace WinAGI.Editor {
                 e.KeyChar = '\0';
                 e.Handled = true;
             }
-            if ((int)e.KeyChar > 124) {
+            if (e.KeyChar > 124) {
                 e.KeyChar = '\0';
                 e.Handled = true;
             }
@@ -753,10 +759,9 @@ namespace WinAGI.Editor {
             }
             NewSettings.DefMaxVol0.Value = txtMaxVol0.Value * 1024;
         }
-
         #endregion
 
-        #region Logics1 Tab Event Handlers
+        #region Logics1 Tab Events
         private void chkSnippets_CheckedChanged(object sender, EventArgs e) {
             NewSettings.UseSnippets.Value = chkSnippets.Checked;
         }
@@ -821,11 +826,6 @@ namespace WinAGI.Editor {
         }
 
         private void chkBold_CheckedChanged(object sender, EventArgs e) {
-            // should never happen, but...
-            if (lstColors.SelectedIndex == -1) {
-                return;
-            }
-
             // in case we are switching from non-highlight to highlight,
             // we need to check for index of 10 (background) which has
             // no bold or italic value
@@ -839,11 +839,6 @@ namespace WinAGI.Editor {
         }
 
         private void chkItalic_CheckedChanged(object sender, EventArgs e) {
-            // should never happen, but...
-            if (lstColors.SelectedIndex == -1) {
-                return;
-            }
-
             // in case we are switching from non-highlight to highlight,
             // we need to check for index of 10 (background) which has
             // no bold or italic value
@@ -859,10 +854,6 @@ namespace WinAGI.Editor {
         private void cmdColor_Click(object sender, EventArgs e) {
             int index;
 
-            // should never happen, but...
-            if (lstColors.SelectedIndex == -1) {
-                return;
-            }
             if (NewSettings.HighlightLogic.Value) {
                 // the index value is taken from listbox as normal
                 index = lstColors.SelectedIndex;
@@ -1066,7 +1057,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Logics2 Tab Event Handlers
+        #region Logics2 Tab Events
         private void cmbErrorLevel_SelectedIndexChanged(object sender, EventArgs e) {
             NewSettings.ErrorLevel.Value = (LogicErrorLevel)cmbErrorLevel.SelectedIndex;
         }
@@ -1128,7 +1119,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Pictures Tab Event Handlers
+        #region Pictures Tab Events
         private void udPPZoom_SelectedItemChanged(object sender, EventArgs e) {
             NewSettings.PicScalePreview.Value = float.Parse(((string)udPPZoom.SelectedItem)[..^1]) / 100;
         }
@@ -1201,7 +1192,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Sounds Tab Event Handlers
+        #region Sounds Tab Events
         private void optPlaybackMode_CheckedChanged(object sender, EventArgs e) {
             if (optPCSpeaker.Checked) {
                 NewSettings.PlaybackMode.Value = 0;
@@ -1282,7 +1273,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Views Tab Event Handlers
+        #region Views Tab Events
         private void chkShowGrid_CheckedChanged(object sender, EventArgs e) {
             NewSettings.ShowGrid.Value = chkShowGrid.Checked;
         }
@@ -1334,7 +1325,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Layout Tab Event Handlers
+        #region Layout Tab Events
         private void chkUseLE_CheckedChanged(object sender, EventArgs e) {
             NewSettings.DefUseLE.Value = chkUseLE.Checked;
         }
@@ -1642,7 +1633,7 @@ namespace WinAGI.Editor {
         private void DrawLESample() {
             // draws the sample objects to match current color selections
             Pen borderPen;
-            Font font = new Font(NewSettings.EditorFontName.Value, 8);
+            Font font = new(NewSettings.EditorFontName.Value, 8);
             Brush fontBrush = new SolidBrush(NewSettings.RoomEdgeColor.Value);
 
             int bWidth = picLESample.Width, bHeight = picLESample.Height;
@@ -1718,8 +1709,8 @@ namespace WinAGI.Editor {
             // draw a sample comment
             borderPen = new Pen(NewSettings.CmtEdgeColor.Value, 2);
             float radius = 5.0f; // radius for rounded corners
-            Rectangle rect = new Rectangle(16, 8, 75, 25);
-            using (GraphicsPath path = new GraphicsPath()) {
+            Rectangle rect = new(16, 8, 75, 25);
+            using (GraphicsPath path = new()) {
                 // Create rounded rectangle path
                 path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
                 path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
@@ -1747,13 +1738,14 @@ namespace WinAGI.Editor {
             using (Brush fillBrush = new SolidBrush(NewSettings.ErrPtFillColor.Value)) {
                 g.FillPolygon(fillBrush, errPoints);
             }
-            borderPen = new(NewSettings.ErrPtEdgeColor.Value, 2);
-            borderPen.LineJoin = LineJoin.Bevel;
+            borderPen = new(NewSettings.ErrPtEdgeColor.Value, 2) {
+                LineJoin = LineJoin.Bevel
+            };
             g.DrawPolygon(borderPen, errPoints);
 
             // some sample exit lines, including arrows
-            Pen arrowPen = new Pen(NewSettings.ExitEdgeColor.Value, 2);
-            var arrowCap = new System.Drawing.Drawing2D.AdjustableArrowCap(3, 5); // width, height
+            Pen arrowPen = new(NewSettings.ExitEdgeColor.Value, 2);
+            AdjustableArrowCap arrowCap = new(3, 5); // width, height
             arrowPen.CustomEndCap = arrowCap;
             arrowPen.CustomStartCap = arrowCap;
             g.DrawLine(arrowPen, 70, 73, 119, 73);
@@ -1771,18 +1763,7 @@ namespace WinAGI.Editor {
             g.Dispose();
         }
         #endregion
-
-        private void UD_KeyDown(object sender, KeyEventArgs e) {
-            // ONLY allow up/down arrow keys to change value, ignore all other keypresses
-            if (e.KeyCode != Keys.Up && e.KeyCode != Keys.Down) {
-                e.Handled = true;
-            }
-        }
-
-        private void UD_KeyPress(object sender, KeyPressEventArgs e) {
-            // ignore all keypresses, only allow up/down arrows to change value
-            e.Handled = true;
-        }
+        #endregion
 
         #region Methods
         private async void BeginFindMonoSpaceFontsAsync() {
@@ -2047,9 +2028,6 @@ namespace WinAGI.Editor {
             if (NewSettings.PlaybackMode.Value == 2) {
                 optMIDI.Checked = true;
             }
-            //else if (NewSettings.PlaybackMode.Value == 0) {
-            //    optPCSpeaker.Checked = true;
-            //}
             else {
                 optPCjr.Checked = true;
             }

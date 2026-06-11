@@ -31,7 +31,8 @@ namespace WinAGI.Engine {
     }
 
     /// <summary>
-    /// Contains methods 
+    /// Contains methods to import various types of sound files into
+    /// the AGI format.
     /// </summary>
     public static class SoundImport {
         // Import functions for Impulse Tracker files and Protracker MOD files
@@ -341,17 +342,15 @@ namespace WinAGI.Engine {
                         sound[track].Notes.Add(frequency, duration, volume);
                     }
                 }
-
-
-                if (isError) {
-                    sound.Clear();
-                    sound.Description = "";
-                    WinAGIException wex = new(EngineResourceByNum(532)) {
-                        HResult = WINAGI_ERR + 532
-                    };
-                    wex.Data["badfile"] = scriptfile;
-                    throw wex;
-                }
+            }
+            if (isError) {
+                sound.Clear();
+                sound.Description = "";
+                WinAGIException wex = new(EngineResourceByNum(532)) {
+                    HResult = WINAGI_ERR + 532
+                };
+                wex.Data["badfile"] = scriptfile;
+                throw wex;
             }
         }
 
@@ -570,7 +569,10 @@ namespace WinAGI.Engine {
             int modchannels = 4;
             int arow = 0;
 
-            int[] periods = { 999, 856, 808, 762, 720, 678, 640, 604, 570, 538, 508, 480, 453, 428, 404, 381, 360, 339, 320, 302, 285, 269, 254, 240, 226, 214, 202, 190, 180, 170, 160, 151, 143, 135, 127, 120, 113 };
+            int[] periods = [999, 856, 808, 762, 720, 678, 640, 604, 570, 538,
+                             508, 480, 453, 428, 404, 381, 360, 339, 320, 302,
+                             285, 269, 254, 240, 226, 214, 202, 190, 180, 170,
+                             160, 151, 143, 135, 127, 120, 113];
             var periodtonote = new Dictionary<int, int>();
             for (int i = 0; i < periods.Length; i++) {
                 periodtonote[periods[i]] = 48 + i;
@@ -689,7 +691,7 @@ namespace WinAGI.Engine {
             miditicksbeat = division;
             var mididata = new List<TuneNote>[16];
             for (int i = 0; i < 16; i++)
-                mididata[i] = new List<TuneNote>();
+                mididata[i] = [];
 
             for (int trk = 0; trk < ntrks; trk++) {
                 var chunkType = Encoding.ASCII.GetString(br.ReadBytes(4));
@@ -724,12 +726,13 @@ namespace WinAGI.Engine {
                             if (options.PolyMode && chan != MIDICH_DRUM) {
                                 if (polychans < 3) {
                                     // start note
-                                    midipoly[polychans] = new();
-                                    midipoly[polychans].Channel = chan;
-                                    midipoly[polychans].Poly = polychans;
-                                    midipoly[polychans].Note = k;
-                                    midipoly[polychans].Vol = v >> 1;
-                                    midipoly[polychans].Start = totalMs;
+                                    midipoly[polychans] = new() {
+                                        Channel = chan,
+                                        Poly = polychans,
+                                        Note = k,
+                                        Vol = v >> 1,
+                                        Start = totalMs
+                                    };
                                     polychans++;
                                 }
                             }
@@ -853,7 +856,7 @@ namespace WinAGI.Engine {
             // Insert rests
             var notedata = new List<TuneNote>[NUMCH];
             for (int ch = 0; ch < NUMCH; ch++) {
-                notedata[ch] = new List<TuneNote>();
+                notedata[ch] = [];
                 var tdata = tunedata[ch];
                 for (int nn = 0; nn < tdata.Count; nn++) {
                     if (nn == 0) {
@@ -947,6 +950,7 @@ namespace WinAGI.Engine {
             public int Command = 0;
             public int Param = 0;
         }
+
         private class TuneNote {
             public int Channel = 0;
             public int Poly = 0;
@@ -955,14 +959,17 @@ namespace WinAGI.Engine {
             public double Start = 0;
             public double Length = 0;
         }
+
         private static int ReadBigEndianInt16(BinaryReader br) {
             var bytes = br.ReadBytes(2);
             return (bytes[0] << 8) | bytes[1];
         }
+
         private static int ReadBigEndianInt32(BinaryReader br) {
             var bytes = br.ReadBytes(4);
             return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
         }
+
         private static long ReadVLQ(byte[] data, ref int pos) {
             long value = 0;
             byte b;

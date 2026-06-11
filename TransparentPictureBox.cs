@@ -6,14 +6,17 @@ using static WinAGI.Common.API;
 
 namespace WinAGI.Editor {
     public class TransparentPictureBox : PictureBox {
+        #region Fields
         private const int WS_EX_TRANSPARENT = 0x20;
         private int opacity = 50;
-        bool dont = false;
-        private Pen dash1 = new(Color.Black);
-        private Pen dash2 = new(Color.White);
+        private bool dont = false;
+        private readonly Pen dash1 = new(Color.Black);
+        private readonly Pen dash2 = new(Color.White);
         private int dashdistance = 6;
-        private Timer tmrDash = new();
+        private readonly Timer tmrDash = new();
+        #endregion
 
+        #region Constructors
         public TransparentPictureBox() {
             SetStyle(ControlStyles.Opaque, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
@@ -27,29 +30,18 @@ namespace WinAGI.Editor {
             tmrDash.Tick += tmrDash_Tick;
             tmrDash.Start();
         }
+        #endregion
 
-        private void tmrDash_Tick(object sender, EventArgs e) {
-            dashdistance -= 1;
-            if (dashdistance == 0)
-                dashdistance = 6;
-            dash1.DashOffset = dashdistance;
-            dash2.DashOffset = dashdistance - 3;
-            Rectangle r = ClientRectangle;
-            r.Width -= 1;
-            r.Height -= 1;
-            CreateGraphics().DrawRectangle(dash1, r);
-            CreateGraphics().DrawRectangle(dash2, r);
-        }
-
+        #region Properties
         [DefaultValue(50)]
         public int Opacity {
             get {
-                return this.opacity;
+                return opacity;
             }
             set {
                 if (value < 0 || value > 100)
                     throw new ArgumentException("value must be between 0 and 100");
-                this.opacity = value;
+                opacity = value;
                 // Ensure the control is redrawn when opacity changes
                 Invalidate();
             }
@@ -65,7 +57,24 @@ namespace WinAGI.Editor {
                 Invalidate();
             }
         }
+        #endregion
 
+        #region Methods
+        private void tmrDash_Tick(object sender, EventArgs e) {
+            dashdistance -= 1;
+            if (dashdistance == 0)
+                dashdistance = 6;
+            dash1.DashOffset = dashdistance;
+            dash2.DashOffset = dashdistance - 3;
+            Rectangle r = ClientRectangle;
+            r.Width -= 1;
+            r.Height -= 1;
+            CreateGraphics().DrawRectangle(dash1, r);
+            CreateGraphics().DrawRectangle(dash2, r);
+        }
+        #endregion
+
+        #region Overrides
         protected override CreateParams CreateParams {
             get {
                 CreateParams cpar = base.CreateParams;
@@ -83,7 +92,7 @@ namespace WinAGI.Editor {
         }
 
         protected override void OnPaint(PaintEventArgs e) {
-            SendMessage(this.Handle, WM_SETREDRAW, false, 0);
+            SendMessage(Handle, WM_SETREDRAW, false, 0);
             // this method recurses several times before finishing for
             // some reason; to prevent it, use a flag
             if (Parent is not null && !dont) {
@@ -105,19 +114,18 @@ namespace WinAGI.Editor {
             CreateGraphics().DrawRectangle(dash1, r);
             CreateGraphics().DrawRectangle(dash2, r);
             base.OnPaint(e);
-            SendMessage(this.Handle, WM_SETREDRAW, true, 0);
+            SendMessage(Handle, WM_SETREDRAW, true, 0);
         }
 
         protected override void OnParentChanged(EventArgs e) {
             base.OnParentChanged(e);
-            if (Parent is not null) {
-                Parent.Invalidate();
-            }
+            Parent?.Invalidate();
         }
 
         protected override void OnResize(EventArgs e) {
             base.OnResize(e);
             Invalidate();
         }
+        #endregion
     }
 }

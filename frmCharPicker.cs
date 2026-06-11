@@ -7,17 +7,7 @@ using WinAGI.Common;
 
 namespace WinAGI.Editor {
     public partial class frmCharPicker : Form {
-        public bool Cancel;
-        public string InsertString = "";
-        private readonly Encoding CodePage;
-        private GridChar SelChar, CurChar;
-        private int SelStart, SelEnd, CursorPos, DragPos;
-        private bool CPCursor, DragSel, MakeSel;
-        private readonly Bitmap chargrid;
-        private readonly Bitmap invchargrid;
-        private Point lastMousePosition;
-        bool showtip = false;
-
+        #region Structs
         private struct GridChar {
             public byte Value = 0;
             public int X {
@@ -42,7 +32,21 @@ namespace WinAGI.Editor {
             public GridChar() {
             }
         }
+        #endregion
 
+        #region Fields
+        public string InsertString = "";
+        private readonly Encoding CodePage;
+        private GridChar SelChar, CurChar;
+        private int SelStart, SelEnd, CursorPos, DragPos;
+        private bool CPCursor, DragSel, MakeSel;
+        private readonly Bitmap chargrid;
+        private readonly Bitmap invchargrid;
+        private Point lastMousePosition;
+        bool showtip = false;
+        #endregion
+
+        #region Constructors
         public frmCharPicker(int codepage) {
             InitializeComponent();
             CodePage = Encoding.GetEncoding(codepage);
@@ -58,6 +62,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        #endregion
 
         #region Event Handlers
         private void frmCharPicker_Load(object sender, EventArgs e) {
@@ -77,12 +82,12 @@ namespace WinAGI.Editor {
                 strdat[i] = (byte)InsertString[i];
             }
             InsertString = CodePage.GetString(strdat);
-            Cancel = false;
+            DialogResult = DialogResult.OK;
             Hide();
         }
 
         private void btnCancel_Click(object sender, EventArgs e) {
-            Cancel = true;
+            DialogResult = DialogResult.Cancel;
             Hide();
         }
 
@@ -187,10 +192,10 @@ namespace WinAGI.Editor {
 
             // set cursor to nodrop if on char 0
             if (CurChar.Value == 0) {
-                this.Cursor = Cursors.No;
+                Cursor = Cursors.No;
             }
             else {
-                this.Cursor = Cursors.Default;
+                Cursor = Cursors.Default;
             }
         }
 
@@ -369,7 +374,7 @@ namespace WinAGI.Editor {
         private void picInsert_KeyPress(object sender, KeyPressEventArgs e) {
             int charval = e.KeyChar;
             bool update = false;
-            if (Control.ModifierKeys == Keys.None) {
+            if (ModifierKeys == Keys.None) {
                 switch (charval) {
                 case 8:
                     // backspace

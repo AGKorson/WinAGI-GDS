@@ -9,8 +9,8 @@ namespace WinAGI.Engine {
     /// A class that holds all the picture resources in an AGI game.
     /// </summary>
     public class Pictures : IEnumerable<Picture> {
-        #region Members
-        readonly AGIGame parent;
+        #region Fields
+        private readonly AGIGame parent;
         #endregion
 
         #region Constructors
@@ -159,7 +159,6 @@ namespace WinAGI.Engine {
         /// <param name="OldPicture"></param>
         /// <param name="NewPicture"></param>
         public void Renumber(byte OldPicture, byte NewPicture) {
-            Picture tmpPic;
             int nextnum = 0;
             string id, baseid;
 
@@ -167,7 +166,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // verify old number exists
-            if (!Col.TryGetValue(OldPicture, out tmpPic)) {
+            if (!Col.TryGetValue(OldPicture, out Picture tmpPic)) {
                 throw new IndexOutOfRangeException("picture does not exist");
             }
             // verify new number is not in collection
@@ -182,7 +181,7 @@ namespace WinAGI.Engine {
             Col.Remove(OldPicture);
             VOLManager.UpdateDirFile(tmpPic, true);
             // adjust ID if it is default
-            if (tmpPic.ID.ToLower() == "picture" + OldPicture) {
+            if (tmpPic.ID.Equals("picture" + OldPicture, StringComparison.OrdinalIgnoreCase)) {
                 id = baseid = tmpPic.ID[..7] + NewPicture;
                 while (NotUniqueID(id, parent)) {
                     id = baseid + "_" + nextnum;
@@ -204,10 +203,10 @@ namespace WinAGI.Engine {
             return new PictureEnum(Col);
         }
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
         IEnumerator<Picture> IEnumerable<Picture>.GetEnumerator() {
-            return (IEnumerator<Picture>)GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -232,7 +231,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _pictures.Count);
+                return position < _pictures.Count;
             }
             public void Reset() {
                 position = -1;

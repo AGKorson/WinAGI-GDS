@@ -8,12 +8,12 @@ namespace WinAGI.Editor {
         /// </summary>
         [STAThread]
         static void Main() {
-            // To test command line arguments in Visual Studio 2022:
-            // 1.	Right-click your project in Solution Explorer and select Properties.
+            // To test command line arguments in Visual Studio 2026:
+            // 1.	Right-click project in Solution Explorer and select Properties.
             // 2.	Go to the Debug tab.
             // 3.	In the Application arguments (or Command line arguments) field,
-            //     enter your desired arguments (e.g., --console).
-            // 4.	Save and run your project (F5 or Ctrl+F5).
+            //      enter desired arguments (e.g., --console).
+            // 4.	Save and run the project (F5 or Ctrl+F5).
 
             var args = Environment.GetCommandLineArgs();
             if (args.Length > 1 &&
@@ -29,9 +29,9 @@ namespace WinAGI.Editor {
                     return;
                 }
 #else
-            // In Release mode, automatically set console mode to true
-                    WAGConsole.RunConsoleMode(args[2..]);
-                    return;
+                // In Release mode, automatically run console mode
+                WAGConsole.RunConsoleMode(args[2..]);
+                return;
 #endif
             }
             //Application.SetHighDpiMode(HighDpiMode.SystemAware);

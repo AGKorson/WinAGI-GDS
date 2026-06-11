@@ -20,97 +20,7 @@ using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor {
     public partial class frmPicEdit : ClipboardMonitor, IMessageFilter {
-        #region Picture Editor Structs
-        /// <summary>
-        /// Struct to hold information about the current command being edited.
-        /// </summary>
-        public struct CommandInfo {
-            public int Index;
-            public int Position;
-            public DrawFunction Type;
-            public PenStatus Pen;
-            public List<Point> Coords;
-            public int SelectedCoordIndex;
-            public Point SelectedCoord {
-                get {
-                    if (SelectedCoordIndex < 0 || SelectedCoordIndex >= Coords.Count)
-                        return new(-1, -1);
-                    return Coords[SelectedCoordIndex];
-                }
-            }
-            public int SelectedCoordPos {
-                get {
-                    return CoordPos(SelectedCoordIndex);
-                }
-            }
-            public int CoordPos(int index) {
-                if (index == 0)
-                    return Position + 1;
-                if (index < 0)
-                    return Position;
-                // allow going one past last (same as endpos + 1)
-                if (index > Coords.Count)
-                    index = Coords.Count;
-                switch (Type) {
-                case YCorner:
-                case XCorner:
-                case RelLine:
-                    return Position + 2 + index;
-                case AbsLine:
-                case Fill:
-                    return Position + (2 * index) + 1;
-                case PlotPen:
-                    if (Pen.PlotStyle == PlotStyle.Splatter) {
-                        return Position + (3 * index) + 1;
-                    }
-                    else {
-                        return Position + (2 * index) + 1;
-                    }
-                }
-                // to keep compiler happy
-                return -1;
-            }
-            public bool IsLine {
-                get => Type >= YCorner && Type <= RelLine;
-            }
-            public bool IsPen {
-                get => Type <= DisablePri || Type == ChangePen;
-            }
-            public int EndPos {
-                get {
-                    if (Coords.Count == 0)
-                        return Position;
-                    switch (Type) {
-                    case XCorner:
-                    case YCorner:
-                    case RelLine:
-                        return Position + 2 + Coords.Count;
-                    case AbsLine:
-                    case Fill:
-                        return Position + (2 * Coords.Count);
-                    case PlotPen:
-                        if (Pen.PlotStyle == PlotStyle.Splatter) {
-                            return Position + (3 * Coords.Count);
-                        }
-                        else {
-                            return Position + (2 * Coords.Count);
-                        }
-                    }
-                    return Position;
-                }
-            }
-            public CommandInfo() {
-                Index = -1;
-                Position = -1;
-                Type = End;
-                Pen = new();
-                Coords = [];
-                SelectedCoordIndex = -1;
-            }
-        }
-        #endregion
-
-        #region Picture Editor Enums
+        #region Enums
         /// <summary>
         /// Enum to indicate the current mode of the picture editor.
         /// </summary>
@@ -205,9 +115,9 @@ namespace WinAGI.Editor {
         /// Enum to indicate which draw surface windows are currently active.
         /// </summary>
         private enum WindowMode {
-            Visual = 0x1,
-            Priority = 0x2,
-            Both = 0x3,
+            Visual,
+            Priority,
+            Both,
         }
 
         /// <summary>
@@ -220,14 +130,104 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Picture Editor Members
+        #region Structs
+        /// <summary>
+        /// Struct to hold information about the current command being edited.
+        /// </summary>
+        public struct CommandInfo {
+            public int Index;
+            public int Position;
+            public DrawFunction Type;
+            public PenStatus Pen;
+            public List<Point> Coords;
+            public int SelectedCoordIndex;
+            public Point SelectedCoord {
+                get {
+                    if (SelectedCoordIndex < 0 || SelectedCoordIndex >= Coords.Count)
+                        return new(-1, -1);
+                    return Coords[SelectedCoordIndex];
+                }
+            }
+            public int SelectedCoordPos {
+                get {
+                    return CoordPos(SelectedCoordIndex);
+                }
+            }
+            public int CoordPos(int index) {
+                if (index == 0)
+                    return Position + 1;
+                if (index < 0)
+                    return Position;
+                // allow going one past last (same as endpos + 1)
+                if (index > Coords.Count)
+                    index = Coords.Count;
+                switch (Type) {
+                case YCorner:
+                case XCorner:
+                case RelLine:
+                    return Position + 2 + index;
+                case AbsLine:
+                case Fill:
+                    return Position + (2 * index) + 1;
+                case PlotPen:
+                    if (Pen.PlotStyle == PlotStyle.Splatter) {
+                        return Position + (3 * index) + 1;
+                    }
+                    else {
+                        return Position + (2 * index) + 1;
+                    }
+                }
+                // to keep compiler happy
+                return -1;
+            }
+            public bool IsLine {
+                get => Type >= YCorner && Type <= RelLine;
+            }
+            public bool IsPen {
+                get => Type <= DisablePri || Type == ChangePen;
+            }
+            public int EndPos {
+                get {
+                    if (Coords.Count == 0)
+                        return Position;
+                    switch (Type) {
+                    case XCorner:
+                    case YCorner:
+                    case RelLine:
+                        return Position + 2 + Coords.Count;
+                    case AbsLine:
+                    case Fill:
+                        return Position + (2 * Coords.Count);
+                    case PlotPen:
+                        if (Pen.PlotStyle == PlotStyle.Splatter) {
+                            return Position + (3 * Coords.Count);
+                        }
+                        else {
+                            return Position + (2 * Coords.Count);
+                        }
+                    }
+                    return Position;
+                }
+            }
+            public CommandInfo() {
+                Index = -1;
+                Position = -1;
+                Type = End;
+                Pen = new();
+                Coords = [];
+                SelectedCoordIndex = -1;
+            }
+        }
+        #endregion
+
+        #region Fields
         public int PictureNumber;
         public Picture EditPicture;
         public bool InGame;
         public bool IsChanged;
         private PicEditorMode PicMode;
         internal EGAColors EditPalette = DefaultPalette.Clone();
-        private Stack<PictureUndo> UndoCol = [];
+        private readonly Stack<PictureUndo> UndoCol = [];
         private bool priorityActive = false;
         private int cmdAnchor, cmdDelta;
         private bool multiCmds = false;
@@ -300,9 +300,7 @@ namespace WinAGI.Editor {
         internal ToolStripMenuItem miCopy;
         #endregion
 
-        /// <summary>
-        /// Constructor for the picture editor form.
-        /// </summary>
+        #region Constructors
         public frmPicEdit() {
             InitializeComponent();
 
@@ -352,7 +350,7 @@ namespace WinAGI.Editor {
                 ScaleFactor = (int)(ScaleFactor * 2) / 2f;
             }
             else if (ScaleFactor < 20) {
-                ScaleFactor = (int)(ScaleFactor);
+                ScaleFactor = (int)ScaleFactor;
             }
             else {
                 ScaleFactor = 20;
@@ -435,7 +433,10 @@ namespace WinAGI.Editor {
 
             SetCodePage(437);
         }
+        #endregion
 
+        #region Event Handlers
+        #region Form Events
         protected override void OnClipboardChanged() {
             base.OnClipboardChanged();
             if (PicMode == PicEditorMode.Edit) {
@@ -453,8 +454,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        #region Event Handlers
-        #region Form Event Handlers
         /// <summary>
         /// Pre-filters the message to catch mouse wheel events.
         /// </summary>
@@ -466,7 +465,7 @@ namespace WinAGI.Editor {
             // and handle it manually
             const int WM_MOUSEWHEEL = 0x020A;
             if (m.Msg == WM_MOUSEWHEEL) {
-                if (Control.FromHandle(m.HWnd) is Control control) {
+                if (FromHandle(m.HWnd) is Control control) {
                     if (control == picVisual) {
                         int fwKeys = (int)m.WParam & 0xffff;
                         int zDelta = (int)((int)m.WParam & 0xffff0000) >> 16;
@@ -601,8 +600,8 @@ namespace WinAGI.Editor {
                         // toggle status mode  between pixel and text row/col
                         if (StatusMode == PicStatusMode.Pixel) {
                             StatusMode = PicStatusMode.Text;
-                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
-                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(MousePosition)) ||
+                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(MousePosition))) {
                                 // text row/col (note row/col swap 'x/y')
                                 spCurX.Text = "R: " + (PicPt.Y / 8).ToString();
                                 spCurY.Text = "C: " + (PicPt.X / (PTInfo.CharWidth / 2)).ToString();
@@ -610,8 +609,8 @@ namespace WinAGI.Editor {
                         }
                         else {
                             StatusMode = PicStatusMode.Pixel;
-                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
-                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(MousePosition)) ||
+                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(MousePosition))) {
                                 spCurX.Text = "X: " + PicPt.X.ToString();
                                 spCurY.Text = "Y: " + PicPt.Y.ToString();
                             }
@@ -652,8 +651,8 @@ namespace WinAGI.Editor {
                     }
                     else {
                         StatusMode = PicStatusMode.Pixel;
-                        if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
-                            picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                        if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(MousePosition)) ||
+                            picPriority.ClientRectangle.Contains(picPriority.PointToClient(MousePosition))) {
                             spCurX.Text = "X: " + PicPt.X.ToString();
                             spCurY.Text = "Y: " + PicPt.Y.ToString();
                             int NewPri = GetPriBand((byte)PicPt.Y, EditPicture.PriBase);
@@ -695,8 +694,8 @@ namespace WinAGI.Editor {
                         // toggle status mode  between pixel and text row/col
                         if (StatusMode == PicStatusMode.Pixel) {
                             StatusMode = PicStatusMode.Text;
-                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
-                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(MousePosition)) ||
+                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(MousePosition))) {
                                 // text row/col (note row/col swap 'x/y')
                                 spCurX.Text = "R: " + (PicPt.Y / 8).ToString();
                                 spCurY.Text = "C: " + (PicPt.X / (PTInfo.CharWidth / 2)).ToString();
@@ -704,8 +703,8 @@ namespace WinAGI.Editor {
                         }
                         else {
                             StatusMode = PicStatusMode.Pixel;
-                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(Control.MousePosition)) ||
-                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(Control.MousePosition))) {
+                            if (picVisual.ClientRectangle.Contains(picVisual.PointToClient(MousePosition)) ||
+                                picPriority.ClientRectangle.Contains(picPriority.PointToClient(MousePosition))) {
                                 spCurX.Text = "X: " + PicPt.X.ToString();
                                 spCurY.Text = "Y: " + PicPt.Y.ToString();
                             }
@@ -723,7 +722,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Menu Event Handlers
+        #region Menu Events
         /// <summary>
         /// Configures the resource menu prior to displaying it.
         /// </summary>
@@ -836,12 +835,8 @@ namespace WinAGI.Editor {
             mnuESep3.Visible = !(PicMode == PicEditorMode.Edit);
             mnuViewTestMode.Checked = PicMode == PicEditorMode.ViewTest;
             mnuTextTestMode.Checked = PicMode == PicEditorMode.PrintTest;
-            mnuSetTestView.Visible =
-                mnuTestViewOptions.Visible =
-                PicMode == PicEditorMode.ViewTest;
-            mnuTestTextOptions.Visible =
-                mnuTextScreenSize.Visible =
-                PicMode == PicEditorMode.PrintTest;
+            mnuSetTestView.Visible = mnuTestViewOptions.Visible = PicMode == PicEditorMode.ViewTest;
+            mnuTestTextOptions.Visible = mnuTextScreenSize.Visible = PicMode == PicEditorMode.PrintTest;
             var vis = PicMode == PicEditorMode.PrintTest && InGame && EditGame.PowerPack;
             mnuTextScreenSize.Visible = vis;
             if (vis) {
@@ -928,7 +923,7 @@ namespace WinAGI.Editor {
             case PicEditorMode.Edit:
                 if (UndoCol.Count != 0) {
                     mnuUndo.Enabled = true;
-                    mnuUndo.Text = "Undo " + Editor.Base.EditorResourceByNum(PICUNDOTEXT + (int)UndoCol.Peek().Action);
+                    mnuUndo.Text = "Undo " + EditorResourceByNum(PICUNDOTEXT + (int)UndoCol.Peek().Action);
                     // some commands need 's' added to end if more than one command to undo
                     switch (UndoCol.Peek().Action) {
                     case DelCmd or AddCmd or CutCmds or PasteCmds or MoveCmds or FlipH or FlipV:
@@ -963,8 +958,7 @@ namespace WinAGI.Editor {
                     mnuCopy.Enabled = (SelectedRegion.Width > 0) && (SelectedRegion.Height > 0);
                     mnuCopy.Text = "Copy Selection";
                 }
-                else if (SelectedCmd.SelectedCoordIndex < 0 ||
-                    SelectedCmd.IsPen) {
+                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
                     // no coordinate is selected - set editing commands to 
                     // handle the selected drawing commands
                     mnuCut.Enabled = SelectedCmd.Type != End;
@@ -981,8 +975,7 @@ namespace WinAGI.Editor {
                     mnuPaste.Enabled = mnuPastePen.Visible = Clipboard.ContainsData(PICTURE_CB_FMT);
                     mnuPaste.Text = "Paste";
                     if (mnuPaste.Enabled) {
-                        PictureClipboardData pastedata = Clipboard.GetData(PICTURE_CB_FMT) as PictureClipboardData;
-                        if (pastedata is null) {
+                        if (Clipboard.GetData(PICTURE_CB_FMT) is not PictureClipboardData pastedata) {
                             mnuPaste.Enabled = mnuPastePen.Visible = false;
                         }
                         else if (pastedata.CmdCount > 1) {
@@ -1005,8 +998,8 @@ namespace WinAGI.Editor {
                     mnuInsertCoord.Text = "Insert Coordinate";
                     mnuSplitCommand.Visible = false;
                     mnuJoinCommands.Visible = CanJoinCommands(SelectedCmd.Index);
-                    mnuFlipH.Visible = (SelectedRegion.Width > 1);
-                    mnuFlipV.Visible = (SelectedRegion.Height > 1);
+                    mnuFlipH.Visible = SelectedRegion.Width > 1;
+                    mnuFlipV.Visible = SelectedRegion.Height > 1;
                     mnuESep2.Visible = true;
                 }
                 else {
@@ -1429,7 +1422,7 @@ namespace WinAGI.Editor {
                     // if showing priority lines
                     if (ShowBands) {
                         switch (OneWindow) {
-                        case 0:
+                        case WindowMode.Both:
                             picVisual.Invalidate();
                             picPriority.Invalidate();
                             break;
@@ -1631,8 +1624,7 @@ namespace WinAGI.Editor {
             if (!Clipboard.ContainsData(PICTURE_CB_FMT)) {
                 return;
             }
-            PictureClipboardData picCBData = Clipboard.GetData(PICTURE_CB_FMT) as PictureClipboardData;
-            if (picCBData is null) {
+            if (Clipboard.GetData(PICTURE_CB_FMT) is not PictureClipboardData pcbdata) {
                 return;
             }
             if (SelectedTool != PicToolType.Edit) {
@@ -1649,129 +1641,27 @@ namespace WinAGI.Editor {
                 InsertIndex = SelectedCmd.Index;
             }
             InsertPos = (int)lstCommands.Items[InsertIndex].Tag;
-            PictureUndo NextUndo = new();
-            NextUndo.Action = PasteCmds;
-            NextUndo.CmdIndex = InsertIndex;
-            NextUndo.PicPos = InsertPos;
+            PictureUndo NextUndo = new() {
+                Action = PasteCmds,
+                CmdIndex = InsertIndex,
+                PicPos = InsertPos,
+                CmdCount = pcbdata.CmdCount
+            };
 
-            /*
-            // an alternate paste method that adds pen status commands to pasted
-            // data instead of adjusting pen styles
-
-            // use all data
-            NextUndo.CmdCount = picCBData.CmdCount;
-            NextUndo.ByteCount = picCBData.Data.Length;
-            if (picCBData.HasPlotCmds || picCBData.HasPenChange) {
-                // need to confirm the pasted commands won't cause error
-                // due to plot style mismatch
-                PenStatus currentPen = EditPicture.GetPenStatus(InsertPos);
-                bool addpen = false;
-                if (picCBData.HasPlotCmds) {
-
-                    // IncludePlotPen: false means first plot cmd comes AFTER the first
-                    // pen set, so the plot pen does not need to be included/checked
-
-                    // IncludePlotPen: true means first plot cmd comes BEFORE the first
-                    // pen set, so the plot pen must be included/checked
-
-                    if (picCBData.IncludePlotPen) {
-                        // check if the plot style is different
-                        // if so, then we need to add a set plot pen command
-                        // before the first draw command
-                        if (currentPen.PlotStyle != picCBData.StartPen.PlotStyle) {
-                            addpen = true;
-                            bool dontwarn = !WinAGISettings.WarnPlotPaste.Value;
-                            if (!dontwarn && MsgBoxEx.Show(MDIMain,
-                                "The clipboard contains plot commands that are a style mismatch. " +
-                                "Pen changes will be inserted to avoid errors. OK to continue?",
-                                "Plot Pen Style Mismatch",
-                                MessageBoxButtons.OKCancel,
-                                MessageBoxIcon.Question,
-                                "Don't show this warning again.", ref dontwarn,
-                                WinAGIHelp, "htm\\winagi\\editor_picture.htm#plotpaste") != DialogResult.OK) {
-                                // cancel the paste
-                                return;
-                            }
-                            if (dontwarn) {
-                                // update settings
-                                WinAGISettings.WarnPlotPaste.Value = false;
-                            }
-                            // add a plot pen with correct style
-                            NextUndo.CmdCount++;
-                            NextUndo.ByteCount += 2;
-                            byte newpendata = (byte)(currentPen.PlotSize + 0x10 * (int)currentPen.PlotShape + 0x20 * (int)picCBData.StartPen.PlotStyle);
-                            byte[] bytes = [0xF9, newpendata];
-                            EditPicture.InsertData(bytes, InsertPos);
-                            InsertPos += 2;
-                        }
-                    }
-                }
-                // now paste the clipboard data
-                EditPicture.InsertData(picCBData.Data, InsertPos);
-                InsertPos += picCBData.Data.Length;
-                // if the pasted data includes a pen change?
-                // or if a pen change was already forced?
-                if (addpen || picCBData.HasPenChange) {
-                    // check that end pen matches current pen
-                    // but... endpen isn't really endpen unless
-                    // the last command is a draw command- how do
-                    // I tell for certain what real endpen is?
-                    // answer: check EditPicture after the insert!
-                    PenStatus endPen = EditPicture.GetPenStatus(InsertPos + picCBData.Data.Length);
-                    if (currentPen.PlotStyle != endPen.PlotStyle) {
-                        bool dontwarn = !WinAGISettings.WarnPlotPaste.Value || addpen;
-                        // show warning dialog
-                        if (!dontwarn && MsgBoxEx.Show(MDIMain,
-                            "The clipboard contains plot commands that are a style mismatch. " +
-                            "Pen changes will be inserted to avoid errors. OK to continue?",
-                            "Plot Pen Style Mismatch",
-                            MessageBoxButtons.OKCancel,
-                            MessageBoxIcon.Question,
-                            "Don't show this warning again.", ref dontwarn,
-                                WinAGIHelp, "htm\\winagi\\editor_picture.htm#plotpaste") != DialogResult.OK) {
-                            // cancel the paste
-                            return;
-                        }
-                        if (dontwarn && !addpen) {
-                            // update settings
-                            WinAGISettings.WarnPlotPaste.Value = false;
-                        }
-                        // restore pen
-                        NextUndo.CmdCount++;
-                        NextUndo.ByteCount += 2;
-                        byte newpendata = (byte)(currentPen.PlotSize + 0x10 * (int)currentPen.PlotShape + 0x20 * (int)currentPen.PlotStyle);
-                        byte[] bytes = [0xF9, newpendata];
-                        EditPicture.InsertData(bytes, InsertPos);
-                    }
-                }
-            }
-            else {
-                // OK to paste the clipboard data as-is
-                // insert the data
-                EditPicture.InsertData(picCBData.Data, InsertPos);
-            }
-            // rebuild cmd list
-            AdjustCommandList(InsertIndex, NextUndo.ByteCount);
-            // select the commands that were pasted
-            SelectCommand(InsertIndex + NextUndo.CmdCount - 1, NextUndo.CmdCount, true);
-            AddUndo(NextUndo);
-            */
-
-            NextUndo.CmdCount = picCBData.CmdCount;
             // need to confirm the pasted commands won't cause errors
             // due to plot style mismatch
             PenStatus currentPen = EditPicture.GetPenStatus(InsertPos);
             // adjust plot commands before adding the pasted commands
-            if (picCBData.HasPenChange) {
+            if (pcbdata.HasPenChange) {
                 // check pen staus at end of paste data
-                if (picCBData.EndPen.PlotStyle != currentPen.PlotStyle) {
+                if (pcbdata.EndPen.PlotStyle != currentPen.PlotStyle) {
                     // adjust plot pattern starting with next command after the ones being pasted
-                    ReadjustPlotCoordinates(InsertIndex + picCBData.CmdCount, picCBData.DrawCmdEndPen.PlotStyle);
+                    ReadjustPlotCoordinates(InsertIndex + pcbdata.CmdCount, pcbdata.DrawCmdEndPen.PlotStyle);
                 }
             }
             // insert the data
-            if (picCBData.HasPlotCmds) {
-                if (picCBData.StartPen.PlotStyle != currentPen.PlotStyle) {
+            if (pcbdata.HasPlotCmds) {
+                if (pcbdata.StartPen.PlotStyle != currentPen.PlotStyle) {
 
                     // start at beginning of paste data, step through all
                     // commands until another setplotpen command or end is reached;
@@ -1780,7 +1670,7 @@ namespace WinAGI.Editor {
                     // splatter); if they don't match, they are adjusted (by adding
                     // or removing the pattern byte)
 
-                    List<byte> bytTemp = [.. picCBData.Data];
+                    List<byte> bytTemp = [.. pcbdata.Data];
 
                     for (int i = 0; i < bytTemp.Count; i++) {
                         // check for plot command or change plot pen command
@@ -1825,14 +1715,14 @@ namespace WinAGI.Editor {
                 }
                 else {
                     // use all data
-                    NextUndo.ByteCount = picCBData.Data.Length;
-                    EditPicture.InsertData(picCBData.Data, InsertPos);
+                    NextUndo.ByteCount = pcbdata.Data.Length;
+                    EditPicture.InsertData(pcbdata.Data, InsertPos);
                 }
             }
             else {
                 // use all data
-                NextUndo.ByteCount = picCBData.Data.Length;
-                EditPicture.InsertData(picCBData.Data, InsertPos);
+                NextUndo.ByteCount = pcbdata.Data.Length;
+                EditPicture.InsertData(pcbdata.Data, InsertPos);
             }
             // rebuild cmd list
             AdjustCommandList(InsertIndex, NextUndo.ByteCount);
@@ -1855,8 +1745,8 @@ namespace WinAGI.Editor {
             if (!Clipboard.ContainsData(PICTURE_CB_FMT)) {
                 return;
             }
-            PictureClipboardData picCBData = Clipboard.GetData(PICTURE_CB_FMT) as PictureClipboardData;
-            if (picCBData is null) {
+            PictureClipboardData pcbdata = Clipboard.GetData(PICTURE_CB_FMT) as PictureClipboardData;
+            if (pcbdata is null) {
                 return;
             }
             if (SelectedTool != PicToolType.Edit) {
@@ -1873,60 +1763,61 @@ namespace WinAGI.Editor {
                 InsertIndex = SelectedCmd.Index;
             }
             InsertPos = (int)lstCommands.Items[InsertIndex].Tag;
-            PictureUndo NextUndo = new();
-            NextUndo.Action = PasteCmds;
-            NextUndo.PicPos = InsertPos;
-            NextUndo.CmdIndex = InsertIndex;
-            // only use draw cmd count
-            NextUndo.CmdCount = picCBData.DrawCmdCount;
-            NextUndo.ByteCount = picCBData.DrawByteCount;
+            PictureUndo NextUndo = new() {
+                Action = PasteCmds,
+                PicPos = InsertPos,
+                CmdIndex = InsertIndex,
+                // only use draw cmd count
+                CmdCount = pcbdata.DrawCmdCount,
+                ByteCount = pcbdata.DrawByteCount
+            };
 
             PenStatus currentPen = EditPicture.GetPenStatus(InsertPos);
             // first determine if pens need to be added
-            if (picCBData.IncludeVisPen && currentPen.VisColor != picCBData.DrawCmdStartPen.VisColor) {
+            if (pcbdata.IncludeVisPen && currentPen.VisColor != pcbdata.DrawCmdStartPen.VisColor) {
                 NextUndo.CmdCount++;
-                if (picCBData.DrawCmdStartPen.VisColor == AGIColorIndex.None) {
+                if (pcbdata.DrawCmdStartPen.VisColor == AGIColorIndex.None) {
                     // add vis OFF
                     EditPicture.InsertData(0xF1, InsertPos++);
                     NextUndo.ByteCount++;
                 }
                 else {
                     // add vis ON
-                    byte[] bytes = [0xF0, (byte)picCBData.DrawCmdStartPen.VisColor];
+                    byte[] bytes = [0xF0, (byte)pcbdata.DrawCmdStartPen.VisColor];
                     EditPicture.InsertData(bytes, InsertPos);
                     InsertPos += 2;
                     NextUndo.ByteCount += 2;
                 }
             }
-            if (picCBData.IncludePriPen && currentPen.PriColor != picCBData.DrawCmdStartPen.PriColor) {
+            if (pcbdata.IncludePriPen && currentPen.PriColor != pcbdata.DrawCmdStartPen.PriColor) {
                 NextUndo.CmdCount++;
-                if (picCBData.DrawCmdStartPen.PriColor == AGIColorIndex.None) {
+                if (pcbdata.DrawCmdStartPen.PriColor == AGIColorIndex.None) {
                     // add pri OFF
                     EditPicture.InsertData(0xF3, InsertPos++);
                     NextUndo.ByteCount++;
                 }
                 else {
                     // add pri ON
-                    byte[] bytes = [0xF2, (byte)picCBData.DrawCmdStartPen.PriColor];
+                    byte[] bytes = [0xF2, (byte)pcbdata.DrawCmdStartPen.PriColor];
                     EditPicture.InsertData(bytes, InsertPos);
                     InsertPos += 2;
                     NextUndo.ByteCount += 2;
                 }
             }
-            if (picCBData.IncludePlotPen && (currentPen.PlotShape != picCBData.DrawCmdStartPen.PlotShape ||
-                currentPen.PlotStyle != picCBData.DrawCmdStartPen.PlotStyle || currentPen.PlotSize != picCBData.DrawCmdStartPen.PlotSize)) {
+            if (pcbdata.IncludePlotPen && (currentPen.PlotShape != pcbdata.DrawCmdStartPen.PlotShape ||
+                currentPen.PlotStyle != pcbdata.DrawCmdStartPen.PlotStyle || currentPen.PlotSize != pcbdata.DrawCmdStartPen.PlotSize)) {
                 NextUndo.CmdCount++;
                 NextUndo.ByteCount += 2;
-                byte newpendata = (byte)(picCBData.DrawCmdStartPen.PlotSize + 0x10 * (int)picCBData.DrawCmdStartPen.PlotShape + 0x20 * (int)picCBData.DrawCmdStartPen.PlotStyle);
+                byte newpendata = (byte)(pcbdata.DrawCmdStartPen.PlotSize + 0x10 * (int)pcbdata.DrawCmdStartPen.PlotShape + 0x20 * (int)pcbdata.DrawCmdStartPen.PlotStyle);
                 byte[] bytes = [0xF9, newpendata];
                 EditPicture.InsertData(bytes, InsertPos);
                 InsertPos += 2;
             }
             // insert the data
-            EditPicture.InsertData(picCBData.Data[picCBData.DrawByteStart..(picCBData.DrawByteStart + picCBData.DrawByteCount)], InsertPos);
-            InsertPos += picCBData.DrawByteCount;
+            EditPicture.InsertData(pcbdata.Data[pcbdata.DrawByteStart..(pcbdata.DrawByteStart + pcbdata.DrawByteCount)], InsertPos);
+            InsertPos += pcbdata.DrawByteCount;
             // now check if pens need to be restored
-            if (currentPen.VisColor != picCBData.DrawCmdEndPen.VisColor) {
+            if (currentPen.VisColor != pcbdata.DrawCmdEndPen.VisColor) {
                 NextUndo.CmdCount++;
                 if (currentPen.VisColor == AGIColorIndex.None) {
                     // add vis OFF
@@ -1940,7 +1831,7 @@ namespace WinAGI.Editor {
                     NextUndo.ByteCount += 2;
                 }
             }
-            if (currentPen.PriColor != picCBData.DrawCmdEndPen.PriColor) {
+            if (currentPen.PriColor != pcbdata.DrawCmdEndPen.PriColor) {
                 NextUndo.CmdCount++;
                 if (currentPen.PriColor == AGIColorIndex.None) {
                     // add pri OFF
@@ -1955,9 +1846,9 @@ namespace WinAGI.Editor {
                     InsertPos += 2;
                 }
             }
-            if ((currentPen.PlotShape != picCBData.DrawCmdEndPen.PlotShape ||
-                currentPen.PlotStyle != picCBData.DrawCmdEndPen.PlotStyle ||
-                currentPen.PlotSize != picCBData.DrawCmdEndPen.PlotSize)) {
+            if ((currentPen.PlotShape != pcbdata.DrawCmdEndPen.PlotShape ||
+                currentPen.PlotStyle != pcbdata.DrawCmdEndPen.PlotStyle ||
+                currentPen.PlotSize != pcbdata.DrawCmdEndPen.PlotSize)) {
                 NextUndo.CmdCount++;
                 NextUndo.ByteCount += 2;
                 byte newpendata = (byte)(currentPen.PlotSize + 0x10 * (int)currentPen.PlotShape + 0x20 * (int)currentPen.PlotStyle);
@@ -2293,56 +2184,55 @@ namespace WinAGI.Editor {
                         return;
                     }
                 }
-                frmPicTestOptions frmTest = new(TestView, TestSettings);
+                using (frmPicTestOptions frmTest = new(TestView, TestSettings)) {
+                    // if not canceled
+                    if (frmTest.ShowDialog(this) == DialogResult.OK) {
+                        // Retrieve option values safely by copying TestInfo to a local variable
+                        var testInfoCopy = frmTest.TestInfo;
+                        TestSettings = testInfoCopy.Clone();
 
-                // if not canceled
-                if (frmTest.ShowDialog(this) == DialogResult.OK) {
-                    // Retrieve option values safely by copying TestInfo to a local variable
-                    var testInfoCopy = frmTest.TestInfo;
-                    TestSettings = testInfoCopy.Clone();
-
-                    // if test loop and/or cel are NOT auto, force current loop/cel
-                    if (TestSettings.TestLoop != -1) {
-                        CurTestLoop = (byte)TestSettings.TestLoop;
-                        CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
-                        // just in case, check current cel; if it exceeds
-                        // loop count, reset it to zero
-                        if (CurTestCel > CurTestLoopCount - 1) {
-                            CurTestCel = (byte)(CurTestLoopCount - 1);
+                        // if test loop and/or cel are NOT auto, force current loop/cel
+                        if (TestSettings.TestLoop != -1) {
+                            CurTestLoop = (byte)TestSettings.TestLoop;
+                            CurTestLoopCount = (byte)TestView[CurTestLoop].Cels.Count;
+                            // just in case, check current cel; if it exceeds
+                            // loop count, reset it to zero
+                            if (CurTestCel > CurTestLoopCount - 1) {
+                                CurTestCel = (byte)(CurTestLoopCount - 1);
+                            }
+                            if (TestSettings.TestCel != -1) {
+                                CurTestCel = (byte)TestSettings.TestCel;
+                            }
+                            // if either loop or cel is forced, update cel data
+                            TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
                         }
-                        if (TestSettings.TestCel != -1) {
-                            CurTestCel = (byte)TestSettings.TestCel;
+                        // update cel height/width/transcolor
+                        CelWidth = TestView[CurTestLoop][CurTestCel].Width;
+                        CelHeight = TestView[CurTestLoop][CurTestCel].Height;
+                        CelTrans = TestView[CurTestLoop][CurTestCel].TransColor;
+                        // set timer based on speed
+                        switch (TestSettings.ObjSpeed.Value) {
+                        case 0:
+                            // slow
+                            tmrTest.Interval = 200;
+                            break;
+                        case 1:
+                            // normal
+                            tmrTest.Interval = 50;
+                            break;
+                        case 2:
+                            // fast
+                            tmrTest.Interval = 20;
+                            break;
+                        case 3:
+                            // fastest
+                            tmrTest.Interval = 1;
+                            break;
                         }
-                        // if either loop or cel is forced, update cel data
-                        TestCelData = TestView[CurTestLoop][CurTestCel].AllCelData;
+                        // redraw cel at current position
+                        DrawPicture();
                     }
-                    // update cel height/width/transcolor
-                    CelWidth = TestView[CurTestLoop][CurTestCel].Width;
-                    CelHeight = TestView[CurTestLoop][CurTestCel].Height;
-                    CelTrans = TestView[CurTestLoop][CurTestCel].TransColor;
-                    // set timer based on speed
-                    switch (TestSettings.ObjSpeed.Value) {
-                    case 0:
-                        // slow
-                        tmrTest.Interval = 200;
-                        break;
-                    case 1:
-                        // normal
-                        tmrTest.Interval = 50;
-                        break;
-                    case 2:
-                        // fast
-                        tmrTest.Interval = 20;
-                        break;
-                    case 3:
-                        // fastest
-                        tmrTest.Interval = 1;
-                        break;
-                    }
-                    // redraw cel at current position
-                    DrawPicture();
                 }
-                frmTest.Dispose();
                 // set timer as needed
                 tmrTest.Enabled = TestSettings.CycleAtRest.Value;
             }
@@ -2443,10 +2333,11 @@ namespace WinAGI.Editor {
                     picVisual.Invalidate();
                     picPriority.Invalidate();
                 }
-                PictureUndo NextUndo = new();
-                NextUndo.Action = SetPriBase;
-                // use cmdIndex for old base
-                NextUndo.CmdIndex = oldBase;
+                PictureUndo NextUndo = new() {
+                    Action = SetPriBase,
+                    // use cmdIndex for old base
+                    CmdIndex = oldBase
+                };
                 AddUndo(NextUndo);
             }
         }
@@ -2484,7 +2375,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Toolbar Event Handlers
+        #region Toolbar Events
         private void tsbMode_DropDownOpening(object sender, EventArgs e) {
             tsbEditMode.Checked = PicMode == PicEditorMode.Edit;
             tsbViewTest.Checked = PicMode == PicEditorMode.ViewTest;
@@ -2601,7 +2492,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Control Event Handlers
+        #region Control Events
         private void vsbVisual_Scroll(object sender, ScrollEventArgs e) {
             picVisual.Top = -vsbVisual.Value;
         }
@@ -3735,7 +3626,7 @@ namespace WinAGI.Editor {
             }
             // update draw surfaces to reflect selected commands
             UpdateCmdSelection(lstCommands.SelectedItems[^1].Index, force);
-            // always clear the coordinate list when a command is selected from
+            // always clear the coordinate list selection when a command is selected from
             // the command list
             if (SelectedCmd.SelectedCoordIndex >= 0) {
                 SelectedCmd.SelectedCoordIndex = -1;
@@ -3849,7 +3740,6 @@ namespace WinAGI.Editor {
             // so user can set values manually
 
             byte[] oldCoord = [];
-            byte newPattern = 0;
 
             if (lstCoords.SelectedItems.Count != 1) {
                 return;
@@ -3880,15 +3770,17 @@ namespace WinAGI.Editor {
                 return;
             }
             // configure the plot edit form
-            frmPlotEdit frm = new(SelectedCmd, EditPicture);
-            if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                return;
+            Point newPT;
+            byte newPattern;
+            using (frmPlotEdit frm = new(SelectedCmd, EditPicture)) {
+                if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    return;
+                }
+                // get the new cursor point
+                newPT = frm.NewCoord;
+                // and the new plot pattern
+                newPattern = (byte)(frm.NewPattern * 2);
             }
-            // get the new cursor point
-            Point newPT = frm.NewCoord;
-            // retrieve the new plot pattern Value
-            newPattern = (byte)(frm.NewPattern * 2);
-            frm.Dispose();
             // create undo
             PictureUndo NextUndo = new() {
                 Action = EditCoord,
@@ -4618,9 +4510,9 @@ namespace WinAGI.Editor {
             spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spScale.BorderStyle = Border3DStyle.SunkenInner;
             spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(80, 18);
+            spScale.Size = new Size(80, 18);
             spScale.Text = "Scale: " + (ScaleFactor * 100) + "%";
-            spScale.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spScale.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // spMode
             // 
@@ -4628,9 +4520,9 @@ namespace WinAGI.Editor {
             spMode.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spMode.BorderStyle = Border3DStyle.SunkenInner;
             spMode.Name = "spMode";
-            spMode.Size = new System.Drawing.Size(60, 18);
+            spMode.Size = new Size(60, 18);
             spMode.Text = "Edit";
-            spMode.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spMode.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // spTool
             // 
@@ -4638,9 +4530,9 @@ namespace WinAGI.Editor {
             spTool.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spTool.BorderStyle = Border3DStyle.SunkenInner;
             spTool.Name = "spTool";
-            spTool.Size = new System.Drawing.Size(120, 18);
+            spTool.Size = new Size(120, 18);
             spTool.Text = "";
-            spTool.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spTool.TextAlign = ContentAlignment.MiddleLeft;
 
             // for Anchor and Block, add a context menu with a single 'Copy' command
             cmStatus = new();
@@ -4655,9 +4547,9 @@ namespace WinAGI.Editor {
             spAnchor.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spAnchor.BorderStyle = Border3DStyle.SunkenInner;
             spAnchor.Name = "spAnchor";
-            spAnchor.Size = new System.Drawing.Size(120, 18);
+            spAnchor.Size = new Size(120, 18);
             spAnchor.Text = "";
-            spAnchor.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spAnchor.TextAlign = ContentAlignment.MiddleLeft;
             spAnchor.Visible = false;
             spAnchor.MouseUp += Status_Click;
             // 
@@ -4667,8 +4559,8 @@ namespace WinAGI.Editor {
             spBlock.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spBlock.BorderStyle = Border3DStyle.SunkenInner;
             spBlock.Name = "spBlock";
-            spBlock.Size = new System.Drawing.Size(160, 18);
-            spBlock.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            spBlock.Size = new Size(160, 18);
+            spBlock.TextAlign = ContentAlignment.MiddleLeft;
             spBlock.Text = "";
             spBlock.Visible = false;
             spBlock.MouseUp += Status_Click;
@@ -4679,7 +4571,7 @@ namespace WinAGI.Editor {
             spCurX.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCurX.BorderStyle = Border3DStyle.SunkenInner;
             spCurX.Name = "spCurX";
-            spCurX.Size = new System.Drawing.Size(70, 18);
+            spCurX.Size = new Size(70, 18);
             spCurX.Text = "";
             // 
             // spCurY
@@ -4688,7 +4580,7 @@ namespace WinAGI.Editor {
             spCurY.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCurY.BorderStyle = Border3DStyle.SunkenInner;
             spCurY.Name = "spCurY";
-            spCurY.Size = new System.Drawing.Size(70, 18);
+            spCurY.Size = new Size(70, 18);
             spCurY.Text = "";
             // 
             // spPriBand
@@ -4697,12 +4589,11 @@ namespace WinAGI.Editor {
             spPriBand.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spPriBand.BorderStyle = Border3DStyle.SunkenInner;
             spPriBand.Name = "spPriBand";
-            spPriBand.Size = new System.Drawing.Size(67, 18);
+            spPriBand.Size = new Size(67, 18);
             spPriBand.Text = "";
             spPriBand.Image = new Bitmap(12, 12);
             spPriBand.ImageAlign = ContentAlignment.MiddleCenter;
             spPriBand.ImageScaling = ToolStripItemImageScaling.None;
-
             //
             // spStatus
             //
@@ -4953,7 +4844,7 @@ namespace WinAGI.Editor {
                     EditGame.Pictures[PictureNumber].Unload();
                 }
                 // refresh warnings
-                MDIMain.ClearWarnings(AGIResType.Picture, PictureNumber);
+                MDIMain.ClearInfoGrid(AGIResType.Picture, PictureNumber);
                 if (EditGame.Pictures[PictureNumber].Warnings > 0) {
                     int warnings = EditGame.Pictures[PictureNumber].Warnings;
                     WinAGIEventInfo warnInfo = new() {
@@ -4974,13 +4865,13 @@ namespace WinAGI.Editor {
                         // bad color
                         warnInfo.ID = "RW06";
                         warnInfo.Text = EngineResources.RW06.Replace(ARG1, PictureNumber.ToString());
-                        MDIMain.AddWarning(warnInfo, true);
+                        MDIMain.AddInfoItem(warnInfo, true);
                     }
                     if ((warnings & 4) == 4) {
                         // bad cmd
                         warnInfo.ID = "RW07";
                         warnInfo.Text = EngineResources.RW07.Replace(ARG1, PictureNumber.ToString());
-                        MDIMain.AddWarning(warnInfo, true);
+                        MDIMain.AddInfoItem(warnInfo, true);
                     }
                     //if ((warnings & 8) == 8) {
                     //    // extra data
@@ -4992,13 +4883,13 @@ namespace WinAGI.Editor {
                         // extra data
                         warnInfo.ID = "RW09";
                         warnInfo.Text = EngineResources.RW09;
-                        MDIMain.AddWarning(warnInfo, true);
+                        MDIMain.AddInfoItem(warnInfo, true);
                     }
                     if ((warnings & 32) == 32) {
                         // extra data
                         warnInfo.ID = "RW10";
                         warnInfo.Text = EngineResources.RW10;
-                        MDIMain.AddWarning(warnInfo, true);
+                        MDIMain.AddInfoItem(warnInfo, true);
                     }
                     MDIMain.UpdateGridCounts();
                 }
@@ -5119,23 +5010,24 @@ namespace WinAGI.Editor {
                 else {
                     id = "";
                 }
-                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Picture, id);
-                if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                    PictureNumber = frmGetNum.NewResNum;
-                    // change id before adding to game
-                    EditPicture.ID = frmGetNum.txtID.Text;
-                    AddNewPicture((byte)PictureNumber, EditPicture);
-                    EditGame.Pictures[PictureNumber].Load();
-                    // copy the picture back (to ensure internal variables are copied)
-                    EditPicture.CloneFrom(EditGame.Pictures[PictureNumber]);
-                    EditPalette = EditPicture.Palette.Clone();
-                    // now we can unload the newly added picture;
-                    EditGame.Pictures[PictureNumber].Unload();
-                    InGame = true;
-                    MarkAsSaved();
-                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                    MDIMain.btnAddRemove.Text = "Remove Picture";
-                    SetCodePage(EditGame.CodePage);
+                using (frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Picture, id)) {
+                    if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                        PictureNumber = frmGetNum.NewResNum;
+                        // change id before adding to game
+                        EditPicture.ID = frmGetNum.txtID.Text;
+                        AddNewPicture((byte)PictureNumber, EditPicture);
+                        EditGame.Pictures[PictureNumber].Load();
+                        // copy the picture back (to ensure internal variables are copied)
+                        EditPicture.CloneFrom(EditGame.Pictures[PictureNumber]);
+                        EditPalette = EditPicture.Palette.Clone();
+                        // now we can unload the newly added picture;
+                        EditGame.Pictures[PictureNumber].Unload();
+                        InGame = true;
+                        MarkAsSaved();
+                        MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
+                        MDIMain.btnAddRemove.Text = "Remove Picture";
+                        SetCodePage(EditGame.CodePage);
+                    }
                 }
             }
         }
@@ -5960,7 +5852,7 @@ namespace WinAGI.Editor {
                 break;
             case YCorner:
             case XCorner:
-                bool relX = (retval.Type == XCorner);
+                bool relX = retval.Type == XCorner;
                 x = EditPicture.Data[pos++];
                 if (x >= 0xF0)
                     break;
@@ -5997,14 +5889,14 @@ namespace WinAGI.Editor {
                         dx = -((d & 0x70) / 0x10);
                     }
                     else {
-                        dx = ((d & 0x70) / 0x10);
+                        dx = (d & 0x70) / 0x10;
                     }
                     // if vertical negative bit is set
                     if ((d & 0x8) == 0x8) {
                         dy = -(d & 0x7);
                     }
                     else {
-                        dy = (d & 0x7);
+                        dy = d & 0x7;
                     }
                     x += dx;
                     y += dy;
@@ -6138,7 +6030,7 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <param name="newpendata"></param>
         /// <param name="Force"></param>
-        private void UpdatePlotPen(byte newpendata, bool Force = false) {
+        private void UpdatePlotPen(byte newpendata) {
             //  if tool is edit or select area:
             //      if no intervening draw commands, edit the existing cmd or prior
             //      or following, otherwise insert a new cmd
@@ -6153,59 +6045,57 @@ namespace WinAGI.Editor {
             PlotStyle newstyle = (PlotStyle)(newpendata / 0x20);
             int selectedindex = SelectedCmd.Index;
 
-            if (currentpendata != newpendata || Force) {
+            if (currentpendata != newpendata) {
                 int PenCmdIndex = -1;
-                if (!Force) {
-                    // if command is a change plot pen command, or if a command nearby is
-                    // a change plot pen command with no intervening draw commands, use that
-                    // command as the vis pen command
-                    // check here first
-                    int checkindex = SelectedCmd.Index - 1;
-                    if (SelectedCmd.Type == ChangePen &&
-                        (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea)) {
-                        PenCmdIndex = SelectedCmd.Index;
-                    }
-                    else {
-                        // then check above
-                        while (checkindex >= 0) {
-                            switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
-                            case ChangePen:
-                                PenCmdIndex = checkindex;
-                                checkindex = 0;
-                                break;
-                            case EnableVis:
-                            case DisableVis:
-                            case EnablePri:
-                            case DisablePri:
-                                break;
-                            default:
-                                checkindex = 0;
-                                break;
-                            }
-                            checkindex--;
+                // if command is a change plot pen command, or if a command nearby is
+                // a change plot pen command with no intervening draw commands, use that
+                // command as the vis pen command
+                // check here first
+                int checkindex = SelectedCmd.Index - 1;
+                if (SelectedCmd.Type == ChangePen &&
+                    (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea)) {
+                    PenCmdIndex = SelectedCmd.Index;
+                }
+                else {
+                    // then check above
+                    while (checkindex >= 0) {
+                        switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
+                        case ChangePen:
+                            PenCmdIndex = checkindex;
+                            checkindex = 0;
+                            break;
+                        case EnableVis:
+                        case DisableVis:
+                        case EnablePri:
+                        case DisablePri:
+                            break;
+                        default:
+                            checkindex = 0;
+                            break;
                         }
-                        if (PenCmdIndex == -1 && SelectedCmd.IsPen) {
-                            if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
-                                // not found above and selected cmd is not a draw cmd
-                                // so check below
-                                checkindex = SelectedCmd.Index + 1;
-                                while (checkindex < lstCommands.Items.Count) {
-                                    switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
-                                    case ChangePen:
-                                        PenCmdIndex = checkindex;
-                                        checkindex = lstCommands.Items.Count;
-                                        break;
-                                    case EnableVis:
-                                    case DisableVis:
-                                    case EnablePri:
-                                    case DisablePri:
-                                        break;
-                                    default:
-                                        checkindex = lstCommands.Items.Count;
-                                        break;
-                                    }
-                                    checkindex++;
+                        checkindex--;
+                    }
+                    if (PenCmdIndex == -1 && SelectedCmd.IsPen) {
+                        if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
+                            // not found above and selected cmd is not a draw cmd
+                            // so check below
+                            checkindex = SelectedCmd.Index + 1;
+                            while (checkindex < lstCommands.Items.Count) {
+                                switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
+                                case ChangePen:
+                                    PenCmdIndex = checkindex;
+                                    checkindex = lstCommands.Items.Count;
+                                    break;
+                                case EnableVis:
+                                case DisableVis:
+                                case EnablePri:
+                                case DisablePri:
+                                    break;
+                                default:
+                                    checkindex = lstCommands.Items.Count;
+                                    break;
                                 }
+                                checkindex++;
                             }
                         }
                     }
@@ -6239,7 +6129,7 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <param name="newcolor"></param>
         /// <param name="Force"></param>
-        private void UpdateVisPen(AGIColorIndex newcolor, bool Force = false) {
+        private void UpdateVisPen(AGIColorIndex newcolor, bool Force) {
             //  if tool is edit or select area:
             //      if no intervening draw commands, edit the existing cmd or prior
             //      or following, otherwise insert a new cmd
@@ -6341,7 +6231,7 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <param name="newcolor"></param>
         /// <param name="Force"></param>
-        private void UpdatePriPen(AGIColorIndex newcolor, bool Force = false) {
+        private void UpdatePriPen(AGIColorIndex newcolor, bool Force) {
             //  if tool is edit or select area:
             //      if no intervening draw commands, edit the existing cmd or prior
             //      or following, otherwise insert a new cmd
@@ -6462,11 +6352,12 @@ namespace WinAGI.Editor {
             }
 
             if (!DontUndo) {
-                PictureUndo NextUndo = new();
-                NextUndo.Action = ChangeColor;
-                NextUndo.PicPos = pos;
-                NextUndo.CmdIndex = CmdIndex;
-                NextUndo.Data = [(byte)OldColor];
+                PictureUndo NextUndo = new() {
+                    Action = ChangeColor,
+                    PicPos = pos,
+                    CmdIndex = CmdIndex,
+                    Data = [(byte)OldColor]
+                };
                 AddUndo(NextUndo);
             }
 
@@ -6491,7 +6382,7 @@ namespace WinAGI.Editor {
             }
             else {
                 // change color byte
-                EditPicture.Data[pos + 1] = (byte)(byte)NewColor;
+                EditPicture.Data[pos + 1] = (byte)NewColor;
             }
             EditPicture.ForceRefresh();
         }
@@ -6514,11 +6405,12 @@ namespace WinAGI.Editor {
                 return;
             }
             if (!DontUndo) {
-                PictureUndo NextUndo = new();
-                NextUndo.Action = PictureUndo.ActionType.ChangePlotPen;
-                NextUndo.PicPos = pos;
-                NextUndo.CmdIndex = CmdIndex;
-                NextUndo.Data = [EditPicture.Data[pos]];
+                PictureUndo NextUndo = new() {
+                    Action = ChangePlotPen,
+                    PicPos = pos,
+                    CmdIndex = CmdIndex,
+                    Data = [EditPicture.Data[pos]]
+                };
                 AddUndo(NextUndo);
             }
             // change pen byte
@@ -7293,7 +7185,6 @@ namespace WinAGI.Editor {
         /// <param name="endpt"></param>
         /// <returns></returns>
         private Point[] BuildCircleArcs(Point beginpt, Point endpt) {
-            int segmentcount = 0;
             Point[] arcpts;
             int DX, DY;
             double a, b, a2b2, cy, cx, s1, s2;
@@ -7301,25 +7192,19 @@ namespace WinAGI.Editor {
 
             // ensure we are in a upperleft-lower right configuration
             if (beginpt.X > endpt.X) {
-                int tmp = beginpt.X;
-                beginpt.X = endpt.X;
-                endpt.X = tmp;
+                (endpt.X, beginpt.X) = (beginpt.X, endpt.X);
             }
             if (beginpt.Y > endpt.Y) {
-                int tmp = beginpt.Y;
-                beginpt.Y = endpt.Y;
-                endpt.Y = tmp;
+                (endpt.Y, beginpt.Y) = (beginpt.Y, endpt.Y);
             }
             DX = endpt.X - beginpt.X;
             DY = endpt.Y - beginpt.Y;
             if (DX == 0 || DY == 0) {
                 // no arcs, just a line
-                segmentcount = 0;
                 return [];
             }
             if (DX == 1 || DY == 1) {
                 // no arcs, draw a simple box
-                segmentcount = 2;
                 arcpts = new Point[2];
                 arcpts[0].X = DX / 2;
                 arcpts[0].Y = 0;
@@ -7330,8 +7215,8 @@ namespace WinAGI.Editor {
             // set array size large enough to ensure
             // no out of bounds errors
             arcpts = new Point[DX + DY];
-            a = (int)(DX / 2);
-            b = (int)(DY / 2);
+            a = DX / 2;
+            b = DY / 2;
             a2b2 = (a * a) / (b * b);
             // start with Y values;
             // increment until slope is >=1
@@ -7341,7 +7226,7 @@ namespace WinAGI.Editor {
                 // calculate x Value for this Y
                 cx = a * Math.Sqrt(1 - (arcpts[i].Y * arcpts[i].Y / (b * b)));
                 // round it (offset by 0.3 - this is an empirical value
-                // that seems to result in more accurate circles)
+                // that seems to result in best approximations of circles)
                 arcpts[i].X = (int)Math.Round(cx - 0.3);
                 // if past limit
                 if (i / cx * a2b2 >= 1) {
@@ -7368,7 +7253,7 @@ namespace WinAGI.Editor {
                 i++;
             } while (j >= 0);
 
-            segmentcount = i;
+            int segmentcount = i;
             // strip out any zero delta points
             // and any points that match slope on both sides
             i = 1;
@@ -7571,21 +7456,20 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <returns></returns>
         private bool ConfigureBackground() {
-            frmConfigureBackground frm = new(this);
-            if (frm.DialogResult == DialogResult.Cancel) {
-                frm.Dispose();
-                return false;
-            }
-            if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                frm.Dispose();
-                return false;
-            }
-            BkgdImage = frm.BkgdImage;
-            EditPicture.BackgroundSettings = frm.bkgdSettings;
-            if (InGame) {
-                // copy properties back to actual picture resource
-                EditGame.Pictures[PictureNumber].BackgroundSettings = frm.bkgdSettings;
-                EditGame.Pictures[PictureNumber].SaveProps();
+            using (frmConfigureBackground frm = new(this)) {
+                if (frm.DialogResult == DialogResult.Cancel) {
+                    return false;
+                }
+                if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    return false;
+                }
+                BkgdImage = frm.BkgdImage;
+                EditPicture.BackgroundSettings = frm.bkgdSettings;
+                if (InGame) {
+                    // copy properties back to actual picture resource
+                    EditGame.Pictures[PictureNumber].BackgroundSettings = frm.bkgdSettings;
+                    EditGame.Pictures[PictureNumber].SaveProps();
+                }
             }
             return true;
         }
@@ -7623,7 +7507,6 @@ namespace WinAGI.Editor {
                 }
                 else {
                     // not allowed- something must always be selected
-                    //??? End is selected - why is count == 0?????
                     Debug.Assert(false);
                 }
                 lstCommands.SelectedItems[^1].Focused = true;
@@ -7692,7 +7575,7 @@ namespace WinAGI.Editor {
             PicDrawMode = PicDrawOp.None;
 
             // always set cursor highlighting to match selection status
-            tmrSelect.Enabled = (SelectedRegion.Width > 0 && SelectedRegion.Height > 0);
+            tmrSelect.Enabled = SelectedRegion.Width > 0 && SelectedRegion.Height > 0;
             lblPos.Text = "Pos: " + SelectedCmd.Position;
             // update toolbar
             UpdateToolbar();
@@ -7721,7 +7604,6 @@ namespace WinAGI.Editor {
                 // Draw an X or Y corner.
                 // set initial direction
                 bool relX = cmd == 0xF5;
-                bool nextIsX = bytData[(int)lstCommands.Items[ListPos].Tag] == 0xF5;
                 x = bytData[pos++];
                 bytY = bytData[pos++];
                 cmd = bytData[pos++];
@@ -7805,25 +7687,6 @@ namespace WinAGI.Editor {
             lstCommands.Refresh();
             // update selection
             UpdateCmdSelection(cmdpos, force);
-        }
-
-        /// <summary>
-        /// Selects the specified coordinate of the passed command.
-        /// </summary>
-        /// <param name="cmdindex"></param>
-        /// <param name="coordindex"></param>
-        /// <param name="force"></param>
-        private void SelectCoordinate(int cmdindex, int coordindex, bool force = false) {
-            SelectedCmd = GetCommand(cmdindex);
-            if (SelectedCmdCount != 1 || lstCommands.SelectedItems[0].Index != cmdindex) {
-                lstCommands.SelectedItems.Clear();
-                lstCommands.Items[cmdindex].Selected = true;
-                lstCommands.SelectedItems[0].Focused = true;
-                lstCommands.Items[cmdindex].EnsureVisible();
-                BuildCoordList();
-                EnableCoordList();
-            }
-            SelectCoordinate(coordindex, force);
         }
 
         /// <summary>
@@ -8065,7 +7928,7 @@ namespace WinAGI.Editor {
                     if (PicPt.Y - AnchorPT.Y < 0) {
                         bytData[0] += 0x08;
                     }
-                    bytData[0] += (byte)(Math.Abs(PicPt.Y - AnchorPT.Y));
+                    bytData[0] += (byte)Math.Abs(PicPt.Y - AnchorPT.Y);
                     break;
                 case PicToolType.StepLine:
                     // get insert pos
@@ -8565,11 +8428,12 @@ namespace WinAGI.Editor {
 
             // add undo (if necessary)
             if (!DontUndo) {
-                PictureUndo NextUndo = new();
-                NextUndo.Action = MoveCmds;
-                NextUndo.CmdIndex = index;
-                NextUndo.CoordIndex = count;
-                NextUndo.Data = [(byte)dX, (byte)dY];
+                PictureUndo NextUndo = new() {
+                    Action = MoveCmds,
+                    CmdIndex = index,
+                    CoordIndex = count,
+                    Data = [(byte)dX, (byte)dY]
+                };
                 AddUndo(NextUndo);
             }
             // force picture update
@@ -8655,8 +8519,6 @@ namespace WinAGI.Editor {
                             // flip the x coordinate
                             coords[j] = new Point((2 * SelectedRegion.X) + SelectedRegion.Width - coords[j].X - 1, coords[j].Y);
                         }
-                        // save ending point position (remember to back up one unit)
-                        int oldPos = pos - 1;
                         // move pointer to first coordinate pair
                         pos = startPos;
                         // now rebuild the command, backwards
@@ -8747,10 +8609,11 @@ namespace WinAGI.Editor {
             EditPicture.ForceRefresh();
             // if not skipping undo
             if (!DontUndo) {
-                PictureUndo NextUndo = new();
-                NextUndo.Action = PictureUndo.ActionType.FlipH;
-                NextUndo.CmdIndex = FlipCmd;
-                NextUndo.CmdCount = Count;
+                PictureUndo NextUndo = new() {
+                    Action = FlipH,
+                    CmdIndex = FlipCmd,
+                    CmdCount = Count
+                };
                 AddUndo(NextUndo);
             }
         }
@@ -8892,10 +8755,11 @@ namespace WinAGI.Editor {
             EditPicture.ForceRefresh();
             // if not skipping undo
             if (!DontUndo) {
-                PictureUndo NextUndo = new();
-                NextUndo.Action = PictureUndo.ActionType.FlipV;
-                NextUndo.CmdIndex = FlipCmd;
-                NextUndo.CmdCount = Count;
+                PictureUndo NextUndo = new() {
+                    Action = FlipV,
+                    CmdIndex = FlipCmd,
+                    CmdCount = Count
+                };
                 AddUndo(NextUndo);
             }
         }
@@ -8913,11 +8777,11 @@ namespace WinAGI.Editor {
             int pos2 = SelectedCmd.Position;
             DrawFunction cmd1 = (DrawFunction)EditPicture.Data[pos1];
             DrawFunction cmd2 = SelectedCmd.Type;
-            int count = 0;
 
             if (!DontUndo) {
-                PictureUndo NextUndo = new();
-                NextUndo.Action = JoinCmds;
+                PictureUndo NextUndo = new() {
+                    Action = JoinCmds
+                };
                 // if cmd requires one byte per coord pair
                 // need to move picpos marker back one
                 switch (cmd2) {
@@ -8956,6 +8820,7 @@ namespace WinAGI.Editor {
                 AddUndo(NextUndo);
             }
 
+            int count;
             switch (cmd2) {
             case Fill:
             case PlotPen:
@@ -9129,7 +8994,7 @@ namespace WinAGI.Editor {
 
             if (!DontUndo) {
                 PictureUndo NextUndo = new() {
-                    Action = PictureUndo.ActionType.DelCmd,
+                    Action = DelCmd,
                     // save position of first command that is selected
                     PicPos = startPos,
                     // save cmd location and Count of commands
@@ -9245,10 +9110,11 @@ namespace WinAGI.Editor {
             // if not skipping undo
             if (!DontUndo) {
                 // save undo info
-                PictureUndo NextUndo = new();
-                NextUndo.Action = PictureUndo.ActionType.AddPlotPattern;
-                NextUndo.PicPos = (int)lstCommands.Items[tmpIndex].Tag;
-                NextUndo.CmdIndex = tmpIndex;
+                PictureUndo NextUndo = new() {
+                    Action = AddPlotPattern,
+                    PicPos = (int)lstCommands.Items[tmpIndex].Tag,
+                    CmdIndex = tmpIndex
+                };
                 // add the undo object without setting edit menu
                 AddUndo(NextUndo);
             }
@@ -9286,11 +9152,12 @@ namespace WinAGI.Editor {
             // if not skipping undo
             if (!DontUndo) {
                 // save undo info
-                PictureUndo NextUndo = new();
-                NextUndo.Action = Editor.PictureUndo.ActionType.DelPlotPattern;
-                NextUndo.PicPos = (int)lstCommands.Items[tmpIndex].Tag;
-                NextUndo.CmdIndex = tmpIndex;
-                NextUndo.Data = patternData.ToArray();
+                PictureUndo NextUndo = new() {
+                    Action = DelPlotPattern,
+                    PicPos = (int)lstCommands.Items[tmpIndex].Tag,
+                    CmdIndex = tmpIndex,
+                    Data = patternData.ToArray()
+                };
                 // add the undo object without setting edit menu
                 AddUndo(NextUndo);
             }
@@ -9375,13 +9242,14 @@ namespace WinAGI.Editor {
                 // if not skipping undo
                 if (!DontUndo) {
                     // create new undo object
-                    PictureUndo NextUndo = new();
-                    NextUndo.Action = PictureUndo.ActionType.DelCoord;
-                    NextUndo.DrawCommand = SelectedCmd.Type;
-                    NextUndo.PicPos = DelPos;
-                    NextUndo.CmdIndex = SelectedCmd.Index;
-                    NextUndo.CoordIndex = delcoordindex;
-                    NextUndo.Coord = SelectedCmd.Coords[delcoordindex];
+                    PictureUndo NextUndo = new() {
+                        Action = DelCoord,
+                        DrawCommand = SelectedCmd.Type,
+                        PicPos = DelPos,
+                        CmdIndex = SelectedCmd.Index,
+                        CoordIndex = delcoordindex,
+                        Coord = SelectedCmd.Coords[delcoordindex]
+                    };
                     bytUndoData = new byte[DelCount];
                     for (int i = 0; i < DelCount; i++) {
                         bytUndoData[i] = EditPicture.Data[DelPos + i];
@@ -9585,28 +9453,6 @@ namespace WinAGI.Editor {
                     // end coordinates have to match
                     if (MatchPoints(SelectedCmd.Index)) {
                         return true;
-
-                        // alternate method of checking for join of
-                        // X/Ycorners; it enforces line direction (i.e.
-                        // if last leg of first command is vertical, first
-                        // leg of second command must be horizontal and 
-                        // vice versa
-                        /*
-                        // if either cmd is exactly one coord ( three bytes in the cmd)
-                        if (SelectedCmd.Coords.Count == 1 || (SelectedCmd.Position - (int)lstCommands.SelectedItems[0].Tag) == 3) {
-                            return true;
-                        }
-                        // line direction must be opposite
-                        bool isvert1 = SelectedCmd.Coords.Count.IsEven();
-                        if (SelectedCmd.Type == XCorner) {
-                            isvert1 = !isvert1;
-                        }
-                        bool isvert2 = (SelectedCmd.Position - (int)lstCommands.SelectedItems[0].Tag).IsOdd();
-                        if (EditPicture.Data[(int)lstCommands.SelectedItems[0].Tag] == (byte)XCorner) {
-                            isvert2 = !isvert2;
-                        }
-                        return isvert1 != isvert2;
-                        */
                     }
                     break;
                 }
@@ -9658,13 +9504,14 @@ namespace WinAGI.Editor {
             // if not skipping undo
             if (!DontUndo) {
                 // create new undo object
-                PictureUndo NextUndo = new();
-                NextUndo.Action = AddCmd;
-                NextUndo.PicPos = insertpos;
-                NextUndo.CmdIndex = insertindex;
-                NextUndo.DrawCommand = (DrawFunction)newdata[0];
-                NextUndo.CmdCount = 1;
-                NextUndo.ByteCount = newdata.Length;
+                PictureUndo NextUndo = new() {
+                    Action = AddCmd,
+                    PicPos = insertpos,
+                    CmdIndex = insertindex,
+                    DrawCommand = (DrawFunction)newdata[0],
+                    CmdCount = 1,
+                    ByteCount = newdata.Length
+                };
                 AddUndo(NextUndo);
             }
             // insert data
@@ -9701,12 +9548,13 @@ namespace WinAGI.Editor {
             // if not skipping undo
             if (!DontUndo) {
                 // create new undo object
-                PictureUndo NextUndo = new();
-                NextUndo.Action = AddCoord;
-                NextUndo.PicPos = insertpos;
-                NextUndo.ByteCount = NewData.Length;
-                NextUndo.CmdIndex = SelectedCmd.Index;
-                NextUndo.CoordIndex = insertindex;
+                PictureUndo NextUndo = new() {
+                    Action = AddCoord,
+                    PicPos = insertpos,
+                    ByteCount = NewData.Length,
+                    CmdIndex = SelectedCmd.Index,
+                    CoordIndex = insertindex
+                };
                 // add to undo
                 AddUndo(NextUndo);
             }
@@ -9763,18 +9611,17 @@ namespace WinAGI.Editor {
             // if game is loaded
             if (EditGame is not null) {
                 // use the get resource form
-                frmGetResourceNum frmNew = new frmGetResourceNum(GetRes.TestView, AGIResType.View);
-                frmNew.OldResNum = TestViewNum;
-                // if canceled, unload and exit
-                DialogResult result = frmNew.ShowDialog(this);
-                byte num = frmNew.NewResNum;
-                frmNew.Dispose();
-                if (result == DialogResult.OK) {
-                    // set testview id
-                    TestViewNum = num;
-                }
-                else {
-                    return;
+                using (frmGetResourceNum frmNew = new(GetRes.TestView, AGIResType.View)) {
+                    frmNew.OldResNum = TestViewNum;
+                    if (frmNew.ShowDialog(this) == DialogResult.OK) {
+                        byte num = frmNew.NewResNum;
+                        // set testview id
+                        TestViewNum = num;
+                    }
+                    else {
+                        // if canceled, exit
+                        return;
+                    }
                 }
             }
             else {
@@ -9876,7 +9723,6 @@ namespace WinAGI.Editor {
         /// <param name="onVis"></param>
         private void AddCelToPic(Graphics g, bool onVis) {
             int CelPriority;
-            Cel TestCel = TestView[CurTestLoop][CurTestCel];
 
             // set priority (if in auto, get priority from current band)
             if (TestSettings.ObjPriority.Value < 16) {
@@ -10122,21 +9968,20 @@ namespace WinAGI.Editor {
         /// </summary>
         private void GetTextOptions() {
             // show print options dialog
-            frmPicPrintPrev frm = new(PTInfo, InGame);
-
-            if (frm.ShowDialog(this) == DialogResult.OK) {
-                if (PTInfo.MaxWidth != frm.PTInfo.MaxWidth) {
-                    ToggleTextScreenSize(false);
-                }
-                PTInfo = new(frm.PTInfo);
-                // show the print/display text on screen if there
-                // are no errors in the display text options
-                ShowPrintTest = PTInfo.ErrLevel == 0;
-                if (ShowPrintTest) {
-                    picVisual.Invalidate();
+            using (frmPicPrintPrev frm = new(PTInfo, InGame)) {
+                if (frm.ShowDialog(this) == DialogResult.OK) {
+                    if (PTInfo.MaxWidth != frm.PTInfo.MaxWidth) {
+                        ToggleTextScreenSize(false);
+                    }
+                    PTInfo = new(frm.PTInfo);
+                    // show the print/display text on screen if there
+                    // are no errors in the display text options
+                    ShowPrintTest = PTInfo.ErrLevel == 0;
+                    if (ShowPrintTest) {
+                        picVisual.Invalidate();
+                    }
                 }
             }
-            frm.Dispose();
         }
 
         /// <summary>
@@ -10397,7 +10242,7 @@ namespace WinAGI.Editor {
     /// Class to hold information about the current print/display test settings.
     /// </summary>
     public class PrintTestInfo {
-        #region Members
+        #region Fields
         private bool isChanged = false;
         private int tErrLevel = 0;
         private List<byte> tData = [];
@@ -10579,7 +10424,6 @@ namespace WinAGI.Editor {
             }
         }
         #endregion
-
 
         #region Methods
         private void RefreshPrintInfo() {

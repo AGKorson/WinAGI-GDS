@@ -24,18 +24,19 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Members
+        #region Fields
         public bool InGame = false;
         public bool IsChanged = false;
         public string Filename = "";
         private Define EditDefine;
         private bool Inserting = false;
-        private Stack<GlobalsUndo> UndoCol = [];
-        private List<DelDefine> DeletedDefines = [];
+        private readonly Stack<GlobalsUndo> UndoCol = [];
+        private readonly List<DelDefine> DeletedDefines = [];
         private const string DEF_MARKER = "#define ";
         private TextBox EditTextBox = null;
         private readonly char[] invalidall;
         private readonly char[] invalid1st;
+
         private const int ARGTYPE_COL = 0;
         private const int DEFNAME_COL = 1;
         private const int DEFVALUE_COL = 2;
@@ -54,9 +55,9 @@ namespace WinAGI.Editor {
         private int targetRowIndex = -1;
         private bool canceldrag = false, dropping = false;
         private int UID = 0; // used to track original rows for undo when dragging/sorting
-        private Timer dragTimer;
+        private readonly Timer dragTimer;
         private int dragDirection = 0; // -1 is up, 1 is down, 0 is no movement
-        private List<int> currentOrder = [];
+        private readonly List<int> currentOrder = [];
         // fonts used in the grid
         Font commonFont;
         Font boldFont;
@@ -76,8 +77,9 @@ namespace WinAGI.Editor {
         public frmGlobals() {
             InitializeComponent();
             globalsgrid.QueryContinueDrag += globalsgrid_QueryContinueDrag;
-            dragTimer = new Timer();
-            dragTimer.Interval = 100;
+            dragTimer = new Timer {
+                Interval = 100
+            };
             dragTimer.Tick += DragTimer_Tick;
 
             InitStatusStrip();
@@ -268,7 +270,7 @@ namespace WinAGI.Editor {
             }
             mnuUndo.Enabled = UndoCol.Count > 0;
             if (mnuUndo.Enabled) {
-                mnuUndo.Text = "Undo " + Editor.Base.EditorResourceByNum(GLBUNDOTEXT + (int)UndoCol.Peek().Action);
+                mnuUndo.Text = "Undo " + EditorResourceByNum(GLBUNDOTEXT + (int)UndoCol.Peek().Action);
             }
             else {
                 mnuUndo.Text = "Undo";
@@ -478,7 +480,7 @@ namespace WinAGI.Editor {
                 break;
             case GlobalsUndo.GlobalUndoAction.EditValue:
                 globalsgrid[VALUE_COL, NextUndo.Pos].Value = NextUndo.Text;
-                ArgType argtype = ArgType.None;
+                ArgType argtype = None;
                 DefineValueCheck valuetype = GetValueType(NextUndo.Text, ref argtype);
                 globalsgrid[VALUETYPE_COL, NextUndo.Pos].Value = valuetype;
                 globalsgrid[ARGTYPE_COL, NextUndo.Pos].Value = argtype;
@@ -585,9 +587,10 @@ namespace WinAGI.Editor {
                 return;
             }
             bool errors = false;
-            GlobalsUndo NextUndo = new();
-            NextUndo.Action = GlobalsUndo.GlobalUndoAction.PasteDefines;
-            NextUndo.Pos = globalsgrid.CurrentRow.Index;
+            GlobalsUndo NextUndo = new() {
+                Action = GlobalsUndo.GlobalUndoAction.PasteDefines,
+                Pos = globalsgrid.CurrentRow.Index
+            };
             Define[] PasteDefines;
             PasteDefines = ReadDefines(Clipboard.GetText(TextDataFormat.UnicodeText), ref errors);
             if (PasteDefines.Length == 0) {
@@ -682,7 +685,7 @@ namespace WinAGI.Editor {
                 if (globalsgrid.SelectionMode != DataGridViewSelectionMode.CellSelect) {
                     globalsgrid.SelectionMode = DataGridViewSelectionMode.CellSelect;
                 }
-                DataGridViewRow newRow = new DataGridViewRow();
+                DataGridViewRow newRow = new();
                 newRow.CreateCells(globalsgrid);
                 newRow.Cells[ARGTYPE_COL].Value = None;
                 newRow.Cells[DEFNAME_COL].Value = "";
@@ -738,7 +741,7 @@ namespace WinAGI.Editor {
                 GMatchCase = true;
                 GLogFindLoc = FindLocation.All;
                 GFindSynonym = false;
-                FindingForm.ResetSearch();
+                frmFind.ResetSearch();
                 FindInLogic(this, searchtext, FindDirection.All, true, true, FindLocation.All);
             }
         }
@@ -822,21 +825,14 @@ namespace WinAGI.Editor {
             if (globalsgrid.CurrentCell.ColumnIndex == NAME_COL) {
                 return;
             }
-            frmCharPicker CharPicker;
-            if (EditGame is not null) {
-                CharPicker = new(EditGame.CodePage);
-            }
-            else {
-                CharPicker = new(WinAGISettings.DefCP.Value);
-            }
-            CharPicker.ShowDialog(MDIMain);
-            if (!CharPicker.Cancel) {
-                if (CharPicker.InsertString.Length > 0) {
-                    EditTextBox.SelectedText = CharPicker.InsertString;
+            using (frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
+                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                    if (CharPicker.InsertString.Length > 0) {
+                        EditTextBox.SelectedText = CharPicker.InsertString;
+                    }
                 }
             }
-            CharPicker.Close();
-            CharPicker.Dispose();
         }
 
         private void mnuCelSelectAll_Click(object sender, EventArgs e) {
@@ -930,7 +926,7 @@ namespace WinAGI.Editor {
                 if ((DefineValueCheck)globalsgrid[VALUETYPE_COL, e.RowIndex].Value is DefineValueCheck.Reserved or
                     DefineValueCheck.Global) {
                     // overrides are rare - reconfirm them when they are encountered
-                    ArgType at = ArgType.None;
+                    ArgType at = None;
                     var dvt = GetValueType((string)globalsgrid.Rows[e.RowIndex].Cells[VALUE_COL].Value, ref at);
                     if (dvt == DefineValueCheck.OK) {
                         globalsgrid.Rows[e.RowIndex].Cells[VALUETYPE_COL].Value = dvt;
@@ -956,32 +952,32 @@ namespace WinAGI.Editor {
                 switch ((DefineValueCheck)globalsgrid[VALUETYPE_COL, e.RowIndex].Value) {
                 case DefineValueCheck.OK:
                     switch ((ArgType)globalsgrid[ARGTYPE_COL, e.RowIndex].Value) {
-                    case ArgType.None:
+                    case None:
                         break;
-                    case ArgType.Num:
+                    case Num:
                         // i.e. numeric Value
                         // use default
                         break;
-                    case ArgType.Var:
-                    case ArgType.Flag:
-                    case ArgType.MsgNum:
-                    case ArgType.SObj:
-                    case ArgType.InvItem:
-                    case ArgType.Str:
-                    case ArgType.Word:
-                    case ArgType.Ctrl:
+                    case Var:
+                    case Flag:
+                    case MsgNum:
+                    case SObj:
+                    case InvItem:
+                    case Str:
+                    case Word:
+                    case Ctrl:
                         // argument markers
                         e.CellStyle.ForeColor = Color.Blue;
                         break;
-                    case ArgType.DefStr:
+                    case DefStr:
                         // string
                         e.CellStyle.ForeColor = Color.Green;
                         break;
-                    case ArgType.VocWrd:
+                    case VocWrd:
                         // not available in defines?
                         break;
-                    case ArgType.ActionCmd:
-                    case ArgType.TestCmd:
+                    case ActionCmd:
+                    case TestCmd:
                     case ArgType.Object:
                     case ArgType.View:
                         // sierrasyntax not applicable (global editor
@@ -2440,7 +2436,7 @@ namespace WinAGI.Editor {
                 // replace global list with the new list
                 EditGame.GlobalDefines.Clone(newlist);
                 EditGame.GlobalDefines.Save();
-                MDIMain.ClearWarnings(AGIResType.Globals, 0);
+                MDIMain.ClearInfoGrid(AGIResType.Globals, 0);
                 if (warning) {
                     WinAGIEventInfo warnInfo = new() {
                         ResType = AGIResType.Globals,
@@ -2450,7 +2446,7 @@ namespace WinAGI.Editor {
                         ID = "RW28",
                         Text = EngineResources.RW30,
                     };
-                    MDIMain.AddWarning(warnInfo);
+                    MDIMain.AddInfoItem(warnInfo);
                     // then let open logic editors know
                     LogicListChange();
                 }
@@ -2479,7 +2475,7 @@ namespace WinAGI.Editor {
             MDIMain.UseWaitCursor = false;
         }
 
-        private string NewSaveFileName(string filename = "") {
+        private static string NewSaveFileName(string filename = "") {
             if (filename.Length != 0) {
                 MDIMain.SaveDlg.Title = "Save Defines List";
                 MDIMain.SaveDlg.FileName = Path.GetFileName(filename);
@@ -2578,9 +2574,10 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Information);
                 return;
             }
-            GlobalsUndo NextUndo = new();
-            NextUndo.Action = GlobalsUndo.GlobalUndoAction.ImportDefines;
-            NextUndo.Pos = globalsgrid.NewRowIndex;
+            GlobalsUndo NextUndo = new() {
+                Action = GlobalsUndo.GlobalUndoAction.ImportDefines,
+                Pos = globalsgrid.NewRowIndex
+            };
             Define[] addDefines = ReadDefines(definetext, ref error);
             if (addDefines.Length == 0) {
                 // nothing to paste
@@ -2628,7 +2625,7 @@ namespace WinAGI.Editor {
                 //  about formatting, so just validate and add it
 
                 DefineNameCheck nametype = GetNameType(PasteDefines[i].Name);
-                ArgType t = ArgType.None;
+                ArgType t = None;
                 DefineValueCheck valuetype = GetValueType(PasteDefines[i].Value, ref t);
                 if (((int)nametype > 0 && (int)nametype <= 7) || ((int)valuetype > 0 && (int)valuetype <= 3)) {
                     errors = true;
@@ -2677,12 +2674,13 @@ namespace WinAGI.Editor {
                         }
                         if (rtn == DialogResult.Yes) {
                             // add a modified undo item to indicate the replacement
-                            tmpdef = new();
-                            tmpdef.Type = (ArgType)globalsgrid[ARGTYPE_COL, replacerow].Value;
-                            tmpdef.Name = replacerow.ToString();
-                            tmpdef.Value = oldval;
-                            tmpdef.Comment = (string)globalsgrid[COMMENT_COL, replacerow].Value;
-                            tmpdef.UID = (int)globalsgrid.Rows[replacerow].Tag;
+                            tmpdef = new() {
+                                Type = (ArgType)globalsgrid[ARGTYPE_COL, replacerow].Value,
+                                Name = replacerow.ToString(),
+                                Value = oldval,
+                                Comment = (string)globalsgrid[COMMENT_COL, replacerow].Value,
+                                UID = (int)globalsgrid.Rows[replacerow].Tag
+                            };
                             Array.Resize(ref retval, retval.Length + 1);
                             retval[^1] = tmpdef;
                             // make the replacement
@@ -2693,8 +2691,9 @@ namespace WinAGI.Editor {
                         continue;
                     }
                     // any other condition is ok
-                    tmpdef = new();
-                    tmpdef.Name = insertrow.ToString();
+                    tmpdef = new() {
+                        Name = insertrow.ToString()
+                    };
                     Array.Resize(ref retval, retval.Length + 1);
                     retval[^1] = tmpdef;
                     // add a new row
@@ -2940,7 +2939,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private bool DefineValueIsValid(string definevalue) {
+        private static bool DefineValueIsValid(string definevalue) {
             if (definevalue.Length == 0) {
                 return false;
             }
@@ -2978,7 +2977,6 @@ namespace WinAGI.Editor {
         public List<string> BuildGlobalsFile(bool Progress = false) {
             string name, value, comment;
             int maxLength, maxValLen = 0;
-            Define tmpDef = new();
             List<string> output;
 
             // determine longest name length to facilitate aligning values
@@ -3053,16 +3051,15 @@ namespace WinAGI.Editor {
 
         private void RemoveRows(int TopRow, int BtmRow, bool DontUndo = false) {
             if (BtmRow < TopRow) {
-                int swap = BtmRow;
-                BtmRow = TopRow;
-                TopRow = swap;
+                (TopRow, BtmRow) = (BtmRow, TopRow);
             }
             if (!DontUndo) {
-                GlobalsUndo NextUndo = new GlobalsUndo();
                 Define tmpDef = new();
-                NextUndo.Action = GlobalsUndo.GlobalUndoAction.DeleteDefine;
-                NextUndo.Count = BtmRow - TopRow + 1;
-                NextUndo.Pos = TopRow;
+                GlobalsUndo NextUndo = new() {
+                    Action = GlobalsUndo.GlobalUndoAction.DeleteDefine,
+                    Count = BtmRow - TopRow + 1,
+                    Pos = TopRow
+                };
                 for (int i = 0; i <= BtmRow - TopRow; i++) {
                     tmpDef.Type = (ArgType)globalsgrid[ARGTYPE_COL, TopRow + i].Value;
                     tmpDef.DefaultName = (string)globalsgrid[DEFNAME_COL, TopRow + i].Value;
@@ -3158,11 +3155,12 @@ namespace WinAGI.Editor {
             dropping = true;
             if (!DontUndo) {
                 // add to undo
-                GlobalsUndo NextUndo = new GlobalsUndo();
-                NextUndo.Action = GlobalsUndo.GlobalUndoAction.MoveRows;
-                NextUndo.Start = undostart;
-                NextUndo.End = undoend;
-                NextUndo.Pos = undotarget;
+                GlobalsUndo NextUndo = new() {
+                    Action = GlobalsUndo.GlobalUndoAction.MoveRows,
+                    Start = undostart,
+                    End = undoend,
+                    Pos = undotarget
+                };
                 AddUndo(NextUndo);
             }
         }
@@ -3176,7 +3174,7 @@ namespace WinAGI.Editor {
         }
 
         private void RestoreSortOrder(List<int> oldOrder) {
-            // mapp from UID to row
+            // map from UID to row
             var rowMap = new Dictionary<int, DataGridViewRow>();
             foreach (DataGridViewRow row in globalsgrid.Rows) {
                 if (!row.IsNewRow && row.Tag is int uid) {
@@ -3270,7 +3268,7 @@ namespace WinAGI.Editor {
                 MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }
-            FindingForm.ResetSearch();
+            frmFind.ResetSearch();
         }
 
         private void MarkAsSaved() {

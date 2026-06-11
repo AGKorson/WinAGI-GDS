@@ -7,12 +7,12 @@ namespace WinAGI.Engine {
     /// </summary>
     [Serializable]
     public class Loop {
-        #region Members
+        #region Fields
         internal Cels mCelCol;
-        int mMirrorPair;
+        private int mMirrorPair;
         internal int mIndex;
         [NonSerialized]
-        readonly View mParent;
+        private readonly View mParent;
         #endregion
 
         #region Constructors
@@ -227,7 +227,6 @@ namespace WinAGI.Engine {
             mIndex = SourceLoop.mIndex;
             mCelCol.CloneFrom(SourceLoop.mCelCol);
         }
-
         #endregion
     }
 }

@@ -12,7 +12,7 @@ namespace WinAGI.Engine {
     /// </summary>
     public class DefinesList {
 
-        #region Local Members
+        #region Fields
         private readonly AGIGame parentGame;
         private string mResFile = "";
         private bool mInGame = false;
@@ -90,7 +90,6 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Methods
-
         /// <summary>
         /// Loads resource defines the list's associated file.
         /// </summary>

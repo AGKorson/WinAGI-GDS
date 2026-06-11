@@ -11,7 +11,7 @@ namespace WinAGI.Engine {
     /// </summary>
     [Serializable]
     public class Cels : IEnumerable<Cel> {
-        #region Local Members
+        #region Fields
         internal readonly List<Cel> mCelCol;
         [NonSerialized]
         View mParent;
@@ -75,7 +75,6 @@ namespace WinAGI.Engine {
                 mParent = value;
             }
         }
-
         #endregion
 
         #region Methods
@@ -195,11 +194,11 @@ namespace WinAGI.Engine {
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
 
         IEnumerator<Cel> IEnumerable<Cel>.GetEnumerator() {
-            return (IEnumerator<Cel>)GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -224,7 +223,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _cels.Count);
+                return position < _cels.Count;
             }
             public void Reset() {
                 position = -1;

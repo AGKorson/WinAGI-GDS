@@ -8,10 +8,10 @@ namespace WinAGI.Engine {
     /// of an AGI Sound resource track.
     /// </summary>
     public class Notes : IEnumerable<Note> {
-        #region Members
-        List<Note> mCol = [];
-        Sound mParent;
-        Track mTParent;
+        #region Fields
+        private List<Note> mCol = [];
+        private readonly Sound mParent;
+        private readonly Track mTParent;
         #endregion
 
         #region Constructors
@@ -163,11 +163,11 @@ namespace WinAGI.Engine {
             return new NoteEnum(mCol);
         }
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
 
         IEnumerator<Note> IEnumerable<Note>.GetEnumerator() {
-            return (IEnumerator<Note>)GetEnumerator();
+            return GetEnumerator();
         }
         /// <summary>
         /// Implements enumeration for the Notes class.
@@ -191,7 +191,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _notes.Count);
+                return position < _notes.Count;
             }
             public void Reset() {
                 position = -1;

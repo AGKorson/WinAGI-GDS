@@ -5,12 +5,15 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmCompStatus : Form {
-        readonly CompileMode WindowFunction;
-        internal bool CompCanceled = false;
-        internal int Warnings = 0;
-        internal int Errors = 0;
+        #region Fields
+        private readonly CompileMode WindowFunction;
+        internal bool CompCanceled;
+        internal int Warnings;
+        internal int Errors;
         public WinAGIEventInfo FatalError = new();
+        #endregion
 
+        #region Constructors
         public frmCompStatus(CompileMode mode) {
             InitializeComponent();
             CompCanceled = false;
@@ -55,6 +58,7 @@ namespace WinAGI.Editor {
             lblWarnings.Text = "0";
             WindowFunction = mode;
         }
+        #endregion
 
         #region Event Handlers
         private void frmCompStatus_KeyDown(object sender, KeyEventArgs e) {

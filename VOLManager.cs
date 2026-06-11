@@ -18,7 +18,7 @@ namespace WinAGI.Engine {
         }
         #endregion
 
-        #region Members
+        #region Fields
         internal FileStream fsVOL, fsDIR;
         internal AGIGame parent;
         #endregion

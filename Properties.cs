@@ -12,7 +12,7 @@ namespace WinAGI.Editor {
     /// properties, and allows them to be edited.
     /// </summary>
     public class GameProperties {
-        public string GameID {
+        public static string GameID {
             get {
                 return EditGame.GameID;
             }
@@ -27,27 +27,27 @@ namespace WinAGI.Editor {
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
-        public string Designer {
+            typeof(UITypeEditor))]
+        public static string Designer {
             get => EditGame.Designer;
             set {
             }
         }
 
-        public string GameDir {
+        public static string GameDir {
             get => EditGame.GameDir;
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
-        public string ResDir {
+            typeof(UITypeEditor))]
+        public static string ResDir {
             get => EditGame.SrcResDirName;
             set {
             }
         }
 
         [TypeConverter(typeof(IntVerConverter))]
-        public string IntVer {
+        public static string IntVer {
             get => EditGame?.InterpreterVersion.VersionString;
             set {
                 // determine if a change was made:
@@ -58,31 +58,31 @@ namespace WinAGI.Editor {
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
-        public string Description {
+            typeof(UITypeEditor))]
+        public static string Description {
             get => EditGame.Description;
             set {
             }
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
-        public string GameVer {
+            typeof(UITypeEditor))]
+        public static string GameVer {
             get => EditGame.GameVersion;
             set {
             }
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
-        public string GameAbout {
+            typeof(UITypeEditor))]
+        public static string GameAbout {
             get => EditGame.GameAbout;
             set {
             }
         }
 
         [ReadOnly(false)]
-        public bool LayoutEditor {
+        public static bool LayoutEditor {
             get => EditGame.UseLE;
             set {
                 EditGame.UseLE = value;
@@ -90,26 +90,26 @@ namespace WinAGI.Editor {
             }
         }
 
-        public DateTime LastEdit {
+        public static DateTime LastEdit {
             get => EditGame.LastEdit;
         }
     }
 
     public class LogicHdrProperties {
-        public int Count {
+        public static int Count {
             get => EditGame.Logics.Count;
         }
     }
 
     public class LogicProperties {
-        Logic pLogic;
+        private readonly Logic pLogic;
 
         public LogicProperties(Logic logic) {
             pLogic = logic;
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
+            typeof(UITypeEditor))]
         public byte Number {
             get => pLogic.Number;
             set {
@@ -120,7 +120,7 @@ namespace WinAGI.Editor {
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
+            typeof(UITypeEditor))]
         public string ID {
             get => pLogic.ID;
             set {
@@ -128,7 +128,7 @@ namespace WinAGI.Editor {
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
+            typeof(UITypeEditor))]
         public string Description {
             get => pLogic.Description;
             set {
@@ -198,20 +198,20 @@ namespace WinAGI.Editor {
     }
 
     public class PictureHdrProperties {
-        public int Count {
+        public static int Count {
             get => EditGame.Pictures.Count;
         }
     }
 
     public class PictureProperties {
-        Picture pPicture;
+        private readonly Picture pPicture;
 
         public PictureProperties(Picture picture) {
             pPicture = picture;
         }
 
         [Editor(typeof(AGIPropertyEditor),
-            typeof(System.Drawing.Design.UITypeEditor))]
+            typeof(UITypeEditor))]
         public byte Number {
             get => pPicture.Number;
             set {
@@ -223,7 +223,7 @@ namespace WinAGI.Editor {
 
 
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public string ID {
             get => pPicture.ID;
             set {
@@ -231,7 +231,7 @@ namespace WinAGI.Editor {
         }
 
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public string Description {
             get => pPicture.Description;
             set {
@@ -252,20 +252,20 @@ namespace WinAGI.Editor {
     }
 
     public class SoundHdrProperties {
-        public int Count {
+        public static int Count {
             get => EditGame.Sounds.Count;
         }
     }
 
     public class SoundProperties {
-        Sound pSound;
+        private readonly Sound pSound;
 
         public SoundProperties(Sound sound) {
             pSound = sound;
         }
 
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public byte Number {
             get => pSound.Number;
             set {
@@ -276,7 +276,7 @@ namespace WinAGI.Editor {
         }
 
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public string ID {
             get => pSound.ID;
             set {
@@ -284,7 +284,7 @@ namespace WinAGI.Editor {
         }
 
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public string Description {
             get => pSound.Description;
             set {
@@ -305,20 +305,20 @@ namespace WinAGI.Editor {
     }
 
     public class ViewHdrProperties {
-        public int Count {
+        public static int Count {
             get => EditGame.Views.Count;
         }
     }
 
     public class ViewProperties {
-        Engine.View pView;
+        private readonly Engine.View pView;
 
         public ViewProperties(Engine.View view) {
             pView = view;
         }
 
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public byte Number {
             get => pView.Number;
             set {
@@ -330,7 +330,7 @@ namespace WinAGI.Editor {
 
 
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public string ID {
             get => pView.ID;
             set {
@@ -338,7 +338,7 @@ namespace WinAGI.Editor {
         }
 
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public string Description {
             get => pView.Description;
             set {
@@ -373,7 +373,7 @@ namespace WinAGI.Editor {
             get;
         }
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public string Description {
             get; set;
         }
@@ -398,7 +398,7 @@ namespace WinAGI.Editor {
             get;
         }
         [Editor(typeof(AGIPropertyEditor),
-                typeof(System.Drawing.Design.UITypeEditor))]
+                typeof(UITypeEditor))]
         public string Description {
             get; set;
         }
@@ -406,7 +406,7 @@ namespace WinAGI.Editor {
 
     public class IncludeHdrProperties {
         [ReadOnly(false)]
-        public bool IncludeIDs {
+        public static bool IncludeIDs {
             get => EditGame.IncludeIDs;
 
             set {
@@ -419,7 +419,7 @@ namespace WinAGI.Editor {
         }
 
         [ReadOnly(false)]
-        public bool IncludeReserved {
+        public static bool IncludeReserved {
             get => EditGame.IncludeReserved;
             set {
                 EditGame.IncludeReserved = value;
@@ -430,7 +430,7 @@ namespace WinAGI.Editor {
         }
 
         [ReadOnly(false)]
-        public bool IncludeGlobals {
+        public static bool IncludeGlobals {
             get => EditGame.IncludeGlobals;
             set {
                 EditGame.IncludeGlobals = value;
@@ -440,7 +440,6 @@ namespace WinAGI.Editor {
             }
         }
     }
-
 
     internal class PropIntVersions {
         internal static string[] _Versions = IntVersions;
@@ -458,7 +457,7 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        public override System.ComponentModel.TypeConverter.StandardValuesCollection GetStandardValues(ITypeDescriptorContext context) {
+        public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context) {
             return new StandardValuesCollection(PropIntVersions._Versions);
         }
     }
@@ -482,7 +481,6 @@ namespace WinAGI.Editor {
             AGIResType restype = AGIResType.None;
             byte resnum = 0;
             AGIResource thisres = null;
-            frmGetResourceNum frm;
 
             switch (context.PropertyDescriptor.Name) {
             case "Number":
@@ -506,14 +504,14 @@ namespace WinAGI.Editor {
                     resnum = ((ViewProperties)context.Instance).Number;
                     break;
                 }
-                frm = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, restype, resnum);
-                if (frm.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                    value = frm.NewResNum;
+                using (frmGetResourceNum frm = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, restype, resnum)) {
+                    if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                        value = frm.NewResNum;
+                    }
+                    else {
+                        value = (byte)SelResNum;
+                    }
                 }
-                else {
-                    value = (byte)SelResNum;
-                }
-                // need to unbox the value object before converting to byte
                 return (byte)value;
             case "ID":
                 switch (context.Instance.ToString()) {

@@ -15,18 +15,18 @@ namespace WinAGI.Engine {
         // none
         #endregion
 
-        #region Members
-        byte mPriBase;
-        AGIVersion mVersion = AGIVersion.v2917;
+        #region Fields
+        private byte mPriBase;
+        private AGIVersion mVersion = AGIVersion.v2917;
         internal bool mPicBMPSet;
-        int mDrawPos;
-        bool mStepDraw;
-        PenStatus mCurrentPen;
-        bool mPenSet;
-        byte[] mVisData;
-        byte[] mPriData;
-        Bitmap bmpVis;
-        Bitmap bmpPri;
+        private int mDrawPos;
+        private bool mStepDraw;
+        private PenStatus mCurrentPen;
+        private bool mPenSet;
+        private byte[] mVisData;
+        private byte[] mPriData;
+        private Bitmap bmpVis;
+        private Bitmap bmpPri;
         private EGAColors mPalette;
         private PictureBackgroundSettings mBkgdSettings;
         #endregion
@@ -217,10 +217,10 @@ namespace WinAGI.Engine {
 
         /// <summary>
         /// Gets or sets the priority base to use when testing the picture in the
-        /// WinAGI Editor. Only applies if the picture is part of a game with a 
-        /// version of 2.936 or higher.
+        /// WinAGI Editor. Only applies if the picture interpreter version is 2.936 or higher.
         /// </summary>
         public byte PriBase {
+            // TODO: fix this
             get {
                 // if before v2.936, always return value of 48
                 if (parent is not null && parent.InterpreterVersion.Index < AGIVersion.v2936) {
@@ -415,7 +415,7 @@ namespace WinAGI.Engine {
 
             Picture CopyPicture = new();
             // copy base properties
-            base.CloneTo(CopyPicture);
+            CloneTo(CopyPicture);
             // copy picture properties
             CopyPicture.mBkgdSettings = mBkgdSettings;
             CopyPicture.mPriBase = mPriBase;
@@ -507,10 +507,10 @@ namespace WinAGI.Engine {
 
             WinAGIException.ThrowIfNotLoaded(this);
             if (location.X < 0 || location.X > 159) {
-                throw new ArgumentOutOfRangeException(nameof(location.X));
+                throw new ArgumentOutOfRangeException(nameof(location));
             }
             if (location.Y < 0 || location.Y > 167) {
-                throw new ArgumentOutOfRangeException(nameof(location.Y));
+                throw new ArgumentOutOfRangeException(nameof(location));
             }
             if (!mPicBMPSet) {
                 BuildBMPs();

@@ -9,8 +9,8 @@ namespace WinAGI.Engine {
     /// A class that holds all the sound resources in an AGI game.
     /// </summary>
     public class Sounds : IEnumerable<Sound> {
-        #region Members
-        readonly AGIGame parent;
+        #region Fields
+        private readonly AGIGame parent;
         #endregion
 
         #region Constructors
@@ -106,7 +106,7 @@ namespace WinAGI.Engine {
             }
             // create new ingame sound
             agResource = new Sound(parent, ResNum, NewSound);
-            if ((NewSound is null)) {
+            if (NewSound is null) {
                 id = "Sound" + ResNum;
             }
             else {
@@ -156,7 +156,6 @@ namespace WinAGI.Engine {
         /// <param name="OldSound"></param>
         /// <param name="NewSound"></param>
         public void Renumber(byte OldSound, byte NewSound) {
-            Sound tmpSound;
             int nextNum = 0;
             string id, baseid;
 
@@ -164,7 +163,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // verify old number exists
-            if (!Col.TryGetValue(OldSound, out tmpSound)) {
+            if (!Col.TryGetValue(OldSound, out Sound tmpSound)) {
                 throw new IndexOutOfRangeException("sound does not exist");
             }
             // verify new number is not in collection
@@ -201,10 +200,10 @@ namespace WinAGI.Engine {
             return new SoundEnum(Col);
         }
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
         IEnumerator<Sound> IEnumerable<Sound>.GetEnumerator() {
-            return (IEnumerator<Sound>)GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -230,7 +229,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _sounds.Count);
+                return position < _sounds.Count;
             }
             public void Reset() {
                 position = -1;

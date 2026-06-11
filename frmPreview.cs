@@ -14,22 +14,21 @@ using static WinAGI.Engine.Sound;
 
 namespace WinAGI.Editor {
     public partial class frmPreview : Form {
-        #region Member Variables
-        private ComboBox[] cmbInst = new ComboBox[3];
-        private CheckBox[] chkTrack = new CheckBox[4];
+        #region Fields
+        private readonly ComboBox[] cmbInst = new ComboBox[3];
+        private readonly CheckBox[] chkTrack = new CheckBox[4];
         const int MIN_HEIGHT = 100;
         const int MIN_WIDTH = 100;
 
         private int offsetX, offsetY;
-        private AGIResType prevResType;
 
         private Logic agLogic;
         private Picture agPic;
+        private Sound agSound;
+        private Engine.View agView;
         private double PicScale;
         private bool DraggingPic;
-        private Sound agSound;
         private long StartTime;
-        private Engine.View agView;
         private int CurLoop, CurCel;
         private int CelFrameW, CelFrameH;
         public double ViewScale;
@@ -37,10 +36,6 @@ namespace WinAGI.Editor {
         private int VertAlign, HorizontalAlign;
         private bool IsTransparent = false;
 
-        // use local variables to hold visible status for scrollbars
-        // because their visible property remains false as long as
-        // the picturebox that holds them is false, even though they
-        // are set to true
         const int PW_MARGIN = 4;
 
         // StatusStrip Items
@@ -50,6 +45,7 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spInsLock;
         #endregion
 
+        #region Constructors
         public frmPreview() {
             InitializeComponent();
             InitStatusStrip();
@@ -109,6 +105,7 @@ namespace WinAGI.Editor {
             SelResNum = -1;
             PositionPreview();
         }
+        #endregion
 
         #region Event Handlers
         #region Form Event Handlers
@@ -277,12 +274,12 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Preview Logic Event Handlers
+        #region Preview Logic Events
         private void rtfLogPrev_DoubleClick(object sender, EventArgs e) {
             if (SelResType == AGIResType.Logic) {
                 if (OpenGameLogic((byte)SelResNum)) {
                     try {
-                        WinAGIFCTB fctb = ((frmLogicEdit)LogicEditors[LogicEditors.Count - 1]).fctb;
+                        WinAGIFCTB fctb = LogicEditors[LogicEditors.Count - 1].fctb;
                         Place start = new(0, rtfLogPrev.Selection.Start.iLine);
                         fctb.Selection.Start = start;
                         fctb.DoSelectionVisible();
@@ -332,7 +329,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Preview Picture Event Handlers
+        #region Preview Picture Events
         private void udPZoom_SelectedItemChanged(object sender, EventArgs e) {
             if (imgPicture.Visible) {
                 double oldscale = 0;
@@ -372,10 +369,6 @@ namespace WinAGI.Editor {
         private void imgPicture_DoubleClick(object sender, EventArgs e) {
             // open picture for editing
             OpenGamePicture((byte)SelResNum);
-        }
-
-        private void imgPicture_Validated(object sender, EventArgs e) {
-            Debug.Print("validate - did it work?");
         }
 
         private void imgPicture_MouseWheel(object sender, MouseEventArgs e) {
@@ -494,10 +487,9 @@ namespace WinAGI.Editor {
                 MainStatusBar.Items[nameof(spStatus)].Text = $"X: {(int)(e.X / 2 / PicScale)}    Y: {(int)(e.Y / PicScale)}";
             }
         }
-
         #endregion
 
-        #region Preview Sound Event Handlers
+        #region Preview Sound Events
         private void btnPlay_Click(object sender, EventArgs e) {
             // if nothing to play
             if (agSound.Length == 0) {
@@ -668,10 +660,9 @@ namespace WinAGI.Editor {
                 picProgress.Width = 0;
             }
         }
-
         #endregion
 
-        #region Preview View Event Handlers
+        #region Preview View Events
         private void cmdVPlay_Click(object sender, EventArgs e) {
             // toggle motion
             tmrMotion.Enabled = !tmrMotion.Enabled;
@@ -734,7 +725,7 @@ namespace WinAGI.Editor {
                 // stop motion
                 tmrMotion.Enabled = false;
                 // decrement loop, wrapping around
-                CurLoop = ((CurLoop == 0) ? agView.Loops.Count - 1 : CurLoop - 1);
+                CurLoop = (CurLoop == 0) ? agView.Loops.Count - 1 : CurLoop - 1;
                 DisplayLoop();
             }
         }
@@ -744,7 +735,7 @@ namespace WinAGI.Editor {
                 // stop motion
                 tmrMotion.Enabled = false;
                 // increment loop, wrapping around
-                CurLoop = ((CurLoop == agView.Loops.Count - 1) ? 0 : CurLoop + 1);
+                CurLoop = (CurLoop == agView.Loops.Count - 1) ? 0 : CurLoop + 1;
                 DisplayLoop();
             }
         }
@@ -888,11 +879,11 @@ namespace WinAGI.Editor {
 
         void pnlCel_DoubleClick(object sender, EventArgs e) {
             // let user change background color
-            frmPalette NewPalette = new(1);
-            if (NewPalette.ShowDialog(MDIMain) == DialogResult.OK) {
-                pnlCel.BackColor = NewPalette.SelColor;
+            using (frmPalette NewPalette = new(1)) {
+                if (NewPalette.ShowDialog(MDIMain) == DialogResult.OK) {
+                    pnlCel.BackColor = NewPalette.SelColor;
+                }
             }
-            NewPalette.Dispose();
             // toolbars stay default gray, but that's OK
 
             // force redraw of cel
@@ -1008,11 +999,10 @@ namespace WinAGI.Editor {
             }
             DisplayCel();
         }
-
         #endregion
         #endregion
 
-        #region Form Methods
+        #region General Methods
         private void InitStatusStrip() {
             spStatus = MDIMain.spStatus;
             spCapsLock = MDIMain.spCapsLock;
@@ -1028,15 +1018,15 @@ namespace WinAGI.Editor {
             if (sngWidth <= MIN_WIDTH) {
                 sngWidth = MIN_WIDTH;
             }
-            else if (sngWidth > 0.75 * Screen.GetWorkingArea(this.Parent).Width) {
-                sngWidth = (int)(0.75 * Screen.GetWorkingArea(this.Parent).Width);
+            else if (sngWidth > 0.75 * Screen.GetWorkingArea(Parent).Width) {
+                sngWidth = (int)(0.75 * Screen.GetWorkingArea(Parent).Width);
             }
             sngHeight = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewHeight", (int)(0.5 * MDIMain.Bounds.Height));
             if (sngHeight <= MIN_HEIGHT) {
                 sngHeight = MIN_HEIGHT;
             }
-            else if (sngHeight > 0.75 * Screen.GetWorkingArea(this.Parent).Height) {
-                sngHeight = (int)(0.75 * Screen.GetWorkingArea(this.Parent).Height);
+            else if (sngHeight > 0.75 * Screen.GetWorkingArea(Parent).Height) {
+                sngHeight = (int)(0.75 * Screen.GetWorkingArea(Parent).Height);
             }
             sngLeft = WinAGISettingsFile.GetSetting(sPOSITION, "PreviewLeft", 0);
             if (sngLeft < 0) {
@@ -1120,7 +1110,6 @@ namespace WinAGI.Editor {
             pnlPicture.Visible = false;
             pnlSound.Visible = false;
             pnlView.Visible = false;
-            prevResType = None;
             // default caption
             Text = "Preview";
         }
@@ -1257,13 +1246,11 @@ namespace WinAGI.Editor {
                 }
             }
             // or if an include file
-            else if (ResType == AGIResType.Include) {
+            else if (ResType == Include) {
                 // errors handled within
                 PreviewInclude(ResNum);
             }
             MDIMain.UseWaitCursor = false;
-            // set restype
-            prevResType = ResType;
         }
 
         public void UpdateCaption(AGIResType resType, byte resNum) {
@@ -1288,7 +1275,7 @@ namespace WinAGI.Editor {
                     break;
                 }
                 resID = "   (" + resID + ")";
-                this.Text += resID;
+                Text += resID;
             }
         }
 
@@ -1400,7 +1387,6 @@ namespace WinAGI.Editor {
             rtfLogPrev.BackColor = agLogic.Compiled ? Color.FromArgb(0xe0, 0xff, 0xe0) : Color.FromArgb(0xff, 0xe0, 0xe0);
             return true;
         }
-
         #endregion
 
         #region Preview Picture Methods
@@ -1994,7 +1980,7 @@ namespace WinAGI.Editor {
                 }
             }
             // open the file and display the text
-            string text = "";
+            string text;
             try {
                 text = System.IO.File.ReadAllText(EditGame.IncludeFiles[includeindex].Filename);
             }

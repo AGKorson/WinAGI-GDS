@@ -7,14 +7,17 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmImportSoundOptions : Form {
-
+        #region Fields
         internal SoundImportOptions Options = new();
         private SoundImportFormat Format;
+        #endregion
 
+        #region Constructors
         public frmImportSoundOptions(SoundImportFormat format) {
             InitializeComponent();
             Format = format;
         }
+        #endregion
 
         #region Event Handlers
         private void OKButton_Click(object sender, EventArgs e) {
@@ -66,7 +69,7 @@ namespace WinAGI.Editor {
                             return;
                         }
                     }
-                    Options.InstrNote = new();
+                    Options.InstrNote = [];
                     for (int i = 0; i < fn.Length; i += 2) {
                         int k = int.Parse(fn[i]);
                         int v = int.Parse(fn[i + 1]);

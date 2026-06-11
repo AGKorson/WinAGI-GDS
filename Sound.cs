@@ -9,40 +9,18 @@ namespace WinAGI.Engine {
     /// A class that represents an AGI Sound resource, with WinAGI extensions.
     /// </summary>
     public class Sound : AGIResource {
-        #region Members
+        #region Fields
         internal Track[] mTrack = new Track[4];
         // sound change status is dependent on track and note data
         // not on the underlying resource data
-        bool mSoundChanged = false;
-        double mLength;
-        int mKey;
-        int mTPQN;
-        SoundFormat mFormat;
-        byte[] midiData = [];
-        byte[] wavData = [];
-        bool mOutputSet = false; // true if wav and midi data match resource data 
-        #endregion
-
-        #region Events
-        // Sound resources include an event to notify calling programs when playback
-        // of a sound is complete.
-
-        // declare the event delegate, and event
-        public delegate void SoundCompleteEventHandler(object sender, SoundCompleteEventArgs args);
-        public event SoundCompleteEventHandler SoundComplete;
-        public class SoundCompleteEventArgs : EventArgs {
-            public SoundCompleteEventArgs(bool noerror) {
-                NoError = noerror;
-            }
-            public bool NoError {
-                get;
-            }
-        }
-
-        internal void OnSoundComplete(bool noerror) {
-            // Raise the event in a thread-safe manner using the ?. operator.
-            SoundComplete?.Invoke(this, new SoundCompleteEventArgs(noerror));
-        }
+        private bool mSoundChanged;
+        private double mLength;
+        private int mKey;
+        private int mTPQN;
+        private SoundFormat mFormat;
+        private byte[] midiData = [];
+        private byte[] wavData = [];
+        bool mOutputSet; // true if wav and midi data match resource data 
         #endregion
 
         #region Constructors
@@ -66,7 +44,7 @@ namespace WinAGI.Engine {
         /// <param name="NewSound"></param>
         internal Sound(AGIGame parent, byte ResNum, Sound NewSound = null) : base(AGIResType.Sound) {
             InitSound(NewSound);
-            base.InitInGame(parent, ResNum);
+            InitInGame(parent, ResNum);
         }
 
         /// <summary>
@@ -78,9 +56,31 @@ namespace WinAGI.Engine {
         /// <param name="Loc"></param>
         internal Sound(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.Sound) {
             InitSound(null);
-            base.InitInGame(parent, AGIResType.Sound, ResNum, VOL, Loc);
+            InitInGame(parent, AGIResType.Sound, ResNum, VOL, Loc);
             // length is undefined until sound is built
             mLength = -1;
+        }
+        #endregion
+
+        #region Events
+        // Sound resources include an event to notify calling programs when playback
+        // of a sound is complete.
+
+        // declare the event delegate, and event
+        public delegate void SoundCompleteEventHandler(object sender, SoundCompleteEventArgs args);
+        public event SoundCompleteEventHandler SoundComplete;
+        public class SoundCompleteEventArgs : EventArgs {
+            public SoundCompleteEventArgs(bool noerror) {
+                NoError = noerror;
+            }
+            public bool NoError {
+                get;
+            }
+        }
+
+        internal void OnSoundComplete(bool noerror) {
+            // Raise the event in a thread-safe manner using the ?. operator.
+            SoundComplete?.Invoke(this, new SoundCompleteEventArgs(noerror));
         }
         #endregion
 
@@ -110,6 +110,7 @@ namespace WinAGI.Engine {
                 return mTrack;
             }
         }
+        
         /// <summary>
         /// Returns true if the track/note data do not match the AGI Resource data.
         /// </summary>
@@ -118,6 +119,7 @@ namespace WinAGI.Engine {
                 return mSoundChanged;
             }
         }
+        
         /// <summary>
         /// Gets or sets the key signature to use when displaying notes for this sound.
         /// </summary>
@@ -292,7 +294,7 @@ namespace WinAGI.Engine {
 
             Sound clonesound = new();
             // copy base properties
-            base.CloneTo(clonesound);
+            CloneTo(clonesound);
             // copy sound properties
             clonesound.mKey = mKey;
             clonesound.mTPQN = mTPQN;
@@ -506,10 +508,10 @@ namespace WinAGI.Engine {
         private void CompileSound() {
             int i = 0, j;
             Sound tmpRes;
-            tmpRes = new Sound();
-
-            // placeholder for header
-            tmpRes.Data = [];
+            tmpRes = new Sound {
+                // placeholder for header
+                Data = []
+            };
             tmpRes.WriteWord(8, 0);
             for (j = 0; j <= 2; j++) {
                 i += (mTrack[j].Notes.Count * 5) + 2;
@@ -850,7 +852,7 @@ namespace WinAGI.Engine {
                 bOutput[37] = 97;
                 bOutput[38] = 116;
                 bOutput[39] = 97;
-                // ????????????why subtract 2???????????????
+                // TODO: ????????????why subtract 2???????????????
                 bOutput[40] = (byte)((size - 2) & 0xFF);
                 bOutput[41] = (byte)(((size - 2) >> 8) & 0xFF);
                 bOutput[42] = (byte)(((size - 2) >> 16) & 0xFF);

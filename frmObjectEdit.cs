@@ -15,14 +15,14 @@ using static WinAGI.Editor.ObjectsUndo.ActionType;
 
 namespace WinAGI.Editor {
     public partial class frmObjectEdit : Form {
-        #region Members
+        #region Fields
         public bool InGame;
         public bool IsChanged;
         public InventoryList EditInvList;
         private string Filename;
         private Stack<ObjectsUndo> UndoCol = [];
         private TextBox EditTextBox = null;
-        private InventoryItem EditItem = new();
+        private readonly InventoryItem EditItem = new();
         private bool Adding = false;
         private bool FirstFind = false;
         private Font formFont;
@@ -37,6 +37,7 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spInsLock;
         #endregion
 
+        #region Constructors
         public frmObjectEdit() {
             InitializeComponent();
             InitStatusStrip();
@@ -47,8 +48,10 @@ namespace WinAGI.Editor {
             InitFonts();
             MdiParent = MDIMain;
         }
+        #endregion
 
-        #region Form Event Handlers
+        #region Event Handlers
+        #region Form Events
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
             // Enter key is usually captured by the grid, but we want it to go to the textbox
             if (EditTextBox is not null) {
@@ -133,7 +136,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Menu Event Handlers
+        #region Menu Events
         internal void SetResourceMenu() {
             if (Adding) {
                 // need to cancel
@@ -410,18 +413,19 @@ namespace WinAGI.Editor {
             if (fgObjects.IsCurrentCellInEditMode) {
                 return;
             }
-            ObjectsUndo NextUndo = new();
-            NextUndo.UDAction = Clear;
-            NextUndo.UDObjectRoom = EditInvList.MaxScreenObjects;
-            NextUndo.UDObjectNo = EditInvList.Encrypted ? 1 : 0;
-            NextUndo.UDObjectText = EditInvList[0].ItemName + '|' + EditInvList[0].Room.ToString();
+            ObjectsUndo NextUndo = new() {
+                UDAction = Clear,
+                UDObjectRoom = EditInvList.MaxScreenObjects,
+                UDObjectNo = EditInvList.Encrypted ? 1 : 0,
+                UDObjectText = EditInvList[0].ItemName + '|' + EditInvList[0].Room.ToString()
+            };
             for (int i = 1; i < EditInvList.Count; i++) {
                 NextUndo.UDObjectText += '\r' + EditInvList[i].ItemName + '|' + EditInvList[i].Room.ToString();
             }
             AddUndo(NextUndo);
             fgObjects.Rows.Clear();
             fgObjects.Rows.Add();
-            fgObjects.Rows[0].SetValues(new object[] { 0, "?", 0 });
+            fgObjects.Rows[0].SetValues([0, "?", 0]);
             fgObjects.Rows[0].Selected = true;
             EditInvList.Clear();
             EditInvList.MaxScreenObjects = WinAGISettings.DefMaxSO.Value;
@@ -495,7 +499,7 @@ namespace WinAGI.Editor {
             if (itemtext == "?") {
                 return;
             }
-            FindingForm.ResetSearch();
+            frmFind.ResetSearch();
             FirstFind = false;
             GFindDir = FindDirection.All;
             GMatchWord = true;
@@ -581,21 +585,14 @@ namespace WinAGI.Editor {
             if (fgObjects.CurrentCell.ColumnIndex != 1) {
                 return;
             }
-            frmCharPicker CharPicker;
-            if (EditGame is not null) {
-                CharPicker = new(EditGame.CodePage);
-            }
-            else {
-                CharPicker = new(WinAGISettings.DefCP.Value);
-            }
-            CharPicker.ShowDialog(MDIMain);
-            if (!CharPicker.Cancel) {
-                if (CharPicker.InsertString.Length > 0) {
-                    EditTextBox.SelectedText = CharPicker.InsertString;
+            using (frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
+                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                    if (CharPicker.InsertString.Length > 0) {
+                        EditTextBox.SelectedText = CharPicker.InsertString;
+                    }
                 }
             }
-            CharPicker.Close();
-            CharPicker.Dispose();
         }
 
         private void mnuCelSelectAll_Click(object sender, EventArgs e) {
@@ -613,7 +610,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Grid Event Handlers
+        #region Grid Events
         private void fgObjects_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e) {
             if (e.Control is TextBox) {
                 // need to set MultiLine to true so the ENTER key can be captured by
@@ -805,7 +802,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Control Event Handlers
+        #region Control Events
         private void txtMaxScreenObjs_Leave(object sender, EventArgs e) {
             txtMaxScreenObjs.BackColor = SystemColors.Control;
         }
@@ -1023,6 +1020,7 @@ namespace WinAGI.Editor {
             }
         }
         #endregion
+        #endregion
 
         #region Methods
         private void InitStatusStrip() {
@@ -1039,7 +1037,7 @@ namespace WinAGI.Editor {
             spCount.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCount.BorderStyle = Border3DStyle.SunkenInner;
             spCount.Name = "spCount";
-            spCount.Size = new System.Drawing.Size(120, 18);
+            spCount.Size = new Size(120, 18);
             spCount.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // spEncrypt
@@ -1048,7 +1046,7 @@ namespace WinAGI.Editor {
             spEncrypt.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spEncrypt.BorderStyle = Border3DStyle.SunkenInner;
             spEncrypt.Name = "spEncrypt";
-            spEncrypt.Size = new System.Drawing.Size(120, 18);
+            spEncrypt.Size = new Size(120, 18);
             spEncrypt.TextAlign = ContentAlignment.MiddleLeft;
         }
 
@@ -1107,7 +1105,7 @@ namespace WinAGI.Editor {
                 // if already at beginning of search, the replace function will mistakenly
                 // think the find operation is complete and stop
                 if (Replacing && (searchrow == ObjStartPos)) {
-                    FindingForm.ResetSearch();
+                    frmFind.ResetSearch();
                     FirstFind = false;
                 }
             }
@@ -1180,7 +1178,7 @@ namespace WinAGI.Editor {
                         }
                         if (rtn == DialogResult.No) {
                             // reset search
-                            FindingForm.ResetSearch();
+                            frmFind.ResetSearch();
                             FirstFind = false;
                             MDIMain.UseWaitCursor = false;
                             return;
@@ -1206,7 +1204,7 @@ namespace WinAGI.Editor {
                                 MessageBoxIcon.Question);
                         }
                         if (rtn == DialogResult.No) {
-                            FindingForm.ResetSearch();
+                            frmFind.ResetSearch();
                             FirstFind = false;
                             MDIMain.UseWaitCursor = false;
                             return;
@@ -1277,7 +1275,7 @@ namespace WinAGI.Editor {
                             MessageBoxIcon.Information);
                     }
                 }
-                FindingForm.ResetSearch();
+                frmFind.ResetSearch();
                 FirstFind = false;
             }
             fgObjects.Select();
@@ -1356,7 +1354,7 @@ namespace WinAGI.Editor {
         private void AddUndo(ObjectsUndo NextUndo) {
             UndoCol.Push(NextUndo);
             MarkAsChanged();
-            FindingForm.ResetSearch();
+            frmFind.ResetSearch();
             FirstFind = false;
         }
 
@@ -1386,9 +1384,10 @@ namespace WinAGI.Editor {
                 }
             }
             if (!DontUndo) {
-                ObjectsUndo NextUndo = new();
-                NextUndo.UDAction = TglEncrypt;
-                NextUndo.UDObjectRoom = (byte)(EditInvList.Encrypted ? 1 : 0);
+                ObjectsUndo NextUndo = new() {
+                    UDAction = TglEncrypt,
+                    UDObjectRoom = (byte)(EditInvList.Encrypted ? 1 : 0)
+                };
                 AddUndo(NextUndo);
             }
             EditInvList.Encrypted = encrypt;
@@ -1421,7 +1420,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning,
                         "htm\\winagi\\errors\\re13.htm");
-                    objectobj = new();
+                    objectobj = [];
                     break;
                 case ResourceErrorType.ObjectIsReadOnly:
                     MDIMain.MsgBoxWithHelp(
@@ -1448,7 +1447,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning,
                         "htm\\winagi\\errors\\re16.htm");
-                    objectobj = new();
+                    objectobj = [];
                     break;
                 case ResourceErrorType.ObjectDecryptError:
                     MDIMain.MsgBoxWithHelp(
@@ -1458,7 +1457,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning,
                         "htm\\winagi\\errors\\re17.htm");
-                    objectobj = new();
+                    objectobj = [];
                     break;
                 case ResourceErrorType.ObjectBadHeader:
                     MDIMain.MsgBoxWithHelp(
@@ -1468,7 +1467,7 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning,
                         "htm\\winagi\\errors\\re18.htm");
-                    objectobj = new();
+                    objectobj = [];
                     break;
                 }
             }
@@ -1590,9 +1589,9 @@ namespace WinAGI.Editor {
 
         public void SaveObjects() {
             if (InGame) {
-                DialogResult rtn = DialogResult.No;
                 bool dontAsk = false;
-                if (WinAGISettings.AutoUpdateObjects.Value == Common.Base.AskOption.Ask) {
+                DialogResult rtn;
+                if (WinAGISettings.AutoUpdateObjects.Value == AskOption.Ask) {
                     rtn = MsgBoxEx.Show(MDIMain,
                        "Do you want to update all game logics with the changes made in the object list?",
                        "Update Logics?",
@@ -1800,7 +1799,7 @@ namespace WinAGI.Editor {
                     return;
                 }
                 // refresh warnings
-                MDIMain.ClearWarnings(AGIResType.Objects, 0);
+                MDIMain.ClearInfoGrid(AGIResType.Objects, 0);
                 // refresh tree
                 RefreshTree(AGIResType.Objects, 0);
                 if (EditGame.InvObjects.Warnings != 0) {
@@ -1813,7 +1812,7 @@ namespace WinAGI.Editor {
                     if ((EditGame.WordList.Warnings & 1) == 1) {
                         warnInfo.ID = "RW18";
                         warnInfo.Text = EngineResources.RW20;
-                        MDIMain.AddWarning(warnInfo);
+                        MDIMain.AddInfoItem(warnInfo);
                         MDIMain.UpdateGridCounts();
                     }
                 }
@@ -1904,7 +1903,7 @@ namespace WinAGI.Editor {
             MarkAsChanged();
         }
 
-        internal void ShowHelp() {
+        internal static void ShowHelp() {
             string topic = "htm\\winagi\\editor_object.htm";
             Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
             return;

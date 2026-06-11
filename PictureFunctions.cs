@@ -9,16 +9,13 @@ namespace WinAGI.Engine {
     /// </summary>
     public static class PictureFunctions {
         #region Structs
-        /// <summary>
-        /// 
-        /// </summary>
         private enum CornerDirection {
             cdX,
             cdY,
         }
         #endregion
 
-        #region Members
+        #region Fields
         /// <summary>
         /// Holds the current state of the drawing pen (colors, plot
         /// size and shape) at the drawing end point so external programs
@@ -33,8 +30,8 @@ namespace WinAGI.Engine {
 
         #region Methods
         /// <summary>
-        /// Converts the data extracted from the picture resource into 
-        /// 256 bit color DIBitmaps for the visual and priority screens.
+        /// Converts the picture draw commands for the visual and priority
+        /// screens into 160 by 168 pixel arrays.
         /// Version is passed as an integer index of the AGI version
         /// (0-18 for v2.089 through v3.002.149) to allow for differences
         /// in brush sizes/shapes.<br/>

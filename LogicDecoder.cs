@@ -14,9 +14,26 @@ using static WinAGI.Engine.LogicErrorLevel;
 namespace WinAGI.Engine {
     /// <summary>
     /// This class contains all the members and methods needed to decode logic 
-    /// resources into readable source code using FAN syntax.
+    /// resources into readable source code using FAN syntax or SIERRA syntax.
     /// </summary>
     public static class LogicDecoder {
+        #region Enums
+        public enum AGICodeStyle {
+            cstDefaultStyle,
+            cstAltStyle1,
+            cstAltStyle2
+        }
+        
+        public enum DecodeSubtype {
+            None,
+            EdgeCode,
+            ObjDir,
+            MachineType,
+            MonitorType,
+            Colors,
+        }
+        #endregion
+
         #region Structs
         internal class DecodeBlockType {
             internal bool IsIf = false;
@@ -46,35 +63,18 @@ namespace WinAGI.Engine {
         }
         #endregion
 
-        #region Enums
-        public enum AGICodeStyle {
-            cstDefaultStyle,
-            cstAltStyle1,
-            cstAltStyle2
-        }
-        public enum DecodeSubtype {
-            None,
-            EdgeCode,
-            ObjDir,
-            MachineType,
-            MonitorType,
-            Colors,
-        }
-        #endregion
-
-        #region Members
+        #region Fields
         private static Logic dcLogic;
         private static AGIGame dcGame;
         private static ReservedDefineList reservedList;
-
         private static List<DecodeBlockType> DecodeBlock = [];
         private static byte[] logicdata;
         private static int pos;
         private static List<int> LabelPos = [];
         private static int msgSecStart;
         private static List<string> MsgList;
-        private static bool[] MsgUsed = new bool[256];
-        private static bool[] MsgExists = new bool[256];
+        private static readonly bool[] MsgUsed = new bool[256];
+        private static readonly bool[] MsgExists = new bool[256];
         private static List<string> outputList = [];
         private static bool checkQuit = false;
         private static bool badQuit = false;
@@ -110,7 +110,6 @@ namespace WinAGI.Engine {
         private static bool hasgamedefs = false;
         // lists of new defines added when decoding all
         private static DecodeDefineList newDefines = null;
-
         #endregion
 
         #region Properties
@@ -235,7 +234,6 @@ namespace WinAGI.Engine {
 
             // initialize the decoder
             dcLogic = SourceLogic;
-            Debug.Assert(dcLogic.Loaded);
             // clear any existing decode entries from main form warning list
             WinAGIEventInfo decompclear = new() {
                 ResNum = dcLogic.Number,
@@ -251,7 +249,6 @@ namespace WinAGI.Engine {
             outputList = [];
             // set game and syntax settings
             if (decompAll) {
-                Debug.Assert(dcGame is not null && dcGame.SierraSyntax);
                 // sierrasyntax always true when decompiling all
                 sierraSyntax = true;
             }
@@ -759,8 +756,9 @@ namespace WinAGI.Engine {
         }
 
         private static DecodeDefine SierraDefaultAction(byte cmdNum) {
-            DecodeDefine retval = new(ActionCmd, ActionCommands[cmdNum].FanName, cmdNum);
-            retval.ArgList = new ArgType[ActionCommands[cmdNum].ArgList.Length];
+            DecodeDefine retval = new(ActionCmd, ActionCommands[cmdNum].FanName, cmdNum) {
+                ArgList = new ArgType[ActionCommands[cmdNum].ArgList.Length]
+            };
             if (retval.ArgList.Length == 0) {
                 return retval;
             }
@@ -1120,8 +1118,9 @@ namespace WinAGI.Engine {
         }
 
         private static DecodeDefine SierraDefaultTest(byte cmdNum) {
-            DecodeDefine retval = new(TestCmd, TestCommands[cmdNum].FanName, cmdNum);
-            retval.ArgList = new ArgType[TestCommands[cmdNum].ArgList.Length];
+            DecodeDefine retval = new(TestCmd, TestCommands[cmdNum].FanName, cmdNum) {
+                ArgList = new ArgType[TestCommands[cmdNum].ArgList.Length]
+            };
             switch (cmdNum) {
             case 1: // equaln(VAR, NUM)
             case 3: // lessn(VAR, NUM)
@@ -1207,6 +1206,7 @@ namespace WinAGI.Engine {
                 return "";
             }
         }
+
         static byte ReadByte(ref int curpos) {
             if (curpos >= logicdata.Length) {
                 throw new LogicDecodeBufferOverflowException($"Buffer overflow at position {pos}");
@@ -2517,7 +2517,6 @@ namespace WinAGI.Engine {
             }
         }
 
-
         private static void GetCmdName(ArgType type, byte cmdNum, out ArgType[] args, out string cmdName) {
             cmdName = "";
             if (sierradefs.TryGetName(type, cmdNum, ref cmdName)) {
@@ -3219,7 +3218,6 @@ namespace WinAGI.Engine {
         }
 
         internal static bool DecodeAllSierraLogics(AGIGame game) {
-            bool retval = false;
             WinAGIEventInfo info = new() {
                 Type = EventType.Info,
                 InfoType = InfoType.DecodingAllLogics,
@@ -3231,7 +3229,7 @@ namespace WinAGI.Engine {
             dcGame = game;
             decompAll = true;
             // read sysdefs to get default defines
-            retval = LoadSierraDefines();
+            bool retval = LoadSierraDefines();
             // new defines that will be added to gamedefs.h will be added to newDefines
             newDefines = [];
             // add names for inventory items, views
@@ -3245,7 +3243,7 @@ namespace WinAGI.Engine {
                 };
                 sierradefs.Add(newdef.Name, newdef);
             }
-            foreach (Engine.View view in dcGame.Views) {
+            foreach (View view in dcGame.Views) {
                 newdef = new(ArgType.View, NewDefineName("v." + view.ID, ArgType.View, view.Number), view.Number) {
                     NotUsed = true
                 };
@@ -3428,16 +3426,17 @@ namespace WinAGI.Engine {
             catch (Exception ex) {
                 // raise a load event directly (decompall only happens
                 // during a load from dir action)
-                info = new();
-                info.Type = EventType.DecompWarning;
-                info.ResType = AGIResType.Globals;
-                info.ID = "DW20";
-                info.Text = EngineResources.DW20.Replace(
-                    ARG1, ex.Message);
-                info.Module = "gamedefs.h";
-                info.Filename = Path.Combine(dcGame.SrcResDir, "gamedefs.h");
-                info.Line = -1;
-                info.Data = ex;
+                info = new() {
+                    Type = EventType.DecompWarning,
+                    ResType = AGIResType.Globals,
+                    ID = "DW20",
+                    Text = EngineResources.DW20.Replace(
+                        ARG1, ex.Message),
+                    Module = "gamedefs.h",
+                    Filename = Path.Combine(dcGame.SrcResDir, "gamedefs.h"),
+                    Line = -1,
+                    Data = ex
+                };
                 AGIGame.OnLoadGameStatus(info);
             }
             decompAll = false;

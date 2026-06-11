@@ -8,13 +8,18 @@ namespace WinAGI.Editor {
     /// It also handles keyboard events.
     /// </summary>
     public class SelectablePictureBox : PictureBox {
+        #region Fields
         private bool showfocus = true;
+        #endregion
 
+        #region Constructors
         public SelectablePictureBox() {
             SetStyle(ControlStyles.Selectable, true);
             TabStop = true;
         }
+        #endregion
 
+        #region Properties
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         [Category("Appearance")]
@@ -28,7 +33,27 @@ namespace WinAGI.Editor {
                 showfocus = value;
             }
         }
+        #endregion
 
+        #region Events
+        [Category("Focus")]
+        [Description("Occurs when the control becomes the active control of the form.")]
+        public new event EventHandler Enter;
+        [Category("Focus")]
+        [Description("Occurs when the control is no longer the active control of the form.")]
+        public new event EventHandler Leave;
+        [Category("Key")]
+        [Description("Occurs when a key is first pressed.")]
+        public new event KeyEventHandler KeyDown;
+        [Category("Key")]
+        [Description("Occurs when the control has focus and the user presses and releases a key.")]
+        public new event KeyPressEventHandler KeyPress;
+        [Category("Key")]
+        [Description("Occurs when a key is released.")]
+        public new event KeyEventHandler KeyUp;
+        #endregion
+
+        #region Event Overrides
         protected override bool IsInputKey(Keys keyData) {
             if ((keyData & Keys.Up) == Keys.Up || (keyData & Keys.Down) == Keys.Down)
                 return true;
@@ -79,22 +104,6 @@ namespace WinAGI.Editor {
                 ControlPaint.DrawFocusRectangle(pe.Graphics, rc);
             }
         }
-
-        // events
-        [Category("Focus")]
-        [Description("Occurs when the control becomes the active control of the form.")]
-        public new event EventHandler Enter;
-        [Category("Focus")]
-        [Description("Occurs when the control is no longer the active control of the form.")]
-        public new event EventHandler Leave;
-        [Category("Key")]
-        [Description("Occurs when a key is first pressed.")]
-        public new event KeyEventHandler KeyDown;
-        [Category("Key")]
-        [Description("Occurs when the control has focus and the user presses and releases a key.")]
-        public new event KeyPressEventHandler KeyPress;
-        [Category("Key")]
-        [Description("Occurs when a key is released.")]
-        public new event KeyEventHandler KeyUp;
+        #endregion
     }
 }

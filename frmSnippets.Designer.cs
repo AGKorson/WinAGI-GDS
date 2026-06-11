@@ -176,6 +176,7 @@ namespace WinAGI.Editor {
             contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuEUndo, mnuERedo, mnuESep0, mnuECut, mnuEDelete, mnuECopy, mnuEPaste, mnuESelectAll, mnuESep2, mnuEBlockCmt, mnuEUnblockCmt, mnuESep3, mnuECharMap });
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new System.Drawing.Size(225, 242);
+            contextMenuStrip1.Closed += contextMenuStrip1_Closed;
             contextMenuStrip1.Opening += contextMenuStrip1_Opening;
             // 
             // mnuEUndo

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -119,7 +120,7 @@ namespace WinAGI.Engine {
         }
         #endregion
 
-        #region Members
+        #region Fields
         /// <summary>
         /// The parent game attached to the compiler.
         /// </summary>
@@ -137,7 +138,7 @@ namespace WinAGI.Engine {
         private static bool menuSet = false;
         private static int endingCmd = 0; // 1 = return, 2 = new.room, 3 = quit
         private static bool includesID, includesReserved, includesGlobals;
-        private static string INCLUDE_MARK = ((char)31).ToString() + "!";
+        private static readonly string INCLUDE_MARK = ((char)31).ToString() + "!";
         private static List<string> includeFileList = [];
         private static bool skipInclude = false; // to prevent multiple error reports for the same include file when it is included multiple times
         private static int includeOffset; // to correct line number due to added include lines
@@ -146,9 +147,9 @@ namespace WinAGI.Engine {
         private static int lineNumber;
         private static int charPos;
         private static string currentLine;
-        private static string[] MsgText = new string[256];
-        private static bool[] MsgInUse = new bool[256];
-        private static int[] MsgWarnings = new int[256]; // to track warnings found during msgread function
+        private static readonly string[] MsgText = new string[256];
+        private static readonly bool[] MsgInUse = new bool[256];
+        private static readonly int[] MsgWarnings = new int[256]; // to track warnings found during msgread function
         private static List<LogicLabel> labelList = [];
         private static List<Define> definesList = [];
         internal static bool setIDs;
@@ -159,7 +160,6 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Methods
-
         /// <summary>
         /// This method determines if the specified define name is valid, including a check
         /// against this game's current global defines.
@@ -181,45 +181,20 @@ namespace WinAGI.Engine {
             }
             // check against basic reserved
             if (game is not null && game.agIncludeReserved) {
-                Define[] tmpDefines = game.agReservedDefines.ByArgType(Var);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (CheckDef.Name == tmpDefines[i].Name) {
-                        return ReservedVar;
-                    }
-                }
-                // reserved flags
-                tmpDefines = game.agReservedDefines.ByArgType(Flag);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (CheckDef.Name == tmpDefines[i].Name) {
-                        return ReservedFlag;
-                    }
-                }
-                // reserved numbers
-                tmpDefines = game.agReservedDefines.ByArgType(Num);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (CheckDef.Name == tmpDefines[i].Name) {
-                        return ReservedNum;
-                    }
-                }
-                // reserved objects
-                tmpDefines = game.agReservedDefines.ByArgType(SObj);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (CheckDef.Name == tmpDefines[i].Name) {
-                        return ReservedObj;
-                    }
-                }
-                // reserved strings
-                tmpDefines = game.agReservedDefines.ByArgType(Str);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (CheckDef.Name == tmpDefines[i].Name) {
-                        return ReservedStr;
-                    }
-                }
-                // msg/defined strings
-                tmpDefines = game.agReservedDefines.ByArgType(DefStr);
-                for (i = 0; i < tmpDefines.Length; i++) {
-                    if (CheckDef.Name == tmpDefines[i].Name) {
-                        return ReservedMsg;
+                var mappings = new (ArgType type, DefineNameCheck result)[]
+                {
+                    (Var,    ReservedVar),
+                    (Flag,   ReservedFlag),
+                    (Num,    ReservedNum),
+                    (SObj,   ReservedObj),
+                    (Str,    ReservedStr),
+                    (DefStr, ReservedMsg)
+                };
+
+                foreach (var (type, result) in mappings) {
+                    var defines = game.agReservedDefines.ByArgType(type);
+                    if (defines.Any(d => d.Name == CheckDef.Name)) {
+                        return result;
                     }
                 }
             }
@@ -477,7 +452,7 @@ namespace WinAGI.Engine {
             RemoveComments();
             // reset labels
             labelList = [];
-            // enumerate and replace all the defines
+            // read defines
             ReadDefines();
             // read predefined messages
             ReadMsgs();
@@ -892,33 +867,20 @@ namespace WinAGI.Engine {
         /// <param name="argtype"></param>
         /// <returns></returns>
         private static string ArgTypeName(ArgType argtype) {
-            switch (argtype) {
-            case Num:
-                return "number";
-            case Var:
-                return "variable";
-            case Flag:
-                return "flag";
-            case MsgNum:
-                return "message";
-            case SObj:
-                return "screen object";
-            case InvItem:
-                return "inventory item";
-            case Str:
-                return "string";
-            case Word:
-                return "word";
-            case Ctrl:
-                return "controller";
-            case DefStr:
-                return "text in quotes";
-            case VocWrd:
-                return "vocabulary word";
-            default:
-                // ignore other types
-                return "";
-            }
+            return argtype switch {
+                Num => "number",
+                Var => "variable",
+                Flag => "flag",
+                MsgNum => "message",
+                SObj => "screen object",
+                InvItem => "inventory item",
+                Str => "string",
+                Word => "word",
+                Ctrl => "controller",
+                DefStr => "text in quotes",
+                VocWrd => "vocabulary word",
+                _ => "",// ignore other types
+            };
         }
 
         /// <summary>
@@ -1136,17 +1098,17 @@ namespace WinAGI.Engine {
         /// <param name="noNewLine"></param>
         /// <returns>The next character, or a null character if end of input reached.</returns>
         private static char NextChar(bool noNewLine = false) {
-            // If the noNewLine flag is passed, the function will not look past
-            // current line for next character. If no character on current line,
-            // charPos is set to end of current line, and an empty string is
-            // returned.
-
-            char nextchar = '\0';
 
             // if already at end of input (lineNumber=-1)
             if (lineNumber == -1) {
                 return (char)0;
             }
+            // If the noNewLine flag is passed, the function will not look past
+            // current line for next character. If no character on current line,
+            // charPos is set to end of current line, and an empty string is
+            // returned.
+
+            char nextchar;
             do {
                 charPos++;
                 if (charPos >= currentLine.Length) {
@@ -1286,7 +1248,7 @@ namespace WinAGI.Engine {
                     }
                     else if (currentLine[charPos + 1] >= 48 && currentLine[charPos + 1] <= 57) {
                         // return a negative number
-                        next.Type = ArgType.Num;
+                        next.Type = Num;
                         while (charPos + 1 < currentLine.Length) {
                             char aChar = currentLine[charPos + 1];
                             if (aChar < 48 || aChar > 57) {
@@ -1655,56 +1617,56 @@ namespace WinAGI.Engine {
             switch (token.Text[0]) {
             case 'v':
                 if (int.TryParse(token.Text[1..], out int argval)) {
-                    token.Type = ArgType.Var;
+                    token.Type = Var;
                     token.Value = token.Text;
                     return;
                 }
                 break;
             case 'f':
                 if (int.TryParse(token.Text[1..], out argval)) {
-                    token.Type = ArgType.Flag;
+                    token.Type = Flag;
                     token.Value = token.Text;
                     return;
                 }
                 break;
             case 'o':
                 if (int.TryParse(token.Text[1..], out argval)) {
-                    token.Type = ArgType.SObj;
+                    token.Type = SObj;
                     token.Value = token.Text;
                     return;
                 }
                 break;
             case 'c':
                 if (int.TryParse(token.Text[1..], out argval)) {
-                    token.Type = ArgType.Ctrl;
+                    token.Type = Ctrl;
                     token.Value = token.Text;
                     return;
                 }
                 break;
             case 's':
                 if (int.TryParse(token.Text[1..], out argval)) {
-                    token.Type = ArgType.Str;
+                    token.Type = Str;
                     token.Value = token.Text;
                     return;
                 }
                 break;
             case 'w':
                 if (int.TryParse(token.Text[1..], out argval)) {
-                    token.Type = ArgType.Word;
+                    token.Type = Word;
                     token.Value = token.Text;
                     return;
                 }
                 break;
             case 'm':
                 if (int.TryParse(token.Text[1..], out argval)) {
-                    token.Type = ArgType.MsgNum;
+                    token.Type = MsgNum;
                     token.Value = token.Text;
                     return;
                 }
                 break;
             case 'i':
                 if (int.TryParse(token.Text[1..], out argval)) {
-                    token.Type = ArgType.InvItem;
+                    token.Type = InvItem;
                     token.Value = token.Text;
                     return;
                 }
@@ -1736,25 +1698,25 @@ namespace WinAGI.Engine {
                 for (int i = 0; i < 256; i++) {
                     if (token.Text == logIDs[i]) {
                         token.Value = i.ToString();
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.LogicID;
                         return;
                     }
                     if (token.Text == picIDs[i]) {
                         token.Value = i.ToString();
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.PictureID;
                         return;
                     }
                     if (token.Text == sndIDs[i]) {
                         token.Value = i.ToString();
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.SoundID;
                         return;
                     }
                     if (token.Text == viewIDs[i]) {
                         token.Value = i.ToString();
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.ViewID;
                         return;
                     }
@@ -1766,7 +1728,7 @@ namespace WinAGI.Engine {
                     if (token.Text == fcompGame.agReservedDefines.EdgeCodes[i].Name) {
                         token.Value = fcompGame.agReservedDefines.EdgeCodes[i].Value;
                         token.Value = i.ToString();
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.ReservedDefine;
                         return;
                     }
@@ -1774,7 +1736,7 @@ namespace WinAGI.Engine {
                 for (int i = 0; i <= 8; i++) {
                     if (token.Text == fcompGame.agReservedDefines.ObjDirections[i].Name) {
                         token.Value = fcompGame.agReservedDefines.ObjDirections[i].Value;
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.ReservedDefine;
                         return;
                     }
@@ -1782,7 +1744,7 @@ namespace WinAGI.Engine {
                 for (int i = 0; i <= 4; i++) {
                     if (token.Text == fcompGame.agReservedDefines.VideoModes[i].Name) {
                         token.Value = fcompGame.agReservedDefines.VideoModes[i].Value;
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.ReservedDefine;
                         return;
                     }
@@ -1790,7 +1752,7 @@ namespace WinAGI.Engine {
                 for (int i = 0; i <= 8; i++) {
                     if (token.Text == fcompGame.agReservedDefines.ComputerTypes[i].Name) {
                         token.Value = fcompGame.agReservedDefines.ComputerTypes[i].Value;
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.ReservedDefine;
                         return;
                     }
@@ -1798,7 +1760,7 @@ namespace WinAGI.Engine {
                 for (int i = 0; i <= 15; i++) {
                     if (token.Text == fcompGame.agReservedDefines.ColorNames[i].Name) {
                         token.Value = fcompGame.agReservedDefines.ColorNames[i].Value;
-                        token.Type = ArgType.Num;
+                        token.Type = Num;
                         token.Source = CompilerTokenSource.ReservedDefine;
                         return;
                     }
@@ -1806,14 +1768,14 @@ namespace WinAGI.Engine {
                 // check against invobj Count
                 if (token.Text == fcompGame.agReservedDefines.GameInfo[3].Name) {
                     token.Value = fcompGame.agReservedDefines.GameInfo[3].Value;
-                    token.Type = ArgType.Num;
+                    token.Type = Num;
                     token.Source = CompilerTokenSource.ReservedDefine;
                     return;
                 }
                 for (int i = 0; i <= 26; i++) {
                     if (token.Text == fcompGame.agReservedDefines.ReservedVariables[i].Name) {
                         token.Value = fcompGame.agReservedDefines.ReservedVariables[i].Value;
-                        token.Type = ArgType.Var;
+                        token.Type = Var;
                         token.Source = CompilerTokenSource.ReservedDefine;
                         return;
                     }
@@ -1821,7 +1783,7 @@ namespace WinAGI.Engine {
                 for (int i = 0; i <= 17; i++) {
                     if (token.Text == fcompGame.agReservedDefines.ReservedFlags[i].Name) {
                         token.Value = fcompGame.agReservedDefines.ReservedFlags[i].Value;
-                        token.Type = ArgType.Flag;
+                        token.Type = Flag;
                         token.Source = CompilerTokenSource.ReservedDefine;
                         return;
                     }
@@ -1829,25 +1791,23 @@ namespace WinAGI.Engine {
                 for (int i = 0; i <= 2; i++) {
                     if (token.Text == fcompGame.agReservedDefines.GameInfo[i].Name) {
                         token.Value = fcompGame.agReservedDefines.GameInfo[i].Value;
-                        token.Type = ArgType.DefStr;
+                        token.Type = DefStr;
                         token.Source = CompilerTokenSource.ReservedDefine;
                         return;
                     }
                 }
                 if (token.Text == fcompGame.agReservedDefines.ReservedObjects[0].Name) {
                     token.Value = fcompGame.agReservedDefines.ReservedObjects[0].Value;
-                    token.Type = ArgType.SObj;
+                    token.Type = SObj;
                     token.Source = CompilerTokenSource.ReservedDefine;
                     return;
                 }
                 if (token.Text == fcompGame.agReservedDefines.ReservedStrings[0].Name) {
                     token.Value = fcompGame.agReservedDefines.ReservedObjects[0].Value;
-                    token.Type = ArgType.Str;
+                    token.Type = Str;
                     token.Source = CompilerTokenSource.ReservedDefine;
                     return;
                 }
-            }
-            if (true) {
             }
             // token is not valid
             return;
@@ -2071,7 +2031,7 @@ namespace WinAGI.Engine {
         private static void ReadDefines() {
             // FAN syntax:
             //   #define
-            //   #message
+            //   #message (will be handled next in ReadMsgs)
             //   #include (already handled)
             //
             int i;
@@ -2183,8 +2143,7 @@ namespace WinAGI.Engine {
                                 errorText = EngineResourceByNum(4043);
                                 break;
                             case BadChar:
-                                // possible if not allowing all identifier chars
-                                // for example, '@' as start
+                                // should not be possible because token builder doesn't allow it
                                 Debug.Assert(false);
                                 break;
                             }
@@ -2230,7 +2189,7 @@ namespace WinAGI.Engine {
                                 errorNum = 4022;
                                 errorText = EngineResourceByNum(4022);
                                 // use a placeholder value
-                                if (tdNewDefine.Type == ArgType.Num) {
+                                if (tdNewDefine.Type == Num) {
                                     if (tdNewDefine.Value[0] == '-') {
                                         tdNewDefine.Value = "-128";
                                     }
@@ -2735,10 +2694,6 @@ namespace WinAGI.Engine {
             //
             // valid special comparison expressions are ==, !=, >, >=, <, <=
             //
-            // OR'ed tests must always be enclosed in parenthesis; AND'ed tests
-            // must never be enclosed in parentheses (this ensures the compiled code
-            // will be compatible with the AGI interpreter)
-            //
             // any test token may have the negation operator (!) placed directly
             // in front of it; special syntax 'fn' or 'vn' may also have the
             // negation operator, but 'vn expr m' may not
@@ -3002,7 +2957,7 @@ namespace WinAGI.Engine {
                                 }
                                 int argval = argToken.NumValue;
                                 // inv items may be a defined string
-                                if (TestCommands[cmdnum].ArgList[i] == ArgType.InvItem && argToken.Type == DefStr) {
+                                if (TestCommands[cmdnum].ArgList[i] == InvItem && argToken.Type == DefStr) {
                                     argval = ValidateInvItem(ref argToken);
                                 }
                                 else {
@@ -3042,14 +2997,14 @@ namespace WinAGI.Engine {
                                         case VocWrd:
                                             // is it a define?
                                             if (argToken.Source != CompilerTokenSource.Code) {
-                                                AddError(4037, EngineResources._4037.Replace(
+                                                AddError(4037, EngineResourceByNum(4037).Replace(
                                                     ARG1, (i + 1).ToString()).Replace(
                                                     ARG2, ArgTypeName(TestCommands[cmdnum].ArgList[i])).Replace(
                                                     ARG3, argToken.Text), false);
                                             }
                                             else {
                                                 //"Incorrect type for argument %1: expected a %2";
-                                                AddError(4017, EngineResources._4017.Replace(
+                                                AddError(4017, EngineResourceByNum(4017).Replace(
                                                     ARG1, (i + 1).ToString()).Replace(
                                                     ARG2, ArgTypeName(TestCommands[cmdnum].ArgList[i])), false);
                                             }
@@ -3067,14 +3022,14 @@ namespace WinAGI.Engine {
                                         case Label:
                                         case Comment:
                                         case Preprocessor:
-                                            AddError(4040, EngineResources._4040.Replace(
+                                            AddError(4040, EngineResourceByNum(4040).Replace(
                                                 ARG1, (i + 1).ToString()).Replace(
                                                 ARG2, ArgTypeName(TestCommands[cmdnum].ArgList[i])), false);
                                             break;
 
                                         // undefined token
                                         case Unknown:
-                                            AddError(4004, EngineResources._4004.Replace(
+                                            AddError(4004, EngineResourceByNum(4004).Replace(
                                                 ARG1, (i + 1).ToString()).Replace(
                                                 ARG2, ArgTypeName(TestCommands[cmdnum].ArgList[i])).Replace(
                                                 ARG3, argToken.Text), false);
@@ -3228,31 +3183,6 @@ namespace WinAGI.Engine {
                             }
                             else {
                                 // invalid arg type
-                                //switch (argToken.Type) {
-                                //case Symbol:
-                                //case AssignOperator:
-                                //case TestOperator:
-                                //    break;
-                                //case DefStr:
-                                //case BadString:
-                                //    break;
-                                //case Str:
-                                //case Flag:
-                                //case Msg:
-                                //case SObj:
-                                //case InvItem:
-                                //case Word:
-                                //case Ctrl:
-                                //case ActionCmd:
-                                //case TestCmd:
-                                //case Keyword:
-                                //case ArgType.Label:
-                                //    break;
-                                //case None:
-                                //    break;
-                                //case Unknown:
-                                //    break;
-                                //}
                                 AddError(4070, EngineResourceByNum(4070).Replace(ARG1, argToken.Text), false);
                                 skipError = true;
                                 // use placeholder
@@ -3458,7 +3388,7 @@ namespace WinAGI.Engine {
             }
 
             switch (type) {
-            case ArgType.Num:
+            case Num:
                 // check for negative numbers
                 if (argval < -128) {
                     AddError(4073, false);
@@ -4245,7 +4175,7 @@ namespace WinAGI.Engine {
                 DecoderFallback.ExceptionFallback);
             foreach (char c in input) {
                 try {
-                    encoding.GetBytes(new[] { c });
+                    encoding.GetBytes([c]);
                 }
                 catch (EncoderFallbackException) {
                     return false;
@@ -4512,7 +4442,7 @@ namespace WinAGI.Engine {
                             skipError = false;
                             return false;
                         }
-                        if (argToken.Type != ArgType.Var) {
+                        if (argToken.Type != Var) {
                             AddError(4025, false);
                             // use a temp placeholder
                             argToken.Value = "255";
@@ -4721,13 +4651,13 @@ namespace WinAGI.Engine {
                             }
                         }
                         // message may be a literal string
-                        if (ActionCommands[cmdnum].ArgList[i] == MsgNum && argToken.Type == ArgType.DefStr) {
+                        if (ActionCommands[cmdnum].ArgList[i] == MsgNum && argToken.Type == DefStr) {
                             if (argToken.Source == CompilerTokenSource.Code) {
                                 // concatenate first
                                 argToken = ConcatArg(argToken);
                             }
                             // check for bad string
-                            if (argToken.Type == ArgType.BadString) {
+                            if (argToken.Type == BadString) {
                                 AddError(4052, false);
                                 // use a placeholder value
                                 argval = 1;
@@ -4745,7 +4675,7 @@ namespace WinAGI.Engine {
                             arglist[i] = (byte)argval;
                         }
                         // inv item may be a literal string
-                        else if (ActionCommands[cmdnum].ArgList[i] == InvItem && argToken.Type == ArgType.DefStr) {
+                        else if (ActionCommands[cmdnum].ArgList[i] == InvItem && argToken.Type == DefStr) {
                             arglist[i] = (byte)ValidateInvItem(ref argToken);
                         }
                         else {
@@ -4784,13 +4714,13 @@ namespace WinAGI.Engine {
                                     case VocWrd:
                                         // is it a define?
                                         if (argToken.Source != CompilerTokenSource.Code) {
-                                            AddError(4037, EngineResources._4037.Replace(
+                                            AddError(4037, EngineResourceByNum(4037).Replace(
                                                 ARG1, (i + 1).ToString()).Replace(
                                                 ARG2, ArgTypeName(ActionCommands[cmdnum].ArgList[i])).Replace(
                                                 ARG3, argToken.Text), false);
                                         }
                                         else {
-                                            AddError(4017, EngineResources._4017.Replace(
+                                            AddError(4017, EngineResourceByNum(4017).Replace(
                                                 ARG1, (i + 1).ToString()).Replace(
                                                 ARG2, ArgTypeName(ActionCommands[cmdnum].ArgList[i])), false);
                                         }
@@ -4811,7 +4741,7 @@ namespace WinAGI.Engine {
                                     case Label:
                                     case Comment:
                                     case Preprocessor:
-                                        AddError(4040, EngineResources._4040.Replace(
+                                        AddError(4040, EngineResourceByNum(4040).Replace(
                                             ARG1, (i + 1).ToString()).Replace(
                                             ARG2, ArgTypeName(ActionCommands[cmdnum].ArgList[i])), false);
                                         break;
@@ -4831,7 +4761,7 @@ namespace WinAGI.Engine {
                                             charPos++;
                                         }
                                         else {
-                                            AddError(4004, EngineResources._4004.Replace(
+                                            AddError(4004, EngineResourceByNum(4004).Replace(
                                                 ARG1, (i + 1).ToString()).Replace(
                                                 ARG2, ArgTypeName(ActionCommands[cmdnum].ArgList[i])).Replace(
                                                 ARG3, argToken.Text), false);
@@ -5206,14 +5136,6 @@ namespace WinAGI.Engine {
                         return retval;
                     }
                 }
-                // check defines
-                for (int i = 0; i < definesList.Count; i++) {
-                    if (definesList[i].Type == TestCmd) {
-                        if (definesList[i].Name == cmdName) {
-                            return byte.Parse(definesList[i].Value);
-                        }
-                    }
-                }
             }
             else {
                 // look for action command
@@ -5230,14 +5152,6 @@ namespace WinAGI.Engine {
                             AddWarning(5075, EngineResourceByNum(5075).Replace(ARG1, cmdName));
                         }
                         return retval;
-                    }
-                }
-                // check defines
-                for (int i = 0; i < definesList.Count; i++) {
-                    if (definesList[i].Type == ActionCmd) {
-                        if (definesList[i].Name == cmdName) {
-                            return byte.Parse(definesList[i].Value);
-                        }
                     }
                 }
             }
@@ -5343,7 +5257,7 @@ namespace WinAGI.Engine {
                 default:
                     // check for undefined token first
                     if (argToken.Type == Unknown) {
-                        AddError(4004, EngineResources._4004.Replace(
+                        AddError(4004, EngineResourceByNum(4004).Replace(
                             ARG1, "2").Replace(
                             ARG2, "message").Replace(
                             ARG3, argToken.Text), false);
@@ -5601,12 +5515,12 @@ namespace WinAGI.Engine {
                                 return false;
                             }
                             arg2val = argToken.NumValue;
-                            if (argToken.Type != ArgType.Var && argToken.Type != ArgType.Num) {
+                            if (argToken.Type != Var && argToken.Type != Num) {
                                 AddError(4058, false);
                                 return false;
                             }
                             ValidateArgType(ref arg2val, argToken.Type, 2);
-                            if (argToken.Type == ArgType.Var) {
+                            if (argToken.Type == Var) {
                                 // use variable version of command
                                 cmdval++;
                             }

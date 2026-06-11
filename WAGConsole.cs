@@ -13,6 +13,7 @@ using static WinAGI.Engine.EventType;
 namespace WinAGI.Editor {
 
     internal class WAGConsole {
+        #region Enums
         private enum ConsoleMode {
             None,
             Import,
@@ -24,13 +25,19 @@ namespace WinAGI.Editor {
             ExportResource,
             AddResource,
         }
+        #endregion
 
-        public static bool Verbose { get; set; } = true;
-
+        #region Fields
         private static ConsoleMode mode;
         private static int ErrCount = 0, WarnCount = 0, CompCount = 0;
         private static int logErr = 0, logWarn = 0;
+        #endregion
 
+        #region Properties
+        public static bool Verbose { get; set; } = true;
+        #endregion
+
+        #region Methods
         public static void InitConsole() {
             if (Debugger.IsAttached) {
                 Debug.WriteLine("");
@@ -773,7 +780,7 @@ namespace WinAGI.Editor {
                 break;
             case AGIResType.View:
                 if (EditGame.Views.Contains(resnum)) {
-                    Engine.View view = EditGame.Views[resnum];
+                    View view = EditGame.Views[resnum];
                     WriteLineVerbose("Exporting view " + resnum + "... ");
                     view.Load();
                     if (view.Error == ResourceErrorType.NoError) {
@@ -1177,7 +1184,7 @@ namespace WinAGI.Editor {
                 // check for decompile renumber
                 if (loadinfo.ID == "renumber") {
                     int offset = loadinfo.Line;
-                    RenumberWarnings(loadinfo.ResNum, offset);
+                    RenumberInfoItems(loadinfo.ResNum, offset);
                     return;
                 }
                 msg = "Decompile Warning: " + loadinfo.ID + ": Logic " +
@@ -1392,7 +1399,7 @@ namespace WinAGI.Editor {
                 case InfoType.ClearWarnings:
                     // ignore if importing
                     if (mode != ConsoleMode.Import) {
-                        ClearInfogrid(e.ResType, e.ResNum);
+                        ClearInfoGrid(e.ResType, e.ResNum);
                     }
                     break;
                 case InfoType.Decompiled:
@@ -1512,5 +1519,6 @@ namespace WinAGI.Editor {
                 WriteLine(message);
             }
         }
+        #endregion
     }
 }

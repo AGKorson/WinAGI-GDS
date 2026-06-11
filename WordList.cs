@@ -13,17 +13,16 @@ namespace WinAGI.Engine {
     /// Collection of words (agiWord objects).
     /// </summary>
     public class WordList : IEnumerable<AGIWord> {
-        #region Members
-        SortedList<string, AGIWord> mWordCol;
-        SortedList<int, WordGroup> mGroupCol;
-        string mResFile = "";
-        string mDescription = "";
-        bool mInGame;
-        AGIGame parent;
-        int mCodePage = Base.CodePage;
-        bool mIsChanged;
-        bool mLoaded;
-
+        #region Fields
+        private SortedList<string, AGIWord> mWordCol;
+        private SortedList<int, WordGroup> mGroupCol;
+        private string mResFile = "";
+        private string mDescription = "";
+        private bool mInGame;
+        private readonly AGIGame parent;
+        private int mCodePage = Base.CodePage;
+        private bool mIsChanged;
+        private bool mLoaded;
         #endregion
 
         #region Constructors
@@ -831,7 +830,6 @@ namespace WinAGI.Engine {
             }
         }
 
-        ///
         /// <summary>
         /// Unloads this word list if in a game. Word lists not in a game
         /// are always loaded.
@@ -1071,7 +1069,7 @@ namespace WinAGI.Engine {
                 StreamWriter swWords = new(tempFile);
                 swWords.WriteLine("Unofficial extended format to support ASCII range of 128-255");
                 // add all words, in alphabetical order
-                for (i = 0; i < this.WordCount; i++) {
+                for (i = 0; i < WordCount; i++) {
                     swWords.WriteLine(this[i].WordText + (char)0 + this[i].Group);
                 }
                 swWords.Close();
@@ -1129,10 +1127,11 @@ namespace WinAGI.Engine {
             // only loaded wordlists can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
 
-            WordList clonelist = new();
-            // clear the defaults
-            clonelist.mWordCol = new(new AGIWordComparer());
-            clonelist.mGroupCol = [];
+            WordList clonelist = new() {
+                // clear the defaults
+                mWordCol = new(new AGIWordComparer()),
+                mGroupCol = []
+            };
 
             int groupnum;
             string wordtext;
@@ -1429,10 +1428,10 @@ namespace WinAGI.Engine {
             return new WordNumEnum(mWordCol);
         }
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
         IEnumerator<AGIWord> IEnumerable<AGIWord>.GetEnumerator() {
-            return (IEnumerator<AGIWord>)GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -1458,7 +1457,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _words.Count);
+                return position < _words.Count;
             }
             public void Reset() {
                 position = -1;

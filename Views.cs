@@ -9,8 +9,8 @@ namespace WinAGI.Engine {
     /// A class that holds all the view resources in an AGI game.
     /// </summary>
     public class Views : IEnumerable<View> {
-        #region Members
-        readonly AGIGame parent;
+        #region Fields
+        private readonly AGIGame parent;
         #endregion
 
         #region Constructors
@@ -105,7 +105,7 @@ namespace WinAGI.Engine {
             }
             // create new ingame view
             agResource = new View(parent, ResNum, NewView);
-            if ((NewView is null)) {
+            if (NewView is null) {
                 id = "View" + ResNum;
             }
             else {
@@ -156,7 +156,6 @@ namespace WinAGI.Engine {
         /// <param name="OldView"></param>
         /// <param name="NewView"></param>
         public void Renumber(byte OldView, byte NewView) {
-            View tmpView;
             int nextNum = 0;
             string id, baseid;
 
@@ -164,7 +163,7 @@ namespace WinAGI.Engine {
                 return;
             }
             // verify old number exists
-            if (!Col.TryGetValue(OldView, out tmpView)) {
+            if (!Col.TryGetValue(OldView, out View tmpView)) {
                 throw new IndexOutOfRangeException("view does not exist");
             }
             // verify new number is not in collection
@@ -179,7 +178,7 @@ namespace WinAGI.Engine {
             Col.Remove(OldView);
             VOLManager.UpdateDirFile(tmpView, true);
             // adjust id if it is default
-            if (tmpView.ID.ToLower() == "view" + OldView) {
+            if (tmpView.ID.Equals("view" + OldView, StringComparison.OrdinalIgnoreCase)) {
                 id = baseid = tmpView.ID[..4] + NewView;
                 while (NotUniqueID(id, parent)) {
                     id = baseid + "_" + nextNum;
@@ -201,10 +200,10 @@ namespace WinAGI.Engine {
             return new ViewEnum(Col);
         }
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
         IEnumerator<View> IEnumerable<View>.GetEnumerator() {
-            return (IEnumerator<View>)GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -230,7 +229,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _views.Count);
+                return position < _views.Count;
             }
             public void Reset() {
                 position = -1;

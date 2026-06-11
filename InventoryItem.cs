@@ -1,12 +1,12 @@
 ﻿namespace WinAGI.Engine {
     /// <summary>
-    /// 
+    /// Represents an inventory item in the AGI engine. This corresponds to an item entry in the OBJECT file.
     /// </summary>
     public class InventoryItem {
-        #region Local Members
+        #region Fields
         internal string mItemName = "";
         internal byte mRoom;
-        private InventoryList mParent;
+        private readonly InventoryList mParent;
         #endregion
 
         #region Constructors

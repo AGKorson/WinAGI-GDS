@@ -14,17 +14,17 @@ namespace WinAGI.Engine {
     /// OBJECT file of an AGI game.
     /// </summary>
     public class InventoryList : IEnumerable<InventoryItem> {
-        #region Local Members
-        byte mMaxScreenObjects;
-        bool mEncrypted;
-        bool mAmigaOBJ;
-        string mResFile = "";
-        string mDescription = "";
-        bool mInGame;
-        bool mIsChanged;
-        bool mLoaded;
-        AGIGame parent = null;
-        int mCodePage = Base.CodePage;
+        #region Fields
+        private byte mMaxScreenObjects;
+        private bool mEncrypted;
+        private bool mAmigaOBJ;
+        private string mResFile = "";
+        private string mDescription = "";
+        private bool mInGame;
+        private bool mIsChanged;
+        private bool mLoaded;
+        private readonly AGIGame parent = null;
+        private int mCodePage = Base.CodePage;
         #endregion
 
         #region Constructors
@@ -405,9 +405,9 @@ namespace WinAGI.Engine {
             // (if first item item is a null string, then seven
             // bytes would also work, but every known OBJECT file 
             // uses '?' as first item of text even if the first
-            // item actually points to a different text; it 
-            // appears Sierra's compiler always added the '?'
-            // regardless of the item0's value
+            // item actually points to a different text (because
+            // Sierra's compiler always added the '?' regardless
+            // of the item0's value)
             if (fsObj.Length < 8) {
                 fsObj.Dispose();
                 return (ResourceErrorType.ObjectNoData, 0);
@@ -510,10 +510,6 @@ namespace WinAGI.Engine {
             if (!File.Exists(loadfile)) {
                 return ("missing file", 0);
             }
-            //// check for readonly
-            //if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-            //    return ("file is readonly", 0);
-            //}
             try {
                 filetext = File.ReadAllText(loadfile).Replace("\r", "");
             }
@@ -551,9 +547,10 @@ namespace WinAGI.Engine {
                         items[index].Room = (byte)room;
                     }
                     else {
-                        InventoryItem invitem = new();
-                        invitem.ItemName = itemtext;
-                        invitem.Room = (byte)room;
+                        InventoryItem invitem = new() {
+                            ItemName = itemtext,
+                            Room = (byte)room
+                        };
                         items.Add(index, invitem);
                     }
                     break;
@@ -886,9 +883,10 @@ namespace WinAGI.Engine {
                 };
                 throw wex;
             }
-            InventoryItem tmpItem = new InventoryItem(this);
-            tmpItem.ItemName = NewItem;
-            tmpItem.Room = Room;
+            InventoryItem tmpItem = new InventoryItem(this) {
+                ItemName = NewItem,
+                Room = Room
+            };
             mItems.Add(tmpItem);
             mIsChanged = true;
             return tmpItem;
@@ -999,16 +997,16 @@ namespace WinAGI.Engine {
             // only loaded views can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
 
-            InventoryList clonelist = new();
-
-            // copy all items and properties except ingame status and parent
-            // related properties
-            clonelist.mAmigaOBJ = mAmigaOBJ;
-            clonelist.mCodePage = mCodePage;
-            clonelist.mDescription = mDescription;
-            clonelist.mEncrypted = mEncrypted;
-            clonelist.Error = Error;
-            clonelist.Warnings = Warnings;
+            InventoryList clonelist = new() {
+                // copy all items and properties except ingame status and parent
+                // related properties
+                mAmigaOBJ = mAmigaOBJ,
+                mCodePage = mCodePage,
+                mDescription = mDescription,
+                mEncrypted = mEncrypted,
+                Error = Error,
+                Warnings = Warnings
+            };
             for (int i = 0; i < ErrData.Length; i++) {
                 clonelist.ErrData[i] = ErrData[i];
                 clonelist.WarnData[i] = WarnData[i];
@@ -1020,10 +1018,11 @@ namespace WinAGI.Engine {
             // need to remove the default to avoid duplication
             clonelist.mItems.RemoveAt(0);
             foreach (InventoryItem itm in mItems) {
-                InventoryItem tmp = new InventoryItem(clonelist);
-                tmp.mItemName = itm.ItemName;
-                tmp.mRoom = itm.Room;
-                tmp.Unique = itm.Unique;
+                InventoryItem tmp = new InventoryItem(clonelist) {
+                    mItemName = itm.ItemName,
+                    mRoom = itm.Room,
+                    Unique = itm.Unique
+                };
                 clonelist.mItems.Add(tmp);
             }
             return clonelist;
@@ -1049,9 +1048,10 @@ namespace WinAGI.Engine {
             mIsChanged = srcList.mIsChanged;
             mItems = [];
             foreach (InventoryItem itm in srcList.mItems) {
-                InventoryItem tmp = new InventoryItem(this);
-                tmp.ItemName = itm.ItemName;
-                tmp.Room = itm.Room;
+                InventoryItem tmp = new InventoryItem(this) {
+                    ItemName = itm.ItemName,
+                    Room = itm.Room
+                };
                 mItems.Add(tmp);
             }
             mLoaded = true;
@@ -1158,10 +1158,10 @@ namespace WinAGI.Engine {
             return new ItemEnum(mItems);
         }
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
         IEnumerator<InventoryItem> IEnumerable<InventoryItem>.GetEnumerator() {
-            return (IEnumerator<InventoryItem>)GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -1186,7 +1186,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _invitems.Count);
+                return position < _invitems.Count;
             }
             public void Reset() {
                 position = -1;

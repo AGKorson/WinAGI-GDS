@@ -5,15 +5,17 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using WinAGI.Engine;
-using static WinAGI.Common.Base;
 using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmGameProperties : Form {
+        #region Fields
         public string NewPlatformFile = "";
         public int NewCodePage;
         public string DisplayDir;
+        #endregion
 
+        #region Constructors
         public frmGameProperties(GameSettingFunction mode, string starttab = "", string startprop = "") {
             InitializeComponent();
 
@@ -62,9 +64,10 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        #endregion
 
         #region Event Handlers
-        #region Form and Button Event Handlers
+        #region Form and Button Events
         private void frmGameProperties_HelpRequested(object sender, HelpEventArgs hlpevent) {
             ShowHelp();
             hlpevent.Handled = true;
@@ -82,20 +85,20 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Information);
                 return;
             }
-            this.DialogResult = DialogResult.OK;
-            this.Hide();
+            DialogResult = DialogResult.OK;
+            Hide();
         }
         #endregion
 
-        #region General Tab Event Handlers
+        #region General Tab Events
         private void txtGameID_TextChanged(object sender, EventArgs e) {
             // during setup, form is not visible, so don't need to validate the ID
-            if (!this.Visible) {
+            if (!Visible) {
                 return;
             }
             ValidateIDText();
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtGameID_KeyPress(object sender, KeyPressEventArgs e) {
@@ -131,7 +134,7 @@ namespace WinAGI.Editor {
 
         private void cmbVersion_SelectionChangeCommitted(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtGameDir_DoubleClick(object sender, EventArgs e) {
@@ -146,7 +149,7 @@ namespace WinAGI.Editor {
 
         private void txtResDir_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtResDir_Validating(object sender, CancelEventArgs e) {
@@ -183,7 +186,7 @@ namespace WinAGI.Editor {
 
         private void txtSrcExt_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtSrcExt_KeyPress(object sender, KeyPressEventArgs e) {
@@ -233,27 +236,26 @@ namespace WinAGI.Editor {
 
         private void chkUseLE_CheckedChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void chkResourceIDs_CheckedChanged(object sender, EventArgs e) {
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void chkUseReserved_CheckedChanged(object sender, EventArgs e) {
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void chkGlobals_CheckedChanged(object sender, EventArgs e) {
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
-
         #endregion
 
-        #region Version Tab Event Handlers
+        #region Version Tab Events
         private void txtGameDesigner_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtGameDesigner_KeyPress(object sender, KeyPressEventArgs e) {
@@ -266,7 +268,7 @@ namespace WinAGI.Editor {
 
         private void txtGameDescription_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtGameDescription_KeyPress(object sender, KeyPressEventArgs e) {
@@ -279,7 +281,7 @@ namespace WinAGI.Editor {
 
         private void txtGameAbout_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtGameAbout_KeyPress(object sender, KeyPressEventArgs e) {
@@ -292,7 +294,7 @@ namespace WinAGI.Editor {
 
         private void txtGameVersion_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtGameVersion_KeyPress(object sender, KeyPressEventArgs e) {
@@ -302,10 +304,9 @@ namespace WinAGI.Editor {
                 btnOK.Select();
             }
         }
-
         #endregion
 
-        #region Platform Tab Event Handlers
+        #region Platform Tab Events
         private void optNone_CheckedChanged(object sender, EventArgs e) {
             if (optNone.Checked) {
                 // clear all platform properties
@@ -320,7 +321,7 @@ namespace WinAGI.Editor {
                 txtExec.Text = "";
                 NewPlatformFile = "";
                 // enable ok if an ID and directory have been chosen
-                btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+                btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
             }
         }
 
@@ -339,7 +340,7 @@ namespace WinAGI.Editor {
                 NewPlatformFile = "";
                 txtPlatformFile.Text = "";
                 // enable ok if an ID and directory have been chosen
-                btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+                btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
             }
         }
 
@@ -359,7 +360,7 @@ namespace WinAGI.Editor {
                 NewPlatformFile = "";
                 txtPlatformFile.Text = "";
                 // enable ok if an ID and directory have been chosen
-                btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+                btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
             }
         }
 
@@ -381,7 +382,7 @@ namespace WinAGI.Editor {
                 txtOptions.Enabled = false;
                 txtOptions.Text = "";
                 // enable ok if an ID and directory have been chosen
-                btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+                btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
             }
         }
 
@@ -401,7 +402,7 @@ namespace WinAGI.Editor {
                 NewPlatformFile = "";
                 txtPlatformFile.Text = "";
                 // enable ok if an ID and directory have been chosen
-                btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+                btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
             }
         }
 
@@ -422,7 +423,7 @@ namespace WinAGI.Editor {
                 txtExec.Text = "";
                 NewPlatformFile = "";
                 // enable ok if an ID and directory have been chosen
-                btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+                btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
             }
         }
 
@@ -432,7 +433,7 @@ namespace WinAGI.Editor {
 
         private void txtExec_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtExec_KeyPress(object sender, KeyPressEventArgs e) {
@@ -445,7 +446,7 @@ namespace WinAGI.Editor {
 
         private void txtOptions_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtOptions_KeyPress(object sender, KeyPressEventArgs e) {
@@ -470,7 +471,7 @@ namespace WinAGI.Editor {
 
         private void txtPlatformFile_TextChanged(object sender, EventArgs e) {
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void txtPlatformFile_Validating(object sender, CancelEventArgs e) {
@@ -478,7 +479,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Advanced Tab Event Handlers
+        #region Advanced Tab Events
         private void chkSierraSyntax_Click(object sender, EventArgs e) {
             // auto-includes, layout editor not available if using Sierra syntax
             chkGlobals.Enabled = !chkSierraSyntax.Checked;
@@ -636,7 +637,7 @@ namespace WinAGI.Editor {
                 btnGameDir.Enabled = true;
                 DisplayDir = "";
                 txtGameDir.Text = "";
-                txtResDir.Text = WinAGI.Engine.Base.DefResDir;
+                txtResDir.Text = Engine.Base.DefResDir;
                 txtSrcExt.Text = LogicDecoder.DefaultSrcExt;
                 // include options
                 chkResourceIDs.Checked = WinAGISettings.DefIncludeIDs.Value;
@@ -713,7 +714,7 @@ namespace WinAGI.Editor {
                 txtPlatformFile.Text = NewPlatformFile;
             }
             // enable ok if an ID and directory have been chosen
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void ValidateIDText() {
@@ -759,7 +760,7 @@ namespace WinAGI.Editor {
                 txtGameDir.Text = DisplayDir;
                 BrowserStartDir = DisplayDir;
             }
-            btnOK.Enabled = (txtGameID.TextLength > 0 && DisplayDir.Length > 0);
+            btnOK.Enabled = txtGameID.TextLength > 0 && DisplayDir.Length > 0;
         }
 
         private void ShowHelp() {

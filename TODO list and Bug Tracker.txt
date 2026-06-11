@@ -999,19 +999,10 @@ Panel double-click
 | Color key transparency    | ImageAttributes.SetColorKey     |
 | Custom raster ops         | P/Invoke GDI or manual pixels   |
 
-Layout File Format:
-Header: Name, Version, DrawScale, Offset
-0x01 character separates element blocks
-element block types:
-    Room: ShowPic, Loc, Exits[ID, OldRoom, Reason, Style, Transfer, Leg, Status], Index, Visible
-    TransPt: Loc[2], Rooms[2], ID[2], Count, Index, Visible
-    ErrPt: Loc, Room, ExitID, FromRoom, Index, Visible
-    Comment: Loc, Size, Text, Index, Visible
-0x02 character separates modification blocks
-modification block types
-    Renumber: OldNumber, Index, Visible
-    Update: ShowPic, Exits[ID, OldRoom, Reason, Style, Transfer, Leg, Status], Index, Visible
-    Show: ShowPic, Exits[ID, OldRoom, Reason, Style, Transfer, Leg, Status], Index, Visible
-    Hide: Index", Visible
-each block is a json serialized object
 
+Before releasing a new installer:
+ Increase Version (e.g., 1.0.0 → 1.0.1)
+ Click “Yes” to regenerate ProductCode
+ Ensure UpgradeCode unchanged: {B2C3FB26-1D20-44FE-9C9D-17957C98B140}
+ Ensure RemovePreviousVersions = True
+ Build MSI

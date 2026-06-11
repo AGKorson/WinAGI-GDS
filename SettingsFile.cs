@@ -29,7 +29,7 @@ namespace WinAGI.Common {
         //                    for multiword strings, or for values that include '#'
         //  in strings control codes are '\n' for new line, '\\' for backslash 
 
-        #region Members
+        #region Fields
         public List<string> Lines = [];
         #endregion
 
@@ -490,7 +490,7 @@ namespace WinAGI.Common {
         /// <param name="Value"></param>
         /// <param name="Group"></param>
         public void WriteSetting(string Section, string Key, Color Value, string Group = "") {
-            WriteSetting(Section, Key, EGAColors.ColorText(Value), Group);
+            WriteSetting(Section, Key, Value.ColorText(), Group);
         }
 
         /// <summary>
@@ -1054,7 +1054,7 @@ namespace WinAGI.Common {
             if (value.Length == 0) {
                 // for blank entries, replace with default
                 if (!dontAdd) {
-                    WriteSetting(section, key, EGAColors.ColorText(defaultvalue));
+                    WriteSetting(section, key, defaultvalue);
                 }
                 return defaultvalue;
             }
@@ -1071,7 +1071,7 @@ namespace WinAGI.Common {
                 catch (Exception) {
                     // for invalid entries, replace with default
                     if (!dontAdd) {
-                        WriteSetting(section, key, EGAColors.ColorText(defaultvalue));
+                        WriteSetting(section, key, defaultvalue);
                     }
                     return defaultvalue;
                 }
@@ -1136,7 +1136,7 @@ namespace WinAGI.Common {
                 }
                 // for invalid entries, always replace with updated text
                 if (!dontAdd) {
-                    WriteSetting(section, key, EGAColors.ColorText(retColor));
+                    WriteSetting(section, key, retColor);
                 }
                 return retColor;
             }
@@ -1357,7 +1357,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingItem {
-        #region Members
+        #region Fields
         internal string itemName;
         internal string itemSection;
         internal string itemGroup;
@@ -1393,7 +1393,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingString : SettingItem {
-        #region Members
+        #region Fields
         private string itemValue;
         private string defaultValue;
         #endregion
@@ -1480,7 +1480,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingBool : SettingItem {
-        #region Members
+        #region Fields
         private bool itemValue;
         private readonly bool defaultValue;
         #endregion
@@ -1577,7 +1577,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingInt : SettingItem {
-        #region Members
+        #region Fields
         private int itemValue;
         private bool hex;
         private readonly int defaultValue;
@@ -1682,7 +1682,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingByte : SettingItem {
-        #region Members
+        #region Fields
         private byte itemValue;
         private bool hex;
         private readonly byte defaultValue;
@@ -1787,7 +1787,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingUint : SettingItem {
-        #region Members
+        #region Fields
         private uint itemValue;
         private readonly uint defaultValue;
         private bool hex;
@@ -1894,7 +1894,7 @@ namespace WinAGI.Common {
 
     public class SettingColor : SettingItem {
         // store internally as int so it can be easily cloned
-        #region Members
+        #region Fields
         private int itemValue;
         private readonly int defaultValue;
         #endregion
@@ -1996,7 +1996,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingFontStyle : SettingItem {
-        #region Members
+        #region Fields
         private FontStyle itemValue;
         private readonly FontStyle defaultValue;
         #endregion
@@ -2093,7 +2093,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingDouble : SettingItem {
-        #region Members
+        #region Fields
         private double itemValue;
         private readonly double defaultValue;
         #endregion
@@ -2189,7 +2189,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingFloat : SettingItem {
-        #region Members
+        #region Fields
         private float itemValue;
         private readonly float defaultValue;
         #endregion
@@ -2285,7 +2285,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingEResListType : SettingItem {
-        #region Members
+        #region Fields
         private ResListType itemValue;
         private readonly ResListType defaultValue;
         private bool savetext;
@@ -2398,7 +2398,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingAskOption : SettingItem {
-        #region Members
+        #region Fields
         private AskOption itemValue;
         private readonly AskOption defaultValue;
         private bool savetext;
@@ -2510,7 +2510,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingLogicErrorLevel : SettingItem {
-        #region Members
+        #region Fields
         private LogicErrorLevel itemValue;
         private readonly LogicErrorLevel defaultValue;
         private bool savetext;
@@ -2622,7 +2622,7 @@ namespace WinAGI.Common {
     }
 
     public class SettingAGICodeStyle : SettingItem {
-        #region Members
+        #region Fields
         private AGICodeStyle itemValue;
         private readonly AGICodeStyle defaultValue;
         private bool savetext;

@@ -11,10 +11,10 @@ namespace WinAGI.Engine {
     /// </summary>
     [Serializable]
     public class Loops : IEnumerable<Loop> {
-        #region Members
-        List<Loop> mLoopCol;
+        #region Fields
+        private List<Loop> mLoopCol;
         [NonSerialized]
-        View mParent;
+        private View mParent;
         #endregion
 
         #region Constructors
@@ -193,11 +193,11 @@ namespace WinAGI.Engine {
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
 
         IEnumerator<Loop> IEnumerable<Loop>.GetEnumerator() {
-            return (IEnumerator<Loop>)GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _loops.Count);
+                return position < _loops.Count;
             }
             public void Reset() {
                 position = -1;

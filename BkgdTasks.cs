@@ -14,12 +14,14 @@ using static WinAGI.Engine.AGIResType;
 namespace WinAGI.Common {
 
     public class BkgdTasks {
+        #region Fields
         internal static BackgroundWorker bgwCompGame = null;
         internal static BackgroundWorker bgwNewGame = null;
         internal static BackgroundWorker bgwOpenGame = null;
         internal static bool updating;
 
         internal static BackgroundWorker bgwMakePicGif = null;
+        #endregion
 
         #region NewGame
         public static void NewGameDoWork(object sender, DoWorkEventArgs e) {
@@ -94,15 +96,15 @@ namespace WinAGI.Common {
             switch (e.ProgressPercentage) {
             case 1:
                 // load warning/error
-                MDIMain.AddWarning((WinAGIEventInfo)e.UserState, true);
+                MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 2:
                 // TODOs
-                MDIMain.AddWarning((WinAGIEventInfo)e.UserState, true);
+                MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 3:
                 // Decode warning
-                MDIMain.AddWarning((WinAGIEventInfo)e.UserState, true);
+                MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 51:
                 // initializing
@@ -293,15 +295,15 @@ namespace WinAGI.Common {
             switch (e.ProgressPercentage) {
             case 1:
                 // resource error/warning
-                MDIMain.AddWarning((WinAGIEventInfo)e.UserState, true);
+                MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 2:
                 // TODOs
-                MDIMain.AddWarning((WinAGIEventInfo)e.UserState, true);
+                MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 3:
                 // Decode errors and warnings
-                MDIMain.AddWarning((WinAGIEventInfo)e.UserState, true);
+                MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 4:
                 // updating WinAGI version
@@ -474,7 +476,7 @@ namespace WinAGI.Common {
                     CompStatusWin.pgbStatus.Value++;
                     break;
                 case InfoType.ClearWarnings:
-                    MDIMain.ClearWarnings(compInfo.ResType, compInfo.ResNum);
+                    MDIMain.ClearInfoGrid(compInfo.ResType, compInfo.ResNum);
                     break;
                 }
                 break;
@@ -485,7 +487,7 @@ namespace WinAGI.Common {
                     CompStatusWin.pgbStatus.Value++;
                     break;
                 case InfoType.ClearWarnings:
-                    MDIMain.ClearWarnings(compInfo.ResType, compInfo.ResNum);
+                    MDIMain.ClearInfoGrid(compInfo.ResType, compInfo.ResNum);
                     break;
                 }
                 break;
@@ -493,7 +495,7 @@ namespace WinAGI.Common {
                 switch (compInfo.InfoType) {
                 case InfoType.ClearWarnings:
                     // clear warnings and errors for this logic
-                    MDIMain.ClearWarnings(compInfo.ResType, compInfo.ResNum, [EventType.LogicCompileError, EventType.LogicCompileWarning, EventType.ResourceError, EventType.ResourceWarning]);
+                    MDIMain.ClearInfoGrid(compInfo.ResType, compInfo.ResNum, [EventType.LogicCompileError, EventType.LogicCompileWarning, EventType.ResourceError, EventType.ResourceWarning]);
                     break;
                 case InfoType.Compiling:
                     // compiling a logic a resource
@@ -522,7 +524,7 @@ namespace WinAGI.Common {
             case GameCompileStatus.Warning:
                 if (compInfo.Type == EventType.Info) {
                     // clear includefile warnings
-                    MDIMain.ClearWarnings(compInfo.Filename);
+                    MDIMain.ClearInfoGrid(compInfo.Filename);
                 }
                 else {
                     // warning generated
@@ -532,7 +534,7 @@ namespace WinAGI.Common {
                     CompStatusWin.lblWarnings.Text = warncount.ToString();
                     CompStatusWin.Warnings = warncount;
                     CompStatusWin.lblStatus.Text = compInfo.Text;
-                    MDIMain.AddWarning(compInfo, true);
+                    MDIMain.AddInfoItem(compInfo, true);
                 }
                 break;
             case GameCompileStatus.ResError:
@@ -545,7 +547,7 @@ namespace WinAGI.Common {
                 CompStatusWin.lblErrors.Text = errors.ToString();
                 CompStatusWin.Errors = errors;
                 if (compInfo.Type != EventType.Info) {
-                    MDIMain.AddWarning(compInfo, true);
+                    MDIMain.AddInfoItem(compInfo, true);
                 }
                 break;
             case GameCompileStatus.FatalError:
@@ -559,9 +561,7 @@ namespace WinAGI.Common {
                 CompStatusWin.pgbStatus.Value = CompStatusWin.pgbStatus.Maximum;
                 break;
             }
-            // using Refresh() causes the UI to freeze; using Invalidate() causes
-            // errors with file access to WAG, requiring some refactoring of the 
-            // WAG file update function after compiling
+            // using Refresh() causes the UI to freeze
             CompStatusWin.Invalidate();
         }
 
@@ -580,8 +580,8 @@ namespace WinAGI.Common {
                     // everything is ok
                     MDIMain.UseWaitCursor = false;
                     if (CompGameResults.Warnings) {
-                        if (!MDIMain.pnlWarnings.Visible) {
-                            MDIMain.pnlWarnings.Visible = true;
+                        if (!MDIMain.pnlInfoGrid.Visible) {
+                            MDIMain.pnlInfoGrid.Visible = true;
                         }
                         MessageBox.Show(MDIMain,
                             "Warnings were generated during game" + (CompGameResults.Mode == CompileMode.RebuildOnly ? "rebuild." : "compile."),
@@ -696,8 +696,8 @@ namespace WinAGI.Common {
                             MDIMain.BuildResourceTree();
                         }
                         if (CompStatusWin.Warnings > 0) {
-                            if (!MDIMain.pnlWarnings.Visible) {
-                                MDIMain.pnlWarnings.Visible = true;
+                            if (!MDIMain.pnlInfoGrid.Visible) {
+                                MDIMain.pnlInfoGrid.Visible = true;
                             }
                         }
                     }

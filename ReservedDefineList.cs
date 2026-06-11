@@ -13,21 +13,21 @@ namespace WinAGI.Engine {
     /// </summary>
     public class ReservedDefineList {
 
-        #region Local Members
-        readonly AGIGame parent;
-        string filename = "";
-        SettingsFile propfile = null;
-        bool IsChanged = false;
-        Define[] agResVar = new Define[27];      // 27: text name of built in variables
-        Define[] agResFlag = new Define[18];     // 18: text name of built in flags
-        Define[] agResObj = new Define[1];       //  1: just ego object (o0)
-        Define[] agResStr = new Define[1];       //  1: just prompt (s0)  
-        Define[] agEdgeCodes = new Define[5];    //  5: text of edge codes
-        Define[] agObjDirs = new Define[9];      //  9: text of object direction codes
-        Define[] agVideoModes = new Define[5];   //  5: text of video mode codes
-        Define[] agCompTypes = new Define[9];    //  9: computer type codes
-        Define[] agColorNames = new Define[16];  // 16: text of color indices
-        Define[] agGameInfo = new Define[4];     //  4: gameID, gameversion, gameabout, invcount
+        #region Fields
+        private readonly AGIGame parent;
+        private readonly string filename = "";
+        private readonly SettingsFile propfile = null;
+        private bool IsChanged = false;
+        private readonly Define[] agResVar = new Define[27];      // 27: text name of built in variables
+        private readonly Define[] agResFlag = new Define[18];     // 18: text name of built in flags
+        private readonly Define[] agResObj = new Define[1];       //  1: just ego object (o0)
+        private readonly Define[] agResStr = new Define[1];       //  1: just prompt (s0)  
+        private readonly Define[] agEdgeCodes = new Define[5];    //  5: text of edge codes
+        private readonly Define[] agObjDirs = new Define[9];      //  9: text of object direction codes
+        private readonly Define[] agVideoModes = new Define[5];   //  5: text of video mode codes
+        private readonly Define[] agCompTypes = new Define[9];    //  9: computer type codes
+        private readonly Define[] agColorNames = new Define[16];  // 16: text of color indices
+        private readonly Define[] agGameInfo = new Define[4];     //  4: gameID, gameversion, gameabout, invcount
         #endregion
 
         #region Constructors
@@ -84,7 +84,6 @@ namespace WinAGI.Engine {
                 agGameInfo[0].Value = "\"" + parent.agGameID + "\"";
                 agGameInfo[1].Value = "\"" + parent.agGameVersion + "\"";
                 agGameInfo[2].Value = "\"" + parent.agGameAbout + "\"";
-                Debug.Assert(parent.agInvObj.Loaded);
                 agGameInfo[3].Value = parent.agInvObj.Count.ToString();
                 return agGameInfo;
             }
@@ -160,7 +159,7 @@ namespace WinAGI.Engine {
             agResVar[26].Value = "v26";
             for (int i = 0; i <= 26; i++) {
                 agResVar[i].Name = agResVar[i].DefaultName;
-                agResVar[i].Type = ArgType.Var;
+                agResVar[i].Type = Var;
             }
 
             // flags
@@ -202,7 +201,7 @@ namespace WinAGI.Engine {
             agResFlag[17].Value = "f20";
             for (int i = 0; i <= 17; i++) {
                 agResFlag[i].Name = agResFlag[i].DefaultName;
-                agResFlag[i].Type = ArgType.Flag;
+                agResFlag[i].Type = Flag;
             }
 
             // edge codes
@@ -218,7 +217,7 @@ namespace WinAGI.Engine {
             agEdgeCodes[4].Value = "4";
             for (int i = 0; i <= 4; i++) {
                 agEdgeCodes[i].Name = agEdgeCodes[i].DefaultName;
-                agEdgeCodes[i].Type = ArgType.Num;
+                agEdgeCodes[i].Type = Num;
             }
 
             // object direction
@@ -242,7 +241,7 @@ namespace WinAGI.Engine {
             agObjDirs[8].Value = "8";
             for (int i = 0; i <= 8; i++) {
                 agObjDirs[i].Name = agObjDirs[i].DefaultName;
-                agObjDirs[i].Type = ArgType.Num;
+                agObjDirs[i].Type = Num;
             }
 
             // video modes
@@ -258,7 +257,7 @@ namespace WinAGI.Engine {
             agVideoModes[4].Value = "4";
             for (int i = 0; i <= 4; i++) {
                 agVideoModes[i].Name = agVideoModes[i].DefaultName;
-                agVideoModes[i].Type = ArgType.Num;
+                agVideoModes[i].Type = Num;
             }
 
             // computer types
@@ -282,7 +281,7 @@ namespace WinAGI.Engine {
             agCompTypes[8].Value = "8";
             for (int i = 0; i <= 8; i++) {
                 agCompTypes[i].Name = agCompTypes[i].DefaultName;
-                agCompTypes[i].Type = ArgType.Num;
+                agCompTypes[i].Type = Num;
             }
 
             // colors
@@ -320,31 +319,31 @@ namespace WinAGI.Engine {
             agColorNames[15].Value = "15";
             for (int i = 0; i <= 15; i++) {
                 agColorNames[i].Name = agColorNames[i].DefaultName;
-                agColorNames[i].Type = ArgType.Num;
+                agColorNames[i].Type = Num;
             }
 
             // objects
             agResObj[0].DefaultName = agResObj[0].Name = "ego";
-            agResObj[0].Type = ArgType.SObj;
+            agResObj[0].Type = SObj;
             agResObj[0].Value = "o0";
 
             // strings
             agResStr[0].DefaultName = agResStr[0].Name = "inputPrompt";
-            agResStr[0].Type = ArgType.Str;
+            agResStr[0].Type = Str;
             agResStr[0].Value = "s0";
 
             // game specific
             agGameInfo[0].DefaultName = agGameInfo[0].Name = "gameID";
-            agGameInfo[0].Type = ArgType.DefStr;
+            agGameInfo[0].Type = DefStr;
             agGameInfo[0].Value = "<<gameid>>";
             agGameInfo[1].DefaultName = agGameInfo[1].Name = "gameVersionMsg";
-            agGameInfo[1].Type = ArgType.DefStr;
+            agGameInfo[1].Type = DefStr;
             agGameInfo[1].Value = "<<game version msg>>";
             agGameInfo[2].DefaultName = agGameInfo[2].Name = "gameAboutMsg";
-            agGameInfo[2].Type = ArgType.DefStr;
+            agGameInfo[2].Type = DefStr;
             agGameInfo[2].Value = "<<game about msg>>";
             agGameInfo[3].DefaultName = agGameInfo[3].Name = "numberOfItems";
-            agGameInfo[3].Type = ArgType.Num;
+            agGameInfo[3].Type = Num;
             agGameInfo[3].Value = "<<invobj_count>>";
         }
 
@@ -797,7 +796,7 @@ namespace WinAGI.Engine {
                     parent.InvObjects.Unload();
                 }
                 for (int i = 0; i < agGameInfo.Length; i++) {
-                    if (agGameInfo[i].Type == ArgType.DefStr) {
+                    if (agGameInfo[i].Type == DefStr) {
                         resList.Add("#define " + agGameInfo[i].Name.PadRight(17) + '"' + agGameInfo[i].Value + '"');
                     }
                     else {
@@ -806,8 +805,8 @@ namespace WinAGI.Engine {
                 }
                 // save defines file
                 try {
-                    using FileStream fsList = new FileStream(filename, FileMode.Create);
-                    using StreamWriter swList = new StreamWriter(fsList);
+                    using FileStream fsList = new(filename, FileMode.Create);
+                    using StreamWriter swList = new(fsList);
                     foreach (string line in resList) {
                         swList.WriteLine(line);
                     }

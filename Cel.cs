@@ -12,7 +12,7 @@ namespace WinAGI.Engine {
     /// </summary>
     [Serializable]
     public class Cel {
-        #region Local Members
+        #region Fields
         internal byte mWidth;
         internal byte mHeight;
         internal AGIColorIndex mTransColor;
@@ -413,14 +413,6 @@ namespace WinAGI.Engine {
             }
         }
 
-        /// <summary>
-        /// This method will force bitmaps to refresh. (Used when palette changes
-        /// (or any other reason that needs the cel to be refreshed.)
-        /// </summary>
-        public void ResetBMP() {
-            celBMPSet = false;
-        }
-
         private void BuildBMPs() {
             int i, j;
             byte[] mCelBData;
@@ -499,33 +491,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// This method flips the cel data in this cel horizontally.
-        /// </summary>
-        internal void FlipCel() {
-            // this method is needed specifically to support loop changes
-            // when a mirrored pair has its secondary (the loop with the
-            // negative mirror pair) either deleted, unmirrored, or set to
-            // another mirror, the cels original configuration stays correct;
-            // BUT if the primary loop is deleted, unmirrored, or set to
-            // another mirror, then the cels need to be flipped so the
-            // remaining secondary cel will get the data in the correct
-            // orientation
-            int i, j;
-            byte[,] tmpCelData = new byte[mWidth, mHeight];
-            for (i = 0; i < mWidth; i++) {
-                for (j = 0; j < mHeight; j++) {
-                    tmpCelData[mWidth - 1 - i, j] = mCelData[i, j];
-                }
-            }
-            mCelChanged = true;
-            if (parentview is not null) {
-                // mark it as uncompiled
-                parentview.mViewChanged = true;
-            }
-            mCelData = tmpCelData;
-        }
-
-        /// <summary>
         /// This method resets this cel to a single pixel, with color set to
         /// default transparent color (black).
         /// </summary>
@@ -553,7 +518,8 @@ namespace WinAGI.Engine {
         internal void SetMirror(bool value) {
             mSetMirror = value;
         }
-        private byte[,] CloneCelData(byte[,] source) {
+
+        private static byte[,] CloneCelData(byte[,] source) {
             int width = source.GetLength(0);
             int height = source.GetLength(1);
             byte[,] clone = new byte[width, height];

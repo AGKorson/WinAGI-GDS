@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using WinAGI.Engine;
+using static WinAGI.Editor.frmPicEdit;
 using static WinAGI.Engine.Base;
 
 // The Common namespace contains classes and member that are used by both
@@ -144,7 +145,7 @@ namespace WinAGI.Common {
         }
         #endregion
 
-        #region Local Members
+        #region Fields
         public static readonly string NEWLINE = Environment.NewLine;
         internal static uint[] CRC32Table = new uint[256];
         public static readonly char[] INVALID_DEFINE_CHARS;
@@ -191,7 +192,7 @@ namespace WinAGI.Common {
         /// <returns></returns>
         public static bool IsValidFilename(string checkname) {
             // check for illegal file characters
-            return checkname.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) == -1;
+            return checkname.IndexOfAny(Path.GetInvalidFileNameChars()) == -1;
         }
 
         /// <summary>
@@ -623,9 +624,8 @@ namespace WinAGI.Common {
             bool installed = false;
             const float emSize = 8.0f;
             try {
-                using (var testFont = new Font(fontName, emSize, style)) {
-                    installed = (0 == string.Compare(fontName, testFont.Name, StringComparison.InvariantCultureIgnoreCase));
-                }
+                using var testFont = new Font(fontName, emSize, style);
+                installed = string.Compare(fontName, testFont.Name, StringComparison.InvariantCultureIgnoreCase) == 0;
             }
             catch {
             }
@@ -633,7 +633,7 @@ namespace WinAGI.Common {
         }
 
         public static bool FontIsMonospace(FontFamily testfontfamily) {
-            Font testfont = new Font(testfontfamily, 10, FontStyle.Regular);
+            Font testfont = new(testfontfamily, 10, FontStyle.Regular);
             return FontIsMonospace(testfont);
         }
 
@@ -935,6 +935,8 @@ namespace WinAGI.Common {
         public static string Left(this string text, int length) {
             if (length >= text.Length)
                 return text;
+            else if (length <= 0)
+                return "";
             else
                 return text[..length];
         }
@@ -949,6 +951,8 @@ namespace WinAGI.Common {
         public static string Right(this string text, int length) {
             if (length >= text.Length)
                 return text;
+            else if (length <= 0)
+                return "";
             else
                 return text[^length..];
         }
@@ -1062,19 +1066,19 @@ namespace WinAGI.Common {
         }
 
         public static bool IsEven(this int input) {
-            return (input % 2 == 0);
+            return input % 2 == 0;
         }
 
         public static bool IsOdd(this int input) {
-            return (input % 2 != 0);
+            return input % 2 != 0;
         }
 
         public static bool IsEven(this byte input) {
-            return (input % 2 == 0);
+            return input % 2 == 0;
         }
 
         public static bool IsOdd(this byte input) {
-            return (input % 2 != 0);
+            return input % 2 != 0;
         }
 
         /// <summary>
@@ -1102,7 +1106,7 @@ namespace WinAGI.Common {
         /// <param name="y"></param>
         /// <returns></returns>
         public static Rectangle Expand(this Rectangle rect, int x, int y) {
-            Point p = new Point(x, y);
+            Point p = new(x, y);
             if (rect.Width < 0 || rect.Height < 0) {
                 // initial point
                 rect.Location = new(x, y);
@@ -1145,6 +1149,35 @@ namespace WinAGI.Common {
         /// <returns></returns>
         public static string Text(this List<string> list, string separator) {
             return string.Join(separator, list);
+        }
+
+        /// <summary>
+        /// Converts the color value of the specified color to a comma delimited
+        /// string of its rgb components as hex values.
+        /// </summary>
+        /// <param name="aColor"></param>
+        /// <returns></returns>
+        public static string ColorText(this Color aColor) {
+            // Converts a color into a useful string value for storing in configuration files.
+            return "0x" + aColor.R.ToString("x2") + ", 0x" + aColor.G.ToString("x2") + ", 0x" + aColor.B.ToString("x2");
+        }
+
+        public static string CommandName(this DrawFunction drawfunction) {
+            return drawfunction switch {
+                DrawFunction.EnableVis => "Vis: ON",    // Change picture color and enable picture draw.
+                DrawFunction.DisableVis => "Vis: OFF",   // Disable picture draw.
+                DrawFunction.EnablePri => "Pri: ON",    // Change priority color and enable priority draw.
+                DrawFunction.DisablePri => "Pri: OFF",   // Disable priority draw.
+                DrawFunction.YCorner => "Y Corner",      // Draw a Y corner.
+                DrawFunction.XCorner => "X Corner",      // Draw an X corner.
+                DrawFunction.AbsLine => "Line",      // Absolute line (long lines).
+                DrawFunction.RelLine => "Short Line",      // Relative line (short lines).
+                DrawFunction.Fill => "Fill",         // Fill.
+                DrawFunction.ChangePen => "Set Plot Pen",    // Change pen size and style.
+                DrawFunction.PlotPen => "Plot",      // Plot with pen.
+                DrawFunction.End => "End",           // end of drawing
+                _ => "undefined"
+            };
         }
     }
 }

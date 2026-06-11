@@ -13,12 +13,11 @@ namespace WinAGI.Editor {
         public static DialogResult Show(Form owner, string Prompt, string Title,
             MessageBoxButtons Buttons, MessageBoxIcon Icon, string CheckString,
             ref bool Checked, string HelpFile, string HelpTopic) {
-            DialogResult dlgResult = DialogResult.None;
-            using (frmDialog msgboxex = new frmDialog(owner, Prompt, Title, Buttons, Icon, CheckString, ref Checked, HelpFile, HelpTopic)) {
-                dlgResult = msgboxex.ShowDialog();
+            using (frmDialog msgboxex = new(owner, Prompt, Title, Buttons, Icon, CheckString, ref Checked, HelpFile, HelpTopic)) {
+                DialogResult dlgResult = msgboxex.ShowDialog();
                 Checked = msgboxex.Check1.Checked;
+                return dlgResult;
             }
-            return dlgResult;
         }
 
         /// <summary>

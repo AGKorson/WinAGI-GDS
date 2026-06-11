@@ -6,7 +6,7 @@ namespace WinAGI.Engine {
     /// </summary>
     /// [Serializable]
     public class Note {
-        #region Members
+        #region Fields
         internal int mFreqDiv;
         internal int mDuration;
         internal byte mAttenuation;
@@ -112,7 +112,6 @@ namespace WinAGI.Engine {
                 mSndParent?.NoteChanged();
             }
         }
-
         #endregion
 
         #region Methods

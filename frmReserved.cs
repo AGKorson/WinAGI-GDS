@@ -12,21 +12,16 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmReserved : Form {
-        Font defaultfont, boldfont;
-        ReservedDefineList EditList;
-        private char[] invalidall, invalid1st;
-        private string s_invalidall, s_invalid1st;
+        #region Fields
+        private Font defaultfont, boldfont;
+        private ReservedDefineList EditList;
+        #endregion
 
         #region Constructors
         public frmReserved() {
             InitializeComponent();
             // only fan syntax uses the reserved names editor
             Debug.Assert(EditGame is null || !EditGame.SierraSyntax);
-
-            invalid1st = INVALID_FIRST_CHARS;
-            invalidall = INVALID_DEFINE_CHARS;
-            s_invalid1st = new string(invalid1st);
-            s_invalidall = new string(invalidall);
         }
         #endregion
 
@@ -118,7 +113,7 @@ namespace WinAGI.Editor {
                                 FindText = EditList.ByGroup(group)[index].Name;
                                 replacetext = (string)reservedgrid[0, i].Value;
                                 if (FindText != replacetext) {
-                                    pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + Regex.Escape(FindText) + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
+                                    pattern = $@"(?<=^|[\n\r" + s_INVALID_FIRST_CHARS + "])" + Regex.Escape(FindText) + $@"(?=[" + s_INVALID_DEFINE_CHARS + $@"\n\r]|$)";
                                     MatchCollection mc = Regex.Matches(loged.fctb.Text, pattern);
                                     if (mc.Count > 0) {
                                         ProgressWin.lblProgress.Text = "Updating editor for " + loged.EditLogic.ID;
@@ -184,7 +179,7 @@ namespace WinAGI.Editor {
                                     logic.Load();
                                 }
                                 // this pattern ensures only whole tokens are found
-                                pattern = $@"(?<=^|[\n\r" + s_invalid1st + "])" + Regex.Escape(FindText) + $@"(?=[" + s_invalidall + $@"\n\r]|$)";
+                                pattern = $@"(?<=^|[\n\r" + s_INVALID_FIRST_CHARS + "])" + Regex.Escape(FindText) + $@"(?=[" + s_INVALID_DEFINE_CHARS + $@"\n\r]|$)";
                                 MatchCollection mc = Regex.Matches(logic.SourceText, pattern);
                                 if (mc.Count > 0) {
                                     ProgressWin.lblProgress.Text = "Updating source code for " + logic.ID;
@@ -300,7 +295,7 @@ namespace WinAGI.Editor {
                 }
                 // basic checks
                 bool sierrasyntax = EditGame is not null && EditGame.SierraSyntax;
-                DefineNameCheck retval = Common.Base.BaseNameCheck(checkname, sierrasyntax);
+                DefineNameCheck retval = BaseNameCheck(checkname, sierrasyntax);
                 switch (retval) {
                 case DefineNameCheck.OK:
                     break;
@@ -322,17 +317,17 @@ namespace WinAGI.Editor {
                 case DefineNameCheck.BadChar:
                     string bad1st = "", badchars = "";
                     // build list of the bad chars in the name
-                    for (int i = 0; i < invalid1st.Length; i++) {
-                        if (invalid1st[i] == checkname[0]) {
-                            bad1st = invalid1st[i].ToString();
+                    for (int i = 0; i < INVALID_FIRST_CHARS.Length; i++) {
+                        if (INVALID_FIRST_CHARS[i] == checkname[0]) {
+                            bad1st = INVALID_FIRST_CHARS[i].ToString();
                             break;
                         }
                     }
-                    for (int i = 0; i < invalidall.Length; i++) {
+                    for (int i = 0; i < INVALID_DEFINE_CHARS.Length; i++) {
                         for (int j = 1; j < checkname.Length; j++) {
-                            if (invalidall[i] == checkname[j]) {
-                                if (!badchars.Contains(invalidall[i])) {
-                                    badchars += invalidall[i].ToString();
+                            if (INVALID_DEFINE_CHARS[i] == checkname[j]) {
+                                if (!badchars.Contains(INVALID_DEFINE_CHARS[i])) {
+                                    badchars += INVALID_DEFINE_CHARS[i].ToString();
                                 }
                                 break;
                             }
@@ -345,7 +340,7 @@ namespace WinAGI.Editor {
                         if (message.Length > 0) {
                             message += "\n\n";
                         }
-                        message += "One or more invalid characters in this define ({badchars}).";
+                        message += @"One or more invalid characters in this define ({badchars}).";
                     }
                     if (message.Length == 0) {
                         message = "One or more invalid characters in this define (<= 32 or > 127)";
@@ -667,12 +662,6 @@ namespace WinAGI.Editor {
             reservedgrid[0, 1].Selected = true;
             btnReset.Enabled = modified;
         }
-
-        /*
-public void MenuClickHelp() {
-  Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, "htm\\winagi\\reservednames.htm#editor");
-}
-        */
         #endregion
     }
 }

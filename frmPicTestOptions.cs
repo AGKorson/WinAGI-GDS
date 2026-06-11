@@ -5,10 +5,13 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmPicTestOptions : Form {
-        private int LoopCount;
-        private int[] CelCount;
+        #region Fields
+        private readonly int LoopCount;
+        private readonly int[] CelCount;
         public PicTestInfo TestInfo;
+        #endregion
 
+        #region Constructors
         public frmPicTestOptions(Engine.View testview, PicTestInfo testinfo) {
             InitializeComponent();
             LoopCount = testview.Loops.Count;
@@ -54,6 +57,7 @@ namespace WinAGI.Editor {
             chkCycleAtRest.Checked = testinfo.CycleAtRest.Value;
             chkCycleAtRest.Enabled = testinfo.TestCel == -1;
         }
+        #endregion
 
         #region Event Handlers
         private void frmPicTestOptions_HelpRequested(object sender, HelpEventArgs hlpevent) {
@@ -122,6 +126,7 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Methods
+        // none
         #endregion
     }
 }

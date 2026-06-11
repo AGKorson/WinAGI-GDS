@@ -17,32 +17,41 @@ using static WinAGI.Editor.WinAGIFCTB;
 namespace WinAGI.Editor {
     public partial class frmMenuEdit : Form {
 
+        #region Structs
         struct MenuData {
             public string Controller = "";
             public string Condition = "";
             public MenuData() {
             }
         }
+        #endregion
 
-        #region Members
+        #region Fields
         internal bool IsChanged;
         internal int PicScale;
         private readonly Bitmap chargrid;
         private readonly Bitmap invchargrid;
         private int BkgdPicNum = -1;
         internal int MenuLogic = -1;
-        private string[] strMessages = new string[256];
+        private readonly string[] messages = new string[256];
+        private readonly List<KeyValuePair<string, string>> defines = [];
         private bool gotMsgs = false;
         internal bool Canceled = false;
         private int clickMenu, clickItem;
-        private DataGridViewCell captionLabel, captionValue, ctrlLabel, ctrlValue, condLabel, condValue;
-        private DataGridViewCellStyle defaultStyle, highlightStyle;
+        private readonly DataGridViewCell captionLabel;
+        private readonly DataGridViewCell captionValue;
+        private readonly DataGridViewCell ctrlLabel;
+        private readonly DataGridViewCell ctrlValue;
+        private readonly DataGridViewCell condLabel;
+        private readonly DataGridViewCell condValue;
+        private readonly DataGridViewCellStyle defaultStyle;
+        private readonly DataGridViewCellStyle highlightStyle;
         private TextBox EditTextBox = null;
         private bool EditingCaption = false;
         private bool WideScreen = EditGame is not null && EditGame.PowerPack;
         private int MaxW = EditGame is not null && EditGame.PowerPack ? 80 : 40;
         private int CharW = EditGame is not null && EditGame.PowerPack ? 4 : 8;
-        private int CodePage = EditGame is not null && EditGame.PowerPack ? EditGame.CodePage : 437;
+        private readonly int CodePage = EditGame is not null && EditGame.PowerPack ? EditGame.CodePage : 437;
         // ToolStrip Items
         internal ToolStripStatusLabel spStatus;
         internal ToolStripStatusLabel spCapsLock;
@@ -50,6 +59,7 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spInsLock;
         #endregion
 
+        #region Constructors
         public frmMenuEdit(int logicnum) {
             InitializeComponent();
             InitToolStrip();
@@ -131,6 +141,7 @@ namespace WinAGI.Editor {
             tvwMenu.SelectedNode = tvwMenu.Nodes[0];
             tvwMenu.ExpandAll();
         }
+        #endregion
 
         #region Event Handlers
         #region Form Events
@@ -622,21 +633,15 @@ namespace WinAGI.Editor {
             if (dgProps.CurrentCell.RowIndex != 0) {
                 return;
             }
-            frmCharPicker CharPicker;
-            if (EditGame is not null) {
-                CharPicker = new(EditGame.CodePage);
-            }
-            else {
-                CharPicker = new(WinAGISettings.DefCP.Value);
-            }
-            CharPicker.ShowDialog(MDIMain);
-            if (!CharPicker.Cancel) {
-                if (CharPicker.InsertString.Length > 0) {
-                    EditTextBox.SelectedText = CharPicker.InsertString;
+            using (frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
+                CharPicker.ShowDialog(MDIMain);
+                if (CharPicker.DialogResult == DialogResult.OK) {
+                    if (CharPicker.InsertString.Length > 0) {
+                        EditTextBox.SelectedText = CharPicker.InsertString;
+                    }
                 }
             }
-            CharPicker.Close();
-            CharPicker.Dispose();
         }
 
         private void mnuCelSelectAll_Click(object sender, EventArgs e) {
@@ -1118,9 +1123,9 @@ namespace WinAGI.Editor {
                 // add new menu to beginning of source (skipping any comments or blank lines)
                 menuPos = 0;
                 submitPos = 0;
-                AGIToken next = new();
+                AGIToken next;
                 do {
-                    next = WinAGIFCTB.NextToken(menulogic.SourceText, submitPos, true);
+                    next = NextToken(menulogic.SourceText, submitPos, true);
                     if (next.Type != AGITokenType.LineBreak && next.Type != AGITokenType.Comment) {
                         break;
                     }
@@ -1246,7 +1251,7 @@ namespace WinAGI.Editor {
             DefaultMenu();
         }
 
-        private bool ExtractMenu(string source, bool silent = false) {
+        private bool ExtractMenu(string source) {
             int menuPos = 0, submitPos = 0;
             bool counterr = false;
 
@@ -1255,7 +1260,8 @@ namespace WinAGI.Editor {
             if (!HasMenu(source, ref menuPos, ref submitPos)) {
                 return false;
             }
-            string caption = "", controller = "";
+
+            string caption = "";
             string condition = "", menuCondition = "", itemCondition = "";
             TreeNode tmpNode = null;
 
@@ -1292,14 +1298,15 @@ namespace WinAGI.Editor {
                         if (token.Text == "(") {
                             token = NextToken(source, token);
                         }
-                        // if token is string, should be menu text;
-                        // if identifier, should be msg declaration or variable
+                        // get menu text from this token
                         if (token.Type == AGITokenType.String || token.Type == AGITokenType.Identifier) {
+                            caption = token.Text;
                             if (token.Type == AGITokenType.Identifier) {
                                 caption = GetMsgText(caption, source);
                             }
-                            Debug.Assert(token.Text.Length >= 2);
-                            caption = token.Text[1..^1];
+                            if (caption[0] == '\"') {
+                                caption = caption[1..^1];
+                            }
                         }
                         if (caption.Length > 0) {
                             // add menu to tree
@@ -1318,19 +1325,22 @@ namespace WinAGI.Editor {
                         if (token.Text == "(") {
                             token = NextToken(source, token);
                         }
-                        // get menu item text from next token
+                        // get menu item text from this token
                         if (token.Type == AGITokenType.String || token.Type == AGITokenType.Identifier) {
+                            caption = token.Text;
                             if (token.Type == AGITokenType.Identifier) {
                                 caption = GetMsgText(token.Text, source);
                             }
-                            caption = token.Text[1..^1];
+                            if (caption[0] == '\"') {
+                                caption = token.Text[1..^1];
+                            }
                         }
                         token = NextToken(source, token);
                         // skip comma
                         if (token.Text == ",") {
                             token = NextToken(source, token);
                         }
-                        controller = "";
+                        string controller = "";
                         // controller is next; should be an identifier
                         if (token.Type == AGITokenType.Identifier) {
                             controller = token.Text;
@@ -1368,16 +1378,10 @@ namespace WinAGI.Editor {
                                 }
                                 if (parenCount > 0) {
                                     if (token.Type == AGITokenType.Symbol) {
-                                        switch (token.Text) {
-                                        case "(":
-                                        case ")":
-                                        case "!":
-                                            condition += token.Text;
-                                            break;
-                                        default:
-                                            condition += " " + token.Text + " ";
-                                            break;
-                                        }
+                                        condition += token.Text switch {
+                                            "(" or ")" or "!" => token.Text,
+                                            _ => " " + token.Text + " ",
+                                        };
                                     }
                                     else {
                                         condition += token.Text;
@@ -1432,8 +1436,8 @@ namespace WinAGI.Editor {
                                 }
                                 msgText = msgText.Right(msgText.Length - 8).Trim();
                                 // find next space to strip off the number
-                                pos = msgText.IndexOf(" ");
-                                if (pos == 0) {
+                                pos = msgText.IndexOf(' ');
+                                if (pos == -1) {
                                     break;
                                 }
                                 msgNum = msgText.Left(pos).IntVal();
@@ -1458,7 +1462,7 @@ namespace WinAGI.Editor {
                                     }
                                 }
                                 msgText = msgText[1..^1];
-                                strMessages[msgNum] = msgText;
+                                messages[msgNum] = msgText;
                             } while (false);
                         }
                     }
@@ -1467,17 +1471,12 @@ namespace WinAGI.Editor {
                 gotMsgs = true;
             }
             // if a msg variable
-            if (msgID.Length == 0) {
-                return "";
-            }
             if (msgID[0] == 'm') {
                 msgNum = msgID[1..].IntVal();
                 if (msgNum > 0 && msgNum <= 255) {
-                    return strMessages[msgNum];
+                        return messages[msgNum];
                 }
             }
-            // if not a msg variable check for local variable definition
-            // TBD...
 
             // if not a local variable, check globals (if a game is loaded)
             string retval = msgID;
@@ -1489,8 +1488,8 @@ namespace WinAGI.Editor {
                 return retval;
             }
             else {
-                // no match found; return empty string
-                return "";
+                // no match found; return original msgID
+                return msgID;
             }
         }
 
@@ -1556,7 +1555,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private string PadItem(string ItemText, int MaxLen) {
+        private static string PadItem(string ItemText, int MaxLen) {
             // if itemtext has a shortcut key definition at the end (e.g., <Ctrl X>)
             // insert spaces so shortcut remains right-aligned;
             // if no shortcut key, just add spaces to end
@@ -1570,7 +1569,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void SplitMenuItem(string ItemText, out string MenuText, out string HotKeyText) {
+        private static void SplitMenuItem(string ItemText, out string MenuText, out string HotKeyText) {
             // splits a menu item into its menu text and its shortcut key text
             // if no shortcut key text, HotKeyText is empty
             // look for last '<' character
@@ -1725,7 +1724,7 @@ namespace WinAGI.Editor {
             try {
                 using StreamReader sr = new(new FileStream(Path.Combine(AppDataDir, "default_menu.txt"), FileMode.Open, FileAccess.Read));
                 // extract menu; return success if extract works
-                return ExtractMenu(sr.ReadToEnd(), true);
+                return ExtractMenu(sr.ReadToEnd());
             }
             catch {
                 return false;
@@ -1760,13 +1759,14 @@ namespace WinAGI.Editor {
             }
 
             // choose a picture for background
-            frmGetResourceNum frm = new(GetRes.MenuBkgd, AGIResType.Picture);
-            if (BkgdPicNum != -1) {
-                frm.OldResNum = (byte)BkgdPicNum;
-            }
-            if (frm.ShowDialog() == DialogResult.OK) {
-                BkgdPicNum = frm.NewResNum;
-                return true;
+            using (frmGetResourceNum frm = new(GetRes.MenuBkgd, AGIResType.Picture)) {
+                if (BkgdPicNum != -1) {
+                    frm.OldResNum = (byte)BkgdPicNum;
+                }
+                if (frm.ShowDialog() == DialogResult.OK) {
+                    BkgdPicNum = frm.NewResNum;
+                    return true;
+                }
             }
             return false;
         }

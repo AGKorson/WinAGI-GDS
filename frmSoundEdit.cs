@@ -34,19 +34,18 @@ namespace WinAGI.Editor {
 
         #region Constants
         private const float TICK_WIDTH = 5.625F; // width of a tick, in pixels, at scale of 1 (60 ticks per second)
-        private const int SE_MARGIN = 5; // in pixels
         private const int MinNoiseKeyWidth = 40;
         #endregion
 
-        #region Members
+        #region Fields
         public int SoundNumber;
         public Sound EditSound;
         internal bool InGame;
         internal bool IsChanged;
         private SelectablePictureBox[] picStaff = new SelectablePictureBox[4];
-        private VScrollBar[] vsbStaff = new VScrollBar[4];
-        private Button[] btnMute = new Button[4];
-        private ToolTip defaultNoteTip = new();
+        private readonly VScrollBar[] vsbStaff = new VScrollBar[4];
+        private readonly Button[] btnMute = new Button[4];
+        private readonly ToolTip defaultNoteTip = new();
         private Font staffFont;
         internal MidiNotePlayer midiNotePlayer = new();
         internal WavNotePlayer wavNotePlayer = new();
@@ -57,13 +56,13 @@ namespace WinAGI.Editor {
 
         private SoundPlaybackMode PlaybackMode;
         internal EGAColors EditPalette = DefaultPalette.Clone();
-        private Stack<SoundUndo> UndoCol = [];
+        private readonly Stack<SoundUndo> UndoCol = [];
 
         // variables for managing staves
         private int StaffCount; // number of staves that are visible
         private int SOHorz;
-        private int[] SOVert = new int[4];
-        private int[] oldstaffH = new int[4];
+        private readonly int[] SOVert = new int[4];
+        private readonly int[] oldstaffH = new int[4];
         private bool OneTrack, KeyboardVisible, KeyboardSound;
         private bool ShowNotes;
         // default note properties
@@ -90,6 +89,7 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spStatus;
         #endregion
 
+        #region Constructors
         public frmSoundEdit() {
             InitializeComponent();
             InitStatusStrip();
@@ -131,8 +131,10 @@ namespace WinAGI.Editor {
             // initialize midi keyboard player
             midiNotePlayer.InitMidi();
         }
+        #endregion
 
-        #region Form Event Handlers
+        #region Event Handlers
+        #region Form Events
         protected override void OnClipboardChanged() {
             base.OnClipboardChanged();
             tsbPaste.Enabled = CanPaste(SelectedTrack);
@@ -215,9 +217,8 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Menu Event Handlers
+        #region Menu Events
         internal void SetResourceMenu() {
-
             mnuRSave.Enabled = IsChanged;
             MDIMain.mnuRSep2.Visible = true;
             MDIMain.mnuRSep3.Visible = true;
@@ -306,7 +307,11 @@ namespace WinAGI.Editor {
         }
 
         private void mnuPCSpeaker_Click(object sender, EventArgs e) {
-            MessageBox.Show("PC Speaker playback is not yet implemented.", "Not Implemented", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(MDIMain,
+                "PC Speaker playback is not yet implemented.",
+                "Not Implemented",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
         }
 
         private void mnuPCjr_Click(object sender, EventArgs e) {
@@ -349,7 +354,7 @@ namespace WinAGI.Editor {
             // set edit menu items based on current selection
             mnuUndo.Enabled = UndoCol.Count > 0;
             if (mnuUndo.Enabled) {
-                mnuUndo.Text = "Undo " + Editor.Base.EditorResourceByNum(SNDUNDOTEXT + (int)UndoCol.Peek().UDAction);
+                mnuUndo.Text = "Undo " + EditorResourceByNum(SNDUNDOTEXT + (int)UndoCol.Peek().UDAction);
             }
             else {
                 mnuUndo.Text = "Undo";
@@ -547,7 +552,7 @@ namespace WinAGI.Editor {
 
                 // add notes from clipboard
                 SoundClipboardData soundCBData = Clipboard.GetData(SOUND_CB_FMT) as SoundClipboardData;
-                Notes AddNoteCol = new Notes();
+                Notes AddNoteCol = [];
                 for (int i = 0; i < soundCBData.Notes.Count; i++) {
                     AddNoteCol.Add(soundCBData.Notes[i].FreqDivisor, soundCBData.Notes[i].Duration, soundCBData.Notes[i].Attenuation);
                 }
@@ -599,10 +604,11 @@ namespace WinAGI.Editor {
                 // clear all notes form selected track
                 if (SelectedTrack >= 0 && EditSound[SelectedTrack].Notes.Count > 0) {
                     // add undo item
-                    NextUndo = new SoundUndo();
-                    NextUndo.UDAction = ClearTrack;
-                    NextUndo.UDTrack = SelectedTrack;
-                    NextUndo.UDNotes = EditSound[SelectedTrack].Notes;
+                    NextUndo = new SoundUndo {
+                        UDAction = ClearTrack,
+                        UDTrack = SelectedTrack,
+                        UDNotes = EditSound[SelectedTrack].Notes
+                    };
                     AddUndo(NextUndo);
                     // clear track
                     EditSound[SelectedTrack].Notes.Clear();
@@ -689,7 +695,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region ToolStrip Event Handlers
+        #region ToolStrip Events
         public void ConfigureToolbar() {
             // cut, copy enabled if notes are selected
             tsbCut.Enabled = (SelectedTrack != -1 && SelStart >= 0 && SelLength > 0);
@@ -722,7 +728,6 @@ namespace WinAGI.Editor {
             }
         }
 
-
         private void tsbZoomIn_Click(object sender, EventArgs e) {
             ZoomScale(1);
         }
@@ -732,7 +737,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Control Event Handlers
+        #region Control Events
         private void splitContainer1_MouseUp(object sender, MouseEventArgs e) {
             tvwSound.Select();
         }
@@ -752,7 +757,6 @@ namespace WinAGI.Editor {
         }
 
         private void tvwSound_KeyDown(object sender, KeyEventArgs e) {
-
             // backspace is treated as 'delete previous' instead of 
             // moving the selection
             if (e.KeyValue == (int)Keys.Back) {
@@ -823,7 +827,6 @@ namespace WinAGI.Editor {
         }
 
         private void tvwSound_MouseUp(object sender, MouseEventArgs e) {
-
             if (tvwSound.SelectedNodes.Count > 1) {
                 // update selection
                 SelectNote(tvwSound.SelectedNodes[0].Parent.Index, tvwSound.SelectedNodes[0].Index, tvwSound.SelectedNode.Index, tvwSound.SelectedNodes.Count, false);
@@ -889,13 +892,11 @@ namespace WinAGI.Editor {
         }
 
         private void picStaff_KeyDown(object sender, KeyEventArgs e) {
-            int index = (int)((SelectablePictureBox)sender).Tag;
-
             switch (e.Modifiers) {
             case Keys.None:
                 // no shift, ctrl, alt
                 switch (e.KeyCode) {
-                case Keys.Left:// or Keys.Up:
+                case Keys.Left:
                     // if there is an active selection or cursor is not at start,
                     if (SelectedTrack != -1 && (SelStart > 0 || SelLength > 0)) {
                         // if just a cursor
@@ -916,7 +917,7 @@ namespace WinAGI.Editor {
                     e.SuppressKeyPress = true;
                     e.Handled = true;
                     break;
-                case Keys.Right:// or Keys.Down:
+                case Keys.Right:
                     // if there is an active selection or cursor is not at end,
                     if (SelectedTrack != -1 && (SelStart < EditSound[SelectedTrack].Notes.Count || SelLength > 0)) {
                         if (SelLength == 0) {
@@ -959,7 +960,7 @@ namespace WinAGI.Editor {
                     return;
                 }
                 switch (e.KeyCode) {
-                case Keys.Left:// or Keys.Up:
+                case Keys.Left:
                     // selection is expanded to left, or collapsed on the right,
                     // depending on where current position is relative to the anchor
 
@@ -983,7 +984,7 @@ namespace WinAGI.Editor {
                     e.SuppressKeyPress = true;
                     e.Handled = true;
                     break;
-                case Keys.Right:// or Keys.Down:
+                case Keys.Right:
                     // selection is expanded to right, or collapsed on the left,
                     // depending on where current position is relative to the anchor
                     if (SelAnchor == SelStart) {
@@ -1016,7 +1017,8 @@ namespace WinAGI.Editor {
             int keyval = e.KeyChar;
 
             switch (keyval) {
-            case 8: // Keys.Back
+            case 8:
+                // Keys.Back
                 e.Handled = true;
                 break;
             case 45:
@@ -1153,7 +1155,6 @@ namespace WinAGI.Editor {
         }
 
         private void picStaff_KeyUp(object sender, KeyEventArgs e) {
-            int index = (int)((SelectablePictureBox)sender).Tag;
             if (IsNoteOn) {
                 NoteOff();
             }
@@ -1273,7 +1274,6 @@ namespace WinAGI.Editor {
         }
 
         private void picStaff_MouseLeave(object sender, EventArgs e) {
-            int index = (int)((SelectablePictureBox)sender).Tag;
             spTime.Text = "Pos: --"; // reset time marker
         }
 
@@ -1346,8 +1346,9 @@ namespace WinAGI.Editor {
         }
 
         private void picStaff_Paint(object sender, PaintEventArgs e) {
-            if (Disposing)
+            if (Disposing) {
                 return;
+            }
             int index = (int)((SelectablePictureBox)sender).Tag;
 
             // to support inverting, need to use backbuffering
@@ -1473,9 +1474,6 @@ namespace WinAGI.Editor {
                 break;
             default:
                 // tone track
-                // note number is 1/2 key width
-                // adjusted for offset, and one half key width
-                // so keys are read correctly
                 int NoteNum = (e.X + 6) / 12 + (MKbOffset - 40) * 2;
                 // new octave every 14 keys (adjusted so it changes at each C note)
                 int Octave = NoteNum / 14 + 3;
@@ -1735,6 +1733,7 @@ namespace WinAGI.Editor {
             SetFocus();
         }
         #endregion
+        #endregion
 
         #region Methods
         private void SetFocus() {
@@ -1758,7 +1757,7 @@ namespace WinAGI.Editor {
             spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spScale.BorderStyle = Border3DStyle.SunkenInner;
             spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(70, 18);
+            spScale.Size = new Size(70, 18);
             spScale.Text = "";
             // 
             // spTime
@@ -1767,7 +1766,7 @@ namespace WinAGI.Editor {
             spTime.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spTime.BorderStyle = Border3DStyle.SunkenInner;
             spTime.Name = "spTime";
-            spTime.Size = new System.Drawing.Size(140, 18);
+            spTime.Size = new Size(140, 18);
             spTime.Text = "Pos: --";
         }
 
@@ -2069,7 +2068,7 @@ namespace WinAGI.Editor {
             for (int i = 0; i < 4; i++) {
                 // add this track's notes
                 for (int j = 0; j < EditSound[i].Notes.Count; j++) {
-                    TreeNode tmpNode = tvwSound.Nodes[0].Nodes[i].Nodes.Insert(j, "Note " + j);
+                    tvwSound.Nodes[0].Nodes[i].Nodes.Insert(j, "Note " + j);
                 }
             }
             tvwSound.Nodes[0].Text = EditSound.ID;
@@ -2332,7 +2331,6 @@ namespace WinAGI.Editor {
         }
 
         internal void DrawMusicStaff(Graphics gs, int track) {
-            SolidBrush brush = new(Color.Black);
             Pen pen = new(Color.Black);
             int x1, x2, y1, y2;
             int tpqn = EditSound.TPQN;
@@ -2403,7 +2401,7 @@ namespace WinAGI.Editor {
             }
 
             // clear clef area (adjust by two for offset, then one more for linewidth)
-            brush = new(Color.White);
+            SolidBrush brush = new(Color.White);
             gs.FillRectangle(brush, 0, 0, KeyWidth - 3, picStaff[track].Height);
             // redraw the staff lines
             x1 = 0;
@@ -2416,7 +2414,6 @@ namespace WinAGI.Editor {
             }
 
             // draw time marks at whole note intervals
-            Font cleffont = new(staffFont.FontFamily, 5f * StaffScale, FontStyle.Regular);
             brush = new(Color.Black);
             y1 = 132 * StaffScale + SOVert[track];
             for (int i = 0; i <= length; i++) {
@@ -2526,14 +2523,14 @@ namespace WinAGI.Editor {
             }
 
             if (SelectedTrack == track) {
-                Pen borderpen = new(Color.Blue);
-                borderpen.Width = 3;
+                Pen borderpen = new(Color.Blue) {
+                    Width = 3
+                };
                 gs.DrawRectangle(borderpen, 1, 1, picStaff[track].ClientSize.Width - vsbStaff[track].Width - 3, picStaff[track].ClientSize.Height - 3);
             }
         }
 
         public void DrawNoiseStaff(Graphics gs) {
-            SolidBrush brush = new(Color.Black);
             Pen pen = new(Color.Black);
             int x1, x2, y1, y2;
             int tpqn = EditSound.TPQN;
@@ -2589,7 +2586,7 @@ namespace WinAGI.Editor {
             }
 
             // clear clef area
-            brush = new(Color.White);
+            SolidBrush brush = new(Color.White);
             gs.FillRectangle(brush, new(0, 0, KeyWidth - 3, picStaff[3].Height));
             // redraw the staff lines
             brush = new(Color.Black);
@@ -2629,20 +2626,14 @@ namespace WinAGI.Editor {
             gs.DrawString("Track 2", cleffont, brush, x1, y1);
 
             if (SelectedTrack == 3) {
-                Pen borderpen = new(Color.Blue);
-                borderpen.Width = 3;
+                Pen borderpen = new(Color.Blue) {
+                    Width = 3
+                };
                 gs.DrawRectangle(borderpen, 1, 1, picStaff[3].ClientSize.Width - vsbStaff[3].Width - 3, picStaff[3].ClientSize.Height - 3);
             }
         }
 
         private void DrawMusicNote(Graphics gs, int track, int HPos, int noteIndex, int length, int attenuation) {
-            // draws note on staff;
-            // track identifies which note to draw
-            // HPos is horizontal position where note will be drawn
-            // length is duration of note in AGI ticks
-            // attenuation is volume attenuation; 0 means full sound; 15 means silence
-
-            bool flipnote = false;
             int noteTop, nPos;
             int dPos, aPos;
             int tPos, bPos;
@@ -2670,6 +2661,13 @@ namespace WinAGI.Editor {
                 y1 = y2 = 126 * StaffScale + SOVert[track];
                 gs.DrawLine(linepen, x1, y1, x2, y2);
             }
+            // draws note on staff;
+            // track identifies which note to draw
+            // HPos is horizontal position where note will be drawn
+            // length is duration of note in AGI ticks
+            // attenuation is volume attenuation; 0 means full sound; 15 means silence
+
+            bool flipnote;
             // based on note position, determine if it should be drawn rightside up or upside down
             // noteTop is vertical offset on the Notes bitmap to the correctly oriented note
             // nPos is the absolute position on picScale where the bitmap needs to be placed
@@ -3505,7 +3503,7 @@ namespace WinAGI.Editor {
             spTime.Text = "Pos: " + time.ToString("F2") + " sec";
         }
 
-        private DisplayNote DisplayNote(int MIDINote, int Key) {
+        private static DisplayNote DisplayNote(int MIDINote, int Key) {
             // returns a note position, relative to middle c
             // as either a positive or negative Value (negative meaning higher tone)
             // 
@@ -3517,7 +3515,7 @@ namespace WinAGI.Editor {
             DisplayNote retval = new();
 
             if (MIDINote < 0 || MIDINote > 127) {
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(MIDINote));
             }
 
             // get octave and note Value
@@ -4019,14 +4017,14 @@ namespace WinAGI.Editor {
 
         private void DrawDefaultNote() {
             // draw default notelength
-            Font font = new(this.Font.FontFamily, 12f, FontStyle.Regular);
+            Font font = new(Font.FontFamily, 12f, FontStyle.Regular);
             SolidBrush brush = new(Color.Black);
             Pen pen = new(Color.Black);
 
             picDuration.Image = new Bitmap(picDuration.Width, picDuration.Height);
             Graphics g = Graphics.FromImage(picDuration.Image);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+            g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
 
             // add volume control icon
             g.DrawImage(EditorResources.esi_muteoff, 11, 0, 13, 18);
@@ -4293,9 +4291,10 @@ namespace WinAGI.Editor {
 
         public void SetSoundKey(int newkey, bool DontUndo = false) {
             if (!DontUndo) {
-                SoundUndo NextUndo = new();
-                NextUndo.UDAction = ChangeKey;
-                NextUndo.UDData = EditSound.Key;
+                SoundUndo NextUndo = new() {
+                    UDAction = ChangeKey,
+                    UDData = EditSound.Key
+                };
                 AddUndo(NextUndo);
             }
             EditSound.Key = newkey;
@@ -4313,9 +4312,10 @@ namespace WinAGI.Editor {
 
         public void SetSoundTPQN(int newtpqn, bool DontUndo = false) {
             if (!DontUndo) {
-                SoundUndo NextUndo = new();
-                NextUndo.UDAction = ChangeTPQN;
-                NextUndo.UDData = EditSound.TPQN;
+                SoundUndo NextUndo = new() {
+                    UDAction = ChangeTPQN,
+                    UDData = EditSound.TPQN
+                };
                 AddUndo(NextUndo);
             }
             EditSound.TPQN = newtpqn;
@@ -4353,10 +4353,11 @@ namespace WinAGI.Editor {
 
         public void SetTrackInstrument(int track, byte newinst, bool DontUndo = false) {
             if (!DontUndo) {
-                SoundUndo NextUndo = new();
-                NextUndo.UDAction = ChangeInstrument;
-                NextUndo.UDTrack = track;
-                NextUndo.UDData = EditSound[track].Instrument;
+                SoundUndo NextUndo = new() {
+                    UDAction = ChangeInstrument,
+                    UDTrack = track,
+                    UDData = EditSound[track].Instrument
+                };
                 AddUndo(NextUndo);
             }
             EditSound[track].Instrument = newinst;
@@ -4365,11 +4366,12 @@ namespace WinAGI.Editor {
 
         public void SetNoteFreqDivisor(int track, int note, int newfreqdiv, bool DontUndo = false) {
             if (!DontUndo) {
-                SoundUndo NextUndo = new();
-                NextUndo.UDAction = EditNoteFreqDiv;
-                NextUndo.UDTrack = track;
-                NextUndo.UDStart = note;
-                NextUndo.UDData = EditSound[track].Notes[note].FreqDivisor;
+                SoundUndo NextUndo = new() {
+                    UDAction = EditNoteFreqDiv,
+                    UDTrack = track,
+                    UDStart = note,
+                    UDData = EditSound[track].Notes[note].FreqDivisor
+                };
                 AddUndo(NextUndo);
             }
             EditSound[track].Notes[note].FreqDivisor = newfreqdiv;
@@ -4385,11 +4387,12 @@ namespace WinAGI.Editor {
 
         public void SetNoteDuration(int track, int notepos, int newdur, bool DontUndo = false) {
             if (!DontUndo) {
-                SoundUndo NextUndo = new();
-                NextUndo.UDAction = EditNoteDuration;
-                NextUndo.UDTrack = track;
-                NextUndo.UDStart = notepos;
-                NextUndo.UDData = EditSound[track].Notes[notepos].Duration;
+                SoundUndo NextUndo = new() {
+                    UDAction = EditNoteDuration,
+                    UDTrack = track,
+                    UDStart = notepos,
+                    UDData = EditSound[track].Notes[notepos].Duration
+                };
                 AddUndo(NextUndo);
             }
             EditSound[track].Notes[notepos].Duration = newdur;
@@ -4405,11 +4408,12 @@ namespace WinAGI.Editor {
 
         public void SetNoteAttenuation(int track, int note, byte newattn, bool DontUndo = false) {
             if (!DontUndo) {
-                SoundUndo NextUndo = new();
-                NextUndo.UDAction = EditNoteAttenuation;
-                NextUndo.UDTrack = track;
-                NextUndo.UDStart = note;
-                NextUndo.UDData = EditSound[track].Notes[note].Attenuation;
+                SoundUndo NextUndo = new() {
+                    UDAction = EditNoteAttenuation,
+                    UDTrack = track,
+                    UDStart = note,
+                    UDData = EditSound[track].Notes[note].Attenuation
+                };
                 AddUndo(NextUndo);
             }
             EditSound[track].Notes[note].Attenuation = newattn;
@@ -4555,23 +4559,19 @@ namespace WinAGI.Editor {
         private void AddNotes(int AddTrack, int InsertPos, Notes AddedNotes, bool SelectAll, bool DontUndo = false) {
             // adds notes to a track at a given position
 
-            SoundUndo NextUndo = null;
-
             if (!DontUndo) {
                 // save undo information
-                NextUndo = new();
-                NextUndo.UDAction = Paste;
-                NextUndo.UDTrack = AddTrack;
-                NextUndo.UDStart = InsertPos;
-                NextUndo.UDLength = AddedNotes.Count;
+                SoundUndo NextUndo = new() {
+                    UDAction = Paste,
+                    UDTrack = AddTrack,
+                    UDStart = InsertPos,
+                    UDLength = AddedNotes.Count
+                };
                 AddUndo(NextUndo);
             }
 
             // reference track node
             TreeNodeCollection tmpNodes = tvwSound.Nodes[0].Nodes[AddTrack].Nodes;
-
-            // get number of notes currently in this track
-            int count = EditSound[AddTrack].Notes.Count;
 
             for (int i = 0; i < AddedNotes.Count; i++) {
                 // insert note at this position
@@ -4623,12 +4623,13 @@ namespace WinAGI.Editor {
             Notes DelNotes = null;
             // if not skipping undo
             if (!DontUndo) {
-                NextUndo = new();
-                NextUndo.UDAction = Delete;
-                NextUndo.UDTrack = DelTrack;
-                NextUndo.UDStart = DelPos;
-                NextUndo.UDLength = DelCount;
-                DelNotes = new();
+                NextUndo = new() {
+                    UDAction = Delete,
+                    UDTrack = DelTrack,
+                    UDStart = DelPos,
+                    UDLength = DelCount
+                };
+                DelNotes = [];
             }
 
             // delete the selected notes
@@ -4673,10 +4674,9 @@ namespace WinAGI.Editor {
             Clipboard.SetDataObject(cbData, true);
         }
 
-        private bool CanPaste(int pastetrack) {
+        private static bool CanPaste(int pastetrack) {
             if (pastetrack != -1 && Clipboard.ContainsData(SOUND_CB_FMT)) {
-                SoundClipboardData soundCBData = Clipboard.GetData(SOUND_CB_FMT) as SoundClipboardData;
-                if (soundCBData is null) {
+                if (Clipboard.GetData(SOUND_CB_FMT) is not SoundClipboardData soundCBData) {
                     return false;
                 }
                 if (pastetrack == 3) {
@@ -4698,12 +4698,13 @@ namespace WinAGI.Editor {
                 return;
             }
             // set undo object
-            SoundUndo NextUndo = new();
-            NextUndo.UDAction = ShiftTone;
-            NextUndo.UDTrack = track;
-            NextUndo.UDStart = startnote;
-            NextUndo.UDLength = length;
-            NextUndo.UDNotes = [];
+            SoundUndo NextUndo = new() {
+                UDAction = ShiftTone,
+                UDTrack = track,
+                UDStart = startnote,
+                UDLength = length,
+                UDNotes = []
+            };
             // step through notes
             for (int i = 0; i < length; i++) {
                 // save old note (only freq divisor is needed)
@@ -4772,12 +4773,13 @@ namespace WinAGI.Editor {
             }
 
             // set undo object
-            SoundUndo NextUndo = new();
-            NextUndo.UDAction = ShiftVol;
-            NextUndo.UDTrack = track;
-            NextUndo.UDStart = startnote;
-            NextUndo.UDLength = length;
-            NextUndo.UDNotes = [];
+            SoundUndo NextUndo = new() {
+                UDAction = ShiftVol,
+                UDTrack = track,
+                UDStart = startnote,
+                UDLength = length,
+                UDNotes = []
+            };
 
             // step through notes
             for (int i = 0; i < length; i++) {
@@ -4821,11 +4823,12 @@ namespace WinAGI.Editor {
             if (midiLen <= 1 && Dir == -1) {
                 return;
             }
-            SoundUndo NextUndo = new();
-            NextUndo.UDAction = EditNoteDuration;
-            NextUndo.UDTrack = track;
-            NextUndo.UDStart = notepos;
-            NextUndo.UDData = EditSound[track][notepos].Duration;
+            SoundUndo NextUndo = new() {
+                UDAction = EditNoteDuration,
+                UDTrack = track,
+                UDStart = notepos,
+                UDData = EditSound[track][notepos].Duration
+            };
             // make change
             EditSound[SelectedTrack][SelStart].Duration = (midiLen + Dir) * EditSound.TPQN / 4;
             // add undo
@@ -4930,7 +4933,7 @@ namespace WinAGI.Editor {
                     EditGame.Sounds[SoundNumber].Unload();
                 }
                 // refresh warnings
-                MDIMain.ClearWarnings(AGIResType.Sound, SoundNumber);
+                MDIMain.ClearInfoGrid(AGIResType.Sound, SoundNumber);
                 RefreshTree(AGIResType.Sound, SoundNumber);
                 if (WinAGISettings.AutoExport.Value) {
                     EditSound.Export(Path.Combine(EditGame.SrcResDir, EditSound.ID + ".ags"));
@@ -5038,21 +5041,22 @@ namespace WinAGI.Editor {
                 else {
                     id = "";
                 }
-                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Sound, id);
-                if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                    SoundNumber = frmGetNum.NewResNum;
-                    // change id before adding to game
-                    EditSound.ID = frmGetNum.txtID.Text;
-                    AddNewSound((byte)SoundNumber, EditSound);
-                    EditGame.Sounds[SoundNumber].Load();
-                    // copy the sound back (to ensure internal variables are copied)
-                    EditSound.CloneFrom(EditGame.Sounds[SoundNumber]);
-                    // now we can unload the newly added sound;
-                    EditGame.Sounds[SoundNumber].Unload();
-                    InGame = true;
-                    MarkAsSaved();
-                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                    MDIMain.btnAddRemove.Text = "Remove Sound";
+                using (frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Sound, id)) {
+                    if (frmGetNum.ShowDialog(MDIMain) == DialogResult.OK) {
+                        SoundNumber = frmGetNum.NewResNum;
+                        // change id before adding to game
+                        EditSound.ID = frmGetNum.txtID.Text;
+                        AddNewSound((byte)SoundNumber, EditSound);
+                        EditGame.Sounds[SoundNumber].Load();
+                        // copy the sound back (to ensure internal variables are copied)
+                        EditSound.CloneFrom(EditGame.Sounds[SoundNumber]);
+                        // now we can unload the newly added sound;
+                        EditGame.Sounds[SoundNumber].Unload();
+                        InGame = true;
+                        MarkAsSaved();
+                        MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
+                        MDIMain.btnAddRemove.Text = "Remove Sound";
+                    }
                 }
             }
         }
@@ -5062,7 +5066,6 @@ namespace WinAGI.Editor {
                 return;
             }
             string oldid = EditSound.ID;
-            int oldnum = SoundNumber;
             byte NewResNum = GetNewNumber(AGIResType.Sound, (byte)SoundNumber);
             if (NewResNum != SoundNumber) {
                 // update ID (it may have changed if using default ID)
@@ -5098,7 +5101,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        internal void ShowHelp() {
+        internal static void ShowHelp() {
             string topic = "htm\\winagi\\editor_sound.htm";
             Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
         }
@@ -5176,23 +5179,51 @@ namespace WinAGI.Editor {
     }
 
     public class SoundEditSound {
-        private frmSoundEdit parent;
-        private Sound sound;
+        #region Enums
+        public enum KeySignature {
+            CFlatMajor,
+            GFlatMajor,
+            DFlatMajor,
+            AFlatMajor,
+            EFlatMajor,
+            BFlatMajor,
+            FMajor,
+            CMajor,
+            GMajor,
+            DMajor,
+            AMajor,
+            EMajor,
+            BMajor,
+            FSharpMajor,
+            CSharpMajor
+        }
+        #endregion
 
+        #region Fields
+        private readonly frmSoundEdit parent;
+        private readonly Sound sound;
+        #endregion
+
+        #region Constructors
         public SoundEditSound(frmSoundEdit parent) {
             this.parent = parent;
-            this.sound = parent.EditSound;
+            sound = parent.EditSound;
         }
+        #endregion
+
+        #region Properties
         public string ID {
             get {
                 return sound.ID;
             }
         }
+        
         public string Description {
             get {
                 return sound.Description;
             }
         }
+        
         [TypeConverter(typeof(KeySignatureConverter))]
         public KeySignature Key {
             get {
@@ -5204,6 +5235,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        
         public int TPQN {
             get {
                 return sound.TPQN;
@@ -5222,36 +5254,23 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        
         public double Length {
             get {
                 return Math.Round(sound.Length, 2);
             }
         }
-        public enum KeySignature {
-            CFlatMajor,
-            GFlatMajor,
-            DFlatMajor,
-            AFlatMajor,
-            EFlatMajor,
-            BFlatMajor,
-            FMajor,
-            CMajor,
-            GMajor,
-            DMajor,
-            AMajor,
-            EMajor,
-            BMajor,
-            FSharpMajor,
-            CSharpMajor
-        }
+        #endregion
+
+        #region Converters
         public class KeySignatureConverter : EnumConverter {
-            private static readonly string[] CustomNames = new[]
-            {
+            private static readonly string[] CustomNames =
+            [
                 "Cb Major", "Gb Major", "Db Major", "Ab Major",
                 "Eb Major", "Bb Major", "F Major", "C Major",
                 "G Major", "D Major", "A Major", "E Major",
                 "B Major", "F# Major", "C# Major"
-            };
+            ];
 
             public KeySignatureConverter() : base(typeof(KeySignature)) { }
 
@@ -5278,53 +5297,11 @@ namespace WinAGI.Editor {
                 return new StandardValuesCollection(Enum.GetValues(typeof(KeySignature)));
             }
         }
+        #endregion
     }
 
     public class SoundEditMTrack {
-        frmSoundEdit parent;
-        Track track;
-        int index;
-        public SoundEditMTrack(frmSoundEdit parent, int track, int index) {
-            this.parent = parent;
-            this.track = parent.EditSound[track];
-            this.index = index;
-        }
-        [TypeConverter(typeof(InstrumentsConverter))]
-        public Instruments Instrument {
-            get {
-                return (Instruments)track.Instrument;
-            }
-            set {
-                if ((int)value < 0) {
-                    value = (Instruments)0;
-                }
-                if ((int)value > 127) {
-                    value = (Instruments)127;
-                }
-                parent.SetTrackInstrument(index, (byte)value);
-            }
-        }
-        public bool Muted {
-            get {
-                return track.Muted;
-            }
-            set {
-                parent.SetTrackMute(index, value);
-            }
-        }
-        public bool Visible {
-            get {
-                return track.Visible;
-            }
-            set {
-                parent.SetTrackVisibility(index, value);
-            }
-        }
-        public int NoteCount {
-            get {
-                return track.Notes.Count;
-            }
-        }
+        #region Enums
         public enum Instruments {
             _0, _1, _2, _3, _4, _5, _6, _7, _8, _9,
             _10, _11, _12, _13, _14, _15, _16, _17, _18, _19,
@@ -5340,6 +5317,65 @@ namespace WinAGI.Editor {
             _110, _111, _112, _113, _114, _115, _116, _117, _118, _119,
             _120, _121, _122, _123, _124, _125, _126, _127,
         }
+        #endregion
+
+        #region Fields
+        frmSoundEdit parent;
+        private readonly Track track;
+        private readonly int index;
+        #endregion
+
+        #region Constructors
+        public SoundEditMTrack(frmSoundEdit parent, int track, int index) {
+            this.parent = parent;
+            this.track = parent.EditSound[track];
+            this.index = index;
+        }
+        #endregion
+
+        #region Properties
+        [TypeConverter(typeof(InstrumentsConverter))]
+        public Instruments Instrument {
+            get {
+                return (Instruments)track.Instrument;
+            }
+            set {
+                if ((int)value < 0) {
+                    value = 0;
+                }
+                if ((int)value > 127) {
+                    value = (Instruments)127;
+                }
+                parent.SetTrackInstrument(index, (byte)value);
+            }
+        }
+        
+        public bool Muted {
+            get {
+                return track.Muted;
+            }
+            set {
+                parent.SetTrackMute(index, value);
+            }
+        }
+        
+        public bool Visible {
+            get {
+                return track.Visible;
+            }
+            set {
+                parent.SetTrackVisibility(index, value);
+            }
+        }
+        
+        public int NoteCount {
+            get {
+                return track.Notes.Count;
+            }
+        }
+        #endregion
+
+        #region Converters
         public class InstrumentsConverter : EnumConverter {
             public static readonly string[] CustomNames =
             [
@@ -5498,15 +5534,23 @@ namespace WinAGI.Editor {
                 return new StandardValuesCollection(Enum.GetValues(typeof(Instruments)));
             }
         }
+        #endregion
     }
 
     public class SoundEditNTrack {
-        frmSoundEdit parent;
-        Track track;
+        #region Fields
+        private readonly frmSoundEdit parent;
+        private readonly Track track;
+        #endregion
+
+        #region Constructors
         public SoundEditNTrack(frmSoundEdit parent) {
             this.parent = parent;
-            this.track = parent.EditSound[3];
+            track = parent.EditSound[3];
         }
+        #endregion
+
+        #region Properties
         public bool Muted {
             get {
                 return track.Muted;
@@ -5515,6 +5559,7 @@ namespace WinAGI.Editor {
                 parent.SetTrackMute(3, value);
             }
         }
+        
         public bool Visible {
             get {
                 return track.Visible;
@@ -5523,24 +5568,81 @@ namespace WinAGI.Editor {
                 parent.SetTrackVisibility(3, value);
             }
         }
+        
         public int NoteCount {
             get {
                 return track.Notes.Count;
             }
         }
+        #endregion
     }
 
     public class SoundEditMNote {
-        frmSoundEdit parent;
-        int track;
-        int noteindex;
-        Note note;
+        #region Enums
+        public enum EMidiNote {
+            C,
+            CsDf,
+            D,
+            DsEf,
+            E,
+            F,
+            FsGf,
+            G,
+            GsAf,
+            A,
+            AsBf,
+            B,
+        }
+
+        public enum EMidiOctave {
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+        }
+        
+        public enum EMidiLength {
+            _1,
+            _2,
+            _3,
+            _4,
+            _5,
+            _6,
+            _7,
+            _8,
+            _9,
+            _10,
+            _11,
+            _12,
+            _13,
+            _14,
+            _15,
+            _16,
+            undefined,
+        }
+        #endregion
+
+        #region Fields
+        private readonly frmSoundEdit parent;
+        private readonly int track;
+        private readonly int noteindex;
+        private readonly Note note;
+        #endregion
+
+        #region Constructors
         public SoundEditMNote(frmSoundEdit parent, int track, int note) {
             this.parent = parent;
             this.track = track;
             noteindex = note;
             this.note = parent.EditSound[track].Notes[note];
         }
+        #endregion
+
+        #region Properties
         public int FreqDiv {
             get {
                 return note.FreqDivisor;
@@ -5557,6 +5659,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        
         public int Duration {
             get {
                 return note.Duration;
@@ -5604,6 +5707,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        
         [TypeConverter(typeof(MidiOctaveConverter))]
         public EMidiOctave MidiOctave {
             get {
@@ -5616,6 +5720,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        
         [TypeConverter(typeof(MidiLengthConverter))]
         public EMidiLength MidiLength {
             get {
@@ -5631,27 +5736,16 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        public enum EMidiNote {
-            C,
-            CsDf,
-            D,
-            DsEf,
-            E,
-            F,
-            FsGf,
-            G,
-            GsAf,
-            A,
-            AsBf,
-            B,
-        }
+        #endregion
+
+        #region Converters
         public class MidiNoteConverter : EnumConverter {
-            private static readonly string[] CustomNames = new[]
-            {
+            private static readonly string[] CustomNames =
+            [
                 "C", "C#/Db", "D", "D#/Eb",
                 "E", "F", "F#/Gb", "G",
                 "G#/Ab", "A", "A#/Bb", "B"
-            };
+            ];
 
             public MidiNoteConverter() : base(typeof(EMidiNote)) { }
 
@@ -5698,23 +5792,16 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        public enum EMidiOctave {
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-        }
+
         public class MidiOctaveConverter : EnumConverter {
             private static readonly string[] CustomNames =
             [
                 "3", "4", "5", "6",
                 "7", "8", "9", "10",
             ];
+
             public MidiOctaveConverter() : base(typeof(EMidiOctave)) { }
+            
             public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
                 if (destinationType == typeof(string) && value is EMidiOctave octave) {
                     int index = (int)octave;
@@ -5724,6 +5811,7 @@ namespace WinAGI.Editor {
                 }
                 return base.ConvertTo(context, culture, value, destinationType);
             }
+
             public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value) {
                 if (value is string s) {
                     int idx = Array.IndexOf(CustomNames, s);
@@ -5732,6 +5820,7 @@ namespace WinAGI.Editor {
                 }
                 return base.ConvertFrom(context, culture, value);
             }
+            
             public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context) {
                 // add octaves based on current note
                 frmSoundEdit frm = (MDIMain.ActiveMdiChild as frmSoundEdit);
@@ -5752,25 +5841,6 @@ namespace WinAGI.Editor {
                 }
                 return new StandardValuesCollection(Enum.GetValues(typeof(EMidiOctave)));
             }
-        }
-        public enum EMidiLength {
-            _1,
-            _2,
-            _3,
-            _4,
-            _5,
-            _6,
-            _7,
-            _8,
-            _9,
-            _10,
-            _11,
-            _12,
-            _13,
-            _14,
-            _15,
-            _16,
-            undefined,
         }
         public class MidiLengthConverter : EnumConverter {
             public static readonly string[] CustomNames =
@@ -5811,17 +5881,40 @@ namespace WinAGI.Editor {
                 return new StandardValuesCollection(values);
             }
         }
+        #endregion
     }
 
     public class SoundEditNNote {
-        frmSoundEdit parent;
-        int noteindex;
-        Note note;
+        #region Enums
+        public enum NoiseType {
+            Periodic,
+            WhiteNoise,
+        }
+
+        [TypeConverter(typeof(NoiseFrequencyConverter))]
+        public enum NoiseFrequency {
+            _2330Hz,
+            _1165Hz,
+            _583Hz,
+            Track2,
+        }
+        #endregion
+
+        #region Fields
+        private readonly frmSoundEdit parent;
+        private readonly int noteindex;
+        private readonly Note note;
+        #endregion
+
+        #region Constructors
         public SoundEditNNote(frmSoundEdit parent, int note) {
             this.parent = parent;
             this.note = parent.EditSound[3].Notes[note];
-            this.noteindex = note;
+            noteindex = note;
         }
+        #endregion
+
+        #region Properties
         public NoiseType Type {
             get {
                 return (note.FreqDivisor & 4) == 4 ? NoiseType.WhiteNoise : NoiseType.Periodic;
@@ -5839,6 +5932,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        
         public NoiseFrequency Frequency {
             get {
                 return (NoiseFrequency)(note.FreqDivisor & 3);
@@ -5851,6 +5945,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        
         public int Duration {
             get {
                 return note.Duration;
@@ -5867,6 +5962,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        
         public byte Attenuation {
             get {
                 return note.Attenuation;
@@ -5883,17 +5979,9 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        public enum NoiseType {
-            Periodic,
-            WhiteNoise,
-        }
-        [TypeConverter(typeof(NoiseFrequencyConverter))]
-        public enum NoiseFrequency {
-            _2330Hz,
-            _1165Hz,
-            _583Hz,
-            Track2,
-        }
+        #endregion
+
+        #region Converters
         public class NoiseFrequencyConverter : EnumConverter {
             private static readonly string[] CustomNames =
             ["2330 Hz", "1165 Hz", "583 Hz", "Track 2"];
@@ -5923,5 +6011,6 @@ namespace WinAGI.Editor {
                 return new StandardValuesCollection(Enum.GetValues(typeof(NoiseFrequency)));
             }
         }
+        #endregion
     }
 }

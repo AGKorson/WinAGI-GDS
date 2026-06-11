@@ -70,7 +70,7 @@ namespace WinAGI.Editor {
         private const int MAXCELS = 254;
         #endregion
 
-        #region Members
+        #region Fields
         public int ViewNumber;
         public Engine.View EditView;
         private readonly TreeNode ViewNode;
@@ -129,6 +129,7 @@ namespace WinAGI.Editor {
 
         #endregion
 
+        #region Constructors
         public frmViewEdit() {
             InitializeComponent();
             Application.AddMessageFilter(this);
@@ -216,8 +217,10 @@ namespace WinAGI.Editor {
             // setup the status bar
             InitStatusStrip();
         }
+        #endregion
 
-        #region Form Event Handlers
+        #region Event Handlers
+        #region Form Events
         protected override void OnClipboardChanged() {
             base.OnClipboardChanged();
             switch (ViewMode) {
@@ -254,7 +257,7 @@ namespace WinAGI.Editor {
             // and handle it manually
             const int WM_MOUSEWHEEL = 0x020A;
             if (m.Msg == WM_MOUSEWHEEL) {
-                if (Control.FromHandle(m.HWnd) is Control control) {
+                if (FromHandle(m.HWnd) is Control control) {
                     if (control == picCel) {
                         int fwKeys = (int)m.WParam & 0xffff;
                         int zDelta = (int)((int)m.WParam & 0xffff0000) >> 16;
@@ -398,7 +401,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Menu Event Handlers
+        #region Menu Events
         internal void SetResourceMenu() {
             mnuRSave.Enabled = IsChanged;
             MDIMain.mnuRSep2.Visible = true;
@@ -411,7 +414,7 @@ namespace WinAGI.Editor {
                 mnuRInGame.Text = "Add View to Game";
                 mnuRRenumber.Enabled = false;
                 // mnuRProperties no change
-                mnuRExportLoopGIF.Enabled = true; // = loop or cel selected
+                mnuRExportLoopGIF.Enabled = true;
             }
             else {
                 // if a game is loaded, base import is also always available
@@ -421,7 +424,7 @@ namespace WinAGI.Editor {
                 mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
                 mnuRRenumber.Enabled = InGame;
                 // mnuRProperties no change
-                mnuRExportLoopGIF.Enabled = true; // = loop or cel selected
+                mnuRExportLoopGIF.Enabled = true;
             }
         }
 
@@ -1364,9 +1367,10 @@ namespace WinAGI.Editor {
             case ViewEditMode.View:
                 // reset view to a single loop with a single cel
                 // with height and width of one with black transcolor
-                ViewUndo NextUndo = new();
-                NextUndo.Action = ClearView;
-                NextUndo.View = EditView.Clone();
+                ViewUndo NextUndo = new() {
+                    Action = ClearView,
+                    View = EditView.Clone()
+                };
                 AddUndo(NextUndo);
                 EditView.Clear();
                 UpdateTree();
@@ -1424,9 +1428,10 @@ namespace WinAGI.Editor {
             switch (ViewMode) {
             case ViewEditMode.Loop:
                 // flip all cels in the loop
-                ViewUndo NextUndo = new();
-                NextUndo.Action = ViewUndo.ViewUndoAction.FlipLoopH;
-                NextUndo.LoopNumber = SelectedLoop;
+                ViewUndo NextUndo = new() {
+                    Action = FlipLoopH,
+                    LoopNumber = SelectedLoop
+                };
                 AddUndo(NextUndo);
                 for (int i = 0; i < EditView[SelectedLoop].Cels.Count; i++) {
                     FlipCelH(SelectedLoop, i, true);
@@ -1453,9 +1458,10 @@ namespace WinAGI.Editor {
             switch (ViewMode) {
             case ViewEditMode.Loop:
                 // flip all cels in the loop
-                ViewUndo NextUndo = new();
-                NextUndo.Action = ViewUndo.ViewUndoAction.FlipLoopV;
-                NextUndo.LoopNumber = SelectedLoop;
+                ViewUndo NextUndo = new() {
+                    Action = FlipLoopV,
+                    LoopNumber = SelectedLoop
+                };
                 AddUndo(NextUndo);
                 for (int i = 0; i < EditView[SelectedLoop].Cels.Count; i++) {
                     FlipCelV(SelectedLoop, i, true);
@@ -1602,21 +1608,14 @@ namespace WinAGI.Editor {
         }
 
         private void mnuVDCharMap_Click(object sender, EventArgs e) {
-            frmCharPicker CharPicker;
-            if (EditGame is not null) {
-                CharPicker = new(EditGame.CodePage);
-            }
-            else {
-                CharPicker = new(WinAGISettings.DefCP.Value);
-            }
-            CharPicker.ShowDialog(MDIMain);
-            if (!CharPicker.Cancel) {
-                if (CharPicker.InsertString.Length > 0) {
-                    EditTextBox.SelectedText = CharPicker.InsertString;
+            using (frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
+                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                    if (CharPicker.InsertString.Length > 0) {
+                        EditTextBox.SelectedText = CharPicker.InsertString;
+                    }
                 }
             }
-            CharPicker.Close();
-            CharPicker.Dispose();
         }
 
         private void mnuVDSelectAll_Click(object sender, EventArgs e) {
@@ -1630,7 +1629,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region ToolStrip Event Handlers
+        #region ToolStrip Events
         private void tsbTool_DropDownOpening(object sender, EventArgs e) {
             foreach (ToolStripItem item in tsbTool.DropDownItems) {
                 if (item is ToolStripMenuItem menuItem) {
@@ -1750,7 +1749,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Control Event Handlers
+        #region Control Events
         private void tvwView_MouseDown(object sender, MouseEventArgs e) {
             // force selection to change BEFORE context menu is shown
             if (e.Button == MouseButtons.Right) {
@@ -1937,10 +1936,11 @@ namespace WinAGI.Editor {
             case ViewEditToolType.Draw:
             case ViewEditToolType.Erase:
                 // start a new draw op
-                PixelData = new();
-                PixelInfo pixel = new();
-                pixel.Location = ViewPt;
-                pixel.Value = EditView[SelectedLoop][SelectedCel][ViewPt.X, ViewPt.Y];
+                PixelData = [];
+                PixelInfo pixel = new() {
+                    Location = ViewPt,
+                    Value = EditView[SelectedLoop][SelectedCel][ViewPt.X, ViewPt.Y]
+                };
                 PixelData.Add(pixel);
                 // draw the new pixel
                 EditView[SelectedLoop][SelectedCel][ViewPt.X, ViewPt.Y] = (byte)DrawCol;
@@ -2306,7 +2306,6 @@ namespace WinAGI.Editor {
                     }
                     pnlPreview.Top = newT + toolStrip2.Bottom;
                     vsbPreview.Value = -newT;
-                    Debug.Print("drag newT: " + newT);
                 }
                 return;
             }
@@ -2322,14 +2321,14 @@ namespace WinAGI.Editor {
 
         private void preview_DoubleClick(object sender, EventArgs e) {
             // let user change background color of preview panel
-            frmPalette NewPalette = new(1);
-            if (NewPalette.ShowDialog(MDIMain) == DialogResult.OK) {
-                splitCanvas.Panel2.BackColor = NewPalette.SelColor;
-                if (TransparentPreview) {
-                    DrawTransGrid(splitCanvas.Panel2, pnlPreview.Left % 10, pnlPreview.Top % 10);
+            using (frmPalette NewPalette = new(1)) {
+                if (NewPalette.ShowDialog(MDIMain) == DialogResult.OK) {
+                    splitCanvas.Panel2.BackColor = NewPalette.SelColor;
+                    if (TransparentPreview) {
+                        DrawTransGrid(splitCanvas.Panel2, pnlPreview.Left % 10, pnlPreview.Top % 10);
+                    }
                 }
             }
-            NewPalette.Dispose();
             // force redraw of preview cel
             if (pnlPreview.Visible) {
                 DisplayCel();
@@ -2651,6 +2650,7 @@ namespace WinAGI.Editor {
             }
         }
         #endregion
+        #endregion
 
         #region Methods
         public void InitFonts() {
@@ -2671,7 +2671,7 @@ namespace WinAGI.Editor {
             spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spScale.BorderStyle = Border3DStyle.SunkenInner;
             spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(70, 18);
+            spScale.Size = new Size(70, 18);
             spScale.Text = "Scale: " + (ScaleFactor * 100) + "%";
             spScale.MouseDown += spScale_MouseDown;
             // 
@@ -2681,7 +2681,7 @@ namespace WinAGI.Editor {
             spTool.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spTool.BorderStyle = Border3DStyle.SunkenInner;
             spTool.Name = "spTool";
-            spTool.Size = new System.Drawing.Size(70, 18);
+            spTool.Size = new Size(70, 18);
             spTool.Text = SelectedTool.ToString();
             // 
             // spCurX
@@ -2690,7 +2690,7 @@ namespace WinAGI.Editor {
             spCurX.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCurX.BorderStyle = Border3DStyle.SunkenInner;
             spCurX.Name = "spCurX";
-            spCurX.Size = new System.Drawing.Size(70, 18);
+            spCurX.Size = new Size(70, 18);
             spCurX.Text = "";
             // 
             // spCurY
@@ -2699,7 +2699,7 @@ namespace WinAGI.Editor {
             spCurY.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCurY.BorderStyle = Border3DStyle.SunkenInner;
             spCurY.Name = "spCurY";
-            spCurY.Size = new System.Drawing.Size(70, 18);
+            spCurY.Size = new Size(70, 18);
             spCurY.Text = "";
         }
 
@@ -2896,7 +2896,7 @@ namespace WinAGI.Editor {
                     EditGame.Views[ViewNumber].Unload();
                 }
                 // refresh warnings
-                MDIMain.ClearWarnings(AGIResType.View, ViewNumber);
+                MDIMain.ClearInfoGrid(AGIResType.View, ViewNumber);
                 RefreshTree(AGIResType.View, ViewNumber);
                 if (WinAGISettings.AutoExport.Value) {
                     EditView.Export(Path.Combine(EditGame.SrcResDir, EditView.ID + ".agv"));
@@ -3004,21 +3004,22 @@ namespace WinAGI.Editor {
                 else {
                     id = "";
                 }
-                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.View, id);
-                if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                    ViewNumber = frmGetNum.NewResNum;
-                    // change id before adding to game
-                    EditView.ID = frmGetNum.txtID.Text;
-                    AddNewView((byte)ViewNumber, EditView);
-                    EditGame.Views[ViewNumber].Load();
-                    // copy the view back (to ensure internal variables are copied)
-                    EditView.CloneFrom(EditGame.Views[ViewNumber]);
-                    // now we can unload the newly added view;
-                    EditGame.Views[ViewNumber].Unload();
-                    InGame = true;
-                    MarkAsSaved();
-                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                    MDIMain.btnAddRemove.Text = "Remove View";
+                using (frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.View, id)) {
+                    if (frmGetNum.ShowDialog(MDIMain) == DialogResult.OK) {
+                        ViewNumber = frmGetNum.NewResNum;
+                        // change id before adding to game
+                        EditView.ID = frmGetNum.txtID.Text;
+                        AddNewView((byte)ViewNumber, EditView);
+                        EditGame.Views[ViewNumber].Load();
+                        // copy the view back (to ensure internal variables are copied)
+                        EditView.CloneFrom(EditGame.Views[ViewNumber]);
+                        // now we can unload the newly added view;
+                        EditGame.Views[ViewNumber].Unload();
+                        InGame = true;
+                        MarkAsSaved();
+                        MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
+                        MDIMain.btnAddRemove.Text = "Remove View";
+                    }
                 }
             }
         }
@@ -3028,7 +3029,6 @@ namespace WinAGI.Editor {
                 return;
             }
             string oldid = EditView.ID;
-            int oldnum = ViewNumber;
             byte NewResNum = GetNewNumber(AGIResType.View, (byte)ViewNumber);
             if (NewResNum != ViewNumber) {
                 // update ID (it may have changed if using default ID)
@@ -3680,11 +3680,12 @@ namespace WinAGI.Editor {
 
         internal void ChangeTransColor(AGIColorIndex newcolor, bool DontUndo = false) {
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = ChangeTransCol;
-                NextUndo.LoopNumber = SelectedLoop;
-                NextUndo.CelNumber = SelectedCel;
-                NextUndo.UndoData = [(byte)EditView[SelectedLoop][SelectedCel].TransColor];
+                ViewUndo NextUndo = new() {
+                    Action = ChangeTransCol,
+                    LoopNumber = SelectedLoop,
+                    CelNumber = SelectedCel,
+                    UndoData = [(byte)EditView[SelectedLoop][SelectedCel].TransColor]
+                };
                 AddUndo(NextUndo);
             }
             // change transcolor
@@ -3704,10 +3705,11 @@ namespace WinAGI.Editor {
                 return;
             }
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = Mirror;
-                NextUndo.LoopNumber = SelectedLoop;
-                NextUndo.UndoData = [EditView[SelectedLoop].MirrorLoop];
+                ViewUndo NextUndo = new() {
+                    Action = Mirror,
+                    LoopNumber = SelectedLoop,
+                    UndoData = [EditView[SelectedLoop].MirrorLoop]
+                };
 
                 if (!EditView[SelectedLoop].Mirrored) {
                     // there wasn't a mirror, and there is now so store old loop in undo
@@ -3737,19 +3739,19 @@ namespace WinAGI.Editor {
                 return;
             }
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = ChangeVDesc;
-                NextUndo.OldText = EditView.ViewDescription;
+                ViewUndo NextUndo = new() {
+                    Action = ChangeVDesc,
+                    OldText = EditView.ViewDescription
+                };
                 AddUndo(NextUndo);
             }
             EditView.ViewDescription = newtext;
             MarkAsChanged();
         }
 
-        private bool ClipboardHasLoop() {
+        private static bool ClipboardHasLoop() {
             if (Clipboard.ContainsData(VIEW_CB_FMT)) {
-                ViewClipboardData viewCBData = Clipboard.GetData(VIEW_CB_FMT) as ViewClipboardData;
-                if (viewCBData is null) {
+                if (Clipboard.GetData(VIEW_CB_FMT) is not ViewClipboardData viewCBData) {
                     return false;
                 }
                 return viewCBData.Mode == ViewClipboardMode.Loop;
@@ -3757,10 +3759,9 @@ namespace WinAGI.Editor {
             return false;
         }
 
-        private bool ClipboardHasCel() {
+        private static bool ClipboardHasCel() {
             if (Clipboard.ContainsData(VIEW_CB_FMT)) {
-                ViewClipboardData viewCBData = Clipboard.GetData(VIEW_CB_FMT) as ViewClipboardData;
-                if (viewCBData is null) {
+                if (Clipboard.GetData(VIEW_CB_FMT) is not ViewClipboardData viewCBData) {
                     return false;
                 }
                 return viewCBData.Mode == ViewClipboardMode.Cel;
@@ -3771,10 +3772,11 @@ namespace WinAGI.Editor {
         private void DeleteLoop(byte loopnum, bool DontUndo = false) {
             // delete the loop
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = DelLoop;
-                NextUndo.LoopNumber = loopnum;
-                NextUndo.UndoLoop = new();
+                ViewUndo NextUndo = new() {
+                    Action = DelLoop,
+                    LoopNumber = loopnum,
+                    UndoLoop = new()
+                };
                 if (EditView[loopnum].Mirrored) {
                     // only need the mirror loop for undo
                     NextUndo.UndoData = [EditView[loopnum].MirrorLoop];
@@ -3797,11 +3799,12 @@ namespace WinAGI.Editor {
         private void DeleteCel(byte loopnum, byte celnum, bool DontUndo = false) {
             // delete the cel
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = DelCel;
-                NextUndo.LoopNumber = loopnum;
-                NextUndo.CelNumber = celnum;
-                NextUndo.UndoCel = EditView[loopnum][celnum].Clone();
+                ViewUndo NextUndo = new() {
+                    Action = DelCel,
+                    LoopNumber = loopnum,
+                    CelNumber = celnum,
+                    UndoCel = EditView[loopnum][celnum].Clone()
+                };
                 AddUndo(NextUndo);
             }
             EditView[loopnum].Cels.Remove((byte)SelectedCel);
@@ -3837,9 +3840,10 @@ namespace WinAGI.Editor {
             EditView[insertpos].CloneFrom(insertloop);
 
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = AddLoop;
-                NextUndo.LoopNumber = insertpos;
+                ViewUndo NextUndo = new() {
+                    Action = AddLoop,
+                    LoopNumber = insertpos
+                };
                 AddUndo(NextUndo);
             }
             UpdateTree();
@@ -3852,7 +3856,7 @@ namespace WinAGI.Editor {
             AGIColorIndex newT;
 
             // rare, but check for max cel count
-            if (EditView[SelectedLoop].Cels.Count == MAXCELS) {
+            if (EditView[loopnum].Cels.Count == MAXCELS) {
                 MDIMain.MsgBoxWithHelp(
                     "Can't exceed " + MAXCELS + " cels per loop.",
                     "Can't Insert Cel",
@@ -3863,29 +3867,29 @@ namespace WinAGI.Editor {
             }
 
             if (insertcel is null) {
-                insertcel = new();
-                if (insertpos == EditView[SelectedLoop].Cels.Count) {
-                    newW = EditView[SelectedLoop][insertpos - 1].Width;
-                    newH = EditView[SelectedLoop][insertpos - 1].Height;
-                    newT = EditView[SelectedLoop][insertpos - 1].TransColor;
+                if (insertpos == EditView[loopnum].Cels.Count) {
+                    newW = EditView[loopnum][insertpos - 1].Width;
+                    newH = EditView[loopnum][insertpos - 1].Height;
+                    newT = EditView[loopnum][insertpos - 1].TransColor;
                 }
                 else {
                     newH = WinAGISettings.DefCelH.Value;
                     newW = WinAGISettings.DefCelW.Value;
                     newT = AGIColorIndex.Black;
                 }
-                EditView[SelectedLoop].Cels.Add(insertpos, newW, newH, AGIColorIndex.Black);
+                EditView[loopnum].Cels.Add(insertpos, newW, newH, newT);
             }
             else {
-                EditView[SelectedLoop].Cels.Add(insertpos);
-                EditView[SelectedLoop][insertpos].CloneFrom(insertcel);
+                EditView[loopnum].Cels.Add(insertpos);
+                EditView[loopnum][insertpos].CloneFrom(insertcel);
             }
             UpdateTree();
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = AddCel;
-                NextUndo.CelNumber = SelectedCel;
-                NextUndo.LoopNumber = SelectedLoop;
+                ViewUndo NextUndo = new() {
+                    Action = AddCel,
+                    CelNumber = SelectedCel,
+                    LoopNumber = loopnum
+                };
                 AddUndo(NextUndo);
             }
             return true;
@@ -3895,9 +3899,10 @@ namespace WinAGI.Editor {
             // deletes all cels in selected loop except one and sets
             // the remaining cel to one by one with black transcolor
 
-            ViewUndo NextUndo = new();
-            NextUndo.Action = ViewUndo.ViewUndoAction.ClearLoop;
-            NextUndo.LoopNumber = loopnum;
+            ViewUndo NextUndo = new() {
+                Action = ViewUndo.ViewUndoAction.ClearLoop,
+                LoopNumber = loopnum
+            };
             NextUndo.UndoLoop.CloneFrom(EditView[loopnum]);
             // need to know if the loop is mirrored
             NextUndo.UndoData = [EditView[loopnum].MirrorLoop];
@@ -3915,11 +3920,12 @@ namespace WinAGI.Editor {
         }
 
         private void ClearCel(int loopnum, int celnum) {
-            ViewUndo NextUndo = new();
-            NextUndo.Action = ViewUndo.ViewUndoAction.ClearCel;
-            NextUndo.LoopNumber = loopnum;
-            NextUndo.CelNumber = celnum;
-            NextUndo.UndoCel = EditView[loopnum][celnum].Clone();
+            ViewUndo NextUndo = new() {
+                Action = ViewUndo.ViewUndoAction.ClearCel,
+                LoopNumber = loopnum,
+                CelNumber = celnum,
+                UndoCel = EditView[loopnum][celnum].Clone()
+            };
             AddUndo(NextUndo);
             // clear the selected cel
             EditView[loopnum][celnum].Clear();
@@ -3971,11 +3977,12 @@ namespace WinAGI.Editor {
 
         private void FlipSelectionH(bool DontUndo = false) {
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = ViewUndo.ViewUndoAction.FlipSelectionH;
-                NextUndo.LoopNumber = SelectedLoop;
-                NextUndo.CelNumber = SelectedCel;
-                NextUndo.SelectionInfo = Selection;
+                ViewUndo NextUndo = new() {
+                    Action = ViewUndo.ViewUndoAction.FlipSelectionH,
+                    LoopNumber = SelectedLoop,
+                    CelNumber = SelectedCel,
+                    SelectionInfo = Selection
+                };
                 AddUndo(NextUndo);
             }
 
@@ -4011,11 +4018,12 @@ namespace WinAGI.Editor {
 
         private void FlipSelectionV(bool DontUndo = false) {
             if (!DontUndo) {
-                ViewUndo NextUndo = new();
-                NextUndo.Action = ViewUndo.ViewUndoAction.FlipSelectionV;
-                NextUndo.LoopNumber = SelectedLoop;
-                NextUndo.CelNumber = SelectedCel;
-                NextUndo.SelectionInfo = Selection;
+                ViewUndo NextUndo = new() {
+                    Action = ViewUndo.ViewUndoAction.FlipSelectionV,
+                    LoopNumber = SelectedLoop,
+                    CelNumber = SelectedCel,
+                    SelectionInfo = Selection
+                };
                 AddUndo(NextUndo);
             }
 
@@ -4174,12 +4182,13 @@ namespace WinAGI.Editor {
             Selection.Bounds.X = movex;
             Selection.Bounds.Y = movey;
             // save undo info
-            ViewUndo NextUndo = new();
-            NextUndo.Action = ViewUndo.ViewUndoAction.MoveSelection;
-            NextUndo.LoopNumber = SelectedLoop;
-            NextUndo.CelNumber = SelectedCel;
-            NextUndo.SelectionInfo = Selection;
-            NextUndo.UndoData = new int[2];
+            ViewUndo NextUndo = new() {
+                Action = ViewUndo.ViewUndoAction.MoveSelection,
+                LoopNumber = SelectedLoop,
+                CelNumber = SelectedCel,
+                SelectionInfo = Selection,
+                UndoData = new int[2]
+            };
             // original location
             NextUndo.UndoData[0] = AnchorPt.X;
             NextUndo.UndoData[1] = AnchorPt.Y;
@@ -4265,11 +4274,12 @@ namespace WinAGI.Editor {
         private void DeleteSelection() {
             if (SelectionVisible) {
                 // save undo data
-                ViewUndo NextUndo = new();
-                NextUndo.Action = DelSelection;
-                NextUndo.LoopNumber = SelectedLoop;
-                NextUndo.CelNumber = SelectedCel;
-                NextUndo.SelectionInfo = Selection;
+                ViewUndo NextUndo = new() {
+                    Action = DelSelection,
+                    LoopNumber = SelectedLoop,
+                    CelNumber = SelectedCel,
+                    SelectionInfo = Selection
+                };
                 AddUndo(NextUndo);
                 // delete data (put under data back in cel)
                 int startx = Selection.Bounds.X;
@@ -4354,8 +4364,6 @@ namespace WinAGI.Editor {
                     NextUndo.CelData = new byte[endpt.X - startpt.X + 1, endpt.Y - startpt.Y + 1];
                     for (int i = startpt.X; i <= endpt.X; i++) {
                         for (int j = startpt.Y; j <= endpt.Y; j++) {
-                            PixelInfo px = new();
-                            px.Location = new(i, j);
                             NextUndo.CelData[i - startpt.X, j - startpt.Y] = EditView[SelectedLoop][SelectedCel][i, j];
                             EditView[SelectedLoop][SelectedCel][i, j] = (byte)fillcolor;
                         }
@@ -4363,31 +4371,35 @@ namespace WinAGI.Editor {
                 }
                 else {
                     NextUndo.UndoData = [startpt.X, startpt.Y, endpt.X, endpt.Y];
-                    NextUndo.PixelData = new();
+                    NextUndo.PixelData = [];
                     for (int i = startpt.X; i <= endpt.X; i++) {
-                        PixelInfo px = new();
-                        px.Location = new(i, startpt.Y);
-                        px.Value = EditView[SelectedLoop][SelectedCel][i, startpt.Y];
+                        PixelInfo px = new() {
+                            Location = new(i, startpt.Y),
+                            Value = EditView[SelectedLoop][SelectedCel][i, startpt.Y]
+                        };
                         EditView[SelectedLoop][SelectedCel][i, startpt.Y] = (byte)fillcolor;
                         NextUndo.PixelData.Add(px);
                         if (startpt.Y != endpt.Y) {
-                            px = new();
-                            px.Location = new(i, endpt.Y);
-                            px.Value = EditView[SelectedLoop][SelectedCel][i, endpt.Y];
+                            px = new() {
+                                Location = new(i, endpt.Y),
+                                Value = EditView[SelectedLoop][SelectedCel][i, endpt.Y]
+                            };
                             EditView[SelectedLoop][SelectedCel][i, endpt.Y] = (byte)fillcolor;
                             NextUndo.PixelData.Add(px);
                         }
                     }
                     for (int j = startpt.Y + 1; j < endpt.Y; j++) {
-                        PixelInfo px = new();
-                        px.Location = new(startpt.X, j);
-                        px.Value = EditView[SelectedLoop][SelectedCel][startpt.X, j];
+                        PixelInfo px = new() {
+                            Location = new(startpt.X, j),
+                            Value = EditView[SelectedLoop][SelectedCel][startpt.X, j]
+                        };
                         EditView[SelectedLoop][SelectedCel][startpt.X, j] = (byte)fillcolor;
                         NextUndo.PixelData.Add(px);
                         if (startpt.X != endpt.X) {
-                            px = new();
-                            px.Location = new(endpt.X, j);
-                            px.Value = EditView[SelectedLoop][SelectedCel][endpt.X, j];
+                            px = new() {
+                                Location = new(endpt.X, j),
+                                Value = EditView[SelectedLoop][SelectedCel][endpt.X, j]
+                            };
                             EditView[SelectedLoop][SelectedCel][endpt.X, j] = (byte)fillcolor;
                             NextUndo.PixelData.Add(px);
                         }
@@ -4516,7 +4528,7 @@ namespace WinAGI.Editor {
                 if (DY < 0) {
                     DY *= -1;
                 }
-                if ((DX < 0)) {
+                if (DX < 0) {
                     DX *= -1;
                 }
                 // set up the loop, depending on which direction is largest
@@ -4546,9 +4558,10 @@ namespace WinAGI.Editor {
             }
             void DrawPixel(int x, int y) {
                 // save color
-                PixelInfo px = new();
-                px.Location = new(x, y);
-                px.Value = EditView[SelectedLoop][SelectedCel][x, y];
+                PixelInfo px = new() {
+                    Location = new(x, y),
+                    Value = EditView[SelectedLoop][SelectedCel][x, y]
+                };
                 NextUndo.PixelData.Add(px);
                 // set linecolor in celdata
                 EditView[SelectedLoop][SelectedCel][x, y] = (byte)DrawCol;
@@ -4566,11 +4579,12 @@ namespace WinAGI.Editor {
                 return;
             }
             // create undo
-            ViewUndo NextUndo = new();
-            NextUndo.Action = PaintFill;
-            NextUndo.LoopNumber = SelectedLoop;
-            NextUndo.CelNumber = SelectedCel;
-            NextUndo.PixelData = [];
+            ViewUndo NextUndo = new() {
+                Action = PaintFill,
+                LoopNumber = SelectedLoop,
+                CelNumber = SelectedCel,
+                PixelData = []
+            };
 
             // Get the dimensions of the cel
             int width = EditView[SelectedLoop][SelectedCel].Width;
@@ -4591,9 +4605,10 @@ namespace WinAGI.Editor {
                     continue;
                 }
                 // save pixel to undo
-                PixelInfo px = new();
-                px.Location = new(x, y);
-                px.Value = EditView[SelectedLoop][SelectedCel][x, y];
+                PixelInfo px = new() {
+                    Location = new(x, y),
+                    Value = EditView[SelectedLoop][SelectedCel][x, y]
+                };
                 NextUndo.PixelData.Add(px);
                 // Set the current pixel to the fill color
                 EditView[SelectedLoop][SelectedCel][x, y] = (byte)fillcolor;
@@ -4680,7 +4695,6 @@ namespace WinAGI.Editor {
                     CelFrameH = EditView[SelectedLoop][i].Height;
                 }
             }
-            Debug.Assert(CelFrameW > 0 && CelFrameH > 0);
             pnlPreview.Width = (int)(CelFrameW * 2 * PreviewScale);
             pnlPreview.Height = (int)(CelFrameH * PreviewScale);
         }
@@ -5021,33 +5035,50 @@ namespace WinAGI.Editor {
         #endregion
 
         public class ViewEditViewProperties {
-            frmViewEdit parent;
-            Engine.View view;
+            #region Fields
+            private readonly frmViewEdit parent;
+            private readonly Engine.View view;
+            #endregion
+
+            #region Constructors
             public ViewEditViewProperties(frmViewEdit parent) {
                 this.parent = parent;
                 view = parent.EditView;
             }
+            #endregion
+
+            #region Properties
             public string ID {
                 get => view.ID;
             }
+
             public string Description {
                 get => view.Description;
             }
+
             public string ViewDesc {
                 get => view.ViewDescription;
                 set {
                     parent.ChangeViewDesc(value);
                 }
             }
+            #endregion
         }
 
         public class ViewEditLoopProperties {
-            frmViewEdit parent;
-            Loop loop;
+            #region Fields
+            private readonly frmViewEdit parent;
+            private readonly Loop loop;
+            #endregion
+
+            #region Constructors
             public ViewEditLoopProperties(frmViewEdit parent, Loop loop) {
                 this.parent = parent;
                 this.loop = loop;
             }
+            #endregion
+
+            #region Properties
             public bool Mirrored {
                 get => loop.Mirrored;
             }
@@ -5073,15 +5104,23 @@ namespace WinAGI.Editor {
             public int CelCount {
                 get => loop.Cels.Count;
             }
+            #endregion
         }
 
         public class ViewEditLoop2089Properties {
-            frmViewEdit parent;
-            Loop loop;
+            #region Fields
+            private readonly frmViewEdit parent;
+            private readonly Loop loop;
+            #endregion
+
+            #region Constructors
             public ViewEditLoop2089Properties(frmViewEdit parent, Loop loop) {
                 this.parent = parent;
                 this.loop = loop;
             }
+            #endregion
+
+            #region Properties
             public bool Mirrored {
                 get => false;
             }
@@ -5095,15 +5134,23 @@ namespace WinAGI.Editor {
             public int CelCount {
                 get => loop.Cels.Count;
             }
+            #endregion
         }
 
         public class ViewEditCelProperties {
-            frmViewEdit parent;
-            Cel cel;
+            #region Fields
+            private readonly frmViewEdit parent;
+            private readonly Cel cel;
+            #endregion
+
+            #region Constructors
             public ViewEditCelProperties(frmViewEdit parent, Cel cel) {
                 this.parent = parent;
                 this.cel = cel;
             }
+            #endregion
+
+            #region Properties
             public int Width {
                 get {
                     if (parent.CurrentOperation == ViewEditOperation.ChangeBoth ||
@@ -5121,8 +5168,8 @@ namespace WinAGI.Editor {
                         parent.ChangeWidth(value);
                     }
                     else {
-                        // show error message
-                        MessageBox.Show("Width must be between 1 and 159 pixels.");
+                        // should not happen
+                        Debug.Assert(false);
                     }
                 }
             }
@@ -5144,8 +5191,8 @@ namespace WinAGI.Editor {
                         parent.ChangeHeight(value);
                     }
                     else {
-                        // show error message
-                        MessageBox.Show("Height must be between 1 and 167 pixels.");
+                        // should not happen
+                        Debug.Assert(false);
                     }
                 }
             }
@@ -5157,6 +5204,7 @@ namespace WinAGI.Editor {
                     parent.ChangeTransColor(value);
                 }
             }
+            #endregion
         }
 
         public class AGIColorIndexConverter : EnumConverter {

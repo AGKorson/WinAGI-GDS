@@ -5,9 +5,12 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmEditResourceProperties : Form {
-        int SelCtrl = 0; // 0=none; 1=ID, 2=description
+        #region Fields
+        readonly int SelCtrl = 0; // 0=none; 1=ID, 2=description
         public string NewID = "", NewDescription = "";
+        #endregion
 
+        #region Constructors
         public frmEditResourceProperties(AGIResType EWMode, byte ResNum, string OldID, string OldDescription, bool InGame, int FirstProp) {
             InitializeComponent();
 
@@ -65,9 +68,9 @@ namespace WinAGI.Editor {
                 break;
             }
         }
+        #endregion
 
         #region Event Handlers
-
         private void btnOK_Click(object sender, EventArgs e) {
             DialogResult = DialogResult.OK;
             NewID = txtID.Text;
@@ -81,11 +84,11 @@ namespace WinAGI.Editor {
         }
 
         private void txtDescription_TextChanged(object sender, EventArgs e) {
-            btnOK.Enabled = (txtID.Text.Length > 0 || !txtID.Visible);
+            btnOK.Enabled = txtID.Text.Length > 0 || !txtID.Visible;
         }
 
         private void txtID_TextChanged(object sender, EventArgs e) {
-            btnOK.Enabled = (txtID.Text.Length > 0);
+            btnOK.Enabled = txtID.Text.Length > 0;
         }
 
         private void txtID_KeyPress(object sender, KeyPressEventArgs e) {

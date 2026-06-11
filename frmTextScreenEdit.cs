@@ -20,8 +20,6 @@ using static WinAGI.Engine.Base;
 namespace WinAGI.Editor {
     public partial class frmTextScreenEdit : ClipboardMonitor {
 
-        private const int PE_MARGIN = 5;
-
         #region Enums
         private enum TSAction {
             None,
@@ -39,13 +37,14 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Structs
+        #region Constants
+        private const int PE_MARGIN = 5;
         #endregion
 
-        #region Members
+        #region Fields
         internal string FileName = "";
         internal bool IsChanged;
-        private int ScreenCodePage;
+        private readonly int ScreenCodePage;
         private int ScreenWidth, CharWidth;
         private float ScaleFactor;
         private readonly Bitmap chargrid;
@@ -85,6 +84,7 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spInsLock;
         #endregion
 
+        #region Constructors
         public frmTextScreenEdit() {
             InitializeComponent();
             InitStatusStrip();
@@ -120,6 +120,7 @@ namespace WinAGI.Editor {
             }
             Text = "Text Screen Designer";
         }
+        #endregion
 
         #region Event Handlers
         #region Form Events
@@ -217,49 +218,24 @@ namespace WinAGI.Editor {
         }
 
         private void SetEditMenu() {
-            // mnuMode
             mnuMode.Text = "Typing Mode: " + (OverwriteMode ? "Overwrite" : "Insert");
-
-            // mnuCut
             mnuCut.Enabled = Selection.Width > 0;
-
-            // mnuCopy
             mnuCopy.Enabled = Selection.Width > 0;
-
-            // mnuPaste
             mnuPaste.Enabled = Clipboard.ContainsText(TextDataFormat.UnicodeText) ||
                 Clipboard.ContainsData(TXTSCREEN_CB_FMT);
-
-            // mnuDelete
-            // no change
-
-            // mnuClear
+            // mnuDelete, no change
             mnuClear.Enabled = Selection.Width > 0;
-
-            // mnuSelectAll
-            // no changes
-
-            // mnuCopyCommands
+            // mnuSelectAll, no changes
             mnuCopyCommands.Enabled = Selection.Width > 0;
-
-            // mnuPasteCommands
-            // no changes
-
-            // mnuCharMap
-            // no changes
-
-            // mnuToggleTextMarks
+            // mnuPasteCommands, no changes
+            // mnuCharMap, no changes
             mnuToggleTextMarks.Text = (ShowTextMarks ? "Hide" : "Show") + "Text Marks";
-
-            // mnuChangeScreenSize
             if (EditGame is null || !EditGame.PowerPack) {
                 mnuChangeScreenSize.Visible = false;
             }
             else {
                 mnuChangeScreenSize.Visible = true;
             }
-
-            // mnuAddBkgd
             if (EditGame is null) {
                 mnuAddBkgd.Enabled = false;
                 mnuAddBkgd.Text = "Add Background Picture";
@@ -273,14 +249,12 @@ namespace WinAGI.Editor {
                     mnuAddBkgd.Text = "Change Background Picture";
                 }
             }
-            // mnuRemoveBkgd
             if (EditGame is null || BkgdPicture is null) {
                 mnuRemoveBkgd.Visible = false;
             }
             else {
                 mnuRemoveBkgd.Visible = true;
             }
-            // mnuPicOffset
             if (EditGame is null || BkgdPicture is null) {
                 mnuPicOffset.Visible = false;
             }
@@ -336,7 +310,7 @@ namespace WinAGI.Editor {
             }
             // try plain string
             string clipboardtext = Clipboard.GetText(TextDataFormat.UnicodeText);
-            if (clipboardtext != String.Empty) {
+            if (clipboardtext != "") {
                 // paste it
                 PasteText(clipboardtext);
             }
@@ -394,7 +368,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuChangeScreenSize_Click(object sender, EventArgs e) {
-            //swap screen size if powerpack is active
+            // swap screen size if powerpack is active
 
             if (EditGame is null || !EditGame.PowerPack) {
                 return;
@@ -437,19 +411,20 @@ namespace WinAGI.Editor {
                 return;
             }
             // choose a picture for background
-            frmGetResourceNum frm = new(GetRes.TextBkgd, AGIResType.Picture);
-            if (BkgdPicNum != -1) {
-                frm.OldResNum = (byte)BkgdPicNum;
-            }
-            if (frm.ShowDialog() == DialogResult.OK) {
-                BkgdPicNum = frm.NewResNum;
-                if (PicOffset == -1) {
-                    PicOffset = 1;
+            using (frmGetResourceNum frm = new(GetRes.TextBkgd, AGIResType.Picture)) {
+                if (BkgdPicNum != -1) {
+                    frm.OldResNum = (byte)BkgdPicNum;
                 }
-                EditGame.Pictures[BkgdPicNum].Load();
-                BkgdPicture = EditGame.Pictures[BkgdPicNum].VisualBMP;
-                EditGame.Pictures[BkgdPicNum].Unload();
-                DrawScreen();
+                if (frm.ShowDialog() == DialogResult.OK) {
+                    BkgdPicNum = frm.NewResNum;
+                    if (PicOffset == -1) {
+                        PicOffset = 1;
+                    }
+                    EditGame.Pictures[BkgdPicNum].Load();
+                    BkgdPicture = EditGame.Pictures[BkgdPicNum].VisualBMP;
+                    EditGame.Pictures[BkgdPicNum].Unload();
+                    DrawScreen();
+                }
             }
         }
 
@@ -553,7 +528,7 @@ namespace WinAGI.Editor {
                 }
             }
             Color textcolor;
-            Font font = new Font("Arial", 10, FontStyle.Bold);
+            Font font = new("Arial", 10, FontStyle.Bold);
 
             // if no selection, use default colors
             if (EditAction == TSAction.None && Selection.Width == 0) {
@@ -888,11 +863,9 @@ namespace WinAGI.Editor {
             // check for drag operation before anything else
             if (ModifierKeys == Keys.Shift) {
                 // drag the picture
-                //if (hsbScreen.Visible || vsbScreen.Visible) {
                 if (e.Button == MouseButtons.Left) {
                     StartDrag(e.Location);
                 }
-                //}
                 return;
             }
 
@@ -1091,8 +1064,6 @@ namespace WinAGI.Editor {
             else if (tmpPT.Y > 199) {
                 tmpPT.Y = 199;
             }
-            // convert to col/row
-            Point ScreenPT = new(tmpPT.X * 2 / CharWidth, tmpPT.Y / 8);
 
             switch (EditAction) {
             case TSAction.None:
@@ -1266,7 +1237,7 @@ namespace WinAGI.Editor {
             spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spScale.BorderStyle = Border3DStyle.SunkenInner;
             spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(70, 18);
+            spScale.Size = new Size(70, 18);
             spScale.Text = "txt scale";
             // 
             // spRow
@@ -1275,7 +1246,7 @@ namespace WinAGI.Editor {
             spRow.AutoSize = false;
             spRow.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spRow.BorderStyle = Border3DStyle.SunkenInner;
-            spRow.Size = new System.Drawing.Size(80, 18);
+            spRow.Size = new Size(80, 18);
             spRow.Text = "--";
             // 
             // spCol
@@ -1284,7 +1255,7 @@ namespace WinAGI.Editor {
             spCol.AutoSize = false;
             spCol.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCol.BorderStyle = Border3DStyle.SunkenInner;
-            spCol.Size = new System.Drawing.Size(80, 18);
+            spCol.Size = new Size(80, 18);
             spCol.Text = "--";
         }
 
@@ -1455,7 +1426,6 @@ namespace WinAGI.Editor {
                 EditPalette = DefaultPalette.Clone();
             }
             if (BkgdPicNum != -1) {
-                // testing...
                 EditGame.Pictures[BkgdPicNum].Load();
                 BkgdPicture = EditGame.Pictures[BkgdPicNum].VisualBMP;
                 EditGame.Pictures[BkgdPicNum].Unload();
@@ -1615,14 +1585,6 @@ namespace WinAGI.Editor {
             if (Selection.Width > 0) {
                 // collapse current selection
                 Selection.Size = new();
-
-                //// clear selection
-                //if (OverwriteMode) {
-                //    ClearSelection(true);
-                //}
-                //else {
-                //    DeleteText(true);
-                //}
             }
             AddText(Selection.Location, pastetext, DefBG, DefFG);
             MarkAsChanged();
@@ -1633,7 +1595,7 @@ namespace WinAGI.Editor {
 
             int[] colCount = new int[16];
             int blackwhite = 0;
-            List<string> output = new();
+            List<string> output = [];
 
             // first check is to determine predominant background color
             for (int j = source.Top; j < source.Bottom; j++) {
@@ -1902,7 +1864,7 @@ namespace WinAGI.Editor {
                 MessageBoxIcon.Information);
         }
 
-        private string AddCodes(string linetext) {
+        private static string AddCodes(string linetext) {
             // this function creates the correct source code message text needed
             // to get strIn to be displayed with 'display' or 'print' command
 
@@ -1938,7 +1900,7 @@ namespace WinAGI.Editor {
             return retval;
         }
 
-        private string ColorText(AGIColorIndex index) {
+        private static string ColorText(AGIColorIndex index) {
             if (EditGame is null) {
                 return ((int)index).ToString();
             }
@@ -1947,7 +1909,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void CompactOutput(ref List<string> TextIn) {
+        private static void CompactOutput(ref List<string> TextIn) {
             // skip text.screen/clear lines
             // find next set.text.attribute
             // find end of display lines
@@ -2194,19 +2156,16 @@ namespace WinAGI.Editor {
             // this is currently the default; it seems to work
             // but maybe I could add option to wrap to column 0 instead
             int startCol = insertpos.X;
-            /*
-            the region to be cleared: at LEAST clear the 
-            original selection; BUT if nothing selected, bottom
-            needs to be adjusted by one so the current row gets
-            selected
+            // the region to be cleared: at LEAST clear the 
+            // original selection; BUT if nothing selected, bottom
+            // needs to be adjusted by one so the current row gets
+            // selected
 
-            if in INS mode, the width needs to be expanded to
-            right edge
-            if in OVR mode, width is only expanded if any 
-            characters are added beyond the original selection
-            in height or width
-            */
-
+            // if in INS mode, the width needs to be expanded to
+            // right edge
+            // if in OVR mode, width is only expanded if any 
+            // characters are added beyond the original selection
+            // in height or width
 
             Rectangle updateregion = Selection;
             Point max = Selection.Location;
@@ -2321,39 +2280,24 @@ namespace WinAGI.Editor {
 
         private void ShowCharPicker() {
             // show the char picker, and insert results
-            frmCharPicker CharPicker;
-            if (EditGame is not null) {
-                CharPicker = new(EditGame.CodePage);
-            }
-            else {
-                CharPicker = new(WinAGISettings.DefCP.Value);
-            }
-            CharPicker.ShowDialog(MDIMain);
-            if (!CharPicker.Cancel) {
-                if (CharPicker.InsertString.Length > 0) {
-                    if (Selection.Width > 0) {
-                        // collapse selection
-                        Selection.Size = new();
-
-                        //// clear selection
-                        //if (OverwriteMode) {
-                        //    ClearSelection(true);
-                        //}
-                        //else {
-                        //    DeleteText(true);
-                        //}
+            using (frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
+                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                    if (CharPicker.InsertString.Length > 0) {
+                        if (Selection.Width > 0) {
+                            // collapse selection
+                            Selection.Size = new();
+                        }
+                        // if inserted text contains any control codes (\x##, \n, etc)
+                        // replace them with correct symbol
+                        AddText(Selection.Location, CharPickFormat(CharPicker.InsertString), DefBG, DefFG);
                     }
-                    // if inserted text contains any control codes (\x##, \n, etc)
-                    // replace them with correct symbol
-                    AddText(Selection.Location, CharPickFormat(CharPicker.InsertString), DefBG, DefFG);
+                    MarkAsChanged();
                 }
-                MarkAsChanged();
             }
-            CharPicker.Dispose();
-            CharPicker = null;
         }
 
-        private string CharPickFormat(string sInput) {
+        private static string CharPickFormat(string sInput) {
             // the char picker uses '\x##' codes for non-printable characters
             // so they can be handled by the various WinAGI editors. In AGI,
             // these characters will actually print if used on the text screen
@@ -2368,7 +2312,7 @@ namespace WinAGI.Editor {
             // step through all characters in this string
             for (int i = 0; i < sInput.Length; i++) {
                 // get ascii code for this character
-                int charval = (int)sInput[i];
+                int charval = sInput[i];
                 switch (charval) {
                 case 92:
                     // '\'
@@ -2385,8 +2329,8 @@ namespace WinAGI.Editor {
                             // make sure at least two more characters
                             if (i < sInput.Length - 3) {
                                 // get next 2 chars and hexify them
-                                string hextext = sInput[(i + 2)..(i + 4)] as string;
-                                if (int.TryParse(hextext, System.Globalization.NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int hexval)) {
+                                string hextext = sInput[(i + 2)..(i + 4)];
+                                if (int.TryParse(hextext, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int hexval)) {
                                     if (hexval >= 1 && hexval < 256) {
                                         switch (hexval) {
                                         case 8:
@@ -2424,7 +2368,7 @@ namespace WinAGI.Editor {
             return retval;
         }
 
-        private string CompilerFormat(string sInput) {
+        private static string CompilerFormat(string sInput) {
             // Compiler formatting codes:
             //    '\"' = '"' (single quote)
             //    '\n' and '\r' = newline (0x0A)
@@ -2442,7 +2386,7 @@ namespace WinAGI.Editor {
             // step through all characters in this string
             for (int i = 0; i < sInput.Length; i++) {
                 // get ascii code for this character
-                int charval = (int)sInput[i];
+                int charval = sInput[i];
                 switch (charval) {
                 case 8:
                     // invalid code, convert it to space
@@ -2467,8 +2411,8 @@ namespace WinAGI.Editor {
                             // make sure at least two more characters
                             if (i < sInput.Length - 3) {
                                 // get next 2 chars and hexify them
-                                string hextext = sInput[(i + 2)..(i + 4)] as string;
-                                if (int.TryParse(hextext, System.Globalization.NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int hexval)) {
+                                string hextext = sInput[(i + 2)..(i + 4)];
+                                if (int.TryParse(hextext, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int hexval)) {
                                     if (hexval >= 1 && hexval < 256) {
                                         charval = hexval;
                                         i += 3;
@@ -2499,7 +2443,7 @@ namespace WinAGI.Editor {
             return retval;
         }
 
-        private string AGIFormat(string sInput) {
+        private static string AGIFormat(string sInput) {
             // AGI print formatting codes:
             // '\x' = 'x' and do not process it if x is '%'
             //        handled)
@@ -2520,7 +2464,7 @@ namespace WinAGI.Editor {
             // step through all characters in this string
             for (int i = 0; i < sInput.Length; i++) {
                 // get ascii code for this character
-                int charval = (int)sInput[i];
+                int charval = sInput[i];
                 switch (charval) {
                 case 13:
                     // newline char is always '\n' (0xA) in AGI
@@ -2532,7 +2476,7 @@ namespace WinAGI.Editor {
                     if (i < sInput.Length - 1) {
                         // drop the slash, add next char
                         i++;
-                        charval = (int)sInput[i + 1];
+                        charval = sInput[i + 1];
                     }
                     else {
                         // if the '\' is the last char, skip it
@@ -2818,7 +2762,7 @@ namespace WinAGI.Editor {
             // set toolbar buttons to match menu items
             btnCut.Enabled = Selection.Width > 0;
             btnCopy.Enabled = Selection.Width > 0;
-            //btnPaste is handled by the clipboard monitor
+            // btnPaste is handled by the clipboard monitor
             btnDelete.Enabled = true;
             btnClear.Enabled = Selection.Width > 0;
             btnCopyCommand.Enabled = Selection.Width > 0;
@@ -3197,7 +3141,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private string NewSaveFileName(string filename = "") {
+        private static string NewSaveFileName(string filename = "") {
             if (filename.Length != 0) {
                 MDIMain.SaveDlg.Title = "Save Text Screen Layout";
                 MDIMain.SaveDlg.FileName = Path.GetFileName(filename);
@@ -3261,7 +3205,7 @@ namespace WinAGI.Editor {
             MarkAsSaved();
         }
 
-        internal void ShowHelp() {
+        internal static void ShowHelp() {
             string topic = "htm\\winagi\\textscreen.htm";
             Help.ShowHelp(HelpParent, WinAGIHelp, HelpNavigator.Topic, topic);
         }

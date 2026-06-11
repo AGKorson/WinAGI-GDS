@@ -13,7 +13,7 @@ using static WinAGI.Engine.Base;
 namespace WinAGI.Engine {
 
     public static partial class Base {
-        #region Local Members
+        #region Fields
         // sound subclassing variables, constants, declarations
         internal static MIDIPlayer midiPlayer = new();
         internal static WAVPlayer wavPlayer = new();
@@ -52,7 +52,7 @@ namespace WinAGI.Engine {
     /// A class for writing data stream to be played as a MIDI sound.
     /// </summary>
     internal class SoundData() {
-        #region Local Members
+        #region Fields
         public byte[] Data = [];
         public int Pos = 0;
         #endregion
@@ -120,7 +120,7 @@ namespace WinAGI.Engine {
     /// A class for playing AGI Sounds as a MIDI stream.
     /// </summary>
     public class MIDIPlayer : NativeWindow, IDisposable {
-        #region Local Members
+        #region Fields
         private bool disposed = false;
         internal nint hMidi = IntPtr.Zero; // handle to the MIDI output device
         #endregion
@@ -268,7 +268,7 @@ namespace WinAGI.Engine {
         // WAVPlayer code based on prior work by Lance Ewing in 
         // AGILE. Thank you Lance.
 
-        #region Local Members
+        #region Fields
         private const int SAMPLE_RATE = 44100;
         /// <summary>
         /// The Thread that is waiting for the sound to finish.
@@ -499,7 +499,6 @@ namespace WinAGI.Engine {
                 mixer.MixerInputEnded -= handlePlaybackEnded;
                 playbackEnded = true;
             }
-            ;
             mixer.MixerInputEnded += handlePlaybackEnded;
             // Wait until either the sound has ended, or we have been told to stop.
             while (!playbackEnded && bPlayingWAV) {
@@ -594,7 +593,7 @@ namespace WinAGI.Engine {
         /// format was designed for.
         /// </summary>
         public sealed class SN76496 {
-            #region Local Members
+            #region Fields
             private const float IBM_PCJR_CLOCK = 3579545f;
 
             private static float[] volumeTable = [
@@ -855,10 +854,10 @@ namespace WinAGI.Engine {
             }
 
             // change instrument
-            midiOutShortMsg(hMidi, instrument);
+            _ = midiOutShortMsg(hMidi, instrument);
             // send note on
             playnote = note; // 0x7F is the velocity, 0x90 is the note on message
-            midiOutShortMsg(hMidi, note * 0x100 + 0x7F0090);
+            _ = midiOutShortMsg(hMidi, note * 0x100 + 0x7F0090);
             isPlaying = true;
         }
 
@@ -967,8 +966,9 @@ namespace WinAGI.Engine {
             isPlaying = true;
             currentFreqDivisor = freqDivisor;
 
-            playThread = new Thread(() => PlaySN76496Tone(freqDivisor, channel, attenuation));
-            playThread.IsBackground = true;
+            playThread = new Thread(() => PlaySN76496Tone(freqDivisor, channel, attenuation)) {
+                IsBackground = true
+            };
             playThread.Start();
 
             outputDevice.Play();

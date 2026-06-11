@@ -5,9 +5,9 @@ using System.Windows.Forms;
 
 namespace WinAGI.Editor {
     internal partial class frmDialog : Form {
-        Form HelpOwner;
-        string HelpFile = "";
-        string HelpTopic = "";
+        private readonly Form HelpOwner;
+        private readonly string HelpFile = "";
+        private readonly string HelpTopic = "";
 
         internal frmDialog(Form owner, string Prompt, string Title, MessageBoxButtons Buttons, MessageBoxIcon Icon, string CheckString, ref bool Checked, string HelpFile, string HelpTopic) {
             // show a custom msgbox
@@ -105,7 +105,7 @@ namespace WinAGI.Editor {
             }
             Debug.Assert(Height - ClientSize.Height == 39);
             // now set height
-            Height = (Height - ClientSize.Height) + button1.Top + button1.Height + 11;
+            Height = Height - ClientSize.Height + button1.Top + button1.Height + 11;
             // is checkmark needed
             if (CheckString.Length != 0) {
                 // position checkbox under msg
@@ -360,11 +360,10 @@ namespace WinAGI.Editor {
             Help.ShowHelp(HelpOwner, HelpFile, HelpNavigator.Topic, HelpTopic);
         }
 
-        #endregion
-
         private void frmDialog_HelpRequested(object sender, HelpEventArgs hlpevent) {
             Help.ShowHelp(HelpOwner, HelpFile, HelpNavigator.Topic, HelpTopic);
             hlpevent.Handled = true;
         }
+        #endregion
     }
 }

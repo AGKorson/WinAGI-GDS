@@ -32,7 +32,7 @@
             colCaption = new System.Windows.Forms.DataGridViewTextBoxColumn();
             colTarget = new System.Windows.Forms.DataGridViewTextBoxColumn();
             btnBrowse = new System.Windows.Forms.Button();
-            dlgTool = new System.Windows.Forms.OpenFileDialog();
+            toolOpen = new System.Windows.Forms.OpenFileDialog();
             ((System.ComponentModel.ISupportInitialize)toolgrid).BeginInit();
             SuspendLayout();
             // 
@@ -144,7 +144,7 @@
             // 
             // dlgTool
             // 
-            dlgTool.Title = "Select Command";
+            toolOpen.Title = "Select Command";
             // 
             // frmTools
             // 
@@ -174,7 +174,7 @@
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.DataGridView toolgrid;
         private System.Windows.Forms.Button btnBrowse;
-        private System.Windows.Forms.OpenFileDialog dlgTool;
+        private System.Windows.Forms.OpenFileDialog toolOpen;
         private System.Windows.Forms.DataGridViewTextBoxColumn colNum;
         private System.Windows.Forms.DataGridViewTextBoxColumn colCaption;
         private System.Windows.Forms.DataGridViewTextBoxColumn colTarget;

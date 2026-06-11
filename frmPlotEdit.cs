@@ -8,14 +8,15 @@ using static WinAGI.Editor.frmPicEdit;
 
 namespace WinAGI.Editor {
     public partial class frmPlotEdit : Form {
+        #region Fields
         internal Point NewCoord;
         internal byte NewPattern = 0;
         private CommandInfo SelCmd;
-        private Picture EditPic;
-        private bool stepDraw;
+        private readonly Picture EditPic;
+        private readonly bool stepDraw;
         private int TransLevel = 255;
         private bool TransDir = false;
-        private byte[] CircleData =
+        private readonly byte[] CircleData =
             [0x80, 0xC0, 0xC0, 0xC0, 0x40, 0xE0, 0xE0, 0xE0,
              0x40, 0x60, 0x60, 0xF0, 0xF0, 0xF0, 0x60, 0x60,
              0x20, 0x70, 0xF8, 0xF8, 0xF8, 0xF8, 0xF8, 0x70,
@@ -24,9 +25,11 @@ namespace WinAGI.Editor {
              0xFE, 0xFE, 0xFE, 0xFE, 0xFE, 0x7C, 0x7C, 0x7C,
              0x38, 0x18, 0x3C, 0x7E, 0x7E, 0x7E, 0xFF, 0xFF,
              0xFF, 0xFF, 0xFF, 0x7E, 0x7E, 0x7E, 0x3C, 0x18];
-        private Color PenColor;
+        private readonly Color PenColor;
+        #endregion
 
-        public frmPlotEdit(frmPicEdit.CommandInfo selectedcmd, Picture editpic) {
+        #region Constructors
+        public frmPlotEdit(CommandInfo selectedcmd, Picture editpic) {
             InitializeComponent();
 
             SelCmd = selectedcmd;
@@ -67,17 +70,16 @@ namespace WinAGI.Editor {
                 udPattern.Visible = false;
             }
         }
+        #endregion
 
         #region Event Handlers
         private void Control_Enter(object sender, EventArgs e) {
-            //CancelButton = null;
             if (sender == txtX || (sender == txtY && picPlot.Visible)) {
                 AcceptButton = null;
             }
         }
 
         private void Control_Leave(object sender, EventArgs e) {
-            //CancelButton = btnCancel;
             AcceptButton = btnOK;
         }
 
@@ -185,9 +187,7 @@ namespace WinAGI.Editor {
         #region Methods
         private void SetImage() {
             // draw portion of source picture onto picPlot image
-            if (picPlot.Image is null) {
-                picPlot.Image = new Bitmap(150, 145);
-            }
+            picPlot.Image ??= new Bitmap(150, 145);
             Graphics g = Graphics.FromImage(picPlot.Image);
             if (SelCmd.Pen.VisColor == AGIColorIndex.None && SelCmd.Pen.PriColor == AGIColorIndex.None) {
                 g.Clear(picPlot.BackColor);
@@ -200,8 +200,7 @@ namespace WinAGI.Editor {
                 picPlot.Refresh();
                 return;
             }
-            Point PlotPt = new(0, 0);
-            PlotPt = NewCoord;
+            Point PlotPt = NewCoord;
             PlotPt.Offset(-7, -14);
 
             g.Clear(picPlot.BackColor);

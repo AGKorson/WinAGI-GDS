@@ -10,7 +10,7 @@ namespace WinAGI.Engine {
     /// 'said' test command.
     /// </summary>
     public class WordGroup : IEnumerable<string> {
-        #region Members
+        #region Fields
         internal List<string> mWords;
         internal int mGroupNum;
         #endregion
@@ -164,10 +164,10 @@ namespace WinAGI.Engine {
             return new WordEnum(mWords);
         }
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
         IEnumerator<string> IEnumerable<string>.GetEnumerator() {
-            return (IEnumerator<string>)GetEnumerator();
+            return GetEnumerator();
         }
         /// <summary>
         /// Implements enumeration for the WordGroup class.
@@ -192,7 +192,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _words.Count);
+                return position < _words.Count;
             }
             public void Reset() {
                 position = -1;

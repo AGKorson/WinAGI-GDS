@@ -30,9 +30,9 @@ namespace WinAGI.Editor {
         protected override void OnCellPainting(DataGridViewCellPaintingEventArgs e) {
             if (e.ColumnIndex >= 0 && e.RowIndex >= 0) {
                 if (Rows[e.RowIndex].Tag is Color bg) {
-                    using (SolidBrush fillBrush = new SolidBrush(bg))
-                    using (Pen gridPenColor = new Pen(this.GridColor)) {
-                        Rectangle rect2 = new Rectangle(e.CellBounds.Location, e.CellBounds.Size);
+                    using (SolidBrush fillBrush = new(bg))
+                    using (Pen gridPenColor = new(GridColor)) {
+                        Rectangle rect2 = new(e.CellBounds.Location, e.CellBounds.Size);
                         rect2.X += 1;
                         rect2.Width += 1;
                         rect2.Height -= 1;

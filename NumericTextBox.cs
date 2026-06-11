@@ -4,10 +4,19 @@ using System.Windows.Forms;
 
 namespace WinAGI.Editor {
     public class NumericTextBox : TextBox {
+        #region Fields
         private int _maxValue = int.MaxValue;
         private int _minValue = int.MinValue;
         private int oldvalue;
+        #endregion
 
+        #region Constructors
+        public NumericTextBox() {
+            TextAlign = HorizontalAlignment.Right; // Align text to the right
+        }
+        #endregion
+
+        #region Properties
         public int MaxValue {
             get => _maxValue;
             set {
@@ -15,11 +24,11 @@ namespace WinAGI.Editor {
                 if (value < MinValue) {
                     MinValue = value;
                 }
-                if (this.Value < MinValue) {
-                    this.Text = MinValue.ToString();
+                if (Value < MinValue) {
+                    Text = MinValue.ToString();
                 }
-                else if (this.Value > MaxValue) {
-                    this.Text = MaxValue.ToString();
+                else if (Value > MaxValue) {
+                    Text = MaxValue.ToString();
                 }
             }
         }
@@ -31,39 +40,37 @@ namespace WinAGI.Editor {
                 if (value > MaxValue) {
                     MaxValue = value;
                 }
-                if (this.Value < MinValue) {
-                    this.Text = MinValue.ToString();
+                if (Value < MinValue) {
+                    Text = MinValue.ToString();
                 }
-                else if (this.Value > MaxValue) {
-                    this.Text = MaxValue.ToString();
+                else if (Value > MaxValue) {
+                    Text = MaxValue.ToString();
                 }
             }
         }
 
         public int Value {
             get {
-                if (int.TryParse(this.Text, out int value)) {
+                if (int.TryParse(Text, out int value)) {
                     return value;
                 }
                 return MinValue; // Return MinValue if parsing fails
             }
             set {
                 if (value < MinValue) {
-                    this.Text = MinValue.ToString();
+                    Text = MinValue.ToString();
                 }
                 else if (value > MaxValue) {
-                    this.Text = MaxValue.ToString();
+                    Text = MaxValue.ToString();
                 }
                 else {
-                    this.Text = value.ToString();
+                    Text = value.ToString();
                 }
             }
         }
+        #endregion
 
-        public NumericTextBox() {
-            this.TextAlign = HorizontalAlignment.Right; // Align text to the right
-        }
-
+        #region Event Overrides
         protected override void OnEnter(EventArgs e) {
             base.OnEnter(e);
             // Store the current value when the control gains focus
@@ -150,5 +157,6 @@ namespace WinAGI.Editor {
                 return;
             }
         }
+        #endregion
     }
 }

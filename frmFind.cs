@@ -6,7 +6,7 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmFind : Form {
-        #region Members
+        #region Fields
         // determines if form is find or replace
         public FindFormFunction FormFunction;
         // the form action is used by the editors
@@ -15,12 +15,14 @@ namespace WinAGI.Editor {
         private bool SettingForm = false;
         #endregion
 
+        #region Constructors
         public frmFind() {
             InitializeComponent();
             cmbDirection.SelectedIndex = 0;
             MDIMain.AddOwnedForm(this);
-            this.Owner = MDIMain;
+            Owner = MDIMain;
         }
+        #endregion
 
         #region Event Handlers
         private void frmFind_FormClosing(object sender, FormClosingEventArgs e) {
@@ -499,7 +501,7 @@ namespace WinAGI.Editor {
             SettingForm = false;
         }
 
-        internal void ResetSearch() {
+        internal static void ResetSearch() {
             // reset search parameters
 
             // parameters for all searches
@@ -547,7 +549,7 @@ namespace WinAGI.Editor {
                     FindInLogic(startsearchform, GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc, true, GReplaceText);
                     break;
                 case FindFormAction.ReplaceAll:
-                    ReplaceAll(startsearchform, GFindText, GReplaceText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc, type);
+                    ReplaceAll(startsearchform, GFindText, GReplaceText, GMatchWord, GMatchCase, GLogFindLoc, type);
                     break;
                 }
                 break;

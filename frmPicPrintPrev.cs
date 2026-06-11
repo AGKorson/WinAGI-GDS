@@ -7,9 +7,12 @@ using static WinAGI.Editor.frmPicEdit;
 
 namespace WinAGI.Editor {
     public partial class frmPicPrintPrev : Form {
+        #region Fields
         public PrintTestInfo PTInfo;
         public bool InGame;
+        #endregion
 
+        #region Constructors
         public frmPicPrintPrev(PrintTestInfo ptinfo, bool ingame) {
             InitializeComponent();
             PTInfo = new(ptinfo);
@@ -56,6 +59,7 @@ namespace WinAGI.Editor {
                 lblScreenSize.Text = "Screen Size: " + (PTInfo.MaxCol + 1) + " x 25";
             }
         }
+        #endregion
 
         #region Event Handlers
         private void frmPicPrintPrev_HelpRequested(object sender, HelpEventArgs hlpevent) {
@@ -378,21 +382,14 @@ namespace WinAGI.Editor {
         }
 
         private void cmiCharMap_Click(object sender, EventArgs e) {
-            frmCharPicker CharPicker;
-            if (EditGame is not null) {
-                CharPicker = new(EditGame.CodePage);
-            }
-            else {
-                CharPicker = new(WinAGISettings.DefCP.Value);
-            }
-            CharPicker.ShowDialog(MDIMain);
-            if (!CharPicker.Cancel) {
-                if (CharPicker.InsertString.Length > 0) {
-                    txtMessage.SelectedText = CharPicker.InsertString;
+            using (frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
+                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                    if (CharPicker.InsertString.Length > 0) {
+                        txtMessage.SelectedText = CharPicker.InsertString;
+                    }
                 }
             }
-            CharPicker.Close();
-            CharPicker.Dispose();
         }
 
         private void cmiSelectAll_Click(object sender, EventArgs e) {

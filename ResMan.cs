@@ -45,10 +45,6 @@ namespace WinAGI.Editor {
     ***************************************************************/
     public static class Base {
         #region Global Constants
-        // default settings - decompile
-        public const int DEFAULT_CODESTYLE = 0;
-        // default settings - layout editor
-
         // string constants
         public const string LOGIC_EDITOR = "Logic Editor - ";
         public const string PICTURE_EDITOR = "Picture Editor - ";
@@ -105,15 +101,6 @@ namespace WinAGI.Editor {
             AllLogics = 1,
             SelectedResource = 2,
             OpenResources = 3
-        }
-
-        public enum UndoNameID {
-            UID_UNKNOWN = 0,
-            UID_TYPING = 1,
-            UID_DELETE = 2,
-            UID_DRAGDROP = 3,
-            UID_CUT = 4,
-            UID_PASTE = 5,
         }
 
         public enum GetRes {
@@ -307,13 +294,6 @@ namespace WinAGI.Editor {
             TestCmds = 19,
         }
 
-        public enum EImgFormat {
-            effBMP = 0,
-            effGIF = 1,
-            effPNG = 2,
-            effJPG = 3,
-        }
-
         public enum CompileMode {
             Full,
             RebuildOnly,
@@ -346,27 +326,12 @@ namespace WinAGI.Editor {
             Label,
             Snippet,
         }
-
         #endregion
 
         #region Global Structs
         public struct DisplayNote {
             public int Pos;
             public NoteTone Tone;
-        }
-
-        public struct LEObjColor {
-            public Color Edge;
-            public Color Fill;
-        }
-
-        public struct TLEColors {
-            public LEObjColor Room;
-            public LEObjColor ErrPt;
-            public LEObjColor TransPt;
-            public LEObjColor Cmt;
-            public Color ExitEdge;
-            public Color ExitOther;
         }
 
         public struct GifOptions {
@@ -1192,191 +1157,192 @@ namespace WinAGI.Editor {
             string version = "";
             string templateDir = "";
 
-            frmGameProperties propform = new(GameSettingFunction.New);
-            if (useTemplate) {
-                // have user choose a template
-                frmTemplates templateform = new();
-                if (templateform.lstTemplates.Items.Count == 0) {
-                    MDIMain.MsgBoxWithHelp(
-                        "There are no templates available. Unable to create new game.",
-                        "No Templates Available",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Error,
-                        "htm\\winagi\\templates.htm");
-                    templateform.Dispose();
-                    return;
-                }
-                if (templateform.ShowDialog(MDIMain) == DialogResult.OK) {
-                    templateDir = Path.Combine(AppDataDir, "Templates", templateform.lstTemplates.Text);
-                    version = templateform.txtVersion.Text;
-                }
-                templateform.Dispose();
-                if (templateDir.Length == 0) {
-                    return;
-                }
-                propform.txtGameDescription.Text = "";
-                // some properties are preset based on template
-                propform.cmbVersion.Text = version;
-                propform.cmbVersion.Enabled = false;
-                for (int i = 0; i < propform.cmbCodePage.Items.Count; i++) {
-                    if (int.Parse(((string)propform.cmbCodePage.Items[i])[..3]) == templateform.CodePage) {
-                        propform.cmbCodePage.SelectedIndex = i;
-                        break;
+            using (frmGameProperties propform = new(GameSettingFunction.New)) {
+                if (useTemplate) {
+                    // have user choose a template
+                    using (frmTemplates templateform = new()) {
+                        if (templateform.lstTemplates.Items.Count == 0) {
+                            MDIMain.MsgBoxWithHelp(
+                                "There are no templates available. Unable to create new game.",
+                                "No Templates Available",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error,
+                                "htm\\winagi\\templates.htm");
+                            templateform.Dispose();
+                            return;
+                        }
+                        if (templateform.ShowDialog(MDIMain) == DialogResult.OK) {
+                            templateDir = Path.Combine(AppDataDir, "Templates", templateform.lstTemplates.Text);
+                            version = templateform.txtVersion.Text;
+                        }
+                        if (templateDir.Length == 0) {
+                            return;
+                        }
+                        propform.txtGameDescription.Text = "";
+                        // some properties are preset based on template
+                        propform.cmbVersion.Text = version;
+                        propform.cmbVersion.Enabled = false;
+                        for (int i = 0; i < propform.cmbCodePage.Items.Count; i++) {
+                            if (int.Parse(((string)propform.cmbCodePage.Items[i])[..3]) == templateform.CodePage) {
+                                propform.cmbCodePage.SelectedIndex = i;
+                                break;
+                            }
+                        }
+                        propform.chkResourceIDs.Checked = templateform.IncludeIDs;
+                        propform.chkResDefs.Checked = templateform.IncludeReserved;
+                        propform.chkGlobals.Checked = templateform.IncludeGlobals;
+                        propform.NewCodePage = templateform.CodePage;
+                        propform.chkUseLE.Checked = templateform.UseLayoutEd;
+                        propform.chkSierraSyntax.Checked = templateform.SierraSyntax;
                     }
                 }
-                propform.chkResourceIDs.Checked = templateform.IncludeIDs;
-                propform.chkResDefs.Checked = templateform.IncludeReserved;
-                propform.chkGlobals.Checked = templateform.IncludeGlobals;
-                propform.NewCodePage = templateform.CodePage;
-                propform.chkUseLE.Checked = templateform.UseLayoutEd;
-                propform.chkSierraSyntax.Checked = templateform.SierraSyntax;
-            }
-            // now get properties from user
-            if (propform.ShowDialog() == DialogResult.OK) {
-                if (EditGame is not null) {
-                    // close game, if user allows
-                    if (!CloseGame()) {
-                        return;
-                    }
-                }
-                ProgressWin = new(MDIMain) {
-                    Text = "Creating New Game"
-                };
-                ProgressWin.lblProgress.Text = "Creating new game resources ...";
-                ProgressWin.StartPosition = FormStartPosition.CenterParent;
-                ProgressWin.pgbStatus.Visible = false;
-                // show newgame msg in status bar
-                MDIMain.spStatus.Text = "Creating new game" + (useTemplate ? " from template" : "") + "; please wait...";
-                // pass game info and template info
-                GameParams newgameparams = new() {
-                    Mode = OpenGameMode.New,
-                    ID = propform.txtGameID.Text,
-                    Version = (AGIVersion)propform.cmbVersion.SelectedIndex,
-                    GameDir = propform.DisplayDir,
-                    SrcResDirName = propform.txtResDir.Text,
-                    SrcExt = propform.txtSrcExt.Text,
-                    TemplateDir = templateDir,
-                    SierraSyntax = propform.chkSierraSyntax.Checked,
-                    CodePage = int.Parse(propform.cmbCodePage.Text[..3]),
-                    Failed = false,
-                    Error = null,
-                    Warnings = false
-                };
-                if (!newgameparams.SierraSyntax) {
-                    newgameparams.IncludeGlobals = propform.chkGlobals.Checked;
-                    newgameparams.IncludeIDs = propform.chkResourceIDs.Checked;
-                    newgameparams.IncludeReserved = propform.chkResDefs.Checked;
-                }
-                // run the worker to create the new game
-                bgwNewGame.RunWorkerAsync(newgameparams);
-                // idle until the worker is done;
-                ProgressWin.ShowDialog();
-                // reset cursor
-                if (EditGame is not null) {
-                    // add wag file to mru, if opened successfully
-                    AddToMRU(EditGame.GameFile);
-                    // add rest of properties
-                    EditGame.Description = propform.txtGameDescription.Text;
-                    EditGame.Designer = propform.txtDesigner.Text;
-                    EditGame.GameVersion = propform.txtGameVersion.Text;
-                    EditGame.GameAbout = propform.txtGameAbout.Text;
-                    // set platform type if info was provided
-                    if (propform.NewPlatformFile.Length > 0) {
-                        if (propform.optDosBox.Checked) {
-                            EditGame.PlatformType = Engine.PlatformType.DosBox;
-                            EditGame.DOSExec = propform.txtExec.Text;
-                            EditGame.PlatformOpts = propform.txtOptions.Text;
-                        }
-                        else if (propform.optScummVM.Checked) {
-                            EditGame.PlatformType = Engine.PlatformType.ScummVM;
-                            EditGame.PlatformOpts = propform.txtOptions.Text;
-                        }
-                        else if (propform.optAGILE.Checked) {
-                            EditGame.PlatformType = Engine.PlatformType.AGILE;
-                            EditGame.PlatformOpts = propform.txtOptions.Text;
-                        }
-                        else if (propform.optNAGI.Checked) {
-                            EditGame.PlatformType = Engine.PlatformType.NAGI;
-                        }
-                        else if (propform.optOther.Checked) {
-                            EditGame.PlatformType = Engine.PlatformType.Other;
-                            EditGame.PlatformOpts = propform.txtOptions.Text;
+                // now get properties from user
+                if (propform.ShowDialog() == DialogResult.OK) {
+                    if (EditGame is not null) {
+                        // close game, if user allows
+                        if (!CloseGame()) {
+                            return;
                         }
                     }
-                    else {
-                        EditGame.PlatformType = Engine.PlatformType.None;
+                    ProgressWin = new(MDIMain) {
+                        Text = "Creating New Game"
+                    };
+                    ProgressWin.lblProgress.Text = "Creating new game resources ...";
+                    ProgressWin.StartPosition = FormStartPosition.CenterParent;
+                    ProgressWin.pgbStatus.Visible = false;
+                    // show newgame msg in status bar
+                    MDIMain.spStatus.Text = "Creating new game" + (useTemplate ? " from template" : "") + "; please wait...";
+                    // pass game info and template info
+                    GameParams newgameparams = new() {
+                        Mode = OpenGameMode.New,
+                        ID = propform.txtGameID.Text,
+                        Version = (AGIVersion)propform.cmbVersion.SelectedIndex,
+                        GameDir = propform.DisplayDir,
+                        SrcResDirName = propform.txtResDir.Text,
+                        SrcExt = propform.txtSrcExt.Text,
+                        TemplateDir = templateDir,
+                        SierraSyntax = propform.chkSierraSyntax.Checked,
+                        CodePage = int.Parse(propform.cmbCodePage.Text[..3]),
+                        Failed = false,
+                        Error = null,
+                        Warnings = false
+                    };
+                    if (!newgameparams.SierraSyntax) {
+                        newgameparams.IncludeGlobals = propform.chkGlobals.Checked;
+                        newgameparams.IncludeIDs = propform.chkResourceIDs.Checked;
+                        newgameparams.IncludeReserved = propform.chkResDefs.Checked;
                     }
-                    if (EditGame.PlatformType != Engine.PlatformType.None) {
-                        EditGame.Platform = propform.NewPlatformFile;
-                    }
-                    EditGame.IncludeIDs = propform.chkResourceIDs.Checked;
-                    EditGame.IncludeReserved = propform.chkResDefs.Checked;
-                    EditGame.IncludeGlobals = propform.chkGlobals.Checked;
-                    EditGame.UseLE = propform.chkUseLE.Checked;
-                    // if from a template, clear the Description property
-                    if (useTemplate) {
-                        EditGame.Description = "";
-                    }
-                    // force a save of the property file
-                    WinAGISettingsFile.Save();
-                    if (EditGame.UseLE) {
+                    // run the worker to create the new game
+                    bgwNewGame.RunWorkerAsync(newgameparams);
+                    // idle until the worker is done;
+                    ProgressWin.ShowDialog();
+                    ProgressWin.Dispose();
+                    // reset cursor
+                    if (EditGame is not null) {
+                        // add wag file to mru, if opened successfully
+                        AddToMRU(EditGame.GameFile);
+                        // add rest of properties
+                        EditGame.Description = propform.txtGameDescription.Text;
+                        EditGame.Designer = propform.txtDesigner.Text;
+                        EditGame.GameVersion = propform.txtGameVersion.Text;
+                        EditGame.GameAbout = propform.txtGameAbout.Text;
+                        // set platform type if info was provided
+                        if (propform.NewPlatformFile.Length > 0) {
+                            if (propform.optDosBox.Checked) {
+                                EditGame.PlatformType = Engine.PlatformType.DosBox;
+                                EditGame.DOSExec = propform.txtExec.Text;
+                                EditGame.PlatformOpts = propform.txtOptions.Text;
+                            }
+                            else if (propform.optScummVM.Checked) {
+                                EditGame.PlatformType = Engine.PlatformType.ScummVM;
+                                EditGame.PlatformOpts = propform.txtOptions.Text;
+                            }
+                            else if (propform.optAGILE.Checked) {
+                                EditGame.PlatformType = Engine.PlatformType.AGILE;
+                                EditGame.PlatformOpts = propform.txtOptions.Text;
+                            }
+                            else if (propform.optNAGI.Checked) {
+                                EditGame.PlatformType = Engine.PlatformType.NAGI;
+                            }
+                            else if (propform.optOther.Checked) {
+                                EditGame.PlatformType = Engine.PlatformType.Other;
+                                EditGame.PlatformOpts = propform.txtOptions.Text;
+                            }
+                        }
+                        else {
+                            EditGame.PlatformType = Engine.PlatformType.None;
+                        }
+                        if (EditGame.PlatformType != Engine.PlatformType.None) {
+                            EditGame.Platform = propform.NewPlatformFile;
+                        }
+                        EditGame.IncludeIDs = propform.chkResourceIDs.Checked;
+                        EditGame.IncludeReserved = propform.chkResDefs.Checked;
+                        EditGame.IncludeGlobals = propform.chkGlobals.Checked;
+                        EditGame.UseLE = propform.chkUseLE.Checked;
+                        // if from a template, clear the Description property
                         if (useTemplate) {
-                            if (!File.Exists(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"))) {
-                                // create default layout file
-                                JsonSerializerOptions jOptions = new JsonSerializerOptions { WriteIndented = true };
-                                LayoutFileHeader layoutfile = new() {
-                                    Version = frmLayout.LAYOUT_FMT_VERSION,
-                                    DrawScale = WinAGISettings.LEScale.Value,
-                                    Offset = new()
-                                };
-                                string output = JsonSerializer.Serialize(layoutfile, jOptions);
+                            EditGame.Description = "";
+                        }
+                        // force a save of the property file
+                        WinAGISettingsFile.Save();
+                        if (EditGame.UseLE) {
+                            if (useTemplate) {
+                                if (!File.Exists(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"))) {
+                                    // create default layout file
+                                    JsonSerializerOptions jOptions = new JsonSerializerOptions { WriteIndented = true };
+                                    LayoutFileHeader layoutfile = new() {
+                                        Version = LAYOUT_FMT_VERSION,
+                                        DrawScale = WinAGISettings.LEScale.Value,
+                                        Offset = new()
+                                    };
+                                    string output = JsonSerializer.Serialize(layoutfile, jOptions);
+                                    try {
+                                        using FileStream fs = new(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"), FileMode.Create, FileAccess.Write);
+                                        fs.Write(Encoding.Default.GetBytes(output));
+                                    }
+                                    catch {
+                                        // ignore errors
+                                    }
+                                }
+                            }
+                            else {
                                 try {
-                                    using FileStream fs = new(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"), FileMode.Create, FileAccess.Write);
-                                    fs.Write(Encoding.Default.GetBytes(output));
+                                    // if template included a layout file, delete it
+                                    string[] files = Directory.GetFiles(EditGame.GameDir, "*.wal");
+                                    foreach (string file in files) {
+                                        SafeFileDelete(file);
+                                    }
                                 }
                                 catch {
                                     // ignore errors
                                 }
                             }
                         }
-                        else {
-                            try {
-                                // if template included a layout file, delete it
-                                string[] files = Directory.GetFiles(EditGame.GameDir, "*.wal");
-                                foreach (string file in files) {
-                                    SafeFileDelete(file);
-                                }
-                            }
-                            catch {
-                                // ignore errors
-                            }
+
+                        // set default directory
+                        BrowserStartDir = EditGame.GameDir;
+                        // set default text file directory to game source file directory
+                        DefaultResDir = EditGame.SrcResDir;
+                        // build ID lookup table
+                        BuildIDefLookup();
+
+                        // if resource tree is in use, refresh properties of root node
+                        if (WinAGISettings.ResListType.Value != ResListType.None) {
+                            MDIMain.propertyGrid1.Refresh();
+                        }
+                        MDIMain.UpdateGridCounts();
+                    }
+                    else {
+                        // make sure warning grid is hidden
+                        if (MDIMain.pnlInfoGrid.Visible) {
+                            MDIMain.HideInfoGrid(true);
                         }
                     }
-
-                    // set default directory
-                    BrowserStartDir = EditGame.GameDir;
-                    // set default text file directory to game source file directory
-                    DefaultResDir = EditGame.SrcResDir;
-                    // build ID lookup table
-                    BuildIDefLookup();
-
-                    // if resource tree is in use, refresh properties of root node
-                    if (WinAGISettings.ResListType.Value != ResListType.None) {
-                        MDIMain.propertyGrid1.Refresh();
-                    }
-                    MDIMain.UpdateGridCounts();
+                    MDIMain.UpdateTBGameBtns();
+                    MDIMain.spStatus.Text = "";
+                    MDIMain.UseWaitCursor = false;
                 }
-                else {
-                    // make sure warning grid is hidden
-                    if (MDIMain.pnlWarnings.Visible) {
-                        MDIMain.HideWarningList(true);
-                    }
-                }
-                MDIMain.UpdateTBGameBtns();
-                MDIMain.spStatus.Text = "";
-                MDIMain.UseWaitCursor = false;
             }
-            propform.Dispose();
             return;
         }
 
@@ -1411,12 +1377,13 @@ namespace WinAGI.Editor {
             bgwOpenGame.RunWorkerAsync(results);
             // idle until the worker is done;
             ProgressWin.ShowDialog();
+            ProgressWin.Dispose();
             infoGridBinding.RaiseListChangedEvents = true;
             infoGridBinding.ResetBindings(false);
             // if any warnings/errors, show the infoGrid
             if (infoGridTable.Rows.Count > 0) {
                 if (WinAGISettings.ShowInfoGrid.Value) {
-                    MDIMain.ShowWarningList();
+                    MDIMain.ShowInfoGrid();
                 }
             }
 
@@ -1443,8 +1410,8 @@ namespace WinAGI.Editor {
             }
             else {
                 // make sure warning grid is hidden
-                if (MDIMain.pnlWarnings.Visible) {
-                    MDIMain.HideWarningList(true);
+                if (MDIMain.pnlInfoGrid.Visible) {
+                    MDIMain.HideInfoGrid(true);
                 }
                 results.Failed = true;
             }
@@ -1462,14 +1429,11 @@ namespace WinAGI.Editor {
                 return;
             }
             // attempt to open this game
-            GameParams gameparams = new();
-            gameparams.Mode = OpenGameMode.File;
-            gameparams.GameFile = strMRU[Index];
-            if (OpenGame(gameparams)) {
-                // reset browser start dir to this dir
-                // BrowserStartDir = JustPath(strMRU[Index]);
-            }
-            else {
+            GameParams gameparams = new() {
+                Mode = OpenGameMode.File,
+                GameFile = strMRU[Index]
+            };
+            if (!OpenGame(gameparams)) {
                 // step through rest of mru entries
                 for (int i = Index + 1; i < 4; i++) {
                     // move this mru entry up
@@ -1498,99 +1462,98 @@ namespace WinAGI.Editor {
             string thisGameDir;
 
             // get a directory for importing
-            frmImportProperties importprops = new();
-            DialogResult result = importprops.ShowDialog(MDIMain);
-            if (result == DialogResult.OK) {
-                thisGameDir = MDIMain.FolderDlg.SelectedPath;
-                if (thisGameDir.Length == 0) {
-                    // user canceled
-                    return;
-                }
-
-                // if a game file exists
-                if (File.Exists(Path.Combine(thisGameDir, "*.wag"))) {
-                    // confirm the import
-                    msgText = "This directory already has a WinAGI game file. Do " +
-                        "you still want to import the game in this directory?\n\n" +
-                        "The existing WinAGI game file will be overwritten if it " +
-                        "has the same name as the GameID found in this directory's " +
-                        "AGI VOL and DIR files.";
-                    if (MessageBox.Show(MDIMain,
-                        msgText,
-                        "WinAGI Game File Already Exists",
-                        MessageBoxButtons.OKCancel,
-                        MessageBoxIcon.Question) == DialogResult.Cancel) {
+            using (frmImportProperties importprops = new()) {
+                if (importprops.ShowDialog(MDIMain) == DialogResult.OK) {
+                    thisGameDir = MDIMain.FolderDlg.SelectedPath;
+                    if (thisGameDir.Length == 0) {
+                        // user canceled
                         return;
                     }
-                }
-                // pass game info and template info
-                GameParams gameparams = new() {
-                    Mode = OpenGameMode.Directory,
-                    GameDir = thisGameDir,
-                    SrcResDirName = importprops.txtResDir.Text,
-                    SrcExt = importprops.txtSrcExt.Text,
-                    TemplateDir = "",
-                    SierraSyntax = importprops.chkSierraSyntax.Checked,
-                    CodePage = int.Parse(importprops.cmbCodePage.Text[..3]),
-                    Failed = false,
-                    Error = null,
-                    Warnings = false
-                };
-                if (!gameparams.SierraSyntax) {
-                    gameparams.IncludeGlobals = importprops.chkGlobals.Checked;
-                    gameparams.IncludeIDs = importprops.chkResourceIDs.Checked;
-                    gameparams.IncludeReserved = importprops.chkResDefs.Checked;
-                }
-                // open the game in this directory
-                if (OpenGame(gameparams)) {
-                    // reset browser start dir to this dir
-                    BrowserStartDir = thisGameDir;
-                }
-                else {
-                    // user cancelled closing of currently open game
-                    return;
-                }
-                // check for error
-                if (EditGame is null) {
-                    return;
-                }
 
-                // set default resource file directory to game source file directory
-                DefaultResDir = EditGame.SrcResDir;
+                    // if a game file exists
+                    if (File.Exists(Path.Combine(thisGameDir, "*.wag"))) {
+                        // confirm the import
+                        msgText = "This directory already has a WinAGI game file. Do " +
+                            "you still want to import the game in this directory?\n\n" +
+                            "The existing WinAGI game file will be overwritten if it " +
+                            "has the same name as the GameID found in this directory's " +
+                            "AGI VOL and DIR files.";
+                        if (MessageBox.Show(MDIMain,
+                            msgText,
+                            "WinAGI Game File Already Exists",
+                            MessageBoxButtons.OKCancel,
+                            MessageBoxIcon.Question) == DialogResult.Cancel) {
+                            return;
+                        }
+                    }
+                    // pass game info and template info
+                    GameParams gameparams = new() {
+                        Mode = OpenGameMode.Directory,
+                        GameDir = thisGameDir,
+                        SrcResDirName = importprops.txtResDir.Text,
+                        SrcExt = importprops.txtSrcExt.Text,
+                        TemplateDir = "",
+                        SierraSyntax = importprops.chkSierraSyntax.Checked,
+                        CodePage = int.Parse(importprops.cmbCodePage.Text[..3]),
+                        Failed = false,
+                        Error = null,
+                        Warnings = false
+                    };
+                    if (!gameparams.SierraSyntax) {
+                        gameparams.IncludeGlobals = importprops.chkGlobals.Checked;
+                        gameparams.IncludeIDs = importprops.chkResourceIDs.Checked;
+                        gameparams.IncludeReserved = importprops.chkResDefs.Checked;
+                    }
+                    // open the game in this directory
+                    if (OpenGame(gameparams)) {
+                        // reset browser start dir to this dir
+                        BrowserStartDir = thisGameDir;
+                    }
+                    else {
+                        // user cancelled closing of currently open game
+                        return;
+                    }
+                    // check for error
+                    if (EditGame is null) {
+                        return;
+                    }
 
-                msgText = "Game file '" + EditGame.GameID + ".wag'  has been created.\n\n";
-                if (EditGame.SrcResDirName == "") {
-                    // means resdir couldn't be created
-                    msgText += "Unable to create a resource subdirectory. " +
-                        "Logic source files and exported resources will be " +
-                        "stored in the game directory.";
-                }
-                else {
-                    msgText += "The subdirectory '" + EditGame.SrcResDirName +
-                        "' will be used to store logic source files and " +
-                        "exported resources. You can change the source directory " +
-                        "for this game on the Game Properties dialog.";
-                }
-                MessageBox.Show(MDIMain,
-                    msgText,
-                    "Import Game",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-                // does the game have an Amiga OBJECT file? (very rare)
-                if (EditGame.InvObjects.AmigaOBJ) {
-                    MDIMain.MsgBoxWithHelp(
-                        "The OBJECT file for this game is formatted " +
-                        "for the Amiga.\n\n" +
-                        "If you intend to run this game on a DOS " +
-                        "platform, you will need to convert the file " +
-                        "to DOS format (use the Convert menu option " +
-                        "on the OBJECT Editor's Resource menu)",
-                        "Amiga OBJECT File detected",
+                    // set default resource file directory to game source file directory
+                    DefaultResDir = EditGame.SrcResDir;
+
+                    msgText = "Game file '" + EditGame.GameID + ".wag'  has been created.\n\n";
+                    if (EditGame.SrcResDirName == "") {
+                        // means resdir couldn't be created
+                        msgText += "Unable to create a resource subdirectory. " +
+                            "Logic source files and exported resources will be " +
+                            "stored in the game directory.";
+                    }
+                    else {
+                        msgText += "The subdirectory '" + EditGame.SrcResDirName +
+                            "' will be used to store logic source files and " +
+                            "exported resources. You can change the source directory " +
+                            "for this game on the Game Properties dialog.";
+                    }
+                    MessageBox.Show(MDIMain,
+                        msgText,
+                        "Import Game",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Information,
-                        "htm\\object.htm#amiga");
+                        MessageBoxIcon.Information);
+                    // does the game have an Amiga OBJECT file? (very rare)
+                    if (EditGame.InvObjects.AmigaOBJ) {
+                        MDIMain.MsgBoxWithHelp(
+                            "The OBJECT file for this game is formatted " +
+                            "for the Amiga.\n\n" +
+                            "If you intend to run this game on a DOS " +
+                            "platform, you will need to convert the file " +
+                            "to DOS format (use the Convert menu option " +
+                            "on the OBJECT Editor's Resource menu)",
+                            "Amiga OBJECT File detected",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information,
+                            "htm\\object.htm#amiga");
+                    }
                 }
-
             }
         }
 
@@ -1719,8 +1682,8 @@ namespace WinAGI.Editor {
                 }
             }
             // always clear and hide warning list if it is showing
-            if (MDIMain.pnlWarnings.Visible) {
-                MDIMain.HideWarningList(true);
+            if (MDIMain.pnlInfoGrid.Visible) {
+                MDIMain.HideInfoGrid(true);
             }
             // always hide find dialog if it's showing
             if (FindingForm.Visible) {
@@ -2252,9 +2215,10 @@ namespace WinAGI.Editor {
                 bgwCompGame.RunWorkerAsync(CompGameResults);
                 // show dialog while rebuild is in progress
                 CompStatusWin.ShowDialog(MDIMain);
+                CompStatusWin.Dispose();
             }
-            catch (Exception ex) {
-                Debug.Assert(false);
+            catch {
+                // ignore
             }
 
             // refresh the warnings list
@@ -2369,9 +2333,10 @@ namespace WinAGI.Editor {
                 bgwCompGame.RunWorkerAsync(CompGameResults);
                 // show dialog while rebuild is in progress
                 CompStatusWin.ShowDialog(MDIMain);
+                CompStatusWin.Dispose();
             }
-            catch (Exception ex) {
-                Debug.Assert(false);
+            catch  {
+                // ignore
             }
             // refresh the warnings list
             infoGridBinding.RaiseListChangedEvents = true;
@@ -2414,10 +2379,7 @@ namespace WinAGI.Editor {
                 Mode = OpenGameMode.File,
                 GameFile = ThisGameFile
             };
-            if (OpenGame(gameparams)) {
-                // reset browser start dir to this dir
-                // BrowserStartDir = JustPath(ThisGameFile);
-            }
+            _ = OpenGame(gameparams);
         }
         #endregion
 
@@ -2533,34 +2495,33 @@ namespace WinAGI.Editor {
             }
             if (EditGame is not null) {
                 // get logic number, id , description
-                using frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Logic);
-                if (importing) {
-                    // suggest ID based on filename
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportLogicFile).Replace(" ", "");
-                }
-                // restore cursor while getting resnum
-                MDIMain.UseWaitCursor = false;
-                // if canceled, release the temporary logic, restore mousepointer and exit
-                if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                    tmpLogic = null;
-                    GetResNum.Dispose();
-                    return;
-                }
-                tmpLogic.Description = GetResNum.txtDescription.Text;
-                if (GetResNum.DontImport) {
-                    gameOpen = true;
-                    if (!importing) {
-                        // for new logics not being added,
-                        // build default logic source
-                        if (GetResNum.chkRoom.Checked) {
-                            // add template text
-                            tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
-                        }
-                        else {
-                            // add default text
-                            List<string> src =
-                            [
-                                "[*********************************************************************",
+                using (frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Logic)) {
+                    if (importing) {
+                        // suggest ID based on filename
+                        GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportLogicFile).Replace(" ", "");
+                    }
+                    // restore cursor while getting resnum
+                    MDIMain.UseWaitCursor = false;
+                    // if canceled, release the temporary logic, restore mousepointer and exit
+                    if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                        tmpLogic = null;
+                        return;
+                    }
+                    tmpLogic.Description = GetResNum.txtDescription.Text;
+                    if (GetResNum.DontImport) {
+                        gameOpen = true;
+                        if (!importing) {
+                            // for new logics not being added,
+                            // build default logic source
+                            if (GetResNum.chkRoom.Checked) {
+                                // add template text
+                                tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
+                            }
+                            else {
+                                // add default text
+                                List<string> src =
+                                [
+                                    "[*********************************************************************",
                                 "[",
                                 "[ " + tmpLogic.ID,
                                 "[",
@@ -2572,43 +2533,44 @@ namespace WinAGI.Editor {
                                 "[ DECLARED MESSAGES",
                                 "[***************************************",
                                 "[  declared messages go here"
-                            ];
-                            tmpLogic.SourceText = string.Join(NEWLINE, [.. src]);
+                                ];
+                                tmpLogic.SourceText = string.Join(NEWLINE, [.. src]);
+                            }
+                        }
+                        else {
+                            // for imported logics not being added, use the imported source
+                            if (!isSource) {
+                                // need to load source from compiled logic
+                                tmpLogic.LoadSource(true);
+                                MDIMain.UpdateGridCounts();
+                            }
                         }
                     }
                     else {
-                        // for imported logics not being added, use the imported source
-                        if (!isSource) {
-                            // need to load source from compiled logic
-                            tmpLogic.LoadSource(true);
-                            MDIMain.UpdateGridCounts();
+                        // show wait cursor while resource is added
+                        MDIMain.UseWaitCursor = true;
+                        tmpLogic.ID = GetResNum.txtID.Text;
+
+                        // update id for ingame resources
+                        bool useTemplate = GetResNum.chkRoom.Checked;
+                        if (!importing) {
+                            // for new resources, need to set the source text
+                            tmpLogic.SourceText = NewLogicSourceText(tmpLogic, useTemplate);
                         }
-                    }
-                }
-                else {
-                    // show wait cursor while resource is added
-                    MDIMain.UseWaitCursor = true;
-                    tmpLogic.ID = GetResNum.txtID.Text;
+                        // set isroom status based on template
+                        tmpLogic.IsRoom = GetResNum.NewResNum != 0 && useTemplate;
 
-                    // update id for ingame resources
-                    bool useTemplate = GetResNum.chkRoom.Checked;
-                    if (!importing) {
-                        // for new resources, need to set the source text
-                        tmpLogic.SourceText = NewLogicSourceText(tmpLogic, useTemplate);
-                    }
-                    // set isroom status based on template
-                    tmpLogic.IsRoom = GetResNum.NewResNum != 0 && useTemplate;
+                        // add Logic (forcing decompile if importing a logic  resource) 
+                        AddNewLogic(GetResNum.NewResNum, tmpLogic, importing && !isSource);
+                        // reset tmplogic to point to the new game logic
+                        tmpLogic = EditGame.Logics[GetResNum.NewResNum];
 
-                    // add Logic (forcing decompile if importing a logic  resource) 
-                    AddNewLogic(GetResNum.NewResNum, tmpLogic, importing && !isSource);
-                    // reset tmplogic to point to the new game logic
-                    tmpLogic = EditGame.Logics[GetResNum.NewResNum];
-
-                    // if including picture
-                    if (GetResNum.chkIncludePic.Checked) {
-                        AddRoomPicture(GetResNum.NewResNum, GetResNum.txtID.Text);
+                        // if including picture
+                        if (GetResNum.chkIncludePic.Checked) {
+                            AddRoomPicture(GetResNum.NewResNum, GetResNum.txtID.Text);
+                        }
+                        gameOpen = GetResNum.chkOpenRes.Checked;
                     }
-                    gameOpen = (GetResNum.chkOpenRes.Checked);
                 }
             }
             else {
@@ -2646,11 +2608,11 @@ namespace WinAGI.Editor {
                 List<string> src =
                 [
                     "[*********************************************************************",
-                                "[",
-                                "[ " + tmpLogic.ID,
-                                "[",
-                                "[*********************************************************************",
-                            ];
+                    "[",
+                    "[ " + tmpLogic.ID,
+                    "[",
+                    "[*********************************************************************",
+                ];
                 // add standard include files
                 if (EditGame.IncludeIDs) {
                     src.Add("#include \"resourceids.txt\"");
@@ -2670,7 +2632,6 @@ namespace WinAGI.Editor {
                 src.Add("[  declared messages go here");
                 source = string.Join(NEWLINE, [.. src]);
             }
-
             return source;
         }
 
@@ -2710,13 +2671,11 @@ namespace WinAGI.Editor {
         /// user to select which logic to open.
         /// </summary>
         public static void OpenGameLogic() {
-            Debug.Assert(EditGame is not null);
-
-            frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Logic);
-            if (getresnum.ShowDialog() == DialogResult.OK) {
-                OpenGameLogic(getresnum.NewResNum, false);
+            using (frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Logic)) {
+                if (getresnum.ShowDialog() == DialogResult.OK) {
+                    OpenGameLogic(getresnum.NewResNum, false);
+                }
             }
-            getresnum.Dispose();
         }
 
         /// <summary>
@@ -2782,10 +2741,8 @@ namespace WinAGI.Editor {
                 EditGame.Logics[LogicNum].Load();
             }
             // clear warnings for this resource
-            MDIMain.ClearWarnings(AGIResType.Logic, LogicNum);
+            MDIMain.ClearInfoGrid(AGIResType.Logic, LogicNum);
             MDIMain.UpdateGridCounts();
-
-            // no backup needed for source code
 
             // remove it from game
             isRoom = EditGame.Logics[LogicNum].IsRoom;
@@ -2853,12 +2810,13 @@ namespace WinAGI.Editor {
             bool source, resource;
 
             if (choose) {
-                frmExportLogicOptions frm = new frmExportLogicOptions();
-                if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                    return 0;
+                using (frmExportLogicOptions frm = new()) {
+                    if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                        return 0;
+                    }
+                    source = frm.optSourceCode.Checked || frm.optBoth.Checked;
+                    resource = frm.optResource.Checked || frm.optBoth.Checked;
                 }
-                source = frm.optSourceCode.Checked || frm.optBoth.Checked;
-                resource = frm.optResource.Checked || frm.optBoth.Checked;
             }
             else {
                 source = true;
@@ -2935,7 +2893,7 @@ namespace WinAGI.Editor {
             // pause warnings list updates
             infoGridBinding.RaiseListChangedEvents = false;
             // clear any existing warnings/errors for this logic
-            MDIMain.ClearWarnings(AGIResType.Logic, logicnum, [EventType.LogicCompileError, EventType.LogicCompileWarning]);
+            MDIMain.ClearInfoGrid(AGIResType.Logic, logicnum, [EventType.LogicCompileError, EventType.LogicCompileWarning]);
 
             MDIMain.UseWaitCursor = true;
             bool loaded = false;
@@ -3683,7 +3641,7 @@ namespace WinAGI.Editor {
                     MDIMain.ActiveControl = MDIMain.ActiveMdiChild;
                 }
                 // reset search flags
-                FindingForm.ResetSearch();
+                frmFind.ResetSearch();
             }
             MDIMain.UseWaitCursor = false;
         }
@@ -3694,8 +3652,7 @@ namespace WinAGI.Editor {
             // if not found, return -1
             StringComparison compareMode;
             bool loaded = false;
-            int LogNum = -1;
-
+            int LogNum;
             if (!ClosedLogics) {
                 // first time through - start with first logic (which sets ClosedLogics flag)
                 LogNum = NextClosedLogic(-1);
@@ -3849,10 +3806,8 @@ namespace WinAGI.Editor {
             return -1;
         }
 
-        public static void ReplaceAll(Form startform, string FindText, string ReplaceText,
-            FindDirection FindDir, bool MatchWord, bool MatchCase, FindLocation LogicLoc,
-            AGIResType SearchType = AGIResType.None) {
-            //  replace all doesn't use or need direction
+        public static void ReplaceAll(Form startform, string FindText, string ReplaceText, bool MatchWord, bool MatchCase, FindLocation LogicLoc, AGIResType SearchType = AGIResType.None) {
+            // replace all doesn't use or need direction
 
             StringComparison compMode = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             if (FindText.Equals(ReplaceText, compMode)) {
@@ -3871,7 +3826,7 @@ namespace WinAGI.Editor {
 
             switch (LogicLoc) {
             case FindLocation.Current:
-                if (SearchType == AGIResType.Words && GFindSynonym) {
+                if (SearchType == Words && GFindSynonym) {
                     // replace all synonyms
                     for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
                         ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR,
@@ -3901,7 +3856,7 @@ namespace WinAGI.Editor {
                         ProgressWin.lblProgress.Text = "Searching " + Path.GetFileName(LogicEditors[i].TextFilename) + "...";
                     }
                     ProgressWin.Refresh();
-                    if (SearchType == AGIResType.Words && GFindSynonym) {
+                    if (SearchType == Words && GFindSynonym) {
                         // replace all synonyms
                         for (int j = 0; j < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; j++) {
                             ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[j] + QUOTECHAR,
@@ -3936,7 +3891,7 @@ namespace WinAGI.Editor {
                     if (LogicEditors[i].FormMode == LogicFormMode.Logic && LogicEditors[i].InGame) {
                         ProgressWin.lblProgress.Text = "Searching " + LogicEditors[i].EditLogic.ID + "...";
                         ProgressWin.Refresh();
-                        if (SearchType == AGIResType.Words && GFindSynonym) {
+                        if (SearchType == Words && GFindSynonym) {
                             // replace all synonyms
                             for (int j = 0; j < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; j++) {
                                 ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[j] + QUOTECHAR,
@@ -3957,7 +3912,7 @@ namespace WinAGI.Editor {
                     if (!loaded) {
                         logic.Load();
                     }
-                    if (SearchType == AGIResType.Words && GFindSynonym) {
+                    if (SearchType == Words && GFindSynonym) {
                         // replace all synonyms
                         for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
                             ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR,
@@ -4006,7 +3961,7 @@ namespace WinAGI.Editor {
             MDIMain.UseWaitCursor = false;
             ProgressWin.Close();
             ProgressWin.Dispose();
-            FindingForm.ResetSearch();
+            frmFind.ResetSearch();
         }
 
         private static void ReplaceAllText(string FindText, string ReplaceText, bool MatchWord, bool MatchCase, AGIResType SearchType, frmLogicEdit SearchWin) {
@@ -4183,7 +4138,7 @@ namespace WinAGI.Editor {
                                     return pos;
                                 }
                                 break;
-                            case AGIResType.Objects:
+                            case Objects:
                                 // validate an inventory object
                                 if (IsInvObject(pos, searchText)) {
                                     // word IS a whole word
@@ -4484,14 +4439,13 @@ namespace WinAGI.Editor {
 
         public static void AddRoomPicture(byte picnumber, string idtext) {
             Picture tmpPic = new();
-            string filename = "";
             // help user out if they chose a naming scheme
             if (idtext.Length >= 3 && idtext[..2].Equals("rm", StringComparison.OrdinalIgnoreCase)) {
                 // change ID (if able)
                 if (ValidateID("pic" + idtext[2..], "") == 0) {
                     tmpPic.ID = "pic" + idtext[2..];
                     if (EditGame.Pictures.Contains(picnumber)) {
-                        filename = Path.Combine(EditGame.SrcResDir, EditGame.Pictures[picnumber].ID + ".agp");
+                        string filename = Path.Combine(EditGame.SrcResDir, EditGame.Pictures[picnumber].ID + ".agp");
                         UpdateResFile(AGIResType.Picture, picnumber, filename);
                     }
                 }
@@ -4524,29 +4478,29 @@ namespace WinAGI.Editor {
                 }
             }
             if (EditGame is not null) {
-                frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Picture);
-                if (importing) {
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportPictureFile).Replace(" ", "");
+                using (frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Picture)) {
+                    if (importing) {
+                        GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportPictureFile).Replace(" ", "");
+                    }
+                    MDIMain.UseWaitCursor = false;
+                    if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                        // restore mousepointer and exit
+                        GetResNum.Close();
+                        GetResNum.Dispose();
+                        return;
+                    }
+                    tmpPic.Description = GetResNum.txtDescription.Text;
+                    if (GetResNum.DontImport) {
+                        openpic = true;
+                    }
+                    else {
+                        MDIMain.UseWaitCursor = true;
+                        tmpPic.ID = GetResNum.txtID.Text;
+                        AddNewPicture(GetResNum.NewResNum, tmpPic);
+                        tmpPic = EditGame.Pictures[GetResNum.NewResNum];
+                        openpic = (GetResNum.chkOpenRes.Checked);
+                    }
                 }
-                MDIMain.UseWaitCursor = false;
-                if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                    // restore mousepointer and exit
-                    GetResNum.Close();
-                    GetResNum.Dispose();
-                    return;
-                }
-                tmpPic.Description = GetResNum.txtDescription.Text;
-                if (GetResNum.DontImport) {
-                    openpic = true;
-                }
-                else {
-                    MDIMain.UseWaitCursor = true;
-                    tmpPic.ID = GetResNum.txtID.Text;
-                    AddNewPicture(GetResNum.NewResNum, tmpPic);
-                    tmpPic = EditGame.Pictures[GetResNum.NewResNum];
-                    openpic = (GetResNum.chkOpenRes.Checked);
-                }
-                GetResNum.Dispose();
             }
             else {
                 openpic = true;
@@ -4570,11 +4524,11 @@ namespace WinAGI.Editor {
         public static void OpenGamePicture() {
             Debug.Assert(EditGame is not null);
 
-            frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Picture);
-            if (getresnum.ShowDialog() == DialogResult.OK) {
-                OpenGamePicture(getresnum.NewResNum, false);
+            using (frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Picture)) {
+                if (getresnum.ShowDialog() == DialogResult.OK) {
+                    OpenGamePicture(getresnum.NewResNum, false);
+                }
             }
-            getresnum.Dispose();
         }
 
         public static void OpenGamePicture(byte ResNum, bool Quiet = false) {
@@ -4688,7 +4642,7 @@ namespace WinAGI.Editor {
                 return;
             }
             // clear warnings for this resource
-            MDIMain.ClearWarnings(AGIResType.Picture, PicNum);
+            MDIMain.ClearInfoGrid(AGIResType.Picture, PicNum);
             MDIMain.UpdateGridCounts();
 
             // backup if necessary
@@ -4759,30 +4713,34 @@ namespace WinAGI.Editor {
         /// <param name="ingame"></param>
         /// <returns>1 if exported as an AGI resource, 0 otherwise</returns>
         public static int ExportPicture(Picture picture, bool ingame) {
-
-            using frmExportPictureOptions frmPEO = new(0);
-            if (frmPEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                return 0;
-            }
             bool loaded = picture.Loaded;
-            if (!loaded) {
-                picture.Load();
-            }
-            bool exportImage = frmPEO.optImage.Checked;
-            int zoom = (int)frmPEO.udZoom.Value;
-            int format = frmPEO.cmbFormat.SelectedIndex + 1;
+            int zoom;
+            int format;
             string filename;
             int mode;
-            if (frmPEO.optVisual.Checked) {
-                mode = 0;
+            bool exportImage;
+
+            using (frmExportPictureOptions frmPEO = new(0)) {
+                if (frmPEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    return 0;
+                }
+                loaded = picture.Loaded;
+                if (!loaded) {
+                    picture.Load();
+                }
+                exportImage = frmPEO.optImage.Checked;
+                zoom = (int)frmPEO.udZoom.Value;
+                format = frmPEO.cmbFormat.SelectedIndex + 1;
+                if (frmPEO.optVisual.Checked) {
+                    mode = 0;
+                }
+                else if (frmPEO.optPriority.Checked) {
+                    mode = 1;
+                }
+                else {
+                    mode = 2;
+                }
             }
-            else if (frmPEO.optPriority.Checked) {
-                mode = 1;
-            }
-            else {
-                mode = 2;
-            }
-            frmPEO.Dispose();
             int retval = 0;
             if (exportImage) {
                 // get a filename
@@ -4851,30 +4809,24 @@ namespace WinAGI.Editor {
             string extension = "";
             bool loaded;
             // show options form, force image only
-            frmExportPictureOptions frmPEO = new(1) {
-                Text = "Export All Picture Images"
-            };
-            ;
-            if (frmPEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                // nothing to do
-                frmPEO.Close();
-                frmPEO.Dispose();
-                return;
+            using (frmExportPictureOptions frmPEO = new(1)) {
+                frmPEO.Text = "Export All Picture Images";
+                if (frmPEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    // nothing to do
+                    return;
+                }
+                zoom = (int)frmPEO.udZoom.Value;
+                format = frmPEO.cmbFormat.SelectedIndex + 1;
+                if (frmPEO.optVisual.Checked) {
+                    mode = 0;
+                }
+                else if (frmPEO.optPriority.Checked) {
+                    mode = 1;
+                }
+                else {
+                    mode = 2;
+                }
             }
-            zoom = (int)frmPEO.udZoom.Value;
-            format = frmPEO.cmbFormat.SelectedIndex + 1;
-            if (frmPEO.optVisual.Checked) {
-                mode = 0;
-            }
-            else if (frmPEO.optPriority.Checked) {
-                mode = 1;
-            }
-            else {
-                mode = 2;
-            }
-            // done with the options form
-            frmPEO.Close();
-            frmPEO.Dispose();
             // show wait cursor
             MDIMain.UseWaitCursor = true;
             // need to get correct file extension
@@ -5000,26 +4952,22 @@ namespace WinAGI.Editor {
             // exports a picture vis screen and/or pri screen as either bmp or gif, or png
             int zoom, mode, format;
             // show options form, save image only
-            frmExportPictureOptions frmPEO = new(1);
-            if (frmPEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                frmPEO.Close();
-                frmPEO.Dispose();
-                return;
+            using (frmExportPictureOptions frmPEO = new(1)) {
+                if (frmPEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    return;
+                }
+                zoom = (int)frmPEO.udZoom.Value;
+                format = frmPEO.cmbFormat.SelectedIndex + 1;
+                if (frmPEO.optVisual.Checked) {
+                    mode = 0;
+                }
+                else if (frmPEO.optPriority.Checked) {
+                    mode = 1;
+                }
+                else {
+                    mode = 2;
+                }
             }
-            zoom = (int)frmPEO.udZoom.Value;
-            format = frmPEO.cmbFormat.SelectedIndex + 1;
-            if (frmPEO.optVisual.Checked) {
-                mode = 0;
-            }
-            else if (frmPEO.optPriority.Checked) {
-                mode = 1;
-            }
-            else {
-                mode = 2;
-            }
-            // done with the options form
-            frmPEO.Close();
-            frmPEO.Dispose();
             // show save file dialog
             MDIMain.SaveDlg.Title = "Save Picture Image As";
             MDIMain.SaveDlg.DefaultExt = "bmp";
@@ -5040,11 +4988,13 @@ namespace WinAGI.Editor {
         }
 
         public static void ExportPicAsGif(Picture picture) {
-            using frmExportAnimatedGIF frmExportGIF = new(picture);
-            if (frmExportGIF.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                return;
+            GifOptions options;
+            using (frmExportAnimatedGIF frmExportGIF = new(picture)) {
+                if (frmExportGIF.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    return;
+                }
+                options = frmExportGIF.SelectedGifOptions;
             }
-            GifOptions options = frmExportGIF.SelectedGifOptions;
             MDIMain.SaveDlg.Title = "Export Picture GIF";
             MDIMain.SaveDlg.DefaultExt = "gif";
             MDIMain.SaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*";
@@ -5084,6 +5034,7 @@ namespace WinAGI.Editor {
             MDIMain.UseWaitCursor = true;
             MDIMain.Refresh();
             ProgressWin.ShowDialog();
+            ProgressWin.Dispose();
         }
 
         public static bool MakePicGif(Picture picture, GifOptions options, string filename) {
@@ -5370,28 +5321,28 @@ namespace WinAGI.Editor {
                 tmpSound.Tracks[3].Muted = WinAGISettings.DefMute[3].Value;
             }
             if (EditGame is not null) {
-                frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Sound);
-                if (importing) {
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(importfile).Replace(" ", "");
+                using (frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Sound)) {
+                    if (importing) {
+                        GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(importfile).Replace(" ", "");
+                    }
+                    MDIMain.UseWaitCursor = false;
+                    if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                        GetResNum.Close();
+                        GetResNum.Dispose();
+                        return;
+                    }
+                    tmpSound.Description = GetResNum.txtDescription.Text;
+                    if (GetResNum.DontImport) {
+                        opensound = true;
+                    }
+                    else {
+                        MDIMain.UseWaitCursor = true;
+                        tmpSound.ID = GetResNum.txtID.Text;
+                        AddNewSound(GetResNum.NewResNum, tmpSound);
+                        tmpSound = EditGame.Sounds[GetResNum.NewResNum];
+                        opensound = (GetResNum.chkOpenRes.Checked);
+                    }
                 }
-                MDIMain.UseWaitCursor = false;
-                if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                    GetResNum.Close();
-                    GetResNum.Dispose();
-                    return;
-                }
-                tmpSound.Description = GetResNum.txtDescription.Text;
-                if (GetResNum.DontImport) {
-                    opensound = true;
-                }
-                else {
-                    MDIMain.UseWaitCursor = true;
-                    tmpSound.ID = GetResNum.txtID.Text;
-                    AddNewSound(GetResNum.NewResNum, tmpSound);
-                    tmpSound = EditGame.Sounds[GetResNum.NewResNum];
-                    opensound = (GetResNum.chkOpenRes.Checked);
-                }
-                GetResNum.Dispose();
             }
             else {
                 opensound = true;
@@ -5415,11 +5366,11 @@ namespace WinAGI.Editor {
         public static void OpenGameSound() {
             Debug.Assert(EditGame is not null);
 
-            frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Sound);
-            if (getresnum.ShowDialog() == DialogResult.OK) {
-                OpenGameSound(getresnum.NewResNum, false);
+            using (frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Sound)) {
+                if (getresnum.ShowDialog() == DialogResult.OK) {
+                    OpenGameSound(getresnum.NewResNum, false);
+                }
             }
-            getresnum.Dispose();
         }
 
         public static void OpenGameSound(byte ResNum, bool Quiet = false) {
@@ -5465,15 +5416,13 @@ namespace WinAGI.Editor {
             case SoundImportFormat.MOD:
             case SoundImportFormat.MIDI:
                 // need to get import options
-                var frm = new frmImportSoundOptions(format);
-                if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
-                    options = frm.Options;
-                    frm.Dispose();
-                }
-                else {
-                    frm.Close();
-                    frm.Dispose();
-                    return;
+                using (frmImportSoundOptions frm = new frmImportSoundOptions(format)) {
+                    if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                        options = frm.Options;
+                    }
+                    else {
+                        return;
+                    }
                 }
                 break;
             default:
@@ -5556,7 +5505,7 @@ namespace WinAGI.Editor {
                 return;
             }
             // clear warnings for this resource
-            MDIMain.ClearWarnings(AGIResType.Sound, SoundNum);
+            MDIMain.ClearInfoGrid(AGIResType.Sound, SoundNum);
             MDIMain.UpdateGridCounts();
 
             // backup if necessary
@@ -5621,28 +5570,28 @@ namespace WinAGI.Editor {
         /// <returns>1 if exported as an AGI resource, 0 otherwise</returns>
         public static int ExportSound(Sound sound, bool ingame) {
             SoundFormat exportformat = SoundFormat.Undefined;
-
-            using frmExportSoundOptions frmSEO = new(sound.SndFormat);
-            if (frmSEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                return 0;
+            bool loaded;
+            using (frmExportSoundOptions frmSEO = new(sound.SndFormat)) {
+                if (frmSEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    return 0;
+                }
+                loaded = sound.Loaded;
+                if (!loaded) {
+                    sound.Load();
+                }
+                if (frmSEO.optNative.Checked) {
+                    exportformat = SoundFormat.AGI;
+                }
+                else if (frmSEO.optMidi.Checked) {
+                    exportformat = SoundFormat.MIDI;
+                }
+                else if (frmSEO.optWAV.Checked) {
+                    exportformat = SoundFormat.WAV;
+                }
+                else if (frmSEO.optASS.Checked) {
+                    exportformat = SoundFormat.Script;
+                }
             }
-            bool loaded = sound.Loaded;
-            if (!loaded) {
-                sound.Load();
-            }
-            if (frmSEO.optNative.Checked) {
-                exportformat = SoundFormat.AGI;
-            }
-            else if (frmSEO.optMidi.Checked) {
-                exportformat = SoundFormat.MIDI;
-            }
-            else if (frmSEO.optWAV.Checked) {
-                exportformat = SoundFormat.WAV;
-            }
-            else if (frmSEO.optASS.Checked) {
-                exportformat = SoundFormat.Script;
-            }
-            frmSEO.Dispose();
             string filename;
             MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
             if (ingame) {
@@ -5746,29 +5695,27 @@ namespace WinAGI.Editor {
                 tmpView[0][0].Width = WinAGISettings.DefCelW.Value;
             }
             if (EditGame is not null) {
-                frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.View);
-                if (importing) {
-                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportViewFile).Replace(" ", "_");
+                using (frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.View)) {
+                    if (importing) {
+                        GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportViewFile).Replace(" ", "_");
+                    }
+                    MDIMain.UseWaitCursor = false;
+                    if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                        tmpView = null;
+                        return;
+                    }
+                    tmpView.Description = GetResNum.txtDescription.Text;
+                    if (GetResNum.DontImport) {
+                        openview = true;
+                    }
+                    else {
+                        MDIMain.UseWaitCursor = true;
+                        tmpView.ID = GetResNum.txtID.Text;
+                        AddNewView(GetResNum.NewResNum, tmpView);
+                        tmpView = EditGame.Views[GetResNum.NewResNum];
+                        openview = (GetResNum.chkOpenRes.Checked);
+                    }
                 }
-                MDIMain.UseWaitCursor = false;
-                if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                    tmpView = null;
-                    GetResNum.Close();
-                    GetResNum.Dispose();
-                    return;
-                }
-                tmpView.Description = GetResNum.txtDescription.Text;
-                if (GetResNum.DontImport) {
-                    openview = true;
-                }
-                else {
-                    MDIMain.UseWaitCursor = true;
-                    tmpView.ID = GetResNum.txtID.Text;
-                    AddNewView(GetResNum.NewResNum, tmpView);
-                    tmpView = EditGame.Views[GetResNum.NewResNum];
-                    openview = (GetResNum.chkOpenRes.Checked);
-                }
-                GetResNum.Dispose();
             }
             else {
                 openview = true;
@@ -5792,11 +5739,11 @@ namespace WinAGI.Editor {
         public static void OpenGameView() {
             Debug.Assert(EditGame is not null);
 
-            frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.View);
-            if (getresnum.ShowDialog() == DialogResult.OK) {
-                OpenGameView(getresnum.NewResNum, false);
+            using (frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.View)) {
+                if (getresnum.ShowDialog() == DialogResult.OK) {
+                    OpenGameView(getresnum.NewResNum, false);
+                }
             }
-            getresnum.Dispose();
         }
 
         public static void OpenGameView(byte ResNum, bool Quiet = false, int StartLoop = 0, int StartCel = 0) {
@@ -5912,7 +5859,7 @@ namespace WinAGI.Editor {
                 return;
             }
             // clear warnings for this resource
-            MDIMain.ClearWarnings(AGIResType.View, ViewNum);
+            MDIMain.ClearInfoGrid(AGIResType.View, ViewNum);
             MDIMain.UpdateGridCounts();
 
             // backup if necessary
@@ -6010,13 +5957,13 @@ namespace WinAGI.Editor {
 
         public static void ExportLoopGIF(Engine.View view, int loopnum) {
             // export a loop as a gif
-
-            using frmExportAnimatedGIF frmExportGIF = new(view, loopnum);
-            if (frmExportGIF.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                return;
+            GifOptions options;
+            using (frmExportAnimatedGIF frmExportGIF = new(view, loopnum)) {
+                if (frmExportGIF.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    return;
+                }
+                options = frmExportGIF.SelectedGifOptions;
             }
-            GifOptions options = frmExportGIF.SelectedGifOptions;
-
             MDIMain.SaveDlg.Title = "Export Loop GIF";
             MDIMain.SaveDlg.DefaultExt = "gif";
             MDIMain.SaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*";
@@ -6054,6 +6001,7 @@ namespace WinAGI.Editor {
             MDIMain.UseWaitCursor = true;
             MDIMain.Refresh();
             ProgressWin.ShowDialog();
+            ProgressWin.Dispose();
         }
 
         public static bool MakeLoopGif(Loop loop, GifOptions options, string exportFile) {
@@ -7089,7 +7037,7 @@ namespace WinAGI.Editor {
         public static void ExportGameResource(AGIResType restype, int resnum) {
             // default filename is always resource ID and restype extension
             switch (restype) {
-            case AGIResType.Game:
+            case Game:
                 // export all
                 ExportAll(false);
                 break;
@@ -7105,10 +7053,10 @@ namespace WinAGI.Editor {
             case AGIResType.View:
                 ExportView(EditGame.Views[SelResNum], true);
                 break;
-            case AGIResType.Objects:
+            case Objects:
                 ExportObjects(EditGame.InvObjects, true);
                 break;
-            case AGIResType.Words:
+            case Words:
                 ExportWords(EditGame.WordList, true);
                 break;
             }
@@ -7236,21 +7184,22 @@ namespace WinAGI.Editor {
             else {
                 isroom = false;
             }
-            using frmGetResourceNum frm = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, ResType, OldResNum);
-            if (frm.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                newnum = frm.NewResNum;
-                if (newnum != OldResNum) {
-                    if (ResType == AGIResType.Logic && frm.chkIncludePic.Checked) {
-                        RenumberRoom(OldResNum, newnum);
+            using (frmGetResourceNum frm = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, ResType, OldResNum)) {
+                if (frm.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    newnum = frm.NewResNum;
+                    if (newnum != OldResNum) {
+                        if (ResType == AGIResType.Logic && frm.chkIncludePic.Checked) {
+                            RenumberRoom(OldResNum, newnum);
+                        }
+                        else {
+                            RenumberResource(ResType, OldResNum, newnum);
+                        }
                     }
-                    else {
-                        RenumberResource(ResType, OldResNum, newnum);
-                    }
+                    return newnum;
                 }
-                return newnum;
-            }
-            else {
-                return OldResNum;
+                else {
+                    return OldResNum;
+                }
             }
         }
 
@@ -7474,106 +7423,106 @@ namespace WinAGI.Editor {
             frmEditResourceProperties frmeditprop;
             while (true) {
                 // get new values
-                frmeditprop = new(ResType, (byte)ResNum, ResID, Description, InGame, FirstProp);
-                if (frmeditprop.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                    frmeditprop.Dispose();
-                    return false;
-                }
-                // validate return results
-                if (ResType == Objects || ResType == Words) {
-                    // only have description, so no need to validate
-                    break;
-                }
-                else {
-                    if (oldID != frmeditprop.NewID) {
-                        // validate new id
-                        DefineNameCheck rtn = ValidateID(frmeditprop.NewID, oldID);
-                        switch (rtn) {
-                        case DefineNameCheck.OK:
-                            break;
-                        case DefineNameCheck.Empty:
-                            errMsg = "Resource ID cannot be blank.";
-                            break;
-                        case DefineNameCheck.Numeric:
-                            errMsg = "Resource ID cannot be numeric.";
-                            break;
-                        case DefineNameCheck.ActionCommand:
-                            errMsg = "'" + frmeditprop.NewID + "' is an AGI command, and cannot be used as a resource ID.";
-                            break;
-                        case DefineNameCheck.TestCommand:
-                            errMsg = "'" + frmeditprop.NewID + "' is an AGI test command, and cannot be used as a resource ID.";
-                            break;
-                        case DefineNameCheck.KeyWord:
-                            errMsg = "'" + frmeditprop.NewID + "' is a compiler reserved word, and cannot be used as a resource ID.";
-                            break;
-                        case DefineNameCheck.ArgMarker:
-                            errMsg = "Resource IDs cannot be argument markers";
-                            break;
-                        case DefineNameCheck.BadChar:
-                            errMsg = "Invalid character in resource ID:" + Environment.NewLine + "   !" + QUOTECHAR + "&//()*+,-/:;<=>?[\\]^`{|}~ and spaces" + Environment.NewLine + "are not allowed.";
-                            break;
-                        case DefineNameCheck.ResourceID:
-                            // only enforce if in a game
-                            if (InGame) {
-                                errMsg = "'" + frmeditprop.NewID + "' is already in use as a resource ID.";
-                            }
-                            else {
-                                rtn = DefineNameCheck.OK;
-                            }
-                            break;
-                        }
-                        // if there is an error
-                        if (rtn != DefineNameCheck.OK) {
-                            MDIMain.MsgBoxWithHelp(
-                                errMsg,
-                                "Change Resource ID",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Information,
-                                "htm\\winagi\\managingresources.htm#resourceids");
-                        }
-                        else {
-                            switch (ResType) {
-                            case AGIResType.Logic:
-                                DialogResult result;
-                                if (!oldID.Equals(frmeditprop.NewID, StringComparison.OrdinalIgnoreCase) && File.Exists(Path.Combine(EditGame.SrcResDir, frmeditprop.NewID + "." + EditGame.SourceExt))) {
-                                    // import existing, or overwrite it?
-                                    result = MessageBox.Show(MDIMain,
-                                       "There is already a source file with the name '" + frmeditprop.NewID + "." +
-                                         EditGame.SourceExt + "' in your source file directory.\n\n" +
-                                         "Do you want to import that file? Choose 'NO' to replace that file with the current logic source.",
-                                         "Import Existing Source File?",
-                                         MessageBoxButtons.YesNo);
-                                }
-                                else {
-                                    // no existing file, so keep current source
-                                    result = DialogResult.No;
-                                }
-                                if (result == DialogResult.Yes) {
-                                    // bit of a hack..
-                                    // move the new file to the old file
-                                    // then ID change will move it back
-                                    SafeFileMove(Path.Combine(EditGame.SrcResDir, frmeditprop.NewID + "." + EditGame.SourceExt), EditGame.Logics[ResNum].SourceFile, true);
-                                }
-                                // change id (which automatically renames source file,
-                                // including overwriting an existing file
-                                EditGame.Logics[ResNum].ID = frmeditprop.NewID;
-                                break;
-                            case AGIResType.Picture:
-                                EditGame.Pictures[ResNum].ID = frmeditprop.NewID;
-                                break;
-                            case AGIResType.Sound:
-                                EditGame.Sounds[ResNum].ID = frmeditprop.NewID;
-                                break;
-                            case AGIResType.View:
-                                EditGame.Views[ResNum].ID = frmeditprop.NewID;
-                                break;
-                            }
-                            break;
-                        }
+                using (frmeditprop = new(ResType, (byte)ResNum, ResID, Description, InGame, FirstProp)) {
+                    if (frmeditprop.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                        return false;
+                    }
+                    // validate return results
+                    if (ResType == Objects || ResType == Words) {
+                        // only have description, so no need to validate
+                        break;
                     }
                     else {
-                        // if ID was exactly the same, no change needed
-                        break;
+                        if (oldID != frmeditprop.NewID) {
+                            // validate new id
+                            DefineNameCheck rtn = ValidateID(frmeditprop.NewID, oldID);
+                            switch (rtn) {
+                            case DefineNameCheck.OK:
+                                break;
+                            case DefineNameCheck.Empty:
+                                errMsg = "Resource ID cannot be blank.";
+                                break;
+                            case DefineNameCheck.Numeric:
+                                errMsg = "Resource ID cannot be numeric.";
+                                break;
+                            case DefineNameCheck.ActionCommand:
+                                errMsg = "'" + frmeditprop.NewID + "' is an AGI command, and cannot be used as a resource ID.";
+                                break;
+                            case DefineNameCheck.TestCommand:
+                                errMsg = "'" + frmeditprop.NewID + "' is an AGI test command, and cannot be used as a resource ID.";
+                                break;
+                            case DefineNameCheck.KeyWord:
+                                errMsg = "'" + frmeditprop.NewID + "' is a compiler reserved word, and cannot be used as a resource ID.";
+                                break;
+                            case DefineNameCheck.ArgMarker:
+                                errMsg = "Resource IDs cannot be argument markers";
+                                break;
+                            case DefineNameCheck.BadChar:
+                                errMsg = "Invalid character in resource ID:" + Environment.NewLine + "   !" + QUOTECHAR + "&//()*+,-/:;<=>?[\\]^`{|}~ and spaces" + Environment.NewLine + "are not allowed.";
+                                break;
+                            case DefineNameCheck.ResourceID:
+                                // only enforce if in a game
+                                if (InGame) {
+                                    errMsg = "'" + frmeditprop.NewID + "' is already in use as a resource ID.";
+                                }
+                                else {
+                                    rtn = DefineNameCheck.OK;
+                                }
+                                break;
+                            }
+                            // if there is an error
+                            if (rtn != DefineNameCheck.OK) {
+                                MDIMain.MsgBoxWithHelp(
+                                    errMsg,
+                                    "Change Resource ID",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information,
+                                    "htm\\winagi\\managingresources.htm#resourceids");
+                            }
+                            else {
+                                switch (ResType) {
+                                case AGIResType.Logic:
+                                    DialogResult result;
+                                    if (!oldID.Equals(frmeditprop.NewID, StringComparison.OrdinalIgnoreCase) && File.Exists(Path.Combine(EditGame.SrcResDir, frmeditprop.NewID + "." + EditGame.SourceExt))) {
+                                        // import existing, or overwrite it?
+                                        result = MessageBox.Show(MDIMain,
+                                           "There is already a source file with the name '" + frmeditprop.NewID + "." +
+                                             EditGame.SourceExt + "' in your source file directory.\n\n" +
+                                             "Do you want to import that file? Choose 'NO' to replace that file with the current logic source.",
+                                             "Import Existing Source File?",
+                                             MessageBoxButtons.YesNo);
+                                    }
+                                    else {
+                                        // no existing file, so keep current source
+                                        result = DialogResult.No;
+                                    }
+                                    if (result == DialogResult.Yes) {
+                                        // bit of a hack..
+                                        // move the new file to the old file
+                                        // then ID change will move it back
+                                        SafeFileMove(Path.Combine(EditGame.SrcResDir, frmeditprop.NewID + "." + EditGame.SourceExt), EditGame.Logics[ResNum].SourceFile, true);
+                                    }
+                                    // change id (which automatically renames source file,
+                                    // including overwriting an existing file
+                                    EditGame.Logics[ResNum].ID = frmeditprop.NewID;
+                                    break;
+                                case AGIResType.Picture:
+                                    EditGame.Pictures[ResNum].ID = frmeditprop.NewID;
+                                    break;
+                                case AGIResType.Sound:
+                                    EditGame.Sounds[ResNum].ID = frmeditprop.NewID;
+                                    break;
+                                case AGIResType.View:
+                                    EditGame.Views[ResNum].ID = frmeditprop.NewID;
+                                    break;
+                                }
+                                break;
+                            }
+                        }
+                        else {
+                            // if ID was exactly the same, no change needed
+                            break;
+                        }
                     }
                 }
             }
@@ -7671,9 +7620,9 @@ namespace WinAGI.Editor {
                 LogicListChange();
                 // if OK to update in all logics, do so
                 if (replace) {
-                    FindingForm.ResetSearch();
+                    frmFind.ResetSearch();
                     ChangingID = true;
-                    ReplaceAll(MDIMain, oldID, resID, FindDirection.All, true, true, FindLocation.All, resType);
+                    ReplaceAll(MDIMain, oldID, resID, true, true, FindLocation.All, resType);
                     ChangingID = false;
                 }
                 break;
@@ -7862,7 +7811,7 @@ namespace WinAGI.Editor {
             MDIMain.OpenDlg.FileName = "";
             MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
             switch (restype) {
-            case AGIResType.Game:
+            case Game:
                 MDIMain.OpenDlg.Title = mode + "WinAGI Game File";
                 MDIMain.OpenDlg.Filter = "WinAGI Game file (*.wag)|*.wag|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
@@ -7912,19 +7861,19 @@ namespace WinAGI.Editor {
                 MDIMain.OpenDlg.DefaultExt = "";
                 MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Views", sOPENFILTER, 1);
                 break;
-            case AGIResType.Objects:
+            case Objects:
                 MDIMain.OpenDlg.Title = mode + "OBJECT File";
                 MDIMain.OpenDlg.Filter = "AGI OBJECT files|OBJECT|Sierra Object Source|object.txt|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
                 MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Objects", sOPENFILTER, 1);
                 break;
-            case AGIResType.Words:
+            case Words:
                 MDIMain.OpenDlg.Title = mode + "WORDS.TOK File";
                 MDIMain.OpenDlg.Filter = "AGI WORDS.TOK files|WORDS.TOK|Sierra Words Source|words.txt|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
                 MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Words", sOPENFILTER, 1);
                 break;
-            case AGIResType.Globals:
+            case Globals:
                 MDIMain.OpenDlg.Title = "Global Defines File";
                 MDIMain.OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "txt";
@@ -7956,13 +7905,13 @@ namespace WinAGI.Editor {
                 case AGIResType.View:
                     section = "Views";
                     break;
-                case AGIResType.Objects:
+                case Objects:
                     section = "Objects";
                     break;
-                case AGIResType.Words:
+                case Words:
                     section = "Words";
                     break;
-                case AGIResType.Globals:
+                case Globals:
                     section = "Globals";
                     break;
                 }
@@ -8065,7 +8014,7 @@ namespace WinAGI.Editor {
         }
 
         internal static DefineList ReadIncludeDefines(string filename) {
-            DefineList retval = new();
+            DefineList retval = [];
             List<string> nested = [];
             Define tmpDefine = new();
 
@@ -8358,96 +8307,6 @@ namespace WinAGI.Editor {
             MDIMain.RefreshPropertyGrid(SelResType, SelResNum);
         }
 
-        /// <summary>
-        /// Refreshes all resources in the tree.
-        /// </summary>
-        public static void RefreshTree() {
-            switch (WinAGISettings.ResListType.Value) {
-            case ResListType.None:
-                return;
-            case ResListType.TreeList:
-                Debug.Assert(EditGame.GameID.Length != 0);
-                // update root
-                MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
-                // refresh logics
-                foreach (TreeNode tmpNode in HdrNode[(int)AGIResType.Logic].Nodes) {
-                    if (EditGame.Logics[(int)tmpNode.Tag].Compiled &&
-                        EditGame.Logics[(int)tmpNode.Tag].Error == ResourceErrorType.NoError) {
-                        tmpNode.ForeColor = Color.Black;
-                    }
-                    else {
-                        tmpNode.ForeColor = Color.Red;
-                    }
-                }
-                // refresh pictures
-                foreach (TreeNode tmpNode in HdrNode[(int)AGIResType.Picture].Nodes) {
-                    tmpNode.ForeColor = EditGame.Pictures[(int)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
-                }
-                // refresh sounds
-                foreach (TreeNode tmpNode in HdrNode[(int)AGIResType.Sound].Nodes) {
-                    tmpNode.ForeColor = EditGame.Sounds[(int)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
-                }
-                // refresh views
-                foreach (TreeNode tmpNode in HdrNode[(int)AGIResType.View].Nodes) {
-                    tmpNode.ForeColor = EditGame.Views[(int)tmpNode.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
-                }
-                // refresh includes
-                HdrNode[6].Nodes.Clear();
-                for (int i = 0; i < EditGame.IncludeFiles.Count; i++) {
-                    var tmpNode = HdrNode[6].Nodes.Add("i" + i, Path.GetFileName(EditGame.IncludeFiles[i].Filename));
-                    tmpNode.Tag = i;
-                }
-                break;
-            case ResListType.ComboList:
-                // update root
-                MDIMain.cmbResType.Items[0] = EditGame.GameID;
-                switch (MDIMain.cmbResType.SelectedIndex) {
-                case 1:
-                    // logics
-                    foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
-                        if (EditGame.Logics[(int)tmpItem.Tag].Compiled &&
-                        EditGame.Logics[(int)tmpItem.Tag].Error == ResourceErrorType.NoError) {
-                            tmpItem.ForeColor = Color.Black;
-                        }
-                        else {
-                            tmpItem.ForeColor = Color.Red;
-                        }
-                    }
-                    break;
-                case 2:
-                    // pictures
-                    foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
-                        tmpItem.ForeColor = EditGame.Pictures[(int)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
-                    }
-                    break;
-                case 3:
-                    // sounds
-                    foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
-                        tmpItem.ForeColor = EditGame.Sounds[(int)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
-                    }
-                    break;
-                case 4:
-                    // views
-                    foreach (ListViewItem tmpItem in MDIMain.lstResources.Items) {
-                        tmpItem.ForeColor = EditGame.Views[(int)tmpItem.Tag].Error == ResourceErrorType.NoError ? Color.Black : Color.Red;
-                    }
-                    break;
-                case 5:
-                case 6:
-                    // words, objects - no action
-                    break;
-                case 7:
-                    // includes
-                    for (int i = 0; i < EditGame.IncludeFiles.Count; i++) {
-                        var tmpItem = MDIMain.lstResources.Items.Add("i" + i, Path.GetFileName(EditGame.IncludeFiles[i].Filename), 0);
-                        tmpItem.Tag = i;
-                    }
-                    break;
-                }
-                break;
-            }
-        }
-
         public static bool ChangeGameID(string NewID) {
             // validate new id before changing it
             if (EditGame.GameID == NewID || NewID.Length == 0) {
@@ -8649,8 +8508,10 @@ namespace WinAGI.Editor {
                     bgwCompGame.RunWorkerAsync(CompGameResults);
                     // show dialog while rebuild is in progress
                     CompStatusWin.ShowDialog(MDIMain);
+                    CompStatusWin?.Dispose();
                 }
-                catch (Exception ex) {
+                catch {
+                    // shouldn't be any exceptions
                     Debug.Assert(false);
                 }
                 MDIMain.UpdateGridCounts();
@@ -8824,7 +8685,7 @@ namespace WinAGI.Editor {
         }
 
         /// <summary>
-        /// Updates the warning list for the given logic. Type
+        /// Updates the info grid list for the given logic. Type
         /// options are:<br/>
         /// 1 = insert lines: count = number of lines inserted<br/>
         /// 2 = delete lines: count = number of lines deleted<br/>
@@ -8834,8 +8695,7 @@ namespace WinAGI.Editor {
         /// <param name="startline"></param>
         /// <param name="count"></param>
         /// <param name="updatetype"></param>
-        internal static void UpdateWarningList(int logicnum, int startline, int count, int updatetype) {
-
+        internal static void UpdateInfoGrid(int logicnum, int startline, int count, int updatetype) {
             for (int i = infoGridTable.Rows.Count - 1; i >= 0; i--) {
                 DataRow item = infoGridTable.Rows[i];
                 if (!Enum.TryParse((string)item.ItemArray[0], out EventType type)) {
@@ -8883,7 +8743,7 @@ namespace WinAGI.Editor {
         /// Adjusts the line numbers for logic decode warnings and errors.
         /// </summary>
         /// <param name="resnum"></param>
-        public static void RenumberWarnings(int resnum, int offset) {
+        public static void RenumberInfoItems(int resnum, int offset) {
             // find the matching lines (by restype/number/eventtype)
             for (int i = 0; i < infoGridTable.Rows.Count; i++) {
                 var fgRow = infoGridTable.Rows[i];
@@ -8897,7 +8757,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        internal static void ClearInfogrid(AGIResType restype, int resnum) {
+        internal static void ClearInfoGrid(AGIResType restype, int resnum) {
             // find the matching lines (by restype/number)
             int num = resnum;
             if (restype > AGIResType.View) {
@@ -9138,7 +8998,7 @@ namespace WinAGI.Editor {
             }
             // if showing new/existing room, or updating an existing room,
             if (Reason == UpdateReason.ShowRoom || Reason == UpdateReason.UpdateRoom) {
-                // get new exits from the logic that was passed
+                // get new exits from the logic that was passed (and updates it)
                 tmpExits = ExtractExits(ThisLogic);
             }
 
@@ -9800,9 +9660,9 @@ namespace WinAGI.Editor {
 
         internal static void OpenReservedEditor() {
             if (EditGame is null || !EditGame.SierraSyntax) {
-                frmReserved frm = new();
-                frm.ShowDialog(MDIMain);
-                frm.Dispose();
+                using (frmReserved frm = new()) {
+                    frm.ShowDialog(MDIMain);
+                }
             }
             else {
                 // SierraSyntax uses 'sysdefs.h'
@@ -10084,7 +9944,7 @@ namespace WinAGI.Editor {
             retval = retval.Replace("%q", QUOTECHAR.ToString());
 
             // tabs
-            retval = retval.Replace("%t", new String(' ', WinAGISettings.LogicTabWidth.Value));
+            retval = retval.Replace("%t", new string(' ', WinAGISettings.LogicTabWidth.Value));
 
             // lastly, restore any forced percent signs
             retval = retval.Replace((char)25, '%');
@@ -10191,7 +10051,7 @@ namespace WinAGI.Editor {
             // check resource IDs first
             for (int j = 0; j < 4; j++) {
                 for (int i = 0; i < 256; i++) {
-                    if (IDefLookup[j, i].Type == Engine.ArgType.Num &&
+                    if (IDefLookup[j, i].Type == Num &&
                         IDefLookup[j, i].Name == text) {
                         return IDefLookup[j, i].Value;
                     }
@@ -10386,134 +10246,62 @@ namespace WinAGI.Editor {
 
         public static DialogResult ShowInputDialog(Form owner, string title, string info, ref string input) {
             int offset = 0;
-            Form inputBox = new() {
+            using (Form inputBox = new() {
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedToolWindow,
                 MinimizeBox = false,
                 MaximizeBox = false,
                 ShowInTaskbar = false
-            };
-            if (info.Length > 0) {
-                offset = 20;
-                inputBox.ClientSize = new(200, 70 + offset);
-                Label labelInfo = new() {
-                    Size = new Size(inputBox.ClientSize.Width - 10, 15),
-                    Location = new Point(5, 5),
-                    Text = info
-                };
-                inputBox.Controls.Add(labelInfo);
-            }
-            else {
-                inputBox.ClientSize = new(200, 70);
-            }
-            inputBox.Text = title;
-
-            TextBox textBox = new() {
-                Size = new Size(inputBox.ClientSize.Width - 10, 23 + offset),
-                Location = new Point(5, 5 + offset),
-                Text = input
-            };
-            inputBox.Controls.Add(textBox);
-
-            Button okButton = new() {
-                DialogResult = DialogResult.OK,
-                Name = "okButton",
-                Size = new Size(75, 23),
-                Text = "&OK",
-                Location = new Point(inputBox.ClientSize.Width - 160, 39 + offset)
-            };
-            inputBox.Controls.Add(okButton);
-
-            Button cancelButton = new() {
-                DialogResult = DialogResult.Cancel,
-                Name = "cancelButton",
-                Size = new Size(75, 23),
-                Text = "&Cancel",
-                Location = new Point(inputBox.ClientSize.Width - 80, 39 + offset)
-            };
-            inputBox.Controls.Add(cancelButton);
-
-            inputBox.AcceptButton = okButton;
-            inputBox.CancelButton = cancelButton;
-
-            DialogResult result = inputBox.ShowDialog(owner);
-            input = textBox.Text;
-            return result;
-        }
-        #endregion
-        #endregion
-
-        #region Editor Extension Methods
-        public static string CommandName(this DrawFunction drawfunction) {
-            return drawfunction switch {
-                DrawFunction.EnableVis => "Vis: ON",    // Change picture color and enable picture draw.
-                DrawFunction.DisableVis => "Vis: OFF",   // Disable picture draw.
-                DrawFunction.EnablePri => "Pri: ON",    // Change priority color and enable priority draw.
-                DrawFunction.DisablePri => "Pri: OFF",   // Disable priority draw.
-                DrawFunction.YCorner => "Y Corner",      // Draw a Y corner.
-                DrawFunction.XCorner => "X Corner",      // Draw an X corner.
-                DrawFunction.AbsLine => "Line",      // Absolute line (long lines).
-                DrawFunction.RelLine => "Short Line",      // Relative line (short lines).
-                DrawFunction.Fill => "Fill",         // Fill.
-                DrawFunction.ChangePen => "Set Plot Pen",    // Change pen size and style.
-                DrawFunction.PlotPen => "Plot",      // Plot with pen.
-                DrawFunction.End => "End",           // end of drawing
-                _ => "undefined"
-            };
-        }
-
-        /// <summary>
-        /// Colorizes a black and white bitmap with the specified foreground and
-        /// background colors. Black pixels will be converted to foreground,
-        /// white pixels will be converted to background. Don't use this on a
-        /// bitmap with colors other than black and white.
-        /// </summary>
-        /// <param name="originalBitmap"></param>
-        /// <param name="foreground"></param>
-        /// <param name="background"></param>
-        /// <returns>A new bitmap with the desired foreground and background colors.</returns>
-        public static Bitmap Colorize(this Bitmap originalBitmap, Color foreground, Color background) {
-
-            Bitmap newBitmap = new Bitmap(originalBitmap.Width, originalBitmap.Height);
-
-            // Lock the bits of the original bitmap
-            BitmapData originalData = originalBitmap.LockBits(new Rectangle(0, 0, originalBitmap.Width, originalBitmap.Height), ImageLockMode.ReadOnly, originalBitmap.PixelFormat);
-            BitmapData newData = newBitmap.LockBits(new Rectangle(0, 0, newBitmap.Width, newBitmap.Height), ImageLockMode.WriteOnly, newBitmap.PixelFormat);
-
-            unsafe {
-                byte* originalPtr = (byte*)originalData.Scan0;
-                byte* newPtr = (byte*)newData.Scan0;
-
-                int bytesPerPixel = Image.GetPixelFormatSize(originalBitmap.PixelFormat) / 8;
-                for (int y = 0; y < originalBitmap.Height; y++) {
-                    for (int x = 0; x < originalBitmap.Width; x++) {
-                        int pixelIndex = (y * originalData.Stride) + (x * bytesPerPixel);
-                        Color pixelColor = Color.FromArgb(originalPtr[pixelIndex + 3], originalPtr[pixelIndex + 2], originalPtr[pixelIndex + 1], originalPtr[pixelIndex]);
-
-                        // if it's black (foreground)
-                        if (pixelColor == Color.Black) {
-                            newPtr[pixelIndex] = foreground.B;
-                            newPtr[pixelIndex + 1] = foreground.G;
-                            newPtr[pixelIndex + 2] = foreground.R;
-                            newPtr[pixelIndex + 3] = foreground.A;
-                        }
-                        else {
-                            // assume it's white (background)
-                            newPtr[pixelIndex] = background.B;
-                            newPtr[pixelIndex + 1] = background.G;
-                            newPtr[pixelIndex + 2] = background.R;
-                            newPtr[pixelIndex + 3] = background.A;
-                        }
-                    }
+            }) {
+                if (info.Length > 0) {
+                    offset = 20;
+                    inputBox.ClientSize = new(200, 70 + offset);
+                    Label labelInfo = new() {
+                        Size = new Size(inputBox.ClientSize.Width - 10, 15),
+                        Location = new Point(5, 5),
+                        Text = info
+                    };
+                    inputBox.Controls.Add(labelInfo);
                 }
+                else {
+                    inputBox.ClientSize = new(200, 70);
+                }
+                inputBox.Text = title;
+
+                TextBox textBox = new() {
+                    Size = new Size(inputBox.ClientSize.Width - 10, 23 + offset),
+                    Location = new Point(5, 5 + offset),
+                    Text = input
+                };
+                inputBox.Controls.Add(textBox);
+
+                Button okButton = new() {
+                    DialogResult = DialogResult.OK,
+                    Name = "okButton",
+                    Size = new Size(75, 23),
+                    Text = "&OK",
+                    Location = new Point(inputBox.ClientSize.Width - 160, 39 + offset)
+                };
+                inputBox.Controls.Add(okButton);
+
+                Button cancelButton = new() {
+                    DialogResult = DialogResult.Cancel,
+                    Name = "cancelButton",
+                    Size = new Size(75, 23),
+                    Text = "&Cancel",
+                    Location = new Point(inputBox.ClientSize.Width - 80, 39 + offset)
+                };
+                inputBox.Controls.Add(cancelButton);
+
+                inputBox.AcceptButton = okButton;
+                inputBox.CancelButton = cancelButton;
+
+                DialogResult result = inputBox.ShowDialog(owner);
+                input = textBox.Text;
+                return result;
             }
-
-            // Unlock the bits
-            originalBitmap.UnlockBits(originalData);
-            newBitmap.UnlockBits(newData);
-
-            return newBitmap;
         }
+        #endregion
         #endregion
     }
 

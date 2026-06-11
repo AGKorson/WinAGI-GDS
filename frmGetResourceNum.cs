@@ -7,19 +7,13 @@ using static WinAGI.Editor.Base.GetRes;
 
 namespace WinAGI.Editor {
     public partial class frmGetResourceNum : Form {
+        #region Fields
         public AGIResType ResType;
         public byte NewResNum;
         public byte OldResNum;
         public bool DontImport = false;
         public GetRes WindowFunction;
-
-        class ListItemData {
-            public byte ResNum = 0;
-            public string ID = "";
-            public override string ToString() {
-                return ID;
-            }
-        }
+        #endregion
 
         #region Constructors
         public frmGetResourceNum(GetRes function, AGIResType restype) {
@@ -648,5 +642,13 @@ namespace WinAGI.Editor {
             }
         }
         #endregion
+
+        class ListItemData {
+            public byte ResNum = 0;
+            public string ID = "";
+            public override string ToString() {
+                return ID;
+            }
+        }
     }
 }

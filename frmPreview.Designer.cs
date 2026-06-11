@@ -320,7 +320,6 @@ namespace WinAGI.Editor {
             imgPicture.MouseMove += imgPicture_MouseMove;
             imgPicture.MouseUp += imgPicture_MouseUp;
             imgPicture.MouseWheel += imgPicture_MouseWheel;
-            imgPicture.Validated += imgPicture_Validated;
             // 
             // pnlSound
             // 

@@ -12,6 +12,18 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmConfigureBackground : Form {
+        #region Enums
+        private enum MoveMode {
+            None,
+            MoveExample,
+            MoveBkgd,
+            SizeBkgdNS,
+            SizeBkgdWE,
+            SizeBkgdAll,
+        }
+        #endregion
+
+        #region Fields
         private frmPicEdit PicEditForm;
         public PictureBackgroundSettings bkgdSettings;
         public Bitmap BkgdImage, example, viscopy;
@@ -21,20 +33,15 @@ namespace WinAGI.Editor {
         private MoveMode moveMode;
         private int scalefactor = 1;
         private int minsize = 32, minoverlap = 30;
-        private enum MoveMode {
-            None,
-            MoveExample,
-            MoveBkgd,
-            SizeBkgdNS,
-            SizeBkgdWE,
-            SizeBkgdAll,
-        }
+        #endregion
 
+        #region Constructors
         public frmConfigureBackground(frmPicEdit owner) {
             InitializeComponent();
             udScale.SelectedIndex = 2;
             InitForm(owner);
         }
+        #endregion
 
         #region Event Handlers
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData) {
@@ -105,7 +112,7 @@ namespace WinAGI.Editor {
         }
 
         private void frmConfigureBackground_HelpRequested(object sender, HelpEventArgs hlpevent) {
-            Help.ShowHelp(Base.HelpParent, Base.WinAGIHelp, "htm\\winagi\\picbkgd.htm");
+            Help.ShowHelp(HelpParent, WinAGIHelp, "htm\\winagi\\picbkgd.htm");
             hlpevent.Handled = true;
         }
 
@@ -137,8 +144,8 @@ namespace WinAGI.Editor {
             float VScale = picBackground.Height / (float)BkgdImage.Height;
             bkgdSettings.SourceRegion.X = (float)((picExample.Left - picBackground.Left) / HScale);
             bkgdSettings.SourceRegion.Y = (float)((picExample.Top - picBackground.Top) / VScale);
-            bkgdSettings.SourceRegion.Width = (320f * scalefactor / HScale);
-            bkgdSettings.SourceRegion.Height = (168f * scalefactor / VScale);
+            bkgdSettings.SourceRegion.Width = 320f * scalefactor / HScale;
+            bkgdSettings.SourceRegion.Height = 168f * scalefactor / VScale;
             bkgdSettings.TargetPos.X = (picExample.Left - picBackground.Left) / scalefactor;
             bkgdSettings.TargetPos.Y = (picExample.Top - picBackground.Top) / scalefactor;
             bkgdSettings.SourceSize.Width = picBackground.Width / scalefactor;
@@ -418,7 +425,7 @@ namespace WinAGI.Editor {
             try {
                 example = new(320 * scalefactor, 168 * scalefactor);
                 using (Graphics g = Graphics.FromImage(example)) {
-                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    g.InterpolationMode = InterpolationMode.NearestNeighbor;
                     g.PixelOffsetMode = PixelOffsetMode.Half;
                     g.DrawImage(viscopy, 0, 0, 320 * scalefactor, 168 * scalefactor);
                 }
@@ -500,7 +507,7 @@ namespace WinAGI.Editor {
                 // scale it to fit the example box (which removes indexing)
                 example = new(320 * scalefactor, 168 * scalefactor);
                 using (Graphics g = Graphics.FromImage(example)) {
-                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    g.InterpolationMode = InterpolationMode.NearestNeighbor;
                     g.PixelOffsetMode = PixelOffsetMode.Half;
                     g.DrawImage(viscopy, 0, 0, 320 * scalefactor, 168 * scalefactor);
                 }

@@ -213,14 +213,14 @@
             cmiIgnoreWarning = new ToolStripMenuItem();
             picNavList = new PictureBox();
             splitResource = new Splitter();
-            pnlWarnings = new Panel();
+            pnlInfoGrid = new Panel();
             btnClose = new Button();
             todoToggle = new Label();
             warningToggle = new Label();
             errorToggle = new Label();
             gridFilter = new ComboBox();
             fgWarnings = new DataGridView();
-            splitWarning = new Splitter();
+            splitInfoGrid = new Splitter();
             tmrNavList = new Timer(components);
             FolderDlg = new FolderBrowserDialog();
             OpenDlg = new OpenFileDialog();
@@ -236,7 +236,7 @@
             cmsResource.SuspendLayout();
             cmsGrid.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picNavList).BeginInit();
-            pnlWarnings.SuspendLayout();
+            pnlInfoGrid.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)fgWarnings).BeginInit();
             SuspendLayout();
             // 
@@ -1727,18 +1727,18 @@
             // 
             // pnlWarnings
             // 
-            pnlWarnings.Controls.Add(btnClose);
-            pnlWarnings.Controls.Add(todoToggle);
-            pnlWarnings.Controls.Add(warningToggle);
-            pnlWarnings.Controls.Add(errorToggle);
-            pnlWarnings.Controls.Add(gridFilter);
-            pnlWarnings.Controls.Add(fgWarnings);
-            pnlWarnings.Dock = DockStyle.Bottom;
-            pnlWarnings.Location = new System.Drawing.Point(159, 269);
-            pnlWarnings.Margin = new Padding(1, 0, 1, 0);
-            pnlWarnings.Name = "pnlWarnings";
-            pnlWarnings.Size = new System.Drawing.Size(692, 86);
-            pnlWarnings.TabIndex = 20;
+            pnlInfoGrid.Controls.Add(btnClose);
+            pnlInfoGrid.Controls.Add(todoToggle);
+            pnlInfoGrid.Controls.Add(warningToggle);
+            pnlInfoGrid.Controls.Add(errorToggle);
+            pnlInfoGrid.Controls.Add(gridFilter);
+            pnlInfoGrid.Controls.Add(fgWarnings);
+            pnlInfoGrid.Dock = DockStyle.Bottom;
+            pnlInfoGrid.Location = new System.Drawing.Point(159, 269);
+            pnlInfoGrid.Margin = new Padding(1, 0, 1, 0);
+            pnlInfoGrid.Name = "pnlWarnings";
+            pnlInfoGrid.Size = new System.Drawing.Size(692, 86);
+            pnlInfoGrid.TabIndex = 20;
             // 
             // btnClose
             // 
@@ -1862,14 +1862,14 @@
             // 
             // splitWarning
             // 
-            splitWarning.Dock = DockStyle.Bottom;
-            splitWarning.Location = new System.Drawing.Point(159, 267);
-            splitWarning.Margin = new Padding(1, 0, 1, 0);
-            splitWarning.Name = "splitWarning";
-            splitWarning.Size = new System.Drawing.Size(692, 2);
-            splitWarning.TabIndex = 22;
-            splitWarning.TabStop = false;
-            splitWarning.Visible = false;
+            splitInfoGrid.Dock = DockStyle.Bottom;
+            splitInfoGrid.Location = new System.Drawing.Point(159, 267);
+            splitInfoGrid.Margin = new Padding(1, 0, 1, 0);
+            splitInfoGrid.Name = "splitWarning";
+            splitInfoGrid.Size = new System.Drawing.Size(692, 2);
+            splitInfoGrid.TabIndex = 22;
+            splitInfoGrid.TabStop = false;
+            splitInfoGrid.Visible = false;
             // 
             // tmrNavList
             // 
@@ -1887,8 +1887,8 @@
             AutoSize = true;
             ClientSize = new System.Drawing.Size(851, 378);
             Controls.Add(picNavList);
-            Controls.Add(splitWarning);
-            Controls.Add(pnlWarnings);
+            Controls.Add(splitInfoGrid);
+            Controls.Add(pnlInfoGrid);
             Controls.Add(splitResource);
             Controls.Add(pnlResources);
             Controls.Add(toolStrip1);
@@ -1921,7 +1921,7 @@
             cmsResource.ResumeLayout(false);
             cmsGrid.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)picNavList).EndInit();
-            pnlWarnings.ResumeLayout(false);
+            pnlInfoGrid.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)fgWarnings).EndInit();
             ResumeLayout(false);
             PerformLayout();
@@ -2087,8 +2087,8 @@
         internal ListView lstResources;
         internal PropertyGrid propertyGrid1;
         private ColumnHeader columnHeader1;
-        internal Splitter splitWarning;
-        internal Panel pnlWarnings;
+        internal Splitter splitInfoGrid;
+        internal Panel pnlInfoGrid;
         private ContextMenuStrip cmsGrid;
         private ToolStripMenuItem cmiDismiss;
         private ToolStripMenuItem cmiDismissAll;

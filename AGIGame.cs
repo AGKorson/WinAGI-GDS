@@ -81,7 +81,7 @@ namespace WinAGI.Engine {
         }
         #endregion
 
-        #region Local Members
+        #region Fields
         internal VOLManager volManager;
         internal Logics agLogs;
         internal Sounds agSnds;
@@ -1433,7 +1433,7 @@ namespace WinAGI.Engine {
                 agGameProps.Lines.Add("[Palette]");
                 // save palette colors
                 for (int i = 0; i < 16; i++) {
-                    agGameProps.Lines.Add("   Color" + i + " = " + EGAColors.ColorText(Palette[i]));
+                    agGameProps.Lines.Add("   Color" + i + " = " + Palette[i].ColorText());
                 }
                 agGameProps.Lines.Add("");
                 agGameProps.Lines.Add("[WORDS.TOK]");
@@ -2898,17 +2898,6 @@ namespace WinAGI.Engine {
         /// <param name="Group"></param>
         internal void WriteGameSetting(string Section, string Key, float Value, string Group = "", bool save = false) {
             WriteGameSetting(Section, Key, Value.ToString(), Group, save);
-        }
-
-        /// <summary>
-        /// Provides calling programs a way to write property values to the WinAGI
-        /// Game File.</summary>
-        /// <param name="Section"></param>
-        /// <param name="Key"></param>
-        /// <param name="Value"></param>
-        /// <param name="Group"></param>
-        public void WriteProperty(string Section, string Key, string Value, string Group = "", bool save = false) {
-            WriteGameSetting(Section, Key, Value, Group, save);
         }
 
         /// <summary>

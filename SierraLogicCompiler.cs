@@ -150,7 +150,7 @@ namespace WinAGI.Engine {
         }
         #endregion
 
-        #region Members
+        #region Fields
         /// <summary>
         /// The parent game attached to the compiler.
         /// </summary>
@@ -200,7 +200,6 @@ namespace WinAGI.Engine {
             sourceline = [0, 0, 0, 0, 0];
             definesList = [];
             includedFiles = [];
-            //labelList = [];
             wordsloaded = false;
             MsgText = new string[256];
             MsgInUse = new bool[256];
@@ -725,13 +724,13 @@ namespace WinAGI.Engine {
                                 case DefStr:
                                     // is it a define?
                                     if (argToken.Redefined) {
-                                        AddError(4037, EngineResources._4037.Replace(
+                                        AddError(4037, EngineResourceByNum(4037).Replace(
                                             ARG1, (i + 1).ToString()).Replace(
                                             ARG2, ArgTypeName(nextToken.ArgList[i])).Replace(
                                             ARG3, argToken.Name), false);
                                     }
                                     else {
-                                        AddError(4017, EngineResources._4017.Replace(
+                                        AddError(4017, EngineResourceByNum(4017).Replace(
                                             ARG1, (i + 1).ToString()).Replace(
                                             ARG2, ArgTypeName(nextToken.ArgList[i])), false);
                                     }
@@ -742,7 +741,7 @@ namespace WinAGI.Engine {
                                 case TestOperator:
                                 case BadSymbol:
                                 case AssignOperator:
-                                    AddError(4040, EngineResources._4040.Replace(
+                                    AddError(4040, EngineResourceByNum(4040).Replace(
                                         ARG1, (i + 1).ToString()).Replace(
                                         ARG2, ArgTypeName(nextToken.ArgList[i])), false);
                                     break;
@@ -750,7 +749,7 @@ namespace WinAGI.Engine {
                                 case SierraArgToken:
                                 case Keyword:
                                 case Preprocessor:
-                                    AddError(6026, EngineResources._6026.Replace(
+                                    AddError(6026, EngineResourceByNum(6026).Replace(
                                         ARG1, argToken.Name), false);
                                     break;
 
@@ -760,7 +759,7 @@ namespace WinAGI.Engine {
                                     break;
 
                                 case Unknown:
-                                    AddError(4004, EngineResources._4004.Replace(
+                                    AddError(4004, EngineResourceByNum(4004).Replace(
                                         ARG1, (i + 1).ToString()).Replace(
                                         ARG2, ArgTypeName(nextToken.ArgList[i])).Replace(
                                         ARG3, argToken.Text), false);
@@ -1037,7 +1036,7 @@ namespace WinAGI.Engine {
                 bool error = false;
                 next = NextConvertedToken();
                 if (next.Type != Num) {
-                    AddError(6007, EngineResources._6007.Replace(
+                    AddError(6007, EngineResourceByNum(6007).Replace(
                         ARG1, "message"), false);
                     // don't add
                     return;
@@ -1045,25 +1044,25 @@ namespace WinAGI.Engine {
                 int msgNum = next.Value;
                 // validate number (1 - 255)
                 if (msgNum < 0 || msgNum > 255) {
-                    AddError(4048, EngineResources._4048, false);
+                    AddError(4048, EngineResourceByNum(4048), false);
                     error = true;
                 }
                 else if (msgNum == 0) {
                     // can't have a msg 0 or error will occur
-                    AddError(6015, EngineResources._6015, false);
+                    AddError(6015, EngineResourceByNum(6015), false);
                     error = true;
                 }
                 else {
                     if (MsgInUse[msgNum]) {
                         // msg is already assigned
-                        AddError(4072, EngineResourceByNum(4072).Replace(ARG1, (msgNum).ToString()), false);
+                        AddError(4072, EngineResourceByNum(4072).Replace(ARG1, msgNum.ToString()), false);
                         error = true;
                     }
                 }
                 // then get msg text
                 next = NextConvertedToken();
                 if (next.Type != DefStr) {
-                    AddError(4051, EngineResources._4051, false);
+                    AddError(4051, EngineResourceByNum(4051), false);
                     // don't add
                     return;
                 }
@@ -1080,7 +1079,6 @@ namespace WinAGI.Engine {
             else {
                 ArgType argtype = None;
                 string typename = "";
-                int num = 0;
                 bool error = false;
                 switch (type) {
                 case 2: // test   cmdname(arglist) number
@@ -1134,7 +1132,7 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // if not a duplicate then it's an invalid type
-                        AddError(6012, EngineResources._6012.Replace(
+                        AddError(6012, EngineResourceByNum(6012).Replace(
                             ARG1, typename), false);
                     }
                     // skip rest of line
@@ -1142,6 +1140,7 @@ namespace WinAGI.Engine {
                     return;
                 }
                 name = next.Text;
+                int num;
                 switch (type) {
                 case 2: // test   cmdname(arglist) number
                 case 3: // action cmdname(arglist) number
@@ -1206,7 +1205,7 @@ namespace WinAGI.Engine {
                     }
                     num = (byte)num;
                     if (num > (type == 3 ? MAX_CMDS : TestCount)) {
-                        AddError(6008, EngineResources._6008.Replace(
+                        AddError(6008, EngineResourceByNum(6008).Replace(
                             ARG1, type == 2 ? "test" : "action"), false);
                         // use zero as fallback
                         error = true;
@@ -1222,7 +1221,7 @@ namespace WinAGI.Engine {
                         // only one arg (WORDLIST) is valid
                         if (arglist.Count != 1 || arglist[0] != WORDLIST) {
                             // ignore arglist and set to WORDLIST
-                            AddError(6009, EngineResources._6009, false);
+                            AddError(6009, EngineResourceByNum(6009), false);
                         }
                     }
                     else {
@@ -1233,14 +1232,14 @@ namespace WinAGI.Engine {
                                 arglist.Contains(WORD) ||
                                 arglist.Contains(ANY) ||
                                 arglist.Contains(WORDLIST)) {
-                                AddError(6010, EngineResources._6010.Replace(
+                                AddError(6010, EngineResourceByNum(6010).Replace(
                                     ARG1, type == 2 ? "test" : "action"), false);
                             }
                         }
                         // confirm arglist matches for this number
                         if (!error && arglist.Count != (type == 3 ? ActionCommands[num].ArgList.Length :
                             TestCommands[num].ArgList.Length)) {
-                            AddError(6011, EngineResources._6011.Replace(
+                            AddError(6011, EngineResourceByNum(6011).Replace(
                                     ARG1, type == 2 ? "test" : "action"), false);
                         }
                     }
@@ -1275,7 +1274,7 @@ namespace WinAGI.Engine {
                     // number is next
                     next = NextConvertedToken();
                     if (next.Type != Num) {
-                        AddError(6007, EngineResources._6007.Replace(
+                        AddError(6007, EngineResourceByNum(6007).Replace(
                             ARG1, typename).Replace(
                             ARG2, next.Name), false);
                         // don't add
@@ -1302,7 +1301,7 @@ namespace WinAGI.Engine {
                     next = NextConvertedToken();
                     if (next.Type != Unknown && next.Type != None && next.Type != BadString) {
                         if (next.Text == ":") {
-                            AddError(6014, EngineResources._6014.Replace(
+                            AddError(6014, EngineResourceByNum(6014).Replace(
                                 ARG1, name), false);
                         }
                         else {
@@ -1325,7 +1324,7 @@ namespace WinAGI.Engine {
                         }
                     }
                     else {
-                        AddError(6014, EngineResources._6014.Replace(ARG1, next.Text), false);
+                        AddError(6014, EngineResourceByNum(6014).Replace(ARG1, next.Text), false);
                     }
                     break;
                 }
@@ -1621,9 +1620,10 @@ namespace WinAGI.Engine {
             // if token is a define, name stays the same and all other token 
             // properties are updated
 
-            SierraToken next = new();
-            next.StartPos = pos[sourcelevel];
-            next.Line = sourceline[sourcelevel];
+            SierraToken next = new() {
+                StartPos = pos[sourcelevel],
+                Line = sourceline[sourcelevel]
+            };
 
             // skip white space until a char is found
             char c;
@@ -1724,7 +1724,7 @@ namespace WinAGI.Engine {
                         if (next.Text.Length >= 999) {
                             // string too long
                             next.Type = BadString;
-                            AddError(6013, EngineResources._6013, false);
+                            AddError(6013, EngineResourceByNum(6013), false);
                             return retval();
                         }
                         // \x1a gets converted to \xff
@@ -2876,7 +2876,7 @@ namespace WinAGI.Engine {
                 // verify view exists
                 if (ErrorLevel == Medium) {
                     if (!sCompGame.agViews.Contains(argval)) {
-                        AddWarning(7005, EngineResources._7005.Replace(
+                        AddWarning(7005, EngineResourceByNum(7005).Replace(
                             ARG1, argval.ToString()));
                     }
                 }

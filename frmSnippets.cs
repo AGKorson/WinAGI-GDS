@@ -12,6 +12,7 @@ using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor {
     public partial class frmSnippets : Form {
+        #region Fields
         bool AddSnip, IsChanged = false;
         // editor syntax styles
         public TextStyle CommentStyle;
@@ -23,7 +24,9 @@ namespace WinAGI.Editor {
         public TextStyle NumberStyle;
         public TextStyle ArgIdentifierStyle;
         public TextStyle DefIdentifierStyle;
+        #endregion
 
+        #region Constructors
         public frmSnippets(bool newsnippet, string value = "") {
             InitializeComponent();
             lstSnippets.Items.Clear();
@@ -55,8 +58,10 @@ namespace WinAGI.Editor {
                 lstSnippets.Select();
             }
         }
+        #endregion
 
         #region Event Handlers
+        #region Form Events
         private void frmSnippets_FormClosing(object sender, FormClosingEventArgs e) {
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
@@ -89,10 +94,118 @@ namespace WinAGI.Editor {
             ShowHelp();
             hlpevent.Handled = true;
         }
+        #endregion
 
+        #region Context Menu Events
+        private void SetEditMenu() {
+            // Undo (Ctrl+Z) V; E:if able (is type available?)
+            // Redo (Ctrl+Y) V; E:if able (is type available?)
+            // ----------- V
+            // Cut (Ctrl+X) V; E
+            // Copy (Ctrl+C) V; E
+            // Delete (Del) V; E
+            // Paste (Ctrl+V) V; E
+            // Select All (Ctrl+A) V; E
+            // ----------- V
+            // Block Comment (Alt+B) V; E
+            // Unblock Comment (Alt+U) V; E
+            // ----------- V
+            // Character Map (Ctrl+Ins) V; E;
+            mnuEUndo.Enabled = rtfSnipValue.UndoEnabled;
+            mnuERedo.Enabled = rtfSnipValue.RedoEnabled;
+            mnuECut.Enabled = mnuECopy.Enabled = mnuEDelete.Enabled = rtfSnipValue.SelectionLength > 0;
+            mnuEPaste.Enabled = Clipboard.ContainsText();
+            mnuESelectAll.Enabled = rtfSnipValue.TextLength > 0;
+        }
+
+        private void ResetEditMenu() {
+            // enable all items so shortcut keys are always available
+            mnuEUndo.Enabled = true;
+            mnuERedo.Enabled = true;
+            mnuECut.Enabled = true;
+            mnuECopy.Enabled = true;
+            mnuEDelete.Enabled = true;
+            mnuEPaste.Enabled = true;
+            mnuESelectAll.Enabled = true;
+        }
+
+        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
+            if (txtSnipName.ReadOnly) {
+                e.Cancel = true;
+                return;
+            }
+            SetEditMenu();
+        }
+
+        private void contextMenuStrip1_Closed(object sender, ToolStripDropDownClosedEventArgs e) {
+            ResetEditMenu();
+        }
+
+        private void mnuEUndo_Click(object sender, EventArgs e) {
+            rtfSnipValue.Undo();
+        }
+
+        private void mnuERedo_Click(object sender, EventArgs e) {
+            rtfSnipValue.Redo();
+        }
+
+        private void mnuECut_Click(object sender, EventArgs e) {
+            if (rtfSnipValue.SelectionLength > 0) {
+                rtfSnipValue.Cut();
+            }
+        }
+
+        private void mnuEDelete_Click(object sender, EventArgs e) {
+            if (rtfSnipValue.SelectionLength > 0) {
+                rtfSnipValue.SelectedText = "";
+            }
+        }
+
+        private void mnuECopy_Click(object sender, EventArgs e) {
+            if (rtfSnipValue.SelectionLength > 0) {
+                rtfSnipValue.Copy();
+            }
+        }
+
+        private void mnuEPaste_Click(object sender, EventArgs e) {
+            if (Clipboard.ContainsText()) {
+                rtfSnipValue.Paste();
+            }
+        }
+
+        private void mnuESelectAll_Click(object sender, EventArgs e) {
+            rtfSnipValue.SelectAll();
+        }
+
+        private void mnuEBlockCmt_Click(object sender, EventArgs e) {
+            rtfSnipValue.InsertLinePrefix(rtfSnipValue.CommentPrefix);
+        }
+
+        private void mnuEUnblockCmt_Click(object sender, EventArgs e) {
+            rtfSnipValue.RemoveLinePrefix(rtfSnipValue.CommentPrefix);
+        }
+
+        private void mnuECharMap_Click(object sender, EventArgs e) {
+            int codepage;
+            if (EditGame is not null) {
+                codepage = EditGame.CodePage;
+            }
+            else {
+                codepage = CodePage;
+            }
+            using (frmCharPicker CharPicker = new(codepage)) {
+                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                    if (CharPicker.InsertString.Length > 0) {
+                        rtfSnipValue.InsertText(CharPicker.InsertString, true);
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region Control Events
         private void btnClose_Click(object sender, EventArgs e) {
             Close();
-            Dispose();
         }
 
         private void btnDelete_Click(object sender, EventArgs e) {
@@ -212,78 +325,6 @@ namespace WinAGI.Editor {
                 rtfSnipValue.Select();
             }
         }
-
-        #region Context Menu Events
-        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e) {
-            if (txtSnipName.ReadOnly) {
-                e.Cancel = true;
-                return;
-            }
-            RefreshEditMenu();
-        }
-
-        private void mnuEUndo_Click(object sender, EventArgs e) {
-            rtfSnipValue.Undo();
-        }
-
-        private void mnuERedo_Click(object sender, EventArgs e) {
-            rtfSnipValue.Redo();
-        }
-
-        private void mnuECut_Click(object sender, EventArgs e) {
-            if (rtfSnipValue.SelectionLength > 0) {
-                rtfSnipValue.Cut();
-            }
-        }
-
-        private void mnuEDelete_Click(object sender, EventArgs e) {
-            if (rtfSnipValue.SelectionLength > 0) {
-                rtfSnipValue.SelectedText = "";
-            }
-        }
-
-        private void mnuECopy_Click(object sender, EventArgs e) {
-            if (rtfSnipValue.SelectionLength > 0) {
-                rtfSnipValue.Copy();
-            }
-        }
-
-        private void mnuEPaste_Click(object sender, EventArgs e) {
-            if (Clipboard.ContainsText()) {
-                rtfSnipValue.Paste();
-            }
-        }
-
-        private void mnuESelectAll_Click(object sender, EventArgs e) {
-            rtfSnipValue.SelectAll();
-        }
-
-        private void mnuEBlockCmt_Click(object sender, EventArgs e) {
-            rtfSnipValue.InsertLinePrefix(rtfSnipValue.CommentPrefix);
-        }
-
-        private void mnuEUnblockCmt_Click(object sender, EventArgs e) {
-            rtfSnipValue.RemoveLinePrefix(rtfSnipValue.CommentPrefix);
-        }
-
-        private void mnuECharMap_Click(object sender, EventArgs e) {
-            int codepage;
-            if (EditGame is not null) {
-                codepage = EditGame.CodePage;
-            }
-            else {
-                codepage = CodePage;
-            }
-            frmCharPicker CharPicker = new(codepage);
-            CharPicker.ShowDialog(MDIMain);
-            if (!CharPicker.Cancel) {
-                if (CharPicker.InsertString.Length > 0) {
-                    rtfSnipValue.InsertText(CharPicker.InsertString, true);
-                }
-            }
-            CharPicker.Close();
-            CharPicker.Dispose();
-        }
         #endregion
         #endregion
 
@@ -303,7 +344,7 @@ namespace WinAGI.Editor {
                 int red = 255 - WinAGISettings.EditorBackColor.Value.R;
                 int green = 255 - WinAGISettings.EditorBackColor.Value.G;
                 int blue = 255 - WinAGISettings.EditorBackColor.Value.B;
-                rtfSnipValue.SelectionColor = System.Drawing.Color.FromArgb(128, red, green, blue);
+                rtfSnipValue.SelectionColor = Color.FromArgb(128, red, green, blue);
                 rtfSnipValue.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
                 rtfSnipValue.DefaultStyle = new TextStyle(rtfSnipValue.DefaultStyle.ForeBrush, rtfSnipValue.DefaultStyle.BackgroundBrush, WinAGISettings.SyntaxStyle[0].FontStyle.Value);
                 if (WinAGISettings.HighlightLogic.Value) {
@@ -336,27 +377,6 @@ namespace WinAGI.Editor {
             ArgIdentifierStyle.FontStyle = WinAGISettings.SyntaxStyle[8].FontStyle.Value;
             DefIdentifierStyle.ForeBrush = new SolidBrush(WinAGISettings.SyntaxStyle[9].Color.Value);
             DefIdentifierStyle.FontStyle = WinAGISettings.SyntaxStyle[9].FontStyle.Value;
-        }
-
-        private void RefreshEditMenu() {
-            // Undo (Ctrl+Z) V; E:if able (is type available?)
-            // Redo (Ctrl+Y) V; E:if able (is type available?)
-            // ----------- V
-            // Cut (Ctrl+X) V; E
-            // Copy (Ctrl+C) V; E
-            // Delete (Del) V; E
-            // Paste (Ctrl+V) V; E
-            // Select All (Ctrl+A) V; E
-            // ----------- V
-            // Block Comment (Alt+B) V; E
-            // Unblock Comment (Alt+U) V; E
-            // ----------- V
-            // Character Map (Ctrl+Ins) V; E;
-            mnuEUndo.Enabled = rtfSnipValue.UndoEnabled;
-            mnuERedo.Enabled = rtfSnipValue.RedoEnabled;
-            mnuECut.Enabled = mnuECopy.Enabled = mnuEDelete.Enabled = rtfSnipValue.SelectionLength > 0;
-            mnuEPaste.Enabled = Clipboard.ContainsText();
-            mnuESelectAll.Enabled = rtfSnipValue.TextLength > 0;
         }
 
         public void AGISyntaxHighlight(FastColoredTextBoxNS.Range range) {
@@ -475,10 +495,11 @@ namespace WinAGI.Editor {
                 return false;
             }
             // snippet is OK
-            Snippet newsnippet = new Snippet();
-            newsnippet.Name = txtSnipName.Text.Trim();
-            newsnippet.Value = valuetext;
-            newsnippet.ArgTips = txtArgTips.Text;
+            Snippet newsnippet = new() {
+                Name = txtSnipName.Text.Trim(),
+                Value = valuetext,
+                ArgTips = txtArgTips.Text
+            };
             lstSnippets.Items[lstSnippets.SelectedIndex] = newsnippet;
             lstSnippets.Refresh();
 
@@ -493,9 +514,19 @@ namespace WinAGI.Editor {
             return true;
         }
 
+        /// <summary>
+        /// Encode the snippet value for saving to the snippets file.  This replaces
+        /// newlines, tabs, quotes, and percent signs with control codes so that the
+        /// value can be saved on a single line in the file.  The control codes will
+        /// be decoded when loading the snippets file.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private string EncodeSnippet(string value) {
-            // encode the snippet value
+            // first, replace all % with a temporary code so we don't double encode
+            // the % in our control codes
             value = Regex.Replace(value, @"(?!%\d)%", "\u0018");
+            // next replace newlines, tabs, and quotes with control codes
             value = value.Replace("\r\n", "%n");
             value = value.Replace("\n", "%n");
             value = value.Replace("\r", "%n");
@@ -520,6 +551,7 @@ namespace WinAGI.Editor {
                 }
             }
             while (pos > 0);
+            // finally, replace the temporary % code with %%
             value = value.Replace("\u0018", "%%");
             return value;
         }
@@ -529,7 +561,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 return;
             }
-            SettingsFile SnipList = new(Path.Combine(AppDataDir, "snippets.txt"), System.IO.FileMode.Create);
+            SettingsFile SnipList = new(Path.Combine(AppDataDir, "snippets.txt"), FileMode.Create);
             // add the header
             SnipList.Lines.Add("#");
             SnipList.Lines.Add("# WinAGI Snippets");

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -9,13 +8,16 @@ namespace WinAGI.Editor {
     /// A TreeView control that allows for multi-node selection and manipulation.
     /// </summary>
     public class MultiNodeTreeview : TreeView {
+        #region Fields
         protected List<TreeNode> nodecollection = [];
         protected TreeNode endnode, anchornode;
         private bool selecting;
         private bool noselection;
         private bool forceselection = false;
         private TreeNode forcenode;
+        #endregion
 
+        #region Constructors
         public MultiNodeTreeview() {
             DrawMode = TreeViewDrawMode.OwnerDrawText;
             // Enable double buffering to reduce flicker
@@ -23,6 +25,7 @@ namespace WinAGI.Editor {
             typeof(TreeView).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
                 ?.SetValue(this, true, null);
         }
+        #endregion
 
         #region Properties
         /// <summary>
@@ -87,12 +90,13 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Event Overrides
         protected override void OnDrawNode(DrawTreeNodeEventArgs e) {
             // Determine if the node is in selection collection
             bool isSelected = nodecollection.Contains(e.Node);
             // Set colors based on selection state
-            Color backColor = isSelected ? SystemColors.Highlight : this.BackColor;
-            Color foreColor = isSelected ? SystemColors.HighlightText : this.ForeColor;
+            Color backColor = isSelected ? SystemColors.Highlight : BackColor;
+            Color foreColor = isSelected ? SystemColors.HighlightText : ForeColor;
             // if single level 2 node, and it's not selected (i.e., it marks
             // an insertion point), highlight it differently
             if (noselection && e.Node == SelectedNode && e.Node.Level == 2) {
@@ -106,7 +110,7 @@ namespace WinAGI.Editor {
                 TextRenderer.DrawText(
                     e.Graphics,
                     e.Node.Text,
-                    this.Font,
+                    Font,
                     e.Bounds,
                     foreColor,
                     TextFormatFlags.GlyphOverhangPadding
@@ -121,7 +125,6 @@ namespace WinAGI.Editor {
 
         protected override void OnMouseDown(MouseEventArgs e) {
             TreeNode node = GetNodeAt(e.X, e.Y);
-            Debug.Assert(node is not null, "Mouse down on a node that is not in the treeview.");
 
             // check for right-click within the bounds of the selection
             if (e.Button == MouseButtons.Right) {
@@ -129,9 +132,9 @@ namespace WinAGI.Editor {
                     if (nodecollection.Contains(node)) {
                         base.OnMouseDown(e);
                         // re-select the anchor node
-                        BeginInvoke((Action)(() => {
+                        BeginInvoke(() => {
                             SelectedNode = anchornode;
-                        }));
+                        });
                         return;
                     }
                 }
@@ -210,7 +213,7 @@ namespace WinAGI.Editor {
                 if (node is not null && node.Level == 2 && node.Parent == anchornode.Parent) {
                     int oldstart = Math.Min(anchornode.Index, endnode.Index);
                     int oldend = Math.Max(anchornode.Index, endnode.Index);
-                    Rectangle bounds = new();
+                    Rectangle bounds;
                     endnode = node;
                     // Get all siblings between m_firstNode and m_lastNode (inclusive)
                     TreeNode parent = anchornode.Parent;
@@ -303,9 +306,9 @@ namespace WinAGI.Editor {
                 // if forcing selection, set selection to the forced node
                 forceselection = false;
                 // re-select the anchor node
-                BeginInvoke((Action)(() => {
+                BeginInvoke(() => {
                     SelectedNode = forcenode;
-                }));
+                });
             }
         }
 
@@ -427,5 +430,6 @@ namespace WinAGI.Editor {
             Invalidate(bounds, false);
             base.OnAfterSelect(e);
         }
+        #endregion
     }
 }

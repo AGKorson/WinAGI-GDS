@@ -10,6 +10,7 @@ using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor {
     public partial class frmPalette : Form {
+        #region Fields
         private readonly int FormMode; // 0 = palette mode; 1 = prevwin bkgd color mode
         private readonly EGAColors SierraColors = new();
         private readonly string[] ColorNames = new string[16];
@@ -17,7 +18,9 @@ namespace WinAGI.Editor {
         public Color SelColor;
         private int SelColorIndex;
         private string PaletteFileName = "";
+        #endregion
 
+        #region Constructors
         public frmPalette(int mode) {
             InitializeComponent();
             btnCancel.ContextMenuStrip = new();
@@ -76,6 +79,7 @@ namespace WinAGI.Editor {
             btnColorDlg.Enabled = true;
             UpdateColorValues();
         }
+        #endregion
 
         #region Event Handlers
         private void frmPalette_KeyDown(object sender, KeyEventArgs e) {
@@ -84,7 +88,6 @@ namespace WinAGI.Editor {
                 EditGame is not null && EditGame.PowerPack) {
                 string palette = "";
                 for (int i = 0; i < 16; i++) {
-                    //palette += $"{TempColors[i].R / 4:X2}{TempColors[i].G / 4:X2}{TempColors[i].B / 4:X2}";
                     palette += ToEgaHex(TempColors[i]);
                 }
                 Clipboard.SetText(palette);
@@ -218,7 +221,7 @@ namespace WinAGI.Editor {
                 for (int i = 0; i < 16; i++) {
                     if (EditGame is not null) {
                         EditGame.Palette[i] = TempColors[i];
-                        EditGame.WriteProperty("Palette", "Color" + i, EGAColors.ColorText(TempColors[i]));
+                        EditGame.WriteGameSetting("Palette", "Color" + i, TempColors[i].ColorText());
                     }
                     else {
                         DefaultPalette[i] = TempColors[i];
@@ -349,6 +352,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Methods
         private void LoadPalette(string LoadFile) {
             // opens the load file, and finds the palette section
             // file should be NAGI.INI compatible, which is similar to
@@ -456,11 +460,11 @@ namespace WinAGI.Editor {
         }
 
         private void UpdateColorValues() {
-            txt24Bit.Text = ToHexRGB(TempColors[SelColorIndex]);
+            txt24Bit.Text = ToRGBHex(TempColors[SelColorIndex]);
             txt18Bit.Text = ToEgaHex(TempColors[SelColorIndex]);
         }
 
-        private static string ToHexRGB(Color c) {
+        private static string ToRGBHex(Color c) {
             return $"{c.R:X2}{c.G:X2}{c.B:X2}";
         }
 
@@ -494,5 +498,6 @@ namespace WinAGI.Editor {
                 return Color.Empty;
             }
         }
+        #endregion
     }
 }

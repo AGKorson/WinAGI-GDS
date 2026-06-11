@@ -3,8 +3,11 @@ using System.Windows.Forms;
 
 namespace WinAGI.Editor {
     public partial class frmExportPictureOptions : Form {
+        #region Fields
         public int FormMode;
+        #endregion
 
+        #region Constructors
         public frmExportPictureOptions(int mode) {
             // mode = 0: allow choice of export
             // mode = 1: force image export only
@@ -33,6 +36,7 @@ namespace WinAGI.Editor {
                 break;
             }
         }
+        #endregion
 
         #region Event Handlers
         private void frmExportPictureOptions_HelpRequested(object sender, HelpEventArgs hlpevent) {
@@ -42,22 +46,21 @@ namespace WinAGI.Editor {
 
         private void OKButton_Click(object sender, EventArgs e) {
             DialogResult = DialogResult.OK;
-            this.Visible = false;
+            Visible = false;
         }
 
         private void CancelButton_Click(object sender, EventArgs e) {
-            // canceled..
             DialogResult = DialogResult.Cancel;
-            this.Visible = false;
+            Visible = false;
         }
 
         private void optImageFormat(object sender, EventArgs e) {
             // shrink/expand form as needed
             if (optResource.Checked) {
-                this.Height = 115;
+                Height = 115;
             }
             else {
-                this.Height = 254;
+                Height = 254;
             }
         }
 

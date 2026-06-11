@@ -9,7 +9,7 @@ namespace WinAGI.Editor {
         //    1 = MIDI Compatible Conversion (pcjr/IIgs midi)
         //    2 = PCM/Wave Compatible Conversion (pcjr/IIgs pcm)
         //    3 = AGI Sound Script Format (all restypes)
-
+        #region Constructors
         public frmExportSoundOptions(SoundFormat resformat) {
             // resformat = 0: pcjr
             // resformat = 1: IIgs midi
@@ -32,6 +32,7 @@ namespace WinAGI.Editor {
                 break;
             }
         }
+        #endregion
 
         #region Event Handlers
         private void frmExportSoundOptions_HelpRequested(object sender, HelpEventArgs hlpevent) {
@@ -42,13 +43,13 @@ namespace WinAGI.Editor {
         private void OKButton_Click(object sender, EventArgs e) {
             // ok!
             DialogResult = DialogResult.OK;
-            this.Visible = false;
+            Visible = false;
         }
 
         private void CancelButton_Click(object sender, EventArgs e) {
             // canceled..
             DialogResult = DialogResult.Cancel;
-            this.Visible = false;
+            Visible = false;
         }
         #endregion
     }

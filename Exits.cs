@@ -8,9 +8,34 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public class Exits : IEnumerable<Exit> {
-        private readonly Dictionary<string, Exit> _exits = new();
-        private readonly List<string> _order = new();
+        #region Fields
+        private readonly Dictionary<string, Exit> _exits = [];
+        private readonly List<string> _order = [];
+        #endregion
 
+        #region Properties
+        public Exit this[object index] {
+            get {
+                if (index is int idx) {
+                    if (idx < 0 || idx >= _order.Count)
+                        throw new IndexOutOfRangeException("Subscript out of range");
+                    return _exits[_order[idx]];
+                }
+                else if (index is string key) {
+                    if (!_exits.TryGetValue(key, out var exit))
+                        throw new IndexOutOfRangeException("Subscript out of range");
+                    return exit;
+                }
+                else {
+                    throw new ArgumentException("Index must be an integer or string", nameof(index));
+                }
+            }
+        }
+
+        public int Count => _exits.Count;
+        #endregion
+
+        #region Methods
         public Exit Add(Exit copyexit) {
             var exit = new Exit {
                 ID = copyexit.ID,
@@ -32,7 +57,7 @@ namespace WinAGI.Editor {
             }
             string exitId = $"LE{id:000}";
             if (_exits.ContainsKey(exitId)) {
-                throw new ArgumentException($"This ExitID({exitId}) is already in use", nameof(exitId));
+                throw new ArgumentException($"This ExitID({exitId}) is already in use", nameof(id));
             }
             // 0 allowed to indicate an error
             if (room < 0 || room > 255) {
@@ -93,25 +118,6 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        public Exit this[object index] {
-            get {
-                if (index is int idx) {
-                    if (idx < 0 || idx >= _order.Count)
-                        throw new IndexOutOfRangeException("Subscript out of range");
-                    return _exits[_order[idx]];
-                }
-                else if (index is string key) {
-                    if (!_exits.TryGetValue(key, out var exit))
-                        throw new IndexOutOfRangeException("Subscript out of range");
-                    return exit;
-                }
-                else {
-                    throw new ArgumentException("Index must be an integer or string", nameof(index));
-                }
-            }
-        }
-
-        public int Count => _exits.Count;
 
         public void Remove(object index) {
             if (index is int idx) {
@@ -131,16 +137,20 @@ namespace WinAGI.Editor {
                 throw new ArgumentException("Index must be an integer or string", nameof(index));
             }
         }
+        #endregion
 
+        #region Enumeration
         public IEnumerator<Exit> GetEnumerator() {
             foreach (var key in _order)
                 yield return _exits[key];
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        #endregion
     }
 
     public class Exit {
+        #region Fields
         [JsonInclude]
         public string ID = "";    // matches id number as stored in logic source code comment
         [JsonInclude]
@@ -176,5 +186,6 @@ namespace WinAGI.Editor {
                                   // false means this exit points to a room that is not hidden
         public PointF SP;         // used by layout editor to locate start and endpoints of exits to be drawn
         public PointF EP;         // but don't include in json conversion
+        #endregion
     }
 }

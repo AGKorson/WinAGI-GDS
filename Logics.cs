@@ -11,9 +11,8 @@ namespace WinAGI.Engine {
     /// A class that holds all the logic resources in an AGI game.
     /// </summary>
     public class Logics : IEnumerable<Logic> {
-        #region Members
-        readonly AGIGame parent;
-        //        internal string mSourceFileExt = "";
+        #region Fields
+        private readonly AGIGame parent;
         #endregion
 
         #region Constructors
@@ -227,8 +226,6 @@ namespace WinAGI.Engine {
         }
 
         public void SaveModWarnings(List<WinAGIEventInfo> warningList, bool saveit = true) {
-            Debug.Assert(warningList is not null);
-
             // serialize by using tabs between elements and
             // vertical tabs between each warning/error item
             string warnings = "";
@@ -253,8 +250,6 @@ namespace WinAGI.Engine {
             parent.agGameProps.WriteSetting("General", "Warnings", warnings);
             if (saveit) {
                 parent.agGameProps.Save();
-            }
-            else {
             }
         }
 
@@ -293,10 +288,10 @@ namespace WinAGI.Engine {
             return new LogicEnum(Col);
         }
         IEnumerator IEnumerable.GetEnumerator() {
-            return (IEnumerator)GetEnumerator();
+            return GetEnumerator();
         }
         IEnumerator<Logic> IEnumerable<Logic>.GetEnumerator() {
-            return (IEnumerator<Logic>)GetEnumerator();
+            return GetEnumerator();
         }
 
         /// <summary>
@@ -321,7 +316,7 @@ namespace WinAGI.Engine {
             }
             public bool MoveNext() {
                 position++;
-                return (position < _logics.Count);
+                return position < _logics.Count;
             }
             public void Reset() {
                 position = -1;

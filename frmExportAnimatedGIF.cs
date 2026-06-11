@@ -7,17 +7,20 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmExportAnimatedGIF : Form {
-        int formMode;
-        Engine.View exportview;
-        Loop exportloop;
-        Picture exportpic;
+        #region Fields
+        private int formMode;
+        private Engine.View exportview;
+        private Loop exportloop;
+        private Picture exportpic;
         public GifOptions SelectedGifOptions;
-        bool visOn, XYDraw;
-        byte cel;
-        int pos;
-        int MaxW, MaxH;
-        const int VG_MARGIN = 4;
+        private bool visOn, XYDraw;
+        private byte cel;
+        private int pos;
+        private int MaxW, MaxH;
+        private const int VG_MARGIN = 4;
+        #endregion
 
+        #region Constructors
         public frmExportAnimatedGIF(Engine.View gifview, int loopnum) {
             InitializeComponent();
             InitForm(gifview, loopnum);
@@ -27,6 +30,7 @@ namespace WinAGI.Editor {
             InitializeComponent();
             InitForm(picture);
         }
+        #endregion
 
         #region Event Handlers
         private void frmExportViewLoopOptions_FormClosing(object sender, FormClosingEventArgs e) {
@@ -328,6 +332,8 @@ namespace WinAGI.Editor {
                 picture.Load();
             }
             exportpic = picture.Clone();
+            // clone it otherwise stepdraw and drawpos can't be set 
+            // TODO: may need to revisit that strategy...
             if (!loaded) {
                 picture.Unload();
             }
@@ -344,10 +350,11 @@ namespace WinAGI.Editor {
             cmbLoop.Visible = false;
             chkLoop.Checked = true;
             pos = -1;
-            SelectedGifOptions = new();
-            SelectedGifOptions.Zoom = 1;
-            SelectedGifOptions.Delay = 1;
-            SelectedGifOptions.Cycle = true;
+            SelectedGifOptions = new() {
+                Zoom = 1,
+                Delay = 1,
+                Cycle = true
+            };
             if (SelectedGifOptions.Cycle) {
                 chkLoop.Checked = true;
             }

@@ -17,56 +17,6 @@ namespace WinAGI.Editor {
         #endregion
 
         #region Methods
-        public new int FindEndOfFoldingBlock(int iStartLine, int maxLines) {
-            //find end of block
-            int i;
-            string marker = TextSource[iStartLine].FoldingStartMarker;
-            var stack = new Stack<string>();
-
-            switch (FindEndOfFoldingBlockStrategy) {
-            case FindEndOfFoldingBlockStrategy.Strategy1:
-                for (i = iStartLine /*+1*/; i < LinesCount; i++) {
-                    if (TextSource.LineHasFoldingStartMarker(i))
-                        stack.Push(TextSource[i].FoldingStartMarker);
-
-                    if (TextSource.LineHasFoldingEndMarker(i)) {
-                        string m = TextSource[i].FoldingEndMarker;
-                        while (stack.Count > 0 && stack.Pop() != m)
-                            ;
-                        if (stack.Count == 0)
-                            return i;
-                    }
-
-                    maxLines--;
-                    if (maxLines < 0)
-                        return i;
-                }
-                break;
-
-            case FindEndOfFoldingBlockStrategy.Strategy2:
-                for (i = iStartLine /*+1*/; i < LinesCount; i++) {
-                    if (TextSource.LineHasFoldingEndMarker(i)) {
-                        string m = TextSource[i].FoldingEndMarker;
-                        while (stack.Count > 0 && stack.Pop() != m)
-                            ;
-                        if (stack.Count == 0)
-                            return i;
-                    }
-
-                    if (TextSource.LineHasFoldingStartMarker(i))
-                        stack.Push(TextSource[i].FoldingStartMarker);
-
-                    maxLines--;
-                    if (maxLines < 0)
-                        return i;
-                }
-                break;
-            }
-
-            return -1;
-            //return LinesCount - 1;
-        }
-
         protected override void OnMouseMove(MouseEventArgs e) {
             if (!NoMouse) {
                 base.OnMouseMove(e);
@@ -757,7 +707,7 @@ namespace WinAGI.Editor {
         }
 
         public static AGIToken NextToken(string checkline, AGIToken token, bool includelinebreaks = false) {
-            AGIToken nexttoken = new AGIToken {
+            AGIToken nexttoken = new() {
                 StartPos = token.EndPos,
                 Line = token.Line
             };

@@ -6,14 +6,18 @@ using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmTools : Form {
-        int sourcerow = -1, targetrow = -1;
-        bool dropping = false;
+        #region Fields
+        private int sourcerow = -1, targetrow = -1;
+        private bool dropping = false;
+        # endregion
 
+        #region Constructors
         public frmTools() {
             InitializeComponent();
             toolgrid.Font = new Font(WinAGISettings.EditorFontName.Value, WinAGISettings.EditorFontSize.Value);
             toolgrid.Columns[0].Width = toolgrid.Font.Height * 2;
         }
+        #endregion
 
         #region Event Handlers
         private void frmTools_Load(object sender, EventArgs e) {
@@ -92,21 +96,21 @@ namespace WinAGI.Editor {
             bool isfile;
             string filename = (string)toolgrid.CurrentCell.Value;
 
-            dlgTool.ShowPinnedPlaces = true;
-            dlgTool.ShowReadOnly = false;
-            dlgTool.Filter = "Programs (*.exe)|*.exe|URLs (*.url)|*.url|All Files (*.*)|*.*";
-            dlgTool.CheckFileExists = true;
-            dlgTool.CheckPathExists = true;
-            dlgTool.Multiselect = false;
-            dlgTool.OkRequiresInteraction = true;
-            dlgTool.ValidateNames = true;
+            toolOpen.ShowPinnedPlaces = true;
+            toolOpen.ShowReadOnly = false;
+            toolOpen.Filter = "Programs (*.exe)|*.exe|URLs (*.url)|*.url|All Files (*.*)|*.*";
+            toolOpen.CheckFileExists = true;
+            toolOpen.CheckPathExists = true;
+            toolOpen.Multiselect = false;
+            toolOpen.OkRequiresInteraction = true;
+            toolOpen.ValidateNames = true;
             if (filename.Length == 0) {
-                dlgTool.FileName = "";
-                dlgTool.InitialDirectory = ProgramDir;
-                dlgTool.FilterIndex = 2;
+                toolOpen.FileName = "";
+                toolOpen.InitialDirectory = ProgramDir;
+                toolOpen.FilterIndex = 2;
             }
             else {
-                dlgTool.FileName = Path.GetFileName(filename);
+                toolOpen.FileName = Path.GetFileName(filename);
                 // check for urls vs file
                 try {
                     isfile = new Uri(Path.GetFullPath((string)toolgrid.CurrentCell.Value)).IsFile;
@@ -118,37 +122,37 @@ namespace WinAGI.Editor {
                     // file
                     switch (Path.GetExtension((string)toolgrid.CurrentCell.Value).ToLower()) {
                     case ".exe":
-                        dlgTool.FilterIndex = 1;
+                        toolOpen.FilterIndex = 1;
                         break;
                     case ".url":
-                        dlgTool.FilterIndex = 2;
+                        toolOpen.FilterIndex = 2;
                         break;
                     default:
-                        dlgTool.FilterIndex = 3;
+                        toolOpen.FilterIndex = 3;
                         break;
                     }
                     string dir = Path.GetDirectoryName((string)toolgrid.CurrentCell.Value);
                     if (Path.Exists(dir)) {
                         try {
-                            dlgTool.InitialDirectory = dir;
+                            toolOpen.InitialDirectory = dir;
                         }
                         catch {
-                            dlgTool.InitialDirectory = ProgramDir;
+                            toolOpen.InitialDirectory = ProgramDir;
                         }
                     }
                     else {
-                        dlgTool.InitialDirectory = ProgramDir;
+                        toolOpen.InitialDirectory = ProgramDir;
                     }
                 }
                 else {
                     // url (or some other file mash)
-                    dlgTool.InitialDirectory = ProgramDir;
-                    dlgTool.FilterIndex = 2;
+                    toolOpen.InitialDirectory = ProgramDir;
+                    toolOpen.FilterIndex = 2;
                 }
 
             }
-            if (dlgTool.ShowDialog() == DialogResult.OK) {
-                toolgrid.CurrentCell.Value = dlgTool.FileName;
+            if (toolOpen.ShowDialog() == DialogResult.OK) {
+                toolgrid.CurrentCell.Value = toolOpen.FileName;
             }
         }
 

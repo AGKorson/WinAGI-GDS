@@ -13,7 +13,7 @@ namespace WinAGI.Engine {
     /// A class that represents an AGI Logic resource, with WinAGI extensions.
     /// </summary>
     public class Logic : AGIResource {
-        #region Members
+        #region Fields
         internal string mSourceFile = "";
         private string mSourceText = "";
         internal uint mCompiledCRC;
@@ -44,7 +44,7 @@ namespace WinAGI.Engine {
         /// <param name="ResNum"></param>
         /// <param name="NewLogic"></param>
         internal Logic(AGIGame parent, byte ResNum, Logic NewLogic = null) : base(AGIResType.Logic) {
-            base.InitInGame(parent, ResNum);
+            InitInGame(parent, ResNum);
             InitLogic(NewLogic);
             if (ResNum == 0) {
                 // make sure isroom flag is false
@@ -65,7 +65,7 @@ namespace WinAGI.Engine {
             // location properties, and reads properties from the wag file
 
             // set up base resource
-            base.InitInGame(parent, AGIResType.Logic, ResNum, VOL, Loc);
+            InitInGame(parent, AGIResType.Logic, ResNum, VOL, Loc);
             // get rest of properties
             mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
             mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
@@ -359,7 +359,7 @@ namespace WinAGI.Engine {
 
             Logic CopyLogic = new();
             // copy base properties
-            base.CloneTo(CopyLogic);
+            CloneTo(CopyLogic);
             // add WinAGI items
             CopyLogic.mIsRoom = mIsRoom;
             CopyLogic.mLoaded = mLoaded;
@@ -600,7 +600,6 @@ namespace WinAGI.Engine {
             else {
                 // calling function should verify file exists before
                 // trying to load a source
-                Debug.Assert(File.Exists(SourceFile));
                 // check for readonly
                 if ((File.GetAttributes(SourceFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
                     SourceError = ResourceErrorType.LogicSourceIsReadonly;

@@ -8,9 +8,13 @@ using static WinAGI.Engine.Base;
 
 namespace WinAGI.Editor {
     public partial class frmTemplates : Form {
+        #region Fields
         public int CodePage;
         public bool IncludeReserved, UseLayoutEd, SierraSyntax;
         public bool IncludeIDs, IncludeGlobals;
+        #endregion
+
+        #region Constructors
         public frmTemplates() {
             InitializeComponent();
 
@@ -25,6 +29,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
+        #endregion
 
         #region Event Handlers
         private void frmTemplates_HelpRequested(object sender, HelpEventArgs hlpevent) {
@@ -50,6 +55,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Methods
         private void GetTemplateInfo() {
             // extract codepage, WinAGI version and game description from the
             // .wag file located in the template directory currently selected
@@ -152,5 +158,6 @@ namespace WinAGI.Editor {
             lstTemplates.SelectedIndex = -1;
             btnOK.Enabled = false;
         }
+        #endregion
     }
 }

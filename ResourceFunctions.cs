@@ -506,14 +506,13 @@ namespace WinAGI.Engine {
         }
 
         private static List<WinAGIEventInfo> WarningsFromField(AGIResType resType, byte resNum, int warnings, string[] warndata) {
-            List<WinAGIEventInfo> retval = new();
+            List<WinAGIEventInfo> retval = [];
             WinAGIEventInfo warnInfo = new() {
                 ResType = resType,
                 ResNum = resNum,
                 Line = -1,
+                Type = EventType.ResourceWarning
             };
-
-            warnInfo.Type = EventType.ResourceWarning;
             switch (resType) {
             case AGIResType.Logic:
                 // none
@@ -1576,8 +1575,9 @@ namespace WinAGI.Engine {
     /// <summary>
     /// A class to provide LZW decompression support for AGI v3 resources.
     /// </summary>
+    // TODO: move to common LZW class
     internal static class AGILZW {
-        #region Members
+        #region Fields
         const int TABLE_SIZE = 18041;
         const int START_BITS = 9;
         private static int MaxCode;

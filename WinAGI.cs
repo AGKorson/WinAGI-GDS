@@ -461,7 +461,7 @@ namespace WinAGI.Engine {
     /// and initializes supporting elements.
     /// </summary>
     public static partial class Base {
-        #region Local Members
+        #region Fields
         // combine severity (unchecked((int)0x80000000); // bit 31
         //      CustomerBit (0x20000000;                 // bit 29
         // and     Facility (0x0001 << 16)               // bits 16..26
@@ -826,6 +826,6 @@ namespace WinAGI.Engine {
                 return FanLogicCompiler.CompileLogic(SourceLogic);
             }
         }
+        #endregion
     }
-    #endregion
 }

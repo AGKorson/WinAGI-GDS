@@ -54,7 +54,7 @@ namespace WinAGI.Editor {
         internal const string LAYOUT_FMT_VERSION = "3.0";
         #endregion
 
-        #region Structures
+        #region Structs
         /// <summary>
         /// Used by layout extraction routine to track exits and entries.
         /// </summary>
@@ -193,6 +193,7 @@ namespace WinAGI.Editor {
                 ExitID[1] = "";
             }
         }
+        
         private struct ObjInfo {
             /// <summary>
             /// Type of object (room, transpt, errpt, comment).
@@ -216,6 +217,7 @@ namespace WinAGI.Editor {
                 Leg = leg;
             }
         }
+        
         private struct TSel {
             /// <summary>
             /// Type of object currently selected.
@@ -263,21 +265,21 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Members
+        #region Fields
         public bool IsChanged = false;
         private Font layoutFont, transptFont;
 
         // layout object variables
-        private RoomInfo[] Room;       // squares
-        private TransPtInfo[] TransPt; // circles (always drawn in pairs)
-        private ErrorPtInfo[] ErrPt;   // rounded corner triangles
-        private CommentInfo[] Comment; // rounded corner rectangles
+        private readonly RoomInfo[] Room;   // squares
+        private TransPtInfo[] TransPt;      // circles (always drawn in pairs)
+        private ErrorPtInfo[] ErrPt;        // rounded corner triangles
+        private CommentInfo[] Comment;      // rounded corner rectangles
 
         // extraction variables
-        private ELInfo[] ELRoom;
+        private readonly ELInfo[] ELRoom;
 
         // scale and display variables
-        int DrawScale;
+        private int DrawScale;
         private float DSF; // display scale factor - a multiplier value
                            // that converts layout coords to screen pixels
                            // DSF is equal to 40 * (1.25) ^ DrawSale
@@ -293,7 +295,7 @@ namespace WinAGI.Editor {
         private bool AddPicToo = true;
         private LayoutCursor DrawCursor = LayoutCursor.Default;
         private TSel Selection;
-        private List<ObjInfo> SelectedObjects = [];
+        private readonly List<ObjInfo> SelectedObjects = [];
         private Point MouseDownPt = new();          // used to track mouse down position
         private PointF AnchorPt = new();            // in layout coordinates
         private Point CanvasAnchor, Delta = new();  // in screen pixels
@@ -328,6 +330,7 @@ namespace WinAGI.Editor {
         internal ToolStripStatusLabel spStatus;
         #endregion
 
+        #region Constructors
         public frmLayout() {
             // initialize form controls
             InitializeComponent();
@@ -355,8 +358,10 @@ namespace WinAGI.Editor {
                 ELRoom[i] = new ELInfo();
             }
         }
+        #endregion
 
-        #region Form Event Handlers
+        #region Event Handlers
+        #region Form Events
         private void frmLayout_Activated(object sender, EventArgs e) {
             if (FindingForm.Visible) {
                 FindingForm.Visible = false;
@@ -406,11 +411,11 @@ namespace WinAGI.Editor {
         private void frmLayout_KeyDown(object sender, KeyEventArgs e) {
             // if CTRL key alone, switch default to multiselect
             if (e.KeyData == (Keys.Control | Keys.ControlKey) && SelTool == LayoutTool.Select) {
-                MultiSelectCursor(picDraw.PointToClient(Control.MousePosition));
+                MultiSelectCursor(picDraw.PointToClient(MousePosition));
             }
             // any CTRL+key combo cancels the multiselect
             else if (e.Control) {
-                SingleSelectCursor(picDraw.PointToClient(Control.MousePosition));
+                SingleSelectCursor(picDraw.PointToClient(MousePosition));
             }
         }
 
@@ -428,7 +433,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Menu Event Handlers
+        #region Menu Events
         /// <summary>
         /// Configures the resource menu prior to displaying it.
         /// </summary>
@@ -1344,7 +1349,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region ToolStrip Event Handlers
+        #region ToolStrip Events
         private void btnSelect_Click(object sender, EventArgs e) {
             if (SelTool != LayoutTool.Select) {
                 btnSelect.Checked = true;
@@ -1414,7 +1419,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
-        #region Control Event Handlers
+        #region Control Events
         private void tmrScroll_Tick(object sender, EventArgs e) {
             // scrolling is in progress
 
@@ -1459,7 +1464,6 @@ namespace WinAGI.Editor {
             if (e.Button == MouseButtons.Right) {
                 // reset mouse pointer
                 SetCursor(LayoutCursor.Default);
-                TSel tmpSel = new();
                 // if in a drawing mode,
                 if (SelTool != LayoutTool.Select) {
                     switch (SelTool) {
@@ -1483,7 +1487,7 @@ namespace WinAGI.Editor {
                     btnSelect.Checked = false;
                 }
                 // check for a click on an exit or object
-                tmpSel = ItemFromPos(e.Location);
+                TSel tmpSel = ItemFromPos(e.Location);
                 // if selection is a multi
                 if (Selection.Type == LayoutSelection.Multiple) {
                     // if the cursor is over an exit, OR NOT over something in selection collection
@@ -2659,7 +2663,7 @@ namespace WinAGI.Editor {
 
         private void picDraw_Paint(object sender, PaintEventArgs e) {
             // we need the current mouse position
-            PointF mp = ((Control)sender).PointToClient(Control.MousePosition);
+            PointF mp = ((Control)sender).PointToClient(MousePosition);
 
             if (Selection.Type != LayoutSelection.None) {
                 // draw handles and/or selection frame
@@ -2668,9 +2672,10 @@ namespace WinAGI.Editor {
 
             if (MoveExit || DrawExit != 0) {
                 // draw the moving exit line
-                Pen exitlinepen = new(Color.Black);
-                exitlinepen.DashPattern = [3, 3];
-                exitlinepen.DashStyle = DashStyle.Custom;
+                Pen exitlinepen = new(Color.Black) {
+                    DashPattern = [3, 3],
+                    DashStyle = DashStyle.Custom
+                };
                 e.Graphics.DrawLine(exitlinepen, LayoutToScreen(LineStart), mp);
             }
             else if (MoveObj) {
@@ -2809,27 +2814,27 @@ namespace WinAGI.Editor {
                     break;
                 }
                 // draw a dotted line outline
-                using Pen borderPen = new Pen(Color.Black);
+                using Pen borderPen = new(Color.Black);
                 borderPen.DashPattern = [3, 3];
                 borderPen.DashStyle = DashStyle.Custom;
                 float radius = 5.0f * DSF / 40; // radius for rounded corners
-                using (GraphicsPath path = new GraphicsPath()) {
-                    path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
-                    path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
-                    path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
-                    path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
-                    path.CloseFigure();
-                    e.Graphics.DrawPath(borderPen, path);
-                }
+                using GraphicsPath path = new GraphicsPath();
+                path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
+                path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
+                path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
+                path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
+                path.CloseFigure();
+                e.Graphics.DrawPath(borderPen, path);
             }
             else if (ShowExitStart != ExitReason.None && ShowExitStart != ExitReason.Other) {
                 Pen startpen = new(Color.Red, 4);
                 e.Graphics.DrawLine(startpen, LayoutToScreen(LineStart), LayoutToScreen(LineEnd));
             }
             else if (ShowDrag) {
-                Pen pen = new(Color.Black);
-                pen.DashPattern = [5, 5];
-                pen.DashStyle = DashStyle.Custom;
+                Pen pen = new(Color.Black) {
+                    DashPattern = [5, 5],
+                    DashStyle = DashStyle.Custom
+                };
                 e.Graphics.DrawRectangle(pen, Math.Min(LayoutToScreenX(AnchorPt.X), mp.X), Math.Min(LayoutToScreenY(AnchorPt.Y), mp.Y),
                     Math.Abs(LayoutToScreenX(AnchorPt.X) - mp.X), Math.Abs(LayoutToScreenY(AnchorPt.Y) - mp.Y));
             }
@@ -2900,7 +2905,7 @@ namespace WinAGI.Editor {
             case Keys.Enter:
                 // allow CTRL+ENTER to insert a line break
                 if (e.Modifiers != Keys.Control) {
-                    //if (!e.Control || e.Alt || e.Shift) {
+                    // any other combo ends editing
                     e.Handled = true;
                     e.SuppressKeyPress = true;
                     txtComment.Visible = false;
@@ -3006,6 +3011,7 @@ namespace WinAGI.Editor {
             }
         }
         #endregion
+        #endregion
 
         #region Methods
         private void InitStatusStrip() {
@@ -3025,7 +3031,7 @@ namespace WinAGI.Editor {
             spCurX.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCurX.BorderStyle = Border3DStyle.SunkenInner;
             spCurX.Name = "spCurX";
-            spCurX.Size = new System.Drawing.Size(70, 18);
+            spCurX.Size = new Size(70, 18);
             spCurX.Text = "";
             // 
             // spCurY
@@ -3034,7 +3040,7 @@ namespace WinAGI.Editor {
             spCurY.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spCurY.BorderStyle = Border3DStyle.SunkenInner;
             spCurY.Name = "spCurY";
-            spCurY.Size = new System.Drawing.Size(70, 18);
+            spCurY.Size = new Size(70, 18);
             spCurY.Text = "";
             // 
             // spScale
@@ -3043,7 +3049,7 @@ namespace WinAGI.Editor {
             spScale.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spScale.BorderStyle = Border3DStyle.SunkenInner;
             spScale.Name = "spScale";
-            spScale.Size = new System.Drawing.Size(66, 18);
+            spScale.Size = new Size(66, 18);
             spScale.Text = "";
             // 
             // spTool
@@ -3052,7 +3058,7 @@ namespace WinAGI.Editor {
             spTool.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spTool.BorderStyle = Border3DStyle.SunkenInner;
             spTool.Name = "spTool";
-            spTool.Size = new System.Drawing.Size(135, 18);
+            spTool.Size = new Size(135, 18);
             spTool.Text = "Tool: Select";
             spTool.TextAlign = ContentAlignment.MiddleLeft;
             // 
@@ -3062,7 +3068,7 @@ namespace WinAGI.Editor {
             spID.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spID.BorderStyle = Border3DStyle.SunkenInner;
             spID.Name = "spID";
-            spID.Size = new System.Drawing.Size(90, 18);
+            spID.Size = new Size(90, 18);
             spID.Text = "";
             spID.TextAlign = ContentAlignment.MiddleLeft;
             // 
@@ -3072,7 +3078,7 @@ namespace WinAGI.Editor {
             spType.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spType.BorderStyle = Border3DStyle.SunkenInner;
             spType.Name = "spType";
-            spType.Size = new System.Drawing.Size(90, 18);
+            spType.Size = new Size(90, 18);
             spType.Text = "";
             spType.TextAlign = ContentAlignment.MiddleLeft;
             // 
@@ -3082,7 +3088,7 @@ namespace WinAGI.Editor {
             spRoom1.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spRoom1.BorderStyle = Border3DStyle.SunkenInner;
             spRoom1.Name = "spRoom1";
-            spRoom1.Size = new System.Drawing.Size(175, 18);
+            spRoom1.Size = new Size(175, 18);
             spRoom1.Text = "";
             spRoom1.TextAlign = ContentAlignment.MiddleLeft;
             // 
@@ -3092,7 +3098,7 @@ namespace WinAGI.Editor {
             spRoom2.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
             spRoom2.BorderStyle = Border3DStyle.SunkenInner;
             spRoom2.Name = "spRoom2";
-            spRoom2.Size = new System.Drawing.Size(175, 18);
+            spRoom2.Size = new Size(175, 18);
             spRoom2.Text = "";
             spRoom2.TextAlign = ContentAlignment.MiddleLeft;
 
@@ -3779,8 +3785,8 @@ namespace WinAGI.Editor {
             // can still try drawing objects, rebuilding exits, then validating results
             // delete/hide anything that is not in use or error
 
-            List<string> layoutData = new();
-            int number = 0, tmpOrder = 0;
+            List<string> layoutData = [];
+            int tmpOrder = 0;
             int count = 0;
             bool tmpVisible = false;
             int fileCount = 0;
@@ -3805,8 +3811,8 @@ namespace WinAGI.Editor {
 
             // file has already been verified to exist
             try {
-                FileStream fs = new FileStream(layoutfile, FileMode.Open, FileAccess.Read);
-                StreamReader sr = new StreamReader(fs);
+                FileStream fs = new(layoutfile, FileMode.Open, FileAccess.Read);
+                StreamReader sr = new(fs);
                 while (!sr.EndOfStream) {
                     layoutData.Add(sr.ReadLine());
                 }
@@ -4006,7 +4012,7 @@ namespace WinAGI.Editor {
                     continue;
                 }
                 // get number
-                number = strData[1].IntVal();
+                int number = strData[1].IntVal();
                 // number should be valid; >=1 and <=255
                 if (number == 0) {
                     warning = true;
@@ -4682,7 +4688,7 @@ namespace WinAGI.Editor {
             // parses the string that contains exit info that comes from the layout editor
             // data file
             //  R|##|v|o|p|x|y|index:room:reason:style:xfer:leg|...
-            Exits retval = new();
+            Exits retval = [];
 
             for (int i = 7; i < exitdata.Length; i++) {
                 string[] exit = exitdata[i].Split(":");
@@ -5739,10 +5745,11 @@ namespace WinAGI.Editor {
                 // DeleteExit method uses a selection object, and handles transfers
                 // set the selection object properties to
                 // match a single direction exit from the room being updated
-                TSel tmpSel = new();
-                tmpSel.Type = LayoutSelection.Exit;
-                tmpSel.Number = LogicNumber;
-                tmpSel.Direction = ExitDirection.OneWay;
+                TSel tmpSel = new() {
+                    Type = LayoutSelection.Exit,
+                    Number = LogicNumber,
+                    Direction = ExitDirection.OneWay
+                };
 
                 // step through all current exits and delete them
                 for (int i = Room[LogicNumber].Exits.Count - 1; i >= 0; i--) {
@@ -5911,8 +5918,7 @@ namespace WinAGI.Editor {
             }
 
             // run through update algorithm twice; first to update
-            // saved logic file, then check for open logic editor;
-            // and update that as well
+            // saved logic file, then check for open logic editor
 
             int index = GetEditor(logic);
             int newrmpos, idpos, commentpos;
@@ -5964,9 +5970,6 @@ namespace WinAGI.Editor {
                             else {
                                 linestart += newlinechar.Length;
                             }
-                            lineend = sourcetext.IndexOf(newlinechar, idpos);
-                            if (lineend == -1)
-                                lineend = sourcetext.Length;
                             // line should be in form of
                             // new.room(xxx); [ ##exitID##
                             // find new.room cmd,
@@ -6009,9 +6012,6 @@ namespace WinAGI.Editor {
                             else {
                                 linestart += newlinechar.Length;
                             }
-                            lineend = sourcetext.IndexOf(newlinechar, idpos);
-                            if (lineend == -1)
-                                lineend = sourcetext.Length;
                             // line should be in form of
                             // new.room(xxx); [ ##exitID##
                             // find new.room cmd,
@@ -6139,20 +6139,6 @@ namespace WinAGI.Editor {
                             sourcetext = sourcetext.Left(linestart) + newText +
                                 sourcetext[linestart..commentpos] +
                                 sourcetext.Right(sourcetext.Length - lineend);
-
-                            //}
-                            //else {
-                            // not found;
-
-                            // if updating the source file, this should never happen,
-                            // unless the file was modified outside of WinAGI GDS or something corrupted
-                            // the layout or the source file; in either case, ignore this problem
-                            // for updates to the sourcefile
-
-                            // if updating an open logic editor, the most likely cause is that the
-                            // user manually edited the logic source, and probably deleted this exit
-                            // since it is already gone, no action is necessary
-                            //}
                         }
 
                         // if second time through, OR no logic window open
@@ -6542,7 +6528,7 @@ namespace WinAGI.Editor {
             Comment[commentid].Size.Width * DSF,
             Comment[commentid].Size.Height * DSF);
 
-            using (GraphicsPath path = new GraphicsPath()) {
+            using (GraphicsPath path = new()) {
                 // Create rounded rectangle path
                 path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
                 path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
@@ -6715,8 +6701,8 @@ namespace WinAGI.Editor {
                     new(ERRPT_SIZE * DSF, ERRPT_SIZE * 0.866f * DSF));
                 break;
             case LayoutSelection.Comment:
-                objRect = new(new((Comment[objnum].Loc.X) * DSF + Offset.X,
-                    (Comment[objnum].Loc.Y) * DSF + Offset.Y),
+                objRect = new(new(Comment[objnum].Loc.X * DSF + Offset.X,
+                    Comment[objnum].Loc.Y * DSF + Offset.Y),
                     new(Comment[objnum].Size.Width * DSF, Comment[objnum].Size.Height * DSF));
                 break;
             }
@@ -6759,7 +6745,7 @@ namespace WinAGI.Editor {
                     return false; // Parallel lines
                 float u = ((b1.X - a1.X) * (b2.Y - b1.Y) - (b1.Y - a1.Y) * (b2.X - b1.X)) / d;
                 float v = ((b1.X - a1.X) * (a2.Y - a1.Y) - (b1.Y - a1.Y) * (a2.X - a1.X)) / d;
-                return (u >= 0 && u <= 1) && (v >= 0 && v <= 1);
+                return u >= 0 && u <= 1 && v >= 0 && v <= 1;
             }
 
         }
@@ -6905,9 +6891,10 @@ namespace WinAGI.Editor {
                     return;
                 }
                 // draw dotted line around the selection
-                Pen selpen = new(Color.Black, 1);
-                selpen.DashPattern = [5, 5];
-                selpen.DashStyle = DashStyle.Custom;
+                Pen selpen = new(Color.Black, 1) {
+                    DashPattern = [5, 5],
+                    DashStyle = DashStyle.Custom
+                };
                 g.DrawRectangle(selpen, Selection.Loc.X * DSF + Offset.X,
                     Selection.Loc.Y * DSF + Offset.Y,
                     Selection.Size.Width * DSF,
@@ -7750,28 +7737,30 @@ namespace WinAGI.Editor {
         /// <param name="pos"></param>
         private void AddNewRoom(PointF pos) {
             // add a new room here
-            frmGetResourceNum frm = new(GetRes.AddLayout, AGIResType.Logic);
-            frm.chkIncludePic.Checked = AddPicToo;
-            if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
-                // temporary logic
-                Logic tmpLogic = new();
-                tmpLogic.ID = frm.txtID.Text;
-                // always use room template
-                tmpLogic.SourceText = NewLogicSourceText(tmpLogic, true);
-                tmpLogic.IsRoom = true;
-                // save current checkbox Value
-                AddPicToo = frm.chkIncludePic.Checked;
-                if (AddPicToo) {
-                    AddRoomPicture(frm.NewResNum, frm.txtID.Text);
+            using (frmGetResourceNum frm = new(GetRes.AddLayout, AGIResType.Logic)) {
+                frm.chkIncludePic.Checked = AddPicToo;
+                if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                    // temporary logic
+                    Logic tmpLogic = new() {
+                        ID = frm.txtID.Text
+                    };
+                    // always use room template
+                    tmpLogic.SourceText = NewLogicSourceText(tmpLogic, true);
+                    tmpLogic.IsRoom = true;
+                    // save current checkbox Value
+                    AddPicToo = frm.chkIncludePic.Checked;
+                    if (AddPicToo) {
+                        AddRoomPicture(frm.NewResNum, frm.txtID.Text);
+                    }
+                    // add a new logic
+                    NewRoomLogic(frm.NewResNum, tmpLogic);
+                    // reposition to desired location
+                    Room[frm.NewResNum].Loc = pos;
+                    RepositionRoom(frm.NewResNum);
+                    RecalculateMaxMin();
+                    SetScrollBars();
+                    DrawLayout();
                 }
-                // add a new logic
-                NewRoomLogic(frm.NewResNum, tmpLogic);
-                // reposition to desired location
-                Room[frm.NewResNum].Loc = pos;
-                RepositionRoom(frm.NewResNum);
-                RecalculateMaxMin();
-                SetScrollBars();
-                DrawLayout();
             }
         }
 
@@ -8110,7 +8099,6 @@ namespace WinAGI.Editor {
         }
 
         private bool PointOnLine(PointF pos, PointF sp, PointF ep) {
-
             using var path = new GraphicsPath();
             using var pen = new Pen(Color.Black, 2f);
             path.AddLine(sp.X * DSF + Offset.X, sp.Y * DSF + Offset.Y, ep.X * DSF + Offset.X, ep.Y * DSF + Offset.Y);
@@ -8138,21 +8126,20 @@ namespace WinAGI.Editor {
             float dy = ep.Y - sp.Y;
             float angle = -(float)(Math.Atan2(dx, dy) * 180.0 / Math.PI);
             // create outline of arrow as a path
-            using (GraphicsPath arrowPath = new GraphicsPath()) {
-                arrowPath.AddPolygon(arrowPoints);
-                // use matrix to adjust arrow to correct position and orientation
-                using (Matrix matrix = new Matrix()) {
-                    matrix.Translate(ep.X * DSF + Offset.X, ep.Y * DSF + Offset.Y);
-                    matrix.Rotate(angle);
-                    arrowPath.Transform(matrix);
-                    return arrowPath.IsVisible(pos);
-                }
-            }
+            using GraphicsPath arrowPath = new();
+            arrowPath.AddPolygon(arrowPoints);
+            // use matrix to adjust arrow to correct position and orientation
+            using Matrix matrix = new();
+            matrix.Translate(ep.X * DSF + Offset.X, ep.Y * DSF + Offset.Y);
+            matrix.Rotate(angle);
+            arrowPath.Transform(matrix);
+            return arrowPath.IsVisible(pos);
         }
 
         private bool PointOnCommentText(PointF pos, TSel commentobj) {
-            RectangleF cmttextbox = new();
-            cmttextbox.Location = LayoutToScreen(Comment[commentobj.Number].Loc);
+            RectangleF cmttextbox = new() {
+                Location = LayoutToScreen(Comment[commentobj.Number].Loc)
+            };
             cmttextbox.X += 4;
             cmttextbox.Y += 4;
             cmttextbox.Width = Comment[commentobj.Number].Size.Width * DSF - 8;
@@ -8161,7 +8148,7 @@ namespace WinAGI.Editor {
         }
 
         private bool PointOnHandle(Point pos, TSel testobj) {
-            return PointOnHandle(pos, testobj, out int handleID);
+            return PointOnHandle(pos, testobj, out _);
         }
 
         private bool PointOnHandle(Point pos, TSel testobj, out int handleID) {
@@ -8476,7 +8463,7 @@ namespace WinAGI.Editor {
         }
 
         private void RecalculateMaxMin() {
-            // reset Max and min
+            // reset max and min
             Min.X = float.MaxValue;
             Min.Y = float.MaxValue;
             Max.X = float.MinValue;
@@ -8501,7 +8488,7 @@ namespace WinAGI.Editor {
                 }
             }
             // if no objects,
-            if (ObjOrder.Count <= 0) {
+            if (ObjOrder.Count == 0) {
                 Min.X = 0;
                 Min.Y = 0;
                 Max.X = 6;
@@ -8518,7 +8505,7 @@ namespace WinAGI.Editor {
         }
 
         private void CheckMaxMin(float TestX, float TestY, float TestW, float TestH) {
-            // compare test values against current Max and min
+            // compare test values against current max and min
             if (TestX < Min.X) {
                 Min.X = TestX;
             }
@@ -8662,17 +8649,12 @@ namespace WinAGI.Editor {
             // selects a non-room logic, and makes it a room
 
             using frmGetResourceNum frm = new(GetRes.ShowRoom, AGIResType.Logic);
-            DialogResult rtn;
-
             frm.ResType = AGIResType.Logic;
-            if (frm.NewResNum != 255) {
-                rtn = frm.ShowDialog(MDIMain);
-            }
-            else {
+            if (frm.NewResNum == 255) {
                 // all rooms already visible!
                 return;
             }
-            if (rtn == DialogResult.OK) {
+            if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
                 // mark room as visible
                 EditGame.Logics[frm.NewResNum].IsRoom = true;
                 // get new exits from the logic that was passed
@@ -9016,10 +8998,10 @@ namespace WinAGI.Editor {
 
         private string CreateNewExit(int FromRoom, int ToRoom, ExitReason Reason) {
             bool dupeOK = false;
-            string retval = "";
-            int i = 0, j = 0;
             string tmpID = "";
             int tmpRoom = 0;
+            string retval;
+
             // create new exit from new 'from' room to current 'to' room of same Type
             // returns the index of the new exit
             // 
@@ -9031,6 +9013,7 @@ namespace WinAGI.Editor {
 
             // first check is to see if an exit that matches the new exit (same code, same target)
             // step through all exits for this room
+            int i;
             for (i = 0; i < Room[FromRoom].Exits.Count; i++) {
                 switch (Room[FromRoom].Exits[i].Status) {
                 case ExitStatus.Deleted:
@@ -9093,6 +9076,7 @@ namespace WinAGI.Editor {
             }
 
             // no previous exit found; get a valid exit ID
+            int j = 0;
             do {
                 j++;
                 // step through all exits for this room
@@ -9520,7 +9504,7 @@ namespace WinAGI.Editor {
                                 new PointF(ErrPt[index].Loc.X + ERRPT_SIZE / 2,
                                 ErrPt[index].Loc.Y + 0.866f * ERRPT_SIZE)
                 ];
-                using GraphicsPath path = new GraphicsPath();
+                using GraphicsPath path = new();
                 float radius = 0.125f; // radius for rounded corners (5.0 / 40)
                                        // Create rounded triangle path
                 path.AddArc(errPoints[0].X + radius * 0.366f, errPoints[0].Y, radius, radius, 150, 120);

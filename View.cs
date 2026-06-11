@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using WinAGI.Common;
@@ -11,7 +10,7 @@ namespace WinAGI.Engine {
     /// </summary>
     [Serializable]
     public class View : AGIResource {
-        #region Members
+        #region Fields
         internal Loops mLoopCol;
         internal string mViewDesc;
         internal EGAColors mPalette;
@@ -45,7 +44,7 @@ namespace WinAGI.Engine {
         /// <param name="NewView"></param>
         internal View(AGIGame parent, byte ResNum, View NewView = null) : base(AGIResType.View) {
             InitView(NewView);
-            base.InitInGame(parent, ResNum);
+            InitInGame(parent, ResNum);
             mCodePage = parent.agCodePage;
         }
 
@@ -59,7 +58,7 @@ namespace WinAGI.Engine {
         /// <param name="Loc"></param>
         internal View(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.View) {
             InitView(null);
-            base.InitInGame(parent, AGIResType.View, ResNum, VOL, Loc);
+            InitInGame(parent, AGIResType.View, ResNum, VOL, Loc);
         }
         #endregion
 
@@ -258,8 +257,9 @@ namespace WinAGI.Engine {
             WinAGIException.ThrowIfNotLoaded(this);
             base.Clear();
             mViewDesc = "";
-            mLoopCol = new Loops(this);
-            mLoopCol.Add(0);
+            mLoopCol = new Loops(this) {
+                0
+            };
             mLoopCol[0].Cels.Add(0);
             mViewChanged = true;
         }
@@ -486,7 +486,7 @@ namespace WinAGI.Engine {
             ResourceErrorType errval = ResourceErrorType.NoError;
             int warnval = 0;
 
-            if (this.Size < 14) {
+            if (Size < 14) {
                 // too small to be a view
                 // reset to an empty view
                 mData = [0x01, 0x01, 0x01, 0x00, 0x00, 0x07, 0x00,
@@ -521,7 +521,6 @@ namespace WinAGI.Engine {
                     mLoopCol.Add(loop);
                     if (mirrorpair[loop] >= 0) {
                         int check = SetMirror(loop, mirrorpair[loop]);
-                        Debug.Assert(check == 0);
                         continue;
                     }
                     // what defines a MIRROR loop?

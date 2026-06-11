@@ -15,13 +15,8 @@ namespace WinAGI.Engine {
     /// classes can expose the resource in the proper formats.
     /// </summary>
     public class AGIResource {
-        #region Local Members
+        #region Fields
         protected bool mLoaded = false;
-        /// <summary>
-        /// Less than zero means unreadable data<br />
-        /// Zero means no errors <br />
-        /// Greater than zero means minor errors but resource is readable
-        /// </summary>
         protected string mResID;
         protected sbyte mVolume = -1;
         protected int mLoc = -1;
@@ -192,6 +187,7 @@ namespace WinAGI.Engine {
         /// 2 = LZW compression<br />
         /// </returns>
         public int V3Compressed {
+            // TODO: change this to bool, and clean it up
             get; internal set;
         }
 
@@ -552,53 +548,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the number of bytes that this resource takes up in its VOL file. 
-        /// </summary>
-        /// <returns>Size of this resource in its VOL file</returns>
-        internal int GetSizeInVOL() {
-            // if an error occurs while trying to read the size of this
-            // resource, the function returns -1
-            byte hiByte, loByte;
-            string volFile;
-            FileStream fsVOL = null;
-            BinaryReader brVOL = null;
-
-            if (parent.agIntVersion.IsV3) {
-                volFile = Path.Combine(parent.agGameDir, parent.agGameID + "VOL." + mVolume.ToString());
-            }
-            else {
-                volFile = Path.Combine(parent.agGameDir, "VOL." + mVolume.ToString());
-            }
-            try {
-                fsVOL = new FileStream(volFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                brVOL = new BinaryReader(fsVOL);
-                if (fsVOL.Length >= mLoc + (parent.agIntVersion.IsV3 ? 7 : 5)) {
-                    fsVOL.Seek(mLoc, SeekOrigin.Begin);
-                    loByte = brVOL.ReadByte();
-                    hiByte = brVOL.ReadByte();
-                    // verify this is a proper resource
-                    if ((loByte == 0x12) && (hiByte == 0x34)) {
-                        // now get the low and high bytes of the size
-                        fsVOL.Seek(1, SeekOrigin.Current);
-                        loByte = brVOL.ReadByte();
-                        hiByte = brVOL.ReadByte();
-                        return (hiByte << 8) + loByte;
-                    }
-                }
-            }
-            catch {
-                // treat all errors the same
-            }
-            finally {
-                // ensure file is closed
-                brVOL.Dispose();
-                fsVOL.Dispose();
-            }
-            // if size not found, return -1
-            return -1;
-        }
-
-        /// <summary>
         /// Copies entire resource structure from this resource into NewRes.
         /// InGame property is never copied; only way to change ingame status is to use
         /// methods for adding/removing resources to/from game.
@@ -637,7 +586,6 @@ namespace WinAGI.Engine {
             // since the cloned object has likely changed
             NewRes.PropsChanged = true;
         }
-
 
         /// <summary>
         /// Copies resource data from the source into this resource
@@ -1291,34 +1239,6 @@ namespace WinAGI.Engine {
             ErrData = ["", "", "", "", "", ""];
             Warnings = 0;
             WarnData = ["", "", "", "", "", ""];
-        }
-
-        /// <summary>
-        /// Displays the resource ID as the string representation of this resource.
-        /// </summary>
-        /// <returns></returns>
-        public override string ToString() {
-            if (mResID.Length > 0) {
-                return mResID;
-            }
-            return "blank " + mResType.ToString();
-        }
-
-        /// <summary>
-        /// This method finds a unique file name (one not in use in the current game's
-        /// resource directory) based on the specified resource type.
-        /// </summary>
-        /// <param name="ResType"></param>
-        /// <returns></returns>
-        internal string UniqueResFile(AGIResType ResType) {
-            int num = 0;
-            string retval;
-            do {
-                num++;
-                retval = Path.Combine(parent.agSrcResDir, "New" + ResType.ToString() + num + ".ag" + ResType.ToString().ToLower()[0]);
-            }
-            while (File.Exists(retval));
-            return retval;
         }
         #endregion
     }

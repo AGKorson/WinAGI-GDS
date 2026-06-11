@@ -4,14 +4,16 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using WinAGI.Engine;
-using static WinAGI.Common.Base;
 using static WinAGI.Editor.Base;
 
 namespace WinAGI.Editor {
     public partial class frmImportProperties : Form {
+        #region Fields
         public string ImportDir = "";
         public int NewCodePage;
+        #endregion
 
+        #region Constructors
         public frmImportProperties() {
             InitializeComponent();
             // load code pages
@@ -32,7 +34,7 @@ namespace WinAGI.Editor {
             cmbCodePage.Items.Add("869 - Greek");
             cmbCodePage.SelectedIndex = 0;
 
-            txtResDir.Text = WinAGI.Engine.Base.DefResDir;
+            txtResDir.Text = Engine.Base.DefResDir;
             txtSrcExt.Text = LogicDecoder.DefaultSrcExt;
             // include options
             chkResourceIDs.Checked = WinAGISettings.DefIncludeIDs.Value;
@@ -47,6 +49,7 @@ namespace WinAGI.Editor {
             }
             NewCodePage = Engine.Base.CodePage;
         }
+        #endregion
 
         #region Event Handlers
         private void btnAdvanced_Click(object sender, EventArgs e) {
@@ -213,6 +216,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Methods
         private void ChangeDisplayGameDir() {
             if (ImportDir.Length > 0) {
                 BrowserStartDir = ImportDir;
@@ -232,5 +236,6 @@ namespace WinAGI.Editor {
             }
             btnOK.Enabled = (txtGameDir.TextLength > 0 && ImportDir.Length > 0);
         }
+        #endregion
     }
 }

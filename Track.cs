@@ -5,7 +5,7 @@ namespace WinAGI.Engine {
     /// A class that represents an AGI sound track, containing all notes and track properties.
     /// </summary>
     public class Track {
-        #region Members
+        #region Fields
         Notes mNotes;
         bool mMuted;
         byte mInstrument;

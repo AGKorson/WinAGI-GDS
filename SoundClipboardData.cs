@@ -13,7 +13,7 @@ namespace WinAGI.Editor {
         }
         public List<CBNote> Notes { get; set; } = [];
         [Serializable]
-        public struct CBNote {
+        public readonly struct CBNote {
             public CBNote(int freqdivisor, int duration, byte attenuation) {
                 FreqDivisor = freqdivisor;
                 Duration = duration;
