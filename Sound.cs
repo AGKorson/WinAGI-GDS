@@ -744,8 +744,6 @@ namespace WinAGI.Engine {
         /// <param name="WAVFile"></param>
         private void ExportAsWAV(string WAVFile) {
             // only pcjr and IIgs pcm can be exported as wav file
-            int size;
-
             if (mFormat != SoundFormat.AGI && mFormat != SoundFormat.WAV) {
                 WinAGIException wex = new(EngineResourceByNum(542)) {
                     HResult = WINAGI_ERR + 542,
@@ -765,16 +763,33 @@ namespace WinAGI.Engine {
                     BuildSoundOutput();
                 }
                 SafeFileDelete(WAVFile);
+                byte[] pcmData;
+                int sampleRate;
+                short bitsPerSample;
+                short channels;
+
+
                 if (mFormat == SoundFormat.AGI) {
-                    // get size from the wav stream
-                    size = wavData.Length;
+                    pcmData = wavData;
+                    sampleRate = 44100;
+                    bitsPerSample = 16;
+                    channels = 2;
                 }
                 else {
-                    // size of sound data is total file size, minus the PCM header 
-                    size = mData.Length - 54;
+                    // skip existing 54-byte header
+                    int dataSize = mData.Length - 54;
+                    pcmData = new byte[dataSize];
+                    Buffer.BlockCopy(mData, 54, pcmData, 0, dataSize);
+                    sampleRate = 8000;
+                    bitsPerSample = 8;
+                    channels = 1;
                 }
-                byte[] bOutput = new byte[size];
-                bOutput = new byte[44 + size];
+
+                int byteRate = sampleRate * channels * bitsPerSample / 8;
+                short blockAlign = (short)(channels * bitsPerSample / 8);
+                int dataSizeBytes = pcmData.Length;
+                int riffChunkSize = 36 + dataSizeBytes;
+
                 // WAV generated from PCjr sounds are 44100 sample rate, 16bit, two channel.
                 // IIgs WAV sounds are 8000 sample rate, 8bit, one channel.
 
@@ -794,86 +809,29 @@ namespace WinAGI.Engine {
                 //   36-39        "data"          "data" chunk header. Marks the beginning of the data section.
                 //   40-43        <varies>        Size of the data section.
                 //   44+          data
-                bOutput[0] = 82;
-                bOutput[1] = 73;
-                bOutput[2] = 70;
-                bOutput[3] = 70;
-                bOutput[4] = (byte)((size + 36) & 0xFF);
-                bOutput[5] = (byte)(((size + 36) >> 8) & 0xFF);
-                bOutput[6] = (byte)(((size + 36) >> 16) & 0xFF);
-                bOutput[7] = (byte)((size + 36) >> 24);
-                bOutput[8] = 87;
-                bOutput[9] = 65;
-                bOutput[10] = 86;
-                bOutput[11] = 69;
-                bOutput[12] = 102;
-                bOutput[13] = 109;
-                bOutput[14] = 116;
-                bOutput[15] = 32;
-                bOutput[16] = 16;
-                bOutput[17] = 0;
-                bOutput[18] = 0;
-                bOutput[19] = 0;
-                bOutput[20] = 1;
-                bOutput[21] = 0;
-                if (mFormat == SoundFormat.AGI) {
-                    bOutput[22] = 2; // 00 02
-                    bOutput[23] = 0;
-                    bOutput[24] = 0x44; // 44100 = 00 00 AC 44
-                    bOutput[25] = 0xAC;
-                    bOutput[26] = 0;
-                    bOutput[27] = 0;
-                    bOutput[28] = 0x10; // 176400 = 00 02 B1 10
-                    bOutput[29] = 0xB1;
-                    bOutput[30] = 2;
-                    bOutput[31] = 0;
-                    bOutput[32] = 4; // 00 04
-                    bOutput[33] = 0;
-                    bOutput[34] = 0x10; // 00 10
-                    bOutput[35] = 0;
-                }
-                else {
-                    bOutput[22] = 1;
-                    bOutput[23] = 0;
-                    bOutput[24] = 64;
-                    bOutput[25] = 31;
-                    bOutput[26] = 0;
-                    bOutput[27] = 0;
-                    bOutput[28] = 64;
-                    bOutput[29] = 31;
-                    bOutput[30] = 0;
-                    bOutput[31] = 0;
-                    bOutput[32] = 1;
-                    bOutput[33] = 0;
-                    bOutput[34] = 8;
-                    bOutput[35] = 0;
-                }
-                bOutput[36] = 100;
-                bOutput[37] = 97;
-                bOutput[38] = 116;
-                bOutput[39] = 97;
-                // TODO: ????????????why subtract 2???????????????
-                bOutput[40] = (byte)((size - 2) & 0xFF);
-                bOutput[41] = (byte)(((size - 2) >> 8) & 0xFF);
-                bOutput[42] = (byte)(((size - 2) >> 16) & 0xFF);
-                bOutput[43] = (byte)((size - 2) >> 24);
-                // add data
-                int pos = 44;
-                if (mFormat == SoundFormat.AGI) {
-                    // copy data from wav stream
-                    for (int i = 0; i < wavData.Length; i++) {
-                        bOutput[pos++] = wavData[i];
-                    }
-                }
-                else {
-                    // copy data from sound resource
-                    for (int i = 54; i < mData.Length; i++) {
-                        bOutput[pos++] = mData[i];
-                    }
-                }
-                FileStream fsSnd = new(WAVFile, FileMode.OpenOrCreate);
-                fsSnd.Write(bOutput);
-                fsSnd.Dispose();
+
+                using var fs = new FileStream(WAVFile, FileMode.Create, FileAccess.Write);
+                using var writer = new BinaryWriter(fs);
+
+                // RIFF header
+                writer.Write(['R', 'I', 'F', 'F']);
+                writer.Write(riffChunkSize);
+                writer.Write(['W', 'A', 'V', 'E']);
+
+                // fmt chunk
+                writer.Write(['f', 'm', 't', ' ']);
+                writer.Write(16);                 // PCM chunk size
+                writer.Write((short)1);           // PCM format
+                writer.Write(channels);
+                writer.Write(sampleRate);
+                writer.Write(byteRate);
+                writer.Write(blockAlign);
+                writer.Write(bitsPerSample);
+
+                // data chunk
+                writer.Write(['d', 'a', 't', 'a']);
+                writer.Write(dataSizeBytes);
+                writer.Write(pcmData);
             }
             catch {
                 // pass along any errors

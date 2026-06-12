@@ -51,14 +51,32 @@ namespace WinAGI.Engine {
     /// <summary>
     /// A class for writing data stream to be played as a MIDI sound.
     /// </summary>
-    internal class SoundData() {
+    internal class SoundData : IDisposable {
         #region Fields
-        public byte[] Data = [];
-        public int Pos = 0;
+        private readonly MemoryStream _stream;
+        private readonly BinaryWriter _writer;
+        #endregion
+
+        #region Constructors
+        public SoundData(int initialCapacity = 256) {
+            _stream = new MemoryStream(initialCapacity);
+            _writer = new BinaryWriter(_stream);
+        }
         #endregion
 
         #region Properties
-        // none
+        /// <summary>
+        /// Gets the written data as a byte array.
+        /// </summary>
+        public byte[] ToArray() => _stream.ToArray();
+
+        /// <summary>
+        /// Current write position.
+        /// </summary>
+        public long Position {
+            get => _stream.Position;
+            set => _stream.Position = value;
+        }
         #endregion
 
         #region Methods
@@ -66,52 +84,55 @@ namespace WinAGI.Engine {
         /// Writes a four byte long value to midi array data.
         /// </summary>
         /// <param name="ByteIn"></param>
-        internal void WriteSndByte(byte ByteIn) {
-            Data[Pos++] = ByteIn;
-            if (Pos >= Data.Length) {
-                // bump up size to hold more data
-                Array.Resize(ref Data, Pos + 256);
-            }
+        internal void WriteSndByte(byte value) {
+            _writer.Write(value);
         }
 
         /// <summary>
         /// Writes a two byte integer value to midi array data.
         /// </summary>
         /// <param name="IntegerIn"></param>
-        internal void WriteSndWord(int IntegerIn) {
-            WriteSndByte((byte)(IntegerIn / 256));
-            WriteSndByte((byte)(IntegerIn & 0xFF));
+        internal void WriteSndWord(int value) {
+            _writer.Write((byte)(value >> 8));      // high byte
+            _writer.Write((byte)(value & 0xFF));    // low byte
         }
 
         /// <summary>
         /// Writes a four byte long value to midi array data.
         /// </summary>
         /// <param name="LongIn"></param>
-        internal void WriteSndLong(int LongIn) {
-            WriteSndByte((byte)(LongIn >> 24));
-            WriteSndByte((byte)((LongIn >> 16) & 0xFF));
-            WriteSndByte((byte)((LongIn >> 8) & 0xFF));
-            WriteSndByte((byte)(LongIn & 0xFF));
+        internal void WriteSndLong(int value) {
+            _writer.Write((byte)(value >> 24));
+            _writer.Write((byte)((value >> 16) & 0xFF));
+            _writer.Write((byte)((value >> 8) & 0xFF));
+            _writer.Write((byte)(value & 0xFF));
         }
 
         /// <summary>
         /// Writes variable delta times to midi data array.
         /// </summary>
         /// <param name="LongIn"></param>
-        internal void WriteSndDelta(int LongIn) {
-            int i = LongIn >> 21;
-            if ((i > 0)) {
-                WriteSndByte((byte)((i & 127) | 128));
+        internal void WriteSndDelta(int value) {
+            // Standard VLQ encoding
+            int buffer = value & 0x7F;
+
+            while ((value >>= 7) > 0) {
+                buffer <<= 8;
+                buffer |= ((value & 0x7F) | 0x80);
             }
-            i = LongIn >> 14;
-            if (i > 0) {
-                WriteSndByte((byte)((i & 127) | 128));
+
+            while (true) {
+                _writer.Write((byte)buffer);
+                if ((buffer & 0x80) != 0)
+                    buffer >>= 8;
+                else
+                    break;
             }
-            i = LongIn >> 7;
-            if ((i > 0)) {
-                WriteSndByte((byte)((i & 127) | 128));
-            }
-            WriteSndByte((byte)(LongIn & 127));
+        }
+
+        public void Dispose() {
+            _writer.Dispose();
+            _stream.Dispose();
         }
         #endregion
     }

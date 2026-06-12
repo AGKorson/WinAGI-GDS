@@ -1145,7 +1145,7 @@ namespace WinAGI.Engine {
             int freqdivisor;
             byte volume;
             int trackCount = 0, tickCount;
-            int startPos, endPos;
+            long startPos, endPos;
             SoundData sndOut = new();
 
             if (!sound[0].Muted && sound[0].Notes.Count > 0) {
@@ -1163,15 +1163,13 @@ namespace WinAGI.Engine {
                 // are written as two separate tracks
                 trackCount += 2;
             }
-            // set intial size of midi data array
-            sndOut.Data = new byte[70 + 256];
 
             // header
-            sndOut.Data[0] = 77;  // "M"
-            sndOut.Data[1] = 84;  // "T"
-            sndOut.Data[2] = 104; // "h"
-            sndOut.Data[3] = 100; // "d"
-            sndOut.Pos = 4;
+            sndOut.WriteSndByte(77);  // "M"
+            sndOut.WriteSndByte(84);  // "T"
+            sndOut.WriteSndByte(104); // "h"
+            sndOut.WriteSndByte(100); // "d"
+
             // remaining length of header
             sndOut.WriteSndLong(6);
             // track mode
@@ -1181,7 +1179,7 @@ namespace WinAGI.Engine {
             sndOut.WriteSndWord(1);
             if (trackCount == 0) {
                 // create an empty MIDI stream
-                sndOut.Data = new byte[38];
+
                 // one track, with one note of smallest length, and no sound
                 sndOut.WriteSndWord(1);
                 // pulses per quarter note
@@ -1193,26 +1191,26 @@ namespace WinAGI.Engine {
                 // track length
                 sndOut.WriteSndLong(15);
                 // track number
-                sndOut.WriteSndDelta(0);
+                sndOut.WriteSndByte(0);
                 //  set instrument status byte
                 sndOut.WriteSndByte(0xC0);
                 // instrument number
                 sndOut.WriteSndByte(0);
                 // add a slight delay note with no volume to end
-                sndOut.WriteSndDelta(0);
+                sndOut.WriteSndByte(0);
                 sndOut.WriteSndByte(0x90);
                 sndOut.WriteSndByte(60);
                 sndOut.WriteSndByte(0);
-                sndOut.WriteSndDelta(16);
+                sndOut.WriteSndByte(16);
                 sndOut.WriteSndByte(0x80);
                 sndOut.WriteSndByte(60);
                 sndOut.WriteSndByte(0);
                 // add end of track info
-                sndOut.WriteSndDelta(0);
+                sndOut.WriteSndByte(0);
                 sndOut.WriteSndByte(0xFF);
                 sndOut.WriteSndByte(0x2F);
                 sndOut.WriteSndByte(0x0);
-                return sndOut.Data;
+                return sndOut.ToArray();
             }
             // track count
             sndOut.WriteSndWord(trackCount);
@@ -1230,23 +1228,23 @@ namespace WinAGI.Engine {
                     sndOut.WriteSndByte(114); // "r"
                     sndOut.WriteSndByte(107); // "k"
                     // starting position for this track's data
-                    startPos = sndOut.Pos;
+                    startPos = sndOut.Position;
                     // place holder for data size
                     sndOut.WriteSndLong(0);
                     // track number
                     //     *********** i think this should be zero for all tracks
-                    //     it's the delta sound value for the instrument setting
-                    sndOut.WriteSndDelta(0);
+                    //     it's the value for the instrument setting
+                    sndOut.WriteSndByte(0);
                     // instrument status byte
                     sndOut.WriteSndByte((byte)(0xC0 + writeTrack));
                     // instrument number
                     sndOut.WriteSndByte(sound[i].Instrument);
                     // add a slight delay note with no volume to start
-                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte(0);
                     sndOut.WriteSndByte((byte)(0x90 + writeTrack));
                     sndOut.WriteSndByte(60);
                     sndOut.WriteSndByte(0);
-                    sndOut.WriteSndDelta(4);
+                    sndOut.WriteSndByte(4);
                     sndOut.WriteSndByte((byte)(0x80 + writeTrack));
                     sndOut.WriteSndByte(60);
                     sndOut.WriteSndByte(0);
@@ -1281,7 +1279,7 @@ namespace WinAGI.Engine {
                             volume = 0;
                         }
                         // NOTE ON
-                        sndOut.WriteSndDelta(0);
+                        sndOut.WriteSndByte(0);
                         sndOut.WriteSndByte((byte)(0x90 + writeTrack));
                         sndOut.WriteSndByte(midinote);
                         sndOut.WriteSndByte(volume);
@@ -1292,26 +1290,26 @@ namespace WinAGI.Engine {
                         sndOut.WriteSndByte(0);
                     }
                     // add a slight delay note with no volume to end of track
-                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte(0);
                     sndOut.WriteSndByte((byte)(0x90 + writeTrack));
                     sndOut.WriteSndByte(60);
                     sndOut.WriteSndByte(0);
-                    sndOut.WriteSndDelta(4);
+                    sndOut.WriteSndByte(4);
                     sndOut.WriteSndByte((byte)(0x80 + writeTrack));
                     sndOut.WriteSndByte(60);
                     sndOut.WriteSndByte(0);
                     // add end of track info
-                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte(0);
                     sndOut.WriteSndByte(0xFF);
                     sndOut.WriteSndByte(0x2F);
                     sndOut.WriteSndByte(0x0);
                     // save track end position
-                    endPos = sndOut.Pos;
+                    endPos = sndOut.Position;
                     // set cursor to start of track
-                    sndOut.Pos = startPos;
+                    sndOut.Position = startPos;
                     // add the track length
-                    sndOut.WriteSndLong((endPos - startPos) - 4);
-                    sndOut.Pos = endPos;
+                    sndOut.WriteSndLong((int)(endPos - startPos) - 4);
+                    sndOut.Position = endPos;
                 }
                 writeTrack++;
             }
@@ -1329,11 +1327,11 @@ namespace WinAGI.Engine {
                     sndOut.WriteSndByte(114); // "r"
                     sndOut.WriteSndByte(107); // "k"
                     // store starting position for this track's data
-                    startPos = sndOut.Pos;
+                    startPos = sndOut.Position;
                     // place holder for chunklength
                     sndOut.WriteSndLong(0);
                     // track number
-                    sndOut.WriteSndDelta(writeTrack);
+                    sndOut.WriteSndByte((byte)writeTrack);
                     // instrument
                     sndOut.WriteSndByte((byte)(0xC0 + writeTrack));
                     // instrument number
@@ -1358,11 +1356,11 @@ namespace WinAGI.Engine {
                         break;
                     }
                     // add a slight delay note with no volume to start the track
-                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte(0);
                     sndOut.WriteSndByte((byte)(0x90 + writeTrack));
                     sndOut.WriteSndByte(60);
                     sndOut.WriteSndByte(0);
-                    sndOut.WriteSndDelta(4);
+                    sndOut.WriteSndByte(4);
                     sndOut.WriteSndByte((byte)(0x80 + writeTrack));
                     sndOut.WriteSndByte(60);
                     sndOut.WriteSndByte(0);
@@ -1421,7 +1419,7 @@ namespace WinAGI.Engine {
                         }
 
                         // NOTE ON
-                        sndOut.WriteSndDelta(0);
+                        sndOut.WriteSndByte(0);
                         sndOut.WriteSndByte((byte)(0x90 + writeTrack));
                         sndOut.WriteSndByte(midinote);
                         sndOut.WriteSndByte(volume);
@@ -1432,31 +1430,29 @@ namespace WinAGI.Engine {
                         sndOut.WriteSndByte(0);
                     }
                     // add a slight delay note with no volume to end
-                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte(0);
                     sndOut.WriteSndByte((byte)(0x90 + writeTrack));
                     sndOut.WriteSndByte(60);
                     sndOut.WriteSndByte(0);
-                    sndOut.WriteSndDelta(4);
+                    sndOut.WriteSndByte(4);
                     sndOut.WriteSndByte((byte)(0x80 + writeTrack));
                     sndOut.WriteSndByte(60);
                     sndOut.WriteSndByte(0);
                     // add end of track data
-                    sndOut.WriteSndDelta(0);
+                    sndOut.WriteSndByte(0);
                     sndOut.WriteSndByte(0xFF);
                     sndOut.WriteSndByte(0x2F);
                     sndOut.WriteSndByte(0x0);
                     // save ending position
-                    endPos = sndOut.Pos;
+                    endPos = sndOut.Position;
                     // go back to start of track, and add track length
-                    sndOut.Pos = startPos;
-                    sndOut.WriteSndLong(endPos - startPos - 4);
-                    sndOut.Pos = endPos;
+                    sndOut.Position = startPos;
+                    sndOut.WriteSndLong((int)(endPos - startPos - 4));
+                    sndOut.Position = endPos;
                     writeTrack++;
                 }
             }
-            // remove any extra padding from the data array
-            Array.Resize(ref sndOut.Data, sndOut.Pos);
-            return sndOut.Data;
+            return sndOut.ToArray();
         }
 
         /// <summary>
