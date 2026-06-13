@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using WinAGI.Common;
+using static WinAGI.Common.Base;
 using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
@@ -91,7 +92,7 @@ namespace WinAGI.Engine {
             Cel agNewCel;
 
             if (mCelCol.Count == MAX_CELS || pos < 0) {
-                WinAGIException wex = new(EngineResourceByNum(553).Replace("ARG1", "")) {
+                WinAGIException wex = new(EngineResourceByNum(553).Replace(ARG1, "")) {
                     HResult = WINAGI_ERR + 553,
                 };
                 throw wex;

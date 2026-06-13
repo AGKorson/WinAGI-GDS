@@ -5,7 +5,6 @@ using System.IO;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.Base;
 
 namespace WinAGI.Engine {
     public static partial class Base {

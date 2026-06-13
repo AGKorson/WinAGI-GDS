@@ -43,9 +43,7 @@ namespace WinAGI.Common {
                 Loaded = false;
                 switch (wex.HResult & 0xffff) {
                 // these are the only NewGame errors
-                case 506: // not a v2/v3 game
                 case 508: // critical gamefile missing
-                case 518: // unsupported v2/v3 game
                 case 527: // no wag file in template directory
                 case 533: // Unable to copy template files to game directory due to error: %1
                 case 534: // Unable to open the newly created game due to error: % 1
@@ -171,9 +169,7 @@ namespace WinAGI.Common {
             if (NewGameArgs.Failed) {
                 // use error info to determine messaging and actions
                 switch (NewGameArgs.ErrorCode) {
-                case 506: // not a v2/v3 game
                 case 508: // critical gamefile missing
-                case 518: // unsupported v2/v3 game
                 case 527: // no wag file in template directory
                 case 533: // Unable to copy template files to game directory due to error: %1
                 case 534: // Unable to open the newly created game due to error: % 1
@@ -389,6 +385,7 @@ namespace WinAGI.Common {
             LoadGameResults LoadResults = (LoadGameResults)e.Result;
             if (LoadResults.Failed) {
                 MDIMain.MsgBoxWithHelp(
+                    "ERROR " + LoadResults.ErrorCode.ToString() + ":\n\n" +
                     LoadResults.Error.Message,
                     "Unable to " + (LoadResults.Parameters.Mode == OpenGameMode.File ? "Open" : "Import") + " Game",
                     MessageBoxButtons.OK,

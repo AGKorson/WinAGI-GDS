@@ -9037,7 +9037,6 @@ namespace WinAGI.Editor {
             }
             // if changes made to exit ids
             if (saveIDs) {
-                // TODO: update open editor, don't do full replace...
                 // replace sourcecode
                 ThisLogic.SourceText = source;
                 Debug.Assert(ThisLogic == EditGame.Logics[ThisLogic.Number]);

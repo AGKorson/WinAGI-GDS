@@ -11,19 +11,11 @@
       <p>&nbsp;</p>
       <p>&nbsp;</p>
 
-      <h3><a name="err506">506: This AGI version is not supported by WinAGI</a></h3>
-      <p class="indent_n">There were only nineteen minor version numbers of AGI; fourteen in <a href="..\agi\version2.htm">version 2</a> and five  in <a href="..\agi\version3.htm">version 3</a> released by Sierra. If the minor version for the <a href="prop_general.htm#intversion">target interpreter version</a> found in this <a href="properties.htm">game's property file</a> is not one of these versions, this error is raised. This can only happen if the file was edited manually outside of WinAGI or is corrupt. You will need to re-edit the file to change it to a supported version.</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <h3><a name="err506">507: UNHANDLED ERROR &lt;number &gt;: &lt;errormsg &gt;\n\n" +&lt;stacktrace &gt;</a></h3>
+      <h3><a name="err507">507: UNHANDLED ERROR &lt;number &gt;: &lt;errormsg &gt;\n\n" +&lt;stacktrace &gt;</a></h3>
       <p class="indent_n">This error indicates an error occurred that WinAGI did not anticipate. It may indicate a possible bug in WinAGI. The error number and message, along with the stack information should provide information on how to address the problem, or you can <a href="https://github.com/AGKorson/WinAGI-GDS/issues" target="_blank">leave a comment</a> on the WinAGI github page.</p>
       <p>&nbsp;</p>
       <p>&nbsp;</p>
-      <h3><a name="err518">518: Incompatible AGI version: WinAGI only works with versions 2 and 3</a></h3>
-      <p class="indent_n">WinAGI only supports <a href="..\agi\version2.htm">version 2</a> or <a href="..\agi\version3.htm">version 3</a> AGI games. If the <a href="prop_general.htm#intversion">target interpreter version</a> found in this <a href="properties.htm">game's property file</a> is not 2 or 3, this error is raised. This can only happen if the file was edited manually outside of WinAGI or is corrupt. You will need to re-edit the file to change it to a supported version.</p>
-      <p>&nbsp;</p>
-      <p>&nbsp;</p>
-      <h3><a name="err527">directory '&lt;directoryname &gt;' has no wag files</a></h3>
+      <h3><a name="err527">527: directory '&lt;directoryname &gt;' has no wag files</a></h3>
       <p class="indent_n">This error indicates that WinAGI did not find a valid WinAGI game file in the specified directory. Check for the correct location of the game you want to open and try again.</p>
       <p>&nbsp;</p>
       <p>&nbsp;</p>
@@ -35,12 +27,16 @@
       <p class="indent_n">After creating a new game, WinAGI automatically opens it for editing. If an error was encountered while trying to open the new game, this error is raised. The error number and message should provide information you can use to address the problem.</p>
       <p>&nbsp;</p>
       <p>&nbsp;</p>
-     <h3><a name="err535">535: Can't create new game in a directory that already has a wag file</a></h3>
+      <h3><a name="err535">535: Can't create new game in a directory that already has a wag file</a></h3>
       <p class="indent_n">This error is raised if the new game directory already has a WinAGI game file in it. You will need to choose a directory that does not have an existing game file as your new game directory.</p>
       <p>&nbsp;</p>
       <p>&nbsp;</p>
       <h3><a name="err536">536: Can't create new game in a directory that already has AGI game files</a></h3>
       <p class="indent_n">This error is raised if the new game directory already has a AGI game files (VOL and DIR files) in it. You will need to choose a directory that does not have an existing game as your new game directory.</p>
+      <p>&nbsp;</p>
+      <p>&nbsp;</p>
+      <h3><a name="err538">538: &lt;badversion&gt; is not a valid AGI interpreter version.</a></h3>
+      <p class="indent_n">There were only nineteen minor version numbers of AGI; fourteen in <a href="..\agi\version2.htm">version 2</a> and five  in <a href="..\agi\version3.htm">version 3</a> released by Sierra. If the minor version for the <a href="prop_general.htm#intversion">target interpreter version</a> found in this <a href="properties.htm">game's property file</a> is not one of these versions, this error is raised. This can only happen if the file was edited manually outside of WinAGI or is corrupt. You will need to re-edit the file to change it to a supported version.</p>
       <p>&nbsp;</p>
       <p>&nbsp;</p>
       <h3><a name="err543">543: multiple WAG files found</a></h3>
@@ -73,5 +69,5 @@
       <p>&nbsp;</p>
       <p align="right"><font size="1">v3.0.0</font></p>
       <p>&nbsp;</p>
-    </body>
+  </body>
 </html>

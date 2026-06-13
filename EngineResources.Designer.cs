@@ -1465,15 +1465,6 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This AGI version is not supported by WinAGI..
-        /// </summary>
-        internal static string _506 {
-            get {
-                return ResourceManager.GetString("506", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Controller argument value is not within expected range (0 - 49).
         /// </summary>
         internal static string _5060 {
@@ -2118,15 +2109,6 @@ namespace WinAGI.Engine {
         internal static string _517 {
             get {
                 return ResourceManager.GetString("517", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Incompatible AGI version: WinAGI only works with versions 2 and 3.
-        /// </summary>
-        internal static string _518 {
-            get {
-                return ResourceManager.GetString("518", resourceCulture);
             }
         }
         

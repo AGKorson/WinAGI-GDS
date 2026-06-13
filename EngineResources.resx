@@ -654,9 +654,6 @@
   <data name="505" xml:space="preserve">
     <value>'%1' is not a valid directory file.</value>
   </data>
-  <data name="506" xml:space="preserve">
-    <value>This AGI version is not supported by WinAGI.</value>
-  </data>
   <data name="554" xml:space="preserve">
     <value>No source code to compile.</value>
   </data>
@@ -686,9 +683,6 @@
   </data>
   <data name="517" xml:space="preserve">
     <value>Maximum number of VOL files exceeded - GAME IS TOO BIG!!!</value>
-  </data>
-  <data name="518" xml:space="preserve">
-    <value>Incompatible AGI version: WinAGI only works with versions 2 and 3</value>
   </data>
   <data name="519" xml:space="preserve">
     <value>Can't export file; unable to load resource data</value>

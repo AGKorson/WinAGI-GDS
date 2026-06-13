@@ -27,977 +27,265 @@ O   23. BETA TESTING
 
 Miscellaneous Notes
 ===========================================================================================================
-      
 
 
 
 
 WINAGI EXCEPTIONS: 
 ===========================================================================================================
-CLASS             FUNCTION:                 NUMBER:   DESCRIPTION
-AGIGame           Compile                   510       missing directory
-AGIGame           GameID/set                503       file access error while renaming v3  DIR/VOL files
-AGIGame           InterpreterVersion/set    518       new value is not numeric
-AGIGame           InterpreterVersion/set    518       new value is invalid major version
-AGIGame           InterpreterVersion/set    506       new value is invalid minor version
+ERR     CLASS                FUNCTION
+----    ------------------   ------------------
+501     AGIResource          Clear
+501     AGIResource          Data
+501     AGIResource          EORes
+501     AGIResource          Export
+501     AGIResource          InsertData
+501     AGIResource          Pos
+501     AGIResource          Pos
+501     AGIResource          ReadByte
+501     AGIResource          ReadWord
+501     AGIResource          RemoveData
+501     AGIResource          ReplaceData
+501     AGIResource          Save
+501     AGIResource          WriteByte
+501     AGIResource          WriteWord
+501     InventoryList        Add
+501     InventoryList        Add
+501     InventoryList        Clear
+501     InventoryList        Clone
+501     InventoryList        CloneFrom
+501     InventoryList        Count
+501     InventoryList        Encrypted
+501     InventoryList        Encrypted
+501     InventoryList        Export
+501     InventoryList        InUseCount
+501     InventoryList        MaxScreenObjects
+501     InventoryList        MaxScreenObjects
+501     InventoryList        Remove
+501     InventoryList        Save
+501     InventoryList        this[]
+501     Logic                Clear
+501     Logic                Clone
+501     Logic                CloneFrom
+501     Logic                CloneFrom
+501     Logic                CodeSize
+501     Logic                Compile
+501     Logic                ExportSource
+501     Logic                Save
+501     Picture              Clear
+501     Picture              Clone
+501     Picture              CloneFrom
+501     Picture              CloneFrom
+501     Picture              ControlPixel
+501     Picture              CurrentPenStatus
+501     Picture              DrawPos
+501     Picture              DrawPos
+501     Picture              ObjOnWater
+501     Picture              PixelPriority
+501     Picture              PriData
+501     Picture              PriPixelColor
+501     Picture              Save
+501     Picture              StepDraw
+501     Picture              StepDraw
+501     Picture              VisData
+501     Picture              VisPixelColor
+501     Sound                Clear
+501     Sound                Clone
+501     Sound                CloneFrom
+501     Sound                CloneFrom
+501     Sound                Export
+501     Sound                MIDIData
+501     Sound                PlaySound
+501     Sound                Save
+501     Sound                Tracks
+501     Sound                WAVData
+501     View                 Clear
+501     View                 Clone
+501     View                 CloneFrom
+501     View                 CloneFrom
+501     View                 Export
+501     View                 Loops
+501     View                 Save
+501     View                 this[]
+501     View                 ViewDescription
+501     View                 ViewDescription
+501     WordList             AddGroup
+501     WordList             AddWord
+501     WordList             Clear
+501     WordList             Clone
+501     WordList             CloneFrom
+501     WordList             CloneFrom
+501     WordList             Export
+501     WordList             ExportSVE
+501     WordList             GroupByIndex
+501     WordList             GroupByNumber
+501     WordList             GroupCount
+501     WordList             GroupExists
+501     WordList             GroupIndexFromNumber
+501     WordList             RemoveGroup
+501     WordList             RemoveWord
+501     WordList             RenumberGroup
+501     WordList             Save
+501     WordList             this[]
+501     WordList             this[]
+501     WordList             WordCount
+501     WordList             WordExists
+501     WordList             WordIndex
+502     AGIResource          Export
+502     AGIResource          Import
+502     InventoryList        Compile
+502     InventoryList        SetMSDOSFormat
+502     Logic                ExportSource
+502     Logic                SaveSource
+502     SettingsFile         .ctor
+502     SettingsFile         Save
+502     WordList             Compile
+502     WordList             CompileSVE
+503     AGIGame              GameID
+503     AGIGame              NewGame
+504     AGIGame              OpenGameDIR
+504     AGIGame              OpenGameWAG
+505     Base                 ExtractResources
+505     Base                 ExtractResources
+505     Base                 ExtractResources
+507     BkgdTasks            NewGameDoWork
+507     BkgdTasks            OpenGameDoWork
+508     AGIGame              NewGame
+508     BkgdTasks            OpenGameDoWork
+509     Base                 ExpandV3ResData
+510     AGIGame              Compile
+511     Sound                CompileSound
+512     InventoryList        Add
+512     InventoryList        Add
+513     WordList             AddWord
+514     WordList             AddWord
+515     WordList             RemoveGroup
+516     WordList             RemoveWord
+517     VOLManager           FindFreeVOLSpace
+517     VOLManager           ValidateVolAndLoc
+519     AGIResource          Export
+520     Logics               Add
+520     Pictures             Add
+520     Sounds               Add
+520     Views                Add
+521     AGIResource          Import
+522     Cels                 Remove
+523     Loops                Remove
+524     Cel                  AllCelData
+524     Cel                  AllCelData
+525     Logic                Compile
+526     MidiNotePlayer       Dispose
+526     MIDIPlayer           PlayMIDISound
+526     MIDIPlayer           PlayMIDISound
+527     AGIGame              NewGame
+528     VOLManager           AddNextRes
+528     VOLManager           UpdateInVol
+528     VOLManager           ValidateVolAndLoc
+529     AGIGame              OpenGameWAG
+530     AGIGame              OpenGameWAG
+531     Logics               Renumber
+531     Pictures             Renumber
+531     Sounds               Renumber
+531     Views                Renumber
+532     SoundImport          Script2AGI
+533     AGIGame              NewGame
+534     AGIGame              NewGame
+535     AGIGame              NewGame
+536     AGIGame              NewGame
+537     AGIGame              OpenGameWAG
+538     AGIGame              OpenGameWAG
+539     AGIGame              OpenGameWAG
+539     Base                 ExtractResources
+539     Base                 ExtractResources
+539     Base                 ExtractResources
+539     SettingsFile         .ctor
+539     SettingsFile         .ctor
+539     VOLManager           UpdateDirFile
+540     AGIGame              OpenGameWAG
+541     AGIGame              FinishGameLoad
+541     Base                 ExtractResources
+541     Base                 ExtractResources
+541     VOLManager           UpdateDirFile
+541     VOLManager           UpdateDirFile
+541     VOLManager           UpdateDirFile
+541     VOLManager           UpdateDirFile
+542     Sound                ExportAsMIDI
+542     Sound                ExportAsScript
+542     Sound                ExportAsWAV
+542     Sound                MIDIData
+542     Sound                WAVData
+543     AGIGame              NewGame
+544     AGIGame              NewGame
+545     AGIGame              NewGame
+546     AGIGame              OpenGameDIR
+547     AGIGame              NewGame
+548     Base                 CopyDirectory
+549     AGIGame              NewGame
+549     AGIGame              NewGame
+553     Cels                 Add
+554     Logic                Compile
+555     AGIGame              OpenGameWAG
+
+
+ERR  DESCRIPTION
+---  ------------------------------------------------------------------------
+501: Property or method not available until object is loaded.
+502: Error %1 occurred while trying to access %2.
+503: Error %1 occurred while setting game ID
+504: '%1' is not a valid AGI game directory.
+505: '%1' is not a valid directory file.
+506: not used
+507: UNHANDLED ERROR %1: %2\n\n" + %3
+508: A critical game file (%1) is missing.
+509: Unhandled error %1 while expanding resource.
+510: Directory '%1' not found
+511: Error in CompileSound method(%1)
+512: Can't add item; maximum number of objects already in OBJECT file
+513: Can't add word; it already exists
+514: Can't add word; invalid group number
+515: Can't delete wordgroup; it does not exist
+516: Can't delete word; it does not exist
+517: Maximum number of VOL files exceeded - GAME IS TOO BIG!!!
+518: not used
+519: Can't export file; unable to load resource data
+520: Can't create new resource; index already in use
+521: No data to import
+522: Can't delete last cel in a loop
+523: Can't delete last loop in a view
+524: Invalid data format for cel data
+525: Only logics in a game can be compiled
+526: Media player error: %1
+527: directory '%1' has no wag files
+528: File access error in VOL file
+529: Missing game property file (%1)
+530: Invalid game property file version (%1)
+531: Can't renumber; new number is already in use
+532: Invalid sound script file
+533: Unable to copy template files to game directory due to error: %1
+534: Unable to open the newly created game due to error: %1
+535: Can't create new game in a directory that already has a wag file
+536: Can't create new game in a directory that already has AGI game files
+537: Game property file does not contain a valid GameID.
+538: %1 is not a valid AGI interpreter version.
+539: Game property file '%1' is read only
+540: File access error when reading game property file - %1: %2
+541: File access error when reading %1 - %2: %3
+542: Invalid sound playback format
+543: multiple WAG files found
+544: template is missing resource directory
+545: Unable to move resource directory (%1)
+546: Unable to create wag file (%1)
+547: Error accessing wag file (%1)
+548: Unable to copy directory (%1)
+549: Unsupported WinAGI version in template
+550: Invalid WinAGI version in template
+551: not used
+552: not used
+553: Maximum number of cels exceeded in loop %1.
+554: No source code to compile.
+555: Invalid data in game property file.
 
-AGIGame           NewGame                   535       new game directory has existing WAG file
-AGIGame           NewGame                   536       new game directory has existing AGI game files
-AGIGame           NewGame                   518       new intver is invalid major version
-AGIGame           NewGame                   506       new intver is invalid minor version
-AGIGame           NewGame                   527       no WAG files in this directory
-AGIGame           NewGame                   543       template (source) directory has multiple WAG files
-AGIGame           NewGame                   544       template (source) missing resdir
-AGIGame           NewGame                   533       file access error while copying template to new directory
-AGIGame           NewGame                   545       unable to copy resdir directory
-AGIGame           NewGame                   547       error referencing wag file (errmsg)
-AGIGame           NewGame                   534       unable to open game in new folder(errdata)
 
-AGIGame           OpenGameDIR               504       not a valid game directory
-AGIGame           OpenGameDIR               546       unable to create wag file (ex)
-AGIGame           OpenGameDIR               PASS      FinishGameLoad      
-
-AGIGame           OpenGameWAG               529       missing WAG file
-AGIGame           OpenGameWAG               504       not a valid AGI game directory
-AGIGame           OpenGameWAG               539       Game file 'wag' is readonly
-AGIGame           OpenGameWAG               540       file access error while opening WAG file
-AGIGame           OpenGameWAG               555       invalid data in game property file
-AGIGame           OpenGameWAG               530       invalid WAG file version
-AGIGame           OpenGameWAG               538       invalid IntVersion in WAG file
-AGIGame           OpenGameWAG               537       missing GameID in WAG file
-AGIGame           OpenGameWAG               PASS      FinishGameLoad
-
-AGIGame           FinishGameLoad            541       File access error when reading file - number: message
-
-AGIGame           ExtractResources          539       Game file '%1' is read only
-AGIGame           ExtractResources          541       File access error when reading %1 - %2: %3
-AGIGame           ExtractResources          505       '%1' is not a valid directory file.
-AGIGame           ExtractResources          539       Game file '%1' is read only
-AGIGame           ExtractResources          539       Game file '%1' is read only
-AGIGame           ExtractResources          541       File access error when reading %1 - %2: %3
-AGIGame           ExtractResources          505       '%1' is not a valid directory file.
-AGIGame           ExtractResources          505       '%1' is not a valid directory file.     
-
-AGILZW            ExpandV3ResData           509       invalid compression data
-
-AGIResource       Clear                     501       resource not loaded
-AGIResource       Data/get                  501       resource not loaded
-AGIResource       EORes/get                 501       resource not loaded
-AGIResource       Export                    501       resource not loaded
-AGIResource       Export                    519       can't export resource that has errors
-AGIResource       Export                    502       file access error while exporting resource
-AGIResource       Import                    521       nothing to import
-AGIResource       Import                    502       file access error while importing resource
-AGIResource       InsertData                501       resource not loaded
-AGIResource       Pos/get                   501       resource not loaded
-AGIResource       Pos/set                   501       resource not loaded
-AGIResource       ReadByte                  501       resource not loaded
-AGIResource       ReadWord                  501       resource not loaded
-AGIResource       RemoveData                501       resource not loaded
-AGIResource       ReplaceData               501       resource not loaded
-AGIResource       Save                      501       resource not loaded
-AGIResource       WriteByte                 501       resource not loaded
-AGIResource       WriteWord                 501       resource not loaded
-
-AudioPlayer       Dispose                   526       media player error
-AudioPlayer       PlayMIDISound             526       media player error
-AudioPlayer       PlayMIDISound             526       media player error
-
-Cel               AllCelData/set            524       array Width is invalid
-Cel               AllCelData/set            524       array Height is invalid
-
-Cels              Add                       508       invalid insert pos
-Cels              Remove                    522       invalid remove pos
-
-InventoryList     Add                       501       resource not loaded
-InventoryList     Add                       512       too many inventory items
-InventoryList     Clear                     501       resource not loaded
-InventoryList     Clone                     501       resource not loaded
-InventoryList     CloneFrom                 501       resource not loaded
-InventoryList     Compile                   502       file access error while writing file
-InventoryList     Encrypted/get             501       resource not loaded
-InventoryList     Encrypted/set             501       resource not loaded
-InventoryList     Export                    501       resource not loaded
-InventoryList     Count/get                 501       resource not loaded
-InventoryList     InUseCount/get            501       resource not loaded
-InventoryList     MaxScreenObjects/get      501       resource not loaded
-InventoryList     MaxScreenObjects/set      501       resource not loaded
-InventoryList     Remove                    501       resource not loaded
-InventoryList     Save                      501       resource not loaded
-InventoryList     SetMSDOSFormat            502       file error converting from Amiga format
-
-Logic             Clear                     501       resource not loaded
-Logic             Clone                     501       resource not loaded
-Logic             CloneFrom                 501       this resource not loaded
-Logic             CloneFrom                 501       source resource not loaded
-Logic             Compile                   501       resource not loaded
-Logic             Compile                   525       compiling not allowed if not in game
-Logic             Compile                   507       no source code (empty)
-Logic             ExportSource              501       resource not loaded
-Logic             ExportSource              502       file error during export
-Logic             Save                      501       resource not loaded
-Logic             SaveSource                502       file access error while writing source
-
-Logics            Add                       520       resource number already in use
-Logics            Renumber                  531       new number already in use
-
-Loops             Remove                    523       can't remove last loop
-
-Picture           VisData/get               501       resource not loaded
-Picture           PriData/get               501       resource not loaded
-Picture           CurrentToolStatus/get     501       resource not loaded
-Picture           DrawPos/get               501       resource not loaded
-Picture           DrawPos/set               501       resource not loaded
-Picture           StepDraw/get              501       resource not loaded
-Picture           StepDraw/set              501       resource not loaded
-Picture           Clone                     501       resource not loaded
-Picture           CloneFrom                 501       this resource not loaded
-Picture           CloneFrom                 501       target resource not loaded
-Picture           ObjOnWater                501       resource not loaded
-Picture           ControlPixel              501       resource not loaded
-Picture           VisPixel                  501       resource not loaded
-Picture           PriPixel                  501       resource not loaded
-Picture           PixelPri                  501       resource not loaded
-Picture           Clear                     501       resource not loaded
-Picture           Save                      501       resource not loaded
-
-Pictures          Add                       520       picture already exists
-Pictures          Renumber                  531       new number already in use
-
-ResourceFunctions ExpandV3ResData           509       invalid compression data
-ResourceFunctions ExtractResources          539       v3 DIR file is readonly
-ResourceFunctions ExtractResources          541       file access error while reading v3 DIR file
-ResourceFunctions ExtractResources          505       invalid v3 DIR file (too small)
-ResourceFunctions ExtractResources          539       VOL.0 is readonly
-ResourceFunctions ExtractResources          539       v2 DIR file is readonly
-ResourceFunctions ExtractResources          541       file access error while reading v2 DIR file
-ResourceFunctions ExtractResources          505       invalid v3 DIR file (bad offset/size)
-ResourceFunctions ExtractResources          505       invalid v3 DIR file (bad offset)
-
-SettingsFile      .ctor                     539       list file is readonly
-SettingsFile      .ctor                     539       list file is readonly
-SettingsFile      .ctor                     502       file access error while opening list file
-SettingsFile      Save                      502       file access error while opening list file
-
-Sound             Clear                     501       resource not loaded
-Sound             Clone                     501       resource not loaded
-Sound             CloneFrom                 501       this resource not loaded
-Sound             CloneFrom                 501       target resource not loaded
-Sound             CompileSound              511       error while compiling sound tracks
-Sound             Export                    501       resource not loaded
-Sound             ExportAsMIDI              542       wrong sound format
-Sound             ExportAsScript            542       wrong sound format
-Sound             ExportAsWAV               542       wrong sound format
-Sound             PlaySound                 501       sound not loaded
-Sound             Save                      501       resource not loaded
-Sound             Tracks                    501       resource not loaded
-Sound             WAVData/get               501       resource not loaded
-Sound             WAVData/get               542       wrong format
-Sound             MIDIData/get              501       resource not loaded
-Sound             MIDIData/get              542       wrong format
-
-SoundImport       ImportScript              532       invalid script data
-
-Sounds            Add                       520       this index already exists
-Sounds            Renumber                  531       new number already in use
-
-View              this/get                  501       view not loaded
-View              Loops/get                 501       view not loaded
-View              ViewDescription/get       501       view not loaded
-View              ViewDescription/set       501       view not loaded
-View              Clone                     501       resource not loaded
-View              CloneFrom                 501       this resource not loaded
-View              CloneFrom                 501       target resource not loaded
-View              Clear                     501       view not loaded
-View              Export                    501       view not loaded
-View              Save                      501       view not loaded
-
-Views             Add                       520       this index already exists
-Views             Renumber                  531       new number already in use
-
-VOLManager        AddNextRes                528       file access error while writing to VOL file
-VOLManager        FindFreeVOLSpace          517       no room for resource in VOL files
-VOLManager        UpdateDirFile             539       DIR file is readonly
-VOLManager        UpdateDirFile             541       file access error while reading DIR file
-VOLManager        UpdateDirFile             541       file access error while writing DIR file
-VOLManager        UpdateDirFile             541       file access error while creating DIR file
-VOLManager        UpdateDirFile             541       file access error while writing DIR file
-VOLManager        UpdateInVol               528       file access error while writing to VOL file
-VOLManager        ValidateVolAndLoc         528       file access error while creating new VOL file
-VOLManager        ValidateVolAndLoc         517       no room for resource in VOL files
-
-WordList          this[index]/get           501       resource not loaded
-WordList          this[key]/get             501       resource not loaded
-WordList          AddGroup                  501       resource not loaded
-WordList          AddWord                   501       resource not loaded
-WordList          AddWord                   513       duplicate word
-WordList          AddWord                   514       invalid group number
-WordList          Clear                     501       resource not loaded
-WordList          Clone                     501       resource not loaded
-WordList          CloneFrom                 501       this resource not loaded
-WordList          CloneFrom                 501       target resource not loaded
-WordList          Compile                   502       file access error while writing data
-WordList          CompileSVE                502       file access error while writing data
-WordList          Export                    501       resource not loaded
-WordList          Export[SVE]               501       resource not loaded
-WordList          Group                     501       resource not loaded
-WordList          GroupCount/get            501       resource not loaded
-WordList          GroupExists               501       resource not loaded
-WordList          GroupN                    501       resource not loaded
-WordList          IsChanged/get             501       resource not loaded
-WordList          RemoveGroup               501       resource not loaded
-WordList          RemoveGroup               515       group number does not exist
-WordList          RemoveWord                501       resource not loaded
-WordList          RemoveWord                516       word does not exist
-WordList          RenumberGroup             501       resource not loaded
-WordList          Save                      501       resource not loaded
-WordList          WordCount/get             501       resource not loaded
-WordList          WordExists                501       resource not loaded
-
-Common            CopyDirectory             548       unable to copy directory
-
-
-
-Menu Structures
-=========================================================================
-MDIMain
-mnuResources
-    mnuRNew
-        mnuRNLogic
-        mnuRNPicture
-        mnuRNSound
-        mnuRNView
-        toolStripSeparator6 
-        mnuRNObjects
-        mnuRNWords
-        toolStripSeparator5 
-        mnuRNText
-    mnuROpen
-        mnuROLogic
-        mnuROPicture
-        mnuROSound
-        mnuROView
-        toolStripSeparator13 
-        mnuROObjects
-        mnuROWords
-        toolStripSeparator14 
-        mnuROText
-    mnuRImport
-        mnuRILogic
-        mnuRIPicture
-        mnuRISound
-        mnuRIView
-        toolStripSeparator15 
-        mnuRIObjects
-        mnuRIWords
-    mnuRSep1 
-    mnuROpenRes
-    mnuRSave
-    mnuRExport
-    mnuRSep2 
-    mnuRRemove
-    mnuRRenumber
-    mnuRProperties
-    mnuRSep3 
-    mnuRCompileLogic
-    mnuRSavePicImage
-    mnuRExportGIF
-
-Editors:
-!!! merging menu separators does not work as expected - 
-no matter what is specified for MergeIndex, only the first
-separator gets replaced; so instead of merging, the
-separators are left in place and Visible property is set
-as needed to manage them
-frmGlobals
-----------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport -> mnuRSaveAs
-      6 S mnuRSep2 
-      7 r mnuRRemove -> mnuRInGame
-      8 - mnuRRenumber
-      8 - mnuRProperties
-      8 S mnuRSep3 
-      9 - mnuRCompileLogic
-      9 - mnuRSavePicImage
-      9 - mnuRExportGIF
-     -1 + mnuAddFile
- 
-frmLayout
----------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 - mnuRExport
-      5 S mnuRSep2 
-      6 - mnuRRemove
-      6 - mnuRRenumber
-      6 - mnuRProperties
-      6 H mnuRSep3 
-      7 - mnuRCompileLogic
-      7 - mnuRSavePicImage
-      7 - mnuRExportGIF
-     -1 + mnuRepair
-     -1 + mnuToggleAllPics
-
-frmLogicEdit
-------------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport
-      6 S mnuRSep2 
-      7 r mnuRRemove -> mnuRInGame
-      8 r mnuRRenumber
-      9 r mnuRProperties
-     10 S mnuRSep3 
-     11 r mnuRCompileLogic -> mnuCompile
-     12 - mnuRSavePicImage
-     12 - mnuRExportGIF
-     -1 + mnuRMsgCleanup
-     -1 + mnuRIsRoom 
-
-frmMenuEdit
------------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport
-      6 S mnuRSep2 
-      7 - mnuRRemove
-      7 - mnuRRenumber
-      7 - mnuRProperties
-      7 H mnuRSep3 
-      8 - mnuRCompileLogic
-      8 - mnuRSavePicImage
-      8 - mnuRExportGIF
-     -1 + mnuBackground
-     -1 + mnuHotKeyAlign
-
-frmObjectEdit
--------------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport
-      6 S mnuRSep2 
-      7 - mnuRRemove
-      7 - mnuRRenumber
-      7 r mnuRProperties
-      8 S mnuRSep3 
-      9 - mnuRCompileLogic
-      9 - mnuRSavePicImage
-      9 - mnuRExportGIF
-        + mnuRToggleEncrypt
-        + mnuRAmigaOBJ
-
-frmPicEdit
-----------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport
-      6 S mnuRSep2 
-      7 r mnuRRemove -> mnuRInGame
-      8 r mnuRRenumber
-      9 r mnuRProperties
-     10 S mnuRSep3 
-     11 - mnuRCompileLogic
-     11 r mnuRSavePicImage
-     12 r mnuRExportGIF
-
-frmPreview
-----------
-  same as main form
-
-frmSoundEdit
-------------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport
-      6 S mnuRSep2 
-      7 r mnuRRemove -> mnuRInGame
-      8 r mnuRRenumber
-      9 r mnuRProperties
-     10 S mnuRSep3 
-     11 - mnuRCompileLogic
-     11 - mnuRSavePicImage
-     11 - mnuRExportGIF
-        + mnuRPlaySound
-        + mnuRPlaybackMode
-        
-
-frmTextScreenEdit
------------------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1
-      4 r mnuROpenRes -> mnuOpen
-      5 r mnuRSave
-      6 r mnuRExport -> mnuRSaveAs
-      7 H mnuRSep2 
-      8 - mnuRRemove
-      8 - mnuRRenumber
-      8 - mnuRProperties
-      8 H mnuRSep3 
-      9 - mnuRCompileLogic
-      9 - mnuRSavePicImage
-      9 - mnuRExportGIF
-
-frmViewEdit
------------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport
-      6 S mnuRSep2 
-      7 r mnuRRemove -> mnuRInGame
-      8 r mnuRRenumber
-      9 r mnuRProperties
-     10 S mnuRSep3 
-     11 - mnuRCompileLogic
-     11 - mnuRSavePicImage
-     11 r mnuRExportGIF =>mnuRExportLoopGIF
-
-frmWordEdit
------------
-      mnuResources
-      0   mnuRNew ...
-      1   mnuROpen ...
-      2   mnuRImport ...
-      3   mnuRSep1 
-      4 - mnuROpenRes
-      4 r mnuRSave
-      5 r mnuRExport
-      6 S mnuRSep2 
-      7 - mnuRRemove
-      7 - mnuRRenumber
-      7 r mnuRProperties
-      8 S mnuRSep3 
-      9 - mnuRCompileLogic
-      9 - mnuRSavePicImage
-      9 - mnuRExportGIF
-        + mnuRMerge
-        + mnuRGroupCheck
-
-
-
-events that should update main toolbar buttons:
-  open game/new game:
-    close game btn
-    run btn
-    import btn
-    layouted btn
-
-  close game
-    close game btn
-    run btn
-    import btn
-    layouted btn
-
-
-  activate editor
-    save btn,
-    ingame btn,
-    export btn,
-
-
-  editor changes:
-    save btn - ischanged status
-    ingame btn - lpsv ingame status
-
-btns:
-A  opengame
-g  closegame
-g  rungame
-
-A  newres   
-A  openres
-g  importres
-
-A  worded
-A  objected
-
-   saveres
-   ingame
-   exportres
-
-g  layouted
-A  menued
-A  txtscreened
-A  globaled
-
-A  help
-
-
-Syntax highlighting notes:
-===========================================================================================================
-white space: any char <= 33
-
-single char operators:
-!   &   '   (   )   *   +   ,   -   .   /   :   ;   >   =   <   ?   @   \   ]   ^   `   {    |    }    ~
-33, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 58, 59, 60, 61, 62, 63, 64, 92, 93, 94, 96, 123, 124, 125, 126
-
-double char operators:
-   !=  &&  *=  ++  +=  --  -=  /= >=  ><  ==  =<  =>  =@  <=  <>  || @=
-
-numbers:
-48-57
-
-strings:
-    ""
-    "*"
-    "*
-     where * = anything else
-when inside a string \" is not a quote (if preceded by two slashes it should count)
-34
-
-comments:
-starts with [ or //
-91, 47
-
-keywords:
-#define, #include, #message, if, else, goto
-
-commands (test, action, invalid):
-from list
-
-argument identifiers:
-v#, f#, s#, c#, i#, m#, o#
-
-
-defined names/tokens:
-starts with: 
-    letter-underscore(\w) or extended char or $ or # or %
-    (cannot start with number or '.')
-ends if NOT:
-    letter-number-underscore(\w) or extended char or $ or # or % or .
-
-
-WinAGI settings and warnings:
-// ************************************************
-// WARNINGS
-// ************************************************
-// RenameWAG
-// OpenNew
-// AskExport
-// AskRemove
-// AutoUpdateDefines
-// AutoUpdateResDefs
-// AutoUpdateObjects
-// WarnDupGName
-// WarnDupGVal
-// WarnInvalidStrVal
-// WarnInvalidCtlVal
-// WarnResOverride
-// WarnDupObj
-// WarnCompile
-// DelBlankG
-// NotifyCompSuccess
-// NotifyCompWarn
-// NotifyCompFail
-// WarnItem0
-// OpenOnErr
-// SaveOnCompile
-// CompileOnRun
-// WarnMsgs
-// WarnEncrypt
-// LEDelPicToo
-// //WarnPlotPaste
-
-// ************************************************
-// GENERAL SETTINGS
-// ************************************************
-// ShowSplashScreen
-// ShowPreview
-// ShiftPreview
-// HidePreview
-// ResListType
-// AutoExport
-// BackupResFile
-// DefMaxSO
-// DefMaxVol0
-// DefCP
-// DefResDir
-
-// ************************************************
-// MRU SETTINGS
-// ************************************************
-// AutoOpen
-
-// ************************************************
-// RESOURCE TREE LABEL FORMAT
-// ************************************************
-// ShowResNum
-// IncludeResNum
-// ResFormatNameCase
-// ResFormatSeparator
-// ResFormatNumFormat
-
-// ************************************************
-// LOGIC SETTINGS
-// ************************************************
-// AutoWarn
-// HighlightLogic
-// HighlightText
-// LogicTabWidth
-// MaximizeLogics
-// AutoQuickInfo
-// ShowDefTips
-// ShowDocMap
-// ShowLineNumbers
-// DefaultExt
-// EditorFontName
-// EditorFontSize
-// PreviewFontName
-// PreviewFontSize
-// ErrorLevel
-// DefIncludeIDs
-// DefIncludeReserved
-// DefIncludeGlobal
-// UseSnippets
-
-// ************************************************
-// SYNTAX HIGHLIGHT SETTINGS
-// ************************************************
-// EditorBackColor
-// EditorForeColor
-// EditorDefaultFontStyle
-// SyntaxStyle[10]
-
-// ************************************************
-// LOGIC DECOMPILER SETTINGS
-// ************************************************
-// MsgsByNumber
-// IObjsByNumber
-// WordsByNumber
-// ShowAllMessages
-// SpecialSyntax
-// ReservedAsText
-// CodeStyle
-
-// ************************************************
-// PICTURE SETTINGS
-// ************************************************
-// ShowBands
-// SplitWindow
-// PicScalePreview
-// PicScaleEdit
-// CursorMode
-
-// ************************************************
-// PICTURETEST SETTINGS
-// ************************************************
-// PicTest.ObjSpeed
-// PicTest.ObjPriority
-// PicTest.ObjRestriction
-// PicTest.Horizon
-// PicTest.IgnoreHorizon
-// PicTest.IgnoreBlocks
-// PicTest.CycleAtRest
-
-// ************************************************
-// SOUND SETTINGS
-// ************************************************
-// PlaybackMode
-// ShowKybd
-// ShowNotes
-// OneTrack
-// DefInst
-// DefMute
-// SndZoom
-
-// ************************************************
-// VIEW SETTINGS
-// ************************************************
-// ShowVEPreview
-// DefPrevPlay
-// ShowGrid
-// ViewAlignH
-// ViewAlignV
-// DefCelH
-// DefCelW
-// ViewScalePreview
-// ViewScaleEdit
-// DefVColor1
-// DefVColor2
-
-// ************************************************
-// OBJECT SETTINGS
-// ************************************************
-// none
-
-// ************************************************
-// WORDS.TOK SETTINGS
-// ************************************************
-// none
-
-// ************************************************
-// LAYOUT EDITOR SETTINGS
-// ************************************************
-// DefUseLE
-// LEUseGrid
-// LEGridMinor
-// LEGridMajor
-// LEShowGrid
-// LEShowPics
-// LESync
-// LEScale
-// RoomEdgeColor
-// RoomFillColor
-// TransPtEdgeColor
-// TransPtFillColor
-// CmtEdgeColor
-// CmtFillColor
-// ErrPtEdgeColor
-// ErrPtFillColor
-// ExitEdgeColor
-// ExitOtherColor
-
-
-// ************************************************
-// GLOBALS EDITOR SETTINGS
-// ************************************************
-// GEShowComment
-// GENameFrac
-// GEValFrac
-
-
-// ************************************************
-// MENU EDITOR SETTINGS (store in GENERAL)
-// ************************************************
-// AutoAlignHotKey
-
-
-// ************************************************
-// PLATFORM SETTINGS
-// ************************************************
-// AutoFill
-// PlatformType
-// PlatformFile
-// DOSExec
-// PlatformOpts
-
-
-
-DECOMPILE STYLES
-default:
-if (test())
-    {
-    action();
-    }
-else
-    {
-    }
-
-alternate 1:  (my preferred)
-if (test()) {
-    action();
-}
-else {
-    action();
-}
-
-alternate 2: (another option)
-if (test()) {
-    action();
-} else {
-    action();
-}
-
-Status Bars:
-=========================================================================
-
-Statusbar merging in C# SUCKS!
-    - it's not automatic,
-    - and MOST ANNOYINGLY, it merges based on text, not on name so items
-      often get mixed up due to text being the same on different forms
-
-after many failed attempts to manage merging, I'm giving up. So only one
-statusstrip on MdiMain form, and all status items will be added to that 
-panel as needed based on which form is active
-
-MDIMain:
-  spStatus    [0] (spring, flat)
-  spCapsLock  [1] (SunkenInside)
-  spNumLock   [2] (SunkenInside)
-  spInsLock   [3] (SunkenInside)
-
-frmGlobalEdit:
-    spStatus -> Inherit[0]
-    spCapsLock -> Inherit[1]
-    spNumLock -> Inherit[2]
-    spInsLock -> Inherit[3]
-
-frmLayout:
-    spScale -> Insert[0]
-    spTool -> Insert[1]
-    spID -> Insert[2]
-    spType -> Insert[3]
-    spRoom1 -> Insert[4]
-    spRoom2 -> Insert[5]
-    spStatus -> Inherit[6]
-    spCurX -> Insert[7]
-    spCurY -> Insert[8]
-    spCapsLock -> Hide
-    spNumLock -> Hide
-    spInsLock -> Hide
-
-frmLogicEdit:
-    spStatus -> Inherit[0]
-    spLine (SunkenInside) -> Insert[1]
-    spColumn (SunkenInside) -> Insert[2]
-    spCapsLock Inherit [3]
-    spNumLock  Inherit [4]
-    spInsLock  Inherit [5]
-
-frmMenuEdit:
-    spStatus -> Inherit[0]
-    spCapsLock -> Inherit[1]
-    spNumLock -> Inherit[2]
-    spInsLock -> Inherit[3]
-
-frmObjectEdit:
-    spCount -> Insert[0]
-    spEncrypt -> Insert[1]
-    spStatus -> Inherit[2]
-    spCapsLock -> Inherit[3]
-    spNumLock -> Inherit[4]
-    spInsLock -> Inherit[5]
-
-frmPicEdit:
-    spScale -> Insert[0]
-    spMode -> Insert[1]
-    spTool -> Insert[2]
-    spAnchor -> Insert[3]
-    spBlock -> Insert[4]
-    spStatus -> Inherit[5]
-    spCurX -> Insert[6]
-    spCurY -> Insert[7]
-    spPriBand -> Insert[8]
-    spCapsLock -> Hide
-    spNumLock -> Hide
-    spInsLock -> Hide
-
-frmPreview:
-    spStatus -> Inherit[0]
-    spCapsLock -> Inherit[1]
-    spNumLock -> Inherit[2]
-    spInsLock -> Inherit[3]
-
-frmSoundEdit:
-    spScale -> Insert[0]
-    spTime -> Insert[1]
-    spStatus -> Inherit[2]
-    spCapsLock -> Hide
-    spNumLock -> Hide
-    spInsLock -> Hide
-
-frmTextScreenEdit:
-    spScale -> Insert[0]
-    spStatus -> Inherit[1]
-    spMode -> Insert[2]
-    spRow -> Insert[3]
-    spCol -> Insert[4]
-    spCapsLock -> Inherit[5]
-    spNumLock -> Inherit[6]
-    spInsLock -> Inherit[7]
-
-frmViewEdit:
-    spScale -> Insert[0]
-    spTool -> Insert[1]
-    spStatus -> Inherit[2]
-    spCapsLock -> Hide
-    spNumLock -> Hide
-    spInsLock -> Hide
-
-frmWordsEdit:
-    spGroupCount -> Insert[0]
-    spWordCount -> Insert[1]
-    spStatus -> Inherit[2]
-    spCapsLock -> Inherit[3]
-    spNumLock -> Inherit[4]
-    spInsLock -> Inherit[5]
-
-
-
-status bar events:
-mousedown - cache mouse position
-PanelClick:
-  frmPreview, frmLogicEdit - panel.key = 'Status'
-       if panel.text is 'Error -...', clicking displays entire error in MsgBoxEX with help
-       if not 'error', just show a msgbox
-
-  frmPictureEdit:
-       panel = scale, adjust pic scale up/down for left/right button
-               anchor= popup anchor copy menu
-               block= popup block copy menu
-  
-  frmSoundEdit:
-       panel = scale, adjust zoom
-  
-  frmViewEdit:
-       panel = scale, adjust zoom
-      
-  frmLayout:
-       panel = scale, adjust zoom
-Panel double-click
-   frmObjectEdit, if panel = 'encrypt', toggle encryption
-
-
-
-
-| GDI Function      | C# Equivalent (System.Drawing)         |
-|-------------------|----------------------------------------| 
-| BitBlt            | Graphics.DrawImage                     | 
-| StretchBlt        | Graphics.DrawImage with scaling        | 
-| TransparentBlt    | Graphics.DrawImage + ImageAttributes.SetColorKey |
-| AlphaBlend        | Graphics.DrawImage + ImageAttributes.SetColorMatrix |
----
-
-| GDI Classic (BitBlt/ROP)  | System.Drawing Equivalent       |
-|---------------------------|---------------------------------|
-| ROP codes (SRCCOPY, etc)  | Not supported                   |
-| Alpha blending            | CompositingMode/ImageAttributes |
-| Color key transparency    | ImageAttributes.SetColorKey     |
-| Custom raster ops         | P/Invoke GDI or manual pixels   |
 
 
 Before releasing a new installer:
