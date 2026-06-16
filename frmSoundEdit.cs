@@ -5217,13 +5217,13 @@ namespace WinAGI.Editor {
                 return sound.ID;
             }
         }
-        
+
         public string Description {
             get {
                 return sound.Description;
             }
         }
-        
+
         [TypeConverter(typeof(KeySignatureConverter))]
         public KeySignature Key {
             get {
@@ -5235,7 +5235,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        
+
         public int TPQN {
             get {
                 return sound.TPQN;
@@ -5254,7 +5254,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        
+
         public double Length {
             get {
                 return Math.Round(sound.Length, 2);
@@ -5349,7 +5349,7 @@ namespace WinAGI.Editor {
                 parent.SetTrackInstrument(index, (byte)value);
             }
         }
-        
+
         public bool Muted {
             get {
                 return track.Muted;
@@ -5358,7 +5358,7 @@ namespace WinAGI.Editor {
                 parent.SetTrackMute(index, value);
             }
         }
-        
+
         public bool Visible {
             get {
                 return track.Visible;
@@ -5367,7 +5367,7 @@ namespace WinAGI.Editor {
                 parent.SetTrackVisibility(index, value);
             }
         }
-        
+
         public int NoteCount {
             get {
                 return track.Notes.Count;
@@ -5559,7 +5559,7 @@ namespace WinAGI.Editor {
                 parent.SetTrackMute(3, value);
             }
         }
-        
+
         public bool Visible {
             get {
                 return track.Visible;
@@ -5568,7 +5568,7 @@ namespace WinAGI.Editor {
                 parent.SetTrackVisibility(3, value);
             }
         }
-        
+
         public int NoteCount {
             get {
                 return track.Notes.Count;
@@ -5604,7 +5604,7 @@ namespace WinAGI.Editor {
             _9,
             _10,
         }
-        
+
         public enum EMidiLength {
             _1,
             _2,
@@ -5659,7 +5659,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        
+
         public int Duration {
             get {
                 return note.Duration;
@@ -5707,7 +5707,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        
+
         [TypeConverter(typeof(MidiOctaveConverter))]
         public EMidiOctave MidiOctave {
             get {
@@ -5720,7 +5720,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        
+
         [TypeConverter(typeof(MidiLengthConverter))]
         public EMidiLength MidiLength {
             get {
@@ -5801,7 +5801,7 @@ namespace WinAGI.Editor {
             ];
 
             public MidiOctaveConverter() : base(typeof(EMidiOctave)) { }
-            
+
             public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType) {
                 if (destinationType == typeof(string) && value is EMidiOctave octave) {
                     int index = (int)octave;
@@ -5820,7 +5820,7 @@ namespace WinAGI.Editor {
                 }
                 return base.ConvertFrom(context, culture, value);
             }
-            
+
             public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context) {
                 // add octaves based on current note
                 frmSoundEdit frm = (MDIMain.ActiveMdiChild as frmSoundEdit);
@@ -5932,7 +5932,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        
+
         public NoiseFrequency Frequency {
             get {
                 return (NoiseFrequency)(note.FreqDivisor & 3);
@@ -5945,7 +5945,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        
+
         public int Duration {
             get {
                 return note.Duration;
@@ -5962,7 +5962,7 @@ namespace WinAGI.Editor {
                 }
             }
         }
-        
+
         public byte Attenuation {
             get {
                 return note.Attenuation;

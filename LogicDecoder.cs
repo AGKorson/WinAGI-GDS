@@ -23,7 +23,7 @@ namespace WinAGI.Engine {
             cstAltStyle1,
             cstAltStyle2
         }
-        
+
         public enum DecodeSubtype {
             None,
             EdgeCode,

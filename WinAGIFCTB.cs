@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using FastColoredTextBoxNS;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
-using FastColoredTextBoxNS;
 using WinAGI.Common;
 using static WinAGI.Editor.Base;
 

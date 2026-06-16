@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FastColoredTextBoxNS;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -12,7 +13,6 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using FastColoredTextBoxNS;
 using WinAGI.Common;
 using WinAGI.Engine;
 using static WinAGI.Common.API;
@@ -193,7 +193,7 @@ namespace WinAGI.Editor {
                 ExitID[1] = "";
             }
         }
-        
+
         private struct ObjInfo {
             /// <summary>
             /// Type of object (room, transpt, errpt, comment).
@@ -217,7 +217,7 @@ namespace WinAGI.Editor {
                 Leg = leg;
             }
         }
-        
+
         private struct TSel {
             /// <summary>
             /// Type of object currently selected.

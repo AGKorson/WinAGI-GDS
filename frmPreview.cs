@@ -1,10 +1,9 @@
-﻿using System;
-using System.Diagnostics;
+﻿using FastColoredTextBoxNS;
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Text;
 using System.Windows.Forms;
-using FastColoredTextBoxNS;
 using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Editor.Base;

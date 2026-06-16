@@ -578,7 +578,7 @@ namespace WinAGI.Engine {
             agCmds[178].ArgList = [Num];
 
             agCmds[179].FanName = "fence.mouse";
-            agCmds[179].ArgList =  [Num, Num, Num, Num];
+            agCmds[179].ArgList = [Num, Num, Num, Num];
 
             agCmds[180].FanName = "mouse.posn";
             agCmds[180].ArgList = [Num, Num];

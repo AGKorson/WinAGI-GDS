@@ -110,7 +110,7 @@ namespace WinAGI.Engine {
                 return mTrack;
             }
         }
-        
+
         /// <summary>
         /// Returns true if the track/note data do not match the AGI Resource data.
         /// </summary>
@@ -119,7 +119,7 @@ namespace WinAGI.Engine {
                 return mSoundChanged;
             }
         }
-        
+
         /// <summary>
         /// Gets or sets the key signature to use when displaying notes for this sound.
         /// </summary>

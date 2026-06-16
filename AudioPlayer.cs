@@ -1,10 +1,10 @@
-﻿using System;
+﻿using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using NAudio.Wave;
-using NAudio.Wave.SampleProviders;
 using WinAGI.Common;
 using static WinAGI.Common.API;
 using static WinAGI.Common.Base;

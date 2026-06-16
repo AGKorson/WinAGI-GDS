@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using WinAGI.Common;
 
 namespace WinAGI.Engine {
     /// <summary>

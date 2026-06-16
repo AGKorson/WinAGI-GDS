@@ -11,7 +11,7 @@ namespace WinAGI.Editor {
     /// Property accessors for the AGI Game object. Used on the main form to display 
     /// properties, and allows them to be edited.
     /// </summary>
-    
+
     // !IMPORTANT! All properties must be public and NON-static otherwise they will
     // not show up in the property grid. Apply other types and attributes as needed
     // to indicate which can toggle readonly state, use dropdown lists, etc.

@@ -1,10 +1,10 @@
-﻿using System;
+﻿using FastColoredTextBoxNS;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using FastColoredTextBoxNS;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
 using static WinAGI.Editor.Base;

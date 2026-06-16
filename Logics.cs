@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using WinAGI.Common;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.FanLogicCompiler;

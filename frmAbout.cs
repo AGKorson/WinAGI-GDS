@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
+﻿using FastColoredTextBoxNS;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
-using FastColoredTextBoxNS;
 
 namespace WinAGI.Editor {
     partial class frmAbout : Form {

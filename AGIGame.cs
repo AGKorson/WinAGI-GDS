@@ -2516,8 +2516,7 @@ namespace WinAGI.Engine {
             bool retval = false;
 
             // try to load logics
-            WinAGIEventInfo loadInfo = new()
-            {
+            WinAGIEventInfo loadInfo = new() {
                 Type = EventType.Info,
                 InfoType = InfoType.Resources,
                 ResType = AGIResType.Logic

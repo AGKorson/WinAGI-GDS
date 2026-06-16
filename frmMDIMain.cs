@@ -2391,27 +2391,27 @@ namespace WinAGI.Editor {
                 }
                 // types Info, GameLoadError, GameCompileError don't get added
                 switch (evt) {
-                    case LogicCompileError:
-                    case ResourceError:
-                    case DecompError:
-                        // bold, red
-                        fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold);
-                        fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Red;
-                        break;
-                    case TODO:
-                        // bold, italic
-                        fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold | FontStyle.Italic);
-                        fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.DarkGray;
-                        break;
-                    case LogicCompileWarning:
-                    case ResourceWarning:
-                    case DecompWarning:
-                        fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Regular);
-                        fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Black;
-                        break;
-                    default:
-                        Debug.Assert(false);
-                        break;
+                case LogicCompileError:
+                case ResourceError:
+                case DecompError:
+                    // bold, red
+                    fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold);
+                    fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Red;
+                    break;
+                case TODO:
+                    // bold, italic
+                    fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Bold | FontStyle.Italic);
+                    fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.DarkGray;
+                    break;
+                case LogicCompileWarning:
+                case ResourceWarning:
+                case DecompWarning:
+                    fgWarnings.Rows[i].DefaultCellStyle.Font = new Font(fgWarnings.Font, FontStyle.Regular);
+                    fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Black;
+                    break;
+                default:
+                    Debug.Assert(false);
+                    break;
                 }
 
             }

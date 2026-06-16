@@ -2334,7 +2334,7 @@ namespace WinAGI.Editor {
                 CompStatusWin.ShowDialog(MDIMain);
                 CompStatusWin.Dispose();
             }
-            catch  {
+            catch {
                 // ignore
             }
             // refresh the warnings list
