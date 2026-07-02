@@ -350,7 +350,14 @@ namespace WinAGI.Editor {
         }
 
         public string ViewDesc {
-            get => pView.ViewDescription;
+            get {
+                try {
+                    return pView.ViewDescription;
+                }
+                catch {
+                    return string.Empty;
+                }
+            }
         }
 
         public int Volume {
