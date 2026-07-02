@@ -1625,7 +1625,7 @@ namespace WinAGI.Editor {
                 string filename;
                 if (Path.GetDirectoryName(target).Length > 0) {
                     // if a path is provided, check for program dir
-                    filename = target.Replace("%PROGDIR%", ProgramDir[..^1]);
+                    filename = target.Replace("%PROGDIR%", ProgramDir);
                 }
                 else {
                     filename = target;
