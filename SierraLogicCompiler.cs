@@ -2225,19 +2225,7 @@ namespace WinAGI.Engine {
             if (WarningText.Length == 0) {
                 WarningText = EngineResourceByNum(WarningNum);
             }
-            int index = 0;
-            if (WarningNum > 7000) {
-                // 7001 = 120 .. 7020 = 139
-                index = WarningNum - 7001 + 120;
-            }
-            else if (WarningNum > 5000) {
-                // 5001 = 0 .. 5120 = 119
-                index = WarningNum - 5001;
-            }
-            else {
-                Debug.Assert(false);
-                return;
-            }
+            int index = IndexFromWarningNumber(WarningNum);
             if (index < 0 || index >= NoCompWarn.Length) {
                 Debug.Assert(false);
                 return;
@@ -2485,6 +2473,12 @@ namespace WinAGI.Engine {
                                     if (ErrorLevel == Medium) {
                                         AddWarning(5083, EngineResourceByNum(5083).Replace(
                                             ARG1, argToken.Text));
+                                    }
+                                }
+                                // check for v2.089 and group 9999
+                                if (sCompGame.InterpreterVersion.Index == AGIVersion.v2089 && argnum == 9999) {
+                                    if (ErrorLevel == Medium) {
+                                        AddWarning(5121);
                                     }
                                 }
                                 // if too many words

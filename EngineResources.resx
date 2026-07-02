@@ -1348,4 +1348,7 @@
   <data name="RW10" xml:space="preserve">
     <value>PlotStyle draw command is ignored in version 2.411</value>
   </data>
+  <data name="5121" xml:space="preserve">
+    <value>'rol' (word group 9999) is not recognized as a special word group in version 2.089</value>
+  </data>
 </root>

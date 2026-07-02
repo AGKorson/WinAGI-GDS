@@ -2068,6 +2068,15 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;rol&apos; (word group 9999) is not recognized as a special word group in version 2.089.
+        /// </summary>
+        internal static string _5121 {
+            get {
+                return ResourceManager.GetString("5121", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t add word; it already exists.
         /// </summary>
         internal static string _513 {

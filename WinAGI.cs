@@ -499,9 +499,9 @@ namespace WinAGI.Engine {
         public static ReservedDefineList DefaultReservedDefines;
         internal static List<string> AddedIncludes = [];
         // compiler warnings
-        // 120 warnings, numbered 5001 to 5120 (index   0 to 119) for FAN syntax
-        //  20 warnings, numbered 7001 to 7020 (index 120 to 139) for SIERRA syntax
-        public const int WARNCOUNT = 140;
+        // 121 warnings, numbered 5001 to 5121 (index   0 to 120) for FAN syntax
+        //  20 warnings, numbered 7001 to 7020 (index 121 to 140) for SIERRA syntax
+        public const int WARNCOUNT = 141;
         public static bool[] NoCompWarn = new bool[WARNCOUNT];
         #endregion
 
@@ -768,24 +768,27 @@ namespace WinAGI.Engine {
         /// <param name="WarningNumber"></param>
         /// <param name="NewVal"></param>
         public static void SetIgnoreWarning(int WarningNumber, bool NewVal) {
-            int index;
-            if (WarningNumber > 7000) {
-                // 7001 = index 120 .. 7007 = index 126
-                index = WarningNumber - 7001 + 120;
-            }
-            else if (WarningNumber > 5000) {
-                // 5001 = index 0 .. 5120 = index 5119
-                index = WarningNumber - 5001;
-            }
-            else {
-                Debug.Assert(false);
-                return;
-            }
+            int index = IndexFromWarningNumber(WarningNumber);
             if (index < 0 || index >= NoCompWarn.Length) {
                 Debug.Assert(false);
                 return;
             }
             NoCompWarn[index] = NewVal;
+        }
+
+        internal static int IndexFromWarningNumber(int warningNumber) {
+            if (warningNumber > 7000) {
+                // 7001 = index 121 .. 7020 = index 140
+                return warningNumber - 7001 + 121;
+            }
+            else if (warningNumber > 5000) {
+                // 5001 = index 0 .. 5121 = index 120
+                return warningNumber - 5001;
+            }
+            else {
+                Debug.Assert(false);
+                return -1;
+            }
         }
 
         /// <summary>
@@ -795,18 +798,7 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         /// <exception cref="IndexOutOfRangeException"></exception>
         public static bool IgnoreWarning(int WarningNumber) {
-            int index;
-            if (WarningNumber > 7000) {
-                // 7001 = index 120 .. 7017 = index 136
-                index = WarningNumber - 7001 + 120;
-            }
-            else if (WarningNumber > 5000) {
-                // 5001 = index 0 .. 5120 = index 5119
-                index = WarningNumber - 5001;
-            }
-            else {
-                throw new IndexOutOfRangeException("subscript out of range");
-            }
+            int index = IndexFromWarningNumber(WarningNumber);
             if (index < 0 || index >= NoCompWarn.Length) {
                 throw new IndexOutOfRangeException("subscript out of range");
             }

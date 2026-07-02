@@ -2646,9 +2646,9 @@ namespace WinAGI.Engine {
             if (WarningText.Length == 0) {
                 WarningText = EngineResourceByNum(WarningNum);
             }
-            // only FAN warnings are possible (5001 - 5120)
-            int index = WarningNum - 5001;
-            if (index < 0 || index >= NoCompWarn.Length) {
+            // only FAN warnings are possible (5001 - 5121)
+            int index = IndexFromWarningNumber(WarningNum);
+            if (index < 0 || index > 120) {
                 // invalid warning number
                 Debug.Assert(false);
                 return;
@@ -2887,6 +2887,12 @@ namespace WinAGI.Engine {
                                 if (argnum == 0) {
                                     if (ErrorLevel == Medium) {
                                         AddWarning(5083, EngineResourceByNum(5083).Replace(ARG1, argToken.Text));
+                                    }
+                                }
+                                // check for v2.089 and group 9999
+                                if (fcompGame.InterpreterVersion.Index == AGIVersion.v2089 && argnum == 9999) {
+                                    if (ErrorLevel == Medium) {
+                                        AddWarning(5121);
                                     }
                                 }
                                 // if too many words

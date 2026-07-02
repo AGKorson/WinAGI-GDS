@@ -1297,6 +1297,10 @@
 					<param name="Local" value="htm\winagi\warnings\5120.htm">
 					</OBJECT>
 				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Compiler Warning 5121">
+					<param name="Local" value="htm\winagi\warnings\5121.htm">
+					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
 					<param name="Name" value="Compiler Warning 7001">
 					<param name="Local" value="htm\winagi\warnings\7001.htm">
 					</OBJECT>

@@ -5828,14 +5828,14 @@ namespace WinAGI.Editor {
                 SetIgnoreWarning(5001 + i, (noCompVal & (1 << (i - 60))) == 1 << (i - 60));
             }
             noCompVal = WinAGISettingsFile.GetSetting(sLOGICS, "NoCompWarn3", 0);
-            // 5091 - 5120 (current max of 5120)
-            for (i = 90; i <= 119; i++) {
+            // 5091 - 5121 (current max of 5121)
+            for (i = 90; i <= 120; i++) {
                 SetIgnoreWarning(5001 + i, (noCompVal & (1 << (i - 90))) == 1 << (i - 90));
             }
             noCompVal = WinAGISettingsFile.GetSetting(sLOGICS, "NoCompWarn4", 0);
             // 7001 - 7020 (current max of 7020)
-            for (i = 120; i < WARNCOUNT; i++) {
-                SetIgnoreWarning(7001 + i - 120, (noCompVal & (1 << (i - 120))) == 1 << (i - 120));
+            for (i = 121; i < WARNCOUNT; i++) {
+                SetIgnoreWarning(7001 + i - 121, (noCompVal & (1 << (i - 121))) == 1 << (i - 121));
             }
             return true;
         }
