@@ -296,13 +296,13 @@ namespace WinAGI.Engine {
             else {
                 // add standard include files
                 if (dcGame is null || dcGame.agIncludeIDs) {
-                    outputList.Add("%include \"resourceids.txt\"");
+                    outputList.Add("#include \"resourceids.txt\"");
                 }
                 if (dcGame is null || dcGame.agIncludeReserved) {
-                    outputList.Add("%include \"reserved.txt\"");
+                    outputList.Add("#include \"reserved.txt\"");
                 }
                 if (dcGame is null || dcGame.agIncludeGlobals) {
-                    outputList.Add("%include \"globals.txt\"");
+                    outputList.Add("#include \"globals.txt\"");
                 }
             }
             outputList.Add("");
