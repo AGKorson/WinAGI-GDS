@@ -1498,6 +1498,8 @@ namespace WinAGI.Engine {
                 else {
                     agInvObj.Encrypted = true;
                 }
+                // force save by setting change flag
+                agInvObj.IsChanged = true;
                 agInvObj.Save();
                 // create/confirm resource dir
                 if (!Directory.Exists(agSrcResDir)) {
