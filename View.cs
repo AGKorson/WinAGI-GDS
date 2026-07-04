@@ -637,7 +637,7 @@ namespace WinAGI.Engine {
                                 else {
                                     // invalid cell pointer
                                     warnval |= 16;
-                                    WarnData[5] += "|" + loop + "|" + cel;
+                                    WarnData[5] += "|" + cel + "|" + loop;
                                     // use a single pixel placeholder
                                 }
                             }

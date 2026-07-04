@@ -1508,9 +1508,8 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
-            using (frmSettings frm = new(startpage)) {
-                frm.ShowDialog(MDIMain);
-            }
+            using frmSettings frm = new(startpage);
+            frm.ShowDialog(MDIMain);
             // the settings form handles all mods and updates based on settings changes
         }
 
