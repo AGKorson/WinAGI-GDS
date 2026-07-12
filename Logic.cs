@@ -68,7 +68,7 @@ namespace WinAGI.Engine {
             InitInGame(parent, AGIResType.Logic, ResNum, VOL, Loc);
             // get rest of properties
             mCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CRC32", (uint)0);
-            mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", (uint)0xffffffff);
+            mCompiledCRC = parent.agGameProps.GetSetting("Logic" + ResNum, "CompCRC32", 0xffffffff);
             SourceFile = Path.Combine(parent.agSrcResDir, mResID + "." + parent.agSrcFileExt);
             if (ResNum == 0) {
                 // logic0 can never be a room
@@ -208,7 +208,7 @@ namespace WinAGI.Engine {
         public bool Compiled {
             get {
                 // CRCs will only be equal if compiled successfully
-                return mInGame && mCRC == mCompiledCRC;
+                return mInGame && Error == ResourceErrorType.NoError && mCRC == mCompiledCRC;
             }
         }
 

@@ -1904,7 +1904,7 @@ namespace WinAGI.Editor {
                 // logics only - it's possible for the source to be edited
                 // outside WinAGI, so always check compiled status
                 if ((AGIResType)e.Node.Parent.Index == AGIResType.Logic) {
-                    if (EditGame.Logics[(int)e.Node.Tag].Compiled) {
+                    if (EditGame.Logics[(int)e.Node.Tag].Compiled && EditGame.Logics[(int)e.Node.Tag].Error == ResourceErrorType.NoError) {
                         e.Node.ForeColor = Color.Black;
                     }
                     else {
@@ -2385,7 +2385,7 @@ namespace WinAGI.Editor {
 
         private void fgWarnings_RowsAdded(object sender, DataGridViewRowsAddedEventArgs e) {
             for (int i = e.RowIndex; i < e.RowIndex + e.RowCount; i++) {
-                if (!Enum.TryParse<EventType>((string)fgWarnings.Rows[i].Cells[0].Value, out EventType evt)) {
+                if (!Enum.TryParse((string)fgWarnings.Rows[i].Cells[0].Value, out EventType evt)) {
                     continue;
                 }
                 // types Info, GameLoadError, GameCompileError don't get added
