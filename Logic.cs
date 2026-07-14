@@ -643,7 +643,7 @@ namespace WinAGI.Engine {
                     }
                     else {
                         // force uncompile state
-                        mCompiledCRC = 0xffff;
+                        mCompiledCRC = 0xffffffff;
                     }
                     parent.WriteGameSetting("Logic" + Number, "CompCRC32", "0x" + mCompiledCRC.ToString("x8"), "Logics", true);
                 }

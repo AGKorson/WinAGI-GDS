@@ -5877,28 +5877,34 @@ namespace WinAGI.Editor {
             // 
 
             // IGNORED COMPILER WARNINGS
+            // 121 warnings, numbered 5001 to 5121 (index   0 to 120) for FAN syntax
             int warndata = 0;
             for (int i = 0; i < 30; i++) {
+                // 5001 - 5030 (index 0 - 29)
                 warndata |= Engine.Base.IgnoreWarning(5001 + i) ? 1 << i : 0;
             }
             WinAGISettingsFile.WriteSetting(sLOGICS, "NoCompWarn0", warndata);
             warndata = 0;
             for (int i = 0; i < 30; i++) {
+                // 5031 - 5060 (index 30 - 59)
                 warndata |= Engine.Base.IgnoreWarning(5031 + i) ? 1 << i : 0;
             }
             WinAGISettingsFile.WriteSetting(sLOGICS, "NoCompWarn1", warndata);
             warndata = 0;
             for (int i = 0; i < 30; i++) {
+                // 5061 - 5090 (index 60 - 89)
                 warndata |= Engine.Base.IgnoreWarning(5061 + i) ? 1 << i : 0;
             }
             WinAGISettingsFile.WriteSetting(sLOGICS, "NoCompWarn2", warndata);
             warndata = 0;
-            for (int i = 0; i < 30; i++) {
+            for (int i = 0; i <= 30; i++) {
+                // 5091 - 5121 (index 90 - 120)
                 warndata |= Engine.Base.IgnoreWarning(5091 + i) ? 1 << i : 0;
             }
             WinAGISettingsFile.WriteSetting(sLOGICS, "NoCompWarn3", warndata);
             warndata = 0;
-            for (int i = 1; i < (WARNCOUNT % 30); i++) {
+            for (int i = 0; i < 20; i++) {
+                // 7001 - 7020 (index 121 to 140)
                 warndata |= Engine.Base.IgnoreWarning(7001 + i) ? 1 << i : 0;
             }
             WinAGISettingsFile.WriteSetting(sLOGICS, "NoCompWarn4", warndata);
