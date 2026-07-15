@@ -3462,8 +3462,9 @@ namespace WinAGI.Editor {
             // update the wag file property
             string includelist = "";
             for (int i = 0; i < EditGame.IncludeFiles.Count; i++) {
-                if (i > 0)
+                if (i > 0) {
                     includelist += ",";
+                }
                 includelist += RelativeToSrcDir(EditGame.IncludeFiles[i].Filename);
             }
             EditGame.WriteGameSetting("Includes", "FileList", includelist, "", true);
