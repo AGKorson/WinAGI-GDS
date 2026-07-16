@@ -8,8 +8,8 @@
       </table>
       <h2>Resource Load Warning RW18</h2>
       <h3>View &lt;number&gt; has invalid cel data for cel &lt;celnum&gt; of loop &lt;loopnum&gt;</h3>
-      <p class="indent_n">This warning indicates WinAGI was unable to create a valid cel from the data in the view resource. This most likely means the view is corrupted.</p>
-      <p class="indent_n">WinAGI will treat the loop as if it has a single default <a href="..\..\agi\views.htm#cel">cel</a>.</p>
+      <p class="indent_n">This warning indicates WinAGI was unable to create a valid cel from the data in the view resource. This can occur if either the height or width is zero, or if the data is not properly formatted to create a valid cel. It most likely means the view is corrupted.</p>
+      <p class="indent_n">WinAGI will replace any <a href="..\..\agi\views.htm#cel">cel</a> data that are unreadable with transparent pixels.</p>
       <p class="indent_n">To clear the warning, open the view, make any changes or corrections to the view, then save it.</p>
       <p>&nbsp;</p>
       <p align="right"><font size="1">v3.0.0</font></p>

@@ -300,6 +300,7 @@ namespace WinAGI.Engine {
 
     public enum AGIVersion {
         v2089,
+        v2230,
         v2272,
         v2411,
         v2425,
@@ -470,7 +471,7 @@ namespace WinAGI.Engine {
         public static readonly string[] ResTypeAbbrv = ["LOG", "PIC", "SND", "VIEW"];
         public static readonly string[] IntVersions =
         [
-        "2.089", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439",
+        "2.089", "2.230", "2.272", "2.411", "2.425", "2.426", "2.435", "2.439",
         "2.440", "2.903", "2.911", "2.912", "2.915", "2.917", "2.936",
         "3.002086", "3.002098", "3.002102", "3.002107", "3.002149"
         ];
@@ -659,7 +660,7 @@ namespace WinAGI.Engine {
                 return retval;
             }
             // go until a '2' or '3' is found, then look for rest of version string
-            for (long pos = 0; pos >= bytBuffer.Length; pos++) {
+            for (long pos = 0; pos < bytBuffer.Length; pos++) {
                 string version;
                 int i;
                 if (bytBuffer[pos] == 50 && !isV3) {
@@ -671,7 +672,7 @@ namespace WinAGI.Engine {
                         if (pos >= bytBuffer.Length) {
                             break;
                         }
-                        version += bytBuffer[pos].ToString();
+                        version += (char)bytBuffer[pos];
                     }
                     int verIndex = Array.IndexOf(IntVersions, version);
                     if (verIndex != -1) {
@@ -690,7 +691,7 @@ namespace WinAGI.Engine {
                         }
                         // add this char (unless it's the second period)
                         if (pos != 4) {
-                            version += bytBuffer[pos].ToString();
+                            version += (char)bytBuffer[pos];
                         }
                     }
                     int verIndex = Array.IndexOf(IntVersions, version);
