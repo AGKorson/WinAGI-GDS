@@ -3239,7 +3239,8 @@ namespace WinAGI.Editor {
             SelectedCel = -1;
             if (loopnum < ViewNode.Nodes.Count - 1) {
                 ViewMode = ViewEditMode.Loop;
-                if (InGame && EditGame.InterpreterVersion.Index == AGIVersion.v2089) {
+                if (InGame && (EditGame.InterpreterVersion.Index == AGIVersion.v2089 ||
+                    EditGame.InterpreterVersion.Index == AGIVersion.v2230)) {
                     propertyGrid1.SelectedObject = new ViewEditLoop2089Properties(this, EditView[SelectedLoop]);
                 }
                 else {

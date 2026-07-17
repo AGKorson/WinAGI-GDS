@@ -1573,10 +1573,10 @@ namespace WinAGI.Editor {
             if (tmpList.Warnings != 0) {
                 string warnmsg = "Anomalies were detected in this OBJECT file:\n";
                 if ((tmpList.Warnings & 1) == 1) {
-                    warnmsg += "\nRW18: " + EngineResources.RW20;
+                    warnmsg += "\nRW21: " + EngineResources.RW21;
                 }
                 if ((tmpList.Warnings & 2) == 2) {
-                    warnmsg += "\nRW19: " + EngineResources.RW21;
+                    warnmsg += "\nRW22: " + EngineResources.RW22;
                 }
                 MDIMain.MsgBoxWithHelp(
                     warnmsg,
@@ -1811,7 +1811,7 @@ namespace WinAGI.Editor {
                     };
                     if ((EditGame.WordList.Warnings & 1) == 1) {
                         warnInfo.ID = "RW18";
-                        warnInfo.Text = EngineResources.RW20;
+                        warnInfo.Text = EngineResources.RW21;
                         MDIMain.AddInfoItem(warnInfo);
                         MDIMain.UpdateGridCounts();
                     }

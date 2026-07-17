@@ -921,19 +921,19 @@
   <data name="RW19" xml:space="preserve">
     <value>View %1 has an invalid view description pointer</value>
   </data>
-  <data name="RW20" xml:space="preserve">
+  <data name="RW21" xml:space="preserve">
     <value>Invalid text pointer encountered in OBJECT file</value>
   </data>
-  <data name="RW21" xml:space="preserve">
+  <data name="RW22" xml:space="preserve">
     <value>First item is not the null '?' item</value>
   </data>
-  <data name="RW22" xml:space="preserve">
+  <data name="RW23" xml:space="preserve">
     <value>Abnormal word index table</value>
   </data>
-  <data name="RW23" xml:space="preserve">
+  <data name="RW24" xml:space="preserve">
     <value>Unexpected WORDS.TOK end of file</value>
   </data>
-  <data name="RW24" xml:space="preserve">
+  <data name="RW25" xml:space="preserve">
     <value>Upper case characters detected in one or more words</value>
   </data>
   <data name="RE26" xml:space="preserve">
@@ -1053,19 +1053,19 @@
   <data name="RW11" xml:space="preserve">
     <value>Sound %1 has one or more zero-length notes</value>
   </data>
-  <data name="RW25" xml:space="preserve">
+  <data name="RW26" xml:space="preserve">
     <value>Ignored characters detected in WORDS.TOK</value>
   </data>
-  <data name="RW26" xml:space="preserve">
+  <data name="RW27" xml:space="preserve">
     <value>One or more duplicate words encountered</value>
   </data>
-  <data name="RW27" xml:space="preserve">
+  <data name="RW28" xml:space="preserve">
     <value>Multiple group 1 words</value>
   </data>
-  <data name="RW28" xml:space="preserve">
+  <data name="RW29" xml:space="preserve">
     <value>Multiple group 9999 words</value>
   </data>
-  <data name="RW30" xml:space="preserve">
+  <data name="RW31" xml:space="preserve">
     <value>globals.txt file has one or more invalid entries</value>
   </data>
   <data name="RW16" xml:space="preserve">
@@ -1095,7 +1095,7 @@
   <data name="547" xml:space="preserve">
     <value>Error accessing wag file (%1)</value>
   </data>
-  <data name="RW29" xml:space="preserve">
+  <data name="RW30" xml:space="preserve">
     <value>Invalid data in WORDS.TOK at position %1</value>
   </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
@@ -1350,5 +1350,8 @@
   </data>
   <data name="5121" xml:space="preserve">
     <value>'rol' (word group 9999) is not recognized as a special word group in version 2.089</value>
+  </data>
+  <data name="RW20" xml:space="preserve">
+    <value>View %1 uses an unsupported loop mirroring format</value>
   </data>
 </root>

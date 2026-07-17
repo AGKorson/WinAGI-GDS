@@ -2058,25 +2058,28 @@ namespace WinAGI.Editor {
             if (tmpList.Warnings != 0) {
                 string warnmsg = "Anomalies were detected in this WORDS.TOK file:\n";
                 if ((tmpList.Warnings & 1) == 1) {
-                    warnmsg += "\nRW20: " + EngineResources.RW22;
+                    warnmsg += "\nRW23: " + EngineResources.RW23;
                 }
                 if ((tmpList.Warnings & 2) == 2) {
-                    warnmsg += "\nRW21: " + EngineResources.RW23;
+                    warnmsg += "\nRW24: " + EngineResources.RW24;
                 }
                 if ((tmpList.Warnings & 4) == 4) {
-                    warnmsg += "\nRW22: " + EngineResources.RW24;
+                    warnmsg += "\nRW25: " + EngineResources.RW25;
                 }
                 if ((tmpList.Warnings & 8) == 8) {
-                    warnmsg += "\nRW23: " + EngineResources.RW25;
+                    warnmsg += "\nRW26: " + EngineResources.RW26;
                 }
                 if ((tmpList.Warnings & 16) == 16) {
-                    warnmsg += "\nRW24: " + EngineResources.RW26;
+                    warnmsg += "\nRW27: " + EngineResources.RW27;
                 }
                 if ((tmpList.Warnings & 32) == 32) {
-                    warnmsg += "\nRW25: " + EngineResources.RW27;
+                    warnmsg += "\nRW28: " + EngineResources.RW28;
                 }
                 if ((tmpList.Warnings & 64) == 64) {
-                    warnmsg += "\nRW26: " + EngineResources.RW28;
+                    warnmsg += "\nRW29: " + EngineResources.RW29;
+                }
+                if ((tmpList.Warnings & 128) == 128) {
+                    warnmsg += "\nRW30: " + EngineResources.RW30;
                 }
                 MDIMain.MsgBoxWithHelp(
                     warnmsg,
@@ -2137,34 +2140,57 @@ namespace WinAGI.Editor {
                 // clear errors and warnings
                 MDIMain.ClearInfoGrid(AGIResType.Words, 0);
                 if (EditGame.WordList.Warnings != 0) {
+                    // after saving, not all warnings are relevant, so only show the ones that are
                     WinAGIEventInfo warnInfo = new() {
                         ResType = AGIResType.Words,
                         ResNum = 0,
                         Line = -1,
                         Type = EventType.ResourceWarning,
                     };
+                    //if ((EditGame.WordList.Warnings & 1) == 1) {
+                    //    warnInfo.ID = "RW23";
+                    //    warnInfo.Text = EngineResources.RW23;
+                    //    MDIMain.AddInfoItem(warnInfo);
+                    //}
+                    //if ((EditGame.WordList.Warnings & 2) == 2) {
+                    //    warnInfo.ID = "RW24";
+                    //    warnInfo.Text = EngineResources.RW24;
+                    //    MDIMain.AddInfoItem(warnInfo);
+                    //}
                     if ((EditGame.WordList.Warnings & 4) == 4) {
-                        warnInfo.ID = "RW21";
-                        warnInfo.Text = EngineResources.RW23;
+                        warnInfo.ID = "RW25";
+                        warnInfo.Text = EngineResources.RW25;
                         MDIMain.AddInfoItem(warnInfo);
                     }
                     if ((EditGame.WordList.Warnings & 8) == 8) {
-                        warnInfo.ID = "RW22";
-                        warnInfo.Text = EngineResources.RW24;
+                        warnInfo.ID = "RW26";
+                        warnInfo.Text = EngineResources.RW26;
                         MDIMain.AddInfoItem(warnInfo);
                     }
+                    //if ((EditGame.WordList.Warnings & 16) == 16) {
+                    //    warnInfo.ID = "RW27";
+                    //    warnInfo.Text = EngineResources.RW27;
+                    //    MDIMain.AddInfoItem(warnInfo);
+                    //}
                     if ((EditGame.WordList.Warnings & 32) == 32) {
                         warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW24";
-                        warnInfo.Text = EngineResources.RW26;
+                        warnInfo.ID = "RW28";
+                        warnInfo.Text = EngineResources.RW28;
                         MDIMain.AddInfoItem(warnInfo);
                     }
                     if ((EditGame.WordList.Warnings & 64) == 64) {
                         warnInfo.Type = EventType.ResourceWarning;
-                        warnInfo.ID = "RW25";
-                        warnInfo.Text = EngineResources.RW27;
+                        warnInfo.ID = "RW29";
+                        warnInfo.Text = EngineResources.RW29;
                         MDIMain.AddInfoItem(warnInfo);
                     }
+                    //if ((EditGame.WordList.Warnings & 128) == 128) {
+                    //    warnInfo.Type = EventType.ResourceWarning;
+                    //    warnInfo.ID = "RW30";
+                    //    warnInfo.Text = EngineResources.RW30.Replace(
+                    //        ARG1, EditGame.WordList.ResFile);
+                    //    MDIMain.AddInfoItem(warnInfo);
+                    //}
                     MDIMain.UpdateGridCounts();
                 }
                 MDIMain.UseWaitCursor = false;

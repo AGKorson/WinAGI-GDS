@@ -744,7 +744,7 @@ namespace WinAGI.Engine {
             ErrData = ["", "", "", "", "", ""];
             // check warnings
             if (mItems[0].ItemName != "?") {
-                Warnings |= 1;
+                Warnings |= 2;
             }
         }
 

@@ -102,8 +102,37 @@
 			<p>Loops are collections of bitmaps (<a href="#cel">cels</a>) that typically represent frames of an animated <a href="screenobjs.htm">screen object's</a> movement; when displayed sequentially, the loop of cels provides the animation that gives life to the <a href="screenobjs.htm">screen object</a>. Loops can also be used to store collections of bitmaps for any purpose; AGI provides commands that allow for easy manipulation and display of cels in order to improve the graphical presentation of a game.</p>
 			<p>The maximum number of loops supported by AGI is 255 (0-254). It is not 256, because AGI uses a byte value to represent the loop count; 255 is the largest integer that can be represented, and since loop numbers are zero-based (first loop is 0, second loop is 1, etc), the 255th loop would have an index of 254, the largest possible index.</p>
 		<h3><a name="mirror">Loop Mirroring</a></h3>
-			<p>Mirroring was introduced beginning in <a href="version2.htm#2272">version 2.272</a>. With mirroring, all the <a href="#cel">cels</a> of one loop are a mirror image of the corresponding cels in another loop. Although you could do this manually by drawing one loop and then copying and pasting all the cels to another loop and flipping them horizontally, AGI can do this automatically with the mirroring feature. This is useful if you have an animation of a character walking left and right -- with just one loop of the right-walking animation, mirroring can provide the left-walking animation. Another advantage of cel mirroring is to save space -- it doesn't make much difference these days, but back when AGI was written the games were designed to run on 256K systems which meant that memory had to be used as efficiently as possible.</p>
-			<p>Mirroring is done by having both loops share the same <a href="#cel">cel</a> data. The upper four bits of the 3rd byte in the cel header tell AGI whether the cel is in a mirrored loop, and which loop the cel data currently is set to:</p>
+			<p>Mirroring was introduced beginning in <a href="version2.htm#2230">version 2.230</a> (a very rare version known only to exist in a single demo game). With mirroring, two loops in a view share the same data, but AGI flips (mirrors) the <a href="#cel">cel</a> image depending on which loop is being displayed. This made it easy to draw animations of character walking left and right -- draw one loop, then let AGI flip it as needed for the opposite direction.</p>
+			<p>Another advantage of mirroring is saving resource space -- because available <a href="memory.htm#heap">resource memory</a> was limited, it had to be used as efficiently as possible.</p>
+			<p>The original format for mirroring in version 2.230 views used bits 7 and 6 of the cel count byte in a loop's header. AGI would first check bit 7; if bit 7 is not set, then the loop is not a mirror loop.</p>
+			<table id="Table5" cellSpacing="1" cellPadding="1" width="800" border="1">
+				<tr>
+					<td align="middle" width="90"><b>Bit</b></td>
+					<td><b>&nbsp;Meaning</b></td>
+				</tr>
+				<tr>
+					<td align="middle" width="90" style="vertical-align:middle">7</td>
+					<td>0: Loop does NOT use mirroring<br/>1: Loop uses mirroring</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90">6</td>
+					<td>0: Track current loop but do NOT flip cels<br/>1: Flip cels when current loop changes</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90">5-4</td>
+					<td>Loop currently being used</td>
+				</tr>
+				<tr>
+					<td align="middle" width="90">3-2-1-0</td>
+					<td>Cel count for this loop</td>
+				</tr>
+			</table>
+			<p><b>Version 2.230 Mirroring Format Using Cel Count Byte</b></p>
+			<p>&nbsp;</p>
+			<p>If bit 7 is set, bits 5 and 4 are read as a two-bit number (i.e. 0, 1, 2 or 3). This number is compared to the current loop number. If they match, the loop is OK and not mirrored (flipped). If they don't match, the cel count byte is updated to indicate the new loop (i.e. bits 5 and 4 are changed to match the desired loop value). THEN bit 6 is checked; if set, all cels in the loop are flipped; if bit 6 is not set, the cels are not flipped.</p>
+			<p>The actual cel count in version 2.230 views is always set to the lower nibble of the cel count byte. That means for this version only, views are limited to 16 cels in any loop.</p>
+			<p>This format for mirroring was only used in version 2.230. <a href="version2.htm#2272">Version 2.272</a>, which was used in several commercially released games, moved the mirror control bits into the transparency byte in each cel's header. The reason for the change is unknown, but was likely made to allow loops to have more than 16 cels, and also to reduce clock cycles when the game is running by only flipping cel images when each cel is drawn, rather then doing them all at once everytime a loop changed.</p>
+			<p>All views in versions 2.272 and beyond used the upper four bits of the transparency byte in the cel header tell AGI whether the cel is in a mirrored loop, and which loop the cel data currently is set to:</p>
 			<table id="Table5" cellSpacing="1" cellPadding="1" width="800" border="1">
 				<tr>
 					<td align="middle" width="90"><b>Bit</b></td>
@@ -117,9 +146,15 @@
 					<td align="middle" width="90">6-5-4</td>
 					<td>Loop currently using this cel</td>
 				</tr>
+				<tr>
+					<td align="middle" width="90">3-2-1-0</td>
+					<td>Cel transparent pixel color</td>
+				</tr>
 			</table>
+			<p><b>Version 2.272 and later Mirroring Format Using Cel Transparency Byte</b></p>
+			<p>&nbsp;</p>
 			<p>Note that the mirror loop number is only three bits wide; meaning only loops 0 through 7 can be mirrored.</p>
-			<p>When AGI needs to display a cel, it looks at  bit 7 to see if its loop is mirrored or not. If it is, then it checks the loop number (bits 4-6) -- if this is NOT the same as the current loop, then it flips the cel before displaying it.</p>
+			<p>When AGI needs to display a cel, it looks at  bit 7 to see if its loop is mirrored or not. If it is, then it checks the loop number (bits 6-5-4) -- if this is NOT the same as the current loop, then it flips the cel before displaying it.</p>
 			<p>To flip a cel, AGI creates a new set of data by flipping the order of the individual data <a href="#celdata">chunks</a> for each row. AGI then overwrites the existing cel data with the new data and updates the cel header mirror/transparency byte with the current loop. When drawn in screen, the cel will now show the flipped version.</p>
 			<p>If the current loop is changed back to the original loop number, the cell header will tell AGI to flip the cel data back, using the same process.</p>
 			<p>Because the number of bytes needed to encode a cel can change when it flips, the cel data section in the resource must be large enough to hold whichever image has the larger data size. Figure 3 shows an example making this easier to see:</p>

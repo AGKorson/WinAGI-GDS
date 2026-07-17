@@ -7,9 +7,9 @@
         </tr>
       </table>
       <h2>Resource Load Warning RW30</h2>
-      <h3>globals.txt file has one or more invalid entries</h3>
-      <p class="indent_n">This warning indicates one or more <a href="..\..\commands\syntax_fan.htm#defines">define</a> entries in the <a href="..\editor_globals.htm">globals.txt</a> file are invalid. Either the define name or define value would cause an error if they are used in a <a href="..\..\agi\logics.htm">logic</a>. Examples include a define name with invalid characters, a duplicate name, values that aren't valid numbers or argument markers, etc.</p>
-      <p class="indent_n">You can open the file in a <a href="..\editor_text.htm">text editor</a> to examine it, and make any needed corrections. Items that have an error will be highlighted in red bold text.</p>
+      <h3>Invalid data in WORDS.TOK at position &lt;pos&gt;</h3>
+      <p class="indent_n">This warning indicates a word tried to copy characters from a previous word that exceeds the previous word's length when <a href="..\..\agi\words.htm#compression">extracting</a> words from <a href="..\..\agi\words.htm">WORDS.TOK</a>. WinAGI ignores the invalid length value and will continue extracting words from the file if possible. The location of the error is provided if you wish to examine the file in a hex editor.</p>
+      <p class="indent_n">The WORDS.TOK file is likely corrupt. Check the list of words carefully and re-enter any missing words. Saving the file will clear this warning.</p>
       <p>&nbsp;</p>
       <p align="right"><font size="1">v3.0.0</font></p>
       <p>&nbsp;</p>

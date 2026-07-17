@@ -2443,8 +2443,8 @@ namespace WinAGI.Editor {
                         ResNum = 0,
                         Line = -1,
                         Type = EventType.ResourceWarning,
-                        ID = "RW28",
-                        Text = EngineResources.RW30,
+                        ID = "RW31",
+                        Text = EngineResources.RW31,
                     };
                     MDIMain.AddInfoItem(warnInfo);
                     // then let open logic editors know

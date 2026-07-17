@@ -256,7 +256,7 @@ namespace WinAGI.Engine {
                                 // make sure it was added before finishing
                                 if (game.agPics.Contains(resNum)) {
                                     Debug.Assert(!game.agPics[resNum].PropsChanged);
-                                    Debug.Assert(!game.agPics[resNum].IsChanged);
+                                    Debug.Assert((game.agPics[resNum].Error == ResourceErrorType.NoError && !game.agPics[resNum].IsChanged) || game.agPics[resNum].Error != ResourceErrorType.NoError);
                                     game.agPics[resNum].Unload();
                                 }
                                 break;
@@ -764,16 +764,13 @@ namespace WinAGI.Engine {
             case AGIResType.Sound:
                 if ((warnings & 1) == 1) {
                     warnInfo.ID = "RW11";
-                    warnInfo.Text = EngineResources.RW11.Replace(
-                        ARG1, resNum.ToString());
+                    warnInfo.Text = EngineResources.RW11.Replace(ARG1, resNum.ToString());
                     warnInfo.Module = warndata[0];
                     retval.Add(warnInfo);
                 }
                 if ((warnings & 2) == 2) {
                     warnInfo.ID = "RW12";
-                    warnInfo.Text = EngineResources.RW12.Replace(
-                        ARG1, resNum.ToString()).Replace(
-                        ARG2, warnings.ToString());
+                    warnInfo.Text = EngineResources.RW12.Replace(ARG1, resNum.ToString());
                     warnInfo.Module = warndata[0];
                     retval.Add(warnInfo);
                 }
@@ -848,9 +845,18 @@ namespace WinAGI.Engine {
                     }
                 }
                 if ((warnings & 64) == 64) {
+                    // no extra warning data, just a single warning
                     warnInfo.ID = "RW19";
                     warnInfo.Module = warndata[0];
                     warnInfo.Text = EngineResources.RW19.Replace(
+                        ARG1, resNum.ToString());
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 128) == 128) {
+                    // no extra warning data, just a single warning
+                    warnInfo.ID = "RW20";
+                    warnInfo.Module = warndata[0];
+                    warnInfo.Text = EngineResources.RW20.Replace(
                         ARG1, resNum.ToString());
                     retval.Add(warnInfo);
                 }
@@ -859,14 +865,14 @@ namespace WinAGI.Engine {
                 warnInfo.Module = "OBJECT";
                 if ((warnings & 1) == 1) {
                     warnInfo.Type = EventType.ResourceWarning;
-                    warnInfo.ID = "RW20";
-                    warnInfo.Text = EngineResources.RW20;
+                    warnInfo.ID = "RW21";
+                    warnInfo.Text = EngineResources.RW21;
                     retval.Add(warnInfo);
                 }
                 if ((warnings & 2) == 2) {
                     warnInfo.Type = EventType.ResourceWarning;
-                    warnInfo.ID = "RW21";
-                    warnInfo.Text = EngineResources.RW21;
+                    warnInfo.ID = "RW22";
+                    warnInfo.Text = EngineResources.RW22;
                     retval.Add(warnInfo);
                 }
                 break;
@@ -874,50 +880,50 @@ namespace WinAGI.Engine {
                 warnInfo.Module = "WORDS.TOK";
                 if ((warnings & 1) == 1) {
                     warnInfo.Type = EventType.ResourceWarning;
-                    warnInfo.ID = "RW22";
-                    warnInfo.Text = EngineResources.RW22;
-                    retval.Add(warnInfo);
-                }
-                if ((warnings & 2) == 2) {
-                    warnInfo.Type = EventType.ResourceWarning;
                     warnInfo.ID = "RW23";
                     warnInfo.Text = EngineResources.RW23;
                     retval.Add(warnInfo);
                 }
-                if ((warnings & 4) == 4) {
+                if ((warnings & 2) == 2) {
                     warnInfo.Type = EventType.ResourceWarning;
                     warnInfo.ID = "RW24";
                     warnInfo.Text = EngineResources.RW24;
                     retval.Add(warnInfo);
                 }
-                if ((warnings & 8) == 8) {
+                if ((warnings & 4) == 4) {
                     warnInfo.Type = EventType.ResourceWarning;
                     warnInfo.ID = "RW25";
                     warnInfo.Text = EngineResources.RW25;
                     retval.Add(warnInfo);
                 }
-                if ((warnings & 16) == 16) {
+                if ((warnings & 8) == 8) {
                     warnInfo.Type = EventType.ResourceWarning;
                     warnInfo.ID = "RW26";
                     warnInfo.Text = EngineResources.RW26;
                     retval.Add(warnInfo);
                 }
-                if ((warnings & 32) == 32) {
+                if ((warnings & 16) == 16) {
                     warnInfo.Type = EventType.ResourceWarning;
                     warnInfo.ID = "RW27";
                     warnInfo.Text = EngineResources.RW27;
                     retval.Add(warnInfo);
                 }
-                if ((warnings & 64) == 64) {
+                if ((warnings & 32) == 32) {
                     warnInfo.Type = EventType.ResourceWarning;
                     warnInfo.ID = "RW28";
                     warnInfo.Text = EngineResources.RW28;
                     retval.Add(warnInfo);
                 }
-                if ((warnings & 128) == 128) {
+                if ((warnings & 64) == 64) {
                     warnInfo.Type = EventType.ResourceWarning;
                     warnInfo.ID = "RW29";
-                    warnInfo.Text = EngineResources.RW29.Replace(
+                    warnInfo.Text = EngineResources.RW29;
+                    retval.Add(warnInfo);
+                }
+                if ((warnings & 128) == 128) {
+                    warnInfo.Type = EventType.ResourceWarning;
+                    warnInfo.ID = "RW30";
+                    warnInfo.Text = EngineResources.RW30.Replace(
                         ARG1, warndata[0]);
                     retval.Add(warnInfo);
                 }
@@ -927,8 +933,8 @@ namespace WinAGI.Engine {
                 switch (warnings) {
                 case 1:
                     // invalid entries found
-                    warnInfo.ID = "RW30";
-                    warnInfo.Text = EngineResources.RW30;
+                    warnInfo.ID = "RW31";
+                    warnInfo.Text = EngineResources.RW31;
                     break;
                 }
                 retval.Add(warnInfo);

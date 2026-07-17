@@ -6127,10 +6127,10 @@ namespace WinAGI.Editor {
                 if (tmpList.Warnings != 0) {
                     string warnmsg = "Anomalies were detected in this OBJECT file:\n";
                     if ((tmpList.Warnings & 1) == 1) {
-                        warnmsg += "\nRW18: " + EngineResources.RW20;
+                        warnmsg += "\nRW21: " + EngineResources.RW21;
                     }
                     if ((tmpList.Warnings & 2) == 2) {
-                        warnmsg += "\nRW19: " + EngineResources.RW21;
+                        warnmsg += "\nRW22: " + EngineResources.RW22;
                     }
                     MDIMain.MsgBoxWithHelp(
                         warnmsg,
@@ -6285,10 +6285,10 @@ namespace WinAGI.Editor {
                 if (invlist.Warnings != 0) {
                     string warnmsg = "Anomalies were detected in this OBJECT file:\n";
                     if ((invlist.Warnings & 1) == 1) {
-                        warnmsg += "\nRW18: " + EngineResources.RW20;
+                        warnmsg += "\nRW21: " + EngineResources.RW21;
                     }
                     if ((invlist.Warnings & 2) == 2) {
-                        warnmsg += "\nRW19: " + EngineResources.RW21;
+                        warnmsg += "\nRW22: " + EngineResources.RW22;
                     }
                     MDIMain.MsgBoxWithHelp(
                         warnmsg,
@@ -6467,25 +6467,28 @@ namespace WinAGI.Editor {
                 if (tmpList.Warnings != 0) {
                     string warnmsg = "Anomalies were detected in this WORDS.TOK file:\n";
                     if ((tmpList.Warnings & 1) == 1) {
-                        warnmsg += "\nRW20: " + EngineResources.RW22;
+                        warnmsg += "\nRW23: " + EngineResources.RW23;
                     }
                     if ((tmpList.Warnings & 2) == 2) {
-                        warnmsg += "\nRW21: " + EngineResources.RW23;
+                        warnmsg += "\nRW24: " + EngineResources.RW24;
                     }
                     if ((tmpList.Warnings & 4) == 4) {
-                        warnmsg += "\nRW22: " + EngineResources.RW24;
+                        warnmsg += "\nRW25: " + EngineResources.RW25;
                     }
                     if ((tmpList.Warnings & 8) == 8) {
-                        warnmsg += "\nRW23: " + EngineResources.RW25;
+                        warnmsg += "\nRW26: " + EngineResources.RW26;
                     }
                     if ((tmpList.Warnings & 16) == 16) {
-                        warnmsg += "\nRW24: " + EngineResources.RW26;
+                        warnmsg += "\nRW27: " + EngineResources.RW27;
                     }
                     if ((tmpList.Warnings & 32) == 32) {
-                        warnmsg += "\nRW25: " + EngineResources.RW27;
+                        warnmsg += "\nRW28: " + EngineResources.RW28;
                     }
                     if ((tmpList.Warnings & 64) == 64) {
-                        warnmsg += "\nRW26: " + EngineResources.RW28;
+                        warnmsg += "\nRW29: " + EngineResources.RW29;
+                    }
+                    if ((tmpList.Warnings & 128) == 128) {
+                        warnmsg += "\nRW30: " + EngineResources.RW30;
                     }
                     MDIMain.MsgBoxWithHelp(
                         warnmsg,
@@ -6641,25 +6644,28 @@ namespace WinAGI.Editor {
                 if (wordlist.Warnings != 0) {
                     string warnmsg = "Anomalies were detected in this WORDS.TOK file:\n";
                     if ((wordlist.Warnings & 1) == 1) {
-                        warnmsg += "\nRW20: " + EngineResources.RW22;
+                        warnmsg += "\nRW23: " + EngineResources.RW23;
                     }
                     if ((wordlist.Warnings & 2) == 2) {
-                        warnmsg += "\nRW21: " + EngineResources.RW23;
+                        warnmsg += "\nRW24: " + EngineResources.RW24;
                     }
                     if ((wordlist.Warnings & 4) == 4) {
-                        warnmsg += "\nRW22: " + EngineResources.RW24;
+                        warnmsg += "\nRW25: " + EngineResources.RW25;
                     }
                     if ((wordlist.Warnings & 8) == 8) {
-                        warnmsg += "\nRW23: " + EngineResources.RW25;
+                        warnmsg += "\nRW26: " + EngineResources.RW26;
                     }
                     if ((wordlist.Warnings & 16) == 16) {
-                        warnmsg += "\nRW24: " + EngineResources.RW26;
+                        warnmsg += "\nRW27: " + EngineResources.RW27;
                     }
                     if ((wordlist.Warnings & 32) == 32) {
-                        warnmsg += "\nRW25: " + EngineResources.RW27;
+                        warnmsg += "\nRW28: " + EngineResources.RW28;
                     }
                     if ((wordlist.Warnings & 64) == 64) {
-                        warnmsg += "\nRW26: " + EngineResources.RW28;
+                        warnmsg += "\nRW29: " + EngineResources.RW29;
+                    }
+                    if ((wordlist.Warnings & 128) == 128) {
+                        warnmsg += "\nRW30: " + EngineResources.RW30;
                     }
                     MDIMain.MsgBoxWithHelp(
                         warnmsg,

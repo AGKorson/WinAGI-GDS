@@ -327,6 +327,8 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="NewLogic"></param>
         private void InitLogic(Logic NewLogic = null) {
+            // initialize warning data array (1 element for logics)
+            WarnData = [""];
             if (NewLogic is null) {
                 // set default resource data by clearing
                 Clear();
@@ -369,13 +371,7 @@ namespace WinAGI.Engine {
             CopyLogic.mSourceChanged = mSourceChanged;
             CopyLogic.SourceFile = SourceFile;
             CopyLogic.mCodePage = mCodePage;
-            CopyLogic.Error = Error;
             CopyLogic.SourceError = SourceError;
-            CopyLogic.Warnings = Warnings;
-            for (int i = 0; i < ErrData.Length; i++) {
-                CopyLogic.ErrData[i] = ErrData[i];
-                CopyLogic.WarnData[i] = WarnData[i];
-            }
             return CopyLogic;
         }
 
@@ -399,13 +395,7 @@ namespace WinAGI.Engine {
             mSourceChanged = SourceLogic.mSourceChanged;
             SourceFile = SourceLogic.SourceFile;
             mCodePage = SourceLogic.mCodePage;
-            Error = SourceLogic.Error;
             SourceError = SourceLogic.SourceError;
-            Warnings = SourceLogic.Warnings;
-            for (int i = 0; i < ErrData.Length; i++) {
-                ErrData[i] = SourceLogic.ErrData[i];
-                WarnData[i] = SourceLogic.WarnData[i];
-            }
             return;
         }
 

@@ -245,7 +245,7 @@ namespace WinAGI.Engine {
         /// Gets individualized error data associated with the error level for 
         /// this resource. Varies for each type of derived resource.
         /// </summary>
-        public string[] ErrData { get; private protected set; } = ["", "", "", "", "", ""];
+        public string[] ErrData { get; private protected set; } = ["", "", "", "", ""]; // currently only 5 error data strings are used, but more can be added if needed
 
         /// <summary>
         /// Gets the warning tags for this resource. Zero means no
@@ -260,7 +260,7 @@ namespace WinAGI.Engine {
         /// Gets individualized warning tags for this resource. Varies for
         /// each type of derived resource.
         /// </summary>
-        public string[] WarnData { get; private protected set; } = ["", "", "", "", "", ""];
+        public string[] WarnData { get; private protected set; } = [];
 
         /// <summary>
         /// Gets or sets the resource file of a resource that is not in a game. 
@@ -614,6 +614,8 @@ namespace WinAGI.Engine {
             Warnings = SourceRes.Warnings;
             for (int i = 0; i < ErrData.Length; i++) {
                 ErrData[i] = SourceRes.ErrData[i];
+            }
+            for (int i = 0; i < WarnData.Length; i++) {
                 WarnData[i] = SourceRes.WarnData[i];
             }
             // force status to changed
@@ -640,9 +642,9 @@ namespace WinAGI.Engine {
             PropsChanged = false;
             // clear error and warning info before loading
             Error = ResourceErrorType.NoError;
-            ErrData = ["", "", "", "", "", ""];
+            Array.Fill(ErrData, "");
             Warnings = 0;
-            WarnData = ["", "", "", "", "", ""];
+            Array.Fill(WarnData, "");
 
             if (mInGame) {
                 if (parent.agIntVersion.IsV3) {
@@ -1234,9 +1236,9 @@ namespace WinAGI.Engine {
             mEORes = false;
             IsChanged = true;
             Error = ResourceErrorType.NoError;
-            ErrData = ["", "", "", "", "", ""];
+            Array.Fill(ErrData, "");
             Warnings = 0;
-            WarnData = ["", "", "", "", "", ""];
+            Array.Fill(WarnData, "");
         }
         #endregion
     }

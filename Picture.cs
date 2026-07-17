@@ -357,6 +357,8 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="NewPicture"></param>
         private void InitPicture(Picture NewPicture = null) {
+            // initialize warning data array (1 element for pictures)
+            WarnData = [""];
             if (NewPicture is null) {
                 // create default picture with no commands
                 mData = new byte[1];
@@ -413,12 +415,6 @@ namespace WinAGI.Engine {
                 // copy picture colors
                 CopyPicture.mPalette = mPalette.Clone();
             }
-            CopyPicture.Error = Error;
-            CopyPicture.Warnings = Warnings;
-            for (int i = 0; i < CopyPicture.ErrData.Length; i++) {
-                CopyPicture.ErrData[i] = ErrData[i];
-                CopyPicture.WarnData[i] = WarnData[i];
-            }
             // bitmaps always need to be rebuilt
             CopyPicture.mPicBMPSet = false;
             return CopyPicture;
@@ -453,12 +449,6 @@ namespace WinAGI.Engine {
             else {
                 // copy picture colors
                 mPalette = SourcePicture.mPalette.Clone();
-            }
-            Error = SourcePicture.Error;
-            Warnings = SourcePicture.Warnings;
-            for (int i = 0; i < ErrData.Length; i++) {
-                ErrData[i] = SourcePicture.ErrData[i];
-                WarnData[i] = SourcePicture.WarnData[i];
             }
             // bitmaps always need to be rebuilt
             mPicBMPSet = false;

@@ -2986,7 +2986,6 @@ namespace WinAGI.Editor {
                 //?? why?? only if moved ouside normal range, right?
                 SetScrollBars();
                 DrawLayout();
-                Debug.Print(Offset.ToString());
             }
         }
 
@@ -6545,7 +6544,6 @@ namespace WinAGI.Editor {
             if (Comment[commentid].Text.Trim().Length == 0) {
                 return;
             }
-            //g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             // wrap text to fit (copy from textbox to be sure lines break at right place)
             FormatCommentTextBox(commentid);
 
@@ -7577,6 +7575,10 @@ namespace WinAGI.Editor {
                 float NewDSF = (float)(40 * Math.Pow(1.25, NewScale - 1));
 
                 // calculate new offset values
+                // OF = offset amount
+                // DF = display scale factor
+                // CL = center point of zoom, in client coordinates 
+                // LC = center point of zoom, in scaled coordinates
                 // (CL1 - OF1) / DF1 = LC1
                 // (CL2 - OF2) / DF2 = LC2
                 // LC1 = LC2; CL1 = CL2
@@ -10401,6 +10403,7 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Scrollbar Subclassing
         // need to subclass the scrollbars to allow scrolling past the edges
         public class HScrollBarMouseAware : HScrollBar {
             public new event MouseEventHandler MouseDown;
@@ -10460,7 +10463,9 @@ namespace WinAGI.Editor {
                 base.WndProc(ref m);
             }
         }
+        #endregion
 
+        #region Layout Header Classes
         public class LayoutFileHeader {
             public string Name { get; set; } = "WinAGI Layout File";
             public string Version {
@@ -10582,5 +10587,6 @@ namespace WinAGI.Editor {
             public LFDHideRoom() {
             }
         }
+        #endregion
     }
 }

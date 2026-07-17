@@ -3676,7 +3676,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid text pointer encountered in OBJECT file.
+        ///   Looks up a localized string similar to View %1 uses an unsupported loop mirroring format.
         /// </summary>
         internal static string RW20 {
             get {
@@ -3685,7 +3685,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to First item is not the null &apos;?&apos; item.
+        ///   Looks up a localized string similar to Invalid text pointer encountered in OBJECT file.
         /// </summary>
         internal static string RW21 {
             get {
@@ -3694,7 +3694,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Abnormal word index table.
+        ///   Looks up a localized string similar to First item is not the null &apos;?&apos; item.
         /// </summary>
         internal static string RW22 {
             get {
@@ -3703,7 +3703,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected WORDS.TOK end of file.
+        ///   Looks up a localized string similar to Abnormal word index table.
         /// </summary>
         internal static string RW23 {
             get {
@@ -3712,7 +3712,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Upper case characters detected in one or more words.
+        ///   Looks up a localized string similar to Unexpected WORDS.TOK end of file.
         /// </summary>
         internal static string RW24 {
             get {
@@ -3721,7 +3721,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ignored characters detected in WORDS.TOK.
+        ///   Looks up a localized string similar to Upper case characters detected in one or more words.
         /// </summary>
         internal static string RW25 {
             get {
@@ -3730,7 +3730,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One or more duplicate words encountered.
+        ///   Looks up a localized string similar to Ignored characters detected in WORDS.TOK.
         /// </summary>
         internal static string RW26 {
             get {
@@ -3739,7 +3739,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Multiple group 1 words.
+        ///   Looks up a localized string similar to One or more duplicate words encountered.
         /// </summary>
         internal static string RW27 {
             get {
@@ -3748,7 +3748,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Multiple group 9999 words.
+        ///   Looks up a localized string similar to Multiple group 1 words.
         /// </summary>
         internal static string RW28 {
             get {
@@ -3757,7 +3757,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid data in WORDS.TOK at position %1.
+        ///   Looks up a localized string similar to Multiple group 9999 words.
         /// </summary>
         internal static string RW29 {
             get {
@@ -3766,11 +3766,20 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to globals.txt file has one or more invalid entries.
+        ///   Looks up a localized string similar to Invalid data in WORDS.TOK at position %1.
         /// </summary>
         internal static string RW30 {
             get {
                 return ResourceManager.GetString("RW30", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to globals.txt file has one or more invalid entries.
+        /// </summary>
+        internal static string RW31 {
+            get {
+                return ResourceManager.GetString("RW31", resourceCulture);
             }
         }
         

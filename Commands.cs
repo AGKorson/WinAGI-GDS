@@ -711,7 +711,7 @@ namespace WinAGI.Engine {
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         internal static void CorrectCommands(AGIVersion Version) {
             // quit command
-            if (Version == AGIVersion.v2089) {
+            if (Version == AGIVersion.v2089 || Version == AGIVersion.v2230) {
                 agCmds[134].ArgList = [];
             }
             else {

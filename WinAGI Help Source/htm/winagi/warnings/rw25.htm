@@ -7,11 +7,11 @@
         </tr>
       </table>
       <h2>Resource Load Warning RW25</h2>
-      <h3>Ignored characters detected in one or more words</h3>
-      <p class="indent_n">AGI's <a href="..\..\agi\keyboard.htm#parser">input parser</a> ignores several characters ()<b>'`-"</b> ASCII values 39, 96, 45, 34) and treats several others as spaces (<b>,.?!();:[]{}</b> ASCII values 44, 46, 63, 33, 40, 41, 59, 58, 91, 93, 123, 125), so those characters can never be matched in words in the <a href="..\..\agi\words.htm">WORDS.TOK</a> file. This warning indicates one or more words have ignored characters.</p>
-      <p class="indent_n">Sierra's tool for compiling <a href="..\..\agi\words.htm">WORDS.TOK</a> files (<a href="..\..\commands\sierra_wordcompiler.htm">WORDS.EXE</a>) file did not perform error checking, and would allow programmers to add words with these characters even though they can't be matched. There are several Sierra games that have words with these characters.</p>
+      <h3>Upper case characters detected in one or more words</h3>
+      <p class="indent_n">When <a href="..\..\agi\keyboard.htm#parser">parsing player input</a>, AGI converts all characters in the <a href="..\..\agi\keyboard.htm#inputline">input line</a> to lower case before checking against the words in WORDS.TOK. Therefore, it is impossible to match input to a word that has upper case characters in it.</p>
+      <p class="indent_n">The format that AGI uses to store words in the file do not prevent the inclusion of capital letters. Sierra's tool for compiling <a href="..\..\agi\words.htm">WORDS.TOK</a> files (<a href="..\..\commands\sierra_wordcompiler.htm">WORDS.EXE</a>) did enforce lower case, but not all fan created tools do.</p>
       <p class="indent_n">The affected words do not cause any errors, but they should be removed, as they serve no purpose and waste space in the file.</p>
-      <p class="indent_n"></p>
+      <p class="indent_n">WinAGI will not allow you to compile a WORDS.TOK file that has upper case characters in it. You will need to delete the offending words first.</p>
       <p>&nbsp;</p>
       <p align="right"><font size="1">v3.0.0</font></p>
       <p>&nbsp;</p>

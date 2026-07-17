@@ -1768,6 +1768,10 @@
 					<param name="Name" value="Resource Warning RW30">
 					<param name="Local" value="htm\winagi\warnings\rw30.htm">
 					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Resource Warning RW31">
+					<param name="Local" value="htm\winagi\warnings\rw31.htm">
+					</OBJECT>
 			</UL>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">

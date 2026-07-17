@@ -7,9 +7,9 @@
         </tr>
       </table>
       <h2>Resource Load Warning RW29</h2>
-      <h3>Invalid data in WORDS.TOK at position &lt;pos&gt;</h3>
-      <p class="indent_n">This warning indicates a word tried to copy characters from a previous word that exceeds the previous word's length when <a href="..\..\agi\words.htm#compression">extracting</a> words from <a href="..\..\agi\words.htm">WORDS.TOK</a>. WinAGI ignores the invalid length value and will continue extracting words from the file if possible. The location of the error is provided if you wish to examine the file in a hex editor.</p>
-      <p class="indent_n">The WORDS.TOK file is likely corrupt. Check the list of words carefully and re-enter any missing words. Saving the file will clear this warning.</p>
+      <h3>Multiple group 9999 words</h3>
+      <p class="indent_n">This warning indicates there are more than one words in group 9999. When <a href="..\..\agi\keyboard.htm#parser">parsing input</a>, <a href="..\..\agi\words.htm#reserved">group 9999</a> is a reserved group that tells the interpreter to treat the rest of the input line as a match regardless of how many words are left. There is no practical reason to have more than one word in the group because the actual word text will never be matched in AGI.</p>
+      <p class="indent_n">The extra words do not cause any errors, but they should be removed, as they serve no purpose and waste space in the file.</p>
       <p>&nbsp;</p>
       <p align="right"><font size="1">v3.0.0</font></p>
       <p>&nbsp;</p>

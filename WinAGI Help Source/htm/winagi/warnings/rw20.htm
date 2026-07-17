@@ -7,10 +7,9 @@
         </tr>
       </table>
       <h2>Resource Load Warning RW20</h2>
-      <h3>Invalid text pointer encountered in OBJECT file</h3>
-      <p class="indent_n">This warning indicates that WinAGI detected a text pointer entry in the <a href="..\..\agi\object.htm">OBJECT</a> file's index table that is beyond the size of the file. If the <a href="..\..\agi\invitems.htm">inventory item</a> with the invalid pointer is accessed (by using one of the <a href="..\..\commands\cmds_invitems.htm">inventory item logic commands</a>) AGI will use an invalid memory location, leading to unpredictable results.</p>
-      <p class="indent_n">This usually means the file is corrupted.</p>
-      <p class="indent_n">WinAGI will treat the item as a <a href="..\..\agi\object.htm#nullitem">null item</a>. To clear the warning, open the file in WinAGI, make any desired changes, then save it.</p>
+      <h3>View &lt;number&gt; uses an unsupported loop mirroring format</h3>
+      <p class="indent_n">In <a href="..\..\agi\version2.htm#2230">version 2.230</a>, <a href="..\..\agi\views.htm#loop">loop</a> mirroring used a different format than the mirroring found in later <a href="..\..\agi\version2.htm#2272">versions</a>. This warning is raised when a <a href="..\..\agi\views.htm">view</a> in a version 2.230 game has mirrored loops using this format.</p>
+      <p>WinAGI does not support editing of views using this loop mirroring format. If you choose to edit and save this view, the mirrored loops will be replaced with separate, non mirrored loops. The view will look and work exactly the same, but its size will increase since the loops will no longer share data.</p>
       <p>&nbsp;</p>
       <p align="right"><font size="1">v3.0.0</font></p>
       <p>&nbsp;</p>

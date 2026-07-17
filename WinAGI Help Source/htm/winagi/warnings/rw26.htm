@@ -7,10 +7,11 @@
         </tr>
       </table>
       <h2>Resource Load Warning RW26</h2>
-      <h3>One or more duplicate words encountered</h3>
-      <p class="indent_n">This error indicates that one or more duplicate words were found when the <a href="..\..\agi\words.htm">WORDS.TOK</a> file. They don't cause an error in AGI, but only the first instance will ever be matched.</p>
-      <p class="indent_n">Sierra's tool for compiling <a href="..\..\agi\words.htm">WORDS.TOK</a> files (<a href="..\..\commands\sierra_wordcompiler.htm">WORDS.EXE</a>) prevents the inclusion of duplicate words, but there may be fan created tools that don't.</p>
-      <p class="indent_n">WinAGI will automatically delete the extra words. Saving the file will clear the warning.</p>
+      <h3>Ignored characters detected in one or more words</h3>
+      <p class="indent_n">AGI's <a href="..\..\agi\keyboard.htm#parser">input parser</a> ignores several characters ()<b>'`-"</b> ASCII values 39, 96, 45, 34) and treats several others as spaces (<b>,.?!();:[]{}</b> ASCII values 44, 46, 63, 33, 40, 41, 59, 58, 91, 93, 123, 125), so those characters can never be matched in words in the <a href="..\..\agi\words.htm">WORDS.TOK</a> file. This warning indicates one or more words have ignored characters.</p>
+      <p class="indent_n">Sierra's tool for compiling <a href="..\..\agi\words.htm">WORDS.TOK</a> files (<a href="..\..\commands\sierra_wordcompiler.htm">WORDS.EXE</a>) file did not perform error checking, and would allow programmers to add words with these characters even though they can't be matched. There are several Sierra games that have words with these characters.</p>
+      <p class="indent_n">The affected words do not cause any errors, but they should be removed, as they serve no purpose and waste space in the file.</p>
+      <p class="indent_n"></p>
       <p>&nbsp;</p>
       <p align="right"><font size="1">v3.0.0</font></p>
       <p>&nbsp;</p>

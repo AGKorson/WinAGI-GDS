@@ -249,6 +249,8 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="NewSound"></param>
         private void InitSound(Sound NewSound = null) {
+            // initialize warning data array (1 element for sounds)
+            WarnData = [""];
             if (NewSound is null) {
                 // create default PC/PCjr sound with no notes in any tracks
                 mData = [0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0x08, 0x00, 0xff, 0xff];
@@ -557,9 +559,9 @@ namespace WinAGI.Engine {
             mData = tmpRes.mData;
             mSoundChanged = false;
             Error = ResourceErrorType.NoError;
-            ErrData = ["", "", "", "", "", ""];
+            Array.Fill(ErrData, "");
             Warnings = 0;
-            WarnData = ["", "", "", "", "", ""];
+            Array.Fill(WarnData, "");
         }
 
         /// <summary>

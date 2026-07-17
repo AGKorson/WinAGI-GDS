@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using WinAGI.Common;
@@ -165,7 +166,8 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="NewView"></param>
         private void InitView(View NewView = null) {
-            WarnData = ["", "", "", "", "", "", ""];
+            // initialize warning data array (8 elements for views)
+            WarnData = ["", "", "", "", "", "", "", ""];
             if (NewView is null) {
                 // single loop, single cel, one pixel
                 mLoopCol = new Loops(this);
@@ -197,12 +199,6 @@ namespace WinAGI.Engine {
             // copy view properties
             CopyView.mViewDesc = mViewDesc;
             CopyView.mLoopCol = mLoopCol.Clone(CopyView);
-            CopyView.Error = Error;
-            CopyView.Warnings = Warnings;
-            for (int i = 0; i < ErrData.Length; i++) {
-                CopyView.ErrData[i] = ErrData[i];
-                CopyView.WarnData[i] = WarnData[i];
-            }
             CopyView.mViewChanged = mViewChanged;
             CopyView.ErrData = ErrData;
             if (parent is not null) {
@@ -232,12 +228,6 @@ namespace WinAGI.Engine {
             mViewChanged = SourceView.mViewChanged;
             mViewDesc = SourceView.mViewDesc;
             mLoopCol.CloneFrom(SourceView.mLoopCol);
-            Error = SourceView.Error;
-            Warnings = SourceView.Warnings;
-            for (int i = 0; i < ErrData.Length; i++) {
-                ErrData[i] = SourceView.ErrData[i];
-                WarnData[i] = SourceView.WarnData[i];
-            }
             if (SourceView.parent is not null) {
                 // copy parent colors
                 mPalette = SourceView.parent.Palette.Clone();
@@ -371,9 +361,9 @@ namespace WinAGI.Engine {
             mIsChanged = true;
             // clear errors and warnings
             Error = ResourceErrorType.NoError;
-            ErrData = ["", "", "", "", "", ""];
+            Array.Fill(ErrData, "");
             Warnings = 0;
-            WarnData = ["", "", "", "", "", "", ""];
+            Array.Fill(WarnData, "");
         }
 
         /// <summary>
@@ -477,9 +467,8 @@ namespace WinAGI.Engine {
         /// 32 = invalid description offset
         /// </returns>
         internal (ResourceErrorType, int) LoadLoops() {
-            int[] loopoffset = new int[MAX_LOOPS];
-            int[] mirrorpair = new int[MAX_LOOPS];
-            Array.Fill(mirrorpair, -1);
+            List<int> loopoffset = [];
+            List<int> mirrorpair = [];
             byte width, height;
 
             // assume no errors or warnings
@@ -506,7 +495,8 @@ namespace WinAGI.Engine {
                 }
                 // get loop offset data for each loop
                 for (int loop = 0; loop < loopcount; loop++) {
-                    loopoffset[loop] = ReadWord();
+                    loopoffset.Add(ReadWord());
+                    mirrorpair.Add(-1);
                     if (loopoffset[loop] > mSize) {
                         // invalid loop pointer
                         WarnData[1] += "|" + loop;
@@ -531,10 +521,27 @@ namespace WinAGI.Engine {
                     //  x loop shares data with exactly one another loop AND
                     //  x each cel has mirror loopnum that equals one of the loops AND
                     //  x view is NOT from 2.089
+                    //
+                    //  OR... view is from v2.230, and
+                    //  bit 7 of celcount in a loop is set
+
                     if (loopoffset[loop] < mSize) {
                         // valid loop pointer
                         Pos = loopoffset[loop];
                         byte celcount = ReadByte();
+                        bool v2230mirror = false;
+                        bool flipit = false;
+                        if (parent.InterpreterVersion.Index == AGIVersion.v2230) {
+                            if ((celcount & 0x80) == 0x80) {
+                                // loop is a mirror, BUT treat it as a normal loop
+                                // and add a warning
+                                warnval |= 128;
+                                WarnData[7] += "|" + loop;
+                                v2230mirror = true;
+                                flipit = (celcount & 0x30) != loop && (celcount & 0x40) == 0x40;
+                                celcount &= 0xf;
+                            }
+                        }
                         if (celcount > 0) {
                             // one or more cels
                             int mirrorcount = 0;
@@ -543,8 +550,10 @@ namespace WinAGI.Engine {
                             int shared = 0;
                             for (int i = 0; i < loopcount; i++) {
                                 if (loop != i && loopoffset[i] == loopoffset[loop]) {
-                                    // sharing data
-                                    shared++;
+                                    // sharing data (UNLESS v2230 mirrored)
+                                    if (!v2230mirror) {
+                                        shared++;
+                                    }
                                 }
                             }
 
@@ -580,8 +589,9 @@ namespace WinAGI.Engine {
                                                 if (pair >= 0) {
                                                     mirrorLoop = (transcolor & 0x70) / 0x10;
                                                     if (mirrorLoop == loop) {
-                                                        if (mInGame && parent.InterpreterVersion.Index == AGIVersion.v2089) {
-                                                            // v2089 does allow mirrors
+                                                        if (mInGame && (parent.InterpreterVersion.Index == AGIVersion.v2089 ||
+                                                                        parent.InterpreterVersion.Index == AGIVersion.v2230)) {
+                                                            // v2089 does not allow mirrors; v2.230 handles mirrors differently
                                                             badmirror = true;
                                                         }
                                                         else {
@@ -627,9 +637,27 @@ namespace WinAGI.Engine {
                                     // transparent color is lower nibble
                                     transcolor = (byte)(transcolor & 0x0f);
                                     // add the cel
-                                    mLoopCol[loop].Cels.Add(cel, width, height, (AGIColorIndex)transcolor);
-                                    // extract bitmap data from RLE data
-                                    if (!ExpandCelData(celoffset + 3, mLoopCol[loop][cel])) {
+                                    if (width != 0 && height != 0) {
+                                        mLoopCol[loop].Cels.Add(cel, width, height, (AGIColorIndex)transcolor);
+                                        // extract bitmap data from RLE data
+                                        if (!ExpandCelData(celoffset + 3, mLoopCol[loop][cel])) {
+                                            warnval |= 32;
+                                            WarnData[6] += "|" + loop + "|" + cel;
+                                        }
+                                        // v2230 only; flip the cel if necessary
+                                        if (flipit) {
+                                            for (int j = 0; j < height; j++) {
+                                                for (int i = 0; i < width / 2; i++) {
+                                                    // swap the pixel at i with the pixel at width - 1 - i
+                                                    (mLoopCol[loop][cel][i, j], mLoopCol[loop][cel][width - 1 - i, j]) =
+                                                    (mLoopCol[loop][cel][width - 1 - i, j], mLoopCol[loop][cel][i, j]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        // add a single pixel cel
+                                        mLoopCol[loop].Cels.Add(cel, 1, 1, (AGIColorIndex)transcolor);
                                         warnval |= 32;
                                         WarnData[6] += "|" + loop + "|" + cel;
                                     }
@@ -638,7 +666,8 @@ namespace WinAGI.Engine {
                                     // invalid cell pointer
                                     warnval |= 16;
                                     WarnData[5] += "|" + cel + "|" + loop;
-                                    // use a single pixel placeholder
+                                    // ignore this cel, and stop processing cels; assume end of loop is reached
+                                    break;
                                 }
                             }
                             if (mirrorLoop != -1) {
