@@ -14,7 +14,7 @@ namespace WinAGI.Engine {
             "number", "variable", "flag", "message", "object",
             "inventory item", "string", "word", "controller"
             ];
-        internal const int MAX_CMDS = 182, MAX_TESTCMDS = 20;
+        internal const int MAX_CMDS = 182, MAX_TESTCMDS = 19;
         internal static byte agNumCmds;
         internal static byte agNumTestCmds;
         internal static CommandStruct[] agCmds = new CommandStruct[MAX_CMDS];
@@ -659,8 +659,8 @@ namespace WinAGI.Engine {
             // This command is not confirmed; I *think* I found it
             // described in an Apple or Atari version, but I can't
             // seem to find it again.
-            agTestCmds[19].FanName = "in.motion.using.mouse";
-            agTestCmds[19].ArgList = [];
+            //agTestCmds[19].FanName = "in.motion.using.mouse";
+            //agTestCmds[19].ArgList = [];
         }
         #endregion
 
@@ -721,11 +721,11 @@ namespace WinAGI.Engine {
 
             // adjust number of available commands
             switch (Version) {
-            case AGIVersion.v2089:
-                agNumCmds = 156;
+            case AGIVersion.v2089 or AGIVersion.v2230:
+                agNumCmds = 155;
                 break;
             case AGIVersion.v2272:
-                agNumCmds = 162;
+                agNumCmds = 161;
                 break;
             case >= AGIVersion.v2411 and <= AGIVersion.v2440:
                 // 2.411, 2.425, 2.426, 2.435, 2.439, 2.440

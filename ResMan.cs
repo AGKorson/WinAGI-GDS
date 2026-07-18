@@ -1392,11 +1392,11 @@ namespace WinAGI.Editor {
                 DefaultResDir = EditGame.SrcResDir;
                 // build ID lookup table
                 BuildIDefLookup();
-                if (ActionCount < 182) {
+                if (ActionCount < MAX_CMDS) {
                     InvalidCmdStyleRegEx = @"\b(";
-                    for (int i = ActionCount; i < 182; i++) {
+                    for (int i = ActionCount; i < MAX_CMDS; i++) {
                         InvalidCmdStyleRegEx += ActionCommands[i].FanName.Replace(".", "\\.");
-                        if (i != 181) {
+                        if (i != MAX_CMDS - 1) {
                             InvalidCmdStyleRegEx += @"|";
                         }
                     }
