@@ -230,39 +230,39 @@
 
 %action clear.text.rect(NUM, NUM, NUM, NUM,
                         NUM)                  154
-%action set.upper.left(NUM, NUM)              155
+%1%action set.upper.left(NUM, NUM)              155
 
 [ Menus
-%action set.menu(MSGNUM)                      156
-%action set.menu.item(MSGNUM, NUM)            157
-%action submit.menu()                         158
-%action enable.item(NUM)                      159
-%action disable.item(NUM)                     160
-%action menu.input()                          161
-%action show.obj.v(VAR)                       162
+%1%action set.menu(MSGNUM)                      156
+%1%action set.menu.item(MSGNUM, NUM)            157
+%1%action submit.menu()                         158
+%1%action enable.item(NUM)                      159
+%1%action disable.item(NUM)                     160
+%2%action menu.input()                          161
+%2%action show.obj.v(VAR)                       162
 
-%action open.dialogue()                       163
-%action close.dialogue()                      164
+%2%action open.dialogue()                       163
+%2%action close.dialogue()                      164
 
-%action mul.n(VAR, NUM)                       165
-%action mul.v(VAR, VAR)                       166
-%action div.n(VAR, NUM)                       167
-%action div.v(VAR, VAR)                       168
+%2%action mul.n(VAR, NUM)                       165
+%2%action mul.v(VAR, VAR)                       166
+%2%action div.n(VAR, NUM)                       167
+%2%action div.v(VAR, VAR)                       168
 
-%action close.window()                        169
+%2%action close.window()                        169
 
-%action set.simple(NUM)                       170
-%action push.script()                         171
-%action pop.script()                          172
-%action hold.key()                            173
-%action set.pri.base(NUM)                     174
-%action discard.sound(NUM)                    175
-%action hide.mouse(NUM)                       176
-%action allow.menu(NUM)                       177
-%action show.mouse(NUM)                       178
-%action fence.mouse(NUM, NUM, NUM, NUM)       179
-%action mouse.posn(NUM, NUM)                  180
-%action release.key()                         181
+%3%action set.simple(NUM)                       170
+%3%action push.script()                         171
+%3%action pop.script()                          172
+%3%action hold.key()                            173
+%4%action set.pri.base(NUM)                     174
+%4%action discard.sound(NUM)                    175
+%5%action hide.mouse(NUM)                       176
+%5%action allow.menu(NUM)                       177
+%6%action show.mouse(NUM)                       178
+%6%action fence.mouse(NUM, NUM, NUM, NUM)       179
+%6%action mouse.posn(NUM, NUM)                  180
+%6%action release.key()                         181
 
 
 [******************   TESTS   ******************]

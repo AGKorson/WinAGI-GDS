@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using WinAGI.Common;
 using static WinAGI.Common.Base;
+using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.ArgType;
 using static WinAGI.Engine.Base;
 using static WinAGI.Engine.Commands;
@@ -243,7 +244,7 @@ namespace WinAGI.Engine {
                 Filename = "",
                 InfoType = InfoType.ClearWarnings
             };
-            AGIGame.OnDecodeLogicStatus(decompclear);
+            OnDecodeLogicStatus(decompclear);
             minorErrors = false;
             logicdata = dcLogic.Data;
             outputList = [];
@@ -273,6 +274,9 @@ namespace WinAGI.Engine {
                     // load sysdefs and gamedefs
                     LoadSierraDefines();
                     newDefines = [];
+                }
+                else {
+                    //sysdeffile = Path.Combine(dcGame.SrcResDir, "sysdefs.h");
                 }
             }
             if (!tokensSet) {
@@ -614,7 +618,7 @@ namespace WinAGI.Engine {
                         ID = "renumber",
                         Line = defineline - startline,
                     };
-                    AGIGame.OnDecodeLogicStatus(dcWarnInfo);
+                    OnDecodeLogicStatus(dcWarnInfo);
                 }
 
             }
@@ -625,7 +629,7 @@ namespace WinAGI.Engine {
                 Type = EventType.Info,
                 InfoType = InfoType.Decompiled,
             };
-            AGIGame.OnDecodeLogicStatus(dcDoneInfo);
+            OnDecodeLogicStatus(dcDoneInfo);
             dcLogic = null;
             return (string.Join(NEWLINE, [.. outputList]), !minorErrors);
         }
@@ -700,7 +704,7 @@ namespace WinAGI.Engine {
                             case ArgType.Object:
                             case DefStr:
                             case VocWrd:
-                            case MSG:
+                            case ArgType.MSG:
                             case WORD:
                             case ANY:
                             case WORDLIST:
@@ -1244,7 +1248,7 @@ namespace WinAGI.Engine {
                 Text = WarningText,
                 Line = LineNum,
             };
-            AGIGame.OnDecodeLogicStatus(dcWarnInfo);
+            OnDecodeLogicStatus(dcWarnInfo);
             if (!addWarning) {
                 addWarning = true;
             }
@@ -1262,7 +1266,7 @@ namespace WinAGI.Engine {
                 Text = errText,
                 Line = LineNum,
             };
-            AGIGame.OnDecodeLogicStatus(dcErrInfo);
+            OnDecodeLogicStatus(dcErrInfo);
             if (!addWarning) {
                 addWarning = true;
             }
@@ -2880,7 +2884,13 @@ namespace WinAGI.Engine {
                                 msgfile.Add("");
                             }
                         }
+                        string msgfilename = Path.Combine(dcGame.SrcResDir, dcLogic.ID + ".MSG");
                         File.WriteAllText(Path.Combine(dcGame.SrcResDir, dcLogic.ID + ".MSG"), string.Join(NEWLINE, [.. msgfile]));
+                        // add this file to include file list
+                        dcGame.IncludeFiles.Add(new() {
+                            Filename = msgfilename,
+                            Type = IncludeType.Other
+                        });
                         return;
                     }
                     catch (Exception ex) {
@@ -3223,12 +3233,12 @@ namespace WinAGI.Engine {
                 InfoType = InfoType.DecodingAllLogics,
                 ResType = AGIResType.None
             };
-            AGIGame.OnLoadGameStatus(info);
+            OnLoadGameStatus(info);
             info.ResType = AGIResType.Logic;
 
             dcGame = game;
             decompAll = true;
-            // read sysdefs to get default defines
+            // read sysdefs to get default defines (it gets added before decompiling starts)
             bool retval = LoadSierraDefines();
             // new defines that will be added to gamedefs.h will be added to newDefines
             newDefines = [];
@@ -3251,12 +3261,22 @@ namespace WinAGI.Engine {
             }
             // words.tok reference will be added to gamedefs.h
             wordstokLoaded = true;
+            // add sysdef and gamedef to include file list
+            dcGame.IncludeFiles.Add(new() {
+                Filename = sysdeffile,
+                Type = IncludeType.Other
+            });
+            gamedeffile = Path.Combine(dcGame.SrcResDir, "gamedefs.h");
+            dcGame.IncludeFiles.Add(new() {
+                Filename = gamedeffile,
+                Type = IncludeType.Other
+            });
 
             // decompile each logic, keeping track of game definitions that 
             // need to be added to gamedefs.h
             foreach (Logic logic in game.Logics) {
                 info.ResNum = logic.Number;
-                AGIGame.OnLoadGameStatus(info);
+                OnLoadGameStatus(info);
                 // force decompile
                 logic.LoadSource(true);
                 if (logic.SourceError != ResourceErrorType.NoError &&
@@ -3273,6 +3293,10 @@ namespace WinAGI.Engine {
             // not actually used with a comment
             string gamedefs = EngineResources.GAMEDEFS;
             // %1 = GameID
+            if (!dcGame.agIntVersion.IsV3 && DecodeGameID.Length != 0) {
+                dcGame.GameID = DecodeGameID;
+                DecodeGameID = "";
+            }
             gamedefs = gamedefs.Replace("%1", dcGame.GameID);
 
             // %2 = inventory items
@@ -3312,7 +3336,7 @@ namespace WinAGI.Engine {
             gamedefs = gamedefs.Replace("%4", string.Join(NEWLINE, items.Values));
 
             // %5 = max screen objects
-            gamedefs = gamedefs.Replace("%5", dcGame.InvObjects.MaxScreenObjects.ToString());
+            gamedefs = gamedefs.Replace("%5", dcGame.InvObjects.MaxScreenObjects.ToString().PadLeft(2));
 
             // %6 = screen objects         "o##"
             items = [];
@@ -3437,7 +3461,7 @@ namespace WinAGI.Engine {
                     Line = -1,
                     Data = ex
                 };
-                AGIGame.OnLoadGameStatus(info);
+                OnLoadGameStatus(info);
             }
             decompAll = false;
             sierradefs = null;
@@ -3532,10 +3556,6 @@ namespace WinAGI.Engine {
                             retval = true;
                         }
                     }
-                }
-                else {
-                    // use default gamedefs file name
-                    gamedeffile = "gamedefs.h";
                 }
             }
             sierradefs = [];
