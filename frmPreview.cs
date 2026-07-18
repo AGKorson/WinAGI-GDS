@@ -1984,11 +1984,13 @@ namespace WinAGI.Editor {
                 text = System.IO.File.ReadAllText(EditGame.IncludeFiles[includeindex].Filename);
             }
             catch (Exception ex) {
+                // hide the panel BEFORE drawing the text, otherwise it will
+                // not show correctly in all cases
+                pnlLogic.Visible = false;
                 using Graphics cg = CreateGraphics();
                 cg.Clear(base.BackColor);
                 string errMsg = $"Error loading include file:\n{ex.Message}";
                 cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
-                pnlLogic.Visible = false;
                 return;
             }
             // to ensure only correct codepage characters are displayed, convert the
