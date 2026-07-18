@@ -513,7 +513,7 @@ namespace WinAGI.Engine {
                                 IsIf = true
                             };
                             // block nest level limit is 10
-                            if (Block.Count >= 10) {
+                            if (Block.Count > 10) {
                                 AddError(6029, false);
                             }
                             Block.Add(block);
