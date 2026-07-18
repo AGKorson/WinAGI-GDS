@@ -988,6 +988,20 @@ namespace WinAGI.Engine {
                         sourcelevel--;
                         return;
                     }
+                    // send a reset message to clear any previous errors and warnings
+                    // for this include file
+                    WinAGIEventInfo incInfo = new() {
+                        Type = EventType.Info,
+                        ResType = AGIResType.Include,
+                        ID = "",
+                        Text = "",
+                        ResNum = -1,
+                        Line = -1,
+                        Module = "",
+                        Filename = includeFilename,
+                    };
+                    sCompGame.CancelComp = OnCompileLogicStatus(sCompGame, incInfo);
+
                     pos[sourcelevel] = 0;
                     sourceline[sourcelevel] = 0;
                     // add it to the included files list
@@ -1204,14 +1218,16 @@ namespace WinAGI.Engine {
                         AddWarning(7003);
                     }
                     num = (byte)num;
-                    if (num > (type == 3 ? MAX_CMDS : TestCount)) {
+                    // first check if number is too big to be ANY action/test command
+                    if (num >= (type == 3 ? MAX_CMDS : TestCount)) {
                         AddError(6008, EngineResourceByNum(6008).Replace(
                             ARG1, type == 2 ? "test" : "action"), false);
                         // use zero as fallback
                         error = true;
                         num = 0;
                     }
-                    if (type == 3 && num > ActionCount) {
+                    // then check if action command is not valid for target version
+                    if (type == 3 && num >= ActionCount) {
                         AddWarning(7002, EngineResourceByNum(7002).Replace(
                             ARG1, num.ToString()).Replace(
                             ARG2, ActionCommands[num].FanName));
@@ -2029,7 +2045,7 @@ namespace WinAGI.Engine {
 
             WinAGIEventInfo errInfo = new() {
                 Type = EventType.LogicCompileError,
-                ResType = AGIResType.Logic,
+                ResType = sourcelevel == 0 ? AGIResType.Logic : AGIResType.Include,
                 ID = ErrorNum.ToString(),
                 Text = ErrorText,
                 ResNum = sourcelevel == 0 ? compLogic.Number : -1,

@@ -4186,12 +4186,12 @@ namespace WinAGI.Editor {
                 Debug.Assert(resnum != -1);
                 RefreshLogicWarnings(resnum);
                 break;
-            case AGIResType.Include:
+            case Include:
                 // find the matching lines (by restype/filename)
                 string resname = (string)fgWarnings.SelectedRows[0].Cells[6].Value;
                 for (int i = infoGridTable.Rows.Count - 1; i >= 0; i--) {
                     var fgRow = infoGridTable.Rows[i];
-                    if (fgRow.Field<string>(1) == "Text" &&
+                    if (fgRow.Field<string>(1) == "Include" &&
                         fgRow.Field<string>(6) == resname) {
                         infoGridTable.Rows.RemoveAt(i);
                     }
