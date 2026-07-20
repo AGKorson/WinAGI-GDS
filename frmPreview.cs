@@ -122,11 +122,8 @@ namespace WinAGI.Editor {
             if (SelResType == AGIResType.Sound) {
                 StopSoundPreview();
             }
-            // stop cycling
             if (tmrMotion.Enabled) {
-                // show play
-                tmrMotion.Enabled = false;
-                cmdVPlay.BackgroundImage = imageList1.Images[9];
+                StopCycling();
             }
         }
 
@@ -664,11 +661,14 @@ namespace WinAGI.Editor {
         #region Preview View Events
         private void cmdVPlay_Click(object sender, EventArgs e) {
             // toggle motion
-            tmrMotion.Enabled = !tmrMotion.Enabled;
-
-            // set icon to match
             if (tmrMotion.Enabled) {
-                cmdVPlay.BackgroundImage = imageList1.Images[9];
+                StopCycling();
+            }
+            else {
+                StartCycling();
+            }
+
+            if (tmrMotion.Enabled) {
                 // reset cel, if endofloop or reverseloop motion selected
                 // begin cycling the cels, based on motion type
                 switch (cmbMotion.SelectedIndex) {
@@ -699,9 +699,6 @@ namespace WinAGI.Editor {
                     return;
                 }
             }
-            else {
-                cmdVPlay.BackgroundImage = imageList1.Images[8];
-            }
             picCel.Select();
         }
 
@@ -721,8 +718,7 @@ namespace WinAGI.Editor {
 
         private void dLoop_Click(object sender, EventArgs e) {
             if (agView.Loops.Count > 1) {
-                // stop motion
-                tmrMotion.Enabled = false;
+                StopCycling();
                 // decrement loop, wrapping around
                 CurLoop = (CurLoop == 0) ? agView.Loops.Count - 1 : CurLoop - 1;
                 DisplayLoop();
@@ -731,8 +727,6 @@ namespace WinAGI.Editor {
 
         private void uLoop_Click(object sender, EventArgs e) {
             if (agView.Loops.Count > 1) {
-                // stop motion
-                tmrMotion.Enabled = false;
                 // increment loop, wrapping around
                 CurLoop = (CurLoop == agView.Loops.Count - 1) ? 0 : CurLoop + 1;
                 DisplayLoop();
@@ -741,8 +735,7 @@ namespace WinAGI.Editor {
 
         private void dCel_Click(object sender, EventArgs e) {
             if (agView[CurLoop].Cels.Count > 1) {
-                // stop motion
-                tmrMotion.Enabled = false;
+                StopCycling();
                 // decrement cel, wrapping around
                 CurCel = (CurCel == 0) ? agView[CurLoop].Cels.Count - 1 : CurCel - 1;
                 DisplayCel();
@@ -751,8 +744,7 @@ namespace WinAGI.Editor {
 
         private void uCel_Click(object sender, EventArgs e) {
             if (agView[CurLoop].Cels.Count > 1) {
-                // stop motion
-                tmrMotion.Enabled = false;
+                StopCycling();
                 // increment cel, wrapping around
                 CurCel = (CurCel == agView[CurLoop].Cels.Count - 1) ? 0 : CurCel + 1;
                 DisplayCel();
@@ -975,8 +967,7 @@ namespace WinAGI.Editor {
             case 2:
                 // end of loop
                 if (CurCel == agView[CurLoop].Cels.Count - 1) {
-                    // stop motion
-                    tmrMotion.Enabled = false;
+                    StopCycling();
                     return;
                 }
                 else {
@@ -986,9 +977,7 @@ namespace WinAGI.Editor {
             case 3:
                 // reverse loop
                 if (CurCel == 0) {
-                    // stop motion
-                    tmrMotion.Enabled = false;
-                    cmdVPlay.BackgroundImage = imageList1.Images[8];
+                    StopCycling();
                     return;
                 }
                 else {
@@ -1062,7 +1051,7 @@ namespace WinAGI.Editor {
             // unload view
             if (agView is not null) {
                 if (tmrMotion.Enabled) {
-                    tmrMotion.Enabled = false;
+                    StopCycling();
                 }
                 // if resource exists, it should still be loaded
                 if (agView.Loaded) {
@@ -1749,7 +1738,7 @@ namespace WinAGI.Editor {
             }
             // enable play/stop if more than one cel
             cmdVPlay.Enabled = agView[CurLoop].Cels.Count > 1;
-            cmdVPlay.BackgroundImage = imageList1.Images[8];
+            StopCycling();
             // determine size of holding pic
             CelFrameW = 0;
             CelFrameH = 0;
@@ -1948,6 +1937,18 @@ namespace WinAGI.Editor {
                 scale = (int)(scale * 2) / 2;
             }
             tsbViewScale.Text = scale.ToString() + "%";
+        }
+
+        private void StartCycling() {
+            tmrMotion.Enabled = true;
+            // show stop img on button
+            cmdVPlay.BackgroundImage = imageList1.Images[9];
+        }
+
+        private void StopCycling() {
+            tmrMotion.Enabled = false;
+            // show play img on button
+            cmdVPlay.BackgroundImage = imageList1.Images[8];
         }
         #endregion
 
