@@ -106,7 +106,7 @@ if (!!isset(f99)) { [ extra '!'; same as 'if(isset(f99))'
 }</pre>
       <p>In the example above, the message will never be displayed.</p>
       <li>The 'not equal operator' "!=" is the only one that CG.EXE treats as two separate tokens, which means you can include white space between the characters. ('!    =' is the same as '!='.) This was probably an oversight when CG.EXE was written.</li>
-      <li>Although '!=' is allowed as the 'NOT' version of '==', CG.EXE does not include 'NOT' versions of '&lt;' and '&gt;', i.e. there are no "&gt;=" or "&lt;=" operators.</li>
+      <li>Although '!=' is allowed as the 'NOT' version of '==', CG.EXE does not include 'NOT' versions of '&lt;' and '&gt;', i.e. there are no "&gt;=" or "&lt;=" operators ('!&gt;' and '!&lt;' don't work either). </li>
       <li>There is a bug in the handling of the '@' character. CG.EXE treats it as a symbol character (so "@=" is correctly treated as a symbol). But if the character following the '@' is not '=' or a separator, CG.EXE will build a token that looks like an identifier, but is treated as a symbol:</li>
         <pre>%define @sometoken 99 [ <font color="red"><b>NOT OK</b></font>; name can't be a symbol
 %define sometoken @99 [ OK; compiles but the token can't be used for anything</pre>

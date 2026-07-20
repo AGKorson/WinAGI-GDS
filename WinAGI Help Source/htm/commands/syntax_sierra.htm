@@ -111,6 +111,21 @@ else
   &lt;action commands if test is FALSE&gt;
   }</pre>
     </blockquote>
+    <p><code><b>if ... else</b></code> blocks can be nested, but to maintain compatibility with Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a> only ten levels of nesting are allowed. More than this will raise an error.</p>
+      <blockquote>
+      <pre>if (v99 != 1) {
+    [ nest level 1
+    if (v99 != 2) {
+        [ nest level 2
+        if (v99 != 3) {
+            [ nest level 3
+            ...
+            [ <b>do not exceed nest level 10</b>
+        }
+    }
+}
+...</pre>
+      </blockquote>
     <p>Normally, the <code><b>else</b></code> keyword is used as described above, in conjunction with the <code><b>if</b></code> keyword. However, Sierra syntax allows the <code><b>else</b></code> keyword to be used as a substitute for the <code><b>goto</b></code> keyword, if the <code><b>else</b></code> keyword does not immediately follow the closing curly brace of an <code><b>if</b></code> block:</p>
     <blockquote>
       <pre>&lt;action commands&gt;
@@ -141,7 +156,7 @@ Label2: [ <font color="red"><b>NOT OK</b></font>
 :
 Label4 [ <font color="red"><b>NOT OK</b></font></pre>
     </blockquote>
-    <p>There is a limit of 50 labels that can be added to a single logic. More than that will cause an error.</p>
+    <p>To maintain compatibility with Sierra's <a href="..\agi\logics.htm">logic</a> compiler <a href="sierra_logiccompiler.htm">CG.EXE</a> there is a limit of 50 labels that can be added to a single logic. More than that will cause an error.</p>
 
 <h2>Preprocessor Tokens</h2>
     <p><a name="preprocessor"></a>In addition to keywords, there are also ten 'pre-processor' tokens. These tokens start with '%' or '#' and are compiler commands which tell the compiler how to handle other tokens it will encounter later. Note that there are two versions of each, with either the '#' or '%' character to start. There is no difference between them; the compiler just offers the flexibility to use either format.</p>
