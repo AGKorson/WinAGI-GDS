@@ -44,7 +44,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-		<PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="17.14.40260" />
 		<PackageReference Include="NAudio" Version="2.3.0" />
 		<PackageReference Include="System.IO.Hashing" Version="10.0.7" />
 	</ItemGroup>

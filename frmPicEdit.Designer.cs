@@ -834,7 +834,9 @@ namespace WinAGI.Editor {
             lstCommands.TabIndex = 0;
             lstCommands.UseCompatibleStateImageBehavior = false;
             lstCommands.View = View.Details;
+            lstCommands.SelectedIndexChanged += lstCommands_SelectedIndexChanged;
             lstCommands.SizeChanged += lstCommands_SizeChanged;
+            lstCommands.KeyDown += lstCommands_KeyDown;
             lstCommands.KeyPress += lstCommands_KeyPress;
             lstCommands.KeyUp += lstCommands_KeyUp;
             lstCommands.MouseClick += lstCommands_MouseClick;

@@ -231,6 +231,7 @@ namespace WinAGI.Editor {
         private bool priorityActive = false;
         private int cmdAnchor, cmdDelta;
         private bool multiCmds = false;
+        bool listKeyDown = false;
 
         // tool selection/manipulation/use
         private PicDrawOp PicDrawMode;
@@ -3624,6 +3625,11 @@ namespace WinAGI.Editor {
                     force = true;
                 }
             }
+            // shouldn't be possible, but yet it still seems to happen from time to time
+            // so check for nothing being selected
+            if (lstCommands.SelectedItems.Count == 0) {
+                return;
+            }
             // update draw surfaces to reflect selected commands
             UpdateCmdSelection(lstCommands.SelectedItems[^1].Index, force);
             // always clear the coordinate list selection when a command is selected from
@@ -3692,9 +3698,7 @@ namespace WinAGI.Editor {
             e.Handled = true;
         }
 
-        private void lstCommands_KeyUp(object sender, KeyEventArgs e) {
-            // when using keyboard to move the selection, the 
-            // draw surfaces also need to be updated
+        private void lstCommands_KeyDown(object sender, KeyEventArgs e) {
             switch (e.KeyCode) {
             case Keys.Down:
             case Keys.Up:
@@ -3702,15 +3706,27 @@ namespace WinAGI.Editor {
             case Keys.PageUp:
             case Keys.Home:
             case Keys.End:
-                UpdateCmdSelection(lstCommands.SelectedIndices[^1]);
+                listKeyDown = true;
                 break;
             }
+        }
+
+        private void lstCommands_KeyUp(object sender, KeyEventArgs e) {
+            listKeyDown = false;
+
             // let MENU key through
             if (e.KeyCode == Keys.Menu) {
                 return;
             }
             e.SuppressKeyPress = true;
             e.Handled = true;
+        }
+
+        private void lstCommands_SelectedIndexChanged(object sender, EventArgs e) {
+            // if the selection was changed by keyboard, then update the draw surfaces
+            if (listKeyDown && lstCommands.SelectedIndices.Count != 0) {
+                UpdateCmdSelection(lstCommands.SelectedIndices[^1]);
+            }
         }
 
         private void lstCoords_MouseUp(object sender, MouseEventArgs e) {
