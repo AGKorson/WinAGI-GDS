@@ -115,9 +115,9 @@ namespace WinAGI.Editor {
         /// Enum to indicate which draw surface windows are currently active.
         /// </summary>
         private enum WindowMode {
-            Visual,
-            Priority,
-            Both,
+            Visual = 1,
+            Priority = 2,
+            Both = 3,
         }
 
         /// <summary>
