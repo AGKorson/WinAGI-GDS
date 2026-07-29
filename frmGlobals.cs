@@ -163,7 +163,9 @@ namespace WinAGI.Editor {
             if (globalsgrid.IsCurrentCellInEditMode) {
                 globalsgrid.CancelEdit();
             }
-            if (e.CloseReason == CloseReason.MdiFormClosing) {
+            // if in a game, and the form is closing because the MDI parent is closing,
+            // the MDI parent will ask to save changes, so don't ask again
+            if (e.CloseReason == CloseReason.MdiFormClosing && InGame) {
                 return;
             }
             e.Cancel = !AskClose();

@@ -63,9 +63,6 @@ namespace WinAGI.Editor {
         #region Event Handlers
         #region Form Events
         private void frmSnippets_FormClosing(object sender, FormClosingEventArgs e) {
-            if (e.CloseReason == CloseReason.MdiFormClosing) {
-                return;
-            }
             // check for editing mode
             if (!txtSnipName.ReadOnly) {
                 if (MessageBox.Show(MDIMain,

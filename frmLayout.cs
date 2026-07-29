@@ -372,6 +372,8 @@ namespace WinAGI.Editor {
         }
 
         private void frmLayout_FormClosing(object sender, FormClosingEventArgs e) {
+            // if the form is closing because the MDI parent is closing, the MDI parent will
+            // ask to save changes, so don't ask again
             if (e.CloseReason == CloseReason.MdiFormClosing) {
                 return;
             }
