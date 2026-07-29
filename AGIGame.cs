@@ -1799,7 +1799,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Creates a new WinAGI game file from an existing Sierra game directory.
+        /// Creates a new WinAGI game file from an existing game directory.
         /// If successful, warning/load info is passed back. 
         /// If fails, exception is thrown.
         /// </summary>

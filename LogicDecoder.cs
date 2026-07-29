@@ -3295,7 +3295,7 @@ namespace WinAGI.Engine {
             // %1 = GameID
             if (!dcGame.agIntVersion.IsV3 && DecodeGameID.Length != 0) {
                 dcGame.GameID = DecodeGameID;
-                DecodeGameID = "";
+                // don't reset DecodeGameID because it will be used to update the wag filename later
             }
             gamedefs = gamedefs.Replace("%1", dcGame.GameID);
 
