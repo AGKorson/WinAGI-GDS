@@ -888,6 +888,88 @@ namespace WinAGI.Common {
             //return (int)Math.Round(sngFreq, 0);
 
         }
+
+        internal static void SortIncludeList(List<AGIGame.IncludeInfo> files) {
+            Dictionary<string, int> PriorityFiles = new(StringComparer.OrdinalIgnoreCase) {
+                ["resourceids.txt"] = 0,
+                ["reserved.txt"] = 1,
+                ["globals.txt"] = 2,
+                ["sysdefs"] = 3,
+                ["sysdefs.h"] = 4,
+                ["gamedefs"] = 5,
+                ["gamedefs.h"] = 6
+            };
+
+            files.Sort((a, b) => {
+                int rankA = PriorityFiles.GetValueOrDefault(a.RelativeName, int.MaxValue);
+                int rankB = PriorityFiles.GetValueOrDefault(b.RelativeName, int.MaxValue);
+
+                int result = rankA.CompareTo(rankB);
+                if (result != 0)
+                    return result;
+
+                return NaturalCompare(a.RelativeName, b.RelativeName);
+            });
+        }
+
+        private static int NaturalCompare(string a, string b) {
+            int ia = 0, ib = 0;
+
+            while (ia < a.Length && ib < b.Length) {
+                if (char.IsDigit(a[ia]) && char.IsDigit(b[ib])) {
+                    long na = 0;
+                    while (ia < a.Length && char.IsDigit(a[ia]))
+                        na = na * 10 + (a[ia++] - '0');
+
+                    long nb = 0;
+                    while (ib < b.Length && char.IsDigit(b[ib]))
+                        nb = nb * 10 + (b[ib++] - '0');
+
+                    int cmp = na.CompareTo(nb);
+                    if (cmp != 0)
+                        return cmp;
+                }
+                else {
+                    char ca = char.ToUpperInvariant(a[ia++]);
+                    char cb = char.ToUpperInvariant(b[ib++]);
+
+                    int cmp = ca.CompareTo(cb);
+                    if (cmp != 0)
+                        return cmp;
+                }
+            }
+
+            return a.Length.CompareTo(b.Length);
+        }
+
+        public static string RelativeToSrcDir(string filename, string src) {
+            // Normalize both paths
+            string fullSrc = Path.GetFullPath(src);
+            string fullFile = Path.GetFullPath(filename);
+
+            // Case-insensitive compare on Windows
+            if (fullFile.StartsWith(fullSrc, StringComparison.OrdinalIgnoreCase)) {
+                string relative = fullFile.Substring(fullSrc.Length)
+                                          .TrimStart(Path.DirectorySeparatorChar);
+                return relative;
+            }
+
+            // Different drive → cannot be relative
+            if (!string.Equals(Path.GetPathRoot(fullSrc), Path.GetPathRoot(fullFile),
+                               StringComparison.OrdinalIgnoreCase)) {
+                return filename;
+            }
+
+            // Compute relative path
+            string rel = Path.GetRelativePath(fullSrc, fullFile);
+
+            // If it goes up 3 or more levels, keep absolute
+            if (rel.StartsWith(".." + Path.DirectorySeparatorChar + ".." + Path.DirectorySeparatorChar + "..")) {
+                return filename;
+            }
+            return rel;
+        }
+
         #endregion
     }
 

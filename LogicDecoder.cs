@@ -275,9 +275,6 @@ namespace WinAGI.Engine {
                     LoadSierraDefines();
                     newDefines = [];
                 }
-                else {
-                    //sysdeffile = Path.Combine(dcGame.SrcResDir, "sysdefs.h");
-                }
             }
             if (!tokensSet) {
                 InitTokens(CodeStyle);
@@ -2889,7 +2886,8 @@ namespace WinAGI.Engine {
                         // add this file to include file list
                         dcGame.IncludeFiles.Add(new() {
                             Filename = msgfilename,
-                            Type = IncludeType.Other
+                            Type = IncludeType.Other,
+                            RelativeName = dcLogic.ID + ".MSG"
                         });
                         return;
                     }
@@ -3264,12 +3262,14 @@ namespace WinAGI.Engine {
             // add sysdef and gamedef to include file list
             dcGame.IncludeFiles.Add(new() {
                 Filename = sysdeffile,
-                Type = IncludeType.Other
+                Type = IncludeType.Other,
+                RelativeName = RelativeToSrcDir(sysdeffile, dcGame.SrcResDir)
             });
             gamedeffile = Path.Combine(dcGame.SrcResDir, "gamedefs.h");
             dcGame.IncludeFiles.Add(new() {
                 Filename = gamedeffile,
-                Type = IncludeType.Other
+                Type = IncludeType.Other,
+                RelativeName = "gamedefs.h"
             });
 
             // decompile each logic, keeping track of game definitions that 

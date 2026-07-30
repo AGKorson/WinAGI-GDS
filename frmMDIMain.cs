@@ -3459,13 +3459,16 @@ namespace WinAGI.Editor {
             // rebuild include file list in tree (because index numbers won't always align
             // after making changes)
 
+            // first, sort the list, with special files at the top
+            SortIncludeList(EditGame.IncludeFiles);
+
             // update the wag file property
             string includelist = "";
             for (int i = 0; i < EditGame.IncludeFiles.Count; i++) {
                 if (i > 0) {
                     includelist += ",";
                 }
-                includelist += RelativeToSrcDir(EditGame.IncludeFiles[i].Filename);
+                includelist += RelativeToSrcDir(EditGame.IncludeFiles[i].Filename, EditGame.SrcResDir);
             }
             EditGame.WriteGameSetting("Includes", "FileList", includelist, "", true);
 
@@ -4559,7 +4562,8 @@ namespace WinAGI.Editor {
                     propertyGrid1.SelectedObject = pIncHdr;
                 }
                 else {
-                    propertyGrid1.SelectedObject = null;
+                    IncludeInfoProperties pIncludeInfo = new(EditGame.IncludeFiles[resnum]);
+                    propertyGrid1.SelectedObject = pIncludeInfo;
                 }
                 break;
             }
@@ -6021,37 +6025,6 @@ namespace WinAGI.Editor {
             result = MessageBox.Show(this, text, caption, buttons, icon, 0, 0, WinAGIHelp, helpTopic);
             ShowingMsgBox = false;
             return result;
-        }
-
-        public static string RelativeToSrcDir(string filename) {
-            string src = EditGame.SrcResDir;
-
-            // Normalize both paths
-            string fullSrc = Path.GetFullPath(src);
-            string fullFile = Path.GetFullPath(filename);
-
-            // Case-insensitive compare on Windows
-            if (fullFile.StartsWith(fullSrc, StringComparison.OrdinalIgnoreCase)) {
-                string relative = fullFile.Substring(fullSrc.Length)
-                                          .TrimStart(Path.DirectorySeparatorChar);
-                return relative;
-            }
-
-            // Different drive → cannot be relative
-            if (!string.Equals(Path.GetPathRoot(fullSrc), Path.GetPathRoot(fullFile),
-                               StringComparison.OrdinalIgnoreCase)) {
-                return filename;
-            }
-
-            // Compute relative path
-            string rel = Path.GetRelativePath(fullSrc, fullFile);
-
-            // If it goes up 3 or more levels, keep absolute
-            if (rel.StartsWith(".." + Path.DirectorySeparatorChar + ".." + Path.DirectorySeparatorChar + "..")) {
-                return filename;
-            }
-
-            return rel;
         }
         #endregion
         #endregion

@@ -75,6 +75,7 @@ namespace WinAGI.Engine {
         public struct IncludeInfo {
             public string Filename = "";
             public IncludeType Type;
+            public string RelativeName = "";
 
             public IncludeInfo() {
             }
@@ -496,17 +497,24 @@ namespace WinAGI.Engine {
         public bool IncludeIDs {
             get => agIncludeIDs;
             set {
+                if (agIncludeIDs == value) {
+                    return;
+                }
                 agIncludeIDs = value;
-                agIncludeFiles.RemoveAll(e => e.Filename.Equals(
-                    Path.Combine(agSrcResDir, "resourceids.txt"), StringComparison.OrdinalIgnoreCase));
                 if (value) {
                     // add new entry for globals.txt
                     agIncludeFiles.Insert(0, new IncludeInfo {
                         Filename = Path.Combine(agSrcResDir, "resourceids.txt"),
-                        Type = IncludeType.ResourceIDs
+                        Type = IncludeType.ResourceIDs,
+                        RelativeName = "resourceids.txt"
                     });
                 }
+                else {
+                    agIncludeFiles.RemoveAll(e => e.Filename.Equals(
+                        Path.Combine(agSrcResDir, "resourceids.txt"), StringComparison.OrdinalIgnoreCase));
+                }
                 WriteGameSetting("Includes", "IncludeIDs", agIncludeIDs.ToString());
+                UpdateIncludeList();
             }
         }
 
@@ -517,22 +525,27 @@ namespace WinAGI.Engine {
         public bool IncludeReserved {
             get => agIncludeReserved;
             set {
+                if (agIncludeReserved == value) {
+                    return;
+                }
                 agIncludeReserved = value;
-                agIncludeFiles.RemoveAll(e => e.Filename.Equals(
-                    Path.Combine(agSrcResDir, "reserved.txt"), StringComparison.OrdinalIgnoreCase));
                 if (value) {
                     // add new entry for reserved.txt
                     agIncludeFiles.Insert(0, new IncludeInfo {
                         Filename = Path.Combine(agSrcResDir, "reserved.txt"),
-                        Type = IncludeType.ResourceIDs
+                        Type = IncludeType.ResourceIDs,
+                        RelativeName = "reserved.txt"
                     });
                     // initialize the reserved defines list if it doesn't already exist
                     agReservedDefines ??= new(this);
                 }
                 else {
+                    agIncludeFiles.RemoveAll(e => e.Filename.Equals(
+                        Path.Combine(agSrcResDir, "reserved.txt"), StringComparison.OrdinalIgnoreCase));
                     agReservedDefines = null;
                 }
                 WriteGameSetting("Includes", "IncludeReserved", agIncludeReserved.ToString());
+                UpdateIncludeList();
             }
         }
 
@@ -544,17 +557,24 @@ namespace WinAGI.Engine {
         public bool IncludeGlobals {
             get => agIncludeGlobals;
             set {
+                if (agIncludeGlobals == value) {
+                    return;
+                }
                 agIncludeGlobals = value;
-                agIncludeFiles.RemoveAll(e => e.Filename.Equals(
-                    agGlobals.ResFile, StringComparison.OrdinalIgnoreCase));
                 if (value) {
                     // add new entry for globals.txt
                     agIncludeFiles.Insert(0, new IncludeInfo {
                         Filename = agGlobals.ResFile,
-                        Type = IncludeType.Globals
+                        Type = IncludeType.Globals,
+                        RelativeName = "globals.txt"
                     });
                 }
+                else {
+                    agIncludeFiles.RemoveAll(e => e.Filename.Equals(
+                        agGlobals.ResFile, StringComparison.OrdinalIgnoreCase));
+                }
                 WriteGameSetting("Includes", "IncludeGlobals", agIncludeGlobals.ToString());
+                UpdateIncludeList();
             }
         }
 
@@ -1523,6 +1543,7 @@ namespace WinAGI.Engine {
                 if (IncludeIDs) {
                     agIncludeFiles.Add(new() {
                         Filename = Path.Combine(agSrcResDir, "resourceids.txt"),
+                        RelativeName = "resourceids.txt",
                         Type = IncludeType.ResourceIDs
                     });
                 }
@@ -1530,6 +1551,7 @@ namespace WinAGI.Engine {
                     agReservedDefines ??= new(this);
                     agIncludeFiles.Add(new() {
                         Filename = Path.Combine(agSrcResDir, "reserved.txt"),
+                        RelativeName = "reserved.txt",
                         Type = IncludeType.ResourceIDs
                     });
                 }
@@ -1547,6 +1569,7 @@ namespace WinAGI.Engine {
                     agGlobals.LoadDefines();
                     agIncludeFiles.Add(new() {
                         Filename = Path.Combine(agSrcResDir, "globals.txt"),
+                        RelativeName = "globals.txt",
                         Type = IncludeType.ResourceIDs
                     });
                 }
@@ -2186,38 +2209,32 @@ namespace WinAGI.Engine {
                 agGameProps.WriteSetting("General", "DOSExec", "");
                 agGameProps.WriteSetting("General", "PlatformOpts", "");
                 agGameProps.WriteSetting("General", "CodePage", agCodePage);
-                string includelist = "";
                 agGameProps.WriteSetting("Includes", "IncludeIDs", agIncludeIDs);
                 if (agIncludeIDs) {
-                    includelist = "resourceids.txt";
                     agIncludeFiles.Add(new() {
                         Filename = Path.Combine(agSrcResDir, "resourceids.txt"),
+                        RelativeName = "resourceids.txt",
                         Type = IncludeType.ResourceIDs
                     });
                 }
                 agGameProps.WriteSetting("Includes", "IncludeReserved", agIncludeReserved);
                 if (agIncludeReserved) {
-                    if (includelist.Length > 0) {
-                        includelist += ",";
-                    }
-                    includelist += "reserved.txt";
                     agIncludeFiles.Add(new() {
                         Filename = Path.Combine(agSrcResDir, "reserved.txt"),
+                        RelativeName = "reserved.txt",
                         Type = IncludeType.Reserved
                     });
                 }
                 agGameProps.WriteSetting("Includes", "IncludeGlobals", agIncludeGlobals);
                 if (agIncludeGlobals) {
-                    if (includelist.Length > 0) {
-                        includelist += ",";
-                    }
-                    includelist += "globals.txt";
                     agIncludeFiles.Add(new() {
                         Filename = Path.Combine(agSrcResDir, "globals.txt"),
+                        RelativeName = "globals.txt",
                         Type = IncludeType.Globals
                     });
                 }
-                agGameProps.WriteSetting("Includes", "FileList", includelist);
+                UpdateIncludeList();
+                // NOTE: if Sierra syntax, include list will be upated after logics are decompiled
                 agGameProps.WriteSetting("General", "UseLE", agUseLE);
                 agGameProps.WriteSetting("General", "SierraSyntax", agSierraSyntax);
                 agGameProps.WriteSetting("General", "SourceFileExt", agSrcFileExt);
@@ -2509,7 +2526,8 @@ namespace WinAGI.Engine {
                     // for now, ignore errors
                 }
                 agLoadWarnings |= DecodeAllSierraLogics(this);
-
+                // update includes file list
+                UpdateIncludeList();
             }
             else {
                 // check for sourcefile errors,  decompile warnings, TODO entries and validate logic CRC values
@@ -2626,6 +2644,17 @@ namespace WinAGI.Engine {
             //agFileWatcher = new(agGameDir);
             //agFileWatcher.Enabled = true;
             return retval;
+        }
+
+        private void UpdateIncludeList() {
+            string includelist = "";
+            foreach (IncludeInfo fileinfo in agIncludeFiles) {
+                includelist += fileinfo.RelativeName + ",";
+            }
+            if (includelist.Length > 0) {
+                includelist = includelist[..^1];
+                agGameProps.WriteSetting("Includes", "FileList", includelist);
+            }
         }
 
         private bool ImportSierraResources() {
@@ -3065,9 +3094,11 @@ namespace WinAGI.Engine {
                 // otherwise, just add filename
                 if (Path.IsPathRooted(file)) {
                     info.Filename = file;
+                    info.RelativeName = RelativeToSrcDir(info.Filename, agSrcResDir);
                 }
                 else {
                     info.Filename = Path.GetFullPath(file, agSrcResDir);
+                    info.RelativeName = file;
                 }
                 // check for resourceids, reserved, and globals files and set type accordingly
                 if (file == "resourceids.txt" && agIncludeIDs) {
@@ -3094,21 +3125,26 @@ namespace WinAGI.Engine {
             if (agIncludeReserved && !reserved) {
                 agIncludeFiles.Add(new() {
                     Filename = Path.Combine(agSrcResDir, "reserved.txt"),
-                    Type = IncludeType.Reserved
+                    Type = IncludeType.Reserved,
+                    RelativeName = "reserved.txt"
                 });
             }
             if (agIncludeIDs && !ids) {
                 agIncludeFiles.Add(new() {
                     Filename = Path.Combine(agSrcResDir, "resourceids.txt"),
-                    Type = IncludeType.ResourceIDs
+                    Type = IncludeType.ResourceIDs,
+                    RelativeName = "resourceids.txt"
                 });
             }
             if (agIncludeGlobals && !globals) {
                 agIncludeFiles.Add(new() {
                     Filename = Path.Combine(agSrcResDir, "globals.txt"),
-                    Type = IncludeType.Globals
+                    Type = IncludeType.Globals,
+                    RelativeName = "globals.txt"
                 });
             }
+            // sort the include list
+            SortIncludeList(agIncludeFiles);
             // Palette:
             for (int i = 0; i < 16; i++) {
                 Palette[i] = agGameProps.GetSetting("Palette", "Color" + i.ToString(), DefaultPalette[i]);

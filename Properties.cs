@@ -452,6 +452,19 @@ namespace WinAGI.Editor {
         }
     }
 
+    public class  IncludeInfoProperties {
+        private readonly AGIGame.IncludeInfo pIncludeInfo;
+
+        public IncludeInfoProperties(AGIGame.IncludeInfo includeInfo) {
+            pIncludeInfo = includeInfo;
+        }
+
+        public string RelativePath {
+            get => pIncludeInfo.RelativeName;
+        }
+
+    }
+
     internal class PropIntVersions {
         internal static string[] _Versions = IntVersions;
     }

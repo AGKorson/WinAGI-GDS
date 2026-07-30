@@ -3304,6 +3304,7 @@ namespace WinAGI.Editor {
                     IncludeDefines.Add(TextFilename, new DefineList() { IsChanged = true });
                     EditGame.IncludeFiles.Add(new IncludeInfo() {
                         Type = IncludeType.Other,
+                        RelativeName = RelativeToSrcDir(TextFilename, EditGame.SrcResDir),
                         Filename = TextFilename,
                     });
                     // mark all includes as changed
