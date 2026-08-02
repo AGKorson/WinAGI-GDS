@@ -58,6 +58,7 @@ namespace WinAGI.Editor {
             EditCoord,
             SetPriBase,
             Clear,
+            Dither,
         }
     }
 }

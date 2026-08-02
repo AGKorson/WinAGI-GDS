@@ -59,6 +59,7 @@ namespace WinAGI.Editor {
             tsbEllipse = new ToolStripMenuItem();
             tsbFill = new ToolStripMenuItem();
             tsbPlot = new ToolStripMenuItem();
+            tsbDither = new ToolStripMenuItem();
             tsbSep0 = new ToolStripSeparator();
             tsbFullDraw = new ToolStripButton();
             tsbBackground = new ToolStripButton();
@@ -363,7 +364,7 @@ namespace WinAGI.Editor {
             // tsbTool
             // 
             tsbTool.DisplayStyle = ToolStripItemDisplayStyle.Image;
-            tsbTool.DropDownItems.AddRange(new ToolStripItem[] { tsbEditTool, tsbImageSelect, tsbLine, tsbShortLine, tsbStepLine, tsbRectangle, tsbTrapezoid, tsbEllipse, tsbFill, tsbPlot });
+            tsbTool.DropDownItems.AddRange(new ToolStripItem[] { tsbEditTool, tsbImageSelect, tsbLine, tsbShortLine, tsbStepLine, tsbRectangle, tsbTrapezoid, tsbEllipse, tsbFill, tsbPlot, tsbDither });
             tsbTool.Image = (System.Drawing.Image)resources.GetObject("tsbTool.Image");
             tsbTool.ImageTransparentColor = System.Drawing.Color.Magenta;
             tsbTool.Name = "tsbTool";
@@ -378,7 +379,7 @@ namespace WinAGI.Editor {
             tsbEditTool.Image = (System.Drawing.Image)resources.GetObject("tsbEditTool.Image");
             tsbEditTool.Name = "tsbEditTool";
             tsbEditTool.Size = new System.Drawing.Size(34, 30);
-            tsbEditTool.Text = "toolStripMenuItem12";
+            tsbEditTool.Text = "Edit Tool";
             tsbEditTool.ToolTipText = "Edit";
             tsbEditTool.Click += tsbEditTool_Click;
             // 
@@ -389,7 +390,7 @@ namespace WinAGI.Editor {
             tsbImageSelect.Image = (System.Drawing.Image)resources.GetObject("tsbImageSelect.Image");
             tsbImageSelect.Name = "tsbImageSelect";
             tsbImageSelect.Size = new System.Drawing.Size(34, 30);
-            tsbImageSelect.Text = "toolStripMenuItem13";
+            tsbImageSelect.Text = "Area Select";
             tsbImageSelect.ToolTipText = "Area Select";
             tsbImageSelect.Click += tsbImageSelect_Click;
             // 
@@ -400,7 +401,7 @@ namespace WinAGI.Editor {
             tsbLine.Image = (System.Drawing.Image)resources.GetObject("tsbLine.Image");
             tsbLine.Name = "tsbLine";
             tsbLine.Size = new System.Drawing.Size(34, 30);
-            tsbLine.Text = "toolStripMenuItem14";
+            tsbLine.Text = "Line";
             tsbLine.ToolTipText = "Line";
             tsbLine.Click += tsbLine_Click;
             // 
@@ -411,7 +412,7 @@ namespace WinAGI.Editor {
             tsbShortLine.Image = (System.Drawing.Image)resources.GetObject("tsbShortLine.Image");
             tsbShortLine.Name = "tsbShortLine";
             tsbShortLine.Size = new System.Drawing.Size(34, 30);
-            tsbShortLine.Text = "toolStripMenuItem15";
+            tsbShortLine.Text = "Short Line";
             tsbShortLine.ToolTipText = "Short Line";
             tsbShortLine.Click += tsbShortLine_Click;
             // 
@@ -422,7 +423,7 @@ namespace WinAGI.Editor {
             tsbStepLine.Image = (System.Drawing.Image)resources.GetObject("tsbStepLine.Image");
             tsbStepLine.Name = "tsbStepLine";
             tsbStepLine.Size = new System.Drawing.Size(34, 30);
-            tsbStepLine.Text = "toolStripMenuItem16";
+            tsbStepLine.Text = "Step Line";
             tsbStepLine.ToolTipText = "Step Line";
             tsbStepLine.Click += tsbStepLine_Click;
             // 
@@ -433,7 +434,7 @@ namespace WinAGI.Editor {
             tsbRectangle.Image = (System.Drawing.Image)resources.GetObject("tsbRectangle.Image");
             tsbRectangle.Name = "tsbRectangle";
             tsbRectangle.Size = new System.Drawing.Size(34, 30);
-            tsbRectangle.Text = "toolStripMenuItem17";
+            tsbRectangle.Text = "Rectangle";
             tsbRectangle.ToolTipText = "Rectangle";
             tsbRectangle.Click += tsbRectangle_Click;
             // 
@@ -444,7 +445,7 @@ namespace WinAGI.Editor {
             tsbTrapezoid.Image = (System.Drawing.Image)resources.GetObject("tsbTrapezoid.Image");
             tsbTrapezoid.Name = "tsbTrapezoid";
             tsbTrapezoid.Size = new System.Drawing.Size(34, 30);
-            tsbTrapezoid.Text = "toolStripMenuItem18";
+            tsbTrapezoid.Text = "Trapezoid";
             tsbTrapezoid.ToolTipText = "Trapezoid";
             tsbTrapezoid.Click += tsbTrapezoid_Click;
             // 
@@ -455,7 +456,7 @@ namespace WinAGI.Editor {
             tsbEllipse.Image = (System.Drawing.Image)resources.GetObject("tsbEllipse.Image");
             tsbEllipse.Name = "tsbEllipse";
             tsbEllipse.Size = new System.Drawing.Size(34, 30);
-            tsbEllipse.Text = "toolStripMenuItem19";
+            tsbEllipse.Text = "Ellipse";
             tsbEllipse.ToolTipText = "Ellipse";
             tsbEllipse.Click += tsbEllipse_Click;
             // 
@@ -466,7 +467,7 @@ namespace WinAGI.Editor {
             tsbFill.Image = (System.Drawing.Image)resources.GetObject("tsbFill.Image");
             tsbFill.Name = "tsbFill";
             tsbFill.Size = new System.Drawing.Size(34, 30);
-            tsbFill.Text = "toolStripMenuItem20";
+            tsbFill.Text = "Fill";
             tsbFill.ToolTipText = "Fill";
             tsbFill.Click += tsbFill_Click;
             // 
@@ -477,9 +478,20 @@ namespace WinAGI.Editor {
             tsbPlot.Image = (System.Drawing.Image)resources.GetObject("tsbPlot.Image");
             tsbPlot.Name = "tsbPlot";
             tsbPlot.Size = new System.Drawing.Size(34, 30);
-            tsbPlot.Text = "toolStripMenuItem21";
+            tsbPlot.Text = "Plot";
             tsbPlot.ToolTipText = "Plot";
             tsbPlot.Click += tsbPlot_Click;
+            // 
+            // tsbDither
+            // 
+            tsbDither.AutoSize = false;
+            tsbDither.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            tsbDither.Image = (System.Drawing.Image)resources.GetObject("tsbDither.Image");
+            tsbDither.Name = "tsbDither";
+            tsbDither.Size = new System.Drawing.Size(34, 30);
+            tsbDither.Text = "Dither";
+            tsbDither.ToolTipText = "Dither";
+            tsbDither.Click += tsbDither_Click;
             // 
             // tsbSep0
             // 
@@ -853,7 +865,7 @@ namespace WinAGI.Editor {
             // 
             cmEdit.Items.AddRange(new ToolStripItem[] { mnuUndo, mnuESep0, mnuCut, mnuCopy, mnuPaste, mnuPastePen, mnuDelete, mnuClearPicture, mnuSelectAll, mnuESep1, mnuInsertCoord, mnuSplitCommand, mnuJoinCommands, mnuFlipV, mnuFlipH, mnuESep2, mnuEditMode, mnuViewTestMode, mnuTextTestMode, mnuESep3, mnuSetTestView, mnuTestViewOptions, mnuTestTextOptions, mnuTextScreenSize, mnuESep4, mnuToggleScreen, mnuToggleBands, mnuEditPriBase, mnuToggleTextMarks, mnuESep5, mnuToggleBackground, mnuEditBackground, mnuRemoveBackground });
             cmEdit.Name = "cmEdit";
-            cmEdit.Size = new System.Drawing.Size(258, 656);
+            cmEdit.Size = new System.Drawing.Size(258, 634);
             cmEdit.Closed += cmEdit_Closed;
             cmEdit.Opening += cmEdit_Opening;
             // 
@@ -1119,16 +1131,16 @@ namespace WinAGI.Editor {
             lstCoords.Name = "lstCoords";
             lstCoords.ShowGroups = false;
             lstCoords.ShowItemToolTips = true;
-            lstCoords.Size = new System.Drawing.Size(132, 70);
+            lstCoords.Size = new System.Drawing.Size(132, 56);
             lstCoords.TabIndex = 0;
             lstCoords.UseCompatibleStateImageBehavior = false;
             lstCoords.View = View.Details;
+            lstCoords.SizeChanged += lstCoords_SizeChanged;
             lstCoords.KeyPress += lstCoords_KeyPress;
             lstCoords.KeyUp += lstCoords_KeyUp;
             lstCoords.MouseClick += lstCoords_MouseClick;
             lstCoords.MouseDoubleClick += lstCoords_MouseDoubleClick;
             lstCoords.MouseUp += lstCoords_MouseUp;
-            lstCoords.SizeChanged += lstCoords_SizeChanged;
             // 
             // CoordColumnHeader
             // 
@@ -1235,7 +1247,7 @@ namespace WinAGI.Editor {
             // hsbPriority
             // 
             hsbPriority.Anchor = AnchorStyles.Left;
-            hsbPriority.Location = new System.Drawing.Point(0, 110);
+            hsbPriority.Location = new System.Drawing.Point(0, 96);
             hsbPriority.Minimum = -5;
             hsbPriority.Name = "hsbPriority";
             hsbPriority.Size = new System.Drawing.Size(176, 16);
@@ -1406,6 +1418,7 @@ namespace WinAGI.Editor {
         private ToolStripMenuItem tsbEllipse;
         private ToolStripMenuItem tsbFill;
         private ToolStripMenuItem tsbPlot;
+        private ToolStripMenuItem tsbDither;
         private PictureBox picPalette;
         private SplitContainer splitForm;
         private SplitContainer splitImages;

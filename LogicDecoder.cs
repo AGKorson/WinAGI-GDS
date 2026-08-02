@@ -105,7 +105,7 @@ namespace WinAGI.Engine {
         private static bool sierraSyntax = false;
         private static DecodeDefineList sierradefs = null;
         private static string sysdeffile = "", gamedeffile = "";
-        public static bool nestedsysdefs = false;
+        private static bool nestedsysdefs = false;
         private static bool wordstokLoaded = false;
         private static bool decompAll = false;
         private static bool hasgamedefs = false;

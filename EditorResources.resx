@@ -2278,4 +2278,7 @@
   <data name="2109" xml:space="preserve">
     <value>Move Rows</value>
   </data>
+  <data name="EPC_DITHER" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\EPC_Dither.cur;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

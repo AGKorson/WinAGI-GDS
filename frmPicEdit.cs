@@ -76,6 +76,7 @@ namespace WinAGI.Editor {
             Trapezoid = 8,   // for drawing trapezoids
             Ellipse = 9,     // for drawing ellipses
             SelectArea = 10, // for selecting bitmap areas of the Image
+            Dither = 11,     // for dithering bitmap areas of the Image
         }
 
         /// <summary>
@@ -100,6 +101,7 @@ namespace WinAGI.Editor {
             Select,
             DragSurface,
             SelectImage,
+            Dither,
         }
 
         /// <summary>
@@ -127,6 +129,11 @@ namespace WinAGI.Editor {
             Print,
             PrintAt,
             Display,
+        }
+
+        public enum DiagonalDirection {
+            Slash,
+            Backslash
         }
         #endregion
 
@@ -218,6 +225,21 @@ namespace WinAGI.Editor {
                 SelectedCoordIndex = -1;
             }
         }
+
+        public readonly record struct Segment(
+            Point Start,
+            Point End,
+            DiagonalDirection Direction) {
+            // All segments produced by this algorithm are guaranteed to be
+            // 45-degree diagonals, so Abs(deltaX) == Abs(deltaY).
+            // Therefore the number of pixels in the segment is Abs(deltaX) + 1.
+            public int Length =>
+                            Math.Abs(End.X - Start.X) + 1;
+        }
+        
+        private readonly record struct DitherRegion(
+           bool[,] Mask,
+           Point Offset);
         #endregion
 
         #region Fields
@@ -1249,6 +1271,12 @@ namespace WinAGI.Editor {
                 case Ellipse:
                     // delete this command, and next three commands
                     DeleteCommands(NextUndo.CmdIndex + 3, 4, true);
+                    // force update
+                    SelectCommand(NextUndo.CmdIndex, 1, false);
+                    break;
+                case Dither:
+                    // delete the added dither lines
+                    DeleteCommands(NextUndo.CmdIndex + NextUndo.CmdCount - 1, NextUndo.CmdCount, true);
                     // force update
                     SelectCommand(NextUndo.CmdIndex, 1, false);
                     break;
@@ -2470,6 +2498,10 @@ namespace WinAGI.Editor {
             SelectTool(PicToolType.Plot);
         }
 
+        private void tsbDither_Click(object sender, EventArgs e) {
+            SelectTool(PicToolType.Dither);
+        }
+
         private void tsbPlotStyle_Click(object sender, EventArgs e) {
             tsbPlotStyle.Image = ((ToolStripMenuItem)sender).Image;
             UpdatePlotPen((byte)((int)((ToolStripMenuItem)sender).Tag + SelectedCmd.Pen.PlotSize));
@@ -2700,6 +2732,9 @@ namespace WinAGI.Editor {
                     }
                     // redraw
                     DrawPicture();
+                    break;
+                case PicToolType.Dither:
+                    AddDither(PicPt);
                     break;
                 case PicToolType.Plot:
                     // need to bound the x value (AGI has a bug which actually allows
@@ -5538,7 +5573,7 @@ namespace WinAGI.Editor {
         /// <param name="y"></param>
         /// <param name="priBase"></param>
         /// <returns></returns>
-        private byte GetPriBand(byte y, byte priBase = 48) {
+        private static byte GetPriBand(byte y, byte priBase = 48) {
             if (y < priBase) {
                 return 4;
             }
@@ -5599,6 +5634,10 @@ namespace WinAGI.Editor {
                 msCursor = new(EditorResources.EPC_EDITSEL);
                 picVisual.Cursor = picPriority.Cursor = new Cursor(msCursor);
                 break;
+            case PicCursor.Dither:
+                msCursor = new(EditorResources.EPC_DITHER);
+                picVisual.Cursor = picPriority.Cursor = new Cursor(msCursor);
+                break;
             }
         }
 
@@ -5646,6 +5685,7 @@ namespace WinAGI.Editor {
                         case PicToolType.Rectangle:
                         case PicToolType.Trapezoid:
                         case PicToolType.Ellipse:
+                        case PicToolType.Dither:
                             if (PicDrawMode == PicDrawOp.None) {
                                 EditPicture.DrawPos = SelectedCmd.Position;
                             }
@@ -6441,7 +6481,339 @@ namespace WinAGI.Editor {
             // change pen byte
             EditPicture.Data[pos] = NewPenData;
             EditPicture.ForceRefresh();
+        }
 
+        private void AddDither(Point start) {
+            // dithering is accomplished by drawing diagonals across the image in the current color
+            // if both pens are disabled, nothing happens
+            // if vis pen is active, OR both pens active, use visual screen to determine bounds of
+            // dithered area; if only pri pen is active, use priority screen to determine bounds of dithered area
+
+            if (SelectedCmd.Pen.VisColor == AGIColorIndex.None && SelectedCmd.Pen.PriColor == AGIColorIndex.None) {
+                return;
+            }
+
+            // build mask that contains the area to be dithered
+            DitherRegion ditherRegion = GetDitherRegion(start);
+            Point localStart = new(start.X - ditherRegion.Offset.X, start.Y - ditherRegion.Offset.Y);
+            bool[,] selected = BuildCheckerboardMask(ditherRegion.Mask, localStart);
+
+            List<Segment> candidates = [];
+            candidates.AddRange(ExtractSlashSegments(selected));
+            candidates.AddRange(ExtractBackslashSegments(selected));
+
+            List<Segment> lines = GreedyCoverWithoutOverlap(selected, candidates);
+            int insertIndex = SelectedCmd.Index;
+            PictureUndo NextUndo = new() {
+                Action = Dither,
+                CmdIndex = insertIndex,
+                CmdCount = lines.Count,
+                Data = []
+            };
+            foreach (Segment line in lines) {
+                Point startPoint = new(line.Start.X + ditherRegion.Offset.X, line.Start.Y + ditherRegion.Offset.Y);
+                Point endPoint = new(line.End.X + ditherRegion.Offset.X, line.End.Y + ditherRegion.Offset.Y);
+                byte[] bytData =
+                [
+                    (byte)AbsLine,
+                    (byte)startPoint.X,
+                    (byte)startPoint.Y,
+                    (byte)endPoint.X,
+                    (byte)endPoint.Y,
+                ];
+                // add command (but don't include undo- they will all be added at the end)
+                InsertCommand(bytData, insertIndex++, true);
+            }
+            // select the new command
+            SelectCommand(insertIndex, 1, true);
+            // add the undo
+            AddUndo(NextUndo);
+
+            DitherRegion GetDitherRegion(Point start) {
+                const int imageHeight = 168;
+                const int imageWidth = 160;
+                bool useVis = SelectedCmd.Pen.VisColor != AGIColorIndex.None;
+                AGIColorIndex targetColor = useVis ? EditPicture.VisPixelColor((byte)start.X, (byte)start.Y) :
+                    EditPicture.PriPixelColor((byte)start.X, (byte)start.Y);
+
+                bool[,] visited = new bool[imageWidth, imageHeight];
+                Queue<Point> queue = new();
+                List<Point> pixels = new();
+
+                queue.Enqueue(start);
+                visited[start.X, start.Y] = true;
+                int minX = start.X;
+                int maxX = start.X;
+                int minY = start.Y;
+                int maxY = start.Y;
+
+                int[] dx = { 1, -1, 0, 0 };
+                int[] dy = { 0, 0, 1, -1 };
+
+                while (queue.Count > 0) {
+                    Point p = queue.Dequeue();
+                    pixels.Add(p);
+                    minX = Math.Min(minX, p.X);
+                    maxX = Math.Max(maxX, p.X);
+                    minY = Math.Min(minY, p.Y);
+                    maxY = Math.Max(maxY, p.Y);
+
+                    for (int i = 0; i < 4; i++) {
+                        int nx = p.X + dx[i];
+                        int ny = p.Y + dy[i];
+                        // skip if outside bounds
+                        if (nx < 0 || nx >= imageWidth ||
+                            ny < 0 || ny >= imageHeight) {
+                            continue;
+                        }
+                        // skip if already visited
+                        if (visited[nx, ny]) {
+                            continue;
+                        }
+                        // skip if color does not match target color
+                        if ((useVis ? EditPicture.VisPixelColor((byte)nx, (byte)ny) : EditPicture.PriPixelColor((byte)nx, (byte)ny)) != targetColor) {
+                            continue;
+                        }
+                        visited[nx, ny] = true;
+                        queue.Enqueue(new Point(nx, ny));
+                    }
+                }
+                int cropWidth = maxX - minX + 1;
+                int cropHeight = maxY - minY + 1;
+                bool[,] mask = new bool[cropWidth, cropHeight];
+                foreach (Point p in pixels) {
+                    int localX = p.X - minX;
+                    int localY = p.Y - minY;
+                    mask[localX, localY] = true;
+                }
+
+                return new DitherRegion(mask, new Point(minX, minY));
+            }
+
+            static bool[,] BuildCheckerboardMask(bool[,] region, Point start) {
+                int w = region.GetLength(0);
+                int h = region.GetLength(1);
+
+                bool[,] selected = new bool[w, h];
+
+                int parity = (start.X + start.Y) & 1;
+
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        selected[x, y] =
+                            region[x, y] &&
+                            (((x + y) & 1) == parity);
+                    }
+                }
+                return selected;
+            }
+
+            static List<Segment> ExtractBackslashSegments(bool[,] selected) {
+                int w = selected.GetLength(0);
+                int h = selected.GetLength(1);
+
+                List<Segment> segments = [];
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        if (!selected[x, y])
+                            continue;
+
+                        bool hasPredecessor =
+                            x > 0 &&
+                            y > 0 &&
+                            selected[x - 1, y - 1];
+
+                        if (hasPredecessor)
+                            continue;
+
+                        int endX = x;
+                        int endY = y;
+
+                        while (true) {
+                            int nextX = endX + 1;
+                            int nextY = endY + 1;
+                            if (nextX >= w || nextY >= h || !selected[nextX, nextY]) {
+                                break;
+                            }
+                            endX = nextX;
+                            endY = nextY;
+                        }
+
+                        segments.Add(new Segment(
+                            new Point(x, y),
+                            new Point(endX, endY),
+                            DiagonalDirection.Backslash
+                        ));
+                    }
+                }
+
+                return segments;
+            }
+
+            static List<Segment> ExtractSlashSegments(bool[,] selected) {
+                int w = selected.GetLength(0);
+                int h = selected.GetLength(1);
+
+                List<Segment> segments = [];
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        if (!selected[x, y]) {
+                            continue;
+                        }
+                        bool hasPredecessor =
+                            x > 0 &&
+                            y < h - 1 &&
+                            selected[x - 1, y + 1];
+                        if (hasPredecessor) {
+                            continue;
+                        }
+                        int endX = x;
+                        int endY = y;
+
+                        while (true) {
+                            int nextX = endX + 1;
+                            int nextY = endY - 1;
+                            if (nextX >= w || nextY < 0 || !selected[nextX, nextY]) {
+                                break;
+                            }
+                            endX = nextX;
+                            endY = nextY;
+                        }
+                        segments.Add(new Segment (
+                            new Point(x, y),
+                            new Point(endX, endY),
+                            DiagonalDirection.Slash
+                        ));
+                    }
+                }
+                return segments;
+            }
+
+            List<Segment> GreedyCoverWithoutOverlap(bool[,] selected, List<Segment> candidates) {
+                int w = selected.GetLength(0);
+                int h = selected.GetLength(1);
+
+                bool[,] covered = new bool[w, h];
+
+                int targetPixelCount = CountSelectedPixels(selected);
+                int coveredCount = 0;
+
+                List<Segment> result = [];
+
+                while (coveredCount < targetPixelCount) {
+                    Segment? best = null;
+
+                    foreach (Segment candidate in candidates) {
+                        Segment? bestUncoveredRun =
+                            GetLongestUncoveredSubsegment(candidate, covered);
+
+                        if (bestUncoveredRun is null) {
+                            continue;
+                        }
+
+                        if (best is null ||
+                            bestUncoveredRun.Value.Length > best.Value.Length) {
+                            best = bestUncoveredRun;
+                        }
+                    }
+
+                    if (best is null) {
+                        // Should not happen if candidates were generated correctly,
+                        // but prevents an infinite loop if something is wrong.
+                        break;
+                    }
+                    Segment chosen = best.Value;
+                    result.Add(chosen);
+
+                    foreach (Point p in EnumeratePixels(chosen)) {
+                        if (!covered[p.X, p.Y]) {
+                            covered[p.X, p.Y] = true;
+                            coveredCount++;
+                        }
+                    }
+                }
+                return result;
+            }
+            
+            static Segment? GetLongestUncoveredSubsegment(
+                Segment segment,
+                bool[,] covered) {
+                Point? currentStart = null;
+                Point? currentEnd = null;
+                Point? bestStart = null;
+                Point? bestEnd = null;
+                int bestLength = 0;
+                int currentLength = 0;
+
+                foreach (Point p in EnumeratePixels(segment)) {
+                    if (!covered[p.X, p.Y]) {
+                        if (currentStart is null) {
+                            currentStart = p;
+                            currentLength = 0;
+                        }
+                        currentEnd = p;
+                        currentLength++;
+                    }
+                    else {
+                        if (currentLength > bestLength) {
+                            bestStart = currentStart;
+                            bestEnd = currentEnd;
+                            bestLength = currentLength;
+                        }
+                        currentStart = null;
+                        currentEnd = null;
+                        currentLength = 0;
+                    }
+                }
+
+                if (currentLength > bestLength) {
+                    bestStart = currentStart;
+                    bestEnd = currentEnd;
+                    bestLength = currentLength;
+                }
+
+                if (bestStart is null || bestEnd is null) {
+                    return null;
+                }
+
+                return new Segment (bestStart.Value, bestEnd.Value, segment.Direction);
+            }
+            
+            static IEnumerable<Point> EnumeratePixels(Segment segment) {
+                int dx = Math.Sign(segment.End.X - segment.Start.X);
+                int dy = Math.Sign(segment.End.Y - segment.Start.Y);
+
+                int x = segment.Start.X;
+                int y = segment.Start.Y;
+
+                while (true) {
+                    yield return new Point(x, y);
+
+                    if (x == segment.End.X &&
+                        y == segment.End.Y) {
+                        break;
+                    }
+
+                    x += dx;
+                    y += dy;
+                }
+            }
+            
+            static int CountSelectedPixels(bool[,] selected) {
+                int w = selected.GetLength(0);
+                int h = selected.GetLength(1);
+
+                int count = 0;
+
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        if (selected[x, y]) {
+                            count++;
+                        }
+                    }
+                }
+                return count;
+            }
         }
 
         /// <summary>
@@ -6731,7 +7103,7 @@ namespace WinAGI.Editor {
         /// <param name="X"></param>
         /// <param name="Y"></param>
         /// <returns></returns>
-        public string CoordText(byte X, byte Y) {
+        public static string CoordText(byte X, byte Y) {
             return "(" + X + ", " + Y + ")";
         }
 
@@ -6741,7 +7113,7 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <param name="pos"></param>
         /// <returns></returns>
-        public string CoordText(Point pos) {
+        public static string CoordText(Point pos) {
             // this function creates the coordinate text in the form
             //     (X, Y)
             return "(" + pos.X + ", " + pos.Y + ")";
@@ -7481,20 +7853,19 @@ namespace WinAGI.Editor {
         /// </summary>
         /// <returns></returns>
         private bool ConfigureBackground() {
-            using (frmConfigureBackground frm = new(this)) {
-                if (frm.DialogResult == DialogResult.Cancel) {
-                    return false;
-                }
-                if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                    return false;
-                }
-                BkgdImage = frm.BkgdImage;
-                EditPicture.BackgroundSettings = frm.bkgdSettings;
-                if (InGame) {
-                    // copy properties back to actual picture resource
-                    EditGame.Pictures[PictureNumber].BackgroundSettings = frm.bkgdSettings;
-                    EditGame.Pictures[PictureNumber].SaveProps();
-                }
+            using frmConfigureBackground frm = new(this);
+            if (frm.DialogResult == DialogResult.Cancel) {
+                return false;
+            }
+            if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                return false;
+            }
+            BkgdImage = frm.BkgdImage;
+            EditPicture.BackgroundSettings = frm.bkgdSettings;
+            if (InGame) {
+                // copy properties back to actual picture resource
+                EditGame.Pictures[PictureNumber].BackgroundSettings = frm.bkgdSettings;
+                EditGame.Pictures[PictureNumber].SaveProps();
             }
             return true;
         }
@@ -7799,6 +8170,7 @@ namespace WinAGI.Editor {
             switch (newtool) {
             case PicToolType.SelectArea:
                 tsbTool.Image = tsbImageSelect.Image;
+                tsbTool.ToolTipText = tsbImageSelect.ToolTipText;
                 SetCursors(PicCursor.SelectImage);
                 if (previoustool != PicToolType.Edit) {
                     // changing FROM draw tool to Select Area tool
@@ -7815,6 +8187,7 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.Edit:
                 tsbTool.Image = tsbEditTool.Image;
+                tsbTool.ToolTipText = tsbEditTool.ToolTipText;
                 SetCursors(PicCursor.Default);
                 if (previoustool != PicToolType.SelectArea) {
                     // changing FROM draw tool to edit tool
@@ -7831,6 +8204,7 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.Line:
                 tsbTool.Image = tsbLine.Image;
+                tsbTool.ToolTipText = tsbLine.ToolTipText;
                 SetCursors(PicCursor.Select);
                 if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
                     // changing TO a draw tool from edit tool
@@ -7839,6 +8213,7 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.ShortLine:
                 tsbTool.Image = tsbShortLine.Image;
+                tsbTool.ToolTipText = tsbShortLine.ToolTipText;
                 SetCursors(PicCursor.Select);
                 if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
                     // changing TO a draw tool from edit tool
@@ -7847,6 +8222,7 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.StepLine:
                 tsbTool.Image = tsbStepLine.Image;
+                tsbTool.ToolTipText = tsbStepLine.ToolTipText;
                 SetCursors(PicCursor.Select);
                 if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
                     // changing TO a draw tool from edit tool
@@ -7855,6 +8231,7 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.Rectangle:
                 tsbTool.Image = tsbRectangle.Image;
+                tsbTool.ToolTipText = tsbRectangle.ToolTipText;
                 SetCursors(PicCursor.Select);
                 if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
                     // changing TO a draw tool from edit tool
@@ -7863,6 +8240,7 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.Trapezoid:
                 tsbTool.Image = tsbTrapezoid.Image;
+                tsbTool.ToolTipText = tsbTrapezoid.ToolTipText;
                 SetCursors(PicCursor.Select);
                 if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
                     // changing TO a draw tool from edit tool
@@ -7871,6 +8249,7 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.Ellipse:
                 tsbTool.Image = tsbEllipse.Image;
+                tsbTool.ToolTipText = tsbEllipse.ToolTipText;
                 SetCursors(PicCursor.Select);
                 if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
                     // changing TO a draw tool from edit tool
@@ -7879,6 +8258,7 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.Fill:
                 tsbTool.Image = tsbFill.Image;
+                tsbTool.ToolTipText = tsbFill.ToolTipText;
                 SetCursors(PicCursor.Paint);
                 if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
                     // changing TO a draw tool from edit tool
@@ -7887,7 +8267,17 @@ namespace WinAGI.Editor {
                 break;
             case PicToolType.Plot:
                 tsbTool.Image = tsbPlot.Image;
+                tsbTool.ToolTipText = tsbPlot.ToolTipText;
                 SetCursors(PicCursor.Brush);
+                if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
+                    // changing TO a draw tool from edit tool
+                    SelectCommand(SelectedCmd.Index - SelectedCmdCount + 1, 1, true);
+                }
+                break;
+            case PicToolType.Dither:
+                tsbTool.Image = tsbDither.Image;
+                tsbTool.ToolTipText = tsbDither.ToolTipText;
+                SetCursors(PicCursor.Dither);
                 if (previoustool == PicToolType.Edit || previoustool == PicToolType.SelectArea) {
                     // changing TO a draw tool from edit tool
                     SelectCommand(SelectedCmd.Index - SelectedCmdCount + 1, 1, true);
@@ -8999,7 +9389,8 @@ namespace WinAGI.Editor {
 
         /// <summary>
         /// Deletes the specified commands from the picture resource and updates
-        /// the draw surfaces.
+        /// the draw surfaces. NOTE that it takes the ENDING command and a count, not
+        /// the STARTING command.
         /// </summary>
         /// <param name="endcmdindex"></param>
         /// <param name="cmdcount"></param>
@@ -9041,6 +9432,15 @@ namespace WinAGI.Editor {
                 lstCommands.Items.RemoveAt(endcmdindex - cmdcount + 1);
             }
             lstCommands.EndUpdate();
+            // TODO: there is some kind of layout bug in ListView control that causes the list to not
+            // update properly if, after deleting, the items in the list no longer need a scrollbar;
+            // unable to track it down completely, but forcing the Scrollable property to false and
+            // then back to true seems to fix the problem. Need to do more work to find out what is
+            // causing it, and if it's an actual bug in the control or if it's something I'm doing
+            // wrong. For now, this is a workaround.
+            lstCommands.Scrollable = false;
+            lstCommands.Scrollable = true;
+            lstCommands.Invalidate();
         }
 
         /// <summary>
