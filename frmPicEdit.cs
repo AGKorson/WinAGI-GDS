@@ -5873,27 +5873,7 @@ namespace WinAGI.Editor {
             retval.Position = (int)lstCommands.Items[index].Tag;
             retval.Type = (DrawFunction)EditPicture.Data[retval.Position];
 
-            switch (retval.Type) {
-            case EnableVis:
-            case EnablePri:
-            case DisableVis:
-            case DisablePri:
-            case ChangePen:
-                if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
-                    // use next position so the pen shows the status of the
-                    // selected command for pen/brush commands
-                    retval.Pen = EditPicture.GetPenStatus(retval.Position + 1);
-                }
-                else {
-                    retval.Pen = EditPicture.GetPenStatus(retval.Position);
-                }
-                break;
-            default:
-                // current pen is always determined from the current position
-                // for non-pen/brush commands
-                retval.Pen = EditPicture.GetPenStatus(retval.Position);
-                break;
-            }
+            retval.Pen = EditPicture.GetPenStatus(retval.Position);
 
             // get parameters for the command
             int pos = retval.Position + 1;
@@ -6088,32 +6068,30 @@ namespace WinAGI.Editor {
         /// <param name="newpendata"></param>
         /// <param name="Force"></param>
         private void UpdatePlotPen(byte newpendata) {
-            //  if tool is edit or select area:
-            //      if no intervening draw commands, edit the existing cmd or prior
-            //      or following, otherwise insert a new cmd
-            //  if tool is anything else:
-            //      if no intervening draw commands, edit only prior (not current or
-            //      following), otherwise insert a new cmd
-
-            //  if a new cmd is added, select next cmd
-            //  if cmd is edited and tool is edit or select area, select the edited
-            //  cmd; if tool is anything else, select original cmd
+            //  if pen setting isn't changing
+            //      do nothing
+            //  if editing AND selected cmd is plotpen setting
+            //     edit selected cmd
+            //  otherwise
+            //     if previous command is plotpen setting
+            //        edit previous command
+            //     otherwise
+            //        add new command
             byte currentpendata = SelectedCmd.Pen.PlotData;
-            PlotStyle newstyle = (PlotStyle)(newpendata / 0x20);
-            int selectedindex = SelectedCmd.Index;
 
             if (currentpendata != newpendata) {
+                PlotStyle newstyle = (PlotStyle)(newpendata / 0x20);
+                int selectedindex = SelectedCmd.Index;
                 int PenCmdIndex = -1;
-                // if command is a change plot pen command, or if a command nearby is
-                // a change plot pen command with no intervening draw commands, use that
-                // command as the vis pen command
-                // check here first
-                int checkindex = SelectedCmd.Index - 1;
+                // if selected command is a change plot pen command, AND current tool is edit
                 if (SelectedCmd.Type == ChangePen &&
                     (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea)) {
+                    // change selected command
                     PenCmdIndex = SelectedCmd.Index;
                 }
                 else {
+                    // not editing selected command; check preceding commands
+                    int checkindex = SelectedCmd.Index - 1;
                     // then check above
                     while (checkindex >= 0) {
                         switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
@@ -6132,35 +6110,12 @@ namespace WinAGI.Editor {
                         }
                         checkindex--;
                     }
-                    if (PenCmdIndex == -1 && SelectedCmd.IsPen) {
-                        if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
-                            // not found above and selected cmd is not a draw cmd
-                            // so check below
-                            checkindex = SelectedCmd.Index + 1;
-                            while (checkindex < lstCommands.Items.Count) {
-                                switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
-                                case ChangePen:
-                                    PenCmdIndex = checkindex;
-                                    checkindex = lstCommands.Items.Count;
-                                    break;
-                                case EnableVis:
-                                case DisableVis:
-                                case EnablePri:
-                                case DisablePri:
-                                    break;
-                                default:
-                                    checkindex = lstCommands.Items.Count;
-                                    break;
-                                }
-                                checkindex++;
-                            }
-                        }
-                    }
                 }
+                // before inserting or editing, update following plot commands if
+                // splatter style has changed
                 if (SelectedCmd.Pen.PlotStyle != newstyle) {
-                    // adjust plot commands
-                    // if not plotcmd found to adjust, use selectedindex; if a plotcmd
-                    // was found use cmd following it
+                    // adjust plot commands (if not chg plot cmd found to adjust, use selectedindex;
+                    // if a chg plot cmd was found use cmd following it)
                     int idx;
                     if (PenCmdIndex == -1) {
                         idx = SelectedCmd.Index;
@@ -6170,6 +6125,7 @@ namespace WinAGI.Editor {
                     }
                     ReadjustPlotCoordinates(idx, newstyle);
                 }
+                // if not editing current or previous command, insert a new command
                 if (PenCmdIndex == -1) {
                     InsertCommand([(byte)ChangePen, newpendata], SelectedCmd.Index);
                     SelectCommand(selectedindex + 1, 1, true);
@@ -6177,12 +6133,7 @@ namespace WinAGI.Editor {
                 else {
                     // update existing pen command
                     ChangePenSettings(PenCmdIndex, newpendata);
-                    if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
-                        SelectCommand(PenCmdIndex, 1, true);
-                    }
-                    else {
-                        SelectCommand(selectedindex, 1, true);
-                    }
+                    SelectCommand(selectedindex, 1, true);
                 }
             }
         }
@@ -6193,33 +6144,35 @@ namespace WinAGI.Editor {
         /// at the current position, or adding a new visual pen command.
         /// </summary>
         /// <param name="newcolor"></param>
-        /// <param name="Force"></param>
-        private void UpdateVisPen(AGIColorIndex newcolor, bool Force) {
-            //  if tool is edit or select area:
-            //      if no intervening draw commands, edit the existing cmd or prior
-            //      or following, otherwise insert a new cmd
-            //  if tool is anything else:
-            //      if no intervening draw commands, edit only prior (not current or
-            //      following), otherwise insert a new cmd
-            //  if a new cmd is added, select next cmd
-            //  if cmd is edited and tool is edit or select area, select the edited
-            //  cmd; if tool is anything else, select original cmd
-            int selectedindex = SelectedCmd.Index;
+        /// <param name="force"></param>
+        private void UpdateVisPen(AGIColorIndex newcolor, bool force) {
+            //  if not forcing AND pen setting isn't changing
+            //      do nothing
+            //  if forcing
+            //     add new command
+            //  otherwise
+            //     if editing AND selected cmd is vispen setting
+            //        edit selected cmd
+            //     otherwise
+            //        if previous command is vispen setting
+            //           edit previous command
+            //        otherwise
+            //           add new command
 
-            if (SelectedCmd.Pen.VisColor != newcolor || Force) {
+            if (SelectedCmd.Pen.VisColor != newcolor || force) {
+                int selectedindex = SelectedCmd.Index;
                 int VisCmdIndex = -1;
-                if (!Force) {
-                    // if command is a vis pen command, or if a command nearby is
-                    // a vis pen command with no intervening draw commands, use that
-                    // command as the vis pen command
-                    // check here first
-                    int checkindex = SelectedCmd.Index - 1;
+
+                if (!force) {
+                    // if selected command is a vis pen command, AND current tool is edit
                     if ((SelectedCmd.Type == EnableVis || SelectedCmd.Type == DisableVis) &&
                         (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea)) {
+                        // change selected command
                         VisCmdIndex = SelectedCmd.Index;
                     }
                     else {
-                        // then check above
+                        // not editing selected command; check preceding commands
+                        int checkindex = SelectedCmd.Index - 1;
                         while (checkindex >= 0) {
                             switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
                             case EnableVis:
@@ -6237,33 +6190,10 @@ namespace WinAGI.Editor {
                             }
                             checkindex--;
                         }
-                        if (VisCmdIndex == -1 && SelectedCmd.IsPen) {
-                            if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
-                                // not found above and selected cmd is not a draw cmd
-                                // so check below
-                                checkindex = SelectedCmd.Index + 1;
-                                while (checkindex < lstCommands.Items.Count) {
-                                    switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
-                                    case EnableVis:
-                                    case DisableVis:
-                                        VisCmdIndex = checkindex;
-                                        checkindex = lstCommands.Items.Count;
-                                        break;
-                                    case EnablePri:
-                                    case DisablePri:
-                                    case ChangePen:
-                                        break;
-                                    default:
-                                        checkindex = lstCommands.Items.Count;
-                                        break;
-                                    }
-                                    checkindex++;
-                                }
-                            }
-                        }
                     }
                 }
-                if (VisCmdIndex == -1 || Force) {
+                // if not editing current or previous command, insert a new command
+                if (VisCmdIndex == -1 || force) {
                     // if pen is being turned off
                     if (newcolor == AGIColorIndex.None) {
                         // insert a visual disable cmd
@@ -6278,12 +6208,7 @@ namespace WinAGI.Editor {
                 else {
                     // update existing vis cmd
                     ChangePenColor(VisCmdIndex, newcolor);
-                    if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
-                        SelectCommand(VisCmdIndex, 1, true);
-                    }
-                    else {
-                        SelectCommand(selectedindex + 1, 1, true);
-                    }
+                    SelectCommand(selectedindex, 1, true);
                 }
                 picPalette.Invalidate();
             }
@@ -6295,34 +6220,35 @@ namespace WinAGI.Editor {
         /// at the current position, or adding a new priority pen command.
         /// </summary>
         /// <param name="newcolor"></param>
-        /// <param name="Force"></param>
-        private void UpdatePriPen(AGIColorIndex newcolor, bool Force) {
-            //  if tool is edit or select area:
-            //      if no intervening draw commands, edit the existing cmd or prior
-            //      or following, otherwise insert a new cmd
-            //  if tool is anything else:
-            //      if no intervening draw commands, edit only prior (not current or
-            //      following), otherwise insert a new cmd
-            //  if a new cmd is added, select next cmd
-            //  if cmd is edited and tool is edit or select area, select the edited
-            //  cmd; if tool is anything else, select original cmd
+        /// <param name="force"></param>
+        private void UpdatePriPen(AGIColorIndex newcolor, bool force) {
+            //  if not forcing AND pen setting isn't changing
+            //      do nothing
+            //  if forcing
+            //     add new command
+            //  otherwise
+            //     if editing AND selected cmd is vispen setting
+            //        edit selected cmd
+            //     otherwise
+            //        if previous command is vispen setting
+            //           edit previous command
+            //        otherwise
+            //           add new command
 
-            int selectedindex = SelectedCmd.Index;
-
-            if (SelectedCmd.Pen.PriColor != newcolor || Force) {
+            if (SelectedCmd.Pen.PriColor != newcolor || force) {
+                int selectedindex = SelectedCmd.Index;
                 int PriCmdIndex = -1;
-                if (!Force) {
-                    // if command is a pri pen command, or if a command nearby is
-                    // a pri pen command with no intervening draw commands, use that
-                    // command as the pri pen command
-                    // check here first
-                    int checkindex = SelectedCmd.Index - 1;
+
+                if (!force) {
+                    // if selected command is a pri pen command, AND current tool is edit
                     if (SelectedCmd.Type == EnablePri || SelectedCmd.Type == DisablePri &&
                         (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea)) {
+                        // change selected command
                         PriCmdIndex = SelectedCmd.Index;
                     }
                     else {
-                        // then check above
+                        // not editing selected command; check preceding commands
+                        int checkindex = SelectedCmd.Index - 1;
                         while (checkindex >= 0) {
                             switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
                             case EnablePri:
@@ -6340,33 +6266,10 @@ namespace WinAGI.Editor {
                             }
                             checkindex--;
                         }
-                        if (PriCmdIndex == -1 && SelectedCmd.IsPen) {
-                            if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
-                                // not found above and selected cmd is not a draw cmd
-                                // so check below
-                                checkindex = SelectedCmd.Index + 1;
-                                while (checkindex < lstCommands.Items.Count) {
-                                    switch ((DrawFunction)EditPicture.Data[(int)lstCommands.Items[checkindex].Tag]) {
-                                    case EnablePri:
-                                    case DisablePri:
-                                        PriCmdIndex = checkindex;
-                                        checkindex = lstCommands.Items.Count;
-                                        break;
-                                    case EnableVis:
-                                    case DisableVis:
-                                    case ChangePen:
-                                        break;
-                                    default:
-                                        checkindex = lstCommands.Items.Count;
-                                        break;
-                                    }
-                                    checkindex++;
-                                }
-                            }
-                        }
                     }
                 }
-                if (PriCmdIndex == -1 || Force) {
+                // if not editing current or previous command, insert a new command
+                if (PriCmdIndex == -1 || force) {
                     // if pen is being turned off
                     if (newcolor == AGIColorIndex.None) {
                         // insert a priority disable cmd
@@ -6381,13 +6284,9 @@ namespace WinAGI.Editor {
                 else {
                     // update existing pri cmd
                     ChangePenColor(PriCmdIndex, newcolor);
-                    if (SelectedTool == PicToolType.Edit || SelectedTool == PicToolType.SelectArea) {
-                        SelectCommand(PriCmdIndex, 1, true);
-                    }
-                    else {
-                        SelectCommand(selectedindex + 1, 1, true);
-                    }
+                    SelectCommand(selectedindex, 1, true);
                 }
+                picPalette.Invalidate();
             }
         }
 
@@ -6518,8 +6417,7 @@ namespace WinAGI.Editor {
                     (byte)AbsLine,
                     (byte)startPoint.X,
                     (byte)startPoint.Y,
-                    (byte)endPoint.X,
-                    (byte)endPoint.Y,
+                    ..startPoint == endPoint ? Array.Empty<byte>() : [(byte)endPoint.X, (byte)endPoint.Y]
                 ];
                 // add command (but don't include undo- they will all be added at the end)
                 InsertCommand(bytData, insertIndex++, true);
