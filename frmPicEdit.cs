@@ -3627,6 +3627,14 @@ namespace WinAGI.Editor {
             lstCommands.Columns[0].Width = lstCommands.ClientSize.Width;
             lstCommands.EndUpdate();
             lstCommands.Refresh();
+            // TODO: see comment on items disappearing in the DeleteCommands method
+            if (lstCommands.TopItem is null) {
+                Debug.Print("disappearing items bug!!!");
+                // BUG!! force scrolling to reset
+                lstCommands.Scrollable = false;
+                lstCommands.Scrollable = true;
+                lstCommands.Invalidate();
+            }
         }
 
         private void lstCommands_MouseClick(object sender, MouseEventArgs e) {
@@ -9335,10 +9343,15 @@ namespace WinAGI.Editor {
             // unable to track it down completely, but forcing the Scrollable property to false and
             // then back to true seems to fix the problem. Need to do more work to find out what is
             // causing it, and if it's an actual bug in the control or if it's something I'm doing
-            // wrong. For now, this is a workaround.
-            lstCommands.Scrollable = false;
-            lstCommands.Scrollable = true;
-            lstCommands.Invalidate();
+            // wrong. For now, this is a workaround. (this happens when removing items, or when
+            // resizing such that scrollbar is no longer needed)
+            if (lstCommands.TopItem is null) {
+                Debug.Print("disappearing items bug!!!");
+                // BUG!! force scrolling to reset
+                lstCommands.Scrollable = false;
+                lstCommands.Scrollable = true;
+                lstCommands.Invalidate();
+            }
         }
 
         /// <summary>
