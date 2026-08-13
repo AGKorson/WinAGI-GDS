@@ -863,7 +863,7 @@ namespace WinAGI.Editor {
                 err = EditGame.Logics[SelResNum].SourceError == ResourceErrorType.LogicSourceAccessError;
                 mnuRSep3.Visible = !EditGame.Logics[SelResNum].Compiled;
                 mnuRCompileLogic.Visible = !EditGame.Logics[SelResNum].Compiled;
-                mnuRCompileLogic.Enabled = err;
+                mnuRCompileLogic.Enabled = !err;
                 mnuRSavePicImage.Visible = false;
                 mnuRExportGIF.Visible = false;
                 break;
