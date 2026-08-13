@@ -2594,7 +2594,7 @@ namespace WinAGI.Editor {
                 cmiDismiss.Text = "Dismiss this Resource Warning";
                 cmiDismiss.Visible = true;
                 cmiDismissRes.Text = "Dismiss all " + resname + " Warnings";
-                cmiDismissRes.Visible = true;
+                cmiDismissRes.Visible = resname.Length > 0;
                 cmiIgnoreWarning.Visible = false;
                 cmiGoWarning.Enabled = false;
                 cmiGoWarning.Text = "Goto ...";
@@ -4149,7 +4149,7 @@ namespace WinAGI.Editor {
                 var fgRow = infoGridTable.Rows[i];
                 if (fgRow.Field<string>(0) == LogicCompileWarning.ToString() ||
                     fgRow.Field<string>(0) == DecompWarning.ToString()) {
-                    byte resnum = (byte)fgRow.Field<int>(4);
+                    int resnum = fgRow.Field<int>(4);
                     if (!logics.Contains(resnum)) {
                         logics.Add(resnum);
                     }
@@ -4158,13 +4158,12 @@ namespace WinAGI.Editor {
             }
             foreach (var logic in logics) {
                 if (logic < 0) {
-                    RefreshModWarnings();
+                    RefreshModWarnings(false);
                 }
                 else {
                     RefreshLogicWarnings(logic, false);
                 }
             }
-            RefreshModWarnings(false);
             EditGame.SaveProperties();
             // refresh the warnings list
             infoGridBinding.RaiseListChangedEvents = true;

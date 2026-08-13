@@ -3284,6 +3284,6 @@ namespace WinAGI.Editor {
             mnuRSave.Enabled = false;
             MDIMain.btnSaveResource.Enabled = false;
         }
+        #endregion
     }
-    #endregion
 }
