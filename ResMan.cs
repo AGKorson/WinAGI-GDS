@@ -1461,96 +1461,97 @@ namespace WinAGI.Editor {
             string thisGameDir;
 
             // get a directory for importing
-            using frmImportProperties importprops = new();
-            if (importprops.ShowDialog(MDIMain) == DialogResult.OK) {
-                thisGameDir = MDIMain.FolderDlg.SelectedPath;
-                if (thisGameDir.Length == 0) {
-                    // user canceled
-                    return;
-                }
-
-                // if a game file exists
-                if (File.Exists(Path.Combine(thisGameDir, "*.wag"))) {
-                    // confirm the import
-                    msgText = "This directory already has a WinAGI game file. Do " +
-                        "you still want to import the game in this directory?\n\n" +
-                        "The existing WinAGI game file will be overwritten if it " +
-                        "has the same name as the GameID found in this directory's " +
-                        "AGI VOL and DIR files.";
-                    if (MessageBox.Show(MDIMain,
-                        msgText,
-                        "WinAGI Game File Already Exists",
-                        MessageBoxButtons.OKCancel,
-                        MessageBoxIcon.Question) == DialogResult.Cancel) {
+            using (frmImportProperties importprops = new()) {
+                if (importprops.ShowDialog(MDIMain) == DialogResult.OK) {
+                    thisGameDir = MDIMain.FolderDlg.SelectedPath;
+                    if (thisGameDir.Length == 0) {
+                        // user canceled
                         return;
                     }
-                }
-                // pass game info and template info
-                GameParams gameparams = new() {
-                    Mode = OpenGameMode.Directory,
-                    GameDir = thisGameDir,
-                    SrcResDirName = importprops.txtResDir.Text,
-                    SrcExt = importprops.txtSrcExt.Text,
-                    TemplateDir = "",
-                    SierraSyntax = importprops.chkSierraSyntax.Checked,
-                    CodePage = int.Parse(importprops.cmbCodePage.Text[..3]),
-                    Failed = false,
-                    Error = null,
-                    Warnings = false
-                };
-                if (!gameparams.SierraSyntax) {
-                    gameparams.IncludeGlobals = importprops.chkGlobals.Checked;
-                    gameparams.IncludeIDs = importprops.chkResourceIDs.Checked;
-                    gameparams.IncludeReserved = importprops.chkResDefs.Checked;
-                }
-                // open the game in this directory
-                if (OpenGame(gameparams)) {
-                    // reset browser start dir to this dir
-                    BrowserStartDir = thisGameDir;
-                }
-                else {
-                    // user cancelled closing of currently open game
-                    return;
-                }
-                // check for error
-                if (EditGame is null) {
-                    return;
-                }
 
-                // set default resource file directory to game source file directory
-                DefaultResDir = EditGame.SrcResDir;
+                    // if a game file exists
+                    if (File.Exists(Path.Combine(thisGameDir, "*.wag"))) {
+                        // confirm the import
+                        msgText = "This directory already has a WinAGI game file. Do " +
+                            "you still want to import the game in this directory?\n\n" +
+                            "The existing WinAGI game file will be overwritten if it " +
+                            "has the same name as the GameID found in this directory's " +
+                            "AGI VOL and DIR files.";
+                        if (MessageBox.Show(MDIMain,
+                            msgText,
+                            "WinAGI Game File Already Exists",
+                            MessageBoxButtons.OKCancel,
+                            MessageBoxIcon.Question) == DialogResult.Cancel) {
+                            return;
+                        }
+                    }
+                    // pass game info and template info
+                    GameParams gameparams = new() {
+                        Mode = OpenGameMode.Directory,
+                        GameDir = thisGameDir,
+                        SrcResDirName = importprops.txtResDir.Text,
+                        SrcExt = importprops.txtSrcExt.Text,
+                        TemplateDir = "",
+                        SierraSyntax = importprops.chkSierraSyntax.Checked,
+                        CodePage = int.Parse(importprops.cmbCodePage.Text[..3]),
+                        Failed = false,
+                        Error = null,
+                        Warnings = false
+                    };
+                    if (!gameparams.SierraSyntax) {
+                        gameparams.IncludeGlobals = importprops.chkGlobals.Checked;
+                        gameparams.IncludeIDs = importprops.chkResourceIDs.Checked;
+                        gameparams.IncludeReserved = importprops.chkResDefs.Checked;
+                    }
+                    // open the game in this directory
+                    if (OpenGame(gameparams)) {
+                        // reset browser start dir to this dir
+                        BrowserStartDir = thisGameDir;
+                    }
+                    else {
+                        // user cancelled closing of currently open game
+                        return;
+                    }
+                    // check for error
+                    if (EditGame is null) {
+                        return;
+                    }
 
-                msgText = "Game file '" + EditGame.GameID + ".wag'  has been created.\n\n";
-                if (EditGame.SrcResDirName == "") {
-                    // means resdir couldn't be created
-                    msgText += "Unable to create a resource subdirectory. " +
-                        "Logic source files and exported resources will be " +
-                        "stored in the game directory.";
-                }
-                else {
-                    msgText += "The subdirectory '" + EditGame.SrcResDirName +
-                        "' will be used to store logic source files and " +
-                        "exported resources. You can change the source directory " +
-                        "for this game on the Game Properties dialog.";
-                }
-                MessageBox.Show(MDIMain,
-                    msgText,
-                    "Import Game",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-                // does the game have an Amiga OBJECT file? (very rare)
-                if (EditGame.InvObjects.AmigaOBJ) {
-                    MDIMain.MsgBoxWithHelp(
-                        "The OBJECT file for this game is formatted " +
-                        "for the Amiga.\n\n" +
-                        "If you intend to run this game on a DOS " +
-                        "platform, you will need to convert the file " +
-                        "to DOS format (use the Convert menu option " +
-                        "on the OBJECT Editor's Resource menu)",
-                        "Amiga OBJECT File detected",
+                    // set default resource file directory to game source file directory
+                    DefaultResDir = EditGame.SrcResDir;
+
+                    msgText = "Game file '" + EditGame.GameID + ".wag'  has been created.\n\n";
+                    if (EditGame.SrcResDirName == "") {
+                        // means resdir couldn't be created
+                        msgText += "Unable to create a resource subdirectory. " +
+                            "Logic source files and exported resources will be " +
+                            "stored in the game directory.";
+                    }
+                    else {
+                        msgText += "The subdirectory '" + EditGame.SrcResDirName +
+                            "' will be used to store logic source files and " +
+                            "exported resources. You can change the source directory " +
+                            "for this game on the Game Properties dialog.";
+                    }
+                    MessageBox.Show(MDIMain,
+                        msgText,
+                        "Import Game",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Information,
-                        "htm\\object.htm#amiga");
+                        MessageBoxIcon.Information);
+                    // does the game have an Amiga OBJECT file? (very rare)
+                    if (EditGame.InvObjects.AmigaOBJ) {
+                        MDIMain.MsgBoxWithHelp(
+                            "The OBJECT file for this game is formatted " +
+                            "for the Amiga.\n\n" +
+                            "If you intend to run this game on a DOS " +
+                            "platform, you will need to convert the file " +
+                            "to DOS format (use the Convert menu option " +
+                            "on the OBJECT Editor's Resource menu)",
+                            "Amiga OBJECT File detected",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information,
+                            "htm\\object.htm#amiga");
+                    }
                 }
             }
         }
