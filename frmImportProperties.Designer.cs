@@ -38,6 +38,8 @@
             cmbCodePage = new System.Windows.Forms.ComboBox();
             chkSierraSyntax = new System.Windows.Forms.CheckBox();
             btnAdvanced = new System.Windows.Forms.Button();
+            chkUseLE = new System.Windows.Forms.CheckBox();
+            lblCodePage = new System.Windows.Forms.Label();
             SuspendLayout();
             // 
             // chkResourceIDs
@@ -155,7 +157,7 @@
             // btnCancel
             // 
             btnCancel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            btnCancel.Location = new System.Drawing.Point(283, 267);
+            btnCancel.Location = new System.Drawing.Point(283, 232);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new System.Drawing.Size(77, 34);
             btnCancel.TabIndex = 27;
@@ -165,7 +167,7 @@
             // btnOK
             // 
             btnOK.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right;
-            btnOK.Location = new System.Drawing.Point(184, 267);
+            btnOK.Location = new System.Drawing.Point(184, 232);
             btnOK.Name = "btnOK";
             btnOK.Size = new System.Drawing.Size(84, 34);
             btnOK.TabIndex = 26;
@@ -176,7 +178,7 @@
             // cmbCodePage
             // 
             cmbCodePage.FormattingEnabled = true;
-            cmbCodePage.Location = new System.Drawing.Point(12, 218);
+            cmbCodePage.Location = new System.Drawing.Point(12, 246);
             cmbCodePage.Name = "cmbCodePage";
             cmbCodePage.Size = new System.Drawing.Size(345, 23);
             cmbCodePage.TabIndex = 28;
@@ -187,7 +189,7 @@
             // chkSierraSyntax
             // 
             chkSierraSyntax.AutoSize = true;
-            chkSierraSyntax.Location = new System.Drawing.Point(12, 247);
+            chkSierraSyntax.Location = new System.Drawing.Point(12, 275);
             chkSierraSyntax.Name = "chkSierraSyntax";
             chkSierraSyntax.Size = new System.Drawing.Size(114, 19);
             chkSierraSyntax.TabIndex = 29;
@@ -200,7 +202,7 @@
             // btnAdvanced
             // 
             btnAdvanced.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            btnAdvanced.Location = new System.Drawing.Point(12, 277);
+            btnAdvanced.Location = new System.Drawing.Point(12, 242);
             btnAdvanced.Name = "btnAdvanced";
             btnAdvanced.Size = new System.Drawing.Size(84, 24);
             btnAdvanced.TabIndex = 30;
@@ -208,12 +210,37 @@
             btnAdvanced.UseVisualStyleBackColor = true;
             btnAdvanced.Click += btnAdvanced_Click;
             // 
+            // chkUseLE
+            // 
+            chkUseLE.AutoSize = true;
+            chkUseLE.Checked = true;
+            chkUseLE.CheckState = System.Windows.Forms.CheckState.Checked;
+            chkUseLE.Location = new System.Drawing.Point(12, 201);
+            chkUseLE.Name = "chkUseLE";
+            chkUseLE.Size = new System.Drawing.Size(118, 19);
+            chkUseLE.TabIndex = 31;
+            chkUseLE.Tag = "#uselayouted";
+            chkUseLE.Text = "Use Layout Editor";
+            chkUseLE.UseVisualStyleBackColor = true;
+            // 
+            // lblCodePage
+            // 
+            lblCodePage.AutoSize = true;
+            lblCodePage.Location = new System.Drawing.Point(12, 228);
+            lblCodePage.Name = "lblCodePage";
+            lblCodePage.Size = new System.Drawing.Size(67, 15);
+            lblCodePage.TabIndex = 32;
+            lblCodePage.Text = "Code Page:";
+            lblCodePage.Visible = false;
+            // 
             // frmImportProperties
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new System.Drawing.Size(376, 309);
+            ClientSize = new System.Drawing.Size(376, 274);
+            Controls.Add(lblCodePage);
+            Controls.Add(chkUseLE);
             Controls.Add(btnCancel);
             Controls.Add(btnOK);
             Controls.Add(btnAdvanced);
@@ -259,5 +286,7 @@
         internal System.Windows.Forms.ComboBox cmbCodePage;
         internal System.Windows.Forms.CheckBox chkSierraSyntax;
         internal System.Windows.Forms.Button btnAdvanced;
+        internal System.Windows.Forms.CheckBox chkUseLE;
+        private System.Windows.Forms.Label lblCodePage;
     }
 }

@@ -54,9 +54,10 @@ namespace WinAGI.Editor {
         #region Event Handlers
         private void btnAdvanced_Click(object sender, EventArgs e) {
             btnAdvanced.Visible = false;
-            Height = 348;
+            Height = 368;
             chkSierraSyntax.Visible = true;
             cmbCodePage.Visible = true;
+            lblCodePage.Visible = true;
         }
 
         private void frmImportProperties_HelpRequested(object sender, HelpEventArgs hlpevent) {
@@ -193,14 +194,25 @@ namespace WinAGI.Editor {
             chkGlobals.Enabled = !chkSierraSyntax.Checked;
             chkResDefs.Enabled = !chkSierraSyntax.Checked;
             chkResourceIDs.Enabled = !chkSierraSyntax.Checked;
+            chkUseLE.Enabled = !chkSierraSyntax.Checked;
 
-            // force extension to 'cg', but allow user to change it
             if (chkSierraSyntax.Checked) {
+                // force extension to 'cg', but allow user to change it
                 txtSrcExt.Text = "cg";
-            }
-            // force resourcedir to 'SRC', and DON'T allow user to change it
-            if (chkSierraSyntax.Checked) {
+                // force resourcedir to 'SRC', and DON'T allow user to change it
                 txtResDir.Text = "SRC";
+                // uncheck options not allowed in sierra syntax
+                chkGlobals.Checked = false;
+                chkResDefs.Checked = false;
+                chkResourceIDs.Checked = false;
+                chkUseLE.Checked = false;
+            }
+            else {
+                // use default values 
+                chkGlobals.Checked = WinAGISettings.DefIncludeGlobals.Value;
+                chkResDefs.Checked = WinAGISettings.DefIncludeReserved.Value;
+                chkResourceIDs.Checked = WinAGISettings.DefIncludeIDs.Value;
+                chkUseLE.Checked = WinAGISettings.DefUseLE.Value;
             }
             txtResDir.Enabled = !chkSierraSyntax.Checked;
 

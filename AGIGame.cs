@@ -48,6 +48,7 @@ namespace WinAGI.Engine {
             public bool IncludeIDs = false;
             public bool IncludeReserved = false;
             public bool IncludeGlobals = false;
+            public bool UseLE = false;
             public bool SierraSyntax = false;
             public int CodePage;
             public bool Failed;
@@ -1364,7 +1365,7 @@ namespace WinAGI.Engine {
         /// <param name="TemplateDir"></param>
         /// <param name="NewExt"></param>
         /// <returns></returns>
-        private void NewGame(GameParams newGame) {
+        private void NewGame(GameParams newgameparams) {
             string oldExt;
             WinAGIEventInfo eventInfo = new();
 
@@ -1376,11 +1377,11 @@ namespace WinAGI.Engine {
             OnNewGameStatus(eventInfo);
 
             // validate target folder is acceptable
-            if (!Directory.Exists(newGame.GameDir)) {
+            if (!Directory.Exists(newgameparams.GameDir)) {
                 // folder must already exist
-                throw new DirectoryNotFoundException(newGame.GameDir);
+                throw new DirectoryNotFoundException(newgameparams.GameDir);
             }
-            if (Directory.GetFiles(newGame.GameDir, "*.wag").Length != 0) {
+            if (Directory.GetFiles(newgameparams.GameDir, "*.wag").Length != 0) {
                 // folder cannot have existing WinAGI game files
                 WinAGIException wex = new(EngineResourceByNum(535)) {
                     HResult = WINAGI_ERR + 535
@@ -1388,7 +1389,7 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             bool x = false;
-            if (IsValidGameDir(newGame.GameDir, ref x)) {
+            if (IsValidGameDir(newgameparams.GameDir, ref x)) {
                 // folder cannot have existing Sierra game files
                 WinAGIException wex = new(EngineResourceByNum(536)) {
                     HResult = WINAGI_ERR + 536
@@ -1397,42 +1398,43 @@ namespace WinAGI.Engine {
             }
 
             // folder is OK
-            agGameDir = newGame.GameDir;
-            if (newGame.SrcResDirName.Length == 0) {
-                newGame.SrcResDirName = agDefResDir;
+            agGameDir = newgameparams.GameDir;
+            if (newgameparams.SrcResDirName.Length == 0) {
+                newgameparams.SrcResDirName = agDefResDir;
             }
-            if (newGame.SrcExt.Length == 0) {
-                newGame.SrcExt = defSrcExt;
+            if (newgameparams.SrcExt.Length == 0) {
+                newgameparams.SrcExt = defSrcExt;
             }
             // get settings
-            agSierraSyntax = newGame.SierraSyntax;
-            agCodePage = newGame.CodePage;
-            agSrcFileExt = newGame.SrcExt.ToLower();
-            agIncludeGlobals = newGame.IncludeGlobals;
-            agIncludeIDs = newGame.IncludeIDs;
-            agIncludeReserved = newGame.IncludeReserved;
+            agSierraSyntax = newgameparams.SierraSyntax;
+            agCodePage = newgameparams.CodePage;
+            agSrcFileExt = newgameparams.SrcExt.ToLower();
+            agIncludeGlobals = newgameparams.IncludeGlobals;
+            agIncludeIDs = newgameparams.IncludeIDs;
+            agIncludeReserved = newgameparams.IncludeReserved;
+            agUseLE = newgameparams.UseLE;
 
-            if (newGame.TemplateDir.Length == 0) {
+            if (newgameparams.TemplateDir.Length == 0) {
                 // blank game (no template) so create the new files
                 // and set game parameters
                 eventInfo.InfoType = InfoType.Resources;
                 eventInfo.Text = "creating new game components";
                 OnNewGameStatus(eventInfo);
                 agIntVersion = new() {
-                    Index = newGame.Version,
+                    Index = newgameparams.Version,
                 };
                 // set game id (limit to 6 characters for v2, and 5 characters for v3
                 if (agIntVersion.IsV3) {
-                    agGameID = newGame.ID.Left(5);
+                    agGameID = newgameparams.ID.Left(5);
                 }
                 else {
-                    agGameID = newGame.ID.Left(6);
+                    agGameID = newgameparams.ID.Left(6);
                 }
                 // set the resource directory name so it can be set up
-                agSrcResDirName = newGame.SrcResDirName;
+                agSrcResDirName = newgameparams.SrcResDirName;
                 agSrcResDir = Path.Combine(agGameDir, agSrcResDirName);
                 // assign source file extension
-                agSrcFileExt = newGame.SrcExt;
+                agSrcFileExt = newgameparams.SrcExt;
                 // create empty property file
                 agGameFile = Path.Combine(agGameDir, agGameID + ".wag");
                 agGameProps = new SettingsFile(agGameFile, FileMode.Create);
@@ -1443,8 +1445,8 @@ namespace WinAGI.Engine {
                 agGameProps.Lines.Add("   WinAGIVersion = " + WINAGI_VERSION);
                 agGameProps.Lines.Add("   GameID = " + agGameID);
                 agGameProps.Lines.Add("   Interpreter = " + agIntVersion.VersionString);
-                agGameProps.Lines.Add("   ResDir = " + newGame.SrcResDirName);
-                agGameProps.Lines.Add("   SourceFileExt = " + newGame.SrcExt);
+                agGameProps.Lines.Add("   ResDir = " + newgameparams.SrcResDirName);
+                agGameProps.Lines.Add("   SourceFileExt = " + newgameparams.SrcExt);
                 agGameProps.Lines.Add("   IncludeIDs = " + agIncludeIDs);
                 agGameProps.Lines.Add("   IncludeReserved = " + agIncludeReserved);
                 agGameProps.Lines.Add("   IncludeGlobals = " + agIncludeGlobals);
@@ -1511,8 +1513,8 @@ namespace WinAGI.Engine {
                 // use loaded argument to force load of new inventory list
                 agInvObj = new InventoryList(this, true);
                 // adjust encryption based on version
-                if (newGame.Version == AGIVersion.v2089 ||
-                    newGame.Version == AGIVersion.v2272) {
+                if (newgameparams.Version == AGIVersion.v2089 ||
+                    newgameparams.Version == AGIVersion.v2272) {
                     agInvObj.Encrypted = false;
                 }
                 else {
@@ -1612,21 +1614,21 @@ namespace WinAGI.Engine {
                 // template should include wag file, dir files, vol files, words.tok and object;
                 // also layout file and source directory with logic source files and required includes
                 // should be exactly one wag file
-                if (Directory.GetFiles(newGame.TemplateDir, "*.wag").Length == 0) {
+                if (Directory.GetFiles(newgameparams.TemplateDir, "*.wag").Length == 0) {
                     WinAGIException wex = new(EngineResourceByNum(527).Replace(
-                        ARG1, newGame.TemplateDir)) {
+                        ARG1, newgameparams.TemplateDir)) {
                         HResult = WINAGI_ERR + 527
                     };
                     throw wex;
                 }
-                else if (Directory.GetFiles(newGame.TemplateDir, "*.wag").Length != 1) {
+                else if (Directory.GetFiles(newgameparams.TemplateDir, "*.wag").Length != 1) {
                     WinAGIException wex = new(EngineResourceByNum(543)) {
                         HResult = WINAGI_ERR + 543
                     };
                     throw wex;
                 }
                 // template should have at least one subdirectory
-                if (Directory.GetDirectories(newGame.TemplateDir).Length == 0) {
+                if (Directory.GetDirectories(newgameparams.TemplateDir).Length == 0) {
                     // no resource directory
                     WinAGIException wex = new(EngineResourceByNum(544)) {
                         HResult = WINAGI_ERR + 544
@@ -1635,12 +1637,12 @@ namespace WinAGI.Engine {
                 }
                 // 1. copy files from template
                 try {
-                    CopyDirectory(newGame.TemplateDir, agGameDir);
+                    CopyDirectory(newgameparams.TemplateDir, agGameDir);
                     // get wag file name (it's first[and only] element)
                     agGameFile = Directory.GetFiles(agGameDir, "*.wag")[0];
                     // rename it to match new ID
-                    File.Move(agGameFile, Path.Combine(agGameDir, newGame.ID + ".wag"));
-                    agGameFile = Path.Combine(agGameDir, newGame.ID + ".wag");
+                    File.Move(agGameFile, Path.Combine(agGameDir, newgameparams.ID + ".wag"));
+                    agGameFile = Path.Combine(agGameDir, newgameparams.ID + ".wag");
                 }
                 catch (Exception ex) {
                     WinAGIException wex = new(EngineResourceByNum(533).Replace(
@@ -1657,13 +1659,13 @@ namespace WinAGI.Engine {
                 OnNewGameStatus(eventInfo);
                 // retrieve name of the first directory as current resource dir
                 agSrcResDir = Directory.GetDirectories(agGameDir)[0];
-                agSrcResDirName = newGame.SrcResDirName;
+                agSrcResDirName = newgameparams.SrcResDirName;
                 if (!agSrcResDir.Equals(Path.Combine(agGameDir, agSrcResDirName), StringComparison.OrdinalIgnoreCase)) {
                     // rename it to new 
                     try {
                         DirectoryInfo resDir = new(agSrcResDir);
-                        resDir.MoveTo(Path.Combine(agGameDir, newGame.SrcResDirName));
-                        agSrcResDir = Path.Combine(agGameDir, newGame.SrcResDirName);
+                        resDir.MoveTo(Path.Combine(agGameDir, newgameparams.SrcResDirName));
+                        agSrcResDir = Path.Combine(agGameDir, newgameparams.SrcResDirName);
                     }
                     catch (Exception e) {
                         WinAGIException wex = new(EngineResourceByNum(545).Replace(
@@ -1703,7 +1705,7 @@ namespace WinAGI.Engine {
                     throw wex;
                 }
                 // resdir
-                agGameProps.WriteSetting("General", "ResDir", newGame.SrcResDirName);
+                agGameProps.WriteSetting("General", "ResDir", newgameparams.SrcResDirName);
                 // source file ext
                 oldExt = agGameProps.GetSetting("General", "SourceFileExt", DefaultSrcExt).Trim();
                 if (oldExt[0] == '.') {
@@ -1733,19 +1735,19 @@ namespace WinAGI.Engine {
                 agGameProps.WriteSetting("General", "CodePage", agCodePage);
                 // gameid (save oldID in case a v3 game needs files renamed)
                 string templateID = agGameProps.GetSetting("General", "GameID", "AGI").Trim();
-                agGameID = newGame.ID;
-                agGameProps.WriteSetting("General", "GameID", newGame.ID);
+                agGameID = newgameparams.ID;
+                agGameProps.WriteSetting("General", "GameID", newgameparams.ID);
                 // set game version
                 agIntVersion = new() {
-                    Index = newGame.Version,
+                    Index = newgameparams.Version,
                 };
                 // if v3, rename DIR and VOL files
                 if (agIntVersion.IsV3) {
                     try {
-                        File.Move(Path.Combine(agGameDir, templateID + "DIR"), Path.Combine(agGameDir, newGame.ID.ToUpper() + "DIR"));
+                        File.Move(Path.Combine(agGameDir, templateID + "DIR"), Path.Combine(agGameDir, newgameparams.ID.ToUpper() + "DIR"));
                         foreach (string volFile in Directory.EnumerateFiles(agGameDir, templateID + "VOL.*")) {
                             string extension = Path.GetExtension(volFile);
-                            File.Move(volFile, Path.Combine(agGameDir, newGame.ID.ToUpper() + "VOL" + extension));
+                            File.Move(volFile, Path.Combine(agGameDir, newgameparams.ID.ToUpper() + "VOL" + extension));
                         }
                     }
                     catch (Exception e) {
@@ -1775,7 +1777,7 @@ namespace WinAGI.Engine {
                             SettingsFile stlGlobals = new(Path.Combine(agSrcResDir, "globals.txt"), FileMode.OpenOrCreate);
                             if (stlGlobals.Lines.Count > 3) {
                                 if (stlGlobals.Lines[1].Trim().Left(1) == "[") {
-                                    stlGlobals.Lines[1] = "[ global defines file for " + newGame.ID;
+                                    stlGlobals.Lines[1] = "[ global defines file for " + newgameparams.ID;
                                 }
                                 // save it
                                 stlGlobals.Save();
@@ -1827,13 +1829,13 @@ namespace WinAGI.Engine {
         /// If fails, exception is thrown.
         /// </summary>
         /// <returns></returns>
-        private WinAGIEventInfo OpenGameDIR(GameParams argval) {
+        private WinAGIEventInfo OpenGameDIR(GameParams importgameparams) {
             // periodically report status of the load back to calling function
             WinAGIEventInfo warnInfo = new() {
                 Type = EventType.ResourceWarning,
             };
             // set game directory
-            agGameDir = argval.GameDir;
+            agGameDir = importgameparams.GameDir;
             warnInfo.Type = EventType.Info;
             warnInfo.InfoType = InfoType.Validating;
             warnInfo.Text = "";
@@ -1848,7 +1850,7 @@ namespace WinAGI.Engine {
                 agIntVersion = GetIntVersion(agGameDir, isV3);
             }
             else {
-                if (argval.SierraSyntax) {
+                if (importgameparams.SierraSyntax) {
                     // if no vol/dir files, assume importing sierra source
                     importresources = true;
                     // assume ID is the gamedir name
@@ -1865,10 +1867,10 @@ namespace WinAGI.Engine {
                 else {
                     // directory is not a valid AGI directory
                     ClearGameState();
-                    WinAGIException wex = new(EngineResourceByNum(504).Replace(ARG1, argval.GameDir)) {
+                    WinAGIException wex = new(EngineResourceByNum(504).Replace(ARG1, importgameparams.GameDir)) {
                         HResult = WINAGI_ERR + 504,
                     };
-                    wex.Data["baddir"] = argval.GameDir;
+                    wex.Data["baddir"] = importgameparams.GameDir;
                     throw wex;
                 }
             }
@@ -1897,13 +1899,14 @@ namespace WinAGI.Engine {
             // add interpreter version
             WriteGameSetting("General", "Interpreter", agIntVersion.VersionString);
             // update all newgame properties
-            agSrcResDirName = argval.SrcResDirName;
-            agSrcFileExt = argval.SrcExt;
-            agIncludeIDs = argval.IncludeIDs;
-            agIncludeReserved = argval.IncludeReserved;
-            agIncludeGlobals = argval.IncludeGlobals;
-            agSierraSyntax = argval.SierraSyntax;
-            agCodePage = argval.CodePage;
+            agSrcResDirName = importgameparams.SrcResDirName;
+            agSrcFileExt = importgameparams.SrcExt;
+            agIncludeIDs = importgameparams.IncludeIDs;
+            agIncludeReserved = importgameparams.IncludeReserved;
+            agIncludeGlobals = importgameparams.IncludeGlobals;
+            agSierraSyntax = importgameparams.SierraSyntax;
+            agCodePage = importgameparams.CodePage;
+            agUseLE = importgameparams.UseLE;
             // finish the game load
             try {
                 // if importing as SierraSyntax, pass along ImportResource property

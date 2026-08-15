@@ -1156,191 +1156,191 @@ namespace WinAGI.Editor {
             string version = "";
             string templateDir = "";
 
-            using (frmGameProperties propform = new(GameSettingFunction.New)) {
-                if (useTemplate) {
-                    // have user choose a template
-                    using (frmTemplates templateform = new()) {
-                        if (templateform.lstTemplates.Items.Count == 0) {
-                            MDIMain.MsgBoxWithHelp(
-                                "There are no templates available. Unable to create new game.",
-                                "No Templates Available",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error,
-                                "htm\\winagi\\templates.htm");
-                            templateform.Dispose();
-                            return;
+            using frmGameProperties newgameprops = new(GameSettingFunction.New);
+            if (useTemplate) {
+                // have user choose a template
+                using (frmTemplates templateform = new()) {
+                    if (templateform.lstTemplates.Items.Count == 0) {
+                        MDIMain.MsgBoxWithHelp(
+                            "There are no templates available. Unable to create new game.",
+                            "No Templates Available",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error,
+                            "htm\\winagi\\templates.htm");
+                        templateform.Dispose();
+                        return;
+                    }
+                    if (templateform.ShowDialog(MDIMain) == DialogResult.OK) {
+                        templateDir = Path.Combine(AppDataDir, "Templates", templateform.lstTemplates.Text);
+                        version = templateform.txtVersion.Text;
+                    }
+                    if (templateDir.Length == 0) {
+                        return;
+                    }
+                    newgameprops.txtGameDescription.Text = "";
+                    // some properties are preset based on template
+                    newgameprops.cmbVersion.Text = version;
+                    newgameprops.cmbVersion.Enabled = false;
+                    for (int i = 0; i < newgameprops.cmbCodePage.Items.Count; i++) {
+                        if (int.Parse(((string)newgameprops.cmbCodePage.Items[i])[..3]) == templateform.CodePage) {
+                            newgameprops.cmbCodePage.SelectedIndex = i;
+                            break;
                         }
-                        if (templateform.ShowDialog(MDIMain) == DialogResult.OK) {
-                            templateDir = Path.Combine(AppDataDir, "Templates", templateform.lstTemplates.Text);
-                            version = templateform.txtVersion.Text;
-                        }
-                        if (templateDir.Length == 0) {
-                            return;
-                        }
-                        propform.txtGameDescription.Text = "";
-                        // some properties are preset based on template
-                        propform.cmbVersion.Text = version;
-                        propform.cmbVersion.Enabled = false;
-                        for (int i = 0; i < propform.cmbCodePage.Items.Count; i++) {
-                            if (int.Parse(((string)propform.cmbCodePage.Items[i])[..3]) == templateform.CodePage) {
-                                propform.cmbCodePage.SelectedIndex = i;
-                                break;
-                            }
-                        }
-                        propform.chkResourceIDs.Checked = templateform.IncludeIDs;
-                        propform.chkResDefs.Checked = templateform.IncludeReserved;
-                        propform.chkGlobals.Checked = templateform.IncludeGlobals;
-                        propform.NewCodePage = templateform.CodePage;
-                        propform.chkUseLE.Checked = templateform.UseLayoutEd;
-                        propform.chkSierraSyntax.Checked = templateform.SierraSyntax;
+                    }
+                    newgameprops.chkResourceIDs.Checked = templateform.IncludeIDs;
+                    newgameprops.chkResDefs.Checked = templateform.IncludeReserved;
+                    newgameprops.chkGlobals.Checked = templateform.IncludeGlobals;
+                    newgameprops.NewCodePage = templateform.CodePage;
+                    newgameprops.chkUseLE.Checked = templateform.UseLayoutEd;
+                    newgameprops.chkSierraSyntax.Checked = templateform.SierraSyntax;
+                }
+            }
+            // now get properties from user
+            if (newgameprops.ShowDialog() == DialogResult.OK) {
+                if (EditGame is not null) {
+                    // close game, if user allows
+                    if (!CloseGame()) {
+                        return;
                     }
                 }
-                // now get properties from user
-                if (propform.ShowDialog() == DialogResult.OK) {
-                    if (EditGame is not null) {
-                        // close game, if user allows
-                        if (!CloseGame()) {
-                            return;
+                ProgressWin = new(MDIMain) {
+                    Text = "Creating New Game"
+                };
+                ProgressWin.lblProgress.Text = "Creating new game resources ...";
+                ProgressWin.StartPosition = FormStartPosition.CenterParent;
+                ProgressWin.pgbStatus.Visible = false;
+                // show newgame msg in status bar
+                MDIMain.spStatus.Text = "Creating new game" + (useTemplate ? " from template" : "") + "; please wait...";
+                // pass game info and template info
+                GameParams newgameparams = new() {
+                    Mode = OpenGameMode.New,
+                    ID = newgameprops.txtGameID.Text,
+                    Version = (AGIVersion)newgameprops.cmbVersion.SelectedIndex,
+                    GameDir = newgameprops.DisplayDir,
+                    SrcResDirName = newgameprops.txtResDir.Text,
+                    SrcExt = newgameprops.txtSrcExt.Text,
+                    TemplateDir = templateDir,
+                    SierraSyntax = newgameprops.chkSierraSyntax.Checked,
+                    CodePage = int.Parse(newgameprops.cmbCodePage.Text[..3]),
+                    Failed = false,
+                    Error = null,
+                    Warnings = false
+                };
+                if (!newgameparams.SierraSyntax) {
+                    newgameparams.IncludeGlobals = newgameprops.chkGlobals.Checked;
+                    newgameparams.IncludeIDs = newgameprops.chkResourceIDs.Checked;
+                    newgameparams.IncludeReserved = newgameprops.chkResDefs.Checked;
+                    newgameparams.UseLE = newgameprops.chkUseLE.Checked;
+                }
+                // run the worker to create the new game
+                bgwNewGame.RunWorkerAsync(newgameparams);
+                // idle until the worker is done;
+                ProgressWin.ShowDialog();
+                ProgressWin.Dispose();
+                // reset cursor
+                if (EditGame is not null) {
+                    // add wag file to mru, if opened successfully
+                    AddToMRU(EditGame.GameFile);
+                    // add rest of properties
+                    EditGame.Description = newgameprops.txtGameDescription.Text;
+                    EditGame.Designer = newgameprops.txtDesigner.Text;
+                    EditGame.GameVersion = newgameprops.txtGameVersion.Text;
+                    EditGame.GameAbout = newgameprops.txtGameAbout.Text;
+                    // set platform type if info was provided
+                    if (newgameprops.NewPlatformFile.Length > 0) {
+                        if (newgameprops.optDosBox.Checked) {
+                            EditGame.PlatformType = Engine.PlatformType.DosBox;
+                            EditGame.DOSExec = newgameprops.txtExec.Text;
+                            EditGame.PlatformOpts = newgameprops.txtOptions.Text;
+                        }
+                        else if (newgameprops.optScummVM.Checked) {
+                            EditGame.PlatformType = Engine.PlatformType.ScummVM;
+                            EditGame.PlatformOpts = newgameprops.txtOptions.Text;
+                        }
+                        else if (newgameprops.optAGILE.Checked) {
+                            EditGame.PlatformType = Engine.PlatformType.AGILE;
+                            EditGame.PlatformOpts = newgameprops.txtOptions.Text;
+                        }
+                        else if (newgameprops.optNAGI.Checked) {
+                            EditGame.PlatformType = Engine.PlatformType.NAGI;
+                        }
+                        else if (newgameprops.optOther.Checked) {
+                            EditGame.PlatformType = Engine.PlatformType.Other;
+                            EditGame.PlatformOpts = newgameprops.txtOptions.Text;
                         }
                     }
-                    ProgressWin = new(MDIMain) {
-                        Text = "Creating New Game"
-                    };
-                    ProgressWin.lblProgress.Text = "Creating new game resources ...";
-                    ProgressWin.StartPosition = FormStartPosition.CenterParent;
-                    ProgressWin.pgbStatus.Visible = false;
-                    // show newgame msg in status bar
-                    MDIMain.spStatus.Text = "Creating new game" + (useTemplate ? " from template" : "") + "; please wait...";
-                    // pass game info and template info
-                    GameParams newgameparams = new() {
-                        Mode = OpenGameMode.New,
-                        ID = propform.txtGameID.Text,
-                        Version = (AGIVersion)propform.cmbVersion.SelectedIndex,
-                        GameDir = propform.DisplayDir,
-                        SrcResDirName = propform.txtResDir.Text,
-                        SrcExt = propform.txtSrcExt.Text,
-                        TemplateDir = templateDir,
-                        SierraSyntax = propform.chkSierraSyntax.Checked,
-                        CodePage = int.Parse(propform.cmbCodePage.Text[..3]),
-                        Failed = false,
-                        Error = null,
-                        Warnings = false
-                    };
-                    if (!newgameparams.SierraSyntax) {
-                        newgameparams.IncludeGlobals = propform.chkGlobals.Checked;
-                        newgameparams.IncludeIDs = propform.chkResourceIDs.Checked;
-                        newgameparams.IncludeReserved = propform.chkResDefs.Checked;
+                    else {
+                        EditGame.PlatformType = Engine.PlatformType.None;
                     }
-                    // run the worker to create the new game
-                    bgwNewGame.RunWorkerAsync(newgameparams);
-                    // idle until the worker is done;
-                    ProgressWin.ShowDialog();
-                    ProgressWin.Dispose();
-                    // reset cursor
-                    if (EditGame is not null) {
-                        // add wag file to mru, if opened successfully
-                        AddToMRU(EditGame.GameFile);
-                        // add rest of properties
-                        EditGame.Description = propform.txtGameDescription.Text;
-                        EditGame.Designer = propform.txtDesigner.Text;
-                        EditGame.GameVersion = propform.txtGameVersion.Text;
-                        EditGame.GameAbout = propform.txtGameAbout.Text;
-                        // set platform type if info was provided
-                        if (propform.NewPlatformFile.Length > 0) {
-                            if (propform.optDosBox.Checked) {
-                                EditGame.PlatformType = Engine.PlatformType.DosBox;
-                                EditGame.DOSExec = propform.txtExec.Text;
-                                EditGame.PlatformOpts = propform.txtOptions.Text;
-                            }
-                            else if (propform.optScummVM.Checked) {
-                                EditGame.PlatformType = Engine.PlatformType.ScummVM;
-                                EditGame.PlatformOpts = propform.txtOptions.Text;
-                            }
-                            else if (propform.optAGILE.Checked) {
-                                EditGame.PlatformType = Engine.PlatformType.AGILE;
-                                EditGame.PlatformOpts = propform.txtOptions.Text;
-                            }
-                            else if (propform.optNAGI.Checked) {
-                                EditGame.PlatformType = Engine.PlatformType.NAGI;
-                            }
-                            else if (propform.optOther.Checked) {
-                                EditGame.PlatformType = Engine.PlatformType.Other;
-                                EditGame.PlatformOpts = propform.txtOptions.Text;
-                            }
-                        }
-                        else {
-                            EditGame.PlatformType = Engine.PlatformType.None;
-                        }
-                        if (EditGame.PlatformType != Engine.PlatformType.None) {
-                            EditGame.Platform = propform.NewPlatformFile;
-                        }
-                        EditGame.IncludeIDs = propform.chkResourceIDs.Checked;
-                        EditGame.IncludeReserved = propform.chkResDefs.Checked;
-                        EditGame.IncludeGlobals = propform.chkGlobals.Checked;
-                        EditGame.UseLE = propform.chkUseLE.Checked;
-                        // if from a template, clear the Description property
+                    if (EditGame.PlatformType != Engine.PlatformType.None) {
+                        EditGame.Platform = newgameprops.NewPlatformFile;
+                    }
+                    EditGame.IncludeIDs = newgameprops.chkResourceIDs.Checked;
+                    EditGame.IncludeReserved = newgameprops.chkResDefs.Checked;
+                    EditGame.IncludeGlobals = newgameprops.chkGlobals.Checked;
+                    EditGame.UseLE = newgameprops.chkUseLE.Checked;
+                    // if from a template, clear the Description property
+                    if (useTemplate) {
+                        EditGame.Description = "";
+                    }
+                    // force a save of the property file
+                    WinAGISettingsFile.Save();
+                    if (EditGame.UseLE) {
                         if (useTemplate) {
-                            EditGame.Description = "";
-                        }
-                        // force a save of the property file
-                        WinAGISettingsFile.Save();
-                        if (EditGame.UseLE) {
-                            if (useTemplate) {
-                                if (!File.Exists(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"))) {
-                                    // create default layout file
-                                    JsonSerializerOptions jOptions = new JsonSerializerOptions { WriteIndented = true };
-                                    LayoutFileHeader layoutfile = new() {
-                                        Version = LAYOUT_FMT_VERSION,
-                                        DrawScale = WinAGISettings.LEScale.Value,
-                                        Offset = new()
-                                    };
-                                    string output = JsonSerializer.Serialize(layoutfile, jOptions);
-                                    try {
-                                        using FileStream fs = new(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"), FileMode.Create, FileAccess.Write);
-                                        fs.Write(Encoding.Default.GetBytes(output));
-                                    }
-                                    catch {
-                                        // ignore errors
-                                    }
-                                }
-                            }
-                            else {
+                            if (!File.Exists(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"))) {
+                                // create default layout file
+                                JsonSerializerOptions jOptions = new JsonSerializerOptions { WriteIndented = true };
+                                LayoutFileHeader layoutfile = new() {
+                                    Version = LAYOUT_FMT_VERSION,
+                                    DrawScale = WinAGISettings.LEScale.Value,
+                                    Offset = new()
+                                };
+                                string output = JsonSerializer.Serialize(layoutfile, jOptions);
                                 try {
-                                    // if template included a layout file, delete it
-                                    string[] files = Directory.GetFiles(EditGame.GameDir, "*.wal");
-                                    foreach (string file in files) {
-                                        SafeFileDelete(file);
-                                    }
+                                    using FileStream fs = new(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"), FileMode.Create, FileAccess.Write);
+                                    fs.Write(Encoding.Default.GetBytes(output));
                                 }
                                 catch {
                                     // ignore errors
                                 }
                             }
                         }
-
-                        // set default directory
-                        BrowserStartDir = EditGame.GameDir;
-                        // set default text file directory to game source file directory
-                        DefaultResDir = EditGame.SrcResDir;
-                        // build ID lookup table
-                        BuildIDefLookup();
-
-                        // if resource tree is in use, refresh properties of root node
-                        if (WinAGISettings.ResListType.Value != ResListType.None) {
-                            MDIMain.propertyGrid1.Refresh();
-                        }
-                        MDIMain.UpdateGridCounts();
-                    }
-                    else {
-                        // make sure warning grid is hidden
-                        if (MDIMain.pnlInfoGrid.Visible) {
-                            MDIMain.HideInfoGrid(true);
+                        else {
+                            try {
+                                // if template included a layout file, delete it
+                                string[] files = Directory.GetFiles(EditGame.GameDir, "*.wal");
+                                foreach (string file in files) {
+                                    SafeFileDelete(file);
+                                }
+                            }
+                            catch {
+                                // ignore errors
+                            }
                         }
                     }
-                    MDIMain.UpdateTBGameBtns();
-                    MDIMain.spStatus.Text = "";
-                    MDIMain.UseWaitCursor = false;
+
+                    // set default directory
+                    BrowserStartDir = EditGame.GameDir;
+                    // set default text file directory to game source file directory
+                    DefaultResDir = EditGame.SrcResDir;
+                    // build ID lookup table
+                    BuildIDefLookup();
+
+                    // if resource tree is in use, refresh properties of root node
+                    if (WinAGISettings.ResListType.Value != ResListType.None) {
+                        MDIMain.propertyGrid1.Refresh();
+                    }
+                    MDIMain.UpdateGridCounts();
                 }
+                else {
+                    // make sure warning grid is hidden
+                    if (MDIMain.pnlInfoGrid.Visible) {
+                        MDIMain.HideInfoGrid(true);
+                    }
+                }
+                MDIMain.UpdateTBGameBtns();
+                MDIMain.spStatus.Text = "";
+                MDIMain.UseWaitCursor = false;
             }
             return;
         }
@@ -1486,7 +1486,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 // pass game info and template info
-                GameParams gameparams = new() {
+                GameParams importparams = new() {
                     Mode = OpenGameMode.Directory,
                     GameDir = thisGameDir,
                     SrcResDirName = importprops.txtResDir.Text,
@@ -1498,13 +1498,14 @@ namespace WinAGI.Editor {
                     Error = null,
                     Warnings = false
                 };
-                if (!gameparams.SierraSyntax) {
-                    gameparams.IncludeGlobals = importprops.chkGlobals.Checked;
-                    gameparams.IncludeIDs = importprops.chkResourceIDs.Checked;
-                    gameparams.IncludeReserved = importprops.chkResDefs.Checked;
+                if (!importparams.SierraSyntax) {
+                    importparams.IncludeGlobals = importprops.chkGlobals.Checked;
+                    importparams.IncludeIDs = importprops.chkResourceIDs.Checked;
+                    importparams.IncludeReserved = importprops.chkResDefs.Checked;
+                    importparams.UseLE = importprops.chkUseLE.Checked;
                 }
                 // open the game in this directory
-                if (OpenGame(gameparams)) {
+                if (OpenGame(importparams)) {
                     // reset browser start dir to this dir
                     BrowserStartDir = thisGameDir;
                 }
