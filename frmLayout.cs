@@ -6209,6 +6209,13 @@ namespace WinAGI.Editor {
             if (!Visible || Disposing) {
                 return;
             }
+            // if minimizing the main form when the layout form is set to max (i.e. it
+            // fills the MDI parent area), picDraw size has a Height of zero, and the
+            // resize event doesn't set the layout form state to minimized; so we check
+            // for it here
+            if (picDraw.Size.Width == 0 || picDraw.Size.Height == 0) {
+                return;
+            }
 
             float x1, y1;
             float h, w;
