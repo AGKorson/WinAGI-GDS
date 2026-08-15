@@ -1532,6 +1532,10 @@
 					<param name="Name" value="Decompiler Warning DW23">
 					<param name="Local" value="htm\winagi\warnings\dw23.htm">
 					</OBJECT>
+				<LI> <OBJECT type="text/sitemap">
+					<param name="Name" value="Decompiler Warning DW24">
+					<param name="Local" value="htm\winagi\warnings\dw24.htm">
+					</OBJECT>
 			</UL>
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="Game and Resource Errors">

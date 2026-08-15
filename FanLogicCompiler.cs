@@ -2877,7 +2877,7 @@ namespace WinAGI.Engine {
                                         }
                                         else {
                                             AddError(4067, EngineResourceByNum(4067).Replace(
-                                                ARG1, argToken.Text), false);
+                                                ARG1, argToken.Text[1..^1]), false);
                                             // use a place holder
                                             argnum = 1;
                                         }

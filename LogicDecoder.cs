@@ -2346,8 +2346,13 @@ namespace WinAGI.Engine {
                                 }
                             }
                             byte argcount = ReadByte(ref pos);
+                            bool grp0warn = false;
                             for (int argpos = 1; argpos <= argcount; argpos++) {
                                 int groupNum = ReadByte(ref pos) + 256 * ReadByte(ref pos);
+                                if (groupNum == 0 && !grp0warn) {
+                                    AddDecodeWarning("DW24", EngineResources.DW24, outputList.Count + 1);
+                                    grp0warn = true;
+                                }
                                 if (dcGame is not null && !WordsByNumber) {
                                     if (dcGame.agVocabWords.GroupExists(groupNum)) {
                                         if (dcGame.agVocabWords.GroupByNumber(groupNum).WordCount > 0) {
@@ -2355,8 +2360,19 @@ namespace WinAGI.Engine {
                                                 lineText += dcGame.agVocabWords.GroupByNumber(groupNum).Words[0].Replace(' ', '$');
                                             }
                                             else {
-                                                // fan syntax allows numbers
-                                                lineText += QUOTECHAR + dcGame.agVocabWords.GroupByNumber(groupNum).GroupName + QUOTECHAR;
+                                                // group 0, 1, 9999 use first word, not group name
+                                                string wordtext;
+                                                switch (groupNum) {
+                                                case 0:
+                                                case 1:
+                                                case 9999:
+                                                    wordtext = dcGame.agVocabWords.GroupByNumber(groupNum).Words[0];
+                                                    break;
+                                                default:
+                                                    wordtext = dcGame.agVocabWords.GroupByNumber(groupNum).GroupName;
+                                                    break;
+                                                }
+                                                lineText += QUOTECHAR + wordtext + QUOTECHAR;
                                             }
                                         }
                                         else {
@@ -2376,6 +2392,7 @@ namespace WinAGI.Engine {
                                                 ARG1, groupNum.ToString()), outputList.Count - 1);
                                         }
                                         else {
+                                            // fan syntax allows numbers
                                             AddDecodeWarning("DW02", EngineResources.DW02.Replace(
                                                 ARG1, groupNum.ToString()).Replace(
                                                 ARG2, pos.ToString()), outputList.Count + 1);

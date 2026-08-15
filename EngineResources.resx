@@ -1354,4 +1354,7 @@
   <data name="RW20" xml:space="preserve">
     <value>View %1 uses an unsupported loop mirroring format</value>
   </data>
+  <data name="DW24" xml:space="preserve">
+    <value>Group 0 word in said command will never match</value>
+  </data>
 </root>

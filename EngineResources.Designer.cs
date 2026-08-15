@@ -3229,6 +3229,15 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Group 0 word in said command will never match.
+        /// </summary>
+        internal static string DW24 {
+            get {
+                return ResourceManager.GetString("DW24", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [
         ///[    gamedefs.h
         ///[    GAME SPECIFIC DEFINITIONS FOR %1
