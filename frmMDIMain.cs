@@ -4499,6 +4499,8 @@ namespace WinAGI.Editor {
                         fi?.SetValue(readOnly, false);
                     }
                     propertyGrid1.SelectedObject = pLog;
+                    // always update warnings count (in case the loaded logic was decompiled)
+                    RefreshInfoGrid();
                 }
                 break;
             case AGIResType.Picture:

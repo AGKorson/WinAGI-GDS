@@ -579,8 +579,12 @@ namespace WinAGI.Engine {
                 if (Error == ResourceErrorType.NoError ||
                     Error == ResourceErrorType.FileIsReadonly) {
                     // get source code by decoding the resource raw data
-                    (mSourceText, decompOK) = LogicDecoder.DecodeLogic(this);
+                    List<WinAGIEventInfo> warnings;
+                    (mSourceText, decompOK, warnings) = LogicDecoder.DecodeLogic(this);
                     SourceError = decompOK ? ResourceErrorType.NoError : ResourceErrorType.LogicSourceDecompileError;
+                    // need to update warnings list
+                    SaveWarnings(warnings);
+
                 }
                 else {
                     // if base failed to load, there is nothing to decompile

@@ -100,6 +100,7 @@ namespace WinAGI.Engine {
         private static bool minorErrors = false;
         private static bool addWarning;
         private static List<string> warningText = [];
+        private static List<WinAGIEventInfo> warnings = [];
 
         // Sierra syntax support:
         private static bool sierraSyntax = false;
@@ -226,7 +227,7 @@ namespace WinAGI.Engine {
         /// <param name="SourceLogic"></param>
         /// <param name="LogNum"></param>
         /// <returns>The decoded source text if successful. Otherwise an exception is thrown.</returns>
-        internal static (string, bool) DecodeLogic(Logic SourceLogic) {
+        internal static (string, bool, List<WinAGIEventInfo>) DecodeLogic(Logic SourceLogic) {
             // converts logic bytecode into decompiled source, converting extended
             // characters to correct encoding
             byte code;
@@ -248,6 +249,7 @@ namespace WinAGI.Engine {
             minorErrors = false;
             logicdata = dcLogic.Data;
             outputList = [];
+            warnings = [];
             // set game and syntax settings
             if (decompAll) {
                 // sierrasyntax always true when decompiling all
@@ -318,7 +320,7 @@ namespace WinAGI.Engine {
             if (logicdata.Length < 4) {
                 AddDecodeError("DE01", EngineResources.DE01, outputList.Count - 1);
                 outputList.Add("return();");
-                return (string.Join(NEWLINE, [.. outputList]), false);
+                return (string.Join(NEWLINE, [.. outputList]), false, warnings);
             }
 
             try {
@@ -330,7 +332,7 @@ namespace WinAGI.Engine {
                     // error message aded by ReadMessages function
                     AddWarningLines();
                     outputList.Add("return();");
-                    return (string.Join(NEWLINE, [.. outputList]), false);
+                    return (string.Join(NEWLINE, [.. outputList]), false, warnings);
                 }
 
                 // reset main block info
@@ -355,13 +357,13 @@ namespace WinAGI.Engine {
                         if (!FindLabels()) {
                             // error line added by FindLabels
                             outputList.Add("return();");
-                            return (string.Join(NEWLINE, [.. outputList]), false);
+                            return (string.Join(NEWLINE, [.. outputList]), false, warnings);
                         }
                     }
                     else {
                         // error line added by FindLabels
                         outputList.Add("return();");
-                        return (string.Join(NEWLINE, [.. outputList]), false);
+                        return (string.Join(NEWLINE, [.. outputList]), false, warnings);
                     }
                 }
                 // reset decoder to beginning of bytecode data
@@ -386,7 +388,7 @@ namespace WinAGI.Engine {
                         // this byte starts an IF statement
                         if (!DecodeIf()) {
                             outputList.Add("return();");
-                            return (string.Join(NEWLINE, [.. outputList]), false);
+                            return (string.Join(NEWLINE, [.. outputList]), false, warnings);
                         }
                         break;
                     case 0xFE:
@@ -628,7 +630,7 @@ namespace WinAGI.Engine {
             };
             OnDecodeLogicStatus(dcDoneInfo);
             dcLogic = null;
-            return (string.Join(NEWLINE, [.. outputList]), !minorErrors);
+            return (string.Join(NEWLINE, [.. outputList]), !minorErrors, warnings);
         }
 
         private static int AddSierraDefines(int defineline) {
@@ -1250,6 +1252,7 @@ namespace WinAGI.Engine {
                 addWarning = true;
             }
             warningText.Add("WARNING " + WarnID + ": " + WarningText);
+            warnings.Add(dcWarnInfo);
         }
 
         static void AddDecodeError(string errID, string errText, int LineNum) {
