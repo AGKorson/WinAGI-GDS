@@ -88,6 +88,7 @@ Beta.1:
 - Fixed compiler setting so app builds as x86 instead of ARM so it now runs on all Windows systems
 
 5/30/2026: Initial v3.0.0 BETA release
+
 ---
 
 ### Licensing
