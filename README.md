@@ -19,9 +19,14 @@ Game projects created in v2 can be opened in this version, and the WAG file and 
 
 The Help file included with this release contains detailed information on all the features and tools available.
 
-### Notes
-This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
+
+### Notes:
+
+This is a beta release. Feedback, bug reports, and feature requests are welcome.
+
+---
+
   
 ### Known Issues:  
 ---
