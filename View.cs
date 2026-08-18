@@ -531,7 +531,7 @@ namespace WinAGI.Engine {
                         byte celcount = ReadByte();
                         bool v2230mirror = false;
                         bool flipit = false;
-                        if (parent.InterpreterVersion.Index == AGIVersion.v2230) {
+                        if (mInGame && parent.InterpreterVersion.Index == AGIVersion.v2230) {
                             if ((celcount & 0x80) == 0x80) {
                                 // loop is a mirror, BUT treat it as a normal loop
                                 // and add a warning
