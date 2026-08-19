@@ -50,9 +50,6 @@ Beta.56:
 - Fixed bug in game-import so it now correctly identifies existing WAG files in the import directory
 - Compile logic option on resource menu is now correctly enabled when a changed logic is currently selected in the resource list
 - fixed bug in Dismiss Warning functions to display the correct context menu items and to properly handle warnings that are in include files
-- 
-
-
 
 Beta.39:
 - cumulative update that includes Beta.26 though Beta.39
