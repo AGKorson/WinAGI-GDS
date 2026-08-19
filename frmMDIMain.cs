@@ -4270,7 +4270,7 @@ namespace WinAGI.Editor {
                     infoGridTable.Rows.RemoveAt(i);
                 }
             }
-            if (!bgwCompGame.IsBusy) {
+            if (!bgwCompGame.IsBusy && !bgwOpenGame.IsBusy) {
                 UpdateGridCounts();
             }
         }

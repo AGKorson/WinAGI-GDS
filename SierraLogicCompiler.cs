@@ -172,6 +172,7 @@ namespace WinAGI.Engine {
         private static int menuitemCount = -1, menuWidth = 0;
         private static string lastMenu = "";
         private static bool menuSet = false;
+        private static bool importingSierra = false;
         private static int endingCmd = 0; // 1 = return, 2 = new.room, 3 = quit
         private static string[] MsgText;
         private static bool[] MsgInUse;
@@ -189,7 +190,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="SourceLogic"></param>
         /// <returns></returns>
-        internal static bool CompileLogic(Logic SourceLogic) {
+        internal static bool CompileLogic(Logic SourceLogic, bool saveincludes = false) {
             sCompGame = SourceLogic.parent;
             compLogic = SourceLogic;
             complogicNumber = SourceLogic.Number;
@@ -205,6 +206,7 @@ namespace WinAGI.Engine {
             MsgInUse = new bool[256];
             MsgWarnings = new int[256];
             minorError = false;
+            importingSierra = saveincludes;
             tmpLogRes = new Logic {
                 Data = []
             };
@@ -239,19 +241,31 @@ namespace WinAGI.Engine {
                 throw;
             }
 
-            static void ResetCompiler() {
+            void ResetCompiler() {
                 tmpLogRes.Unload();
                 tmpLogRes = null;
                 sCompGame = null;
                 sourcefile = null;
                 sourcetext = null;
                 compLogic = null;
-                includedFiles = null;
+                if (!saveincludes) includedFiles = null;
                 definesList = null;
                 MsgText = null;
                 MsgInUse = null;
                 MsgWarnings = null;
             }
+        }
+
+        internal static List<string> CompileSierraImport(Logic sourceLogic) {
+            // always reset list first
+            includedFiles = [];
+
+            if (!CompileLogic(sourceLogic, true)) {
+                return [];
+            }
+            List<string> retval = includedFiles;
+            includedFiles = null;
+            return retval;
         }
 
         /// <summary>
@@ -3521,6 +3535,10 @@ namespace WinAGI.Engine {
                     }
                     break;
                 }
+            }
+            // check for gameid, if importing sierra source
+            if (cmdNum == 143 && importingSierra && MsgText[argval[0]] is not null) {
+                LogicDecoder.DecodeGameID = MsgText[argval[0]];
             }
         }
 

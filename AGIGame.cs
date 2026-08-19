@@ -2446,90 +2446,125 @@ namespace WinAGI.Engine {
             CorrectCommands(agIntVersion.Index);
 
             // Logic source code files
-            if (agSierraSyntax && mode == OpenGameMode.Directory && decompall) {
-                // if using sierra syntax and importing from a directory, create default
-                // sysdefs.h then decode all logics (gamedefs.h added after all logics
-                // are decoded)
-                try {
-                    string sysdefs = EngineResources.SYSDEFS;
-                    switch (agIntVersion.Index) {
-                    case AGIVersion.v2089:
-                    case AGIVersion.v2230:
-                        sysdefs = sysdefs.Replace(ARG1, "[");
-                        sysdefs = sysdefs.Replace(ARG2, "[");
-                        sysdefs = sysdefs.Replace(ARG3, "[");
-                        sysdefs = sysdefs.Replace("%4", "[");
-                        sysdefs = sysdefs.Replace("%5", "[");
-                        sysdefs = sysdefs.Replace("%6", "[");
-                        break;
-                    case AGIVersion.v2272:
-                        sysdefs = sysdefs.Replace(ARG1, "");
-                        sysdefs = sysdefs.Replace(ARG2, "[");
-                        sysdefs = sysdefs.Replace(ARG3, "[");
-                        sysdefs = sysdefs.Replace("%4", "[");
-                        sysdefs = sysdefs.Replace("%5", "[");
-                        sysdefs = sysdefs.Replace("%6", "[");
-                        break;
-                    case AGIVersion.v2411:
-                    case AGIVersion.v2425:
-                    case AGIVersion.v2426:
-                    case AGIVersion.v2435:
-                    case AGIVersion.v2439:
-                    case AGIVersion.v2440:
-                        sysdefs = sysdefs.Replace(ARG1, "");
-                        sysdefs = sysdefs.Replace(ARG2, "");
-                        sysdefs = sysdefs.Replace(ARG3, "[");
-                        sysdefs = sysdefs.Replace("%4", "[");
-                        sysdefs = sysdefs.Replace("%5", "[");
-                        sysdefs = sysdefs.Replace("%6", "[");
-                        break;
-                    case AGIVersion.v2903:
-                    case AGIVersion.v2911:
-                    case AGIVersion.v2912:
-                    case AGIVersion.v2915:
-                    case AGIVersion.v2917:
-                        sysdefs = sysdefs.Replace(ARG1, "");
-                        sysdefs = sysdefs.Replace(ARG2, "");
-                        sysdefs = sysdefs.Replace(ARG3, "");
-                        sysdefs = sysdefs.Replace("%4", "[");
-                        sysdefs = sysdefs.Replace("%5", "[");
-                        sysdefs = sysdefs.Replace("%6", "[");
-                        break;
-                    case AGIVersion.v2936:
-                        sysdefs = sysdefs.Replace(ARG1, "");
-                        sysdefs = sysdefs.Replace(ARG2, "");
-                        sysdefs = sysdefs.Replace(ARG3, "");
-                        sysdefs = sysdefs.Replace("%4", "");
-                        sysdefs = sysdefs.Replace("%5", "[");
-                        sysdefs = sysdefs.Replace("%6", "[");
-                        break;
-                    case AGIVersion.v3002086:
-                        sysdefs = sysdefs.Replace(ARG1, "");
-                        sysdefs = sysdefs.Replace(ARG2, "");
-                        sysdefs = sysdefs.Replace(ARG3, "");
-                        sysdefs = sysdefs.Replace("%4", "");
-                        sysdefs = sysdefs.Replace("%5", "");
-                        sysdefs = sysdefs.Replace("%6", "[");
-                        break;
-                    case AGIVersion.v3002098:
-                    case AGIVersion.v3002102:
-                    case AGIVersion.v3002107:
-                    case AGIVersion.v3002149:
-                        sysdefs = sysdefs.Replace(ARG1, "");
-                        sysdefs = sysdefs.Replace(ARG2, "");
-                        sysdefs = sysdefs.Replace(ARG3, "");
-                        sysdefs = sysdefs.Replace("%4", "");
-                        sysdefs = sysdefs.Replace("%5", "");
-                        sysdefs = sysdefs.Replace("%6", "");
-                        break;
+            if (agSierraSyntax && mode == OpenGameMode.Directory) {
+                if (decompall) {
+                    // if using sierra syntax and importing from VOL/DIR files, create default
+                    // sysdefs.h then decode all logics (gamedefs.h added after all logics
+                    // are decoded)
+                    try {
+                        string sysdefs = EngineResources.SYSDEFS;
+                        switch (agIntVersion.Index) {
+                        case AGIVersion.v2089:
+                        case AGIVersion.v2230:
+                            sysdefs = sysdefs.Replace(ARG1, "[");
+                            sysdefs = sysdefs.Replace(ARG2, "[");
+                            sysdefs = sysdefs.Replace(ARG3, "[");
+                            sysdefs = sysdefs.Replace("%4", "[");
+                            sysdefs = sysdefs.Replace("%5", "[");
+                            sysdefs = sysdefs.Replace("%6", "[");
+                            break;
+                        case AGIVersion.v2272:
+                            sysdefs = sysdefs.Replace(ARG1, "");
+                            sysdefs = sysdefs.Replace(ARG2, "[");
+                            sysdefs = sysdefs.Replace(ARG3, "[");
+                            sysdefs = sysdefs.Replace("%4", "[");
+                            sysdefs = sysdefs.Replace("%5", "[");
+                            sysdefs = sysdefs.Replace("%6", "[");
+                            break;
+                        case AGIVersion.v2411:
+                        case AGIVersion.v2425:
+                        case AGIVersion.v2426:
+                        case AGIVersion.v2435:
+                        case AGIVersion.v2439:
+                        case AGIVersion.v2440:
+                            sysdefs = sysdefs.Replace(ARG1, "");
+                            sysdefs = sysdefs.Replace(ARG2, "");
+                            sysdefs = sysdefs.Replace(ARG3, "[");
+                            sysdefs = sysdefs.Replace("%4", "[");
+                            sysdefs = sysdefs.Replace("%5", "[");
+                            sysdefs = sysdefs.Replace("%6", "[");
+                            break;
+                        case AGIVersion.v2903:
+                        case AGIVersion.v2911:
+                        case AGIVersion.v2912:
+                        case AGIVersion.v2915:
+                        case AGIVersion.v2917:
+                            sysdefs = sysdefs.Replace(ARG1, "");
+                            sysdefs = sysdefs.Replace(ARG2, "");
+                            sysdefs = sysdefs.Replace(ARG3, "");
+                            sysdefs = sysdefs.Replace("%4", "[");
+                            sysdefs = sysdefs.Replace("%5", "[");
+                            sysdefs = sysdefs.Replace("%6", "[");
+                            break;
+                        case AGIVersion.v2936:
+                            sysdefs = sysdefs.Replace(ARG1, "");
+                            sysdefs = sysdefs.Replace(ARG2, "");
+                            sysdefs = sysdefs.Replace(ARG3, "");
+                            sysdefs = sysdefs.Replace("%4", "");
+                            sysdefs = sysdefs.Replace("%5", "[");
+                            sysdefs = sysdefs.Replace("%6", "[");
+                            break;
+                        case AGIVersion.v3002086:
+                            sysdefs = sysdefs.Replace(ARG1, "");
+                            sysdefs = sysdefs.Replace(ARG2, "");
+                            sysdefs = sysdefs.Replace(ARG3, "");
+                            sysdefs = sysdefs.Replace("%4", "");
+                            sysdefs = sysdefs.Replace("%5", "");
+                            sysdefs = sysdefs.Replace("%6", "[");
+                            break;
+                        case AGIVersion.v3002098:
+                        case AGIVersion.v3002102:
+                        case AGIVersion.v3002107:
+                        case AGIVersion.v3002149:
+                            sysdefs = sysdefs.Replace(ARG1, "");
+                            sysdefs = sysdefs.Replace(ARG2, "");
+                            sysdefs = sysdefs.Replace(ARG3, "");
+                            sysdefs = sysdefs.Replace("%4", "");
+                            sysdefs = sysdefs.Replace("%5", "");
+                            sysdefs = sysdefs.Replace("%6", "");
+                            break;
+                        }
+                        File.WriteAllText(Path.Combine(agSrcResDir, "sysdefs.h"), sysdefs);
                     }
-                    File.WriteAllText(Path.Combine(agSrcResDir, "sysdefs.h"), sysdefs);
+                    catch (Exception) {
+                        // for now, ignore errors
+                    }
+                    agLoadWarnings |= DecodeAllSierraLogics(this);
                 }
-                catch (Exception) {
-                    // for now, ignore errors
+                else {
+                    // compile all logics so VOL resources match source code
+                    foreach (Logic logic in agLogs) {
+                        logic.LoadSource();
+                        List<string> includes = SierraLogicCompiler.CompileSierraImport(logic);
+                        ((AGIResource)logic).Save();
+                        logic.Unload();
+                        // add any includes
+                        foreach (string include in includes) {
+                            if (!agIncludeFiles.Any(x => string.Equals(x.Filename, include, StringComparison.OrdinalIgnoreCase))) {
+                                IncludeInfo info = new();
+                                string relname = RelativeToSrcDir(include, agSrcResDir).ToLower();
+                                IncludeType type;
+                                if (relname == "sysdefs" || relname == "sysdefs.h") {
+                                    type = IncludeType.Sysdefs;
+                                }
+                                else if (relname == "gamedefs" || relname == "gamedefs.h") {
+                                    type = IncludeType.Gamedefs;
+                                }
+                                else {
+                                    type = IncludeType.Other;
+                                }
+                                agIncludeFiles.Add(new() {
+                                    Filename = include,
+                                    Type = type,
+                                    RelativeName = relname,
+                                });
+                            }
+                        }
+                    }
                 }
-                agLoadWarnings |= DecodeAllSierraLogics(this);
-                // update includes file list
+                // sort the include list
+                SortIncludeList(agIncludeFiles);
+                // then update the game file
                 UpdateIncludeList();
             }
             else {
@@ -2600,8 +2635,8 @@ namespace WinAGI.Engine {
                         loadInfo.Type = EventType.Info;
                         loadInfo.InfoType = InfoType.Decompiling;
                         LoadEventStatus(mode, loadInfo);
-                        // force decompile unless importing sierra resources
-                        tmpLog.LoadSource();
+                        // force decompile
+                        tmpLog.LoadSource(true);
                         if (tmpLog.SourceError != ResourceErrorType.NoError &&
                             tmpLog.SourceError != ResourceErrorType.LogicSourceDecompileError) {
                             AddLoadError(mode, this, AGIResType.Logic, tmpLog.Number, tmpLog.SourceError, tmpLog.ErrData);
@@ -2617,7 +2652,6 @@ namespace WinAGI.Engine {
                 foreach (WinAGIEventInfo tmpInfo in modWarnings) {
                     LoadEventStatus(mode, tmpInfo);
                 }
-
             }
 
             // if decompiling AND a new ID found, use it (unless v3)
@@ -2657,6 +2691,9 @@ namespace WinAGI.Engine {
             if (includelist.Length > 0) {
                 includelist = includelist[..^1];
                 agGameProps.WriteSetting("Includes", "FileList", includelist);
+            }
+            else {
+                agGameProps.WriteSetting("Includes", "FileList", "");
             }
         }
 
