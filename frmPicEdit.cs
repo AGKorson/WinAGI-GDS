@@ -6737,6 +6737,11 @@ namespace WinAGI.Editor {
             bool relX;
             Rectangle retval = new(0, 0, -1, -1);
 
+            // when selecting commands, always force tool to Edit
+            if (SelectedTool != PicToolType.Edit) {
+                SelectTool(PicToolType.Edit);
+            }
+
             // go through each cmd; check it for coordinates
             // if coordinates are found, step through them to
             // determine if any coords expand the selected area
