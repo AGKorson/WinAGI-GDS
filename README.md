@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.0
+        Version 3.0.0beta.56
     ==============================
 
 
@@ -32,6 +32,28 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.56:
+- cumulative update that includes Beta.40 through Beta.56
+- in picture editor, selecting a command now forces tool to change to Edit in all cases
+- fixed bug in reserved name editor that crashed when trying to edit when no game is loaded
+- changed format of menu editor name to be more consistent
+- updated new game from template behavior to not allow changing syntax or code page
+- importing game from Sierra source files now correctly adds all required include files, and adjusts gameid by looking for set.game.id commands in the imported source code
+- changed import method to disallow if the imported directory already has a WAG file
+- fixed refactor in Beta.49 to correctly read loader files to find a target gameid
+- refactored  the guessed GameID code in game import function the bug that was truncating the guessed GameID when importing to Sierra syntax
+- fixed bug in loadloops that didn't check for parent view before mirror loop detection
+- fixed logic decoder to update the grid when decompile warnings are detected
+- fixed decompiler to correctly insert group 0, 1, 9999 placeholder words, also added decompiler warning if group 0 is found in a said command
+- fixed game import and new game functions to correctly use the 'use layout editor' option, and cleaned up the import parameter form
+- fixed bug in layout form that causes error when minimizing the main form when the layout form is maximized
+- Fixed bug in game-import so it now correctly identifies existing WAG files in the import directory
+- Compile logic option on resource menu is now correctly enabled when a changed logic is currently selected in the resource list
+- fixed bug in Dismiss Warning functions to display the correct context menu items and to properly handle warnings that are in include files
+- 
+
+
+
 Beta.39:
 - cumulative update that includes Beta.26 though Beta.39
 - fixed command counts for several versions that were not correct
