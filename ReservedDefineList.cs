@@ -80,10 +80,18 @@ namespace WinAGI.Engine {
         public Define[] GameInfo {
             get {
                 // refresh before returning
-                agGameInfo[0].Value = "\"" + parent.agGameID + "\"";
-                agGameInfo[1].Value = "\"" + parent.agGameVersion + "\"";
-                agGameInfo[2].Value = "\"" + parent.agGameAbout + "\"";
-                agGameInfo[3].Value = parent.agInvObj.Count.ToString();
+                if (parent is null) {
+                    agGameInfo[0].Value = "\"\"";
+                    agGameInfo[1].Value = "\"\"";
+                    agGameInfo[2].Value = "\"\"";
+                    agGameInfo[3].Value = "0";
+                }
+                else {
+                    agGameInfo[0].Value = "\"" + parent.agGameID + "\"";
+                    agGameInfo[1].Value = "\"" + parent.agGameVersion + "\"";
+                    agGameInfo[2].Value = "\"" + parent.agGameAbout + "\"";
+                    agGameInfo[3].Value = parent.agInvObj.Count.ToString();
+                }
                 return agGameInfo;
             }
         }
