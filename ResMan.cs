@@ -1471,19 +1471,16 @@ namespace WinAGI.Editor {
 
                 // if a game file exists
                 if (Directory.EnumerateFiles(thisGameDir, "*.wag").Any()) {
-                    // confirm the import
-                    msgText = "This directory already has a WinAGI game file. Do " +
-                        "you still want to import the game in this directory?\n\n" +
-                        "The existing WinAGI game file will be overwritten if it " +
-                        "has the same name as the GameID found in this directory's " +
-                        "AGI VOL and DIR files.";
-                    if (MessageBox.Show(MDIMain,
-                        msgText,
-                        "WinAGI Game File Already Exists",
-                        MessageBoxButtons.OKCancel,
-                        MessageBoxIcon.Question) == DialogResult.Cancel) {
-                        return;
-                    }
+                    // disallow importing if a wag file already here
+                    MessageBox.Show(MDIMain,
+                    "This directory already has a WinAGI game file.\n\n" +
+                        "If you want to re-import this game directory, you must " +
+                        "remove the existing WinAGI file first.",
+                    "WinAGI Game File Already Exists",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Exclamation);
+                    return;
+                    
                 }
                 // pass game info and template info
                 GameParams importparams = new() {
