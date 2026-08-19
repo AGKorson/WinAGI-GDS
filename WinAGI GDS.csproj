@@ -17,7 +17,7 @@
 
 		<!-- Versioning (safe, no duplicate attributes) -->
 		<VersionPrefix>3.0.0</VersionPrefix>
-		<VersionSuffix>beta.52</VersionSuffix>
+		<VersionSuffix>beta.53</VersionSuffix>
 
 		<!-- Designer / build behavior -->
 		<ForceDesignerDPIUnaware>true</ForceDesignerDPIUnaware>

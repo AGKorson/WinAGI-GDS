@@ -1159,40 +1159,48 @@ namespace WinAGI.Editor {
             using frmGameProperties newgameprops = new(GameSettingFunction.New);
             if (useTemplate) {
                 // have user choose a template
-                using (frmTemplates templateform = new()) {
-                    if (templateform.lstTemplates.Items.Count == 0) {
-                        MDIMain.MsgBoxWithHelp(
-                            "There are no templates available. Unable to create new game.",
-                            "No Templates Available",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Error,
-                            "htm\\winagi\\templates.htm");
-                        templateform.Dispose();
-                        return;
+                using frmTemplates templateform = new();
+                if (templateform.lstTemplates.Items.Count == 0) {
+                    MDIMain.MsgBoxWithHelp(
+                        "There are no templates available. Unable to create new game.",
+                        "No Templates Available",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error,
+                        "htm\\winagi\\templates.htm");
+                    templateform.Dispose();
+                    return;
+                }
+                if (templateform.ShowDialog(MDIMain) == DialogResult.OK) {
+                    templateDir = Path.Combine(AppDataDir, "Templates", templateform.lstTemplates.Text);
+                    version = templateform.txtVersion.Text;
+                }
+                if (templateDir.Length == 0) {
+                    return;
+                }
+                newgameprops.txtGameDescription.Text = "";
+                // some properties are preset based on template
+                newgameprops.cmbVersion.Text = version;
+                newgameprops.cmbVersion.Enabled = false;
+                // advanced tab features not changeable when using template
+                newgameprops.chkSierraSyntax.Enabled = false;
+                newgameprops.cmbCodePage.Enabled = false;
+                for (int i = 0; i < newgameprops.cmbCodePage.Items.Count; i++) {
+                    if (int.Parse(((string)newgameprops.cmbCodePage.Items[i])[..3]) == templateform.CodePage) {
+                        newgameprops.cmbCodePage.SelectedIndex = i;
+                        break;
                     }
-                    if (templateform.ShowDialog(MDIMain) == DialogResult.OK) {
-                        templateDir = Path.Combine(AppDataDir, "Templates", templateform.lstTemplates.Text);
-                        version = templateform.txtVersion.Text;
-                    }
-                    if (templateDir.Length == 0) {
-                        return;
-                    }
-                    newgameprops.txtGameDescription.Text = "";
-                    // some properties are preset based on template
-                    newgameprops.cmbVersion.Text = version;
-                    newgameprops.cmbVersion.Enabled = false;
-                    for (int i = 0; i < newgameprops.cmbCodePage.Items.Count; i++) {
-                        if (int.Parse(((string)newgameprops.cmbCodePage.Items[i])[..3]) == templateform.CodePage) {
-                            newgameprops.cmbCodePage.SelectedIndex = i;
-                            break;
-                        }
-                    }
-                    newgameprops.chkResourceIDs.Checked = templateform.IncludeIDs;
-                    newgameprops.chkResDefs.Checked = templateform.IncludeReserved;
-                    newgameprops.chkGlobals.Checked = templateform.IncludeGlobals;
-                    newgameprops.NewCodePage = templateform.CodePage;
-                    newgameprops.chkUseLE.Checked = templateform.UseLayoutEd;
-                    newgameprops.chkSierraSyntax.Checked = templateform.SierraSyntax;
+                }
+                newgameprops.chkResourceIDs.Checked = templateform.IncludeIDs;
+                newgameprops.chkResDefs.Checked = templateform.IncludeReserved;
+                newgameprops.chkGlobals.Checked = templateform.IncludeGlobals;
+                newgameprops.NewCodePage = templateform.CodePage;
+                newgameprops.chkUseLE.Checked = templateform.UseLayoutEd;
+                newgameprops.chkSierraSyntax.Checked = templateform.SierraSyntax;
+                if (templateform.SierraSyntax) {
+                    newgameprops.chkResourceIDs.Enabled = false;
+                    newgameprops.chkResDefs.Enabled = false;
+                    newgameprops.chkGlobals.Enabled = false;
+                    newgameprops.chkUseLE.Enabled = false;
                 }
             }
             // now get properties from user
