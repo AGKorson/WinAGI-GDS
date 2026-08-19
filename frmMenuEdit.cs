@@ -1182,7 +1182,7 @@ namespace WinAGI.Editor {
             // reset changed flag
             IsChanged = false;
             // set caption
-            Text = EditGame.GameID + " - AGI Menu Editor";
+            Text = "AGI Menu Editor - " + EditGame.GameID;
             // disable menu and toolbar button
             MDIMain.btnSaveResource.Enabled = false;
         }

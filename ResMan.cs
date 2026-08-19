@@ -9472,7 +9472,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 MenuEditor = new frmMenuEdit(menulogic) {
-                    Text = EditGame is not null ? EditGame.GameID + " - Menu Editor" : "Menu Editor"
+                    Text = EditGame is not null ? "AGI Menu Editor - " + EditGame.GameID : "AGI Menu Editor - Default Menu"
                 };
                 // resize for optimum viewing
                 int hborder = MenuEditor.Width - MenuEditor.splitContainer1.Panel2.Width;
