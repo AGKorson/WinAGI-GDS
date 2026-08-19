@@ -2922,10 +2922,10 @@ namespace WinAGI.Engine {
                                 // see if the word 'LOADER' is at position 3 of the file
                                 fsCOM.Position = 3;
                                 // if this is a Sierra loader
-                                if (fsCOM.Read(buffer, 3, 6) == 6 && Encoding.UTF8.GetString(buffer) == "LOADER") {
+                                if (fsCOM.Read(buffer, 0, 6) == 6 && Encoding.UTF8.GetString(buffer) == "LOADER") {
                                     // determine ID to use based on loader filename
                                     filename = Path.GetFileName(loader);
-                                    if (loader != "SIERRA.COM") {
+                                    if (!filename.Equals("SIERRA.COM", StringComparison.CurrentCultureIgnoreCase)) {
                                         // use this filename as ID
                                         agGameID = Path.GetFileNameWithoutExtension(loader).Left(6).ToUpper();
                                         break;
