@@ -1854,7 +1854,7 @@ namespace WinAGI.Engine {
                     // if no vol/dir files, assume importing sierra source
                     importresources = true;
                     // assume ID is the gamedir name
-                    agGameID = Path.GetFileNameWithoutExtension(agGameDir[..^1]);
+                    agGameID = Path.GetFileNameWithoutExtension(agGameDir);
                     const string unwanted = "!\"&'()*+,-/:;<=>?[\\]^`{|}~";
                     agGameID = new string([.. agGameID.Replace(" ", "").ToUpper().Where(
                         c => c >= 32 && c <= 127 && !unwanted.Contains(c))]);
@@ -2878,8 +2878,6 @@ namespace WinAGI.Engine {
         /// <returns></returns>
         public bool IsValidGameDir(string directory, ref bool isV3) {
             string filename;
-            byte[] bChunk = new byte[6];
-            FileStream fsCOM;
             int dirCount;
 
             try {
@@ -2918,23 +2916,19 @@ namespace WinAGI.Engine {
                         // look for loader file to find ID
                         foreach (string loader in Directory.EnumerateFiles(directory, "*.COM")) {
                             // open file and get chunk
-                            string chunk = new(' ', 6);
+                            byte[] buffer = new byte[6];
                             try {
-                                using (fsCOM = new FileStream(loader, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
-                                    // see if the word 'LOADER' is at position 3 of the file
-                                    fsCOM.Position = 3;
-                                    fsCOM.Read(bChunk, 0, 6);
-                                    chunk = Encoding.UTF8.GetString(bChunk);
-                                    fsCOM.Dispose();
-                                    // if this is a Sierra loader
-                                    if (chunk == "LOADER") {
-                                        // determine ID to use based on loader filename
-                                        filename = Path.GetFileName(loader);
-                                        if (loader != "SIERRA.COM") {
-                                            // use this filename as ID
-                                            agGameID = filename.Left(filename.Length - 4).ToUpper();
-                                            break;
-                                        }
+                                using FileStream fsCOM = new FileStream(loader, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                // see if the word 'LOADER' is at position 3 of the file
+                                fsCOM.Position = 3;
+                                // if this is a Sierra loader
+                                if (fsCOM.Read(buffer, 3, 6) == 6 && Encoding.UTF8.GetString(buffer) == "LOADER") {
+                                    // determine ID to use based on loader filename
+                                    filename = Path.GetFileName(loader);
+                                    if (loader != "SIERRA.COM") {
+                                        // use this filename as ID
+                                        agGameID = Path.GetFileNameWithoutExtension(loader).Left(6).ToUpper();
+                                        break;
                                     }
                                 }
                             }
