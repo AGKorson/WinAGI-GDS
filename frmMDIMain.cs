@@ -2372,12 +2372,9 @@ namespace WinAGI.Editor {
 
         private void fgWarnings_MouseDown(object sender, MouseEventArgs e) {
             // before displaying context menu select rows under cursor
-            if (fgWarnings.SelectedRows.Count == 0) {
-                return;
-            }
             if (e.Button == MouseButtons.Right) {
                 DataGridView.HitTestInfo hit = fgWarnings.HitTest(e.X, e.Y);
-                if (hit.RowIndex >= 0 && hit.RowIndex != fgWarnings.SelectedRows[0].Index) {
+                if (hit.RowIndex >= 0 && (fgWarnings.SelectedRows.Count == 0 || hit.RowIndex != fgWarnings.SelectedRows[0].Index)) {
                     fgWarnings.Rows[hit.RowIndex].Selected = true;
                 }
             }
