@@ -2722,7 +2722,8 @@ namespace WinAGI.Editor {
                         Debug.Assert(false);
                         MessageBox.Show(MDIMain,
                         "Something went wrong. Unable to load Logic " + LogicNumber +
-                        "\n\nResource Error: " + loadlogic.SourceError.ToString(),
+                        "\n\nResource Error: " + loadlogic.SourceError.ToString() +
+                        "\n\nError Data:\n" + string.Join(", ", loadlogic.ErrData),
                         "Load Logic Failed",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);

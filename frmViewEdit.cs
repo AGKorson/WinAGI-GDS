@@ -2771,7 +2771,8 @@ namespace WinAGI.Editor {
                             Debug.Assert(false);
                             MessageBox.Show(MDIMain,
                             "Something went wrong. Unable to load View " + ViewNumber +
-                            "\n\nResource Error: " + loadview.Error.ToString(),
+                            "\n\nResource Error: " + loadview.Error.ToString() +
+                            "\n\nError Data:\n" + string.Join(", ", loadview.ErrData),
                             "Load View Failed",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
