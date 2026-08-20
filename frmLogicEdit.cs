@@ -2717,6 +2717,16 @@ namespace WinAGI.Editor {
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
                         break;
+                    default:
+                        // should not be possible
+                        Debug.Assert(false);
+                        MessageBox.Show(MDIMain,
+                        "Something went wrong. Unable to load Logic " + LogicNumber +
+                        "\n\nResource Error: " + loadlogic.SourceError.ToString(),
+                        "Load Logic Failed",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error);
+                        break;
                     }
                 }
             }

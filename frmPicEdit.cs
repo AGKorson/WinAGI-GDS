@@ -4740,7 +4740,8 @@ namespace WinAGI.Editor {
                             // should not be possible
                             Debug.Assert(false);
                             MessageBox.Show(MDIMain,
-                            "Something went wrong. Unable to load Picture " + PictureNumber,
+                            "Something went wrong. Unable to load Picture " + PictureNumber +
+                            "\n\nResource Error: " + loadpic.Error.ToString(),
                             "Load Picture Failed",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);

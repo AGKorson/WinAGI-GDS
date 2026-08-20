@@ -2770,7 +2770,8 @@ namespace WinAGI.Editor {
                             // should not be possible
                             Debug.Assert(false);
                             MessageBox.Show(MDIMain,
-                            "Something went wrong. Unable to load View " + ViewNumber,
+                            "Something went wrong. Unable to load View " + ViewNumber +
+                            "\n\nResource Error: " + loadview.Error.ToString(),
                             "Load View Failed",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);

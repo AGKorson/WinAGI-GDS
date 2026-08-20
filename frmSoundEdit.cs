@@ -1838,7 +1838,8 @@ namespace WinAGI.Editor {
                             // should not be possible
                             Debug.Assert(false);
                             MessageBox.Show(MDIMain,
-                            "Something went wrong. Unable to load Sound " + SoundNumber,
+                            "Something went wrong. Unable to load Sound " + SoundNumber +
+                            "\n\nResource Error: " + loadsound.Error.ToString(),
                             "Load Sound Failed",
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
