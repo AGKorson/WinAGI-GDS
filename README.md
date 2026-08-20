@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.56
+        Version 3.0.0beta.58
     ==============================
 
 
@@ -32,6 +32,12 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.58:
+- adds additional error information to failed resource load exceptions
+
+Beta.57:
+- right-clicking the infogrid now selects the row under cursor in all situations
+
 Beta.56:
 - cumulative update that includes Beta.40 through Beta.56
 - in picture editor, selecting a command now forces tool to change to Edit in all cases
@@ -41,7 +47,7 @@ Beta.56:
 - importing game from Sierra source files now correctly adds all required include files, and adjusts gameid by looking for set.game.id commands in the imported source code
 - changed import method to disallow if the imported directory already has a WAG file
 - fixed refactor in Beta.49 to correctly read loader files to find a target gameid
-- refactored  the guessed GameID code in game import function the bug that was truncating the guessed GameID when importing to Sierra syntax
+- refactored the guessed GameID code in game import function the bug that was truncating the guessed GameID when importing to Sierra syntax
 - fixed bug in loadloops that didn't check for parent view before mirror loop detection
 - fixed logic decoder to update the grid when decompile warnings are detected
 - fixed decompiler to correctly insert group 0, 1, 9999 placeholder words, also added decompiler warning if group 0 is found in a said command
