@@ -1142,7 +1142,7 @@ namespace WinAGI.Editor {
                 @"toggle\.v|toggle\.monitor|toggle|trace\.info|trace\.on|unanimate\.all|unblock|" +
                 @"unknowntest19|version|wander|word\.to\.string)\b(?![#$%\.@])";
         internal static string InvalidCmdStyleRegEx = @"";
-        internal static string NumberStyleRegEx = @"\b(?!\.)(\d+(\.\d+)?)\b";
+        internal static string NumberStyleRegEx = @"(?<![A-Za-z0-9#$%.@_])(?:\d+(?:\.\d+)?|\.\d+)\b";
         internal static string ArgIdentifierStyleRegEx = @"(?<![\w#$%\.@])[vfscimo]\d{1,3}\b";
         // '@', '=@' and any token starting with '@' need to match as symbols
         // (need to check this before checking identifiers)

@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.62:
+- fixed logic editor syntax highlighting to handle tokens with numbers consistently
+
 Beta.61:
 - more minor code cleanup and refactoring; no functional changes
 
