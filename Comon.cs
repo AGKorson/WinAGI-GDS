@@ -809,11 +809,10 @@ namespace WinAGI.Common {
                     }
                 }
                 // check or argument markers
-                if ("vfmoiswc".Any(checkname.StartsWith)) {
-                    if (checkname.Right(checkname.Length - 1).IsNumeric()) {
-                        // can't have a name that's a valid marker
-                        return DefineNameCheck.ArgMarker;
-                    }
+                if (checkname.Length > 1 &&
+                    "vfmoiswc".Contains(checkname[0]) &&
+                    checkname.Skip(1).All(char.IsDigit)) {
+                    return DefineNameCheck.ArgMarker;
                 }
             }
             // check against compiler keywords

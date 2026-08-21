@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.58
+        Version 3.0.0beta.59
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.59:
+- fixed define name checker to correctly identify names in form of 'v.##' as OK, and not as an argument marker
+
 Beta.58:
 - adds additional error information to failed resource load exceptions
 

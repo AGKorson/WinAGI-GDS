@@ -5626,26 +5626,25 @@ namespace WinAGI.Editor {
                 tmpView[0][0].Width = WinAGISettings.DefCelW.Value;
             }
             if (EditGame is not null) {
-                using (frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.View)) {
-                    if (importing) {
-                        GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportViewFile).Replace(" ", "_");
-                    }
-                    MDIMain.UseWaitCursor = false;
-                    if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                        tmpView = null;
-                        return;
-                    }
-                    tmpView.Description = GetResNum.txtDescription.Text;
-                    if (GetResNum.DontImport) {
-                        openview = true;
-                    }
-                    else {
-                        MDIMain.UseWaitCursor = true;
-                        tmpView.ID = GetResNum.txtID.Text;
-                        AddNewView(GetResNum.NewResNum, tmpView);
-                        tmpView = EditGame.Views[GetResNum.NewResNum];
-                        openview = (GetResNum.chkOpenRes.Checked);
-                    }
+                using frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.View);
+                if (importing) {
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportViewFile).Replace(" ", "_");
+                }
+                MDIMain.UseWaitCursor = false;
+                if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    tmpView = null;
+                    return;
+                }
+                tmpView.Description = GetResNum.txtDescription.Text;
+                if (GetResNum.DontImport) {
+                    openview = true;
+                }
+                else {
+                    MDIMain.UseWaitCursor = true;
+                    tmpView.ID = GetResNum.txtID.Text;
+                    AddNewView(GetResNum.NewResNum, tmpView);
+                    tmpView = EditGame.Views[GetResNum.NewResNum];
+                    openview = GetResNum.chkOpenRes.Checked;
                 }
             }
             else {
