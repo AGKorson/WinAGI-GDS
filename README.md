@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.60:
+- fixed fan compiler to correctly identify defines that override a resource ID
+
 Beta.59:
 - fixed define name checker to correctly identify names in form of 'v.##' as OK, and not as an argument marker
 

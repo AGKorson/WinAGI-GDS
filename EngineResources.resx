@@ -415,7 +415,7 @@
     <value>'%1' is overriding a global define</value>
   </data>
   <data name="5035" xml:space="preserve">
-    <value>'%1' is overriding a reserved define</value>
+    <value>'%1' is overriding a %2</value>
   </data>
   <data name="5036" xml:space="preserve">
     <value>Variable is being assigned to itself</value>

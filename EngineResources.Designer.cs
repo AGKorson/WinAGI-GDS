@@ -1222,7 +1222,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;%1&apos; is overriding a reserved define.
+        ///   Looks up a localized string similar to &apos;%1&apos; is overriding a %2.
         /// </summary>
         internal static string _5035 {
             get {

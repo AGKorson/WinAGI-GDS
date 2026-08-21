@@ -2100,8 +2100,12 @@ namespace WinAGI.Engine {
                                 AddWarning(5034, EngineResourceByNum(5034).Replace(ARG1, tdNewDefine.Name));
                                 checkName = DefineNameCheck.OK;
                             }
+                            else if (checkName == DefineNameCheck.ResourceID) {
+                                AddWarning(5035, EngineResourceByNum(5035).Replace(ARG1, tdNewDefine.Name).Replace(ARG2, "resource ID"));
+                                checkName = DefineNameCheck.OK;
+                            }
                             else if (checkName > DefineNameCheck.Global) {
-                                AddWarning(5035, EngineResourceByNum(5035).Replace(ARG1, tdNewDefine.Name));
+                                AddWarning(5035, EngineResourceByNum(5035).Replace(ARG1, tdNewDefine.Name).Replace(ARG2, "reserved define"));
                                 checkName = DefineNameCheck.OK;
                             }
                             break;
