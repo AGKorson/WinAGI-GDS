@@ -808,7 +808,7 @@ namespace WinAGI.Common {
                         return DefineNameCheck.TestCommand;
                     }
                 }
-                // check or argument markers
+                // check for argument markers
                 if (checkname.Length > 1 &&
                     "vfmoiswc".Contains(checkname[0]) &&
                     checkname.Skip(1).All(char.IsDigit)) {

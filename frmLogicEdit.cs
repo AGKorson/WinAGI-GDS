@@ -690,9 +690,8 @@ namespace WinAGI.Editor {
                 ShowSnippetList();
             }
             else {
-                using (frmSnippets Snippets = new(true, fctb.SelectedText)) {
-                    Snippets.ShowDialog(this);
-                }
+                using frmSnippets Snippets = new(true, fctb.SelectedText);
+                Snippets.ShowDialog(this);
             }
         }
 
@@ -820,12 +819,11 @@ namespace WinAGI.Editor {
         }
 
         private void mnuECharMap_Click(object sender, EventArgs e) {
-            using (frmCharPicker CharPicker = new(CodePage)) {
-                CharPicker.ShowDialog(MDIMain);
-                if (CharPicker.DialogResult == DialogResult.OK) {
-                    if (CharPicker.InsertString.Length > 0) {
-                        fctb.InsertText(CharPicker.InsertString, true);
-                    }
+            using frmCharPicker CharPicker = new(CodePage);
+            CharPicker.ShowDialog(MDIMain);
+            if (CharPicker.DialogResult == DialogResult.OK) {
+                if (CharPicker.InsertString.Length > 0) {
+                    fctb.InsertText(CharPicker.InsertString, true);
                 }
             }
         }
@@ -878,7 +876,7 @@ namespace WinAGI.Editor {
             case 8:
                 // BACKSPACE
                 if (picTip.Visible) {
-                    Place thispos = new Place(TipCmdToken.EndPos + 1, TipCmdToken.Line);
+                    Place thispos = new(TipCmdToken.EndPos + 1, TipCmdToken.Line);
                     if (fctb.Selection.Start <= thispos) {
                         // cursor has backed over start of command needing the tip - hide it
                         picTip.Visible = false;
@@ -1053,9 +1051,7 @@ namespace WinAGI.Editor {
                     }
                     int pos = fctb.PlaceToPosition(place);
                     if (fctb.Selection.Start > fctb.Selection.End) {
-                        int swap = spos;
-                        spos = epos;
-                        epos = swap;
+                        (epos, spos) = (spos, epos);
                     }
                     if (pos < spos || pos > epos) {
                         fctb.Selection.Start = fctb.PointToPlace(e.Location);
@@ -1902,8 +1898,7 @@ namespace WinAGI.Editor {
                         case AGITokenType.Identifier:
                             // check for message marker first
                             if (msgtoken.Text[0] == 'm') {
-                                int num;
-                                if (int.TryParse(msgtoken.Text[1..], out num)) {
+                                if (int.TryParse(msgtoken.Text[1..], out int num)) {
                                     if (num > 0 && num < 256) {
                                         msgtoken.Number = 0;
                                         return msgtoken;
@@ -3248,30 +3243,29 @@ namespace WinAGI.Editor {
                     else {
                         id = "";
                     }
-                    using (frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Logic, id)) {
-                        if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                            LogicNumber = frmGetNum.NewResNum;
-                            // change id before adding to game
-                            EditLogic.ID = frmGetNum.txtID.Text;
-                            UpdateAutoIncludes();
-                            // copy text back into sourcecode
-                            EditLogic.SourceText = fctb.Text;
-                            // always import logics as non-room;
-                            // user can always change it later via the
-                            // InRoom property
-                            // add Logic (which saves the source file ot resdir)
-                            AddNewLogic((byte)LogicNumber, EditLogic);
-                            EditGame.Logics[LogicNumber].Load();
-                            // copy the Logic back (to ensure internal variables are copied)
-                            EditLogic = EditGame.Logics[LogicNumber].Clone();
-                            // now we can unload the newly added logic;
-                            EditGame.Logics[LogicNumber].Unload();
-                            InGame = true;
-                            MarkAsSaved();
-                            MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                            MDIMain.btnAddRemove.Text = "Remove Logic";
-                            UpdateExitInfo(UpdateReason.ShowRoom, LogicNumber, EditLogic);
-                        }
+                    using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Logic, id);
+                    if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                        LogicNumber = frmGetNum.NewResNum;
+                        // change id before adding to game
+                        EditLogic.ID = frmGetNum.txtID.Text;
+                        UpdateAutoIncludes();
+                        // copy text back into sourcecode
+                        EditLogic.SourceText = fctb.Text;
+                        // always import logics as non-room;
+                        // user can always change it later via the
+                        // InRoom property
+                        // add Logic (which saves the source file ot resdir)
+                        AddNewLogic((byte)LogicNumber, EditLogic);
+                        EditGame.Logics[LogicNumber].Load();
+                        // copy the Logic back (to ensure internal variables are copied)
+                        EditLogic = EditGame.Logics[LogicNumber].Clone();
+                        // now we can unload the newly added logic;
+                        EditGame.Logics[LogicNumber].Unload();
+                        InGame = true;
+                        MarkAsSaved();
+                        MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
+                        MDIMain.btnAddRemove.Text = "Remove Logic";
+                        UpdateExitInfo(UpdateReason.ShowRoom, LogicNumber, EditLogic);
                     }
                 }
                 btnCompile.Enabled = InGame;
@@ -3745,9 +3739,9 @@ namespace WinAGI.Editor {
                     // add these defines to the local list
                     LDefLookup.AddRange(value);
                 }
-                if (IncludeDefines.ContainsKey(includefile)) {
+                if (IncludeDefines.TryGetValue(includefile, out DefineList value1)) {
                     // check each nested include for further nesting
-                    CheckNesting(IncludeDefines[includefile].NestedIncludes);
+                    CheckNesting(value1.NestedIncludes);
                 }
             }
         }
@@ -3809,7 +3803,7 @@ namespace WinAGI.Editor {
             // Set TextFormatFlags to no padding so strings are drawn together.
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
             // Declare a proposed size with dimensions set to the maximum integer value.
-            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            Size proposedSize = new(int.MaxValue, int.MaxValue);
             using Graphics graphics = picTip.CreateGraphics();
             Size szText = TextRenderer.MeasureText(graphics, " ()  ", tipfont, proposedSize, flags);
             startPoint.X += szText.Width;
@@ -3982,7 +3976,7 @@ namespace WinAGI.Editor {
             // Set TextFormatFlags to no padding so strings are drawn together.
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
             // Declare a proposed size with dimensions set to the maximum integer value.
-            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            Size proposedSize = new(int.MaxValue, int.MaxValue);
             Size szText = TextRenderer.MeasureText(graphics, " (", tipfont, proposedSize, flags);
             TextRenderer.DrawText(graphics, " (", tipfont, startPoint, Color.Black, flags);
             startPoint.X += szText.Width;
