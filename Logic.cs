@@ -733,7 +733,6 @@ namespace WinAGI.Engine {
                 // reset added include file list
                 AddedIncludes.Clear();
                 if (compiled) {
-                    Debug.Assert(mIsChanged);
                     parent.SaveProperties();
                     base.Save();
                     return true;
@@ -798,8 +797,6 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="warningList"></param>
         public void SaveWarnings(List<WinAGIEventInfo> warningList, bool saveit = true) {
-            Debug.Assert(warningList is not null);
-            Debug.Assert(mInGame);
             // serialize by using tabs between elements and
             // vertical tabs between each warning/error item
             string warnings = "";

@@ -3970,7 +3970,6 @@ namespace WinAGI.Editor {
 
         private static void ReplaceAllText(string FindText, string ReplaceText, bool MatchWord, bool MatchCase, AGIResType SearchType, frmLogicEdit SearchWin) {
             // replaces text in a logic editor
-            Debug.Assert(FindText.Length > 0);
 
             if (SearchType != AGIResType.None) {
                 // ignore text editors
@@ -4024,7 +4023,6 @@ namespace WinAGI.Editor {
 
         private static void ReplaceAllText(string FindText, string ReplaceText, bool MatchWord, bool MatchCase, AGIResType SearchType, Logic SearchLogic) {
             // replaces text in a logic source file
-            Debug.Assert(FindText.Length > 0);
 
             string pattern = Regex.Escape(FindText);
             if (MatchWord) {
@@ -4526,12 +4524,9 @@ namespace WinAGI.Editor {
         }
 
         public static void OpenGamePicture() {
-            Debug.Assert(EditGame is not null);
-
-            using (frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Picture)) {
-                if (getresnum.ShowDialog() == DialogResult.OK) {
-                    OpenGamePicture(getresnum.NewResNum, false);
-                }
+            using frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Picture);
+            if (getresnum.ShowDialog() == DialogResult.OK) {
+                OpenGamePicture(getresnum.NewResNum, false);
             }
         }
 
@@ -4616,8 +4611,7 @@ namespace WinAGI.Editor {
                     errmsg = "File access error. Unable to read the import file.";
                     break;
                 default:
-                    // no other errors should be possible
-                    Debug.Assert(false);
+                    // no other errors are possible
                     break;
                 }
                 MessageBox.Show(MDIMain,
@@ -5295,12 +5289,9 @@ namespace WinAGI.Editor {
         }
 
         public static void OpenGameSound() {
-            Debug.Assert(EditGame is not null);
-
-            using (frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Sound)) {
-                if (getresnum.ShowDialog() == DialogResult.OK) {
-                    OpenGameSound(getresnum.NewResNum, false);
-                }
+            using frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Sound);
+            if (getresnum.ShowDialog() == DialogResult.OK) {
+                OpenGameSound(getresnum.NewResNum, false);
             }
         }
 
@@ -5407,8 +5398,7 @@ namespace WinAGI.Editor {
                     errmsg = "Import file does not contain a valid sound resource.";
                     break;
                 default:
-                    // no other errors should be possible
-                    Debug.Assert(false);
+                    // no other errors are possible
                     break;
                 }
                 MDIMain.UseWaitCursor = false;
@@ -5667,12 +5657,9 @@ namespace WinAGI.Editor {
         }
 
         public static void OpenGameView() {
-            Debug.Assert(EditGame is not null);
-
-            using (frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.View)) {
-                if (getresnum.ShowDialog() == DialogResult.OK) {
-                    OpenGameView(getresnum.NewResNum, false);
-                }
+            using frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.View);
+            if (getresnum.ShowDialog() == DialogResult.OK) {
+                OpenGameView(getresnum.NewResNum, false);
             }
         }
 
@@ -5759,8 +5746,7 @@ namespace WinAGI.Editor {
                     errmsg = "Import file does not contain a valid view resource.";
                     break;
                 default:
-                    // no other errors should be possible
-                    Debug.Assert(false);
+                    // no other errors are possible
                     break;
                 }
                 MessageBox.Show(MDIMain,
@@ -9049,8 +9035,6 @@ namespace WinAGI.Editor {
             if (saveIDs) {
                 // replace sourcecode
                 ThisLogic.SourceText = source;
-                Debug.Assert(ThisLogic == EditGame.Logics[ThisLogic.Number]);
-                Debug.Assert(ThisLogic.InGame);
 
                 if (!ThisLogic.InGame) {
                     // save id
@@ -9954,9 +9938,6 @@ namespace WinAGI.Editor {
                 }
             }
             // lastly, check for reserved defines option (if not looking for a resourceID)
-            if (EditGame is null && WinAGISettings.DefIncludeReserved.Value) {
-                Debug.Assert(false);
-            }
             if (EditGame is not null && EditGame.IncludeReserved) {
                 Define[] tmpDefines = EditGame.ReservedDefines.All();
                 for (int i = 0; i < tmpDefines.Length; i++) {

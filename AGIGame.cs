@@ -407,10 +407,8 @@ namespace WinAGI.Engine {
                     // (it is up to calling program to deal with changed or invalid resources)
                     if (Compile(true) != CompileStatus.OK) {
                         // failed - don't make the change
-                        Debug.Assert(!Compiling);
                         return;
                     }
-                    Debug.Assert(!Compiling);
                 }
                 // OBJECT file encryption depends on version
                 if (value.Index == AGIVersion.v2089 || value.Index == AGIVersion.v2272) {
@@ -2969,10 +2967,9 @@ namespace WinAGI.Engine {
                                     }
                                 }
                             }
-                            catch (Exception ex) {
+                            catch (Exception) {
                                 // ignore if file is readonly
                                 // (or any other access error)
-                                Debug.Print(ex.Message);
                             }
                         }
                         // if no loader file found (looped through all files, no luck)

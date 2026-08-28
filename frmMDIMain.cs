@@ -729,9 +729,6 @@ namespace WinAGI.Editor {
                 else if (ActiveMdiChild is frmPreview previewForm) {
                     previewForm.SetResourceMenu();
                 }
-                else {
-                    Debug.Assert(false);
-                }
             }
             // configure for the tree/list selected item
             if (EditGame is null) {
@@ -949,9 +946,6 @@ namespace WinAGI.Editor {
                 }
                 else if (ActiveMdiChild is frmPreview previewForm) {
                     previewForm.ResetResourceMenu();
-                }
-                else {
-                    Debug.Assert(false);
                 }
             }
             mnuROpenRes.Enabled = true;
@@ -1934,7 +1928,6 @@ namespace WinAGI.Editor {
             // fill list box with resources for selected type
             AGIResType selRes;
 
-            Debug.Assert(EditGame is not null);
             // clear current list
             lstResources.Items.Clear();
 
@@ -2406,6 +2399,7 @@ namespace WinAGI.Editor {
                     fgWarnings.Rows[i].DefaultCellStyle.ForeColor = Color.Black;
                     break;
                 default:
+                    // Info, GameLoadError, GameCompileError should not be possible
                     Debug.Assert(false);
                     break;
                 }
@@ -2880,10 +2874,8 @@ namespace WinAGI.Editor {
             else if (ActiveMdiChild is frmTextScreenEdit txtscreenForm) {
                 txtscreenForm.mnuRSave_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmFind) {
-                Debug.Assert(false);
-            }
             else {
+                // no other forms should be open
                 Debug.Assert(false);
             }
         }
@@ -2907,28 +2899,11 @@ namespace WinAGI.Editor {
             else if (ActiveMdiChild is frmViewEdit viewForm) {
                 viewForm.mnuRInGame_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmObjectEdit) {
-                Debug.Assert(false);
-            }
-            else if (ActiveMdiChild is frmWordsEdit) {
-                Debug.Assert(false);
-            }
             else if (ActiveMdiChild is frmGlobals globalsForm) {
                 globalsForm.mnuRInGame_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmLayout) {
-                Debug.Assert(false);
-            }
-            else if (ActiveMdiChild is frmMenuEdit) {
-                Debug.Assert(false);
-            }
-            else if (ActiveMdiChild is frmTextScreenEdit) {
-                Debug.Assert(false);
-            }
-            else if (ActiveMdiChild is frmFind) {
-                Debug.Assert(false);
-            }
             else {
+                // no other forms should be open
                 Debug.Assert(false);
             }
         }
@@ -2961,19 +2936,11 @@ namespace WinAGI.Editor {
             else if (ActiveMdiChild is frmGlobals globalsForm) {
                 globalsForm.mnuRSaveAs_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmLayout) {
-                Debug.Assert(false);
-            }
-            else if (ActiveMdiChild is frmMenuEdit) {
-                Debug.Assert(false);
-            }
             else if (ActiveMdiChild is frmTextScreenEdit txtscreenForm) {
                 txtscreenForm.mnuRSaveAs_Click(sender, e);
             }
-            else if (ActiveMdiChild is frmFind) {
-                Debug.Assert(false);
-            }
             else {
+                // no other forms should be open
                 Debug.Assert(false);
             }
         }
@@ -3131,32 +3098,9 @@ namespace WinAGI.Editor {
                 MDIMain.ClearInfoGrid(e.CompInfo.Filename);
                 break;
             default:
+                // no other types should be sent to this event
                 Debug.Assert(false);
                 break;
-                //case Info:
-                //    switch (e.CompInfo.InfoType) {
-                //    case InfoType.Initialize:
-                //        break;
-                //    case InfoType.Validating:
-                //        break;
-                //    case InfoType.PropertyFile:
-                //        break;
-                //    case InfoType.Resources:
-                //        break;
-                //    case InfoType.Decompiling:
-                //        break;
-                //    case InfoType.CheckCRC:
-                //        break;
-                //    case InfoType.Finalizing:
-                //        break;
-                //    }
-                //    break;
-                //case ResourceWarning:
-                //    break;
-                //case DecompWarning:
-                //    break;
-                //case TODO:
-                //    break;
             }
         }
 
@@ -3284,7 +3228,6 @@ namespace WinAGI.Editor {
                 HdrNode[2].Nodes.Clear();
                 HdrNode[3].Nodes.Clear();
                 HdrNode[6].Nodes.Clear();
-                Debug.Assert(EditGame.GameID.Length != 0);
                 // update root
                 tvwResources.Nodes[0].Text = EditGame.GameID;
                 // add logics
@@ -3823,6 +3766,7 @@ namespace WinAGI.Editor {
                 case InfoType.Decompiling:
                     break;
                 default:
+                    // no other types are possible; this should never happen
                     Debug.Assert(false);
                     break;
                 }
@@ -4120,7 +4064,6 @@ namespace WinAGI.Editor {
             switch (restype) {
             case AGIResType.Logic:
                 // update the game property file.
-                Debug.Assert(resnum != -1);
                 RefreshLogicWarnings(resnum);
                 break;
             case Include:
@@ -4182,7 +4125,6 @@ namespace WinAGI.Editor {
             case AGIResType.View:
                 ClearInfoGrid(restype, resnum);
                 // update the game property file.
-                Debug.Assert(resnum != -1);
                 RefreshLogicWarnings(resnum);
                 break;
             case Include:
@@ -4760,14 +4702,12 @@ namespace WinAGI.Editor {
                 break;
             case Include:
                 // remove it without checking for export, since includes can't be exported
-                Debug.Assert(EditGame.IncludeFiles[SelResNum].Type != IncludeType.ResourceIDs);
-                Debug.Assert(EditGame.IncludeFiles[SelResNum].Type != IncludeType.Reserved);
-                Debug.Assert(EditGame.IncludeFiles[SelResNum].Type != IncludeType.Globals);
                 IncludeDefines.Remove(EditGame.IncludeFiles[SelResNum].Filename);
                 EditGame.IncludeFiles.RemoveAt(SelResNum);
                 RefreshIncludeList();
                 return;
             default:
+                // no other types are possible; this should never happen
                 Debug.Assert(false);
                 return;
             }
@@ -5118,7 +5058,6 @@ namespace WinAGI.Editor {
                     ChangeIntVersion(propForm.cmbVersion.Text);
                 }
                 if (EditGame.GameID != propForm.txtGameID.Text) {
-                    Debug.Assert(propForm.txtGameID.Text != "");
                     ChangeGameID(propForm.txtGameID.Text);
                 }
                 if (!EditGame.SrcResDirName.Equals(propForm.txtResDir.Text, StringComparison.CurrentCultureIgnoreCase)) {

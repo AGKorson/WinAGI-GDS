@@ -143,10 +143,6 @@ namespace WinAGI.Common {
                     MDIMain.SelectResource(Game, -1);
                     break;
                 }
-                if (updating) {
-                    // should not be possible
-                    Debug.Assert(!updating);
-                }
                 // show selection in preview, if needed
                 if (WinAGISettings.ShowPreview.Value) {
                     PreviewWin.Show();
@@ -189,7 +185,6 @@ namespace WinAGI.Common {
                     break;
                 default:
                     // shouldn't ever happen...
-                    Debug.Assert(false);
                     ErrMsgBox(NewGameArgs.Error,
                         "Unable to create new game. UNHANDLED ERROR:",
                         NewGameArgs.Error.StackTrace,

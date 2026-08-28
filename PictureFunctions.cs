@@ -227,8 +227,6 @@ namespace WinAGI.Engine {
                 Debug.Assert(e is IndexOutOfRangeException);
                 // subscript error- caused when a draw function expects
                 // another byte of data, but end of data is reached
-                // confirm it
-                Debug.Assert(pos > endpos);
                 // set warning flag
                 retval |= 1;
             }

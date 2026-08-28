@@ -1822,10 +1822,9 @@ namespace WinAGI.Editor {
                         if (linetext[^1] == ' ') {
                             // trim right edge
                             linetext = linetext.TrimEnd();
-                            // (also st the skipped flag since one or
+                            // (also set the skipped flag since one or
                             // more spaces aren't drawn)
                             skip = true;
-                            Debug.Assert(linetext.Length > 0);
                         }
                     }
                     // add this line

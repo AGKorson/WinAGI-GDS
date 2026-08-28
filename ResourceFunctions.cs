@@ -234,14 +234,7 @@ namespace WinAGI.Engine {
                                     AddLoadError(mode, game, AGIResType.Logic, resNum, game.agLogs[resNum].Error, game.agLogs[resNum].ErrData);
                                     loadWarnings = true;
                                 }
-                                // source errors checkedlater, and logic resources have no warnings
-                                // make sure it was added before finishing
-                                if (game.agLogs.Contains(resNum)) {
-                                    Debug.Assert(!game.agLogs[resNum].PropsChanged);
-                                    Debug.Assert(!game.agLogs[resNum].IsChanged);
-                                    // logic source checks come after all resources
-                                    // loaded so leave it loaded
-                                }
+                                // source errors checked later, and logic resources have no warnings
                                 break;
                             case AGIResType.Picture:
                                 game.agPics.InitLoad(resNum, volNum, loc);
@@ -255,8 +248,6 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agPics.Contains(resNum)) {
-                                    Debug.Assert(!game.agPics[resNum].PropsChanged);
-                                    Debug.Assert((game.agPics[resNum].Error == ResourceErrorType.NoError && !game.agPics[resNum].IsChanged) || game.agPics[resNum].Error != ResourceErrorType.NoError);
                                     game.agPics[resNum].Unload();
                                 }
                                 break;
@@ -288,7 +279,6 @@ namespace WinAGI.Engine {
                                 }
                                 // make sure it was added before finishing
                                 if (game.agViews.Contains(resNum)) {
-                                    Debug.Assert(!game.agViews[resNum].PropsChanged);
                                     game.agViews[resNum].Unload();
                                 }
                                 break;

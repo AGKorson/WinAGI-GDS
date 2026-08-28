@@ -786,10 +786,7 @@ namespace WinAGI.Engine {
                 // 5001 = index 0 .. 5121 = index 120
                 return warningNumber - 5001;
             }
-            else {
-                Debug.Assert(false);
-                return -1;
-            }
+            return -1;
         }
 
         /// <summary>

@@ -500,16 +500,19 @@ namespace WinAGI.Common {
         public void Save() {
             // verify filename exists
             ArgumentException.ThrowIfNullOrWhiteSpace(Filename);
-            StackTrace st = new(true);
-            string sti = st.GetFrame(1).GetMethod().DeclaringType.Name + "." +
-                st.GetFrame(1).GetMethod().Name;
-            sti += ": " + Path.GetFileName(Filename);
-            Debug.Print(sti);
 
             if (!CanOpen(Filename)) {
-                Debug.Print("File access error!");
+                WinAGIException wex = new(EngineResourceByNum(502).Replace(
+                    ARG1, "'Unable to open file'").Replace(
+                    ARG2, Filename)) {
+                        HResult = WINAGI_ERR + 502,
+                    };
+                    wex.Data["exception"] = new FileLoadException(Filename);
+                    wex.Data["badfile"] = Filename;
+                    throw wex;
             }
 
+            // try four times to write the file; if it fails, throw an exception
             int attempts = 0;
             while (attempts < 4) {
                 try {
@@ -575,7 +578,6 @@ namespace WinAGI.Common {
             }
             // if value contains spaces or '#', it must be enclosed in quotes
             if (retval.Contains(' ') || retval.Contains('#')) {
-                Debug.Assert(retval[0] != '\"');
                 retval = "\"" + retval + "\"";
             }
             // replace single '\' with double "\\"

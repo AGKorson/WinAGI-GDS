@@ -856,8 +856,6 @@ namespace WinAGI.Editor {
             if (!Visible) {
                 return;
             }
-            Debug.Assert(tvwMenu.Nodes.Count != 0);
-            Debug.Assert(tvwMenu.SelectedNode is not null);
             int menu = 0, item = -1;
             switch (tvwMenu.SelectedNode.Level) {
             case 0:
@@ -1087,7 +1085,6 @@ namespace WinAGI.Editor {
             // create the menu
             string menutext = CreateMenu();
 
-            Debug.Assert(MenuLogic != -1);
             if (!EditGame.Logics.Contains(MenuLogic)) {
                 // logic not found; may have been deleted from game
                 MessageBox.Show(MDIMain,

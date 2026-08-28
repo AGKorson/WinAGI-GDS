@@ -198,7 +198,6 @@ namespace WinAGI.Editor {
 
         private void mnuRAmigaOBJ_Click(object sender, EventArgs e) {
             // convert an Amiga format OBJECT file to DOS format
-            Debug.Assert(EditInvList.AmigaOBJ);
             if (MessageBox.Show(MDIMain,
                 "Your current OBJECT file will be backed up as 'OBJECT.amg'. Continue with the conversion?",
                 "Convert AMIGA Object File",

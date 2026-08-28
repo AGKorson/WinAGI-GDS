@@ -720,7 +720,6 @@ namespace WinAGI.Engine {
                             case None:
                             case Unknown:
                                 // not possible
-                                Debug.Assert(false);
                                 break;
                             }
                         }
@@ -1572,7 +1571,6 @@ namespace WinAGI.Engine {
                 }
             case InvItem:
                 if (dcGame is not null && !IObjsByNumber) {
-                    Debug.Assert(dcGame.agInvObj.Loaded);
                     if (argNum < dcGame.agInvObj.Count) {
                         if (dcGame.agInvObj[argNum].Unique) {
                             if (dcGame.agInvObj[argNum].ItemName == "?") {

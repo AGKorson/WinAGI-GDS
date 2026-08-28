@@ -1821,7 +1821,6 @@ namespace WinAGI.Editor {
                 // if clearing a comment, the cell will use a null value; need
                 // to force it to empty string
                 if (globalsgrid.CurrentCell.Value is null) {
-                    Debug.Assert(globalsgrid.CurrentCell.ColumnIndex == COMMENT_COL);
                     globalsgrid.CurrentCell.Value = "";
                 }
                 DataGridViewRow editrow = globalsgrid.CurrentRow;

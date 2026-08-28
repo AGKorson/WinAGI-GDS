@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.59
+        Version 3.0.0beta.63
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.63:
+- removed unneeded debug statements; no functional changes
+
 Beta.62:
 - fixed logic editor syntax highlighting to handle tokens with numbers consistently
 

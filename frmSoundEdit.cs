@@ -1382,9 +1382,6 @@ namespace WinAGI.Editor {
         private void tmrCursor_Tick(object sender, EventArgs e) {
             // toggle cursor state
             CursorOn = !CursorOn;
-            Debug.Assert(SelectedTrack != -1);
-            Debug.Assert(SelLength == 0);
-
             picStaff[SelectedTrack].Invalidate();
         }
 
@@ -1836,7 +1833,6 @@ namespace WinAGI.Editor {
                         //case ResourceErrorType.DecompressionError:
                         default:
                             // should not be possible
-                            Debug.Assert(false);
                             MessageBox.Show(MDIMain,
                             "Something went wrong. Unable to load Sound " + SoundNumber +
                             "\n\nResource Error: " + loadsound.Error.ToString() +
@@ -1861,7 +1857,6 @@ namespace WinAGI.Editor {
             }
             // only pc sounds can be edited
             if (loadsound.SndFormat != SoundFormat.AGI) {
-                Debug.Assert(false);
                 MessageBox.Show(MDIMain,
                     "Only PCjr sound resources can be edited in WinAGI.",
                     "Unsupported Sound Format",
@@ -1880,7 +1875,6 @@ namespace WinAGI.Editor {
                 IsChanged = true;
             }
             else {
-                Debug.Assert(!EditSound.IsChanged);
                 IsChanged = EditSound.Warnings != 0;
             }
             Text = SOUND_EDITOR;

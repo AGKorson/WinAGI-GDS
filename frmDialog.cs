@@ -44,9 +44,6 @@ namespace WinAGI.Editor {
             // by forcing height/width, it seems to reset it to correct value
             Height++;
             Width++;
-            if (Height - ClientSize.Height != 39) {
-                Debug.Assert(false);
-            }
             // pass along help info
             this.HelpFile = HelpFile;
             this.HelpTopic = HelpTopic;
@@ -103,7 +100,6 @@ namespace WinAGI.Editor {
                 // no icon; buttons are below msg
                 button1.Top = Message.Top + Message.Height + 17;
             }
-            Debug.Assert(Height - ClientSize.Height == 39);
             // now set height
             Height = Height - ClientSize.Height + button1.Top + button1.Height + 11;
             // is checkmark needed

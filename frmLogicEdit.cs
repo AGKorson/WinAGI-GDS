@@ -2021,7 +2021,6 @@ namespace WinAGI.Editor {
                 }
             }
             if (EditGame is not null) {
-                Debug.Assert(!EditGame.SierraSyntax);
                 foreach (var define in EditGame.GlobalDefines.Values) {
                     if (define.Type == ArgType.Str) {
                         Array.Resize(ref stringDefList, ++count);
@@ -2714,7 +2713,6 @@ namespace WinAGI.Editor {
                         break;
                     default:
                         // should not be possible
-                        Debug.Assert(false);
                         MessageBox.Show(MDIMain,
                         "Something went wrong. Unable to load Logic " + LogicNumber +
                         "\n\nResource Error: " + loadlogic.SourceError.ToString() +
@@ -3090,7 +3088,6 @@ namespace WinAGI.Editor {
                     form.DefChanged = true;
                     form.ListChanged = true;
                 }
-                Debug.Assert(IncludeDefines.ContainsKey(TextFilename));
                 IncludeDefines[TextFilename].IsChanged = true;
             }
             MarkAsSaved();
@@ -3277,13 +3274,9 @@ namespace WinAGI.Editor {
                 }
                 if (InGame) {
                     // remove it
-                    // TODO: confirm first?
+                    // TODO: have user confirm first?
                     var includeinfo = EditGame.IncludeFiles.Find(m =>
                         m.Filename.Equals(TextFilename, StringComparison.OrdinalIgnoreCase));
-                    Debug.Assert(includeinfo.Filename != "");
-                    Debug.Assert(includeinfo.Type != IncludeType.ResourceIDs);
-                    Debug.Assert(includeinfo.Type != IncludeType.Reserved);
-                    Debug.Assert(includeinfo.Type != IncludeType.Globals);
                     IncludeDefines.Remove(TextFilename);
                     EditGame.IncludeFiles.Remove(includeinfo);
                     MDIMain.btnAddRemove.Image = EditorResources.tbAdd;
@@ -3294,7 +3287,6 @@ namespace WinAGI.Editor {
                     InGame = false;
                 }
                 else {
-                    Debug.Assert(TextFilename.Length > 0);
                     if (TextFilename.Length == 0) {
                         // file not saved yet
                         MessageBox.Show(MDIMain,

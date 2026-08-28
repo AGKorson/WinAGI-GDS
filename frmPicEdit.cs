@@ -1908,7 +1908,6 @@ namespace WinAGI.Editor {
                     case Fill:
                     case PlotPen:
                         DeleteCoordinate(SelectedCmd.SelectedCoordIndex);
-                        Debug.Assert(SelectedCmd.Coords.Count != 0);
                         if (SelectedCmd.SelectedCoordIndex > SelectedCmd.Coords.Count - 1) {
                             SelectedCmd.SelectedCoordIndex = SelectedCmd.Coords.Count - 1;
                         }
@@ -1917,7 +1916,6 @@ namespace WinAGI.Editor {
                     default:
                         if (SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1) {
                             DeleteCoordinate(SelectedCmd.SelectedCoordIndex);
-                            Debug.Assert(SelectedCmd.Coords.Count != 0);
                             if (SelectedCmd.SelectedCoordIndex > SelectedCmd.Coords.Count - 1) {
                                 SelectedCmd.SelectedCoordIndex = SelectedCmd.Coords.Count - 1;
                             }
@@ -3629,7 +3627,6 @@ namespace WinAGI.Editor {
             lstCommands.Refresh();
             // TODO: see comment on items disappearing in the DeleteCommands method
             if (lstCommands.TopItem is null) {
-                Debug.Print("disappearing items bug!!!");
                 // BUG!! force scrolling to reset
                 lstCommands.Scrollable = false;
                 lstCommands.Scrollable = true;
@@ -4738,7 +4735,6 @@ namespace WinAGI.Editor {
                         //case ResourceErrorType.DecompressionError:
                         default:
                             // should not be possible
-                            Debug.Assert(false);
                             MessageBox.Show(MDIMain,
                             "Something went wrong. Unable to load Picture " + PictureNumber +
                             "\n\nResource Error: " + loadpic.Error.ToString() +
@@ -8031,7 +8027,6 @@ namespace WinAGI.Editor {
                 case DisablePri:
                 case ChangePen:
                 case End:
-                    Debug.Assert(false);
                     break;
                 case YCorner:
                 case XCorner:
@@ -9353,7 +9348,6 @@ namespace WinAGI.Editor {
             // wrong. For now, this is a workaround. (this happens when removing items, or when
             // resizing such that scrollbar is no longer needed)
             if (lstCommands.TopItem is null) {
-                Debug.Print("disappearing items bug!!!");
                 // BUG!! force scrolling to reset
                 lstCommands.Scrollable = false;
                 lstCommands.Scrollable = true;
@@ -9721,7 +9715,6 @@ namespace WinAGI.Editor {
                     lstCommands.Items[SelectedCmd.Index].Text = YCorner.CommandName();
                 }
                 else {
-                    Debug.Assert(SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1);
                     if (SelectedCmd.SelectedCoordIndex.IsOdd()) {
                         // adding a new Y
                         coorddata = [(byte)SelectedCmd.SelectedCoord.Y];
@@ -9744,7 +9737,6 @@ namespace WinAGI.Editor {
                     lstCommands.Items[SelectedCmd.Index].Text = XCorner.CommandName();
                 }
                 else {
-                    Debug.Assert(SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1);
                     if (SelectedCmd.SelectedCoordIndex.IsEven()) {
                         // adding a new Y
                         coorddata = [(byte)SelectedCmd.SelectedCoord.Y];

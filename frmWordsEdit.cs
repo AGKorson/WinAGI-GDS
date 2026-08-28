@@ -1430,15 +1430,6 @@ namespace WinAGI.Editor {
             }
         }
 
-        private void dgGroups_DragLeave(object sender, EventArgs e) {
-            Debug.Print("leave drag");
-            if (GroupMode && DragWord) {
-                if (dgGroups.SelectedRows[0].Index != EditGroupIndex) {
-                    //SelectGroup(EditGroupIndex);
-                }
-            }
-        }
-
         private void dgGroups_DragDrop(object sender, DragEventArgs e) {
             if (GroupMode) {
                 string dropword = (string)e.Data.GetData(DataFormats.Text);
@@ -2338,7 +2329,6 @@ namespace WinAGI.Editor {
             if (EditWordList.GroupByNumber(EditGroupNumber).WordCount == 0) {
                 EditWordText = "";
                 EditWordIndex = -1;
-                Debug.Assert(GroupMode);
 
             }
             else {
@@ -2385,7 +2375,6 @@ namespace WinAGI.Editor {
 
         public void SelectWord(int wordindex) {
             if (dgWords.Rows.Count == 0) {
-                Debug.Assert(wordindex == -1);
                 return;
             }
             dgWords.Rows[wordindex].Selected = true;
@@ -2784,7 +2773,7 @@ namespace WinAGI.Editor {
             return retval;
         }
 
-        private int IsValidWord(string wordtext) {
+        private static int IsValidWord(string wordtext) {
             if ("!\"'(),-.:;?[]`{}".Any(wordtext.Contains)) {
                 return 1;
             }

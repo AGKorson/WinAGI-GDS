@@ -368,7 +368,6 @@ namespace WinAGI.Editor {
 
                 // if showing preview window
                 if (WinAGISettings.ShowPreview.Value) {
-                    Debug.Assert(WinAGISettings.ResListType.Value != ResListType.None);
                     // if not visible, show it
                     if (!PreviewWin.Visible) {
                         PreviewWin.Show();

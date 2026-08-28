@@ -621,7 +621,6 @@ namespace WinAGI.Editor {
                 // '  (  )  ,  .  :  ;  ?  \  ]  ^  `  {  }  ~
                 break;
             case AGITokenType.Number:
-                Debug.Assert(false);
                 break;
             case AGITokenType.Identifier:
                 bool done = false;

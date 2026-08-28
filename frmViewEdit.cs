@@ -2768,7 +2768,6 @@ namespace WinAGI.Editor {
                         //case ResourceErrorType.DecompressionError:
                         default:
                             // should not be possible
-                            Debug.Assert(false);
                             MessageBox.Show(MDIMain,
                             "Something went wrong. Unable to load View " + ViewNumber +
                             "\n\nResource Error: " + loadview.Error.ToString() +
@@ -5173,7 +5172,7 @@ namespace WinAGI.Editor {
                         parent.ChangeWidth(value);
                     }
                     else {
-                        // should not happen
+                        // ignore if invalid
                         Debug.Assert(false);
                     }
                 }
@@ -5196,7 +5195,7 @@ namespace WinAGI.Editor {
                         parent.ChangeHeight(value);
                     }
                     else {
-                        // should not happen
+                        // ignore if invalid
                         Debug.Assert(false);
                     }
                 }

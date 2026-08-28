@@ -742,7 +742,6 @@ namespace WinAGI.Editor {
             dgGroups.DragDrop += dgGroups_DragDrop;
             dgGroups.DragEnter += dgGroups_DragEnter;
             dgGroups.DragOver += dgGroups_DragOver;
-            dgGroups.DragLeave += dgGroups_DragLeave;
             dgGroups.DoubleClick += dgGroups_DoubleClick;
             dgGroups.Enter += dgGroups_Enter;
             dgGroups.Leave += dgGroups_Leave;

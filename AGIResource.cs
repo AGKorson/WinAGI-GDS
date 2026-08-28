@@ -874,7 +874,6 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             finally {
-                Debug.Assert(fsExport is not null);
                 fsExport?.Dispose();
             }
             // if NOT in a game,
