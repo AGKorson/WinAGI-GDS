@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.63
+        Version 3.0.0beta.64
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.64:
+- refactored open/import logic dialog to always start with game's source extension when a game is first opened
+
 Beta.63:
 - removed unneeded debug statements; no functional changes
 

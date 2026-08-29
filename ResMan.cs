@@ -1398,6 +1398,8 @@ namespace WinAGI.Editor {
                 AddToMRU(EditGame.GameFile);
                 BrowserStartDir = EditGame.GameDir;
                 DefaultResDir = EditGame.SrcResDir;
+                // always set logics filter to game's source file extension
+                WinAGISettingsFile.WriteSetting("Logics", sOPENFILTER, EditGame.SourceExt == "lgc" ? 1 : 2);
                 // build ID lookup table
                 BuildIDefLookup();
                 if (ActionCount < MAX_CMDS) {
@@ -7651,21 +7653,7 @@ namespace WinAGI.Editor {
                 break;
             case AGIResType.Logic:
                 MDIMain.OpenDlg.Title = mode + "Logic Source File";
-                string defext;
-                if (EditGame is null) {
-                    defext = WinAGISettings.DefaultExt.Value;
-                }
-                else {
-                    defext = EditGame.SourceExt;
-                }
-                string textext;
-                if (defext == "txt") {
-                    textext = "";
-                }
-                else {
-                    textext = "|Text files (*.txt)|*.txt";
-                }
-                MDIMain.OpenDlg.Filter = $"WinAGI Logic Source files (*.{defext})|*.{defext}{textext}|Logic Resources (*.agl)|*.agl|All files (*.*)|*.*";
+                MDIMain.OpenDlg.Filter = "WinAGI Logic Source files (*.lgc)|*.lgc|SIERRA Logic Source Files (*.cg)|*.cg|Text Files (*.txt)|txt|Logic Resources (*.agl)|*.agl|All files (*.*)|*.*";
                 MDIMain.OpenDlg.DefaultExt = "";
                 MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Logics", sOPENFILTER, 1);
                 break;
