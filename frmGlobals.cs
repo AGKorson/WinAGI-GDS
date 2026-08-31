@@ -878,7 +878,7 @@ namespace WinAGI.Editor {
             }
             // determine if tooltip is needed
             DataGridViewCell cell = globalsgrid.Rows[e.RowIndex].Cells[e.ColumnIndex];
-            string text = (string)e.Value;
+            string text = e.Value.ToString();
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
             // Declare a proposed size with dimensions set to the maximum integer value.
             Size proposedSize = new Size(int.MaxValue, int.MaxValue);
@@ -2622,18 +2622,53 @@ namespace WinAGI.Editor {
 
             errors = false;
             for (int i = 0; i < PasteDefines.Length; i++) {
-                // coming from internal clipboard means no concerns
-                //  about formatting, so just validate and add it
-
-                DefineNameCheck nametype = GetNameType(PasteDefines[i].Name);
-                ArgType t = None;
-                DefineValueCheck valuetype = GetValueType(PasteDefines[i].Value, ref t);
-                if (((int)nametype > 0 && (int)nametype <= 7) || ((int)valuetype > 0 && (int)valuetype <= 3)) {
-                    errors = true;
+                // check for name and/or value errors
+                bool isOK = false;
+                switch (PasteDefines[i].NameType) {
+                case DefineNameCheck.OK:
+                case DefineNameCheck.Global:
+                case DefineNameCheck.ReservedVar:
+                case DefineNameCheck.ReservedFlag:
+                case DefineNameCheck.ReservedNum:
+                case DefineNameCheck.ReservedObj:
+                case DefineNameCheck.ReservedStr:
+                case DefineNameCheck.ReservedMsg:
+                case DefineNameCheck.ReservedGameInfo:
+                case DefineNameCheck.ResourceID:
+                    // OK (or overriding)
+                    isOK = true;
+                    break;
+                case DefineNameCheck.Empty:
+                case DefineNameCheck.Numeric:
+                case DefineNameCheck.ActionCommand:
+                case DefineNameCheck.TestCommand:
+                case DefineNameCheck.KeyWord:
+                case DefineNameCheck.ArgMarker:
+                case DefineNameCheck.BadChar:
+                    // bad name- can't add
+                    isOK = false;
+                    break;
                 }
-                else {
+                if (isOK) {
+                    // name is OK, now check value
+                    switch (PasteDefines[i].ValueType) {
+                    case DefineValueCheck.OK:
+                    case DefineValueCheck.Reserved:
+                    case DefineValueCheck.Global:
+                        // still OK
+                        break;
+                    case DefineValueCheck.Empty:
+                    case DefineValueCheck.OutofBounds:
+                    case DefineValueCheck.BadArgNumber:
+                    case DefineValueCheck.NotAValue:
+                        // bad value - don't add
+                        isOK = false;
+                        break;
+                    }
+                }
+                if (isOK) {
                     // check for defines that replace existing defines
-                    if (nametype == DefineNameCheck.Global) {
+                    if (PasteDefines[i].NameType == DefineNameCheck.Global) {
                         string oldval = "";
                         for (replacerow = 0; replacerow < globalsgrid.RowCount; replacerow++) {
                             if ((string)globalsgrid[NAME_COL, replacerow].Value == PasteDefines[i].Name) {
@@ -2701,12 +2736,16 @@ namespace WinAGI.Editor {
                     globalsgrid.Rows.Insert(insertrow,
                         PasteDefines[i].Type,
                         PasteDefines[i].DefaultName,
+                        PasteDefines[i].Value,
                         PasteDefines[i].Name,
                         PasteDefines[i].Value,
                         PasteDefines[i].Comment,
                         PasteDefines[i].NameType,
                         PasteDefines[i].ValueType);
                     globalsgrid.Rows[insertrow++].Tag = NextUID();
+                }
+                else {
+                    errors = true;
                 }
             }
             return retval;
