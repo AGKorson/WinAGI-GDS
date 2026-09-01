@@ -1929,7 +1929,7 @@ namespace WinAGI.Editor {
             // check for any open resources
             foreach (frmLogicEdit frm in LogicEditors) {
                 if (frm.FormMode == LogicFormMode.Logic) {
-                    if (frm.rtfLogic2.IsChanged) {
+                    if (frm.fctb.IsChanged) {
                         switch (WinAGISettings.SaveOnCompile.Value) {
                         case AskOption.Ask:
                             // ask user for input
@@ -2263,7 +2263,7 @@ namespace WinAGI.Editor {
             // check for any open logic resources
             foreach (frmLogicEdit frm in LogicEditors) {
                 if (frm.FormMode == LogicFormMode.Logic) {
-                    if (frm.rtfLogic2.IsChanged) {
+                    if (frm.fctb.IsChanged) {
                         switch (WinAGISettings.SaveOnCompile.Value) {
                         case AskOption.Ask:
                             frm.Select();
@@ -4207,7 +4207,7 @@ namespace WinAGI.Editor {
             if (retval) {
                 foreach (frmLogicEdit frm in LogicEditors) {
                     if (frm.FormMode == LogicFormMode.Logic) {
-                        if (frm.rtfLogic2.IsChanged == true) {
+                        if (frm.fctb.IsChanged) {
                             // one changed logic found
                             retval = false;
                             break;

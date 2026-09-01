@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.65
+        Version 3.0.0beta.66
     ==============================
 
 
@@ -32,7 +32,10 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
-Beta65:
+Beta.66:
+- fixed the CompileChangedLogics method so all logics get compiled even if one or more errors detected in a prior logic;  fixed bug in ExportAllPicImages menu handler
+
+Beta.65:
 - fixed bug in global editor paste function that incorrectly pasted defines copied from logics/text files
 
 Beta.64:

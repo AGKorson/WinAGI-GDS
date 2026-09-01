@@ -3247,9 +3247,8 @@ namespace WinAGI.Engine {
                     AddCompileError(AGIResType.Logic, logres.Number, logres.SourceError, logres.ErrData);
                     // make sure unloaded
                     logres.Unload();
-                    // and stop compiling
-                    CompleteCancel(true);
-                    return CompileStatus.ResourceError;
+                    // skip to next logic
+                    continue;
                 }
                 // logic resources currently don't have warnings
 
@@ -3273,8 +3272,8 @@ namespace WinAGI.Engine {
                         if (unloadRes && logres is not null) {
                             logres.Unload();
                         }
-                        CompleteCancel();
-                        return CompileStatus.LogicCompileError;
+                        // skip to next logic
+                        continue;
                     }
                     // check for cancellation
                     if (CancelComp) {

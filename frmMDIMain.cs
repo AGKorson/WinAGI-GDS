@@ -1437,7 +1437,7 @@ namespace WinAGI.Editor {
 
         private void mnuRSavePicImage_Click(object sender, EventArgs e) {
             // only if  previewing a valid picture
-            if (SelResType != AGIResType.Picture ||
+            if (SelResType != AGIResType.Picture || SelResNum != -1 &&
                 (EditGame.Pictures[SelResNum].Error != ResourceErrorType.NoError &&
                 EditGame.Pictures[SelResNum].Error != ResourceErrorType.FileIsReadonly)) {
                 return;
