@@ -411,6 +411,12 @@ namespace WinAGI.Editor {
             if (EditGame is null) {
                 // no game is open
                 MDIMain.mnuRImport.Enabled = false;
+                if (EditView.ResFile.Length == 0) {
+                    mnuRSave.Text = "Save " + EditView.ID;
+                }
+                else {
+                    mnuRSave.Text = "Save " + Path.GetFileName(EditView.ResFile);
+                }
                 mnuRExport.Text = "Save As ...";
                 mnuRInGame.Enabled = false;
                 mnuRInGame.Text = "Add View to Game";
@@ -421,7 +427,19 @@ namespace WinAGI.Editor {
             else {
                 // if a game is loaded, base import is also always available
                 MDIMain.mnuRImport.Enabled = true;
-                mnuRExport.Text = InGame ? "Export View" : "Save As ...";
+                if (InGame) {
+                    mnuRSave.Text = "Save " + ResourceName(EditView, true, true);
+                    mnuRExport.Text = "Export " + ResourceName(EditView, true, true);
+                }
+                else {
+                    if (EditView.ResFile.Length == 0) {
+                        mnuRSave.Text = "Save " + EditView.ID;
+                    }
+                    else {
+                        mnuRSave.Text = "Save " + Path.GetFileName(EditView.ResFile);
+                    }
+                    mnuRExport.Text = "Save As ...";
+                }
                 mnuRInGame.Enabled = true;
                 mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
                 mnuRRenumber.Enabled = InGame;
@@ -1610,12 +1628,11 @@ namespace WinAGI.Editor {
         }
 
         private void mnuVDCharMap_Click(object sender, EventArgs e) {
-            using (frmCharPicker CharPicker = EditGame is not null ?
-                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
-                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
-                    if (CharPicker.InsertString.Length > 0) {
-                        EditTextBox.SelectedText = CharPicker.InsertString;
-                    }
+            using frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value);
+            if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                if (CharPicker.InsertString.Length > 0) {
+                    EditTextBox.SelectedText = CharPicker.InsertString;
                 }
             }
         }

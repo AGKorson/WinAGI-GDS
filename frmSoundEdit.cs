@@ -227,6 +227,12 @@ namespace WinAGI.Editor {
             if (EditGame is null) {
                 // no game is open
                 MDIMain.mnuRImport.Enabled = false;
+                if (EditSound.ResFile.Length == 0) {
+                    mnuRSave.Text = "Save " + EditSound.ID;
+                }
+                else {
+                    mnuRSave.Text = "Save " + Path.GetFileName(EditSound.ResFile);
+                }
                 mnuRExport.Text = "Save As ...";
                 mnuRInGame.Enabled = false;
                 mnuRInGame.Text = "Add Sound to Game";
@@ -236,7 +242,19 @@ namespace WinAGI.Editor {
             else {
                 // if a game is loaded, base import is also always available
                 MDIMain.mnuRImport.Enabled = true;
-                mnuRExport.Text = InGame ? "Export Sound" : "Save As ...";
+                if (InGame) {
+                    mnuRSave.Text = "Save " + ResourceName(EditSound, true, true);
+                    mnuRExport.Text = "Export " + ResourceName(EditSound, true, true);
+                }
+                else {
+                    if (EditSound.ResFile.Length == 0) {
+                        mnuRSave.Text = "Save " + EditSound.ID;
+                    }
+                    else {
+                        mnuRSave.Text = "Save " + Path.GetFileName(EditSound.ResFile);
+                    }
+                    mnuRExport.Text = "Save As ...";
+                }
                 mnuRInGame.Enabled = true;
                 mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
                 mnuRRenumber.Enabled = InGame;

@@ -2816,13 +2816,12 @@ namespace WinAGI.Editor {
             bool source, resource;
 
             if (choose) {
-                using (frmExportLogicOptions frm = new()) {
-                    if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                        return 0;
-                    }
-                    source = frm.optSourceCode.Checked || frm.optBoth.Checked;
-                    resource = frm.optResource.Checked || frm.optBoth.Checked;
+                using frmExportLogicOptions frm = new();
+                if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    return 0;
                 }
+                source = frm.optSourceCode.Checked || frm.optBoth.Checked;
+                resource = frm.optResource.Checked || frm.optBoth.Checked;
             }
             else {
                 source = true;
@@ -6869,11 +6868,11 @@ namespace WinAGI.Editor {
         #region General Resource Methods
         public static void ExportGameResource(AGIResType restype, int resnum) {
             // default filename is always resource ID and restype extension
+            if (resnum == -1) {
+                ExportAll(restype, false);
+                return;
+            }
             switch (restype) {
-            case Game:
-                // export all
-                ExportAll(false);
-                break;
             case AGIResType.Logic:
                 _ = ExportLogic(EditGame.Logics[resnum], true);
                 break;
@@ -6895,16 +6894,17 @@ namespace WinAGI.Editor {
             }
         }
 
-        public static void ExportAll(bool defaultdir = true) {
+        public static void ExportAll(AGIResType restype, bool defaultdir = true) {
             string exportdir;
-
+            
             if (!defaultdir) {
                 MDIMain.FolderDlg.InitialDirectory = DefaultResDir;
                 MDIMain.FolderDlg.SelectedPath = "";
                 MDIMain.FolderDlg.AddToRecent = false;
-                MDIMain.FolderDlg.Description = "Select a directory to export all game resources.";
+                MDIMain.FolderDlg.Description = "Select a directory to export all " + restype.ToString() + " resources.";
                 MDIMain.FolderDlg.ShowHiddenFiles = false;
                 MDIMain.FolderDlg.ShowNewFolderButton = true;
+                MDIMain.FolderDlg.OkRequiresInteraction = true;
                 if (MDIMain.FolderDlg.ShowDialog(MDIMain) == DialogResult.Cancel) {
                     return;
                 }
@@ -6924,83 +6924,102 @@ namespace WinAGI.Editor {
             }
             MDIMain.UseWaitCursor = true;
             ProgressWin = new(MDIMain) {
-                Text = "Exporting All Resources"
+                Text = "Exporting All " + restype.ToString() + " Resources"
             };
-            ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + EditGame.Pictures.Count + EditGame.Sounds.Count + EditGame.Views.Count;
+            ProgressWin.pgbStatus.Maximum = 0;
+            if (restype == Game || restype == AGIResType.Logic) {
+                ProgressWin.pgbStatus.Maximum += EditGame.Logics.Count;
+            }
+            if (restype == Game || restype == AGIResType.Picture) {
+                ProgressWin.pgbStatus.Maximum = EditGame.Pictures.Count;
+            }
+            if (restype == Game || restype == AGIResType.Sound) {
+                ProgressWin.pgbStatus.Maximum = EditGame.Sounds.Count;
+            }
+            if (restype == Game || restype == AGIResType.View) {
+                ProgressWin.pgbStatus.Maximum = EditGame.Views.Count;
+            }
             ProgressWin.pgbStatus.Value = 0;
             ProgressWin.lblProgress.Text = "Exporting...";
             ProgressWin.Show();
             ProgressWin.Refresh();
-            // exports all logic, picture, sound and view resources into a
-            // directory overwriting where necessary
+            // exports all resources into a directory overwriting where necessary
             // if defaultdir is true, the target directory is the game's 
             // resource directory; otherwise user is prompted for a location
-            bool loaded = false;
-            foreach (Logic logic in EditGame.Logics) {
-                ProgressWin.lblProgress.Text = "Exporting " + logic.ID;
-                ProgressWin.pgbStatus.Value++;
-                ProgressWin.Refresh();
-                loaded = logic.Loaded;
-                if (!loaded) {
-                    logic.Load();
-                }
-                // source code (if not resourcedir)
-                if (!exportdir.Equals(EditGame.SrcResDir)) {
+            bool loaded;
+            if (restype == Game || restype == AGIResType.Logic) {
+                foreach (Logic logic in EditGame.Logics) {
+                    ProgressWin.lblProgress.Text = "Exporting " + logic.ID;
+                    ProgressWin.pgbStatus.Value++;
+                    ProgressWin.Refresh();
+                    loaded = logic.Loaded;
+                    if (!loaded) {
+                        logic.Load();
+                    }
+                    // source code (if not resourcedir)
+                    if (!exportdir.Equals(EditGame.SrcResDir)) {
+                        if (logic.Error == ResourceErrorType.NoError) {
+                            logic.ExportSource(Path.Combine(exportdir, logic.ID + "." + EditGame.SourceExt));
+                        }
+                    }
+                    // compiled logic
                     if (logic.Error == ResourceErrorType.NoError) {
-                        logic.ExportSource(Path.Combine(exportdir, logic.ID + "." + EditGame.SourceExt));
+                        logic.Export(Path.Combine(exportdir, logic.ID + ".agl"));
+                    }
+                    if (!loaded) {
+                        logic.Unload();
                     }
                 }
-                // compiled logic
-                if (logic.Error == ResourceErrorType.NoError) {
-                    logic.Export(Path.Combine(exportdir, logic.ID + ".agl"));
-                }
-                if (!loaded) {
-                    logic.Unload();
+            }
+            if (restype == Game || restype == AGIResType.Picture) {
+                foreach (Picture tmpPic in EditGame.Pictures) {
+                    ProgressWin.lblProgress.Text = "Exporting " + tmpPic.ID;
+                    ProgressWin.pgbStatus.Value++;
+                    ProgressWin.Refresh();
+                    loaded = tmpPic.Loaded;
+                    if (!loaded) {
+                        tmpPic.Load();
+                    }
+                    if (tmpPic.Error == ResourceErrorType.NoError) {
+                        tmpPic.Export(Path.Combine(exportdir, tmpPic.ID + ".agp"));
+                    }
+                    if (!loaded) {
+                        tmpPic.Unload();
+                    }
                 }
             }
-            foreach (Picture tmpPic in EditGame.Pictures) {
-                ProgressWin.lblProgress.Text = "Exporting " + tmpPic.ID;
-                ProgressWin.pgbStatus.Value++;
-                ProgressWin.Refresh();
-                loaded = tmpPic.Loaded;
-                if (!loaded) {
-                    tmpPic.Load();
-                }
-                if (tmpPic.Error == ResourceErrorType.NoError) {
-                    tmpPic.Export(Path.Combine(exportdir, tmpPic.ID + ".agp"));
-                }
-                if (!loaded) {
-                    tmpPic.Unload();
-                }
-            }
-            foreach (Sound tmpSnd in EditGame.Sounds) {
-                ProgressWin.lblProgress.Text = "Exporting " + tmpSnd.ID;
-                ProgressWin.pgbStatus.Value++;
-                ProgressWin.Refresh();
-                loaded = tmpSnd.Loaded;
-                if (!loaded) {
-                    tmpSnd.Load();
-                }
-                if (tmpSnd.Error == ResourceErrorType.NoError) {
-                    tmpSnd.Export(Path.Combine(exportdir, tmpSnd.ID + ".ags"));
-                }
-                if (!loaded) {
-                    tmpSnd.Unload();
+            if (restype == Game || restype == AGIResType.Sound) {
+                foreach (Sound tmpSnd in EditGame.Sounds) {
+                    ProgressWin.lblProgress.Text = "Exporting " + tmpSnd.ID;
+                    ProgressWin.pgbStatus.Value++;
+                    ProgressWin.Refresh();
+                    loaded = tmpSnd.Loaded;
+                    if (!loaded) {
+                        tmpSnd.Load();
+                    }
+                    if (tmpSnd.Error == ResourceErrorType.NoError) {
+                        tmpSnd.Export(Path.Combine(exportdir, tmpSnd.ID + ".ags"));
+                    }
+                    if (!loaded) {
+                        tmpSnd.Unload();
+                    }
                 }
             }
-            foreach (Engine.View tmpView in EditGame.Views) {
-                ProgressWin.lblProgress.Text = "Exporting " + tmpView.ID;
-                ProgressWin.pgbStatus.Value++;
-                ProgressWin.Refresh();
-                loaded = tmpView.Loaded;
-                if (!loaded) {
-                    tmpView.Load();
-                }
-                if (tmpView.Error == ResourceErrorType.NoError) {
-                    tmpView.Export(Path.Combine(exportdir, tmpView.ID + ".agv"));
-                }
-                if (!loaded) {
-                    tmpView.Unload();
+            if (restype == Game || restype == AGIResType.View) {
+                foreach (Engine.View tmpView in EditGame.Views) {
+                    ProgressWin.lblProgress.Text = "Exporting " + tmpView.ID;
+                    ProgressWin.pgbStatus.Value++;
+                    ProgressWin.Refresh();
+                    loaded = tmpView.Loaded;
+                    if (!loaded) {
+                        tmpView.Load();
+                    }
+                    if (tmpView.Error == ResourceErrorType.NoError) {
+                        tmpView.Export(Path.Combine(exportdir, tmpView.ID + ".agv"));
+                    }
+                    if (!loaded) {
+                        tmpView.Unload();
+                    }
                 }
             }
             ProgressWin.Close();

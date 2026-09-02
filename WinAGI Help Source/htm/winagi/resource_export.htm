@@ -15,6 +15,7 @@
 			<p>The difference is that resources that are in a game can be exported. Resources that are NOT in a game can be saved as a different filename.</p>
 			<p>&nbsp;</p>
 		<h3><a name="exportlogics">Exporting Logics</a></h3>
+			<img src="..\..\graphics\exportlogic.jpg" border="0" alt="Export Picture Images" width="430">
 			<p>When you choose to export a <a href="..\agi\logics.htm">logic</a>, you are given the opportunity to export the actual compiled logic resource (*.agl files), the source code (*.lgc files) or both.</p>
 			<p>&nbsp;</p>
 		<h3><a name="exportpics">Exporting Pictures</a></h3>
@@ -32,7 +33,6 @@
 				<li>Continuous Loop: When checked, the resulting GIF will cycle continuously. When cleared, the GIF will cycle once, then stop on last cel.</li>
 				<li>Delay: Adjusts the time delay between cels in the GIF, in hundredths of a second increment. The preview window provides a reasonably accurate representation of the chosen delay time.</li>
 			</ul></ul>
-			<p><b>Export All Images:</b> You can easily save the images for all your picture resources with a single command. When you select the Pictures node in the <a href="resourcetree.htm">Resource List</a>, you can use the <EM>Export All Picture Images </EM> command on the <EM>Resource</EM> menu. All picture images will be exported to your game's resource directory using the options you choose.</p>
 			<p>&nbsp;</p>
 		<h3><a name="exportsounds">Exporting Sounds</a></h3>
 			<p>When you choose to export a <a href="..\agi\sounds.htm">sound</a>, there are four formats available:</p>
@@ -56,6 +56,10 @@
 				<li><a name="cloop">Continuous Loop</a>: When checked, the resulting GIF will cycle continuously. When cleared, the GIF will cycle once, then stop on last cel.</li>
 				<li><a name="delay">Delay</a>: Adjusts the time delay between cels in the GIF, in hundredths of a second increment. The preview window provides a reasonably accurate representation of the chosen delay time.</li>
 			</ul></ul>
+			<p>&nbsp;</p>
+		<h2>Export All Resources</h2>
+			<p>You can easily export all resources at once by selecting the Game node in the  <a href="resourcetree.htm">Resource List</a>. This will automatically export all logic, picture, sound and view resources in the game to a directory of your choosing. Keep in mind that any existing files that match the saved resource names will be overwritten. For logics, both the compiled resource (*.agl) and source file (*.lgc) will be exported. For pictures, sounds and views, only the native AGI format will be saved.</p>
+			<p><b>Export All Images:</b> You can also save the images for all your picture resources with a single command. When you select the Pictures node in the <a href="resourcetree.htm">Resource List</a>, you can use the <EM>Export All Picture Images </EM> command on the <EM>Resource</EM> menu. All picture images will be exported to your game's resource directory using the options you choose.</p>
 			<p>&nbsp;</p>
 		<h2><a name="autoexport">Auto Export Feature</a></h2>
 			<p>The Auto Export feature automatically exports your picture, sound and view resources every time you edit them. You can enable or disable this feature on the <a href="settings_general.htm">General</a> tab of the <a href="settings.htm">Settings</a>

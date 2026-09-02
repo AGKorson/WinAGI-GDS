@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.66
+        Version 3.0.0beta.67
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.67:
+- modified the ExportAll function to support exporting each type by itself in addition to all four at once; fixed resource menu to show correct options for all headers and resources
+
 Beta.66:
 - fixed the CompileChangedLogics method so all logics get compiled even if one or more errors detected in a prior logic;  fixed bug in ExportAllPicImages menu handler
 

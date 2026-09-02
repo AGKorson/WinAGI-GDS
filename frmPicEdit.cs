@@ -758,6 +758,12 @@ namespace WinAGI.Editor {
             if (EditGame is null) {
                 // no game is open
                 MDIMain.mnuRImport.Enabled = false;
+                if (EditPicture.ResFile.Length == 0) {
+                    mnuRSave.Text = "Save " + EditPicture.ID;
+                }
+                else {
+                    mnuRSave.Text = "Save " + Path.GetFileName(EditPicture.ResFile);
+                }
                 mnuRExport.Text = "Save As ...";
                 mnuRInGame.Enabled = false;
                 mnuRInGame.Text = "Add Picture to Game";
@@ -769,7 +775,19 @@ namespace WinAGI.Editor {
             else {
                 // if a game is loaded, base import is also always available
                 MDIMain.mnuRImport.Enabled = true;
-                mnuRExport.Text = InGame ? "Export Picture" : "Save As ...";
+                if (InGame) {
+                    mnuRSave.Text = "Save " + ResourceName(EditPicture, true, true);
+                    mnuRExport.Text = "Export " + ResourceName(EditPicture, true, true);
+                }
+                else {
+                    if (EditPicture.ResFile.Length == 0) {
+                        mnuRSave.Text = "Save " + EditPicture.ID;
+                    }
+                    else {
+                        mnuRSave.Text = "Save " + Path.GetFileName(EditPicture.ResFile);
+                    }
+                    mnuRExport.Text = "Save As ...";
+                }
                 mnuRInGame.Enabled = true;
                 mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
                 mnuRRenumber.Enabled = InGame;

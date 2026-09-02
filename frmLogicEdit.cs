@@ -260,9 +260,14 @@ namespace WinAGI.Editor {
             if (EditGame is null) {
                 // no game is open
                 MDIMain.mnuRImport.Enabled = false;
-                mnuRSave.Text = FormMode == LogicFormMode.Logic ? "Save Logic" : "Save Text File";
                 mnuRExport.Text = "Save As ...";
                 if (FormMode == LogicFormMode.Logic) {
+                    if (EditLogic.SourceFile.Length == 0) {
+                        mnuRSave.Text = "Save " + EditLogic.ID;
+                    }
+                    else {
+                        mnuRSave.Text = "Save " + Path.GetFileName(EditLogic.SourceFile);
+                    }
                     mnuRInGame.Visible = true;
                     mnuRInGame.Enabled = false;
                     mnuRInGame.Text = "Add Logic to Game";
@@ -281,6 +286,12 @@ namespace WinAGI.Editor {
                     mnuRIsRoom.Checked = false;
                 }
                 else {
+                    if (TextFilename.Length == 0) {
+                        mnuRSave.Text = "Save Text File";
+                    }
+                    else {
+                        mnuRSave.Text = "Save " + Path.GetFileName(TextFilename);
+                    }
                     mnuRInGame.Visible = false;
                     mnuRRenumber.Visible = false;
                     mnuRProperties.Visible = false;
@@ -294,14 +305,21 @@ namespace WinAGI.Editor {
             else {
                 // if a game is loaded, base import is also always available
                 MDIMain.mnuRImport.Enabled = true;
-                mnuRSave.Text = FormMode == LogicFormMode.Logic ? "Save Logic" : "Save Text File";
-                if (FormMode == LogicFormMode.Logic && InGame) {
-                    mnuRExport.Text = "Export Logic";
-                }
-                else {
-                    mnuRExport.Text = "Save As ...";
-                }
                 if (FormMode == LogicFormMode.Logic) {
+                    if (InGame) {
+                        mnuRSave.Text = "Save " + ResourceName(EditLogic, true, true);
+                        mnuRExport.Text = "Export " + ResourceName(EditLogic, true, true);
+                    }
+                    else {
+                        // use filename unless not yet established
+                        if (EditLogic.SourceFile.Length == 0) {
+                            mnuRSave.Text = "Save " + EditLogic.ID;
+                        }
+                        else {
+                            mnuRSave.Text = "Save " + Path.GetFileName(EditLogic.SourceFile);
+                        }
+                        mnuRExport.Text = "Save As...";
+                    }
                     mnuRInGame.Visible = true;
                     mnuRInGame.Enabled = EditGame is not null && EditLogic.SourceFile.Length > 0;
                     mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
@@ -318,8 +336,23 @@ namespace WinAGI.Editor {
                     mnuRIsRoom.Visible = true;
                     mnuRIsRoom.Enabled = LogicNumber != 0 && InGame;
                     mnuRIsRoom.Checked = EditLogic.IsRoom;
+                    mnuSaveOpen.Visible = true;
                 }
                 else {
+                    if (InGame) {
+                        mnuRSave.Text = "Save " + Path.GetFileName(TextFilename);
+                        mnuRExport.Text = "Export " + Path.GetFileName(TextFilename);
+                    }
+                    else {
+                        // use filename unless not yet established
+                        if (TextFilename.Length == 0) {
+                            mnuRSave.Text = "Save Text File";
+                        }
+                        else {
+                            mnuRSave.Text = "Save " + Path.GetFileName(TextFilename);
+                        }
+                        mnuRExport.Text = "Save As...";
+                    }
                     mnuRInGame.Visible = true;
                     mnuRInGame.Enabled = TextFilename.Length > 0;
                     mnuRInGame.Text = InGame ? "Remove from Game" : "Add to Game";
@@ -330,6 +363,7 @@ namespace WinAGI.Editor {
                     mnuRCompile.Visible = false;
                     mnuRMsgCleanup.Visible = false;
                     mnuRIsRoom.Visible = false;
+                    mnuSaveOpen.Visible = false;
                 }
             }
         }
@@ -3123,7 +3157,7 @@ namespace WinAGI.Editor {
                 // BEFORE calling exporting; this is because EditLogic is NOT
                 // in a game; it only mimics the ingame resource
                 EditLogic.SourceFile = EditGame.Logics[LogicNumber].SourceFile;
-                if (EditGame.Logics[LogicNumber].CompiledCRC != EditLogic.CRC) {
+                if (EditGame.Logics[LogicNumber].CompiledCRC != EditGame.Logics[LogicNumber].CRC) {
                     if (MessageBox.Show(MDIMain,
                         "Source code has changed. Do you want to compile before exporting this logic?",
                         "Export Logic",
@@ -3139,7 +3173,7 @@ namespace WinAGI.Editor {
                         }
                     }
                 }
-                if (Base.ExportLogic(EditLogic, true, false) == 1) {
+                if (Base.ExportLogic(EditLogic, true, true) == 1) {
                     // because EditLogic is not the actual ingame logic its
                     // ID needs to be reset back to the ingame value
                     EditLogic.ID = EditGame.Logics[LogicNumber].ID;

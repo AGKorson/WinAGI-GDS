@@ -803,6 +803,58 @@ namespace WinAGI.Editor {
                 mnuRExportGIF.Visible = false;
                 return;
             }
+            // INCLUDE
+            if (SelResType == Include) {
+                mnuROpenRes.Visible = true;
+                mnuRSave.Visible = true;
+                mnuRSave.Enabled = false;
+                mnuRSave.Text = "Save";
+                mnuRExport.Visible = true;
+                mnuRExport.Enabled = false;
+                mnuRExport.Text = "Export";
+                mnuRRemove.Visible = true;
+                mnuRRemove.Text = "Remove from Game";
+                mnuRRenumber.Visible = false;
+                mnuRProperties.Visible = false;
+                mnuRSep2.Visible = true;
+                mnuRSep3.Visible = false;
+                mnuRCompileLogic.Visible = false;
+                mnuRSavePicImage.Visible = false;
+                mnuRExportGIF.Visible = false;
+                if (SelResNum == -1) {
+                    // header- no options enabled
+                    mnuROpenRes.Enabled = false;
+                    mnuROpenRes.Text = "Open";
+                    mnuRRemove.Enabled = false;
+                }
+                else {
+                    switch (EditGame.IncludeFiles[SelResNum].Type) {
+                    case IncludeType.Reserved:
+                        mnuROpenRes.Enabled = true;
+                        mnuROpenRes.Text = "Open Reserved Defines Editor";
+                        mnuRRemove.Enabled = false;
+                        break;
+                    case IncludeType.ResourceIDs:
+                        mnuROpenRes.Enabled = false;
+                        mnuROpenRes.Text = "Open";
+                        mnuRRemove.Enabled = false;
+                        break;
+                    case IncludeType.Globals:
+                        mnuROpenRes.Enabled = true;
+                        mnuROpenRes.Text = "Open Global Defines Editor";
+                        mnuRRemove.Enabled = false;
+                        break;
+                    case IncludeType.Sysdefs:
+                    case IncludeType.Gamedefs:
+                    case IncludeType.Other:
+                        mnuROpenRes.Enabled = true;
+                        mnuROpenRes.Text = "Open " + Path.GetFileName(EditGame.IncludeFiles[SelResNum].Filename);
+                        mnuRRemove.Enabled = true;
+                        break;
+                    }
+                }
+                return;
+            }
 
             // resource header or game
             if (SelResNum == -1) {
@@ -810,12 +862,30 @@ namespace WinAGI.Editor {
                 mnuRSave.Visible = true;
                 mnuRSave.Text = "Save Resource";
                 mnuRSave.Enabled = false;
-                if (SelResType == Game) {
+                switch (SelResType) {
+                case Game:
                     mnuRExport.Visible = true;
                     mnuRExport.Text = "Export All Resources";
-                }
-                else {
+                    break;
+                case AGIResType.Logic:
+                    mnuRExport.Visible = true;
+                    mnuRExport.Text = "Export All Logics";
+                    break;
+                case AGIResType.Picture:
+                    mnuRExport.Visible = true;
+                    mnuRExport.Text = "Export All Pictures";
+                    break;
+                case AGIResType.Sound:
+                    mnuRExport.Visible = true;
+                    mnuRExport.Text = "Export All Sounds";
+                    break;
+                case AGIResType.View:
+                    mnuRExport.Visible = true;
+                    mnuRExport.Text = "Export All Views";
+                    break;
+                default:
                     mnuRExport.Visible = false;
+                    break;
                 }
                 mnuRSep2.Visible = true;
                 mnuRRemove.Visible = true;
@@ -1061,12 +1131,30 @@ namespace WinAGI.Editor {
                 cmRSave.Visible = true;
                 cmRSave.Text = "Save Resource";
                 cmRSave.Enabled = false;
-                if (SelResType == Game) {
+                switch (SelResType) {
+                case Game:
                     cmRExport.Visible = true;
                     cmRExport.Text = "Export All Resources";
-                }
-                else {
+                    break;
+                case AGIResType.Logic:
+                    cmRExport.Visible = true;
+                    cmRExport.Text = "Export All Logics";
+                    break;
+                case AGIResType.Picture:
+                    cmRExport.Visible = true;
+                    cmRExport.Text = "Export All Pictures";
+                    break;
+                case AGIResType.Sound:
+                    cmRExport.Visible = true;
+                    cmRExport.Text = "Export All Sounds";
+                    break;
+                case AGIResType.View:
+                    cmRExport.Visible = true;
+                    cmRExport.Text = "Export All Views";
+                    break;
+                default:
                     cmRExport.Visible = false;
+                    break;
                 }
                 cmRRemove.Visible = true;
                 cmRRemove.Text = "Add to Game";
@@ -1436,7 +1524,7 @@ namespace WinAGI.Editor {
         }
 
         private void mnuRSavePicImage_Click(object sender, EventArgs e) {
-            // only if  previewing a valid picture
+            // only if previewing a valid picture (or on picture header[SelResNum = -1])
             if (SelResType != AGIResType.Picture || SelResNum != -1 &&
                 (EditGame.Pictures[SelResNum].Error != ResourceErrorType.NoError &&
                 EditGame.Pictures[SelResNum].Error != ResourceErrorType.FileIsReadonly)) {
