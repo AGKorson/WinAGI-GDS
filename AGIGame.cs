@@ -2625,19 +2625,20 @@ namespace WinAGI.Engine {
                         // code; they should all be extracted here, and marked as clean
                         // (if error occurs in decoding, the error gets caught, noted, and
                         // a blank source file is used instead)
-
-                        // decompiling
-                        loadInfo.ResType = AGIResType.Logic;
-                        loadInfo.ResNum = tmpLog.Number;
-                        loadInfo.Type = EventType.Info;
-                        loadInfo.InfoType = InfoType.Decompiling;
-                        LoadEventStatus(mode, loadInfo);
-                        // force decompile
-                        tmpLog.LoadSource(true);
-                        if (tmpLog.SourceError != ResourceErrorType.NoError &&
-                            tmpLog.SourceError != ResourceErrorType.LogicSourceDecompileError) {
-                            AddLoadError(mode, this, AGIResType.Logic, tmpLog.Number, tmpLog.SourceError, tmpLog.ErrData);
-                            agLoadWarnings = true;
+                        // also, only decompile if the logic is error-free
+                        if (tmpLog.Error == ResourceErrorType.NoError) {
+                            loadInfo.ResType = AGIResType.Logic;
+                            loadInfo.ResNum = tmpLog.Number;
+                            loadInfo.Type = EventType.Info;
+                            loadInfo.InfoType = InfoType.Decompiling;
+                            LoadEventStatus(mode, loadInfo);
+                            // force decompile
+                            tmpLog.LoadSource(true);
+                            if (tmpLog.SourceError != ResourceErrorType.NoError &&
+                                tmpLog.SourceError != ResourceErrorType.LogicSourceDecompileError) {
+                                AddLoadError(mode, this, AGIResType.Logic, tmpLog.Number, tmpLog.SourceError, tmpLog.ErrData);
+                                agLoadWarnings = true;
+                            }
                         }
                         // unload the logic after decompile is done
                         tmpLog.Unload();

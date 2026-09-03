@@ -16,8 +16,8 @@
 			<p>quit(<a href="syntax_fan.htm#argtypes">byt</a> MODE); <b>(ALL OTHER VERSIONS)</b></p>
 		</blockquote>
 		<h2>Remarks</h2>
-			<p><b>NOTE:</b> In <a href="..\agi\version2.htm#2089">version 2.089</a>, the <b>quit</b> command had no arguments. Code using this command written for a version 2.089 game will <a href="..\agi\errors.htm">crash AGI</a> if run on other versions (and vice versa).</p>
-			<p>If <b>MODE</b> is 1, the game will quit instantly. If it is any other number, a prompt is presented to the player, who can chose to quit or continue playing.</p>
+			<p><b>NOTE:</b> In versions <a href="..\agi\version2.htm#2089">2.089</a> and <a href="..\agi\version2.htm#2230">2.230</a>, the <b>quit</b> command had no arguments. If the <b>MODE</b> argument is included in source code for either of these versions, the compiler will raise an <a href="..\winagi\errors\4084.htm">error</a>.</p>
+			<p>In all other versions, if <b>MODE</b> is 1, the game will quit instantly. If it is any other number, a prompt is presented to the player, who can chose to quit or continue playing.</p>
 		<p>&nbsp;</p>
 		<h2>Example</h2>
 <pre><code><b>quit(0);</b>  [ player can choose to cancel

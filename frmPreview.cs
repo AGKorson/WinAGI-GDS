@@ -1131,11 +1131,44 @@ namespace WinAGI.Editor {
                         pnlLogic.Visible = false;
                         using Graphics cg = CreateGraphics();
                         cg.Clear(base.BackColor);
-                        string errMsg = "SOURCE FILE ERROR: unknown error.";
-                        switch (EditGame.Logics[ResNum].SourceError) {
-                        case ResourceErrorType.LogicSourceAccessError:
-                            errMsg = "SOURCE FILE ERROR: File access error.";
-                            break;
+                        string errMsg = "";
+                        if (EditGame.Logics[ResNum].Error == ResourceErrorType.NoError) {
+                            // must be a source file error
+                            switch (EditGame.Logics[ResNum].SourceError) {
+                            case ResourceErrorType.LogicSourceAccessError:
+                                errMsg = "SOURCE FILE ERROR: File access error.";
+                                break;
+                            case ResourceErrorType.LogicSourceDecompileError:
+                                errMsg = "SOURCE FILE ERROR: Decompilation error.";
+                                break;
+                            default:
+                                errMsg = "SOURCE FILE ERROR: " + EditGame.Logics[ResNum].SourceError.ToString();
+                                break;
+                            }
+                        }
+                        else {
+                            switch (EditGame.Logics[ResNum].Error) {
+                            case ResourceErrorType.FileNotFound:
+                                errMsg = $"LOGIC RESOURCE ERROR: VOL File (VOL.{EditGame.Logics[ResNum].Volume}) does not exist.";
+                                break;
+                            case ResourceErrorType.FileAccessError:
+                                errMsg = $"LOGIC RESOURCE ERROR: VOL File (VOL.{EditGame.Logics[ResNum].Volume}) file access error.";
+                                break;
+                            case ResourceErrorType.InvalidLocation:
+                                errMsg = $"LOGIC RESOURCE ERROR: Invalid Location index ({EditGame.Logics[ResNum].Loc}) for this resource.";
+                                break;
+                            case ResourceErrorType.InvalidHeader:
+                                errMsg = "LOGIC RESOURCE ERROR: Invalid resource header.";
+                                break;
+                            case ResourceErrorType.DecompressionError:
+                                errMsg = "LOGIC RESOURCE ERROR: Resource decompression error.";
+                                break;
+                            //case ResourceErrorType.SierraResourceError:
+                            default:
+                                errMsg = "LOGIC RESOURCE ERROR: " + EditGame.Logics[ResNum].Error.ToString();
+                                break;
+                            }
+                            errMsg += "\n\nUnable to Decompile this logic";
                         }
                         cg.DrawString(errMsg, base.Font, new SolidBrush(Color.Black), 0, 0);
                     }
@@ -1363,6 +1396,12 @@ namespace WinAGI.Editor {
                 agLogic.Load();
             }
             // check for errors
+            if (agLogic.Error != ResourceErrorType.NoError) {
+                // if no source file, don't try to decompile
+                if (!System.IO.File.Exists(agLogic.SourceFile)) {
+                    return false;
+                }
+            }
             if (agLogic.SourceError == ResourceErrorType.LogicSourceAccessError) {
                 return false;
             }

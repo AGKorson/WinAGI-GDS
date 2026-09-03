@@ -303,8 +303,10 @@ namespace WinAGI.Engine {
             // this must be an ingame logic
             Debug.Assert(mInGame);
             LoadNoSource();
-            // load the sourcetext
-            LoadSource();
+            // load the sourcetext if no error (or if there is a sourcefile)
+            if (Error == ResourceErrorType.NoError || File.Exists(SourceFile)) {
+                LoadSource();
+            }
         }
 
         /// <summary>

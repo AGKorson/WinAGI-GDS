@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.67
+        Version 3.0.0beta.68
     ==============================
 
 
@@ -32,11 +32,17 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.68:
+- changed how invalid logic resources are handled when decompiling and previewing; an error is displayed unless/until the logic source is opened and a sourcefile is established
+- minor edits and clarifications to help file; no functional changes
+
 Beta.67:
-- modified the ExportAll function to support exporting each type by itself in addition to all four at once; fixed resource menu to show correct options for all headers and resources
+- modified the ExportAll function to support exporting each type by itself in addition to all four at once
+- fixed resource menu to show correct options for all headers and resources
 
 Beta.66:
-- fixed the CompileChangedLogics method so all logics get compiled even if one or more errors detected in a prior logic;  fixed bug in ExportAllPicImages menu handler
+- fixed the CompileChangedLogics method so all logics get compiled even if one or more errors detected in a prior logic
+- fixed bug in ExportAllPicImages menu handler
 
 Beta.65:
 - fixed bug in global editor paste function that incorrectly pasted defines copied from logics/text files
