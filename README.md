@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.68
+        Version 3.0.0beta.69
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.69:
+- fixed invalid logic resource handling when decompiling to cover Sierra syntax games
+
 Beta.68:
 - changed how invalid logic resources are handled when decompiling and previewing; an error is displayed unless/until the logic source is opened and a sourcefile is established
 - minor edits and clarifications to help file; no functional changes

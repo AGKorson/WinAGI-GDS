@@ -2899,13 +2899,13 @@ namespace WinAGI.Engine {
                                 msgfile.Add("");
                             }
                         }
-                        string msgfilename = Path.Combine(dcGame.SrcResDir, dcLogic.ID + ".MSG");
-                        File.WriteAllText(Path.Combine(dcGame.SrcResDir, dcLogic.ID + ".MSG"), string.Join(NEWLINE, [.. msgfile]));
+                        string msgfilename = Path.Combine(dcGame.SrcResDir, dcLogic.ID + ".msg");
+                        File.WriteAllText(Path.Combine(dcGame.SrcResDir, dcLogic.ID + ".msg"), string.Join(NEWLINE, [.. msgfile]));
                         // add this file to include file list
                         dcGame.IncludeFiles.Add(new() {
                             Filename = msgfilename,
                             Type = IncludeType.Other,
-                            RelativeName = dcLogic.ID + ".MSG"
+                            RelativeName = dcLogic.ID + ".msg"
                         });
                         return;
                     }
@@ -3295,8 +3295,10 @@ namespace WinAGI.Engine {
             foreach (Logic logic in game.Logics) {
                 info.ResNum = logic.Number;
                 OnLoadGameStatus(info);
-                // force decompile
-                logic.LoadSource(true);
+                // force decompile (only decompile if the logic is error-free)
+                if (logic.Error == ResourceErrorType.NoError) {
+                    logic.LoadSource(true);
+                }
                 if (logic.SourceError != ResourceErrorType.NoError &&
                     logic.SourceError != ResourceErrorType.LogicSourceDecompileError) {
                     AddLoadError(OpenGameMode.Directory, game, AGIResType.Logic, logic.Number, logic.SourceError, logic.ErrData);

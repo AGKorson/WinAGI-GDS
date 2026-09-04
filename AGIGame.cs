@@ -2531,32 +2531,35 @@ namespace WinAGI.Engine {
                 else {
                     // compile all logics so VOL resources match source code
                     foreach (Logic logic in agLogs) {
-                        logic.LoadSource();
-                        List<string> includes = SierraLogicCompiler.CompileSierraImport(logic);
-                        ((AGIResource)logic).Save();
-                        logic.Unload();
-                        // add any includes
-                        foreach (string include in includes) {
-                            if (!agIncludeFiles.Any(x => string.Equals(x.Filename, include, StringComparison.OrdinalIgnoreCase))) {
-                                IncludeInfo info = new();
-                                string relname = RelativeToSrcDir(include, agSrcResDir).ToLower();
-                                IncludeType type;
-                                if (relname == "sysdefs" || relname == "sysdefs.h") {
-                                    type = IncludeType.Sysdefs;
+                        // only decompile if the logic is error-free
+                        if (logic.Error == ResourceErrorType.NoError) {
+                            logic.LoadSource();
+                            List<string> includes = SierraLogicCompiler.CompileSierraImport(logic);
+                            ((AGIResource)logic).Save();
+                            // add any includes
+                            foreach (string include in includes) {
+                                if (!agIncludeFiles.Any(x => string.Equals(x.Filename, include, StringComparison.OrdinalIgnoreCase))) {
+                                    IncludeInfo info = new();
+                                    string relname = RelativeToSrcDir(include, agSrcResDir).ToLower();
+                                    IncludeType type;
+                                    if (relname == "sysdefs" || relname == "sysdefs.h") {
+                                        type = IncludeType.Sysdefs;
+                                    }
+                                    else if (relname == "gamedefs" || relname == "gamedefs.h") {
+                                        type = IncludeType.Gamedefs;
+                                    }
+                                    else {
+                                        type = IncludeType.Other;
+                                    }
+                                    agIncludeFiles.Add(new() {
+                                        Filename = include,
+                                        Type = type,
+                                        RelativeName = relname,
+                                    });
                                 }
-                                else if (relname == "gamedefs" || relname == "gamedefs.h") {
-                                    type = IncludeType.Gamedefs;
-                                }
-                                else {
-                                    type = IncludeType.Other;
-                                }
-                                agIncludeFiles.Add(new() {
-                                    Filename = include,
-                                    Type = type,
-                                    RelativeName = relname,
-                                });
                             }
                         }
+                        logic.Unload();
                     }
                 }
                 // sort the include list
@@ -2569,54 +2572,57 @@ namespace WinAGI.Engine {
                 // (this has to happen AFTER everything is loaded otherwise some resources
                 // that are referenced in the logics won't exist yet, and will give a
                 // false warning about missing resources)
-                foreach (Logic tmpLog in agLogs) {
+                foreach (Logic logic in agLogs) {
                     // the CRC/source check depends on mode
                     switch (mode) {
                     case OpenGameMode.File:
                     case OpenGameMode.New:
                         // opening existing wag file - check CRC
                         loadInfo.ResType = AGIResType.Logic;
-                        loadInfo.ResNum = tmpLog.Number;
+                        loadInfo.ResNum = logic.Number;
                         loadInfo.Type = EventType.Info;
                         loadInfo.InfoType = InfoType.CheckCRC;
                         LoadEventStatus(mode, loadInfo);
                         // if there is a source file, need to verify source CRC value
-                        if (File.Exists(tmpLog.SourceFile)) {
+                        if (File.Exists(logic.SourceFile)) {
                             // recalculate the CRC value for this sourcefile by loading the source
-                            tmpLog.LoadSource();
-                            if (tmpLog.SourceError != ResourceErrorType.LogicSourceAccessError) {
+                            logic.LoadSource();
+                            if (logic.SourceError != ResourceErrorType.LogicSourceAccessError) {
                                 // check it for TODO items
-                                List<WinAGIEventInfo> TODOs = ExtractTODO(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
+                                List<WinAGIEventInfo> TODOs = ExtractTODO(logic.Number, logic.SourceText, logic.ID);
                                 foreach (WinAGIEventInfo tmpInfo in TODOs) {
                                     LoadEventStatus(mode, tmpInfo);
                                 }
                                 // and decomp warnings
-                                List<WinAGIEventInfo> DecompWarnings = ExtractDecompWarn(tmpLog.Number, tmpLog.SourceText, tmpLog.ID);
+                                List<WinAGIEventInfo> DecompWarnings = ExtractDecompWarn(logic.Number, logic.SourceText, logic.ID);
                                 foreach (WinAGIEventInfo tmpInfo in DecompWarnings) {
                                     LoadEventStatus(mode, tmpInfo);
                                 }
                                 // and compiler warnings and errors
-                                List<WinAGIEventInfo> CompIssues = tmpLog.LoadWarnings();
+                                List<WinAGIEventInfo> CompIssues = logic.LoadWarnings();
                                 foreach (WinAGIEventInfo tmpInfo in CompIssues) {
                                     LoadEventStatus(mode, tmpInfo);
                                 }
                             }
                             // then unload it
-                            tmpLog.Unload();
+                            logic.Unload();
                         }
                         else {
                             // no source - decompile it now
                             // force decompile
-                            tmpLog.LoadSource(true);
+                            // also, only decompile if the logic is error-free
+                            if (logic.Error == ResourceErrorType.NoError) {
+                                logic.LoadSource(true);
+                            }
                             // unload the logic after decompile is done
-                            tmpLog.Unload();
+                            logic.Unload();
                         }
                         // the resource and the source file have now been checked; display
                         // source error if applicable (decode errors would have been
                         // caught during LoadSource)
-                        if (tmpLog.SourceError != ResourceErrorType.NoError &&
-                            tmpLog.SourceError != ResourceErrorType.LogicSourceDecompileError) {
-                            AddLoadError(mode, this, AGIResType.Logic, tmpLog.Number, tmpLog.SourceError, tmpLog.ErrData);
+                        if (logic.SourceError != ResourceErrorType.NoError &&
+                            logic.SourceError != ResourceErrorType.LogicSourceDecompileError) {
+                            AddLoadError(mode, this, AGIResType.Logic, logic.Number, logic.SourceError, logic.ErrData);
                             agLoadWarnings = true;
                         }
                         break;
@@ -2626,22 +2632,22 @@ namespace WinAGI.Engine {
                         // (if error occurs in decoding, the error gets caught, noted, and
                         // a blank source file is used instead)
                         // also, only decompile if the logic is error-free
-                        if (tmpLog.Error == ResourceErrorType.NoError) {
+                        if (logic.Error == ResourceErrorType.NoError) {
                             loadInfo.ResType = AGIResType.Logic;
-                            loadInfo.ResNum = tmpLog.Number;
+                            loadInfo.ResNum = logic.Number;
                             loadInfo.Type = EventType.Info;
                             loadInfo.InfoType = InfoType.Decompiling;
                             LoadEventStatus(mode, loadInfo);
                             // force decompile
-                            tmpLog.LoadSource(true);
-                            if (tmpLog.SourceError != ResourceErrorType.NoError &&
-                                tmpLog.SourceError != ResourceErrorType.LogicSourceDecompileError) {
-                                AddLoadError(mode, this, AGIResType.Logic, tmpLog.Number, tmpLog.SourceError, tmpLog.ErrData);
+                            logic.LoadSource(true);
+                            if (logic.SourceError != ResourceErrorType.NoError &&
+                                logic.SourceError != ResourceErrorType.LogicSourceDecompileError) {
+                                AddLoadError(mode, this, AGIResType.Logic, logic.Number, logic.SourceError, logic.ErrData);
                                 agLoadWarnings = true;
                             }
                         }
                         // unload the logic after decompile is done
-                        tmpLog.Unload();
+                        logic.Unload();
                         break;
                     }
                 }
