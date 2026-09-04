@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.69
+        Version 3.0.0beta.70
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.70:
+- fixed bugs in inventory object code that didn't always refresh the list when opening the editor, and that caused errors when trying to convert from Amiga format to PC format and 
+
 Beta.69:
 - fixed invalid logic resource handling when decompiling to cover Sierra syntax games
 

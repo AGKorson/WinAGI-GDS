@@ -1400,6 +1400,8 @@ namespace WinAGI.Editor {
             InGame = objectobj.InGame;
             try {
                 if (InGame) {
+                    // unload to force a fresh re-load
+                    objectobj.Unload();
                     objectobj.Load();
                 }
             }

@@ -716,8 +716,8 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="SaveFile"></param>
         public void Save(string SaveFile = "") {
-            WinAGIException.ThrowIfNotLoaded(this);
             if (mInGame) {
+                WinAGIException.ThrowIfNotLoaded(this);
                 Compile(mResFile);
                 parent.agLastEdit = DateTime.Now;
             }
@@ -1086,7 +1086,7 @@ namespace WinAGI.Engine {
             }
             SafeFileDelete(Path.Combine(theDir, "OBJECT.amg"));
             try {
-                File.Move(Path.Combine(parent.agGameDir, "OBJECT"), Path.Combine(theDir, "OBJECT.amg"), true);
+                File.Move(Path.Combine(theDir, "OBJECT"), Path.Combine(theDir, "OBJECT.amg"), true);
             }
             catch (Exception ex) {
                 WinAGIException wex = new(EngineResourceByNum(502).Replace(
