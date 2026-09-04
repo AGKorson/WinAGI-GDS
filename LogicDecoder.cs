@@ -96,7 +96,8 @@ namespace WinAGI.Engine {
         private static string D_TKN_EQUAL;
         private static string D_TKN_NOT_EQUAL;
         private static string D_TKN_COMMENT;
-        private static string D_TKN_MESSAGE;
+        private static string D_TKN_MSG_FAN;
+        private static string D_TKN_MSG_SIERRA;
         private static bool minorErrors = false;
         private static bool addWarning;
         private static List<string> warningText = [];
@@ -2232,7 +2233,7 @@ namespace WinAGI.Engine {
         static bool DecodeIf() {
             bool isEmpty = true;
             bool firstCmd = true;
-            bool inOrBlock = false;
+            bool inOrBlock = false, orEmpty = true;
             bool ifFinished = false;
             string lineText = INDENT.MultStr(DecodeBlock.Count - 1) + D_TKN_IF;
 
@@ -2252,33 +2253,23 @@ namespace WinAGI.Engine {
                             firstCmd = true;
                         }
                         lineText += "(";
+                        orEmpty = true;
                     }
                     else {
                         lineText += ")";
+                        if (orEmpty) {
+                            // an 'OR' block with no commands- need to skip it and 
+                            // add a warning, because it will cause a compile error
+                            AddDecodeWarning("DW22", EngineResources.DW22.Replace(
+                                ARG2, pos.ToString()), outputList.Count + 1);
+                        }
                     }
-                    curByte = ReadByte(ref pos);
-                }
-                // special check needed in case two 0xFCs are in a row, e.g. (a || b) && (c || d)
-                if (curByte == 0xFC) {
-                    if (!inOrBlock) {
-                        lineText += D_TKN_AND;
-                        outputList.Add(lineText);
-                        lineText = INDENT.MultStr(DecodeBlock.Count - 1) + "    ";
-                        firstCmd = true;
-                        lineText += "(";
-                        inOrBlock = true;
-                        curByte = ReadByte(ref pos);
-                    }
-                    else {
-                        // an 'OR' block with no commands- need to skip it and 
-                        // add a warning, because it will cause a compile error
-                        AddDecodeWarning("DW22", EngineResources.DW22.Replace(
-                            ARG2, pos.ToString()), outputList.Count + 1);
-                    }
+                    continue;
                 }
                 // check for 'not' command
                 if (curByte == 0xFD) {
                     isEmpty = false;
+                    orEmpty = false;
                     // RARE- but allowed! multiple NOTs in a row will
                     // toggle the NOT status
 
@@ -2298,6 +2289,7 @@ namespace WinAGI.Engine {
                 // check for valid test command
                 if ((curByte > 0) && (curByte <= TestCount)) {
                     isEmpty = false;
+                    orEmpty = false;
                     if (!firstCmd) {
                         if (inOrBlock) {
                             lineText += D_TKN_OR;
@@ -2433,6 +2425,7 @@ namespace WinAGI.Engine {
                     if (cmdNum == 19) {
                         if (sierraSyntax) {
                             // in sierra syntax, treat test cmd as invalid
+                            // TODO: should the pos value be the zero-based value or the one-based value? (currently using one-based)
                             AddDecodeError("DE02", EngineResources.DE02.Replace(
                                 ARG1, cmdNum.ToString()).Replace(
                                 ARG2, pos.ToString()), outputList.Count - 1);
@@ -2581,11 +2574,7 @@ namespace WinAGI.Engine {
                 curByte = ReadByte(ref pos);
                 if (curByte == 0xFC) {
                     inOrBlock = !inOrBlock;
-                    curByte = ReadByte(ref pos);
-                }
-                // special check needed in case two 0xFCs are in a row, e.g. (a || b) && (c || d)
-                if ((curByte == 0xFC) && (!inOrBlock)) {
-                    curByte = ReadByte(ref pos);
+                    continue;
                 }
                 // check for 'not' command
                 if (curByte == 0xFD) {
@@ -2595,6 +2584,7 @@ namespace WinAGI.Engine {
                     } while (curByte == 0xFD);
                 }
                 // now check for valid test command, endif, or error
+                // TODO: command 0 (return.false) is technically allowed! 
                 if ((curByte > 0) && (curByte <= TestCount)) {
                     ThisCommand = curByte;
                     if (ThisCommand == 14) {
@@ -2885,7 +2875,7 @@ namespace WinAGI.Engine {
                                     msgfile.Add("[ " + EngineResources.DW18.Replace(
                                         ARG1, i.ToString()));
                                 }
-                                msgfile.Add(D_TKN_MESSAGE.Replace(ARG1, i.ToString().PadLeft(3, ' ')));
+                                msgfile.Add(D_TKN_MSG_SIERRA.Replace(ARG1, i.ToString().PadLeft(3, ' ')));
                                 while (MsgList[i].Length > MAXMSGLINELEN) {
                                     // break it up into chunks
                                     int space = MsgList[i].LastIndexOf(' ', MAXMSGLINELEN);
@@ -2918,16 +2908,17 @@ namespace WinAGI.Engine {
             }
             // add the messages to end of source code
             stlOut.Add(D_TKN_COMMENT + "DECLARED MESSAGES");
+            // in Sierra syntax, if unable to add messages to a separate file, add a warning and
+            // add them to the end of the source code same as Fan syntax
             if (msgfileerr) {
                 AddDecodeWarning("DW19", EngineResources.DW19.Replace(
                     ARG1, dcLogic.ID).Replace(
                     ARG2, fex.Message), outputList.Count + 1);
                 stlOut.Add("");
-                D_TKN_MESSAGE = "%message %1 %2";
             }
             for (int i = 1; i < MsgList.Count; i++) {
                 if (MsgExists[i] && (ShowAllMessages || !MsgUsed[i])) {
-                    stlOut.Add(D_TKN_MESSAGE.Replace(
+                    stlOut.Add(D_TKN_MSG_FAN.Replace(
                         ARG1, i.ToString()).Replace(
                         ARG2, MsgList[i]));
                 }
@@ -3208,12 +3199,8 @@ namespace WinAGI.Engine {
                 D_TKN_EQUAL = " == ";
                 D_TKN_NOT_EQUAL = " != ";
                 D_TKN_COMMENT = "[ ";
-                if (sierraSyntax) {
-                    D_TKN_MESSAGE = "%message  %1";
-                }
-                else {
-                    D_TKN_MESSAGE = "#message %1 %2";
-                }
+                D_TKN_MSG_FAN = "#message %1 %2";
+                D_TKN_MSG_SIERRA = "%message %1";
                 break;
             default:
                 D_TKN_NOT = "!";
@@ -3232,12 +3219,8 @@ namespace WinAGI.Engine {
                 D_TKN_EQUAL = " == ";
                 D_TKN_NOT_EQUAL = " != ";
                 D_TKN_COMMENT = "[ ";
-                if (sierraSyntax) {
-                    D_TKN_MESSAGE = "%message %1";
-                }
-                else {
-                    D_TKN_MESSAGE = "#message %1 %2";
-                }
+                D_TKN_MSG_FAN = "#message %1 %2";
+                D_TKN_MSG_SIERRA = "%message %1";
                 break;
             }
             tokensSet = true;
