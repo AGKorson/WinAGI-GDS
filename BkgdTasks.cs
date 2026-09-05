@@ -101,7 +101,7 @@ namespace WinAGI.Common {
                 MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 3:
-                // Decode warning
+                // Decode warning/error
                 MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 51:
@@ -293,7 +293,7 @@ namespace WinAGI.Common {
                 MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 3:
-                // Decode errors and warnings
+                // Compiler and Decode errors and warnings
                 MDIMain.AddInfoItem((WinAGIEventInfo)e.UserState, true);
                 break;
             case 4:

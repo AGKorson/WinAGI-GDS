@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.72
+        Version 3.0.0beta.73
     ==============================
 
 
@@ -32,6 +32,10 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.73:
+- fixed logic decoder to add decode errors to logic resources so they persist after game is closed
+- refactored logic warning handlers to add correct event type for decode errors and warnings so they are correctly displayed in the infogrid
+
 Beta.72:
 - adjusted the logic decoder to display more accurate position for errors and warnings found during decoding
 

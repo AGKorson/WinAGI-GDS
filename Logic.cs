@@ -811,7 +811,7 @@ namespace WinAGI.Engine {
                     else {
                         warnings += "\v";
                     }
-                    warnings += (warning.Type == EventType.LogicCompileError ? "0" : "1") + '\t' +
+                    warnings += ((int)warning.Type).ToString() + '\t' +
                         warning.ID + '\t' +
                         warning.Text + '\t' +
                         warning.Line.ToString() + '\t' +
@@ -834,11 +834,35 @@ namespace WinAGI.Engine {
                 string[] items = warnings.Split(["\v"], StringSplitOptions.None);
                 foreach (string item in items) {
                     string[] elements = item.Split('\t');
+                    EventType type;
+
                     if (elements.Length == 6) {
+                        // extract type
+                        if (int.TryParse(elements[0], out int i) &&
+                            Enum.IsDefined(typeof(EventType), i)) {
+                            type = (EventType)i;
+                            // only valid types are DecodeWarning, DecodeError,
+                            // CompileWarning, CompileError
+                            switch (type) {
+                            case EventType.DecompWarning:
+                            case EventType.DecompError:
+                            case EventType.LogicCompileError:
+                            case EventType.LogicCompileWarning:
+                                break;
+                            default:
+                                // assume compile warning
+                                type = EventType.LogicCompileWarning;
+                                break;
+                            }
+                        }
+                        else {
+                            // assume it's a warning
+                            type = EventType.LogicCompileWarning;
+                        }
                         WinAGIEventInfo warning = new() {
                             ResNum = Number,
                             ResType = AGIResType.Logic,
-                            Type = elements[0] == "0" ? EventType.LogicCompileError : EventType.LogicCompileWarning,
+                            Type = type,
                             ID = elements[1],
                             Text = elements[2],
                             Line = int.Parse(elements[3]),

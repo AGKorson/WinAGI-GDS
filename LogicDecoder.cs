@@ -1274,6 +1274,7 @@ namespace WinAGI.Engine {
             minorErrors = true;
             warningText.Add("ERROR: " + errID + ": " + errText);
             AddWarningLines();
+            warnings.Add(dcErrInfo);
         }
 
         private static string ArgValue(bool actioncmd, byte cmdNum, int argPos, byte argNum, ArgType argType, int varVal = -1) {

@@ -3047,7 +3047,7 @@ namespace WinAGI.Editor {
         }
 
         internal void GameEvents_NewGameStatus(object sender, NewGameEventArgs e) {
-            // data field used to determine if event is a newgame vent or a load event
+            // data field used to determine if event is a newgame event or a load event
             // passed when template game is loaded
             switch (e.NewInfo.Type) {
             case EventType.Info:
@@ -3066,11 +3066,20 @@ namespace WinAGI.Editor {
                     break;
                 }
                 break;
-            case LogicCompileError:
+            case ResourceError:
                 bgwNewGame.ReportProgress(1, e.NewInfo);
                 break;
             case ResourceWarning:
                 bgwNewGame.ReportProgress(1, e.NewInfo);
+                break;
+            case LogicCompileError:
+                bgwNewGame.ReportProgress(3, e.NewInfo);
+                break;
+            case LogicCompileWarning:
+                bgwNewGame.ReportProgress(3, e.NewInfo);
+                break;
+            case DecompError:
+                bgwNewGame.ReportProgress(3, e.NewInfo);
                 break;
             case DecompWarning:
                 bgwNewGame.ReportProgress(3, e.NewInfo);
@@ -3137,11 +3146,6 @@ namespace WinAGI.Editor {
                     break;
                 }
                 break;
-            case LogicCompileError:
-                bgwOpenGame.ReportProgress(0, $"Load Error: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
-                // add to error list
-                bgwOpenGame.ReportProgress(1, e.LoadInfo);
-                break;
             case ResourceError:
                 bgwOpenGame.ReportProgress(0, $"Load Error: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
                 // add to error list
@@ -3152,18 +3156,23 @@ namespace WinAGI.Editor {
                 // add to warning list
                 bgwOpenGame.ReportProgress(1, e.LoadInfo);
                 break;
+            case LogicCompileError:
+                // add to error list
+                bgwOpenGame.ReportProgress(3, e.LoadInfo);
+                break;
             case LogicCompileWarning:
-                bgwOpenGame.ReportProgress(0, $"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
                 // add to warning list
-                bgwOpenGame.ReportProgress(1, e.LoadInfo);
+                bgwOpenGame.ReportProgress(3, e.LoadInfo);
+                break;
+            case DecompError:
+                // add to warning list
+                bgwOpenGame.ReportProgress(3, e.LoadInfo);
                 break;
             case DecompWarning:
-                bgwOpenGame.ReportProgress(0, $"Load Warning: {e.LoadInfo.ID}: {e.LoadInfo.Text}");
                 // add to warning list
-                bgwOpenGame.ReportProgress(1, e.LoadInfo);
+                bgwOpenGame.ReportProgress(3, e.LoadInfo);
                 break;
             case TODO:
-                bgwOpenGame.ReportProgress(0, $"{e.LoadInfo.ID}: {e.LoadInfo.Text}");
                 // add to warning list
                 bgwOpenGame.ReportProgress(2, e.LoadInfo);
                 break;
@@ -3211,7 +3220,7 @@ namespace WinAGI.Editor {
                     ClearInfoGrid(AGIResType.Logic, e.DecodeInfo.ResNum);
                 }
                 else {
-                    // add it directly using AddWarning function
+                    // add it directly using AddInfoItem function
                     AddInfoItem(e.DecodeInfo, true);
                 }
             }
