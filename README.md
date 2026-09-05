@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.71
+        Version 3.0.0beta.72
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.72:
+- adjusted the logic decoder to display more accurate position for errors and warnings found during decoding
+
 Beta.71:
 - fixed bug in logic decoder that improperly set the message output for sierra syntax in some situations
 - fixed major bug in main decoder that failed to correctly decode consecutive 'OR' commands

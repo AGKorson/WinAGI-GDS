@@ -450,7 +450,7 @@ namespace WinAGI.Engine {
                             // label already verified in FindLabels; add warning if necessary
                             if (labelLoc > msgSecStart - 1) {
                                 AddDecodeError("DE05", EngineResources.DE05.Replace(
-                                    ARG2, pos.ToString()), outputList.Count - 1);
+                                    ARG2, (pos - 2).ToString()), outputList.Count - 1);
                                 // adjust it to end of resource
                                 labelLoc = msgSecStart - 1;
                             }
@@ -475,9 +475,10 @@ namespace WinAGI.Engine {
                         // they are all validated in FindLabels)
                         if (dcGame is not null && code > ActionCount - 1) {
                             // this command is not expected for the targeted interpreter version
+                            int errpos = pos - ActionCommands[code].ArgList.Length;
                             AddDecodeWarning("DW09", EngineResources.DW09.Replace(
                                 ARG1, ActionCommands[code].FanName).Replace(
-                                ARG2, pos.ToString()).Replace(
+                                ARG2, errpos.ToString()).Replace(
                                 ARG3, dcGame.agIntVersion.VersionString), outputList.Count + 1);
                         }
                         cmdNum = code;
@@ -551,7 +552,7 @@ namespace WinAGI.Engine {
                                 // check for quit() arg count error
                                 if (cmdNum == 134 && badQuit) {
                                     AddDecodeWarning("DW11", EngineResources.DW11.Replace(
-                                        ARG2, pos.ToString()), outputList.Count + 1);
+                                        ARG2, (pos - 1).ToString()), outputList.Count + 1);
                                     // reset position index so it gets next byte correctly
                                     pos--;
                                     // add force quit
@@ -1349,7 +1350,7 @@ namespace WinAGI.Engine {
                             else {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Logic " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "new.room"), outputList.Count + 1);
                             }
                             break;
@@ -1361,7 +1362,7 @@ namespace WinAGI.Engine {
                             else {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Logic " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos- 1).ToString()).Replace(
                                    ARG3, "load.logics"), outputList.Count + 1);
                             }
                             break;
@@ -1373,7 +1374,7 @@ namespace WinAGI.Engine {
                             else {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Logic " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "call"), outputList.Count + 1);
                             }
                             break;
@@ -1385,7 +1386,7 @@ namespace WinAGI.Engine {
                             else {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                     ARG1, "View " + argNum.ToString()).Replace(
-                                    ARG2, pos.ToString()).Replace(
+                                    ARG2, (pos - 1).ToString()).Replace(
                                     ARG3, "load.view"), outputList.Count + 1);
                             }
                             break;
@@ -1397,7 +1398,7 @@ namespace WinAGI.Engine {
                             else {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                     ARG1, "View " + argNum.ToString()).Replace(
-                                    ARG2, pos.ToString()).Replace(
+                                    ARG2, (pos - 1).ToString()).Replace(
                                     ARG3, "discard.view"), outputList.Count + 1);
                             }
                             break;
@@ -1410,7 +1411,7 @@ namespace WinAGI.Engine {
                                 else {
                                     AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                         ARG1, "View " + argNum.ToString()).Replace(
-                                        ARG2, pos.ToString()).Replace(
+                                        ARG2, (pos - 1).ToString()).Replace(
                                         ARG3, "set.view"), outputList.Count + 1);
                                 }
                             }
@@ -1423,7 +1424,7 @@ namespace WinAGI.Engine {
                             else {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Sound " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "load.sound"), outputList.Count + 1);
                             }
                             break;
@@ -1436,7 +1437,7 @@ namespace WinAGI.Engine {
                                 else {
                                     AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                        ARG1, "Sound " + argNum.ToString()).Replace(
-                                       ARG2, pos.ToString()).Replace(
+                                       ARG2, (pos - 2).ToString()).Replace(
                                        ARG3, "sound"), outputList.Count + 1);
                                 }
                             }
@@ -1450,7 +1451,7 @@ namespace WinAGI.Engine {
                                 else {
                                     AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                         ARG1, "View " + argNum.ToString()).Replace(
-                                        ARG2, pos.ToString()).Replace(
+                                        ARG2, (pos - 7).ToString()).Replace(
                                         ARG3, "add.to.pic"), outputList.Count + 1);
                                 }
                             }
@@ -1463,7 +1464,7 @@ namespace WinAGI.Engine {
                             else {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                     ARG1, "View " + argNum.ToString()).Replace(
-                                    ARG2, pos.ToString()).Replace(
+                                    ARG2, (pos - 1).ToString()).Replace(
                                     ARG3, "show.obj"), outputList.Count + 1);
                             }
                             break;
@@ -1476,7 +1477,7 @@ namespace WinAGI.Engine {
                                 else {
                                     AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                        ARG1, "Logic " + argNum.ToString()).Replace(
-                                       ARG2, pos.ToString()).Replace(
+                                       ARG2, (pos - 3).ToString()).Replace(
                                        ARG3, "trace.info"), outputList.Count + 1);
                                 }
                             }
@@ -1489,7 +1490,7 @@ namespace WinAGI.Engine {
                             else {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Sound " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "discard.sound"), outputList.Count + 1);
                             }
                             break;
@@ -1556,9 +1557,11 @@ namespace WinAGI.Engine {
                 }
                 else {
                     // message doesn't exist; raise a warning
+                    Debug.Assert(actioncmd);
+                    int errpos = pos - (ActionCommands[cmdNum].ArgList.Length - argPos);
                     AddDecodeWarning("DW01", EngineResources.DW01.Replace(
                         ARG1, argNum.ToString()).Replace(
-                        ARG2, pos.ToString()), outputList.Count + 1);
+                        ARG2, errpos.ToString()), outputList.Count + 1);
                     return 'm' + argNum.ToString();
                 }
             case SObj:
@@ -1572,12 +1575,19 @@ namespace WinAGI.Engine {
                 }
             case InvItem:
                 if (dcGame is not null && !IObjsByNumber) {
+                    int errpos = pos;
+                    if (actioncmd) {
+                        errpos -= ActionCommands[cmdNum].ArgList.Length - argPos;
+                    }
+                    else {
+                        errpos -= TestCommands[cmdNum].ArgList.Length - argPos;
+                    }
                     if (argNum < dcGame.agInvObj.Count) {
                         if (dcGame.agInvObj[argNum].Unique) {
                             if (dcGame.agInvObj[argNum].ItemName == "?") {
                                 // use the inventory item number, and post a warning
                                 AddDecodeWarning("DW04", EngineResources.DW04.Replace(
-                                    ARG2, pos.ToString()), outputList.Count + 1);
+                                    ARG2, errpos.ToString()), outputList.Count + 1);
                                 return 'i' + argNum.ToString();
                             }
                             else {
@@ -1588,9 +1598,10 @@ namespace WinAGI.Engine {
                         else {
                             // non-unique - use obj number instead
                             if (ErrorLevel == Medium) {
+                                // adjust pos to point to the object number byte
                                 AddDecodeWarning("DW05", EngineResources.DW05.Replace(
                                     ARG1, dcGame.agInvObj[argNum].ItemName).Replace(
-                                    ARG2, pos.ToString()), outputList.Count + 1);
+                                    ARG2, errpos.ToString()), outputList.Count + 1);
                             }
                             return 'i' + argNum.ToString();
                         }
@@ -1598,7 +1609,7 @@ namespace WinAGI.Engine {
                     else {
                         AddDecodeWarning("DW03", EngineResources.DW03.Replace(
                             ARG1, argNum.ToString()).Replace(
-                            ARG2, pos.ToString()), outputList.Count + 1);
+                            ARG2, errpos.ToString()), outputList.Count + 1);
                         return 'i' + argNum.ToString();
                     }
                 }
@@ -1736,7 +1747,7 @@ namespace WinAGI.Engine {
                             if (!dcGame.agLogs.Contains(argNum)) {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Logic " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "new.room"), outputList.Count + 1);
                             }
                             break;
@@ -1745,7 +1756,7 @@ namespace WinAGI.Engine {
                             if (!dcGame.agLogs.Contains(argNum)) {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Logic " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "load.logics"), outputList.Count + 1);
                             }
                             break;
@@ -1754,7 +1765,7 @@ namespace WinAGI.Engine {
                             if (!dcGame.agLogs.Contains(argNum)) {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Logic " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "call"), outputList.Count + 1);
                             }
                             break;
@@ -1763,7 +1774,7 @@ namespace WinAGI.Engine {
                             if (!dcGame.agViews.Contains(argNum)) {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                     ARG1, "View " + argNum.ToString()).Replace(
-                                    ARG2, pos.ToString()).Replace(
+                                    ARG2, (pos - 1).ToString()).Replace(
                                     ARG3, "load.view"), outputList.Count + 1);
                             }
                             break;
@@ -1772,7 +1783,7 @@ namespace WinAGI.Engine {
                             if (!dcGame.agViews.Contains(argNum)) {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                     ARG1, "View " + argNum.ToString()).Replace(
-                                    ARG2, pos.ToString()).Replace(
+                                    ARG2, (pos - 1).ToString()).Replace(
                                     ARG3, "discard.view"), outputList.Count + 1);
                             }
                             break;
@@ -1782,7 +1793,7 @@ namespace WinAGI.Engine {
                                 if (!dcGame.agViews.Contains(argNum)) {
                                     AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                         ARG1, "View " + argNum.ToString()).Replace(
-                                        ARG2, pos.ToString()).Replace(
+                                        ARG2, (pos - 1).ToString()).Replace(
                                         ARG3, "set.view"), outputList.Count + 1);
                                 }
                             }
@@ -1792,7 +1803,7 @@ namespace WinAGI.Engine {
                             if (!dcGame.agSnds.Contains(argNum)) {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Sound " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "load.sound"), outputList.Count + 1);
                             }
                             break;
@@ -1802,7 +1813,7 @@ namespace WinAGI.Engine {
                                 if (!dcGame.agSnds.Contains(argNum)) {
                                     AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                        ARG1, "Sound " + argNum.ToString()).Replace(
-                                       ARG2, pos.ToString()).Replace(
+                                       ARG2, (pos - 2).ToString()).Replace(
                                        ARG3, "sound"), outputList.Count + 1);
                                 }
                             }
@@ -1813,7 +1824,7 @@ namespace WinAGI.Engine {
                                 if (!dcGame.agViews.Contains(argNum)) {
                                     AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                         ARG1, "View " + argNum.ToString()).Replace(
-                                        ARG2, pos.ToString()).Replace(
+                                        ARG2, (pos - 7).ToString()).Replace(
                                         ARG3, "add.to.pic"), outputList.Count + 1);
                                 }
                             }
@@ -1823,7 +1834,7 @@ namespace WinAGI.Engine {
                             if (!dcGame.agViews.Contains(argNum)) {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                     ARG1, "View " + argNum.ToString()).Replace(
-                                    ARG2, pos.ToString()).Replace(
+                                    ARG2, (pos - 1).ToString()).Replace(
                                     ARG3, "show.obj"), outputList.Count + 1);
                             }
                             break;
@@ -1833,7 +1844,7 @@ namespace WinAGI.Engine {
                                 if (!dcGame.agLogs.Contains(argNum)) {
                                     AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                        ARG1, "Logic " + argNum.ToString()).Replace(
-                                       ARG2, pos.ToString()).Replace(
+                                       ARG2, (pos - 3).ToString()).Replace(
                                        ARG3, "trace.info"), outputList.Count + 1);
                                 }
                             }
@@ -1843,7 +1854,7 @@ namespace WinAGI.Engine {
                             if (!dcGame.agSnds.Contains(argNum)) {
                                 AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                                    ARG1, "Sound " + argNum.ToString()).Replace(
-                                   ARG2, pos.ToString()).Replace(
+                                   ARG2, (pos - 1).ToString()).Replace(
                                    ARG3, "discard.sound"), outputList.Count + 1);
                             }
                             break;
@@ -1883,9 +1894,10 @@ namespace WinAGI.Engine {
                 MsgUsed[argNum] = true;
                 if (!MsgExists[argNum]) {
                     // message doesn't exist; raise a warning
+                    int errpos = pos - (ActionCommands[cmdNum].ArgList.Length - argPos);
                     AddDecodeWarning("DW01", EngineResources.DW01.Replace(
                         ARG1, argNum.ToString()).Replace(
-                        ARG2, pos.ToString()), outputList.Count + 1);
+                        ARG2, errpos.ToString()), outputList.Count + 1);
                 }
                 // messages are always by number
                 return argNum.ToString();
@@ -1893,11 +1905,19 @@ namespace WinAGI.Engine {
                 if (dcGame is not null) {
                     // validate number
                     if (!dcGame.Views.Contains(argNum)) {
+                        // adjust pos for argument position
+                        int errpos = pos;
+                        if (actioncmd) {
+                            errpos -= ActionCommands[cmdNum].ArgList.Length - argPos;
+                        }
+                        else {
+                            errpos -= TestCommands[cmdNum].ArgList.Length - argPos;
+                        }
                         AddDecodeWarning("DW10", EngineResources.DW10.Replace(
                             ARG1, "View" + argNum.ToString()).Replace(
-                            ARG2, pos.ToString()).Replace(
-                            ARG3, cmdNum > 0 ? ActionCommands[cmdNum].FanName :
-                            TestCommands[-cmdNum].FanName), outputList.Count + 1);
+                            ARG2, errpos.ToString()).Replace(
+                            ARG3, actioncmd ? ActionCommands[cmdNum].FanName :
+                            TestCommands[cmdNum].FanName), outputList.Count + 1);
                     }
                 }
                 argName = "v.view" + argNum.ToString();
@@ -1964,7 +1984,7 @@ namespace WinAGI.Engine {
                 newDefines.TryAdd(argName, new(SObj, argName, argNum));
                 return argName;
             case InvItem:
-                CheckInvItemValue(argNum);
+                CheckInvItemValue(argNum, actioncmd, cmdNum, argPos);
                 // check for an existing item define
                 foreach (DecodeDefine tmp in sierradefs.Values) {
                     if (tmp.Type == InvItem &&
@@ -2047,15 +2067,22 @@ namespace WinAGI.Engine {
                 c => c >= 32 && c <= 127 && !unwanted.Contains(c))]);
         }
 
-        private static void CheckInvItemValue(byte argNum) {
+        private static void CheckInvItemValue(byte argNum, bool actioncmd, int cmdNum, int argPos) {
             if (dcGame is not null) {
+                int errpos = pos;
+                if (actioncmd) {
+                    errpos -= ActionCommands[cmdNum].ArgList.Length - argPos;
+                }
+                else {
+                    errpos -= TestCommands[cmdNum].ArgList.Length - argPos;
+                }
                 // validate number
                 if (argNum < dcGame.agInvObj.Count) {
                     if (dcGame.agInvObj[argNum].Unique) {
                         if (dcGame.agInvObj[argNum].ItemName == "?") {
                             // using a null item
                             AddDecodeWarning("DW04", EngineResources.DW04.Replace(
-                                ARG2, pos.ToString()), outputList.Count + 1);
+                                ARG2, errpos.ToString()), outputList.Count + 1);
                         }
                     }
                 }
@@ -2063,7 +2090,7 @@ namespace WinAGI.Engine {
                     // not a valid number
                     AddDecodeWarning("DW03", EngineResources.DW03.Replace(
                         ARG1, argNum.ToString()).Replace(
-                        ARG2, pos.ToString()), outputList.Count + 1);
+                        ARG2, errpos.ToString()), outputList.Count + 1);
                 }
             }
         }
@@ -2261,7 +2288,7 @@ namespace WinAGI.Engine {
                             // an 'OR' block with no commands- need to skip it and 
                             // add a warning, because it will cause a compile error
                             AddDecodeWarning("DW22", EngineResources.DW22.Replace(
-                                ARG2, pos.ToString()), outputList.Count + 1);
+                                ARG2, (pos - 1).ToString()), outputList.Count + 1);
                         }
                     }
                     continue;
@@ -2282,7 +2309,7 @@ namespace WinAGI.Engine {
                     if (notcount != 1) {
                         // rare, but multiple 'NOT' operators are allowed
                         AddDecodeWarning("DW21", EngineResources.DW21.Replace(
-                            ARG1, pos.ToString()), outputList.Count + 1);
+                            ARG1, (pos - 1).ToString()), outputList.Count + 1);
                         // (adjust line to account for the if() line)
                     }
                 }
@@ -2388,7 +2415,7 @@ namespace WinAGI.Engine {
                                             // fan syntax allows numbers
                                             AddDecodeWarning("DW02", EngineResources.DW02.Replace(
                                                 ARG1, groupNum.ToString()).Replace(
-                                                ARG2, pos.ToString()), outputList.Count + 1);
+                                                ARG2, (pos - 2).ToString()), outputList.Count + 1);
                                         }
                                         // add the word by its group number
                                         lineText += groupNum;
@@ -2428,12 +2455,12 @@ namespace WinAGI.Engine {
                             // TODO: should the pos value be the zero-based value or the one-based value? (currently using one-based)
                             AddDecodeError("DE02", EngineResources.DE02.Replace(
                                 ARG1, cmdNum.ToString()).Replace(
-                                ARG2, pos.ToString()), outputList.Count - 1);
+                                ARG2, (pos - 1).ToString()), outputList.Count - 1);
                         }
                         else {
                             // add warning if this is the unknown test19 command
                             AddDecodeWarning("DW06", EngineResources.DW06.Replace(
-                                ARG2, pos.ToString()), outputList.Count + 1);
+                                ARG2, (pos - 1).ToString()), outputList.Count + 1);
                         }
                     }
                 }
@@ -2442,7 +2469,7 @@ namespace WinAGI.Engine {
                     if (isEmpty) {
                         // works, but will cause a compiler error
                         AddDecodeWarning("DW22", EngineResources.DW22.Replace(
-                            ARG2, pos.ToString()), outputList.Count + 1);
+                            ARG2, (pos - 1).ToString()), outputList.Count + 1);
                     }
                     switch (CodeStyle) {
                     case AGICodeStyle.cstDefaultStyle:
@@ -2459,8 +2486,9 @@ namespace WinAGI.Engine {
                     DecodeBlock[^1].IsIf = true;
                     DecodeBlock[^1].Length = ReadByte(ref pos) + 256 * ReadByte(ref pos);
                     if (DecodeBlock[^1].Length == 0) {
+                        // adjust pos to point to the block offset
                         AddDecodeWarning("DW07", EngineResources.DW07.Replace(
-                            ARG2, pos.ToString()), outputList.Count + 1);
+                            ARG2, (pos - 2).ToString()), outputList.Count + 1);
                     }
                     // validate end pos
                     DecodeBlock[^1].EndPos = DecodeBlock[^1].Length + pos;
@@ -2468,7 +2496,7 @@ namespace WinAGI.Engine {
                         // adjust to end
                         DecodeBlock[^1].EndPos = msgSecStart - 1;
                         AddDecodeError("DE04", EngineResources.DE04.Replace(
-                            ARG1, pos.ToString()), outputList.Count - 1);
+                            ARG1, (pos - 2).ToString()), outputList.Count - 1);
                     }
                     // verify block ends before end of previous block
                     // (i.e. it's properly nested)
@@ -2481,7 +2509,7 @@ namespace WinAGI.Engine {
                         DecodeBlock[^1].EndPos = DecodeBlock[^2].EndPos;
                         AddDecodeWarning("DW08", EngineResources.DW08.Replace(
                             ARG1, DecodeBlock[^1].JumpPos.ToString()).Replace(
-                            ARG2, pos.ToString()), outputList.Count + 1);
+                            ARG2, (pos - 2).ToString()), outputList.Count + 1);
                     }
                     outputList.Add(lineText);
                     AddWarningLines();
@@ -2628,7 +2656,7 @@ namespace WinAGI.Engine {
                 else {
                     AddDecodeError("DE02", EngineResources.DE02.Replace(
                         ARG1, curByte.ToString()).Replace(
-                        ARG2, pos.ToString()), outputList.Count - 1);
+                        ARG2, (pos - 1).ToString()), outputList.Count - 1);
                     return false;
                 }
             }
@@ -2751,7 +2779,7 @@ namespace WinAGI.Engine {
                     // unknown action command - major error
                     AddDecodeError("DE03", EngineResources.DE03.Replace(
                         ARG1, curByte.ToString()).Replace(
-                        ARG2, pos.ToString()), outputList.Count - 1);
+                        ARG2, (pos - 1).ToString()), outputList.Count - 1);
                     return false;
                 }
             }
@@ -3133,7 +3161,7 @@ namespace WinAGI.Engine {
                 // in some rare cases, the blocks don't align correctly
                 if (DecodeBlock[CurBlock].EndPos < pos) {
                     AddDecodeError("DE06", EngineResources.DE06.Replace(
-                        ARG2, pos.ToString()), outputList.Count - 1);
+                        ARG2, (DecodeBlock[CurBlock].EndPos - DecodeBlock[CurBlock].Length - 2).ToString()), outputList.Count - 1);
                 }
                 if (DecodeBlock[CurBlock].EndPos <= pos) {
                     // check for unusual case where an if block ends outside the if block it is nested in
