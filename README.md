@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.73
+        Version 3.0.0beta.74
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.74:
+- fixed globals editor to correctly update logic source/logic editors when a new global define is added
+
 Beta.73:
 - fixed logic decoder to add decode errors to logic resources so they persist after game is closed
 - refactored logic warning handlers to add correct event type for decode errors and warnings so they are correctly displayed in the infogrid

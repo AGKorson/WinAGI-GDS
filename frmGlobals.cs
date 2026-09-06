@@ -2249,7 +2249,35 @@ namespace WinAGI.Editor {
                 List<(string, string)> changedNames = [];
                 List<string> changedValues = [];
                 foreach (DataGridViewRow row in globalsgrid.Rows) {
+                    if (row.IsNewRow) {
+                        continue;
+                    }
                     string oldName = (string)row.Cells[DEFNAME_COL].Value;
+                    if (oldName.Length == 0) {
+                        // it's a new name, so the 'old name' should be the argmarker that
+                        // it is replacing (but not for numbers or defined strings)
+                        switch ((ArgType)row.Cells[ARGTYPE_COL].Value) {
+                        case Num:
+                        case DefStr:
+                            // numbers and defined strings never replace values
+                            break;
+                        case Var:
+                        case Flag:
+                        case MsgNum:
+                        case SObj:
+                        case InvItem:
+                        case Str:
+                        case Word:
+                        case Ctrl:
+                            // replace with the value
+                            oldName = (string)row.Cells[VALUE_COL].Value;
+                            break;
+                        default:
+                            // no others should be possible
+                            Debug.Assert(false);
+                            break;
+                        }
+                    }
                     string newName = (string)row.Cells[NAME_COL].Value;
                     if (oldName != newName && oldName.Length > 0) {
                         changedNames.Add((oldName, newName));
@@ -2271,6 +2299,7 @@ namespace WinAGI.Editor {
                     ProgressWin.lblProgress.Text = "Locating modified define names...";
                     ProgressWin.Show();
                     ProgressWin.Refresh();
+                    // update all logic editors
                     foreach (frmLogicEdit loged in LogicEditors) {
                         if (loged.FormMode != LogicFormMode.Logic || !loged.InGame) {
                             continue;
@@ -2303,7 +2332,7 @@ namespace WinAGI.Editor {
                         ProgressWin.pgbStatus.Value++;
                         ProgressWin.Refresh();
                     }
-
+                    // update all logic source files
                     foreach (Logic logic in EditGame.Logics) {
                         bool unload = !logic.Loaded;
                         if (unload) {

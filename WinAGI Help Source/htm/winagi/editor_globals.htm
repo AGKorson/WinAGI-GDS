@@ -70,7 +70,10 @@
 		<h2>Undo</h2>
 		  <p>WinAGI also includes an undo feature for global edits. Undo is accessible from the Edit menu, or by pressing CTRL+Z. A very handy feature if you change your mind about the edits and changes you've made.</p>
 		<h2><a name="autoupdate">Automatic Updates</a></h2>
-		  <p>When you save an in-game global defines file, you can choose to have WinAGI automatically update all logic source files in your game to reflect your new list of global defines. For changes to existing defines, WinAGI will replace all instances of the old name with the new name. For new defines with values other than text-strings or numbers, WinAGI will also replace all instances of the value with its new name.</p>
+		  <p>When you save an in-game global defines file, you can choose to have WinAGI automatically update all logic source files in your game (and any open logic editors) to reflect your new list of global defines.</p>
+		  <p>For new defines with values other than literal text strings or numbers, WinAGI will also replace all instances of the value with its new name. For example, if a new define has a name of 'newvar' and a value of 'v99', all instances of 'v99' will be replaced with 'newvar'.</p>
+		  <p>For changes to existing defines, WinAGI will replace all instances of the old name with the new name.</p>
+		  <p>Any existing defines that are deleted will be replaced with their value. For example, deleting the define 'newvar' will result in all instances of 'newvar' being replaced with 'v99'.</p>
 		<p>&nbsp;</p>
 		<p align="right"><font size="1">v3.0.0</font></p>
 		<p>&nbsp;</p>
