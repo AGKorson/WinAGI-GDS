@@ -3230,6 +3230,8 @@ namespace WinAGI.Engine {
 
         public CompileStatus CompileChangedLogics() {
             bool unloadRes;
+            bool comperror = false;
+
             Compiling = true;
             CancelComp = false;
 
@@ -3279,6 +3281,7 @@ namespace WinAGI.Engine {
                         if (unloadRes && logres is not null) {
                             logres.Unload();
                         }
+                        comperror = true;
                         // skip to next logic
                         continue;
                     }
@@ -3322,7 +3325,12 @@ namespace WinAGI.Engine {
             agGameProps.Save();
             // reset compiling flag
             Compiling = false;
-            return CompileStatus.OK;
+            if (comperror) {
+                return CompileStatus.LogicCompileError;
+            }
+            else {
+                return CompileStatus.OK;
+            }
         }
         #endregion
     }

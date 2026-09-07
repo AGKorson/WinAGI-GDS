@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.75
+        Version 3.0.0beta.76
     ==============================
 
 
@@ -32,8 +32,11 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.76:
+- fixed CompileChangedLogics function to ignore open editors for logics that are not InGame, and fixed return value to correctly reflect if any errors were detected during compilation
+
 Beta.75:
-- tbd
+- modified the ID editor dialog to use ENTER key as default (OK) button
 
 Beta.74:
 - fixed globals editor to correctly update logic source/logic editors when a new global define is added

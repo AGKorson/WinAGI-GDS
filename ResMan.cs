@@ -2262,7 +2262,7 @@ namespace WinAGI.Editor {
             }
             // check for any open logic resources
             foreach (frmLogicEdit frm in LogicEditors) {
-                if (frm.FormMode == LogicFormMode.Logic) {
+                if (frm.FormMode == LogicFormMode.Logic && frm.InGame) {
                     if (frm.fctb.IsChanged) {
                         switch (WinAGISettings.SaveOnCompile.Value) {
                         case AskOption.Ask:
