@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.74
+        Version 3.0.0beta.75
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.75:
+- tbd
+
 Beta.74:
 - fixed globals editor to correctly update logic source/logic editors when a new global define is added
 

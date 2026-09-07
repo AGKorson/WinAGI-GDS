@@ -103,6 +103,7 @@
             txtID.TabIndex = 14;
             txtID.WordWrap = false;
             txtID.TextChanged += txtID_TextChanged;
+            txtID.KeyDown += txtID_KeyDown;
             txtID.KeyPress += txtID_KeyPress;
             // 
             // frmEditResourceProperties
