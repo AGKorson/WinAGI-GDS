@@ -1919,7 +1919,7 @@ namespace WinAGI.Editor {
                     editrow.Cells[DEFVALUE_COL].Value = "";
                     editrow.Tag = NextUID();
 
-                    Inserting = false;
+                    Inserting = beginEdit;
                     AddUndo(NextUndo);
                 }
             }

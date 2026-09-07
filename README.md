@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.78
+        Version 3.0.0beta.79
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.79:
+- tabbing to next row in globals editor now correctly stays in edit mode
+
 Beta.78:
 - fixed global editor AutoUpdate function to correctly handle deletions of defines that were new but not yet saved
 - modified the ReplaceAllText function to restore the cursor position after replacing text in the logic editor
