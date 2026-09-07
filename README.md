@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.76
+        Version 3.0.0beta.77
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.77:
+- decompiling a logic that is being opened as 'not InGame' should not try to update Warnings
+
 Beta.76:
 - fixed CompileChangedLogics function to ignore open editors for logics that are not InGame, and fixed return value to correctly reflect if any errors were detected during compilation
 
