@@ -2404,6 +2404,9 @@ namespace WinAGI.Editor {
                         if (globalsgrid[DEFNAME_COL, i].Value != globalsgrid[NAME_COL, i].Value) {
                             globalsgrid[DEFNAME_COL, i].Value = globalsgrid[NAME_COL, i].Value;
                         }
+                        if (globalsgrid[DEFVALUE_COL, i].Value != globalsgrid[VALUE_COL, i].Value) {
+                            globalsgrid[DEFVALUE_COL, i].Value = globalsgrid[VALUE_COL, i].Value;
+                        }
                     }
                     DeletedDefines.Clear();
                     ProgressWin.Text = "Save Defines List";
@@ -3139,11 +3142,14 @@ namespace WinAGI.Editor {
                     tmpDef.UID = (int)globalsgrid.Rows[TopRow + i].Tag;
                     NextUndo.UDDefine[i] = tmpDef;
                     if (tmpDef.DefaultName.Length > 0) {
-                        DelDefine deldef = new() {
-                            Name = tmpDef.DefaultName,
-                            Value = tmpDef.DefaultValue,
-                        };
-                        DeletedDefines.Add(deldef);
+                        Debug.Assert(tmpDef.DefaultValue.Length > 0);
+                        if (tmpDef.DefaultValue.Length > 0) {
+                            DelDefine deldef = new() {
+                                Name = tmpDef.DefaultName,
+                                Value = tmpDef.DefaultValue,
+                            };
+                            DeletedDefines.Add(deldef);
+                        }
                     }
                 }
                 // add to undo

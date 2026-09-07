@@ -3979,6 +3979,8 @@ namespace WinAGI.Editor {
                 }
             }
 
+            Place start = SearchWin.fctb.Selection.Start;
+            Place end = SearchWin.fctb.Selection.End;
             string pattern = Regex.Escape(FindText);
             if (MatchWord) {
                 // if not surrounded by quotes, add word boundaries
@@ -4020,6 +4022,10 @@ namespace WinAGI.Editor {
                     return ReplaceText;
                 }, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
             }
+            SearchWin.fctb.Selection.Start = start;
+            SearchWin.fctb.Selection.End = end;
+            SearchWin.fctb.DoSelectionVisible();
+            SearchWin.fctb.Refresh();
         }
 
         private static void ReplaceAllText(string FindText, string ReplaceText, bool MatchWord, bool MatchCase, AGIResType SearchType, Logic SearchLogic) {
