@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.79
+        Version 3.0.0beta.80
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.80:
+- code cleanup and some minor refactoring; no functional changes
+
 Beta.79:
 - tabbing to next row in globals editor now correctly stays in edit mode
 

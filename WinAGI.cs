@@ -742,8 +742,8 @@ namespace WinAGI.Engine {
         /// <returns>A Base64-encoded representation of the GZip-compressed UTF-8 bytes of the input.</returns>
         public static string CompressToBase64(string input) {
             var bytes = Encoding.UTF8.GetBytes(input);
-            using var output = new MemoryStream();
-            using (var gzip = new GZipStream(output, CompressionLevel.Optimal)) {
+            using MemoryStream output = new();
+            using (GZipStream gzip = new(output, CompressionLevel.Optimal)) {
                 gzip.Write(bytes, 0, bytes.Length);
             }
             return Convert.ToBase64String(output.ToArray());

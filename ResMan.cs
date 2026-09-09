@@ -2501,33 +2501,33 @@ namespace WinAGI.Editor {
             }
             if (EditGame is not null) {
                 // get logic number, id , description
-                using (frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Logic)) {
-                    if (importing) {
-                        // suggest ID based on filename
-                        GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportLogicFile).Replace(" ", "");
-                    }
-                    // restore cursor while getting resnum
-                    MDIMain.UseWaitCursor = false;
-                    // if canceled, release the temporary logic, restore mousepointer and exit
-                    if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                        tmpLogic = null;
-                        return;
-                    }
-                    tmpLogic.Description = GetResNum.txtDescription.Text;
-                    if (GetResNum.DontImport) {
-                        gameOpen = true;
-                        if (!importing) {
-                            // for new logics not being added,
-                            // build default logic source
-                            if (GetResNum.chkRoom.Checked) {
-                                // add template text
-                                tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
-                            }
-                            else {
-                                // add default text
-                                List<string> src =
-                                [
-                                    "[*********************************************************************",
+                using frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Logic);
+                if (importing) {
+                    // suggest ID based on filename
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportLogicFile).Replace(" ", "");
+                }
+                // restore cursor while getting resnum
+                MDIMain.UseWaitCursor = false;
+                // if canceled, release the temporary logic, restore mousepointer and exit
+                if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    tmpLogic = null;
+                    return;
+                }
+                tmpLogic.Description = GetResNum.txtDescription.Text;
+                if (GetResNum.DontImport) {
+                    gameOpen = true;
+                    if (!importing) {
+                        // for new logics not being added,
+                        // build default logic source
+                        if (GetResNum.chkRoom.Checked) {
+                            // add template text
+                            tmpLogic.SourceText = LogTemplateText(GetResNum.txtID.Text, GetResNum.txtDescription.Text);
+                        }
+                        else {
+                            // add default text
+                            List<string> src =
+                            [
+                                "[*********************************************************************",
                                 "[",
                                 "[ " + tmpLogic.ID,
                                 "[",
@@ -2539,44 +2539,43 @@ namespace WinAGI.Editor {
                                 "[ DECLARED MESSAGES",
                                 "[***************************************",
                                 "[  declared messages go here"
-                                ];
-                                tmpLogic.SourceText = string.Join(NEWLINE, [.. src]);
-                            }
-                        }
-                        else {
-                            // for imported logics not being added, use the imported source
-                            if (!isSource) {
-                                // need to load source from compiled logic
-                                tmpLogic.LoadSource(true);
-                                MDIMain.UpdateGridCounts();
-                            }
+                            ];
+                            tmpLogic.SourceText = string.Join(NEWLINE, [.. src]);
                         }
                     }
                     else {
-                        // show wait cursor while resource is added
-                        MDIMain.UseWaitCursor = true;
-                        tmpLogic.ID = GetResNum.txtID.Text;
-
-                        // update id for ingame resources
-                        bool useTemplate = GetResNum.chkRoom.Checked;
-                        if (!importing) {
-                            // for new resources, need to set the source text
-                            tmpLogic.SourceText = NewLogicSourceText(tmpLogic, useTemplate);
+                        // for imported logics not being added, use the imported source
+                        if (!isSource) {
+                            // need to load source from compiled logic
+                            tmpLogic.LoadSource(true);
+                            MDIMain.UpdateGridCounts();
                         }
-                        // set isroom status based on template
-                        tmpLogic.IsRoom = GetResNum.NewResNum != 0 && useTemplate;
-
-                        // add Logic (forcing decompile if importing a logic  resource) 
-                        AddNewLogic(GetResNum.NewResNum, tmpLogic, importing && !isSource);
-                        // reset tmplogic to point to the new game logic
-                        tmpLogic = EditGame.Logics[GetResNum.NewResNum];
-
-                        // if including picture
-                        if (GetResNum.chkIncludePic.Checked) {
-                            AddRoomPicture(GetResNum.NewResNum, GetResNum.txtID.Text);
-                        }
-                        gameOpen = GetResNum.chkOpenRes.Checked;
                     }
+                }
+                else {
+                    // show wait cursor while resource is added
+                    MDIMain.UseWaitCursor = true;
+                    tmpLogic.ID = GetResNum.txtID.Text;
+
+                    // update id for ingame resources
+                    bool useTemplate = GetResNum.chkRoom.Checked;
+                    if (!importing) {
+                        // for new resources, need to set the source text
+                        tmpLogic.SourceText = NewLogicSourceText(tmpLogic, useTemplate);
+                    }
+                    // set isroom status based on template
+                    tmpLogic.IsRoom = GetResNum.NewResNum != 0 && useTemplate;
+
+                    // add Logic (forcing decompile if importing a logic  resource) 
+                    AddNewLogic(GetResNum.NewResNum, tmpLogic, importing && !isSource);
+                    // reset tmplogic to point to the new game logic
+                    tmpLogic = EditGame.Logics[GetResNum.NewResNum];
+
+                    // if including picture
+                    if (GetResNum.chkIncludePic.Checked) {
+                        AddRoomPicture(GetResNum.NewResNum, GetResNum.txtID.Text);
+                    }
+                    gameOpen = GetResNum.chkOpenRes.Checked;
                 }
             }
             else {
@@ -2677,10 +2676,9 @@ namespace WinAGI.Editor {
         /// user to select which logic to open.
         /// </summary>
         public static void OpenGameLogic() {
-            using (frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Logic)) {
-                if (getresnum.ShowDialog() == DialogResult.OK) {
-                    OpenGameLogic(getresnum.NewResNum, false);
-                }
+            using frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Logic);
+            if (getresnum.ShowDialog() == DialogResult.OK) {
+                OpenGameLogic(getresnum.NewResNum, false);
             }
         }
 
@@ -3969,6 +3967,16 @@ namespace WinAGI.Editor {
             frmFind.ResetSearch();
         }
 
+        /// <summary>
+        /// Replaces all instances of FindText with ReplaceText in a logic editor
+        /// using the specified search parameters.
+        /// </summary>
+        /// <param name="FindText"></param>
+        /// <param name="ReplaceText"></param>
+        /// <param name="MatchWord"></param>
+        /// <param name="MatchCase"></param>
+        /// <param name="SearchType"></param>
+        /// <param name="SearchWin"></param>
         private static void ReplaceAllText(string FindText, string ReplaceText, bool MatchWord, bool MatchCase, AGIResType SearchType, frmLogicEdit SearchWin) {
             // replaces text in a logic editor
 
@@ -4028,6 +4036,16 @@ namespace WinAGI.Editor {
             SearchWin.fctb.Refresh();
         }
 
+        /// <summary>
+        /// Replaces all instances of FindText with ReplaceText in a logic source file
+        /// using the specified search parameters.
+        /// </summary>
+        /// <param name="FindText"></param>
+        /// <param name="ReplaceText"></param>
+        /// <param name="MatchWord"></param>
+        /// <param name="MatchCase"></param>
+        /// <param name="SearchType"></param>
+        /// <param name="SearchLogic"></param>
         private static void ReplaceAllText(string FindText, string ReplaceText, bool MatchWord, bool MatchCase, AGIResType SearchType, Logic SearchLogic) {
             // replaces text in a logic source file
 
@@ -4487,28 +4505,27 @@ namespace WinAGI.Editor {
                 }
             }
             if (EditGame is not null) {
-                using (frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Picture)) {
-                    if (importing) {
-                        GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportPictureFile).Replace(" ", "");
-                    }
-                    MDIMain.UseWaitCursor = false;
-                    if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                        // restore mousepointer and exit
-                        GetResNum.Close();
-                        GetResNum.Dispose();
-                        return;
-                    }
-                    tmpPic.Description = GetResNum.txtDescription.Text;
-                    if (GetResNum.DontImport) {
-                        openpic = true;
-                    }
-                    else {
-                        MDIMain.UseWaitCursor = true;
-                        tmpPic.ID = GetResNum.txtID.Text;
-                        AddNewPicture(GetResNum.NewResNum, tmpPic);
-                        tmpPic = EditGame.Pictures[GetResNum.NewResNum];
-                        openpic = (GetResNum.chkOpenRes.Checked);
-                    }
+                using frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Picture);
+                if (importing) {
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(ImportPictureFile).Replace(" ", "");
+                }
+                MDIMain.UseWaitCursor = false;
+                if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    // restore mousepointer and exit
+                    GetResNum.Close();
+                    GetResNum.Dispose();
+                    return;
+                }
+                tmpPic.Description = GetResNum.txtDescription.Text;
+                if (GetResNum.DontImport) {
+                    openpic = true;
+                }
+                else {
+                    MDIMain.UseWaitCursor = true;
+                    tmpPic.ID = GetResNum.txtID.Text;
+                    AddNewPicture(GetResNum.NewResNum, tmpPic);
+                    tmpPic = EditGame.Pictures[GetResNum.NewResNum];
+                    openpic = (GetResNum.chkOpenRes.Checked);
                 }
             }
             else {
@@ -5253,27 +5270,26 @@ namespace WinAGI.Editor {
                 tmpSound.Tracks[3].Muted = WinAGISettings.DefMute[3].Value;
             }
             if (EditGame is not null) {
-                using (frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Sound)) {
-                    if (importing) {
-                        GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(importfile).Replace(" ", "");
-                    }
-                    MDIMain.UseWaitCursor = false;
-                    if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                        GetResNum.Close();
-                        GetResNum.Dispose();
-                        return;
-                    }
-                    tmpSound.Description = GetResNum.txtDescription.Text;
-                    if (GetResNum.DontImport) {
-                        opensound = true;
-                    }
-                    else {
-                        MDIMain.UseWaitCursor = true;
-                        tmpSound.ID = GetResNum.txtID.Text;
-                        AddNewSound(GetResNum.NewResNum, tmpSound);
-                        tmpSound = EditGame.Sounds[GetResNum.NewResNum];
-                        opensound = (GetResNum.chkOpenRes.Checked);
-                    }
+                using frmGetResourceNum GetResNum = new(importing ? GetRes.Import : GetRes.AddNew, AGIResType.Sound);
+                if (importing) {
+                    GetResNum.txtID.Text = Path.GetFileNameWithoutExtension(importfile).Replace(" ", "");
+                }
+                MDIMain.UseWaitCursor = false;
+                if (GetResNum.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                    GetResNum.Close();
+                    GetResNum.Dispose();
+                    return;
+                }
+                tmpSound.Description = GetResNum.txtDescription.Text;
+                if (GetResNum.DontImport) {
+                    opensound = true;
+                }
+                else {
+                    MDIMain.UseWaitCursor = true;
+                    tmpSound.ID = GetResNum.txtID.Text;
+                    AddNewSound(GetResNum.NewResNum, tmpSound);
+                    tmpSound = EditGame.Sounds[GetResNum.NewResNum];
+                    opensound = (GetResNum.chkOpenRes.Checked);
                 }
             }
             else {
@@ -5345,7 +5361,7 @@ namespace WinAGI.Editor {
             case SoundImportFormat.MOD:
             case SoundImportFormat.MIDI:
                 // need to get import options
-                using (frmImportSoundOptions frm = new frmImportSoundOptions(format)) {
+                using (frmImportSoundOptions frm = new(format)) {
                     if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
                         options = frm.Options;
                     }
@@ -7042,22 +7058,21 @@ namespace WinAGI.Editor {
             else {
                 isroom = false;
             }
-            using (frmGetResourceNum frm = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, ResType, OldResNum)) {
-                if (frm.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                    newnum = frm.NewResNum;
-                    if (newnum != OldResNum) {
-                        if (ResType == AGIResType.Logic && frm.chkIncludePic.Checked) {
-                            RenumberRoom(OldResNum, newnum);
-                        }
-                        else {
-                            RenumberResource(ResType, OldResNum, newnum);
-                        }
+            using frmGetResourceNum frm = new(isroom ? GetRes.RenumberRoom : GetRes.Renumber, ResType, OldResNum);
+            if (frm.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                newnum = frm.NewResNum;
+                if (newnum != OldResNum) {
+                    if (ResType == AGIResType.Logic && frm.chkIncludePic.Checked) {
+                        RenumberRoom(OldResNum, newnum);
                     }
-                    return newnum;
+                    else {
+                        RenumberResource(ResType, OldResNum, newnum);
+                    }
                 }
-                else {
-                    return OldResNum;
-                }
+                return newnum;
+            }
+            else {
+                return OldResNum;
             }
         }
 
@@ -9547,9 +9562,8 @@ namespace WinAGI.Editor {
 
         internal static void OpenReservedEditor() {
             if (EditGame is null || !EditGame.SierraSyntax) {
-                using (frmReserved frm = new()) {
-                    frm.ShowDialog(MDIMain);
-                }
+                using frmReserved frm = new();
+                frm.ShowDialog(MDIMain);
             }
             else {
                 // SierraSyntax uses 'sysdefs.h'
@@ -10130,60 +10144,59 @@ namespace WinAGI.Editor {
 
         public static DialogResult ShowInputDialog(Form owner, string title, string info, ref string input) {
             int offset = 0;
-            using (Form inputBox = new() {
+            using Form inputBox = new() {
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedToolWindow,
                 MinimizeBox = false,
                 MaximizeBox = false,
                 ShowInTaskbar = false
-            }) {
-                if (info.Length > 0) {
-                    offset = 20;
-                    inputBox.ClientSize = new(200, 70 + offset);
-                    Label labelInfo = new() {
-                        Size = new Size(inputBox.ClientSize.Width - 10, 15),
-                        Location = new Point(5, 5),
-                        Text = info
-                    };
-                    inputBox.Controls.Add(labelInfo);
-                }
-                else {
-                    inputBox.ClientSize = new(200, 70);
-                }
-                inputBox.Text = title;
-
-                TextBox textBox = new() {
-                    Size = new Size(inputBox.ClientSize.Width - 10, 23 + offset),
-                    Location = new Point(5, 5 + offset),
-                    Text = input
+            };
+            if (info.Length > 0) {
+                offset = 20;
+                inputBox.ClientSize = new(200, 70 + offset);
+                Label labelInfo = new() {
+                    Size = new Size(inputBox.ClientSize.Width - 10, 15),
+                    Location = new Point(5, 5),
+                    Text = info
                 };
-                inputBox.Controls.Add(textBox);
-
-                Button okButton = new() {
-                    DialogResult = DialogResult.OK,
-                    Name = "okButton",
-                    Size = new Size(75, 23),
-                    Text = "&OK",
-                    Location = new Point(inputBox.ClientSize.Width - 160, 39 + offset)
-                };
-                inputBox.Controls.Add(okButton);
-
-                Button cancelButton = new() {
-                    DialogResult = DialogResult.Cancel,
-                    Name = "cancelButton",
-                    Size = new Size(75, 23),
-                    Text = "&Cancel",
-                    Location = new Point(inputBox.ClientSize.Width - 80, 39 + offset)
-                };
-                inputBox.Controls.Add(cancelButton);
-
-                inputBox.AcceptButton = okButton;
-                inputBox.CancelButton = cancelButton;
-
-                DialogResult result = inputBox.ShowDialog(owner);
-                input = textBox.Text;
-                return result;
+                inputBox.Controls.Add(labelInfo);
             }
+            else {
+                inputBox.ClientSize = new(200, 70);
+            }
+            inputBox.Text = title;
+
+            TextBox textBox = new() {
+                Size = new Size(inputBox.ClientSize.Width - 10, 23 + offset),
+                Location = new Point(5, 5 + offset),
+                Text = input
+            };
+            inputBox.Controls.Add(textBox);
+
+            Button okButton = new() {
+                DialogResult = DialogResult.OK,
+                Name = "okButton",
+                Size = new Size(75, 23),
+                Text = "&OK",
+                Location = new Point(inputBox.ClientSize.Width - 160, 39 + offset)
+            };
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new() {
+                DialogResult = DialogResult.Cancel,
+                Name = "cancelButton",
+                Size = new Size(75, 23),
+                Text = "&Cancel",
+                Location = new Point(inputBox.ClientSize.Width - 80, 39 + offset)
+            };
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog(owner);
+            input = textBox.Text;
+            return result;
         }
         #endregion
         #endregion

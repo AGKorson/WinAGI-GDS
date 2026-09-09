@@ -98,14 +98,14 @@ namespace WinAGI.Editor {
             if (Parent is not null && !dont) {
                 dont = true;
                 // Draw the parent control's background onto this control
-                using (var bmp = new Bitmap(Parent.ClientSize.Width, Parent.ClientSize.Height)) {
+                using (Bitmap bmp = new(Parent.ClientSize.Width, Parent.ClientSize.Height)) {
                     Parent.DrawToBitmap(bmp, Parent.ClientRectangle);
                     e.Graphics.DrawImage(bmp, -Left, -Top);
                 }
                 dont = false;
             }
             // Draw the control's background with the specified opacity
-            using (var brush = new SolidBrush(Color.FromArgb(this.opacity * 255 / 100, this.BackColor))) {
+            using (SolidBrush brush = new(Color.FromArgb(opacity * 255 / 100, BackColor))) {
                 e.Graphics.FillRectangle(brush, this.ClientRectangle);
             }
             Rectangle r = ClientRectangle;

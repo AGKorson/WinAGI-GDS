@@ -69,8 +69,8 @@ namespace WinAGI.Editor {
             Rectangle rect = ClientRectangle;
 
             // Background
-            using (SolidBrush bg = new(BackgroundColor))
-            using (GraphicsPath bgPath = RoundedRect(rect, CornerRadius))
+            using SolidBrush bg = new(BackgroundColor);
+            using GraphicsPath bgPath = RoundedRect(rect, CornerRadius);
                 e.Graphics.FillPath(bg, bgPath);
 
             // Progress width

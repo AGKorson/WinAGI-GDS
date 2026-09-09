@@ -1372,29 +1372,27 @@ namespace WinAGI.Editor {
             int index = (int)((SelectablePictureBox)sender).Tag;
 
             // to support inverting, need to use backbuffering
-            using (Bitmap backBuffer = new Bitmap(picStaff[index].Width, picStaff[index].Height)) {
-                using (Graphics bbg = Graphics.FromImage(backBuffer)) {
-                    bbg.Clear(Color.White);
-                    if (index == 3) {
-                        DrawNoiseStaff(bbg);
-                    }
-                    else {
-                        DrawMusicStaff(bbg, index);
-                    }
+            using Bitmap backBuffer = new Bitmap(picStaff[index].Width, picStaff[index].Height);
+            using Graphics bbg = Graphics.FromImage(backBuffer);
+            bbg.Clear(Color.White);
+            if (index == 3) {
+                DrawNoiseStaff(bbg);
+            }
+            else {
+                DrawMusicStaff(bbg, index);
+            }
 
-                    // highlight selection by inverting it
-                    if (SelectedTrack == index && SelStart >= 0) {
+            // highlight selection by inverting it
+            if (SelectedTrack == index && SelStart >= 0) {
 
-                        if (SelLength > 0) {
-                            HighlightSelection(backBuffer, bbg);
-                        }
-                        else if (CursorOn) {
-                            ShowCursor(backBuffer, bbg);
-                        }
-                    }
-                    e.Graphics.DrawImageUnscaled(backBuffer, 0, 0);
+                if (SelLength > 0) {
+                    HighlightSelection(backBuffer, bbg);
+                }
+                else if (CursorOn) {
+                    ShowCursor(backBuffer, bbg);
                 }
             }
+            e.Graphics.DrawImageUnscaled(backBuffer, 0, 0);
         }
 
         private void tmrCursor_Tick(object sender, EventArgs e) {
@@ -3399,25 +3397,24 @@ namespace WinAGI.Editor {
             int y = 3;
             int width = endPos - startPos;
             int height = picStaff[SelectedTrack].ClientSize.Height - 6;
-            using (Bitmap selectionBmp = backBuffer.Clone(new Rectangle(x, y, width, height), backBuffer.PixelFormat)) {
-                // Create a color matrix that inverts colors
-                var invertMatrix = new ColorMatrix(
-                [ [-1,  0,  0,  0, 0],
+            using Bitmap selectionBmp = backBuffer.Clone(new Rectangle(x, y, width, height), backBuffer.PixelFormat);
+            // Create a color matrix that inverts colors
+            var invertMatrix = new ColorMatrix(
+            [ [-1,  0,  0,  0, 0],
                   [0, -1,  0,  0, 0],
                   [0,  0, -1,  0, 0],
                   [0,  0,  0,  1, 0],
                   [1,  1,  1,  0, 1] ]);
-                var attributes = new ImageAttributes();
-                attributes.SetColorMatrix(invertMatrix);
-                // Draw the inverted bitmap back onto the graphics surface
-                gs.DrawImage(
-                    selectionBmp,
-                    new Rectangle(x, y, width, height),
-                    0, 0, width, height,
-                    GraphicsUnit.Pixel,
-                    attributes
-                );
-            }
+            var attributes = new ImageAttributes();
+            attributes.SetColorMatrix(invertMatrix);
+            // Draw the inverted bitmap back onto the graphics surface
+            gs.DrawImage(
+                selectionBmp,
+                new Rectangle(x, y, width, height),
+                0, 0, width, height,
+                GraphicsUnit.Pixel,
+                attributes
+            );
         }
 
         private void ShowCursor(Bitmap backBuffer, Graphics gs) {
@@ -3434,25 +3431,24 @@ namespace WinAGI.Editor {
             int y = 3;
             int width = 2;
             int height = picStaff[SelectedTrack].ClientSize.Height - 6;
-            using (Bitmap selectionBmp = backBuffer.Clone(new Rectangle(x, y, width, height), backBuffer.PixelFormat)) {
-                // Create a color matrix that inverts colors
-                var invertMatrix = new ColorMatrix(
-                [ [-1,  0,  0,  0, 0],
+            using Bitmap selectionBmp = backBuffer.Clone(new Rectangle(x, y, width, height), backBuffer.PixelFormat);
+            // Create a color matrix that inverts colors
+            var invertMatrix = new ColorMatrix(
+            [ [-1,  0,  0,  0, 0],
                   [0, -1,  0,  0, 0],
                   [0,  0, -1,  0, 0],
                   [0,  0,  0,  1, 0],
                   [1,  1,  1,  0, 1] ]);
-                var attributes = new ImageAttributes();
-                attributes.SetColorMatrix(invertMatrix);
-                // Draw the inverted bitmap back onto the graphics surface
-                gs.DrawImage(
-                    selectionBmp,
-                    new Rectangle(x, y, width, height),
-                    0, 0, width, height,
-                    GraphicsUnit.Pixel,
-                    attributes
-                );
-            }
+            var attributes = new ImageAttributes();
+            attributes.SetColorMatrix(invertMatrix);
+            // Draw the inverted bitmap back onto the graphics surface
+            gs.DrawImage(
+                selectionBmp,
+                new Rectangle(x, y, width, height),
+                0, 0, width, height,
+                GraphicsUnit.Pixel,
+                attributes
+            );
         }
 
         private int NoteFromPos(int track, int pos, bool roundup = false) {
@@ -4285,24 +4281,23 @@ namespace WinAGI.Editor {
 
         private static void DrawNoteImage(Graphics g, Bitmap noteimage, Rectangle position, Color forecolor) {
             // Clone the bitmap to avoid modifying the original palette
-            using (Bitmap tempImage = (Bitmap)noteimage.Clone()) {
-                // Get the palette
-                ColorPalette palette = tempImage.Palette;
-                // Find the palette index for black (usually 0, but let's check)
-                int blackIndex = -1;
-                for (int i = 0; i < palette.Entries.Length; i++) {
-                    if (palette.Entries[i].ToArgb() == Color.Black.ToArgb()) {
-                        blackIndex = i;
-                        break;
-                    }
+            using Bitmap tempImage = (Bitmap)noteimage.Clone();
+            // Get the palette
+            ColorPalette palette = tempImage.Palette;
+            // Find the palette index for black (usually 0, but let's check)
+            int blackIndex = -1;
+            for (int i = 0; i < palette.Entries.Length; i++) {
+                if (palette.Entries[i].ToArgb() == Color.Black.ToArgb()) {
+                    blackIndex = i;
+                    break;
                 }
-                if (blackIndex >= 0) {
-                    palette.Entries[blackIndex] = forecolor;
-                    tempImage.Palette = palette;
-                }
-                // Draw the image with the updated palette
-                g.DrawImage(tempImage, position);
             }
+            if (blackIndex >= 0) {
+                palette.Entries[blackIndex] = forecolor;
+                tempImage.Palette = palette;
+            }
+            // Draw the image with the updated palette
+            g.DrawImage(tempImage, position);
         }
 
         public void SetSoundKey(int newkey, bool DontUndo = false) {
@@ -5057,22 +5052,21 @@ namespace WinAGI.Editor {
                 else {
                     id = "";
                 }
-                using (frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Sound, id)) {
-                    if (frmGetNum.ShowDialog(MDIMain) == DialogResult.OK) {
-                        SoundNumber = frmGetNum.NewResNum;
-                        // change id before adding to game
-                        EditSound.ID = frmGetNum.txtID.Text;
-                        AddNewSound((byte)SoundNumber, EditSound);
-                        EditGame.Sounds[SoundNumber].Load();
-                        // copy the sound back (to ensure internal variables are copied)
-                        EditSound.CloneFrom(EditGame.Sounds[SoundNumber]);
-                        // now we can unload the newly added sound;
-                        EditGame.Sounds[SoundNumber].Unload();
-                        InGame = true;
-                        MarkAsSaved();
-                        MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                        MDIMain.btnAddRemove.Text = "Remove Sound";
-                    }
+                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Sound, id);
+                if (frmGetNum.ShowDialog(MDIMain) == DialogResult.OK) {
+                    SoundNumber = frmGetNum.NewResNum;
+                    // change id before adding to game
+                    EditSound.ID = frmGetNum.txtID.Text;
+                    AddNewSound((byte)SoundNumber, EditSound);
+                    EditGame.Sounds[SoundNumber].Load();
+                    // copy the sound back (to ensure internal variables are copied)
+                    EditSound.CloneFrom(EditGame.Sounds[SoundNumber]);
+                    // now we can unload the newly added sound;
+                    EditGame.Sounds[SoundNumber].Unload();
+                    InGame = true;
+                    MarkAsSaved();
+                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
+                    MDIMain.btnAddRemove.Text = "Remove Sound";
                 }
             }
         }

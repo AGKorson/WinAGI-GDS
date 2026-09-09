@@ -635,13 +635,12 @@ namespace WinAGI.Editor {
             if (dgProps.CurrentCell.RowIndex != 0) {
                 return;
             }
-            using (frmCharPicker CharPicker = EditGame is not null ?
-                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
-                CharPicker.ShowDialog(MDIMain);
-                if (CharPicker.DialogResult == DialogResult.OK) {
-                    if (CharPicker.InsertString.Length > 0) {
-                        EditTextBox.SelectedText = CharPicker.InsertString;
-                    }
+            using frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value);
+            CharPicker.ShowDialog(MDIMain);
+            if (CharPicker.DialogResult == DialogResult.OK) {
+                if (CharPicker.InsertString.Length > 0) {
+                    EditTextBox.SelectedText = CharPicker.InsertString;
                 }
             }
         }
@@ -1819,14 +1818,13 @@ namespace WinAGI.Editor {
             }
 
             // choose a picture for background
-            using (frmGetResourceNum frm = new(GetRes.MenuBkgd, AGIResType.Picture)) {
-                if (BkgdPicNum != -1) {
-                    frm.OldResNum = (byte)BkgdPicNum;
-                }
-                if (frm.ShowDialog() == DialogResult.OK) {
-                    BkgdPicNum = frm.NewResNum;
-                    return true;
-                }
+            using frmGetResourceNum frm = new(GetRes.MenuBkgd, AGIResType.Picture);
+            if (BkgdPicNum != -1) {
+                frm.OldResNum = (byte)BkgdPicNum;
+            }
+            if (frm.ShowDialog() == DialogResult.OK) {
+                BkgdPicNum = frm.NewResNum;
+                return true;
             }
             return false;
         }

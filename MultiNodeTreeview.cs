@@ -104,18 +104,17 @@ namespace WinAGI.Editor {
                 foreColor = Color.Blue;
             }
 
-            using (Brush backBrush = new SolidBrush(backColor))
-            using (Brush foreBrush = new SolidBrush(foreColor)) {
-                e.Graphics.FillRectangle(backBrush, e.Bounds);
-                TextRenderer.DrawText(
-                    e.Graphics,
-                    e.Node.Text,
-                    Font,
-                    e.Bounds,
-                    foreColor,
-                    TextFormatFlags.GlyphOverhangPadding
-                );
-            }
+            using Brush backBrush = new SolidBrush(backColor);
+            using Brush foreBrush = new SolidBrush(foreColor);
+            e.Graphics.FillRectangle(backBrush, e.Bounds);
+            TextRenderer.DrawText(
+                e.Graphics,
+                e.Node.Text,
+                Font,
+                e.Bounds,
+                foreColor,
+                TextFormatFlags.GlyphOverhangPadding
+            );
 
             // Draw focus rectangle if needed
             if ((e.State & TreeNodeStates.Focused) != 0) {

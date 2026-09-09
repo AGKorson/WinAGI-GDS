@@ -462,9 +462,8 @@ namespace WinAGI.Editor {
                         "Invalid Image File");
                     // use a blank white image
                     BkgdImage = new(320 * scalefactor, 168 * scalefactor);
-                    using (Graphics g = Graphics.FromImage(BkgdImage)) {
-                        g.Clear(Color.White);
-                    }
+                    using Graphics g = Graphics.FromImage(BkgdImage);
+                    g.Clear(Color.White);
                 }
             }
             if (currentfile.Length == 0) {

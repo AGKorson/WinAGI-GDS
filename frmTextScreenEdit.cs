@@ -413,20 +413,19 @@ namespace WinAGI.Editor {
                 return;
             }
             // choose a picture for background
-            using (frmGetResourceNum frm = new(GetRes.TextBkgd, AGIResType.Picture)) {
-                if (BkgdPicNum != -1) {
-                    frm.OldResNum = (byte)BkgdPicNum;
+            using frmGetResourceNum frm = new(GetRes.TextBkgd, AGIResType.Picture);
+            if (BkgdPicNum != -1) {
+                frm.OldResNum = (byte)BkgdPicNum;
+            }
+            if (frm.ShowDialog() == DialogResult.OK) {
+                BkgdPicNum = frm.NewResNum;
+                if (PicOffset == -1) {
+                    PicOffset = 1;
                 }
-                if (frm.ShowDialog() == DialogResult.OK) {
-                    BkgdPicNum = frm.NewResNum;
-                    if (PicOffset == -1) {
-                        PicOffset = 1;
-                    }
-                    EditGame.Pictures[BkgdPicNum].Load();
-                    BkgdPicture = EditGame.Pictures[BkgdPicNum].VisualBMP;
-                    EditGame.Pictures[BkgdPicNum].Unload();
-                    DrawScreen();
-                }
+                EditGame.Pictures[BkgdPicNum].Load();
+                BkgdPicture = EditGame.Pictures[BkgdPicNum].VisualBMP;
+                EditGame.Pictures[BkgdPicNum].Unload();
+                DrawScreen();
             }
         }
 
@@ -2281,20 +2280,19 @@ namespace WinAGI.Editor {
 
         private void ShowCharPicker() {
             // show the char picker, and insert results
-            using (frmCharPicker CharPicker = EditGame is not null ?
-                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
-                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
-                    if (CharPicker.InsertString.Length > 0) {
-                        if (Selection.Width > 0) {
-                            // collapse selection
-                            Selection.Size = new();
-                        }
-                        // if inserted text contains any control codes (\x##, \n, etc)
-                        // replace them with correct symbol
-                        AddText(Selection.Location, CharPickFormat(CharPicker.InsertString), DefBG, DefFG);
+            using frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value);
+            if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                if (CharPicker.InsertString.Length > 0) {
+                    if (Selection.Width > 0) {
+                        // collapse selection
+                        Selection.Size = new();
                     }
-                    MarkAsChanged();
+                    // if inserted text contains any control codes (\x##, \n, etc)
+                    // replace them with correct symbol
+                    AddText(Selection.Location, CharPickFormat(CharPicker.InsertString), DefBG, DefFG);
                 }
+                MarkAsChanged();
             }
         }
 

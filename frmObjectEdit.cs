@@ -586,12 +586,11 @@ namespace WinAGI.Editor {
             if (fgObjects.CurrentCell.ColumnIndex != 1) {
                 return;
             }
-            using (frmCharPicker CharPicker = EditGame is not null ?
-                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
-                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
-                    if (CharPicker.InsertString.Length > 0) {
-                        EditTextBox.SelectedText = CharPicker.InsertString;
-                    }
+            using frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value);
+            if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                if (CharPicker.InsertString.Length > 0) {
+                    EditTextBox.SelectedText = CharPicker.InsertString;
                 }
             }
         }

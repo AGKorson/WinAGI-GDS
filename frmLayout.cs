@@ -2686,9 +2686,10 @@ namespace WinAGI.Editor {
                 // apply grid setting, then re-convert back into surface coordinates
                 mp.X = GridPos((mp.X - Delta.X - Offset.X) / DSF) * DSF + Offset.X;
                 mp.Y = GridPos((mp.Y - Delta.Y - Offset.Y) / DSF) * DSF + Offset.Y;
-                Pen dragpen = new(Color.Black);
-                dragpen.DashPattern = [3, 2];
-                dragpen.DashStyle = DashStyle.Custom;
+                Pen dragpen = new(Color.Black) {
+                    DashPattern = [3, 2],
+                    DashStyle = DashStyle.Custom
+                };
                 float radius;
                 switch (Selection.Type) {
                 case LayoutSelection.Room:
@@ -7748,30 +7749,29 @@ namespace WinAGI.Editor {
         /// <param name="pos"></param>
         private void AddNewRoom(PointF pos) {
             // add a new room here
-            using (frmGetResourceNum frm = new(GetRes.AddLayout, AGIResType.Logic)) {
-                frm.chkIncludePic.Checked = AddPicToo;
-                if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
-                    // temporary logic
-                    Logic tmpLogic = new() {
-                        ID = frm.txtID.Text
-                    };
-                    // always use room template
-                    tmpLogic.SourceText = NewLogicSourceText(tmpLogic, true);
-                    tmpLogic.IsRoom = true;
-                    // save current checkbox Value
-                    AddPicToo = frm.chkIncludePic.Checked;
-                    if (AddPicToo) {
-                        AddRoomPicture(frm.NewResNum, frm.txtID.Text);
-                    }
-                    // add a new logic
-                    NewRoomLogic(frm.NewResNum, tmpLogic);
-                    // reposition to desired location
-                    Room[frm.NewResNum].Loc = pos;
-                    RepositionRoom(frm.NewResNum);
-                    RecalculateMaxMin();
-                    SetScrollBars();
-                    DrawLayout();
+            using frmGetResourceNum frm = new(GetRes.AddLayout, AGIResType.Logic);
+            frm.chkIncludePic.Checked = AddPicToo;
+            if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                // temporary logic
+                Logic tmpLogic = new() {
+                    ID = frm.txtID.Text
+                };
+                // always use room template
+                tmpLogic.SourceText = NewLogicSourceText(tmpLogic, true);
+                tmpLogic.IsRoom = true;
+                // save current checkbox Value
+                AddPicToo = frm.chkIncludePic.Checked;
+                if (AddPicToo) {
+                    AddRoomPicture(frm.NewResNum, frm.txtID.Text);
                 }
+                // add a new logic
+                NewRoomLogic(frm.NewResNum, tmpLogic);
+                // reposition to desired location
+                Room[frm.NewResNum].Loc = pos;
+                RepositionRoom(frm.NewResNum);
+                RecalculateMaxMin();
+                SetScrollBars();
+                DrawLayout();
             }
         }
 
@@ -8254,7 +8254,7 @@ namespace WinAGI.Editor {
                 }
                 break;
             case LayoutSelection.TransPt:
-                using (GraphicsPath path = new GraphicsPath()) {
+                using (GraphicsPath path = new()) {
                     rect.Location = LayoutToScreen(TransPt[testobj.Number].Loc[(int)testobj.Leg]);
                     rect.Width = rect.Height = TRANSPT_SIZE * DSF;
                     path.AddEllipse(rect);
@@ -8265,7 +8265,7 @@ namespace WinAGI.Editor {
                 break;
             case LayoutSelection.ErrPt:
                 float radius = 5.0f * DSF / 40; // radius for rounded corners
-                using (GraphicsPath path = new GraphicsPath()) {
+                using (GraphicsPath path = new()) {
                     PointF[] errPoints =
                     [
                         LayoutToScreen(ErrPt[testobj.Number].Loc),
@@ -8289,7 +8289,7 @@ namespace WinAGI.Editor {
                 rect.Width = Comment[testobj.Number].Size.Width * DSF;
                 rect.Height = Comment[testobj.Number].Size.Height * DSF;
                 radius = 5.0f * DSF / 40; // radius for rounded corners
-                using (GraphicsPath path = new GraphicsPath()) {
+                using (GraphicsPath path = new()) {
                     path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
                     path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
                     path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);

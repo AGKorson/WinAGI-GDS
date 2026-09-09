@@ -190,11 +190,10 @@ namespace WinAGI.Editor {
             else {
                 codepage = CodePage;
             }
-            using (frmCharPicker CharPicker = new(codepage)) {
-                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
-                    if (CharPicker.InsertString.Length > 0) {
-                        rtfSnipValue.InsertText(CharPicker.InsertString, true);
-                    }
+            using frmCharPicker CharPicker = new(codepage);
+            if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                if (CharPicker.InsertString.Length > 0) {
+                    rtfSnipValue.InsertText(CharPicker.InsertString, true);
                 }
             }
         }

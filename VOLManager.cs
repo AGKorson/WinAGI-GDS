@@ -588,7 +588,6 @@ namespace WinAGI.Engine {
             byte[] dirData, dirByte = new byte[3];
             int max = 0, oldmax;
             int dirOffset = 0, dirEnd = 0, i, start, stop;
-            FileStream fsDIR;
 
             if (remove) {
                 // resource marked for deletion
@@ -635,11 +634,9 @@ namespace WinAGI.Engine {
                 throw wex;
             }
             try {
-                using (fsDIR = new FileStream(dirFile, FileMode.Open)) {
-                    dirData = new byte[fsDIR.Length];
-                    fsDIR.Read(dirData, 0, (int)fsDIR.Length);
-                    fsDIR.Dispose();
-                }
+                using FileStream fsDIR = new(dirFile, FileMode.Open);
+                dirData = new byte[fsDIR.Length];
+                fsDIR.Read(dirData, 0, (int)fsDIR.Length);
             }
             catch (Exception e) {
                 WinAGIException wex = new(EngineResourceByNum(541)) {
@@ -684,11 +681,9 @@ namespace WinAGI.Engine {
                 dirOffset += 3 * resource.Number;
                 // insert the new data, and save the file
                 try {
-                    using (fsDIR = new FileStream(dirFile, FileMode.Open)) {
-                        _ = fsDIR.Seek(dirOffset, SeekOrigin.Begin);
-                        fsDIR.Write(dirByte);
-                        fsDIR.Dispose();
-                    }
+                    using FileStream fsDIR = new(dirFile, FileMode.Open);
+                    _ = fsDIR.Seek(dirOffset, SeekOrigin.Begin);
+                    fsDIR.Write(dirByte);
                     return;
                 }
                 catch (Exception e) {
@@ -750,10 +745,8 @@ namespace WinAGI.Engine {
                     // delete the existing file
                     SafeFileDelete(dirFile);
                     // now create the new file
-                    using (fsDIR = new FileStream(dirFile, FileMode.OpenOrCreate)) {
-                        fsDIR.Write(dirData, 0, dirData.Length);
-                        fsDIR.Dispose();
-                    }
+                    using FileStream fsDIR = new(dirFile, FileMode.OpenOrCreate);
+                    fsDIR.Write(dirData, 0, dirData.Length);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(EngineResourceByNum(541)) {
@@ -835,10 +828,8 @@ namespace WinAGI.Engine {
                 }
                 // now write the array back to the file
                 try {
-                    using (fsDIR = new FileStream(dirFile, FileMode.Open)) {
-                        fsDIR.Write(dirData, 0, dirData.Length);
-                        fsDIR.Dispose();
-                    }
+                    using FileStream fsDIR = new(dirFile, FileMode.Open);
+                    fsDIR.Write(dirData, 0, dirData.Length);
                 }
                 catch (Exception e) {
                     WinAGIException wex = new(EngineResourceByNum(541)) {

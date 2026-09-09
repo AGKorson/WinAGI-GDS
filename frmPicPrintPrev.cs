@@ -382,12 +382,11 @@ namespace WinAGI.Editor {
         }
 
         private void cmiCharMap_Click(object sender, EventArgs e) {
-            using (frmCharPicker CharPicker = EditGame is not null ?
-                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value)) {
-                if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
-                    if (CharPicker.InsertString.Length > 0) {
-                        txtMessage.SelectedText = CharPicker.InsertString;
-                    }
+            using frmCharPicker CharPicker = EditGame is not null ?
+                new(EditGame.CodePage) : new(WinAGISettings.DefCP.Value);
+            if (CharPicker.ShowDialog(MDIMain) == DialogResult.OK) {
+                if (CharPicker.InsertString.Length > 0) {
+                    txtMessage.SelectedText = CharPicker.InsertString;
                 }
             }
         }

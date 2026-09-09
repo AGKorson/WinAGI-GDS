@@ -1385,7 +1385,7 @@ namespace WinAGI.Editor {
                 case SoundImportFormat.MOD:
                 case SoundImportFormat.MIDI:
                     // get options
-                    using (var frm = new frmImportSoundOptions(format)) {
+                    using (frmImportSoundOptions frm = new(format)) {
                         if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
                             options = frm.Options;
                             frm.Dispose();
@@ -1628,34 +1628,32 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTSnippets_Click(object sender, EventArgs e) {
-            using (frmSnippets Snippets = new(false)) {
-                Snippets.ShowDialog(this);
-            }
+            using frmSnippets Snippets = new(false);
+            Snippets.ShowDialog(this);
         }
 
         private void mnuTPalette_Click(object sender, EventArgs e) {
-            using (frmPalette frm = new(0)) {
-                if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
-                    // refresh all picture, view and textscreen editors and the preview window (if visible)
-                    foreach (frmPicEdit editfrm in PictureEditors) {
-                        editfrm.RefreshPic();
+            using frmPalette frm = new(0);
+            if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                // refresh all picture, view and textscreen editors and the preview window (if visible)
+                foreach (frmPicEdit editfrm in PictureEditors) {
+                    editfrm.RefreshPic();
+                }
+                foreach (frmViewEdit editfrm in ViewEditors) {
+                    editfrm.RefreshCel();
+                }
+                if (PreviewWin.Visible) {
+                    switch (SelResType) {
+                    case AGIResType.Picture:
+                        PreviewWin.RefreshPic();
+                        break;
+                    case AGIResType.View:
+                        PreviewWin.RefreshView();
+                        break;
                     }
-                    foreach (frmViewEdit editfrm in ViewEditors) {
-                        editfrm.RefreshCel();
-                    }
-                    if (PreviewWin.Visible) {
-                        switch (SelResType) {
-                        case AGIResType.Picture:
-                            PreviewWin.RefreshPic();
-                            break;
-                        case AGIResType.View:
-                            PreviewWin.RefreshView();
-                            break;
-                        }
-                    }
-                    if (TSEInUse) {
-                        TextScreenEditor.RefreshScreen();
-                    }
+                }
+                if (TSEInUse) {
+                    TextScreenEditor.RefreshScreen();
                 }
             }
         }
@@ -1730,9 +1728,8 @@ namespace WinAGI.Editor {
         }
 
         private void mnuTCustomize_Click(object sender, EventArgs e) {
-            using (var ToolsEditor = new frmTools()) {
-                ToolsEditor.ShowDialog(this);
-            }
+            using var ToolsEditor = new frmTools();
+            ToolsEditor.ShowDialog(this);
         }
         #endregion
 
@@ -1854,9 +1851,8 @@ namespace WinAGI.Editor {
         }
 
         private void mnuHAbout_Click(object sender, EventArgs e) {
-            using (var frm = new frmAbout()) {
-                frm.ShowDialog(MDIMain);
-            }
+            using frmAbout frm = new();
+            frm.ShowDialog(MDIMain);
         }
         #endregion
         #endregion
@@ -5091,114 +5087,113 @@ namespace WinAGI.Editor {
 
         public void ShowProperties(bool EnableOK, string StartTab = "", string StartProp = "") {
             // show properties form
-            using (frmGameProperties propForm = new(GameSettingFunction.Edit, StartTab, StartProp)) {
-                propForm.btnOK.Enabled = EnableOK;
-                if (propForm.ShowDialog(MDIMain) == DialogResult.Cancel) {
-                    // exit withoutsaving anything
-                    propForm.Dispose();
-                    return;
+            using frmGameProperties propForm = new(GameSettingFunction.Edit, StartTab, StartProp);
+            propForm.btnOK.Enabled = EnableOK;
+            if (propForm.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                // exit withoutsaving anything
+                propForm.Dispose();
+                return;
+            }
+            EditGame.Designer = propForm.txtDesigner.Text;
+            EditGame.Description = propForm.txtGameDescription.Text;
+            EditGame.GameAbout = propForm.txtGameAbout.Text;
+            // if no directory, force platform to nothing
+            if (propForm.NewPlatformFile.Length == 0) {
+                EditGame.PlatformType = PlatformType.None;
+            }
+            else {
+                // platform
+                if (propForm.optDosBox.Checked) {
+                    EditGame.PlatformType = PlatformType.DosBox;
                 }
-                EditGame.Designer = propForm.txtDesigner.Text;
-                EditGame.Description = propForm.txtGameDescription.Text;
-                EditGame.GameAbout = propForm.txtGameAbout.Text;
-                // if no directory, force platform to nothing
-                if (propForm.NewPlatformFile.Length == 0) {
-                    EditGame.PlatformType = PlatformType.None;
+                else if (propForm.optScummVM.Checked) {
+                    EditGame.PlatformType = PlatformType.ScummVM;
                 }
-                else {
-                    // platform
-                    if (propForm.optDosBox.Checked) {
-                        EditGame.PlatformType = PlatformType.DosBox;
-                    }
-                    else if (propForm.optScummVM.Checked) {
-                        EditGame.PlatformType = PlatformType.ScummVM;
-                    }
-                    else if (propForm.optNAGI.Checked) {
-                        EditGame.PlatformType = PlatformType.NAGI;
-                    }
-                    else if (propForm.optAGILE.Checked) {
-                        EditGame.PlatformType = PlatformType.AGILE;
-                    }
-                    else if (propForm.optOther.Checked) {
-                        EditGame.PlatformType = PlatformType.Other;
-                    }
+                else if (propForm.optNAGI.Checked) {
+                    EditGame.PlatformType = PlatformType.NAGI;
                 }
+                else if (propForm.optAGILE.Checked) {
+                    EditGame.PlatformType = PlatformType.AGILE;
+                }
+                else if (propForm.optOther.Checked) {
+                    EditGame.PlatformType = PlatformType.Other;
+                }
+            }
 
-                if (EditGame.PlatformType != PlatformType.None) {
-                    EditGame.Platform = propForm.NewPlatformFile;
-                    // platform options OK if dosbox or scummvm
-                    if (EditGame.PlatformType == PlatformType.DosBox ||
-                        EditGame.PlatformType == PlatformType.ScummVM ||
-                        EditGame.PlatformType == PlatformType.AGILE ||
-                        EditGame.PlatformType == PlatformType.Other) {
-                        EditGame.PlatformOpts = propForm.txtOptions.Text;
-                    }
-                    else {
-                        EditGame.PlatformOpts = "";
-                    }
-                    // dos executable only used if dosbox
-                    if (EditGame.PlatformType == PlatformType.DosBox) {
-                        EditGame.DOSExec = propForm.txtExec.Text;
-                    }
-                    else {
-                        EditGame.DOSExec = "";
-                    }
+            if (EditGame.PlatformType != PlatformType.None) {
+                EditGame.Platform = propForm.NewPlatformFile;
+                // platform options OK if dosbox or scummvm
+                if (EditGame.PlatformType == PlatformType.DosBox ||
+                    EditGame.PlatformType == PlatformType.ScummVM ||
+                    EditGame.PlatformType == PlatformType.AGILE ||
+                    EditGame.PlatformType == PlatformType.Other) {
+                    EditGame.PlatformOpts = propForm.txtOptions.Text;
                 }
                 else {
-                    EditGame.Platform = "";
                     EditGame.PlatformOpts = "";
+                }
+                // dos executable only used if dosbox
+                if (EditGame.PlatformType == PlatformType.DosBox) {
+                    EditGame.DOSExec = propForm.txtExec.Text;
+                }
+                else {
                     EditGame.DOSExec = "";
                 }
-                EditGame.GameVersion = propForm.txtGameVersion.Text;
-                // interpreter version (if changed)
-                if ((int)EditGame.InterpreterVersion.Index != propForm.cmbVersion.SelectedIndex) {
-                    ChangeIntVersion(propForm.cmbVersion.Text);
+            }
+            else {
+                EditGame.Platform = "";
+                EditGame.PlatformOpts = "";
+                EditGame.DOSExec = "";
+            }
+            EditGame.GameVersion = propForm.txtGameVersion.Text;
+            // interpreter version (if changed)
+            if ((int)EditGame.InterpreterVersion.Index != propForm.cmbVersion.SelectedIndex) {
+                ChangeIntVersion(propForm.cmbVersion.Text);
+            }
+            if (EditGame.GameID != propForm.txtGameID.Text) {
+                ChangeGameID(propForm.txtGameID.Text);
+            }
+            if (!EditGame.SrcResDirName.Equals(propForm.txtResDir.Text, StringComparison.CurrentCultureIgnoreCase)) {
+                ChangeResDir(propForm.txtResDir.Text);
+            }
+            if (EditGame.SourceExt != propForm.txtSrcExt.Text) {
+                EditGame.SourceExt = propForm.txtSrcExt.Text.ToLower();
+                foreach (Logic aLogic in EditGame.Logics) {
+                    SafeFileMove(aLogic.SourceFile, Path.Combine(EditGame.SrcResDir, Path.GetFileNameWithoutExtension(aLogic.SourceFile) + "." + EditGame.SourceExt), true);
                 }
-                if (EditGame.GameID != propForm.txtGameID.Text) {
-                    ChangeGameID(propForm.txtGameID.Text);
-                }
-                if (!EditGame.SrcResDirName.Equals(propForm.txtResDir.Text, StringComparison.CurrentCultureIgnoreCase)) {
-                    ChangeResDir(propForm.txtResDir.Text);
-                }
-                if (EditGame.SourceExt != propForm.txtSrcExt.Text) {
-                    EditGame.SourceExt = propForm.txtSrcExt.Text.ToLower();
-                    foreach (Logic aLogic in EditGame.Logics) {
-                        SafeFileMove(aLogic.SourceFile, Path.Combine(EditGame.SrcResDir, Path.GetFileNameWithoutExtension(aLogic.SourceFile) + "." + EditGame.SourceExt), true);
-                    }
-                }
-                bool useglobal = EditGame.IncludeGlobals;
-                EditGame.SierraSyntax = propForm.chkSierraSyntax.Checked;
-                if (EditGame.SierraSyntax) {
-                    EditGame.IncludeIDs = false;
-                    EditGame.IncludeReserved = false;
-                    EditGame.IncludeGlobals = false;
+            }
+            bool useglobal = EditGame.IncludeGlobals;
+            EditGame.SierraSyntax = propForm.chkSierraSyntax.Checked;
+            if (EditGame.SierraSyntax) {
+                EditGame.IncludeIDs = false;
+                EditGame.IncludeReserved = false;
+                EditGame.IncludeGlobals = false;
+            }
+            else {
+                EditGame.IncludeIDs = propForm.chkResourceIDs.Checked;
+                EditGame.IncludeReserved = propForm.chkResDefs.Checked;
+                EditGame.IncludeGlobals = propForm.chkGlobals.Checked;
+            }
+            // update global list if it changed
+            if (useglobal != EditGame.IncludeGlobals) {
+                if (EditGame.IncludeGlobals) {
+                    EditGame.GlobalDefines.LoadDefines();
                 }
                 else {
-                    EditGame.IncludeIDs = propForm.chkResourceIDs.Checked;
-                    EditGame.IncludeReserved = propForm.chkResDefs.Checked;
-                    EditGame.IncludeGlobals = propForm.chkGlobals.Checked;
+                    EditGame.GlobalDefines.Clear();
+                    GEInUse = false;
                 }
-                // update global list if it changed
-                if (useglobal != EditGame.IncludeGlobals) {
-                    if (EditGame.IncludeGlobals) {
-                        EditGame.GlobalDefines.LoadDefines();
-                    }
-                    else {
-                        EditGame.GlobalDefines.Clear();
-                        GEInUse = false;
-                    }
-                    LogicListChange();
-                }
-                // refresh include list in case they changed
-                RefreshIncludeList();
-                EditGame.UseLE = propForm.chkUseLE.Checked;
-                // update menu/toolbar, and hide LE if not in use anymore
-                UpdateLEStatus();
-                EditGame.CodePage = propForm.NewCodePage;
-                // save changes to file
-                EditGame.SaveProperties();
-                RefreshPropertyGrid();
+                LogicListChange();
             }
+            // refresh include list in case they changed
+            RefreshIncludeList();
+            EditGame.UseLE = propForm.chkUseLE.Checked;
+            // update menu/toolbar, and hide LE if not in use anymore
+            UpdateLEStatus();
+            EditGame.CodePage = propForm.NewCodePage;
+            // save changes to file
+            EditGame.SaveProperties();
+            RefreshPropertyGrid();
         }
 
         private void RunGame() {

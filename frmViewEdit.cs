@@ -3024,22 +3024,21 @@ namespace WinAGI.Editor {
                 else {
                     id = "";
                 }
-                using (frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.View, id)) {
-                    if (frmGetNum.ShowDialog(MDIMain) == DialogResult.OK) {
-                        ViewNumber = frmGetNum.NewResNum;
-                        // change id before adding to game
-                        EditView.ID = frmGetNum.txtID.Text;
-                        AddNewView((byte)ViewNumber, EditView);
-                        EditGame.Views[ViewNumber].Load();
-                        // copy the view back (to ensure internal variables are copied)
-                        EditView.CloneFrom(EditGame.Views[ViewNumber]);
-                        // now we can unload the newly added view;
-                        EditGame.Views[ViewNumber].Unload();
-                        InGame = true;
-                        MarkAsSaved();
-                        MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                        MDIMain.btnAddRemove.Text = "Remove View";
-                    }
+                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.View, id);
+                if (frmGetNum.ShowDialog(MDIMain) == DialogResult.OK) {
+                    ViewNumber = frmGetNum.NewResNum;
+                    // change id before adding to game
+                    EditView.ID = frmGetNum.txtID.Text;
+                    AddNewView((byte)ViewNumber, EditView);
+                    EditGame.Views[ViewNumber].Load();
+                    // copy the view back (to ensure internal variables are copied)
+                    EditView.CloneFrom(EditGame.Views[ViewNumber]);
+                    // now we can unload the newly added view;
+                    EditGame.Views[ViewNumber].Unload();
+                    InGame = true;
+                    MarkAsSaved();
+                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
+                    MDIMain.btnAddRemove.Text = "Remove View";
                 }
             }
         }

@@ -5086,24 +5086,23 @@ namespace WinAGI.Editor {
                 else {
                     id = "";
                 }
-                using (frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Picture, id)) {
-                    if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                        PictureNumber = frmGetNum.NewResNum;
-                        // change id before adding to game
-                        EditPicture.ID = frmGetNum.txtID.Text;
-                        AddNewPicture((byte)PictureNumber, EditPicture);
-                        EditGame.Pictures[PictureNumber].Load();
-                        // copy the picture back (to ensure internal variables are copied)
-                        EditPicture.CloneFrom(EditGame.Pictures[PictureNumber]);
-                        EditPalette = EditPicture.Palette.Clone();
-                        // now we can unload the newly added picture;
-                        EditGame.Pictures[PictureNumber].Unload();
-                        InGame = true;
-                        MarkAsSaved();
-                        MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                        MDIMain.btnAddRemove.Text = "Remove Picture";
-                        SetCodePage(EditGame.CodePage);
-                    }
+                using frmGetResourceNum frmGetNum = new(GetRes.AddInGame, AGIResType.Picture, id);
+                if (frmGetNum.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    PictureNumber = frmGetNum.NewResNum;
+                    // change id before adding to game
+                    EditPicture.ID = frmGetNum.txtID.Text;
+                    AddNewPicture((byte)PictureNumber, EditPicture);
+                    EditGame.Pictures[PictureNumber].Load();
+                    // copy the picture back (to ensure internal variables are copied)
+                    EditPicture.CloneFrom(EditGame.Pictures[PictureNumber]);
+                    EditPalette = EditPicture.Palette.Clone();
+                    // now we can unload the newly added picture;
+                    EditGame.Pictures[PictureNumber].Unload();
+                    InGame = true;
+                    MarkAsSaved();
+                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
+                    MDIMain.btnAddRemove.Text = "Remove Picture";
+                    SetCodePage(EditGame.CodePage);
                 }
             }
         }
@@ -9964,17 +9963,16 @@ namespace WinAGI.Editor {
             // if game is loaded
             if (EditGame is not null) {
                 // use the get resource form
-                using (frmGetResourceNum frmNew = new(GetRes.TestView, AGIResType.View)) {
-                    frmNew.OldResNum = TestViewNum;
-                    if (frmNew.ShowDialog(this) == DialogResult.OK) {
-                        byte num = frmNew.NewResNum;
-                        // set testview id
-                        TestViewNum = num;
-                    }
-                    else {
-                        // if canceled, exit
-                        return;
-                    }
+                using frmGetResourceNum frmNew = new(GetRes.TestView, AGIResType.View);
+                frmNew.OldResNum = TestViewNum;
+                if (frmNew.ShowDialog(this) == DialogResult.OK) {
+                    byte num = frmNew.NewResNum;
+                    // set testview id
+                    TestViewNum = num;
+                }
+                else {
+                    // if canceled, exit
+                    return;
                 }
             }
             else {
@@ -10321,18 +10319,17 @@ namespace WinAGI.Editor {
         /// </summary>
         private void GetTextOptions() {
             // show print options dialog
-            using (frmPicPrintPrev frm = new(PTInfo, InGame)) {
-                if (frm.ShowDialog(this) == DialogResult.OK) {
-                    if (PTInfo.MaxWidth != frm.PTInfo.MaxWidth) {
-                        ToggleTextScreenSize(false);
-                    }
-                    PTInfo = new(frm.PTInfo);
-                    // show the print/display text on screen if there
-                    // are no errors in the display text options
-                    ShowPrintTest = PTInfo.ErrLevel == 0;
-                    if (ShowPrintTest) {
-                        picVisual.Invalidate();
-                    }
+            using frmPicPrintPrev frm = new(PTInfo, InGame);
+            if (frm.ShowDialog(this) == DialogResult.OK) {
+                if (PTInfo.MaxWidth != frm.PTInfo.MaxWidth) {
+                    ToggleTextScreenSize(false);
+                }
+                PTInfo = new(frm.PTInfo);
+                // show the print/display text on screen if there
+                // are no errors in the display text options
+                ShowPrintTest = PTInfo.ErrLevel == 0;
+                if (ShowPrintTest) {
+                    picVisual.Invalidate();
                 }
             }
         }
