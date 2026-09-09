@@ -8787,7 +8787,7 @@ namespace WinAGI.Editor {
                     continue;
                 try {
                     var obj = JsonSerializer.Deserialize<LayoutFileData>(line);
-                    if (obj != null)
+                    if (obj is not null)
                         objects.Add(obj);
                 }
                 catch {

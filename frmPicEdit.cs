@@ -3702,7 +3702,7 @@ namespace WinAGI.Editor {
         private void lstCommands_MouseDown(object sender, MouseEventArgs e) {
             // set anchor to support drag-selecting multiple items
             var ht = lstCommands.HitTest(e.Location);
-            if (ht.Item != null) {
+            if (ht.Item is not null) {
                 cmdAnchor = cmdDelta = ht.Item.Index;
             }
         }
@@ -3711,7 +3711,7 @@ namespace WinAGI.Editor {
             // can we select multiple items by dragging?
             if (e.Button == MouseButtons.Left) {
                 var ht = lstCommands.HitTest(e.Location);
-                if (ht.Item != null) {
+                if (ht.Item is not null) {
                     if (ht.Item.Index != cmdDelta) {
                         multiCmds = true;
                         cmdDelta = ht.Item.Index;

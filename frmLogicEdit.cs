@@ -2468,7 +2468,7 @@ namespace WinAGI.Editor {
         }
 
         private void AGISyntaxHighlight(FastColoredTextBoxNS.Range changedRange) {
-            bool allowMultilineStrings = EditGame != null && EditGame.SierraSyntax;
+            bool allowMultilineStrings = EditGame is not null && EditGame.SierraSyntax;
             bool inMultilineString = false;
             int mlStringStartLine = -1;
             int mlStringStartChar = -1;

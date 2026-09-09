@@ -364,7 +364,7 @@ namespace WinAGI.Editor {
                         Invalidate(bounds, false);
                     }
                     else {
-                        if (endnode.NextNode != null) {
+                        if (endnode.NextNode is not null) {
                             // move end node to next node to expand selection
                             endnode = endnode.NextNode;
                             nodecollection.Add(endnode);
