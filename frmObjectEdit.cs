@@ -502,7 +502,7 @@ namespace WinAGI.Editor {
             }
             frmFind.ResetSearch();
             FirstFind = false;
-            GFindDir = FindDirection.All;
+            GFindDir = FindDirection.Next;
             GMatchWord = true;
             GMatchCase = true;
             GLogFindLoc = FindLocation.All;
@@ -1073,7 +1073,6 @@ namespace WinAGI.Editor {
         }
 
         public void FindInObjects(string FindText, FindDirection FindDir, bool MatchWord, bool MatchCase, bool Replacing = false, string ReplaceText = "") {
-            bool recurse = false;
             StringComparison vbcComp = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
             if (Replacing && FindText.Equals(ReplaceText, vbcComp)) {
@@ -1095,7 +1094,7 @@ namespace WinAGI.Editor {
             int searchrow = fgObjects.CurrentCell.RowIndex;
             int foundrow = -1;
             // adjust to next row per replace/direction selections
-            if ((Replacing && FindDir == FindDirection.Up) || (!Replacing && FindDir != FindDirection.Up)) {
+            if ((Replacing && FindDir == FindDirection.Previous) || (!Replacing && FindDir != FindDirection.Previous)) {
                 searchrow += 1;
                 if (searchrow >= EditInvList.Count) {
                     searchrow = 0;
@@ -1111,7 +1110,7 @@ namespace WinAGI.Editor {
             }
             // main search loop
             do {
-                if (FindDir == FindDirection.Up) {
+                if (FindDir == FindDirection.Previous) {
                     // iterate backwards until word found or foundrow=-1
                     foundrow = searchrow - 1;
                     while (foundrow != -1) {
@@ -1160,71 +1159,11 @@ namespace WinAGI.Editor {
                     }
                     break;
                 }
-                // if not found, action depends on search mode
-                switch (FindDir) {
-                case FindDirection.Up:
-                    if (!RestartSearch) {
-                        DialogResult rtn;
-                        if (recurse) {
-                            // just say no
-                            rtn = DialogResult.No;
-                        }
-                        else {
-                            rtn = MessageBox.Show(MDIMain,
-                                "Beginning of search scope reached. Do you want to continue from the end?",
-                                "Find in Object List",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question);
-                        }
-                        if (rtn == DialogResult.No) {
-                            // reset search
-                            frmFind.ResetSearch();
-                            FirstFind = false;
-                            MDIMain.UseWaitCursor = false;
-                            return;
-                        }
-                    }
-                    else {
-                        // entire scope already searched; exit DO
-                        break;
-                    }
-                    break;
-                case FindDirection.Down:
-                    if (!RestartSearch) {
-                        DialogResult rtn;
-                        if (recurse) {
-                            // just say no
-                            rtn = DialogResult.No;
-                        }
-                        else {
-                            rtn = MessageBox.Show(MDIMain,
-                                "End of search scope reached. Do you want to continue from the beginning?",
-                                "Find in Object List",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question);
-                        }
-                        if (rtn == DialogResult.No) {
-                            frmFind.ResetSearch();
-                            FirstFind = false;
-                            MDIMain.UseWaitCursor = false;
-                            return;
-                        }
-                    }
-                    else {
-                        // entire scope already searched; exit DO
-                        break;
-                    }
-                    break;
-                case FindDirection.All:
-                    if (RestartSearch) {
-                        // exit DO
-                        break;
-                    }
-                    break;
-                }
+                // not found- if already restarted, stop the search
                 if (RestartSearch) {
                     break;
                 }
+                // set restart flag and continue searching
                 RestartSearch = true;
             } while (true);
             // loop is exited by finding the searchtext or reaching end of search area
@@ -1248,32 +1187,23 @@ namespace WinAGI.Editor {
                     }
                     // adjust undoobject
                     UndoCol.Peek().UDAction = Replace;
-                    // recurse the find method to get next occurrence
-                    // !!!!!!!!ACK!!!!!!!!!!!!
-                    // RECURSIONS ARE BAD, but this seems to be the 
-                    // simplest way to handle multiple replacements
-                    recurse = true;
-                    FindInObjects(FindText, FindDir, MatchWord, MatchCase, false);
-                    recurse = false;
                 }
             }
             else {
-                if (!recurse) {
-                    if (FirstFind) {
-                        // search complete; no more instances found
-                        MessageBox.Show(MDIMain,
-                            "The specified region has been searched.",
-                            "Find in Object List",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                    }
-                    else {
-                        MessageBox.Show(MDIMain,
-                            "Search text not found.",
-                            "Find in Object List",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                    }
+                if (FirstFind) {
+                    // search complete; no more instances found
+                    MessageBox.Show(MDIMain,
+                        "The specified region has been searched.",
+                        "Find in Object List",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                else {
+                    MessageBox.Show(MDIMain,
+                        "Search text not found.",
+                        "Find in Object List",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
                 frmFind.ResetSearch();
                 FirstFind = false;

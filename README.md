@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.80
+        Version 3.0.0beta.82
     ==============================
 
 
@@ -32,6 +32,14 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.82:
+- refactored find functions to only searh 'Next' or 'Previous'; got rid of the Up/Down/All search options
+- fixed bug in FindInLogics where Previous searches woulds open closed logics even when they didn't contain the search text
+- fixed bug in SearchIDs function which caused error if selected resource was a header
+
+Beta.81:
+- code cleanup, no functional changes
+
 Beta.80:
 - code cleanup and some minor refactoring; no functional changes
 

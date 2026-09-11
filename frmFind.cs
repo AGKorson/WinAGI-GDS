@@ -97,10 +97,19 @@ namespace WinAGI.Editor {
             if (SettingForm) {
                 return;
             }
-            // always update form value
-            if ((int)GFindDir != cmbDirection.SelectedIndex) {
-                ResetSearch();
-                GFindDir = (FindDirection)cmbDirection.SelectedIndex;
+            switch (cmbDirection.SelectedIndex) {
+            case 0:
+                if (GFindDir != FindDirection.Next) {
+                    ResetSearch();
+                }
+                GFindDir = FindDirection.Next;
+                break;
+            case 1:
+                if (GFindDir != FindDirection.Previous) {
+                    ResetSearch();
+                }
+                GFindDir = FindDirection.Previous;
+                break;
             }
             // if editing a word or object logic search, reset form
             switch (FormFunction) {

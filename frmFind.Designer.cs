@@ -138,7 +138,7 @@ namespace WinAGI.Editor {
             cmbDirection.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
             cmbDirection.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             cmbDirection.FormattingEnabled = true;
-            cmbDirection.Items.AddRange(new object[] { "All", "Down", "Up" });
+            cmbDirection.Items.AddRange(new object[] { "Next", "Previous" });
             cmbDirection.Location = new System.Drawing.Point(280, 84);
             cmbDirection.Name = "cmbDirection";
             cmbDirection.Size = new System.Drawing.Size(72, 23);

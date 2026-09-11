@@ -738,13 +738,13 @@ namespace WinAGI.Editor {
             if (InGame) {
                 string searchtext = (string)globalsgrid[NAME_COL, globalsgrid.CurrentRow.Index].Value;
                 GFindText = searchtext;
-                GFindDir = FindDirection.All;
+                GFindDir = FindDirection.Next;
                 GMatchWord = true;
                 GMatchCase = true;
                 GLogFindLoc = FindLocation.All;
                 GFindSynonym = false;
                 frmFind.ResetSearch();
-                FindInLogic(this, searchtext, FindDirection.All, true, true, FindLocation.All);
+                FindInLogic(this, searchtext, FindDirection.Next, true, true, FindLocation.All);
             }
         }
 

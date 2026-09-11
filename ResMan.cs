@@ -135,9 +135,9 @@ namespace WinAGI.Editor {
         }
 
         public enum FindDirection {
-            All,
-            Down,
-            Up,
+            Next,
+            //Down,
+            Previous,
         }
 
         public enum FindLocation {
@@ -1057,7 +1057,7 @@ namespace WinAGI.Editor {
         // global copy of search parameters used by the find form
         internal static string GFindText = "";
         internal static string GReplaceText = "";
-        internal static FindDirection GFindDir = FindDirection.All;
+        internal static FindDirection GFindDir = FindDirection.Next;
         internal static bool GMatchWord = false;
         internal static bool GMatchCase = false;
         internal static FindLocation GLogFindLoc = FindLocation.Current;
@@ -3261,7 +3261,7 @@ namespace WinAGI.Editor {
                 // if starting position not set, it means starting a new search
                 if (SearchStartPos == -1) {
                     SearchStartLog = nextLogicIndex;
-                    if (FindDir == FindDirection.Up) {
+                    if (FindDir == FindDirection.Previous) {
                         // when searching backwards, need to adjust back one so a match at 
                         // current position correctly skips when searching all the way around
                         SearchStartPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.Start) - 1;
@@ -3280,7 +3280,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 // intial SearchPos also depends on direction
-                if (FindDir == FindDirection.Up) {
+                if (FindDir == FindDirection.Previous) {
                     SearchPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.Start);
                     if (SearchPos == 0) {
                         SearchPos = searchFCTB.TextLength;
@@ -3350,10 +3350,10 @@ namespace WinAGI.Editor {
                 }
                 else {
                     // search the target logic, from the starting search position
-                    if (FindDir == FindDirection.Up) {
+                    if (FindDir == FindDirection.Previous) {
                         // if searching whole word
                         if (MatchWord) {
-                            FoundPos = FindWholeWord(SearchPos, searchFCTB.Text, FindText, MatchCase, FindDir == FindDirection.Up, SearchType);
+                            FoundPos = FindWholeWord(SearchPos, searchFCTB.Text, FindText, MatchCase, true, SearchType);
                         }
                         else {
                             FoundPos = searchFCTB.Text.LastIndexOf(FindText, SearchPos, compMode);
@@ -3365,7 +3365,7 @@ namespace WinAGI.Editor {
                         // search strategy depends on synonym search value
                         if (!GFindSynonym) {
                             if (MatchWord) {
-                                FoundPos = FindWholeWord(SearchPos, searchFCTB.Text, FindText, MatchCase, FindDir == FindDirection.Up, SearchType);
+                                FoundPos = FindWholeWord(SearchPos, searchFCTB.Text, FindText, MatchCase, FindDir == FindDirection.Previous, SearchType);
                             }
                             else {
                                 FoundPos = searchFCTB.Text.IndexOf(FindText, SearchPos, compMode);
@@ -3408,7 +3408,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 if (FoundPos >= 0) {
-                    if (FindDir == FindDirection.All || FindDir == FindDirection.Down) {
+                    if (FindDir == FindDirection.Next) {
                         // if back at search start (whether anything found or not)
                         // OR PAST search start(after previously finding something)
                         if (((FoundPos == SearchStartPos) && (nextLogicIndex == SearchStartLog) && !noSel) ||
@@ -3425,7 +3425,7 @@ namespace WinAGI.Editor {
                                     break;
                                 }
                                 searchFCTB = LogicEditors[nextLogicIndex].fctb;
-                                if (FindDir == FindDirection.Up) {
+                                if (FindDir == FindDirection.Previous) {
                                     SearchPos = searchFCTB.TextLength;
                                 }
                                 continue;
@@ -3463,52 +3463,15 @@ namespace WinAGI.Editor {
                 }
                 // if not found, action depends on search mode
                 if (LogicLoc == FindLocation.Current) {
-                    if (FindDir == FindDirection.Up) {
-                        if (!RestartSearch) {
-                            DialogResult rtn = MessageBox.Show(MDIMain,
-                                "Beginning of search scope reached. Do you want to continue from the end?",
-                                "Find in Logic",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question);
-                            if (rtn == DialogResult.No) {
-                                MDIMain.UseWaitCursor = false;
-                                return;
-                            }
-                            // reset searchpos to end
-                            SearchPos = searchFCTB.TextLength;
-                        }
-                        else {
-                            // if restartsearch is true, it means this is second time through;
-                            // since nothing found, just exit the loop
-                            break;
-                        }
+                    // if restart is true, means search is now over
+                    // since nothing found, just exit the loop
+                    if (RestartSearch) {
+                        // not found; exit
+                        break;
                     }
-                    else if (FindDir == FindDirection.Down) {
-                        // if nothing found yet
-                        if (!RestartSearch) {
-                            DialogResult rtn = MessageBox.Show(MDIMain,
-                                "End of search scope reached. Do you want to continue from the beginning?",
-                                "Find in Logic",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question);
-                            if (rtn == DialogResult.No) {
-                                MDIMain.UseWaitCursor = false;
-                                return;
-                            }
-                        }
-                        else {
-                            // if resetsearch is true, means this is second time through;
-                            // since nothing found, just exit the loop
-                            break;
-                        }
-                    }
-                    else if (FindDir == FindDirection.All) {
-                        // if restartsearch is true, means this is second time through;
-                        // since nothing found, just exit the loop
-                        if (RestartSearch) {
-                            // not found; exit
-                            break;
-                        }
+                    if (FindDir == FindDirection.Previous) {
+                        // reset searchpos to end
+                        SearchPos = searchFCTB.TextLength;
                     }
                 }
                 else if (LogicLoc == FindLocation.Open) {
@@ -3522,7 +3485,7 @@ namespace WinAGI.Editor {
                         nextLogicIndex = 0;
                     }
                     searchFCTB = LogicEditors[nextLogicIndex].fctb;
-                    if (FindDir == FindDirection.Up) {
+                    if (FindDir == FindDirection.Previous) {
                         SearchPos = searchFCTB.TextLength;
                     }
                 }
@@ -3552,7 +3515,7 @@ namespace WinAGI.Editor {
                         }
                     }
                     searchFCTB = LogicEditors[nextLogicIndex].fctb;
-                    if (FindDir == FindDirection.Up) {
+                    if (FindDir == FindDirection.Previous) {
                         SearchPos = searchFCTB.TextLength;
                     }
                 }
@@ -3688,14 +3651,14 @@ namespace WinAGI.Editor {
                 if (!loaded) {
                     EditGame.Logics[LogNum].Load();
                 }
-                if (FindDir == FindDirection.Up) {
+                if (FindDir == FindDirection.Previous) {
                     if (MatchWord) {
                         if (FindWholeWord(EditGame.Logics[LogNum].SourceText.Length, EditGame.Logics[LogNum].SourceText, FindText, MatchCase, true, SearchType) != -1) {
                             break;
                         }
                     }
                     else {
-                        if (EditGame.Logics[LogNum].SourceText.LastIndexOf(FindText, compareMode) != 0) {
+                        if (EditGame.Logics[LogNum].SourceText.LastIndexOf(FindText, compareMode) != -1) {
                             break;
                         }
                     }
@@ -3709,7 +3672,7 @@ namespace WinAGI.Editor {
                             }
                         }
                         else {
-                            if (EditGame.Logics[LogNum].SourceText.IndexOf(FindText, compareMode) != -1) {
+                            if (EditGame.Logics[LogNum].SourceText.Contains(FindText, compareMode)) {
                                 break;
                             }
                         }
@@ -3721,7 +3684,7 @@ namespace WinAGI.Editor {
                         // then stop
                         bool found = false;
                         for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
-                            if (EditGame.Logics[LogNum].SourceText.IndexOf(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR, compareMode) != -1) {
+                            if (EditGame.Logics[LogNum].SourceText.Contains(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR, compareMode)) {
                                 found = true;
                                 break;
                             }

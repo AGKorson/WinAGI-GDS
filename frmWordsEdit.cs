@@ -27,7 +27,6 @@ namespace WinAGI.Editor {
         private bool AddNewWord = false;
         private bool AddNewGroup = false;
         private bool FirstFind = false;
-        private bool Recurse = false;
         private Font defaultfont;
         private Font boldfont;
         private Stack<WordsUndo> UndoCol = new();
@@ -1147,7 +1146,7 @@ namespace WinAGI.Editor {
             }
             frmFind.ResetSearch();
             FirstFind = false;
-            GFindDir = FindDirection.All;
+            GFindDir = FindDirection.Next;
             GMatchWord = true;
             GMatchCase = true;
             GLogFindLoc = FindLocation.All;
@@ -3131,7 +3130,7 @@ namespace WinAGI.Editor {
             if (SearchWord == -1) {
                 SearchWord = 0;
             }
-            if ((Replacing && FindDir == FindDirection.Up) || (!Replacing && FindDir != FindDirection.Up)) {
+            if ((Replacing && FindDir == FindDirection.Previous) || (!Replacing && FindDir != FindDirection.Previous)) {
                 SearchWord++;
                 if (GroupMode) {
                     if (SearchWord == EditWordList.GroupByIndex(SearchGrp).WordCount) {
@@ -3163,7 +3162,7 @@ namespace WinAGI.Editor {
 
             // main search loop
             do {
-                if (FindDir == FindDirection.Up) {
+                if (FindDir == FindDirection.Previous) {
                     if (GroupMode) {
                         // iterate backwards until word found or GrpFound=-1
                         FoundWord = SearchWord - 1;
@@ -3340,63 +3339,9 @@ namespace WinAGI.Editor {
                     }
                     break;
                 }
-                // if not found, action depends on search mode
-                if (FindDir == FindDirection.Up) {
-                    if (!RestartSearch) {
-                        DialogResult rtn;
-                        if (Recurse) {
-                            rtn = DialogResult.No;
-                        }
-                        else {
-                            rtn = MessageBox.Show(MDIMain,
-                                "Beginning of search scope reached. Do you want to continue from the end?",
-                                "Find in Word List",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question);
-                        }
-                        if (rtn == DialogResult.No) {
-                            // reset search
-                            frmFind.ResetSearch();
-                            MDIMain.UseWaitCursor = false;
-                            return;
-                        }
-                    }
-                    else {
-                        // entire scope already searched; exit
-                        break; // exit do
-                    }
-                }
-                else if (FindDir == FindDirection.Down) {
-                    if (!RestartSearch) {
-                        DialogResult rtn;
-                        if (Recurse) {
-                            // just say no
-                            rtn = DialogResult.No;
-                        }
-                        else {
-                            rtn = MessageBox.Show(MDIMain,
-                                "End of search scope reached. Do you want to continue from the beginning?",
-                                "Find in Word List",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question);
-                        }
-                        if (rtn == DialogResult.No) {
-                            // reset search
-                            frmFind.ResetSearch();
-                            MDIMain.UseWaitCursor = false;
-                            return;
-                        }
-                    }
-                    else {
-                        // entire scope already searched; exit
-                        break; // exit do
-                    }
-                }
-                else {
-                    // search direction is All
-                    if (RestartSearch) {
-                        break; // exit do
-                    }
+                // not found- if already restarted, stop the search
+                if (RestartSearch) {
+                    break; // exit do
                 }
                 // reset search so when we get back to start, search will end
                 RestartSearch = true;
@@ -3439,32 +3384,24 @@ namespace WinAGI.Editor {
                         // always reset search when replacing, because
                         // word index almost always changes
                         frmFind.ResetSearch();
-
-                        // recurse the find method to get the next occurence
-                        Recurse = true;
-                        FindInWords(FindText, FindDir, MatchWord, false);
-                        Recurse = false;
                     }
                 }
             }
             else {
-                // not found - if not recursing, show a msg
-                if (!Recurse) {
-                    if (FirstFind) {
-                        MessageBox.Show(MDIMain,
-                            "The specified region has been searched.",
-                            "Find in Word List",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                        FirstFind = false;
-                    }
-                    else {
-                        MessageBox.Show(MDIMain,
-                            "Search text not found.",
-                            "Find in Word List",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                    }
+                if (FirstFind) {
+                    MessageBox.Show(MDIMain,
+                        "The specified region has been searched.",
+                        "Find in Word List",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    FirstFind = false;
+                }
+                else {
+                    MessageBox.Show(MDIMain,
+                        "Search text not found.",
+                        "Find in Word List",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                 }
                 // reset search flags
                 frmFind.ResetSearch();
@@ -3498,7 +3435,7 @@ namespace WinAGI.Editor {
             if (MatchWord) {
                 // words are unique, so if replacing entire word, 
                 // ReplaceAll is the same as Replace
-                FindInWords(FindText, FindDirection.All, true, true, ReplaceText);
+                FindInWords(FindText, FindDirection.Next, true, true, ReplaceText);
                 return;
             }
 

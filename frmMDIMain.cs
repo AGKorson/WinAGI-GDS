@@ -4936,6 +4936,9 @@ namespace WinAGI.Editor {
         }
 
         public static void SearchForID() {
+            if (SelResNum == -1) {
+                return;
+            }
             switch (SelResType) {
             case AGIResType.Logic:
                 GFindText = EditGame.Logics[SelResNum].ID;
@@ -4949,8 +4952,10 @@ namespace WinAGI.Editor {
             case AGIResType.View:
                 GFindText = EditGame.Views[SelResNum].ID;
                 break;
+            default:
+                return;
             }
-            GFindDir = FindDirection.All;
+            GFindDir = FindDirection.Next;
             GMatchWord = true;
             GMatchCase = true;
             GLogFindLoc = FindLocation.All;
@@ -5091,7 +5096,6 @@ namespace WinAGI.Editor {
             propForm.btnOK.Enabled = EnableOK;
             if (propForm.ShowDialog(MDIMain) == DialogResult.Cancel) {
                 // exit withoutsaving anything
-                propForm.Dispose();
                 return;
             }
             EditGame.Designer = propForm.txtDesigner.Text;
