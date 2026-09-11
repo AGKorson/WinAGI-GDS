@@ -1332,7 +1332,7 @@ namespace WinAGI.Editor {
         internal void mnuROText_Click(object sender, EventArgs e) {
             string filename = GetOpenResourceFilename("Open ", Include);
             if (filename.Length > 0) {
-                OpenTextFile(filename);
+                FindTextEditor(filename, true, false);
             }
         }
 
@@ -1475,7 +1475,7 @@ namespace WinAGI.Editor {
         private void mnuROpenRes_Click(object sender, EventArgs e) {
             switch (SelResType) {
             case AGIResType.Logic:
-                OpenGameLogic((byte)SelResNum);
+                FindLogicEditor(SelResNum, true, false);
                 break;
             case AGIResType.Picture:
                 OpenGamePicture((byte)SelResNum);
@@ -1914,7 +1914,7 @@ namespace WinAGI.Editor {
             case 2:
                 switch (SelResType) {
                 case AGIResType.Logic:
-                    OpenGameLogic((byte)SelResNum);
+                    FindLogicEditor(SelResNum, true, false);
                     break;
                 case AGIResType.Picture:
                     OpenGamePicture((byte)SelResNum);
@@ -2088,7 +2088,7 @@ namespace WinAGI.Editor {
         private void lstResources_DoubleClick(object sender, EventArgs e) {
             switch (SelResType) {
             case AGIResType.Logic:
-                OpenGameLogic((byte)SelResNum);
+                FindLogicEditor(SelResNum, true, false);
                 break;
             case AGIResType.Picture:
                 OpenGamePicture((byte)SelResNum);
@@ -2782,7 +2782,7 @@ namespace WinAGI.Editor {
                 int resnum = (int)row.Cells[4].Value;
                 switch (restype) {
                 case AGIResType.Logic:
-                    OpenGameLogic((byte)resnum);
+                    FindLogicEditor(resnum, true, false);
                     break;
                 case AGIResType.Picture:
                     OpenGamePicture((byte)resnum);
@@ -4369,58 +4369,19 @@ namespace WinAGI.Editor {
             UpdateGridCounts();
         }
 
-        private void HighlightLine(int errorLine, string errorMsg, int logicNumber, string module, EventType eventtype) {
-            // this procedure uses warning/error/TODO info to open the file
-            // with the desired entry
-            // it highlights the target line and, if it is a warning or error,
-            // it displays the warning/error message in the status bar
-            frmLogicEdit frmTemp = null;
+        /// <summary>
+        /// Highlights the specified line in the logic editor for the specified logic number. 
+        /// If the logic editor is not open, it will be opened. If the line number is out of range,
+        /// it will be adjusted to the last line. If the event type is a warning or error,
+        /// the message will be displayed in the status bar.
+        /// </summary>
+        /// <param name="errorLine"></param>
+        /// <param name="errorMsg"></param>
+        /// <param name="logicNumber"></param>
+        /// <param name="eventtype"></param>
+        private void HighlightLine(int errorLine, string errorMsg, int logicNumber, EventType eventtype) {
+            frmLogicEdit frmTemp = FindLogicEditor(logicNumber, true, true);
 
-            if (module.Length != 0) {
-                if (OpenTextFile(module, true)) {
-                    for (int i = 0; i < LogicEditors.Count; i++) {
-                        if (LogicEditors[i].FormMode == LogicFormMode.Text && LogicEditors[i].TextFilename == module) {
-                            frmTemp = LogicEditors[i];
-                            break;
-                        }
-                    }
-                }
-                else {
-                    if (eventtype != LogicCompileError) {
-                        return;
-                    }
-                    errorLine = 0;
-                    errorMsg += " (in INCLUDE file)";
-                }
-            }
-            else {
-                for (int i = 0; i < LogicEditors.Count; i++) {
-                    if (LogicEditors[i].FormMode == LogicFormMode.Logic && LogicEditors[i].LogicNumber == logicNumber) {
-                        frmTemp = LogicEditors[i];
-                        if (frmTemp.WindowState == FormWindowState.Minimized) {
-                            frmTemp.WindowState = FormWindowState.Normal;
-                        }
-                        frmTemp.BringToFront();
-                        frmTemp.Select();
-                        break;
-                    }
-                }
-                if (frmTemp is null) {
-                    if (OpenGameLogic((byte)logicNumber, true)) {
-                        for (int i = 0; i < LogicEditors.Count; i++) {
-                            if (LogicEditors[i].FormMode == LogicFormMode.Logic && LogicEditors[i].LogicNumber == logicNumber) {
-                                frmTemp = LogicEditors[i];
-                                if (frmTemp.WindowState == FormWindowState.Minimized) {
-                                    frmTemp.WindowState = FormWindowState.Normal;
-                                }
-                                frmTemp.BringToFront();
-                                frmTemp.Select();
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
             // if not opened, just show an error message
             if (frmTemp is null) {
                 string msgboxtext = "";
@@ -4454,14 +4415,77 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Information);
                 return;
             }
+
             if (errorLine >= frmTemp.fctb.LinesCount) {
                 errorLine = frmTemp.fctb.LinesCount - 1;
             }
             frmTemp.fctb.Selection.Start = new(0, errorLine);
             frmTemp.fctb.Selection.End = frmTemp.fctb.Selection.Start;
             frmTemp.fctb.DoSelectionVisible();
-            frmTemp.BringToFront();
-            frmTemp.Select();
+
+            // if not a TODO, update the status bar as well
+            if (eventtype != TODO) {
+                string errorType;
+                if (eventtype == LogicCompileError) {
+                    errorType = "ERROR ";
+                }
+                else {
+                    errorType = "WARNING ";
+                }
+                MainStatusBar.Items[nameof(spStatus)].Text = errorType + "in line " + errorLine + ": " + errorMsg;
+            }
+        }
+
+        /// <summary>
+        /// Highlights the specified line in the logic editor for the specified include file.
+        /// </summary>
+        /// <param name="errorLine"></param>
+        /// <param name="errorMsg"></param>
+        /// <param name="module"></param>
+        /// <param name="eventtype"></param>
+        private void HighlightLine(int errorLine, string errorMsg, string module, EventType eventtype) {
+            frmLogicEdit frmTemp = FindTextEditor(module, true, true);
+
+            // if not opened, just show an error message
+            if (frmTemp is null) {
+                errorMsg += " (in INCLUDE file)";
+                string msgboxtext = "";
+                string msgboxtitle = "";
+                switch (eventtype) {
+                case LogicCompileError:
+                    // error
+                    msgboxtext = "ERROR in line " + errorLine + "- " + errorMsg;
+                    msgboxtitle = "Compile Logic Error";
+                    break;
+                case LogicCompileWarning:
+                    // warning
+                    msgboxtext = "WARNING in line " + errorLine + ": " + errorMsg;
+                    msgboxtitle = "Compile Logic Warning";
+                    break;
+                case TODO:
+                    msgboxtext = "In " + Path.GetFileName(module) + " at line " + errorLine + ":" +
+                           "\n\nTODO: " + errorMsg;
+                    msgboxtitle = "TODO Item";
+                    break;
+                case DecompWarning:
+                    // decomp warning
+                    msgboxtext = "Decompiling warning in " + Path.GetFileName(module) + " at line " + errorLine + ":\n\n" +
+                           errorMsg;
+                    msgboxtitle = "TODO Item";
+                    break;
+                }
+                MessageBox.Show(MDIMain,
+                    msgboxtext, msgboxtitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+            if (errorLine >= frmTemp.fctb.LinesCount) {
+                errorLine = frmTemp.fctb.LinesCount - 1;
+            }
+            frmTemp.fctb.Selection.Start = new(0, errorLine);
+            frmTemp.fctb.Selection.End = frmTemp.fctb.Selection.Start;
+            frmTemp.fctb.DoSelectionVisible();
             // if not a TODO, update the status bar as well
             if (eventtype != TODO) {
                 string errorType;

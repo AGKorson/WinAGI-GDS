@@ -1334,14 +1334,7 @@ namespace WinAGI.Editor {
                 MarkAsChanged();
 
                 // if a matching logic editor is open, it needs to be updated too
-                if (LogicEditors.Count > 0) {
-                    foreach (frmLogicEdit tmpForm in LogicEditors) {
-                        if (tmpForm.FormMode == LogicFormMode.Logic && tmpForm.LogicNumber == Selection.Number) {
-                            tmpForm.UpdateID(id, description);
-                            break;
-                        }
-                    }
-                }
+                FindLogicEditor(Selection.Number, false, false)?.UpdateID(id, description);
             }
         }
 
@@ -8775,23 +8768,17 @@ namespace WinAGI.Editor {
             if (tmpSel.Type == LayoutSelection.ErrPt) {
                 // open 'from' logic
                 try {
-                    OpenGameLogic((byte)ErrPt[Selection.Number].FromRoom, true);
-                    // find the logic editor
-                    foreach (frmLogicEdit frm in LogicEditors) {
-                        if (frm.FormMode == LogicFormMode.Logic &&
-                            frm.InGame &&
-                            frm.LogicNumber == ErrPt[Selection.Number].FromRoom) {
-                            // find and highlight the errpt exit
-                            frm.BringToFront();
-                            int exitpos = frm.fctb.Text.IndexOf("##" + ErrPt[tmpSel.Number].ExitID + "##", StringComparison.Ordinal);
-                            Place start = frm.fctb.PositionToPlace(exitpos);
-                            Place end = start; // new(start.iChar + 9, start.iLine);
-                            frm.fctb.Selection.Start = start;
-                            frm.fctb.Selection.End = end;
-                            frm.fctb.DoSelectionVisible();
-                            frm.fctb.Refresh();
-                            break;
-                        }
+                    frmLogicEdit frm = FindLogicEditor(ErrPt[Selection.Number].FromRoom, true, true);
+                    if (frm is not null) {
+                        // find and highlight the errpt exit
+                        frm.BringToFront();
+                        int exitpos = frm.fctb.Text.IndexOf("##" + ErrPt[tmpSel.Number].ExitID + "##", StringComparison.Ordinal);
+                        Place start = frm.fctb.PositionToPlace(exitpos);
+                        Place end = start; // new(start.iChar + 9, start.iLine);
+                        frm.fctb.Selection.Start = start;
+                        frm.fctb.Selection.End = end;
+                        frm.fctb.DoSelectionVisible();
+                        frm.fctb.Refresh();
                     }
                 }
                 catch (Exception ex) {
@@ -8805,25 +8792,18 @@ namespace WinAGI.Editor {
             else {
                 try {
                     // open logic for editing
-                    OpenGameLogic((byte)Selection.Number, true);
-                    // find the logic editor
-                    foreach (frmLogicEdit frm in LogicEditors) {
-                        if (frm.FormMode == LogicFormMode.Logic &&
-                            frm.InGame &&
-                            frm.LogicNumber == Selection.Number) {
-                            // find the editor
-                            frm.BringToFront();
-                            // if on an exit, jump to its location
-                            if (tmpSel.Type == LayoutSelection.Exit) {
-                                int exitpos = frm.fctb.Text.IndexOf("##" + tmpSel.ExitID + "##", StringComparison.Ordinal);
-                                Place start = frm.fctb.PositionToPlace(exitpos);
-                                Place end = start; // new(start.iChar + 9, start.iLine);
-                                frm.fctb.Selection.Start = start;
-                                frm.fctb.Selection.End = end;
-                                frm.fctb.DoSelectionVisible();
-                                frm.fctb.Refresh();
-                            }
-                            break;
+                    frmLogicEdit frm = FindLogicEditor(Selection.Number, true, true);
+                    if (frm is not null) {
+                        frm.BringToFront();
+                        // if on an exit, jump to its location
+                        if (tmpSel.Type == LayoutSelection.Exit) {
+                            int exitpos = frm.fctb.Text.IndexOf("##" + tmpSel.ExitID + "##", StringComparison.Ordinal);
+                            Place start = frm.fctb.PositionToPlace(exitpos);
+                            Place end = start; // new(start.iChar + 9, start.iLine);
+                            frm.fctb.Selection.Start = start;
+                            frm.fctb.Selection.End = end;
+                            frm.fctb.DoSelectionVisible();
+                            frm.fctb.Refresh();
                         }
                     }
                 }

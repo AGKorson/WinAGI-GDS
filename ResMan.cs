@@ -2678,8 +2678,52 @@ namespace WinAGI.Editor {
         public static void OpenGameLogic() {
             using frmGetResourceNum getresnum = new(GetRes.Open, AGIResType.Logic);
             if (getresnum.ShowDialog() == DialogResult.OK) {
-                OpenGameLogic(getresnum.NewResNum, false);
+                FindLogicEditor(getresnum.NewResNum, true, false);
             }
+        }
+
+        public static frmLogicEdit FindLogicEditor(int logicNumber, bool createIfNotExists, bool quiet) {
+            frmLogicEdit retval = null;
+
+            for (int i = 0; i < LogicEditors.Count; i++) {
+                if (LogicEditors[i].LogicNumber == logicNumber) {
+                    retval = LogicEditors[i];
+                    break;
+                }
+            }
+            if (retval is null && createIfNotExists) {
+                if (OpenGameLogic((byte)logicNumber, quiet)) {
+                    retval = LogicEditors[^1];
+                }
+            }
+            if (retval is not null) {
+                if (retval.WindowState == FormWindowState.Minimized) {
+                    retval.WindowState = FormWindowState.Normal;
+                }
+                retval.BringToFront();
+                retval.Select();
+            }
+            return retval;
+        }
+
+        public static frmLogicEdit FindTextEditor(string filename, bool createIfNotExists, bool quiet) {
+            frmLogicEdit retval = null;
+            for (int i = 0; i < LogicEditors.Count; i++) {
+                if (LogicEditors[i].FormMode == LogicFormMode.Text && LogicEditors[i].TextFilename == filename) {
+                    retval = LogicEditors[i];
+                    break;
+                }
+            }
+            if (retval is null && createIfNotExists) {
+                if (OpenTextFile(filename, quiet)) {
+                    retval = LogicEditors[^1];
+                }
+            }
+            if (retval is not null) {
+                retval.BringToFront();
+                retval.Select();
+            }
+            return retval;
         }
 
         /// <summary>
@@ -2690,21 +2734,6 @@ namespace WinAGI.Editor {
         /// <param name="Quiet"></param>
         public static bool OpenGameLogic(byte ResNum, bool Quiet = false) {
             MDIMain.UseWaitCursor = true;
-            // check for existing editor
-            foreach (frmLogicEdit frm in LogicEditors) {
-                if (frm.FormMode == LogicFormMode.Logic) {
-                    if (frm.InGame && frm.LogicNumber == ResNum) {
-                        // logic is already open in another window 
-                        if (frm.WindowState == FormWindowState.Minimized) {
-                            frm.WindowState = FormWindowState.Normal;
-                        }
-                        frm.BringToFront();
-                        frm.Select();
-                        MDIMain.UseWaitCursor = false;
-                        return true;
-                    }
-                }
-            }
             frmLogicEdit frmOpen = new(LogicFormMode.Logic);
             if (frmOpen.LoadLogic(EditGame.Logics[ResNum], Quiet)) {
                 frmOpen.Show();
@@ -3711,17 +3740,15 @@ namespace WinAGI.Editor {
             if (!loaded) {
                 EditGame.Logics[LogNum].Unload();
             }
+            int index = -1;
             // open editor, if able (this will reset the cursor to normal so force it
             // back to hourglass)
-            OpenGameLogic((byte)LogNum, true);
-            MDIMain.UseWaitCursor = true;
-            int index;
-            for (index = LogicEditors.Count - 1; index >= 0; index--) {
-                if (LogicEditors[index].FormMode == LogicFormMode.Logic && LogicEditors[index].LogicNumber == LogNum) {
-                    break;
-                }
+            if (OpenGameLogic((byte)LogNum, true)) {
+                // index is last opened logic editor
+                MDIMain.UseWaitCursor = true;
+                index = LogicEditors.Count - 1;
             }
-            if (index < 0) {
+            else {
                 // must have been an error
                 MessageBox.Show(MDIMain,
                     QUOTECHAR + FindText + QUOTECHAR + " was found in logic " + LogNum + " but an error occurred while opening the file. Try opening the logic manually and then try the search again.",
@@ -3731,9 +3758,8 @@ namespace WinAGI.Editor {
                 if (!loaded) {
                     EditGame.Logics[LogNum].Unload();
                 }
-                ProgressWin.Hide();
-                return -1;
             }
+            MDIMain.UseWaitCursor = true;
             ProgressWin.Hide();
             return index;
         }
@@ -6742,17 +6768,6 @@ namespace WinAGI.Editor {
         }
 
         public static bool OpenTextFile(string filename, bool quiet = false) {
-            for (int i = 0; i < LogicEditors.Count; i++) {
-                if (LogicEditors[i].FormMode == LogicFormMode.Text && LogicEditors[i].TextFilename == filename) {
-                    // alreay open
-                    if (LogicEditors[i].WindowState == FormWindowState.Minimized) {
-                        LogicEditors[i].WindowState = FormWindowState.Normal;
-                    }
-                    LogicEditors[i].BringToFront();
-                    LogicEditors[i].Select();
-                    return true;
-                }
-            }
             // check for auto-includes and redirect as appropriate
             if (EditGame is not null && !EditGame.SierraSyntax) {
                 // check for auto-includes, and redirect as necessary
@@ -6796,8 +6811,8 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        public static void OpenInclude(int resnum) {
-            switch (EditGame.IncludeFiles[resnum].Type) {
+        public static void OpenInclude(int index) {
+            switch (EditGame.IncludeFiles[index].Type) {
             case IncludeType.Reserved:
                 OpenReservedEditor();
                 break;
@@ -6808,7 +6823,7 @@ namespace WinAGI.Editor {
                 OpenGlobals();
                 break;
             default:
-                OpenTextFile(EditGame.IncludeFiles[resnum].Filename);
+                FindTextEditor(EditGame.IncludeFiles[index].Filename, true, false);
                 break;
             }
         }
@@ -9303,7 +9318,7 @@ namespace WinAGI.Editor {
                 }
                 // check for sysdefs.h file
                 if (File.Exists(Path.Combine(EditGame.SrcResDir, "gamedefs.h"))) {
-                    OpenTextFile(Path.Combine(EditGame.SrcResDir, "gamedefs.h"));
+                    FindTextEditor(Path.Combine(EditGame.SrcResDir, "gamedefs.h"), true, false);
                 }
                 else {
                     // offer to make a default file
@@ -9357,7 +9372,7 @@ namespace WinAGI.Editor {
                             defaultGameDefs = defaultGameDefs.Replace("%7", string.Join(NEWLINE, items));
 
                             File.WriteAllText(Path.Combine(EditGame.SrcResDir, "gamedefs.h"), defaultGameDefs);
-                            OpenTextFile(Path.Combine(EditGame.SrcResDir, "gamedefs.h"));
+                            FindTextEditor(Path.Combine(EditGame.SrcResDir, "gamedefs.h"), true, false);
                         }
                         catch (Exception ex) {
                             ErrMsgBox(ex,
@@ -9541,7 +9556,7 @@ namespace WinAGI.Editor {
                 }
                 // check for sysdefs.h file
                 if (File.Exists(Path.Combine(EditGame.SrcResDir, "sysdefs.h"))) {
-                    OpenTextFile(Path.Combine(EditGame.SrcResDir, "sysdefs.h"));
+                    FindTextEditor(Path.Combine(EditGame.SrcResDir, "sysdefs.h"), true, false);
                 }
                 else {
                     // offer to make a default file
@@ -9554,7 +9569,7 @@ namespace WinAGI.Editor {
                         try {
                             string defaultSysDefs = EngineResources.SYSDEFS;
                             File.WriteAllText(Path.Combine(EditGame.SrcResDir, "sysdefs.h"), defaultSysDefs);
-                            OpenTextFile(Path.Combine(EditGame.SrcResDir, "sysdefs.h"));
+                            FindTextEditor(Path.Combine(EditGame.SrcResDir, "sysdefs.h"), true, false);
                         }
                         catch (Exception ex) {
                             ErrMsgBox(ex,

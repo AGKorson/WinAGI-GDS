@@ -1141,39 +1141,35 @@ namespace WinAGI.Editor {
 
             // if any logic editor matches this resource
             // (remember to convert cp to uni!)
-            for (int i = 0; i < LogicEditors.Count; i++) {
-                if (LogicEditors[i].FormMode == LogicFormMode.Logic) {
-                    if (LogicEditors[i].LogicNumber == MenuLogic) {
-                        // update this one -
-                        WinAGIFCTB fctb = LogicEditors[i].fctb;
-                        Place start = fctb.Selection.Start;
-                        Place end = fctb.Selection.End;
-                        FastColoredTextBoxNS.Range vr = fctb.VisibleRange;
-                        // if existing text has the menu editor header
-                        if (fctb.Text.Contains(EditorResourceByNum(102), StringComparison.CurrentCulture)) {
-                            // remove it
-                            fctb.Text = fctb.Text.Replace(EditorResourceByNum(102), "");
-                        }
-                        // find the starting and ending pos of the menu
-                        if (HasMenu(fctb.Text, ref menuPos, ref submitPos)) {
-                            // move start and end positions to line up with newlines
-                            menuPos = fctb.Text.LastIndexOf(Environment.NewLine, menuPos + 1) + 2;
-                            submitPos = fctb.Text.IndexOf(Environment.NewLine, submitPos);
-                            // replace old menu with new menu
-
-                            fctb.Text = fctb.Text.Left(menuPos) + menutext + fctb.Text.Right(fctb.Text.Length - submitPos);
-                        }
-                        else {
-                            // add new menu to beginning of source (skipping any comments or blank lines)
-                            fctb.Text = menutext + fctb.Text;
-                            menuPos = fctb.TextLength;
-                        }
-                        fctb.Selection.Start = start;
-                        fctb.Selection.End = end;
-                        fctb.DoRangeVisible(vr);
-                        break;
-                    }
+            frmLogicEdit frm = FindLogicEditor(MenuLogic, false, false);
+            if (frm is not null) {
+                // update this one -
+                WinAGIFCTB fctb = frm.fctb;
+                Place start = fctb.Selection.Start;
+                Place end = fctb.Selection.End;
+                FastColoredTextBoxNS.Range vr = fctb.VisibleRange;
+                // if existing text has the menu editor header
+                if (fctb.Text.Contains(EditorResourceByNum(102), StringComparison.CurrentCulture)) {
+                    // remove it
+                    fctb.Text = fctb.Text.Replace(EditorResourceByNum(102), "");
                 }
+                // find the starting and ending pos of the menu
+                if (HasMenu(fctb.Text, ref menuPos, ref submitPos)) {
+                    // move start and end positions to line up with newlines
+                    menuPos = fctb.Text.LastIndexOf(Environment.NewLine, menuPos + 1) + 2;
+                    submitPos = fctb.Text.IndexOf(Environment.NewLine, submitPos);
+                    // replace old menu with new menu
+
+                    fctb.Text = fctb.Text.Left(menuPos) + menutext + fctb.Text.Right(fctb.Text.Length - submitPos);
+                }
+                else {
+                    // add new menu to beginning of source (skipping any comments or blank lines)
+                    fctb.Text = menutext + fctb.Text;
+                    menuPos = fctb.TextLength;
+                }
+                fctb.Selection.Start = start;
+                fctb.Selection.End = end;
+                fctb.DoRangeVisible(vr);
             }
             // reset changed flag
             IsChanged = false;

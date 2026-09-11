@@ -769,7 +769,7 @@ namespace WinAGI.Editor {
             Point taginfo = (Point)mnuEOpenRes.Tag;
             switch (taginfo.X) {
             case 0:
-                OpenGameLogic((byte)taginfo.Y);
+                FindLogicEditor(taginfo.Y, true, false);
                 break;
             case 1:
                 OpenGamePicture((byte)taginfo.Y);
@@ -826,7 +826,7 @@ namespace WinAGI.Editor {
                         @"htm\commands\syntax_fan.htm#include");
                     return;
                 }
-                OpenTextFile(filename);
+                FindTextEditor(filename, true, false);
                 break;
             }
         }
@@ -1198,7 +1198,7 @@ namespace WinAGI.Editor {
                                 if (token.Text == IDefLookup[restype, num].Name) {
                                     switch (restype) {
                                     case 0:
-                                        OpenGameLogic((byte)num);
+                                        FindLogicEditor(num, true, false);
                                         break;
                                     case 1:
                                         OpenGamePicture((byte)num);
@@ -1270,7 +1270,7 @@ namespace WinAGI.Editor {
                                     @"htm\commands\syntax_fan.htm#include");
                                 return;
                             }
-                            OpenTextFile(filename);
+                            FindTextEditor(filename, true, false);
                             break;
                         }
                         break;

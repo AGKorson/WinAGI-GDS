@@ -273,9 +273,10 @@ namespace WinAGI.Editor {
         #region Preview Logic Events
         private void rtfLogPrev_DoubleClick(object sender, EventArgs e) {
             if (SelResType == AGIResType.Logic) {
-                if (OpenGameLogic((byte)SelResNum)) {
+                frmLogicEdit frm = FindLogicEditor(SelResNum, true, false);
+                if (frm is not null) {
                     try {
-                        WinAGIFCTB fctb = LogicEditors[LogicEditors.Count - 1].fctb;
+                        WinAGIFCTB fctb = frm.fctb;
                         Place start = new(0, rtfLogPrev.Selection.Start.iLine);
                         fctb.Selection.Start = start;
                         fctb.DoSelectionVisible();
@@ -286,7 +287,7 @@ namespace WinAGI.Editor {
                 }
             }
             else {
-                OpenTextFile(EditGame.IncludeFiles[SelResNum].Filename);
+                FindTextEditor(EditGame.IncludeFiles[SelResNum].Filename, true, false);
             }
         }
 

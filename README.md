@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.82
+        Version 3.0.0beta.83
     ==============================
 
 
@@ -32,6 +32,10 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.83:
+- refactored logic and text file open functions to more efficiently handle checks for existing open editors
+- refactored error/warning highlighter functions to handle logics and includes more efficiently
+
 Beta.82:
 - refactored find functions to only searh 'Next' or 'Previous'; got rid of the Up/Down/All search options
 - fixed bug in FindInLogics where Previous searches woulds open closed logics even when they didn't contain the search text
