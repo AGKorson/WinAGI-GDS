@@ -2772,7 +2772,12 @@ namespace WinAGI.Editor {
                 string msg = (string)row.Cells[3].Value;
                 int lognum = (int)row.Cells[4].Value;
                 string module = (string)row.Cells[7].Value;
-                HighlightLine(line, msg, lognum, module, type);
+                if (module.Length == 0) {
+                    HighlightLine(line, msg, lognum, type);
+                }
+                else {
+                    HighlightLine(line, msg, module, type);
+                }
                 break;
             case ResourceError:
                 // open the resource?
