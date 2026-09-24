@@ -30,7 +30,7 @@
 			<p>The mode indicator shows a 'W' when in word-edit mode.</p>
 			<p>Click the mode indicator on the toolbar to switch between modes.</p>
 		<h2><a name="toolbar">Toolbar</a></h2>
-			<p>The toolbar provides buttons for standard edit commands. There are also buttons for toggling the edit mode, adding new words and new groups, and shortcuts to the <a href="#find">Find</a> command and the <a href="#findinlogics">Find in Logics</a> command.</p>
+			<p>The toolbar provides buttons for standard edit commands. There are also buttons for toggling the edit mode, adding new words and new groups, and shortcuts to the <a href="search.htm#words">Find</a> command and the <a href="search.htm#findinlogics">Find in Logics</a> command.</p>
 		<h2><a name="grouplist">Group List</a></h2>
 			<p>In group-edit mode, the group list shows all word groups in this WORDS.TOK file, in numerical order. The first word of the group (group name) is included to help identify the group.</p>
 			<p>In word-edit mode, only the group number and group name of the currently selected word are displayed in the group list.</p>
@@ -60,17 +60,8 @@
 			<p>If you want to delete all words and groups and reset the list, use the Clear Word List command. All groups except group 0 ("a"), group 1 ("anyword") and group 9999 ("rol") are removed. This can be undone if you change your mind.</p>
 		<h2><a name="merge">Merge Words from File</a></h2>
 			<p>If you have an existing WORDS.TOK file that you would like to incorporate into your list, you can use the Merge Words from File command. Choose the file you want to merge from, and WinAGI will automatically copy all words and groups from that file into your list. If any words in the merge file match words currently in your list, WinAGI will skip them if they are in the same word group, and will move them to match the group of the merged file if they are different.</p>
-		<h2><a name="find">Find Command</a></h2>
-			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\ewi_find.ico"> The Find command allows you to search the WORDS.TOK file for a particular word or phrase. You can also use Replace to change words or word portions in the list.</p>
-		<h2><a name="findinlogics">Find In Logics Command</a></h2>
-			<p><img width="32" alt="" src="..\..\graphics\ewi_findinlogic.ico"> The Find in Logics command on the Edit menu allows you to search for a vocabulary word in all of your logic resources. To use this feature, select the word you wish to search for, then choose the Find in Logics command.</p>
-			<p>WinAGI will search all logics in your game for the selected word:</p>
-			<ul><ul>
-				<li>If you select an individual word from the word list of a group, then WinAGI assumes you want to search for that specific word.</li>
-				<li>If you select a group, WinAGI assumes you want to search for the first word in the group.</li>
-			</ul></ul>
-			</p>
-			<p>In either case, you can choose to search for just the selected word or all words in a group (synonyms) by using the 'Include Synonyms' option on the Find dialog. With this option enabled, WinAGI will find all instances of all words in this group.</p>
+		<h2><a name="find">Find</a> and Replace</h2>
+			<p>&nbsp;<img width="32" alt="" src="..\..\graphics\ewi_find.ico">Use the Find command on the Edit menu (or the toolbar button) to search for and/or replace words in the list. See the <a href="search.htm">Search and Replace Text</a> topic for more information, including how to <a href="search.htm#findinlogics">search for of words</a> in game <a href="..\agi\logics.htm">logics</a>.</p>
 			<p>The generally accepted method for using words in <a href="..\agi\logics.htm">logic</a> source code is to use the first word, or 'group' word in the <a href="..\commands\cmd_said.htm"><b>said</b></a> command, but this is not strictly enforced. You can use any valid word in the group and WinAGI will be able to compile your code correctly.</p>
 		<p>&nbsp;</p>
 		<p align="right"><font size="1">v3.0.0</font></p>

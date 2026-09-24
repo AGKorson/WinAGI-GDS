@@ -292,9 +292,8 @@ namespace WinAGI.Editor {
         }
 
         private void frmViewEdit_Activated(object sender, EventArgs e) {
-            if (FindingForm.Visible) {
-                FindingForm.Visible = false;
-            }
+            SearchForm.Visible = false;
+            Search.Mode = SearchMode.FindLogic;
             if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
                 MDIMain.RefreshInfoGrid();
             }

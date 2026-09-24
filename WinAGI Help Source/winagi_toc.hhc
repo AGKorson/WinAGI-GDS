@@ -266,6 +266,10 @@
 				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Searching and Replacing Text">
+			<param name="Local" value="htm\winagi\search.htm">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="Program Settings">
 			<param name="Local" value="htm\winagi\settings.htm">
 			</OBJECT>

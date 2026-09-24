@@ -29,6 +29,14 @@ namespace WinAGI.Editor {
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmGlobals));
             globalsgrid = new System.Windows.Forms.DataGridView();
+            colType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colDefName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colDefValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            colComment = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            NameCheck = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            ValueCheck = new System.Windows.Forms.DataGridViewTextBoxColumn();
             cmGrid = new System.Windows.Forms.ContextMenuStrip(components);
             mnuUndo = new System.Windows.Forms.ToolStripMenuItem();
             mnuSep0 = new System.Windows.Forms.ToolStripSeparator();
@@ -68,14 +76,7 @@ namespace WinAGI.Editor {
             mnuCelSelectAll = new System.Windows.Forms.ToolStripMenuItem();
             mnuCelSep2 = new System.Windows.Forms.ToolStripSeparator();
             mnuCelCancel = new System.Windows.Forms.ToolStripMenuItem();
-            colType = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            colDefName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            colDefValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            colName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            colValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            colComment = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            NameCheck = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            ValueCheck = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            mnuFind = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)globalsgrid).BeginInit();
             cmGrid.SuspendLayout();
             menuStrip1.SuspendLayout();
@@ -133,11 +134,62 @@ namespace WinAGI.Editor {
             globalsgrid.MouseClick += globalsgrid_MouseClick;
             globalsgrid.MouseUp += globalsgrid_MouseUp;
             // 
+            // colType
+            // 
+            colType.HeaderText = "type";
+            colType.Name = "colType";
+            colType.Visible = false;
+            // 
+            // colDefName
+            // 
+            colDefName.HeaderText = "defaultname";
+            colDefName.Name = "colDefName";
+            colDefName.Visible = false;
+            // 
+            // colDefValue
+            // 
+            colDefValue.HeaderText = "defValue";
+            colDefValue.Name = "colDefValue";
+            colDefValue.Visible = false;
+            // 
+            // colName
+            // 
+            colName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            colName.FillWeight = 50F;
+            colName.HeaderText = "Name";
+            colName.Name = "colName";
+            // 
+            // colValue
+            // 
+            colValue.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            colValue.FillWeight = 50F;
+            colValue.HeaderText = "Value";
+            colValue.Name = "colValue";
+            // 
+            // colComment
+            // 
+            colComment.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            colComment.FillWeight = 50F;
+            colComment.HeaderText = "Comment";
+            colComment.Name = "colComment";
+            // 
+            // NameCheck
+            // 
+            NameCheck.HeaderText = "namecheck";
+            NameCheck.Name = "NameCheck";
+            NameCheck.Visible = false;
+            // 
+            // ValueCheck
+            // 
+            ValueCheck.HeaderText = "valuecheck";
+            ValueCheck.Name = "ValueCheck";
+            ValueCheck.Visible = false;
+            // 
             // cmGrid
             // 
-            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuUndo, mnuSep0, mnuCut, mnuCopy, mnuPaste, mnuDelete, mnuClear, mnuInsert, mnuSelectAll, mnuSep1, mnuFindInLogics, mnuEditItem, mnuToggleComments });
+            cmGrid.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuUndo, mnuSep0, mnuCut, mnuCopy, mnuPaste, mnuDelete, mnuClear, mnuInsert, mnuSelectAll, mnuSep1, mnuFind, mnuFindInLogics, mnuEditItem, mnuToggleComments });
             cmGrid.Name = "contextMenuStrip1";
-            cmGrid.Size = new System.Drawing.Size(232, 258);
+            cmGrid.Size = new System.Drawing.Size(232, 302);
             cmGrid.Closed += cmGrid_Closed;
             cmGrid.Opening += cmGrid_Opening;
             // 
@@ -218,7 +270,7 @@ namespace WinAGI.Editor {
             // mnuFindInLogics
             // 
             mnuFindInLogics.Name = "mnuFindInLogics";
-            mnuFindInLogics.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F;
+            mnuFindInLogics.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F;
             mnuFindInLogics.Size = new System.Drawing.Size(231, 22);
             mnuFindInLogics.Text = "Find in Logics";
             mnuFindInLogics.Click += mnuFindInLogics_Click;
@@ -442,56 +494,13 @@ namespace WinAGI.Editor {
             mnuCelCancel.Text = "Cancel";
             mnuCelCancel.Click += mnuCelCancel_Click;
             // 
-            // colType
+            // mnuFind
             // 
-            colType.HeaderText = "type";
-            colType.Name = "colType";
-            colType.Visible = false;
-            // 
-            // colDefName
-            // 
-            colDefName.HeaderText = "defaultname";
-            colDefName.Name = "colDefName";
-            colDefName.Visible = false;
-            // 
-            // colDefValue
-            // 
-            colDefValue.HeaderText = "defValue";
-            colDefValue.Name = "colDefValue";
-            colDefValue.Visible = false;
-            // 
-            // colName
-            // 
-            colName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            colName.FillWeight = 50F;
-            colName.HeaderText = "Name";
-            colName.Name = "colName";
-            // 
-            // colValue
-            // 
-            colValue.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            colValue.FillWeight = 50F;
-            colValue.HeaderText = "Value";
-            colValue.Name = "colValue";
-            // 
-            // colComment
-            // 
-            colComment.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            colComment.FillWeight = 50F;
-            colComment.HeaderText = "Comment";
-            colComment.Name = "colComment";
-            // 
-            // NameCheck
-            // 
-            NameCheck.HeaderText = "namecheck";
-            NameCheck.Name = "NameCheck";
-            NameCheck.Visible = false;
-            // 
-            // ValueCheck
-            // 
-            ValueCheck.HeaderText = "valuecheck";
-            ValueCheck.Name = "ValueCheck";
-            ValueCheck.Visible = false;
+            mnuFind.Name = "mnuFind";
+            mnuFind.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.F;
+            mnuFind.Size = new System.Drawing.Size(231, 22);
+            mnuFind.Text = "Find";
+            mnuFind.Click += mnuFind_Click;
             // 
             // frmGlobals
             // 
@@ -520,7 +529,7 @@ namespace WinAGI.Editor {
         }
 
         #endregion
-        private System.Windows.Forms.DataGridView globalsgrid;
+        internal System.Windows.Forms.DataGridView globalsgrid;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem mnuResource;
         private System.Windows.Forms.ToolStripMenuItem mnuROpenRes;
@@ -568,5 +577,6 @@ namespace WinAGI.Editor {
         private System.Windows.Forms.DataGridViewTextBoxColumn colComment;
         private System.Windows.Forms.DataGridViewTextBoxColumn NameCheck;
         private System.Windows.Forms.DataGridViewTextBoxColumn ValueCheck;
+        private System.Windows.Forms.ToolStripMenuItem mnuFind;
     }
 }

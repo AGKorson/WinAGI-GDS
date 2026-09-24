@@ -27,22 +27,23 @@ namespace WinAGI.Editor {
             label1 = new System.Windows.Forms.Label();
             lblReplace = new System.Windows.Forms.Label();
             rtfReplace = new System.Windows.Forms.TextBox();
-            fraLogic = new System.Windows.Forms.GroupBox();
-            optAllGameLogics = new System.Windows.Forms.RadioButton();
-            optAllOpenLogics = new System.Windows.Forms.RadioButton();
-            optCurrentLogic = new System.Windows.Forms.RadioButton();
+            fraScope = new System.Windows.Forms.GroupBox();
+            optProject = new System.Windows.Forms.RadioButton();
+            optOpen = new System.Windows.Forms.RadioButton();
+            optCurrent = new System.Windows.Forms.RadioButton();
             lblDirection = new System.Windows.Forms.Label();
             cmbDirection = new System.Windows.Forms.ComboBox();
             chkMatchWord = new System.Windows.Forms.CheckBox();
             chkMatchCase = new System.Windows.Forms.CheckBox();
-            cmdFind = new System.Windows.Forms.Button();
-            cmdReplace = new System.Windows.Forms.Button();
-            cmdReplaceAll = new System.Windows.Forms.Button();
-            cmdCancel = new System.Windows.Forms.Button();
+            btnFind = new System.Windows.Forms.Button();
+            btnReplace = new System.Windows.Forms.Button();
+            btnReplaceAll = new System.Windows.Forms.Button();
+            btnClose = new System.Windows.Forms.Button();
             cmbFind = new System.Windows.Forms.ComboBox();
             chkSynonyms = new System.Windows.Forms.CheckBox();
             txtFind = new System.Windows.Forms.TextBox();
-            fraLogic.SuspendLayout();
+            btnFindAll = new System.Windows.Forms.Button();
+            fraScope.SuspendLayout();
             SuspendLayout();
             // 
             // label1
@@ -76,52 +77,52 @@ namespace WinAGI.Editor {
             // 
             // fraLogic
             // 
-            fraLogic.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            fraLogic.Controls.Add(optAllGameLogics);
-            fraLogic.Controls.Add(optAllOpenLogics);
-            fraLogic.Controls.Add(optCurrentLogic);
-            fraLogic.Location = new System.Drawing.Point(12, 77);
-            fraLogic.Name = "fraLogic";
-            fraLogic.Size = new System.Drawing.Size(162, 92);
-            fraLogic.TabIndex = 4;
-            fraLogic.TabStop = false;
-            fraLogic.Text = "Search";
+            fraScope.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            fraScope.Controls.Add(optProject);
+            fraScope.Controls.Add(optOpen);
+            fraScope.Controls.Add(optCurrent);
+            fraScope.Location = new System.Drawing.Point(12, 77);
+            fraScope.Name = "fraLogic";
+            fraScope.Size = new System.Drawing.Size(162, 92);
+            fraScope.TabIndex = 4;
+            fraScope.TabStop = false;
+            fraScope.Text = "Search";
             // 
-            // optAllGameLogics
+            // optProject
             // 
-            optAllGameLogics.AutoSize = true;
-            optAllGameLogics.Location = new System.Drawing.Point(19, 68);
-            optAllGameLogics.Name = "optAllGameLogics";
-            optAllGameLogics.Size = new System.Drawing.Size(123, 19);
-            optAllGameLogics.TabIndex = 2;
-            optAllGameLogics.TabStop = true;
-            optAllGameLogics.Text = "All Logics in Game";
-            optAllGameLogics.UseVisualStyleBackColor = true;
-            optAllGameLogics.CheckedChanged += optAllGameLogics_CheckedChanged;
+            optProject.AutoSize = true;
+            optProject.Location = new System.Drawing.Point(19, 68);
+            optProject.Name = "optProject";
+            optProject.Size = new System.Drawing.Size(95, 19);
+            optProject.TabIndex = 2;
+            optProject.TabStop = true;
+            optProject.Text = "Entire Project";
+            optProject.UseVisualStyleBackColor = true;
+            optProject.Click += optProject_Click;
             // 
-            // optAllOpenLogics
+            // optOpen
             // 
-            optAllOpenLogics.AutoSize = true;
-            optAllOpenLogics.Location = new System.Drawing.Point(19, 44);
-            optAllOpenLogics.Name = "optAllOpenLogics";
-            optAllOpenLogics.Size = new System.Drawing.Size(97, 19);
-            optAllOpenLogics.TabIndex = 1;
-            optAllOpenLogics.TabStop = true;
-            optAllOpenLogics.Text = "All Open Files";
-            optAllOpenLogics.UseVisualStyleBackColor = true;
-            optAllOpenLogics.CheckedChanged += optAllOpenLogics_CheckedChanged;
+            optOpen.AutoSize = true;
+            optOpen.Location = new System.Drawing.Point(19, 44);
+            optOpen.Name = "optOpen";
+            optOpen.Size = new System.Drawing.Size(97, 19);
+            optOpen.TabIndex = 1;
+            optOpen.TabStop = true;
+            optOpen.Text = "All Open Files";
+            optOpen.UseVisualStyleBackColor = true;
+            optOpen.Click += optOpen_Click;
             // 
-            // optCurrentLogic
+            // optCurrent
             // 
-            optCurrentLogic.AutoSize = true;
-            optCurrentLogic.Location = new System.Drawing.Point(19, 20);
-            optCurrentLogic.Name = "optCurrentLogic";
-            optCurrentLogic.Size = new System.Drawing.Size(97, 19);
-            optCurrentLogic.TabIndex = 0;
-            optCurrentLogic.TabStop = true;
-            optCurrentLogic.Text = "Current Logic";
-            optCurrentLogic.UseVisualStyleBackColor = true;
-            optCurrentLogic.CheckedChanged += optCurrentLogic_CheckedChanged;
+            optCurrent.AutoSize = true;
+            optCurrent.Location = new System.Drawing.Point(19, 20);
+            optCurrent.Name = "optCurrent";
+            optCurrent.Size = new System.Drawing.Size(97, 19);
+            optCurrent.TabIndex = 0;
+            optCurrent.TabStop = true;
+            optCurrent.Text = "Current Logic";
+            optCurrent.UseVisualStyleBackColor = true;
+            optCurrent.Click += optCurrent_Click;
             // 
             // lblDirection
             // 
@@ -143,7 +144,7 @@ namespace WinAGI.Editor {
             cmbDirection.Name = "cmbDirection";
             cmbDirection.Size = new System.Drawing.Size(72, 23);
             cmbDirection.TabIndex = 6;
-            cmbDirection.SelectedIndexChanged += cmbDirection_SelectedIndexChanged;
+            cmbDirection.SelectionChangeCommitted += cmbDirection_SelectionChangeCommitted;
             // 
             // chkMatchWord
             // 
@@ -155,7 +156,7 @@ namespace WinAGI.Editor {
             chkMatchWord.TabIndex = 7;
             chkMatchWord.Text = "Match whole word";
             chkMatchWord.UseVisualStyleBackColor = true;
-            chkMatchWord.CheckedChanged += chkMatchWord_CheckedChanged;
+            chkMatchWord.Click += chkMatchWord_Click;
             // 
             // chkMatchCase
             // 
@@ -167,48 +168,48 @@ namespace WinAGI.Editor {
             chkMatchCase.TabIndex = 8;
             chkMatchCase.Text = "Match case";
             chkMatchCase.UseVisualStyleBackColor = true;
-            chkMatchCase.CheckedChanged += chkMatchCase_CheckedChanged;
+            chkMatchCase.Click += chkMatchCase_Click;
             // 
-            // cmdFind
+            // btnFind
             // 
-            cmdFind.Location = new System.Drawing.Point(381, 13);
-            cmdFind.Name = "cmdFind";
-            cmdFind.Size = new System.Drawing.Size(102, 25);
-            cmdFind.TabIndex = 9;
-            cmdFind.Text = "Find";
-            cmdFind.UseVisualStyleBackColor = true;
-            cmdFind.Click += cmdFind_Click;
+            btnFind.Location = new System.Drawing.Point(381, 13);
+            btnFind.Name = "btnFind";
+            btnFind.Size = new System.Drawing.Size(102, 25);
+            btnFind.TabIndex = 9;
+            btnFind.Text = "Find";
+            btnFind.UseVisualStyleBackColor = true;
+            btnFind.Click += btnFind_Click;
             // 
-            // cmdReplace
+            // btnReplace
             // 
-            cmdReplace.Location = new System.Drawing.Point(381, 46);
-            cmdReplace.Name = "cmdReplace";
-            cmdReplace.Size = new System.Drawing.Size(102, 25);
-            cmdReplace.TabIndex = 10;
-            cmdReplace.Text = "Replace";
-            cmdReplace.UseVisualStyleBackColor = true;
-            cmdReplace.Click += cmdReplace_Click;
+            btnReplace.Location = new System.Drawing.Point(381, 45);
+            btnReplace.Name = "btnReplace";
+            btnReplace.Size = new System.Drawing.Size(102, 25);
+            btnReplace.TabIndex = 10;
+            btnReplace.Text = "Replace";
+            btnReplace.UseVisualStyleBackColor = true;
+            btnReplace.Click += btnReplace_Click;
             // 
-            // cmdReplaceAll
+            // btnReplaceAll
             // 
-            cmdReplaceAll.Location = new System.Drawing.Point(382, 79);
-            cmdReplaceAll.Name = "cmdReplaceAll";
-            cmdReplaceAll.Size = new System.Drawing.Size(102, 25);
-            cmdReplaceAll.TabIndex = 11;
-            cmdReplaceAll.Text = "Replace All";
-            cmdReplaceAll.UseVisualStyleBackColor = true;
-            cmdReplaceAll.Click += cmdReplaceAll_Click;
+            btnReplaceAll.Location = new System.Drawing.Point(381, 109);
+            btnReplaceAll.Name = "btnReplaceAll";
+            btnReplaceAll.Size = new System.Drawing.Size(102, 25);
+            btnReplaceAll.TabIndex = 11;
+            btnReplaceAll.Text = "Replace All";
+            btnReplaceAll.UseVisualStyleBackColor = true;
+            btnReplaceAll.Click += btnReplaceAll_Click;
             // 
-            // cmdCancel
+            // btnClose
             // 
-            cmdCancel.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
-            cmdCancel.Location = new System.Drawing.Point(382, 144);
-            cmdCancel.Name = "cmdCancel";
-            cmdCancel.Size = new System.Drawing.Size(102, 25);
-            cmdCancel.TabIndex = 12;
-            cmdCancel.Text = "Close";
-            cmdCancel.UseVisualStyleBackColor = true;
-            cmdCancel.Click += cmdCancel_Click;
+            btnClose.Anchor = System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left;
+            btnClose.Location = new System.Drawing.Point(381, 141);
+            btnClose.Name = "btnClose";
+            btnClose.Size = new System.Drawing.Size(102, 25);
+            btnClose.TabIndex = 12;
+            btnClose.Text = "Close";
+            btnClose.UseVisualStyleBackColor = true;
+            btnClose.Click += btnClose_Click;
             // 
             // cmbFind
             // 
@@ -231,7 +232,7 @@ namespace WinAGI.Editor {
             chkSynonyms.Text = "Include Synonyms";
             chkSynonyms.UseVisualStyleBackColor = true;
             chkSynonyms.Visible = false;
-            chkSynonyms.CheckedChanged += chkSynonyms_CheckedChanged;
+            chkSynonyms.Click += chkSynonyms_Click;
             // 
             // txtFind
             // 
@@ -244,30 +245,40 @@ namespace WinAGI.Editor {
             txtFind.TabIndex = 14;
             txtFind.TextChanged += txtFind_TextChanged;
             txtFind.Enter += txtFind_Enter;
-            txtFind.KeyDown += txtFind_KeyDown;
+            // 
+            // btnFindAll
+            // 
+            btnFindAll.Location = new System.Drawing.Point(381, 77);
+            btnFindAll.Name = "btnFindAll";
+            btnFindAll.Size = new System.Drawing.Size(102, 25);
+            btnFindAll.TabIndex = 15;
+            btnFindAll.Text = "Find All";
+            btnFindAll.UseVisualStyleBackColor = true;
+            btnFindAll.Click += btnFindAll_Click;
             // 
             // frmFind
             // 
-            AcceptButton = cmdFind;
+            AcceptButton = btnFind;
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            CancelButton = cmdCancel;
+            CancelButton = btnClose;
             ClientSize = new System.Drawing.Size(493, 176);
             Controls.Add(txtFind);
             Controls.Add(chkSynonyms);
             Controls.Add(cmbFind);
-            Controls.Add(cmdCancel);
-            Controls.Add(cmdReplaceAll);
-            Controls.Add(cmdReplace);
-            Controls.Add(cmdFind);
+            Controls.Add(btnClose);
+            Controls.Add(btnReplaceAll);
+            Controls.Add(btnReplace);
+            Controls.Add(btnFind);
             Controls.Add(chkMatchCase);
             Controls.Add(chkMatchWord);
             Controls.Add(cmbDirection);
             Controls.Add(lblDirection);
-            Controls.Add(fraLogic);
+            Controls.Add(fraScope);
             Controls.Add(rtfReplace);
             Controls.Add(lblReplace);
             Controls.Add(label1);
+            Controls.Add(btnFindAll);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -278,8 +289,8 @@ namespace WinAGI.Editor {
             Text = "Find";
             FormClosing += frmFind_FormClosing;
             HelpRequested += frmFind_HelpRequested;
-            fraLogic.ResumeLayout(false);
-            fraLogic.PerformLayout();
+            fraScope.ResumeLayout(false);
+            fraScope.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -288,21 +299,22 @@ namespace WinAGI.Editor {
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lblReplace;
-        private System.Windows.Forms.GroupBox fraLogic;
-        private System.Windows.Forms.RadioButton optAllGameLogics;
-        private System.Windows.Forms.RadioButton optAllOpenLogics;
-        private System.Windows.Forms.RadioButton optCurrentLogic;
         private System.Windows.Forms.Label lblDirection;
-        private System.Windows.Forms.ComboBox cmbDirection;
-        private System.Windows.Forms.CheckBox chkMatchWord;
-        private System.Windows.Forms.CheckBox chkMatchCase;
-        private System.Windows.Forms.Button cmdFind;
-        private System.Windows.Forms.Button cmdReplace;
-        private System.Windows.Forms.Button cmdReplaceAll;
-        private System.Windows.Forms.Button cmdCancel;
+        private System.Windows.Forms.Button btnFind;
+        private System.Windows.Forms.Button btnReplace;
+        private System.Windows.Forms.Button btnReplaceAll;
+        private System.Windows.Forms.Button btnClose;
         public System.Windows.Forms.ComboBox cmbFind;
         public System.Windows.Forms.TextBox rtfReplace;
-        private System.Windows.Forms.CheckBox chkSynonyms;
         internal System.Windows.Forms.TextBox txtFind;
+        private System.Windows.Forms.Button btnFindAll;
+        internal System.Windows.Forms.GroupBox fraScope;
+        internal System.Windows.Forms.RadioButton optProject;
+        internal System.Windows.Forms.RadioButton optOpen;
+        internal System.Windows.Forms.RadioButton optCurrent;
+        internal System.Windows.Forms.ComboBox cmbDirection;
+        internal System.Windows.Forms.CheckBox chkMatchWord;
+        internal System.Windows.Forms.CheckBox chkMatchCase;
+        internal System.Windows.Forms.CheckBox chkSynonyms;
     }
 }

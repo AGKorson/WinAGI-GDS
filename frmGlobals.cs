@@ -30,6 +30,7 @@ namespace WinAGI.Editor {
         public string Filename = "";
         private Define EditDefine;
         private bool Inserting = false;
+        private bool FirstFind = false;
         private readonly Stack<GlobalsUndo> UndoCol = [];
         private readonly List<DelDefine> DeletedDefines = [];
         private const string DEF_MARKER = "#define ";
@@ -150,9 +151,7 @@ namespace WinAGI.Editor {
         }
 
         private void frmGlobals_Activated(object sender, EventArgs e) {
-            if (FindingForm.Visible) {
-                FindingForm.Visible = false;
-            }
+            Search.Mode = SearchMode.FindGlobals;
             if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
                 MDIMain.RefreshInfoGrid();
             }
@@ -330,12 +329,15 @@ namespace WinAGI.Editor {
             mnuInsert.Enabled = true;
             mnuSelectAll.Enabled = true; // always available
             mnuFindInLogics.Visible = mnuSep1.Visible = EditGame is not null;
-            if (mnuSep1.Visible) {
-                if (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect) {
-                    mnuFindInLogics.Enabled = globalsgrid.CurrentCell.ColumnIndex == NAME_COL;
-                }
-                else {
-                    mnuFindInLogics.Enabled = (globalsgrid.SelectedRows.Count == 1 && globalsgrid.CurrentRow.Index != globalsgrid.NewRowIndex);
+            if (EditGame is not null) {
+                // enable find-in-logics if not editing, and define name is selected or single row is selected
+                if (!globalsgrid.IsCurrentCellInEditMode) {
+                    if (globalsgrid.SelectionMode == DataGridViewSelectionMode.CellSelect) {
+                        mnuFindInLogics.Enabled = globalsgrid.CurrentCell.ColumnIndex == NAME_COL;
+                    }
+                    else {
+                        mnuFindInLogics.Enabled = globalsgrid.SelectedRows.Count == 1 && globalsgrid.CurrentRow.Index != globalsgrid.NewRowIndex;
+                    }
                 }
             }
             mnuEditItem.Enabled = true;
@@ -458,7 +460,7 @@ namespace WinAGI.Editor {
                     globalsgrid[COMMENT_COL, NextUndo.Pos + i].Value = NextUndo.UDDefine[i].Comment;
                     globalsgrid.Rows[NextUndo.Pos + i].Selected = true;
                     globalsgrid.Rows[NextUndo.Pos + i].Tag = NextUndo.UDDefine[i].UID;
-                    if (NextUndo.UDDefine[i].DefaultName.Length > 0) {
+                    if (NextUndo.UDDefine[i].DefaultName?.Length > 0) {
                         DelDefine delDefine = new() {
                             Name = NextUndo.UDDefine[i].DefaultName,
                             Value = NextUndo.UDDefine[i].Value
@@ -538,9 +540,7 @@ namespace WinAGI.Editor {
                 topRow = globalsgrid.SelectedRows[0].Index;
                 bottomRow = globalsgrid.SelectedRows[^1].Index;
                 if (bottomRow < topRow) {
-                    int swap = bottomRow;
-                    bottomRow = topRow;
-                    topRow = swap;
+                    (topRow, bottomRow) = (bottomRow, topRow);
                 }
                 for (int i = topRow; i <= bottomRow; i++) {
                     // add to normal clipboard
@@ -727,6 +727,10 @@ namespace WinAGI.Editor {
             EditCell(globalsgrid.CurrentCell.ColumnIndex);
         }
 
+        private void mnuFind_Click(object sender, EventArgs e) {
+            StartSearch();
+        }
+
         private void mnuFindInLogics_Click(object sender, EventArgs e) {
 
             if (globalsgrid.IsCurrentCellInEditMode ||
@@ -737,14 +741,18 @@ namespace WinAGI.Editor {
             }
             if (InGame) {
                 string searchtext = (string)globalsgrid[NAME_COL, globalsgrid.CurrentRow.Index].Value;
-                GFindText = searchtext;
-                GFindDir = FindDirection.Next;
-                GMatchWord = true;
-                GMatchCase = true;
-                GLogFindLoc = FindLocation.All;
-                GFindSynonym = false;
-                frmFind.ResetSearch();
-                FindInLogic(this, searchtext, FindDirection.Next, true, true, FindLocation.All);
+                if (searchtext is null) {
+                    return;
+                }
+                Search.FindText = searchtext;
+                Search.Direction = SearchDirection.Next;
+                Search.MatchWord = true;
+                Search.MatchCase = true;
+                Search.Scope = SearchScope.All;
+                Search.FindSynonym = false;
+                // force reset
+                Search.Reset();
+                FindInLogic(this, Search, false);
             }
         }
 
@@ -880,7 +888,7 @@ namespace WinAGI.Editor {
             string text = e.Value.ToString();
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
             // Declare a proposed size with dimensions set to the maximum integer value.
-            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            Size proposedSize = new(int.MaxValue, int.MaxValue);
             // get size
             Size szText = TextRenderer.MeasureText(globalsgrid.CreateGraphics(), text, e.CellStyle.Font, proposedSize, flags);
             if (szText.Width > cell.Size.Width - 8) {
@@ -1386,7 +1394,7 @@ namespace WinAGI.Editor {
                         if (valuefraction < 0.1) {
                             valuefraction = 0.1;
                         }
-                        namefraction = namefraction / (namefraction + valuefraction);
+                        namefraction /= (namefraction + valuefraction);
                     }
                     else {
                         // means previous opening was with comments hidden;
@@ -2148,7 +2156,148 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-            return retval.ToArray();
+            return [.. retval];
+        }
+
+        private void StartSearch() {
+            Search.FindText = (string)globalsgrid.SelectedCells[0].Value;
+            Search.Mode = SearchMode.FindGlobals;
+            SearchForm.Visible = true;
+            SearchForm.Select();
+        }
+
+        public void FindInGlobals(SearchParameters search) {
+            StringComparison vbcComp = search.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+            // the grid includes the edit row in the total count, so to check for no entries,
+            // test for value of one
+            if (globalsgrid.Rows.Count == 1) {
+                return;
+            }
+            MDIMain.UseWaitCursor = true;
+            // if searching up   searchrow = currentrow
+            // if searching down searchrow = currentrow +1
+            //int searchrow = ;
+            bool found = false;
+            int column = globalsgrid.CurrentCell.ColumnIndex;
+            int foundrow = globalsgrid.CurrentCell.RowIndex;
+            string checktext;
+            // 3 - 4 - 5 are name/val/comment columns
+
+            if (search.Direction == SearchDirection.Next) {
+                // iterate forward until word found or back to start
+                for (; ; ) {
+                    if (search.StartGrp == -1) {
+                        // first iteration - set start location
+                        search.StartGrp = foundrow;
+                        search.StartWord = column;
+                    }
+                    else {
+                        column++;
+                        if (column > 5) {
+                            column = 3;
+                            foundrow++;
+                            if (foundrow >= globalsgrid.Rows.Count) {
+                                foundrow = 0;
+                            }
+                        }
+                        // if back at start, end the search
+                        if (foundrow == search.StartGrp && column == search.StartWord) {
+                            break;
+                        }
+                    }
+
+                    checktext = globalsgrid.Rows[foundrow].Cells[column].Value.ToString();
+                    if (search.MatchWord) {
+                        if (FindWholeWord(0, checktext, search) >= 0) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    else {
+                        if (checktext.Contains(search.FindText, vbcComp)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            else {
+                // iterate backwards until match found or back at start
+                column--;
+                if (column < 3) {
+                    column = 5;
+                    foundrow--;
+                    if (foundrow < 0) {
+                        foundrow = globalsgrid.Rows.Count - 1;
+                    }
+                }
+                do {
+                    if (search.StartGrp == -1) {
+                        search.StartGrp = foundrow;
+                        search.StartWord = column;
+                    }
+                    else {
+                        if (foundrow == search.StartGrp && column == search.StartWord) {
+                            break;
+                        }
+                    }
+                    checktext = globalsgrid.Rows[foundrow].Cells[column].Value.ToString();
+                    if (search.MatchWord) {
+                        if (FindWholeWord(0, checktext, search) >= 0) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    else {
+                        if (checktext.Contains(search.FindText, vbcComp)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    column--;
+                    if (column < 3) {
+                        column = 5;
+                        foundrow--;
+                        if (foundrow < 0) {
+                            foundrow = globalsgrid.Rows.Count - 1;
+                        }
+                    }
+
+                } while (foundrow != search.StartGrp || column != search.StartWord);
+            }
+
+            if (found) {
+                if (!FirstFind) {
+                    // first match found
+                    FirstFind = true;
+                }
+                // select the cell
+                globalsgrid[column, foundrow].Selected = true;
+                if (!globalsgrid.Rows[foundrow].Displayed) {
+                    globalsgrid.FirstDisplayedScrollingRowIndex = foundrow - 2;
+                }
+            }
+            else {
+                if (FirstFind) {
+                    // search complete; no more instances found
+                    MessageBox.Show(MDIMain,
+                        "No more occurrences found in the specified region.",
+                        "Find in Globals List",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                else {
+                    MessageBox.Show(MDIMain,
+                        "Search text not found.",
+                        "Find in Globals List",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                search.Reset();
+                FirstFind = false;
+            }
+            MDIMain.UseWaitCursor = false;
         }
 
         private static Regex BuildWholeTokenRegex(string token, string invalidChars) {
@@ -2562,6 +2711,7 @@ namespace WinAGI.Editor {
                 MarkAsChanged();
             }
             UndoCol.Push(NextUndo);
+            Search.Reset();
         }
 
         public void AddGlobalsFromFile() {
@@ -3342,7 +3492,6 @@ namespace WinAGI.Editor {
                 MDIMain.btnSaveResource.Enabled = true;
                 Text = CHG_MARKER + Text;
             }
-            frmFind.ResetSearch();
         }
 
         private void MarkAsSaved() {

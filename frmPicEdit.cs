@@ -515,9 +515,8 @@ namespace WinAGI.Editor {
 
         private void frmPicEdit_Activated(object sender, EventArgs e) {
             lstCommands.Focus();
-            if (FindingForm.Visible) {
-                FindingForm.Visible = false;
-            }
+            SearchForm.Visible = false;
+            Search.Mode = SearchMode.FindLogic;
             if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
                 MDIMain.RefreshInfoGrid();
             }

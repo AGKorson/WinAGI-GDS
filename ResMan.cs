@@ -17,6 +17,7 @@ using WinAGI.Common;
 using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Common.BkgdTasks;
+using static WinAGI.Editor.Base;
 using static WinAGI.Editor.frmLayout;
 using static WinAGI.Engine.AGIGame;
 using static WinAGI.Engine.AGIResType;
@@ -134,19 +135,19 @@ namespace WinAGI.Editor {
             Text,
         }
 
-        public enum FindDirection {
+        public enum SearchDirection {
             Next,
-            //Down,
             Previous,
         }
 
-        public enum FindLocation {
+        public enum SearchScope {
             Current,
             Open,
             All,
         }
 
-        public enum FindFormFunction {
+        public enum SearchMode {
+            None,
             FindLogic,
             ReplaceLogic,
             FindText,
@@ -159,15 +160,25 @@ namespace WinAGI.Editor {
             ReplaceObjsLogic,
             FindWordsLogic,
             ReplaceWordsLogic,
-            FindNone,       // used to temporarily disable find form
-                            // when active form is not searchable
+            FindGlobals,
         }
 
-        public enum FindFormAction {
+        public enum FindAction {
             Find,
+            FindAll,
             Replace,
             ReplaceAll,
-            Cancel,
+        }
+
+        public enum FindAllType {
+            LogicSource,
+            LogicEditor,
+            Include,
+            Global,
+            ReservedDefine,
+            ResourceIDs,
+            Object,
+            WordsTok,
         }
 
         public enum NoteTone {
@@ -665,25 +676,25 @@ namespace WinAGI.Editor {
             // LEScale: 
             public SettingInt LEScale = new("Zoom", 6, sLAYOUT);
             // RoomEdgeColor: 
-            public SettingColor RoomEdgeColor = new SettingColor(nameof(RoomEdgeColor), Color.FromArgb(0xAA, 0x55, 0), sLAYOUT);
+            public SettingColor RoomEdgeColor = new(nameof(RoomEdgeColor), Color.FromArgb(0xAA, 0x55, 0), sLAYOUT);
             // RoomFillColor:
-            public SettingColor RoomFillColor = new SettingColor(nameof(RoomFillColor), Color.FromArgb(0xFF, 0xFF, 0x55), sLAYOUT);
+            public SettingColor RoomFillColor = new(nameof(RoomFillColor), Color.FromArgb(0xFF, 0xFF, 0x55), sLAYOUT);
             // TransPtEdgeColor: 
-            public SettingColor TransPtEdgeColor = new SettingColor(nameof(TransPtEdgeColor), Color.FromArgb(0, 0x62, 0x62), sLAYOUT);
+            public SettingColor TransPtEdgeColor = new(nameof(TransPtEdgeColor), Color.FromArgb(0, 0x62, 0x62), sLAYOUT);
             // TransPtFillColor: 
-            public SettingColor TransPtFillColor = new SettingColor(nameof(TransPtFillColor), Color.FromArgb(0x91, 0xFF, 0xFF), sLAYOUT);
+            public SettingColor TransPtFillColor = new(nameof(TransPtFillColor), Color.FromArgb(0x91, 0xFF, 0xFF), sLAYOUT);
             // CmtEdgeColor: 
-            public SettingColor CmtEdgeColor = new SettingColor(nameof(CmtEdgeColor), Color.FromArgb(0, 0x62, 0), sLAYOUT);
+            public SettingColor CmtEdgeColor = new(nameof(CmtEdgeColor), Color.FromArgb(0, 0x62, 0), sLAYOUT);
             // CmtFillColor: 
-            public SettingColor CmtFillColor = new SettingColor(nameof(CmtFillColor), Color.FromArgb(0x91, 0xFF, 0x91), sLAYOUT);
+            public SettingColor CmtFillColor = new(nameof(CmtFillColor), Color.FromArgb(0x91, 0xFF, 0x91), sLAYOUT);
             // ErrPtEdgeColor: 
-            public SettingColor ErrPtEdgeColor = new SettingColor(nameof(ErrPtEdgeColor), Color.FromArgb(0x62, 0, 0), sLAYOUT);
+            public SettingColor ErrPtEdgeColor = new(nameof(ErrPtEdgeColor), Color.FromArgb(0x62, 0, 0), sLAYOUT);
             // ErrPtFillColor: 
-            public SettingColor ErrPtFillColor = new SettingColor(nameof(ErrPtFillColor), Color.FromArgb(0xFF, 0x91, 0x91), sLAYOUT);
+            public SettingColor ErrPtFillColor = new(nameof(ErrPtFillColor), Color.FromArgb(0xFF, 0x91, 0x91), sLAYOUT);
             // ExitEdgeColor: 
-            public SettingColor ExitEdgeColor = new SettingColor(nameof(ExitEdgeColor), Color.FromArgb(0, 0, 0xA0), sLAYOUT);
+            public SettingColor ExitEdgeColor = new(nameof(ExitEdgeColor), Color.FromArgb(0, 0, 0xA0), sLAYOUT);
             // ExitOtherColor: 
-            public SettingColor ExitOtherColor = new SettingColor(nameof(ExitOtherColor), Color.FromArgb(0xFF, 0x55, 0xFF), sLAYOUT);
+            public SettingColor ExitOtherColor = new(nameof(ExitOtherColor), Color.FromArgb(0xFF, 0x55, 0xFF), sLAYOUT);
 
             // ************************************************
             // GLOBALS EDITOR SETTINGS
@@ -962,6 +973,16 @@ namespace WinAGI.Editor {
             public AGIResType ResType;
             public int ResNum;
         }
+
+        public struct FindAllItem {
+            public string LineText; // copy of the line containing the found string
+            public string Location;  // string representing location if an include
+            public int LogicNumber;  // if a logic source
+            public int LineNum; // 0 base line number where text is found
+            public FindAllType Type;
+            public AGIResType ResType; // only used when type is resID
+
+        }
         #endregion
 
         #region Properties
@@ -1034,6 +1055,9 @@ namespace WinAGI.Editor {
         internal static int TextCount;
         internal static DataTable infoGridTable = new();
         internal static BindingSource infoGridBinding = [];
+        internal static DataTable findallGridTable = new();
+        internal static BindingSource findallGridBinding = [];
+
         // include file defines - used for logic editor tooltips and define lists
         internal static Dictionary<string, DefineList> IncludeDefines = new(StringComparer.OrdinalIgnoreCase);
         // lookup lists for logic editor tooltips and define lists
@@ -1052,31 +1076,10 @@ namespace WinAGI.Editor {
         internal static Color[] DefEGAColor = new Color[16];
 
         // find/replace variables
-        // FindingForm is the actual dialog used to set search parameters
-        internal static frmFind FindingForm;
+        // SearchForm is the actual dialog used to set search parameters
+        internal static frmFind SearchForm;
         // global copy of search parameters used by the find form
-        internal static string GFindText = "";
-        internal static string GReplaceText = "";
-        internal static FindDirection GFindDir = FindDirection.Next;
-        internal static bool GMatchWord = false;
-        internal static bool GMatchCase = false;
-        internal static FindLocation GLogFindLoc = FindLocation.Current;
-        internal static bool GFindSynonym = false;
-        internal static int GFindGrpNum;
-        internal static int SearchStartPos;
-        internal static int SearchStartLog;
-        internal static AGIResType SearchType;
-        internal static int ObjStartPos;
-        internal static int StartWord;
-        internal static int StartGrp;
-        internal static bool FoundOnce;
-        internal static bool ChangingID;
-        internal static bool RestartSearch;
-        internal static bool ClosedLogics;
-        internal static int LastClosedLogic;
-        internal static int ReplaceCount;
-        internal static bool SearchStartDlg; // true if search started by clicking 'find' or 'find next'
-                                             // on FindingForm
+        internal static SearchParameters Search = new();
         private static int[] LogWin = [];
 
         // others
@@ -1297,7 +1300,9 @@ namespace WinAGI.Editor {
                         if (useTemplate) {
                             if (!File.Exists(Path.Combine(EditGame.GameDir, EditGame.GameID + ".wal"))) {
                                 // create default layout file
-                                JsonSerializerOptions jOptions = new JsonSerializerOptions { WriteIndented = true };
+                                JsonSerializerOptions jOptions = new() {
+                                    WriteIndented = true
+                                };
                                 LayoutFileHeader layoutfile = new() {
                                     Version = LAYOUT_FMT_VERSION,
                                     DrawScale = WinAGISettings.LEScale.Value,
@@ -1313,7 +1318,9 @@ namespace WinAGI.Editor {
                                 }
                             }
                         }
-                        else {
+                    }
+                    else {
+                        if (useTemplate) {
                             try {
                                 // if template included a layout file, delete it
                                 string[] files = Directory.GetFiles(EditGame.GameDir, "*.wal");
@@ -1339,11 +1346,12 @@ namespace WinAGI.Editor {
                         MDIMain.propertyGrid1.Refresh();
                     }
                     MDIMain.UpdateGridCounts();
+                    MDIMain.searchScope.Items.Add("Entire project");
                 }
                 else {
-                    // make sure warning grid is hidden
-                    if (MDIMain.pnlInfoGrid.Visible) {
-                        MDIMain.HideInfoGrid(true);
+                    // clear and hide infogrid
+                    if (MDIMain.tooltabPanel.Visible) {
+                        MDIMain.HideInfoTab(true);
                     }
                 }
                 MDIMain.UpdateTBGameBtns();
@@ -1390,7 +1398,7 @@ namespace WinAGI.Editor {
             // if any warnings/errors, show the infoGrid
             if (infoGridTable.Rows.Count > 0) {
                 if (WinAGISettings.ShowInfoGrid.Value) {
-                    MDIMain.ShowInfoGrid();
+                    MDIMain.ShowInfoTab();
                 }
             }
 
@@ -1416,11 +1424,12 @@ namespace WinAGI.Editor {
                     InvalidCmdStyleRegEx = "";
                 }
                 MDIMain.UpdateGridCounts();
+                MDIMain.searchScope.Items.Add("Entire project");
             }
             else {
-                // make sure warning grid is hidden
-                if (MDIMain.pnlInfoGrid.Visible) {
-                    MDIMain.HideInfoGrid(true);
+                // clear and hid infogrid
+                if (MDIMain.tooltabPanel.Visible) {
+                    MDIMain.HideInfoTab(true);
                 }
                 results.Failed = true;
             }
@@ -1490,7 +1499,7 @@ namespace WinAGI.Editor {
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Exclamation);
                     return;
-                    
+
                 }
                 // pass game info and template info
                 GameParams importparams = new() {
@@ -1687,14 +1696,12 @@ namespace WinAGI.Editor {
                     MenuEditor?.Dispose();
                 }
             }
-            // always clear and hide warning list if it is showing
-            if (MDIMain.pnlInfoGrid.Visible) {
-                MDIMain.HideInfoGrid(true);
+            // always clear and hide infogrid
+            if (MDIMain.tooltabPanel.Visible) {
+                MDIMain.HideInfoTab(true);
             }
             // always hide find dialog if it's showing
-            if (FindingForm.Visible) {
-                FindingForm.Visible = false;
-            }
+            SearchForm.Visible = false;
             if (WinAGISettings.ShowPreview.Value) {
                 // clear preview window
                 PreviewWin.ClearPreviewWin();
@@ -1790,6 +1797,11 @@ namespace WinAGI.Editor {
             // now close the game
             EditGame.CloseGame();
             EditGame = null;
+            Search.Mode = SearchMode.None;
+            if (Search.Scope == SearchScope.All) {
+                Search.Scope = SearchScope.Open;
+            }
+            MDIMain.searchScope.Items.RemoveAt(2);
             IncludeDefines = new(StringComparer.OrdinalIgnoreCase);
             // restore colors to AGI default when a game closes
             GetDefaultColors();
@@ -2682,7 +2694,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        public static frmLogicEdit FindLogicEditor(int logicNumber, bool createIfNotExists, bool quiet) {
+        public static frmLogicEdit FindLogicEditor(int logicNumber, bool createIfNotExists, bool quiet, bool noselect = false) {
             frmLogicEdit retval = null;
 
             for (int i = 0; i < LogicEditors.Count; i++) {
@@ -2696,7 +2708,7 @@ namespace WinAGI.Editor {
                     retval = LogicEditors[^1];
                 }
             }
-            if (retval is not null) {
+            if (retval is not null && !noselect) {
                 if (retval.WindowState == FormWindowState.Minimized) {
                     retval.WindowState = FormWindowState.Normal;
                 }
@@ -2704,6 +2716,21 @@ namespace WinAGI.Editor {
                 retval.Select();
             }
             return retval;
+        }
+
+        public static frmLogicEdit FindLogicEditor(int logicNumber, bool noselect) {
+            return FindLogicEditor(logicNumber, false, true, noselect);
+        }
+
+        public static frmLogicEdit FindIncludeEditor(string filename) {
+            //search logic editors
+            foreach (var includeeditor in LogicEditors) {
+                if (includeeditor.FormMode == LogicFormMode.Text && includeeditor.InGame &&
+                    includeeditor.TextFilename == filename) {
+                    return includeeditor;
+                }
+            }
+            return null;
         }
 
         public static frmLogicEdit FindTextEditor(string filename, bool createIfNotExists, bool quiet) {
@@ -3068,7 +3095,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 else {
-                    MDIMain.FlashStatus();
+                    MDIMain.FlashStatus(Color.Red);
                 }
                 MDIMain.spStatus.Text = "ERRORS ENCOUNTERED. " + ResourceName(EditGame.Logics[logicnum], true, true) + " compilation FAILED.";
             }
@@ -3131,7 +3158,7 @@ namespace WinAGI.Editor {
                 textext = "|Text files (*.txt)|*.txt";
             }
             MDIMain.SaveDlg.Filter = $"WinAGI Logic Source Files (*.{defext})|*.{defext}{textext}|All files (*.*)|*.*";
-            if (MDIMain.SaveDlg.FileName.Right(4).ToLower() == ".txt") {
+            if (MDIMain.SaveDlg.FileName.Right(4).Equals(".txt", StringComparison.OrdinalIgnoreCase)) {
                 MDIMain.SaveDlg.FilterIndex = 2;
             }
             else {
@@ -3239,951 +3266,6 @@ namespace WinAGI.Editor {
             return logictext;
         }
 
-        internal static void FindInLogic(Form startform, string FindText, FindDirection FindDir, bool MatchWord, bool MatchCase, FindLocation LogicLoc, bool Replacing = false, string ReplaceText = "") {
-            // logic search strategy:
-            //
-            // determine current starting position; can be in a logic currently being edited
-            // or from the globals, words or objects editor
-            //
-            // if from a logic editor, begin search at current position in current editor
-            // if from a non-logic editor, begin search in 1) logic editor that currently has 
-            // focus, or 2) the first open logic editor, and lastly 3) begin in closed logics
-            //
-            // if this is a new search, set starting logic and position
-            // if this is NOT a new search, continue where previous search left off
-            // if search gets all the way back to beginning, stop
-
-            int FoundPos;
-            int SearchPos = -1;
-            int nextLogicIndex = 0;
-            bool findFormVisible;
-            int checkCount = 0;
-            int possFind;
-            bool skipEd, noSel = false;
-            WinAGIFCTB searchFCTB = null;
-
-            MDIMain.spStatus.Text = "";
-
-            StringComparison compMode = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            if (Replacing && FindText.Equals(ReplaceText, compMode)) {
-                return;
-            }
-            MDIMain.UseWaitCursor = true;
-            switch (startform.Name) {
-            case "frmLogicEdit":
-                int i;
-                for (i = 0; i < LogicEditors.Count; i++) {
-                    if (LogicEditors[i] == startform) {
-                        break;
-                    }
-                }
-                Debug.Assert(i != LogicEditors.Count);
-                nextLogicIndex = i;
-                searchFCTB = LogicEditors[i].fctb;
-                searchFCTB.Selection.Normalize();
-                // if replacing, first check the current selection
-                if (Replacing) {
-                    if (searchFCTB.Selection.Text.Equals(FindText, compMode)) {
-                        searchFCTB.InsertText(ReplaceText, true);
-                    }
-                }
-                // if starting position not set, it means starting a new search
-                if (SearchStartPos == -1) {
-                    SearchStartLog = nextLogicIndex;
-                    if (FindDir == FindDirection.Previous) {
-                        // when searching backwards, need to adjust back one so a match at 
-                        // current position correctly skips when searching all the way around
-                        SearchStartPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.Start) - 1;
-                        if (SearchStartPos < 0) {
-                            SearchStartPos = searchFCTB.TextLength;
-                        }
-                    }
-                    else {
-                        // if selection length is zero and cursor is on a match, it 
-                        // will be treated as 'back at start' instead of first find
-                        // use a flag to catch this
-                        if (searchFCTB.Selection.Length == 0) {
-                            noSel = true;
-                        }
-                        SearchStartPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.End);
-                    }
-                }
-                // intial SearchPos also depends on direction
-                if (FindDir == FindDirection.Previous) {
-                    SearchPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.Start);
-                    if (SearchPos == 0) {
-                        SearchPos = searchFCTB.TextLength;
-                    }
-                }
-                else {
-                    SearchPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.End);
-                    Debug.Assert(SearchPos != -1);
-                }
-                break;
-            case "frmMDIMain":
-            case "frmObjectEdit":
-            case "frmWordsEdit":
-            case "frmGlobals":
-                // no distinction (yet) between words, objects, resIDs, globals
-                if (LogicEditors.Count != 0) {
-                    if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
-                        for (i = 0; i < LogicEditors.Count; i++) {
-                            if (LogicEditors[i] == MDIMain.ActiveMdiChild) {
-                                break;
-                            }
-                        }
-                        nextLogicIndex = i;
-                    }
-                    else {
-                        // start the first logic editor
-                        nextLogicIndex = 0;
-                    }
-                }
-                else {
-                    nextLogicIndex = FindInClosedLogics(FindText, FindDir, MatchWord, MatchCase, SearchType);
-                    if (nextLogicIndex == -1) {
-                        MessageBox.Show(MDIMain,
-                            "Search text not found.",
-                            "Find in Logic",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                        MDIMain.UseWaitCursor = false;
-                        ClosedLogics = false;
-                        return;
-                    }
-                }
-                SearchStartLog = nextLogicIndex;
-                searchFCTB = LogicEditors[nextLogicIndex].fctb;
-                // always start non-logic searches at beginning
-                SearchStartPos = 0;
-                SearchPos = 0;
-                break;
-            }
-
-            // main search routine; at this point, a logic editor is open and
-            // available for searching
-            do {
-                // just in case we get stuck in a loop!
-                checkCount++;
-                skipEd = false;
-                // if all logics, skip any text editors or non ingame logics
-                if (LogicLoc == FindLocation.All) {
-                    if (LogicEditors[nextLogicIndex].FormMode == LogicFormMode.Text || !LogicEditors[nextLogicIndex].InGame) {
-                        // skip it
-                        skipEd = true;
-                    }
-                }
-                if (skipEd) {
-                    // set result to 'nothing found'
-                    FoundPos = -1;
-                }
-                else {
-                    // search the target logic, from the starting search position
-                    if (FindDir == FindDirection.Previous) {
-                        // if searching whole word
-                        if (MatchWord) {
-                            FoundPos = FindWholeWord(SearchPos, searchFCTB.Text, FindText, MatchCase, true, SearchType);
-                        }
-                        else {
-                            FoundPos = searchFCTB.Text.LastIndexOf(FindText, SearchPos, compMode);
-                        }
-                        // always reset SearchPos
-                        SearchPos = searchFCTB.TextLength;
-                    }
-                    else {
-                        // search strategy depends on synonym search value
-                        if (!GFindSynonym) {
-                            if (MatchWord) {
-                                FoundPos = FindWholeWord(SearchPos, searchFCTB.Text, FindText, MatchCase, FindDir == FindDirection.Previous, SearchType);
-                            }
-                            else {
-                                FoundPos = searchFCTB.Text.IndexOf(FindText, SearchPos, compMode);
-                            }
-                        }
-                        else {
-                            // in synonym search, Matchword is always true; but since words are
-                            // surrounded by quotes, it wont matter so we use IndexOf
-                            // step through each word in the word group; if the word is found in this logic,
-                            // check if it occurs before the current found position
-                            FoundPos = -1;
-                            for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
-                                string synonym;
-                                if (EditGame is null || !EditGame.SierraSyntax) {
-                                    synonym = QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR;
-                                }
-                                else {
-                                    synonym = WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i].Replace(' ', '$');
-                                }
-                                possFind = searchFCTB.Text.IndexOf(synonym, SearchPos);
-                                // validate it's a word arg
-                                if (possFind > 0) {
-                                    if (IsVocabWord(possFind, searchFCTB.Text)) {
-                                        if (FoundPos == -1) {
-                                            FoundPos = possFind;
-                                            FindText = synonym;
-                                        }
-                                        else {
-                                            if (possFind < FoundPos) {
-                                                FoundPos = possFind;
-                                                FindText = synonym;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        // always reset SearchPos
-                        SearchPos = 0;
-                    }
-                }
-                if (FoundPos >= 0) {
-                    if (FindDir == FindDirection.Next) {
-                        // if back at search start (whether anything found or not)
-                        // OR PAST search start(after previously finding something)
-                        if (((FoundPos == SearchStartPos) && (nextLogicIndex == SearchStartLog) && !noSel) ||
-                            ((FoundPos > SearchStartPos) && (nextLogicIndex == SearchStartLog) && RestartSearch)) {
-                            if (LogicLoc != FindLocation.All) {
-                                // back at start
-                                FoundPos = -1;
-                                break;
-                            }
-                            else {
-                                nextLogicIndex = FindInClosedLogics(FindText, FindDir, MatchWord, MatchCase, SearchType);
-                                if (nextLogicIndex < 0) {
-                                    FoundPos = -1;
-                                    break;
-                                }
-                                searchFCTB = LogicEditors[nextLogicIndex].fctb;
-                                if (FindDir == FindDirection.Previous) {
-                                    SearchPos = searchFCTB.TextLength;
-                                }
-                                continue;
-                            }
-                        }
-                        else {
-                            // search text found so exit loop
-                            break;
-                        }
-                    }
-                    else {
-                        // searching up
-                        if (((FoundPos == SearchStartPos) && (nextLogicIndex == SearchStartLog)) ||
-                            ((FoundPos < SearchStartPos) && (nextLogicIndex == SearchStartLog) && RestartSearch)) {
-                            if (LogicLoc != FindLocation.All) {
-                                // back at start
-                                FoundPos = -1;
-                                break;
-                            }
-                            else {
-                                nextLogicIndex = FindInClosedLogics(FindText, FindDir, MatchWord, MatchCase, SearchType);
-                                if (nextLogicIndex < 0) {
-                                    FoundPos = -1;
-                                    break;
-                                }
-                                searchFCTB = LogicEditors[nextLogicIndex].fctb;
-                                SearchPos = searchFCTB.TextLength;
-                            }
-                        }
-                        else {
-                            // exit loop; search text found
-                            break;
-                        }
-                    }
-                }
-                // if not found, action depends on search mode
-                if (LogicLoc == FindLocation.Current) {
-                    // if restart is true, means search is now over
-                    // since nothing found, just exit the loop
-                    if (RestartSearch) {
-                        // not found; exit
-                        break;
-                    }
-                    if (FindDir == FindDirection.Previous) {
-                        // reset searchpos to end
-                        SearchPos = searchFCTB.TextLength;
-                    }
-                }
-                else if (LogicLoc == FindLocation.Open) {
-                    // if back on start, and search already reset
-                    if ((nextLogicIndex == SearchStartLog) && RestartSearch) {
-                        // not found- exit
-                        break;
-                    }
-                    nextLogicIndex++;
-                    if (nextLogicIndex >= LogicEditors.Count) {
-                        nextLogicIndex = 0;
-                    }
-                    searchFCTB = LogicEditors[nextLogicIndex].fctb;
-                    if (FindDir == FindDirection.Previous) {
-                        SearchPos = searchFCTB.TextLength;
-                    }
-                }
-                else if (LogicLoc == FindLocation.All) {
-                    // since nothing found in this logic, try the next
-                    if (ClosedLogics) {
-                        nextLogicIndex = FindInClosedLogics(FindText, FindDir, MatchWord, MatchCase, SearchType);
-                        if (nextLogicIndex < 0) {
-                            FoundPos = -1;
-                            break;
-                        }
-                    }
-                    else {
-                        if ((nextLogicIndex == SearchStartLog) && RestartSearch) {
-                            nextLogicIndex = FindInClosedLogics(FindText, FindDir, MatchWord, MatchCase, SearchType);
-                            if (nextLogicIndex < 0) {
-                                FoundPos = -1;
-                                break;
-                            }
-                        }
-                        else {
-                            // not back to starting logic, so try the next open logic
-                            nextLogicIndex++;
-                            if (nextLogicIndex >= LogicEditors.Count) {
-                                nextLogicIndex = 0;
-                            }
-                        }
-                    }
-                    searchFCTB = LogicEditors[nextLogicIndex].fctb;
-                    if (FindDir == FindDirection.Previous) {
-                        SearchPos = searchFCTB.TextLength;
-                    }
-                }
-                // set reset search flag so when we are back to starting logic,
-                // the search will end
-                RestartSearch = true;
-
-                // loop is exited by finding the searchtext or reaching end of search area
-                // (or if loopcheck fails)
-            } while (checkCount <= 256);
-            Debug.Assert(checkCount < 256);
-
-            // if found update the selection in the correct editor window
-            if (FoundPos >= 0) {
-                if (!FoundOnce) {
-                    FoundOnce = true;
-                }
-                // bring the selected window to the top of the order (restore if minimized)
-                if (LogicEditors[nextLogicIndex].WindowState == FormWindowState.Minimized) {
-                    LogicEditors[nextLogicIndex].WindowState = FormWindowState.Normal;
-                }
-                // if search was started from the editor (by pressing F3 or using
-                // menu option)
-                if (!SearchStartDlg) {
-                    // set focus to the editor
-                    LogicEditors[nextLogicIndex].Select();
-                    LogicEditors[nextLogicIndex].fctb.Select();
-                }
-                else {
-                    // when searching from the dialog, make sure the logic is
-                    // at top of zorder, but don't need to give it focus
-                    LogicEditors[nextLogicIndex].BringToFront();
-                }
-                // highlight searchtext
-                Place start = searchFCTB.PositionToPlace(FoundPos);
-                Place end = searchFCTB.PositionToPlace(FoundPos + FindText.Length); // new(start.iChar + FindText.Length, start.iLine);
-                searchFCTB.Selection.Start = start;
-                searchFCTB.Selection.End = end;
-                searchFCTB.DoSelectionVisible();
-                searchFCTB.Refresh();
-                // if a synonym was found, note it on status bar
-                if (GFindSynonym) {
-                    if (FindText != QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum).GroupName + QUOTECHAR) {
-                        MDIMain.spStatus.Text = FindText + " is a synonym for " + QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum).GroupName + QUOTECHAR;
-                        MDIMain.FlashStatus();
-                    }
-                }
-            }
-            else {
-                // search string was NOT found (or couldn't open a logic editor window)
-                if (FoundOnce) {
-                    // search complete; no new instances found
-                    findFormVisible = FindingForm.Visible;
-                    if (findFormVisible) {
-                        FindingForm.Visible = false;
-                    }
-                    MessageBox.Show(MDIMain,
-                        "The specified region has been searched. No more matches found.",
-                        "Find in Logic",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-                    if (findFormVisible) {
-                        FindingForm.Visible = true;
-                    }
-                }
-                else {
-                    findFormVisible = FindingForm.Visible;
-                    if (findFormVisible) {
-                        FindingForm.Visible = false;
-                    }
-                    MessageBox.Show(MDIMain,
-                        "Search text not found.",
-                        "Find in Logic",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-                    if (findFormVisible) {
-                        FindingForm.Visible = true;
-                    }
-                }
-                // restore focus to correct form
-                if (!SearchStartDlg) {
-                    if (nextLogicIndex >= 0) {
-                        LogicEditors[nextLogicIndex].Select();
-                    }
-                }
-                // if main form active control isn't same as active form,
-                // need to force it
-                if (MDIMain.ActiveControl != MDIMain.ActiveMdiChild) {
-                    MDIMain.ActiveControl = MDIMain.ActiveMdiChild;
-                }
-                // reset search flags
-                frmFind.ResetSearch();
-            }
-            MDIMain.UseWaitCursor = false;
-        }
-
-        private static int FindInClosedLogics(string FindText, FindDirection FindDir, bool MatchWord, bool MatchCase, AGIResType SearchType = AGIResType.None) {
-            // find next closed logic that has search text in it;
-            // if found, return the logic number
-            // if not found, return -1
-            StringComparison compareMode;
-            bool loaded = false;
-            int LogNum;
-            if (!ClosedLogics) {
-                // first time through - start with first logic (which sets ClosedLogics flag)
-                LogNum = NextClosedLogic(-1);
-                if (LogNum != -1) {
-                    ProgressWin = new(MDIMain) {
-                        Text = "Find in Logic"
-                    };
-                    ProgressWin.lblProgress.Text = "Searching " + EditGame.Logics[LogNum].ID + "...";
-                    ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + LogicEditors.Count + 1;
-                    ProgressWin.pgbStatus.Value = LogicEditors.Count;
-                    ProgressWin.Show();
-                    ProgressWin.Refresh();
-                }
-                else {
-                    // no other logics to search
-                    return -1;
-                }
-            }
-            else {
-                ProgressWin.Show();
-                ProgressWin.Refresh();
-                // shouldn't start back at zero!!!!!
-                LogNum = NextClosedLogic(LastClosedLogic);
-            }
-            compareMode = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            while (LogNum != -1) {
-                ProgressWin.lblProgress.Text = "Searching " + EditGame.Logics[LogNum].ID + "...";
-                ProgressWin.Refresh();
-                loaded = EditGame.Logics[LogNum].Loaded;
-                if (!loaded) {
-                    EditGame.Logics[LogNum].Load();
-                }
-                if (FindDir == FindDirection.Previous) {
-                    if (MatchWord) {
-                        if (FindWholeWord(EditGame.Logics[LogNum].SourceText.Length, EditGame.Logics[LogNum].SourceText, FindText, MatchCase, true, SearchType) != -1) {
-                            break;
-                        }
-                    }
-                    else {
-                        if (EditGame.Logics[LogNum].SourceText.LastIndexOf(FindText, compareMode) != -1) {
-                            break;
-                        }
-                    }
-                }
-                else {
-                    // searching down -  strategy depends on synonym search value
-                    if (!GFindSynonym) {
-                        if (MatchWord) {
-                            if (FindWholeWord(0, EditGame.Logics[LogNum].SourceText, FindText, MatchCase, false, SearchType) != -1) {
-                                break;
-                            }
-                        }
-                        else {
-                            if (EditGame.Logics[LogNum].SourceText.Contains(FindText, compareMode)) {
-                                break;
-                            }
-                        }
-                    }
-                    else {
-                        // Matchword is always true; but since words are surrounded by quotes, it wont matter
-                        // so use Instr
-                        // step through each word in the word group; if any word is found in this logic,
-                        // then stop
-                        bool found = false;
-                        for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
-                            if (EditGame.Logics[LogNum].SourceText.Contains(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR, compareMode)) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (found) {
-                            break;
-                        }
-                    }
-                }
-                // not found
-                if (!loaded) {
-                    EditGame.Logics[LogNum].Unload();
-                }
-                LogNum = NextClosedLogic(LogNum);
-                ProgressWin.pgbStatus.Value++;
-            }
-            if (LogNum == -1) {
-                ProgressWin.Close();
-                ProgressWin.Dispose();
-                return -1;
-            }
-            // save last logic so next closed logic can be found
-            LastClosedLogic = LogNum;
-            if (!loaded) {
-                EditGame.Logics[LogNum].Unload();
-            }
-            int index = -1;
-            // open editor, if able (this will reset the cursor to normal so force it
-            // back to hourglass)
-            if (OpenGameLogic((byte)LogNum, true)) {
-                // index is last opened logic editor
-                MDIMain.UseWaitCursor = true;
-                index = LogicEditors.Count - 1;
-            }
-            else {
-                // must have been an error
-                MessageBox.Show(MDIMain,
-                    QUOTECHAR + FindText + QUOTECHAR + " was found in logic " + LogNum + " but an error occurred while opening the file. Try opening the logic manually and then try the search again.",
-                    "Find In Logic",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information);
-                if (!loaded) {
-                    EditGame.Logics[LogNum].Unload();
-                }
-            }
-            MDIMain.UseWaitCursor = true;
-            ProgressWin.Hide();
-            return index;
-        }
-
-        private static int NextClosedLogic(int OldLogNum) {
-            // need a separate array of logics that are open BEFORE beginning search
-            // so we can check if the logic was open prior to the search starting
-            // (LogicEditors collection will changes as logics are opened by the search)
-
-            if (!ClosedLogics) {
-                // build list of currently open logics
-                LogWin = new int[LogicEditors.Count];
-                for (int i = 0; i < LogicEditors.Count; i++) {
-                    LogWin[i] = -1;
-                    if (LogicEditors[i].FormMode == LogicFormMode.Logic && LogicEditors[i].InGame) {
-                        LogWin[i] = LogicEditors[i].LogicNumber;
-                    }
-                    else {
-                        LogWin[i] = -1;
-                    }
-                }
-                ClosedLogics = true;
-            }
-            // start with next number
-            OldLogNum++;
-            while (OldLogNum < 256) {
-                // if this number is a valid logic
-                if (EditGame.Logics.Contains(OldLogNum) && !LogWin.Contains(OldLogNum)) {
-                    // found a  closed logic
-                    return OldLogNum;
-                }
-                // increment old log number
-                OldLogNum++;
-            }
-            // not found; all logics searched
-            return -1;
-        }
-
-        public static void ReplaceAll(Form startform, string FindText, string ReplaceText, bool MatchWord, bool MatchCase, FindLocation LogicLoc, AGIResType SearchType = AGIResType.None) {
-            // replace all doesn't use or need direction
-
-            StringComparison compMode = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            if (FindText.Equals(ReplaceText, compMode)) {
-                MDIMain.UseWaitCursor = false;
-                return;
-            }
-            // find text can't be blank
-            if (FindText.Length == 0) {
-                MDIMain.UseWaitCursor = false;
-                return;
-            }
-            ReplaceCount = 0;
-
-            ProgressWin = new(startform);
-            MDIMain.UseWaitCursor = true;
-
-            switch (LogicLoc) {
-            case FindLocation.Current:
-                if (SearchType == Words && GFindSynonym) {
-                    // replace all synonyms
-                    for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
-                        ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR,
-                            ReplaceText, true, MatchCase, SearchType, (frmLogicEdit)startform);
-                    }
-                }
-                else {
-                    ReplaceAllText(FindText, ReplaceText, MatchWord, MatchCase, SearchType, (frmLogicEdit)startform);
-                }
-                break;
-            case FindLocation.Open:
-                // replace in all open logic and text editors
-                ProgressWin.Text = "Replace All";
-                ProgressWin.lblProgress.Text = "Searching...";
-                ProgressWin.pgbStatus.Maximum = LogicEditors.Count + 1;
-                ProgressWin.pgbStatus.Value = 0;
-                ProgressWin.Show();
-                ProgressWin.Refresh();
-                for (int i = 0; i < LogicEditors.Count; i++) {
-                    ProgressWin.pgbStatus.Value = i + 1;
-                    if (LogicEditors[i].FormMode == LogicFormMode.Logic) {
-                        // show the logic ID
-                        ProgressWin.lblProgress.Text = "Searching " + LogicEditors[i].EditLogic.ID + "...";
-                    }
-                    else {
-                        // show the filename
-                        ProgressWin.lblProgress.Text = "Searching " + Path.GetFileName(LogicEditors[i].TextFilename) + "...";
-                    }
-                    ProgressWin.Refresh();
-                    if (SearchType == Words && GFindSynonym) {
-                        // replace all synonyms
-                        for (int j = 0; j < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; j++) {
-                            ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[j] + QUOTECHAR,
-                                ReplaceText, true, MatchCase, SearchType, LogicEditors[i]);
-                        }
-                    }
-                    else {
-                        ReplaceAllText(FindText, ReplaceText, MatchWord, MatchCase, SearchType, LogicEditors[i]);
-                    }
-                }
-                ProgressWin.Hide();
-                break;
-            case FindLocation.All:
-                if (SearchType == AGIResType.None) {
-                    ProgressWin.Text = "Replace All";
-                    ProgressWin.lblProgress.Text = "Searching...";
-                }
-                else {
-                    ProgressWin.Text = "Updating Resource ID";
-                    ProgressWin.lblProgress.Text = "Searching...";
-                }
-                // count is number of logics in game plus number of open logics editors
-                ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + LogicEditors.Count + 1;
-                ProgressWin.pgbStatus.Value = 0;
-                ProgressWin.Show();
-                ProgressWin.Refresh();
-
-                // first replace in all open editors
-                for (int i = 0; i < LogicEditors.Count; i++) {
-                    // only logic editors, and ingame
-                    ProgressWin.pgbStatus.Value++;
-                    if (LogicEditors[i].FormMode == LogicFormMode.Logic && LogicEditors[i].InGame) {
-                        ProgressWin.lblProgress.Text = "Searching " + LogicEditors[i].EditLogic.ID + "...";
-                        ProgressWin.Refresh();
-                        if (SearchType == Words && GFindSynonym) {
-                            // replace all synonyms
-                            for (int j = 0; j < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; j++) {
-                                ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[j] + QUOTECHAR,
-                                    ReplaceText, true, MatchCase, SearchType, LogicEditors[i]);
-                            }
-                        }
-                        else {
-                            ReplaceAllText(FindText, ReplaceText, MatchWord, MatchCase, SearchType, LogicEditors[i]);
-                        }
-                    }
-                }
-                // then do all logics
-                foreach (Logic logic in EditGame.Logics) {
-                    ProgressWin.pgbStatus.Value++;
-                    ProgressWin.lblProgress.Text = "Searching " + logic.ID + "...";
-                    ProgressWin.Refresh();
-                    bool loaded = logic.Loaded;
-                    if (!loaded) {
-                        logic.Load();
-                    }
-                    if (SearchType == Words && GFindSynonym) {
-                        // replace all synonyms
-                        for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(GFindGrpNum).WordCount; i++) {
-                            ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(GFindGrpNum)[i] + QUOTECHAR,
-                                ReplaceText, true, MatchCase, SearchType, logic);
-                        }
-                    }
-                    else {
-                        ReplaceAllText(FindText, ReplaceText, MatchWord, MatchCase, SearchType, logic);
-                    }
-                    if (logic.SourceChanged) {
-                        logic.SaveSource();
-                        // update exits if this room is marked as a room and not making
-                        // a resource ID change
-                        if (logic.IsRoom && !ChangingID) {
-                            UpdateExitInfo(UpdateReason.ChangeID, logic.Number, logic);
-                        }
-                        // refresh preview and tree as applicable
-                        RefreshTree(AGIResType.Logic, logic.Number);
-                        if (MDIMain.propertyGrid1.Visible) {
-                            MDIMain.propertyGrid1.Refresh();
-                        }
-                    }
-                    if (!loaded) {
-                        logic.Unload();
-                    }
-                }
-                ProgressWin.Hide();
-                break;
-            }
-            if (SearchType == AGIResType.None) {
-                if (ReplaceCount > 0) {
-                    MessageBox.Show(MDIMain,
-                        "The specified region has been searched. " + ReplaceCount + " replacements were made.",
-                        "Replace All",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-                }
-                else {
-                    MessageBox.Show(MDIMain,
-                        "Search text not found.",
-                        "Replace All",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information);
-                }
-            }
-            MDIMain.UseWaitCursor = false;
-            ProgressWin.Close();
-            ProgressWin.Dispose();
-            frmFind.ResetSearch();
-        }
-
-        /// <summary>
-        /// Replaces all instances of FindText with ReplaceText in a logic editor
-        /// using the specified search parameters.
-        /// </summary>
-        /// <param name="FindText"></param>
-        /// <param name="ReplaceText"></param>
-        /// <param name="MatchWord"></param>
-        /// <param name="MatchCase"></param>
-        /// <param name="SearchType"></param>
-        /// <param name="SearchWin"></param>
-        private static void ReplaceAllText(string FindText, string ReplaceText, bool MatchWord, bool MatchCase, AGIResType SearchType, frmLogicEdit SearchWin) {
-            // replaces text in a logic editor
-
-            if (SearchType != AGIResType.None) {
-                // ignore text editors
-                if (SearchWin.FormMode == LogicFormMode.Text) {
-                    return;
-                }
-            }
-
-            Place start = SearchWin.fctb.Selection.Start;
-            Place end = SearchWin.fctb.Selection.End;
-            string pattern = Regex.Escape(FindText);
-            if (MatchWord) {
-                // if not surrounded by quotes, add word boundaries
-                if (FindText[0] != '\"') {
-                    // don't use "\b"; it doesn't work in all cases;
-                    // instead use lookahead/lookbehind for word chars
-                    pattern = @"(?<!\w)" + pattern;
-                }
-                if (FindText[^1] != '\"') {
-                    pattern += @"(?!\w)";
-                }
-                MatchCollection matches = Regex.Matches(SearchWin.fctb.Text, pattern, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
-                for (int i = matches.Count - 1; i >= 0; i--) {
-                    switch (SearchType) {
-                    case Words:
-                        // validate it's a word arg
-                        if (!IsVocabWord(matches[i].Index, SearchWin.fctb.Text)) {
-                            continue;
-                        }
-                        break;
-                    case Objects:
-                        // validate it's an object arg
-                        if (!IsInvObject(matches[i].Index, SearchWin.fctb.Text)) {
-                            continue;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                    SearchWin.fctb.ReplaceText(matches[i].Index, matches[i].Length, ReplaceText);
-                    ReplaceCount++;
-                }
-            }
-            else {
-                // if matchword is false, searchtype will always be default,
-                // so no need to check for words/objects replacements
-                SearchWin.fctb.Text = Regex.Replace(SearchWin.fctb.Text, FindText, x => {
-                    ReplaceCount++;
-                    return ReplaceText;
-                }, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
-            }
-            SearchWin.fctb.Selection.Start = start;
-            SearchWin.fctb.Selection.End = end;
-            SearchWin.fctb.DoSelectionVisible();
-            SearchWin.fctb.Refresh();
-        }
-
-        /// <summary>
-        /// Replaces all instances of FindText with ReplaceText in a logic source file
-        /// using the specified search parameters.
-        /// </summary>
-        /// <param name="FindText"></param>
-        /// <param name="ReplaceText"></param>
-        /// <param name="MatchWord"></param>
-        /// <param name="MatchCase"></param>
-        /// <param name="SearchType"></param>
-        /// <param name="SearchLogic"></param>
-        private static void ReplaceAllText(string FindText, string ReplaceText, bool MatchWord, bool MatchCase, AGIResType SearchType, Logic SearchLogic) {
-            // replaces text in a logic source file
-
-            string pattern = Regex.Escape(FindText);
-            if (MatchWord) {
-                // if not surrounded by quotes, add word boundaries
-                if (FindText[0] != '\"') {
-                    // don't use "\b"; it doesn't work in all cases;
-                    // instead use lookahead/lookbehind for word chars
-                    pattern = @"(?<!\w)" + pattern;
-                }
-                if (FindText[^1] != '\"') {
-                    pattern += @"(?!\w)";
-                }
-                MatchCollection matches = Regex.Matches(SearchLogic.SourceText, pattern, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
-                for (int i = matches.Count - 1; i >= 0; i--) {
-                    switch (SearchType) {
-                    case Words:
-                        // validate it's a word arg
-                        if (!IsVocabWord(matches[i].Index, SearchLogic.SourceText)) {
-                            continue;
-                        }
-                        break;
-                    case Objects:
-                        // validate it's an object arg
-                        if (!IsInvObject(matches[i].Index, SearchLogic.SourceText)) {
-                            continue;
-                        }
-                        break;
-                    default:
-                        break;
-                    }
-                    SearchLogic.SourceText = SearchLogic.SourceText.ReplaceFirst(FindText, ReplaceText, matches[i].Index);
-                    ReplaceCount++;
-                }
-            }
-            else {
-                // if matchword is false, searchtype will always be default,
-                // so no need to check for words/objects replacements
-                SearchLogic.SourceText = Regex.Replace(SearchLogic.SourceText, FindText, x => {
-                    ReplaceCount++;
-                    return ReplaceText;
-                }, MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase);
-            }
-        }
-
-        public static int FindWholeWord(int startPos, string searchText, string findText,
-                                     bool matchCase = false,
-                                     bool revSearch = false,
-                                     AGIResType searchType = AGIResType.None) {
-            // will return the character position of first occurence of strFind in strText,
-            // only if it is a whole word
-            // whole word is defined as a word where the character in front of the word is a
-            // separator (or word is at beginning of string) AND character after word is a
-            // separator (or word is at end of string)
-            //
-            // separators are any character EXCEPT:
-            // #, $, %, ., 0-9, @, A-Z, _, a-z
-            // (codes 35 To 37, 46, 48 To 57, 64 To 90, 95, 97 To 122)
-            int pos;
-            bool frontOK;
-            StringComparison compareMode;
-
-            if (findText.Length == 0) {
-                return 0;
-            }
-            if (matchCase) {
-                compareMode = StringComparison.Ordinal;
-            }
-            else {
-                compareMode = StringComparison.OrdinalIgnoreCase;
-            }
-            // set position to start
-            pos = startPos;
-            do {
-                // if doing a reverse search
-                if (revSearch) {
-                    pos = searchText.LastIndexOf(findText, pos, compareMode);
-                }
-                else {
-                    pos = searchText.IndexOf(findText, pos, compareMode);
-                }
-                // easy check is to see if strFind is even in strText
-                if (pos == -1) {
-                    return -1;
-                }
-                // check character in front
-                if (pos > 0) {
-                    switch (searchText[pos - 1]) {
-                    case '#' or '$' or '%' or '_' or (>= '0' and <= '9') or (>= 'A' and <= 'Z') or (>= 'a' and <= 'z'):
-                        // word is NOT whole word
-                        frontOK = false;
-                        break;
-                    default:
-                        frontOK = true;
-                        break;
-                    }
-                }
-                else {
-                    frontOK = true;
-                }
-                if (frontOK) {
-                    // check character in back
-                    if (pos + findText.Length < searchText.Length) {
-                        switch (searchText[pos + findText.Length]) {
-                        case '#' or '$' or '%' or '_' or (>= '0' and <= '9') or (>= 'A' and <= 'Z') or (>= 'a' and <= 'z'):
-                            // word is NOT whole word
-                            // let loop try again at next position in string
-                            break;
-                        default:
-                            // is validation required
-                            switch (searchType) {
-                            case Words:
-                                // validate vocab word
-                                if (IsVocabWord(pos, searchText)) {
-                                    // word IS a whole word
-                                    return pos;
-                                }
-                                break;
-                            case Objects:
-                                // validate an inventory object
-                                if (IsInvObject(pos, searchText)) {
-                                    // word IS a whole word
-                                    return pos;
-                                }
-                                break;
-                            default:
-                                // no validation - word IS a whole word
-                                return pos;
-                            }
-                            break;
-                        }
-                    }
-                    else {
-                        // word IS a whole word
-                        return pos;
-                    }
-                }
-                // entire string not checked yet - try again
-                if (revSearch) {
-                    pos--;
-                }
-                else {
-                    pos++;
-                }
-            } while (pos != -1);
-            // no position found
-            return -1;
-        }
 
         public static bool CheckLogics() {
             // checks all logics; if any found that are changed
@@ -4752,7 +3834,7 @@ namespace WinAGI.Editor {
                     mode = 2;
                 }
             }
-            int retval = 0;
+            int retval;
             if (exportImage) {
                 // get a filename
                 MDIMain.SaveDlg.Title = "Save Picture Image As";
@@ -6896,7 +5978,7 @@ namespace WinAGI.Editor {
 
         public static void ExportAll(AGIResType restype, bool defaultdir = true) {
             string exportdir;
-            
+
             if (!defaultdir) {
                 MDIMain.FolderDlg.InitialDirectory = DefaultResDir;
                 MDIMain.FolderDlg.SelectedPath = "";
@@ -7471,10 +6553,17 @@ namespace WinAGI.Editor {
                 LogicListChange();
                 // if OK to update in all logics, do so
                 if (replace) {
-                    frmFind.ResetSearch();
-                    ChangingID = true;
-                    ReplaceAll(MDIMain, oldID, resID, true, true, FindLocation.All, resType);
-                    ChangingID = false;
+                    Search.Reset();
+                    SearchParameters resIDsearch = new() {
+                        FindText = oldID,
+                        ReplaceText = resID,
+                        MatchCase = true,
+                        MatchWord = true,
+                        Scope = SearchScope.All,
+                        Type = resType,
+                        ChangingID = true
+                    };
+                    ReplaceAll(MDIMain, resIDsearch);
                 }
                 break;
             }
@@ -8021,12 +7110,12 @@ namespace WinAGI.Editor {
             }
         }
 
-        private static void WriteShort(Stream s, int value) {
+        private static void WriteShort(FileStream s, int value) {
             s.WriteByte((byte)(value & 0xFF));
             s.WriteByte((byte)(value >> 8));
         }
 
-        private static void WriteGraphicControlExtension(Stream s, byte transcolor, GifOptions options) {
+        private static void WriteGraphicControlExtension(FileStream s, byte transcolor, GifOptions options) {
             s.WriteByte(0x21);
             s.WriteByte(0xF9);
             s.WriteByte(4);
@@ -8040,7 +7129,7 @@ namespace WinAGI.Editor {
             s.WriteByte(0);
         }
 
-        private static void WriteImageDescriptor(Stream s, int width, int height) {
+        private static void WriteImageDescriptor(FileStream s, int width, int height) {
             s.WriteByte(0x2C);
 
             // left/top = 0
@@ -8055,7 +7144,7 @@ namespace WinAGI.Editor {
             s.WriteByte(0); // no local color table
         }
 
-        private static void WriteSubBlocks(Stream s, byte[] data) {
+        private static void WriteSubBlocks(FileStream s, byte[] data) {
             int pos = 0;
 
             while (pos < data.Length) {
@@ -8620,6 +7709,7 @@ namespace WinAGI.Editor {
                     break;
                 }
             }
+            // TODO: update findall items too
         }
 
         /// <summary>
@@ -8653,6 +7743,1566 @@ namespace WinAGI.Editor {
                     infoGridTable.Rows.RemoveAt(i);
                 }
             }
+        }
+        #endregion
+
+        #region Search and Replace Methods
+        public static List<FindAllItem> FindAll(SearchParameters search) {
+            // search all logics/editors and all includes, build a list of
+            // FindAllItem objects where FindText is found (using the passed parameters)
+
+            if (EditGame is null || search.FindText.Length == 0) {
+                return [];
+            }
+            List<FindAllItem> founditems = [];
+            RegexOptions regexOptions = search.MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase;
+
+            // set up search pattern
+            string pattern = Regex.Escape(search.FindText);
+            if (search.MatchWord) {
+                // if not surrounded by quotes, add word boundaries
+                if (search.FindText[0] != '\"') {
+                    // don't use "\b"; it doesn't work in all cases;
+                    // instead use lookahead/lookbehind for word chars
+                    pattern = @"(?<!\w)" + pattern;
+                }
+                if (search.FindText[^1] != '\"') {
+                    pattern += @"(?!\w)";
+                }
+            }
+
+            switch (search.Scope) {
+            case SearchScope.Current:
+                if (MDIMain.ActiveMdiChild is frmLogicEdit currentform) {
+                    GetEditorMatches(currentform);
+                }
+                else if (MDIMain.ActiveMdiChild is frmGlobals globalform) {
+                    FindInGlobals(globalform);
+                }
+                else if (MDIMain.ActiveMdiChild is frmObjectEdit objectform) {
+                    FindInObject(objectform);
+                }
+                else if (MDIMain.ActiveMdiChild is frmWordsEdit wordform) {
+                    FindInWords(wordform);
+                }
+                return founditems;
+            case SearchScope.Open:
+                foreach (Form openform in MDIMain.MdiChildren) {
+                    if (openform is frmLogicEdit) {
+                        GetEditorMatches((frmLogicEdit)openform);
+                    }
+                    if (openform is frmGlobals) {
+                        FindInGlobals((frmGlobals)openform);
+                    }
+                    if (openform is frmObjectEdit) {
+                        FindInObject((frmObjectEdit)openform);
+                    }
+                    if (openform is frmWordsEdit) {
+                        FindInWords((frmWordsEdit)openform);
+                    }
+                }
+                return founditems;
+            case SearchScope.All:
+                break;
+            }
+            // logics and editors:
+            foreach (var logic in EditGame.Logics) {
+                // look for a matching editor
+                var logeditor = FindLogicEditor(logic.Number, false);
+                if (logeditor is not null) {
+                    GetEditorMatches(logeditor);
+                }
+                else {
+                    // search the logic source
+                    bool loaded = logic.Loaded;
+                    if (!loaded) {
+                        logic.Load();
+                    }
+                    if (logic.Error == ResourceErrorType.NoError) {
+                        MatchCollection matches = Regex.Matches(logic.SourceText, pattern, regexOptions);
+                        if (matches.Count > 0) {
+                            var indexer = new LineIndex(logic.SourceText);
+                            foreach (Match match in matches) {
+                                // add each match to the collection
+                                FindAllItem item = new() {
+                                    LogicNumber = logic.Number,
+                                    Type = FindAllType.LogicSource,
+                                };
+                                (item.LineNum, item.LineText) = indexer.GetLineAtIndex(match.Index);
+                                founditems.Add(item);
+                            }
+                        }
+                    }
+                    if (!loaded) {
+                        logic.Unload();
+                    }
+                }
+            }
+
+            // includes:
+            foreach (var include in EditGame.IncludeFiles) {
+                // skip if global, reserved, or resID
+                switch (include.Type) {
+                case IncludeType.Reserved:
+                case IncludeType.ResourceIDs:
+                case IncludeType.Globals:
+                    continue;
+                }
+
+                var includeeditor = FindIncludeEditor(include.Filename);
+                if (includeeditor is not null) {
+                    GetEditorMatches(includeeditor);
+                }
+                else {
+                    // search the include file
+                    try {
+                        // open the file and read the text
+                        string includeText = File.ReadAllText(include.Filename);
+
+                        MatchCollection matches = Regex.Matches(includeText, pattern, regexOptions);
+                        if (matches.Count > 0) {
+                            var indexer = new LineIndex(includeText);
+                            foreach (Match match in matches) {
+                                // add each match to the collection
+                                FindAllItem item = new() {
+                                    LogicNumber = -1,
+                                    Type = FindAllType.Include,
+                                    Location = include.Filename,
+                                };
+                                (item.LineNum, item.LineText) = indexer.GetLineAtIndex(match.Index);
+                                founditems.Add(item);
+                            }
+                        }
+                    }
+                    catch {
+                        // ignore errors
+                    }
+                }
+            }
+
+            bool gEdit = false;
+            // check all other editors for globals, objects, words
+            foreach (Form openform in MDIMain.MdiChildren) {
+                if (openform is frmGlobals globalsform) {
+                    FindInGlobals(globalsform);
+                    if (globalsform.InGame) {
+                        gEdit = true;
+                    }
+                }
+                if (openform is frmObjectEdit objectform) {
+                    FindInObject(objectform);
+                }
+                if (openform is frmWordsEdit wordform) {
+                    FindInWords(wordform);
+                }
+            }
+
+            if (EditGame is not null) {
+                // InGame globals, objects, words need to searched if not open in an editor
+                if (!gEdit) {
+                    FindInGlobals(null);
+                }
+                // objects
+                if (!OEInUse) {
+                    FindInObject(null);
+                }
+                // words
+                if (!WEInUse) {
+                    FindInWords(null);
+                }
+                // reserved defines:
+                if (EditGame.IncludeReserved) {
+                    FindInReserved();
+                }
+                // resource IDs:
+                if (EditGame.IncludeIDs) {
+                    FindInIDs();
+                }
+            }
+            return founditems;
+
+            void GetEditorMatches(frmLogicEdit frm) {
+                MatchCollection matches = Regex.Matches(frm.fctb.Text, pattern, regexOptions);
+                if (frm.FormMode == LogicFormMode.Logic && frm.InGame) {
+                    // search the editor
+                    foreach (Match match in matches) {
+                        // add each match to the collection
+                        FindAllItem item = new() {
+                            LogicNumber = frm.LogicNumber,
+                            Type = FindAllType.LogicEditor,
+                            LineNum = frm.fctb.PositionToPlace(match.Index).iLine,
+                            Location = "",
+                        };
+                        item.LineText = frm.fctb.Lines[item.LineNum];
+                        founditems.Add(item);
+                    }
+                }
+                else {
+                    // not an in-game logic
+                    foreach (Match match in matches) {
+                        // add each match to the collection
+                        FindAllItem item = new() {
+                            LogicNumber = -1,
+                            Type = FindAllType.Include,
+                            LineNum = frm.fctb.PositionToPlace(match.Index).iLine,
+                            Location = frm.TextFilename,
+                        };
+                        item.LineText = frm.fctb.Lines[item.LineNum];
+                        founditems.Add(item);
+                    }
+                }
+            }
+
+            void FindInGlobals(frmGlobals frm) {
+                if (frm is not null) {
+                    // search the editor
+                    foreach (DataGridViewRow row in GlobalsEditor.globalsgrid.Rows) {
+                        // search name, value, and comment
+                        if (Regex.IsMatch(row.Cells[3].Value?.ToString() ?? "", pattern, regexOptions)) {
+                            // add it
+                            AddGlobalMatch(row);
+                            continue;
+                        }
+                        if (Regex.IsMatch(row.Cells[4].Value?.ToString() ?? "", pattern, regexOptions)) {
+                            // add it
+                            AddGlobalMatch(row);
+                            continue;
+                        }
+                        if (Regex.IsMatch(row.Cells[5].Value?.ToString() ?? "", pattern, regexOptions)) {
+                            // add it
+                            AddGlobalMatch(row);
+                            continue;
+                        }
+                    }
+                    void AddGlobalMatch(DataGridViewRow row) {
+                        FindAllItem item = new() {
+                            LineNum = -1,
+                            Type = FindAllType.Global,
+                            LogicNumber = row.Index,
+                            LineText = $"#define {row.Cells[3].Value?.ToString()} {row.Cells[4].Value?.ToString()} {row.Cells[5].Value?.ToString()}"
+                        };
+                        founditems.Add(item);
+                    }
+                }
+                else {
+                    // search the list
+                    for (int i = 0; i < EditGame.GlobalDefines.Count; i++) {
+                        var global = EditGame.GlobalDefines.Values.ElementAt(i);
+                        // search name, value, and comment
+                        if (Regex.IsMatch(global.Name, pattern, regexOptions)) {
+                            // add it
+                            AddGlobalMatch(global, i);
+                            continue;
+                        }
+                        if (Regex.IsMatch(global.Value, pattern, regexOptions)) {
+                            // add it
+                            AddGlobalMatch(global, i);
+                            continue;
+                        }
+                        if (Regex.IsMatch(global.Comment, pattern, regexOptions)) {
+                            // add it
+                            AddGlobalMatch(global, i);
+                            continue;
+                        }
+                    }
+                    void AddGlobalMatch(Define global, int row) {
+                        FindAllItem item = new() {
+                            LogicNumber = row,
+                            Type = FindAllType.Global,
+                            LineNum = -1,
+                            LineText = $"#define {global.Name} {global.Value} {global.Comment}"
+                        };
+                        founditems.Add(item);
+                    }
+                }
+            }
+
+            void FindInObject(frmObjectEdit frm) {
+                InventoryList invlist;
+                bool objloaded = false;
+                if (frm is not null) {
+                    invlist = frm.EditInvList;
+                }
+                else {
+                    objloaded = EditGame.InvObjects.Loaded;
+                    if (!objloaded) {
+                        EditGame.InvObjects.Load();
+                    }
+                    invlist = EditGame.InvObjects;
+                }
+
+                for (int index = 0; index < invlist.Count; index++) {
+                    var obj = invlist[index];
+                    if (Regex.IsMatch(obj.ItemName, pattern, regexOptions)) {
+                        // add it
+                        FindAllItem item = new() {
+                            LineText = obj.ItemName,
+                            Location = "OBJECT",
+                            LineNum = -1,
+                            LogicNumber = index,
+                            Type = FindAllType.Object,
+                        };
+                        founditems.Add(item);
+                    }
+                }
+                if (!OEInUse && !objloaded) {
+                    EditGame.InvObjects.Unload();
+                }
+            }
+
+            void FindInWords(frmWordsEdit frm) {
+                bool wordsloaded = EditGame.WordList.Loaded;
+                WordList words;
+                if (frm is not null) {
+                    words = frm.EditWordList;
+                }
+                else {
+                    if (!wordsloaded) {
+                        EditGame.WordList.Load();
+                    }
+                    words = EditGame.WordList;
+                }
+                foreach (var word in words) {
+                    if (Regex.IsMatch(word.WordText, pattern, regexOptions)) {
+                        // add it
+                        FindAllItem item = new() {
+                            LineText = word.WordText,
+                            Location = words.GroupByNumber(word.Group).Words.IndexOf(word.WordText).ToString(),
+                            LineNum = -1,
+                            LogicNumber = word.Group,
+                            Type = FindAllType.WordsTok,
+                        };
+                        founditems.Add(item);
+                    }
+                }
+                if (!WEInUse && !wordsloaded) {
+                    EditGame.WordList.Unload();
+                }
+            }
+
+            void FindInReserved() {
+                // search the list
+                List<Define> defines = [.. EditGame.ReservedDefines.All()];
+                foreach (var reserved in defines) {
+                    // search name, value, and comment
+                    if (Regex.IsMatch(reserved.Name, pattern, regexOptions)) {
+                        // add it
+                        AddReservedMatch(reserved);
+                        continue;
+                    }
+                    if (Regex.IsMatch(reserved.Value, pattern, regexOptions)) {
+                        // add it
+                        AddReservedMatch(reserved);
+                        continue;
+                    }
+                    if (Regex.IsMatch(reserved.Comment ?? "", pattern, regexOptions)) {
+                        // add it
+                        AddReservedMatch(reserved);
+                        continue;
+                    }
+                }
+                void AddReservedMatch(Define reserved) {
+                    FindAllItem item = new() {
+                        LogicNumber = -1,
+                        Type = FindAllType.ReservedDefine,
+                        LineNum = -1,
+                        LineText = $"#define {reserved.Name} {reserved.Value} {reserved.Comment}"
+                    };
+                    founditems.Add(item);
+                }
+            }
+
+            void FindInIDs() {
+                // search all resource IDs
+                foreach (var logic in EditGame.Logics) {
+                    if (Regex.IsMatch(logic.ID, pattern, regexOptions)) {
+                        // add it
+                        AddIDMatch(logic);
+                    }
+                }
+                foreach (var picture in EditGame.Pictures) {
+                    if (Regex.IsMatch(picture.ID, pattern, regexOptions)) {
+                        // add it
+                        AddIDMatch(picture);
+                    }
+                }
+                foreach (var sound in EditGame.Sounds) {
+                    if (Regex.IsMatch(sound.ID, pattern, regexOptions)) {
+                        // add it
+                        AddIDMatch(sound);
+                    }
+                }
+                foreach (var view in EditGame.Views) {
+                    if (Regex.IsMatch(view.ID, pattern, regexOptions)) {
+                        // add it
+                        AddIDMatch(view);
+                    }
+                }
+                void AddIDMatch(AGIResource resource) {
+                    FindAllItem item = new() {
+                        LineText = resource.ID,
+                        Location = ((int)resource.ResType).ToString(),
+                        LogicNumber = resource.Number,
+                        Type = FindAllType.ResourceIDs,
+                        LineNum = -1,
+                    };
+                    founditems.Add(item);
+                }
+            }
+        }
+
+        public static void ReplaceAll(Form startform, SearchParameters search) {
+            StringComparison compMode = search.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            if (search.FindText.Equals(search.ReplaceText, compMode)) {
+                MDIMain.UseWaitCursor = false;
+                return;
+            }
+            // find text can't be blank
+            if (search.FindText.Length == 0) {
+                MDIMain.UseWaitCursor = false;
+                return;
+            }
+            search.ReplaceCount = 0;
+
+            ProgressWin = new(startform);
+            MDIMain.UseWaitCursor = true;
+
+            switch (search.Scope) {
+            case SearchScope.Current:
+                if (search.Type == Words && search.FindSynonym) {
+                    // replace all synonyms
+                    for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).WordCount; i++) {
+                        ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[i] + QUOTECHAR,
+                            search, (frmLogicEdit)startform);
+                    }
+                }
+                else {
+                    ReplaceAllText(search.FindText, search, (frmLogicEdit)startform);
+                }
+                break;
+            case SearchScope.Open:
+                // replace in all open logic and text editors
+                ProgressWin.Text = "Replace All";
+                ProgressWin.lblProgress.Text = "Searching...";
+                ProgressWin.pgbStatus.Maximum = LogicEditors.Count + 1;
+                ProgressWin.pgbStatus.Value = 0;
+                ProgressWin.Show();
+                ProgressWin.Refresh();
+                for (int i = 0; i < LogicEditors.Count; i++) {
+                    ProgressWin.pgbStatus.Value = i + 1;
+                    if (LogicEditors[i].FormMode == LogicFormMode.Logic) {
+                        // show the logic ID
+                        ProgressWin.lblProgress.Text = "Searching " + LogicEditors[i].EditLogic.ID + "...";
+                    }
+                    else {
+                        // show the filename
+                        ProgressWin.lblProgress.Text = "Searching " + Path.GetFileName(LogicEditors[i].TextFilename) + "...";
+                    }
+                    ProgressWin.Refresh();
+                    if (search.Type == Words && search.FindSynonym) {
+                        // replace all synonyms
+                        for (int j = 0; j < WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).WordCount; j++) {
+                            ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[j] + QUOTECHAR,
+                                search, LogicEditors[i]);
+                        }
+                    }
+                    else {
+                        ReplaceAllText(search.FindText, search, LogicEditors[i]);
+                    }
+                }
+                ProgressWin.Hide();
+                break;
+            case SearchScope.All:
+                if (search.Type == AGIResType.None) {
+                    ProgressWin.Text = "Replace All";
+                    ProgressWin.lblProgress.Text = "Searching...";
+                }
+                else {
+                    ProgressWin.Text = "Updating Resource ID";
+                    ProgressWin.lblProgress.Text = "Searching...";
+                }
+                // count is number of logics in game plus number of open logics editors
+                ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + EditGame.IncludeFiles.Count;
+                ProgressWin.pgbStatus.Value = 0;
+                ProgressWin.Show();
+                ProgressWin.Refresh();
+
+                // logics first
+                foreach (Logic logic in EditGame.Logics) {
+                    ProgressWin.pgbStatus.Value++;
+                    ProgressWin.lblProgress.Text = "Searching " + logic.ID + "...";
+                    ProgressWin.Refresh();
+                    // look for a matching editor
+                    var logeditor = FindLogicEditor(logic.Number, false);
+                    if (logeditor is not null) {
+                        // replace in editor
+                        if (search.Type == Words && search.FindSynonym) {
+                            // replace all synonyms
+                            for (int j = 0; j < WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).WordCount; j++) {
+                                ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[j] + QUOTECHAR,
+                                    search, logeditor);
+                            }
+                        }
+                        else {
+                            ReplaceAllText(search.FindText, search, logeditor);
+                        }
+                    }
+                    else {
+                        // replace in logic
+                        bool loaded = logic.Loaded;
+                        if (!loaded) {
+                            logic.Load();
+                        }
+                        if (search.Type == Words && search.FindSynonym) {
+                            // replace all synonyms
+                            for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).WordCount; i++) {
+                                ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[i] + QUOTECHAR,
+                                    search, logic);
+                            }
+                        }
+                        else {
+                            ReplaceAllText(search.FindText, search, logic);
+                        }
+                        if (logic.SourceChanged) {
+                            logic.SaveSource();
+                            // update exits if this room is marked as a room and not making
+                            // a resource ID change
+                            if (logic.IsRoom && !search.ChangingID) {
+                                UpdateExitInfo(UpdateReason.ChangeID, logic.Number, logic);
+                            }
+                            // refresh preview and tree as applicable
+                            RefreshTree(AGIResType.Logic, logic.Number);
+                            if (MDIMain.propertyGrid1.Visible) {
+                                MDIMain.propertyGrid1.Refresh();
+                            }
+                        }
+                        if (!loaded) {
+                            logic.Unload();
+                        }
+                    }
+                }
+                // then includes
+                foreach (var include in EditGame.IncludeFiles) {
+                    ProgressWin.pgbStatus.Value++;
+                    // skip if global, reserved, or resID
+                    switch (include.Type) {
+                    case IncludeType.Reserved:
+                    case IncludeType.ResourceIDs:
+                    case IncludeType.Globals:
+                        ProgressWin.Refresh();
+                        continue;
+                    }
+                    ProgressWin.lblProgress.Text = "Searching " + Path.GetFileName(include.Filename) + "...";
+                    ProgressWin.Refresh();
+                    var includeeditor = FindIncludeEditor(include.Filename);
+                    if (includeeditor is not null) {
+                        // replace in editor
+                        if (search.Type == Words && search.FindSynonym) {
+                            // replace all synonyms
+                            for (int j = 0; j < WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).WordCount; j++) {
+                                ReplaceAllText(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[j] + QUOTECHAR,
+                                    search, includeeditor);
+                            }
+                        }
+                        else {
+                            ReplaceAllText(search.FindText, search, includeeditor);
+                        }
+                    }
+                    else {
+                        // replace in text file
+                        // open text file, get all text (ignore errors)
+                        try {
+                            string includetext = File.ReadAllText(include.Filename);
+                            bool changed = false;
+                            if (search.Type == Words && search.FindSynonym) {
+                                // replace all synonyms
+                                for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).WordCount; i++) {
+                                    if (ReplaceAllText(ref includetext, QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[i] + QUOTECHAR,
+                                        search)) {
+                                        changed = true;
+                                    }
+                                }
+                            }
+                            else {
+                                changed = ReplaceAllText(ref includetext, search.FindText, search);
+                            }
+                            if (changed) {
+                                // replace the file's text with the updated text
+                                File.WriteAllText(include.Filename, includetext);
+                            }
+                        }
+                        catch {
+                        }
+                    }
+                }
+                ProgressWin.Hide();
+                break;
+            }
+            if (search.Type == AGIResType.None) {
+                if (search.ReplaceCount > 0) {
+                    MessageBox.Show(MDIMain,
+                        "The specified region has been searched. " + search.ReplaceCount + " replacements were made.",
+                        "Replace All",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+                else {
+                    MessageBox.Show(MDIMain,
+                        "Search text not found.",
+                        "Replace All",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                }
+            }
+            MDIMain.UseWaitCursor = false;
+            ProgressWin.Close();
+            ProgressWin.Dispose();
+            search.Reset();
+        }
+
+        internal static void FindInLogic(Form startform, SearchParameters search, bool Replacing) {
+            // logic search strategy:
+            //
+            // determine current starting position; can be in a logic currently being edited
+            // or from the globals, words or objects editor
+            //
+            // if from a logic editor, begin search at current position in current editor
+            // if from a non-logic editor, begin search in 1) logic editor that currently has 
+            // focus, or 2) the first open logic editor, and lastly 3) begin in closed logics
+            //
+            // if this is a new search, set starting logic and position
+            // if this is NOT a new search, continue where previous search left off
+            // if search gets all the way back to beginning, stop
+
+            int FoundPos;
+            int SearchPos = -1;
+            int nextLogicIndex = 0;
+            bool findFormVisible;
+            int checkCount = 0;
+            int possFind;
+            bool skipEd, noSel = false;
+            WinAGIFCTB searchFCTB = null;
+
+            MDIMain.spStatus.Text = "";
+
+            StringComparison compMode = search.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            if (Replacing && search.FindText.Equals(search.ReplaceText, compMode)) {
+                return;
+            }
+            MDIMain.UseWaitCursor = true;
+            switch (startform.Name) {
+            case "frmLogicEdit":
+                int i;
+                for (i = 0; i < LogicEditors.Count; i++) {
+                    if (LogicEditors[i] == startform) {
+                        break;
+                    }
+                }
+                Debug.Assert(i != LogicEditors.Count);
+                nextLogicIndex = i;
+                searchFCTB = LogicEditors[i].fctb;
+                searchFCTB.Selection.Normalize();
+                // if replacing, first check the current selection
+                if (Replacing) {
+                    if (searchFCTB.Selection.Text.Equals(search.FindText, compMode)) {
+                        searchFCTB.InsertText(search.ReplaceText, true);
+                    }
+                }
+                // if starting position not set, it means starting a new search
+                if (search.StartPos == -1) {
+                    search.StartLog = nextLogicIndex;
+                    if (search.Direction == SearchDirection.Previous) {
+                        // when searching backwards, need to adjust back one so a match at 
+                        // current position correctly skips when searching all the way around
+                        search.StartPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.Start) - 1;
+                        if (search.StartPos < 0) {
+                            search.StartPos = searchFCTB.TextLength;
+                        }
+                    }
+                    else {
+                        // if selection length is zero and cursor is on a match, it 
+                        // will be treated as 'back at start' instead of first find
+                        // use a flag to catch this
+                        if (searchFCTB.Selection.Length == 0) {
+                            noSel = true;
+                        }
+                        search.StartPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.End);
+                    }
+                }
+                // intial SearchPos also depends on direction
+                if (search.Direction == SearchDirection.Previous) {
+                    SearchPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.Start);
+                    if (SearchPos == 0) {
+                        SearchPos = searchFCTB.TextLength;
+                    }
+                }
+                else {
+                    SearchPos = searchFCTB.PlaceToPosition(searchFCTB.Selection.End);
+                    Debug.Assert(SearchPos != -1);
+                }
+                break;
+            case "frmMDIMain":
+            case "frmGlobals":
+                // no distinction (yet) between words, objects, resIDs, globals
+                if (LogicEditors.Count != 0) {
+                    if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
+                        for (i = 0; i < LogicEditors.Count; i++) {
+                            if (LogicEditors[i] == MDIMain.ActiveMdiChild) {
+                                break;
+                            }
+                        }
+                        nextLogicIndex = i;
+                    }
+                    else {
+                        // start the first logic editor
+                        nextLogicIndex = 0;
+                    }
+                }
+                else {
+                    nextLogicIndex = FindInClosedLogics(search);
+                    if (nextLogicIndex == -1) {
+                        MessageBox.Show(MDIMain,
+                            "Search text not found.",
+                            "Find in Logic",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        MDIMain.UseWaitCursor = false;
+                        search.ClosedLogics = false;
+                        return;
+                    }
+                }
+                search.StartLog = nextLogicIndex;
+                searchFCTB = LogicEditors[nextLogicIndex].fctb;
+                // always start non-logic searches at beginning
+                search.StartPos = 0;
+                SearchPos = 0;
+                break;
+            default:
+                // should not be possible
+                Debug.Assert(false);
+                return;
+            }
+
+            string synonym = "", foundword = "";
+            // main search routine
+            do {
+                // just in case we get stuck in a loop!
+                checkCount++;
+                skipEd = false;
+                // if all logics, skip any text editors or non ingame logics
+                if (search.Scope == SearchScope.All) {
+                    if (!LogicEditors[nextLogicIndex].InGame) {
+                        //if (LogicEditors[nextLogicIndex].FormMode == LogicFormMode.Text || !LogicEditors[nextLogicIndex].InGame) {
+                        // skip it
+                        skipEd = true;
+                    }
+                }
+                if (skipEd) {
+                    // set result to 'nothing found'
+                    FoundPos = -1;
+                }
+                else {
+                    // search the target logic, from the starting search position
+                    if (search.Direction == SearchDirection.Previous) {
+                        // if searching whole word
+                        if (search.MatchWord) {
+                            FoundPos = FindWholeWord(SearchPos, searchFCTB.Text, search);
+                        }
+                        else {
+                            FoundPos = searchFCTB.Text.LastIndexOf(search.FindText, SearchPos, compMode);
+                        }
+                        // always reset SearchPos
+                        SearchPos = searchFCTB.TextLength;
+                    }
+                    else {
+                        // search strategy depends on synonym search value
+                        if (search.Mode != SearchMode.FindWordsLogic || !search.FindSynonym) {
+                            if (search.MatchWord) {
+                                FoundPos = FindWholeWord(SearchPos, searchFCTB.Text, search);
+                            }
+                            else {
+                                FoundPos = searchFCTB.Text.IndexOf(search.FindText, SearchPos, compMode);
+                            }
+                        }
+                        else {
+                            // in synonym search, Matchword is always true; but since words are
+                            // surrounded by quotes, it wont matter so we use IndexOf
+                            // step through each word in the word group; if the word is found in this logic,
+                            // check if it occurs before the current found position
+                            FoundPos = -1;
+                            for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).WordCount; i++) {
+                                if (EditGame is null || !EditGame.SierraSyntax) {
+                                    synonym = QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[i] + QUOTECHAR;
+                                }
+                                else {
+                                    synonym = WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[i].Replace(' ', '$');
+                                }
+                                possFind = searchFCTB.Text.IndexOf(synonym, SearchPos);
+                                // validate it's a word arg
+                                if (possFind > 0) {
+                                    if (IsVocabWord(possFind, searchFCTB.Text)) {
+                                        if (FoundPos == -1) {
+                                            FoundPos = possFind;
+                                            foundword = synonym;
+                                        }
+                                        else {
+                                            if (possFind < FoundPos) {
+                                                FoundPos = possFind;
+                                                foundword = synonym;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // always reset SearchPos
+                        SearchPos = 0;
+                    }
+                }
+                if (FoundPos >= 0) {
+                    if (search.Direction == SearchDirection.Next) {
+                        // if back at search start (whether anything found or not)
+                        // OR PAST search start(after previously finding something)
+                        if (((FoundPos == search.StartPos) && (nextLogicIndex == search.StartLog) && !noSel) ||
+                            ((FoundPos > search.StartPos) && (nextLogicIndex == search.StartLog) && search.Restart)) {
+                            if (search.Scope != SearchScope.All) {
+                                // back at start
+                                FoundPos = -1;
+                                break;
+                            }
+                            else {
+                                nextLogicIndex = FindInClosedLogics(search);
+                                if (nextLogicIndex < 0) {
+                                    FoundPos = -1;
+                                    break;
+                                }
+                                searchFCTB = LogicEditors[nextLogicIndex].fctb;
+                                if (search.Direction == SearchDirection.Previous) {
+                                    SearchPos = searchFCTB.TextLength;
+                                }
+                                continue;
+                            }
+                        }
+                        else {
+                            // search text found so exit loop
+                            break;
+                        }
+                    }
+                    else {
+                        // searching up
+                        if (((FoundPos == search.StartPos) && (nextLogicIndex == search.StartLog)) ||
+                            ((FoundPos < search.StartPos) && (nextLogicIndex == search.StartLog) && search.Restart)) {
+                            if (search.Scope != SearchScope.All) {
+                                // back at start
+                                FoundPos = -1;
+                                break;
+                            }
+                            else {
+                                nextLogicIndex = FindInClosedLogics(search);
+                                if (nextLogicIndex < 0) {
+                                    FoundPos = -1;
+                                    break;
+                                }
+                                searchFCTB = LogicEditors[nextLogicIndex].fctb;
+                                SearchPos = searchFCTB.TextLength;
+                            }
+                        }
+                        else {
+                            // exit loop; search text found
+                            break;
+                        }
+                    }
+                }
+                // if not found, action depends on scope
+                switch (search.Scope) {
+                case SearchScope.Current:
+                    // if restart is true, means search is now over
+                    // since nothing found, just exit the loop
+                    if (search.Restart) {
+                        // not found; exit do
+                        nextLogicIndex = -1;
+                        break;
+                    }
+                    if (search.Direction == SearchDirection.Previous) {
+                        // reset searchpos to end
+                        SearchPos = searchFCTB.TextLength;
+                    }
+                    break;
+                case SearchScope.Open:
+                    // if back on start, and search already reset
+                    if ((nextLogicIndex == search.StartLog) && search.Restart) {
+                        // not found- exit
+                        break;
+                    }
+                    nextLogicIndex++;
+                    if (nextLogicIndex >= LogicEditors.Count) {
+                        nextLogicIndex = 0;
+                    }
+                    searchFCTB = LogicEditors[nextLogicIndex].fctb;
+                    if (search.Direction == SearchDirection.Previous) {
+                        SearchPos = searchFCTB.TextLength;
+                    }
+                    break;
+                case SearchScope.All:
+                    // since nothing found in this logic, try the next
+                    if (search.ClosedLogics) {
+                        nextLogicIndex = FindInClosedLogics(search);
+                        if (nextLogicIndex < 0) {
+                            FoundPos = -1;
+                            // exit do
+                            break;
+                        }
+                    }
+                    else {
+                        if ((nextLogicIndex == search.StartLog) && search.Restart) {
+                            nextLogicIndex = FindInClosedLogics(search);
+                            if (nextLogicIndex < 0) {
+                                FoundPos = -1;
+                                // exit do
+                                break;
+                            }
+                        }
+                        else {
+                            // not back to starting logic, so try the next open logic
+                            nextLogicIndex++;
+                            if (nextLogicIndex >= LogicEditors.Count) {
+                                nextLogicIndex = 0;
+                            }
+                        }
+                    }
+                    searchFCTB = LogicEditors[nextLogicIndex].fctb;
+                    if (search.Direction == SearchDirection.Previous) {
+                        SearchPos = searchFCTB.TextLength;
+                    }
+                    break;
+                }
+                if (nextLogicIndex == -1) {
+                    break;
+                }
+                // set reset search flag so when we are back to starting logic,
+                // the search will end
+                search.Restart = true;
+
+                // loop is exited by finding the searchtext or reaching end of search area
+                // (or if loopcheck fails)
+            } while (checkCount <= 256);
+            Debug.Assert(checkCount < 256);
+
+            // if found update the selection in the correct editor window
+            if (FoundPos >= 0) {
+                if (!search.FoundOnce) {
+                    search.FoundOnce = true;
+                }
+                // bring the selected window to the top of the order (restore if minimized)
+                if (LogicEditors[nextLogicIndex].WindowState == FormWindowState.Minimized) {
+                    LogicEditors[nextLogicIndex].WindowState = FormWindowState.Normal;
+                }
+                // if search was started from the editor (by pressing F3 or using
+                // menu option)
+                if (!search.StartDlg) {
+                    // set focus to the editor
+                    LogicEditors[nextLogicIndex].Select();
+                    LogicEditors[nextLogicIndex].fctb.Select();
+                }
+                else {
+                    // when searching from the dialog, make sure the logic is
+                    // at top of zorder, but don't need to give it focus
+                    LogicEditors[nextLogicIndex].BringToFront();
+                }
+                // highlight searchtext
+                Place start = searchFCTB.PositionToPlace(FoundPos);
+                Place end;
+                if (search.Mode == SearchMode.FindWordsLogic && search.FindSynonym) {
+                    end = searchFCTB.PositionToPlace(FoundPos + foundword.Length);
+                }
+                else {
+                    end = searchFCTB.PositionToPlace(FoundPos + search.FindText.Length);
+                }
+                searchFCTB.Selection.Start = start;
+                searchFCTB.Selection.End = end;
+                searchFCTB.DoSelectionVisible();
+                searchFCTB.Refresh();
+                // if a synonym was found, note it on status bar
+                if (search.FindSynonym) {
+                    // compare against first word, not group name (to correctly handle word groups 0, 1, 9999)
+                    if (search.FindText != QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).Words[0] + QUOTECHAR) {
+                        MDIMain.spStatus.Text = foundword + " is a synonym for " + search.FindText;
+                        MDIMain.FlashStatus(Color.DarkGray);
+                    }
+                }
+            }
+            else {
+                // search string was NOT found (or couldn't open a logic editor window)
+                if (search.FoundOnce) {
+                    // search complete; no new instances found
+                    findFormVisible = SearchForm.Visible;
+                    if (findFormVisible) {
+                        SearchForm.Visible = false;
+                    }
+                    MessageBox.Show(MDIMain,
+                        "No more occurrences found in the specified region.",
+                        "Find in Logic",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    if (findFormVisible) {
+                        SearchForm.Visible = true;
+                    }
+                }
+                else {
+                    findFormVisible = SearchForm.Visible;
+                    if (findFormVisible) {
+                        SearchForm.Visible = false;
+                    }
+                    MessageBox.Show(MDIMain,
+                        "Search text not found.",
+                        "Find in Logic",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    if (findFormVisible) {
+                        SearchForm.Visible = true;
+                    }
+                }
+                // restore focus to correct form
+                if (!search.StartDlg) {
+                    if (nextLogicIndex >= 0) {
+                        LogicEditors[nextLogicIndex].Select();
+                    }
+                }
+                // if main form active control isn't same as active form,
+                // need to force it
+                if (MDIMain.ActiveControl != MDIMain.ActiveMdiChild) {
+                    MDIMain.ActiveControl = MDIMain.ActiveMdiChild;
+                }
+                // reset search flags
+                search.Reset();
+            }
+            MDIMain.UseWaitCursor = false;
+        }
+
+        private static int FindInClosedLogics(SearchParameters search) {
+            // find next closed logic that has search text in it;
+            // if found, return the logic number
+            // if not found, return -1
+            StringComparison compareMode;
+            bool loaded = false;
+            int LogNum;
+            if (!search.ClosedLogics) {
+                // first time through - start with first logic (which sets ClosedLogics flag)
+                LogNum = NextClosedLogic(-1);
+                if (LogNum != -1) {
+                    ProgressWin = new(MDIMain) {
+                        Text = "Find in Logic"
+                    };
+                    ProgressWin.lblProgress.Text = "Searching " + EditGame.Logics[LogNum].ID + "...";
+                    ProgressWin.pgbStatus.Maximum = EditGame.Logics.Count + LogicEditors.Count + 1;
+                    ProgressWin.pgbStatus.Value = LogicEditors.Count;
+                    ProgressWin.Show();
+                    ProgressWin.Refresh();
+                }
+                else {
+                    // no other logics to search
+                    return -1;
+                }
+            }
+            else {
+                ProgressWin.Show();
+                ProgressWin.Refresh();
+                // shouldn't start back at zero!!!!!
+                LogNum = NextClosedLogic(search.LastClosedLogic);
+            }
+            compareMode = search.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            while (LogNum != -1) {
+                ProgressWin.lblProgress.Text = "Searching " + EditGame.Logics[LogNum].ID + "...";
+                ProgressWin.Refresh();
+                loaded = EditGame.Logics[LogNum].Loaded;
+                if (!loaded) {
+                    EditGame.Logics[LogNum].Load();
+                }
+                if (search.Direction == SearchDirection.Previous) {
+                    if (search.MatchWord) {
+                        if (FindWholeWord(EditGame.Logics[LogNum].SourceText.Length, EditGame.Logics[LogNum].SourceText, search) != -1) {
+                            break;
+                        }
+                    }
+                    else {
+                        if (EditGame.Logics[LogNum].SourceText.LastIndexOf(search.FindText, compareMode) != -1) {
+                            break;
+                        }
+                    }
+                }
+                else {
+                    // searching down -  strategy depends on synonym search value
+                    if (search.Mode != SearchMode.FindWordsLogic || !search.FindSynonym) {
+                        if (search.MatchWord) {
+                            if (FindWholeWord(0, EditGame.Logics[LogNum].SourceText, search) != -1) {
+                                break;
+                            }
+                        }
+                        else {
+                            if (EditGame.Logics[LogNum].SourceText.Contains(search.FindText, compareMode)) {
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        // Matchword is always true; but since words are surrounded by quotes, it wont matter
+                        // so use Instr
+                        // step through each word in the word group; if any word is found in this logic,
+                        // then stop
+                        bool found = false;
+                        for (int i = 0; i < WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).WordCount; i++) {
+                            if (EditGame.Logics[LogNum].SourceText.Contains(QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum)[i] + QUOTECHAR, compareMode)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found) {
+                            break;
+                        }
+                    }
+                }
+                // not found
+                if (!loaded) {
+                    EditGame.Logics[LogNum].Unload();
+                }
+                LogNum = NextClosedLogic(LogNum);
+                ProgressWin.pgbStatus.Value++;
+            }
+            if (LogNum == -1) {
+                ProgressWin.Close();
+                ProgressWin.Dispose();
+                return -1;
+            }
+            // save last logic so next closed logic can be found
+            search.LastClosedLogic = LogNum;
+            if (!loaded) {
+                EditGame.Logics[LogNum].Unload();
+            }
+            int index = -1;
+            // open editor, if able (this will reset the cursor to normal so force it
+            // back to hourglass)
+            if (OpenGameLogic((byte)LogNum, true)) {
+                // index is last opened logic editor
+                MDIMain.UseWaitCursor = true;
+                index = LogicEditors.Count - 1;
+            }
+            else {
+                // must have been an error
+                MessageBox.Show(MDIMain,
+                    QUOTECHAR + search.FindText + QUOTECHAR + " was found in logic " + LogNum + " but an error occurred while opening the file. Try opening the logic manually and then try the search again.",
+                    "Find In Logic",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                if (!loaded) {
+                    EditGame.Logics[LogNum].Unload();
+                }
+            }
+            MDIMain.UseWaitCursor = true;
+            ProgressWin.Hide();
+            return index;
+        }
+
+        private static int NextClosedLogic(int OldLogNum) {
+            // need a separate array of logics that are open BEFORE beginning search
+            // so we can check if the logic was open prior to the search starting
+            // (LogicEditors collection will changes as logics are opened by the search)
+
+            if (!Search.ClosedLogics) {
+                // build list of currently open logics
+                LogWin = new int[LogicEditors.Count];
+                for (int i = 0; i < LogicEditors.Count; i++) {
+                    LogWin[i] = -1;
+                    if (LogicEditors[i].FormMode == LogicFormMode.Logic && LogicEditors[i].InGame) {
+                        LogWin[i] = LogicEditors[i].LogicNumber;
+                    }
+                    else {
+                        LogWin[i] = -1;
+                    }
+                }
+                Search.ClosedLogics = true;
+            }
+            // start with next number
+            OldLogNum++;
+            while (OldLogNum < 256) {
+                // if this number is a valid logic
+                if (EditGame.Logics.Contains(OldLogNum) && !LogWin.Contains(OldLogNum)) {
+                    // found a  closed logic
+                    return OldLogNum;
+                }
+                // increment old log number
+                OldLogNum++;
+            }
+            // not found; all logics searched
+            return -1;
+        }
+
+        internal static void BeginSearch(SearchParameters search, FindAction action) {
+            if (search.FindText.Length == 0) {
+                return;
+            }
+            MDIMain.UseWaitCursor = true;
+            search.StartDlg = true;
+            switch (search.Mode) {
+            case SearchMode.FindLogic:
+            case SearchMode.ReplaceLogic:
+            case SearchMode.FindText:
+            case SearchMode.ReplaceText:
+            case SearchMode.FindWordsLogic:
+            case SearchMode.FindObjsLogic:
+            case SearchMode.ReplaceWordsLogic:
+            case SearchMode.ReplaceObjsLogic:
+                // if searching current, or searching all open, there must be at least one open
+                // logic editor
+                if (search.Scope != SearchScope.All) {
+                    if (LogicEditors.Count == 0) {
+                        MDIMain.UseWaitCursor = false;
+                        return;
+                    }
+                }
+                Form startsearchform;
+                // confirm starting from a logic
+                if (MDIMain.ActiveMdiChild.Name == "frmLogicEdit") {
+                    startsearchform = MDIMain.ActiveMdiChild;
+                }
+                else {
+                    startsearchform = MDIMain;
+                }
+                switch (action) {
+                case FindAction.Find:
+                    FindInLogic(startsearchform, search, false);
+                    break;
+                case FindAction.Replace:
+                    FindInLogic(startsearchform, search, true);
+                    break;
+                case FindAction.ReplaceAll:
+                    ReplaceAll(startsearchform, search);
+                    break;
+                }
+                break;
+            case SearchMode.FindWord:
+            case SearchMode.ReplaceWord:
+                if (MDIMain.ActiveMdiChild is frmWordsEdit wordeditform) {
+                    switch (action) {
+                    case FindAction.Find:
+                        wordeditform.FindInWords(search, false);
+                        break;
+                    case FindAction.Replace:
+                        wordeditform.FindInWords(search, true);
+                        break;
+                    case FindAction.ReplaceAll:
+                        wordeditform.ReplaceAll(search);
+                        break;
+                    }
+                }
+                break;
+            case SearchMode.FindObject:
+            case SearchMode.ReplaceObject:
+                if (MDIMain.ActiveMdiChild is frmObjectEdit objeditform) {
+                    switch (action) {
+                    case FindAction.Find:
+                        objeditform.FindInObjects(search, false);
+                        break;
+                    case FindAction.Replace:
+                        objeditform.FindInObjects(search, true);
+                        break;
+                    case FindAction.ReplaceAll:
+                        objeditform.ReplaceAll(search);
+                        break;
+                    }
+                }
+                break;
+            case SearchMode.FindGlobals:
+                if (MDIMain.ActiveMdiChild is frmGlobals globalsform) {
+                    globalsform.FindInGlobals(search);
+                }
+                break;
+            }
+            // ALWAYS reset the start-in-dialog flag
+            search.StartDlg = false;
+            MDIMain.UseWaitCursor = false;
+        }
+
+        /// <summary>
+        /// Replaces all instances of FindText with ReplaceText in a logic editor
+        /// using the specified search parameters.
+        /// </summary>
+        /// <param name="findText"></param>
+        /// <param name="ReplaceText"></param>
+        /// <param name="MatchWord"></param>
+        /// <param name="MatchCase"></param>
+        /// <param name="SearchType"></param>
+        /// <param name="SearchWin"></param>
+        private static void ReplaceAllText(string findText, SearchParameters search, frmLogicEdit SearchWin) {
+            // replaces text in a logic editor
+
+            if (search.Type != AGIResType.None) {
+                // ignore text editors
+                if (SearchWin.FormMode == LogicFormMode.Text) {
+                    return;
+                }
+            }
+
+            Place start = SearchWin.fctb.Selection.Start;
+            Place end = SearchWin.fctb.Selection.End;
+            string pattern = Regex.Escape(findText);
+            RegexOptions regexOptions = search.MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase;
+
+            if (search.MatchWord) {
+                // if not surrounded by quotes, add word boundaries
+                if (findText[0] != '\"') {
+                    // don't use "\b"; it doesn't work in all cases;
+                    // instead use lookahead/lookbehind for word chars
+                    pattern = @"(?<!\w)" + pattern;
+                }
+                if (findText[^1] != '\"') {
+                    pattern += @"(?!\w)";
+                }
+                MatchCollection matches = Regex.Matches(SearchWin.fctb.Text, pattern, regexOptions);
+                for (int i = matches.Count - 1; i >= 0; i--) {
+                    switch (search.Type) {
+                    case Words:
+                        // validate it's a word arg
+                        if (!IsVocabWord(matches[i].Index, SearchWin.fctb.Text)) {
+                            continue;
+                        }
+                        break;
+                    case Objects:
+                        // validate it's an object arg
+                        if (!IsInvObject(matches[i].Index, SearchWin.fctb.Text)) {
+                            continue;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                    SearchWin.fctb.ReplaceText(matches[i].Index, matches[i].Length, search.ReplaceText);
+                    search.ReplaceCount++;
+                }
+            }
+            else {
+                // if matchword is false, searchtype will always be default,
+                // so no need to check for words/objects replacements
+                SearchWin.fctb.Text = Regex.Replace(SearchWin.fctb.Text, findText, x => {
+                    search.ReplaceCount++;
+                    return search.ReplaceText;
+                }, regexOptions);
+            }
+            SearchWin.fctb.Selection.Start = start;
+            SearchWin.fctb.Selection.End = end;
+            SearchWin.fctb.DoSelectionVisible();
+            SearchWin.fctb.Refresh();
+        }
+
+        /// <summary>
+        /// Replaces all instances of FindText with ReplaceText in a logic source file
+        /// using the specified search parameters.
+        /// </summary>
+        /// <param name="findText"></param>
+        /// <param name="ReplaceText"></param>
+        /// <param name="MatchWord"></param>
+        /// <param name="MatchCase"></param>
+        /// <param name="SearchType"></param>
+        /// <param name="SearchLogic"></param>
+        private static void ReplaceAllText(string findText, SearchParameters search, Logic SearchLogic) {
+            // replaces text in a logic source file
+
+            string pattern = Regex.Escape(findText);
+            RegexOptions regexOptions = search.MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase;
+
+            if (search.MatchWord) {
+                // if not surrounded by quotes, add word boundaries
+                if (findText[0] != '\"') {
+                    // don't use "\b"; it doesn't work in all cases;
+                    // instead use lookahead/lookbehind for word chars
+                    pattern = @"(?<!\w)" + pattern;
+                }
+                if (findText[^1] != '\"') {
+                    pattern += @"(?!\w)";
+                }
+                MatchCollection matches = Regex.Matches(SearchLogic.SourceText, pattern, regexOptions);
+                for (int i = matches.Count - 1; i >= 0; i--) {
+                    switch (search.Type) {
+                    case Words:
+                        // validate it's a word arg
+                        if (!IsVocabWord(matches[i].Index, SearchLogic.SourceText)) {
+                            continue;
+                        }
+                        break;
+                    case Objects:
+                        // validate it's an object arg
+                        if (!IsInvObject(matches[i].Index, SearchLogic.SourceText)) {
+                            continue;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                    SearchLogic.SourceText = SearchLogic.SourceText.ReplaceFirst(findText, search.ReplaceText, matches[i].Index);
+                    search.ReplaceCount++;
+                }
+            }
+            else {
+                // if matchword is false, searchtype will always be default,
+                // so no need to check for words/objects replacements
+                SearchLogic.SourceText = Regex.Replace(SearchLogic.SourceText, findText, x => {
+                    search.ReplaceCount++;
+                    return search.ReplaceText;
+                }, regexOptions);
+            }
+        }
+
+        private static bool ReplaceAllText(ref string sourceText, string findText, SearchParameters search) {
+            string pattern = Regex.Escape(findText);
+            RegexOptions regexOptions = search.MatchCase ? RegexOptions.None : RegexOptions.IgnoreCase;
+
+            if (search.MatchWord) {
+                // if not surrounded by quotes, add word boundaries
+                if (findText[0] != '\"') {
+                    // don't use "\b"; it doesn't work in all cases;
+                    // instead use lookahead/lookbehind for word chars
+                    pattern = @"(?<!\w)" + pattern;
+                }
+                if (findText[^1] != '\"') {
+                    pattern += @"(?!\w)";
+                }
+                MatchCollection matches = Regex.Matches(sourceText, pattern, regexOptions);
+                if (matches.Count == 0) {
+                    return false;
+                }
+                for (int i = matches.Count - 1; i >= 0; i--) {
+                    switch (search.Type) {
+                    case Words:
+                        // validate it's a word arg
+                        if (!IsVocabWord(matches[i].Index, sourceText)) {
+                            continue;
+                        }
+                        break;
+                    case Objects:
+                        // validate it's an object arg
+                        if (!IsInvObject(matches[i].Index, sourceText)) {
+                            continue;
+                        }
+                        break;
+                    default:
+                        break;
+                    }
+                    sourceText = sourceText.ReplaceFirst(findText, search.ReplaceText, matches[i].Index);
+                    search.ReplaceCount++;
+                }
+                return true;
+            }
+            else {
+                // if matchword is false, searchtype will always be default,
+                // so no need to check for words/objects replacements
+                bool retval = false;
+                sourceText = Regex.Replace(sourceText, findText, x => {
+                    search.ReplaceCount++;
+                    retval = true;
+                    return search.ReplaceText;
+                }, regexOptions);
+                return retval;
+            }
+        }
+
+        public static int FindWholeWord(int startPos, string searchText, SearchParameters search) {
+            // will return the character position of first occurence of strFind in strText,
+            // only if it is a whole word
+            // whole word is defined as a word where the character in front of the word is a
+            // separator (or word is at beginning of string) AND character after word is a
+            // separator (or word is at end of string)
+            //
+            // separators are any character EXCEPT:
+            // #, $, %, ., 0-9, @, A-Z, _, a-z
+            // (codes 35 To 37, 46, 48 To 57, 64 To 90, 95, 97 To 122)
+            int pos;
+            bool frontOK;
+            StringComparison compareMode;
+
+            if (search.FindText.Length == 0) {
+                return -1;
+            }
+            if (search.MatchCase) {
+                compareMode = StringComparison.Ordinal;
+            }
+            else {
+                compareMode = StringComparison.OrdinalIgnoreCase;
+            }
+            // set position to start
+            pos = startPos;
+            do {
+                // if doing a reverse search
+                if (search.Direction == SearchDirection.Previous) {
+                    pos = searchText.LastIndexOf(search.FindText, pos, compareMode);
+                }
+                else {
+                    pos = searchText.IndexOf(search.FindText, pos, compareMode);
+                }
+                // easy check is to see if strFind is even in strText
+                if (pos == -1) {
+                    return -1;
+                }
+                // check character in front
+                if (pos > 0) {
+                    switch (searchText[pos - 1]) {
+                    case '#' or '$' or '%' or '_' or (>= '0' and <= '9') or (>= 'A' and <= 'Z') or (>= 'a' and <= 'z'):
+                        // word is NOT whole word
+                        frontOK = false;
+                        break;
+                    default:
+                        frontOK = true;
+                        break;
+                    }
+                }
+                else {
+                    frontOK = true;
+                }
+                if (frontOK) {
+                    // check character in back
+                    if (pos + search.FindText.Length < searchText.Length) {
+                        switch (searchText[pos + search.FindText.Length]) {
+                        case '#' or '$' or '%' or '_' or (>= '0' and <= '9') or (>= 'A' and <= 'Z') or (>= 'a' and <= 'z'):
+                            // word is NOT whole word
+                            // let loop try again at next position in string
+                            break;
+                        default:
+                            // is validation required
+                            switch (search.Type) {
+                            case Words:
+                                // validate vocab word
+                                if (IsVocabWord(pos, searchText)) {
+                                    // word IS a whole word
+                                    return pos;
+                                }
+                                break;
+                            case Objects:
+                                // validate an inventory object
+                                if (IsInvObject(pos, searchText)) {
+                                    // word IS a whole word
+                                    return pos;
+                                }
+                                break;
+                            default:
+                                // no validation - word IS a whole word
+                                return pos;
+                            }
+                            break;
+                        }
+                    }
+                    else {
+                        // word IS a whole word
+                        return pos;
+                    }
+                }
+                // entire string not checked yet - try again
+                if (search.Direction == SearchDirection.Previous) {
+                    pos--;
+                }
+                else {
+                    pos++;
+                }
+            } while (pos != -1);
+            // no position found
+            return -1;
         }
         #endregion
 
@@ -8750,7 +9400,7 @@ namespace WinAGI.Editor {
             //      then add a HideRoom entry
 
             // read all NDJSON lines from the file
-            List<string> lines = File.ReadAllLines(path, Encoding.UTF8).ToList();
+            List<string> lines = [.. File.ReadAllLines(path, Encoding.UTF8)];
             if (lines.Count == 0) {
                 return;
             }
@@ -9345,7 +9995,7 @@ namespace WinAGI.Editor {
                                 InventoryItem item = EditGame.InvObjects[i];
                                 string name = item.ItemName == "?" ?
                                     "i" + i.ToString() :
-                                    NewDefineName("i." + item.ItemName, InvItem, (byte)i);
+                                    NewDefineName("i." + item.ItemName);
                                 names.Add(name);
                                 items.Add("%object " + name.PadRight(20) + i.ToString().PadLeft(4));
                             }
@@ -9384,7 +10034,7 @@ namespace WinAGI.Editor {
                 }
             }
 
-            string NewDefineName(string argName, ArgType type, byte argNum) {
+            string NewDefineName(string argName) {
                 // creates a unique, short, codesafe name for this arg
                 string baseName = LogicDecoder.CleanString(argName);
                 if (baseName.Length > 18) {
@@ -9839,7 +10489,14 @@ namespace WinAGI.Editor {
                 if (!tmpLogic.Loaded) {
                     tmpLogic.Load();
                 }
-                if (FindWholeWord(0, tmpLogic.SourceText, token, true, false, AGIResType.None) != -1) {
+                SearchParameters tokensearch = new() {
+                    FindText = token,
+                    MatchCase = true,
+                    MatchWord = true,
+                    Type = AGIResType.None
+                };
+
+                if (FindWholeWord(0, tmpLogic.SourceText, tokensearch) != -1) {
                     EditGame.Logics.MarkAsChanged(tmpLogic.Number);
                     RefreshTree(AGIResType.Logic, tmpLogic.Number);
                 }
@@ -10203,4 +10860,235 @@ namespace WinAGI.Editor {
         }
     }
 
+    public sealed class LineIndex {
+        private readonly string _text;
+        private readonly List<int> _lineStarts = [0];
+
+        public LineIndex(string text) {
+            _text = text ?? throw new ArgumentNullException(nameof(text));
+
+            for (int i = 0; i < text.Length - 1; i++) {
+                if (text[i] == '\r' && text[i + 1] == '\n') {
+                    _lineStarts.Add(i + 2);
+                    i++; // skip '\n'
+                }
+            }
+        }
+
+        public (int lineNumber, string lineText) GetLineAtIndex(int index) {
+            if (index < 0 || index >= _text.Length)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            // Find the greatest line start <= index
+            int lineIdx = _lineStarts.BinarySearch(index);
+
+            if (lineIdx < 0)
+                lineIdx = ~lineIdx - 1;
+
+            int lineStart = _lineStarts[lineIdx];
+
+            int lineEnd;
+            if (lineIdx + 1 < _lineStarts.Count) {
+                // Previous character pair before next line start is \r\n
+                lineEnd = _lineStarts[lineIdx + 1] - 2;
+            }
+            else {
+                lineEnd = _text.Length;
+            }
+
+            string lineText = _text[lineStart..lineEnd];
+
+            return (lineIdx, lineText); // 0-based line numbers
+        }
+    }
+
+    public class SearchParameters {
+        #region Fields
+        private SearchMode mode = SearchMode.None;
+        private SearchDirection direction = SearchDirection.Next;
+        private SearchScope scope = SearchScope.Current;
+        private bool matchWord = false;
+        private bool matchCase = false;
+        private string findText = "";
+        private string replaceText = "";
+        internal bool FindAll = false;
+        private bool findSynonym = false;
+        public int FindGrpNum;
+        public int StartPos;
+        public int StartLog;
+        public AGIResType Type;
+        public int ObjStartPos;
+        public int StartWord;
+        public int StartGrp;
+        public bool FoundOnce;
+        public bool ChangingID;
+        public bool Restart;
+        public bool ClosedLogics;
+        public int LastClosedLogic;
+        public int ReplaceCount;
+        public bool StartDlg; // true if search started by clicking 'find' or 'find next' on SearchForm
+        public BindingList<string> SearchTerms = [];
+        #endregion
+
+        #region Properties
+        public SearchMode Mode {
+            get => mode;
+            set {
+                if (mode != value) {
+                    mode = value;
+                    Reset();
+                    if (mode != SearchMode.FindWordsLogic) {
+                        FindSynonym = false;
+                    }
+                    SearchChanged(this, new(nameof(Mode)));
+                }
+            }
+        }
+
+        public SearchDirection Direction {
+            get => direction;
+            set {
+                if (direction != value) {
+                    direction = value;
+                    Reset();
+                    SearchChanged(this, new(nameof(Direction)));
+                    CheckModeChange();
+                }
+            }
+        }
+
+        public SearchScope Scope {
+            get => scope;
+            set {
+                if (scope != value) {
+                    scope = value;
+                    Reset();
+                    SearchChanged(this, new(nameof(Scope)));
+                    CheckModeChange();
+                }
+            }
+        }
+
+        public bool MatchWord {
+            get => matchWord;
+            set {
+                if (matchWord != value) {
+                    matchWord = value;
+                    Reset();
+                    SearchChanged(this, new(nameof(MatchWord)));
+                    CheckModeChange();
+                }
+            }
+        }
+
+        public bool MatchCase {
+            get => matchCase;
+            set {
+                if (matchCase != value) {
+                    matchCase = value;
+                    Reset();
+                    SearchChanged(this, new(nameof(MatchCase)));
+                    CheckModeChange();
+                }
+            }
+        }
+
+        public bool FindSynonym {
+            get => findSynonym;
+            set {
+                if (findSynonym != value) {
+                    findSynonym = value;
+                    Reset();
+                    SearchChanged(this, new(nameof(FindSynonym)));
+                }
+            }
+        }
+
+        public string FindText {
+            get => findText;
+            set {
+                if (findText != value) {
+                    findText = value;
+                    Reset();
+                    UpdateSearchList(value);
+                    SearchChanged(this, new(nameof(FindText)));
+                    CheckModeChange();
+                }
+            }
+        }
+
+        public string ReplaceText {
+            get => replaceText;
+            set {
+                if (replaceText != value) {
+                    replaceText = value;
+                    Reset();
+                    SearchChanged(this, new(nameof(ReplaceText)));
+                    CheckModeChange();
+                }
+            }
+        }
+        #endregion
+
+        #region Methods
+        public void Reset() {
+            // reset search parameters
+
+            // parameters for all searches
+            FoundOnce = false;
+            Restart = false;
+            // parameters for logic/text editors
+            StartLog = -1;
+            StartPos = -1;
+            ClosedLogics = false;
+            // object editor search parameters
+            ObjStartPos = -1;
+            // word editor search parameters
+            StartWord = -1;
+            StartGrp = -1;
+        }
+
+        private void UpdateSearchList(string newterm) {
+            if (newterm.Length == 0) {
+                return;
+            }
+            // if multiline, the newline characters won't be visible in the dropdown,
+            // so the displayed text might look a bit strange; maybe in the future
+            // we could replace newlines with something like \n in the dropdown,
+            // but for now just add the text as is
+            if (!SearchTerms.Contains(newterm)) {
+                SearchTerms.Insert(0, newterm);
+            }
+            if (SearchTerms.Count == 12) {
+                SearchTerms.RemoveAt(11);
+            }
+        }
+
+        private void CheckModeChange() {
+            // when properties change, always revert a find/replace in logic
+            // mode to regular find/replace
+            switch (Search.Mode) {
+            case SearchMode.FindWordsLogic:
+            case SearchMode.FindObjsLogic:
+                Mode = SearchMode.FindLogic;
+                break;
+            case SearchMode.ReplaceWordsLogic:
+            case SearchMode.ReplaceObjsLogic:
+                Search.Mode = SearchMode.ReplaceLogic;
+                break;
+            }
+        }
+        #endregion
+
+        #region Events
+        public class SearchChangedEventArgs(string property) {
+            public string Property {
+                get;
+            } = property;
+        }
+
+        public delegate void SearchChangedEventHandler(object sender, SearchChangedEventArgs e);
+        public event SearchChangedEventHandler SearchChanged;
+        #endregion
+    }
 }

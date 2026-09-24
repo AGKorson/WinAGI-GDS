@@ -1,0 +1,55 @@
+<html>
+	<head><title>Searching and Replacing Text</title><link href="..\styles\coUA.css" type="text/css" rel="stylesheet"></head>
+  <body>
+    <a name="_top"></a>
+    <table class="main" cellSpacing="0" cellPadding="0" width="*" border="0">
+      <tr>
+        <td rowspan="1" align="left" style="vertical-align:top" width="*"><img src="..\..\graphics\banner-winagi.gif" width="460" height="72" border="0" alt="WinAGI GDS"></td>
+      </tr>
+    </table>
+    <h1>Searching and Replacing Text</h1>
+      <p>All editors in WinAGI that manage text elements of game resources (<a href="..\agi\logics.htm">logics</a>, include (text) files, <a href="..\agi\object.htm">OBJECT</a> file, <a href="..\agi\words.htm">WORDS.TOK</a> file, <a href="editor_globals.htm">global defines</a> list) use a common engine to manage search and replace operations. The primary method for searches is to display the Find/Replace dialog:</p>
+      <p><img alt="Find/Replace Dialog" src="..\..\graphics\logicfind.jpg" width="495"></p>
+      <p>The Find/Replace dialog will remain on top of all WinAGI editors until you dismiss it by clicking Close. To switch to 'replace' mode, click the Replace button.</p>
+      <p>Enter the search string in the 'Find what:' text box. WinAGI does not support wild card searches.</p>
+      <p>The search scope can be one of the following: the current document, all editors currently open, or the entire project (all game resources).</p>
+      <ul><ul>
+        <li><b>Current document:</b> searches only the currently active open resource/tool editor</li>
+        <li><b>All Open documents:</b> searches all open resource editors</li>
+        <li><b>Entire Project:</b> (only available if a game is open) searches all logics and include files in a game whether they are open for editing or not; as well as all other open logic or text editors</li>
+      </ul></ul>
+      <p>The direction of the search can be set to:</p>
+      <ul><ul>
+        <li><b>Next:</b> searches forward, until end of search scope is reached, loops back to the beginning of the search scope, then continues until starting point of search is reached</li>
+        <li><b>Previous:</b> searches backward, until beginning of search scope is reached, loops back to the end of the search scope, then continues until starting point of search is reached</li>
+      </ul></ul>
+    <h2><a name="findall">Find All</a></h2>
+      <p><img alt="Search Tab" src="..\..\graphics\searchpanel.jpg" width="641"></p>
+      <p>The Find All feature will locate all instances of the specified search term and display them as a list in the Search tab (which shares space with the <a href="warninglist.htm">Errors and Warning list</a>. You can double-click an entry to immediately move to the specified line in the specified resource.</p>
+      <p>When using the Find All feature when the scope is set to Entire Project, in addition to all game logics, the results also include the game's OBJECT and WORDS.TOK files and the global defines list.</p>
+      <p>When the Search tab is visible, you can also conduct searches using the Search toolbar. It functions exactly the same as the Find dialog.</p>
+      <p>&nbsp;</p>
+      <p>Search and replace features vary slightly depending on the currently active editor:</p>
+    <h3>Logics and Text Editors</h3>
+      <p>When beginning a search from an open logic or text editor, all search features are available. The 'Entire Project' scope includes all logics and include files as well as all other open logic and text editors; it does not include the OBJECT or WORDS.TOK files.</p>
+    <h3><a name="object">OBJECT</a> Editor</h3>
+      <p>When beginning a search from an <a href="editor_object.htm">OBJECT file editor</a>, the search scope is limited to the active editor.</p>
+    <h3><a name="words">WORDS.TOK</a></h3>
+      <p>When beginning a search from a <a href="editor_words.htm">WORDS.TOK file editor</a>, the search scope is limited to the active editor. Because words are limited to only lower case letters, the match case option is always ignored.</p>
+    <h3><a name="globals">global</a> defines</h3>
+      <p>When beginning a search from a <a href="editor_globals.htm">global defines</a> editor, the search scope is limited to the active editor. The search will look for a match in <a href="..\commands\syntax_fan.htm#defines">define</a> names, define values and define comments.</p>
+    <h2><a name="findinlogics">Find in Logics</a></h2>
+      <p>For the OBJECT, WORDS.TOK and global editors, the Find in Logics command on the Edit menu allows you to search for a specific term (inventory item, word, global define name) in all of your <a href="..\agi\logics.htm">logic</a> resources. To use this feature, select the item you wish to search for, then choose the Find in Logics command.</p>
+      <p>WinAGI will search all logics in your game for the selected item. Note that changing any of the search parameters will switch to the normal 'search in logics' mode.</p>
+      <p>For word searched, you can optionally search for word synonyms in addition to the selected word:</p>
+      <ul><ul>
+        <li>If you select an individual word from the word list of a group, then WinAGI assumes you want to search for that specific word.</li>
+        <li>If you select a group, WinAGI assumes you want the search to include synonyms (all words in the group).</li>
+      </ul></ul>
+      </p>
+      <p>In either case, you can change the synonym search option by using the 'Include Synonyms' option on the Find dialog. With this option enabled, WinAGI will find all instances of all words in this group.</p>
+    <p>&nbsp;</p>
+    <p align="right"><font size="1">v3.0.0</font></p>
+    <p>&nbsp;</p>
+  </body>
+</html>

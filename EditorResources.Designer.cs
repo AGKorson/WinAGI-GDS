@@ -6408,6 +6408,16 @@ namespace WinAGI.Editor {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap findall16 {
+            get {
+                object obj = ResourceManager.GetObject("findall16", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap note16down {
             get {
                 object obj = ResourceManager.GetObject("note16down", resourceCulture);
@@ -6581,6 +6591,26 @@ namespace WinAGI.Editor {
         internal static System.Drawing.Bitmap rest8 {
             get {
                 object obj = ResourceManager.GetObject("rest8", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap revsearch16 {
+            get {
+                object obj = ResourceManager.GetObject("revsearch16", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap search16 {
+            get {
+                object obj = ResourceManager.GetObject("search16", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

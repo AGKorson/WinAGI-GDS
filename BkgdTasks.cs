@@ -572,9 +572,8 @@ namespace WinAGI.Common {
                     // everything is ok
                     MDIMain.UseWaitCursor = false;
                     if (CompGameResults.Warnings) {
-                        if (!MDIMain.pnlInfoGrid.Visible) {
-                            MDIMain.pnlInfoGrid.Visible = true;
-                        }
+                        // display infogrid in tooltab
+                        MDIMain.ShowInfoTab();
                         MessageBox.Show(MDIMain,
                             "Warnings were generated during game" + (CompGameResults.Mode == CompileMode.RebuildOnly ? "rebuild." : "compile."),
                             CompGameResults.Mode == CompileMode.RebuildOnly ? "Rebuild VOL Files" : "Compile Game",
@@ -687,11 +686,8 @@ namespace WinAGI.Common {
                             // reuild resource list if there were errors
                             MDIMain.BuildResourceTree();
                         }
-                        if (CompStatusWin.Warnings > 0) {
-                            if (!MDIMain.pnlInfoGrid.Visible) {
-                                MDIMain.pnlInfoGrid.Visible = true;
-                            }
-                        }
+                        // display infogrid in tooltab
+                        MDIMain.ShowInfoTab();
                     }
                     else {
                         // everything is ok

@@ -190,14 +190,13 @@ namespace WinAGI.Editor {
         #region Event Handlers
         #region Form Events
         private void frmLogicEdit_Activated(object sender, EventArgs e) {
-            if (FindingForm.Visible &&
-                FindingForm.FormFunction != FindFormFunction.FindWordsLogic &&
-                FindingForm.FormFunction != FindFormFunction.FindObjsLogic) {
-                if (FindingForm.rtfReplace.Visible) {
-                    FindingForm.SetForm(FindFormFunction.ReplaceLogic, InGame);
+            if (Search.Mode != SearchMode.FindWordsLogic &&
+            Search.Mode != SearchMode.FindObjsLogic) {
+                if (SearchForm.rtfReplace.Visible) {
+                    Search.Mode = SearchMode.ReplaceLogic;
                 }
                 else {
-                    FindingForm.SetForm(FindFormFunction.FindLogic, InGame);
+                    Search.Mode = SearchMode.FindLogic;
                 }
             }
             if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
@@ -239,7 +238,7 @@ namespace WinAGI.Editor {
             foreach (frmLogicEdit frm in LogicEditors) {
                 if (frm == this) {
                     LogicEditors.Remove(frm);
-                    frmFind.ResetSearch();
+                    Search.Reset();
                     break;
                 }
             }
@@ -485,7 +484,7 @@ namespace WinAGI.Editor {
             mnuESelectAll.Enabled = fctb.TextLength > 0;
             mnuESnippet.Visible = WinAGISettings.UseSnippets.Value;
             mnuESnippet.Text = fctb.Selection.Length > 0 ? "Create Code Snippet..." : "Insert Code Snippet";
-            mnuEFindAgain.Enabled = GFindText.Length > 0;
+            mnuEFindAgain.Enabled = Search.FindText.Length > 0;
             mnuEListCommands.Visible = InGame && !EditGame.SierraSyntax;
             mnuEListDefines.Visible = InGame;
             // default to not visible
@@ -689,33 +688,27 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEFind_Click(object sender, EventArgs e) {
-            FindingForm.SetForm(FormMode == LogicFormMode.Logic ? FindFormFunction.FindLogic : FindFormFunction.FindText, InGame);
             if (fctb.SelectionLength > 0) {
-                FindingForm.txtFind.Text = fctb.SelectedText;
+                Search.FindText = fctb.SelectedText;
             }
-            if (!FindingForm.Visible) {
-                FindingForm.Visible = true;
-            }
-            FindingForm.Select();
-            FindingForm.txtFind.Select();
+            Search.Mode = FormMode == LogicFormMode.Logic ? SearchMode.FindLogic : SearchMode.FindText;
+            SearchForm.Visible = true;
+            SearchForm.Select();
         }
 
         private void mnuEFindAgain_Click(object sender, EventArgs e) {
-            if (GFindText.Length > 0) {
-                FindInLogic(this, GFindText, GFindDir, GMatchWord, GMatchCase, GLogFindLoc);
+            if (Search.FindText.Length > 0) {
+                FindInLogic(this, Search, false);
             }
         }
 
         private void mnuEReplace_Click(object sender, EventArgs e) {
-            FindingForm.SetForm(FormMode == LogicFormMode.Logic ? FindFormFunction.ReplaceLogic : FindFormFunction.ReplaceText, InGame);
             if (fctb.SelectionLength > 0) {
-                FindingForm.txtFind.Text = fctb.SelectedText;
+                Search.FindText = fctb.SelectedText;
             }
-            if (!FindingForm.Visible) {
-                FindingForm.Visible = true;
-            }
-            FindingForm.Select();
-            FindingForm.rtfReplace.Select();
+            Search.Mode = FormMode == LogicFormMode.Logic ? SearchMode.ReplaceLogic : SearchMode.ReplaceText;
+            SearchForm.Visible = true;
+            SearchForm.Select();
         }
 
         private void mnuESnippet_Click(object sender, EventArgs e) {
@@ -4851,7 +4844,7 @@ namespace WinAGI.Editor {
             }
             btnUndo.Enabled = rtfLogic1.UndoEnabled;
             btnRedo.Enabled = rtfLogic1.RedoEnabled;
-            frmFind.ResetSearch();
+            Search.Reset();
         }
 
         private void MarkAsSaved() {

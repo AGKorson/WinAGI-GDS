@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.83
+        Version 3.0.0beta.84
     ==============================
 
 
@@ -32,6 +32,10 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
   
 ### History:
+Beta.84:
+- major refactor of find functions, including addition of a FindAll feature that displays a list of all matching items in the infogrid panel area (as a separate tab)
+- added a search function to the globals editor
+
 Beta.83:
 - refactored logic and text file open functions to more efficiently handle checks for existing open editors
 - refactored error/warning highlighter functions to handle logics and includes more efficiently

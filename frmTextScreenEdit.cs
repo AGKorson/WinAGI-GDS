@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -131,9 +130,8 @@ namespace WinAGI.Editor {
         }
 
         private void frmTextScreenEdit_Activated(object sender, EventArgs e) {
-            if (FindingForm.Visible) {
-                FindingForm.Visible = false;
-            }
+            SearchForm.Visible = false;
+            Search.Mode = SearchMode.FindLogic;
             if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
                 MDIMain.RefreshInfoGrid();
             }

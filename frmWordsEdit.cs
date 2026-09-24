@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -91,13 +90,11 @@ namespace WinAGI.Editor {
         }
 
         private void frmWordsEdit_Activated(object sender, EventArgs e) {
-            if (FindingForm.Visible) {
-                if (FindingForm.rtfReplace.Visible) {
-                    FindingForm.SetForm(FindFormFunction.ReplaceWord, InGame);
-                }
-                else {
-                    FindingForm.SetForm(FindFormFunction.FindWord, InGame);
-                }
+            if (SearchForm.rtfReplace.Visible) {
+                Search.Mode = SearchMode.ReplaceWord;
+            }
+            else {
+                Search.Mode = SearchMode.FindWord;
             }
             if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
                 MDIMain.RefreshInfoGrid();
@@ -116,10 +113,8 @@ namespace WinAGI.Editor {
         private void frmWordsEdit_FormClosed(object sender, FormClosedEventArgs e) {
             // ensure object is cleared and dereferenced
 
-            if (EditWordList is not null) {
-                EditWordList.Unload();
-                EditWordList = null;
-            }
+            EditWordList?.Unload();
+            EditWordList = null;
             if (InGame) {
                 // form stays in MDIChild collection until AFTER
                 // FormClosed is complete; to avoid problems with 
@@ -432,7 +427,7 @@ namespace WinAGI.Editor {
                     tmpLogic.Unload();
                 }
             }
-            List<string> stlOutput = new();
+            List<string> stlOutput = [];
             //  go through all groups, make list of any that are unused
             for (int i = 0; i < GroupUsed.Length; i++) {
                 if (!GroupUsed[i]) {
@@ -554,7 +549,7 @@ namespace WinAGI.Editor {
                 }
             }
             // find again depends on search status
-            mnuEFindAgain.Enabled = GFindText.Length > 0;
+            mnuEFindAgain.Enabled = Search.FindText.Length > 0;
             if (dgGroups.Focused) {
                 mnuEditItem.Text = "Renumber Group";
                 mnuEditItem.Enabled = EditGroupNumber > 1 &&
@@ -573,7 +568,7 @@ namespace WinAGI.Editor {
                 }
             }
             if (dgGroups.Focused) {
-                mnuEFindInLogic.Enabled = EditGroupNumber >= 0;
+                mnuEFindInLogic.Enabled = EditGroupNumber >= 0 && EditWordList.GroupByNumber(EditGroupNumber).WordCount > 0;
             }
             else {
                 mnuEFindInLogic.Enabled = EditWordText.Length > 0;
@@ -760,7 +755,7 @@ namespace WinAGI.Editor {
             }
         }
 
-        private bool CanCut(bool confirmspecial = false) {
+        private bool CanCut() {
             // cut(delete) is enabled if mode is group or word, and a group or word is selected
             //   NOT grp 0, 1, 1999
             if (EditingGroup || EditingWord) {
@@ -909,16 +904,7 @@ namespace WinAGI.Editor {
             string msgtext = "";
             if (CanPaste()) {
                 if (dgGroups.Focused) {
-                    WordClipboardData groupdata = Clipboard.GetData(WORDSTOK_CB_FMT) as WordClipboardData;
-                    if (groupdata is null) {
-                        // no custom clipboard data
-                        MessageBox.Show(MDIMain,
-                            "The clipboard doesn't contain a valid group.",
-                            "Nothing to Paste",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Information);
-                    }
-                    else {
+                    if (Clipboard.GetData(WORDSTOK_CB_FMT) is WordClipboardData groupdata) {
                         // clipboard contains a single group
                         WordsUndo NextUndo = new() {
                             Action = WordsUndo.ActionType.PasteGroup,
@@ -971,6 +957,14 @@ namespace WinAGI.Editor {
                         // select the pasted group
                         UpdateSelection(newgroupnum, 0);
                     }
+                    else {
+                        // no custom clipboard data
+                        MessageBox.Show(MDIMain,
+                            "The clipboard doesn't contain a valid group.",
+                            "Nothing to Paste",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                    }
                     return;
                 }
                 if (dgWords.Focused) {
@@ -984,7 +978,7 @@ namespace WinAGI.Editor {
                     }
                     else if (Clipboard.ContainsText(TextDataFormat.UnicodeText)) {
                         word = Clipboard.GetText(TextDataFormat.UnicodeText).LowerAGI();
-                        if (word.Contains('\n') || word.Contains("\r")) {
+                        if (word.Contains('\n') || word.Contains('\r')) {
                             word = "";
                         }
                         if (word.Length > 0 && word[0] == '"') {
@@ -1124,55 +1118,51 @@ namespace WinAGI.Editor {
         }
 
         private void mnuEFind_Click(object sender, EventArgs e) {
-            StartSearch(FindFormFunction.FindWord);
+            StartSearch(SearchMode.FindWord);
         }
 
         private void mnuEFindAgain_Click(object sender, EventArgs e) {
-            if (GFindText.Length == 0) {
-                StartSearch(FindFormFunction.FindWord);
+            if (Search.FindText.Length == 0) {
+                StartSearch(SearchMode.FindWord);
             }
             else {
-                FindInWords(GFindText, GFindDir, GMatchWord);
+                FindInWords(Search, false);
             }
         }
 
         private void mnuEReplace_Click(object sender, EventArgs e) {
-            StartSearch(FindFormFunction.ReplaceWord);
+            StartSearch(SearchMode.ReplaceWord);
         }
 
         private void mnuEFindLogic_Click(object sender, EventArgs e) {
             if (!InGame || EditWordText.Length == 0) {
                 return;
             }
-            frmFind.ResetSearch();
+            Search.Reset();
             FirstFind = false;
-            GFindDir = FindDirection.Next;
-            GMatchWord = true;
-            GMatchCase = true;
-            GLogFindLoc = FindLocation.All;
-            GFindSynonym = dgGroups.Focused;
-            GFindGrpNum = EditGroupNumber;
+            Search.Direction = SearchDirection.Next;
+            Search.MatchWord = true;
+            Search.MatchCase = true;
+            Search.Scope = SearchScope.All;
+            Search.FindSynonym = dgGroups.Focused;
+            Search.FindGrpNum = EditGroupNumber;
             if (EditGame is null || !EditGame.SierraSyntax) {
-                GFindText = '"' + EditWordText + '"';
+                Search.FindText = '"' + EditWordText + '"';
             }
             else {
-                GFindText = EditWordText.Replace(' ', '$');
+                Search.FindText = EditWordText.Replace(' ', '$');
             }
-            SearchType = AGIResType.Words;
-            FindingForm.SetForm(FindFormFunction.FindWordsLogic, true);
+            Search.Type = AGIResType.Words;
+            Search.Mode = SearchMode.FindWordsLogic;
             // to avoid unwanted change in form function, don't assign text
             // cmbFind directly
-            FindingForm.SetFindText(GFindText);
-            if (!FindingForm.Visible) {
-                FindingForm.Visible = true;
-            }
-            FindingForm.Select();
+            SearchForm.Visible = true;
+            SearchForm.Select();
         }
 
         private void mnuEMode_Click(object sender, EventArgs e) {
             byte[] buttonicon;
 
-            frmFind.ResetSearch();
             FirstFind = false;
             GroupMode = !GroupMode;
             if (GroupMode) {
@@ -1354,8 +1344,8 @@ namespace WinAGI.Editor {
                     if (EditGroupIndex != selitem) {
                         UpdateSelection(EditWordList.GroupByIndex(selitem).GroupNum, 0, true);
                         // always reset search
-                        StartWord = -1;
-                        StartGrp = -1;
+                        Search.StartWord = -1;
+                        Search.StartGrp = -1;
                     }
                 }
             }
@@ -1648,16 +1638,16 @@ namespace WinAGI.Editor {
                     if (EditWordGroupIndex != selitem) {
                         UpdateSelection((string)dgWords.Rows[selitem].Cells[0].Value);
                         // always reset search
-                        StartWord = -1;
-                        StartGrp = -1;
+                        Search.StartWord = -1;
+                        Search.StartGrp = -1;
                     }
                 }
                 else {
                     if (EditWordIndex != selitem) {
                         UpdateSelection((string)dgWords.Rows[selitem].Cells[0].Value);
                         // always reset search
-                        StartWord = -1;
-                        StartGrp = -1;
+                        Search.StartWord = -1;
+                        Search.StartGrp = -1;
                     }
                 }
             }
@@ -2385,7 +2375,7 @@ namespace WinAGI.Editor {
 
         public void SelectWord(string word) {
             for (int i = 0; i < dgWords.Rows.Count; i++) {
-                if ((string)dgWords.Rows[i].Cells[0].Value == EditWordText) {
+                if ((string)dgWords.Rows[i].Cells[0].Value == word) {
                     dgWords.Rows[i].Selected = true;
                     if (i >= dgWords.FirstDisplayedScrollingRowIndex &&
                         i < dgWords.FirstDisplayedScrollingRowIndex + dgWords.DisplayedRowCount(false)) {
@@ -2825,7 +2815,7 @@ namespace WinAGI.Editor {
                 }
                 else {
                     // create undo object
-                    WordsUndo NextUndo = new WordsUndo {
+                    WordsUndo NextUndo = new() {
                         Action = WordsUndo.ActionType.ChangeWord,
                         GroupNo = thisGroup,
                         Word = newWord,
@@ -3068,8 +3058,11 @@ namespace WinAGI.Editor {
             return -1;
         }
 
-        private void StartSearch(FindFormFunction formFunction) {
-            string searchtext = GFindText;
+        private void StartSearch(SearchMode formFunction) {
+            string searchtext = "";
+            if (EditWordIndex >= 0) {
+                searchtext = EditWordList[EditWordIndex].WordText;
+            }
             if (searchtext.Length > 1) {
                 if (searchtext[0] == '"') {
                     searchtext = searchtext[1..];
@@ -3078,25 +3071,22 @@ namespace WinAGI.Editor {
                     searchtext = searchtext[..^1];
                 }
             }
-            FindingForm.SetForm(formFunction, InGame);
-            FindingForm.SetFindText(searchtext);
-            if (!FindingForm.Visible) {
-                FindingForm.Visible = true;
-            }
-            FindingForm.Select();
-            FindingForm.cmbFind.Select();
+            Search.FindText = searchtext;
+            Search.Mode = formFunction;
+            SearchForm.Visible = true;
+            SearchForm.Select();
         }
 
-        public void FindInWords(string FindText, FindDirection FindDir, bool MatchWord, bool Replacing = false, string ReplaceText = "") {
+        public void FindInWords(SearchParameters search, bool Replacing) {
             int FoundWord, FoundGrp;
 
-            if (Replacing && FindText.Equals(ReplaceText, StringComparison.OrdinalIgnoreCase)) {
+            if (Replacing && search.FindText.Equals(search.ReplaceText, StringComparison.OrdinalIgnoreCase)) {
                 return;
             }
-            if (Replacing && (ReplaceText.Length == 0)) {
+            if (Replacing && (search.ReplaceText.Length == 0)) {
                 return;
             }
-            if (Replacing && ReplaceText.Length == 0) {
+            if (Replacing && search.ReplaceText.Length == 0) {
                 MessageBox.Show(MDIMain,
                     "Blank replacement text is not allowed in word replacement.",
                     "Replace in Word List",
@@ -3130,7 +3120,8 @@ namespace WinAGI.Editor {
             if (SearchWord == -1) {
                 SearchWord = 0;
             }
-            if ((Replacing && FindDir == FindDirection.Previous) || (!Replacing && FindDir != FindDirection.Previous)) {
+            if ((Replacing && search.Direction == SearchDirection.Previous) ||
+                (!Replacing && search.Direction != SearchDirection.Previous)) {
                 SearchWord++;
                 if (GroupMode) {
                     if (SearchWord == EditWordList.GroupByIndex(SearchGrp).WordCount) {
@@ -3154,15 +3145,15 @@ namespace WinAGI.Editor {
             else {
                 // if already AT beginning of search, the replace function will mistakenly
                 // think the find operation is complete and stop
-                if (Replacing && (SearchWord == StartWord && SearchGrp == StartGrp)) {
+                if (Replacing && (SearchWord == search.StartWord && SearchGrp == search.StartGrp)) {
                     // reset search
-                    frmFind.ResetSearch();
+                    search.Reset();
                 }
             }
 
             // main search loop
             do {
-                if (FindDir == FindDirection.Previous) {
+                if (search.Direction == SearchDirection.Previous) {
                     if (GroupMode) {
                         // iterate backwards until word found or GrpFound=-1
                         FoundWord = SearchWord - 1;
@@ -3177,14 +3168,14 @@ namespace WinAGI.Editor {
                         while (FoundGrp != -1) {
                             // skip groups with no words
                             if (EditWordList.GroupByIndex(FoundGrp).WordCount != 0) {
-                                if (MatchWord) {
-                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Equals(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                if (search.MatchWord) {
+                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Equals(search.FindText, StringComparison.OrdinalIgnoreCase)) {
                                         // found
                                         break; // exit do
                                     }
                                 }
                                 else {
-                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Contains(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Contains(search.FindText, StringComparison.OrdinalIgnoreCase)) {
                                         // found
                                         break; // exit do
                                     }
@@ -3223,14 +3214,14 @@ namespace WinAGI.Editor {
                             FoundGrp = EditWordList[FoundWord].Group;
                         }
                         while (FoundGrp != -1) {
-                            if (MatchWord) {
-                                if (EditWordList[FoundWord].WordText.Equals(FindText, StringComparison.OrdinalIgnoreCase)) {
+                            if (search.MatchWord) {
+                                if (EditWordList[FoundWord].WordText.Equals(search.FindText, StringComparison.OrdinalIgnoreCase)) {
                                     // found
                                     break; // exit do
                                 }
                             }
                             else {
-                                if (EditWordList[FoundWord].WordText.Contains(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                if (EditWordList[FoundWord].WordText.Contains(search.FindText, StringComparison.OrdinalIgnoreCase)) {
                                     // found
                                     break; // exit do
                                 }
@@ -3258,14 +3249,14 @@ namespace WinAGI.Editor {
                         do {
                             // skip groups with no words
                             if (EditWordList.GroupByIndex(FoundGrp).WordCount != 0) {
-                                if (MatchWord) {
-                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Equals(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                if (search.MatchWord) {
+                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Equals(search.FindText, StringComparison.OrdinalIgnoreCase)) {
                                         // found
                                         break; // exit do
                                     }
                                 }
                                 else {
-                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Contains(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                    if (EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Contains(search.FindText, StringComparison.OrdinalIgnoreCase)) {
                                         // found
                                         break; // exit do
                                     }
@@ -3296,14 +3287,14 @@ namespace WinAGI.Editor {
                         FoundWord = SearchWord;
                         FoundGrp = SearchGrp;
                         do {
-                            if (MatchWord) {
-                                if (EditWordList[FoundWord].WordText.Equals(FindText, StringComparison.OrdinalIgnoreCase)) {
+                            if (search.MatchWord) {
+                                if (EditWordList[FoundWord].WordText.Equals(search.FindText, StringComparison.OrdinalIgnoreCase)) {
                                     // found
                                     break; // exit do
                                 }
                             }
                             else {
-                                if (EditWordList[FoundWord].WordText.Contains(FindText, StringComparison.OrdinalIgnoreCase)) {
+                                if (EditWordList[FoundWord].WordText.Contains(search.FindText, StringComparison.OrdinalIgnoreCase)) {
                                     // found
                                     break; // exit do
                                 }
@@ -3332,7 +3323,7 @@ namespace WinAGI.Editor {
                 // if found, group will be valid
                 if (FoundGrp >= 0 && FoundGrp < EditWordList.GroupCount) {
                     // if back at start (grp and word same as start)
-                    if (FoundWord == StartWord && FoundGrp == StartGrp) {
+                    if (FoundWord == search.StartWord && FoundGrp == search.StartGrp) {
                         // rest found position so search will end
                         FoundWord = -1;
                         FoundGrp = -1;
@@ -3340,19 +3331,19 @@ namespace WinAGI.Editor {
                     break;
                 }
                 // not found- if already restarted, stop the search
-                if (RestartSearch) {
+                if (search.Restart) {
                     break; // exit do
                 }
                 // reset search so when we get back to start, search will end
-                RestartSearch = true;
+                search.Restart = true;
                 // loop is exited by finding the searchtext or reaching end of search area
             } while (true);
             if (FoundGrp >= 0 && FoundGrp < EditWordList.GroupCount) {
                 if (!FirstFind) {
                     // save this position
                     FirstFind = true;
-                    StartWord = FoundWord;
-                    StartGrp = FoundGrp;
+                    search.StartWord = FoundWord;
+                    search.StartGrp = FoundGrp;
                 }
                 if (GroupMode) {
                     UpdateSelection(EditWordList.GroupByIndex(FoundGrp).GroupNum, FoundWord, true);
@@ -3362,35 +3353,37 @@ namespace WinAGI.Editor {
                 }
                 if (Replacing) {
                     string fullword;
-                    if (!MatchWord) {
+                    string newword;
+                    if (!search.MatchWord) {
                         // update replacetext to include the full word with the replaced section
                         if (GroupMode) {
-                            ReplaceText = EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Replace(FindText, ReplaceText);
+                            newword = EditWordList.GroupByIndex(FoundGrp).Words[FoundWord].Replace(search.FindText, search.ReplaceText);
                             fullword = EditWordList.GroupByIndex(FoundGrp).Words[FoundWord];
                         }
                         else {
-                            ReplaceText = EditWordList[FoundWord].WordText.Replace(FindText, ReplaceText);
+                            newword = EditWordList[FoundWord].WordText.Replace(search.FindText, search.ReplaceText);
                             fullword = EditWordList[FoundWord].WordText;
                         }
                     }
                     else {
-                        fullword = FindText;
+                        fullword = search.FindText;
+                        newword = search.ReplaceText;
                     }
                     // now try to edit the word
-                    if (EditWord(fullword, ReplaceText, EditWordList.GroupByNumber(FoundGrp).GroupNum)) {
+                    if (EditWord(fullword, newword, EditWordList.GroupByNumber(FoundGrp).GroupNum)) {
                         // change undo
                         UndoCol.Peek().Action = WordsUndo.ActionType.Replace;
-                        UpdateSelection(ReplaceText, true);
+                        UpdateSelection(newword, true);
                         // always reset search when replacing, because
                         // word index almost always changes
-                        frmFind.ResetSearch();
+                        search.Reset();
                     }
                 }
             }
             else {
                 if (FirstFind) {
                     MessageBox.Show(MDIMain,
-                        "The specified region has been searched.",
+                        "No more occurrences found in the specified region.",
                         "Find in Word List",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
@@ -3404,17 +3397,17 @@ namespace WinAGI.Editor {
                         MessageBoxIcon.Information);
                 }
                 // reset search flags
-                frmFind.ResetSearch();
+                search.Reset();
             }
             MDIMain.UseWaitCursor = false;
         }
 
-        public void ReplaceAll(string FindText, string ReplaceText, bool MatchWord) {
+        public void ReplaceAll(SearchParameters search) {
 
-            if (FindText == ReplaceText) {
+            if (search.FindText == search.ReplaceText) {
                 return;
             }
-            if (ReplaceText.Length == 0) {
+            if (search.ReplaceText.Length == 0) {
                 // blank replace text not allowed for words
                 MessageBox.Show(MDIMain,
                     "Blank replacement text is not allowed.",
@@ -3432,10 +3425,10 @@ namespace WinAGI.Editor {
                     MessageBoxIcon.Information);
                 return;
             }
-            if (MatchWord) {
+            if (search.MatchWord) {
                 // words are unique, so if replacing entire word, 
                 // ReplaceAll is the same as Replace
-                FindInWords(FindText, FindDirection.Next, true, true, ReplaceText);
+                FindInWords(search, true);
                 return;
             }
 
@@ -3448,9 +3441,9 @@ namespace WinAGI.Editor {
 
             int i = 0;
             do {
-                if (EditWordList[i].WordText.Contains(FindText)) {
+                if (EditWordList[i].WordText.Contains(search.FindText)) {
                     findWord = EditWordList[i].WordText;
-                    replaceWord = EditWordList[i].WordText.Replace(FindText, ReplaceText);
+                    replaceWord = EditWordList[i].WordText.Replace(search.FindText, search.ReplaceText);
                     if (ValidateWord(replaceWord, true) != "!") {
                         if (EditWordList.WordExists(replaceWord)) {
                             EditWord(findWord, replaceWord, EditWordList[i].Group);
@@ -3526,7 +3519,7 @@ namespace WinAGI.Editor {
         private void AddUndo(WordsUndo NextUndo) {
             UndoCol.Push(NextUndo);
             MarkAsChanged();
-            frmFind.ResetSearch();
+            Search.Reset();
             FirstFind = false;
         }
 

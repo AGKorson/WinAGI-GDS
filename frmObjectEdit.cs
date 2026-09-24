@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -89,13 +88,11 @@ namespace WinAGI.Editor {
         }
 
         private void frmObjectEdit_Activated(object sender, EventArgs e) {
-            if (FindingForm.Visible) {
-                if (FindingForm.rtfReplace.Visible) {
-                    FindingForm.SetForm(FindFormFunction.ReplaceObject, InGame);
-                }
-                else {
-                    FindingForm.SetForm(FindFormFunction.FindObject, InGame);
-                }
+            if (SearchForm.rtfReplace.Visible) {
+                Search.Mode = SearchMode.ReplaceObject;
+            }
+            else {
+                Search.Mode = SearchMode.FindObject;
             }
             if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
                 MDIMain.RefreshInfoGrid();
@@ -105,10 +102,8 @@ namespace WinAGI.Editor {
         private void frmObjectEdit_FormClosed(object sender, FormClosedEventArgs e) {
             // ensure object is cleared and dereferenced
 
-            if (EditInvList is not null) {
-                EditInvList.Unload();
-                EditInvList = null;
-            }
+            EditInvList?.Unload();
+            EditInvList = null;
             if (InGame) {
                 // form stays in MDIChild collection until AFTER
                 // FormClosed is complete; to avoid problems with 
@@ -239,7 +234,7 @@ namespace WinAGI.Editor {
             mnuEClear.Enabled = true;
             mnuEInsert.Enabled = EditInvList.Count < 256;
             mnuEFind.Enabled = true;
-            mnuEFindAgain.Enabled = GFindText.Length != 0;
+            mnuEFindAgain.Enabled = Search.FindText.Length != 0;
             mnuEReplace.Enabled = true;
             mnuEditItem.Enabled = fgObjects.CurrentRow.Index >= 0 && fgObjects.CurrentRow.Index != fgObjects.NewRowIndex;
             switch (fgObjects.CurrentCell.ColumnIndex) {
@@ -453,18 +448,18 @@ namespace WinAGI.Editor {
             if (fgObjects.IsCurrentCellInEditMode) {
                 return;
             }
-            StartSearch(FindFormFunction.FindObject);
+            StartSearch(SearchMode.FindObject);
         }
 
         private void mnuEFindAgain_Click(object sender, EventArgs e) {
             if (fgObjects.IsCurrentCellInEditMode) {
                 return;
             }
-            if (GFindText.Length == 0) {
-                StartSearch(FindFormFunction.FindObject);
+            if (Search.FindText.Length == 0) {
+                StartSearch(SearchMode.FindObject);
             }
             else {
-                FindInObjects(GFindText, GFindDir, GMatchWord, GMatchCase);
+                FindInObjects(Search, false);
             }
         }
 
@@ -472,7 +467,7 @@ namespace WinAGI.Editor {
             if (fgObjects.IsCurrentCellInEditMode) {
                 return;
             }
-            StartSearch(FindFormFunction.ReplaceObject);
+            StartSearch(SearchMode.ReplaceObject);
         }
 
         private void mnuEditItem_Click(object sender, EventArgs e) {
@@ -500,23 +495,19 @@ namespace WinAGI.Editor {
             if (itemtext == "?") {
                 return;
             }
-            frmFind.ResetSearch();
             FirstFind = false;
-            GFindDir = FindDirection.Next;
-            GMatchWord = true;
-            GMatchCase = true;
-            GLogFindLoc = FindLocation.All;
-            GFindSynonym = false;
-            GFindText = '"' + itemtext.Replace("\"", "\\\"") + '"';
-            SearchType = AGIResType.Objects;
-            FindingForm.SetForm(FindFormFunction.FindObjsLogic, true);
-            // to avoid unwanted change in form function, don't assign text
-            // cmbFind directly
-            FindingForm.SetFindText(GFindText);
-            if (!FindingForm.Visible) {
-                FindingForm.Visible = true;
-            }
-            FindingForm.Select();
+            Search.Direction = SearchDirection.Next;
+            Search.MatchWord = true;
+            Search.MatchCase = true;
+            Search.Scope = SearchScope.All;
+            Search.FindSynonym = false;
+            Search.FindText = '"' + itemtext.Replace("\"", "\\\"") + '"';
+            Search.Type = AGIResType.Objects;
+            // force search reset
+            Search.Reset();
+            Search.Mode = SearchMode.FindObjsLogic;
+            SearchForm.Visible = true;
+            SearchForm.Select();
         }
 
         private void cmCel_Opening(object sender, CancelEventArgs e) {
@@ -609,7 +600,7 @@ namespace WinAGI.Editor {
             fgObjects.EndEdit();
         }
         #endregion
-
+        
         #region Grid Events
         private void fgObjects_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e) {
             if (e.Control is TextBox) {
@@ -682,7 +673,7 @@ namespace WinAGI.Editor {
             string text = e.Value.ToString();
             TextFormatFlags flags = TextFormatFlags.NoPadding | TextFormatFlags.NoClipping;
             // Declare a proposed size with dimensions set to the maximum integer value.
-            Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            Size proposedSize = new(int.MaxValue, int.MaxValue);
             // get size
             Size szText = TextRenderer.MeasureText(fgObjects.CreateGraphics(), text, e.CellStyle.Font, proposedSize, flags);
             if (szText.Width > cell.Size.Width - 8) {
@@ -1050,7 +1041,14 @@ namespace WinAGI.Editor {
             spEncrypt.TextAlign = ContentAlignment.MiddleLeft;
         }
 
-        private void StartSearch(FindFormFunction formfunction) {
+        public void SelectItem(int index) {
+            fgObjects[1, index].Selected = true;
+            if (!fgObjects.Rows[index].Displayed) {
+                fgObjects.FirstDisplayedScrollingRowIndex = index - 2;
+            }
+        }
+
+        private void StartSearch(SearchMode formfunction) {
             string searchtext;
             if (fgObjects.CurrentCell is null || fgObjects.CurrentCell.RowIndex < 0 ||
                 fgObjects.CurrentCell.RowIndex == fgObjects.NewRowIndex) {
@@ -1059,23 +1057,16 @@ namespace WinAGI.Editor {
             else {
                 searchtext = (string)fgObjects[1, fgObjects.CurrentCell.RowIndex].Value;
             }
-
-            // default to matchcase, and wholeword
-            GMatchCase = true;
-            GMatchWord = true;
-            FindingForm.SetForm(formfunction, InGame);
-            FindingForm.SetFindText(searchtext);
-            if (!FindingForm.Visible) {
-                FindingForm.Visible = true;
-            }
-            FindingForm.Select();
-            FindingForm.cmbFind.Select();
+            Search.FindText = searchtext;
+            Search.Mode = formfunction;
+            SearchForm.Visible = true;
+            SearchForm.Select();
         }
 
-        public void FindInObjects(string FindText, FindDirection FindDir, bool MatchWord, bool MatchCase, bool Replacing = false, string ReplaceText = "") {
-            StringComparison vbcComp = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        public void FindInObjects(SearchParameters search, bool Replacing) {
+            StringComparison vbcComp = search.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
-            if (Replacing && FindText.Equals(ReplaceText, vbcComp)) {
+            if (Replacing && search.FindText.Equals(search.ReplaceText, vbcComp)) {
                 return;
             }
             if (EditInvList.Count == 0) {
@@ -1094,7 +1085,7 @@ namespace WinAGI.Editor {
             int searchrow = fgObjects.CurrentCell.RowIndex;
             int foundrow = -1;
             // adjust to next row per replace/direction selections
-            if ((Replacing && FindDir == FindDirection.Previous) || (!Replacing && FindDir != FindDirection.Previous)) {
+            if ((Replacing && search.Direction == SearchDirection.Previous) || (!Replacing && search.Direction != SearchDirection.Previous)) {
                 searchrow += 1;
                 if (searchrow >= EditInvList.Count) {
                     searchrow = 0;
@@ -1103,25 +1094,25 @@ namespace WinAGI.Editor {
             else {
                 // if already at beginning of search, the replace function will mistakenly
                 // think the find operation is complete and stop
-                if (Replacing && (searchrow == ObjStartPos)) {
-                    frmFind.ResetSearch();
+                if (Replacing && (searchrow == search.ObjStartPos)) {
+                    search.Reset();
                     FirstFind = false;
                 }
             }
             // main search loop
             do {
-                if (FindDir == FindDirection.Previous) {
+                if (search.Direction == SearchDirection.Previous) {
                     // iterate backwards until word found or foundrow=-1
                     foundrow = searchrow - 1;
                     while (foundrow != -1) {
-                        if (MatchWord) {
-                            if (EditInvList[foundrow].ItemName.Equals(FindText, vbcComp)) {
+                        if (search.MatchWord) {
+                            if (EditInvList[foundrow].ItemName.Equals(search.FindText, vbcComp)) {
                                 // found
                                 break;
                             }
                         }
                         else {
-                            if (EditInvList[foundrow].ItemName.Contains(FindText, vbcComp)) {
+                            if (EditInvList[foundrow].ItemName.Contains(search.FindText, vbcComp)) {
                                 // found
                                 break;
                             }
@@ -1135,14 +1126,14 @@ namespace WinAGI.Editor {
                     // iterate forward until word found or end reached (foundrow=objcount)
                     foundrow = searchrow;
                     do {
-                        if (MatchWord) {
-                            if (EditInvList[foundrow].ItemName.Equals(FindText, vbcComp)) {
+                        if (search.MatchWord) {
+                            if (EditInvList[foundrow].ItemName.Equals(search.FindText, vbcComp)) {
                                 // found
                                 break;
                             }
                         }
                         else {
-                            if (EditInvList[foundrow].ItemName.Contains(FindText, vbcComp)) {
+                            if (EditInvList[foundrow].ItemName.Contains(search.FindText, vbcComp)) {
                                 // found
                                 break;
                             }
@@ -1154,17 +1145,17 @@ namespace WinAGI.Editor {
                 }
                 // found?
                 if (foundrow >= 0 && foundrow < EditInvList.Count) {
-                    if (foundrow == ObjStartPos) {
+                    if (foundrow == search.ObjStartPos) {
                         foundrow = -1;
                     }
                     break;
                 }
                 // not found- if already restarted, stop the search
-                if (RestartSearch) {
+                if (search.Restart) {
                     break;
                 }
                 // set restart flag and continue searching
-                RestartSearch = true;
+                search.Restart = true;
             } while (true);
             // loop is exited by finding the searchtext or reaching end of search area
 
@@ -1172,18 +1163,18 @@ namespace WinAGI.Editor {
                 if (!FirstFind) {
                     // save this position
                     FirstFind = true;
-                    ObjStartPos = foundrow;
+                    search.ObjStartPos = foundrow;
                 }
                 fgObjects[1, foundrow].Selected = true;
                 if (!fgObjects.Rows[foundrow].Displayed) {
                     fgObjects.FirstDisplayedScrollingRowIndex = foundrow - 2;
                 }
                 if (Replacing) {
-                    if (MatchWord) {
-                        ModifyItem(foundrow, ReplaceText);
+                    if (search.MatchWord) {
+                        ModifyItem(foundrow, search.ReplaceText);
                     }
                     else {
-                        ModifyItem(foundrow, EditInvList[foundrow].ItemName.Replace(FindText, ReplaceText, vbcComp));
+                        ModifyItem(foundrow, EditInvList[foundrow].ItemName.Replace(search.FindText, search.ReplaceText, vbcComp));
                     }
                     // adjust undoobject
                     UndoCol.Peek().UDAction = Replace;
@@ -1193,7 +1184,7 @@ namespace WinAGI.Editor {
                 if (FirstFind) {
                     // search complete; no more instances found
                     MessageBox.Show(MDIMain,
-                        "The specified region has been searched.",
+                        "No more occurrences found in the specified region.",
                         "Find in Object List",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
@@ -1205,18 +1196,18 @@ namespace WinAGI.Editor {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information);
                 }
-                frmFind.ResetSearch();
+                search.Reset();
                 FirstFind = false;
             }
             fgObjects.Select();
             MDIMain.UseWaitCursor = false;
         }
 
-        public void ReplaceAll(string FindText, string ReplaceText, bool MatchWord, bool MatchCase) {
-            StringComparison vbcComp = MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        public void ReplaceAll(SearchParameters search) {
+            StringComparison vbcComp = search.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             int count = 0;
 
-            if (FindText.Equals(ReplaceText, vbcComp)) {
+            if (search.FindText.Equals(search.ReplaceText, vbcComp)) {
                 return;
             }
             if (EditInvList.Count == 0) {
@@ -1231,9 +1222,9 @@ namespace WinAGI.Editor {
             ObjectsUndo NextUndo = new() {
                 UDAction = ObjectsUndo.ActionType.ReplaceAll
             };
-            if (MatchWord) {
+            if (search.MatchWord) {
                 for (int i = 0; i < EditInvList.Count; i++) {
-                    if (EditInvList[i].ItemName.Equals(FindText, vbcComp)) {
+                    if (EditInvList[i].ItemName.Equals(search.FindText, vbcComp)) {
                         // add  word being replaced to undo
                         if (count == 0) {
                             NextUndo.UDObjectText = i + "|" + EditInvList[i].ItemName;
@@ -1241,15 +1232,15 @@ namespace WinAGI.Editor {
                         else {
                             NextUndo.UDObjectText += "\r" + i + "|" + EditInvList[i].ItemName;
                         }
-                        EditInvList[i].ItemName = ReplaceText;
-                        fgObjects[1, i].Value = ReplaceText;
+                        EditInvList[i].ItemName = search.ReplaceText;
+                        fgObjects[1, i].Value = search.ReplaceText;
                         count++;
                     }
                 }
             }
             else {
                 for (int i = 0; i < EditInvList.Count; i++) {
-                    if (EditInvList[i].ItemName.Contains(FindText, vbcComp)) {
+                    if (EditInvList[i].ItemName.Contains(search.FindText, vbcComp)) {
                         // add  word being replaced to undo
                         if (count == 0) {
                             NextUndo.UDObjectText = i + "|" + EditInvList[i].ItemName;
@@ -1257,7 +1248,7 @@ namespace WinAGI.Editor {
                         else {
                             NextUndo.UDObjectText += "\r" + i + "|" + EditInvList[i].ItemName;
                         }
-                        EditInvList[i].ItemName = EditInvList[i].ItemName.Replace(FindText, ReplaceText, vbcComp);
+                        EditInvList[i].ItemName = EditInvList[i].ItemName.Replace(search.FindText, search.ReplaceText, vbcComp);
                         fgObjects[1, i].Value = EditInvList[i].ItemName;
                         count++;
                     }
@@ -1284,7 +1275,7 @@ namespace WinAGI.Editor {
         private void AddUndo(ObjectsUndo NextUndo) {
             UndoCol.Push(NextUndo);
             MarkAsChanged();
-            frmFind.ResetSearch();
+            Search.Reset();
             FirstFind = false;
         }
 
@@ -1554,7 +1545,7 @@ namespace WinAGI.Editor {
                     //
                     // action cmds that use IObj:
                     //   get, drop, put
-                    FindingForm.Visible = false;
+                    SearchForm.Visible = false;
                     MDIMain.UseWaitCursor = true;
                     ProgressWin = new(this) {
                         Text = "Updating Inventory Objects in Logics"

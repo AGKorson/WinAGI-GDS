@@ -373,7 +373,7 @@ namespace WinAGI.Editor {
             // mnuEFindInLogic
             // 
             mnuEFindInLogic.Name = "mnuEFindInLogic";
-            mnuEFindInLogic.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift | System.Windows.Forms.Keys.F;
+            mnuEFindInLogic.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F;
             mnuEFindInLogic.Size = new System.Drawing.Size(234, 22);
             mnuEFindInLogic.Text = "Find In Logics";
             mnuEFindInLogic.Click += mnuEFindLogic_Click;

@@ -81,7 +81,7 @@ namespace WinAGI.Editor {
             }
 
             // if no tools, hide separator
-            MDIMain.mnuTSep2.Visible = showTools;
+            MDIMain.mnuTSep3.Visible = showTools;
             DialogResult = DialogResult.OK;
             Hide();
         }

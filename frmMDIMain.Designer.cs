@@ -38,6 +38,8 @@
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
             menuStrip1 = new MenuStrip();
             mnuGame = new ToolStripMenuItem();
             mnuGNew = new ToolStripMenuItem();
@@ -113,15 +115,17 @@
             mnuTReserved = new ToolStripMenuItem();
             mnuTSnippets = new ToolStripMenuItem();
             mnuTPalette = new ToolStripMenuItem();
-            mnuTWarning = new ToolStripMenuItem();
             mnuTSep2 = new ToolStripSeparator();
+            mnuTSearch = new ToolStripMenuItem();
+            mnuTWarning = new ToolStripMenuItem();
+            mnuTSep3 = new ToolStripSeparator();
             mnuTCustom1 = new ToolStripMenuItem();
             mnuTCustom2 = new ToolStripMenuItem();
             mnuTCustom3 = new ToolStripMenuItem();
             mnuTCustom4 = new ToolStripMenuItem();
             mnuTCustom5 = new ToolStripMenuItem();
             mnuTCustom6 = new ToolStripMenuItem();
-            mnuTSep3 = new ToolStripSeparator();
+            mnuTSep4 = new ToolStripSeparator();
             mnuTCustomize = new ToolStripMenuItem();
             mnuWindow = new ToolStripMenuItem();
             mnuWCascade = new ToolStripMenuItem();
@@ -204,7 +208,7 @@
             cmdBack = new Button();
             cmdForward = new Button();
             propertyGrid1 = new PropertyGrid();
-            cmsGrid = new ContextMenuStrip(components);
+            cmsInfo = new ContextMenuStrip(components);
             cmiDismiss = new ToolStripMenuItem();
             cmiDismissRes = new ToolStripMenuItem();
             cmiDismissAll = new ToolStripMenuItem();
@@ -213,14 +217,28 @@
             cmiIgnoreWarning = new ToolStripMenuItem();
             picNavList = new PictureBox();
             splitResource = new Splitter();
-            pnlInfoGrid = new Panel();
+            tooltabPanel = new Panel();
             btnClose = new Button();
-            todoToggle = new Label();
-            warningToggle = new Label();
-            errorToggle = new Label();
-            gridFilter = new ComboBox();
+            toolTab = new TabControl();
+            infoTab = new TabPage();
             fgWarnings = new DataGridView();
-            splitInfoGrid = new Splitter();
+            gridFilter = new ComboBox();
+            todoToggle = new Label();
+            errorToggle = new Label();
+            warningToggle = new Label();
+            searchTab = new TabPage();
+            cmsSearch = new ContextMenuStrip(components);
+            cmiClear = new ToolStripMenuItem();
+            matchCount = new Label();
+            btnFind = new Button();
+            searchScope = new ComboBox();
+            chkMatchWord = new CheckBox();
+            chkMatchCase = new CheckBox();
+            txtFind = new TextBox();
+            cmbFind = new ComboBox();
+            findAllGrid = new DataGridView();
+            searchDir = new ComboBox();
+            splittoolTab = new Splitter();
             tmrNavList = new Timer(components);
             FolderDlg = new FolderBrowserDialog();
             OpenDlg = new OpenFileDialog();
@@ -234,10 +252,15 @@
             splResource.Panel2.SuspendLayout();
             splResource.SuspendLayout();
             cmsResource.SuspendLayout();
-            cmsGrid.SuspendLayout();
+            cmsInfo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picNavList).BeginInit();
-            pnlInfoGrid.SuspendLayout();
+            tooltabPanel.SuspendLayout();
+            toolTab.SuspendLayout();
+            infoTab.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)fgWarnings).BeginInit();
+            searchTab.SuspendLayout();
+            cmsSearch.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)findAllGrid).BeginInit();
             SuspendLayout();
             // 
             // menuStrip1
@@ -738,7 +761,7 @@
             // 
             // mnuTools
             // 
-            mnuTools.DropDownItems.AddRange(new ToolStripItem[] { mnuTSettings, mnuTSep1, mnuTLayout, mnuTMenuEditor, mnuTTextScreenEditor, mnuTGlobals, mnuTReserved, mnuTSnippets, mnuTPalette, mnuTWarning, mnuTSep2, mnuTCustom1, mnuTCustom2, mnuTCustom3, mnuTCustom4, mnuTCustom5, mnuTCustom6, mnuTSep3, mnuTCustomize });
+            mnuTools.DropDownItems.AddRange(new ToolStripItem[] { mnuTSettings, mnuTSep1, mnuTLayout, mnuTMenuEditor, mnuTTextScreenEditor, mnuTGlobals, mnuTReserved, mnuTSnippets, mnuTPalette, mnuTSep2, mnuTSearch, mnuTWarning, mnuTSep3, mnuTCustom1, mnuTCustom2, mnuTCustom3, mnuTCustom4, mnuTCustom5, mnuTCustom6, mnuTSep4, mnuTCustomize });
             mnuTools.MergeIndex = 1;
             mnuTools.Name = "mnuTools";
             mnuTools.Size = new System.Drawing.Size(47, 20);
@@ -749,20 +772,20 @@
             // 
             mnuTSettings.Name = "mnuTSettings";
             mnuTSettings.ShortcutKeys = Keys.F2;
-            mnuTSettings.Size = new System.Drawing.Size(249, 22);
+            mnuTSettings.Size = new System.Drawing.Size(241, 22);
             mnuTSettings.Text = "Settings";
             mnuTSettings.Click += mnuTSettings_Click;
             // 
             // mnuTSep1
             // 
             mnuTSep1.Name = "mnuTSep1";
-            mnuTSep1.Size = new System.Drawing.Size(246, 6);
+            mnuTSep1.Size = new System.Drawing.Size(238, 6);
             // 
             // mnuTLayout
             // 
             mnuTLayout.Name = "mnuTLayout";
             mnuTLayout.ShortcutKeys = Keys.Control | Keys.L;
-            mnuTLayout.Size = new System.Drawing.Size(249, 22);
+            mnuTLayout.Size = new System.Drawing.Size(241, 22);
             mnuTLayout.Text = "Room Layout Editor";
             mnuTLayout.Click += mnuTLayout_Click;
             // 
@@ -770,7 +793,7 @@
             // 
             mnuTMenuEditor.Name = "mnuTMenuEditor";
             mnuTMenuEditor.ShortcutKeys = Keys.Control | Keys.M;
-            mnuTMenuEditor.Size = new System.Drawing.Size(249, 22);
+            mnuTMenuEditor.Size = new System.Drawing.Size(241, 22);
             mnuTMenuEditor.Text = "Menu Editor";
             mnuTMenuEditor.Click += mnuTMenuEditor_Click;
             // 
@@ -778,7 +801,7 @@
             // 
             mnuTTextScreenEditor.Name = "mnuTTextScreenEditor";
             mnuTTextScreenEditor.ShortcutKeys = Keys.Control | Keys.T;
-            mnuTTextScreenEditor.Size = new System.Drawing.Size(249, 22);
+            mnuTTextScreenEditor.Size = new System.Drawing.Size(241, 22);
             mnuTTextScreenEditor.Text = "Text Screen Editor";
             mnuTTextScreenEditor.Click += mnuTTextEd_Click;
             // 
@@ -786,7 +809,7 @@
             // 
             mnuTGlobals.Name = "mnuTGlobals";
             mnuTGlobals.ShortcutKeys = Keys.Control | Keys.G;
-            mnuTGlobals.Size = new System.Drawing.Size(249, 22);
+            mnuTGlobals.Size = new System.Drawing.Size(241, 22);
             mnuTGlobals.Text = "Global Defines ...";
             mnuTGlobals.Click += mnuTGlobals_Click;
             // 
@@ -794,7 +817,7 @@
             // 
             mnuTReserved.Name = "mnuTReserved";
             mnuTReserved.ShortcutKeys = Keys.Control | Keys.W;
-            mnuTReserved.Size = new System.Drawing.Size(249, 22);
+            mnuTReserved.Size = new System.Drawing.Size(241, 22);
             mnuTReserved.Text = "Reserved Defines ...";
             mnuTReserved.Click += mnuTReserved_Click;
             // 
@@ -802,7 +825,7 @@
             // 
             mnuTSnippets.Name = "mnuTSnippets";
             mnuTSnippets.ShortcutKeys = Keys.Control | Keys.Shift | Keys.T;
-            mnuTSnippets.Size = new System.Drawing.Size(249, 22);
+            mnuTSnippets.Size = new System.Drawing.Size(241, 22);
             mnuTSnippets.Text = "Code Snippets ...";
             mnuTSnippets.Click += mnuTSnippets_Click;
             // 
@@ -810,28 +833,41 @@
             // 
             mnuTPalette.Name = "mnuTPalette";
             mnuTPalette.ShortcutKeys = Keys.Control | Keys.Shift | Keys.P;
-            mnuTPalette.Size = new System.Drawing.Size(249, 22);
+            mnuTPalette.Size = new System.Drawing.Size(241, 22);
             mnuTPalette.Text = "Color Palette ...";
             mnuTPalette.Click += mnuTPalette_Click;
-            // 
-            // mnuTWarning
-            // 
-            mnuTWarning.Name = "mnuTWarning";
-            mnuTWarning.ShortcutKeys = Keys.Control | Keys.Shift | Keys.W;
-            mnuTWarning.Size = new System.Drawing.Size(249, 22);
-            mnuTWarning.Text = "Show Warning List";
-            mnuTWarning.Click += mnuTWarning_Click;
             // 
             // mnuTSep2
             // 
             mnuTSep2.Name = "mnuTSep2";
-            mnuTSep2.Size = new System.Drawing.Size(246, 6);
-            mnuTSep2.Visible = false;
+            mnuTSep2.Size = new System.Drawing.Size(238, 6);
+            // 
+            // mnuTSearch
+            // 
+            mnuTSearch.Name = "mnuTSearch";
+            mnuTSearch.ShortcutKeys = Keys.Control | Keys.Shift | Keys.F;
+            mnuTSearch.Size = new System.Drawing.Size(241, 22);
+            mnuTSearch.Text = "Show Search Tab";
+            mnuTSearch.Click += mnuTSearch_Click;
+            // 
+            // mnuTWarning
+            // 
+            mnuTWarning.Name = "mnuTWarning";
+            mnuTWarning.ShortcutKeys = Keys.Control | Keys.Shift | Keys.I;
+            mnuTWarning.Size = new System.Drawing.Size(241, 22);
+            mnuTWarning.Text = "Show Warning List";
+            mnuTWarning.Click += mnuTWarning_Click;
+            // 
+            // mnuTSep3
+            // 
+            mnuTSep3.Name = "mnuTSep3";
+            mnuTSep3.Size = new System.Drawing.Size(238, 6);
+            mnuTSep3.Visible = false;
             // 
             // mnuTCustom1
             // 
             mnuTCustom1.Name = "mnuTCustom1";
-            mnuTCustom1.Size = new System.Drawing.Size(249, 22);
+            mnuTCustom1.Size = new System.Drawing.Size(241, 22);
             mnuTCustom1.Text = "tool1";
             mnuTCustom1.Visible = false;
             mnuTCustom1.Click += mnuTCustom_Click;
@@ -839,7 +875,7 @@
             // mnuTCustom2
             // 
             mnuTCustom2.Name = "mnuTCustom2";
-            mnuTCustom2.Size = new System.Drawing.Size(249, 22);
+            mnuTCustom2.Size = new System.Drawing.Size(241, 22);
             mnuTCustom2.Text = "tool2";
             mnuTCustom2.Visible = false;
             mnuTCustom2.Click += mnuTCustom_Click;
@@ -847,7 +883,7 @@
             // mnuTCustom3
             // 
             mnuTCustom3.Name = "mnuTCustom3";
-            mnuTCustom3.Size = new System.Drawing.Size(249, 22);
+            mnuTCustom3.Size = new System.Drawing.Size(241, 22);
             mnuTCustom3.Text = "tool3";
             mnuTCustom3.Visible = false;
             mnuTCustom3.Click += mnuTCustom_Click;
@@ -855,7 +891,7 @@
             // mnuTCustom4
             // 
             mnuTCustom4.Name = "mnuTCustom4";
-            mnuTCustom4.Size = new System.Drawing.Size(249, 22);
+            mnuTCustom4.Size = new System.Drawing.Size(241, 22);
             mnuTCustom4.Text = "tool4";
             mnuTCustom4.Visible = false;
             mnuTCustom4.Click += mnuTCustom_Click;
@@ -863,7 +899,7 @@
             // mnuTCustom5
             // 
             mnuTCustom5.Name = "mnuTCustom5";
-            mnuTCustom5.Size = new System.Drawing.Size(249, 22);
+            mnuTCustom5.Size = new System.Drawing.Size(241, 22);
             mnuTCustom5.Text = "tool5";
             mnuTCustom5.Visible = false;
             mnuTCustom5.Click += mnuTCustom_Click;
@@ -871,21 +907,21 @@
             // mnuTCustom6
             // 
             mnuTCustom6.Name = "mnuTCustom6";
-            mnuTCustom6.Size = new System.Drawing.Size(249, 22);
+            mnuTCustom6.Size = new System.Drawing.Size(241, 22);
             mnuTCustom6.Text = "tool6";
             mnuTCustom6.Visible = false;
             mnuTCustom6.Click += mnuTCustom_Click;
             // 
-            // mnuTSep3
+            // mnuTSep4
             // 
-            mnuTSep3.Name = "mnuTSep3";
-            mnuTSep3.Size = new System.Drawing.Size(246, 6);
+            mnuTSep4.Name = "mnuTSep4";
+            mnuTSep4.Size = new System.Drawing.Size(238, 6);
             // 
             // mnuTCustomize
             // 
             mnuTCustomize.Name = "mnuTCustomize";
             mnuTCustomize.ShortcutKeys = Keys.F6;
-            mnuTCustomize.Size = new System.Drawing.Size(249, 22);
+            mnuTCustomize.Size = new System.Drawing.Size(241, 22);
             mnuTCustomize.Text = "Customize Tool Menu ...";
             mnuTCustomize.Click += mnuTCustomize_Click;
             // 
@@ -1652,12 +1688,12 @@
             propertyGrid1.ToolbarVisible = false;
             propertyGrid1.MouseWheel += propertyGrid1_MouseWheel;
             // 
-            // cmsGrid
+            // cmsInfo
             // 
-            cmsGrid.Items.AddRange(new ToolStripItem[] { cmiDismiss, cmiDismissRes, cmiDismissAll, cmiGoWarning, cmiHelp, cmiIgnoreWarning });
-            cmsGrid.Name = "cmsGrid";
-            cmsGrid.Size = new System.Drawing.Size(186, 136);
-            cmsGrid.Opening += cmsGrid_Opening;
+            cmsInfo.Items.AddRange(new ToolStripItem[] { cmiDismiss, cmiDismissRes, cmiDismissAll, cmiGoWarning, cmiHelp, cmiIgnoreWarning });
+            cmsInfo.Name = "cmsGrid";
+            cmsInfo.Size = new System.Drawing.Size(186, 136);
+            cmsInfo.Opening += cmsInfo_Opening;
             // 
             // cmiDismiss
             // 
@@ -1725,84 +1761,61 @@
             splitResource.TabStop = false;
             splitResource.Visible = false;
             // 
-            // pnlWarnings
+            // tooltabPanel
             // 
-            pnlInfoGrid.Controls.Add(btnClose);
-            pnlInfoGrid.Controls.Add(todoToggle);
-            pnlInfoGrid.Controls.Add(warningToggle);
-            pnlInfoGrid.Controls.Add(errorToggle);
-            pnlInfoGrid.Controls.Add(gridFilter);
-            pnlInfoGrid.Controls.Add(fgWarnings);
-            pnlInfoGrid.Dock = DockStyle.Bottom;
-            pnlInfoGrid.Location = new System.Drawing.Point(159, 269);
-            pnlInfoGrid.Margin = new Padding(1, 0, 1, 0);
-            pnlInfoGrid.Name = "pnlWarnings";
-            pnlInfoGrid.Size = new System.Drawing.Size(692, 86);
-            pnlInfoGrid.TabIndex = 20;
+            tooltabPanel.BackColor = System.Drawing.SystemColors.ControlDark;
+            tooltabPanel.Controls.Add(btnClose);
+            tooltabPanel.Controls.Add(toolTab);
+            tooltabPanel.Dock = DockStyle.Bottom;
+            tooltabPanel.Location = new System.Drawing.Point(159, 269);
+            tooltabPanel.Margin = new Padding(1, 0, 1, 0);
+            tooltabPanel.Name = "tooltabPanel";
+            tooltabPanel.Size = new System.Drawing.Size(692, 86);
+            tooltabPanel.TabIndex = 20;
             // 
             // btnClose
             // 
             btnClose.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnClose.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             btnClose.FlatAppearance.BorderSize = 0;
             btnClose.FlatStyle = FlatStyle.Flat;
             btnClose.Image = (System.Drawing.Image)resources.GetObject("btnClose.Image");
-            btnClose.Location = new System.Drawing.Point(664, 0);
+            btnClose.Location = new System.Drawing.Point(660, 6);
             btnClose.Name = "btnClose";
             btnClose.Size = new System.Drawing.Size(24, 24);
-            btnClose.TabIndex = 6;
+            btnClose.TabIndex = 10;
             btnClose.TextImageRelation = TextImageRelation.ImageAboveText;
-            btnClose.UseVisualStyleBackColor = true;
-            btnClose.Click += btnClose_Click;
+            btnClose.UseVisualStyleBackColor = false;
             // 
-            // todoToggle
+            // toolTab
             // 
-            todoToggle.BorderStyle = BorderStyle.FixedSingle;
-            todoToggle.Image = (System.Drawing.Image)resources.GetObject("todoToggle.Image");
-            todoToggle.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            todoToggle.Location = new System.Drawing.Point(353, 3);
-            todoToggle.Name = "todoToggle";
-            todoToggle.Size = new System.Drawing.Size(82, 23);
-            todoToggle.TabIndex = 5;
-            todoToggle.Text = "       0 TODOs";
-            todoToggle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            todoToggle.Click += todoToggle_Click;
+            toolTab.Alignment = TabAlignment.Bottom;
+            toolTab.Controls.Add(infoTab);
+            toolTab.Controls.Add(searchTab);
+            toolTab.Dock = DockStyle.Fill;
+            toolTab.ItemSize = new System.Drawing.Size(55, 15);
+            toolTab.Location = new System.Drawing.Point(0, 0);
+            toolTab.Margin = new Padding(0);
+            toolTab.Name = "toolTab";
+            toolTab.Padding = new System.Drawing.Point(0, 0);
+            toolTab.SelectedIndex = 0;
+            toolTab.Size = new System.Drawing.Size(692, 86);
+            toolTab.TabIndex = 8;
             // 
-            // warningToggle
+            // infoTab
             // 
-            warningToggle.BorderStyle = BorderStyle.FixedSingle;
-            warningToggle.Image = (System.Drawing.Image)resources.GetObject("warningToggle.Image");
-            warningToggle.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            warningToggle.Location = new System.Drawing.Point(243, 3);
-            warningToggle.Name = "warningToggle";
-            warningToggle.Size = new System.Drawing.Size(95, 23);
-            warningToggle.TabIndex = 4;
-            warningToggle.Text = "       0 Warnings";
-            warningToggle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            warningToggle.Click += warningToggle_Click;
-            // 
-            // errorToggle
-            // 
-            errorToggle.BorderStyle = BorderStyle.FixedSingle;
-            errorToggle.Image = (System.Drawing.Image)resources.GetObject("errorToggle.Image");
-            errorToggle.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            errorToggle.Location = new System.Drawing.Point(153, 3);
-            errorToggle.Name = "errorToggle";
-            errorToggle.Size = new System.Drawing.Size(75, 23);
-            errorToggle.TabIndex = 3;
-            errorToggle.Text = "       0 Errors";
-            errorToggle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            errorToggle.Click += errorToggle_Click;
-            // 
-            // gridFilter
-            // 
-            gridFilter.DropDownStyle = ComboBoxStyle.DropDownList;
-            gridFilter.FormattingEnabled = true;
-            gridFilter.Items.AddRange(new object[] { "Entire Project", "All Logics", "Selected Resource", "Open Resources" });
-            gridFilter.Location = new System.Drawing.Point(8, 3);
-            gridFilter.Name = "gridFilter";
-            gridFilter.Size = new System.Drawing.Size(129, 23);
-            gridFilter.TabIndex = 1;
-            gridFilter.SelectedIndexChanged += gridFilter_SelectedIndexChanged;
+            infoTab.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            infoTab.Controls.Add(fgWarnings);
+            infoTab.Controls.Add(gridFilter);
+            infoTab.Controls.Add(todoToggle);
+            infoTab.Controls.Add(errorToggle);
+            infoTab.Controls.Add(warningToggle);
+            infoTab.Location = new System.Drawing.Point(4, 4);
+            infoTab.Name = "infoTab";
+            infoTab.Padding = new Padding(3);
+            infoTab.Size = new System.Drawing.Size(684, 63);
+            infoTab.TabIndex = 0;
+            infoTab.Text = "Error List";
             // 
             // fgWarnings
             // 
@@ -1812,6 +1825,7 @@
             dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(224, 224, 224);
             fgWarnings.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             fgWarnings.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            fgWarnings.BackgroundColor = System.Drawing.SystemColors.Control;
             fgWarnings.BorderStyle = BorderStyle.None;
             dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.ActiveCaption;
@@ -1822,7 +1836,7 @@
             dataGridViewCellStyle2.WrapMode = DataGridViewTriState.False;
             fgWarnings.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             fgWarnings.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            fgWarnings.ContextMenuStrip = cmsGrid;
+            fgWarnings.ContextMenuStrip = cmsInfo;
             dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
             dataGridViewCellStyle3.Font = new System.Drawing.Font("Segoe UI", 9F);
@@ -1847,7 +1861,7 @@
             fgWarnings.ShowCellToolTips = false;
             fgWarnings.ShowEditingIcon = false;
             fgWarnings.ShowRowErrors = false;
-            fgWarnings.Size = new System.Drawing.Size(692, 56);
+            fgWarnings.Size = new System.Drawing.Size(682, 33);
             fgWarnings.StandardTab = true;
             fgWarnings.TabIndex = 0;
             fgWarnings.CellDoubleClick += fgWarnings_CellDoubleClick;
@@ -1860,16 +1874,252 @@
             fgWarnings.SortCompare += fgWarnings_SortCompare;
             fgWarnings.MouseDown += fgWarnings_MouseDown;
             // 
-            // splitWarning
+            // gridFilter
             // 
-            splitInfoGrid.Dock = DockStyle.Bottom;
-            splitInfoGrid.Location = new System.Drawing.Point(159, 267);
-            splitInfoGrid.Margin = new Padding(1, 0, 1, 0);
-            splitInfoGrid.Name = "splitWarning";
-            splitInfoGrid.Size = new System.Drawing.Size(692, 2);
-            splitInfoGrid.TabIndex = 22;
-            splitInfoGrid.TabStop = false;
-            splitInfoGrid.Visible = false;
+            gridFilter.DropDownStyle = ComboBoxStyle.DropDownList;
+            gridFilter.FormattingEnabled = true;
+            gridFilter.Items.AddRange(new object[] { "Entire Project", "All Logics", "Selected Resource", "Open Resources" });
+            gridFilter.Location = new System.Drawing.Point(6, 3);
+            gridFilter.Name = "gridFilter";
+            gridFilter.Size = new System.Drawing.Size(129, 23);
+            gridFilter.TabIndex = 1;
+            gridFilter.SelectedIndexChanged += gridFilter_SelectedIndexChanged;
+            // 
+            // todoToggle
+            // 
+            todoToggle.BorderStyle = BorderStyle.FixedSingle;
+            todoToggle.Image = (System.Drawing.Image)resources.GetObject("todoToggle.Image");
+            todoToggle.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            todoToggle.Location = new System.Drawing.Point(351, 3);
+            todoToggle.Name = "todoToggle";
+            todoToggle.Size = new System.Drawing.Size(82, 23);
+            todoToggle.TabIndex = 5;
+            todoToggle.Text = "       0 TODOs";
+            todoToggle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            todoToggle.Click += todoToggle_Click;
+            // 
+            // errorToggle
+            // 
+            errorToggle.BorderStyle = BorderStyle.FixedSingle;
+            errorToggle.Image = (System.Drawing.Image)resources.GetObject("errorToggle.Image");
+            errorToggle.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            errorToggle.Location = new System.Drawing.Point(151, 3);
+            errorToggle.Name = "errorToggle";
+            errorToggle.Size = new System.Drawing.Size(75, 23);
+            errorToggle.TabIndex = 3;
+            errorToggle.Text = "       0 Errors";
+            errorToggle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            errorToggle.Click += errorToggle_Click;
+            // 
+            // warningToggle
+            // 
+            warningToggle.BorderStyle = BorderStyle.FixedSingle;
+            warningToggle.Image = (System.Drawing.Image)resources.GetObject("warningToggle.Image");
+            warningToggle.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            warningToggle.Location = new System.Drawing.Point(241, 3);
+            warningToggle.Name = "warningToggle";
+            warningToggle.Size = new System.Drawing.Size(95, 23);
+            warningToggle.TabIndex = 4;
+            warningToggle.Text = "       0 Warnings";
+            warningToggle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            warningToggle.Click += warningToggle_Click;
+            // 
+            // searchTab
+            // 
+            searchTab.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            searchTab.ContextMenuStrip = cmsSearch;
+            searchTab.Controls.Add(matchCount);
+            searchTab.Controls.Add(btnFind);
+            searchTab.Controls.Add(searchScope);
+            searchTab.Controls.Add(chkMatchWord);
+            searchTab.Controls.Add(chkMatchCase);
+            searchTab.Controls.Add(txtFind);
+            searchTab.Controls.Add(cmbFind);
+            searchTab.Controls.Add(findAllGrid);
+            searchTab.Controls.Add(searchDir);
+            searchTab.Location = new System.Drawing.Point(4, 4);
+            searchTab.Name = "searchTab";
+            searchTab.Padding = new Padding(3);
+            searchTab.Size = new System.Drawing.Size(684, 63);
+            searchTab.TabIndex = 1;
+            searchTab.Text = "Search Results";
+            // 
+            // cmsSearch
+            // 
+            cmsSearch.Items.AddRange(new ToolStripItem[] { cmiClear });
+            cmsSearch.Name = "cmsSearch";
+            cmsSearch.Size = new System.Drawing.Size(123, 26);
+            // 
+            // cmiClear
+            // 
+            cmiClear.Name = "cmiClear";
+            cmiClear.Size = new System.Drawing.Size(122, 22);
+            cmiClear.Text = "Clear List";
+            cmiClear.Click += cmiClear_Click;
+            // 
+            // matchCount
+            // 
+            matchCount.AutoSize = true;
+            matchCount.Location = new System.Drawing.Point(539, 9);
+            matchCount.Name = "matchCount";
+            matchCount.Size = new System.Drawing.Size(103, 15);
+            matchCount.TabIndex = 23;
+            matchCount.Text = "Matches: 999 lines";
+            matchCount.Visible = false;
+            // 
+            // btnFind
+            // 
+            btnFind.FlatAppearance.BorderSize = 0;
+            btnFind.FlatStyle = FlatStyle.Flat;
+            btnFind.Image = (System.Drawing.Image)resources.GetObject("btnFind.Image");
+            btnFind.Location = new System.Drawing.Point(267, 4);
+            btnFind.Name = "btnFind";
+            btnFind.Size = new System.Drawing.Size(21, 21);
+            btnFind.TabIndex = 21;
+            btnFind.UseVisualStyleBackColor = true;
+            btnFind.Click += btnFind_Click;
+            // 
+            // searchScope
+            // 
+            searchScope.DrawMode = DrawMode.OwnerDrawFixed;
+            searchScope.DropDownStyle = ComboBoxStyle.DropDownList;
+            searchScope.FormattingEnabled = true;
+            searchScope.Items.AddRange(new object[] { "Current document", "All open documents" });
+            searchScope.Location = new System.Drawing.Point(399, 3);
+            searchScope.Name = "searchScope";
+            searchScope.Size = new System.Drawing.Size(134, 24);
+            searchScope.TabIndex = 20;
+            searchScope.DrawItem += searchScope_DrawItem;
+            searchScope.DropDown += searchScope_DropDown;
+            searchScope.SelectionChangeCommitted += searchScope_SelectionChangeCommitted;
+            searchScope.DropDownClosed += searchScope_DropDownClosed;
+            // 
+            // chkMatchWord
+            // 
+            chkMatchWord.Appearance = Appearance.Button;
+            chkMatchWord.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            chkMatchWord.FlatAppearance.BorderColor = System.Drawing.Color.Navy;
+            chkMatchWord.FlatAppearance.BorderSize = 0;
+            chkMatchWord.FlatAppearance.CheckedBackColor = System.Drawing.SystemColors.Control;
+            chkMatchWord.FlatStyle = FlatStyle.Flat;
+            chkMatchWord.Image = (System.Drawing.Image)resources.GetObject("chkMatchWord.Image");
+            chkMatchWord.Location = new System.Drawing.Point(356, 0);
+            chkMatchWord.Name = "chkMatchWord";
+            chkMatchWord.Size = new System.Drawing.Size(28, 28);
+            chkMatchWord.TabIndex = 19;
+            chkMatchWord.UseVisualStyleBackColor = false;
+            chkMatchWord.CheckedChanged += chkMatchWord_CheckChanged;
+            chkMatchWord.Click += chkMatchWord_Click;
+            // 
+            // chkMatchCase
+            // 
+            chkMatchCase.Appearance = Appearance.Button;
+            chkMatchCase.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            chkMatchCase.FlatAppearance.BorderColor = System.Drawing.Color.Navy;
+            chkMatchCase.FlatAppearance.BorderSize = 0;
+            chkMatchCase.FlatAppearance.CheckedBackColor = System.Drawing.SystemColors.Control;
+            chkMatchCase.FlatStyle = FlatStyle.Flat;
+            chkMatchCase.Image = (System.Drawing.Image)resources.GetObject("chkMatchCase.Image");
+            chkMatchCase.Location = new System.Drawing.Point(322, 0);
+            chkMatchCase.Name = "chkMatchCase";
+            chkMatchCase.Size = new System.Drawing.Size(28, 28);
+            chkMatchCase.TabIndex = 18;
+            chkMatchCase.UseVisualStyleBackColor = false;
+            chkMatchCase.CheckedChanged += chkMatchCase_CheckChanged;
+            chkMatchCase.Click += chkMatchCase_Click;
+            // 
+            // txtFind
+            // 
+            txtFind.BorderStyle = BorderStyle.None;
+            txtFind.Location = new System.Drawing.Point(4, 4);
+            txtFind.Multiline = true;
+            txtFind.Name = "txtFind";
+            txtFind.ScrollBars = ScrollBars.Vertical;
+            txtFind.Size = new System.Drawing.Size(236, 20);
+            txtFind.TabIndex = 16;
+            txtFind.TextChanged += txtFind_TextChanged;
+            txtFind.Enter += txtFind_Enter;
+            txtFind.KeyDown += txtFind_KeyDown;
+            txtFind.Leave += txtFind_Leave;
+            txtFind.MouseEnter += txtFind_MouseEnter;
+            // 
+            // cmbFind
+            // 
+            cmbFind.FormattingEnabled = true;
+            cmbFind.Location = new System.Drawing.Point(3, 3);
+            cmbFind.Name = "cmbFind";
+            cmbFind.Size = new System.Drawing.Size(258, 23);
+            cmbFind.TabIndex = 15;
+            cmbFind.DropDown += cmbFind_DropDown;
+            cmbFind.DropDownClosed += cmbFind_DropDownClosed;
+            // 
+            // findAllGrid
+            // 
+            findAllGrid.AllowUserToAddRows = false;
+            findAllGrid.AllowUserToDeleteRows = false;
+            findAllGrid.AllowUserToResizeRows = false;
+            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(224, 224, 224);
+            findAllGrid.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle4;
+            findAllGrid.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            findAllGrid.BackgroundColor = System.Drawing.SystemColors.Control;
+            findAllGrid.BorderStyle = BorderStyle.None;
+            findAllGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle5.Font = new System.Drawing.Font("Segoe UI", 9F);
+            dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle5.WrapMode = DataGridViewTriState.False;
+            findAllGrid.DefaultCellStyle = dataGridViewCellStyle5;
+            findAllGrid.EditMode = DataGridViewEditMode.EditOnEnter;
+            findAllGrid.Location = new System.Drawing.Point(0, 30);
+            findAllGrid.Margin = new Padding(2);
+            findAllGrid.MultiSelect = false;
+            findAllGrid.Name = "findAllGrid";
+            findAllGrid.ReadOnly = true;
+            findAllGrid.RowHeadersVisible = false;
+            findAllGrid.RowTemplate.Height = 28;
+            findAllGrid.RowTemplate.ReadOnly = true;
+            findAllGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            findAllGrid.ShowCellErrors = false;
+            findAllGrid.ShowCellToolTips = false;
+            findAllGrid.ShowEditingIcon = false;
+            findAllGrid.ShowRowErrors = false;
+            findAllGrid.Size = new System.Drawing.Size(682, 33);
+            findAllGrid.StandardTab = true;
+            findAllGrid.TabIndex = 7;
+            findAllGrid.CellDoubleClick += findAllGrid_CellDoubleClick;
+            findAllGrid.CellFormatting += findAllGrid_CellFormatting;
+            // 
+            // searchDir
+            // 
+            searchDir.BackColor = System.Drawing.SystemColors.Control;
+            searchDir.DrawMode = DrawMode.OwnerDrawFixed;
+            searchDir.DropDownStyle = ComboBoxStyle.DropDownList;
+            searchDir.DropDownWidth = 106;
+            searchDir.IntegralHeight = false;
+            searchDir.ItemHeight = 18;
+            searchDir.Items.AddRange(new object[] { "Find Next", "Find Previous", "Find All" });
+            searchDir.Location = new System.Drawing.Point(264, 3);
+            searchDir.Name = "searchDir";
+            searchDir.Size = new System.Drawing.Size(44, 24);
+            searchDir.TabIndex = 22;
+            searchDir.DrawItem += searchDir_DrawItem;
+            searchDir.DropDown += searchDir_DropDown;
+            searchDir.SelectionChangeCommitted += searchDir_SelectionChangeCommitted;
+            searchDir.DropDownClosed += searchDir_DropDownClosed;
+            // 
+            // splittoolTab
+            // 
+            splittoolTab.Dock = DockStyle.Bottom;
+            splittoolTab.Location = new System.Drawing.Point(159, 267);
+            splittoolTab.Margin = new Padding(1, 0, 1, 0);
+            splittoolTab.Name = "splittoolTab";
+            splittoolTab.Size = new System.Drawing.Size(692, 2);
+            splittoolTab.TabIndex = 22;
+            splittoolTab.TabStop = false;
+            splittoolTab.Visible = false;
             // 
             // tmrNavList
             // 
@@ -1887,8 +2137,8 @@
             AutoSize = true;
             ClientSize = new System.Drawing.Size(851, 378);
             Controls.Add(picNavList);
-            Controls.Add(splitInfoGrid);
-            Controls.Add(pnlInfoGrid);
+            Controls.Add(splittoolTab);
+            Controls.Add(tooltabPanel);
             Controls.Add(splitResource);
             Controls.Add(pnlResources);
             Controls.Add(toolStrip1);
@@ -1919,14 +2169,19 @@
             ((System.ComponentModel.ISupportInitialize)splResource).EndInit();
             splResource.ResumeLayout(false);
             cmsResource.ResumeLayout(false);
-            cmsGrid.ResumeLayout(false);
+            cmsInfo.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)picNavList).EndInit();
-            pnlInfoGrid.ResumeLayout(false);
+            tooltabPanel.ResumeLayout(false);
+            toolTab.ResumeLayout(false);
+            infoTab.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)fgWarnings).EndInit();
+            searchTab.ResumeLayout(false);
+            searchTab.PerformLayout();
+            cmsSearch.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)findAllGrid).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
-
         #endregion
 
         private MenuStrip menuStrip1;
@@ -2004,14 +2259,14 @@
         private ToolStripMenuItem mnuTSnippets;
         private ToolStripMenuItem mnuTPalette;
         internal ToolStripMenuItem mnuTWarning;
-        internal ToolStripSeparator mnuTSep2;
+        internal ToolStripSeparator mnuTSep3;
         private ToolStripMenuItem mnuTCustom1;
         private ToolStripMenuItem mnuTCustom2;
         private ToolStripMenuItem mnuTCustom3;
         private ToolStripMenuItem mnuTCustom4;
         private ToolStripMenuItem mnuTCustom5;
         private ToolStripMenuItem mnuTCustom6;
-        private ToolStripSeparator mnuTSep3;
+        private ToolStripSeparator mnuTSep4;
         private ToolStripMenuItem mnuTCustomize;
         private ToolStripMenuItem mnuWindow;
         private ToolStripMenuItem mnuWCascade;
@@ -2087,9 +2342,9 @@
         internal ListView lstResources;
         internal PropertyGrid propertyGrid1;
         private ColumnHeader columnHeader1;
-        internal Splitter splitInfoGrid;
-        internal Panel pnlInfoGrid;
-        private ContextMenuStrip cmsGrid;
+        internal Splitter splittoolTab;
+        internal Panel tooltabPanel;
+        private ContextMenuStrip cmsInfo;
         private ToolStripMenuItem cmiDismiss;
         private ToolStripMenuItem cmiDismissAll;
         private ToolStripMenuItem cmiGoWarning;
@@ -2115,7 +2370,23 @@
         private ToolStripMenuItem btnChangeLogics;
         internal ToolStripSplitButton btnCompile;
         private ToolStripMenuItem btnCompileDD;
+        private DataGridView findAllGrid;
+        private TabPage infoTab;
+        private TabPage searchTab;
+        internal TextBox txtFind;
+        public ComboBox cmbFind;
+        private Button btnFind;
+        private Label matchCount;
+        internal CheckBox chkMatchCase;
+        internal CheckBox chkMatchWord;
+        internal ComboBox searchScope;
+        internal ComboBox searchDir;
+        internal TabControl toolTab;
+        private ToolStripSeparator mnuTSep2;
+        private ToolStripMenuItem mnuTSearch;
         private Button btnClose;
+        private ContextMenuStrip cmsSearch;
+        private ToolStripMenuItem cmiClear;
     }
 }
 

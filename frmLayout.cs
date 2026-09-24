@@ -363,9 +363,8 @@ namespace WinAGI.Editor {
         #region Event Handlers
         #region Form Events
         private void frmLayout_Activated(object sender, EventArgs e) {
-            if (FindingForm.Visible) {
-                FindingForm.Visible = false;
-            }
+            SearchForm.Visible = false;
+            Search.Mode = SearchMode.FindLogic;
             if (MDIMain.infoGridScope == InfoGridScope.SelectedResource) {
                 MDIMain.RefreshInfoGrid();
             }

@@ -45,6 +45,15 @@ namespace WinAGI.Editor {
         private bool ShowingMsgBox = false;
         internal Timer statusFlashTimer = new();
         internal int StatusFlashCount = 0;
+        internal Color StatusFlashColor = Color.Red;
+        private ToolTip tipSearchTerm = new();
+        private ToolTip tipRecentSearches = new();
+        private ToolTip tipFindDir = new();
+        private ToolTip tipMatchCase = new();
+        private ToolTip tipMatchWord = new();
+        private ToolTip tipSearchScope = new();
+
+
         #endregion
 
         #region Constructors
@@ -81,13 +90,28 @@ namespace WinAGI.Editor {
             SetupInfoGrid();
             gridFilter.SelectedIndex = 0;
 
+            // findall grid
+            findallGridTable.Columns.Add("Type", typeof(FindAllType)); // hidden
+            findallGridTable.Columns.Add("Code", typeof(string));
+            findallGridTable.Columns.Add("Location", typeof(string));
+            findallGridTable.Columns.Add("Line", typeof(int));
+            findallGridTable.Columns.Add("LogicNum", typeof(int));
+            findallGridTable.Columns.Add("Filename", typeof(string)); // hidden
+            findallGridTable.Columns.Add("ResType", typeof(AGIResType)); // hidden
+            findallGridBinding.DataSource = findallGridTable;
+            SetupFindAllGrid();
+            // default is to not show any tool tabs
+            toolTab.TabPages.Clear();
+
             btnNewRes.DefaultItem = btnNewLogic;
             btnOpenRes.DefaultItem = btnOpenLogic;
             btnImportRes.DefaultItem = btnImportLogic;
             MainStatusBar = statusStrip1;
             statusFlashTimer.Interval = 100;
             statusFlashTimer.Tick += StatusFlashTimer_Tick;
-            FindingForm = new frmFind();
+            SearchForm = new frmFind();
+            SearchForm.optCurrent.Checked = true;
+            Search.SearchChanged += search_changed;
 
             // set property window split location based on longest word
             Size szText = TextRenderer.MeasureText(" Use Res Names ", propertyGrid1.Font);
@@ -97,6 +121,28 @@ namespace WinAGI.Editor {
             PropPanelMaxSize = 10 * propRowHeight;
             // set grid row height
             fgWarnings.RowTemplate.Height = szText.Height + 2;
+            findAllGrid.RowTemplate.Height = szText.Height + 2;
+            searchScope.SelectedIndex = 0;
+            searchDir.SelectedIndex = 0;
+            cmbFind.DataSource = Search.SearchTerms;
+            tipSearchTerm.SetToolTip(txtFind, "Search term");
+            tipSearchTerm.UseAnimation = false;
+            tipSearchTerm.AutoPopDelay = 2000;
+            tipRecentSearches.SetToolTip(cmbFind, "Show recent searches");
+            tipRecentSearches.UseAnimation = false;
+            tipRecentSearches.AutoPopDelay = 2000;
+            tipFindDir.SetToolTip(btnFind, "Find Next");
+            tipFindDir.UseAnimation = false;
+            tipFindDir.AutoPopDelay = 2000;
+            tipMatchCase.SetToolTip(chkMatchCase, "Match case");
+            tipMatchCase.UseAnimation = false;
+            tipMatchCase.AutoPopDelay = 2000;
+            tipMatchWord.SetToolTip(chkMatchWord, "Match whole word");
+            tipMatchWord.UseAnimation = false;
+            tipMatchWord.AutoPopDelay = 2000;
+            tipSearchScope.SetToolTip(searchScope, "Search scope");
+            tipSearchScope.UseAnimation = false;
+            tipSearchScope.AutoPopDelay = 2000;
             // initialize the basic app functionality
             InitializeResMan();
 
@@ -110,6 +156,7 @@ namespace WinAGI.Editor {
             PictureEditors = [];
             SoundEditors = [];
         }
+
         #endregion
 
         #region Event Handlers
@@ -119,7 +166,7 @@ namespace WinAGI.Editor {
 
             // hide resource and warning panels until needed
             pnlResources.Visible = false;
-            pnlInfoGrid.Visible = false;
+            tooltabPanel.Visible = false;
 
             // get game settings and set initial window positions
             if (!ReadSettings()) {
@@ -188,7 +235,6 @@ namespace WinAGI.Editor {
             CompileGameStatus += MDIMain.GameEvents_CompileGameStatus;
             CompileLogicStatus += MDIMain.GameEvents_CompileLogicStatus;
             DecodeLogicStatus += MDIMain.GameEvents_DecodeLogicStatus;
-
             // check for command string
             CheckCommandLine();
 
@@ -274,6 +320,11 @@ namespace WinAGI.Editor {
                     e.Handled = true;
                     break;
                 }
+                return;
+            }
+            // allow typing in the find text box and replace text box,
+            // but don't pass the keypress to the preview window
+            if (ActiveControl == txtFind) {
                 return;
             }
 
@@ -451,7 +502,7 @@ namespace WinAGI.Editor {
             LayoutEditor?.Dispose();
             GlobalsEditor?.Dispose();
             MenuEditor?.Dispose();
-            FindingForm?.Dispose();
+            SearchForm?.Dispose();
             bgwCompGame?.Dispose();
             bgwNewGame?.Dispose();
             bgwOpenGame?.Dispose();
@@ -545,7 +596,7 @@ namespace WinAGI.Editor {
                 return;
             }
             if ((StatusFlashCount & 1) == 1) {
-                spStatus.BackColor = Color.Red;
+                spStatus.BackColor = StatusFlashColor;
                 spStatus.ForeColor = Color.White;
             }
             else {
@@ -1562,7 +1613,18 @@ namespace WinAGI.Editor {
         private void mnuTools_DropDownOpening(object sender, EventArgs e) {
             mnuTLayout.Enabled = EditGame is not null && EditGame.UseLE;
             mnuTWarning.Enabled = EditGame is not null;
-            mnuTWarning.Text = pnlInfoGrid.Visible ? "Hide Warning List" : "Show Warning List";
+            if (tooltabPanel.Visible && toolTab.TabPages.Contains(infoTab)) {
+                mnuTWarning.Text = "Hide Info Grid";
+            }
+            else {
+                mnuTWarning.Text = "Show Info Grid";
+            }
+            if (tooltabPanel.Visible && toolTab.TabPages.Contains(searchTab)) {
+                mnuTSearch.Text = "Hide Search Tab";
+            }
+            else {
+                mnuTSearch.Text = "Show Search Tab";
+            }
         }
 
         private void mnuTSettings_Click(object sender, EventArgs e) {
@@ -1658,13 +1720,22 @@ namespace WinAGI.Editor {
             }
         }
 
+        private void mnuTSearch_Click(object sender, EventArgs e) {
+            if (tooltabPanel.Visible && toolTab.TabPages.Contains(searchTab)) {
+                HideSearchTab();
+            }
+            else {
+                ShowSearchTab();
+            }
+        }
+
         private void mnuTWarning_Click(object sender, EventArgs e) {
-            if (pnlInfoGrid.Visible) {
-                HideInfoGrid();
+            if (tooltabPanel.Visible && toolTab.TabPages.Contains(infoTab)) {
+                HideInfoTab();
             }
             else {
                 if (EditGame is not null) {
-                    ShowInfoGrid();
+                    ShowInfoTab();
                 }
             }
         }
@@ -1738,8 +1809,8 @@ namespace WinAGI.Editor {
             // disable the close item if no windows or if active window is preview
             mnuWClose.Enabled = (MdiChildren.Length != 0) && (ActiveMdiChild != PreviewWin) && (ActiveMdiChild is not null);
             foreach (ToolStripItem item in mnuWindow.DropDownItems) {
-                if (item is ToolStripMenuItem) {
-                    if (((ToolStripMenuItem)item).Checked) {
+                if (item is ToolStripMenuItem menuitem) {
+                    if (menuitem.Checked) {
                         item.ImageScaling = ToolStripItemImageScaling.None;
                         break;
                     }
@@ -2405,7 +2476,12 @@ namespace WinAGI.Editor {
 
         #region WarningGrid Events
         private void btnClose_Click(object sender, EventArgs e) {
-            HideInfoGrid();
+            if (toolTab.SelectedTab == infoTab) {
+                HideInfoTab();
+            }
+            else if (toolTab.SelectedTab == searchTab) {
+                HideSearchTab();
+            }
         }
 
         private void warningToggle_Click(object sender, EventArgs e) {
@@ -2630,7 +2706,7 @@ namespace WinAGI.Editor {
 
         }
 
-        private void cmsGrid_Opening(object sender, CancelEventArgs e) {
+        private void cmsInfo_Opening(object sender, CancelEventArgs e) {
             Point mp = fgWarnings.PointToClient(MousePosition);
             DataGridView.HitTestInfo hit = fgWarnings.HitTest(mp.X, mp.Y);
             if (hit.RowIndex == -1) {
@@ -2814,6 +2890,519 @@ namespace WinAGI.Editor {
         private void cmiErrorHelp_Click(object sender, EventArgs e) {
             EventType type = Enum.Parse<EventType>((string)fgWarnings.SelectedRows[0].Cells[0].Value);
             HelpInfoItem(type, (string)fgWarnings.SelectedRows[0].Cells[2].Value);
+        }
+        #endregion
+
+        #region SearchBar Events
+        private void cmiClear_Click(object sender, EventArgs e) {
+            ClearSearchResults();
+        }
+
+        private void search_changed(object sender, SearchParameters.SearchChangedEventArgs e) {
+            switch (e.Property) {
+            case "Mode":
+                // adjust finding form
+                SearchForm.SetForm(Search.Mode);
+                // adjust search bar
+                switch (Search.Mode) {
+                case SearchMode.None:
+                case SearchMode.ReplaceLogic:
+                case SearchMode.ReplaceText:
+                case SearchMode.ReplaceObject:
+                case SearchMode.ReplaceWord:
+                case SearchMode.ReplaceObjsLogic:
+                case SearchMode.ReplaceWordsLogic:
+                    MDIMain.searchScope.Enabled = true;
+                    break;
+                case SearchMode.FindLogic:
+                case SearchMode.FindText:
+                case SearchMode.FindObjsLogic:
+                case SearchMode.FindWordsLogic:
+                    MDIMain.searchScope.Enabled = true;
+                    break;
+                case SearchMode.FindObject:
+                case SearchMode.FindWord:
+                case SearchMode.FindGlobals:
+                    // allow changing scope on search bar if direction is 'all'
+                    MDIMain.searchScope.Enabled = MDIMain.searchDir.SelectedIndex == 2;
+                    break;
+                }
+                break;
+            case "Direction":
+                SearchForm.cmbDirection.SelectedIndex = (int)Search.Direction;
+                searchDir.SelectedIndex = (int)Search.Direction;
+                break;
+            case "Scope":
+                switch (Search.Scope) {
+                case SearchScope.Current:
+                    SearchForm.optCurrent.Checked = true;
+                    searchScope.SelectedIndex = 0;
+                    break;
+                case SearchScope.Open:
+                    SearchForm.optOpen.Checked = true;
+                    searchScope.SelectedIndex = 1;
+                    break;
+                case SearchScope.All:
+                    SearchForm.optProject.Checked = true;
+                    searchScope.SelectedIndex = 2;
+                    break;
+                }
+                break;
+            case "MatchWord":
+                SearchForm.chkMatchWord.Checked = Search.MatchWord;
+                chkMatchWord.Checked = Search.MatchWord;
+                break;
+            case "MatchCase":
+                SearchForm.chkMatchCase.Checked = Search.MatchCase;
+                chkMatchCase.Checked = Search.MatchCase;
+                break;
+            case "FindSynonym":
+                SearchForm.chkSynonyms.Checked = Search.FindSynonym;
+                break;
+            case "FindText":
+                SearchForm.txtFind.Text = Search.FindText;
+                txtFind.Text = Search.FindText;
+                break;
+            case "ReplaceText":
+                break;
+            }
+        }
+
+        private void findAllGrid_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
+            // 0        1         2         3     4            5
+            // [H]Type, LineText, location, line, [H]logicnum, [H]filename);
+            //item.Type, item.LineText, location, line, item.LogicNum, item.Location);
+
+            if (findAllGrid.SelectedRows.Count != 1 || e.RowIndex == -1) {
+                return;
+            }
+            if (e.RowIndex != findAllGrid.SelectedRows[0].Index) {
+                findAllGrid.Rows[e.RowIndex].Selected = true;
+            }
+            var row = findAllGrid.SelectedRows[0];
+            switch ((FindAllType)row.Cells[0].Value) {
+            case FindAllType.LogicSource:
+            case FindAllType.LogicEditor:
+                // open the logic file and go to the line
+                int line = (int)row.Cells[3].Value;
+                // TODO: the search text needs to be saved to the grid...
+                string searchtext = "";
+                int lognum = (int)row.Cells[4].Value;
+                // TODO: create a new method that takes the logic number
+                // and line number and opens the logic file and highlights the line
+                ShowFindLine(lognum, line, searchtext);
+                break;
+            case FindAllType.Include:
+                // open the include file
+                //OpenTextFile((string)findAllGrid.SelectedRows[0].Cells[5].Value);
+                line = (int)row.Cells[3].Value;
+                searchtext = "";
+                string filename = (string)row.Cells[5].Value;
+                ShowFindLine(filename, line, searchtext);
+
+                break;
+            case FindAllType.Global:
+                // open globals editor
+                OpenGlobals();
+                if (GEInUse) {
+                    // index is in logicnum column
+                    int rowIndex = (int)row.Cells[4].Value;
+                    if (rowIndex < 0 || rowIndex >= GlobalsEditor.globalsgrid.Rows.Count) {
+                        break;
+                    }
+                    // select and show the target row
+                    GlobalsEditor.globalsgrid.ClearSelection();
+                    GlobalsEditor.globalsgrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                    GlobalsEditor.globalsgrid.Rows[rowIndex].Selected = true;
+                    GlobalsEditor.globalsgrid.CurrentCell = GlobalsEditor.globalsgrid.Rows[rowIndex].Cells[3];
+                    // show the row plus two above it
+                    rowIndex -= 2;
+                    if (rowIndex < 0) {
+                        rowIndex = 0;
+                    }
+                    GlobalsEditor.globalsgrid.FirstDisplayedScrollingRowIndex = rowIndex;
+                }
+                break;
+            case FindAllType.ReservedDefine:
+                // open the reserved define list (can we force it to selected the define?)
+                OpenReservedEditor();
+
+                break;
+            case FindAllType.ResourceIDs:
+                // select the resource in the resource list
+                string key = "";
+                AGIResType restype = (AGIResType)row.Cells[6].Value;
+                int resnum = (int)row.Cells[4].Value;
+                switch (restype) {
+                case AGIResType.Logic:
+                    if (EditGame.Logics.Contains(resnum)) {
+                        key = "l" + resnum;
+                    }
+                    break;
+                case AGIResType.Picture:
+                    if (EditGame.Pictures.Contains(resnum)) {
+                        key = "p" + resnum;
+                    }
+                    break;
+                case AGIResType.Sound:
+                    if (EditGame.Sounds.Contains(resnum)) {
+                        key = "s" + resnum;
+                    }
+                    break;
+                case AGIResType.View:
+                    if (EditGame.Views.Contains(resnum)) {
+                        key = "v" + resnum;
+                    }
+                    break;
+                }
+                if (key.Length == 0) {
+                    return;
+                }
+                // select this resource
+                switch (WinAGISettings.ResListType.Value) {
+                case ResListType.TreeList:
+                    tvwResources.SelectedNode = HdrNode[(int)restype].Nodes[key];
+                    break;
+                case ResListType.ComboList:
+                    // (restype+1 matches desired combobox index)
+                    cmbResType.SelectedIndex = (int)(restype + 1);
+                    // now select the resource
+                    lstResources.Items[key].Selected = true;
+                    break;
+                }
+                // force selection
+                SelectResource(restype, resnum);
+                break;
+            case FindAllType.Object:
+                if (OEInUse) {
+                    ObjectEditor.Select();
+                }
+                else {
+                    OpenGameOBJECT();
+                }
+                // select the item (index is in LogicNum column)
+                int index = (int)row.Cells[4].Value;
+                ObjectEditor.SelectItem(index);
+                break;
+            case FindAllType.WordsTok:
+                if (WEInUse) {
+                    WordEditor.Select();
+                }
+                else {
+                    OpenGameWORDSTOK();
+                }
+                int group = (int)row.Cells[4].Value;
+                int wordindex;
+                _ = int.TryParse((string)row.Cells[5].Value, out wordindex);
+                WordEditor.UpdateSelection(group, wordindex, true);
+                break;
+            }
+        }
+
+        private void findAllGrid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e) {
+            // format negative linnums as "--"
+            if (e.ColumnIndex == 3 && e.Value is int val) {
+                if (val < 0) {
+                    e.Value = "--";
+                    e.FormattingApplied = true;
+                }
+            }
+        }
+
+        private void chkMatchWord_CheckChanged(object sender, EventArgs e) {
+            if (chkMatchWord.Checked) {
+                chkMatchWord.FlatStyle = FlatStyle.Standard;
+            }
+            else {
+                chkMatchWord.FlatStyle = FlatStyle.Flat;
+            }
+        }
+
+        private void chkMatchWord_Click(object sender, EventArgs e) {
+            Search.MatchWord = !Search.MatchWord;
+        }
+
+        private void chkMatchCase_CheckChanged(object sender, EventArgs e) {
+            if (chkMatchCase.Checked) {
+                chkMatchCase.FlatStyle = FlatStyle.Standard;
+            }
+            else {
+                chkMatchCase.FlatStyle = FlatStyle.Flat;
+            }
+        }
+
+        private void chkMatchCase_Click(object sender, EventArgs e) {
+            Search.MatchCase = !Search.MatchCase;
+        }
+
+        private void txtFind_Enter(object sender, EventArgs e) {
+            //txtFind.SelectAll();
+            // if more than one line, expand
+            // if only one line, shrink
+            if (txtFind.Lines.Length > 1) {
+                if (txtFind.Height != 40) {
+                    txtFind.Height = 40;
+                }
+            }
+        }
+
+        private void txtFind_TextChanged(object sender, EventArgs e) {
+
+            // if more than one line, expand
+            // if only one line, shrink
+            if (txtFind.Lines.Length > 1) {
+                if (txtFind.Height != 40) {
+                    txtFind.Height = 40;
+                }
+            }
+            else {
+                if (txtFind.Height != 20) {
+                    txtFind.Height = 20;
+                }
+            }
+        }
+
+        private void txtFind_KeyDown(object sender, KeyEventArgs e) {
+            // treat ENTER as clicking the Find button
+            if (e.KeyCode == Keys.Enter) {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                btnFind.PerformClick();
+            }
+            // treat ESC as clicking the Cancel button
+            else if (e.KeyCode == Keys.Escape) {
+                e.Handled = true;
+                //cmdCancel.PerformClick();
+            }
+            // treat CTRL+ENTER as adding a new line to the find box
+            else if (e.KeyCode == Keys.Enter && e.Control) {
+                int selStart = txtFind.SelectionStart;
+                txtFind.Text = txtFind.Text.Insert(selStart, Environment.NewLine);
+                txtFind.SelectionStart = selStart + Environment.NewLine.Length;
+                e.Handled = true;
+            }
+        }
+
+        private void txtFind_Leave(object sender, EventArgs e) {
+            txtFind.Height = 20;
+        }
+
+        private void txtFind_MouseEnter(object sender, EventArgs e) {
+            // because the find box overlaps the recent search combo box
+            // need to make sure the recent search tip gets hidden when
+            // the mouse enters the find box
+            tipRecentSearches.Hide(cmbFind);
+        }
+
+        private void cmbFind_DropDownClosed(object sender, EventArgs e) {
+            if (cmbFind.SelectedIndex == -1) {
+                return;
+            }
+            // copy selected text to find box
+            txtFind.Text = (string)cmbFind.SelectedItem;
+        }
+
+        private void cmbFind_DropDown(object sender, EventArgs e) {
+            // deselect text nothing is default selected when opening dropdown
+            cmbFind.SelectedIndex = -1;
+        }
+
+        private void btnFind_Click(object sender, EventArgs e) {
+            if (txtFind.Text.Length == 0) {
+                return;
+            }
+            // always update the search term
+            Search.FindText = txtFind.Text;
+            // if scope is current doc, or all open docs, and nothing is open
+            // let user know
+            if (Search.Scope != SearchScope.All && (MDIMain.ActiveMdiChild is null || MDIMain.ActiveMdiChild is frmPreview)) {
+                ClearSearchResults();
+                MessageBox.Show(MDIMain,
+                    "No active document to search.",
+                    "Find Text",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            if (Search.FindAll) {
+                var results = FindAll(Search);
+                MDIMain.AddFindAllItems(results);
+            }
+            else {
+                // active form determines which search function to run
+                if (ActiveMdiChild is null) {
+                    return;
+                }
+                Search.Type = AGIResType.None;
+                switch (ActiveMdiChild.Name) {
+                case "frmGlobals":
+                    Search.Mode = SearchMode.FindGlobals;
+                    BeginSearch(Search, FindAction.Find);
+                    break;
+                case "frmObjectEdit":
+                    Search.Mode = SearchMode.FindObject;
+                    BeginSearch(Search, FindAction.Find);
+                    break;
+                case "frmWordsEdit":
+                    Search.Mode = SearchMode.FindWord;
+                    BeginSearch(Search, FindAction.Find);
+                    break;
+                default:
+                    Search.Mode = SearchMode.FindLogic;
+                    BeginSearch(Search, FindAction.Find);
+                    break;
+                }
+            }
+        }
+
+        private void searchScope_DrawItem(object sender, DrawItemEventArgs e) {
+            if (e.Index < 0) {
+                return;
+            }
+
+            // highlight item under cursor
+            Color backColor;
+            if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                backColor = Color.DarkGray;
+            else
+                backColor = searchDir.BackColor;
+
+            using (Brush b = new SolidBrush(backColor)) {
+                e.Graphics.FillRectangle(b, e.Bounds);
+            }
+
+            e.Graphics.DrawString(searchScope.Items[e.Index].ToString(), e.Font, Brushes.Black, e.Bounds.Left, e.Bounds.Top);
+
+        }
+
+        private void searchScope_SelectionChangeCommitted(object sender, EventArgs e) {
+            switch (searchScope.SelectedIndex) {
+            case 0:
+                if (Search.Scope != SearchScope.Current) {
+                    ClearSearchResults();
+                }
+                Search.Scope = SearchScope.Current;
+                break;
+            case 1:
+                if (Search.Scope != SearchScope.Open) {
+                    ClearSearchResults();
+                }
+                Search.Scope = SearchScope.Open;
+                break;
+            case 2:
+                if (Search.Scope != SearchScope.All) {
+                    ClearSearchResults();
+                }
+                Search.Scope = SearchScope.All;
+                break;
+            }
+        }
+
+        private void searchScope_DropDown(object sender, EventArgs e) {
+            searchScope.ItemHeight = 22;
+        }
+
+        private void searchScope_DropDownClosed(object sender, EventArgs e) {
+            searchScope.ItemHeight = 18;
+            // select nothing
+            searchTab.Select();
+        }
+
+        private void searchDir_DrawItem(object sender, DrawItemEventArgs e) {
+            Image img = null;
+            string text = "";
+
+            if (e.Index < 0) {
+                return;
+            }
+
+            // highlight item under cursor
+            Color backColor;
+            if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                backColor = Color.DarkGray;
+            else
+                backColor = searchDir.BackColor;
+
+            using (Brush b = new SolidBrush(backColor)) {
+                e.Graphics.FillRectangle(b, e.Bounds);
+            }
+
+            switch (e.Index) {
+            case 0:
+                img = EditorResources.search16;
+                text = "Find Next";
+                break;
+            case 1:
+                img = EditorResources.revsearch16;
+                text = "Find Previous";
+                break;
+            case 2:
+                img = EditorResources.findall16;
+                text = "Find All";
+                break;
+            }
+            e.Graphics.DrawImage(img, e.Bounds.Left + 2, e.Bounds.Top + 2, 16, 16);
+            e.Graphics.DrawString(text, e.Font, Brushes.Black, e.Bounds.Left + 22, e.Bounds.Top + 2);
+        }
+
+        private void searchDir_SelectionChangeCommitted(object sender, EventArgs e) {
+            // DO NOT use SelectedIndexChanged event - otherwise problems ensue
+            // when trying to set the value programmatically
+            // always update form value
+            switch (searchDir.SelectedIndex) {
+            case 0:
+                btnFind.Image = EditorResources.search16;
+                tipFindDir.SetToolTip(btnFind, "Find Next");
+                Search.FindAll = false;
+                Search.Direction = SearchDirection.Next;
+                // restrict scope to current doc if editing words, objects or globals
+                if (MDIMain.ActiveMdiChild is frmWordsEdit ||
+                    MDIMain.ActiveMdiChild is frmObjectEdit ||
+                    MDIMain.ActiveMdiChild is frmGlobals) {
+                    Search.Scope = SearchScope.Current;
+                    searchScope.Enabled = false;
+                }
+                break;
+            case 1:
+                btnFind.Image = EditorResources.revsearch16;
+                tipFindDir.SetToolTip(btnFind, "Find Previous");
+                Search.FindAll = false;
+                // restrict scope to current doc if editing words, objects or globals
+                if (MDIMain.ActiveMdiChild is frmWordsEdit ||
+                    MDIMain.ActiveMdiChild is frmObjectEdit ||
+                    MDIMain.ActiveMdiChild is frmGlobals) {
+                    Search.Scope = SearchScope.Current;
+                    searchScope.Enabled = false;
+                }
+                Search.Direction = SearchDirection.Previous;
+                break;
+            case 2:
+                btnFind.Image = EditorResources.findall16;
+                tipFindDir.SetToolTip(btnFind, "Find All");
+                Search.FindAll = true;
+                // allow all scope selections
+                searchScope.Enabled = true;
+                if (Search.FindText.Length == 0) {
+                    return;
+                }
+                // immediately search
+                var results = FindAll(Search);
+                MDIMain.AddFindAllItems(results);
+                return;
+            }
+            // then begin the search
+            Search.Mode = SearchMode.FindLogic;
+            Search.Type = AGIResType.None;
+            BeginSearch(Search, FindAction.Find);
+        }
+
+        private void searchDir_DropDown(object sender, EventArgs e) {
+            searchDir.ItemHeight = 22;
+        }
+
+        private void searchDir_DropDownClosed(object sender, EventArgs e) {
+            searchDir.ItemHeight = 18;
         }
         #endregion
 
@@ -3795,9 +4384,88 @@ namespace WinAGI.Editor {
             }
         }
 
-        internal void FlashStatus() {
+        internal void FlashStatus(Color flashcolor) {
+            StatusFlashColor = flashcolor;
             StatusFlashCount = 0;
             statusFlashTimer.Enabled = true;
+        }
+        #endregion
+
+        #region Search and Replace Methods
+        internal void SetupFindAllGrid() {
+            findAllGrid.Columns.Clear();
+            findAllGrid.DataSource = findallGridBinding;
+            findAllGrid.Columns[0].Visible = false;
+
+            findAllGrid.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            findAllGrid.Columns[1].FillWeight = 70F;
+            findAllGrid.Columns[1].HeaderText = "Code";
+            findAllGrid.Columns[1].MinimumWidth = 10;
+            findAllGrid.Columns[1].ReadOnly = true;
+
+            findAllGrid.Columns[2].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            findAllGrid.Columns[2].FillWeight = 20F;
+            findAllGrid.Columns[2].HeaderText = "Location";
+            findAllGrid.Columns[2].MinimumWidth = 10;
+            findAllGrid.Columns[2].ReadOnly = true;
+
+            findAllGrid.Columns[3].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            findAllGrid.Columns[3].FillWeight = 10F;
+            findAllGrid.Columns[3].HeaderText = "Line";
+            findAllGrid.Columns[3].MinimumWidth = 10;
+            findAllGrid.Columns[3].ReadOnly = true;
+
+            findAllGrid.Columns[4].Visible = false;
+            findAllGrid.Columns[5].Visible = false;
+            findAllGrid.Columns[6].Visible = false;
+        }
+
+        public void AddFindAllItems(List<FindAllItem> finditems) {
+            ClearSearchResults();
+            if (finditems.Count == 0) {
+                MessageBox.Show(MDIMain,
+                    "Search text not found.",
+                    "Find Text",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+            matchCount.Text = $"Matches: {finditems.Count}";
+            matchCount.Visible = true;
+            foreach (FindAllItem item in finditems) {
+                string location = item.Location;
+                int line = item.LineNum;
+                switch (item.Type) {
+                case FindAllType.LogicSource:
+                case FindAllType.LogicEditor:
+                    location = ResourceName(EditGame.Logics[item.LogicNumber], true, true);
+                    break;
+                case FindAllType.Include:
+                    location = Path.GetFileName(location);
+                    break;
+                case FindAllType.Global:
+                    location = "Global Define";
+                    break;
+                case FindAllType.ReservedDefine:
+                    location = "Reserved Define";
+                    line = -1;
+                    break;
+                case FindAllType.ResourceIDs:
+                    location = "Resource ID";
+                    break;
+                case FindAllType.WordsTok:
+                    location = "WORDS.TOK";
+                    break;
+                }
+
+                findallGridTable.Rows.Add(item.Type, item.LineText, location, line, item.LogicNumber, item.Location, item.ResType);
+            }
+            ShowSearchTab();
+        }
+
+        private void ClearSearchResults() {
+            findallGridTable.Clear();
+            matchCount.Visible = false;
         }
         #endregion
 
@@ -3894,10 +4562,11 @@ namespace WinAGI.Editor {
                              infoItem.Line,
                              infoItem.Module,
                              infoItem.Filename);
-                if (!pnlInfoGrid.Visible) {
+                // display infogrid in tooltab
+                if (!tooltabPanel.Visible) {
                     if (WinAGISettings.AutoWarn.Value) {
                         if (!bgwOpenGame.IsBusy) {
-                            ShowInfoGrid();
+                            ShowInfoTab();
                         }
                     }
                 }
@@ -3908,17 +4577,57 @@ namespace WinAGI.Editor {
             }
         }
 
-        public void HideInfoGrid(bool clearlist = false) {
+        public void HideInfoTab(bool clearlist = false) {
             if (clearlist) {
                 ClearInfoGrid();
             }
-            pnlInfoGrid.Visible = false;
-            splitInfoGrid.Visible = false;
+            if (toolTab.TabPages.Contains(infoTab)) {
+                toolTab.TabPages.Remove(infoTab);
+            }
+            if (toolTab.TabPages.Count == 0) {
+                tooltabPanel.Visible = false;
+                splittoolTab.Visible = false;
+            }
         }
 
-        internal void ShowInfoGrid() {
-            splitInfoGrid.Visible = true;
-            pnlInfoGrid.Visible = true;
+        internal void ShowInfoTab() {
+            // display infogrid in tooltab
+            if (!toolTab.TabPages.Contains(infoTab)) {
+                toolTab.TabPages.Add(infoTab);
+            }
+            if (!splittoolTab.Visible) {
+                splittoolTab.Visible = true;
+                tooltabPanel.Visible = true;
+            }
+            if (toolTab.SelectedTab != infoTab) {
+                toolTab.SelectedTab = infoTab;
+            }
+        }
+
+        internal void HideSearchTab(bool clearlist = false) {
+            if (clearlist) {
+                ClearSearchResults();
+            }
+            if (toolTab.TabPages.Contains(searchTab)) {
+                toolTab.TabPages.Remove(searchTab);
+            }
+            if (toolTab.TabPages.Count == 0) {
+                tooltabPanel.Visible = false;
+                splittoolTab.Visible = false;
+            }
+        }
+
+        internal void ShowSearchTab() {
+            if (!toolTab.TabPages.Contains(searchTab)) {
+                toolTab.TabPages.Add(searchTab);
+            }
+            if (!tooltabPanel.Visible) {
+                splittoolTab.Visible = true;
+                tooltabPanel.Visible = true;
+            }
+            if (toolTab.SelectedTab != searchTab) {
+                toolTab.SelectedTab = searchTab;
+            }
         }
 
         internal void RefreshInfoGrid() {
@@ -4503,6 +5212,35 @@ namespace WinAGI.Editor {
                 MainStatusBar.Items[nameof(spStatus)].Text = errorType + "in line " + errorLine + ": " + errorMsg;
             }
         }
+
+        private static void ShowFindLine(int lognum, int line, string searchtext) {
+            frmLogicEdit frmTemp = FindLogicEditor(lognum, true, true);
+            // ignore if not found
+            if (frmTemp is null) {
+                return;
+            }
+            // TODO: highlight the search text
+            if (line >= frmTemp.fctb.LinesCount) {
+                line = frmTemp.fctb.LinesCount - 1;
+            }
+            frmTemp.fctb.Selection.Start = new(0, line);
+            frmTemp.fctb.Selection.End = frmTemp.fctb.Selection.Start;
+            frmTemp.fctb.DoSelectionVisible();
+        }
+
+        private static void ShowFindLine(string filename, int line, string searchtext) {
+            frmLogicEdit frmTemp = FindTextEditor(filename, true, true);
+            // ignore if not found
+            if (frmTemp is null) {
+                return;
+            }
+            if (line >= frmTemp.fctb.LinesCount) {
+                line = frmTemp.fctb.LinesCount - 1;
+            }
+            frmTemp.fctb.Selection.Start = new(0, line);
+            frmTemp.fctb.Selection.End = frmTemp.fctb.Selection.Start;
+            frmTemp.fctb.DoSelectionVisible();
+        }
         #endregion
 
         #region Property Grid Methods
@@ -4970,33 +5708,33 @@ namespace WinAGI.Editor {
             }
             switch (SelResType) {
             case AGIResType.Logic:
-                GFindText = EditGame.Logics[SelResNum].ID;
+                Search.FindText = EditGame.Logics[SelResNum].ID;
                 break;
             case AGIResType.Picture:
-                GFindText = EditGame.Pictures[SelResNum].ID;
+                Search.FindText = EditGame.Pictures[SelResNum].ID;
                 break;
             case AGIResType.Sound:
-                GFindText = EditGame.Sounds[SelResNum].ID;
+                Search.FindText = EditGame.Sounds[SelResNum].ID;
                 break;
             case AGIResType.View:
-                GFindText = EditGame.Views[SelResNum].ID;
+                Search.FindText = EditGame.Views[SelResNum].ID;
                 break;
             default:
                 return;
             }
-            GFindDir = FindDirection.Next;
-            GMatchWord = true;
-            GMatchCase = true;
-            GLogFindLoc = FindLocation.All;
-            GFindSynonym = false;
+            Search.Direction = SearchDirection.Next;
+            Search.MatchWord = true;
+            Search.MatchCase = true;
+            Search.Scope = SearchScope.All;
+            Search.FindSynonym = false;
 
-            // reset search flags
-            frmFind.ResetSearch();
+            // force reset of search flags
+            Search.Reset();
 
             // display find form
-            FindingForm.SetForm(FindFormFunction.FindLogic, true);
-            FindingForm.Visible = true;
-            FindingForm.Select();
+            Search.Mode = SearchMode.FindLogic;
+            SearchForm.Visible = true;
+            SearchForm.Select();
         }
         #endregion
 
@@ -5844,7 +6582,7 @@ namespace WinAGI.Editor {
             // set initial position of property panel
             splResource.SplitterDistance = splResource.Height - splResource.Margin.Top - splResource.Margin.Bottom - splResource.SplitterWidth - PropPanelSplit;
             // 
-            pnlInfoGrid.Height = WinAGISettingsFile.GetSetting(sPOSITION, "InfoGridSplit", 86);
+            tooltabPanel.Height = WinAGISettingsFile.GetSetting(sPOSITION, "InfoGridSplit", 86);
 
             // MRU ENTRIES
             for (i = 0; i < 4; i++) {
@@ -5872,7 +6610,7 @@ namespace WinAGI.Editor {
                     tools = true;
                 }
             }
-            mnuTSep2.Visible = tools;
+            mnuTSep3.Visible = tools;
 
             // DEFAULT RESERVED DEFINES
             DefaultReservedDefines = new(WinAGISettingsFile);
@@ -5929,7 +6667,7 @@ namespace WinAGI.Editor {
             PropPanelSplit = splResource.Height - splResource.Margin.Top - splResource.Margin.Bottom - splResource.SplitterWidth - splResource.SplitterDistance;
             WinAGISettingsFile.WriteSetting(sPOSITION, "PropPanelSplit", PropPanelSplit);
             // WARNING GRID SPLIT
-            WinAGISettingsFile.WriteSetting(sPOSITION, "InfoGridSplit", pnlInfoGrid.Height);
+            WinAGISettingsFile.WriteSetting(sPOSITION, "InfoGridSplit", tooltabPanel.Height);
 
             // MRU ENTRIES
             for (int i = 0; i < 4; i++) {
@@ -6088,6 +6826,7 @@ namespace WinAGI.Editor {
             ShowingMsgBox = false;
             return result;
         }
+
         #endregion
         #endregion
     }
