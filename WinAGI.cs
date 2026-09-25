@@ -145,10 +145,16 @@ namespace WinAGI.Engine {
     public enum SoundFormat {
         Undefined,
         AGI,    // native agi format
-        WAV,    // only IIgs pcm sounds can be exported as wav
-        MIDI,   // only pc and IIgs can be saved as midi
-        Script, // only pc can be exported as script
+        WAV,    // IIgs pcm sound
+        MIDI,   // IIgs midi sound
     };
+
+    public enum SoundExportFormat {
+        ExportAGI,    // native agi format
+        ExportWAV,    // pcm sound
+        ExportMIDI,   // midi conversion
+        ExportScript,  // sound script
+    }
 
     public enum SoundPlaybackMode {
         PCSpeaker, // not implemented yet

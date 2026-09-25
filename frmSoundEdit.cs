@@ -53,7 +53,6 @@ namespace WinAGI.Editor {
         private int StaffScale;
         private int MKbOffset = 45, NKbOffset = 0;
 
-        private SoundPlaybackMode PlaybackMode;
         internal EGAColors EditPalette = DefaultPalette.Clone();
         private readonly Stack<SoundUndo> UndoCol = [];
 
@@ -85,6 +84,7 @@ namespace WinAGI.Editor {
         // StatusStrip Items
         internal ToolStripStatusLabel spScale;
         internal ToolStripStatusLabel spTime;
+        internal ToolStripStatusLabel spMode;
         internal ToolStripStatusLabel spStatus;
         #endregion
 
@@ -261,7 +261,7 @@ namespace WinAGI.Editor {
                 mnuPCSpeaker.Checked = false;
                 mnuPCjr.Checked = false;
                 mnuMIDI.Checked = false;
-                switch (PlaybackMode) {
+                switch (EditSound.PlaybackMode) {
                 case SoundPlaybackMode.PCSpeaker:
                     mnuPCSpeaker.Checked = true;
                     break;
@@ -333,14 +333,16 @@ namespace WinAGI.Editor {
         }
 
         private void mnuPCjr_Click(object sender, EventArgs e) {
-            if (PlaybackMode != SoundPlaybackMode.WAV) {
-                PlaybackMode = SoundPlaybackMode.WAV;
+            if (EditSound.PlaybackMode != SoundPlaybackMode.WAV) {
+                EditSound.PlaybackMode = SoundPlaybackMode.WAV;
+                spMode.Text = "Mode: " + EditSound.PlaybackMode.ToString();
             }
         }
 
         private void mnuMIDI_Click(object sender, EventArgs e) {
-            if (PlaybackMode != SoundPlaybackMode.MIDI) {
-                PlaybackMode = SoundPlaybackMode.MIDI;
+            if (EditSound.PlaybackMode != SoundPlaybackMode.MIDI) {
+                EditSound.PlaybackMode = SoundPlaybackMode.MIDI;
+                spMode.Text = "Mode: " + EditSound.PlaybackMode.ToString();
             }
         }
 
@@ -1760,8 +1762,9 @@ namespace WinAGI.Editor {
         }
 
         private void InitStatusStrip() {
-            spScale = new ToolStripStatusLabel();
-            spTime = new ToolStripStatusLabel();
+            spScale = new();
+            spTime = new();
+            spMode = new();
             spStatus = MDIMain.spStatus;
             // 
             // spScale
@@ -1781,6 +1784,15 @@ namespace WinAGI.Editor {
             spTime.Name = "spTime";
             spTime.Size = new Size(140, 18);
             spTime.Text = "Pos: --";
+            //
+            // spMode
+            //
+            spMode.AutoSize = false;
+            spMode.BorderSides = ToolStripStatusLabelBorderSides.Left | ToolStripStatusLabelBorderSides.Top | ToolStripStatusLabelBorderSides.Right | ToolStripStatusLabelBorderSides.Bottom;
+            spMode.BorderStyle = Border3DStyle.SunkenInner;
+            spMode.Name = "spMode";
+            spMode.Size = new Size(100, 18);
+            spMode.Text = "";
         }
 
         public bool LoadSound(Sound loadsound, bool quiet = false) {
@@ -1929,17 +1941,7 @@ namespace WinAGI.Editor {
             DefOctave = 5;
             NKbOffset = 0;
             MKbOffset = 52;
-            switch (WinAGISettings.PlaybackMode.Value) {
-            case 0:
-                PlaybackMode = SoundPlaybackMode.PCSpeaker;
-                break;
-            case 2:
-                PlaybackMode = SoundPlaybackMode.MIDI;
-                break;
-            default:
-                PlaybackMode = SoundPlaybackMode.WAV;
-                break;
-            }
+            spMode.Text = "Mode: " + EditSound.PlaybackMode.ToString();
             ShowNotes = WinAGISettings.ShowNotes.Value;
             OneTrack = WinAGISettings.OneTrack.Value;
             KeyboardVisible = WinAGISettings.ShowKeyboard.Value;
@@ -2110,14 +2112,14 @@ namespace WinAGI.Editor {
         }
 
         private void PlaySound() {
-            if (PlaybackMode == SoundPlaybackMode.MIDI) {
+            if (EditSound.PlaybackMode == SoundPlaybackMode.MIDI) {
                 // release midi that is being used by sound editor to
                 // play notes on keyboard
                 midiNotePlayer.KillMidi();
             }
             // set up sound resource to play the sound
             EditSound.SoundComplete += This_SoundComplete;
-            EditSound.PlaySound(PlaybackMode);
+            EditSound.PlaySound(EditSound.PlaybackMode);
             btnPlay.Enabled = false;
             btnStop.Enabled = true;
             PlayingSound = true;
@@ -2141,7 +2143,7 @@ namespace WinAGI.Editor {
                 btnStop.Enabled = false;
             }
             // if midi, restore the midi player to play keyboard sounds
-            if (PlaybackMode == SoundPlaybackMode.MIDI) {
+            if (EditSound.PlaybackMode == SoundPlaybackMode.MIDI) {
                 midiNotePlayer.InitMidi();
             }
         }
@@ -2173,9 +2175,7 @@ namespace WinAGI.Editor {
             SelStart = -1;
             tmrCursor.Enabled = false;
             propertyGrid1.SelectedObject = new SoundEditSound(this);
-            if (oldtrack != SelectedTrack) {
-                picStaff[oldtrack].Invalidate();
-            }
+            UpdateVisibleStaves(StaffScale);
             if (tvwSound.SelectedNode != tvwSound.Nodes[0]) {
                 tvwSound.SelectedNode = tvwSound.Nodes[0];
                 tvwSound.SelectedNode.EnsureVisible();
@@ -2301,11 +2301,14 @@ namespace WinAGI.Editor {
                 picKeyboard.Invalidate();
             }
             // update displayed staves
-            if (oldtrack != SelectedTrack && OneTrack) {
+            if (oldtrack != SelectedTrack && oldtrack != -1 && OneTrack) {
                 picStaff[oldtrack].Visible = false;
                 picStaff[SelectedTrack].Top = 0;
                 picStaff[SelectedTrack].Size = picStaff[oldtrack].Size;
                 SetVScroll(SelectedTrack, StaffScale, SOVert[SelectedTrack]);
+                picStaff[SelectedTrack].Visible = true;
+            }
+            if (OneTrack && !picStaff[SelectedTrack].Visible) {
                 picStaff[SelectedTrack].Visible = true;
             }
             if (picStaff[SelectedTrack].Visible) {
@@ -3168,7 +3171,8 @@ namespace WinAGI.Editor {
             // HPos is horizontal position where note will be drawn
             // length is length of note is AGI ticks
 
-            SolidBrush brush = new(Color.Black);
+            SolidBrush blackBrush = new(Color.Black);
+            SolidBrush grayBrush = new(Color.LightGray);
 
             int VPos, TrackCount;
 
@@ -3177,7 +3181,7 @@ namespace WinAGI.Editor {
 
             // convert length of note to MIDI Value, using TPQN
             // (one MIDI unit is a sixteenth note)
-            float midiLength = length / tpqn * 4;
+            float midiLength = (float)length / tpqn * 4;
 
             // if this is noise track
             if (track == 3) {
@@ -3208,7 +3212,7 @@ namespace WinAGI.Editor {
                         // eighth rest dotted
                         gs.DrawImage(EditorResources.rest8, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         break;
                     case 4:
@@ -3228,25 +3232,25 @@ namespace WinAGI.Editor {
                         // quarter rest dotted
                         gs.DrawImage(EditorResources.rest4, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         break;
                     case 7:
                         // quarter rest double dotted
                         gs.DrawImage(EditorResources.rest4, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 13, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 13, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 13, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         break;
                     case 8:
                         // half rest
-                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + 4 * StaffScale, 8 * StaffScale, 3 * StaffScale);
                         break;
                     case 9:
                         // half rest and sixteenth
-                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
                         // draw connector
                         gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * tpqn * TICK_WIDTH * 2, StaffScale * 7);
                         // increment position
@@ -3255,7 +3259,7 @@ namespace WinAGI.Editor {
                         break;
                     case 10:
                         // half rest and eighth
-                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
                         // draw connector
                         gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * tpqn * TICK_WIDTH * 2, StaffScale * 7);
                         // increment position
@@ -3264,28 +3268,28 @@ namespace WinAGI.Editor {
                         break;
                     case 11:
                         // half rest, eighth dotted
-                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
                         // draw connector
                         gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * tpqn * TICK_WIDTH * 2, StaffScale * 7);
                         // increment position
                         HPos += (int)(StaffScale * TICK_WIDTH * 2 * tpqn);
                         gs.DrawImage(EditorResources.rest8, new Rectangle(HPos, VPos, StaffScale * 12, StaffScale * 18));
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 10, VPos + 10 * StaffScale, StaffScale * 2, StaffScale * 2);
                         break;
                     case 12:
                         // half rest dotted
-                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         break;
                     case 13:
                         // half rest dotted and sixteenth
-                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         // draw connector
                         gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, StaffScale * tpqn * TICK_WIDTH * 3, StaffScale * 7);
@@ -3295,22 +3299,22 @@ namespace WinAGI.Editor {
                         break;
                     case 14:
                         // half rest double dotted
-                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         break;
                     case 15:
                         // half rest double dotted and sixteenth
-                        gs.FillRectangle(brush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + 7 * StaffScale, 8 * StaffScale, -3 * StaffScale);
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 11, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         // draw dot
-                        gs.FillEllipse(brush, HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
+                        gs.FillEllipse(blackBrush, HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         gs.DrawEllipse(new(Color.Black), HPos + StaffScale * 14, VPos + 4 * StaffScale, StaffScale * 2, StaffScale * 2);
                         // draw connector
                         gs.DrawImage(EditorResources.connectorup, HPos + StaffScale * 3, VPos + StaffScale * 17, (float)(StaffScale * tpqn * TICK_WIDTH * 3.5), StaffScale * 7);
@@ -3320,7 +3324,7 @@ namespace WinAGI.Editor {
                         break;
                     case 16:
                         // whole rest
-                        gs.FillRectangle(brush, HPos, VPos + StaffScale, 7 * StaffScale, 4 * StaffScale);
+                        gs.FillRectangle(blackBrush, HPos, VPos + StaffScale, 7 * StaffScale, 4 * StaffScale);
                         break;
                     case > 16:
                         // greater than whole note;
@@ -3348,8 +3352,7 @@ namespace WinAGI.Editor {
                         break;
                     default:
                         // not a normal note; draw a bar
-                        brush = new SolidBrush(Color.LightGray);
-                        gs.FillRectangle(brush, HPos, VPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.5)), StaffScale * 18);
+                        gs.FillRectangle(grayBrush, HPos, VPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.5)), StaffScale * 18);
                         // draw black border around bar
                         Pen pen = new(Color.Black);
                         gs.DrawRectangle(pen, HPos, VPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.5)), StaffScale * 18);
@@ -3358,8 +3361,7 @@ namespace WinAGI.Editor {
                 }
                 else {
                     // draw all rest notes as blocks
-                    brush = new SolidBrush(Color.LightGray);
-                    gs.FillRectangle(brush, HPos, VPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.5)), StaffScale * 18);
+                    gs.FillRectangle(grayBrush, HPos, VPos - 2 * StaffScale, (float)(StaffScale * TICK_WIDTH * (length - 0.5)), StaffScale * 18);
                     // draw black border around bar
                     Pen pen = new(Color.Black);
                     gs.DrawRectangle(pen, HPos, VPos - 2 * StaffScale, (float)(HPos + StaffScale * TICK_WIDTH * (length - 0.5)), VPos - 2 * StaffScale + StaffScale * 18);
@@ -4441,7 +4443,7 @@ namespace WinAGI.Editor {
             if (IsNoteOn) {
                 // stop playing note
                 IsNoteOn = false;
-                switch (PlaybackMode) {
+                switch (EditSound.PlaybackMode) {
                 case SoundPlaybackMode.PCSpeaker:
                     throw (new NotImplementedException());
                 case SoundPlaybackMode.WAV:
@@ -4485,7 +4487,7 @@ namespace WinAGI.Editor {
 
             if (KeyboardSound && !PlayingSound) {
                 // now play the note
-                switch (PlaybackMode) {
+                switch (EditSound.PlaybackMode) {
                 case SoundPlaybackMode.PCSpeaker:
                     throw new NotImplementedException();
                 case SoundPlaybackMode.WAV:

@@ -21,6 +21,7 @@ namespace WinAGI.Engine {
         private byte[] midiData = [];
         private byte[] wavData = [];
         bool mOutputSet; // true if wav and midi data match resource data 
+        SoundPlaybackMode mode = SoundPlaybackMode.WAV;
         #endregion
 
         #region Constructors
@@ -239,6 +240,16 @@ namespace WinAGI.Engine {
                 return midiData;
             }
         }
+        
+        public SoundPlaybackMode PlaybackMode {
+            get {
+                return mode;
+            }
+            set {
+                mode = value;
+                PropsChanged = true;
+            }
+        }
         #endregion
 
         #region Methods
@@ -300,6 +311,7 @@ namespace WinAGI.Engine {
             // copy sound properties
             clonesound.mKey = mKey;
             clonesound.mTPQN = mTPQN;
+            clonesound.mode = mode;
             clonesound.mSoundChanged = mSoundChanged;
             clonesound.mLength = mLength;
             clonesound.mFormat = mFormat;
@@ -327,6 +339,7 @@ namespace WinAGI.Engine {
             // copy sound properties
             mKey = SourceSound.mKey;
             mTPQN = SourceSound.mTPQN;
+            mode = SourceSound.mode;
             mSoundChanged = SourceSound.mSoundChanged;
             mLength = SourceSound.mLength;
             mFormat = SourceSound.mFormat;
@@ -658,23 +671,20 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="exportfile"></param>
         /// <param name="format"></param>
-        public void Export(string exportfile, SoundFormat format) {
+        public void Export(string exportfile, SoundExportFormat format) {
             WinAGIException.ThrowIfNotLoaded(this);
             switch (format) {
-            case SoundFormat.AGI:
+            case SoundExportFormat.ExportAGI:
                 ExportAGISound(exportfile);
                 break;
-            case SoundFormat.MIDI:
+            case SoundExportFormat.ExportMIDI:
                 ExportAsMIDI(exportfile);
                 break;
-            case SoundFormat.WAV:
+            case SoundExportFormat.ExportWAV:
                 ExportAsWAV(exportfile);
                 break;
-            case SoundFormat.Script:
+            case SoundExportFormat.ExportScript:
                 ExportAsScript(exportfile);
-                break;
-            case SoundFormat.Undefined:
-                // error? or use default?
                 break;
             }
         }
@@ -684,7 +694,7 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="exportfile"></param>
         public new void Export(string exportfile) {
-            Export(exportfile, SoundFormat.AGI);
+            Export(exportfile, SoundExportFormat.ExportAGI);
         }
 
         /// <summary>
@@ -1040,11 +1050,12 @@ namespace WinAGI.Engine {
                 // finish loading sound
                 FinishLoad(validateonly);
                 // get settings
-                mKey = parent.agGameProps.GetSetting("Sound" + mResNum, "Key", 0);
+                string section = "Sound" + mResNum;
+                mKey = parent.agGameProps.GetSetting(section, "Key", 0);
                 if (mKey < -7 || mKey > 7) {
                     mKey = 0;
                 }
-                mTPQN = parent.agGameProps.GetSetting("Sound" + mResNum, "TPQN", 0);
+                mTPQN = parent.agGameProps.GetSetting(section, "TPQN", 0);
                 mTPQN = (mTPQN / 4) * 4;
                 if (mTPQN < 4) {
                     mTPQN = 4;
@@ -1052,17 +1063,21 @@ namespace WinAGI.Engine {
                 if (mTPQN > 64) {
                     mTPQN = 64;
                 }
-                mTrack[0].Instrument = parent.agGameProps.GetSetting("Sound" + mResNum, "Inst0", (byte)80);
-                mTrack[1].Instrument = parent.agGameProps.GetSetting("Sound" + mResNum, "Inst1", (byte)80);
-                mTrack[2].Instrument = parent.agGameProps.GetSetting("Sound" + mResNum, "Inst2", (byte)80);
-                mTrack[0].Muted = parent.agGameProps.GetSetting("Sound" + mResNum, "Mute0", false);
-                mTrack[1].Muted = parent.agGameProps.GetSetting("Sound" + mResNum, "Mute1", false);
-                mTrack[2].Muted = parent.agGameProps.GetSetting("Sound" + mResNum, "Mute2", false);
-                mTrack[3].Muted = parent.agGameProps.GetSetting("Sound" + mResNum, "Mute3", false);
-                mTrack[0].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible0", true);
-                mTrack[1].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible1", true);
-                mTrack[2].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible2", true);
-                mTrack[3].Visible = parent.agGameProps.GetSetting("Sound" + mResNum, "Visible3", true);
+                mode = (SoundPlaybackMode)parent.agGameProps.GetSetting(section, "Mode", 1);
+                if ((int)mode < 0 || (int)mode > 2) {
+                    mode = SoundPlaybackMode.WAV;
+                }
+                mTrack[0].Instrument = parent.agGameProps.GetSetting(section, "Inst0", (byte)80);
+                mTrack[1].Instrument = parent.agGameProps.GetSetting(section, "Inst1", (byte)80);
+                mTrack[2].Instrument = parent.agGameProps.GetSetting(section, "Inst2", (byte)80);
+                mTrack[0].Muted = parent.agGameProps.GetSetting(section, "Mute0", false);
+                mTrack[1].Muted = parent.agGameProps.GetSetting(section, "Mute1", false);
+                mTrack[2].Muted = parent.agGameProps.GetSetting(section, "Mute2", false);
+                mTrack[3].Muted = parent.agGameProps.GetSetting(section, "Mute3", false);
+                mTrack[0].Visible = parent.agGameProps.GetSetting(section, "Visible0", true);
+                mTrack[1].Visible = parent.agGameProps.GetSetting(section, "Visible1", true);
+                mTrack[2].Visible = parent.agGameProps.GetSetting(section, "Visible2", true);
+                mTrack[3].Visible = parent.agGameProps.GetSetting(section, "Visible3", true);
             }
         }
 
@@ -1135,6 +1150,7 @@ namespace WinAGI.Engine {
                 parent.WriteGameSetting(section, "Description", mDescription);
                 parent.WriteGameSetting(section, "Key", mKey);
                 parent.WriteGameSetting(section, "TPQN", mTPQN);
+                parent.WriteGameSetting(section, "Mode", (int)mode);
                 parent.WriteGameSetting(section, "Inst0", mTrack[0].Instrument);
                 parent.WriteGameSetting(section, "Inst1", mTrack[1].Instrument);
                 parent.WriteGameSetting(section, "Inst2", mTrack[2].Instrument);

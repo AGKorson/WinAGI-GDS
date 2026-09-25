@@ -4348,6 +4348,7 @@ namespace WinAGI.Editor {
             case frmSoundEdit frmSE:
                 statusStrip1.Items.Insert(0, frmSE.spScale);
                 statusStrip1.Items.Insert(1, frmSE.spTime);
+                statusStrip1.Items.Insert(2, frmSE.spMode);
                 // status
                 spCapsLock.Visible = false;
                 spNumLock.Visible = false;

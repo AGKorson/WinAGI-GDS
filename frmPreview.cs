@@ -1618,7 +1618,7 @@ namespace WinAGI.Editor {
                 optPCjr.Enabled = true;
                 // set default playback mode
                 // (currently, only PCJr and MIDI are supported
-                // PCSpeaker not yet set up)
+                // PCSpeaker mode currently NOT supported)
                 switch (WinAGISettings.PlaybackMode.Value) {
                 case 1:
                     // pcjr emulator

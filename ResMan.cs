@@ -4584,7 +4584,7 @@ namespace WinAGI.Editor {
         /// <param name="ingame"></param>
         /// <returns>1 if exported as an AGI resource, 0 otherwise</returns>
         public static int ExportSound(Sound sound, bool ingame) {
-            SoundFormat exportformat = SoundFormat.Undefined;
+            SoundExportFormat exportformat = SoundExportFormat.ExportAGI;
             bool loaded;
             using (frmExportSoundOptions frmSEO = new(sound.SndFormat)) {
                 if (frmSEO.ShowDialog(MDIMain) == DialogResult.Cancel) {
@@ -4595,16 +4595,16 @@ namespace WinAGI.Editor {
                     sound.Load();
                 }
                 if (frmSEO.optNative.Checked) {
-                    exportformat = SoundFormat.AGI;
+                    exportformat = SoundExportFormat.ExportAGI;
                 }
                 else if (frmSEO.optMidi.Checked) {
-                    exportformat = SoundFormat.MIDI;
+                    exportformat = SoundExportFormat.ExportMIDI;
                 }
                 else if (frmSEO.optWAV.Checked) {
-                    exportformat = SoundFormat.WAV;
+                    exportformat = SoundExportFormat.ExportWAV;
                 }
                 else if (frmSEO.optASS.Checked) {
-                    exportformat = SoundFormat.Script;
+                    exportformat = SoundExportFormat.ExportScript;
                 }
             }
             string filename;
@@ -4616,7 +4616,7 @@ namespace WinAGI.Editor {
                 MDIMain.SaveDlg.FileName = Path.GetFileNameWithoutExtension(sound.ID);
             }
             switch (exportformat) {
-            case SoundFormat.AGI:
+            case SoundExportFormat.ExportAGI:
                 if (ingame) {
                     MDIMain.SaveDlg.Title = "Export Sound";
                 }
@@ -4627,19 +4627,19 @@ namespace WinAGI.Editor {
                 MDIMain.SaveDlg.Filter = "WinAGI Sound Files|*.ags|All files (*.*)|*.*";
                 MDIMain.SaveDlg.FileName += ".ags";
                 break;
-            case SoundFormat.MIDI:
+            case SoundExportFormat.ExportMIDI:
                 MDIMain.SaveDlg.Title = "Save Sound As MIDI";
                 MDIMain.SaveDlg.DefaultExt = "mid";
                 MDIMain.SaveDlg.Filter = "MIDI Files|*.mid|All files (*.*)|*.*";
                 MDIMain.SaveDlg.FileName += ".mid";
                 break;
-            case SoundFormat.WAV:
+            case SoundExportFormat.ExportWAV:
                 MDIMain.SaveDlg.Title = "Save Sound As WAV";
                 MDIMain.SaveDlg.Filter = "WAV Sound Files|*.wav|All files (*.*)|*.*";
                 MDIMain.SaveDlg.DefaultExt = "wav";
                 MDIMain.SaveDlg.FileName += ".wav";
                 break;
-            case SoundFormat.Script:
+            case SoundExportFormat.ExportScript:
                 MDIMain.SaveDlg.Title = "Save Sound As Script";
                 MDIMain.SaveDlg.Filter = "AGI Sound Script Files|*.ass|All files (*.*)|*.*";
                 MDIMain.SaveDlg.DefaultExt = "ass";
@@ -4658,7 +4658,7 @@ namespace WinAGI.Editor {
                 MDIMain.UseWaitCursor = true;
                 try {
                     sound.Export(filename, exportformat);
-                    retval = exportformat == SoundFormat.AGI ? 1 : 0;
+                    retval = exportformat == SoundExportFormat.ExportAGI ? 1 : 0;
                 }
                 catch (Exception ex) {
                     ErrMsgBox(ex,
