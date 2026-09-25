@@ -1711,6 +1711,12 @@ namespace WinAGI.Editor {
                 skipundo = true;
                 AddNewGroup = false;
             }
+            // check for no change OR cancel first
+            if (txtWordEdit.Text == EditWordText ||
+                txtWordEdit.Text == "CX") {
+                return;
+            }
+
             string newword = ValidateWord(txtWordEdit.Text);
             if (newword == EditWordText) {
                 // no change
@@ -1760,6 +1766,8 @@ namespace WinAGI.Editor {
                 dgWords.Select();
                 return;
             case Keys.Escape:
+                // use cancel code so validation knows not to do anything
+                txtWordEdit.Text = "CX";
                 FinishWordEdit();
                 break;
             case Keys.Back:
@@ -2805,6 +2813,9 @@ namespace WinAGI.Editor {
             if ((isFirst || EditWordList.GroupByNumber(thisGroup).GroupName == newWord)) {
                 UpdateGroupName(thisGroup);
             }
+            else {
+                FormatGroupRow(dgGroups.Rows[EditWordList.GroupIndexFromNumber(thisGroup)]);
+            }
 
             // if not skipping undo
             if (!DontUndo) {
@@ -2883,6 +2894,7 @@ namespace WinAGI.Editor {
 
         private void DeleteWord(string word, bool DontUndo = false) {
             int group = EditWordList[word].Group;
+            string firstword = EditWordList.GroupByNumber(group)[0];
 
             if (EditWordList.GroupByNumber(group).WordCount == 1 &&
                 group != 0 && group != 1 && group != 9999) {
@@ -2897,6 +2909,9 @@ namespace WinAGI.Editor {
                 if (group == 9999 && dgWords.Rows.Count == 0) {
                     dgWords.Rows.Add("<group 9999: rest of line>");
                 }
+            }
+            if (EditWordList.GroupByNumber(group).GroupName != firstword) {
+                UpdateGroupName(group);
             }
             if (GroupMode) {
                 FormatGroupRow(dgGroups.Rows[EditWordList.GroupIndexFromNumber(group)]);
@@ -3033,6 +3048,7 @@ namespace WinAGI.Editor {
             }
             if (GroupMode) {
                 dgGroups.Rows[EditWordList.GroupIndexFromNumber(GroupNo)].Cells[0].Value = (GroupNo.ToString() + ":").PadRight(6) + EditWordList.GroupByNumber(GroupNo).GroupName;
+                FormatGroupRow(dgGroups.Rows[EditWordList.GroupIndexFromNumber(GroupNo)]);
             }
             else {
                 if (GroupNo == EditGroupNumber) {

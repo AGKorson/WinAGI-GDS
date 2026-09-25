@@ -30,13 +30,17 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
   
 ### Known Issues:  
 ---
-  
+
 ### History:
+Beta.86:
+- fixed minor bugs in words.tok editor when editing words with ignored characters
+
 Beta.85:
 - playback mode added as a sound property (so each sound can have its own value)
 - added playback mode to sound editor status bar
 - fixed bug in sound editor that was incorrectly drawing rest notes in some situations
 - refactored sound export, no functional change
+
 Beta.84:
 - major refactor of find functions, including addition of a FindAll feature that displays a list of all matching items in the infogrid panel area (as a separate tab)
 - added a search function to the globals editor
