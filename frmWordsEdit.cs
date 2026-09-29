@@ -1154,8 +1154,6 @@ namespace WinAGI.Editor {
             }
             Search.Type = AGIResType.Words;
             Search.Mode = SearchMode.FindWordsLogic;
-            // to avoid unwanted change in form function, don't assign text
-            // cmbFind directly
             SearchForm.Visible = true;
             SearchForm.Select();
         }

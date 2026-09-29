@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.85
+        Version 3.0.0beta.87
     ==============================
 
 
@@ -32,6 +32,10 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
 
 ### History:
+Beta.87:
+- changed globals editor find-in-logics behavior to just show search form instead of starting a search
+- fixed SearchParameter object to correctly manage events when no handler attached
+
 Beta.86:
 - fixed minor bugs in words.tok editor when editing words with ignored characters
 

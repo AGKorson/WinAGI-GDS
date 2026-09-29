@@ -10940,7 +10940,7 @@ namespace WinAGI.Editor {
                     if (mode != SearchMode.FindWordsLogic) {
                         FindSynonym = false;
                     }
-                    SearchChanged(this, new(nameof(Mode)));
+                    SearchChanged?.Invoke(this, new(nameof(Mode)));
                 }
             }
         }
@@ -10951,7 +10951,7 @@ namespace WinAGI.Editor {
                 if (direction != value) {
                     direction = value;
                     Reset();
-                    SearchChanged(this, new(nameof(Direction)));
+                    SearchChanged?.Invoke(this, new(nameof(Direction)));
                     CheckModeChange();
                 }
             }
@@ -10963,7 +10963,7 @@ namespace WinAGI.Editor {
                 if (scope != value) {
                     scope = value;
                     Reset();
-                    SearchChanged(this, new(nameof(Scope)));
+                    SearchChanged?.Invoke(this, new(nameof(Scope)));
                     CheckModeChange();
                 }
             }
@@ -10975,7 +10975,7 @@ namespace WinAGI.Editor {
                 if (matchWord != value) {
                     matchWord = value;
                     Reset();
-                    SearchChanged(this, new(nameof(MatchWord)));
+                    SearchChanged?.Invoke(this, new(nameof(MatchWord)));
                     CheckModeChange();
                 }
             }
@@ -10987,7 +10987,7 @@ namespace WinAGI.Editor {
                 if (matchCase != value) {
                     matchCase = value;
                     Reset();
-                    SearchChanged(this, new(nameof(MatchCase)));
+                    SearchChanged?.Invoke(this, new(nameof(MatchCase)));
                     CheckModeChange();
                 }
             }
@@ -10999,7 +10999,7 @@ namespace WinAGI.Editor {
                 if (findSynonym != value) {
                     findSynonym = value;
                     Reset();
-                    SearchChanged(this, new(nameof(FindSynonym)));
+                    SearchChanged?.Invoke(this, new(nameof(FindSynonym)));
                 }
             }
         }
@@ -11011,7 +11011,7 @@ namespace WinAGI.Editor {
                     findText = value;
                     Reset();
                     UpdateSearchList(value);
-                    SearchChanged(this, new(nameof(FindText)));
+                    SearchChanged?.Invoke(this, new(nameof(FindText)));
                     CheckModeChange();
                 }
             }
@@ -11023,7 +11023,7 @@ namespace WinAGI.Editor {
                 if (replaceText != value) {
                     replaceText = value;
                     Reset();
-                    SearchChanged(this, new(nameof(ReplaceText)));
+                    SearchChanged?.Invoke(this, new(nameof(ReplaceText)));
                     CheckModeChange();
                 }
             }

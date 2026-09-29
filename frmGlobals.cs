@@ -752,7 +752,9 @@ namespace WinAGI.Editor {
                 Search.FindSynonym = false;
                 // force reset
                 Search.Reset();
-                FindInLogic(this, Search, false);
+                Search.Mode = SearchMode.FindObjsLogic;
+                SearchForm.Visible = true;
+                SearchForm.Select();
             }
         }
 
