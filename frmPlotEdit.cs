@@ -225,10 +225,10 @@ namespace WinAGI.Editor {
                 src.Height = 167 - src.Y;
             }
             if (SelCmd.Pen.VisColor != AGIColorIndex.None) {
-                g.DrawImage(EditPic.VisualBMP, dest, src, GraphicsUnit.Pixel);
+                g.DrawImage(EditPic.VisualImage, dest, src, GraphicsUnit.Pixel);
             }
             else {
-                g.DrawImage(EditPic.PriorityBMP, dest, src, GraphicsUnit.Pixel);
+                g.DrawImage(EditPic.PriorityImage, dest, src, GraphicsUnit.Pixel);
             }
             picPlot.Refresh();
         }

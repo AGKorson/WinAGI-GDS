@@ -26,7 +26,7 @@ namespace WinAGI.Editor {
         #region Fields
         private frmPicEdit PicEditForm;
         public PictureBackgroundSettings bkgdSettings;
-        public Bitmap BkgdImage, example, viscopy;
+        public Bitmap BkgdImage, ExampleImage, VisImage;
         // selection/move variables
         private const int RESIZE_BORDER = 5;
         private Point anchor, offset = new(0, 0);
@@ -135,7 +135,7 @@ namespace WinAGI.Editor {
         private void chkDefaultVis_Click(object sender, EventArgs e) {
             bkgdSettings.DefaultAlwaysTransparent = chkDefaultVis.Checked;
             if (Visible) {
-                picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
+                picExample.Image = UpdatePaletteTransparency(ExampleImage, (float)(100 - bkgdSettings.Transparency) / 100);
             }
         }
 
@@ -166,8 +166,9 @@ namespace WinAGI.Editor {
                 picBackground.Left = picBackground.Top = 0;
                 picBackground.Width = 320 * scalefactor;
                 picBackground.Height = 168 * scalefactor;
+                picBackground.Image?.Dispose();
                 picBackground.Image = new Bitmap(BkgdImage, 320 * scalefactor, 168 * scalefactor);
-                picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
+                picExample.Image = UpdatePaletteTransparency(ExampleImage, (float)(100 - bkgdSettings.Transparency) / 100);
                 HScroll1.Visible = VScroll1.Visible = picCorner.Visible = false;
             }
         }
@@ -177,8 +178,9 @@ namespace WinAGI.Editor {
             picBackground.Left = picBackground.Top = 0;
             picBackground.Width = 320 * scalefactor;
             picBackground.Height = 168 * scalefactor;
+            picBackground.Image?.Dispose();
             picBackground.Image = new Bitmap(BkgdImage, 320 * scalefactor, 168 * scalefactor);
-            picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
+            picExample.Image = UpdatePaletteTransparency(ExampleImage, (float)(100 - bkgdSettings.Transparency) / 100);
             HScroll1.Visible = VScroll1.Visible = picCorner.Visible = false;
         }
 
@@ -187,15 +189,16 @@ namespace WinAGI.Editor {
             picBackground.Left = picBackground.Top = 0;
             picBackground.Width = BkgdImage.Width * scalefactor;
             picBackground.Height = BkgdImage.Height * scalefactor;
+            picBackground.Image?.Dispose();
             picBackground.Image = new Bitmap(BkgdImage, BkgdImage.Width * scalefactor, BkgdImage.Height * scalefactor);
-            picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
+            picExample.Image = UpdatePaletteTransparency(ExampleImage, (float)(100 - bkgdSettings.Transparency) / 100);
             UpdateScrollbars();
         }
 
         private void sldTrans_Scroll(object sender, EventArgs e) {
             txtTransparency.Value = sldTrans.Value;
             bkgdSettings.Transparency = (byte)sldTrans.Value;
-            picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
+            picExample.Image = UpdatePaletteTransparency(ExampleImage, (float)(100 - bkgdSettings.Transparency) / 100);
         }
 
         private void txtTransparency_Validating(object sender, CancelEventArgs e) {
@@ -203,7 +206,7 @@ namespace WinAGI.Editor {
                 txtTransparency.Value = bkgdSettings.Transparency;
             }
             bkgdSettings.Transparency = (byte)txtTransparency.Value;
-            picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
+            picExample.Image = UpdatePaletteTransparency(ExampleImage, (float)(100 - bkgdSettings.Transparency) / 100);
         }
 
         private void txtTransparency_Leave(object sender, EventArgs e) {
@@ -221,10 +224,14 @@ namespace WinAGI.Editor {
                 return;
             }
             Rectangle r = Rectangle.Union(picExample.Bounds, picBackground.Bounds);
+            // prevent flicker by suspending redraw of the example picture while moving both images
+            SendMessage(picExample.Handle, WM_SETREDRAW, false, 0);
             int offset = picBackground.Top - r.Top;
             picBackground.Top = -e.NewValue + offset;
             offset = picExample.Top - r.Top;
             picExample.Top = -e.NewValue + offset;
+            SendMessage(picExample.Handle, WM_SETREDRAW, true, 0);
+            picExample.Refresh();
             UpdateScrollbars();
         }
 
@@ -233,10 +240,14 @@ namespace WinAGI.Editor {
                 return;
             }
             Rectangle r = Rectangle.Union(picExample.Bounds, picBackground.Bounds);
+            // prevent flicker by suspending redraw of the example picture while moving both images
+            SendMessage(picExample.Handle, WM_SETREDRAW, false, 0);
             int offset = picBackground.Left - r.Left;
             picBackground.Left = -e.NewValue + offset;
             offset = picExample.Left - r.Left;
             picExample.Left = -e.NewValue + offset;
+            SendMessage(picExample.Handle, WM_SETREDRAW, true, 0);
+            picExample.Refresh();
             UpdateScrollbars();
         }
 
@@ -417,25 +428,28 @@ namespace WinAGI.Editor {
             picBackground.Top = picBackground.Top / oldscale * scalefactor;
             picBackground.Width = bkgdSettings.SourceSize.Width * scalefactor;
             picBackground.Height = bkgdSettings.SourceSize.Height * scalefactor;
+            picBackground.Image?.Dispose();
             picBackground.Image = new Bitmap(BkgdImage, picBackground.Width, picBackground.Height);
             picExample.Left = picExample.Left / oldscale * scalefactor;
             picExample.Top = picExample.Top / oldscale * scalefactor;
             picExample.Width = 320 * scalefactor;
             picExample.Height = 168 * scalefactor;
             try {
-                example = new(320 * scalefactor, 168 * scalefactor);
-                using (Graphics g = Graphics.FromImage(example)) {
+                using Bitmap scaled = new(320 * scalefactor, 168 * scalefactor);
+                using (Graphics g = Graphics.FromImage(scaled)) {
                     g.InterpolationMode = InterpolationMode.NearestNeighbor;
                     g.PixelOffsetMode = PixelOffsetMode.Half;
-                    g.DrawImage(viscopy, 0, 0, 320 * scalefactor, 168 * scalefactor);
+                    g.DrawImage(VisImage, 0, 0, 320 * scalefactor, 168 * scalefactor);
                 }
                 // convert it back to indexed bmp so palette can be edited
-                example = example.Clone(new(0, 0, 320 * scalefactor, 168 * scalefactor), PixelFormat.Format8bppIndexed);
+                ExampleImage?.Dispose();
+                ExampleImage = scaled.Clone(new(0, 0, 320 * scalefactor, 168 * scalefactor), PixelFormat.Format8bppIndexed);
             }
             catch (Exception) {
                 Debug.Assert(false);
             }
-            picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
+            picExample.Image?.Dispose();
+            picExample.Image = UpdatePaletteTransparency(ExampleImage, (float)(100 - bkgdSettings.Transparency) / 100);
             minsize = 32 * scalefactor;
             minoverlap = 30 * scalefactor;
             UpdateScrollbars();
@@ -454,6 +468,7 @@ namespace WinAGI.Editor {
             string currentfile = bkgdSettings.FileName;
             if (currentfile.Length != 0) {
                 try {
+                    BkgdImage?.Dispose();
                     BkgdImage = new(Path.GetFullPath(currentfile, EditGame.SrcResDir));
                 }
                 catch (Exception ex) {
@@ -461,6 +476,7 @@ namespace WinAGI.Editor {
                         ex.StackTrace,
                         "Invalid Image File");
                     // use a blank white image
+                    BkgdImage?.Dispose();
                     BkgdImage = new(320 * scalefactor, 168 * scalefactor);
                     using Graphics g = Graphics.FromImage(BkgdImage);
                     g.Clear(Color.White);
@@ -492,32 +508,34 @@ namespace WinAGI.Editor {
                 loc.Offset(offset);
                 picBackground.Location = loc;
             }
+            picBackground.Image?.Dispose();
             picBackground.Image = new Bitmap(BkgdImage, picBackground.Width, picBackground.Height);
 
             try {
                 // for example pic, we need the non-transparent bitmap
                 // make a copy of the visualBMP and clear out transparency values
-                viscopy = (Bitmap)owner.EditPicture.VisualBMP.Clone();
-                ColorPalette palette = viscopy.Palette;
+                VisImage = (Bitmap)owner.EditPicture.VisualImage.Clone();
+                ColorPalette palette = VisImage.Palette;
                 for (int i = 0; i < palette.Entries.Length; i++) {
                     palette.Entries[i] = Color.FromArgb(255, palette.Entries[i]);
                 }
-                viscopy.Palette = palette;
+                VisImage.Palette = palette;
                 // scale it to fit the example box (which removes indexing)
-                example = new(320 * scalefactor, 168 * scalefactor);
-                using (Graphics g = Graphics.FromImage(example)) {
+                using Bitmap scaled = new(320 * scalefactor, 168 * scalefactor);
+                using (Graphics g = Graphics.FromImage(scaled)) {
                     g.InterpolationMode = InterpolationMode.NearestNeighbor;
                     g.PixelOffsetMode = PixelOffsetMode.Half;
-                    g.DrawImage(viscopy, 0, 0, 320 * scalefactor, 168 * scalefactor);
+                    g.DrawImage(VisImage, 0, 0, scaled.Width, scaled.Height);
                 }
+                ExampleImage?.Dispose();
                 // convert it back to indexed bmp so palette can be edited
-                example = example.Clone(new(0, 0, 320 * scalefactor, 168 * scalefactor), PixelFormat.Format8bppIndexed);
+                ExampleImage = scaled.Clone(new(0, 0, 320 * scalefactor, 168 * scalefactor), PixelFormat.Format8bppIndexed);
             }
             catch (Exception) {
                 Debug.Assert(false);
             }
             // Set the image with initial opacity to the PictureBox
-            picExample.Image = SetImageOpacity(example, (float)(100 - bkgdSettings.Transparency) / 100);
+            picExample.Image = UpdatePaletteTransparency(ExampleImage, (float)(100 - bkgdSettings.Transparency) / 100);
             // UpdateScrollbars doesn't work here because the form is not visible
             // UpdateScrollbars();
         }
@@ -570,6 +588,7 @@ namespace WinAGI.Editor {
             DefaultResDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
             bkgdSettings.FileName = Path.GetRelativePath(EditGame.SrcResDir, MDIMain.OpenDlg.FileName);
             try {
+                BkgdImage?.Dispose();
                 BkgdImage = new(MDIMain.OpenDlg.FileName);
             }
             catch (Exception ex) {
@@ -581,7 +600,7 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        public Bitmap SetImageOpacity(Bitmap image, float opacity) {
+        public Bitmap UpdatePaletteTransparency(Bitmap image, float opacity) {
             ColorPalette palette = image.Palette;
             for (int i = 0; i < palette.Entries.Length; i++) {
                 if (bkgdSettings.DefaultAlwaysTransparent && Color.FromArgb(255, palette.Entries[i]) == PicEditForm.EditPalette[15]) {
@@ -683,6 +702,7 @@ namespace WinAGI.Editor {
             }
             picBackground.Height = newH;
             picBackground.Width = newW;
+            picBackground.Image?.Dispose();
             picBackground.Image = new Bitmap(BkgdImage, picBackground.Width, picBackground.Height);
             UpdateScrollbars();
         }
@@ -703,6 +723,7 @@ namespace WinAGI.Editor {
                 return;
             }
             picBackground.Width = newW;
+            picBackground.Image?.Dispose();
             picBackground.Image = new Bitmap(BkgdImage, picBackground.Width, picBackground.Height);
             UpdateScrollbars();
         }
@@ -723,6 +744,7 @@ namespace WinAGI.Editor {
                 return;
             }
             picBackground.Height = newH;
+            picBackground.Image?.Dispose();
             picBackground.Image = new Bitmap(BkgdImage, picBackground.Width, picBackground.Height);
             UpdateScrollbars();
         }
@@ -854,11 +876,6 @@ namespace WinAGI.Editor {
                     VScroll1.Value = -r.Y;
                 }
             }
-            pnlBackSurface.Invalidate();
-            SendMessage(picExample.Handle, WM_SETREDRAW, false, 0);
-            picBackground.Invalidate();
-            SendMessage(picExample.Handle, WM_SETREDRAW, true, 0);
-            picExample.Refresh();
         }
         #endregion
     }

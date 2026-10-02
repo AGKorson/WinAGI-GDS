@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
@@ -1636,6 +1635,7 @@ namespace WinAGI.Editor {
             Brush fontBrush = new SolidBrush(NewSettings.RoomEdgeColor.Value);
 
             int bWidth = picLESample.Width, bHeight = picLESample.Height;
+            picLESample.Image?.Dispose();
             picLESample.Image = new Bitmap(bWidth, bHeight);
             Graphics g = Graphics.FromImage(picLESample.Image);
             g.SmoothingMode = SmoothingMode.AntiAlias;

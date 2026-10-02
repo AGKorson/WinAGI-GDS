@@ -72,8 +72,7 @@ namespace WinAGI.Engine {
         /// <param name="location"></param>
         internal void InitLoad(byte resnum, sbyte volnum, int location) {
             Sound newResource = new(parent, resnum, volnum, location);
-            // for initial load, skip the output build
-            newResource.Load(true);
+            newResource.Load();
             Col.Add(resnum, newResource);
             // leave it loaded, so error level can be addressed by loader
         }

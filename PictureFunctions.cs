@@ -52,7 +52,6 @@ namespace WinAGI.Engine {
         ///  8 = unused data at end of resource<br />
         internal static int CompilePicData(AGIVersion version, ref byte[] visData, ref byte[] priData, byte[] picdata, int endpos, int statuspos) {
             // picture resource variables
-            byte[] visBuildData, priBuildData;
             int pos;
             byte bytevalue;
             PenStatus CurrentPen;
@@ -100,13 +99,12 @@ namespace WinAGI.Engine {
             CurrentPen.PlotSize = 0;
             CurrentPen.PlotShape = PlotShape.Circle;
             CurrentPen.PlotStyle = PlotStyle.Solid;
-            // initialize the working byte arrays
-            visBuildData = new byte[26880];
-            priBuildData = new byte[26880];
-            for (int i = 0; i < 26880; i++) {
-                visBuildData[i] = 15; // white
-                priBuildData[i] = 4;  // red
-            }
+            // reset the byte arrays
+            Array.Fill(visData, (byte)15);
+            Array.Fill(priData, (byte)4);
+            // local copy used during the build
+            byte[] visBuildData = visData;
+            byte[] priBuildData = priData;
             pos = 0;
             bytevalue = picdata[pos++];
             try {
@@ -243,16 +241,8 @@ namespace WinAGI.Engine {
                     retval |= 8;
                 }
             }
-            // copy resulting data back to calling function
-            visData = visBuildData;
-            priData = priBuildData;
             return retval;
 
-            /// <summary>
-            /// Adds the color to visual and priority picture based on current pen status.
-            /// </summary>
-            /// <param name="xPos"></param>
-            /// <param name="yPos"></param>
             void DrawPixel(int xPos, int yPos) {
                 int index = xPos + yPos * 160;
                 if (index <= 26879) {
@@ -265,13 +255,6 @@ namespace WinAGI.Engine {
                 }
             }
 
-            /// <summary>
-            /// Draws a line on visual and priority pictures based on current pen status.
-            /// </summary>
-            /// <param name="X1"></param>
-            /// <param name="Y1"></param>
-            /// <param name="X2"></param>
-            /// <param name="Y2"></param>
             void DrawLine(int X1, int Y1, int X2, int Y2) {
                 // this method duplicates the AGI MSDOS draw function so 
                 // lines are guaranteed to be an exact match.
@@ -364,9 +347,6 @@ namespace WinAGI.Engine {
                 return true;
             }
 
-            /// <summary>
-            /// Draws a series of absolute lines.
-            /// </summary>
             void DrawAbsLine() {
                 byte X1 = 0, Y1 = 0, X2 = 0, Y2 = 0;
                 if (!GetNextLocation(ref X1, ref Y1))
@@ -383,9 +363,6 @@ namespace WinAGI.Engine {
                 } while (pos <= endpos);
             }
 
-            /// <summary>
-            /// Draws a series of relative lines.
-            /// </summary>
             void DrawRelLine() {
                 short xdisp, ydisp;
                 byte X1 = 0, Y1 = 0;
@@ -420,9 +397,6 @@ namespace WinAGI.Engine {
                 } while (pos <= endpos);
             }
 
-            /// <summary>
-            /// Performs a series of flood-fill actions.
-            /// </summary>
             void PicFloodFill() {
                 int offset;
                 byte X = 0, Y = 0;
@@ -580,10 +554,6 @@ namespace WinAGI.Engine {
                 } while (pos <= endpos);
             }
 
-            /// <summary>
-            /// Draws a series of alternating horizontal and vertical lines.
-            /// </summary>
-            /// <param name="CurAxis"></param>
             void DrawCorner(CornerDirection CurAxis) {
                 byte X1 = 0, Y1 = 0, X2, Y2;
 
@@ -625,9 +595,6 @@ namespace WinAGI.Engine {
                 } while (pos <= endpos);
             }
 
-            /// <summary>
-            /// Draws a series of plot patterns using current pen settings. 
-            /// </summary>
             void BrushPlot() {
                 int PlotX = 0, PlotY = 0;
                 byte pX = 0, pY = 0, PatternNum = 0;

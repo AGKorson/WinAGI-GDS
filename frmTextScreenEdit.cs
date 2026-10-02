@@ -421,7 +421,8 @@ namespace WinAGI.Editor {
                     PicOffset = 1;
                 }
                 EditGame.Pictures[BkgdPicNum].Load();
-                BkgdPicture = EditGame.Pictures[BkgdPicNum].VisualBMP;
+                BkgdPicture?.Dispose();
+                BkgdPicture = (Bitmap)EditGame.Pictures[BkgdPicNum].VisualImage.Clone();
                 EditGame.Pictures[BkgdPicNum].Unload();
                 DrawScreen();
             }
@@ -463,8 +464,11 @@ namespace WinAGI.Editor {
                 Text = "OK",
                 DialogResult = DialogResult.OK,
                 Location = new Point(30, 40),
-                Size = new Size(60, 25)
+                Size = new Size(60, 25),
+                Name = "okButton"
             });
+            frm.AcceptButton = (IButtonControl)frm.Controls["okbutton"];
+            ((NumericUpDown)frm.Controls["nudOffset"]).Select(0, 1);
             frm.ShowDialog();
             PicOffset = frm.Controls["nudOffset"] is NumericUpDown nud ? (int)nud.Value : 1;
             frm.Dispose();
@@ -1281,6 +1285,7 @@ namespace WinAGI.Editor {
             }
             picScreen.Height = (int)(200 * ScaleFactor);
             picScreen.Width = (int)(320 * ScaleFactor);
+            picScreen.Image?.Dispose();
             picScreen.Image = new Bitmap((int)(320 * ScaleFactor), (int)(200 * ScaleFactor));
             spScale.Text = "Scale: " + (ScaleFactor * 100) + "%";
             // text marks start enabled
@@ -1426,7 +1431,8 @@ namespace WinAGI.Editor {
             }
             if (BkgdPicNum != -1) {
                 EditGame.Pictures[BkgdPicNum].Load();
-                BkgdPicture = EditGame.Pictures[BkgdPicNum].VisualBMP;
+                BkgdPicture?.Dispose();
+                BkgdPicture = (Bitmap)EditGame.Pictures[BkgdPicNum].VisualImage.Clone();
                 EditGame.Pictures[BkgdPicNum].Unload();
                 DrawBkgd();
             }
@@ -1443,8 +1449,9 @@ namespace WinAGI.Editor {
             using (Graphics g = Graphics.FromImage(bmp)) {
                 g.Clear(EditPalette[(int)DefBG]);
             }
+            picScreen.Image?.Dispose();
             picScreen.Image = bmp;
-            using Graphics gv = Graphics.FromImage(picScreen.Image);
+            using Graphics gv = Graphics.FromImage(bmp);
             // now draw the visual image, with scaling mode set to
             // give crisp pixel edges
             gv.InterpolationMode = InterpolationMode.NearestNeighbor;
@@ -2964,6 +2971,7 @@ namespace WinAGI.Editor {
             // resize images
             picScreen.Width = (int)(320 * ScaleFactor);
             picScreen.Height = (int)(200 * ScaleFactor);
+            picScreen.Image?.Dispose();
             picScreen.Image = new Bitmap((int)(320 * ScaleFactor), (int)(200 * ScaleFactor));
             // then set the scrollbars
             SetScrollbars(oldscale);

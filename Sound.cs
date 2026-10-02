@@ -739,9 +739,8 @@ namespace WinAGI.Engine {
                     BuildSoundOutput();
                 }
                 SafeFileDelete(MIDIFile);
-                FileStream fsSnd = new(MIDIFile, FileMode.OpenOrCreate);
+                using FileStream fsSnd = new(MIDIFile, FileMode.OpenOrCreate);
                 fsSnd.Write(midiData);
-                fsSnd.Dispose();
             }
             catch {
                 // pass along error
@@ -1031,10 +1030,6 @@ namespace WinAGI.Engine {
         /// applies to sounds in a game. Non-game sounds are always loaded.
         /// </summary>
         public override void Load() {
-            Load(false);
-        }
-
-        internal void Load(bool validateonly) {
             if (mLoaded) {
                 return;
             }
@@ -1048,7 +1043,7 @@ namespace WinAGI.Engine {
             }
             else {
                 // finish loading sound
-                FinishLoad(validateonly);
+                FinishLoad();
                 // get settings
                 string section = "Sound" + mResNum;
                 mKey = parent.agGameProps.GetSetting(section, "Key", 0);
@@ -1128,15 +1123,6 @@ namespace WinAGI.Engine {
                 Warnings = 0;
                 ErrClear();
                 break;
-            }
-            if (!no_output) {
-                try {
-                    BuildSoundOutput();
-                }
-                catch {
-                    // pass along errors
-                    throw;
-                }
             }
         }
 

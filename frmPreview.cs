@@ -515,10 +515,8 @@ namespace WinAGI.Editor {
                 }
             }
             catch (Exception) {
-                tmrSound.Enabled = false;
-                // reset buttons
-                btnStop.Enabled = false;
-                picProgress.Width = 0;
+                StopSoundPreview();
+                return;
             }
             // save current time
             StartTime = DateTime.Now.Ticks;
@@ -1437,14 +1435,24 @@ namespace WinAGI.Editor {
             imgPicture.Width = (int)(320 * PicScale);
             imgPicture.Height = (int)(168 * PicScale);
 
+            int bWidth = (int)(agPic.VisualImage.Width * PicScale * 2);
+            int bHeight = (int)(agPic.VisualImage.Height * PicScale);
+            if (imgPicture.Image is not Bitmap bmp || bmp.Width != bWidth || bmp.Height != bHeight) {
+                imgPicture.Image?.Dispose();
+                imgPicture.Image = new Bitmap(bWidth, bHeight);
+            }
+            using Graphics g = Graphics.FromImage(imgPicture.Image);
+            g.Clear(imgPicture.BackColor);
+            g.InterpolationMode = InterpolationMode.NearestNeighbor;
+            g.PixelOffsetMode = PixelOffsetMode.Half;
             // if visual picture is being displayed
             if (optVisual.Checked == true) {
                 // load visual Image
-                ShowAGIBitmap(imgPicture, agPic.VisualBMP, PicScale);
+                g.DrawImage(agPic.VisualImage, 0, 0, bWidth, bHeight);
             }
             else {
                 // load priority Image
-                ShowAGIBitmap(imgPicture, agPic.PriorityBMP, PicScale);
+                g.DrawImage(agPic.VisualImage, 0, 0, bWidth, bHeight);
             }
             imgPicture.Refresh();
             // set scrollbars if necessary
@@ -1791,6 +1799,7 @@ namespace WinAGI.Editor {
             }
             // old image needs to be cleared to avoid ghost images
             // when resizing the cel image
+            picCel.Image?.Dispose();
             picCel.Image = new Bitmap(picCel.Width, picCel.Height);
             picCel.Refresh();
             if (CelFrameW > 0 && CelFrameH > 0) {
@@ -1934,6 +1943,7 @@ namespace WinAGI.Editor {
                     break;
                 }
                 // to avoid flicker, need to change the image, not just draw on it
+                picCel.Image?.Dispose();
                 picCel.Image = new Bitmap(picCel.Width, picCel.Height);
                 using Graphics g = Graphics.FromImage(picCel.Image);
                 g.Clear(picCel.BackColor);

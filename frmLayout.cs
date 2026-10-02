@@ -6216,7 +6216,10 @@ namespace WinAGI.Editor {
             float linewidth;
 
             int bWidth = picDraw.Width, bHeight = picDraw.Height;
-            picDraw.Image = new Bitmap(bWidth, bHeight);
+            if (picDraw.Image is not Bitmap bmp || bWidth != bmp.Width || bHeight != bmp.Height) {
+                picDraw.Image?.Dispose();
+                picDraw.Image = new Bitmap(bWidth, bHeight);
+            }
             using Graphics g = Graphics.FromImage(picDraw.Image);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.SmoothingMode = SmoothingMode.HighQuality;
@@ -6554,13 +6557,12 @@ namespace WinAGI.Editor {
             // surface
 
             // now copy the actual image from the text box
-            Bitmap textBoxImage = new(txtComment.Width, txtComment.Height);
+            using Bitmap textBoxImage = new(txtComment.Width, txtComment.Height);
             txtComment.DrawToBitmap(textBoxImage, new Rectangle(0, 0, txtComment.Width, txtComment.Height));
             // Draw the image on the Graphics object
             float tXc = (Comment[commentid].Loc.X + 0.03f) * DSF + Offset.X;//0.06
             float tYc = (Comment[commentid].Loc.Y + 0.045f) * DSF + Offset.Y;//0.04
             g.DrawImage(textBoxImage, tXc, tYc);
-
 
             // trying to draw the text line by line doesn't work - 
             // for reasons I cannot figure out, the character spacing in the 
@@ -6760,7 +6762,7 @@ namespace WinAGI.Editor {
             if (unloaded) {
                 EditGame.Pictures[RoomNum].Load();
             }
-            g.DrawImage(EditGame.Pictures[RoomNum].VisualBMP,
+            g.DrawImage(EditGame.Pictures[RoomNum].VisualImage,
                 (Room[RoomNum].Loc.X) * DSF + Offset.X + 1,
                 (Room[RoomNum].Loc.Y) * DSF + Offset.Y + 1,
                 RM_SIZE * DSF - 2,

@@ -670,6 +670,7 @@ namespace WinAGI.Editor {
                         Bitmap bitmap = new(12, 12);
                         using Graphics sg = Graphics.FromImage(bitmap);
                         sg.Clear(EditPalette[CelPriority]);
+                        spPriBand.Image?.Dispose();
                         spPriBand.Image = bitmap;
                     }
                     else {
@@ -683,12 +684,14 @@ namespace WinAGI.Editor {
                             Bitmap bitmap = new(12, 12);
                             using Graphics g = Graphics.FromImage(bitmap);
                             g.Clear(EditPalette[NewPri]);
+                            spPriBand.Image?.Dispose();
                             spPriBand.Image = bitmap;
                         }
                         else {
                             spCurX.Text = "";
                             spCurY.Text = "";
                             spPriBand.Text = "";
+                            spPriBand.Image?.Dispose();
                             spPriBand.Image = null;
                             OldPri = -1;
                         }
@@ -1485,14 +1488,14 @@ namespace WinAGI.Editor {
                 }
                 MarkAsChanged();
             }
-        }
 
-        private bool CanUndo() {
-            if (PicMode == PicEditorMode.Edit) {
-                return UndoCol.Count != 0;
-            }
-            else {
-                return false;
+            bool CanUndo() {
+                if (PicMode == PicEditorMode.Edit) {
+                    return UndoCol.Count != 0;
+                }
+                else {
+                    return false;
+                }
             }
         }
 
@@ -1507,22 +1510,22 @@ namespace WinAGI.Editor {
                     UndoCol.Peek().Action = CutCmds;
                 }
             }
-        }
 
-        private bool CanCut() {
-            if (PicMode == PicEditorMode.Edit) {
-                if (SelectedTool == PicToolType.SelectArea) {
-                    return false;
-                }
-                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
-                    return SelectedCmd.Type != End;
+            bool CanCut() {
+                if (PicMode == PicEditorMode.Edit) {
+                    if (SelectedTool == PicToolType.SelectArea) {
+                        return false;
+                    }
+                    else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                        return SelectedCmd.Type != End;
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
                     return false;
                 }
-            }
-            else {
-                return false;
             }
         }
 
@@ -1533,11 +1536,11 @@ namespace WinAGI.Editor {
                 if ((PicMode == PicEditorMode.Edit) && (SelectedTool == PicToolType.SelectArea) && (SelectedRegion.Width != 0) && (SelectedRegion.Height != 0)) {
                     // Get the bounds of the selected region
                     // Create a bitmap with the size of the selected region
-                    Bitmap bitmap = new Bitmap(SelectedRegion.Width, SelectedRegion.Height);
+                    using Bitmap bitmap = new(SelectedRegion.Width, SelectedRegion.Height);
                     // Create a graphics object from the bitmap
                     using Graphics g = Graphics.FromImage(bitmap);
                     // Draw the specified region of the PictureBox onto the bitmap
-                    g.DrawImage(priorityActive ? EditPicture.PriorityBMP : EditPicture.VisualBMP, new Rectangle(0, 0, bitmap.Width, bitmap.Height), SelectedRegion, GraphicsUnit.Pixel);
+                    g.DrawImage(priorityActive ? EditPicture.PriorityImage : EditPicture.VisualImage, new Rectangle(0, 0, bitmap.Width, bitmap.Height), SelectedRegion, GraphicsUnit.Pixel);
                     // Set the bitmap to the clipboard
                     Clipboard.SetImage(bitmap);
                     priorityActive = false;
@@ -1638,23 +1641,23 @@ namespace WinAGI.Editor {
                     Clipboard.SetDataObject(dataObject, true);
                 }
             }
-        }
 
-        private bool CanCopy() {
-            if (PicMode == PicEditorMode.Edit) {
-                if (SelectedTool == PicToolType.SelectArea) {
-                    // copy is enabled if something selected
-                    return (SelectedRegion.Width > 0) && (SelectedRegion.Height > 0);
-                }
-                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
-                    return SelectedCmd.Type != End;
+            bool CanCopy() {
+                if (PicMode == PicEditorMode.Edit) {
+                    if (SelectedTool == PicToolType.SelectArea) {
+                        // copy is enabled if something selected
+                        return (SelectedRegion.Width > 0) && (SelectedRegion.Height > 0);
+                    }
+                    else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                        return SelectedCmd.Type != End;
+                    }
+                    else {
+                        return false;
+                    }
                 }
                 else {
                     return false;
                 }
-            }
-            else {
-                return false;
             }
         }
 
@@ -1942,35 +1945,34 @@ namespace WinAGI.Editor {
                     }
                 }
             }
-        }
 
-        private bool CanDelete() {
-
-            // mode dependent items
-            if (PicMode == PicEditorMode.Edit) {
-                if (SelectedTool == PicToolType.SelectArea) {
-                    return false;
-                }
-                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
-                    return SelectedCmd.Type != End;
-                }
-                else {
-                    // a coordinate is selected
-                    // delete always available for absline, fill, plot
-                    // delete only available for other commands if on last coord
-                    switch (SelectedCmd.Type) {
-                    case AbsLine:
-                    case Fill:
-                    case PlotPen:
-                        return true;
-                    default:
-                        // Corner lines or relative lines
-                        return SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1;
+            bool CanDelete() {
+                // mode dependent items
+                if (PicMode == PicEditorMode.Edit) {
+                    if (SelectedTool == PicToolType.SelectArea) {
+                        return false;
+                    }
+                    else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                        return SelectedCmd.Type != End;
+                    }
+                    else {
+                        // a coordinate is selected
+                        // delete always available for absline, fill, plot
+                        // delete only available for other commands if on last coord
+                        switch (SelectedCmd.Type) {
+                        case AbsLine:
+                        case Fill:
+                        case PlotPen:
+                            return true;
+                        default:
+                            // Corner lines or relative lines
+                            return SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1;
+                        }
                     }
                 }
-            }
-            else {
-                return false;
+                else {
+                    return false;
+                }
             }
         }
 
@@ -2028,42 +2030,42 @@ namespace WinAGI.Editor {
             if (CanInsertCoord()) {
                 InsertCoordinate();
             }
-        }
 
-        private bool CanInsertCoord() {
-            if (PicMode == PicEditorMode.Edit) {
-                if (SelectedTool == PicToolType.SelectArea) {
-                    // area selection - no editing commands are enabled,
-                    // only copy is available
-                    return false;
-                }
-                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
-                    // no coordinate is selected
-                    if (SelectedTool == PicToolType.Edit && SelectedCmd.Type == PlotPen || SelectedCmd.Type == Fill) {
-                        return true;
+            bool CanInsertCoord() {
+                if (PicMode == PicEditorMode.Edit) {
+                    if (SelectedTool == PicToolType.SelectArea) {
+                        // area selection - no editing commands are enabled,
+                        // only copy is available
+                        return false;
                     }
-                    else if ((SelectedTool == PicToolType.Plot && SelectedCmd.Type == PlotPen) ||
-                             (SelectedTool == PicToolType.Fill && SelectedCmd.Type == Fill)) {
-                        return true;
+                    else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                        // no coordinate is selected
+                        if (SelectedTool == PicToolType.Edit && SelectedCmd.Type == PlotPen || SelectedCmd.Type == Fill) {
+                            return true;
+                        }
+                        else if ((SelectedTool == PicToolType.Plot && SelectedCmd.Type == PlotPen) ||
+                                 (SelectedTool == PicToolType.Fill && SelectedCmd.Type == Fill)) {
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
                     }
                     else {
-                        return false;
+                        switch (SelectedCmd.Type) {
+                        case AbsLine:
+                        case Fill:
+                        case PlotPen:
+                            return true;
+                        default:
+                            // Corner lines or relative lines
+                            return SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1;
+                        }
                     }
                 }
                 else {
-                    switch (SelectedCmd.Type) {
-                    case AbsLine:
-                    case Fill:
-                    case PlotPen:
-                        return true;
-                    default:
-                        // Corner lines or relative lines
-                        return SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1;
-                    }
+                    return false;
                 }
-            }
-            else {
-                return false;
             }
         }
 
@@ -2072,49 +2074,49 @@ namespace WinAGI.Editor {
             if (CanSplit()) {
                 SplitCommand();
             }
-        }
 
-        private bool CanSplit() {
-            if (PicMode == PicEditorMode.Edit) {
-                if (SelectedTool == PicToolType.SelectArea) {
-                    // area selection - no editing commands are enabled,
-                    return false;
-                }
-                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
-                    return false;
-                }
-                else {
-                    // a coordinate is selected
-                    // disable split if not just one cmd selected OR
-                    // cmd is set color pen or set plot pen OR
-                    // only one coordinate OR
-                    // no coord selected
-                    if (SelectedCmdCount != 1 ||
-                        SelectedCmd.IsPen ||
-                        SelectedCmd.SelectedCoordIndex < 0) {
+            bool CanSplit() {
+                if (PicMode == PicEditorMode.Edit) {
+                    if (SelectedTool == PicToolType.SelectArea) {
+                        // area selection - no editing commands are enabled,
+                        return false;
+                    }
+                    else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
                         return false;
                     }
                     else {
-                        // if on a line, fill, or plot cmd
-                        switch (SelectedCmd.Type) {
-                        case AbsLine or RelLine or XCorner or YCorner:
-                            // only if three or more, and not on either end
-                            if (SelectedCmd.Coords.Count < 3 || SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1) {
-                                return false;
-                            }
-                            else {
-                                return true;
-                            }
-                        case Fill or PlotPen:
-                            // only if not on first coordinate
-                            return SelectedCmd.SelectedCoordIndex != 0;
+                        // a coordinate is selected
+                        // disable split if not just one cmd selected OR
+                        // cmd is set color pen or set plot pen OR
+                        // only one coordinate OR
+                        // no coord selected
+                        if (SelectedCmdCount != 1 ||
+                            SelectedCmd.IsPen ||
+                            SelectedCmd.SelectedCoordIndex < 0) {
+                            return false;
                         }
-                        return false;
+                        else {
+                            // if on a line, fill, or plot cmd
+                            switch (SelectedCmd.Type) {
+                            case AbsLine or RelLine or XCorner or YCorner:
+                                // only if three or more, and not on either end
+                                if (SelectedCmd.Coords.Count < 3 || SelectedCmd.SelectedCoordIndex == 0 || SelectedCmd.SelectedCoordIndex == SelectedCmd.Coords.Count - 1) {
+                                    return false;
+                                }
+                                else {
+                                    return true;
+                                }
+                            case Fill or PlotPen:
+                                // only if not on first coordinate
+                                return SelectedCmd.SelectedCoordIndex != 0;
+                            }
+                            return false;
+                        }
                     }
                 }
-            }
-            else {
-                return false;
+                else {
+                    return false;
+                }
             }
         }
 
@@ -2125,24 +2127,24 @@ namespace WinAGI.Editor {
             if (CanJoin()) {
                 JoinCommands();
             }
-        }
 
-        private bool CanJoin() {
-            if (PicMode == PicEditorMode.Edit) {
-                if (SelectedTool == PicToolType.SelectArea) {
-                    return false;
-                }
-                else if (SelectedCmd.SelectedCoordIndex < 0 && !SelectedCmd.IsPen) {
-                    // no coordinate is selected
-                    return CanJoinCommands(SelectedCmd.Index);
+            bool CanJoin() {
+                if (PicMode == PicEditorMode.Edit) {
+                    if (SelectedTool == PicToolType.SelectArea) {
+                        return false;
+                    }
+                    else if (SelectedCmd.SelectedCoordIndex < 0 && !SelectedCmd.IsPen) {
+                        // no coordinate is selected
+                        return CanJoinCommands(SelectedCmd.Index);
+                    }
+                    else {
+                        // a coordinate is selected or it's a pen
+                        return false;
+                    }
                 }
                 else {
-                    // a coordinate is selected or it's a pen
                     return false;
                 }
-            }
-            else {
-                return false;
             }
         }
 
@@ -2156,23 +2158,23 @@ namespace WinAGI.Editor {
                 picVisual.Invalidate();
                 picPriority.Invalidate();
             }
-        }
 
-        private bool CanFlipH() {
-            if (PicMode == PicEditorMode.Edit) {
-                if (SelectedTool == PicToolType.SelectArea) {
-                    return false;
-                }
-                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
-                    return (SelectedRegion.Width > 1);
+            bool CanFlipH() {
+                if (PicMode == PicEditorMode.Edit) {
+                    if (SelectedTool == PicToolType.SelectArea) {
+                        return false;
+                    }
+                    else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                        return (SelectedRegion.Width > 1);
+                    }
+                    else {
+                        // a coordinate is selected
+                        return false;
+                    }
                 }
                 else {
-                    // a coordinate is selected
                     return false;
                 }
-            }
-            else {
-                return false;
             }
         }
 
@@ -2186,23 +2188,23 @@ namespace WinAGI.Editor {
                 picVisual.Invalidate();
                 picPriority.Invalidate();
             }
-        }
 
-        private bool CanFlipV() {
-            if (PicMode == PicEditorMode.Edit) {
-                if (SelectedTool == PicToolType.SelectArea) {
-                    return false;
-                }
-                else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
-                    return (SelectedRegion.Height > 1);
+            bool CanFlipV() {
+                if (PicMode == PicEditorMode.Edit) {
+                    if (SelectedTool == PicToolType.SelectArea) {
+                        return false;
+                    }
+                    else if (SelectedCmd.SelectedCoordIndex < 0 || SelectedCmd.IsPen) {
+                        return (SelectedRegion.Height > 1);
+                    }
+                    else {
+                        // a coordinate is selected
+                        return false;
+                    }
                 }
                 else {
-                    // a coordinate is selected
                     return false;
                 }
-            }
-            else {
-                return false;
             }
         }
 
@@ -2410,6 +2412,7 @@ namespace WinAGI.Editor {
             if (BkgdImage is not null) {
                 UpdateBkgd(false);
             }
+            BkgdImage?.Dispose();
             BkgdImage = null;
             EditPicture.BackgroundSettings = new();
             if (InGame) {
@@ -3302,6 +3305,7 @@ namespace WinAGI.Editor {
                     Bitmap bitmap = new(12, 12);
                     using Graphics g = Graphics.FromImage(bitmap);
                     g.Clear(EditPalette[NewPri]);
+                    spPriBand.Image?.Dispose();
                     spPriBand.Image = bitmap;
                 }
                 OldPri = NewPri;
@@ -3413,6 +3417,7 @@ namespace WinAGI.Editor {
             // the draw surface
             if (StatusMode != PicStatusMode.Coord) {
                 spPriBand.Text = "";
+                spPriBand.Image?.Dispose();
                 spPriBand.Image = null;
                 spCurX.Text = "";
                 spCurY.Text = "";
@@ -4160,10 +4165,10 @@ namespace WinAGI.Editor {
             }
             else if (e.MouseCursorY > splitImages.Height - 45) {
                 if (splitImages.Cursor.Tag is null) {
-                    MemoryStream msCursor;
-                    msCursor = new(EditorResources.downarrow);
-                    splitImages.Cursor = new Cursor(msCursor);
-                    splitImages.Cursor.Tag = "down";
+                    using MemoryStream msCursor = new(EditorResources.downarrow);
+                    splitImages.Cursor = new Cursor(msCursor) {
+                        Tag = "down"
+                    };
                 }
             }
             else {
@@ -4504,12 +4509,12 @@ namespace WinAGI.Editor {
                 }
                 if ((OneWindow & WindowMode.Visual) == WindowMode.Visual && SelectedCmd.Pen.VisColor != AGIColorIndex.None) {
                     using Graphics gv = picVisual.CreateGraphics();
-                    SolidBrush vb = new(EditPalette[(int)CursorColorIndex]);
+                    using SolidBrush vb = new(EditPalette[(int)CursorColorIndex]);
                     gv.FillRectangle(vb, (SelectedCmd.SelectedCoord.X - CursorSize + 0.5f) * ScaleFactor * 2, (SelectedCmd.SelectedCoord.Y - CursorSize + 0.5f) * ScaleFactor, 2 * CursorSize * ScaleFactor * 2, 2 * CursorSize * ScaleFactor);
                 }
                 if ((OneWindow & WindowMode.Priority) == WindowMode.Priority && SelectedCmd.Pen.PriColor != AGIColorIndex.None) {
                     using Graphics gp = picPriority.CreateGraphics();
-                    SolidBrush pb = new(EditPalette[(int)CursorColorIndex]);
+                    using SolidBrush pb = new(EditPalette[(int)CursorColorIndex]);
                     gp.FillRectangle(pb, (SelectedCmd.SelectedCoord.X - CursorSize + 0.5f) * ScaleFactor * 2, (SelectedCmd.SelectedCoord.Y - CursorSize + 0.5f) * ScaleFactor, 2 * CursorSize * ScaleFactor * 2, 2 * CursorSize * ScaleFactor);
                 }
             }
@@ -4819,6 +4824,7 @@ namespace WinAGI.Editor {
             // check for a saved background image
             if (EditPicture.BkgdFileName.Length != 0) {
                 try {
+                    BkgdImage?.Dispose();
                     BkgdImage = new(Path.GetFullPath(EditPicture.BkgdFileName, EditGame.SrcResDir));
                     if (EditPicture.BkgdVisible) {
                         tsbBackground.Checked = true;
@@ -4843,6 +4849,7 @@ namespace WinAGI.Editor {
                     // clear ingame resource background properties
                     EditGame.Pictures[PictureNumber].BackgroundSettings = new();
                     EditGame.Pictures[PictureNumber].SaveProps();
+                    BkgdImage?.Dispose();
                     BkgdImage = null;
                 }
             }
@@ -5764,7 +5771,12 @@ namespace WinAGI.Editor {
             Graphics gv = null;
             if ((OneWindow & WindowMode.Visual) == WindowMode.Visual) {
                 int bWidth = (int)(320 * ScaleFactor), bHeight = (int)(168 * ScaleFactor);
-                picVisual.Image = new Bitmap(bWidth, bHeight);
+                if (picVisual.Image is not Bitmap bmp ||
+                    bmp.Width != bWidth ||
+                    bmp.Height != bHeight) {
+                    picVisual.Image?.Dispose();
+                    picVisual.Image = new Bitmap(bWidth, bHeight);
+                }
                 gv = Graphics.FromImage(picVisual.Image);
                 // draw background first, if it is visible
                 if (EditPicture.BkgdVisible && EditPicture.BkgdShowVis) {
@@ -5798,13 +5810,18 @@ namespace WinAGI.Editor {
                 // give crisp pixel edges
                 gv.InterpolationMode = InterpolationMode.NearestNeighbor;
                 gv.PixelOffsetMode = PixelOffsetMode.Half;
-                gv.DrawImage(EditPicture.VisualBMP, 0, 0, bWidth, bHeight);
+                gv.DrawImage(EditPicture.VisualImage, 0, 0, bWidth, bHeight);
             }
             // next draw the priority image
             Graphics gp = null;
             if ((OneWindow & WindowMode.Priority) == WindowMode.Priority) {
                 int bWidth = (int)(320 * ScaleFactor), bHeight = (int)(168 * ScaleFactor);
-                picPriority.Image = new Bitmap(bWidth, bHeight);
+                if (picPriority.Image is not Bitmap bmp ||
+                    bmp.Width != bWidth ||
+                    bmp.Height != bHeight) {
+                    picPriority.Image?.Dispose();
+                    picPriority.Image = new Bitmap(bWidth, bHeight);
+                }
                 gp = Graphics.FromImage(picPriority.Image);
                 // draw background first, if it is visible
                 if (EditPicture.BkgdVisible && EditPicture.BkgdShowPri) {
@@ -5828,7 +5845,7 @@ namespace WinAGI.Editor {
                         dest.Width = (int)((320 - src.X * HScale) * ScaleFactor);
                         src.Width = BkgdImage.Width - src.X;
                     }
-                    if (src.Top > BkgdImage.Height) {
+                    if (src.Bottom > BkgdImage.Height) {
                         dest.Height = (int)((168 - src.Y * VScale) * ScaleFactor);
                         src.Height = BkgdImage.Height - src.Y;
                     }
@@ -5838,7 +5855,7 @@ namespace WinAGI.Editor {
                 // give crisp pixel edges
                 gp.InterpolationMode = InterpolationMode.NearestNeighbor;
                 gp.PixelOffsetMode = PixelOffsetMode.Half;
-                gp.DrawImage(EditPicture.PriorityBMP, 0, 0, bWidth, bHeight);
+                gp.DrawImage(EditPicture.PriorityImage, 0, 0, bWidth, bHeight);
             }
             // in edit mode and a coordinate is selected, line segments around
             // the selected coordinate that won't change when the coordinate is
@@ -7337,7 +7354,7 @@ namespace WinAGI.Editor {
         private void DrawLineOnImage(Graphics g, Color linecolor, Point p1, Point p2) {
             int xPos, yPos, XC, YC, MaxDelta;
             Pen lc = new(linecolor);
-            SolidBrush lb = new(linecolor);
+            using SolidBrush lb = new(linecolor);
 
             // determine height/width  
             int DY = p2.Y - p1.Y;
@@ -7785,6 +7802,7 @@ namespace WinAGI.Editor {
             if (frm.ShowDialog(MDIMain) == DialogResult.Cancel) {
                 return false;
             }
+            BkgdImage?.Dispose();
             BkgdImage = frm.BkgdImage;
             EditPicture.BackgroundSettings = frm.bkgdSettings;
             if (InGame) {
@@ -10108,7 +10126,7 @@ namespace WinAGI.Editor {
                                     g.DrawLine(lc, cX * 2, cY, cX * 2, cY);
                                 }
                                 else {
-                                    SolidBrush lb = new(EditPalette[CelPixelColor]);
+                                    using SolidBrush lb = new(EditPalette[CelPixelColor]);
                                     g.FillRectangle(lb, cX * ScaleFactor * 2, cY * ScaleFactor, ScaleFactor * 2, ScaleFactor);
                                 }
                             }
@@ -10122,7 +10140,7 @@ namespace WinAGI.Editor {
                                     g.DrawLine(lc, cX * 2, cY, cX * 2, cY);
                                 }
                                 else {
-                                    SolidBrush lb = new(EditPalette[CelPriority]);
+                                    using SolidBrush lb = new(EditPalette[CelPriority]);
                                     g.FillRectangle(lb, cX * ScaleFactor * 2, cY * ScaleFactor, ScaleFactor * 2, ScaleFactor);
                                 }
                             }
@@ -10346,15 +10364,18 @@ namespace WinAGI.Editor {
             case PrintTestMode.Print:
             case PrintTestMode.PrintAt:
                 // draw the white bounding box
-                Brush white = new SolidBrush(EditPalette[15]);
-                g.FillRectangle(white, (PTInfo.Left * PTInfo.CharWidth - 10) * ScaleFactor, (PTInfo.Top * 8 - 5) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 20) * ScaleFactor, (PTInfo.Height * 8 + 10) * ScaleFactor);
-
+                {
+                    using Brush white = new SolidBrush(EditPalette[15]);
+                    g.FillRectangle(white, (PTInfo.Left * PTInfo.CharWidth - 10) * ScaleFactor, (PTInfo.Top * 8 - 5) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 20) * ScaleFactor, (PTInfo.Height * 8 + 10) * ScaleFactor);
+                }
                 // draw the red border
-                Brush red = new SolidBrush(EditPalette[4]);
-                g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, (PTInfo.Top * 8 - 4) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 15) * ScaleFactor, ScaleFactor);
-                g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, ((PTInfo.Top + PTInfo.Height) * 8 + 3) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 15) * ScaleFactor, ScaleFactor);
-                g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, ((PTInfo.Top) * 8 - 4) * ScaleFactor, ScaleFactor * 2, (PTInfo.Height * 8 + 8) * ScaleFactor);
-                g.FillRectangle(red, ((PTInfo.Left + PTInfo.Width) * PTInfo.CharWidth + 6) * ScaleFactor, (PTInfo.Top * 8 - 4) * ScaleFactor, ScaleFactor * 2, (PTInfo.Height * 8 + 8) * ScaleFactor);
+                {
+                    using Brush red = new SolidBrush(EditPalette[4]);
+                    g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, (PTInfo.Top * 8 - 4) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 15) * ScaleFactor, ScaleFactor);
+                    g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, ((PTInfo.Top + PTInfo.Height) * 8 + 3) * ScaleFactor, (PTInfo.Width * PTInfo.CharWidth + 15) * ScaleFactor, ScaleFactor);
+                    g.FillRectangle(red, (PTInfo.Left * PTInfo.CharWidth - 8) * ScaleFactor, ((PTInfo.Top) * 8 - 4) * ScaleFactor, ScaleFactor * 2, (PTInfo.Height * 8 + 8) * ScaleFactor);
+                    g.FillRectangle(red, ((PTInfo.Left + PTInfo.Width) * PTInfo.CharWidth + 6) * ScaleFactor, (PTInfo.Top * 8 - 4) * ScaleFactor, ScaleFactor * 2, (PTInfo.Height * 8 + 8) * ScaleFactor);
+                }
 
                 // draw text
                 int tmpRow = PTInfo.Top;

@@ -162,7 +162,7 @@ namespace WinAGI.Editor {
             case 0:
                 // loop
                 cel++;
-                if (cel == exportloop.Cels.Count) {
+                if (cel >= exportloop.Cels.Count) {
                     cel = 0;
                     if (!SelectedGifOptions.Cycle) {
                         timer1.Interval += 1500;
@@ -229,7 +229,25 @@ namespace WinAGI.Editor {
                 while ((cmd >= 240 && cmd < 244) || cmd == 249 || !visOn);
                 // show pic drawn up to this point
                 exportpic.DrawPos = pos;
-                ShowAGIBitmap(picGrid, exportpic.VisualBMP, 1);
+                // pictures and views with errors will pass null value
+                if (exportpic.VisualImage is null) {
+                    // clear the pic
+                    picGrid.CreateGraphics().Clear(picGrid.BackColor);
+                }
+                else {
+                    int bWidth = exportpic.VisualImage.Width * 2;
+                    int bHeight = exportpic.VisualImage.Height;
+                    if (picGrid.Image is not Bitmap bmp || bmp.Height != 1 || bmp.Width != 1) {
+                        picGrid.Image?.Dispose();
+                        picGrid.Image = new Bitmap(bWidth, bHeight);
+                    }
+                    using Graphics g = Graphics.FromImage(picGrid.Image);
+                    // always clear the background first
+                    g.Clear(picGrid.BackColor);
+                    g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                    g.PixelOffsetMode = PixelOffsetMode.Half;
+                    g.DrawImage(exportpic.VisualImage, 0, 0, bWidth, bHeight);
+                }
                 picGrid.Refresh();
                 break;
             }
@@ -237,6 +255,7 @@ namespace WinAGI.Editor {
 
         private void cmbLoop_SelectedIndexChanged(object sender, EventArgs e) {
             exportloop = exportview[cmbLoop.SelectedIndex];
+            cel = 0;
             DisplayCel();
             timer1.Stop();
             timer1.Start();
@@ -483,7 +502,10 @@ namespace WinAGI.Editor {
             else {
                 tgtY = picCel.Height - tgtH;
             }
-            picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+            if (picCel.Image is not Bitmap bmp || picCel.Width != bmp.Width || picCel.Height != bmp.Height) {
+                picCel.Image?.Dispose();
+                picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+            }
             using Graphics g = Graphics.FromImage(picCel.Image);
             g.Clear(picCel.BackColor);
             // set correct interpolation mode
@@ -501,6 +523,7 @@ namespace WinAGI.Editor {
                     }
                 }
             }
+            picCel.Refresh();
         }
 
         void UpdateAlignmentLabel() {

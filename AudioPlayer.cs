@@ -20,6 +20,7 @@ namespace WinAGI.Engine {
         internal static bool bPlayingMIDI = false;
         internal static bool bPlayingWAV = false;
         internal static Sound soundPlaying;
+        internal static string currentTempMidiFile = "";
         #endregion
 
         #region Constructors
@@ -38,11 +39,25 @@ namespace WinAGI.Engine {
         internal static void StopAllSound() {
             // stop MIDI:
             _ = mciSendString("close all", null, 0, (IntPtr)null);
+            DeleteTempMidiFile();
             // stop WAV:
             wavPlayer.Reset();
             bPlayingWAV = false;
             bPlayingMIDI = false;
             soundPlaying = null;
+        }
+
+        internal static void DeleteTempMidiFile() {
+            string file = Interlocked.Exchange(ref currentTempMidiFile, "");
+            if (!string.IsNullOrEmpty(file)) {
+                try {
+                    if (File.Exists(file)) {
+                        File.Delete(file);
+                    }
+                }
+                catch {
+                }
+            }
         }
         #endregion
     }
@@ -175,6 +190,7 @@ namespace WinAGI.Engine {
                 bool success = (m.WParam == MCI_NOTIFY_SUCCESSFUL);
                 // close the sound
                 _ = mciSendString("close all", null, 0, 0);
+                DeleteTempMidiFile();
                 // raise the 'done' event
                 soundPlaying?.OnSoundComplete(success);
                 // reset the flag
@@ -195,13 +211,14 @@ namespace WinAGI.Engine {
             StringBuilder strError = new(255);
 
             StopAllSound();
+            DeleteTempMidiFile(); // clean up any old one first
             // create MIDI sound file
-            string tempFile = Path.GetTempFileName();
-            FileStream fsMidi = new(tempFile, FileMode.Open);
+            currentTempMidiFile = Path.GetTempFileName();
+            using FileStream fsMidi = new(currentTempMidiFile, FileMode.Create);
             fsMidi.Write(SndRes.MIDIData);
-            fsMidi.Dispose();
+            fsMidi.Close();
             // open midi file and assign alias
-            int rtn = mciSendString("open " + tempFile + " type sequencer alias " + SndRes.ID, null, 0, IntPtr.Zero);
+            int rtn = mciSendString("open " + currentTempMidiFile + " type sequencer alias " + SndRes.ID, null, 0, IntPtr.Zero);
             // check for error
             if (rtn != 0) {
                 _ = mciGetErrorString(rtn, strError, 255);
@@ -389,7 +406,7 @@ namespace WinAGI.Engine {
             }
             // A single note duration unit is 1/60th of a second
             int samplesPerDurationUnit = SAMPLE_RATE / 60;
-            MemoryStream sampleStream = new();
+            using MemoryStream sampleStream = new((int)(sound.Length * 176400));
 
             // Create a new PSG for each sound, to guarantee a clean state.
             SN76496 psg = new();
@@ -474,18 +491,18 @@ namespace WinAGI.Engine {
             soundFormat = sound.SndFormat;
 
             // Now play the Wave file.
-            MemoryStream memoryStream = new(sound.WAVData);
-            playerThread = new Thread(() => PlayWaveStreamAndWait(memoryStream));
+            playerThread = new Thread(() => PlayWaveStreamAndWait(sound.WAVData));
             playerThread.Start();
         }
 
         /// <summary>
-        /// Plays the Wave file data from the given MemoryStream.
+        /// Plays the Wave file data from the given byte array.
         /// </summary>
-        /// <param name="waveStream">The MemoryStream containing the Wave file data to play.</param>
-        private void PlayWaveStreamAndWait(MemoryStream waveStream) {
+        /// <param name="waveData">The byte array containing the Wave file data to play.</param>
+        private void PlayWaveStreamAndWait(byte[] waveData) {
             bPlayingWAV = true;
-            PlayWithNAudioMix(waveStream);
+            using MemoryStream ms = new(waveData);
+            PlayWithNAudioMix(ms);
             // The above call does not return until the sound has finished playing.
             bPlayingWAV = false;
             soundPlaying?.OnSoundComplete(true);
@@ -510,7 +527,7 @@ namespace WinAGI.Engine {
                 // WAV generated from IIgs sounds are 8000 sample rate, 8bit, one channel
                 rs = new(memoryStream, new WaveFormat(8000, 8, 1));
                 // to add to mixer, need to convert to IEEE float, 44100, 16bit, 2 channel
-                var resampler = new MediaFoundationResampler(rs, new WaveFormat(44100, 16, 2));
+                using var resampler = new MediaFoundationResampler(rs, new WaveFormat(44100, 16, 2));
                 soundMixerInput = resampler.ToSampleProvider();
             }
             mixer.AddMixerInput(soundMixerInput);
@@ -529,6 +546,7 @@ namespace WinAGI.Engine {
             if (!playbackEnded) {
                 mixer.RemoveMixerInput(soundMixerInput);
             }
+            rs?.Dispose();
         }
 
         /// <summary>

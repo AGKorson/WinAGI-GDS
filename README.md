@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.87
+        Version 3.0.0beta.88
     ==============================
 
 
@@ -32,6 +32,11 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
 
 ### History:
+Beta.88:
+- fixed memory leaks associated with image drawing and scaling
+- refactored sound functions to improve performance and reduce memory usage
+- cleaned up project settings file
+
 Beta.87:
 - changed globals editor find-in-logics behavior to just show search form instead of starting a search
 - fixed SearchParameter object to correctly manage events when no handler attached

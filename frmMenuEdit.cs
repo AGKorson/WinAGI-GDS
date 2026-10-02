@@ -1837,7 +1837,7 @@ namespace WinAGI.Editor {
                 if (!loaded) {
                     EditGame.Pictures[BkgdPicNum].Load();
                 }
-                g.DrawImage(EditGame.Pictures[BkgdPicNum].VisualBMP, 0, 8 * PicScale, 320 * PicScale, 168 * PicScale);
+                g.DrawImage(EditGame.Pictures[BkgdPicNum].VisualImage, 0, 8 * PicScale, 320 * PicScale, 168 * PicScale);
                 if (!loaded) {
                     EditGame.Pictures[BkgdPicNum].Unload();
                 }

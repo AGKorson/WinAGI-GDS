@@ -4029,10 +4029,9 @@ namespace WinAGI.Editor {
 
         private void DrawDefaultNote() {
             // draw default notelength
-            Font font = new(Font.FontFamily, 12f, FontStyle.Regular);
+            using Font font = new(Font.FontFamily, 12f, FontStyle.Regular);
             SolidBrush brush = new(Color.Black);
-            Pen pen = new(Color.Black);
-
+            picDuration.Image?.Dispose();
             picDuration.Image = new Bitmap(picDuration.Width, picDuration.Height);
             Graphics g = Graphics.FromImage(picDuration.Image);
             g.InterpolationMode = InterpolationMode.HighQualityBicubic;
@@ -4046,7 +4045,7 @@ namespace WinAGI.Editor {
 
             // set color based on volume
             brush = new(EditPalette[DefAttn]);
-            pen = new(EditPalette[DefAttn]);
+            using Pen pen = new(EditPalette[DefAttn]);
 
             // if volume is not off AND not muting,
             if (DefAttn < 15 && !DefMute) {
@@ -4277,6 +4276,7 @@ namespace WinAGI.Editor {
             defaultNoteTip.SetToolTip(picDuration,
                 SoundEditMNote.MidiLengthConverter.CustomNames[DefLength - 1] +
                 (DefMute ? ", Muted" : ", Attn: " + DefAttn));
+            brush.Dispose();
         }
 
         private static void DrawNoteImage(Graphics g, Bitmap noteimage, Rectangle position, Color forecolor) {

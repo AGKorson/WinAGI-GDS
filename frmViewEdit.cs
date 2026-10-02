@@ -3351,8 +3351,12 @@ namespace WinAGI.Editor {
             picCel.Height = (int)(currentcel.Height * ScaleFactor);
 
             // draw cel bitmap on pixel cel
-            picCel.Image = new Bitmap(picCel.Width, picCel.Height);
-            Graphics gc = Graphics.FromImage(picCel.Image);
+            if (picCel.Image is not Bitmap bmp || picCel.Width != bmp.Width || picCel.Height != bmp.Height) {
+                picCel.Image?.Dispose();
+                picCel.Image = new Bitmap(picCel.Width, picCel.Height);
+            }
+            using Graphics gc = Graphics.FromImage(picCel.Image);
+            gc.Clear(picCel.BackColor);
             // now draw the cel, with scaling mode set to give crisp
             // pixel edges
             gc.InterpolationMode = InterpolationMode.NearestNeighbor;
@@ -4265,6 +4269,7 @@ namespace WinAGI.Editor {
                 // ignore if bitmap can't be retrieved
                 return;
             }
+            pasteimage.Dispose();
             // if there is an existing Selection, replace it
             // otherwise, put the pasted selection at 0,0
             if (!SelectionVisible) {
@@ -4748,8 +4753,11 @@ namespace WinAGI.Editor {
             picPreview.Top = tgtY;
             picPreview.Width = tgtW;
             picPreview.Height = tgtH;
-            picPreview.Image = new Bitmap(picPreview.Width, picPreview.Height);
+            if (picPreview.Image is not Bitmap bmp || bmp.Width != tgtW || bmp.Height != tgtH) {
+                picPreview.Image = new Bitmap(picPreview.Width, picPreview.Height);
+            }
             using (Graphics gc = Graphics.FromImage(picPreview.Image)) {
+                gc.Clear(picPreview.BackColor);
                 // now draw the cel, with scaling mode set to give crisp
                 // pixel edges
                 gc.InterpolationMode = InterpolationMode.NearestNeighbor;
@@ -4758,8 +4766,8 @@ namespace WinAGI.Editor {
                 if (TransparentPreview) {
                     // draw single pixel dots spaced 10 pixels apart over transparent pixels only
                     Bitmap b = new(picPreview.Image);
-                    int ofX = (10 - (picPreview.Left) % 10) % 10;
-                    int ofY = (10 - (picPreview.Top) % 10) % 10;
+                    int ofX = (10 - picPreview.Left % 10) % 10;
+                    int ofY = (10 - picPreview.Top % 10) % 10;
                     for (int i = ofX; i < picPreview.Width; i += 10) {
                         for (int j = ofY; j < picPreview.Height; j += 10) {
                             if (b.GetPixel(i, j).A == 0) {

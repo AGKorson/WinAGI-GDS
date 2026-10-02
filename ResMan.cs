@@ -3993,11 +3993,11 @@ namespace WinAGI.Editor {
                 // if second time through OR mode is 1: pri
                 if (Count == 0 && ImgMode != 1) {
                     // save vis as temporary BMP
-                    ExportBMP = ResizeAGIBitmap(ExportPic.VisualBMP, ImgZoom);
+                    ExportBMP = ResizeAGIBitmap(ExportPic.VisualImage, ImgZoom);
                 }
                 else {
                     // save vis as temporary BMP
-                    ExportBMP = ResizeAGIBitmap(ExportPic.PriorityBMP, ImgZoom);
+                    ExportBMP = ResizeAGIBitmap(ExportPic.PriorityImage, ImgZoom);
                 }
                 // make sure existing file is deleted
                 SafeFileDelete(ExportFile);
@@ -10661,6 +10661,7 @@ namespace WinAGI.Editor {
         }
 
         public static void DrawTransGrid(Control surface, int offsetX, int offsetY) {
+            surface.BackgroundImage?.Dispose();
             surface.BackgroundImage = new Bitmap(surface.Width, surface.Height);
             using Graphics gs = Graphics.FromImage(surface.BackgroundImage);
 
@@ -10670,32 +10671,6 @@ namespace WinAGI.Editor {
                 }
             }
             surface.Refresh();
-        }
-
-        /// <summary>
-        /// Draws the agi bitmap in target picture box, using scale factor provided
-        /// </summary>
-        /// <param name="pic"></param>
-        /// <param name="agiBMP"></param>
-        /// <param name="scale"></param>
-        /// <param name="mode"></param>
-        public static void ShowAGIBitmap(PictureBox pic, Bitmap agiBMP, double scale = 1) {
-            // pictures and views with errors will pass null value
-            if (agiBMP is null) {
-                // clear the pic
-                pic.CreateGraphics().Clear(pic.BackColor);
-                return;
-            }
-            int bWidth = (int)(agiBMP.Width * scale * 2), bHeight = (int)(agiBMP.Height * scale);
-            // first, create new image in the picture box that is desired size
-            pic.Image = new Bitmap(bWidth, bHeight);
-            // intialize a graphics object for the image just created
-            using Graphics g = Graphics.FromImage(pic.Image);
-            // always clear the background first
-            g.Clear(pic.BackColor);
-            g.InterpolationMode = InterpolationMode.NearestNeighbor;
-            g.PixelOffsetMode = PixelOffsetMode.Half;
-            g.DrawImage(agiBMP, 0, 0, bWidth, bHeight);
         }
 
         /// <summary>

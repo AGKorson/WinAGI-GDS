@@ -23,8 +23,8 @@ namespace WinAGI.Engine {
         private bool mStepDraw;
         private PenStatus mCurrentPen;
         private bool mPenSet;
-        private byte[] mVisData;
-        private byte[] mPriData;
+        private byte[] mVisData = new byte[26880];
+        private byte[] mPriData = new byte[26880];
         private Bitmap bmpVis;
         private Bitmap bmpPri;
         private EGAColors mPalette;
@@ -72,7 +72,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Gets a bitmap image of the visual screen.
         /// </summary>
-        public Bitmap VisualBMP {
+        public Bitmap VisualImage {
             get {
                 if (!mLoaded) {
                     return null;
@@ -87,7 +87,7 @@ namespace WinAGI.Engine {
         /// <summary>
         /// Gets a bitmap image of the priority screen.
         /// </summary>
-        public Bitmap PriorityBMP {
+        public Bitmap PriorityImage {
             get {
                 if (!mLoaded) {
                     return null;
@@ -405,8 +405,8 @@ namespace WinAGI.Engine {
             CopyPicture.mDrawPos = mDrawPos;
             CopyPicture.mStepDraw = mStepDraw;
             CopyPicture.mCurrentPen = mCurrentPen;
-            CopyPicture.mVisData = mVisData;
-            CopyPicture.mPriData = mPriData;
+            CopyPicture.mVisData = (byte[])mVisData.Clone();
+            CopyPicture.mPriData = (byte[])mPriData.Clone();
             if (parent is not null) {
                 // copy parent colors
                 CopyPicture.mPalette = parent.Palette.Clone();
@@ -440,8 +440,8 @@ namespace WinAGI.Engine {
                 mStepDraw = SourcePicture.mStepDraw;
                 mCurrentPen = SourcePicture.mCurrentPen;
             }
-            mVisData = SourcePicture.mVisData;
-            mPriData = SourcePicture.mPriData;
+            mVisData = (byte[])SourcePicture.mVisData.Clone();
+            mPriData = (byte[])SourcePicture.mPriData.Clone();
             if (SourcePicture.parent is not null) {
                 // copy parent colors
                 mPalette = SourcePicture.parent.Palette.Clone();
@@ -766,8 +766,10 @@ namespace WinAGI.Engine {
         /// Builds bitmaps for the visual and priority screens.
         /// </summary>
         internal void BuildBMPs() {
-            bmpVis = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
-            bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
+            if (bmpVis is null) {
+                bmpVis = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
+                bmpPri = new Bitmap(160, 168, PixelFormat.Format8bppIndexed);
+            }
             // update color palette
             // setup bitmap data variables
             var BoundsRect = new Rectangle(0, 0, 160, 168);
@@ -775,8 +777,6 @@ namespace WinAGI.Engine {
             IntPtr ptrVis = bmpVisData.Scan0;
             BitmapData bmpPriData = bmpPri.LockBits(BoundsRect, ImageLockMode.WriteOnly, bmpPri.PixelFormat);
             IntPtr ptrPri = bmpPriData.Scan0;
-            mVisData = new byte[26880];
-            mPriData = new byte[26880];
             // build arrays of bitmap data, set error level
             Warnings = CompilePicData(Version,
                 ref mVisData, ref mPriData, mData,
@@ -811,6 +811,7 @@ namespace WinAGI.Engine {
             }
             bmpVis.Palette = ncp;
             // adjust the palette for priority screen if necessary
+            // (needed if Vis transparency is set OR if need to set Pri transparency)
             if (!InGame && mBkgdSettings.Visible && (mBkgdSettings.ShowVis || mBkgdSettings.ShowPri)) {
                 for (int i = 0; i < 16; i++) {
                     int a = 255;
@@ -955,6 +956,8 @@ namespace WinAGI.Engine {
             }
             base.Unload();
             // cleanup picture resources
+            bmpVis?.Dispose();
+            bmpPri?.Dispose();
             bmpVis = null;
             bmpPri = null;
             mPicBMPSet = false;
