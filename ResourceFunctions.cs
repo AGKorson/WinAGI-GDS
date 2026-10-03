@@ -1261,13 +1261,14 @@ namespace WinAGI.Engine {
                         // long/byte/double - empirically, 36.5 seems to work best (which is
                         // what has been used by most AGI sound tools since the format was
                         // originally decyphered by fans)
-                        if (sound[i].Notes[j].FreqDivisor > 0) {
-                            midinote = (byte)(Math.Round((Math.Log10(111860 / (double)(sound[i].Notes[j].FreqDivisor)) / LOG10_1_12) - 36.5));
+                        var note = sound[i].Notes[j];
+                        if (note.FreqDivisor > 0) {
+                            midinote = (byte)(Math.Round((Math.Log10(111860 / (double)(note.FreqDivisor)) / LOG10_1_12) - 36.5));
                             // in case note is too high,
                             if (midinote > 127) {
                                 midinote = 127;
                             }
-                            volume = (byte)(127 * (15 - sound[i].Notes[j].Attenuation) / 15);
+                            volume = (byte)(127 * (15 - note.Attenuation) / 15);
                         }
                         else {
                             midinote = 0;
@@ -1279,7 +1280,7 @@ namespace WinAGI.Engine {
                         sndOut.WriteSndByte(midinote);
                         sndOut.WriteSndByte(volume);
                         // NOTE OFF
-                        sndOut.WriteSndDelta(sound[i].Notes[j].Duration);
+                        sndOut.WriteSndDelta(note.Duration);
                         sndOut.WriteSndByte((byte)(0x80 + writeTrack));
                         sndOut.WriteSndByte(midinote);
                         sndOut.WriteSndByte(0);
@@ -1362,8 +1363,9 @@ namespace WinAGI.Engine {
                     // reset tick counter (used in case of need to borrow track 3 freq)
                     tickCount = 0;
                     for (j = 0; j < sound[3].Notes.Count; j++) {
+                        var note = sound[3].Notes[j];
                         // add duration to tickcount
-                        tickCount += sound[3].Notes[j].Duration;
+                        tickCount += note.Duration;
                         // Fourth byte: noise freq and type
                         //    In the case of the noise voice,
                         //    7  6  5  4  3  2  1  0
@@ -1385,16 +1387,16 @@ namespace WinAGI.Engine {
                         // AGINote contains bits 2-1-0 only
                         //
                         // if this note matches desired type (tone or white noise)
-                        if ((sound[3].Notes[j].FreqDivisor & 4) == 4 * i) {
-                            if ((sound[3].Notes[j].FreqDivisor & 3) == 3) {
+                        if ((note.FreqDivisor & 4) == 4 * i) {
+                            if ((note.FreqDivisor & 3) == 3) {
                                 // get frequency from channel 3
                                 freqdivisor = GetTrack3Freq(sound[2], tickCount);
                             }
                             else {
                                 // get frequency from bits 0 and 1
-                                freqdivisor = (int)(2330.4296875 / (1 << (sound[3].Notes[j].FreqDivisor & 3)));
+                                freqdivisor = (int)(2330.4296875 / (1 << (note.FreqDivisor & 3)));
                             }
-                            if ((sound[3].Notes[j].FreqDivisor & 4) == 4) {
+                            if ((note.FreqDivisor & 4) == 4) {
                                 // for white noise, 96 is my best guess to imitate noise
                                 // BUT... 96 causes some notes to come out negative;
                                 // 80 is max Value that ensures all AGI freq values convert
@@ -1405,7 +1407,7 @@ namespace WinAGI.Engine {
                                 // for periodic noise, 64 is my best guess to imitate noise
                                 midinote = (byte)((Math.Log10(freqdivisor) / LOG10_1_12) - 64);
                             }
-                            volume = (byte)(127 * (15 - sound[3].Notes[j].Attenuation) / 15);
+                            volume = (byte)(127 * (15 - note.Attenuation) / 15);
                         }
                         else {
                             // write a blank note as a placeholder
@@ -1419,7 +1421,7 @@ namespace WinAGI.Engine {
                         sndOut.WriteSndByte(midinote);
                         sndOut.WriteSndByte(volume);
                         // NOTE OFF
-                        sndOut.WriteSndDelta(sound[3].Notes[j].Duration);
+                        sndOut.WriteSndDelta(note.Duration);
                         sndOut.WriteSndByte((byte)(0x80 + writeTrack));
                         sndOut.WriteSndByte(midinote);
                         sndOut.WriteSndByte(0);
@@ -1728,10 +1730,7 @@ namespace WinAGI.Engine {
             datasize = sounddata.Length - 50;
             output = new byte[datasize];
             // copy data from sound resource
-            int pos = 0;
-            for (int i = 54; i < sounddata.Length; i++) {
-                output[pos++] = sounddata[i];
-            }
+            Buffer.BlockCopy(sounddata, 54, output, 0, sounddata.Length - 54);
             // add four bytes of silence as an end marker
             output[^1] = 127;
             output[^2] = 127;

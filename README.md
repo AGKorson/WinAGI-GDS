@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.88
+        Version 3.0.0beta.89
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
 
 ### History:
+Beta.89:
+- refactored resource, VOL and DIR handling to improve performance and reduce memory usage
+
 Beta.88:
 - fixed memory leaks associated with image drawing and scaling
 - refactored sound functions to improve performance and reduce memory usage

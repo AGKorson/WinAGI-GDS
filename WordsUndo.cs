@@ -29,7 +29,7 @@ namespace WinAGI.Editor {
         }
 
         public WordsUndo() {
-            Group = Array.Empty<string>();
+            Group = [];
         }
     }
 }

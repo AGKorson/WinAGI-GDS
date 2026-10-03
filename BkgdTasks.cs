@@ -119,7 +119,8 @@ namespace WinAGI.Common {
                 break;
             case 54:
                 // updating WinAGI version
-                updating = true;
+                // no longer allowed; template games must be current
+                // version, or they will not be used to create new games
                 break;
             case 55:
                 // game finished loading
@@ -271,6 +272,9 @@ namespace WinAGI.Common {
             }
             if (loaded) {
                 argval.Failed = false;
+                if (updating) {
+                    UpdateGameVersion();
+                }
                 bgwOpenGame.ReportProgress(50, "Game " + (argval.Parameters.Mode == OpenGameMode.File ? "loaded" : "imported") + " successfully, setting up editors");
                 argval.Warnings = warnings;
             }
@@ -332,36 +336,6 @@ namespace WinAGI.Common {
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information,
                         "htm\\winagi\\opengame.htm#upgrade");
-                    try {
-                        Directory.CreateDirectory(Path.Combine(EditGame.SrcResDir, "BACKUP"));
-                    }
-                    catch {
-                        // ignore exceptions
-                    }
-                    foreach (Logic logic in EditGame.Logics) {
-                        if (File.Exists(logic.SourceFile)) {
-                            try {
-                                File.Copy(logic.SourceFile, Path.Combine(EditGame.SrcResDir, "BACKUP", Path.GetFileName(logic.SourceFile)), true);
-                                byte[] strdat = File.ReadAllBytes(logic.SourceFile);
-                                bool _ = false;
-                                string srcText = RefreshAutoIncludes(Encoding.GetEncoding(EditGame.CodePage).GetString(strdat), EditGame, ref _);
-                                File.WriteAllText(logic.SourceFile, srcText);
-                            }
-                            catch {
-                                // ignore exceptions
-                            }
-                        }
-                    }
-                    // author changed to designer
-                    string author = EditGame.agGameProps.GetSetting("General", "Author", "", true);
-                    if (author.Length > 0) {
-                        EditGame.agDesigner = author;
-                        EditGame.agGameProps.WriteSetting("General", "Designer", author);
-                    }
-                    EditGame.agGameProps.DeleteKey("General", "Author");
-                    // UseResNames no longer used
-                    EditGame.agGameProps.DeleteKey("General", "UseResNames");
-                    EditGame.agGameProps.Save();
                 }
                 break;
             default:
@@ -413,6 +387,39 @@ namespace WinAGI.Common {
                     }
                 }
             }
+        }
+
+        private static void UpdateGameVersion() {
+            try {
+                Directory.CreateDirectory(Path.Combine(EditGame.SrcResDir, "BACKUP"));
+            }
+            catch {
+                // ignore exceptions
+            }
+            foreach (Logic logic in EditGame.Logics) {
+                if (File.Exists(logic.SourceFile)) {
+                    try {
+                        File.Copy(logic.SourceFile, Path.Combine(EditGame.SrcResDir, "BACKUP", Path.GetFileName(logic.SourceFile)), true);
+                        byte[] strdat = File.ReadAllBytes(logic.SourceFile);
+                        bool _ = false;
+                        string srcText = RefreshAutoIncludes(Encoding.GetEncoding(EditGame.CodePage).GetString(strdat), EditGame, ref _);
+                        File.WriteAllText(logic.SourceFile, srcText);
+                    }
+                    catch {
+                        // ignore exceptions
+                    }
+                }
+            }
+            // author changed to designer
+            string author = EditGame.agGameProps.GetSetting("General", "Author", "", true);
+            if (author.Length > 0) {
+                EditGame.agDesigner = author;
+                EditGame.agGameProps.WriteSetting("General", "Designer", author);
+            }
+            EditGame.agGameProps.DeleteKey("General", "Author");
+            // UseResNames no longer used
+            EditGame.agGameProps.DeleteKey("General", "UseResNames");
+            EditGame.agGameProps.Save();
         }
         #endregion
 

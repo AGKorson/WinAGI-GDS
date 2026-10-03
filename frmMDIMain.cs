@@ -3652,7 +3652,8 @@ namespace WinAGI.Editor {
                     bgwNewGame.ReportProgress(53, e.NewInfo.Text);
                     break;
                 case InfoType.PropertyFile:
-                    bgwNewGame.ReportProgress(54, "");
+                    // no longer allowed; older version template games can never be 
+                    // used to create a new game
                     break;
                 }
                 break;

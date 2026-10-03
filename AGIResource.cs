@@ -670,102 +670,66 @@ namespace WinAGI.Engine {
                 // it will trump the readonly error
             }
             // open file (VOL or individual resource)
-            FileStream fsVOL = null;
-            BinaryReader brVOL = null;
+            // Any unexpected exception during load is converted to a
+            // FileAccessError so this method never propagates exceptions.
             try {
-                fsVOL = new FileStream(volFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                brVOL = new BinaryReader(fsVOL);
-            }
-            catch (Exception e1) {
-                fsVOL?.Dispose();
-                brVOL?.Dispose();
-                Error = ResourceErrorType.FileAccessError;
-                ErrData[0] = e1.Message;
-                ErrData[1] = mResID;
-                return;
-            }
-            // verify resource is within file bounds
-            if (mLoc >= fsVOL.Length) {
-                fsVOL.Dispose();
-                brVOL.Dispose();
-                Error = ResourceErrorType.InvalidLocation;
-                ErrData[0] = mLoc.ToString();
-                ErrData[1] = mVolume.ToString();
-                ErrData[2] = Path.GetFileName(fsVOL.Name);
-                ErrData[3] = mResID;
-                return;
-            }
-            if (mInGame) {
-                // check for valid header
-                brVOL.BaseStream.Seek(mLoc, SeekOrigin.Begin);
-                hiByte = brVOL.ReadByte();
-                loByte = brVOL.ReadByte();
-                if (hiByte != 0x12 || loByte != 0x34) {
-                    fsVOL.Dispose();
-                    brVOL.Dispose();
-                    Error = ResourceErrorType.InvalidHeader;
+                using FileStream fsVOL = new(volFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using BinaryReader brVOL = new(fsVOL);
+                // verify resource is within file bounds
+                if (mLoc >= fsVOL.Length) {
+                    Error = ResourceErrorType.InvalidLocation;
                     ErrData[0] = mLoc.ToString();
                     ErrData[1] = mVolume.ToString();
                     ErrData[2] = Path.GetFileName(fsVOL.Name);
                     ErrData[3] = mResID;
                     return;
                 }
-                // get volume where this resource is stored
-                volume = brVOL.ReadByte();
-                // get size info
-                loByte = brVOL.ReadByte();
-                hiByte = brVOL.ReadByte();
-                fullSize = (hiByte << 8) + loByte;
-                // if version3,
-                if (parent.agIntVersion.IsV3) {
-                    // compressed size
+                if (mInGame) {
+                    // check for valid header
+                    brVOL.BaseStream.Seek(mLoc, SeekOrigin.Begin);
+                    hiByte = brVOL.ReadByte();
+                    loByte = brVOL.ReadByte();
+                    if (hiByte != 0x12 || loByte != 0x34) {
+                        Error = ResourceErrorType.InvalidHeader;
+                        ErrData[0] = mLoc.ToString();
+                        ErrData[1] = mVolume.ToString();
+                        ErrData[2] = Path.GetFileName(fsVOL.Name);
+                        ErrData[3] = mResID;
+                        return;
+                    }
+                    // get volume where this resource is stored
+                    volume = brVOL.ReadByte();
+                    // get size info
                     loByte = brVOL.ReadByte();
                     hiByte = brVOL.ReadByte();
-                    diskSize = (hiByte << 8) + loByte;
-                    // determine if this resource is a compressed picture
-                    isPicture = ((volume & 0x80) == 0x80);
+                    fullSize = (hiByte << 8) + loByte;
+                    // if version3,
+                    if (parent.agIntVersion.IsV3) {
+                        // compressed size
+                        loByte = brVOL.ReadByte();
+                        hiByte = brVOL.ReadByte();
+                        diskSize = (hiByte << 8) + loByte;
+                        // determine if this resource is a compressed picture
+                        isPicture = (volume & 0x80) == 0x80;
+                    }
+                    else {
+                        diskSize = fullSize;
+                    }
                 }
                 else {
+                    // get size from total file length
+                    fullSize = (int)fsVOL.Length;
+                    // version 3 files are never compressed when loaded as individual files
                     diskSize = fullSize;
                 }
-            }
-            else {
-                // get size from total file length
-                fullSize = (int)fsVOL.Length;
-                // version 3 files are never compressed when loaded as individual files
-                diskSize = fullSize;
-            }
-            // get resource data
-            mData = brVOL.ReadBytes(diskSize);
-            fsVOL.Dispose();
-            brVOL.Dispose();
-            if (isPicture) {
-                // pictures use custom RLE decompression
-                try {
-                    mData = DecompressPicture(mData, fullSize);
-                }
-                catch (Exception e) {
-                    fsVOL.Dispose();
-                    brVOL.Dispose();
-                    Error = ResourceErrorType.DecompressionError;
-                    ErrData[0] = mLoc.ToString();
-                    ErrData[1] = mVolume.ToString();
-                    ErrData[2] = Path.GetFileName(fsVOL.Name);
-                    ErrData[3] = mResID;
-                    ErrData[4] = e.Message;
-                    return;
-                }
-            }
-            else {
-                if (mData.Length != fullSize) {
-                    // all other resources use LZW compression
-                    V3Compressed = true;
+                // get resource data
+                mData = brVOL.ReadBytes(diskSize);
+                if (isPicture) {
+                    // pictures use custom RLE decompression
                     try {
-                        mData = ExpandV3ResData(mData, fullSize);
+                        mData = DecompressPicture(mData, fullSize);
                     }
                     catch (Exception e) {
-                        fsVOL.Dispose();
-                        brVOL.Dispose();
                         Error = ResourceErrorType.DecompressionError;
                         ErrData[0] = mLoc.ToString();
                         ErrData[1] = mVolume.ToString();
@@ -775,14 +739,34 @@ namespace WinAGI.Engine {
                         return;
                     }
                 }
+                else if (mData.Length != fullSize) {
+                    // all other resources use LZW compression
+                    V3Compressed = true;
+                    try {
+                        mData = ExpandV3ResData(mData, fullSize);
+                    }
+                    catch (Exception e) {
+                        Error = ResourceErrorType.DecompressionError;
+                        ErrData[0] = mLoc.ToString();
+                        ErrData[1] = mVolume.ToString();
+                        ErrData[2] = Path.GetFileName(fsVOL.Name);
+                        ErrData[3] = mResID;
+                        ErrData[4] = e.Message;
+                        return;
+                    }
+                }
+                // reset resource markers
+                mCurPos = 0;
+                mEORes = false;
+                // update size properties
+                mSize = fullSize;
+                mSizeInVol = diskSize;
             }
-            // reset resource markers
-            mCurPos = 0;
-            mEORes = false;
-            // update size properties
-            mSize = fullSize;
-            mSizeInVol = diskSize;
-            return;
+            catch (Exception e) {
+                Error = ResourceErrorType.FileAccessError;
+                ErrData[0] = e.Message;
+                ErrData[1] = mResID;
+            }
         }
 
         /// <summary>

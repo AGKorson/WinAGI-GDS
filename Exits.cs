@@ -51,6 +51,7 @@ namespace WinAGI.Editor {
             _order.Add(copyexit.ID);
             return exit;
         }
+        
         public Exit Add(int id, int room, ExitReason reason, int style, ExitType type = ExitType.Normal, int typeindex = 0, int leg = 0) {
             if (id < 1 || id > 255) {
                 throw new ArgumentOutOfRangeException(nameof(id), "ID must be between 1 and 255.");
@@ -70,7 +71,7 @@ namespace WinAGI.Editor {
                 throw new ArgumentOutOfRangeException(nameof(style), "style must be 0 or 1.");
             }
             if (leg < 0 || leg > 255) {
-                throw new ArgumentOutOfRangeException(nameof(room), "leg must be between 0 and 255.");
+                throw new ArgumentOutOfRangeException(nameof(leg), "leg must be between 0 and 255.");
             }
             var exit = new Exit {
                 ID = exitId,

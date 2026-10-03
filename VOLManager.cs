@@ -19,8 +19,8 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Fields
-        internal FileStream fsVOL, fsDIR;
-        internal AGIGame parent;
+        private FileStream fsVOL, fsDIR;
+        private readonly AGIGame parent;
         #endregion
 
         #region Constructors
@@ -53,7 +53,7 @@ namespace WinAGI.Engine {
         /// index position of each resource in this game.
         /// </summary>
         public byte[,,] DIRData {
-            get; set;
+            get; private set;
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace WinAGI.Engine {
         /// Gets or sets the index (location) in the current VOL file where
         /// resources will be added.
         /// </summary>
-        public int Loc {
+        private int Loc {
             get; set;
         }
 
@@ -112,7 +112,7 @@ namespace WinAGI.Engine {
         /// Gets or set the index of the VOL file that is currently being written
         /// to, i.e. VOL.0, VOL.1, etc.
         /// </summary>
-        public int Index {
+        private int Index {
             get; set;
         }
 
@@ -210,8 +210,8 @@ namespace WinAGI.Engine {
                 int maxvolnum = isV3 ? 15 : 4;
 
                 // close current vol file
-                VOLFile.Dispose();
-                VOLWriter.Dispose();
+                VOLWriter?.Dispose();
+                VOLFile = null;
 
                 // start check with previous vol files, to see if there is room at
                 // end of one of those; check up to max vol number
@@ -535,14 +535,12 @@ namespace WinAGI.Engine {
             else {
                 gameid = "";
             }
-            FileStream fsVOL = null;
-            BinaryWriter bwVOL = null;
             try {
                 // save the resource into the vol file
-                fsVOL = new FileStream(Path.Combine(AddRes.parent.agGameDir, gameid + "VOL." + AddRes.Volume.ToString()),
+                using FileStream fsVOL = new(Path.Combine(AddRes.parent.agGameDir, gameid + "VOL." + AddRes.Volume.ToString()),
                     FileMode.OpenOrCreate);
                 fsVOL.Seek(AddRes.Loc, SeekOrigin.Begin);
-                bwVOL = new BinaryWriter(fsVOL);
+                using BinaryWriter bwVOL = new BinaryWriter(fsVOL);
                 bwVOL.Write(ResHeader, 0, AddRes.parent.agIntVersion.IsV3 ? 7 : 5);
                 bwVOL.Write(AddRes.Data, 0, AddRes.Data.Length);
                 fsVOL?.Dispose();
@@ -552,8 +550,6 @@ namespace WinAGI.Engine {
                 WinAGIException wex = new(EngineResourceByNum(528)) {
                     HResult = WINAGI_ERR + 528,
                 };
-                fsVOL?.Dispose();
-                bwVOL?.Dispose();
                 wex.Data["exception"] = ex;
                 wex.Data["ID"] = AddRes.ID;
                 throw wex;

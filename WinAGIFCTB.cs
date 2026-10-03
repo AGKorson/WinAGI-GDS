@@ -1,6 +1,5 @@
 ﻿using FastColoredTextBoxNS;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Windows.Forms;
 using WinAGI.Common;
 using static WinAGI.Editor.Base;
