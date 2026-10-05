@@ -305,23 +305,12 @@ namespace WinAGI.Engine {
             // only loaded sounds can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
 
-            Sound clonesound = new();
-            // copy base properties
-            CloneTo(clonesound);
-            // copy sound properties
-            clonesound.mKey = mKey;
-            clonesound.mTPQN = mTPQN;
-            clonesound.mode = mode;
-            clonesound.mSoundChanged = mSoundChanged;
-            clonesound.mLength = mLength;
-            clonesound.mFormat = mFormat;
-            // never copy output build status; cloned sound will have to rebuild it
-            clonesound.mOutputSet = false;
-            // clone the tracks
-            for (int i = 0; i < 4; i++) {
-                clonesound.mTrack[i] = mTrack[i].Clone(clonesound);
-            }
-            return clonesound;
+            Sound clone = new() {
+                // make sure clone is loaded to avoid error in CloneFrom
+                mLoaded = true
+            };
+            clone.CloneFrom(this);
+            return clone;
         }
 
         /// <summary>

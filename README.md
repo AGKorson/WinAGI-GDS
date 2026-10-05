@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.89
+        Version 3.0.0beta.90
     ==============================
 
 
@@ -32,6 +32,10 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
 
 ### History:
+Beta.90:
+- refactored RenumberGroup method in wordlist to be more efficient
+- refactored clone methods for all resources to be more efficient and improve readability
+
 Beta.89:
 - refactored resource, VOL and DIR handling to improve performance and reduce memory usage
 

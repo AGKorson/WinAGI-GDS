@@ -44,8 +44,8 @@ namespace WinAGI.Engine {
         /// <param name="ResNum"></param>
         /// <param name="NewLogic"></param>
         internal Logic(AGIGame parent, byte ResNum, Logic NewLogic = null) : base(AGIResType.Logic) {
-            InitInGame(parent, ResNum);
             InitLogic(NewLogic);
+            InitInGame(parent, ResNum);
             if (ResNum == 0) {
                 // make sure isroom flag is false
                 mIsRoom = false;
@@ -63,7 +63,7 @@ namespace WinAGI.Engine {
         internal Logic(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.Logic) {
             // adds a logic from dir/vol files, setting its resource 
             // location properties, and reads properties from the wag file
-
+            InitLogic();
             // set up base resource
             InitInGame(parent, AGIResType.Logic, ResNum, VOL, Loc);
             // get rest of properties
@@ -273,6 +273,46 @@ namespace WinAGI.Engine {
 
         #region Methods
         /// <summary>
+        /// Initializes a new logic resource when first instantiated. If NewLogic is null, 
+        /// a blank logic resource is created. If NewLogic is not null, it is cloned into
+        /// the new logic.
+        /// </summary>
+        /// <param name="NewLogic"></param>
+        private void InitLogic(Logic NewLogic = null) {
+            // initialize warning data array (1 element for logics)
+            WarnData = [""];
+            if (NewLogic is null) {
+                // set default resource data
+                mData = [0x01, 0x00, 0x00, 0x00];
+                // byte0 = low byte of msg section offset (relative to byte 2)
+                // byte1 = high byte of msg section offset
+                // byte2 = first byte of code data (a single return)
+                // byte3 = first byte of msg section = # of messages
+
+                // clear the source code by setting it to 'return' command
+                mSourceText = "";
+                mSourceChanged = true;
+                mCodeSize = 3;
+                // to avoid having compile property read true if both values are 0,
+                // set compiledCRC to -1 on initialization
+                mCompiledCRC = 0xffffffff;
+                mCRC = 0;
+            }
+            else {
+                // copy base properties
+                NewLogic.CloneTo(this);
+                // copy logic properties
+                mIsRoom = NewLogic.mIsRoom;
+                mLoaded = NewLogic.mLoaded;
+                mCompiledCRC = NewLogic.mCompiledCRC;
+                mCRC = NewLogic.mCRC;
+                mSourceText = NewLogic.mSourceText;
+                mSourceChanged = NewLogic.mSourceChanged;
+                SourceFile = NewLogic.SourceFile;
+            }
+        }
+
+        /// <summary>
         /// This method is used by the ExtractResources function to do the initial load of
         /// logic resource data without loading the source code text file.
         /// </summary>
@@ -323,37 +363,6 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Initializes a new logic resource when first instantiated. If NewLogic is null, 
-        /// a blank logic resource is created. If NewLogic is not null, it is cloned into
-        /// the new logic.
-        /// </summary>
-        /// <param name="NewLogic"></param>
-        private void InitLogic(Logic NewLogic = null) {
-            // initialize warning data array (1 element for logics)
-            WarnData = [""];
-            if (NewLogic is null) {
-                // set default resource data by clearing
-                Clear();
-                // to avoid having compile property read true if both values are 0,
-                // set compiledCRC to -1 on initialization
-                CompiledCRC = 0xffffffff;
-                CRC = 0;
-            }
-            else {
-                // copy base properties
-                NewLogic.CloneTo(this);
-                // copy logic properties
-                mIsRoom = NewLogic.mIsRoom;
-                mLoaded = NewLogic.mLoaded;
-                mCompiledCRC = NewLogic.mCompiledCRC;
-                mCRC = NewLogic.mCRC;
-                mSourceText = NewLogic.mSourceText;
-                mSourceChanged = NewLogic.mSourceChanged;
-                SourceFile = NewLogic.SourceFile;
-            }
-        }
-
-        /// <summary>
         /// Creates an exact copy of this Logic resource.
         /// </summary>
         /// <returns>The Logic resource this method creates.</returns>
@@ -361,20 +370,12 @@ namespace WinAGI.Engine {
             // only loaded logics can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
 
-            Logic CopyLogic = new();
-            // copy base properties
-            CloneTo(CopyLogic);
-            // add WinAGI items
-            CopyLogic.mIsRoom = mIsRoom;
-            CopyLogic.mLoaded = mLoaded;
-            CopyLogic.mCompiledCRC = mCompiledCRC;
-            CopyLogic.mCRC = mCRC;
-            CopyLogic.mSourceText = mSourceText;
-            CopyLogic.mSourceChanged = mSourceChanged;
-            CopyLogic.SourceFile = SourceFile;
-            CopyLogic.mCodePage = mCodePage;
-            CopyLogic.SourceError = SourceError;
-            return CopyLogic;
+            Logic clone = new() {
+                // make sure clone is loaded to avoid error in CloneFrom
+                mLoaded = true
+            };
+            clone.CloneFrom(this);
+            return clone;
         }
 
         /// <summary>
@@ -390,7 +391,6 @@ namespace WinAGI.Engine {
             base.CloneFrom(SourceLogic);
             // add WinAGI items
             mIsRoom = SourceLogic.mIsRoom;
-            mLoaded = SourceLogic.mLoaded;
             mCompiledCRC = SourceLogic.mCompiledCRC;
             mCRC = SourceLogic.mCRC;
             mSourceText = SourceLogic.mSourceText;

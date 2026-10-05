@@ -575,12 +575,8 @@ namespace WinAGI.Engine {
             NewRes.mCurPos = mCurPos;
             NewRes.Error = Error;
             NewRes.Warnings = Warnings;
-            for (int i = 0; i < ErrData.Length; i++) {
-                NewRes.ErrData[i] = ErrData[i];
-            }
-            for (int i = 0; i < WarnData.Length; i++) {
-                NewRes.WarnData[i] = WarnData[i];
-            }
+            NewRes.ErrData = ErrData.ToArray();
+            NewRes.WarnData = WarnData.ToArray();
             // force prop status to changed instead 
             // since the cloned object has likely changed
             NewRes.PropsChanged = true;
@@ -612,12 +608,8 @@ namespace WinAGI.Engine {
             mCurPos = SourceRes.mCurPos;
             Error = SourceRes.Error;
             Warnings = SourceRes.Warnings;
-            for (int i = 0; i < ErrData.Length; i++) {
-                ErrData[i] = SourceRes.ErrData[i];
-            }
-            for (int i = 0; i < WarnData.Length; i++) {
-                WarnData[i] = SourceRes.WarnData[i];
-            }
+            ErrData = SourceRes.ErrData.ToArray();
+            WarnData = SourceRes.WarnData.ToArray();
             // force status to changed
             mIsChanged = true;
             PropsChanged = true;

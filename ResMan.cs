@@ -3266,7 +3266,6 @@ namespace WinAGI.Editor {
             return logictext;
         }
 
-
         public static bool CheckLogics() {
             // checks all logics; if any found that are changed
             // allow user to recompile game if desired before

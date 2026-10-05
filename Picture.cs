@@ -52,7 +52,7 @@ namespace WinAGI.Engine {
         /// <param name="NewPicture"></param>
         internal Picture(AGIGame parent, byte ResNum, Picture NewPicture = null) : base(AGIResType.Picture) {
             InitPicture(NewPicture);
-            base.InitInGame(parent, ResNum);
+            InitInGame(parent, ResNum);
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace WinAGI.Engine {
         /// <param name="Loc"></param>
         internal Picture(AGIGame parent, byte ResNum, sbyte VOL, int Loc) : base(AGIResType.Picture) {
             InitPicture(null);
-            base.InitInGame(parent, AGIResType.Picture, ResNum, VOL, Loc);
+            InitInGame(parent, AGIResType.Picture, ResNum, VOL, Loc);
         }
         #endregion
 
@@ -395,29 +395,12 @@ namespace WinAGI.Engine {
             // only loaded pictures can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
 
-            Picture CopyPicture = new();
-            // copy base properties
-            CloneTo(CopyPicture);
-            // copy picture properties
-            CopyPicture.mBkgdSettings = mBkgdSettings;
-            CopyPicture.mPriBase = mPriBase;
-            CopyPicture.mVersion = mVersion;
-            CopyPicture.mDrawPos = mDrawPos;
-            CopyPicture.mStepDraw = mStepDraw;
-            CopyPicture.mCurrentPen = mCurrentPen;
-            CopyPicture.mVisData = (byte[])mVisData.Clone();
-            CopyPicture.mPriData = (byte[])mPriData.Clone();
-            if (parent is not null) {
-                // copy parent colors
-                CopyPicture.mPalette = parent.Palette.Clone();
-            }
-            else {
-                // copy picture colors
-                CopyPicture.mPalette = mPalette.Clone();
-            }
-            // bitmaps always need to be rebuilt
-            CopyPicture.mPicBMPSet = false;
-            return CopyPicture;
+            Picture clone = new() {
+                // make sure clone is loaded to avoid error in CloneFrom
+                mLoaded = true
+            };
+            clone.CloneFrom(this);
+            return clone;
         }
 
         /// <summary>
@@ -435,11 +418,9 @@ namespace WinAGI.Engine {
             mBkgdSettings = SourcePicture.mBkgdSettings;
             mPriBase = SourcePicture.mPriBase;
             mVersion = SourcePicture.mVersion;
-            if (!mInGame) {
-                mDrawPos = SourcePicture.mDrawPos;
-                mStepDraw = SourcePicture.mStepDraw;
-                mCurrentPen = SourcePicture.mCurrentPen;
-            }
+            mDrawPos = SourcePicture.mDrawPos;
+            mStepDraw = SourcePicture.mStepDraw;
+            mCurrentPen = SourcePicture.mCurrentPen;
             mVisData = (byte[])SourcePicture.mVisData.Clone();
             mPriData = (byte[])SourcePicture.mPriData.Clone();
             if (SourcePicture.parent is not null) {

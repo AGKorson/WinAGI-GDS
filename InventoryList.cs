@@ -996,36 +996,12 @@ namespace WinAGI.Engine {
         public InventoryList Clone() {
             // only loaded views can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
-
-            InventoryList clonelist = new() {
-                // copy all items and properties except ingame status and parent
-                // related properties
-                mAmigaOBJ = mAmigaOBJ,
-                mCodePage = mCodePage,
-                mDescription = mDescription,
-                mEncrypted = mEncrypted,
-                Error = Error,
-                Warnings = Warnings
+            InventoryList clone = new() {
+                // make sure clone is loaded to avoid error in CloneFrom
+                mLoaded = true
             };
-            for (int i = 0; i < ErrData.Length; i++) {
-                clonelist.ErrData[i] = ErrData[i];
-                clonelist.WarnData[i] = WarnData[i];
-            }
-            clonelist.mLoaded = mLoaded;
-            clonelist.mMaxScreenObjects = mMaxScreenObjects;
-            clonelist.mResFile = mResFile;
-            clonelist.mIsChanged = mIsChanged;
-            // need to remove the default to avoid duplication
-            clonelist.mItems.RemoveAt(0);
-            foreach (InventoryItem itm in mItems) {
-                InventoryItem tmp = new InventoryItem(clonelist) {
-                    mItemName = itm.ItemName,
-                    mRoom = itm.Room,
-                    Unique = itm.Unique
-                };
-                clonelist.mItems.Add(tmp);
-            }
-            return clonelist;
+            clone.CloneFrom(this);
+            return clone;
         }
 
         public void CloneFrom(InventoryList srcList) {

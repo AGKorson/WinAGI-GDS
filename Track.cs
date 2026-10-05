@@ -119,9 +119,7 @@ namespace WinAGI.Engine {
                 return mLength;
             }
         }
-        #endregion
 
-        #region Methods
         /// <summary>
         /// Gets or sets the visible property of this track. This property is only 
         /// applicable to PC/PCjr sounds, and is only used by WinAGI when editing
@@ -138,7 +136,9 @@ namespace WinAGI.Engine {
                 }
             }
         }
+        #endregion
 
+        #region Methods
         /// <summary>
         /// This method is used by parent sound to let this track know that sound
         /// length needs to be recalculated.
@@ -148,7 +148,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Creates an exact copy of this Tracks object.
+        /// Creates an exact copy of this Tracks object, and assigns it to the specified parent sound.
         /// </summary>
         /// <param name="cloneparent"></param>
         /// <returns>The Tracks object this method creates.</returns>

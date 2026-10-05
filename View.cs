@@ -193,24 +193,12 @@ namespace WinAGI.Engine {
             // only loaded views can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
 
-            View CopyView = new();
-            // copy base properties
-            CloneTo(CopyView);
-            // copy view properties
-            CopyView.mViewDesc = mViewDesc;
-            CopyView.mLoopCol = mLoopCol.Clone(CopyView);
-            CopyView.mViewChanged = mViewChanged;
-            CopyView.ErrData = ErrData;
-            if (parent is not null) {
-                // copy parent colors
-                CopyView.mPalette = parent.Palette.Clone();
-            }
-            else {
-                // copy view colors
-                CopyView.mPalette = mPalette.Clone();
-            }
-            CopyView.mCodePage = mCodePage;
-            return CopyView;
+            View clone = new() {
+                // make sure clone is loaded to avoid error in CloneFrom
+                mLoaded = true
+            };
+            clone.CloneFrom(this);
+            return clone;
         }
 
         /// <summary>
@@ -227,6 +215,7 @@ namespace WinAGI.Engine {
             // copy view properties
             mViewChanged = SourceView.mViewChanged;
             mViewDesc = SourceView.mViewDesc;
+            ErrData = SourceView.ErrData;
             mLoopCol.CloneFrom(SourceView.mLoopCol);
             if (SourceView.parent is not null) {
                 // copy parent colors

@@ -52,32 +52,11 @@ namespace WinAGI.Engine {
             mResFile = "";
             mWordCol = new(new AGIWordComparer());
             mGroupCol = [];
-            mIsChanged = true;
             mLoaded = true;
             // add default words
-            AGIWord tmpWord = new() {
-                WordText = "a",
-                Group = 0
-            };
-            mWordCol.Add("a", tmpWord);
-            tmpWord.WordText = "anyword";
-            tmpWord.Group = 1;
-            mWordCol.Add("anyword", tmpWord);
-            tmpWord.WordText = "rol";
-            tmpWord.Group = 9999;
-            mWordCol.Add("rol", tmpWord);
-            // and default groups
-            WordGroup tmpGroup = new() {
-                mGroupNum = 0
-            };
-            tmpGroup.AddWordToGroup("a");
-            mGroupCol.Add(0, tmpGroup);
-            tmpGroup = new WordGroup { mGroupNum = 1 };
-            tmpGroup.AddWordToGroup("any");
-            mGroupCol.Add(1, tmpGroup);
-            tmpGroup = new WordGroup { mGroupNum = 9999 };
-            tmpGroup.AddWordToGroup("rol");
-            mGroupCol.Add(9999, tmpGroup);
+            AddWord("a", 0);
+            AddWord("anyword", 1);
+            AddWord("rol", 9999);
         }
 
         /// <summary>
@@ -560,10 +539,6 @@ namespace WinAGI.Engine {
             if (!File.Exists(loadfile)) {
                 return ("missing file", false);
             }
-            //// check for readonly
-            //if ((File.GetAttributes(LoadFile) & FileAttributes.ReadOnly) == FileAttributes.ReadOnly) {
-            //    return ("file is readonly", 0);
-            //}
             try {
                 filetext = File.ReadAllText(loadfile);
             }
@@ -1124,71 +1099,31 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <returns>The WordList that this method creates</returns>
         public WordList Clone() {
+            // parent property and ingame property are never cloned
             // only loaded wordlists can be cloned
             WinAGIException.ThrowIfNotLoaded(this);
 
-            WordList clonelist = new() {
-                // clear the defaults
-                mWordCol = new(new AGIWordComparer()),
-                mGroupCol = []
+            WordList clone = new() {
+                // make sure clone is loaded to avoid error in CloneFrom
+                mLoaded = true
             };
-
-            int groupnum;
-            string wordtext;
-            WordGroup tmpGroup;
-            AGIWord tmpWord;
-
-            foreach (WordGroup group in mGroupCol.Values) {
-                tmpGroup = new WordGroup();
-                groupnum = group.GroupNum;
-                tmpGroup.GroupNum = groupnum;
-                clonelist.mGroupCol.Add(groupnum, tmpGroup);
-            }
-            foreach (AGIWord word in mWordCol.Values) {
-                wordtext = word.WordText;
-                groupnum = word.Group;
-                tmpWord.WordText = wordtext;
-                tmpWord.Group = groupnum;
-                clonelist.mWordCol.Add(wordtext, tmpWord);
-                clonelist.mGroupCol[groupnum].AddWordToGroup(wordtext);
-            }
-            clonelist.mLoaded = mLoaded;
-            clonelist.mDescription = mDescription;
-            clonelist.mResFile = mResFile;
-            clonelist.mIsChanged = mIsChanged;
-            clonelist.mCodePage = mCodePage;
-            clonelist.Error = Error;
-            clonelist.Warnings = Warnings;
-            for (int i = 0; i < ErrData.Length; i++) {
-                clonelist.ErrData[i] = ErrData[i];
-                clonelist.WarnData[i] = WarnData[i];
-            }
-            return clonelist;
+            clone.CloneFrom(this);
+            return clone;
         }
 
         public void CloneFrom(WordList clonelist) {
-            int groupnum;
-            string wordtext;
-            WordGroup tmpGroup;
-            AGIWord tmpWord;
+            // parent property and ingame property are never cloned
 
             WinAGIException.ThrowIfNotLoaded(this);
             WinAGIException.ThrowIfNotLoaded(clonelist);
+
             mGroupCol = [];
             foreach (WordGroup group in clonelist.mGroupCol.Values) {
-                tmpGroup = new WordGroup();
-                groupnum = group.GroupNum;
-                tmpGroup.GroupNum = groupnum;
-                mGroupCol.Add(groupnum, tmpGroup);
+                AddGroup(group.GroupNum);
             }
             mWordCol = new(new AGIWordComparer());
             foreach (AGIWord word in clonelist.mWordCol.Values) {
-                wordtext = word.WordText;
-                groupnum = word.Group;
-                tmpWord.WordText = wordtext;
-                tmpWord.Group = groupnum;
-                mWordCol.Add(wordtext, tmpWord);
-                mGroupCol[groupnum].AddWordToGroup(wordtext);
+                AddWord(word.WordText, word.Group);
             }
             mDescription = clonelist.Description;
             mResFile = clonelist.ResFile;
@@ -1200,7 +1135,6 @@ namespace WinAGI.Engine {
                 ErrData[i] = clonelist.ErrData[i];
                 WarnData[i] = clonelist.WarnData[i];
             }
-            mLoaded = true;
         }
 
         /// <summary>
@@ -1216,7 +1150,6 @@ namespace WinAGI.Engine {
             AddWord("anyword", 1);
             AddWord("rol", 9999);
             mDescription = "";
-            mIsChanged = true;
         }
 
         /// <summary>
@@ -1316,9 +1249,6 @@ namespace WinAGI.Engine {
         /// <param name="oldgroupnum"></param>
         /// <param name="newgroupnum"></param>
         public void RenumberGroup(int oldgroupnum, int newgroupnum) {
-            int i;
-            WordGroup tmpGroup;
-
             WinAGIException.ThrowIfNotLoaded(this);
             ArgumentOutOfRangeException.ThrowIfNegative(oldgroupnum, nameof(oldgroupnum));
             ArgumentOutOfRangeException.ThrowIfGreaterThan(oldgroupnum, MAX_GROUP_NUM, nameof(oldgroupnum));
@@ -1330,17 +1260,15 @@ namespace WinAGI.Engine {
             if (GroupExists(newgroupnum)) {
                 throw new ArgumentException("newgroupnum already exists");
             }
-            tmpGroup = mGroupCol[oldgroupnum];
-            _ = mGroupCol.Remove(oldgroupnum);
+            WordGroup tmpGroup = mGroupCol[oldgroupnum];
+            mGroupCol.Remove(oldgroupnum);
             tmpGroup.GroupNum = newgroupnum;
             // change group number for all words in the group
-            for (i = 0; i < mWordCol.Count; i++) {
-                if (mWordCol.Values[i].Group == oldgroupnum) {
-                    AGIWord tmpWord = mWordCol.Values[i];
-                    tmpWord.Group = newgroupnum;
-                    mWordCol.RemoveAt(i);
-                    mWordCol.Add(tmpWord.WordText, tmpWord);
-
+            foreach (string wordText in tmpGroup.Words) {
+                if (mWordCol[wordText].Group == oldgroupnum) {
+                    AGIWord word = mWordCol[wordText];
+                    word.Group = newgroupnum;
+                    mWordCol[wordText] = word;
                 }
             }
             // then re-add the group
@@ -1362,37 +1290,37 @@ namespace WinAGI.Engine {
         /// Adds a new word to this word list with the specified group
         /// number, creating the group if it doesn't already exist.
         /// </summary>
-        /// <param name="WordText"></param>
-        /// <param name="Group"></param>
-        public int AddWord(string WordText, int Group) {
+        /// <param name="wordtext"></param>
+        /// <param name="group"></param>
+        public int AddWord(string wordtext, int group) {
             AGIWord NewWord;
 
             WinAGIException.ThrowIfNotLoaded(this);
             // convert input to lowercase
-            WordText = WordText.LowerAGI();
+            wordtext = wordtext.LowerAGI();
             // check to see if word is already in collection,
-            if (mWordCol.ContainsKey(WordText)) {
+            if (mWordCol.ContainsKey(wordtext)) {
                 WinAGIException wex = new(EngineResourceByNum(513)) {
                     HResult = WINAGI_ERR + 513
                 };
                 throw wex;
             }
-            if (Group < 0 || Group > MAX_GROUP_NUM) {
+            if (group < 0 || group > MAX_GROUP_NUM) {
                 WinAGIException wex = new(EngineResourceByNum(514)) {
                     HResult = WINAGI_ERR + 514
                 };
                 throw wex;
             }
-            if (!GroupExists(Group)) {
-                AddGroup(Group);
+            if (!GroupExists(group)) {
+                AddGroup(group);
             }
-            mGroupCol[Group].AddWordToGroup(WordText);
+            mGroupCol[group].AddWordToGroup(wordtext);
             // add it to the main word list
-            NewWord.WordText = WordText;
-            NewWord.Group = Group;
-            mWordCol.Add(WordText, NewWord);
+            NewWord.WordText = wordtext;
+            NewWord.Group = group;
+            mWordCol.Add(wordtext, NewWord);
             mIsChanged = true;
-            return mWordCol.IndexOfKey(WordText);
+            return mWordCol.IndexOfKey(wordtext);
         }
 
         /// <summary>
