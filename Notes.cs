@@ -67,7 +67,7 @@ namespace WinAGI.Engine {
         /// Deletes all notes from this collection.
         /// </summary>
         public void Clear() {
-            mCol = [];
+            mCol.Clear();
             if (mParent is not null) {
                 mParent.NoteChanged();
                 mTParent.SetLengthChanged();

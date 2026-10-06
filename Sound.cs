@@ -87,8 +87,7 @@ namespace WinAGI.Engine {
 
         #region Properties
         /// <summary>
-        /// Gets the track object corresponding to index. If tracks are not set,
-        /// they are rebuilt first.
+        /// Gets the track object corresponding to index.
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -102,8 +101,7 @@ namespace WinAGI.Engine {
         }
 
         /// <summary>
-        /// Gets the track collection for this sound. If tracks are not set,
-        /// they are rebuilt first.
+        /// Gets the track collection for this sound.
         /// </summary>
         public Track[] Tracks {
             get {
@@ -589,10 +587,10 @@ namespace WinAGI.Engine {
             // clear all tracks
             for (i = 0; i <= 3; i++) {
                 mTrack[i] = new Track(this) {
-                    Instrument = 80
+                    Instrument = 80,
+                    Muted = false,
+                    Visible = true
                 };
-                mTrack[0].Muted = false;
-                mTrack[0].Visible = true;
             }
             mSoundChanged = true;
             mOutputSet = false;
@@ -933,8 +931,8 @@ namespace WinAGI.Engine {
                 mTrack[3].Muted = false;
                 mTrack[0].Visible = true;
                 mTrack[1].Visible = true;
-                mTrack[0].Visible = true;
-                mTrack[0].Visible = true;
+                mTrack[2].Visible = true;
+                mTrack[3].Visible = true;
                 // set tracks and wav/midi data
                 FinishLoad();
                 break;
@@ -1069,10 +1067,10 @@ namespace WinAGI.Engine {
             // clear the sound to empty set of tracks
             for (int i = 0; i <= 3; i++) {
                 mTrack[i] = new Track(this) {
-                    Instrument = 80
+                    Instrument = 80,
+                    Muted = false,
+                    Visible = true
                 };
-                mTrack[0].Muted = false;
-                mTrack[0].Visible = true;
             }
             mOutputSet = false;
             mLength = 0;

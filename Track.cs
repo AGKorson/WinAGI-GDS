@@ -81,7 +81,7 @@ namespace WinAGI.Engine {
                 }
                 if (mInstrument != value) {
                     mInstrument = value;
-                    mParent.TrackChanged();
+                    mParent?.TrackChanged();
                 }
             }
         }
@@ -98,7 +98,7 @@ namespace WinAGI.Engine {
             set {
                 if (mMuted != value) {
                     mMuted = value;
-                    mParent.TrackChanged();
+                    mParent?.TrackChanged();
                 }
             }
         }
@@ -132,7 +132,7 @@ namespace WinAGI.Engine {
             set {
                 if (mVisible != value) {
                     mVisible = value;
-                    mParent.TrackChanged(false);
+                    mParent?.TrackChanged(false);
                 }
             }
         }
