@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.93
+        Version 3.0.0beta.94
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
 
 ### History:
+Beta.94:
+- minor refactor of reserved editor custom grid control
+
 Beta.93:
 - fixed some minor bugs in sound/track/notes objects
 

@@ -443,12 +443,15 @@ namespace WinAGI.Editor {
 
             EditList = gridlist;
             // load by group, not by data type
+            // header rows are merged, and one pixel taller (because bold font is a tiny
+            // bit bigger than normal font)
 
             // RESERVED VARIABLES
             currentrow = reservedgrid.Rows.Add();
             reservedgrid.MergeCells(currentrow, Color.Wheat);
             reservedgrid[0, currentrow].Value = "Reserved Variables";
             reservedgrid[0, currentrow].Style.Font = boldfont;
+            reservedgrid.Rows[currentrow].Height++;
             reservedgrid[0, currentrow].ReadOnly = true;
             tmpDefines = gridlist.ReservedVariables;
             for (int i = 0; i < tmpDefines.Length; i++) {
@@ -472,6 +475,7 @@ namespace WinAGI.Editor {
             reservedgrid.MergeCells(currentrow, Color.Wheat);
             reservedgrid[0, currentrow].Value = "Reserved Flags";
             reservedgrid[0, currentrow].Style.Font = boldfont;
+            reservedgrid.Rows[currentrow].Height++;
             reservedgrid[0, currentrow].ReadOnly = true;
             tmpDefines = gridlist.ReservedFlags;
             for (int i = 0; i < tmpDefines.Length; i++) {
@@ -495,6 +499,7 @@ namespace WinAGI.Editor {
             reservedgrid.MergeCells(currentrow, Color.Wheat);
             reservedgrid[0, currentrow].Value = "Edge Code Values";
             reservedgrid[0, currentrow].Style.Font = boldfont;
+            reservedgrid.Rows[currentrow].Height++;
             reservedgrid[0, currentrow].ReadOnly = true;
             tmpDefines = gridlist.EdgeCodes;
             for (int i = 0; i < tmpDefines.Length; i++) {
@@ -518,6 +523,7 @@ namespace WinAGI.Editor {
             reservedgrid.MergeCells(currentrow, Color.Wheat);
             reservedgrid[0, currentrow].Value = "Obj Direction Values";
             reservedgrid[0, currentrow].Style.Font = boldfont;
+            reservedgrid.Rows[currentrow].Height++;
             reservedgrid[0, currentrow].ReadOnly = true;
             tmpDefines = gridlist.ObjDirections;
             for (int i = 0; i < tmpDefines.Length; i++) {
@@ -541,6 +547,7 @@ namespace WinAGI.Editor {
             reservedgrid.MergeCells(currentrow, Color.Wheat);
             reservedgrid[0, currentrow].Value = "Video Modes";
             reservedgrid[0, currentrow].Style.Font = boldfont;
+            reservedgrid.Rows[currentrow].Height++;
             reservedgrid[0, currentrow].ReadOnly = true;
             tmpDefines = gridlist.VideoModes;
             for (int i = 0; i < tmpDefines.Length; i++) {
@@ -564,6 +571,7 @@ namespace WinAGI.Editor {
             reservedgrid.MergeCells(currentrow, Color.Wheat);
             reservedgrid[0, currentrow].Value = "Computer Types";
             reservedgrid[0, currentrow].Style.Font = boldfont;
+            reservedgrid.Rows[currentrow].Height++;
             reservedgrid[0, currentrow].ReadOnly = true;
             tmpDefines = gridlist.ComputerTypes;
             for (int i = 0; i < tmpDefines.Length; i++) {
@@ -587,6 +595,7 @@ namespace WinAGI.Editor {
             reservedgrid.MergeCells(currentrow, Color.Wheat);
             reservedgrid[0, currentrow].Value = "Colors";
             reservedgrid[0, currentrow].Style.Font = boldfont;
+            reservedgrid.Rows[currentrow].Height++;
             reservedgrid[0, currentrow].ReadOnly = true;
             tmpDefines = gridlist.ColorNames;
             for (int i = 0; i < tmpDefines.Length; i++) {
@@ -610,6 +619,7 @@ namespace WinAGI.Editor {
             reservedgrid.MergeCells(currentrow, Color.Wheat);
             reservedgrid[0, currentrow].Value = "Other Reserved Defines";
             reservedgrid[0, currentrow].Style.Font = boldfont;
+            reservedgrid.Rows[currentrow].Height++;
             reservedgrid[0, currentrow].ReadOnly = true;
             // ego
             tmpDefines = gridlist.ReservedObjects;

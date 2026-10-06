@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace WinAGI.Editor {
@@ -7,6 +8,8 @@ namespace WinAGI.Editor {
     /// being merged
     /// </summary>
     public class WinAGIGrid : DataGridView {
+        private readonly Dictionary<int, Color> mergedRows = [];
+        
         public WinAGIGrid() {
 
         }
@@ -15,48 +18,38 @@ namespace WinAGI.Editor {
             if (row < 0 || row >= Rows.Count) {
                 return;
             }
-            Rows[row].Tag = rowcolor;
-            Rows[row].Height = Rows[row].Height + 1;
+            mergedRows[row] = rowcolor;
         }
 
         public void UnMergeCells(int row) {
             if (row < 0 || row >= Rows.Count) {
                 return;
             }
-            Rows[row].Tag = null;
-            Rows[row].Height = Rows[row].Height - 1;
+            mergedRows.Remove(row);
         }
 
         protected override void OnCellPainting(DataGridViewCellPaintingEventArgs e) {
             if (e.ColumnIndex >= 0 && e.RowIndex >= 0) {
-                if (Rows[e.RowIndex].Tag is Color bg) {
+                if (mergedRows.TryGetValue(e.RowIndex, out Color bg)) {
                     using (SolidBrush fillBrush = new(bg))
                     using (Pen gridPenColor = new(GridColor)) {
-                        Rectangle rect2 = new(e.CellBounds.Location, e.CellBounds.Size);
-                        rect2.X += 1;
-                        rect2.Width += 1;
-                        rect2.Height -= 1;
-                        e.Graphics.FillRectangle(fillBrush, rect2);
+                        Rectangle rect = e.CellBounds;
+                        // fill cell background
+                        e.Graphics.FillRectangle(fillBrush, rect);
                         // draw top and bottom borders
-                        Point p1, p2, p3, p4;
-                        p1 = p2 = p3 = p4 = e.CellBounds.Location;
-                        p1.Y -= 1;
-                        p2.Offset(e.CellBounds.Size.Width - 1, -1);
-                        p3.Offset(0, e.CellBounds.Size.Height - 1);
-                        p4.Offset(e.CellBounds.Size.Width - 1, e.CellBounds.Size.Height - 1);
-                        e.Graphics.DrawLine(gridPenColor, p1, p2);
-                        e.Graphics.DrawLine(gridPenColor, p3, p4);
+                        e.Graphics.DrawLine(gridPenColor, rect.Left, rect.Top, rect.Right - 1, rect.Top);
+                        e.Graphics.DrawLine(gridPenColor, rect.Left, rect.Bottom - 1, rect.Right - 1, rect.Bottom - 1);
                         if (e.ColumnIndex == 0) {
                             // draw left border
-                            e.Graphics.DrawLine(gridPenColor, p1, p3);
+                            e.Graphics.DrawLine(gridPenColor, rect.Left, rect.Top, rect.Left, rect.Bottom - 1);
                         }
-                        else if (e.ColumnIndex == 1) {
+                        else if (e.ColumnIndex == Columns.Count - 1) {
                             // draw right border
-                            e.Graphics.DrawLine(gridPenColor, p2, p4);
+                            e.Graphics.DrawLine(gridPenColor, rect.Right - 1, rect.Top, rect.Right - 1, rect.Bottom - 1);
                         }
                     }
                     // output cell text
-                    e.PaintContent(e.CellBounds);
+                    e.Paint(e.CellBounds, DataGridViewPaintParts.ContentForeground);
                     e.Handled = true;
                     return;
                 }
