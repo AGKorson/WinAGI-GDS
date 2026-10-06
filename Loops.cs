@@ -180,9 +180,19 @@ namespace WinAGI.Engine {
         /// <param name="SourceLoops"></param>
         public void CloneFrom(Loops SourceLoops) {
             mLoopCol = [];
-            for (int i = 0; i < SourceLoops.mLoopCol.Count; i++) {
-                mLoopCol.Add(new Loop(mParent));
-                mLoopCol[i].SetLoop(SourceLoops[i]);
+            foreach (Loop tmpLoop in SourceLoops.mLoopCol) {
+                mLoopCol.Add(tmpLoop.Clone());
+            }
+            // check for mirror pairs; the cel collections in pairs
+            // need to be set to same object so mirroring works correctly
+            for (int i = 0; i < mLoopCol.Count; i++) {
+                if (mLoopCol[i].MirrorPair < 0) {
+                    // if this is a secondary loop, cel collection has to 
+                    // be set to same as primary (use mLoopCol because
+                    // CopyLoops doesn't have a loop collection yet so
+                    // MirrorLoop method would throw an exception)
+                    mLoopCol[i].mCelCol = mLoopCol[mLoopCol[i].MirrorLoop].mCelCol;
+                }
             }
         }
         #endregion

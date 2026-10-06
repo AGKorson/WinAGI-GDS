@@ -147,7 +147,7 @@ namespace WinAGI.Engine {
             if (index < mCelCol.Count) {
                 // adjust indices
                 for (i = index; i < mCelCol.Count; i++) {
-                    mCelCol[index].Index = (byte)i;
+                    mCelCol[i].Index = (byte)i;
                 }
             }
             if (mParent is not null) {

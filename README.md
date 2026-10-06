@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.91
+        Version 3.0.0beta.92
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
 
 ### History:
+Beta.92:
+- fixed memory leaks and minor bugs in view/loop/cel objects
+
 Beta.91:
 - refactored all enumeration to more modern style
 

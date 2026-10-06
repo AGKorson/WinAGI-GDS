@@ -216,7 +216,7 @@ namespace WinAGI.Engine {
             mViewChanged = SourceView.mViewChanged;
             mViewDesc = SourceView.mViewDesc;
             ErrData = SourceView.ErrData;
-            mLoopCol.CloneFrom(SourceView.mLoopCol);
+            mLoopCol = SourceView.mLoopCol.Clone(this);
             if (SourceView.parent is not null) {
                 // copy parent colors
                 mPalette = SourceView.parent.Palette.Clone();

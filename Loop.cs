@@ -83,7 +83,7 @@ namespace WinAGI.Engine {
             }
             internal set {
                 // validate
-                if (mIndex < 0 || mIndex > MAX_LOOPS) {
+                if (value < 0 || value > MAX_LOOPS) {
                     throw new IndexOutOfRangeException("invalid index");
                 }
                 mIndex = value;
@@ -216,16 +216,6 @@ namespace WinAGI.Engine {
                 mCelCol = mCelCol.Clone(cloneparent)
             };
             return CopyLoop;
-        }
-
-        /// <summary>
-        /// Copies properties from SourceLoop into this loop.
-        /// </summary>
-        /// <param name="SourceLoop"></param>
-        internal void SetLoop(Loop SourceLoop) {
-            mMirrorPair = SourceLoop.mMirrorPair;
-            mIndex = SourceLoop.mIndex;
-            mCelCol.CloneFrom(SourceLoop.mCelCol);
         }
         #endregion
     }

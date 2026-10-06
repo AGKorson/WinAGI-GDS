@@ -350,7 +350,10 @@ namespace WinAGI.Engine {
         /// Clears the bitmap for this cel to a null value.
         /// </summary>
         private void ClearBMP() {
+            mCelBMP?.Dispose();
+            mTransBMP?.Dispose();
             mCelBMP = null;
+            mTransBMP = null;
             celBMPSet = false;
         }
 
@@ -366,7 +369,7 @@ namespace WinAGI.Engine {
                 mWidth = mWidth,
                 mHeight = mHeight,
                 mTransColor = mTransColor,
-                mCelData = CloneCelData(mCelData),
+                mCelData = (byte[,])mCelData.Clone(),
                 mIndex = mIndex,
                 mSetMirror = mSetMirror,
                 mMirrored = mMirrored,
@@ -398,18 +401,26 @@ namespace WinAGI.Engine {
             mWidth = SourceCel.mWidth;
             mHeight = SourceCel.mHeight;
             mTransColor = SourceCel.mTransColor;
-            mCelData = SourceCel.mCelData;
+            mCelData = (byte[,])SourceCel.mCelData.Clone();
             mIndex = SourceCel.mIndex;
             mSetMirror = SourceCel.mSetMirror;
             mMirrored = SourceCel.mMirrored;
             celBMPSet = SourceCel.celBMPSet;
             mCelChanged = SourceCel.mCelChanged;
             mPalette = SourceCel.mPalette.Clone();
+            mCelBMP?.Dispose();
+            mTransBMP?.Dispose();
             if (SourceCel.mCelBMP is null) {
                 mCelBMP = null;
             }
             else {
                 mCelBMP = (Bitmap)SourceCel.mCelBMP.Clone();
+            }
+            if (SourceCel.mTransBMP is null) {
+                mTransBMP = null;
+            }
+            else {
+                mTransBMP = (Bitmap)SourceCel.mTransBMP.Clone();
             }
         }
 
@@ -419,6 +430,8 @@ namespace WinAGI.Engine {
             byte[] mCelTData;
 
             // create new visual picture bitmap
+            mCelBMP?.Dispose();
+            mTransBMP?.Dispose();
             mCelBMP = new Bitmap(mWidth, mHeight, PixelFormat.Format8bppIndexed);
             mTransBMP = new Bitmap(mWidth, mHeight, PixelFormat.Format8bppIndexed);
             // set color palettes to match current AGI palette
@@ -517,20 +530,6 @@ namespace WinAGI.Engine {
         /// <param name="value"></param>
         internal void SetMirror(bool value) {
             mSetMirror = value;
-        }
-
-        private static byte[,] CloneCelData(byte[,] source) {
-            int width = source.GetLength(0);
-            int height = source.GetLength(1);
-            byte[,] clone = new byte[width, height];
-
-            for (int i = 0; i < width; i++) {
-                for (int j = 0; j < height; j++) {
-                    clone[i, j] = source[i, j];
-                }
-            }
-
-            return clone;
         }
         #endregion
     }
