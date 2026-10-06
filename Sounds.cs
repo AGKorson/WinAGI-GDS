@@ -195,47 +195,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        SoundEnum GetEnumerator() {
-            return new SoundEnum(Col);
+        public IEnumerator<Sound> GetEnumerator() {
+            return Col.Values.GetEnumerator();
         }
+
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
-        }
-        IEnumerator<Sound> IEnumerable<Sound>.GetEnumerator() {
-            return GetEnumerator();
-        }
-
-        /// <summary>
-        /// Implements enumeration for the Sounds class.
-        /// </summary>
-        internal class SoundEnum : IEnumerator<Sound> {
-            public SortedList<int, Sound> _sounds;
-            int position = -1;
-            public SoundEnum(SortedList<int, Sound> list) {
-                _sounds = list;
-            }
-            object IEnumerator.Current => Current;
-            public Sound Current {
-                get {
-                    try {
-                        return _sounds.Values[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _sounds.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _sounds = null;
-            }
         }
         #endregion
     }

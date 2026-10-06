@@ -159,46 +159,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        NoteEnum GetEnumerator() {
-            return new NoteEnum(mCol);
-        }
-        IEnumerator IEnumerable.GetEnumerator() {
-            return GetEnumerator();
+        public IEnumerator<Note> GetEnumerator() {
+            return mCol.GetEnumerator();
         }
 
-        IEnumerator<Note> IEnumerable<Note>.GetEnumerator() {
+        IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
-        }
-        /// <summary>
-        /// Implements enumeration for the Notes class.
-        /// </summary>
-        internal class NoteEnum : IEnumerator<Note> {
-            public List<Note> _notes;
-            int position = -1;
-            public NoteEnum(List<Note> list) {
-                _notes = list;
-            }
-            object IEnumerator.Current => Current;
-            public Note Current {
-                get {
-                    try {
-                        return _notes[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _notes.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _notes = null;
-            }
         }
         #endregion
     }

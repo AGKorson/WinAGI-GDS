@@ -196,47 +196,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        ViewEnum GetEnumerator() {
-            return new ViewEnum(Col);
+        public IEnumerator<View> GetEnumerator() {
+            return Col.Values.GetEnumerator();
         }
+
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
-        }
-        IEnumerator<View> IEnumerable<View>.GetEnumerator() {
-            return GetEnumerator();
-        }
-
-        /// <summary>
-        /// Implements enumeration for the Views class
-        /// </summary>
-        internal class ViewEnum : IEnumerator<View> {
-            public SortedList<int, View> _views;
-            int position = -1;
-            public ViewEnum(SortedList<int, View> list) {
-                _views = list;
-            }
-            object IEnumerator.Current => Current;
-            public View Current {
-                get {
-                    try {
-                        return _views.Values[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _views.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _views = null;
-            }
         }
         #endregion
     }

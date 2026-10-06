@@ -190,48 +190,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        CelEnum GetEnumerator() {
-            return new CelEnum(mCelCol);
+        public IEnumerator<Cel> GetEnumerator() {
+            return mCelCol.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
-        }
-
-        IEnumerator<Cel> IEnumerable<Cel>.GetEnumerator() {
-            return GetEnumerator();
-        }
-
-        /// <summary>
-        /// Implements enumeration for the Cels class.
-        /// </summary>
-        internal class CelEnum : IEnumerator<Cel> {
-            public List<Cel> _cels;
-            int position = -1;
-            public CelEnum(List<Cel> list) {
-                _cels = list;
-            }
-            object IEnumerator.Current => Current;
-            public Cel Current {
-                get {
-                    try {
-                        return _cels[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _cels.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _cels = null;
-            }
         }
         #endregion
     }

@@ -188,48 +188,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        LoopEnum GetEnumerator() {
-            return new LoopEnum(mLoopCol);
+        public IEnumerator<Loop> GetEnumerator() {
+            return mLoopCol.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
-        }
-
-        IEnumerator<Loop> IEnumerable<Loop>.GetEnumerator() {
-            return GetEnumerator();
-        }
-
-        /// <summary>
-        /// Implements enumeration for the Loops class.
-        /// </summary>
-        internal class LoopEnum : IEnumerator<Loop> {
-            public List<Loop> _loops;
-            int position = -1;
-            public LoopEnum(List<Loop> list) {
-                _loops = list;
-            }
-            object IEnumerator.Current => Current;
-            public Loop Current {
-                get {
-                    try {
-                        return _loops[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _loops.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _loops = null;
-            }
         }
         #endregion
     }

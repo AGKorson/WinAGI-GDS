@@ -199,46 +199,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        PictureEnum GetEnumerator() {
-            return new PictureEnum(Col);
+        public IEnumerator<Picture> GetEnumerator() {
+            return Col.Values.GetEnumerator();
         }
+        
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
-        }
-        IEnumerator<Picture> IEnumerable<Picture>.GetEnumerator() {
-            return GetEnumerator();
-        }
-
-        /// <summary>
-        /// Implements enumeration for the Pictures class
-        /// </summary>
-        internal class PictureEnum : IEnumerator<Picture> {
-            public SortedList<int, Picture> _pictures;
-            int position = -1;
-            public PictureEnum(SortedList<int, Picture> list) {
-                _pictures = list;
-            }
-            object IEnumerator.Current => Current;
-            public Picture Current {
-                get {
-                    try {
-                        return _pictures.Values[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _pictures.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _pictures = null;
-            }
         }
         #endregion
     }

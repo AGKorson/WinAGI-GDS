@@ -1352,47 +1352,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        public WordNumEnum GetEnumerator() {
-            return new WordNumEnum(mWordCol);
+        public IEnumerator<AGIWord> GetEnumerator() {
+            return mWordCol.Values.GetEnumerator();
         }
+
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
-        }
-        IEnumerator<AGIWord> IEnumerable<AGIWord>.GetEnumerator() {
-            return GetEnumerator();
-        }
-
-        /// <summary>
-        /// Implements enumeration for the WordList class.
-        /// </summary>
-        public class WordNumEnum : IEnumerator<AGIWord> {
-            public SortedList<string, AGIWord> _words;
-            int position = -1;
-            public WordNumEnum(SortedList<string, AGIWord> list) {
-                _words = list;
-            }
-            object IEnumerator.Current => Current;
-            public AGIWord Current {
-                get {
-                    try {
-                        return _words.Values[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _words.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _words = null;
-            }
         }
         #endregion
 

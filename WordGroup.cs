@@ -160,46 +160,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        WordEnum GetEnumerator() {
-            return new WordEnum(mWords);
+        public IEnumerator<string> GetEnumerator() {
+            return mWords.GetEnumerator();
         }
+
         IEnumerator IEnumerable.GetEnumerator() {
             return GetEnumerator();
-        }
-        IEnumerator<string> IEnumerable<string>.GetEnumerator() {
-            return GetEnumerator();
-        }
-        /// <summary>
-        /// Implements enumeration for the WordGroup class.
-        /// </summary>
-        internal class WordEnum : IEnumerator<string> {
-            public List<string> _words;
-            int position = -1;
-            public WordEnum(List<string> list) {
-                _words = list;
-            }
-            object IEnumerator.Current => Current;
-            public string Current {
-                get {
-                    try {
-                        return _words[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _words.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _words = null;
-            }
         }
         #endregion
     }

@@ -283,46 +283,12 @@ namespace WinAGI.Engine {
         #endregion
 
         #region Enumeration
-        LogicEnum GetEnumerator() {
-            return new LogicEnum(Col);
-        }
-        IEnumerator IEnumerable.GetEnumerator() {
-            return GetEnumerator();
-        }
-        IEnumerator<Logic> IEnumerable<Logic>.GetEnumerator() {
-            return GetEnumerator();
+        public IEnumerator<Logic> GetEnumerator() {
+            return Col.Values.GetEnumerator();
         }
 
-        /// <summary>
-        /// Implements enumeration for the Logics class.
-        /// </summary>
-        internal class LogicEnum : IEnumerator<Logic> {
-            public SortedList<int, Logic> _logics;
-            int position = -1;
-            public LogicEnum(SortedList<int, Logic> list) {
-                _logics = list;
-            }
-            object IEnumerator.Current => Current;
-            public Logic Current {
-                get {
-                    try {
-                        return _logics.Values[position];
-                    }
-                    catch (IndexOutOfRangeException) {
-                        throw new InvalidOperationException();
-                    }
-                }
-            }
-            public bool MoveNext() {
-                position++;
-                return position < _logics.Count;
-            }
-            public void Reset() {
-                position = -1;
-            }
-            public void Dispose() {
-                _logics = null;
-            }
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
         }
         #endregion
     }
