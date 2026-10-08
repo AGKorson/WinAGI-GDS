@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.94
+        Version 3.0.0beta.95
     ==============================
 
 
@@ -32,6 +32,12 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
 
 ### History:
+Beta.95:
+- refactored multi-node treeview control, and fixed some minor bugs in sound editor
+- refactored numeric textbox control
+- refactored selectable picturebox control
+- refactored transparent picturebox control to reduce flickering
+
 Beta.94:
 - minor refactor of reserved editor custom grid control
 

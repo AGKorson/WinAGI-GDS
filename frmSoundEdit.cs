@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -646,7 +645,8 @@ namespace WinAGI.Editor {
 
         private void mnuSelectAll_Click(object sender, EventArgs e) {
             if (SelectedTrack >= 0 && EditSound[SelectedTrack].Notes.Count > 0) {
-                tvwSound.SelectedNodes = tvwSound.Nodes[0].Nodes[SelectedTrack].Nodes.Cast<TreeNode>().ToList().GetRange(0, tvwSound.Nodes[0].Nodes[SelectedTrack].Nodes.Count - 1);
+                tvwSound.SelectRange(tvwSound.Nodes[0].Nodes[SelectedTrack].Nodes[0],
+                    tvwSound.Nodes[0].Nodes[SelectedTrack].Nodes[tvwSound.Nodes[0].Nodes[SelectedTrack].Nodes.Count - 1]);
                 SelectNote(SelectedTrack, 0, 0, tvwSound.Nodes[0].Nodes[SelectedTrack].Nodes.Count - 1);
                 if (picStaff[SelectedTrack].Visible) {
                     picStaff[SelectedTrack].Invalidate();
@@ -831,13 +831,13 @@ namespace WinAGI.Editor {
                 case 2:
                     // cel
                     int length;
-                    if (tvwSound.NoSelection) {
+                    if (tvwSound.IsInsertion) {
                         length = 0;
                     }
                     else {
-                        length = tvwSound.SelectedNodes.Count;
+                        length = tvwSound.SelectedNodes.Count();
                     }
-                    SelectNote(tvwSound.SelectedNode.Parent.Index, tvwSound.SelectedNodes[0].Index, tvwSound.SelectedNode.Index, length, false);
+                    SelectNote(tvwSound.SelectedNode.Parent.Index, tvwSound.FirstSelectedNode.Index, tvwSound.SelectedNode.Index, length, false);
                     break;
                 }
                 break;
@@ -847,9 +847,9 @@ namespace WinAGI.Editor {
         }
 
         private void tvwSound_MouseUp(object sender, MouseEventArgs e) {
-            if (tvwSound.SelectedNodes.Count > 1) {
+            if (tvwSound.SelectedNodes.Count() > 1) {
                 // update selection
-                SelectNote(tvwSound.SelectedNodes[0].Parent.Index, tvwSound.SelectedNodes[0].Index, tvwSound.SelectedNode.Index, tvwSound.SelectedNodes.Count, false);
+                SelectNote(tvwSound.FirstSelectedNode.Parent.Index, tvwSound.FirstSelectedNode.Index, tvwSound.SelectedNode.Index, tvwSound.SelectedNodes.Count(), false);
                 // clear property grid when there is a multiple-node selection
                 propertyGrid1.SelectedObject = null;
                 picStaff[SelectedTrack].Invalidate();
@@ -860,15 +860,15 @@ namespace WinAGI.Editor {
             switch (e.Node.Level) {
             case 0:
                 // root
-                SelectSound();
+                SelectSound(false);
                 break;
             case 1:
                 // track
-                SelectTrack(e.Node.Index);
+                SelectTrack(e.Node.Index, false);
                 break;
             case 2:
                 // note
-                SelectNote(e.Node.Parent.Index, e.Node.Index, e.Node.Index, tvwSound.NoSelection ? 0 : 1, e.Button == MouseButtons.Left);
+                SelectNote(e.Node.Parent.Index, e.Node.Index, e.Node.Index, tvwSound.IsInsertion ? 0 : 1, false);
                 break;
             }
         }
@@ -876,7 +876,7 @@ namespace WinAGI.Editor {
         private void tvwSound_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e) {
             // if double-clicking on a note, select it
             if (e.Node.Level == 2 && e.Node.Index != e.Node.Parent.Nodes.Count - 1) {
-                tvwSound.NoSelection = false;
+                tvwSound.IsInsertion = false;
                 SelectNote(e.Node.Parent.Index, e.Node.Index, e.Node.Index, 1, false);
             }
         }
@@ -891,7 +891,7 @@ namespace WinAGI.Editor {
                 switch (e.Node.Level) {
                 case 0:
                     if (SelectionMode != SelectionModeType.Sound) {
-                        SelectSound();
+                        SelectSound(false);
                     }
                     break;
                 case 1:
@@ -899,11 +899,11 @@ namespace WinAGI.Editor {
                     case SelectionModeType.MusicTrack:
                     case SelectionModeType.NoiseTrack:
                         if (SelectedTrack != e.Node.Index) {
-                            SelectTrack(e.Node.Index);
+                            SelectTrack(e.Node.Index, false);
                         }
                         break;
                     default:
-                        SelectTrack(e.Node.Index);
+                        SelectTrack(e.Node.Index, false);
                         break;
                     }
                     break;
@@ -2161,14 +2161,15 @@ namespace WinAGI.Editor {
         }
 
         internal void SelectSound(bool refreshtree = true) {
+            // when calling from the treelist's event handlers, the tree is already updated
+            // so those calls should use refreshtree = true
+
             int oldtrack = SelectedTrack;
 
             if (refreshtree) {
                 if (tvwSound.SelectedNode != tvwSound.Nodes[0]) {
-                    tvwSound.SelectedNode = tvwSound.Nodes[0];
-
+                    tvwSound.SelectRange(tvwSound.Nodes[0]);
                 }
-                tvwSound.SelectedNode.EnsureVisible();
             }
             SelectionMode = SelectionModeType.Sound;
             SelectedTrack = -1;
@@ -2176,10 +2177,7 @@ namespace WinAGI.Editor {
             tmrCursor.Enabled = false;
             propertyGrid1.SelectedObject = new SoundEditSound(this);
             UpdateVisibleStaves(StaffScale);
-            if (tvwSound.SelectedNode != tvwSound.Nodes[0]) {
-                tvwSound.SelectedNode = tvwSound.Nodes[0];
-                tvwSound.SelectedNode.EnsureVisible();
-            }
+            tvwSound.SelectedNode.EnsureVisible();
             if (oldtrack == 3) {
                 picKeyboard.Invalidate();
             }
@@ -2187,11 +2185,14 @@ namespace WinAGI.Editor {
         }
 
         internal void SelectTrack(int track, bool refreshtree = true) {
+            // when calling from the treelist's event handlers, the tree is already updated
+            // so those calls should use refreshtree = true
+
             int oldtrack = SelectedTrack;
 
             if (refreshtree) {
                 if (tvwSound.SelectedNode != tvwSound.Nodes[0].Nodes[track]) {
-                    tvwSound.SelectedNode = tvwSound.Nodes[0].Nodes[track];
+                    tvwSound.SelectRange(tvwSound.Nodes[0].Nodes[track]);
                 }
             }
 
@@ -2215,6 +2216,7 @@ namespace WinAGI.Editor {
                 SelLength = 0;
                 propertyGrid1.SelectedObject = new SoundEditMTrack(this, track, SelectedTrack);
             }
+            tvwSound.SelectedNode.EnsureVisible();
             if (OneTrack) {
                 UpdateVisibleStaves(StaffScale);
             }
@@ -2224,10 +2226,6 @@ namespace WinAGI.Editor {
                 }
             }
             picStaff[SelectedTrack].Invalidate();
-            if (tvwSound.SelectedNode != tvwSound.Nodes[0].Nodes[SelectedTrack]) {
-                tvwSound.SelectedNode = tvwSound.Nodes[0].Nodes[SelectedTrack];
-                tvwSound.SelectedNode.EnsureVisible();
-            }
             if (SelectedTrack == 3 && oldtrack != 3 || SelectedTrack != 3 && oldtrack == 3) {
                 picKeyboard.Invalidate();
             }
@@ -2235,25 +2233,23 @@ namespace WinAGI.Editor {
         }
 
         internal void SelectNote(int track, int startnote, int anchor, int length, bool refreshtree = true, int showselection = 1) {
+            // when calling from the treelist's event handlers, the tree is already updated
+            // so those calls should use refreshtree = true
+
             int oldtrack = SelectedTrack;
 
             if (refreshtree) {
                 // refresh the tree node selection
                 if (length <= 1) {
-                    tvwSound.SelectedNodes = [tvwSound.Nodes[0].Nodes[track].Nodes[startnote]];
-                    tvwSound.SelectedNode = tvwSound.Nodes[0].Nodes[track].Nodes[startnote];
-                    tvwSound.NoSelection = length == 0;
-                    tvwSound.SelectedNode.EnsureVisible();
+                    tvwSound.SelectRange(tvwSound.Nodes[0].Nodes[track].Nodes[startnote]);
+                    tvwSound.IsInsertion = length == 0;
                 }
                 else {
-                    if (tvwSound.SelectedNodes[0].Index != startnote || tvwSound.SelectedNodes.Count != length) {
+                    if (tvwSound.FirstSelectedNode?.Index != startnote || tvwSound.SelectedNodes.Count() != length) {
                         tvwSound.BeginUpdate();
-                        tvwSound.SelectedNode = tvwSound.Nodes[0].Nodes[track].Nodes[anchor];
-                        tvwSound.SelectedNodes.Clear();
-                        tvwSound.SelectedNodes = tvwSound.Nodes[0].Nodes[track].Nodes.Cast<TreeNode>().Skip(startnote).Take(length).ToList();
+                        tvwSound.SelectRange(tvwSound.Nodes[0].Nodes[track].Nodes[anchor], length);
                         tvwSound.EndUpdate();
                     }
-                    tvwSound.SelectedNode.EnsureVisible();
                 }
             }
             if (startnote == EditSound[track].Notes.Count) {
@@ -2274,7 +2270,7 @@ namespace WinAGI.Editor {
                 SelAnchor = anchor;
                 SelLength = length;
                 tmrCursor.Enabled = length == 0;
-                if (tvwSound.SelectedNodes.Count > 1) {
+                if (tvwSound.SelectedNodes.Count() > 1) {
                     propertyGrid1.SelectedObject = null;
                 }
                 else {
@@ -2289,14 +2285,14 @@ namespace WinAGI.Editor {
                 SelAnchor = anchor;
                 SelLength = length;
                 tmrCursor.Enabled = length == 0;
-                if (tvwSound.SelectedNodes.Count > 1) {
+                if (tvwSound.SelectedNodes.Count() > 1) {
                     propertyGrid1.SelectedObject = null;
                 }
                 else {
                     propertyGrid1.SelectedObject = new SoundEditMNote(this, track, startnote);
                 }
             }
-
+            tvwSound.SelectedNode.EnsureVisible();
             if (SelectedTrack == 3 && oldtrack != 3 || SelectedTrack != 3 && oldtrack == 3) {
                 picKeyboard.Invalidate();
             }
@@ -2309,7 +2305,8 @@ namespace WinAGI.Editor {
                 picStaff[SelectedTrack].Visible = true;
             }
             if (OneTrack && !picStaff[SelectedTrack].Visible) {
-                picStaff[SelectedTrack].Visible = true;
+                // update to show it
+                UpdateVisibleStaves(StaffScale);
             }
             if (picStaff[SelectedTrack].Visible) {
                 switch (showselection) {
@@ -3773,7 +3770,7 @@ namespace WinAGI.Editor {
                 // -0 = previous values
                 // -1 = new (desired) values
                 // WAN = 0 to keep anchor at left edge, MGN = 0;
-                int newscroll = hsbStaff.Value + (hsbStaff.Value) * (StaffScale / oldscale - 1);
+                int newscroll = hsbStaff.Value + hsbStaff.Value * (StaffScale / oldscale - 1);
                 if (newscroll < 0) {
                     newscroll = 0;
                 }

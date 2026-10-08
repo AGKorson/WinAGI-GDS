@@ -364,8 +364,7 @@ namespace WinAGI.Editor {
             treeNode9.Name = "Node0";
             treeNode9.Text = "soundid";
             tvwSound.Nodes.AddRange(new System.Windows.Forms.TreeNode[] { treeNode9 });
-            tvwSound.NoSelection = false;
-            tvwSound.SelectedNodes = (System.Collections.Generic.List<System.Windows.Forms.TreeNode>)resources.GetObject("tvwSound.SelectedNodes");
+            tvwSound.IsInsertion = false;
             tvwSound.ShowRootLines = false;
             tvwSound.Size = new System.Drawing.Size(130, 105);
             tvwSound.TabIndex = 3;

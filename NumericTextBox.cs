@@ -21,14 +21,14 @@ namespace WinAGI.Editor {
             get => _maxValue;
             set {
                 _maxValue = value;
-                if (value < MinValue) {
-                    MinValue = value;
+                if (value < _minValue) {
+                    _minValue = value;
                 }
-                if (Value < MinValue) {
-                    Text = MinValue.ToString();
+                if (Value < _minValue) {
+                    Text = _minValue.ToString();
                 }
-                else if (Value > MaxValue) {
-                    Text = MaxValue.ToString();
+                else if (Value > _maxValue) {
+                    Text = _maxValue.ToString();
                 }
             }
         }
@@ -37,14 +37,14 @@ namespace WinAGI.Editor {
             get => _minValue;
             set {
                 _minValue = value;
-                if (value > MaxValue) {
-                    MaxValue = value;
+                if (value > _maxValue) {
+                    _maxValue = value;
                 }
-                if (Value < MinValue) {
-                    Text = MinValue.ToString();
+                if (Value < _minValue) {
+                    Text = _minValue.ToString();
                 }
-                else if (Value > MaxValue) {
-                    Text = MaxValue.ToString();
+                else if (Value > _maxValue) {
+                    Text = _maxValue.ToString();
                 }
             }
         }
@@ -54,14 +54,14 @@ namespace WinAGI.Editor {
                 if (int.TryParse(Text, out int value)) {
                     return value;
                 }
-                return MinValue; // Return MinValue if parsing fails
+                return _minValue; // Return MinValue if parsing fails
             }
             set {
-                if (value < MinValue) {
-                    Text = MinValue.ToString();
+                if (value < _minValue) {
+                    Text = _minValue.ToString();
                 }
-                else if (value > MaxValue) {
-                    Text = MaxValue.ToString();
+                else if (value > _maxValue) {
+                    Text = _maxValue.ToString();
                 }
                 else {
                     Text = value.ToString();
@@ -70,15 +70,22 @@ namespace WinAGI.Editor {
         }
         #endregion
 
+        #region Events
+        /// <summary>
+        /// Occurs when the value of the numeric text box changes.
+        /// </summary>
+        public event EventHandler ValueChanged;
+        #endregion
+
         #region Event Overrides
         protected override void OnEnter(EventArgs e) {
             base.OnEnter(e);
             // Store the current value when the control gains focus
-            if (int.TryParse(this.Text, out int value)) {
+            if (int.TryParse(Text, out int value)) {
                 oldvalue = value;
             }
             else {
-                oldvalue = MinValue; // Default to MinValue if parsing fails
+                oldvalue = _minValue; // Default to MinValue if parsing fails
             }
         }
 
@@ -95,7 +102,7 @@ namespace WinAGI.Editor {
                 return;
             }
             // Allow '-' only if MinValue is less than zero and it's the first character
-            if (e.KeyChar == '-' && MinValue < 0 && this.SelectionStart == 0 && !this.Text.Contains('-')) {
+            if (e.KeyChar == '-' && _minValue < 0 && SelectionStart == 0 && !Text.Contains('-')) {
                 return;
             }
             // Block all other input
@@ -111,41 +118,28 @@ namespace WinAGI.Editor {
                 e.SuppressKeyPress = true; // Suppress the 'ding' sound
 
                 // Move focus to the next control
-                this.Parent.SelectNextControl(this, true, true, true, true);
+                Parent?.SelectNextControl(this, true, true, true, true);
                 break;
             case Keys.Escape:
                 // Reset the value to the old value when Escape is pressed
-                this.Text = oldvalue.ToString();
-                this.SelectionStart = this.Text.Length; // Move cursor to the end
+                Text = oldvalue.ToString();
+                SelectionStart = Text.Length; // Move cursor to the end
                 e.SuppressKeyPress = true; // Suppress the 'ding' sound
 
                 // Move focus to the next control
-                this.Parent.SelectNextControl(this, true, true, true, true);
+                Parent?.SelectNextControl(this, true, true, true, true);
                 break;
             }
         }
 
         protected override void OnTextChanged(EventArgs e) {
             base.OnTextChanged(e);
-
-            // Validate the input value
-            if (int.TryParse(this.Text, out int value)) {
-                if (value < MinValue) {
-                    this.Text = MinValue.ToString();
-                    this.SelectionStart = this.Text.Length; // Move cursor to the end
-                }
-                else if (value > MaxValue) {
-                    this.Text = MaxValue.ToString();
-                    this.SelectionStart = this.Text.Length; // Move cursor to the end
-                }
+            if (string.IsNullOrEmpty(Text) || Text == "-") {
+                return;
             }
-            else if (!string.IsNullOrEmpty(this.Text)) {
-                // if MinValue is < 0, a single '-' is allowed
-                if (MinValue >= 0 || this.Text != "-") {
-                    // If the input is invalid (e.g., non-numeric), reset to MinValue
-                    this.Text = MinValue.ToString();
-                    this.SelectionStart = this.Text.Length; // Move cursor to the end
-                }
+            // if invalid text is entered, reset to previous valid value
+            if (!int.TryParse(Text, out _)) {
+                Text = oldvalue.ToString();
             }
         }
 
@@ -153,8 +147,25 @@ namespace WinAGI.Editor {
             base.OnValidating(e);
             if (e.Cancel) {
                 // restore the old value if validation is canceled
-                this.Text = oldvalue.ToString();
+                Text = oldvalue.ToString();
                 return;
+            }
+            // if invalid text is entered, reset to previous valid value
+            if (!int.TryParse(Text, out int value)) {
+                Text = oldvalue.ToString();
+                return;
+            }
+            // clamp the value to the min/max range if it exceeds the limits
+            if (value < _minValue) {
+                Text = _minValue.ToString();
+                SelectionStart = Text.Length;
+            }
+            else if (value > _maxValue) {
+                Text = _maxValue.ToString();
+                SelectionStart = Text.Length;
+            }
+            if (value != oldvalue) {
+                ValueChanged?.Invoke(this, EventArgs.Empty);
             }
         }
         #endregion
