@@ -1452,7 +1452,7 @@ namespace WinAGI.Editor {
             }
             else {
                 // load priority Image
-                g.DrawImage(agPic.VisualImage, 0, 0, bWidth, bHeight);
+                g.DrawImage(agPic.PriorityImage, 0, 0, bWidth, bHeight);
             }
             imgPicture.Refresh();
             // set scrollbars if necessary

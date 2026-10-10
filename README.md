@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.95
+        Version 3.0.0beta.96
     ==============================
 
 
@@ -32,6 +32,9 @@ This is a beta release. Feedback, bug reports, and feature requests are welcome.
 ---
 
 ### History:
+Beta.96:
+- fixed bug in picture preview that was introduced in Beta.88
+
 Beta.95:
 - refactored multi-node treeview control, and fixed some minor bugs in sound editor
 - refactored numeric textbox control
