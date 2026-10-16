@@ -5028,21 +5028,22 @@ namespace WinAGI.Editor {
             bool dontAsk = false;
 
             if (InGame) {
+                rtn = DialogResult.No;
                 if (WinAGISettings.AskExport.Value) {
-                    rtn = MsgBoxEx.Show(MDIMain,
-                        "Do you want to export '" + EditPicture.ID + "' before removing it from your game?",
-                        "Don't ask this question again",
-                        MessageBoxButtons.YesNoCancel,
-                        MessageBoxIcon.Question,
-                        "Export Picture Before Removal", ref dontAsk);
-                    WinAGISettings.AskExport.Value = !dontAsk;
-                    if (!WinAGISettings.AskExport.Value) {
-                        WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                    // if clean, and the resource already exists in the source
+                    // directory, no need to export
+                    if (IsChanged || !File.Exists(Path.Combine(EditGame.SrcResDir, EditPicture.ID + ".agp"))) {
+                        rtn = MsgBoxEx.Show(MDIMain,
+                            "Do you want to export '" + EditPicture.ID + "' before removing it from your game?",
+                            "Export Picture Before Removal",
+                            MessageBoxButtons.YesNoCancel,
+                            MessageBoxIcon.Question,
+                            "Don't ask this question again", ref dontAsk);
+                        WinAGISettings.AskExport.Value = !dontAsk;
+                        if (!WinAGISettings.AskExport.Value) {
+                            WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                        }
                     }
-                }
-                else {
-                    // dont ask; assume no
-                    rtn = DialogResult.No;
                 }
                 switch (rtn) {
                 case DialogResult.Cancel:

@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.96
+        Version 3.0.0beta.97
     ==============================
 
 
@@ -26,12 +26,19 @@ The Help file included with this release contains detailed information on all th
 This is a beta release. Feedback, bug reports, and feature requests are welcome.
 
 ---
-
   
-### Known Issues:  
+### Known Issues:
+
+The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop Runtime version. If you encounter an error when starting WinAGI, please ensure that you have .NET Desktop Runtime 8 installed on your system. You can download it from the Microsoft website: https://dotnet.microsoft.com/en-us/download/dotnet/8.0. (Make sure to select '.NET Desktop Runtime 8' and the correct version for your system architecture, x86 or x64.)
+
 ---
 
 ### History:
+Beta.97:
+- fixed dialogs for exporting resources to show correct label text on the dialog
+- fixed minor bug in resource remove from game functions
+- updated remove from game functions to not ask for export if the export file already exists
+
 Beta.96:
 - fixed bug in picture preview that was introduced in Beta.88
 

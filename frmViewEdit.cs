@@ -2959,21 +2959,22 @@ namespace WinAGI.Editor {
             bool dontAsk = false;
 
             if (InGame) {
+                rtn = DialogResult.No;
                 if (WinAGISettings.AskExport.Value) {
-                    rtn = MsgBoxEx.Show(MDIMain,
+                    // if clean, and the resource already exists in the source
+                    // directory, no need to export
+                    if (IsChanged || !File.Exists(Path.Combine(EditGame.SrcResDir, EditView.ID + ".agv"))) {
+                        rtn = MsgBoxEx.Show(MDIMain,
                         "Do you want to export '" + EditView.ID + "' before removing it from your game?",
-                        "Don't ask this question again",
+                        "Export View Before Removal",
                         MessageBoxButtons.YesNoCancel,
                         MessageBoxIcon.Question,
-                        "Export View Before Removal", ref dontAsk);
-                    WinAGISettings.AskExport.Value = !dontAsk;
-                    if (!WinAGISettings.AskExport.Value) {
-                        WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                        "Don't ask this question again", ref dontAsk);
+                        WinAGISettings.AskExport.Value = !dontAsk;
+                        if (!WinAGISettings.AskExport.Value) {
+                            WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                        }
                     }
-                }
-                else {
-                    // dont ask; assume no
-                    rtn = DialogResult.No;
                 }
                 switch (rtn) {
                 case DialogResult.Cancel:

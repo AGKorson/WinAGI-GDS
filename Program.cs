@@ -10,7 +10,7 @@ namespace WinAGI.Editor {
         static void Main() {
             // To test command line arguments in Visual Studio 2026:
             // 1.	Right-click project in Solution Explorer and select Properties.
-            // 2.	Go to the Debug tab.
+            // 2.	Go to the Debug section, select 'Open debug launch profiles UI'
             // 3.	In the Application arguments (or Command line arguments) field,
             //      enter desired arguments (e.g., --console).
             // 4.	Save and run the project (F5 or Ctrl+F5).

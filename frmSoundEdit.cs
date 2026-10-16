@@ -4985,16 +4985,21 @@ namespace WinAGI.Editor {
             bool dontAsk = false;
 
             if (InGame) {
+                rtn = DialogResult.No;
                 if (WinAGISettings.AskExport.Value) {
-                    rtn = MsgBoxEx.Show(MDIMain,
+                    // if clean, and the resource already exists in the source
+                    // directory, no need to export
+                    if (IsChanged || !File.Exists(Path.Combine(EditGame.SrcResDir, EditSound.ID + ".ags"))) {
+                        rtn = MsgBoxEx.Show(MDIMain,
                         "Do you want to export '" + EditSound.ID + "// before removing it from your game?",
-                        "Don't ask this question again",
+                        "Export Sound Before Removal",
                         MessageBoxButtons.YesNoCancel,
                         MessageBoxIcon.Question,
-                        "Export Sound Before Removal", ref dontAsk);
-                    WinAGISettings.AskExport.Value = !dontAsk;
-                    if (!WinAGISettings.AskExport.Value) {
-                        WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                        "Don't ask this question again", ref dontAsk);
+                        WinAGISettings.AskExport.Value = !dontAsk;
+                        if (!WinAGISettings.AskExport.Value) {
+                            WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                        }
                     }
                 }
                 else {

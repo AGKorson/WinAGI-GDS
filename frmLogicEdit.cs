@@ -3199,21 +3199,22 @@ namespace WinAGI.Editor {
                     break;
                 }
                 if (InGame) {
-                    if (WinAGISettings.AskExport.Value) {
-                        rtn = MsgBoxEx.Show(MDIMain,
-                            "Do you want to export '" + EditLogic.ID + "' source before removing it from your game?",
-                            "Don't ask this question again",
-                            MessageBoxButtons.YesNoCancel,
-                            MessageBoxIcon.Question,
-                            "Export Logic Before Removal", ref dontAsk);
-                        WinAGISettings.AskExport.Value = !dontAsk;
-                        if (!WinAGISettings.AskExport.Value) {
-                            WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                    rtn = DialogResult.No;
+                    // if clean, and the resource already exists in the source
+                    // directory, no need to export
+                    if (IsChanged || !File.Exists(Path.Combine(EditGame.SrcResDir, EditLogic.ID + "." + EditGame.SourceExt))) {
+                        if (WinAGISettings.AskExport.Value) {
+                            rtn = MsgBoxEx.Show(MDIMain,
+                                "Do you want to export '" + EditLogic.ID + "' source before removing it from your game?",
+                                "Export Logic Before Removal",
+                                MessageBoxButtons.YesNoCancel,
+                                MessageBoxIcon.Question,
+                                "Don't ask this question again", ref dontAsk);
+                            WinAGISettings.AskExport.Value = !dontAsk;
+                            if (!WinAGISettings.AskExport.Value) {
+                                WinAGISettings.AskExport.WriteSetting(WinAGISettingsFile);
+                            }
                         }
-                    }
-                    else {
-                        // dont ask; assume no
-                        rtn = DialogResult.No;
                     }
                     switch (rtn) {
                     case DialogResult.Cancel:
@@ -3221,7 +3222,7 @@ namespace WinAGI.Editor {
                     case DialogResult.Yes:
                         // export source - 
                         // MUST make sure logic sourcefile is set to correct Value
-                        // BEFORE calling exporting; this is because EditLogic is NOT
+                        // BEFORE exporting; this is because EditLogic is NOT
                         // in a game; it only mimics the ingame resource
                         EditLogic.SourceFile = Path.Combine(EditGame.SrcResDir, EditLogic.ID + "." + EditGame.SourceExt);
                         exportName = NewSourceName(EditLogic, InGame);

@@ -5539,28 +5539,32 @@ namespace WinAGI.Editor {
             }
             // no open editor; remove it using default process
             DialogResult rtn;
-            bool dontAsk = false, haserror = false;
+            bool dontAsk = false, haserror = false, fileExists = false;
             string resID = "";
             switch (SelResType) {
             case AGIResType.Logic:
                 resID = EditGame.Logics[SelResNum].ID;
                 haserror = EditGame.Logics[SelResNum].Error != ResourceErrorType.NoError &&
                     EditGame.Logics[SelResNum].Error != ResourceErrorType.FileIsReadonly;
+                fileExists = File.Exists(Path.Combine(EditGame.SrcResDir, EditGame.Logics[SelResNum].ID + "." + EditGame.SourceExt));
                 break;
             case AGIResType.Picture:
                 resID = EditGame.Pictures[SelResNum].ID;
                 haserror = EditGame.Pictures[SelResNum].Error != ResourceErrorType.NoError &&
                     EditGame.Pictures[SelResNum].Error != ResourceErrorType.FileIsReadonly;
+                fileExists = File.Exists(Path.Combine(EditGame.SrcResDir, EditGame.Pictures[SelResNum].ID + ".agp"));
                 break;
             case AGIResType.Sound:
                 resID = EditGame.Sounds[SelResNum].ID;
                 haserror = EditGame.Sounds[SelResNum].Error != ResourceErrorType.NoError &&
                     EditGame.Sounds[SelResNum].Error != ResourceErrorType.FileIsReadonly;
+                fileExists = File.Exists(Path.Combine(EditGame.SrcResDir, resID + ".ags"));
                 break;
             case AGIResType.View:
                 resID = EditGame.Views[SelResNum].ID;
                 haserror = EditGame.Views[SelResNum].Error != ResourceErrorType.NoError &&
                     EditGame.Views[SelResNum].Error != ResourceErrorType.FileIsReadonly;
+                fileExists = File.Exists(Path.Combine(EditGame.SrcResDir, EditGame.Views[SelResNum].ID + ".agv"));
                 break;
             case Include:
                 // remove it without checking for export, since includes can't be exported
@@ -5573,8 +5577,8 @@ namespace WinAGI.Editor {
                 Debug.Assert(false);
                 return;
             }
-            if (WinAGISettings.AskExport.Value && !haserror) {
-                rtn = MsgBoxEx.Show(MDIMain,
+            if (WinAGISettings.AskExport.Value && !haserror && !fileExists) {
+                rtn = MsgBoxEx.Show(this,
                     "Do you want to export '" + resID + "' before removing it from your game?",
                     "Export " + SelResType.ToString() + " Before Removal",
                     MessageBoxButtons.YesNoCancel,
