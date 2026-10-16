@@ -1005,6 +1005,9 @@ namespace WinAGI.Editor {
         #region Global Variables
         internal static AGIGame EditGame;
         internal static frmMDIMain MDIMain;
+        internal static FolderBrowserDialog FolderDlg;
+        internal static OpenFileDialog OpenDlg;
+        internal static SaveFileDialog SaveDlg;
         internal static string ProgramDir = "";
         private static string appDataDir = "";
         internal static string DefaultResDir = ""; // location to start searches for resources
@@ -1221,7 +1224,7 @@ namespace WinAGI.Editor {
                 ProgressWin.StartPosition = FormStartPosition.CenterParent;
                 ProgressWin.pgbStatus.Visible = false;
                 // show newgame msg in status bar
-                MDIMain.spStatus.Text = "Creating new game" + (useTemplate ? " from template" : "") + "; please wait...";
+                MDIMain.SetStatus("Creating new game" + (useTemplate ? " from template" : "") + "; please wait...");
                 // pass game info and template info
                 GameParams newgameparams = new() {
                     Mode = OpenGameMode.New,
@@ -1251,7 +1254,7 @@ namespace WinAGI.Editor {
                 // reset cursor
                 if (EditGame is not null) {
                     // add wag file to mru, if opened successfully
-                    AddToMRU(EditGame.GameFile);
+                    MDIMain.AddToMRU(EditGame.GameFile);
                     // add rest of properties
                     EditGame.Description = newgameprops.txtGameDescription.Text;
                     EditGame.Designer = newgameprops.txtDesigner.Text;
@@ -1355,7 +1358,7 @@ namespace WinAGI.Editor {
                     }
                 }
                 MDIMain.UpdateTBGameBtns();
-                MDIMain.spStatus.Text = "";
+                MDIMain.SetStatus("");
                 MDIMain.UseWaitCursor = false;
             }
             return;
@@ -1378,7 +1381,7 @@ namespace WinAGI.Editor {
             ProgressWin.StartPosition = FormStartPosition.CenterParent;
             ProgressWin.pgbStatus.Visible = false;
             // show loading msg in status bar
-            MDIMain.spStatus.Text = (opengameparams.Mode == OpenGameMode.File ? "Loading" : "Importing") + " game; please wait...";
+            MDIMain.SetStatus((opengameparams.Mode == OpenGameMode.File ? "Loading" : "Importing") + " game; please wait...");
             // pass mode and other parameters
             LoadGameResults results = new() {
                 Parameters = opengameparams,
@@ -1403,7 +1406,7 @@ namespace WinAGI.Editor {
             }
 
             if (EditGame is not null) {
-                AddToMRU(EditGame.GameFile);
+                MDIMain.AddToMRU(EditGame.GameFile);
                 BrowserStartDir = EditGame.GameDir;
                 DefaultResDir = EditGame.SrcResDir;
                 // always set logics filter to game's source file extension
@@ -1434,7 +1437,7 @@ namespace WinAGI.Editor {
                 results.Failed = true;
             }
             MDIMain.UpdateTBGameBtns();
-            MDIMain.spStatus.Text = "";
+            MDIMain.SetStatus("");
             return !results.Failed;
         }
 
@@ -1452,26 +1455,7 @@ namespace WinAGI.Editor {
                 GameFile = strMRU[Index]
             };
             if (!OpenGame(gameparams)) {
-                // step through rest of mru entries
-                for (int i = Index + 1; i < 4; i++) {
-                    // move this mru entry up
-                    strMRU[i - 1] = strMRU[i];
-                    if (strMRU[i - 1].Length == 0) {
-                        // hide this mru item
-                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Visible = false;
-                    }
-                    else {
-                        // change this mru item
-                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Text = CompactPath(strMRU[i], 60);
-                    }
-                }
-                // remove last entry
-                strMRU[3] = "";
-                MDIMain.mnuGMRU3.Visible = false;
-                if (strMRU[0].Length == 0) {
-                    // if none left, hide bar too
-                    MDIMain.mnuGMRUBar.Visible = false;
-                }
+                MDIMain.RemoveMRUEntry(Index);
             }
         }
 
@@ -1482,7 +1466,7 @@ namespace WinAGI.Editor {
             // get a directory for importing
             using frmImportProperties importprops = new();
             if (importprops.ShowDialog(MDIMain) == DialogResult.OK) {
-                thisGameDir = MDIMain.FolderDlg.SelectedPath;
+                thisGameDir = FolderDlg.SelectedPath;
                 if (thisGameDir.Length == 0) {
                     // user canceled
                     return;
@@ -1819,82 +1803,6 @@ namespace WinAGI.Editor {
             return true;
         }
 
-        public static void AddToMRU(string NewWAGFile) {
-            // if NewWAGFile is already in the list,
-            // it is moved to the top;
-            // otherwise, it is added to the top, and other
-            // entries are moved down
-            int i, j;
-            // if already at the top
-            if (NewWAGFile == strMRU[0]) {
-                // nothing to change
-                return;
-            }
-            for (i = 0; i < 4; i++) {
-                if (NewWAGFile == strMRU[i]) {
-                    // move others down
-                    for (j = i; j >= 1; j--) {
-                        strMRU[j] = strMRU[j - 1];
-                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Text;
-                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = true; // MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Visible;
-                    }
-                    // move item i to top of list
-                    strMRU[0] = NewWAGFile;
-                    MDIMain.mnuGMRU0.Text = CompactPath(NewWAGFile, 60);
-                    // done
-                    return;
-                }
-            }
-            // not found; move all entries down
-            for (j = 3; j >= 1; j--) {
-                strMRU[j] = strMRU[j - 1];
-                MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = MDIMain.mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Text;
-                MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Visible = strMRU[j].Length != 0;
-            }
-            // add new item 0
-            strMRU[0] = NewWAGFile;
-            MDIMain.mnuGMRU0.Text = CompactPath(NewWAGFile, 60);
-            MDIMain.mnuGMRU0.Visible = true;
-            MDIMain.mnuGMRUBar.Visible = true;
-        }
-
-        public static void RenameMRU(string OldWAGFile, string NewWAGFile) {
-            // if NewWAGFile is already in the list,
-            // remove it - it will take the place of
-            // OldWAGFile
-
-            // if OldWAGFile is NOT on list, add NewWAGFile;
-            // otherwise just rename OldWAGFile to NewWAGFile
-            int i, j;
-
-            // first look for NewWAGFile, and delete it if found
-            for (i = 1; i < 4; i++) {
-                if (NewWAGFile == strMRU[i]) {
-                    // delete it by moving others up
-                    for (j = i; j <= 3; j++) {
-                        strMRU[j] = strMRU[j + 1];
-                        MDIMain.mnuGame.DropDownItems["mnuGMRU" + j].Text = CompactPath(strMRU[j], 60);
-                    }
-                    // now delete last entry
-                    strMRU[3] = "";
-                    MDIMain.mnuGMRU3.Text = "";
-                    break;
-                }
-            }
-            // now check for OldWAGFile
-            for (i = 0; i < 4; i++) {
-                if (strMRU[i] == OldWAGFile) {
-                    // rename it
-                    strMRU[i] = NewWAGFile;
-                    MDIMain.mnuGame.DropDownItems["mnuGMRU" + i].Text = CompactPath(NewWAGFile, 60);
-                    break;
-                }
-            }
-
-            // make sure NewWAGFile is at the top (use AddToMRU function to do this easily!)
-            AddToMRU(NewWAGFile);
-        }
-
         public static void CompileGame(string CompGameDir = "", bool RebuildOnly = false) {
             DialogResult rtn = DialogResult.Cancel;
             string text = "";
@@ -2177,15 +2085,15 @@ namespace WinAGI.Editor {
             do {
                 if (CompGameDir.Length == 0) {
                     // get a new directory
-                    MDIMain.FolderDlg.Description = "Choose target directory for compiled game:";
-                    MDIMain.FolderDlg.AddToRecent = false;
-                    MDIMain.FolderDlg.InitialDirectory = BrowserStartDir;
-                    MDIMain.FolderDlg.SelectedPath = "";
-                    MDIMain.FolderDlg.OkRequiresInteraction = true;
-                    MDIMain.FolderDlg.ShowNewFolderButton = true;
-                    if (MDIMain.FolderDlg.ShowDialog() == DialogResult.OK) {
+                    FolderDlg.Description = "Choose target directory for compiled game:";
+                    FolderDlg.AddToRecent = false;
+                    FolderDlg.InitialDirectory = BrowserStartDir;
+                    FolderDlg.SelectedPath = "";
+                    FolderDlg.OkRequiresInteraction = true;
+                    FolderDlg.ShowNewFolderButton = true;
+                    if (FolderDlg.ShowDialog() == DialogResult.OK) {
                         // ensure trailing backslash
-                        string checkDir = MDIMain.FolderDlg.SelectedPath;
+                        string checkDir = FolderDlg.SelectedPath;
                         // if directory already contains game files,
                         if (Directory.GetFiles(checkDir, "*VOL.*").Length != 0) {
                             rtn = MessageBox.Show(MDIMain,
@@ -2220,7 +2128,7 @@ namespace WinAGI.Editor {
                 StartPosition = FormStartPosition.CenterParent
             };
             // update status bar to show game is being rebuilt
-            MDIMain.spStatus.Text = RebuildOnly ? "Rebuilding game files, please wait..." : "Compiling game, please wait...";
+            MDIMain.SetStatus(RebuildOnly ? "Rebuilding game files, please wait..." : "Compiling game, please wait...");
             // pass mode & source
             CompGameResults = new CompileGameResults() {
                 Mode = RebuildOnly ? CompileMode.RebuildOnly : CompileMode.Full,
@@ -2261,7 +2169,7 @@ namespace WinAGI.Editor {
             CompStatusWin = null;
             // reset cursor
             MDIMain.UseWaitCursor = false;
-            MDIMain.spStatus.Text = "";
+            MDIMain.SetStatus("");
         }
 
         public static bool CompileChangedLogics(bool NoMsg = false) {
@@ -2338,7 +2246,7 @@ namespace WinAGI.Editor {
                 StartPosition = FormStartPosition.CenterParent
             };
             // update status bar to show game is being rebuilt
-            MDIMain.spStatus.Text = "Compiling changed logics, please wait...";
+            MDIMain.SetStatus("Compiling changed logics, please wait...");
             // pass mode & source
             CompGameResults = new CompileGameResults() {
                 Mode = CompileMode.ChangedLogics,
@@ -2379,7 +2287,7 @@ namespace WinAGI.Editor {
             CompStatusWin = null;
             // reset cursor
             MDIMain.UseWaitCursor = false;
-            MDIMain.spStatus.Text = "";
+            MDIMain.SetStatus("");
             return CompGameResults.Status == CompileStatus.OK;
         }
 
@@ -2811,33 +2719,7 @@ namespace WinAGI.Editor {
                 // update layout editor and layout data file to show this room is now gone
                 UpdateExitInfo(UpdateReason.HideRoom, LogicNum, null);
             }
-            switch (WinAGISettings.ResListType.Value) {
-            case ResListType.TreeList:
-                TreeNode tmpNode = HdrNode[(int)AGIResType.Logic];
-                if (MDIMain.tvwResources.SelectedNode == tmpNode.Nodes["l" + LogicNum]) {
-                    // deselect the resource beforev removing it
-                    SelResNum = -1;
-                }
-                tmpNode.Nodes["l" + LogicNum].Remove();
-                break;
-            case ResListType.ComboList:
-                // only update if the resource type is being listed
-                if (MDIMain.cmbResType.SelectedIndex - 1 == (int)AGIResType.Logic) {
-                    if (LogicNum == SelResNum) {
-                        // deselect the resource before removing it
-                        SelResNum = -1;
-                        MDIMain.lstResources.Items["l" + LogicNum.ToString()].Remove();
-                        // removing from the listbox does NOT re-select the next view
-                        // fix is to select the header
-                        MDIMain.SelectResource(AGIResType.Logic, -1, true);
-                    }
-                    else {
-                        // just remove it
-                        MDIMain.lstResources.Items["l" + LogicNum.ToString()].Remove();
-                    }
-                }
-                break;
-            }
+            MDIMain.RemoveResourceFromList(AGIResType.Logic, LogicNum);
             foreach (frmLogicEdit frm in LogicEditors) {
                 if (frm.FormMode == LogicFormMode.Logic) {
                     if (frm.InGame && frm.LogicNumber == LogicNum) {
@@ -3043,7 +2925,7 @@ namespace WinAGI.Editor {
             MDIMain.UpdateGridCounts();
 
             if (success) {
-                MDIMain.spStatus.Text = ResourceName(EditGame.Logics[logicnum], true, true) + " successfully compiled.";
+                MDIMain.SetStatus(ResourceName(EditGame.Logics[logicnum], true, true) + " successfully compiled.");
                 // no error
                 if (CompWarnings) {
                     if (WinAGISettings.NotifyCompWarn.Value) {
@@ -3097,7 +2979,7 @@ namespace WinAGI.Editor {
                 else {
                     MDIMain.FlashStatus(Color.Red);
                 }
-                MDIMain.spStatus.Text = "ERRORS ENCOUNTERED. " + ResourceName(EditGame.Logics[logicnum], true, true) + " compilation FAILED.";
+                MDIMain.SetStatus("ERRORS ENCOUNTERED. " + ResourceName(EditGame.Logics[logicnum], true, true) + " compilation FAILED.");
             }
             RefreshTree(AGIResType.Logic, logicnum);
             return success;
@@ -3122,26 +3004,26 @@ namespace WinAGI.Editor {
             DialogResult rtn;
 
             if (InGame) {
-                MDIMain.SaveDlg.Title = "Export Source";
-                MDIMain.SaveDlg.DefaultExt = EditGame.SourceExt;
+                SaveDlg.Title = "Export Source";
+                SaveDlg.DefaultExt = EditGame.SourceExt;
             }
             else {
-                MDIMain.SaveDlg.Title = "Save Source";
-                MDIMain.SaveDlg.DefaultExt = WinAGISettings.DefaultExt.Value;
+                SaveDlg.Title = "Save Source";
+                SaveDlg.DefaultExt = WinAGISettings.DefaultExt.Value;
             }
             if (ThisLogic.SourceFile.Length != 0) {
-                MDIMain.SaveDlg.FileName = Path.GetFileName(ThisLogic.SourceFile);
-                MDIMain.SaveDlg.InitialDirectory = Path.GetDirectoryName(ThisLogic.SourceFile);
+                SaveDlg.FileName = Path.GetFileName(ThisLogic.SourceFile);
+                SaveDlg.InitialDirectory = Path.GetDirectoryName(ThisLogic.SourceFile);
             }
             else {
                 if (InGame) {
-                    MDIMain.SaveDlg.FileName = Path.GetFileName(Path.Combine(EditGame.SrcResDir, ThisLogic.ID + "." + EditGame.SourceExt));
+                    SaveDlg.FileName = Path.GetFileName(Path.Combine(EditGame.SrcResDir, ThisLogic.ID + "." + EditGame.SourceExt));
                 }
                 else {
                     // non-game IDs are filenames
-                    MDIMain.SaveDlg.FileName = Path.GetFileName(Path.Combine(DefaultResDir, ThisLogic.ID));
+                    SaveDlg.FileName = Path.GetFileName(Path.Combine(DefaultResDir, ThisLogic.ID));
                 }
-                MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
+                SaveDlg.InitialDirectory = DefaultResDir;
             }
             string defext;
             if (EditGame is null) {
@@ -3157,25 +3039,25 @@ namespace WinAGI.Editor {
             else {
                 textext = "|Text files (*.txt)|*.txt";
             }
-            MDIMain.SaveDlg.Filter = $"WinAGI Logic Source Files (*.{defext})|*.{defext}{textext}|All files (*.*)|*.*";
-            if (MDIMain.SaveDlg.FileName.Right(4).Equals(".txt", StringComparison.OrdinalIgnoreCase)) {
-                MDIMain.SaveDlg.FilterIndex = 2;
+            SaveDlg.Filter = $"WinAGI Logic Source Files (*.{defext})|*.{defext}{textext}|All files (*.*)|*.*";
+            if (SaveDlg.FileName.Right(4).Equals(".txt", StringComparison.OrdinalIgnoreCase)) {
+                SaveDlg.FilterIndex = 2;
             }
             else {
-                MDIMain.SaveDlg.FilterIndex = 1;
+                SaveDlg.FilterIndex = 1;
             }
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.ExpandedMode = true;
-            MDIMain.SaveDlg.ShowHiddenFiles = false;
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.OkRequiresInteraction = true;
-            rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.ExpandedMode = true;
+            SaveDlg.ShowHiddenFiles = false;
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.OkRequiresInteraction = true;
+            rtn = SaveDlg.ShowDialog(MDIMain);
             if (rtn == DialogResult.Cancel) {
                 // nothing selected
                 return "";
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
-            return MDIMain.SaveDlg.FileName;
+            DefaultResDir = Path.GetDirectoryName(SaveDlg.FileName);
+            return SaveDlg.FileName;
         }
 
         /// <summary>
@@ -3749,37 +3631,11 @@ namespace WinAGI.Editor {
 
             // remove it from game
             EditGame.Pictures.Remove(PicNum);
-
-            switch (WinAGISettings.ResListType.Value) {
-            case ResListType.TreeList:
-                TreeNode tmpNode = HdrNode[(int)AGIResType.Picture];
-                if (MDIMain.tvwResources.SelectedNode == tmpNode.Nodes["p" + PicNum]) {
-                    // deselect the resource beforev removing it
-                    SelResNum = -1;
-                }
-                tmpNode.Nodes["p" + PicNum].Remove();
-                break;
-            case ResListType.ComboList:
-                // only need to remove if pictures are listed
-                if (MDIMain.cmbResType.SelectedIndex - 1 == (int)AGIResType.Picture) {
-                    if (PicNum == SelResNum) {
-                        // deselect the resource before removing it
-                        SelResNum = -1;
-                        MDIMain.lstResources.Items["p" + PicNum.ToString()].Remove();
-                        // removing from the listbox does NOT re-select the next view
-                        // fix is to select the header
-                        MDIMain.SelectResource(AGIResType.Picture, -1, true);
-                    }
-                    else {
-                        // just remove it
-                        MDIMain.lstResources.Items["p" + PicNum.ToString()].Remove();
-                    }
-                }
-                break;
-            }
+            MDIMain.RemoveResourceFromList(AGIResType.Picture, PicNum);
             foreach (frmPicEdit frm in PictureEditors) {
                 if (frm.InGame && frm.PictureNumber == PicNum) {
                     // set number to -1 to force close
+                    frm.InGame = false;
                     frm.PictureNumber = -1;
                     frm.Close();
                     frm.Dispose();
@@ -3836,20 +3692,20 @@ namespace WinAGI.Editor {
             int retval;
             if (exportImage) {
                 // get a filename
-                MDIMain.SaveDlg.Title = "Save Picture Image As";
-                MDIMain.SaveDlg.DefaultExt = "bmp";
-                MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-                MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*";
-                MDIMain.SaveDlg.CheckPathExists = true;
-                MDIMain.SaveDlg.CheckWriteAccess = true;
-                MDIMain.SaveDlg.FilterIndex = format;
-                MDIMain.SaveDlg.OverwritePrompt = true;
-                MDIMain.SaveDlg.OkRequiresInteraction = true;
-                MDIMain.SaveDlg.ShowHiddenFiles = false;
-                MDIMain.SaveDlg.FileName = "";
-                if (MDIMain.SaveDlg.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                    filename = MDIMain.SaveDlg.FileName;
-                    DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
+                SaveDlg.Title = "Save Picture Image As";
+                SaveDlg.DefaultExt = "bmp";
+                SaveDlg.InitialDirectory = DefaultResDir;
+                SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*";
+                SaveDlg.CheckPathExists = true;
+                SaveDlg.CheckWriteAccess = true;
+                SaveDlg.FilterIndex = format;
+                SaveDlg.OverwritePrompt = true;
+                SaveDlg.OkRequiresInteraction = true;
+                SaveDlg.ShowHiddenFiles = false;
+                SaveDlg.FileName = "";
+                if (SaveDlg.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                    filename = SaveDlg.FileName;
+                    DefaultResDir = Path.GetDirectoryName(filename);
                     MDIMain.UseWaitCursor = true;
                     ProgressWin = new(MDIMain) {
                         Text = "Exporting Picture Image"
@@ -3869,7 +3725,7 @@ namespace WinAGI.Editor {
             else {
                 filename = NewResourceName(picture, ingame);
                 if (filename.Length != 0) {
-                    WinAGISettingsFile.WriteSetting(sPICTURES, sEXPFILTER, MDIMain.SaveDlg.FilterIndex);
+                    WinAGISettingsFile.WriteSetting(sPICTURES, sEXPFILTER, SaveDlg.FilterIndex);
                     DefaultResDir = Path.GetDirectoryName(filename);
                     MDIMain.UseWaitCursor = true;
                     try {
@@ -4061,19 +3917,19 @@ namespace WinAGI.Editor {
                 }
             }
             // show save file dialog
-            MDIMain.SaveDlg.Title = "Save Picture Image As";
-            MDIMain.SaveDlg.DefaultExt = "bmp";
-            MDIMain.SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*";
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-            MDIMain.SaveDlg.FilterIndex = format;
-            MDIMain.SaveDlg.FileName = "";
-            DialogResult rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
+            SaveDlg.Title = "Save Picture Image As";
+            SaveDlg.DefaultExt = "bmp";
+            SaveDlg.Filter = "BMP files (*.bmp)|*.bmp|JPEG files (*.jpg)|*.jpg|GIF files (*.gif)|*.gif|TIFF files (*.tif)|*.tif|PNG files (*.PNG)|*.png|All files (*.*)|*.*";
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.InitialDirectory = DefaultResDir;
+            SaveDlg.FilterIndex = format;
+            SaveDlg.FileName = "";
+            DialogResult rtn = SaveDlg.ShowDialog(MDIMain);
             // if NOT canceled, then export
             if (rtn != DialogResult.Cancel) {
-                DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
+                DefaultResDir = Path.GetDirectoryName(SaveDlg.FileName);
                 MDIMain.UseWaitCursor = true;
-                ExportImg(ThisPicture, MDIMain.SaveDlg.FileName, format, mode, zoom);
+                ExportImg(ThisPicture, SaveDlg.FileName, format, mode, zoom);
                 MessageBox.Show("Image saved successfully.", "Export Picture Image", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 MDIMain.UseWaitCursor = false;
             }
@@ -4087,21 +3943,21 @@ namespace WinAGI.Editor {
                 }
                 options = frmExportGIF.SelectedGifOptions;
             }
-            MDIMain.SaveDlg.Title = "Export Picture GIF";
-            MDIMain.SaveDlg.DefaultExt = "gif";
-            MDIMain.SaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*";
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.AddExtension = true;
-            MDIMain.SaveDlg.DefaultExt = "gif";
-            MDIMain.SaveDlg.FilterIndex = 1;
-            MDIMain.SaveDlg.FileName = "";
-            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-            MDIMain.SaveDlg.OkRequiresInteraction = true;
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            if (MDIMain.SaveDlg.ShowDialog() == DialogResult.Cancel) {
+            SaveDlg.Title = "Export Picture GIF";
+            SaveDlg.DefaultExt = "gif";
+            SaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*";
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.AddExtension = true;
+            SaveDlg.DefaultExt = "gif";
+            SaveDlg.FilterIndex = 1;
+            SaveDlg.FileName = "";
+            SaveDlg.InitialDirectory = DefaultResDir;
+            SaveDlg.OkRequiresInteraction = true;
+            SaveDlg.OverwritePrompt = true;
+            if (SaveDlg.ShowDialog() == DialogResult.Cancel) {
                 return;
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
+            DefaultResDir = Path.GetDirectoryName(SaveDlg.FileName);
             ProgressWin = new(MDIMain) {
                 Text = "Exporting Picture as GIF"
             };
@@ -4120,7 +3976,7 @@ namespace WinAGI.Editor {
                 Mode = 0,
                 Picture = picture.Clone(),
                 GifOptions = options,
-                Filename = MDIMain.SaveDlg.FileName
+                Filename = SaveDlg.FileName
             };
             bgwMakePicGif.RunWorkerAsync(gifparams);
             MDIMain.UseWaitCursor = true;
@@ -4534,33 +4390,11 @@ namespace WinAGI.Editor {
 
             // remove it from game
             EditGame.Sounds.Remove(SoundNum);
-
-            switch (WinAGISettings.ResListType.Value) {
-            case ResListType.TreeList:
-                TreeNode tmpNode = HdrNode[(int)AGIResType.Sound];
-                if (MDIMain.tvwResources.SelectedNode == tmpNode.Nodes["s" + SoundNum]) {
-                    // deselect the resource before removing it
-                    SelResNum = -1;
-                }
-                tmpNode.Nodes["s" + SoundNum].Remove();
-                break;
-            case ResListType.ComboList:
-                // only need to remove if sounds are listed
-                if (MDIMain.cmbResType.SelectedIndex - 1 == (int)AGIResType.Sound) {
-                    if (SoundNum == SelResNum) {
-                        // deselect the resource before removing it
-                        SelResNum = -1;
-                    }
-                    MDIMain.lstResources.Items["s" + SoundNum.ToString()].Remove();
-                    // removing from the listbox does NOT re-select the next view
-                    // fix is to select the header
-                    MDIMain.SelectResource(AGIResType.Sound, -1, true);
-                }
-                break;
-            }
+            MDIMain.RemoveResourceFromList(AGIResType.Sound, SoundNum);
             foreach (frmSoundEdit frm in SoundEditors) {
                 if (frm.InGame && frm.SoundNumber == SoundNum) {
                     // set number to -1 to force close
+                    frm.InGame = false;
                     frm.SoundNumber = -1;
                     frm.Close();
                     frm.Dispose();
@@ -4607,53 +4441,53 @@ namespace WinAGI.Editor {
                 }
             }
             string filename;
-            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
+            SaveDlg.InitialDirectory = DefaultResDir;
             if (ingame) {
-                MDIMain.SaveDlg.FileName = sound.ID;
+                SaveDlg.FileName = sound.ID;
             }
             else {
-                MDIMain.SaveDlg.FileName = Path.GetFileNameWithoutExtension(sound.ID);
+                SaveDlg.FileName = Path.GetFileNameWithoutExtension(sound.ID);
             }
             switch (exportformat) {
             case SoundExportFormat.ExportAGI:
                 if (ingame) {
-                    MDIMain.SaveDlg.Title = "Export Sound";
+                    SaveDlg.Title = "Export Sound";
                 }
                 else {
-                    MDIMain.SaveDlg.Title = "Save Sound As";
+                    SaveDlg.Title = "Save Sound As";
                 }
-                MDIMain.SaveDlg.DefaultExt = "ags";
-                MDIMain.SaveDlg.Filter = "WinAGI Sound Files|*.ags|All files (*.*)|*.*";
-                MDIMain.SaveDlg.FileName += ".ags";
+                SaveDlg.DefaultExt = "ags";
+                SaveDlg.Filter = "WinAGI Sound Files|*.ags|All files (*.*)|*.*";
+                SaveDlg.FileName += ".ags";
                 break;
             case SoundExportFormat.ExportMIDI:
-                MDIMain.SaveDlg.Title = "Save Sound As MIDI";
-                MDIMain.SaveDlg.DefaultExt = "mid";
-                MDIMain.SaveDlg.Filter = "MIDI Files|*.mid|All files (*.*)|*.*";
-                MDIMain.SaveDlg.FileName += ".mid";
+                SaveDlg.Title = "Save Sound As MIDI";
+                SaveDlg.DefaultExt = "mid";
+                SaveDlg.Filter = "MIDI Files|*.mid|All files (*.*)|*.*";
+                SaveDlg.FileName += ".mid";
                 break;
             case SoundExportFormat.ExportWAV:
-                MDIMain.SaveDlg.Title = "Save Sound As WAV";
-                MDIMain.SaveDlg.Filter = "WAV Sound Files|*.wav|All files (*.*)|*.*";
-                MDIMain.SaveDlg.DefaultExt = "wav";
-                MDIMain.SaveDlg.FileName += ".wav";
+                SaveDlg.Title = "Save Sound As WAV";
+                SaveDlg.Filter = "WAV Sound Files|*.wav|All files (*.*)|*.*";
+                SaveDlg.DefaultExt = "wav";
+                SaveDlg.FileName += ".wav";
                 break;
             case SoundExportFormat.ExportScript:
-                MDIMain.SaveDlg.Title = "Save Sound As Script";
-                MDIMain.SaveDlg.Filter = "AGI Sound Script Files|*.ass|All files (*.*)|*.*";
-                MDIMain.SaveDlg.DefaultExt = "ass";
-                MDIMain.SaveDlg.FileName += ".ass";
+                SaveDlg.Title = "Save Sound As Script";
+                SaveDlg.Filter = "AGI Sound Script Files|*.ass|All files (*.*)|*.*";
+                SaveDlg.DefaultExt = "ass";
+                SaveDlg.FileName += ".ass";
                 break;
             }
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.CheckWriteAccess = true;
-            MDIMain.SaveDlg.FilterIndex = 0;
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.ShowHiddenFiles = false;
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.CheckWriteAccess = true;
+            SaveDlg.FilterIndex = 0;
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.ShowHiddenFiles = false;
             int retval = 0;
-            if (MDIMain.SaveDlg.ShowDialog(MDIMain) != DialogResult.Cancel) {
-                filename = MDIMain.SaveDlg.FileName;
-                DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
+            if (SaveDlg.ShowDialog(MDIMain) != DialogResult.Cancel) {
+                filename = SaveDlg.FileName;
+                DefaultResDir = Path.GetDirectoryName(filename);
                 MDIMain.UseWaitCursor = true;
                 try {
                     sound.Export(filename, exportformat);
@@ -4883,36 +4717,11 @@ namespace WinAGI.Editor {
 
             // remove it
             EditGame.Views.Remove(ViewNum);
-            switch (WinAGISettings.ResListType.Value) {
-            case ResListType.TreeList:
-                TreeNode tmpNode = HdrNode[(int)AGIResType.View];
-                if (MDIMain.tvwResources.SelectedNode == tmpNode.Nodes["v" + ViewNum]) {
-                    // deselect the resource before removing it
-                    SelResNum = -1;
-                }
-                tmpNode.Nodes["v" + ViewNum].Remove();
-                break;
-            case ResListType.ComboList:
-                // only need to remove if views are listed
-                if (MDIMain.cmbResType.SelectedIndex - 1 == (int)AGIResType.View) {
-                    if (ViewNum == SelResNum) {
-                        // deselect the resource before removing it
-                        SelResNum = -1;
-                        MDIMain.lstResources.Items["v" + ViewNum.ToString()].Remove();
-                        // removing from the listbox does NOT re-select the next view
-                        // fix is to select the header
-                        MDIMain.SelectResource(AGIResType.View, -1, true);
-                    }
-                    else {
-                        // just remove it
-                        MDIMain.lstResources.Items["v" + ViewNum.ToString()].Remove();
-                    }
-                }
-                break;
-            }
+            MDIMain.RemoveResourceFromList(AGIResType.View, ViewNum);
             foreach (frmViewEdit frm in ViewEditors) {
                 if (frm.InGame && frm.ViewNumber == ViewNum) {
                     // set number to -1 to force close
+                    frm.InGame = false;
                     frm.ViewNumber = -1;
                     frm.Close();
                     frm.Dispose();
@@ -4942,7 +4751,7 @@ namespace WinAGI.Editor {
 
             if (filename.Length != 0) {
                 MDIMain.UseWaitCursor = true;
-                DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
+                DefaultResDir = Path.GetDirectoryName(SaveDlg.FileName);
                 if (!loaded) {
                     view.Load();
                 }
@@ -4973,21 +4782,21 @@ namespace WinAGI.Editor {
                 }
                 options = frmExportGIF.SelectedGifOptions;
             }
-            MDIMain.SaveDlg.Title = "Export Loop GIF";
-            MDIMain.SaveDlg.DefaultExt = "gif";
-            MDIMain.SaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*";
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.AddExtension = true;
-            MDIMain.SaveDlg.DefaultExt = "gif";
-            MDIMain.SaveDlg.FilterIndex = 1;
-            MDIMain.SaveDlg.FileName = "";
-            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-            MDIMain.SaveDlg.OkRequiresInteraction = true;
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            if (MDIMain.SaveDlg.ShowDialog() == DialogResult.Cancel) {
+            SaveDlg.Title = "Export Loop GIF";
+            SaveDlg.DefaultExt = "gif";
+            SaveDlg.Filter = "GIF files (*.gif)|*.gif|All files (*.*)|*.*";
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.AddExtension = true;
+            SaveDlg.DefaultExt = "gif";
+            SaveDlg.FilterIndex = 1;
+            SaveDlg.FileName = "";
+            SaveDlg.InitialDirectory = DefaultResDir;
+            SaveDlg.OkRequiresInteraction = true;
+            SaveDlg.OverwritePrompt = true;
+            if (SaveDlg.ShowDialog() == DialogResult.Cancel) {
                 return;
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
+            DefaultResDir = Path.GetDirectoryName(SaveDlg.FileName);
             ProgressWin = new(MDIMain) {
                 Text = "Exporting Loop as GIF"
             };
@@ -5004,7 +4813,7 @@ namespace WinAGI.Editor {
                 Mode = 1,
                 Loop = view[loopnum],
                 GifOptions = options,
-                Filename = MDIMain.SaveDlg.FileName
+                Filename = SaveDlg.FileName
             };
             bgwMakePicGif.RunWorkerAsync(gifparams);
             MDIMain.UseWaitCursor = true;
@@ -5392,32 +5201,32 @@ namespace WinAGI.Editor {
             bool retval = false;
 
             if (ingame) {
-                MDIMain.SaveDlg.Title = "Export OBJECT";
+                SaveDlg.Title = "Export OBJECT";
             }
             else {
-                MDIMain.SaveDlg.Title = "Save OBJECT As";
+                SaveDlg.Title = "Save OBJECT As";
             }
             if (invObjects.ResFile.Length > 0) {
-                MDIMain.SaveDlg.FileName = Path.GetFileName(invObjects.ResFile);
-                MDIMain.SaveDlg.InitialDirectory = Path.GetDirectoryName(invObjects.ResFile);
+                SaveDlg.FileName = Path.GetFileName(invObjects.ResFile);
+                SaveDlg.InitialDirectory = Path.GetDirectoryName(invObjects.ResFile);
             }
             else {
-                MDIMain.SaveDlg.FileName = "";
-                MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
+                SaveDlg.FileName = "";
+                SaveDlg.InitialDirectory = DefaultResDir;
             }
-            MDIMain.SaveDlg.Filter = "AGI OBJECT Files|OBJECT|All files (*.*)|*.*";
-            MDIMain.SaveDlg.FilterIndex = WinAGISettingsFile.GetSetting("Objects", sOPENFILTER, 1);
-            MDIMain.SaveDlg.DefaultExt = "";
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.ExpandedMode = true;
-            MDIMain.SaveDlg.ShowHiddenFiles = false;
-            if (MDIMain.SaveDlg.ShowDialog(MDIMain) == DialogResult.Cancel) {
+            SaveDlg.Filter = "AGI OBJECT Files|OBJECT|All files (*.*)|*.*";
+            SaveDlg.FilterIndex = WinAGISettingsFile.GetSetting("Objects", sOPENFILTER, 1);
+            SaveDlg.DefaultExt = "";
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.ExpandedMode = true;
+            SaveDlg.ShowHiddenFiles = false;
+            if (SaveDlg.ShowDialog(MDIMain) == DialogResult.Cancel) {
                 // nothing selected
                 return false;
             }
-            filename = MDIMain.SaveDlg.FileName;
-            DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
+            filename = SaveDlg.FileName;
+            DefaultResDir = Path.GetDirectoryName(filename);
             bool loaded = invObjects.Loaded;
             if (!loaded) {
                 invObjects.Load();
@@ -5769,32 +5578,32 @@ namespace WinAGI.Editor {
             bool retval = false;
 
             if (ingame) {
-                MDIMain.SaveDlg.Title = "Export WORDS.TOK";
+                SaveDlg.Title = "Export WORDS.TOK";
             }
             else {
-                MDIMain.SaveDlg.Title = "Save WORDS.TOK As";
+                SaveDlg.Title = "Save WORDS.TOK As";
             }
             if (wordList.ResFile.Length > 0) {
-                MDIMain.SaveDlg.FileName = Path.GetFileName(wordList.ResFile);
-                MDIMain.SaveDlg.InitialDirectory = Path.GetDirectoryName(wordList.ResFile);
+                SaveDlg.FileName = Path.GetFileName(wordList.ResFile);
+                SaveDlg.InitialDirectory = Path.GetDirectoryName(wordList.ResFile);
             }
             else {
-                MDIMain.SaveDlg.FileName = "";
-                MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
+                SaveDlg.FileName = "";
+                SaveDlg.InitialDirectory = DefaultResDir;
             }
-            MDIMain.SaveDlg.Filter = "AGI WORDS.TOK Files|WORDS.TOK|All files (*.*)|*.*";
-            MDIMain.SaveDlg.FilterIndex = 0;
-            MDIMain.SaveDlg.DefaultExt = "";
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.ExpandedMode = true;
-            MDIMain.SaveDlg.ShowHiddenFiles = false;
-            if (MDIMain.SaveDlg.ShowDialog(MDIMain) == DialogResult.Cancel) {
+            SaveDlg.Filter = "AGI WORDS.TOK Files|WORDS.TOK|All files (*.*)|*.*";
+            SaveDlg.FilterIndex = 0;
+            SaveDlg.DefaultExt = "";
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.ExpandedMode = true;
+            SaveDlg.ShowHiddenFiles = false;
+            if (SaveDlg.ShowDialog(MDIMain) == DialogResult.Cancel) {
                 // nothing selected
                 return false;
             }
-            filename = MDIMain.SaveDlg.FileName;
-            DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
+            filename = SaveDlg.FileName;
+            DefaultResDir = Path.GetDirectoryName(filename);
             bool loaded = wordList.Loaded;
             if (!loaded) {
                 wordList.Load();
@@ -5979,17 +5788,17 @@ namespace WinAGI.Editor {
             string exportdir;
 
             if (!defaultdir) {
-                MDIMain.FolderDlg.InitialDirectory = DefaultResDir;
-                MDIMain.FolderDlg.SelectedPath = "";
-                MDIMain.FolderDlg.AddToRecent = false;
-                MDIMain.FolderDlg.Description = "Select a directory to export all " + restype.ToString() + " resources.";
-                MDIMain.FolderDlg.ShowHiddenFiles = false;
-                MDIMain.FolderDlg.ShowNewFolderButton = true;
-                MDIMain.FolderDlg.OkRequiresInteraction = true;
-                if (MDIMain.FolderDlg.ShowDialog(MDIMain) == DialogResult.Cancel) {
+                FolderDlg.InitialDirectory = DefaultResDir;
+                FolderDlg.SelectedPath = "";
+                FolderDlg.AddToRecent = false;
+                FolderDlg.Description = "Select a directory to export all " + restype.ToString() + " resources.";
+                FolderDlg.ShowHiddenFiles = false;
+                FolderDlg.ShowNewFolderButton = true;
+                FolderDlg.OkRequiresInteraction = true;
+                if (FolderDlg.ShowDialog(MDIMain) == DialogResult.Cancel) {
                     return;
                 }
-                DefaultResDir = Path.GetDirectoryName(MDIMain.FolderDlg.SelectedPath);
+                DefaultResDir = Path.GetDirectoryName(FolderDlg.SelectedPath);
                 DialogResult rtn = MessageBox.Show(MDIMain,
                     "Existing resources with same names as game resources will be overwritten. Continue?",
                     "Confirm Export All",
@@ -5998,7 +5807,7 @@ namespace WinAGI.Editor {
                 if (rtn == DialogResult.Cancel) {
                     return;
                 }
-                exportdir = MDIMain.FolderDlg.SelectedPath;
+                exportdir = FolderDlg.SelectedPath;
             }
             else {
                 exportdir = EditGame.SrcResDir;
@@ -6181,56 +5990,7 @@ namespace WinAGI.Editor {
             }
 
             // update resource list
-            switch (WinAGISettings.ResListType.Value) {
-            case ResListType.TreeList:
-                int pos;
-                TreeNode tmpNode = HdrNode[(int)ResType];
-                // add in new position
-                // (add it before removing current, to minimize changes in resource list)
-                for (pos = 0; pos < tmpNode.Nodes.Count; pos++) {
-                    if ((int)tmpNode.Nodes[pos].Tag > NewResNum) {
-                        break;
-                    }
-                }
-                // add to tree
-                tmpNode = tmpNode.Nodes.Insert(pos, KeyText(ResType, NewResNum), caption);
-                tmpNode.Tag = (int)NewResNum;
-                if (ResType == AGIResType.Logic) {
-                    // highlight in red if not compiled
-                    tmpNode.ForeColor = EditGame.Logics[NewResNum].Compiled ? Color.Black : Color.Red;
-                }
-                if (SelResNum == OldResNum && SelResType == ResType) {
-                    // select the new numbered resource
-                    // (mark current selection as invalid, since it points to the old
-                    // resource, which isn't in the list anymore)
-                    SelResNum = -1;
-                    if (SelResNum == OldResNum) {
-                    }
-                    MDIMain.tvwResources.SelectedNode = tmpNode;
-                }
-                // now remove the old node
-                HdrNode[(int)ResType].Nodes[KeyText(ResType, OldResNum)].Remove();
-                break;
-            case ResListType.ComboList:
-                // only update if the resource type is being listed
-                if (MDIMain.cmbResType.SelectedIndex - 1 == (int)ResType) {
-                    // remove it from current location
-                    MDIMain.lstResources.Items[KeyText(ResType, OldResNum)].Remove();
-                    ListViewItem tmpListItem;
-                    // find a place to insert this resource in the box list
-                    for (pos = 0; pos < MDIMain.lstResources.Items.Count; pos++) {
-                        if ((int)MDIMain.lstResources.Items[pos].Tag > NewResNum) {
-                            break;
-                        }
-                    }
-                    tmpListItem = MDIMain.lstResources.Items.Insert(pos, KeyText(ResType, NewResNum), caption, 0);
-                    tmpListItem.Tag = (int)NewResNum;
-                    if (ResType == AGIResType.Logic) {
-                        tmpListItem.ForeColor = EditGame.Logics[NewResNum].Compiled ? Color.Black : Color.Red;
-                    }
-                }
-                break;
-            }
+            MDIMain.UpdateResourceList(ResType, NewResNum, OldResNum, caption);
 
             if (EditGame.IncludeIDs) {
                 // check for logics using the old ID, replace them if newID is different,
@@ -6574,55 +6334,53 @@ namespace WinAGI.Editor {
 
         public static string NewResourceName(AGIResource resource, bool InGame) {
             DialogResult rtn;
-            string filename;
 
             if (InGame) {
-                MDIMain.SaveDlg.Title = "Export " + resource.ResType.ToString() + " Resource";
+                SaveDlg.Title = "Export " + resource.ResType.ToString() + " Resource";
             }
             else {
-                MDIMain.SaveDlg.Title = "Save " + resource.ResType.ToString() + " Resource As";
+                SaveDlg.Title = "Save " + resource.ResType.ToString() + " Resource As";
             }
             if (resource.ResFile.Length > 0) {
-                MDIMain.SaveDlg.FileName = Path.GetFileName(resource.ResFile);
+                SaveDlg.FileName = Path.GetFileName(resource.ResFile);
             }
             else {
-                MDIMain.SaveDlg.FileName = Path.GetFileName(Path.Combine(DefaultResDir, resource.ID));
+                SaveDlg.FileName = Path.GetFileName(Path.Combine(DefaultResDir, resource.ID));
             }
             switch (resource.ResType) {
             case AGIResType.Logic:
-                MDIMain.SaveDlg.Filter = "WinAGI Logic Resource Files (*.agl)|*.agl|All files (*.*)|*.*";
-                MDIMain.SaveDlg.FilterIndex = 0;
-                MDIMain.SaveDlg.DefaultExt = "agl";
+                SaveDlg.Filter = "WinAGI Logic Resource Files (*.agl)|*.agl|All files (*.*)|*.*";
+                SaveDlg.FilterIndex = 0;
+                SaveDlg.DefaultExt = "agl";
                 break;
             case AGIResType.Picture:
-                MDIMain.SaveDlg.Filter = "WinAGI Picture Resource Files (*.agp)|*.agp|All files (*.*)|*.*";
-                MDIMain.SaveDlg.FilterIndex = 0;
-                MDIMain.SaveDlg.DefaultExt = "agp";
+                SaveDlg.Filter = "WinAGI Picture Resource Files (*.agp)|*.agp|All files (*.*)|*.*";
+                SaveDlg.FilterIndex = 0;
+                SaveDlg.DefaultExt = "agp";
                 break;
             case AGIResType.Sound:
-                MDIMain.SaveDlg.Filter = "WinAGI Sound Resource Files (*.ags)|*.ags|All files (*.*)|*.*";
-                MDIMain.SaveDlg.FilterIndex = 0;
-                MDIMain.SaveDlg.DefaultExt = "ags";
+                SaveDlg.Filter = "WinAGI Sound Resource Files (*.ags)|*.ags|All files (*.*)|*.*";
+                SaveDlg.FilterIndex = 0;
+                SaveDlg.DefaultExt = "ags";
                 break;
             case AGIResType.View:
-                MDIMain.SaveDlg.Filter = "WinAGI View Resource Files (*.agv)|*.agv|All files (*.*)|*.*";
-                MDIMain.SaveDlg.FilterIndex = 0;
-                MDIMain.SaveDlg.DefaultExt = "agv";
+                SaveDlg.Filter = "WinAGI View Resource Files (*.agv)|*.agv|All files (*.*)|*.*";
+                SaveDlg.FilterIndex = 0;
+                SaveDlg.DefaultExt = "agv";
                 break;
             }
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.ExpandedMode = true;
-            MDIMain.SaveDlg.ShowHiddenFiles = false;
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-            rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.ExpandedMode = true;
+            SaveDlg.ShowHiddenFiles = false;
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.InitialDirectory = DefaultResDir;
+            rtn = SaveDlg.ShowDialog(MDIMain);
             if (rtn == DialogResult.Cancel) {
                 // nothing selected
                 return "";
             }
-            filename = MDIMain.SaveDlg.FileName;
-            return filename;
+            return SaveDlg.FileName;
         }
 
         public static void UpdateResFile(AGIResType ResType, byte ResNum, string OldFileName) {
@@ -6741,77 +6499,77 @@ namespace WinAGI.Editor {
             }
         }
 
-        private static string KeyText(AGIResType resType, byte newResNum) {
+        internal static string KeyText(AGIResType resType, int newResNum) {
             return resType.ToString().ToLower()[0].ToString() + newResNum;
         }
 
         public static string GetOpenResourceFilename(string mode, AGIResType restype) {
             // get a file to open as a resource
-            MDIMain.OpenDlg.FileName = "";
-            MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
+            OpenDlg.FileName = "";
+            OpenDlg.InitialDirectory = DefaultResDir;
             switch (restype) {
             case Game:
-                MDIMain.OpenDlg.Title = mode + "WinAGI Game File";
-                MDIMain.OpenDlg.Filter = "WinAGI Game file (*.wag)|*.wag|All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "";
-                MDIMain.OpenDlg.FilterIndex = 1;
-                MDIMain.OpenDlg.InitialDirectory = BrowserStartDir;
+                OpenDlg.Title = mode + "WinAGI Game File";
+                OpenDlg.Filter = "WinAGI Game file (*.wag)|*.wag|All files (*.*)|*.*";
+                OpenDlg.DefaultExt = "";
+                OpenDlg.FilterIndex = 1;
+                OpenDlg.InitialDirectory = BrowserStartDir;
                 break;
             case AGIResType.Logic:
-                MDIMain.OpenDlg.Title = mode + "Logic Source File";
-                MDIMain.OpenDlg.Filter = "WinAGI Logic Source files (*.lgc)|*.lgc|SIERRA Logic Source Files (*.cg)|*.cg|Text Files (*.txt)|txt|Logic Resources (*.agl)|*.agl|All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "";
-                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Logics", sOPENFILTER, 1);
+                OpenDlg.Title = mode + "Logic Source File";
+                OpenDlg.Filter = "WinAGI Logic Source files (*.lgc)|*.lgc|SIERRA Logic Source Files (*.cg)|*.cg|Text Files (*.txt)|txt|Logic Resources (*.agl)|*.agl|All files (*.*)|*.*";
+                OpenDlg.DefaultExt = "";
+                OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Logics", sOPENFILTER, 1);
                 break;
             case AGIResType.Picture:
-                MDIMain.OpenDlg.Title = mode + "Picture Resource File";
-                MDIMain.OpenDlg.Filter = "WinAGI Picture Resource files (*.agp)|*.agp|All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "";
-                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Pictures", sOPENFILTER, 1);
+                OpenDlg.Title = mode + "Picture Resource File";
+                OpenDlg.Filter = "WinAGI Picture Resource files (*.agp)|*.agp|All files (*.*)|*.*";
+                OpenDlg.DefaultExt = "";
+                OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Pictures", sOPENFILTER, 1);
                 break;
             case AGIResType.Sound:
-                MDIMain.OpenDlg.Title = mode + "Sound Resource File";
-                MDIMain.OpenDlg.Filter = "WinAGI Sound Resource files (*.ags)|*.ags|" +
+                OpenDlg.Title = mode + "Sound Resource File";
+                OpenDlg.Filter = "WinAGI Sound Resource files (*.ags)|*.ags|" +
                                          "MIDI files (*.mid)|*.mid|" +
                                          "Impulse Tracker files (*.it)|*.it|" +
                                          "Protracker files (*.mod)|*.mod|" +
                                          "AGI Sound Script files (*.ass)|*.ass|" +
                                          "All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "";
-                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Sounds", sOPENFILTER, 1);
+                OpenDlg.DefaultExt = "";
+                OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Sounds", sOPENFILTER, 1);
                 break;
             case AGIResType.View:
-                MDIMain.OpenDlg.Title = mode + "View Resource File";
-                MDIMain.OpenDlg.Filter = "WinAGI View Resource files (*.agv)|*.agv|All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "";
-                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Views", sOPENFILTER, 1);
+                OpenDlg.Title = mode + "View Resource File";
+                OpenDlg.Filter = "WinAGI View Resource files (*.agv)|*.agv|All files (*.*)|*.*";
+                OpenDlg.DefaultExt = "";
+                OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Views", sOPENFILTER, 1);
                 break;
             case Objects:
-                MDIMain.OpenDlg.Title = mode + "OBJECT File";
-                MDIMain.OpenDlg.Filter = "AGI OBJECT files|OBJECT|Sierra Object Source|object.txt|All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "";
-                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Objects", sOPENFILTER, 1);
+                OpenDlg.Title = mode + "OBJECT File";
+                OpenDlg.Filter = "AGI OBJECT files|OBJECT|Sierra Object Source|object.txt|All files (*.*)|*.*";
+                OpenDlg.DefaultExt = "";
+                OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Objects", sOPENFILTER, 1);
                 break;
             case Words:
-                MDIMain.OpenDlg.Title = mode + "WORDS.TOK File";
-                MDIMain.OpenDlg.Filter = "AGI WORDS.TOK files|WORDS.TOK|Sierra Words Source|words.txt|All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "";
-                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Words", sOPENFILTER, 1);
+                OpenDlg.Title = mode + "WORDS.TOK File";
+                OpenDlg.Filter = "AGI WORDS.TOK files|WORDS.TOK|Sierra Words Source|words.txt|All files (*.*)|*.*";
+                OpenDlg.DefaultExt = "";
+                OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Words", sOPENFILTER, 1);
                 break;
             case Globals:
-                MDIMain.OpenDlg.Title = "Global Defines File";
-                MDIMain.OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "txt";
-                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Globals", sOPENFILTER, 1);
+                OpenDlg.Title = "Global Defines File";
+                OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                OpenDlg.DefaultExt = "txt";
+                OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Globals", sOPENFILTER, 1);
                 break;
             case Include:
-                MDIMain.OpenDlg.Title = "Text File";
-                MDIMain.OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-                MDIMain.OpenDlg.FilterIndex = 1;
-                MDIMain.OpenDlg.DefaultExt = "txt";
+                OpenDlg.Title = "Text File";
+                OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                OpenDlg.FilterIndex = 1;
+                OpenDlg.DefaultExt = "txt";
                 break;
             }
-            if (MDIMain.OpenDlg.ShowDialog() == DialogResult.Cancel) {
+            if (OpenDlg.ShowDialog() == DialogResult.Cancel) {
                 // user canceled
                 return "";
             }
@@ -6841,13 +6599,13 @@ namespace WinAGI.Editor {
                     break;
                 }
                 if (section.Length > 0) {
-                    WinAGISettingsFile.WriteSetting(section, sOPENFILTER, MDIMain.OpenDlg.FilterIndex);
-                    DefaultResDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
+                    WinAGISettingsFile.WriteSetting(section, sOPENFILTER, OpenDlg.FilterIndex);
+                    DefaultResDir = Path.GetDirectoryName(OpenDlg.FileName);
                 }
                 else {
-                    BrowserStartDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
+                    BrowserStartDir = Path.GetDirectoryName(OpenDlg.FileName);
                 }
-                return MDIMain.OpenDlg.FileName;
+                return OpenDlg.FileName;
             }
         }
 
@@ -7185,13 +6943,6 @@ namespace WinAGI.Editor {
 
         }
 
-        public static void ResetQueue() {
-            ResQueue = [];
-            ResQPtr = -1;
-            MDIMain.cmdBack.Enabled = false;
-            MDIMain.cmdForward.Enabled = false;
-        }
-
         /// <summary>
         /// Refreshes the specifiednode/list item. Also refreshes the
         /// preview window if specified item is selected.
@@ -7344,7 +7095,7 @@ namespace WinAGI.Editor {
                             return false;
                         }
                     }
-                    RenameMRU(EditGame.GameFile, Path.Combine(EditGame.GameDir, NewID + ".wag"));
+                    MDIMain.RenameMRU(EditGame.GameFile, Path.Combine(EditGame.GameDir, NewID + ".wag"));
                     EditGame.GameFile = Path.Combine(EditGame.GameDir, NewID + ".wag");
                 }
             }
@@ -7357,15 +7108,7 @@ namespace WinAGI.Editor {
             }
             // lastly change id
             EditGame.GameID = NewID;
-            // update resource list
-            switch (WinAGISettings.ResListType.Value) {
-            case ResListType.TreeList:
-                MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
-                break;
-            case ResListType.ComboList:
-                MDIMain.cmbResType.Items[0] = EditGame.GameID;
-                break;
-            }
+            MDIMain.UpdateRootNodeName(EditGame.GameID);
             MDIMain.Text = "WinAGI GDS - " + EditGame.GameID;
             return true;
         }
@@ -7469,7 +7212,7 @@ namespace WinAGI.Editor {
                     StartPosition = FormStartPosition.CenterParent
                 };
                 // update status bar to show game is being rebuilt
-                MDIMain.spStatus.Text = "Rebuilding game with new game ID, please wait...";
+                MDIMain.SetStatus("Rebuilding game with new game ID, please wait...");
                 // pass mode & source
                 CompGameResults = new CompileGameResults() {
                     Mode = CompileMode.ChangeVersion,
@@ -7491,7 +7234,7 @@ namespace WinAGI.Editor {
                 CompStatusWin = null;
                 // reset cursor
                 MDIMain.UseWaitCursor = false;
-                MDIMain.spStatus.Text = "";
+                MDIMain.SetStatus("");
             }
             else {
                 // ask for confirmation
@@ -7508,19 +7251,7 @@ namespace WinAGI.Editor {
                     Index = (AGIVersion)Array.IndexOf(IntVersions, NewVersion),
                 };
             }
-            // check if change in version affected ID
-            switch (WinAGISettings.ResListType.Value) {
-            case ResListType.TreeList:
-                if (MDIMain.tvwResources.Nodes[0].Text != EditGame.GameID) {
-                    MDIMain.tvwResources.Nodes[0].Text = EditGame.GameID;
-                }
-                break;
-            case ResListType.ComboList:
-                if ((string)MDIMain.cmbResType.Items[0] != EditGame.GameID) {
-                    MDIMain.cmbResType.Items[0] = EditGame.GameID;
-                }
-                break;
-            }
+            MDIMain.UpdateRootNodeName(EditGame.GameID);
             return true;
         }
 
@@ -8382,7 +8113,7 @@ namespace WinAGI.Editor {
             bool skipEd, noSel = false;
             WinAGIFCTB searchFCTB = null;
 
-            MDIMain.spStatus.Text = "";
+            MDIMain.SetStatus("");
 
             StringComparison compMode = search.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
             if (Replacing && search.FindText.Equals(search.ReplaceText, compMode)) {
@@ -8725,7 +8456,7 @@ namespace WinAGI.Editor {
                 if (search.FindSynonym) {
                     // compare against first word, not group name (to correctly handle word groups 0, 1, 9999)
                     if (search.FindText != QUOTECHAR + WordEditor.EditWordList.GroupByNumber(search.FindGrpNum).Words[0] + QUOTECHAR) {
-                        MDIMain.spStatus.Text = foundword + " is a synonym for " + search.FindText;
+                        MDIMain.SetStatus(foundword + " is a synonym for " + search.FindText);
                         MDIMain.FlashStatus(Color.DarkGray);
                     }
                 }
@@ -9924,8 +9655,8 @@ namespace WinAGI.Editor {
                         return;
                     }
                     // save filter
-                    WinAGISettingsFile.WriteSetting("Globals", sOPENFILTER, MDIMain.OpenDlg.FilterIndex);
-                    DefaultResDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
+                    WinAGISettingsFile.WriteSetting("Globals", sOPENFILTER, OpenDlg.FilterIndex);
+                    DefaultResDir = Path.GetDirectoryName(OpenDlg.FileName);
 
                     // check if already open
                     foreach (Form tmpForm in MDIMain.MdiChildren) {

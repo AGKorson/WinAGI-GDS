@@ -3008,19 +3008,19 @@ namespace WinAGI.Editor {
                 }
             }
             // get a file to open
-            MDIMain.OpenDlg.Title = "Open Text Screen Layout File";
-            MDIMain.OpenDlg.ShowHiddenFiles = false;
-            MDIMain.OpenDlg.ShowReadOnly = false;
-            MDIMain.OpenDlg.DefaultExt = "tsd";
-            MDIMain.OpenDlg.Filter = "Text Screen files (*.tsd)|*.tsd|All files (*.*)|*.*";
-            MDIMain.OpenDlg.FilterIndex = 1;
-            MDIMain.OpenDlg.FileName = "";
-            MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
-            if (MDIMain.OpenDlg.ShowDialog() == DialogResult.Cancel) {
+            OpenDlg.Title = "Open Text Screen Layout File";
+            OpenDlg.ShowHiddenFiles = false;
+            OpenDlg.ShowReadOnly = false;
+            OpenDlg.DefaultExt = "tsd";
+            OpenDlg.Filter = "Text Screen files (*.tsd)|*.tsd|All files (*.*)|*.*";
+            OpenDlg.FilterIndex = 1;
+            OpenDlg.FileName = "";
+            OpenDlg.InitialDirectory = DefaultResDir;
+            if (OpenDlg.ShowDialog() == DialogResult.Cancel) {
                 return;
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
-            ExtractScreenData(MDIMain.OpenDlg.FileName);
+            DefaultResDir = Path.GetDirectoryName(OpenDlg.FileName);
+            ExtractScreenData(OpenDlg.FileName);
         }
 
         private void ExtractScreenData(string loadfile) {
@@ -3148,29 +3148,29 @@ namespace WinAGI.Editor {
 
         private static string NewSaveFileName(string filename = "") {
             if (filename.Length != 0) {
-                MDIMain.SaveDlg.Title = "Save Text Screen Layout";
-                MDIMain.SaveDlg.FileName = Path.GetFileName(filename);
+                SaveDlg.Title = "Save Text Screen Layout";
+                SaveDlg.FileName = Path.GetFileName(filename);
             }
             else {
-                MDIMain.SaveDlg.Title = "Save Text Screen Layout As";
-                MDIMain.SaveDlg.FileName = "";
+                SaveDlg.Title = "Save Text Screen Layout As";
+                SaveDlg.FileName = "";
             }
-            MDIMain.SaveDlg.Filter = "Text Screen files (*.tsd)|*.tsd|All files (*.*)|*.*";
-            MDIMain.SaveDlg.FilterIndex = 1;
-            MDIMain.SaveDlg.DefaultExt = "tsd";
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.ExpandedMode = true;
-            MDIMain.SaveDlg.ShowHiddenFiles = false;
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.OkRequiresInteraction = true;
-            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-            DialogResult rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
+            SaveDlg.Filter = "Text Screen files (*.tsd)|*.tsd|All files (*.*)|*.*";
+            SaveDlg.FilterIndex = 1;
+            SaveDlg.DefaultExt = "tsd";
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.ExpandedMode = true;
+            SaveDlg.ShowHiddenFiles = false;
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.OkRequiresInteraction = true;
+            SaveDlg.InitialDirectory = DefaultResDir;
+            DialogResult rtn = SaveDlg.ShowDialog(MDIMain);
             if (rtn == DialogResult.Cancel) {
                 // nothing selected
                 return "";
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
-            return MDIMain.SaveDlg.FileName;
+            DefaultResDir = Path.GetDirectoryName(SaveDlg.FileName);
+            return SaveDlg.FileName;
         }
 
         private void SaveTextScreen(string filename = "") {
@@ -3250,7 +3250,7 @@ namespace WinAGI.Editor {
             }
             if (!IsChanged) {
                 IsChanged = true;
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
         }
@@ -3258,7 +3258,7 @@ namespace WinAGI.Editor {
         private void MarkAsSaved() {
             IsChanged = false;
             Text = "Text Screen Designer - " + CompactPath(FileName, 75);
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
         #endregion
     }

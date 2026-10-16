@@ -140,36 +140,36 @@ namespace WinAGI.Editor {
         }
 
         private void btnLoad_Click(object sender, EventArgs e) {
-            MDIMain.OpenDlg.ShowReadOnly = false;
-            MDIMain.OpenDlg.CheckFileExists = true;
-            MDIMain.OpenDlg.Title = "Open Palette File";
-            MDIMain.OpenDlg.DefaultExt = "ini";
-            MDIMain.OpenDlg.Filter = "INI files (*.ini)|*.ini|Text files (*.txt)|*.txt|All files (*.*)|*.*";
-            MDIMain.OpenDlg.FilterIndex = 1;
-            MDIMain.OpenDlg.FileName = "";
-            MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
-            if (MDIMain.OpenDlg.ShowDialog() == DialogResult.OK) {
-                PaletteFileName = MDIMain.OpenDlg.FileName;
+            OpenDlg.ShowReadOnly = false;
+            OpenDlg.CheckFileExists = true;
+            OpenDlg.Title = "Open Palette File";
+            OpenDlg.DefaultExt = "ini";
+            OpenDlg.Filter = "INI files (*.ini)|*.ini|Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            OpenDlg.FilterIndex = 1;
+            OpenDlg.FileName = "";
+            OpenDlg.InitialDirectory = DefaultResDir;
+            if (OpenDlg.ShowDialog() == DialogResult.OK) {
+                PaletteFileName = OpenDlg.FileName;
                 LoadPalette(PaletteFileName);
                 DefaultResDir = Path.GetDirectoryName(PaletteFileName);
             }
         }
 
         private void btnSave_Click(object sender, EventArgs e) {
-            MDIMain.SaveDlg.Title = "Save/Update Palette File";
-            MDIMain.SaveDlg.DefaultExt = "ini";
-            MDIMain.SaveDlg.Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*";
-            MDIMain.SaveDlg.FilterIndex = 1;
-            MDIMain.SaveDlg.FileName = PaletteFileName;
+            SaveDlg.Title = "Save/Update Palette File";
+            SaveDlg.DefaultExt = "ini";
+            SaveDlg.Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*";
+            SaveDlg.FilterIndex = 1;
+            SaveDlg.FileName = PaletteFileName;
             if (PaletteFileName == "") {
-                MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
+                SaveDlg.InitialDirectory = DefaultResDir;
             }
             else {
-                MDIMain.SaveDlg.InitialDirectory = Path.GetDirectoryName(PaletteFileName);
+                SaveDlg.InitialDirectory = Path.GetDirectoryName(PaletteFileName);
             }
-            if (MDIMain.SaveDlg.ShowDialog() == DialogResult.OK) {
-                if (SavePalette(MDIMain.SaveDlg.FileName)) {
-                    PaletteFileName = MDIMain.SaveDlg.FileName;
+            if (SaveDlg.ShowDialog() == DialogResult.OK) {
+                if (SavePalette(SaveDlg.FileName)) {
+                    PaletteFileName = SaveDlg.FileName;
                     DefaultResDir = Path.GetDirectoryName(PaletteFileName);
                 }
             }

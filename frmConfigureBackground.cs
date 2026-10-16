@@ -542,9 +542,9 @@ namespace WinAGI.Editor {
 
         private bool GetBkgdFile() {
             bool existing = bkgdSettings.FileName.Length > 0;
-            MDIMain.OpenDlg.ShowReadOnly = false;
-            MDIMain.OpenDlg.CheckFileExists = true;
-            MDIMain.OpenDlg.Filter = "Image Files(*.bmp; *.jpg; *.jpeg *.gif; *.tif; *.png)|*.bmp;*.jpg;*.jpeg;*.gif;*.tif;*.png|" +
+            OpenDlg.ShowReadOnly = false;
+            OpenDlg.CheckFileExists = true;
+            OpenDlg.Filter = "Image Files(*.bmp; *.jpg; *.jpeg *.gif; *.tif; *.png)|*.bmp;*.jpg;*.jpeg;*.gif;*.tif;*.png|" +
                 "BMP files (*.bmp)|*.bmp|" +
                 "JPEG files (*.jpg;*.jpeg)|*.jpg;*.jpeg|" +
                 "GIF files (*.gif)|*.gif|" +
@@ -552,44 +552,44 @@ namespace WinAGI.Editor {
                 "PNG files (*.PNG)|*.png|" +
                 "All files (*.*)|*.*";
             if (existing) {
-                MDIMain.OpenDlg.Title = "Choose a New Background Image for this Picture";
-                MDIMain.OpenDlg.FileName = Path.GetFileName(bkgdSettings.FileName);
+                OpenDlg.Title = "Choose a New Background Image for this Picture";
+                OpenDlg.FileName = Path.GetFileName(bkgdSettings.FileName);
                 switch (Path.GetExtension(bkgdSettings.FileName).ToLower()) {
                 case ".bmp":
-                    MDIMain.OpenDlg.FilterIndex = 2;
+                    OpenDlg.FilterIndex = 2;
                     break;
                 case ".jpg" or ".jpeg":
-                    MDIMain.OpenDlg.FilterIndex = 3;
+                    OpenDlg.FilterIndex = 3;
                     break;
                 case ".gif":
-                    MDIMain.OpenDlg.FilterIndex = 4;
+                    OpenDlg.FilterIndex = 4;
                     break;
                 case ".tif":
-                    MDIMain.OpenDlg.FilterIndex = 5;
+                    OpenDlg.FilterIndex = 5;
                     break;
                 case ".png":
-                    MDIMain.OpenDlg.FilterIndex = 6;
+                    OpenDlg.FilterIndex = 6;
                     break;
                 default:
-                    MDIMain.OpenDlg.FilterIndex = 7;
+                    OpenDlg.FilterIndex = 7;
                     break;
                 }
-                MDIMain.OpenDlg.InitialDirectory = Path.GetFullPath(bkgdSettings.FileName, EditGame.SrcResDir);
+                OpenDlg.InitialDirectory = Path.GetFullPath(bkgdSettings.FileName, EditGame.SrcResDir);
             }
             else {
-                MDIMain.OpenDlg.Title = "Choose a Background Image for this Picture";
-                MDIMain.OpenDlg.FilterIndex = 1;
-                MDIMain.OpenDlg.FileName = "";
-                MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
+                OpenDlg.Title = "Choose a Background Image for this Picture";
+                OpenDlg.FilterIndex = 1;
+                OpenDlg.FileName = "";
+                OpenDlg.InitialDirectory = DefaultResDir;
             }
-            if (MDIMain.OpenDlg.ShowDialog() != DialogResult.OK) {
+            if (OpenDlg.ShowDialog() != DialogResult.OK) {
                 return false;
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
-            bkgdSettings.FileName = Path.GetRelativePath(EditGame.SrcResDir, MDIMain.OpenDlg.FileName);
+            DefaultResDir = Path.GetDirectoryName(OpenDlg.FileName);
+            bkgdSettings.FileName = Path.GetRelativePath(EditGame.SrcResDir, OpenDlg.FileName);
             try {
                 BkgdImage?.Dispose();
-                BkgdImage = new(MDIMain.OpenDlg.FileName);
+                BkgdImage = new(OpenDlg.FileName);
             }
             catch (Exception ex) {
                 ErrMsgBox(ex, "File error. Unable to open this image file.",

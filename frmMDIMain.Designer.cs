@@ -240,9 +240,6 @@
             searchDir = new ComboBox();
             splittoolTab = new Splitter();
             tmrNavList = new Timer(components);
-            FolderDlg = new FolderBrowserDialog();
-            OpenDlg = new OpenFileDialog();
-            SaveDlg = new SaveFileDialog();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             toolStrip1.SuspendLayout();
@@ -2126,10 +2123,6 @@
             tmrNavList.Interval = 125;
             tmrNavList.Tick += SplashTimer;
             // 
-            // FolderDlg
-            // 
-            FolderDlg.ShowNewFolderButton = false;
-            // 
             // frmMDIMain
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -2351,9 +2344,6 @@
         private ToolStripMenuItem cmiIgnoreWarning;
         private ToolStripMenuItem cmiHelp;
         private Timer tmrNavList;
-        internal OpenFileDialog OpenDlg;
-        internal SaveFileDialog SaveDlg;
-        internal FolderBrowserDialog FolderDlg;
         internal ToolStripStatusLabel spStatus;
         internal ToolStripStatusLabel spCapsLock;
         internal ToolStripStatusLabel spNumLock;

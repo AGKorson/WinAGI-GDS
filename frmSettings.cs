@@ -343,7 +343,7 @@ namespace WinAGI.Editor {
                     if (MDIMain.pnlResources.Visible) {
                         MDIMain.HideResTree();
                     }
-                    ResetQueue();
+                    MDIMain.ResetQueue();
                     break;
                 default:
                     // if not visible, show it

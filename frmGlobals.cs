@@ -2660,29 +2660,29 @@ namespace WinAGI.Editor {
 
         private static string NewSaveFileName(string filename = "") {
             if (filename.Length != 0) {
-                MDIMain.SaveDlg.Title = "Save Defines List";
-                MDIMain.SaveDlg.FileName = Path.GetFileName(filename);
+                SaveDlg.Title = "Save Defines List";
+                SaveDlg.FileName = Path.GetFileName(filename);
             }
             else {
-                MDIMain.SaveDlg.Title = "Save Defines List As";
-                MDIMain.SaveDlg.FileName = "";
+                SaveDlg.Title = "Save Defines List As";
+                SaveDlg.FileName = "";
             }
-            MDIMain.SaveDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-            MDIMain.SaveDlg.FilterIndex = 1;
-            MDIMain.SaveDlg.DefaultExt = "txt";
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.ExpandedMode = true;
-            MDIMain.SaveDlg.ShowHiddenFiles = false;
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.OkRequiresInteraction = true;
-            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-            DialogResult rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
+            SaveDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            SaveDlg.FilterIndex = 1;
+            SaveDlg.DefaultExt = "txt";
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.ExpandedMode = true;
+            SaveDlg.ShowHiddenFiles = false;
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.OkRequiresInteraction = true;
+            SaveDlg.InitialDirectory = DefaultResDir;
+            DialogResult rtn = SaveDlg.ShowDialog();
             if (rtn == DialogResult.Cancel) {
                 // nothing selected
                 return "";
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
-            return MDIMain.SaveDlg.FileName;
+            DefaultResDir = Path.GetDirectoryName(SaveDlg.FileName);
+            return SaveDlg.FileName;
         }
 
         private void EditCell(int columnindex) {
@@ -2722,25 +2722,25 @@ namespace WinAGI.Editor {
                 return;
             }
             // get a file
-            MDIMain.OpenDlg.CheckPathExists = true;
-            MDIMain.OpenDlg.FileName = "";
-            MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
+            OpenDlg.CheckPathExists = true;
+            OpenDlg.FileName = "";
+            OpenDlg.InitialDirectory = DefaultResDir;
 
-            MDIMain.OpenDlg.Title = "Select Defines File to Import";
-            MDIMain.OpenDlg.ShowReadOnly = false;
-            MDIMain.OpenDlg.RestoreDirectory = true;
-            MDIMain.OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-            MDIMain.OpenDlg.FilterIndex = 1;
-            if (MDIMain.OpenDlg.ShowDialog(MDIMain) != DialogResult.OK) {
+            OpenDlg.Title = "Select Defines File to Import";
+            OpenDlg.ShowReadOnly = false;
+            OpenDlg.RestoreDirectory = true;
+            OpenDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            OpenDlg.FilterIndex = 1;
+            if (OpenDlg.ShowDialog(MDIMain) != DialogResult.OK) {
                 return;
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
+            DefaultResDir = Path.GetDirectoryName(OpenDlg.FileName);
 
             bool error = false;
             string definetext;
             try {
                 // open file for input
-                using FileStream fsGlobal = new(MDIMain.OpenDlg.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using FileStream fsGlobal = new(OpenDlg.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using StreamReader srGlobal = new(fsGlobal);
 
                 char[] chText = new char[fsGlobal.Length];
@@ -3491,7 +3491,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
         }
@@ -3505,7 +3505,7 @@ namespace WinAGI.Editor {
             }
             IsChanged = false;
             mnuRSave.Enabled = false;
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
         #endregion
     }

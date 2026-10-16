@@ -76,6 +76,12 @@ namespace WinAGI.Editor {
             // save pointer to main form
             MDIMain = this;
 
+            FolderDlg = new FolderBrowserDialog {
+                ShowNewFolderButton = false
+            };
+            OpenDlg = new OpenFileDialog();
+            SaveDlg = new SaveFileDialog();
+
             // setup info grid
             infoGridTable.Columns.Add("Type", typeof(string)); // EventType, hidden
             infoGridTable.Columns.Add("ResType", typeof(string));  // AGIResType, hidden
@@ -230,11 +236,11 @@ namespace WinAGI.Editor {
             }
 
             // attach  AGI game events
-            NewGameStatus += MDIMain.GameEvents_NewGameStatus;
-            LoadGameStatus += MDIMain.GameEvents_LoadGameStatus;
-            CompileGameStatus += MDIMain.GameEvents_CompileGameStatus;
-            CompileLogicStatus += MDIMain.GameEvents_CompileLogicStatus;
-            DecodeLogicStatus += MDIMain.GameEvents_DecodeLogicStatus;
+            NewGameStatus += GameEvents_NewGameStatus;
+            LoadGameStatus += GameEvents_LoadGameStatus;
+            CompileGameStatus += GameEvents_CompileGameStatus;
+            CompileLogicStatus += GameEvents_CompileLogicStatus;
+            DecodeLogicStatus += GameEvents_DecodeLogicStatus;
             // check for command string
             CheckCommandLine();
 
@@ -486,11 +492,11 @@ namespace WinAGI.Editor {
             SaveSettings();
 
             // detach  AGI game events
-            NewGameStatus -= MDIMain.GameEvents_NewGameStatus;
-            LoadGameStatus -= MDIMain.GameEvents_LoadGameStatus;
-            CompileGameStatus -= MDIMain.GameEvents_CompileGameStatus;
-            CompileLogicStatus -= MDIMain.GameEvents_CompileLogicStatus;
-            DecodeLogicStatus -= MDIMain.GameEvents_DecodeLogicStatus;
+            NewGameStatus -= GameEvents_NewGameStatus;
+            LoadGameStatus -= GameEvents_LoadGameStatus;
+            CompileGameStatus -= GameEvents_CompileGameStatus;
+            CompileLogicStatus -= GameEvents_CompileLogicStatus;
+            DecodeLogicStatus -= GameEvents_DecodeLogicStatus;
             // dispose all
             MDIMain = null;
             Dispose();
@@ -1393,7 +1399,7 @@ namespace WinAGI.Editor {
                 if (ActiveMdiChild is not null) {
                     if (ActiveMdiChild.Name == "frmLogicEdit") {
                         if (((frmLogicEdit)ActiveMdiChild).FormMode == LogicFormMode.Logic) {
-                            if (MessageBox.Show(MDIMain,
+                            if (MessageBox.Show(this,
                                 "Do you want to replace the logic you are currently editing?",
                                 "Import Logic",
                                 MessageBoxButtons.YesNo,
@@ -1412,7 +1418,7 @@ namespace WinAGI.Editor {
             string importfile = GetOpenResourceFilename("Import ", AGIResType.Picture);
             if (importfile.Length > 0) {
                 if (ActiveMdiChild.Name == "frmPicEdit") {
-                    if (MessageBox.Show(MDIMain,
+                    if (MessageBox.Show(this,
                         "Do you want to replace the picture you are currently editing?",
                         "Import Picture",
                         MessageBoxButtons.YesNo,
@@ -1437,7 +1443,7 @@ namespace WinAGI.Editor {
                 case SoundImportFormat.MIDI:
                     // get options
                     using (frmImportSoundOptions frm = new(format)) {
-                        if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+                        if (frm.ShowDialog(this) == DialogResult.OK) {
                             options = frm.Options;
                             frm.Dispose();
                         }
@@ -1453,7 +1459,7 @@ namespace WinAGI.Editor {
                     break;
                 }
                 if (ActiveMdiChild.Name == "frmSoundEdit") {
-                    if (MessageBox.Show(MDIMain,
+                    if (MessageBox.Show(this,
                         "Do you want to replace the sound you are currently editing?",
                         "Import Sound",
                         MessageBoxButtons.YesNo,
@@ -1470,7 +1476,7 @@ namespace WinAGI.Editor {
             string importfile = GetOpenResourceFilename("Import ", AGIResType.View);
             if (importfile.Length > 0) {
                 if (ActiveMdiChild.Name == "frmViewEdit") {
-                    if (MessageBox.Show(MDIMain,
+                    if (MessageBox.Show(this,
                         "Do you want to replace the view you are currently editing?",
                         "Import View",
                         MessageBoxButtons.YesNo,
@@ -1488,7 +1494,7 @@ namespace WinAGI.Editor {
             string importfile = GetOpenResourceFilename("Import ", Objects);
             if (importfile.Length > 0) {
                 if (ActiveMdiChild.Name == "frmObjectEdit") {
-                    if (MessageBox.Show(MDIMain,
+                    if (MessageBox.Show(this,
                         "Do you want to replace the OBJECT file you are currently editing? " +
                         "(This CANNOT be undone.)",
                         "Import OBJECT",
@@ -1508,7 +1514,7 @@ namespace WinAGI.Editor {
             string importfile = GetOpenResourceFilename("Import ", Words);
             if (importfile.Length > 0) {
                 if (ActiveMdiChild.Name == "frmWordsEdit") {
-                    if (MessageBox.Show(MDIMain,
+                    if (MessageBox.Show(this,
                         "Do you want to replace the WORDS.TOK file you are currently editing? " +
                         "(This CANNOT be undone.)",
                         "Import WORDS.TOK",
@@ -1653,7 +1659,7 @@ namespace WinAGI.Editor {
                 }
             }
             using frmSettings frm = new(startpage);
-            frm.ShowDialog(MDIMain);
+            frm.ShowDialog(this);
             // the settings form handles all mods and updates based on settings changes
         }
 
@@ -1696,7 +1702,7 @@ namespace WinAGI.Editor {
 
         private void mnuTPalette_Click(object sender, EventArgs e) {
             using frmPalette frm = new(0);
-            if (frm.ShowDialog(MDIMain) == DialogResult.OK) {
+            if (frm.ShowDialog(this) == DialogResult.OK) {
                 // refresh all picture, view and textscreen editors and the preview window (if visible)
                 foreach (frmPicEdit editfrm in PictureEditors) {
                     editfrm.RefreshPic();
@@ -1923,7 +1929,7 @@ namespace WinAGI.Editor {
 
         private void mnuHAbout_Click(object sender, EventArgs e) {
             using frmAbout frm = new();
-            frm.ShowDialog(MDIMain);
+            frm.ShowDialog(this);
         }
         #endregion
         #endregion
@@ -2912,19 +2918,19 @@ namespace WinAGI.Editor {
                 case SearchMode.ReplaceWord:
                 case SearchMode.ReplaceObjsLogic:
                 case SearchMode.ReplaceWordsLogic:
-                    MDIMain.searchScope.Enabled = true;
+                    searchScope.Enabled = true;
                     break;
                 case SearchMode.FindLogic:
                 case SearchMode.FindText:
                 case SearchMode.FindObjsLogic:
                 case SearchMode.FindWordsLogic:
-                    MDIMain.searchScope.Enabled = true;
+                    searchScope.Enabled = true;
                     break;
                 case SearchMode.FindObject:
                 case SearchMode.FindWord:
                 case SearchMode.FindGlobals:
                     // allow changing scope on search bar if direction is 'all'
-                    MDIMain.searchScope.Enabled = MDIMain.searchDir.SelectedIndex == 2;
+                    searchScope.Enabled = searchDir.SelectedIndex == 2;
                     break;
                 }
                 break;
@@ -3215,9 +3221,9 @@ namespace WinAGI.Editor {
             Search.FindText = txtFind.Text;
             // if scope is current doc, or all open docs, and nothing is open
             // let user know
-            if (Search.Scope != SearchScope.All && (MDIMain.ActiveMdiChild is null || MDIMain.ActiveMdiChild is frmPreview)) {
+            if (Search.Scope != SearchScope.All && (ActiveMdiChild is null || ActiveMdiChild is frmPreview)) {
                 ClearSearchResults();
-                MessageBox.Show(MDIMain,
+                MessageBox.Show(this,
                     "No active document to search.",
                     "Find Text",
                     MessageBoxButtons.OK,
@@ -3227,7 +3233,7 @@ namespace WinAGI.Editor {
 
             if (Search.FindAll) {
                 var results = FindAll(Search);
-                MDIMain.AddFindAllItems(results);
+                AddFindAllItems(results);
             }
             else {
                 // active form determines which search function to run
@@ -3357,9 +3363,9 @@ namespace WinAGI.Editor {
                 Search.FindAll = false;
                 Search.Direction = SearchDirection.Next;
                 // restrict scope to current doc if editing words, objects or globals
-                if (MDIMain.ActiveMdiChild is frmWordsEdit ||
-                    MDIMain.ActiveMdiChild is frmObjectEdit ||
-                    MDIMain.ActiveMdiChild is frmGlobals) {
+                if (ActiveMdiChild is frmWordsEdit ||
+                    ActiveMdiChild is frmObjectEdit ||
+                    ActiveMdiChild is frmGlobals) {
                     Search.Scope = SearchScope.Current;
                     searchScope.Enabled = false;
                 }
@@ -3369,9 +3375,9 @@ namespace WinAGI.Editor {
                 tipFindDir.SetToolTip(btnFind, "Find Previous");
                 Search.FindAll = false;
                 // restrict scope to current doc if editing words, objects or globals
-                if (MDIMain.ActiveMdiChild is frmWordsEdit ||
-                    MDIMain.ActiveMdiChild is frmObjectEdit ||
-                    MDIMain.ActiveMdiChild is frmGlobals) {
+                if (ActiveMdiChild is frmWordsEdit ||
+                    ActiveMdiChild is frmObjectEdit ||
+                    ActiveMdiChild is frmGlobals) {
                     Search.Scope = SearchScope.Current;
                     searchScope.Enabled = false;
                 }
@@ -3388,7 +3394,7 @@ namespace WinAGI.Editor {
                 }
                 // immediately search
                 var results = FindAll(Search);
-                MDIMain.AddFindAllItems(results);
+                AddFindAllItems(results);
                 return;
             }
             // then begin the search
@@ -3774,16 +3780,16 @@ namespace WinAGI.Editor {
             switch (e.CompInfo.Type) {
             case LogicCompileError:
                 // error
-                MDIMain.AddInfoItem(e.CompInfo, true);
+                AddInfoItem(e.CompInfo, true);
                 break;
             case LogicCompileWarning:
                 // warning
                 CompWarnings = true;
-                MDIMain.AddInfoItem(e.CompInfo, true);
+                AddInfoItem(e.CompInfo, true);
                 break;
             case Info:
                 // clear warnings for an include file
-                MDIMain.ClearInfoGrid(e.CompInfo.Filename);
+                ClearInfoGrid(e.CompInfo.Filename);
                 break;
             default:
                 // no other types should be sent to this event
@@ -4076,7 +4082,117 @@ namespace WinAGI.Editor {
             // then let open logic editors know
             LogicListChange();
             // last node marker is no longer accurate; reset
-            MDIMain.LastNodeName = "";
+            LastNodeName = "";
+        }
+
+        public void RemoveResourceFromList(AGIResType restype, int resnum) {
+            switch (WinAGISettings.ResListType.Value) {
+            case ResListType.TreeList:
+                switch (restype) {
+                case AGIResType.Logic:
+                    TreeNode tmpNode = HdrNode[(int)AGIResType.Logic];
+                    if (tvwResources.SelectedNode == tmpNode.Nodes["l" + resnum]) {
+                        // deselect the resource beforev removing it
+                        SelResNum = -1;
+                    }
+                    tmpNode.Nodes["l" + resnum].Remove();
+                    break;
+                case AGIResType.Picture:
+                    tmpNode = HdrNode[(int)AGIResType.Picture];
+                    if (tvwResources.SelectedNode == tmpNode.Nodes["p" + resnum]) {
+                        // deselect the resource beforev removing it
+                        SelResNum = -1;
+                    }
+                    tmpNode.Nodes["p" + resnum].Remove();
+                    break;
+                case AGIResType.Sound:
+                    tmpNode = HdrNode[(int)AGIResType.Sound];
+                    if (tvwResources.SelectedNode == tmpNode.Nodes["s" + resnum]) {
+                        // deselect the resource beforev removing it
+                        SelResNum = -1;
+                    }
+                    tmpNode.Nodes["s" + resnum].Remove();
+                    break;
+                case AGIResType.View:
+                    tmpNode = HdrNode[(int)AGIResType.View];
+                    if (tvwResources.SelectedNode == tmpNode.Nodes["v" + resnum]) {
+                        // deselect the resource beforev removing it
+                        SelResNum = -1;
+                    }
+                    tmpNode.Nodes["v" + resnum].Remove();
+                    break;
+                }
+                break;
+            case ResListType.ComboList:
+                // only update if the resource type is being listed
+                switch (restype) {
+                case AGIResType.Logic:
+                    if (cmbResType.SelectedIndex - 1 == (int)AGIResType.Logic) {
+                        if (resnum == SelResNum) {
+                            // deselect the resource before removing it
+                            SelResNum = -1;
+                            lstResources.Items["l" + resnum.ToString()].Remove();
+                            // removing from the listbox does NOT re-select the next view
+                            // fix is to select the header
+                            SelectResource(AGIResType.Logic, -1, true);
+                        }
+                        else {
+                            // just remove it
+                            lstResources.Items["l" + resnum.ToString()].Remove();
+                        }
+                    }
+                    break;
+                case AGIResType.Picture:
+                    if (cmbResType.SelectedIndex - 1 == (int)AGIResType.Picture) {
+                        if (resnum == SelResNum) {
+                            // deselect the resource before removing it
+                            SelResNum = -1;
+                            lstResources.Items["p" + resnum.ToString()].Remove();
+                            // removing from the listbox does NOT re-select the next view
+                            // fix is to select the header
+                            SelectResource(AGIResType.Picture, -1, true);
+                        }
+                        else {
+                            // just remove it
+                            lstResources.Items["p" + resnum.ToString()].Remove();
+                        }
+                    }
+                    break;
+                case AGIResType.Sound:
+                    if (cmbResType.SelectedIndex - 1 == (int)AGIResType.Sound) {
+                        if (resnum == SelResNum) {
+                            // deselect the resource before removing it
+                            SelResNum = -1;
+                            lstResources.Items["s" + resnum.ToString()].Remove();
+                            // removing from the listbox does NOT re-select the next view
+                            // fix is to select the header
+                            SelectResource(AGIResType.Sound, -1, true);
+                        }
+                        else {
+                            // just remove it
+                            lstResources.Items["s" + resnum.ToString()].Remove();
+                        }
+                    }
+                    break;
+                case AGIResType.View:
+                    if (cmbResType.SelectedIndex - 1 == (int)AGIResType.View) {
+                        if (resnum == SelResNum) {
+                            // deselect the resource before removing it
+                            SelResNum = -1;
+                            lstResources.Items["v" + resnum.ToString()].Remove();
+                            // removing from the listbox does NOT re-select the next view
+                            // fix is to select the header
+                            SelectResource(AGIResType.View, -1, true);
+                        }
+                        else {
+                            // just remove it
+                            lstResources.Items["v" + resnum.ToString()].Remove();
+                        }
+                    }
+                    break;
+                }
+                break;
+            }
         }
 
         /// <summary>
@@ -4141,7 +4257,7 @@ namespace WinAGI.Editor {
             if (SelResType == Include) {
                 // always select the header because index numbers may not
                 // be aligned anymore
-                MDIMain.SelectResource(Include, -1, true);
+                SelectResource(Include, -1, true);
             }
             // force lookup refresh
             foreach (var form in LogicEditors) {
@@ -4269,6 +4385,95 @@ namespace WinAGI.Editor {
             DontQueue = false;
             return;
         }
+
+        public void ResetQueue() {
+            ResQueue = [];
+            ResQPtr = -1;
+            cmdBack.Enabled = false;
+            cmdForward.Enabled = false;
+        }
+
+        internal void SelectRootNode() {
+            switch (WinAGISettings.ResListType.Value) {
+            case ResListType.TreeList:
+                tvwResources.SelectedNode = RootNode;
+                break;
+            case ResListType.ComboList:
+                cmbResType.SelectedIndex = 0;
+                // then force selection change
+                SelectResource(Game, -1);
+                break;
+            }
+        }
+
+        internal void UpdateResourceList(AGIResType type, int oldNum, int newNum, string caption) {
+            switch (WinAGISettings.ResListType.Value) {
+            case ResListType.TreeList:
+                int pos;
+                TreeNode tmpNode = HdrNode[(int)type];
+                // add in new position
+                // (add it before removing current, to minimize changes in resource list)
+                for (pos = 0; pos < tmpNode.Nodes.Count; pos++) {
+                    if ((int)tmpNode.Nodes[pos].Tag > newNum) {
+                        break;
+                    }
+                }
+                // add to tree
+                tmpNode = tmpNode.Nodes.Insert(pos, KeyText(type, newNum), caption);
+                tmpNode.Tag = newNum;
+                if (type == AGIResType.Logic) {
+                    // highlight in red if not compiled
+                    tmpNode.ForeColor = EditGame.Logics[newNum].Compiled ? Color.Black : Color.Red;
+                }
+                if (SelResNum == oldNum && SelResType == type) {
+                    // select the new numbered resource
+                    // (mark current selection as invalid, since it points to the old
+                    // resource, which isn't in the list anymore)
+                    SelResNum = -1;
+                    if (SelResNum == oldNum) {
+                    }
+                    tvwResources.SelectedNode = tmpNode;
+                }
+                // now remove the old node
+                HdrNode[(int)type].Nodes[KeyText(type, oldNum)].Remove();
+                break;
+            case ResListType.ComboList:
+                // only update if the resource type is being listed
+                if (cmbResType.SelectedIndex - 1 == (int)type) {
+                    // remove it from current location
+                    lstResources.Items[KeyText(type, oldNum)].Remove();
+                    ListViewItem tmpListItem;
+                    // find a place to insert this resource in the box list
+                    for (pos = 0; pos < lstResources.Items.Count; pos++) {
+                        if ((int)lstResources.Items[pos].Tag > newNum) {
+                            break;
+                        }
+                    }
+                    tmpListItem = lstResources.Items.Insert(pos, KeyText(type, newNum), caption, 0);
+                    tmpListItem.Tag = (int)newNum;
+                    if (type == AGIResType.Logic) {
+                        tmpListItem.ForeColor = EditGame.Logics[newNum].Compiled ? Color.Black : Color.Red;
+                    }
+                }
+                break;
+            }
+        }
+
+        internal void UpdateRootNodeName(string newName) {
+            // check if change in version affected ID
+            switch (WinAGISettings.ResListType.Value) {
+            case ResListType.TreeList:
+                if (RootNode.Text != newName) {
+                    RootNode.Text = newName;
+                }
+                break;
+            case ResListType.ComboList:
+                if ((string)cmbResType.Items[0] != newName) {
+                    cmbResType.Items[0] = newName;
+                }
+                break;
+            }
+        }
         #endregion
 
         #region Status Strip Methods
@@ -4391,6 +4596,10 @@ namespace WinAGI.Editor {
             StatusFlashCount = 0;
             statusFlashTimer.Enabled = true;
         }
+        
+        internal void SetStatus(string text) {
+            spStatus.Text = text;
+        }
         #endregion
 
         #region Search and Replace Methods
@@ -4425,7 +4634,7 @@ namespace WinAGI.Editor {
         public void AddFindAllItems(List<FindAllItem> finditems) {
             ClearSearchResults();
             if (finditems.Count == 0) {
-                MessageBox.Show(MDIMain,
+                MessageBox.Show(this,
                     "Search text not found.",
                     "Find Text",
                     MessageBoxButtons.OK,
@@ -4666,8 +4875,8 @@ namespace WinAGI.Editor {
                 if (filter.Length > 0) {
                     filter += " AND ";
                 }
-                if (MDIMain.ActiveMdiChild is frmLogicEdit) {
-                    frmLogicEdit frm = MDIMain.ActiveMdiChild as frmLogicEdit;
+                if (ActiveMdiChild is frmLogicEdit) {
+                    frmLogicEdit frm = ActiveMdiChild as frmLogicEdit;
                     if (frm.FormMode == LogicFormMode.Logic) {
                         resType = AGIResType.Logic;
                         resNum = frm.LogicNumber;
@@ -4678,17 +4887,17 @@ namespace WinAGI.Editor {
                         break;
                     }
                 }
-                else if (MDIMain.ActiveMdiChild is frmPicEdit) {
+                else if (ActiveMdiChild is frmPicEdit) {
                     resType = AGIResType.Picture;
-                    resNum = (MDIMain.ActiveMdiChild as frmPicEdit).PictureNumber;
+                    resNum = (ActiveMdiChild as frmPicEdit).PictureNumber;
                 }
-                else if (MDIMain.ActiveMdiChild is frmSoundEdit) {
+                else if (ActiveMdiChild is frmSoundEdit) {
                     resType = AGIResType.Sound;
-                    resNum = (MDIMain.ActiveMdiChild as frmSoundEdit).SoundNumber;
+                    resNum = (ActiveMdiChild as frmSoundEdit).SoundNumber;
                 }
-                else if (MDIMain.ActiveMdiChild is frmViewEdit) {
+                else if (ActiveMdiChild is frmViewEdit) {
                     resType = AGIResType.View;
-                    resNum = (MDIMain.ActiveMdiChild as frmViewEdit).ViewNumber;
+                    resNum = (ActiveMdiChild as frmViewEdit).ViewNumber;
                 }
                 else if (OEInUse) {
                     resType = Words;
@@ -5049,8 +5258,8 @@ namespace WinAGI.Editor {
             List<int> updatelogics = [];
             // ignore changes until all done
             infoGridBinding.RaiseListChangedEvents = false;
-            MDIMain.UseWaitCursor = true;
-            MDIMain.Refresh();
+            UseWaitCursor = true;
+            Refresh();
             SetIgnoreWarning(warningNumber, true);
             for (int i = infoGridTable.Rows.Count - 1; i >= 0; i--) {
                 var fgRow = infoGridTable.Rows[i];
@@ -5074,7 +5283,7 @@ namespace WinAGI.Editor {
             // refresh the grid
             infoGridBinding.RaiseListChangedEvents = true;
             infoGridBinding.ResetBindings(false);
-            MDIMain.UseWaitCursor = false;
+            UseWaitCursor = false;
         }
 
         internal void ResetInfoGrid(byte logicnum, List<WinAGIEventInfo> list) {
@@ -5125,7 +5334,7 @@ namespace WinAGI.Editor {
                     msgboxtitle = "TODO Item";
                     break;
                 }
-                MessageBox.Show(MDIMain,
+                MessageBox.Show(this,
                     msgboxtext, msgboxtitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -5190,7 +5399,7 @@ namespace WinAGI.Editor {
                     msgboxtitle = "TODO Item";
                     break;
                 }
-                MessageBox.Show(MDIMain,
+                MessageBox.Show(this,
                     msgboxtext, msgboxtitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -5433,8 +5642,8 @@ namespace WinAGI.Editor {
                 }
             }
             // if preview win is active, OR no windows
-            if (MDIMain.ActiveMdiChild == PreviewWin ||
-                MDIMain.ActiveMdiChild is null) {
+            if (ActiveMdiChild == PreviewWin ||
+                ActiveMdiChild is null) {
                 UpdateTBResourceBtns(SelResType, true, false, NewResNum);
             }
             if (infoGridScope == InfoGridScope.SelectedResource) {
@@ -5616,7 +5825,7 @@ namespace WinAGI.Editor {
             }
             if (WinAGISettings.AskRemove.Value) {
                 dontAsk = false;
-                rtn = MsgBoxEx.Show(MDIMain,
+                rtn = MsgBoxEx.Show(this,
                     "Removing '" + resID + "' from your game.\n\nSelect OK to proceed, or Cancel to keep it in game.",
                     "Remove " + SelResType.ToString() + " From Game",
                     MessageBoxButtons.OKCancel,
@@ -5825,6 +6034,12 @@ namespace WinAGI.Editor {
                 if (ingame) {
                     btnAddRemove.Image = EditorResources.tbRemove;
                     btnAddRemove.Text = "Remove Include";
+                    // auto-includes can't be removed
+                    if (resnum != 256 && (resnum == -1 || EditGame.IncludeFiles[resnum].Type == IncludeType.Reserved ||
+                        EditGame.IncludeFiles[resnum].Type == IncludeType.ResourceIDs ||
+                        EditGame.IncludeFiles[resnum].Type == IncludeType.Globals)) {
+                        btnAddRemove.Enabled = false;
+                    }
                 }
                 else {
                     btnAddRemove.Image = EditorResources.tbAdd;
@@ -5859,6 +6074,121 @@ namespace WinAGI.Editor {
             }
         }
 
+        internal void UpdateAddRemoveButton(bool enabled, string caption, bool add) {
+            btnAddRemove.Enabled = enabled;
+            if (add) {
+                btnAddRemove.Image = EditorResources.tbAdd;
+                btnAddRemove.Text = "Add " + caption;
+            }
+            else {
+                btnAddRemove.Image = EditorResources.tbRemove;
+                btnAddRemove.Text = "Remove " + caption;
+            }
+        }
+
+        internal void UpdateSaveButton(bool enabled) {
+            btnSaveResource.Enabled = enabled;
+        }
+
+        internal void AddToMRU(string NewWAGFile) {
+            // if NewWAGFile is already in the list,
+            // it is moved to the top;
+            // otherwise, it is added to the top, and other
+            // entries are moved down
+            int i, j;
+            // if already at the top
+            if (NewWAGFile == strMRU[0]) {
+                // nothing to change
+                return;
+            }
+            for (i = 0; i < 4; i++) {
+                if (NewWAGFile == strMRU[i]) {
+                    // move others down
+                    for (j = i; j >= 1; j--) {
+                        strMRU[j] = strMRU[j - 1];
+                        mnuGame.DropDownItems["mnuGMRU" + j].Text = mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Text;
+                        mnuGame.DropDownItems["mnuGMRU" + j].Visible = true;
+                    }
+                    // move item i to top of list
+                    strMRU[0] = NewWAGFile;
+                    mnuGMRU0.Text = CompactPath(NewWAGFile, 60);
+                    // done
+                    return;
+                }
+            }
+            // not found; move all entries down
+            for (j = 3; j >= 1; j--) {
+                strMRU[j] = strMRU[j - 1];
+                mnuGame.DropDownItems["mnuGMRU" + j].Text = mnuGame.DropDownItems["mnuGMRU" + (j - 1)].Text;
+                mnuGame.DropDownItems["mnuGMRU" + j].Visible = strMRU[j].Length != 0;
+            }
+            // add new item 0
+            strMRU[0] = NewWAGFile;
+            mnuGMRU0.Text = CompactPath(NewWAGFile, 60);
+            mnuGMRU0.Visible = true;
+            mnuGMRUBar.Visible = true;
+        }
+
+        internal void RenameMRU(string OldWAGFile, string NewWAGFile) {
+            // if NewWAGFile is already in the list,
+            // remove it - it will take the place of
+            // OldWAGFile
+
+            // if OldWAGFile is NOT on list, add NewWAGFile;
+            // otherwise just rename OldWAGFile to NewWAGFile
+            int i, j;
+
+            // first look for NewWAGFile, and delete it if found
+            for (i = 1; i < 4; i++) {
+                if (NewWAGFile == strMRU[i]) {
+                    // delete it by moving others up
+                    for (j = i; j <= 3; j++) {
+                        strMRU[j] = strMRU[j + 1];
+                        mnuGame.DropDownItems["mnuGMRU" + j].Text = CompactPath(strMRU[j], 60);
+                    }
+                    // now delete last entry
+                    strMRU[3] = "";
+                    mnuGMRU3.Text = "";
+                    break;
+                }
+            }
+            // now check for OldWAGFile
+            for (i = 0; i < 4; i++) {
+                if (strMRU[i] == OldWAGFile) {
+                    // rename it
+                    strMRU[i] = NewWAGFile;
+                    mnuGame.DropDownItems["mnuGMRU" + i].Text = CompactPath(NewWAGFile, 60);
+                    break;
+                }
+            }
+
+            // make sure NewWAGFile is at the top (use AddToMRU function to do this easily!)
+            AddToMRU(NewWAGFile);
+        }
+
+        internal void RemoveMRUEntry(int index) {
+            // step through rest of mru entries
+            for (int i = index + 1; i < 4; i++) {
+                // move this mru entry up
+                strMRU[i - 1] = strMRU[i];
+                if (strMRU[i - 1].Length == 0) {
+                    // hide this mru item
+                    mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Visible = false;
+                }
+                else {
+                    // change this mru item
+                    mnuGame.DropDownItems["mnuGMRU" + (i - 1)].Text = CompactPath(strMRU[i], 60);
+                }
+            }
+            // remove last entry
+            strMRU[3] = "";
+            mnuGMRU3.Visible = false;
+            if (strMRU[0].Length == 0) {
+                // if none left, hide bar too
+                mnuGMRUBar.Visible = false;
+            }
+        }
+
         private void ShowProperties() {
             ShowProperties(false, "General", "");
         }
@@ -5867,7 +6197,7 @@ namespace WinAGI.Editor {
             // show properties form
             using frmGameProperties propForm = new(GameSettingFunction.Edit, StartTab, StartProp);
             propForm.btnOK.Enabled = EnableOK;
-            if (propForm.ShowDialog(MDIMain) == DialogResult.Cancel) {
+            if (propForm.ShowDialog(this) == DialogResult.Cancel) {
                 // exit withoutsaving anything
                 return;
             }
@@ -5982,7 +6312,7 @@ namespace WinAGI.Editor {
             // first check for missing platform
             if (EditGame.PlatformType == PlatformType.None) {
                 // notify user and show property dialog
-                MDIMain.MsgBoxWithHelp(
+                MsgBoxWithHelp(
                     "You need to select a platform on which to run your game first.",
                     "No Platform Selected",
                     MessageBoxButtons.OK,
@@ -5999,7 +6329,7 @@ namespace WinAGI.Editor {
             case PlatformType.DosBox:
                 // DosBox - verify target exists
                 if (!File.Exists(Path.Combine(EditGame.GameDir, EditGame.DOSExec))) {
-                    MDIMain.MsgBoxWithHelp(
+                    MsgBoxWithHelp(
                         "The DOS executable file '" + EditGame.DOSExec + "' is missing from the " +
                         "game directory. Aborting DosBox session.",
                         "Missing DOS Executable File",
@@ -6076,7 +6406,7 @@ namespace WinAGI.Editor {
                     errorMsg = "Unable to run " + errorMsg + errorType + ". Make sure you " +
                                 "have selected the correct executable file, and that any parameters " +
                                 "you included are correct.";
-                    MDIMain.MsgBoxWithHelp(
+                    MsgBoxWithHelp(
                         errorMsg,
                         errorTitle,
                         MessageBoxButtons.OK,
@@ -6564,7 +6894,7 @@ namespace WinAGI.Editor {
             if (top > SystemInformation.VirtualScreen.Height * 0.85) {
                 top = SystemInformation.VirtualScreen.Height * 0.85;
             }
-            MDIMain.Bounds = new Rectangle((int)left, (int)top, (int)width, (int)height);
+            Bounds = new Rectangle((int)left, (int)top, (int)width, (int)height);
             if (max) {
                 WindowState = FormWindowState.Maximized;
             }
@@ -6655,7 +6985,7 @@ namespace WinAGI.Editor {
             // then save it to file
 
             // WINDOW POSITION
-            if (MDIMain.WindowState == FormWindowState.Maximized) {
+            if (WindowState == FormWindowState.Maximized) {
                 // save Max Value only
                 WinAGISettingsFile.WriteSetting(sPOSITION, "WindowMax", true);
             }
@@ -6832,7 +7162,6 @@ namespace WinAGI.Editor {
             ShowingMsgBox = false;
             return result;
         }
-
         #endregion
         #endregion
     }

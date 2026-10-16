@@ -10381,7 +10381,7 @@ namespace WinAGI.Editor {
         private void MarkAsChanged() {
             if (!IsChanged) {
                 IsChanged = true;
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
         }
@@ -10389,7 +10389,7 @@ namespace WinAGI.Editor {
         private void MarkAsSaved() {
             IsChanged = false;
             Text = EditGame.GameID + " - Room Layout";
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
         #endregion
 

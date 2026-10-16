@@ -234,15 +234,15 @@ namespace WinAGI.Editor {
                 BrowserStartDir = ImportDir;
             }
             // get a directory from which to load a game
-            MDIMain.FolderDlg.Description = "Select a directory for this new game:";
-            MDIMain.FolderDlg.AddToRecent = false;
-            MDIMain.FolderDlg.InitialDirectory = BrowserStartDir;
-            MDIMain.FolderDlg.SelectedPath = "";
-            MDIMain.FolderDlg.OkRequiresInteraction = true;
-            MDIMain.FolderDlg.ShowNewFolderButton = true;
+            FolderDlg.Description = "Select a directory for this new game:";
+            FolderDlg.AddToRecent = false;
+            FolderDlg.InitialDirectory = BrowserStartDir;
+            FolderDlg.SelectedPath = "";
+            FolderDlg.OkRequiresInteraction = true;
+            FolderDlg.ShowNewFolderButton = true;
 
-            if (MDIMain.FolderDlg.ShowDialog() == DialogResult.OK) {
-                ImportDir = MDIMain.FolderDlg.SelectedPath;
+            if (FolderDlg.ShowDialog() == DialogResult.OK) {
+                ImportDir = FolderDlg.SelectedPath;
                 txtGameDir.Text = ImportDir;
                 BrowserStartDir = ImportDir;
             }

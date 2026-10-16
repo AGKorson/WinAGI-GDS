@@ -1919,7 +1919,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.btnSaveResource.Enabled = !IsChanged;
+            MDIMain.UpdateSaveButton(!IsChanged);
 
             if (!BuildSoundTree()) {
                 // error
@@ -5002,10 +5002,6 @@ namespace WinAGI.Editor {
                         }
                     }
                 }
-                else {
-                    // dont ask; assume no
-                    rtn = DialogResult.No;
-                }
                 switch (rtn) {
                 case DialogResult.Cancel:
                     return;
@@ -5067,8 +5063,7 @@ namespace WinAGI.Editor {
                     EditGame.Sounds[SoundNumber].Unload();
                     InGame = true;
                     MarkAsSaved();
-                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                    MDIMain.btnAddRemove.Text = "Remove Sound";
+                    MDIMain.UpdateAddRemoveButton(true, "Sound", false);
                 }
             }
         }
@@ -5170,7 +5165,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
         }
@@ -5185,7 +5180,7 @@ namespace WinAGI.Editor {
                 Text += CompactPath(EditSound.ResFile, 75);
             }
             mnuRSave.Enabled = false;
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
         #endregion
     }
@@ -5782,7 +5777,7 @@ namespace WinAGI.Editor {
 
             public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context) {
                 // add notes based on current octave
-                frmSoundEdit frm = (MDIMain.ActiveMdiChild as frmSoundEdit);
+                frmSoundEdit frm = MDIMain.ActiveMdiChild as frmSoundEdit;
                 Sound sound = frm.EditSound;
                 int track = frm.SelectedTrack;
                 int noteindex = frm.SelStart;

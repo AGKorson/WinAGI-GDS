@@ -2831,7 +2831,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.btnSaveResource.Enabled = !IsChanged;
+            MDIMain.UpdateSaveButton(!IsChanged);
             if (MDIMain.infoGridScope == InfoGridScope.OpenResources) {
                 MDIMain.RefreshInfoGrid();
             }
@@ -3037,8 +3037,7 @@ namespace WinAGI.Editor {
                     EditGame.Views[ViewNumber].Unload();
                     InGame = true;
                     MarkAsSaved();
-                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                    MDIMain.btnAddRemove.Text = "Remove View";
+                    MDIMain.UpdateAddRemoveButton(true, "View", false);
                 }
             }
         }
@@ -5043,7 +5042,7 @@ namespace WinAGI.Editor {
             }
             if (!IsChanged) {
                 IsChanged = true;
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
         }
@@ -5058,7 +5057,7 @@ namespace WinAGI.Editor {
                 Text += CompactPath(EditView.ResFile, 75);
             }
             mnuRSave.Enabled = false;
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
         #endregion
 

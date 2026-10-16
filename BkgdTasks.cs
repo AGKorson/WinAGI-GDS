@@ -9,7 +9,6 @@ using WinAGI.Engine;
 using static WinAGI.Common.Base;
 using static WinAGI.Editor.Base;
 using static WinAGI.Engine.AGIGame;
-using static WinAGI.Engine.AGIResType;
 
 namespace WinAGI.Common {
 
@@ -132,18 +131,7 @@ namespace WinAGI.Common {
                     // show resource tree pane
                     MDIMain.ShowResTree();
                 }
-                switch (WinAGISettings.ResListType.Value) {
-                case ResListType.TreeList:
-                    // select root
-                    MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
-                    break;
-                case ResListType.ComboList:
-                    // select root
-                    MDIMain.cmbResType.SelectedIndex = 0;
-                    // update selected resource
-                    MDIMain.SelectResource(Game, -1);
-                    break;
-                }
+                MDIMain.SelectRootNode();
                 // show selection in preview, if needed
                 if (WinAGISettings.ShowPreview.Value) {
                     PreviewWin.Show();
@@ -317,15 +305,7 @@ namespace WinAGI.Common {
                     MDIMain.ShowResTree();
                 }
                 // setting reslist type will also show PreviewWin if needed
-                switch (WinAGISettings.ResListType.Value) {
-                case ResListType.TreeList:
-                    MDIMain.tvwResources.SelectedNode = MDIMain.tvwResources.Nodes[0];
-                    break;
-                case ResListType.ComboList:
-                    MDIMain.cmbResType.SelectedIndex = 0;
-                    MDIMain.SelectResource(Game, -1);
-                    break;
-                }
+                MDIMain.SelectRootNode();
                 if (updating) {
                     MDIMain.MsgBoxWithHelp(
                         "This game was last opened with an older version of WinAGI. " +

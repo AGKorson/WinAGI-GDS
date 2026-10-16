@@ -1175,7 +1175,7 @@ namespace WinAGI.Editor {
             // set caption
             Text = "AGI Menu Editor - " + EditGame.GameID;
             // disable menu and toolbar button
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
 
         public void CopyMenuToClipboard() {
@@ -2208,7 +2208,7 @@ namespace WinAGI.Editor {
                 IsChanged = true;
 
                 // enable menu and toolbar button
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
         }

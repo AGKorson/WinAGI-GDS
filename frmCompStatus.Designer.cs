@@ -131,7 +131,6 @@ namespace WinAGI.Editor {
             StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             Text = "Rebuilding VOL files";
             TopMost = true;
-            WinAGI.Editor.Base.MDIMain.UseWaitCursor = true;
             KeyDown += frmCompStatus_KeyDown;
             ResumeLayout(false);
         }

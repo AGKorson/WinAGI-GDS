@@ -4814,7 +4814,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.btnSaveResource.Enabled = !IsChanged;
+            MDIMain.UpdateSaveButton(!IsChanged);
 
             // enable stepdrawing
             EditPicture.StepDraw = true;
@@ -5107,8 +5107,7 @@ namespace WinAGI.Editor {
                     EditGame.Pictures[PictureNumber].Unload();
                     InGame = true;
                     MarkAsSaved();
-                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                    MDIMain.btnAddRemove.Text = "Remove Picture";
+                    MDIMain.UpdateAddRemoveButton(true, "Picture", false);
                     SetCodePage(EditGame.CodePage);
                 }
             }
@@ -9995,22 +9994,22 @@ namespace WinAGI.Editor {
             }
             else {
                 // get test view from file
-                MDIMain.OpenDlg.FileName = "";
-                MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
-                MDIMain.OpenDlg.Title = "Choose Test Vie";
-                MDIMain.OpenDlg.Filter = "WinAGI View Resource files (*.agv)|*.agv|All files (*.*)|*.*";
-                MDIMain.OpenDlg.DefaultExt = "";
-                MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Views", sOPENFILTER, 1);
-                if (MDIMain.OpenDlg.ShowDialog() == DialogResult.Cancel) {
+                OpenDlg.FileName = "";
+                OpenDlg.InitialDirectory = DefaultResDir;
+                OpenDlg.Title = "Choose Test Vie";
+                OpenDlg.Filter = "WinAGI View Resource files (*.agv)|*.agv|All files (*.*)|*.*";
+                OpenDlg.DefaultExt = "";
+                OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Views", sOPENFILTER, 1);
+                if (OpenDlg.ShowDialog() == DialogResult.Cancel) {
                     // user canceled
                     return;
                 }
                 else {
                     string section = "Views";
-                    WinAGISettingsFile.WriteSetting(section, sOPENFILTER, MDIMain.OpenDlg.FilterIndex);
-                    DefaultResDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
+                    WinAGISettingsFile.WriteSetting(section, sOPENFILTER, OpenDlg.FilterIndex);
+                    DefaultResDir = Path.GetDirectoryName(OpenDlg.FileName);
                 }
-                TestViewFile = MDIMain.OpenDlg.FileName;
+                TestViewFile = OpenDlg.FileName;
             }
 
             // reload testview
@@ -10445,7 +10444,7 @@ namespace WinAGI.Editor {
         /// <param name="glyph"></param>
         /// <param name="fgColor"></param>
         /// <param name="bgColor"></param>
-        private void RecolorGlyph(Bitmap glyph, Color fgColor, Color bgColor) {
+        private static void RecolorGlyph(Bitmap glyph, Color fgColor, Color bgColor) {
             for (int y = 0; y < glyph.Height; y++) {
                 for (int x = 0; x < glyph.Width; x++) {
                     Color pixelColor = glyph.GetPixel(x, y);
@@ -10586,7 +10585,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
         }
@@ -10604,7 +10603,7 @@ namespace WinAGI.Editor {
             else {
                 Text += CompactPath(EditPicture.ResFile);
             }
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
         #endregion
     }

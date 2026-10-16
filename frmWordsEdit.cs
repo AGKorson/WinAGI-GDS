@@ -211,17 +211,17 @@ namespace WinAGI.Editor {
             DialogResult MergeReplace = DialogResult.No;
             int addcount = 0, replacecount = 0;
 
-            MDIMain.OpenDlg.Title = "Merge Vocabulary Words File";
-            MDIMain.OpenDlg.Filter = "WORDS.TOK file|WORDS.TOK|All files (*.*)|*.*";
-            MDIMain.OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Words", sOPENFILTER, 1);
-            MDIMain.OpenDlg.DefaultExt = "";
-            MDIMain.OpenDlg.FileName = "";
-            MDIMain.OpenDlg.InitialDirectory = DefaultResDir;
-            if (MDIMain.OpenDlg.ShowDialog() != DialogResult.OK) {
+            OpenDlg.Title = "Merge Vocabulary Words File";
+            OpenDlg.Filter = "WORDS.TOK file|WORDS.TOK|All files (*.*)|*.*";
+            OpenDlg.FilterIndex = WinAGISettingsFile.GetSetting("Words", sOPENFILTER, 1);
+            OpenDlg.DefaultExt = "";
+            OpenDlg.FileName = "";
+            OpenDlg.InitialDirectory = DefaultResDir;
+            if (OpenDlg.ShowDialog() != DialogResult.OK) {
                 return;
             }
-            WinAGISettingsFile.WriteSetting("Words", sOPENFILTER, MDIMain.OpenDlg.FilterIndex);
-            DefaultResDir = Path.GetDirectoryName(MDIMain.OpenDlg.FileName);
+            WinAGISettingsFile.WriteSetting("Words", sOPENFILTER, OpenDlg.FilterIndex);
+            DefaultResDir = Path.GetDirectoryName(OpenDlg.FileName);
 
             ProgressWin = new(this) {
                 Text = "Merging from File"
@@ -237,14 +237,14 @@ namespace WinAGI.Editor {
 
             // load the merge list
             try {
-                MergeList = new(MDIMain.OpenDlg.FileName, false);
+                MergeList = new(OpenDlg.FileName, false);
                 ProgressWin.pgbStatus.Maximum = MergeList.WordCount;
             }
             catch (Exception ex) {
                 ProgressWin.Close();
                 ErrMsgBox(ex,
                     "An error occurred while trying to load " +
-                    Path.GetFileName(MDIMain.OpenDlg.FileName) + ":",
+                    Path.GetFileName(OpenDlg.FileName) + ":",
                     ex.StackTrace + "Unable to merge the file.",
                     "Merge Word List Error");
                 MDIMain.UseWaitCursor = false;
@@ -1967,7 +1967,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.btnSaveResource.Enabled = !IsChanged;
+            MDIMain.UpdateSaveButton(!IsChanged);
             return true;
         }
 
@@ -3640,7 +3640,7 @@ namespace WinAGI.Editor {
             if (!IsChanged) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
             tbbUndo.Enabled = UndoCol.Count > 0;
@@ -3658,7 +3658,7 @@ namespace WinAGI.Editor {
                 Text += CompactPath(Filename, 75);
             }
             mnuRSave.Enabled = false;
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
         #endregion
     }

@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.97
+        Version 3.0.0beta.98
     ==============================
 
 
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.98:
+- refactored main form to encapsulate control modifications for better maintainability
+
 Beta.97:
 - fixed dialogs for exporting resources to show correct label text on the dialog
 - fixed minor bug in resource remove from game functions

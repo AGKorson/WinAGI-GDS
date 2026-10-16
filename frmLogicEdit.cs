@@ -2796,7 +2796,7 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.btnSaveResource.Enabled = !IsChanged;
+            MDIMain.UpdateSaveButton(!IsChanged);
             if (WinAGISettings.MaximizeLogics.Value) {
                 WindowState = FormWindowState.Maximized;
             }
@@ -2876,8 +2876,8 @@ namespace WinAGI.Editor {
                 Text = CHG_MARKER + Text;
             }
             mnuRSave.Enabled = !IsChanged;
-            MDIMain.btnSaveResource.Enabled = !IsChanged;
-            MDIMain.btnAddRemove.Enabled = TextFilename.Length > 0;
+            MDIMain.UpdateSaveButton(!IsChanged);
+            MDIMain.UpdateAddRemoveButton(TextFilename.Length > 0, "Include", !InGame);
             // maximize, if that's the current setting
             if (WinAGISettings.MaximizeLogics.Value) {
                 WindowState = FormWindowState.Maximized;
@@ -2897,29 +2897,29 @@ namespace WinAGI.Editor {
             DialogResult rtn;
 
             if (filename.Length != 0) {
-                MDIMain.SaveDlg.Title = "Save Text File";
-                MDIMain.SaveDlg.FileName = Path.GetFileName(filename);
+                SaveDlg.Title = "Save Text File";
+                SaveDlg.FileName = Path.GetFileName(filename);
             }
             else {
-                MDIMain.SaveDlg.Title = "Save Text File As";
-                MDIMain.SaveDlg.FileName = "";
+                SaveDlg.Title = "Save Text File As";
+                SaveDlg.FileName = "";
             }
-            MDIMain.SaveDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-            MDIMain.SaveDlg.FilterIndex = 1;
-            MDIMain.SaveDlg.DefaultExt = "txt";
-            MDIMain.SaveDlg.CheckPathExists = true;
-            MDIMain.SaveDlg.ExpandedMode = true;
-            MDIMain.SaveDlg.ShowHiddenFiles = false;
-            MDIMain.SaveDlg.OverwritePrompt = true;
-            MDIMain.SaveDlg.OkRequiresInteraction = true;
-            MDIMain.SaveDlg.InitialDirectory = DefaultResDir;
-            rtn = MDIMain.SaveDlg.ShowDialog(MDIMain);
+            SaveDlg.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+            SaveDlg.FilterIndex = 1;
+            SaveDlg.DefaultExt = "txt";
+            SaveDlg.CheckPathExists = true;
+            SaveDlg.ExpandedMode = true;
+            SaveDlg.ShowHiddenFiles = false;
+            SaveDlg.OverwritePrompt = true;
+            SaveDlg.OkRequiresInteraction = true;
+            SaveDlg.InitialDirectory = DefaultResDir;
+            rtn = SaveDlg.ShowDialog(MDIMain);
             if (rtn == DialogResult.Cancel) {
                 // nothing selected
                 return "";
             }
-            DefaultResDir = Path.GetDirectoryName(MDIMain.SaveDlg.FileName);
-            return MDIMain.SaveDlg.FileName;
+            DefaultResDir = Path.GetDirectoryName(SaveDlg.FileName);
+            return SaveDlg.FileName;
         }
 
         internal void ImportLogic(string importfile) {
@@ -3071,11 +3071,13 @@ namespace WinAGI.Editor {
             else if (EditLogic.SourceFile.Length != 0) {
                 // preserve all extended characters by using default codepage
                 rtfLogic1.SaveToFile(EditLogic.SourceFile, Encoding.Default);
+                MDIMain.UpdateAddRemoveButton(true, "Logic", true);
             }
             else {
                 // not in a game, and no sourcefile assigned yet -
                 MDIMain.UseWaitCursor = false;
                 ExportLogic();
+                MDIMain.UpdateAddRemoveButton(EditLogic.SourceFile.Length > 0, "Logic", true);
                 return;
             }
             UpdateStatusBar();
@@ -3107,7 +3109,7 @@ namespace WinAGI.Editor {
             rtfLogic1.SaveToFile(filename, Encoding.Default);
             TextFilename = filename;
             // adding now allowed
-            MDIMain.btnAddRemove.Enabled = true;
+            MDIMain.UpdateAddRemoveButton(true, "Include", !InGame);
             // if ingame, force lookup refresh
             if (InGame) {
                 foreach (var form in LogicEditors) {
@@ -3287,8 +3289,7 @@ namespace WinAGI.Editor {
                         EditGame.Logics[LogicNumber].Unload();
                         InGame = true;
                         MarkAsSaved();
-                        MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                        MDIMain.btnAddRemove.Text = "Remove Logic";
+                        MDIMain.UpdateAddRemoveButton(true, "Logic", false);
                         UpdateExitInfo(UpdateReason.ShowRoom, LogicNumber, EditLogic);
                     }
                 }
@@ -3306,8 +3307,7 @@ namespace WinAGI.Editor {
                         m.Filename.Equals(TextFilename, StringComparison.OrdinalIgnoreCase));
                     IncludeDefines.Remove(TextFilename);
                     EditGame.IncludeFiles.Remove(includeinfo);
-                    MDIMain.btnAddRemove.Image = EditorResources.tbAdd;
-                    MDIMain.btnAddRemove.Text = "Add Include";
+                    MDIMain.UpdateAddRemoveButton(true, "Include", true);
                     // rebuild include file list in tree (because numbers won't always align
                     // after deleting a file)
                     MDIMain.RefreshIncludeList();
@@ -3339,8 +3339,7 @@ namespace WinAGI.Editor {
                         form.DefChanged = true;
                         form.ListChanged = true;
                     }
-                    MDIMain.btnAddRemove.Image = EditorResources.tbRemove;
-                    MDIMain.btnAddRemove.Text = "Remove Include";
+                    MDIMain.UpdateAddRemoveButton(true, "Include", false);
                     MDIMain.RefreshIncludeList();
                     InGame = true;
 
@@ -4840,7 +4839,7 @@ namespace WinAGI.Editor {
             if (!IsChanged && (rtfLogic1.IsChanged || rtfLogic2.IsChanged)) {
                 IsChanged = true;
                 mnuRSave.Enabled = true;
-                MDIMain.btnSaveResource.Enabled = true;
+                MDIMain.UpdateSaveButton(true);
                 Text = CHG_MARKER + Text;
             }
             btnUndo.Enabled = rtfLogic1.UndoEnabled;
@@ -4864,7 +4863,7 @@ namespace WinAGI.Editor {
             IsChanged = false;
             rtfLogic1.IsChanged = false;
             mnuRSave.Enabled = false;
-            MDIMain.btnSaveResource.Enabled = false;
+            MDIMain.UpdateSaveButton(false);
         }
         #endregion
     }

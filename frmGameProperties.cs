@@ -691,26 +691,26 @@ namespace WinAGI.Editor {
         private void ChangePlatformApp() {
             // get a platform executable that will run a game
             if (NewPlatformFile.Length == 0) {
-                MDIMain.OpenDlg.FileName = "";
+                OpenDlg.FileName = "";
                 if (EditGame is not null) {
-                    MDIMain.OpenDlg.InitialDirectory = EditGame.GameDir;
+                    OpenDlg.InitialDirectory = EditGame.GameDir;
                 }
                 else {
-                    MDIMain.OpenDlg.InitialDirectory = BrowserStartDir;
+                    OpenDlg.InitialDirectory = BrowserStartDir;
                 }
             }
             else {
-                MDIMain.OpenDlg.FileName = Path.GetFileName(NewPlatformFile);
-                MDIMain.OpenDlg.InitialDirectory = Path.GetDirectoryName(NewPlatformFile);
+                OpenDlg.FileName = Path.GetFileName(NewPlatformFile);
+                OpenDlg.InitialDirectory = Path.GetDirectoryName(NewPlatformFile);
             }
-            MDIMain.OpenDlg.Title = "Choose Platform Application";
-            MDIMain.OpenDlg.ShowReadOnly = false;
-            MDIMain.OpenDlg.RestoreDirectory = true;
-            MDIMain.OpenDlg.Filter = "Executables (*.exe; *.com)|*.exe;*.com|All files (*.*)|*.*";
-            MDIMain.OpenDlg.FilterIndex = 1;
-            if (MDIMain.OpenDlg.ShowDialog(MDIMain) == DialogResult.OK) {
+            OpenDlg.Title = "Choose Platform Application";
+            OpenDlg.ShowReadOnly = false;
+            OpenDlg.RestoreDirectory = true;
+            OpenDlg.Filter = "Executables (*.exe; *.com)|*.exe;*.com|All files (*.*)|*.*";
+            OpenDlg.FilterIndex = 1;
+            if (OpenDlg.ShowDialog() == DialogResult.OK) {
                 // save this directory/filename combo
-                NewPlatformFile = MDIMain.OpenDlg.FileName;
+                NewPlatformFile = OpenDlg.FileName;
                 txtPlatformFile.Text = NewPlatformFile;
             }
             // enable ok if an ID and directory have been chosen
@@ -752,15 +752,15 @@ namespace WinAGI.Editor {
                 BrowserStartDir = DisplayDir;
             }
             // get a directory from which to load a game
-            MDIMain.FolderDlg.Description = "Select a directory for this new game:";
-            MDIMain.FolderDlg.AddToRecent = false;
-            MDIMain.FolderDlg.InitialDirectory = BrowserStartDir;
-            MDIMain.FolderDlg.SelectedPath = "";
-            MDIMain.FolderDlg.OkRequiresInteraction = true;
-            MDIMain.FolderDlg.ShowNewFolderButton = true;
+            FolderDlg.Description = "Select a directory for this new game:";
+            FolderDlg.AddToRecent = false;
+            FolderDlg.InitialDirectory = BrowserStartDir;
+            FolderDlg.SelectedPath = "";
+            FolderDlg.OkRequiresInteraction = true;
+            FolderDlg.ShowNewFolderButton = true;
 
-            if (MDIMain.FolderDlg.ShowDialog() == DialogResult.OK) {
-                DisplayDir = MDIMain.FolderDlg.SelectedPath;
+            if (FolderDlg.ShowDialog() == DialogResult.OK) {
+                DisplayDir = FolderDlg.SelectedPath;
                 txtGameDir.Text = DisplayDir;
                 BrowserStartDir = DisplayDir;
             }
