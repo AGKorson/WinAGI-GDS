@@ -5990,7 +5990,7 @@ namespace WinAGI.Editor {
             }
 
             // update resource list
-            MDIMain.UpdateResourceList(ResType, NewResNum, OldResNum, caption);
+            MDIMain.UpdateResourceList(ResType, OldResNum, NewResNum, caption);
 
             if (EditGame.IncludeIDs) {
                 // check for logics using the old ID, replace them if newID is different,

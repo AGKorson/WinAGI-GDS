@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.98
+        Version 3.0.0beta.99
     ==============================
 
 
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.99:
+- fixed bug in RemoveResource function that was incorrectly handling treelist update
+
 Beta.98:
 - refactored main form to encapsulate control modifications for better maintainability
 
