@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.99
+        Version 3.0.0beta.100
     ==============================
 
 
@@ -34,6 +34,15 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.100:
+- refactored audio player to provide cleaner playback of notes when using keyboard in sound editor
+- moved right-keyboard-scroll button on sound editor to the right side of the form
+- fixed minor bug in sound editor that caused the keyboard to not always display correctly when the form is resized
+- refactored sound editor to eliminate graphics related memory leaks
+- cleaned up note display functions in sound editor
+- fixed bug in sound editor that was not allowing last note in a track to be deleted
+- fixed bug in sound editor to correctly update scrollbars after changing a note length in the property grid
+
 Beta.99:
 - fixed bug in RemoveResource function that was incorrectly handling treelist update
 

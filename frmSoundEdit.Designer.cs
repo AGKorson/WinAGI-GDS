@@ -6,17 +6,6 @@ namespace WinAGI.Editor {
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing) {
-            if (disposing && (components != null)) {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         #region Windows Form Designer generated code
 
         /// <summary>
@@ -343,6 +332,7 @@ namespace WinAGI.Editor {
             tvwSound.Dock = System.Windows.Forms.DockStyle.Fill;
             tvwSound.DrawMode = System.Windows.Forms.TreeViewDrawMode.OwnerDrawText;
             tvwSound.HideSelection = false;
+            tvwSound.IsInsertion = false;
             tvwSound.Location = new System.Drawing.Point(0, 0);
             tvwSound.Name = "tvwSound";
             treeNode1.Name = "Node5";
@@ -364,7 +354,6 @@ namespace WinAGI.Editor {
             treeNode9.Name = "Node0";
             treeNode9.Text = "soundid";
             tvwSound.Nodes.AddRange(new System.Windows.Forms.TreeNode[] { treeNode9 });
-            tvwSound.IsInsertion = false;
             tvwSound.ShowRootLines = false;
             tvwSound.Size = new System.Drawing.Size(130, 105);
             tvwSound.TabIndex = 3;
@@ -377,7 +366,7 @@ namespace WinAGI.Editor {
             tvwSound.KeyUp += tvwSound_KeyUp;
             tvwSound.MouseUp += tvwSound_MouseUp;
             // 
-            // contextMenuStrip1
+            // cmEdit
             // 
             cmEdit.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { mnuUndo, toolStripSeparator1, mnuCut, mnuCopy, mnuPaste, mnuDelete, mnuSelectAll, mnuClear, toolStripSeparator2, mnuToneUp, mnuToneDown, mnuVolumeUp, mnuVolumeDown, toolStripSeparator3, mnuKeyboard, mnuNoKybdSound, mnuOneTrack });
             cmEdit.Name = "contextMenuStrip1";
@@ -877,7 +866,7 @@ namespace WinAGI.Editor {
             // 
             picKeyboard.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
             picKeyboard.BackColor = System.Drawing.Color.White;
-            picKeyboard.Location = new System.Drawing.Point(34, 0);
+            picKeyboard.Location = new System.Drawing.Point(17, 0);
             picKeyboard.Name = "picKeyboard";
             picKeyboard.Size = new System.Drawing.Size(334, 66);
             picKeyboard.TabIndex = 5;
@@ -926,9 +915,9 @@ namespace WinAGI.Editor {
             // 
             // btnKybdRight
             // 
-            btnKybdRight.Dock = System.Windows.Forms.DockStyle.Left;
+            btnKybdRight.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right;
             btnKybdRight.Image = (System.Drawing.Image)resources.GetObject("btnKybdRight.Image");
-            btnKybdRight.Location = new System.Drawing.Point(17, 0);
+            btnKybdRight.Location = new System.Drawing.Point(351, 0);
             btnKybdRight.Name = "btnKybdRight";
             btnKybdRight.Size = new System.Drawing.Size(17, 66);
             btnKybdRight.TabIndex = 1;

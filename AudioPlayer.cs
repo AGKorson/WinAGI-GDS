@@ -1,6 +1,7 @@
 ﻿using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -316,12 +317,12 @@ namespace WinAGI.Engine {
         /// <summary>
         /// NAudio output device that will play the generated WAVE data.
         /// </summary>
-        private IWavePlayer outputDevice;
+        private readonly IWavePlayer outputDevice;
 
         /// <summary>
         /// NAudio ISampleProvider that mixes multiple sounds together.
         /// </summary>
-        private MixingSampleProvider mixer;
+        private readonly MixingSampleProvider mixer;
 
         private SoundFormat soundFormat;
 
@@ -635,7 +636,7 @@ namespace WinAGI.Engine {
             #region Fields
             private const float IBM_PCJR_CLOCK = 3579545f;
 
-            private static float[] volumeTable = [
+            private static readonly float[] volumeTable = [
                 8191.5f,
                 6506.73973474395f,
                 5168.4870873095f,
@@ -653,13 +654,13 @@ namespace WinAGI.Engine {
                 326.109488758897f,
                 0.0f
             ];
-            private int[] channelVolume = [15, 15, 15, 15];
-            private int[] channelCounterReload = new int[4];
-            private int[] channelCounter = new int[4];
-            private int[] channelOutput = new int[4];
+            private readonly int[] channelVolume = [15, 15, 15, 15];
+            private readonly int[] channelCounterReload = new int[4];
+            private readonly int[] channelCounter = new int[4];
+            private readonly int[] channelOutput = new int[4];
             private uint lfsr;
             private uint latchedChannel;
-            private float ticksPerSample;
+            private readonly float ticksPerSample;
             private float ticksCount;
             #endregion
 
@@ -851,7 +852,7 @@ namespace WinAGI.Engine {
         private nint hMidi = IntPtr.Zero;
         private bool isPlaying = false;
         private bool disposed = false;
-        private int playnote = 0;
+        private int currentNote = -1;
 
         public MidiNotePlayer() {
             // don't initialize MIDI here
@@ -895,18 +896,17 @@ namespace WinAGI.Engine {
             // change instrument
             _ = midiOutShortMsg(hMidi, instrument);
             // send note on
-            playnote = note; // 0x7F is the velocity, 0x90 is the note on message
+            currentNote = note; // 0x7F is the velocity, 0x90 is the note on message
             _ = midiOutShortMsg(hMidi, note * 0x100 + 0x7F0090);
             isPlaying = true;
         }
 
         public void StopMIDINote() {
-            if (hMidi != 0) {
-                // send note off
-                midiOutShortMsg(hMidi, playnote * 0x100 + 0x80);
-                // reset so other midi actions can be performed
-                midiOutReset(hMidi);
-
+            if (hMidi != IntPtr.Zero) {
+                if (currentNote >= 0) {
+                    // send note off
+                    midiOutShortMsg(hMidi, currentNote * 0x100 + 0x80);
+                }
             }
             isPlaying = false;
         }
@@ -978,22 +978,15 @@ namespace WinAGI.Engine {
     /// A class for playing AGI notes using the PCjr chip emulator.
     /// </summary>
     public class WavNotePlayer : IDisposable {
-        private WaveOutEvent outputDevice;
-        private BufferedWaveProvider waveProvider;
-        private Thread playThread;
-        private bool isPlaying = false;
-        private int currentFreqDivisor = -1;
+        private readonly WaveOutEvent outputDevice;
+        private readonly SN76496WaveProvider provider;
+
         private bool disposed = false;
 
-        private const int SAMPLE_RATE = 44100;
-
         public WavNotePlayer() {
+            provider = new SN76496WaveProvider();
             outputDevice = new WaveOutEvent();
-            waveProvider = new BufferedWaveProvider(new WaveFormat(SAMPLE_RATE, 16, 2)) {
-                BufferLength = SAMPLE_RATE * 4, // 2 seconds buffer
-                DiscardOnBufferOverflow = true
-            };
-            outputDevice.Init(waveProvider);
+            outputDevice.Init(provider);
             outputDevice.Play();
         }
 
@@ -1001,97 +994,137 @@ namespace WinAGI.Engine {
         /// Starts playing a note with the given FreqDivisor.
         /// </summary>
         public void PlayWavNote(int freqDivisor, int channel = 0, int attenuation = 0) {
-            StopWavNote();
-            isPlaying = true;
-            currentFreqDivisor = freqDivisor;
-
-            playThread = new Thread(() => PlaySN76496Tone(freqDivisor, channel, attenuation)) {
-                IsBackground = true
-            };
-            playThread.Start();
-
-            outputDevice.Play();
+            provider.StartTone(freqDivisor,channel, attenuation);
         }
 
         /// <summary>
         /// Stops the currently playing note.
         /// </summary>
         public void StopWavNote() {
-            isPlaying = false;
-            if (playThread is not null && playThread.IsAlive) {
-                playThread.Join();
-                playThread = null;
-            }
-            waveProvider.ClearBuffer();
-            outputDevice.Stop();
-        }
-
-        /// <summary>
-        /// Generates and streams a tone using the SN76496 emulation.
-        /// </summary>
-        private void PlaySN76496Tone(int freqDivisor, int channel = 0, int attenuation = 0) {
-            // Set up SN76496 for a single note on channel 0, attenuation 0 (loudest)
-            var psg = new WAVPlayer.SN76496();
-
-            if (channel < 3) {
-                // First byte: 1RR0FFFF (R=channel, F=low 4 bits of freqDivisor)
-                int firstByte = 0x80 | ((0 & 0x03) << 5) | (0 << 4) | (freqDivisor & 0x0F);
-                // Second byte: 0XXXXXXX (X=high 6 bits of freqDivisor)
-                int secondByte = (freqDivisor >> 4) & 0x3F;
-                // Write attenuation for channel 0 (0=loudest)
-                int attnByte = 0x90 | (0 & 0x03) << 5 | (attenuation & 0x0F);
-                psg.Write(firstByte);
-                psg.Write(secondByte);
-                psg.Write(attnByte);
-            }
-            else {
-                // Noise channel (3)
-                // freqDivisor: bits 0-1 = frequency, bit 2 = noise type (0=periodic, 1=white)
-                // SN76496 expects: 1 1 0 0 N T F F (N=noise type, T/F=frequency bits)
-                // Command byte: 0xE0 | (freqDivisor & 0x07)
-                int noiseByte = 0xE0 | (freqDivisor & 0x07);
-                int attnByte = 0xF0 | (attenuation & 0x0F);
-
-                psg.Write(noiseByte);
-                psg.Write(attnByte);
-            }
-
-            int samplesPerBuffer = SAMPLE_RATE / 10; // 0.1s buffer
-            short[] buffer = new short[samplesPerBuffer * 2]; // stereo
-
-            while (isPlaying) {
-                for (int i = 0; i < samplesPerBuffer; i++) {
-                    // Render returns a float; scale to 16-bit PCM
-                    float sampleF = psg.Render();
-                    short sample = (short)Math.Clamp(sampleF, short.MinValue, short.MaxValue);
-                    buffer[i * 2] = sample;     // Left
-                    buffer[i * 2 + 1] = sample; // Right
-                }
-                byte[] byteBuffer = new byte[buffer.Length * 2];
-                Buffer.BlockCopy(buffer, 0, byteBuffer, 0, byteBuffer.Length);
-                waveProvider.AddSamples(byteBuffer, 0, byteBuffer.Length);
-                Thread.Sleep(100); // match buffer duration
-            }
+            provider.StopTone();
         }
 
         public void Dispose() {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing) {
             if (!disposed) {
-                if (disposing) {
-                    StopWavNote();
-                    outputDevice.Dispose();
-                }
                 disposed = true;
+                outputDevice?.Dispose();
+                GC.SuppressFinalize(this);
+            }
+        }
+    }
+
+    public class SN76496WaveProvider : IWaveProvider {
+        #region Members
+        private const int SAMPLE_RATE = 44100;
+        private readonly WaveFormat waveFormat;
+        private WAVPlayer.SN76496 psg;
+        // Lock object to synchronize access to the SN76496WaveProvider instance
+        private readonly object lockObj = new();
+        private bool noteEnabled;
+        private bool stopPending;
+        // Minimum note length = 20ms
+        private int minimumSamplesRemaining;
+        #endregion
+
+        #region Constructors
+        public SN76496WaveProvider() {
+            waveFormat = new WaveFormat(SAMPLE_RATE, 16, 2);
+            psg = new WAVPlayer.SN76496();
+        }
+        #endregion
+
+        #region Properties
+        public int MinimumNoteDurationMs { get; set; } = 200;
+
+        public WaveFormat WaveFormat => waveFormat;
+        #endregion
+
+        #region Methods
+        /// <summary>
+        /// Start playing a tone.
+        /// </summary>
+        public void StartTone(int freqDivisor, int channel = 0, int attenuation = 0) {
+            lock (lockObj) {
+                psg = new WAVPlayer.SN76496();
+                if (channel < 3) {
+                    // create bytes for tone channel in the format expected by the SN76496 PSG emulator
+
+                    // First byte: 1RR0FFFF (R=channel, F=low 4 bits of freqDivisor)
+                    int firstByte = 0x80 | ((channel & 0x03) << 5) | (freqDivisor & 0x0F);
+                    // Second byte: 0XXXXXXX (X=high 6 bits of freqDivisor)
+                    int secondByte = (freqDivisor >> 4) & 0x3F;
+                    // Write attenuation for channel 0 (0=loudest)
+                    int attnByte = 0x90 | ((channel & 0x03) << 5) | (attenuation & 0x0F);
+                    psg.Write(firstByte);
+                    psg.Write(secondByte);
+                    psg.Write(attnByte);
+                }
+                else {
+                    int noiseByte = 0xE0 | (freqDivisor & 0x07);
+                    int attnByte = 0xF0 | (attenuation & 0x0F);
+                    psg.Write(noiseByte);
+                    psg.Write(attnByte);
+                }
+                noteEnabled = true;
+                stopPending = false;
+
+                // set minimum samples remaining to ensure the note plays
+                // for at least MinimumNoteDurationMs milliseconds
+                minimumSamplesRemaining = SAMPLE_RATE * MinimumNoteDurationMs / 1000;
             }
         }
 
-        ~WavNotePlayer() {
-            Dispose(false);
+        /// <summary>
+        /// Stop playing.
+        /// </summary>
+        public void StopTone() {
+            lock (lockObj) {
+                stopPending = true;
+            }
         }
+
+        public int Read(byte[] buffer, int offset, int count) {
+            lock (lockObj) {
+                if (!noteEnabled) {
+                    Array.Clear(buffer, offset, count);
+                    return count;
+                }
+                int sampleCount = count / 4; // 16-bit stereo
+
+                for (int i = 0; i < sampleCount; i++) {
+                    short sample = 0;
+                    if (noteEnabled) {
+                        float sampleFloat = psg.Render();
+                        if (minimumSamplesRemaining > 0) {
+                            minimumSamplesRemaining--;
+                        }
+                        else if (stopPending) {
+                            noteEnabled = false;
+                            stopPending = false;
+                        }
+                        sample = (short)Math.Clamp(sampleFloat, short.MinValue, short.MaxValue);
+                    }
+                    int pos = offset + i * 4;
+
+                    // Left
+                    buffer[pos] = (byte)(sample & 0xFF);
+                    buffer[pos + 1] = (byte)(sample >> 8);
+
+                    // Right
+                    buffer[pos + 2] = (byte)(sample & 0xFF);
+                    buffer[pos + 3] = (byte)(sample >> 8);
+                    if (minimumSamplesRemaining > 0) {
+                        minimumSamplesRemaining--;
+                    }
+                    else if (stopPending) {
+                        noteEnabled = false;
+                        stopPending = false;
+                    }
+                }
+            }
+            return count;
+        }
+        #endregion
     }
     #endregion
 
