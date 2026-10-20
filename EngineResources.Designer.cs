@@ -3175,7 +3175,7 @@ namespace WinAGI.Engine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Message %1 is not referenced in logic source code.
+        ///   Looks up a localized string similar to Message %1 is not directly referenced in logic source code.
         /// </summary>
         internal static string DW18 {
             get {

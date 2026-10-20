@@ -2459,6 +2459,7 @@ namespace WinAGI.Engine {
                             sysdefs = sysdefs.Replace("%4", "[");
                             sysdefs = sysdefs.Replace("%5", "[");
                             sysdefs = sysdefs.Replace("%6", "[");
+                            sysdefs = sysdefs.Replace("quit(NUM)", "quit()");
                             break;
                         case AGIVersion.v2272:
                             sysdefs = sysdefs.Replace(ARG1, "");

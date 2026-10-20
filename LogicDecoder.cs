@@ -3706,15 +3706,47 @@ namespace WinAGI.Engine {
                         }
                     }
                     else {
+                        // validate number is within bounds
                         if (num < 0 || num > MAX_CMDS) {
                             retwarn |= 1;
                             break;
                         }
-                        if (args.Length > 0 && args.Contains(VocWrd)) {
+                        // validate argument count matches
+                        if (args.Length != ActionCommands[num].ArgList.Length) {
                             retwarn |= 1;
                             break;
                         }
-                        if (args.Length != ActionCommands[num].ArgList.Length) {
+                        // validate argument types are valid for sierra defines
+                        bool isOK = true;
+                        foreach (var type in args) {
+                            // only valid types for sierra defines are 
+                            // NUM, VAR, FLAG, OBJECT, MSG, WORD, MSGNUM, VIEW, ANY, WORDLIST
+                            // of these, ANY, MSG and WORD should never be used
+                            switch (type) {
+                            case Num:
+                            case Var:
+                            case Flag:
+                            case ArgType.Object:
+                            case MsgNum:
+                            case ArgType.View:
+                            case WORDLIST:
+                                // OK
+                                break;
+
+                            case MSG:
+                            case WORD:
+                            case ANY:
+                                // NOT OK
+                                isOK = false;
+                                break;
+
+                            default:
+                                // ALL OTHERS are als NOT OK
+                                isOK = false;
+                                break;
+                            }
+                        }
+                        if (!isOK) {
                             retwarn |= 1;
                             break;
                         }

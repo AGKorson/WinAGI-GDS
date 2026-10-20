@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.100
+        Version 3.0.0beta.101
     ==============================
 
 
@@ -34,6 +34,10 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.101:
+- fixed bug in Sierra syntax decoder that was not adjusting sysdefs entry for quit command for early versions
+
+
 Beta.100:
 - refactored audio player to provide cleaner playback of notes when using keyboard in sound editor
 - moved right-keyboard-scroll button on sound editor to the right side of the form

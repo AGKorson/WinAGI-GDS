@@ -1130,7 +1130,7 @@
     <value>Word group %1 does not exist in WORDS.TOK</value>
   </data>
   <data name="DW18" xml:space="preserve">
-    <value>Message %1 is not referenced in logic source code</value>
+    <value>Message %1 is not directly referenced in logic source code</value>
   </data>
   <data name="DW19" xml:space="preserve">
     <value>Unable to create separate message file for %1; messages are defined in the source (error: %2)</value>
