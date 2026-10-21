@@ -712,7 +712,7 @@ namespace WinAGI.Engine {
                         if (argToken.Type == nextToken.ArgList[i] ||
                             (argToken.Type == Num && nextToken.ArgList[i] == MsgNum)) {
                             // validate argument value
-                            ValidateArgType(argval, argToken.Type, i);
+                            ValidateArgType(argval, nextToken.ArgList[i] == MsgNum ? MsgNum : argToken.Type, i);
                             arglist[i] = (byte)argval;
                         }
                         else {

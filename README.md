@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.103
+        Version 3.0.0beta.104
     ==============================
 
 
@@ -34,6 +34,10 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.104:
+- fixed bug in Sierra syntax compiler that was not catching missing message declarations
+- fixed bug in logic decoder that crashed WinAGI when decoding a command that uses an undefined message number
+
 Beta.103:
 - when creating sysdefs.h or gamedefs.h in Sierra synntax mode, they are now automatically added to Includes list
 

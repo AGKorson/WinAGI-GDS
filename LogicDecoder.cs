@@ -1549,7 +1549,7 @@ namespace WinAGI.Engine {
             case MsgNum:
                 MsgUsed[argNum] = true;
                 if (MsgExists[argNum]) {
-                    if (MsgsByNumber) {
+                    if (MsgsByNumber || argNum >=MsgList.Count) {
                         return 'm' + argNum.ToString();
                     }
                     else {
