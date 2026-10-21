@@ -1631,6 +1631,7 @@ namespace WinAGI.Editor {
             else {
                 mnuTSearch.Text = "Show Search Tab";
             }
+            mnuTReserved.Enabled = EditGame is not null && (EditGame.IncludeReserved || EditGame.SierraSyntax);
         }
 
         private void mnuTSettings_Click(object sender, EventArgs e) {

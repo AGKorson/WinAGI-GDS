@@ -3324,25 +3324,8 @@ namespace WinAGI.Editor {
                             MessageBoxIcon.Error);
                         return;
                     }
-                    // add it as an 'other' include file
-                    IncludeDefines.Add(TextFilename, new DefineList() { IsChanged = true });
-                    EditGame.IncludeFiles.Add(new IncludeInfo() {
-                        Type = IncludeType.Other,
-                        RelativeName = RelativeToSrcDir(TextFilename, EditGame.SrcResDir),
-                        Filename = TextFilename,
-                    });
-                    // mark all includes as changed
-                    foreach (var include in IncludeDefines) {
-                        include.Value.IsChanged = true;
-                    }
-                    foreach (var form in LogicEditors) {
-                        form.DefChanged = true;
-                        form.ListChanged = true;
-                    }
-                    MDIMain.UpdateAddRemoveButton(true, "Include", false);
-                    MDIMain.RefreshIncludeList();
+                    AddInclude(TextFilename);
                     InGame = true;
-
                 }
                 break;
             }

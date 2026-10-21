@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.102
+        Version 3.0.0beta.103
     ==============================
 
 
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.103:
+- when creating sysdefs.h or gamedefs.h in Sierra synntax mode, they are now automatically added to Includes list
+
 Beta.102:
 - added SierraSyntax as a readonly property to the game property grid
 - changing SierraSyntax value now correctly adjusts the Tool menu item captions to match

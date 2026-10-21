@@ -5718,6 +5718,26 @@ namespace WinAGI.Editor {
             }
         }
 
+        internal static void AddInclude(string filename) {
+            // add it as an 'other' include file
+            IncludeDefines.Add(filename, new DefineList() { IsChanged = true });
+            EditGame.IncludeFiles.Add(new IncludeInfo() {
+                Type = IncludeType.Other,
+                RelativeName = RelativeToSrcDir(filename, EditGame.SrcResDir),
+                Filename = filename,
+            });
+            // mark all includes as changed
+            foreach (var include in IncludeDefines) {
+                include.Value.IsChanged = true;
+            }
+            foreach (var form in LogicEditors) {
+                form.DefChanged = true;
+                form.ListChanged = true;
+            }
+            MDIMain.UpdateAddRemoveButton(true, "Include", false);
+            MDIMain.RefreshIncludeList();
+        }
+
         /// <summary>
         /// Updates the auto-include files in all logic source and open
         /// ingame editors. This is done when the auto-include settings
@@ -9750,9 +9770,11 @@ namespace WinAGI.Editor {
                                     view.Number.ToString().PadLeft(4));
                             }
                             defaultGameDefs = defaultGameDefs.Replace("%7", string.Join(NEWLINE, items));
-
-                            File.WriteAllText(Path.Combine(EditGame.SrcResDir, "gamedefs.h"), defaultGameDefs);
-                            FindTextEditor(Path.Combine(EditGame.SrcResDir, "gamedefs.h"), true, false);
+                            string filename = Path.Combine(EditGame.SrcResDir, "gamedefs.h");
+                            File.WriteAllText(filename, defaultGameDefs);
+                            FindTextEditor(filename, true, false);
+                            // add it to include list
+                            AddInclude(filename);
                         }
                         catch (Exception ex) {
                             ErrMsgBox(ex,
@@ -9948,8 +9970,11 @@ namespace WinAGI.Editor {
                         MessageBoxIcon.Question) == DialogResult.Yes) {
                         try {
                             string defaultSysDefs = EngineResources.SYSDEFS;
-                            File.WriteAllText(Path.Combine(EditGame.SrcResDir, "sysdefs.h"), defaultSysDefs);
-                            FindTextEditor(Path.Combine(EditGame.SrcResDir, "sysdefs.h"), true, false);
+                            string filename = Path.Combine(EditGame.SrcResDir, "sysdefs.h");
+                            File.WriteAllText(filename, defaultSysDefs);
+                            FindTextEditor(filename, true, false);
+                            // add it to include list
+                            AddInclude(filename);
                         }
                         catch (Exception ex) {
                             ErrMsgBox(ex,
