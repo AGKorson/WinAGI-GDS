@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.104
+        Version 3.0.0beta.105
     ==============================
 
 
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.105:
+- fixed bug in most-recent-menu update method
+
 Beta.104:
 - fixed bug in Sierra syntax compiler that was not catching missing message declarations
 - fixed bug in logic decoder that crashed WinAGI when decoding a command that uses an undefined message number

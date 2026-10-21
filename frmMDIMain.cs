@@ -6143,13 +6143,13 @@ namespace WinAGI.Editor {
             for (i = 1; i < 4; i++) {
                 if (NewWAGFile == strMRU[i]) {
                     // delete it by moving others up
-                    for (j = i; j <= 3; j++) {
+                    for (j = i; j < 3; j++) {
                         strMRU[j] = strMRU[j + 1];
                         mnuGame.DropDownItems["mnuGMRU" + j].Text = CompactPath(strMRU[j], 60);
                     }
                     // now delete last entry
                     strMRU[3] = "";
-                    mnuGMRU3.Text = "";
+                    mnuGMRU3.Visible = false;
                     break;
                 }
             }
