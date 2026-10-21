@@ -216,7 +216,7 @@ namespace WinAGI.Common {
         /// <param name="copySubDirs"></param>
         /// <exception cref="DirectoryNotFoundException"></exception>
         /// <exception cref="Exception"></exception>
-        public static void CopyDirectory(string sourceDir, string destDir) {
+        public static void CopyDirectory(string sourceDir, string destDir, bool overwrite = false) {
             try {
                 if (!Directory.Exists(sourceDir)) {
                     throw new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDir);
@@ -225,12 +225,12 @@ namespace WinAGI.Common {
                 // copy files
                 foreach (var file in Directory.GetFiles(sourceDir)) {
                     string destFile = Path.Combine(destDir, Path.GetFileName(file));
-                    File.Copy(file, destFile, false);
+                    File.Copy(file, destFile, overwrite);
                 }
                 // recurse to get subdirectories
                 foreach (var subDir in Directory.GetDirectories(sourceDir)) {
                     string destSubDir = Path.Combine(destDir, Path.GetFileName(subDir));
-                    CopyDirectory(subDir, destSubDir);
+                    CopyDirectory(subDir, destSubDir, overwrite);
                 }
             }
             catch (Exception) {

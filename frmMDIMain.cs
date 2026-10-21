@@ -6450,42 +6450,7 @@ namespace WinAGI.Editor {
             if (!File.Exists(userConfig) && File.Exists(defaultConfig)) {
                 File.Copy(defaultConfig, userConfig);
             }
-            // check other default files; if missing, try copying them from the program directory
-            var filechecks = new List<Action>() {
-                () => {
-                    if (!File.Exists(Path.Combine(AppDataDir, "snippets.txt")) && File.Exists(Path.Combine(ProgramDir, "snippets.txt"))) {
-                        File.Copy(Path.Combine(ProgramDir, "snippets.txt"), Path.Combine(AppDataDir, "snippets.txt"));
-                    }
-                },
-                () => {
-                    if (!File.Exists(Path.Combine(AppDataDir, "deflog.txt")) && File.Exists(Path.Combine(ProgramDir, "deflog.txt"))) {
-                        File.Copy(Path.Combine(ProgramDir, "deflog.txt"), Path.Combine(AppDataDir, "deflog.txt"));
-                    }
-                },
-                () => {
-                    if (!File.Exists(Path.Combine(AppDataDir, "default_menu.txt")) && File.Exists(Path.Combine(ProgramDir, "default_menu.txt"))) {
-                        File.Copy(Path.Combine(ProgramDir, "default_menu.txt"), Path.Combine(AppDataDir, "default_menu.txt"));
-                    }
-                },
-                () => {
-                    // verify template directory exists; if not, create it
-                    string appDataTemplates = Path.Combine(AppDataDir, "Templates");
-                    string programTemplates = Path.Combine(ProgramDir, "Templates");
-                    if (!Directory.Exists(appDataTemplates) && Directory.Exists(programTemplates)) {
-                        CopyDirectory(programTemplates, appDataTemplates);
-                    }
-                }
-            };
-            foreach (var check in filechecks) {
-                try {
-                    check();
-                }
-                catch {
-                    // if any error occurs during the file copy, just ignore it and continue;
-                    // the program can run without these files, and we'll try again next time
-                }
-            }
-            // open the program settings  file
+            // then open the program settings  file
             try {
                 WinAGISettingsFile = new SettingsFile(userConfig, FileMode.OpenOrCreate);
             }
@@ -6516,9 +6481,53 @@ namespace WinAGI.Editor {
                     }
                 }
             }
+            // next check other default files; if missing, try copying them from the program directory
+            var filechecks = new List<Action>() {
+                static () => {
+                    if (!File.Exists(Path.Combine(AppDataDir, "snippets.txt")) && File.Exists(Path.Combine(ProgramDir, "snippets.txt"))) {
+                        File.Copy(Path.Combine(ProgramDir, "snippets.txt"), Path.Combine(AppDataDir, "snippets.txt"));
+                    }
+                },
+                static () => {
+                    if (!File.Exists(Path.Combine(AppDataDir, "deflog.txt")) && File.Exists(Path.Combine(ProgramDir, "deflog.txt"))) {
+                        File.Copy(Path.Combine(ProgramDir, "deflog.txt"), Path.Combine(AppDataDir, "deflog.txt"));
+                    }
+                },
+                static () => {
+                    if (!File.Exists(Path.Combine(AppDataDir, "default_menu.txt")) && File.Exists(Path.Combine(ProgramDir, "default_menu.txt"))) {
+                        File.Copy(Path.Combine(ProgramDir, "default_menu.txt"), Path.Combine(AppDataDir, "default_menu.txt"));
+                    }
+                },
+                static () => {
+                    // check if master template files are present
+                    string programTemplates = Path.Combine(ProgramDir, "Templates");
+                    if (Directory.Exists(programTemplates)) {
+                        // verify template directory exists; if not, create it
+                        string appDataTemplates = Path.Combine(AppDataDir, "Templates");
+                        if (!Directory.Exists(appDataTemplates)) {
+                            WinAGISettingsFile.WriteSetting("General", "TemplateVersion", Application.ProductVersion);
+                            CopyDirectory(programTemplates, appDataTemplates);
+                        }
+                        else if (WinAGISettingsFile.GetSetting("General", "TemplateVersion", "") != Application.ProductVersion) {
+                            WinAGISettingsFile.WriteSetting("General", "TemplateVersion", Application.ProductVersion);
+                            CopyDirectory(programTemplates, appDataTemplates, true);
+                        }
+                    }
+                }
+            };
+            foreach (var check in filechecks) {
+                try {
+                    check();
+                }
+                catch {
+                    // if any error occurs during the file copy, just ignore it and continue;
+                    // the program can run without these files, and we'll try again next time
+                }
+            }
+
+            // finally, get all relevant settings from the settings file
             WinAGISettings.ErrorLevel.ReadSetting(WinAGISettingsFile);
             ErrorLevel = WinAGISettings.ErrorLevel.Value;
-
 
             // WARNINGS
             WinAGISettings.RenameWAG.ReadSetting(WinAGISettingsFile);

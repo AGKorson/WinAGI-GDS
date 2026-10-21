@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.105
+        Version 3.0.0beta.106
     ==============================
 
 
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.106:
+- refactored startup function to force templates to reset to latest version when game version changes
+
 Beta.105:
 - fixed bug in most-recent-menu update method
 
