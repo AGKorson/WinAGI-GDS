@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.101
+        Version 3.0.0beta.102
     ==============================
 
 
@@ -34,9 +34,13 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.102:
+- added SierraSyntax as a readonly property to the game property grid
+- changing SierraSyntax value now correctly adjusts the Tool menu item captions to match
+- fixed bug in property setter for GameID in property grid when not using reserved names
+
 Beta.101:
 - fixed bug in Sierra syntax decoder that was not adjusting sysdefs entry for quit command for early versions
-
 
 Beta.100:
 - refactored audio player to provide cleaner playback of notes when using keyboard in sound editor

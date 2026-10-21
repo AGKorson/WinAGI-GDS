@@ -6281,6 +6281,7 @@ namespace WinAGI.Editor {
                 EditGame.IncludeReserved = propForm.chkResDefs.Checked;
                 EditGame.IncludeGlobals = propForm.chkGlobals.Checked;
             }
+            UpdateTBGameBtns();
             // update global list if it changed
             if (useglobal != EditGame.IncludeGlobals) {
                 if (EditGame.IncludeGlobals) {

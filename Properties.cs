@@ -21,11 +21,10 @@ namespace WinAGI.Editor {
                 return EditGame.GameID;
             }
             set {
-                if (ChangeGameID(value)) {
+                if (ChangeGameID(value) && EditGame.IncludeReserved) {
                     // mark any logics that use the gameID token as changed
                     UpdateReservedToken(EditGame.ReservedDefines.GameInfo[0].Name);
                     EditGame.ReservedDefines.GameInfo[0].Value = '"' + EditGame.GameID + '"';
-
                 }
             }
         }
@@ -92,6 +91,10 @@ namespace WinAGI.Editor {
                 EditGame.UseLE = value;
                 UpdateLEStatus();
             }
+        }
+
+        public bool SierraSyntax {
+            get => EditGame.SierraSyntax;
         }
 
         public DateTime LastEdit {
