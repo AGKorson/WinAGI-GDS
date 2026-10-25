@@ -424,11 +424,12 @@ namespace WinAGI.Engine {
             CorrectCommands(fcompGame.agIntVersion.Index);
 
             // refresh  values for game specific reserved defines
-            fcompGame.agReservedDefines.GameInfo[0].Value = "\"" + fcompGame.agGameID + "\"";
-            fcompGame.agReservedDefines.GameInfo[1].Value = "\"" + fcompGame.agGameVersion + "\"";
-            fcompGame.agReservedDefines.GameInfo[2].Value = "\"" + fcompGame.agGameAbout + "\"";
-            fcompGame.agReservedDefines.GameInfo[3].Value = (fcompGame.InvObjects.Count).ToString();
-
+            if (fcompGame is not null && fcompGame.IncludeReserved) {
+                fcompGame.agReservedDefines.GameInfo[0].Value = "\"" + fcompGame.agGameID + "\"";
+                fcompGame.agReservedDefines.GameInfo[1].Value = "\"" + fcompGame.agGameVersion + "\"";
+                fcompGame.agReservedDefines.GameInfo[2].Value = "\"" + fcompGame.agGameAbout + "\"";
+                fcompGame.agReservedDefines.GameInfo[3].Value = (fcompGame.InvObjects.Count).ToString();
+            }
             // get source text by lines as a list of strings
             stlSource = compLogic.SourceText.SplitLines();
             complogicNumber = compLogic.Number;
@@ -888,6 +889,9 @@ namespace WinAGI.Engine {
         /// </summary>
         /// <param name="argval"></param>
         private static void CheckResFlagUse(byte argval) {
+            if (fcompGame is null || !fcompGame.IncludeReserved) {
+                return;
+            }
             if (ErrorLevel == Low) {
                 return;
             }
@@ -4802,16 +4806,20 @@ namespace WinAGI.Engine {
                     // next character must be ")"
                     if (!CheckChar(')')) {
                         AddError(4084, false);
-                        // skip to next closing ')' 
-                        int p = currentLine.IndexOf(')', charPos);
-                        if (p > 0) {
-                            charPos = p;
-                        }
-                        else {
-                            // skip to end of line
-                            charPos = currentLine.Length - 1;
-                            if (currentLine[^1] == ';') {
-                                charPos--;
+                        // if charPos is not valid, means already at end of line
+                        // (or beginning of a new line, which is the same here)
+                        if (charPos >= 0 && charPos < currentLine.Length) {
+                            // skip to next closing ')' 
+                            int p = currentLine.IndexOf(')', charPos);
+                            if (p > 0) {
+                                charPos = p;
+                            }
+                            else {
+                                // skip to end of line
+                                charPos = currentLine.Length - 1;
+                                if (currentLine[^1] == ';') {
+                                    charPos--;
+                                }
                             }
                         }
                     }

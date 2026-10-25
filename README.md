@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.106
+        Version 3.0.0beta.107
     ==============================
 
 
@@ -34,6 +34,10 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.107:
+- fixed bug in FanCompiler that caused unhandled error when compiling games with UseReserved property set to false
+- fixed bug in FanCompiler that caused unhandled error when encountering invalid text strings
+
 Beta.106:
 - refactored startup function to force templates to reset to latest version when game version changes
 
