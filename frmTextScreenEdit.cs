@@ -2194,62 +2194,38 @@ namespace WinAGI.Editor {
                 switch (intChar) {
                 case 8:
                     // backspace
-                    // bckup 1 space
-                    insertpos.X--;
-                    break;
-                case 9:
-                    //  tab
-                    // add spaces equal to tabwidth
-                    if (!OverwriteMode) {
-                        // advance line by one
-                        for (int j = ScreenWidth - 1; j > insertpos.X; i--) {
-                            TextData[i, insertpos.Y] = TextData[i - WinAGISettings.LogicTabWidth.Value, insertpos.Y];
+                    if (insertpos.X > 0) {
+                        if (OverwriteMode) {
+                            // clear one space backward 
+                            TextData[insertpos.X - 1, insertpos.Y].BG = backcolor;
+                            TextData[insertpos.X - 1, insertpos.Y].FG = forecolor;
+                            TextData[insertpos.X - 1, insertpos.Y].CharVal = 0;
                         }
+                        else {
+                            // move current line back one space
+                            for (int j = insertpos.X; j < ScreenWidth; j++) {
+                                TextData[j - 1, insertpos.Y] = TextData[j, insertpos.Y];
+                            }
+                            TextData[ScreenWidth - 1, insertpos.Y].BG = backcolor;
+                            TextData[ScreenWidth - 1, insertpos.Y].FG = forecolor;
+                            TextData[ScreenWidth - 1, insertpos.Y].CharVal = 0;
+                            updateregion.X = Math.Min(updateregion.Left, 0);
+                            max.X = Math.Max(max.X, ScreenWidth - 1);
+                        }
+                        insertpos.X--;
                     }
 
-                    for (int j = 1; j < WinAGISettings.LogicTabWidth.Value; j++) {
-                        if (insertpos.X >= ScreenWidth) {
-                            break;
-                        }
-                        if (!OverwriteMode) {
-                            // advance line by one
-                            AdvanceLine(insertpos);
-                        }
-                        TextData[insertpos.X, insertpos.Y].BG = backcolor;
-                        TextData[insertpos.X, insertpos.Y].FG = forecolor;
-                        TextData[insertpos.X, insertpos.Y].CharVal = 0;
-                    }
                     break;
                 case 10:
                 case 13:
                     // line feed or cr
-                    insertpos.X = startCol - 1;
+                    insertpos.X = startCol;
                     insertpos.Y++;
                     if (insertpos.Y < 25) {
                         max.Y = Math.Max(max.Y, insertpos.Y + 1);
                     }
                     break;
                 default:
-                    if (i > 0) {
-                        // advance cursor and adjust update region
-                        insertpos.X++;
-                        if (insertpos.X == ScreenWidth) {
-                            // overflow to start of next line
-                            // (unless already at bottom)
-                            if (insertpos.Y == 24) {
-                                insertpos.X = ScreenWidth - 1;
-                                break;
-                            }
-                            insertpos.Y++;
-                            max.Y = Math.Max(max.Y, insertpos.Y + 1);
-                            // moving to left means update region X val must be
-                            // zero while right edge remains the same
-                            updateregion.Width = updateregion.Right;
-                            updateregion.X = 0;
-                            insertpos.X = 0;
-                        }
-                        max.X = Math.Max(max.X, insertpos.X + 1);
-                    }
                     if (!OverwriteMode) {
                         // advance line by one
                         AdvanceLine(insertpos);
@@ -2257,20 +2233,30 @@ namespace WinAGI.Editor {
                     TextData[insertpos.X, insertpos.Y].CharVal = intChar;
                     TextData[insertpos.X, insertpos.Y].BG = backcolor;
                     TextData[insertpos.X, insertpos.Y].FG = forecolor;
+                    // advance cursor and adjust update region
+                    insertpos.X++;
+                    if (insertpos.X == ScreenWidth) {
+                        // overflow to start of next line
+                        // (unless already at bottom)
+                        if (insertpos.Y == 24) {
+                            insertpos.X = ScreenWidth - 1;
+                            break;
+                        }
+                        insertpos.Y++;
+                        max.Y = Math.Max(max.Y, insertpos.Y + 1);
+                        // moving to left means update region X val must be
+                        // zero while right edge remains the same
+                        updateregion.Width = updateregion.Right;
+                        updateregion.X = 0;
+                        insertpos.X = 0;
+                    }
+                    max.X = Math.Max(max.X, insertpos.X + 1);
                     break;
                 }
             }
             // redraw affected area
             updateregion = updateregion.Expand(max);
             DrawScreen(updateregion);
-            // reposition cursor at end of added text
-            insertpos.X++;
-            if (insertpos.X == ScreenWidth) {
-                if (insertpos.Y < 24) {
-                    insertpos.Y++;
-                }
-                insertpos.X = 0;
-            }
             SetSelection(insertpos);
         }
 
@@ -2306,10 +2292,6 @@ namespace WinAGI.Editor {
             // so they can be handled by the various WinAGI editors. In AGI,
             // these characters will actually print if used on the text screen
             // so they need to inserted in place of the '\x##' code.
-            //
-            // Also, backspace (char value '8') is not allowed by the
-            // WinAGI editors, as it interferes with AGI's print methods.
-            // It gets replaced with single space.
 
             string retval = "";
             bool skipchar = false;
@@ -2323,6 +2305,10 @@ namespace WinAGI.Editor {
                     // check for special codes
                     if (i < sInput.Length - 1) {
                         switch ((int)sInput[i + 1]) {
+                        case 92:
+                            charval = 92;
+                            i++;
+                            break;
                         case 110:
                             // '\n' = new line
                             charval = 0x0A;
@@ -2336,15 +2322,7 @@ namespace WinAGI.Editor {
                                 string hextext = sInput[(i + 2)..(i + 4)];
                                 if (int.TryParse(hextext, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int hexval)) {
                                     if (hexval >= 1 && hexval < 256) {
-                                        switch (hexval) {
-                                        case 8:
-                                            // invalid code, convert to space
-                                            charval = 32;
-                                            break;
-                                        default:
-                                            charval = hexval;
-                                            break;
-                                        }
+                                        charval = hexval;
                                         i += 3;
                                     }
                                 }

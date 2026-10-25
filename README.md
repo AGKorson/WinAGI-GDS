@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.107
+        Version 3.0.0beta.108
     ==============================
 
 
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.108:
+- fixed text screen editor to correctly handle inserting text that contains backspace characters and tab characters
+
 Beta.107:
 - fixed bug in FanCompiler that caused unhandled error when compiling games with UseReserved property set to false
 - fixed bug in FanCompiler that caused unhandled error when encountering invalid text strings
