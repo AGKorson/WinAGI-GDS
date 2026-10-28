@@ -18,9 +18,9 @@
 			</map>
 			<p><img src="..\..\graphics\propgeneral.jpg" border="0" usemap="#props" width="406"></p>
 		<h2><a name="gameid">GameID</a></h2>
-			<p>The WinAGI <a href="..\agi\components.htm#gameid">GameID</a> is used by WinAGI to identify a game you are working on. For version 3 games, the GameID is the prefix for the directory files and volume files. The GameID defaults to "AGI" for new games.</p>
+			<p>The WinAGI GameID is used by WinAGI to identify a game you are working on. For version 3 games, the GameID is the prefix for the directory files and volume files. The GameID defaults to "AGI" for new games.</p>
 			<blockquote>
-				<p><b>Note:</b> The GameID property is not directly associated with the <a href="..\commands\cmd_setgameid.htm"><b>set.game.id</b></a> AGI command. Changing the GameID property will not affect any <b>set.game.id</b> commands in your game. For help with avoiding game ID issues, see <a href="..\agi\components.htm#gameid">Game IDs and Loaders</a>.</p>
+				<p><b>Note:</b> The GameID property is not directly associated with the <a href="..\agi\components.htm#gameid">game id</a> argument used in the <a href="..\commands\cmd_setgameid.htm"><b>set.game.id</b></a> AGI command. Changing the WinAGI GameID property will not affect any <b>set.game.id</b> commands in your game. For help with avoiding game ID issues, see <a href="..\agi\components.htm#gameid">Game IDs and Loaders</a>.</p>
 			</blockquote>
 			<p>For version 2 games, the GameID property can be up to six alphanumerical characters long. This is a limitation of the old DOS '8.3' file naming convention. The file name for saved game files was 'SG' plus the game ID with extensions of 001, 002, etc. This meant the game ID could be no longer than six characters.</p>
 			<p>For version 3 games, the GameID property is limited to five characters. The directory file for a version 3 game includes the three-character sequence "DIR" which leaves five characters available for the GameID.</p>

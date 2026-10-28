@@ -5,7 +5,7 @@
            by Andrew Korson
     
     ==============================                                   
-        Version 3.0.0beta.108
+        Version 3.0.0beta.109
     ==============================
 
 
@@ -34,6 +34,9 @@ The installer for WinAGI-GDS cannot currently check for the correct .NET Desktop
 ---
 
 ### History:
+Beta.109:
+- fixed bugs in game platform properties to correctly configure and run all supported game platforms
+
 Beta.108:
 - fixed text screen editor to correctly handle inserting text that contains backspace characters and tab characters
 

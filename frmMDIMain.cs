@@ -6346,11 +6346,12 @@ namespace WinAGI.Editor {
                 break;
             case PlatformType.ScummVM:
                 // scummvm parameters: --p gamedir --auto-detect
-                parameters = "-p \"" + Path.GetDirectoryName(EditGame.GameDir) + "\" --auto-detect " + EditGame.PlatformOpts;
+                // gamedir must not include trailing '\'
+                parameters = $"-p \"{EditGame.GameDir}\" --auto-detect {EditGame.PlatformOpts}";
                 break;
             case PlatformType.AGILE:
                 // agile parameters: gamedir
-                parameters = '"' + Path.Combine(EditGame.GameDir, EditGame.GameID) + '"' + " " + EditGame.PlatformOpts;
+                parameters = '"' + EditGame.GameDir + '"' + " " + EditGame.PlatformOpts;
                 break;
             case PlatformType.NAGI:
                 // no parameters for nagi; just run the program
@@ -6368,7 +6369,7 @@ namespace WinAGI.Editor {
                     Arguments = parameters,
                     ErrorDialog = true,
                     ErrorDialogParentHandle = Handle,
-                    //runparams.UseShellExecute = true;
+                    //UseShellExecute = true,
                     WindowStyle = ProcessWindowStyle.Normal,
                     WorkingDirectory = EditGame.GameDir
                 };

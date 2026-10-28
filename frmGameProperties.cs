@@ -366,17 +366,23 @@ namespace WinAGI.Editor {
 
         private void optNAGI_CheckedChanged(object sender, EventArgs e) {
             if (optNAGI.Checked) {
-                // platform dir is automatically the game dir
-                lblPlatformFile.Enabled = false;
-                btnPlatformFile.Enabled = false;
                 // dos executable is NA
                 lblExec.Enabled = false;
                 txtExec.Enabled = false;
-                // save this directory/filename combo
-                NewPlatformFile = Path.Combine(EditGame.GameDir, "n.exe");
+                // check for nagi file
+                if (File.Exists(Path.Combine(EditGame.GameDir, "nagi.exe"))) {
+                    NewPlatformFile = Path.Combine(EditGame.GameDir, "nagi.exe");
+                }
+                else if (File.Exists(Path.Combine(EditGame.GameDir, "n.exe"))) {
+                    NewPlatformFile = Path.Combine(EditGame.GameDir, "n.exe");
+                }
+                else {
+                    NewPlatformFile = "";
+                }
                 txtPlatformFile.Text = NewPlatformFile;
-                txtPlatformFile.Enabled = false;
-                btnPlatformFile.Enabled = false;
+                lblPlatformFile.Enabled = true;
+                txtPlatformFile.Enabled = true;
+                btnPlatformFile.Enabled = true;
                 // no options for nagi
                 lblOptions.Enabled = false;
                 txtOptions.Enabled = false;
@@ -537,6 +543,7 @@ namespace WinAGI.Editor {
                 switch (EditGame.PlatformType) {
                 case PlatformType.None:
                     // None - do nothing; form is already correct
+                    optNone.Checked = true;
                     break;
                 case PlatformType.DosBox:
                     optDosBox.Checked = true;
@@ -709,6 +716,18 @@ namespace WinAGI.Editor {
             OpenDlg.Filter = "Executables (*.exe; *.com)|*.exe;*.com|All files (*.*)|*.*";
             OpenDlg.FilterIndex = 1;
             if (OpenDlg.ShowDialog() == DialogResult.OK) {
+                if (optNAGI.Checked) {
+                    // nagi must be in game's directory
+                    if (Path.GetDirectoryName(OpenDlg.FileName) != EditGame.GameDir) {
+                        MDIMain.MsgBoxWithHelp(
+                            "NAGI executable must be located in the game directory.",
+                            "Invalid Platform Executable",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Exclamation,
+                            "htm\\winagi\\prop_platform.htm#platform");
+                        return;
+                    }
+                }
                 // save this directory/filename combo
                 NewPlatformFile = OpenDlg.FileName;
                 txtPlatformFile.Text = NewPlatformFile;

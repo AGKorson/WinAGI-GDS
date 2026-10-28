@@ -9,7 +9,7 @@
 			<p><b>NOTE:</b> Changing colors in WinAGI while editing your game has no effect on the colors used by AGI when the game is running unless using advanced features as described below.</p>
 		<h1>Color Limitations in AGI</h1>
 			<p>AGI's original color palette is limited to sixteen colors (not including the rarely used limited palettes for HGC and CGA in RGB mode). See the <a href="..\agi\graphics.htm#agicolors">AGI Color Palette</a> topic for additional information.</p>
-			<p>There is a fan made 'hack' to AGI, called AGIPAL, that allows you to change palette colors using the <a href="..\commands\cmd_shakescreen.htm"><b>shake.screen</b></a> command. Nick Sonneveld's AGI emulator <a href="https://agidev.com/projects/nagi" target="_blank">NAGI</a>, in version 2.09 and later, also supports use of modified color palettes.</p>
+			<p>There is a fan made 'hack' to AGI, called AGIPAL, that allows you to change palette colors using the <a href="..\commands\cmd_shakescreen.htm"><b>shake.screen</b></a> command. The <a href="https://github.com/AGKorson/nagi" target="_blank">WinAGI fork of Nick Sonneveld's AGI emulator NAGI</a> also supports use of modified color palettes.</p>
 			<p>The <a href="powerpack.htm">AGI Power Pack</a> also provides the ability to change color palettes.</p>
 		<h1>Custom Color Palette</h1>
 			<p>If you want to design a game that uses its own color palette for special effects, WinAGI provides you the ability to change the colors in the palette while you are designing your game.</p>
@@ -37,7 +37,7 @@
 		<h2><a name="hexvalue">Color Value as Hex String</a></h2>
 			<p>The 24 bit and <a href="..\agi\graphics.htm#agicolors">18 bit</a> hex values of the selected color are displayed here for reference.</p>
 		<h2><a name="load"></a>Load Palette</h2>
-			<p>NAGI version 2.09 and higher provide the capability to run games with different color palettes. The colors are defined in the <b><EM>nagi.ini</EM></b> file that should exist in your game's directory. WinAGI makes it easy to coordinate the color palette used by allowing you to import and export the color palette settings directly from/to any nagi.ini file. Use the Load Palette button to select a <EM><b>nagi.ini</b></EM> file from which to extract a color palette.</p>
+			<p>The <a href="https://github.com/AGKorson/nagi" target="_blank">WinAGI fork of Nick Sonneveld's AGI emulator NAGI</a> provide the capability to run games with different color palettes. The colors are defined in the <b><EM>nagi.ini</EM></b> file that should exist in your game's directory. WinAGI makes it easy to coordinate the color palette used by allowing you to import and export the color palette settings directly from/to any nagi.ini file. Use the Load Palette button to select a <EM><b>nagi.ini</b></EM> file from which to extract a color palette.</p>
 		<h2><a name="save"></a>Save Palette</h2>
 			<p>Once you have a palette that you are satisfied with, you can easily add them to a <EM><b>nagi.ini</b></EM> file by using the Save Palette command.</p>
 			<p>(The file used to load a palette doesn't have to be a full nagi.ini file; it can be any text file as long as long as it has the color data in the correct format. Similarly, you can save the palette to any text file; the save function will add the data in the correct nagi.ini format. Also, nagi uses the British spelling 'colour' instead of 'color', in case you are examining the files in a text editor, looking for the palette data.)</p>
